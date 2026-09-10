@@ -296,7 +296,8 @@ mod tests {
         let before = random.clone();
         let mut remaining = 0;
         random.shuffle(&mut [], &mut remaining).unwrap();
-        random.shuffle(&mut [b'A'], &mut remaining).unwrap();
+        let mut singleton = *b"A";
+        random.shuffle(&mut singleton, &mut remaining).unwrap();
         assert_eq!(random.bounded(0, &mut remaining).unwrap(), 0);
         assert_eq!(random, before);
         assert_eq!(remaining, 0);

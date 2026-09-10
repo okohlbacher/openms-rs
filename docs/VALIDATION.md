@@ -1,5 +1,43 @@
 # Validation of the ongoing Rust port
 
+## Logging, progress and remaining map helpers (2026-09-10)
+
+Owned logging, replaceable progress reporting, public feature/consensus
+modification collection and compressed INI loading are integrated. Real local
+timestamps and process CPU timing use pinned safe Rust adapters. The optimized
+all-feature library builds. [Recorded results](runtime-foundations-validation.json)
+include each command, outcome and log hash.
+
+| Check | Result |
+| --- | --- |
+| Combined runtime, XML, definition, filesystem and unit suites, current Rust | 206 tests passed |
+| Selected runtime, definition, filesystem and unit suites, Rust 1.85 without defaults | 128 tests passed |
+| INI feature alone plus filesystem integration, Rust 1.85 | 32 tests passed |
+| Final unit and CSV regression checks | 73 tests passed |
+| Strict Clippy, all targets | Passed on current Rust with all features and Rust 1.85 without defaults |
+| Doctests, Rustdoc, optimized library, Rustfmt | Passed; three doctests and documentation warnings denied |
+| Source/fixture audit | 1,827 distinct current source/registration/reference files; four unchanged logging fixtures |
+| Windows-style Git checkout filters | All four tested source fixtures retain exact bytes |
+| Completion ledger and regressions | All 786 headers accounted for; two regression tests passed |
+
+These selected runs overlap and supplement the complete 1,276-test suite in the
+preceding increment. They are not a new complete all-target run. Reviews closed
+an empty-name work-accounting gap and a logging flush-failure path that allowed
+later output. Logging and progress also passed their isolated staged tests on
+both compilers before integration.
+
+CI for the preceding commit passed macOS and Rust 1.85. Windows exposed CSV
+fixture checkout conversion, and the quality job exposed a Clippy test-expression
+diagnostic. This increment protects all scientific fixture bytes and uses a
+portable mutable byte array; local regression checks passed. Updated CI results
+are tracked separately from these local results.
+
+The completion gate still fails for 770 headers requiring implementation or
+explicit review. Public modification collection and the native progress API now
+have complete reviewed mappings. ZIP input, some platform logging/filesystem
+behavior, full format/API coverage and executed C++/TOPP parity remain open.
+
+
 ## Map interchange and runtime resources (2026-09-10)
 
 The target remains Core SDK 4.0.0 at `6bfc0e4`. Native featureXML and consensusXML,

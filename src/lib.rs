@@ -26,6 +26,7 @@
 pub mod analysis;
 pub mod chemistry;
 pub mod comparison;
+pub mod concept;
 pub mod error;
 pub mod format;
 pub mod identification;

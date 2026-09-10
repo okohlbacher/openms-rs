@@ -1,0 +1,352 @@
+{
+  "target_sdk_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "platform": "macOS ARM64",
+  "current_rust": "1.96.0",
+  "minimum_rust": "1.85.0",
+  "checks": [
+    {
+      "name": "combined-current",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--lib",
+        "--test",
+        "log_stream",
+        "--test",
+        "progress_logger",
+        "--test",
+        "paramxml",
+        "--test",
+        "modification_definition_io",
+        "--test",
+        "system_file",
+        "--test",
+        "file_handler",
+        "--test",
+        "idxml",
+        "--test",
+        "idxml_definitions",
+        "--test",
+        "custom_modification_workflow",
+        "--test",
+        "featurexml",
+        "--test",
+        "consensusxml",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 43.37,
+      "passed_tests": 206,
+      "log_sha256": "a04fa23f80380eaf1e0328ab95f7dfaa29dee67aa99ee6e79eb390dbd5b5a0ce"
+    },
+    {
+      "name": "minimum-no-default",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "log_stream",
+        "--test",
+        "progress_logger",
+        "--test",
+        "modification_definition_io",
+        "--test",
+        "system_file",
+        "--test",
+        "file_handler",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 44.14,
+      "passed_tests": 128,
+      "log_sha256": "3b220a50a0cf0c028e54588b10cff63bb07497a1d1a462bb26806024dda5df5d"
+    },
+    {
+      "name": "minimum-paramxml",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "paramxml",
+        "--test",
+        "paramxml",
+        "--test",
+        "system_file",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 16.89,
+      "passed_tests": 32,
+      "log_sha256": "cd3e66e5c4f418632b1845c98e41e2f12b19e79efe29d42f136a99db6bfd7446"
+    },
+    {
+      "name": "clippy-current",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j",
+        "4",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 78.03,
+      "passed_tests": 0,
+      "log_sha256": "d907518e6d90e25779eea68fc97997809e39c154aa11b4c58442765c0b2a8554"
+    },
+    {
+      "name": "clippy-minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--all-targets",
+        "-j",
+        "4",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 60.13,
+      "passed_tests": 0,
+      "log_sha256": "fac0da8eedeb8ae64d013534b866acc41e4591af6cad3cbba6805e41d4edfc19"
+    },
+    {
+      "name": "doctests",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--doc",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 4.93,
+      "passed_tests": 3,
+      "log_sha256": "70c47ae547cfffdb59848f5ff869112a736431bb297136262aff17a1756ac4ff"
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "rustdoc",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--lib",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 1.8,
+      "passed_tests": 0,
+      "log_sha256": "0aab5cb3c238a20ac13eea4bb49b19e6cab84f81b36f169b351ba5a27eae3c3f"
+    },
+    {
+      "name": "release",
+      "command": [
+        "cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--release",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 17.67,
+      "passed_tests": 0,
+      "log_sha256": "93659b34fe71fa226433ae092becafc2ebe28759fccd2dc2a3707df1fe4eac77"
+    },
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.59,
+      "passed_tests": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-current"
+      ],
+      "exit_code": 0,
+      "seconds": 0.16,
+      "passed_tests": 0,
+      "log_sha256": "6a6e3b9dc0db892e42b431e8fb043209ae6ea96659b059a3512cc05c1120346e"
+    },
+    {
+      "name": "ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.06,
+      "passed_tests": 0,
+      "log_sha256": "148ee0cc5e224e2f1cf357b0c5ef8a03cdd35377378caf33058a2635ca8e4670"
+    },
+    {
+      "name": "ledger-regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.09,
+      "passed_tests": 0,
+      "log_sha256": "41919cc1849a5baca889b145de1b4eb93cc6286c4e6b996e80ebf7981eee9f1c"
+    },
+    {
+      "name": "final_unit_and_csv_regressions",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--lib",
+        "--test",
+        "csv_file",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "passed_tests": 73,
+      "log_sha256": "b9325e0ed385ffeea8d7a1e1bbe9340dd7e33ae23d42b635657065d6a8d53e61"
+    },
+    {
+      "name": "final_current_strict_lint",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j",
+        "4",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "passed_tests": 0,
+      "log_sha256": "8e5aad2f7a12d978d2690a4d903e6536e6ee322e3ebf02114909514d15c57e4b"
+    },
+    {
+      "name": "final_minimum_singleton_regression",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--lib",
+        "empty_singleton_and_zero_width_mapping_never_draw",
+        "-j",
+        "2"
+      ],
+      "exit_code": 0,
+      "passed_tests": 1,
+      "log_sha256": "81f7823b410174f75bd74392f538e98ba52de0d69fadc7c4a52a5a27067ab83d"
+    }
+  ],
+  "fixture_checkout_checks": [
+    {
+      "path": "tests/data/csv_file_source_1.csv",
+      "sha256": "3ea6e8cecb2d62827862b345368eaea42595dcde1245261f0c91f8cff0c3919d",
+      "windows_autocrlf_filter": "unchanged"
+    },
+    {
+      "path": "tests/data/csv_file_source_2.csv",
+      "sha256": "9a086ef5fa15a6fceeb4b158a7372934bdc93ff1e3f4611e7e2ab6ad824a1261",
+      "windows_autocrlf_filter": "unchanged"
+    },
+    {
+      "path": "tests/data/text_file_source.txt",
+      "sha256": "0b0ec2a204f3fc3d2a64ce8bd84bafe86a39c151662fd083f6c592de1dd8ee1d",
+      "windows_autocrlf_filter": "unchanged"
+    },
+    {
+      "path": "tests/data/featurexml_source_options.featureXML",
+      "sha256": "797bbaa8cd8f05d782563e94308db98c26250b437fb2a343144969a96b672193",
+      "windows_autocrlf_filter": "unchanged"
+    }
+  ],
+  "audit": {
+    "distinct_current_source_registration_reference_files": 1827,
+    "new_byte_exact_log_fixtures": 4,
+    "local_documentation_links": 488
+  },
+  "scope": "Logging and progress reporting, map-based public modification collection, and gzip/bzip2 INI path input. Test counts overlap; these selected runs supplement the prior complete1276-test map-interchange run.",
+  "upstream_runtime_checks": {
+    "run": "https://github.com/okohlbacher/openms-rs/actions/runs/34526142309",
+    "commit": "eb6561b",
+    "macos": "success",
+    "minimum_rust": "success",
+    "windows": "CSV expected bytes gained an extra carriage return after checkout conversion; fixture attributes now disable conversion for all scientific fixtures.",
+    "quality": "A byte-character slice expression triggered a newer Clippy diagnostic; the test now uses a mutable owned byte array.",
+    "ubuntu": "All-feature tests, doctests and no-default passed before later matrix cancellation."
+  },
+  "completion": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "evidence_requires_review": 167,
+      "native_equivalent": 6,
+      "partial": 8,
+      "unmapped": 595
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "cpp_built": false,
+  "cpp_runtime_differential_tests": false,
+  "validated_topp_workflows": 0,
+  "development_checks": {
+    "logging_review": "Final sink flush errors now disable later writes and destructor retries; regression verified by an independent reviewer.",
+    "collector_review": "Empty-name lookups against an empty registry now consume work; the new regression passed after recompiling the corrected library.",
+    "ci_test_expression": "The suggested direct mutable byte-string borrow was rejected by the compiler; replaced with an owned mutable byte array and tested."
+  }
+}

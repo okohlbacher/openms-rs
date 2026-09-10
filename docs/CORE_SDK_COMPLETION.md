@@ -6,11 +6,11 @@ This is a work inventory, not a completion percentage. Matching declarations and
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 9 |
-| evidence_requires_review | 164 |
-| native_equivalent | 5 |
+| complete | 10 |
+| evidence_requires_review | 167 |
+| native_equivalent | 6 |
 | partial | 8 |
-| unmapped | 600 |
+| unmapped | 595 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -19,14 +19,13 @@ These counts show direct consumers; they do not establish full dependency closur
 | Header | Direct TOPP consumers | State |
 | --- | ---: | --- |
 | `OpenMS/FORMAT/FileHandler.h` | 118 | partial |
-| `OpenMS/CONCEPT/LogStream.h` | 76 | unmapped |
+| `OpenMS/CONCEPT/LogStream.h` | 76 | partial |
 | `OpenMS/KERNEL/MSExperiment.h` | 70 | evidence_requires_review |
 | `OpenMS/METADATA/ProteinIdentification.h` | 56 | evidence_requires_review |
 | `OpenMS/SYSTEM/File.h` | 53 | partial |
 | `OpenMS/KERNEL/ConsensusMap.h` | 40 | evidence_requires_review |
 | `OpenMS/KERNEL/FeatureMap.h` | 22 | evidence_requires_review |
 | `OpenMS/FORMAT/MzMLFile.h` | 19 | unmapped |
-| `OpenMS/CONCEPT/ProgressLogger.h` | 17 | unmapped |
 | `OpenMS/CONCEPT/Constants.h` | 16 | evidence_requires_review |
 | `OpenMS/FORMAT/FASTAFile.h` | 16 | unmapped |
 | `OpenMS/PROCESSING/ID/IDFilter.h` | 14 | evidence_requires_review |
@@ -53,6 +52,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/FORMAT/SVOutStream.h` | 7 | unmapped |
 | `OpenMS/IONMOBILITY/IMTypes.h` | 7 | unmapped |
 | `OpenMS/METADATA/ExperimentalDesign.h` | 7 | unmapped |
+| `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 6 | unmapped |
 
 ## Completion requirements
 

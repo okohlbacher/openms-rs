@@ -579,3 +579,47 @@ fn stored_file_validates_against_the_original_schema_when_available() {
         Err(error) => panic!("schema validator failed: {error}"),
     }
 }
+
+#[test]
+fn compressed_paths_detect_magic_preserve_plain_output_and_fail_atomically() {
+    let directory = openms::system::file::TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let path = directory.path().join("parameters.unknown");
+    let expected = paramxml::read(SOURCE).unwrap();
+    let mut gzip = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    gzip.write_all(SOURCE).unwrap();
+    let gzip = gzip.finish().unwrap();
+    let mut bzip = bzip2::write::BzEncoder::new(Vec::new(), bzip2::Compression::default());
+    bzip.write_all(SOURCE).unwrap();
+    let bzip = bzip.finish().unwrap();
+    for encoded in [&gzip, &bzip] {
+        std::fs::write(&path, encoded).unwrap();
+        assert_eq!(paramxml::load(&path).unwrap(), expected);
+        let mut target = parse("<ITEM name=\"retained\" value=\"present\" type=\"string\"/>");
+        paramxml::load_into(&path, &mut target).unwrap();
+        assert_eq!(
+            target.entry("retained").unwrap().value,
+            ParamValue::from("present")
+        );
+        assert_eq!(target.entry("item1").unwrap().value, ParamValue::Integer(7));
+        let before = target.clone();
+        assert!(
+            paramxml::load_into_with_limits(
+                &path,
+                &mut target,
+                Limits {
+                    max_xml_bytes: SOURCE.len() - 1,
+                    ..Default::default()
+                }
+            )
+            .is_err()
+        );
+        assert_eq!(target, before);
+        std::fs::write(&path, &encoded[..encoded.len() - 8]).unwrap();
+        assert!(paramxml::load_into(&path, &mut target).is_err());
+        assert_eq!(target, before);
+    }
+    let output = directory.path().join("plain.ini.gz");
+    paramxml::store(&output, &expected).unwrap();
+    assert!(std::fs::read(&output).unwrap().starts_with(b"<?xml"));
+    assert_eq!(paramxml::load(output).unwrap(), expected);
+}

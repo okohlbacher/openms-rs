@@ -66,10 +66,21 @@ pub fn read_into(input: impl Read, target: &mut Param, limits: Limits) -> Result
     Ok(())
 }
 pub fn load(path: impl AsRef<Path>) -> Result<Param> {
-    read(File::open(path)?)
+    load_with_limits(path, Limits::default())
+}
+/// Path input recognizes gzip and bzip2 by content; limits apply after decoding.
+pub fn load_with_limits(path: impl AsRef<Path>, limits: Limits) -> Result<Param> {
+    read_with_limits(super::path_io::open(path.as_ref())?, limits)
 }
 pub fn load_into(path: impl AsRef<Path>, target: &mut Param) -> Result<()> {
-    read_into(File::open(path)?, target, Limits::default())
+    load_into_with_limits(path, target, Limits::default())
+}
+pub fn load_into_with_limits(
+    path: impl AsRef<Path>,
+    target: &mut Param,
+    limits: Limits,
+) -> Result<()> {
+    read_into(super::path_io::open(path.as_ref())?, target, limits)
 }
 
 fn document(input: impl Read, limit: usize) -> Result<String> {

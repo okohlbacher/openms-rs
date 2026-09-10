@@ -288,3 +288,10 @@ DEALINGS IN THE SOFTWARE.
 
 The unchanged license text is available from the
 [Boost license page](https://www.boost.org/LICENSE_1_0.txt).
+
+## Native runtime clock dependencies
+
+Local log timestamps use `chrono 0.4.45` with its clock feature. Process CPU
+timing on Unix/Windows uses `cpu-time 1.0.0`. Both are licensed MIT OR Apache-2.0;
+platform adapter dependencies and their exact versions are recorded in Cargo.lock.
+Their source archives retain the individual dependency license notices.

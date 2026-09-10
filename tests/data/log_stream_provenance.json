@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "upstream": {
+    "repository": "https://github.com/okohlbacher/OpenMS4-core",
+    "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+  },
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/LogStream.h",
+      "sha256": "d607528250b0021dbfc890a325017ed3a2433b3dff0b3bc3d5c69a99dd9ac080"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/LogStream.cpp",
+      "sha256": "a68abf7af7a12a0a6133e841f7b1069624b82af3c4a53488c5b38d9c017ae292"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/LogStream_test.cpp",
+      "sha256": "133ecd44c2a17fbfd54e5dbb2478ed6dde78a7faf17e31c4bcd7eee0b3c63cf2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Colorizer.h",
+      "sha256": "3d2a27148385beea0bd026d36e0dd27459cecd8fe324b78d7c0caa47f39a8a24"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/Colorizer.cpp",
+      "sha256": "641bb161074a7bf77de7b41cdb3aca43910af899252ed6065dc95059dc80a6d3"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/log_stream_general.txt",
+      "source_path": "src/tests/class_tests/openms/data/LogStream_test_general.txt",
+      "sha256": "a6e2b7a040683432de03a18fd8a1939a2fdf82585b364bfc874bdd4095c4cae1",
+      "transformation": "none: exact bytes, including source typo and ANSI escapes"
+    },
+    {
+      "path": "tests/data/log_stream_general_red.txt",
+      "source_path": "src/tests/class_tests/openms/data/LogStream_test_general_red.txt",
+      "sha256": "3452ca2b12c5987ddb4f8865671a48c8075f316736404a8cb6cf84f8fbd240f6",
+      "transformation": "none: exact bytes, including source typo and ANSI escapes"
+    },
+    {
+      "path": "tests/data/log_stream_general_yellow.txt",
+      "source_path": "src/tests/class_tests/openms/data/LogStream_test_general_yellow.txt",
+      "sha256": "5bb0d4b7b7d7b41191e539017904ca453bd98a1686e5df40bacdf539b7f3bd22",
+      "transformation": "none: exact bytes, including source typo and ANSI escapes"
+    },
+    {
+      "path": "tests/data/log_stream_caching.txt",
+      "source_path": "src/tests/class_tests/openms/data/LogStream_test_caching.txt",
+      "sha256": "1b0ef7a920e2b89b43a64e5c4d78ed8220a23e452f9cca763c55bc2320482dcc",
+      "transformation": "none: exact bytes, including source typo and ANSI escapes"
+    }
+  ],
+  "evidence": [
+    {
+      "source": "src/tests/class_tests/openms/source/LogStream_test.cpp",
+      "lines": [
+        104,
+        164
+      ],
+      "kind": "literal test design",
+      "note": "5000 unique racing_line_i messages, eight workers; validate exact-once integrity, not nondeterministic order."
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/LogStream_test.cpp",
+      "lines": [
+        233,
+        244
+      ],
+      "kind": "literal file golden",
+      "note": "Plain1/2 and color variants retain LF and ANSI bytes."
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/LogStream_test.cpp",
+      "lines": [
+        449,
+        550
+      ],
+      "kind": "literal token formats plus independently fixed clock",
+      "note": "Source uses regexes against current local dates; native test fixes2007-09-08T01:02:03 without generating expected text through implementation."
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/LogStream_test.cpp",
+      "lines": [
+        554,
+        566
+      ],
+      "kind": "literal scalar text",
+      "note": "flushtest and unfinishedline source strings and deferred flush."
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/LogStream_test.cpp",
+      "lines": [
+        580,
+        599
+      ],
+      "kind": "literal file golden",
+      "note": "Two alternating repeated messages, third distinct evicts LRU, destructor emits remaining duplicate summary."
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/LogStream_test.cpp",
+      "lines": [
+        724,
+        736
+      ],
+      "kind": "literal scalar text",
+      "note": "Four empty lines bypass cache."
+    },
+    {
+      "source": "src/openms/source/CONCEPT/LogStream.cpp",
+      "lines": [
+        179,
+        298
+      ],
+      "kind": "independently derived semantics",
+      "note": "LRU refresh, lexicographic clearing, prefixes on current sink routes, callback dispatch after mutex."
+    },
+    {
+      "source": "src/openms/include/OpenMS/CONCEPT/LogStream.h",
+      "lines": [
+        517,
+        558
+      ],
+      "kind": "independently derived semantics",
+      "note": "Guard flushes both boundaries, restores as fresh route losing previous prefix and notifier."
+    }
+  ],
+  "native_boundaries": [
+    "Owned writer/callback handles replace raw pointers; standard io errors and explicit finish expose failure.",
+    "Default chrono local calendar; injected provider for deterministic tests. Calendar years0000..9999; invalid fields rejected.",
+    "Bounded line, sink count, prefix storage and cumulative operation allocation/work; output errors disable replay.",
+    "No numeric filters or history APIs: prose mentions them but retained implementation does not provide them.",
+    "Macros complete and flush one line; raw Write retains incremental buffering.",
+    "Windows virtual-terminal enabling and standalone mutable Colorizer composition are not provided."
+  ],
+  "dependency": {
+    "name": "chrono",
+    "version": "0.4.45",
+    "features": [
+      "clock"
+    ],
+    "default_features": false,
+    "crate_sha256": "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327",
+    "purpose": "Safe host-local calendar fields without native unsafe code"
+  },
+  "validation_method": "Rust source-derived and independent tests only; no C++ build, runtime differential, or production-generated expectation.",
+  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+}

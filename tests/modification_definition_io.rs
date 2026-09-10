@@ -337,3 +337,111 @@ fn literal_residue_modification_codec_records_use_none_for_anywhere() {
     assert_eq!(decoded.neutral_losses()[0].formula(), &formula("H3PO4"));
     assert!(ResidueModification::from_definition_string("1|bad|||K|Anywhere|O|1|1|").is_err());
 }
+
+#[test]
+fn map_collection_covers_search_assigned_nested_and_unassigned_definitions() {
+    use openms::kernel::{BaseFeature, ConsensusFeature, ConsensusMap, Feature, FeatureMap};
+    let mut db = ModificationsDB::global().clone();
+    db.extend_records(vec![
+        record("Map:K", 'K', "C2H2O"),
+        record("Map:S", 'S', "HPO3"),
+        record("Map:T", 'T', "O"),
+    ])
+    .unwrap();
+    let peptide = |run: &str, text: &str| PeptideIdentification {
+        identifier: run.into(),
+        hits: vec![PeptideHit {
+            sequence: AASequence::parse_with_registry(text, &db).unwrap(),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let child = Feature {
+        base: BaseFeature {
+            peptide_identifications: vec![peptide("child", "AS(Map:S)")],
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let parent = Feature {
+        base: BaseFeature {
+            // Collection depends on identification chemistry, not geometry validation.
+            mz: f64::NAN,
+            peptide_identifications: vec![peptide("assigned", "AK(Map:K)")],
+            ..Default::default()
+        },
+        subordinates: vec![Feature {
+            subordinates: vec![child],
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let map = FeatureMap {
+        features: vec![parent],
+        protein_identifications: vec![ProteinIdentification {
+            identifier: "search".into(),
+            search_parameters: SearchParameters {
+                fixed_modifications: vec!["Map:T (T)".into()],
+                ..Default::default()
+            },
+            ..Default::default()
+        }],
+        unassigned_peptide_identifications: vec![peptide("free", "AK(Map:K)")],
+        ..Default::default()
+    };
+    let result = io::collect_feature_map(&map, &db).unwrap();
+    assert_eq!(
+        result.keys().map(String::as_str).collect::<Vec<_>>(),
+        ["assigned", "child", "free", "search"]
+    );
+    assert_eq!(result["child"][0].full_id(), "Map:S (S)");
+    assert_eq!(result["search"][0].full_id(), "Map:T (T)");
+    let consensus = ConsensusMap {
+        features: vec![
+            ConsensusFeature::from(map.features[0].base.clone()),
+            ConsensusFeature::from(map.features[0].subordinates[0].subordinates[0].base.clone()),
+        ],
+        protein_identifications: map.protein_identifications.clone(),
+        unassigned_peptide_identifications: map.unassigned_peptide_identifications.clone(),
+        ..Default::default()
+    };
+    assert_eq!(io::collect_consensus_map(&consensus, &db).unwrap(), result);
+}
+
+#[test]
+fn map_collection_accounts_for_empty_nodes_and_nested_scratch() {
+    use openms::kernel::{ConsensusFeature, ConsensusMap, Feature, FeatureMap};
+    let db = ModificationsDB::global();
+    let map = FeatureMap {
+        features: vec![Feature {
+            subordinates: vec![Feature::default()],
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    assert!(io::collect_feature_map_with_budget(&map, db, &mut 1, &mut 4096).is_err());
+    assert!(io::collect_feature_map_with_budget(&map, db, &mut 10, &mut 0).is_err());
+    assert!(
+        io::collect_feature_map_with_budget(&map, db, &mut 10, &mut 4096)
+            .unwrap()
+            .is_empty()
+    );
+    let consensus = ConsensusMap {
+        features: vec![ConsensusFeature::default()],
+        ..Default::default()
+    };
+    assert!(io::collect_consensus_map_with_budget(&consensus, db, &mut 0, &mut 4096).is_err());
+}
+
+#[test]
+fn absent_search_names_still_consume_shared_work() {
+    let registry = ModificationsDB::from_records(vec![]).unwrap();
+    let run = ProteinIdentification {
+        search_parameters: SearchParameters {
+            fixed_modifications: vec![String::new(), String::new()],
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    assert!(io::collect_iter_with_budget(&[run], [], &registry, &mut 1, &mut 4096).is_err());
+}

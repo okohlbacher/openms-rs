@@ -35,6 +35,7 @@ Limits default to 64 MiB raw/decoded/output XML, one million XML elements, one m
 
 ## Remaining input transport
 
-The native path loader currently opens plain input. The source XML loader also
-recognizes gzip, bzip2 and ZIP by content; these compressed INI input paths remain
-unimplemented. Source ParamXML output is plain, including its stdout option.
+The native path loader recognizes plain, gzip and bzip2 input by content.
+`load_with_limits` and `load_into_with_limits` bound decoded bytes; failed reads
+preserve the existing parameter tree. ZIP input remains unsupported. Source
+ParamXML output is plain, including its stdout option, regardless of suffix.

@@ -2,6 +2,10 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add owned logging with source routing, prefixes, duplicate caching and notifications, and replaceable progress backends with process CPU timing.
+- Complete public modification collection for feature/consensus maps and nested subordinates; charge even empty search-name lookups.
+- Add gzip/bzip2 INI loading with content detection, decoded limits and atomic parameter updates, preserving source plain output.
+
 - Add featureXML and consensusXML adapters with typed feature metadata, processing history, assigned/unassigned identifications, checked custom chemistry, source filters, and protein-group quantity ownership guards.
 - Add reusable gzip/bzip2 transport using Rust backends, atomic file output and feature/consensus FileHandler dispatch.
 - Add portable modification definition records and owned-registry registration shared across all three identification XML formats.

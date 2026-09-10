@@ -203,6 +203,99 @@ pub fn collect_iter<'a>(
         MAX_BYTES
     })
 }
+/// Collect search-space and assigned/unassigned definitions from every feature,
+/// including recursively nested subordinates, without requiring XML support.
+pub fn collect_feature_map(
+    map: &crate::kernel::FeatureMap,
+    registry: &ModificationsDB,
+) -> Result<DefinitionsByRun> {
+    collect_feature_map_with_budget(map, registry, &mut { MAX_WORK }, &mut { MAX_BYTES })
+}
+pub fn collect_feature_map_with_budget(
+    map: &crate::kernel::FeatureMap,
+    registry: &ModificationsDB,
+    work: &mut usize,
+    bytes: &mut usize,
+) -> Result<DefinitionsByRun> {
+    let mut peptides = Vec::new();
+    append_peptides(
+        &mut peptides,
+        &map.unassigned_peptide_identifications,
+        work,
+        bytes,
+    )?;
+    // A stack of borrowed sibling iterators uses space proportional to depth,
+    // including for trees with no peptide identifications.
+    let mut pending = Vec::new();
+    let mut siblings = map.features.iter();
+    loop {
+        if let Some(feature) = siblings.next() {
+            spend(work, 1)?;
+            append_peptides(&mut peptides, &feature.peptide_identifications, work, bytes)?;
+            if !feature.subordinates.is_empty() {
+                spend(
+                    bytes,
+                    size_of::<std::slice::Iter<'_, crate::kernel::Feature>>(),
+                )?;
+                pending.push(siblings);
+                siblings = feature.subordinates.iter();
+            }
+        } else if let Some(parent) = pending.pop() {
+            siblings = parent;
+        } else {
+            break;
+        }
+    }
+    collect_iter_with_budget(
+        &map.protein_identifications,
+        peptides,
+        registry,
+        work,
+        bytes,
+    )
+}
+/// Collect definitions from all consensus and unassigned identifications.
+pub fn collect_consensus_map(
+    map: &crate::kernel::ConsensusMap,
+    registry: &ModificationsDB,
+) -> Result<DefinitionsByRun> {
+    collect_consensus_map_with_budget(map, registry, &mut { MAX_WORK }, &mut { MAX_BYTES })
+}
+pub fn collect_consensus_map_with_budget(
+    map: &crate::kernel::ConsensusMap,
+    registry: &ModificationsDB,
+    work: &mut usize,
+    bytes: &mut usize,
+) -> Result<DefinitionsByRun> {
+    spend(work, map.features.len())?;
+    collect_iter_with_budget(
+        &map.protein_identifications,
+        map.unassigned_peptide_identifications.iter().chain(
+            map.features
+                .iter()
+                .flat_map(|feature| feature.peptide_identifications.iter()),
+        ),
+        registry,
+        work,
+        bytes,
+    )
+}
+fn append_peptides<'a>(
+    output: &mut Vec<&'a PeptideIdentification>,
+    input: &'a [PeptideIdentification],
+    work: &mut usize,
+    bytes: &mut usize,
+) -> Result<()> {
+    spend(work, input.len())?;
+    spend(
+        bytes,
+        input
+            .len()
+            .saturating_mul(size_of::<&PeptideIdentification>()),
+    )?;
+    output.extend(input.iter());
+    Ok(())
+}
 pub fn collect_iter_with_budget<'a>(
     proteins: &[ProteinIdentification],
     peptides: impl IntoIterator<Item = &'a PeptideIdentification>,
@@ -227,7 +320,9 @@ pub fn collect_iter_with_budget<'a>(
             // Provider order is irrelevant to the complete all-specificity set.
             spend(
                 result.work,
-                name.len().saturating_add(registry.entries().len()),
+                name.len()
+                    .saturating_add(registry.entries().len())
+                    .saturating_add(1),
             )?;
             spend(
                 result.bytes,

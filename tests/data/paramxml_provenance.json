@@ -53,6 +53,10 @@
     {
       "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
       "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+    },
+    {
+      "path": "src/openms/source/FORMAT/CompressedInputSource.cpp",
+      "sha256": "8814d94cdbde972d7a93eba4ef1484d708b304e663814f86ae96073c903e3083"
     }
   ],
   "files": [
@@ -87,5 +91,6 @@
       "derivation": "Copied byte-for-byte from the pinned SDK."
     }
   ],
-  "validation": "Native assertions from source class tests/branches and immutable fixtures; source XML golden compared except UTF-8 declaration. No executed C++ differential parity claimed."
+  "validation": "Native assertions from source class tests/branches and immutable fixtures; source XML golden compared except UTF-8 declaration. No executed C++ differential parity claimed.",
+  "compressed_path_validation": "Native gzip/bzip2 magic detection, decoded byte limits, malformed-stream rollback, and source plain-output semantics in tests/paramxml.rs. ZIP remains unsupported."
 }

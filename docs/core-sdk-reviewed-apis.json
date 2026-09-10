@@ -175,7 +175,7 @@
         "tests/paramxml.rs"
       ],
       "documentation": "docs/PARAMXML_SUPPORT.md",
-      "scope": "Plain source load/store/stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. Source compressed input (gzip, bzip2, ZIP) is not yet wired through native load/load_into. Native XML encoding/precision/loss validation adaptations documented; generic inherited XMLFile schema APIs remain separate."
+      "scope": "Source plain/gzip/bzip2 load and atomic load-into, plain file/stdout store and stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. ZIP input remains unsupported. Native encoding/precision/loss validation adaptations documented; inherited XMLFile schema APIs remain separate."
     },
     "src/openms/include/OpenMS/DATASTRUCTURES/ListUtils.h": {
       "status": "complete",
@@ -248,7 +248,7 @@
       "scope": "Native load/store and the three range options consumed by the source handler, centroid/handle geometry, typed metadata, protein group quantities, identification references and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Full passive PeakFileOptions and generic inherited XMLFile/ProgressLogger APIs remain separate. Quantity ownership failures default to a checked error with explicit source-compatible discard mode."
     },
     "src/openms/include/OpenMS/FORMAT/ModificationDefinitionIO.h": {
-      "status": "partial",
+      "status": "complete",
       "rust": [
         "src/format/modification_definitions.rs",
         "src/chemistry/modification_records.rs"
@@ -258,7 +258,7 @@
         "tests/idxml_definitions.rs"
       ],
       "documentation": "docs/MODIFICATION_DEFINITION_IO_SUPPORT.md",
-      "scope": "Definition selection, per-run collection from slices/iterators, deterministic codec/union, run encoding, direct and search-parameter registration with owned registries and strict chemistry checks. Source FeatureMap/ConsensusMap collection traversal is exercised through XML writers but dedicated public map collection entry points remain absent. Full ResidueModification and ProForma parsing are separate."
+      "scope": "All nine public declarations: definition selection, per-run collection from slices/iterators and both feature-map overloads including recursive subordinates, deterministic codec/union, run encoding and registration. Owned registries, checked conflicts/portable representation, recovery diagnostics and cumulative budgets replace raw-pointer/global-mutation semantics. Full ResidueModification and ProForma parsing remain separate."
     },
     "src/openms/include/OpenMS/SYSTEM/File.h": {
       "status": "partial",
@@ -270,6 +270,28 @@
       ],
       "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
       "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
+    },
+    "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/concept/progress_logger.rs"
+      ],
+      "tests": [
+        "tests/progress_logger.rs"
+      ],
+      "documentation": "docs/PROGRESS_LOGGER_SUPPORT.md",
+      "scope": "All modes, copy/replacement/options and four backend operations, nested whole-second throttling, independent next counter and command timing/rates. Owned per-logger GUI factories, shared atomic nesting and mutable Rust calls replace global/raw-pointer/const mutation. Real total process CPU on Unix/Windows and monotonic elapsed wall timing; source undefined timing/range cases are checked errors. Default GUI is a no-op as in core; product GUI is outside this header."
+    },
+    "src/openms/include/OpenMS/CONCEPT/LogStream.h": {
+      "status": "partial",
+      "rust": [
+        "src/concept/log_stream.rs"
+      ],
+      "tests": [
+        "tests/log_stream.rs"
+      ],
+      "documentation": "docs/LOG_STREAM_SUPPORT.md",
+      "scope": "Native owned streams/sinks/notifications/guards, source 32K buffering, partial flush, two-entry duplicate cache, all prefix tokens and nine ANSI styles, five global/TLS routes and location macros. Pointer/streambuf ownership maps to safe Write/callbacks. Automatic Windows console VT mode and process-exit flushing of directly buffered global streams remain absent; general Colorizer is a separate header. Explicit global finish and source-style macro flushing are available."
     }
   }
 }

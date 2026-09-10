@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 9,
-      "evidence_requires_review": 164,
-      "native_equivalent": 5,
+      "complete": 10,
+      "evidence_requires_review": 167,
+      "native_equivalent": 6,
       "partial": 8,
-      "unmapped": 600
+      "unmapped": 595
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -3447,10 +3447,12 @@
       "header": "src/openms/include/OpenMS/CONCEPT/Colorizer.h",
       "sha256": "3d2a27148385beea0bd026d36e0dd27459cecd8fe324b78d7c0caa47f39a8a24",
       "domain": "CONCEPT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/log_stream_provenance.json"
+      ],
       "direct_topp_consumers": [
         "OpenMSInfo"
       ]
@@ -3595,10 +3597,24 @@
       "header": "src/openms/include/OpenMS/CONCEPT/LogStream.h",
       "sha256": "d607528250b0021dbfc890a325017ed3a2433b3dff0b3bc3d5c69a99dd9ac080",
       "domain": "CONCEPT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/concept/log_stream.rs"
+        ],
+        "tests": [
+          "tests/log_stream.rs"
+        ],
+        "documentation": "docs/LOG_STREAM_SUPPORT.md",
+        "scope": "Native owned streams/sinks/notifications/guards, source 32K buffering, partial flush, two-entry duplicate cache, all prefix tokens and nine ANSI styles, five global/TLS routes and location macros. Pointer/streambuf ownership maps to safe Write/callbacks. Automatic Windows console VT mode and process-exit flushing of directly buffered global streams remain absent; general Colorizer is a separate header. Explicit global finish and source-style macro flushing are available."
+      },
+      "candidate_rust_files": [
+        "src/concept/log_stream.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/log_stream_provenance.json"
+      ],
       "direct_topp_consumers": [
         "AssayGeneratorMetabo",
         "AssayGeneratorMetaboSirius",
@@ -3704,10 +3720,24 @@
       "header": "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h",
       "sha256": "e06ba1466a0ed9c2f509281b2938f60c62510c9ab3c98323e8f0b54885e8cf1f",
       "domain": "CONCEPT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/concept/progress_logger.rs"
+        ],
+        "tests": [
+          "tests/progress_logger.rs"
+        ],
+        "documentation": "docs/PROGRESS_LOGGER_SUPPORT.md",
+        "scope": "All modes, copy/replacement/options and four backend operations, nested whole-second throttling, independent next counter and command timing/rates. Owned per-logger GUI factories, shared atomic nesting and mutable Rust calls replace global/raw-pointer/const mutation. Real total process CPU on Unix/Windows and monotonic elapsed wall timing; source undefined timing/range cases are checked errors. Default GUI is a no-op as in core; product GUI is outside this header."
+      },
+      "candidate_rust_files": [
+        "src/concept/progress_logger.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/progress_logger_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FeatureFinderMultiplex",
         "FeatureLinkerBase",
@@ -6391,9 +6421,9 @@
       "header": "src/openms/include/OpenMS/FORMAT/ModificationDefinitionIO.h",
       "sha256": "ce7316b27116feb61596f11ce0165187f963715d59f2411dbb824f2447d42b1d",
       "domain": "FORMAT",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/format/modification_definitions.rs",
           "src/chemistry/modification_records.rs"
@@ -6403,7 +6433,7 @@
           "tests/idxml_definitions.rs"
         ],
         "documentation": "docs/MODIFICATION_DEFINITION_IO_SUPPORT.md",
-        "scope": "Definition selection, per-run collection from slices/iterators, deterministic codec/union, run encoding, direct and search-parameter registration with owned registries and strict chemistry checks. Source FeatureMap/ConsensusMap collection traversal is exercised through XML writers but dedicated public map collection entry points remain absent. Full ResidueModification and ProForma parsing are separate."
+        "scope": "All nine public declarations: definition selection, per-run collection from slices/iterators and both feature-map overloads including recursive subordinates, deterministic codec/union, run encoding and registration. Owned registries, checked conflicts/portable representation, recovery diagnostics and cumulative budgets replace raw-pointer/global-mutation semantics. Full ResidueModification and ProForma parsing remain separate."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -6739,7 +6769,7 @@
           "tests/paramxml.rs"
         ],
         "documentation": "docs/PARAMXML_SUPPORT.md",
-        "scope": "Plain source load/store/stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. Source compressed input (gzip, bzip2, ZIP) is not yet wired through native load/load_into. Native XML encoding/precision/loss validation adaptations documented; generic inherited XMLFile schema APIs remain separate."
+        "scope": "Source plain/gzip/bzip2 load and atomic load-into, plain file/stdout store and stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. ZIP input remains unsupported. Native encoding/precision/loss validation adaptations documented; inherited XMLFile schema APIs remain separate."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -10379,10 +10409,12 @@
       "header": "src/openms/include/OpenMS/SYSTEM/StopWatch.h",
       "sha256": "3b4af741005190fe4edfa126fa06d6107b8bf4ed36e0f46b0cfbd94f71bf83a5",
       "domain": "SYSTEM",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/progress_logger_provenance.json"
+      ],
       "direct_topp_consumers": [
         "Decharger",
         "Epifany",
@@ -10395,10 +10427,12 @@
       "header": "src/openms/include/OpenMS/SYSTEM/SysInfo.h",
       "sha256": "1a32bff6d8e2d99343824b0a48ab0e5f13f06977f5308fb59e544d7aa1a8448c",
       "domain": "SYSTEM",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/progress_logger_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileInfo",
         "TICCalculator"
@@ -11436,7 +11470,6 @@
       "open_sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/DATASTRUCTURES/DBoundingBox.h",
         "OpenMS/DATASTRUCTURES/DPosition.h",
         "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
@@ -11484,7 +11517,6 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
@@ -11533,8 +11565,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h"
+        "OpenMS/CONCEPT/Exception.h"
       ],
       "workflow_validated": false
     },
@@ -12399,7 +12430,6 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/TARGETED/MRMMapping.h",
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
@@ -12457,7 +12487,6 @@
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MRMTransitionGroup.h",
@@ -12595,7 +12624,6 @@
       "open_sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
@@ -13425,7 +13453,6 @@
         "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
         "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
         "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h"
@@ -13466,7 +13493,6 @@
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/MATH/MathFunctions.h"
       ],
@@ -13492,7 +13518,6 @@
         "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
         "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
         "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
@@ -13540,7 +13565,6 @@
         "OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h",
         "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
         "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h",
@@ -13575,7 +13599,6 @@
         "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
@@ -13622,7 +13645,6 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
         "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
@@ -13652,7 +13674,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/CachedMzML.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
@@ -13687,7 +13708,6 @@
         "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
         "OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h",
         "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
@@ -13778,7 +13798,6 @@
         "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
         "OpenMS/ANALYSIS/TARGETED/MRMMapping.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
@@ -13815,7 +13834,6 @@
         "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
@@ -14910,7 +14928,6 @@
         "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
         "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
         "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
