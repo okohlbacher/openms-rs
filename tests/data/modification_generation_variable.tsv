@@ -1,0 +1,20 @@
+case	modifications	input	maximum	keep_original	expected_count	comparison
+empty_one	Oxidation (M)		1	false	0	ordered
+empty_zero	Oxidation (M)		0	false	0	ordered
+empty_two	Oxidation (M)		2	false	0	ordered
+no_target	Oxidation (M)	AAAAAAAAA	1	false	0	ordered
+keep_no_target	Oxidation (M)	AAAAAAAAA	1	true	1	ordered
+one_site_zero	Oxidation (M)	AAAAMAAAA	0	false	0	ordered
+one_site_one	Oxidation (M)	AAAAMAAAA	1	false	1	ordered
+one_site_two	Oxidation (M)	AAAAMAAAA	2	false	1	ordered
+one_site_keep	Oxidation (M)	AAAAMAAAA	1	true	2	ordered
+two_sites_one	Oxidation (M)	AAMAAAMAA	1	false	2	ordered
+two_sites_two	Oxidation (M)	AAMAAAMAA	2	false	3	ordered
+two_alternatives_one	Glutathione (C);Carbamidomethyl (C)	ACAACAACA	1	false	6	count
+two_alternatives_keep	Glutathione (C);Carbamidomethyl (C)	ACAACAACA	1	true	7	count
+two_alternatives_three	Glutathione (C);Carbamidomethyl (C)	ACAACAACA	3	false	26	count
+occupied_variable	Glutathione (C);Carbamidomethyl (C)	AAAAC(Carbamidomethyl)AAAA	3	false	0	ordered
+mixed_sites	Glutathione (C);Carbamidomethyl (C);Oxidation (M)	ACMACMACA	3	false	71	count
+terminal_and_m	Carbamyl (N-term);Oxidation (M)	KAAAAAAAMA	2	true	4	set
+terminal_and_occupied	Carbamyl (N-term);Oxidation (M)	K(Carbamyl)AAAAAAAMA	2	true	4	set
+release_count	Carbamidomethyl (C);Oxidation (M);Carbamyl (M);Phospho (S);Phospho (T);Carbamyl (T);Phospho (Y);Carbamyl (K);Carbamyl (N-term)	ACDEFGHIKLMNPQRSTVWY	4	true	199	count

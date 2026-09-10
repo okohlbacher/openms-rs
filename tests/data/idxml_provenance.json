@@ -1,0 +1,39 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "fixtures": [
+    {
+      "path": "tests/data/idxml_upstream_whole.idXML",
+      "source_path": "src/tests/class_tests/openms/data/IdXMLFile_whole.idXML",
+      "sha256": "3498db6d8efc2f74df09e09d500537c654fd3524c4253ce436aa8bab5efece95",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/idxml_upstream_no_proteinhits.idXML",
+      "source_path": "src/tests/class_tests/openms/data/IdXMLFile_no_proteinhits.idXML",
+      "sha256": "e4f3c62bb7d5a151760b644ac223eb378156b84c824e14740068c1e4e6281cfb",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/IdXML_1_5.xsd",
+      "source_path": "share/OpenMS/SCHEMAS/IdXML_1_5.xsd",
+      "sha256": "105c9f0cbc4ec275df8c1689fe31e409557a6535824e13d96ecef138a6986379",
+      "derivation": "Exact upstream bytes, unchanged"
+    }
+  ],
+  "reference_sources": [
+    {
+      "path": "src/openms/source/FORMAT/IdXMLFile.cpp",
+      "sha256": "b35a05d23918caf56ff752b9b32b36a84a132cbe0d08713be3b41cee7adfdaab"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+      "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IdXMLFile_test.cpp",
+      "sha256": "875f620797e10a990df1c3c13e9a825c53bbf819c746c5f9b23e3783072f0e14"
+    }
+  ]
+}

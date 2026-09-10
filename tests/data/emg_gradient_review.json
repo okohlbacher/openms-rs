@@ -1,0 +1,223 @@
+{
+  "method": "Independent arithmetic AST comparison of 12 source and Rust gradient branches after normalizing function qualifiers and numeric literal types; centered finite differences of an independently transcribed three-branch scalar EMG model using Python standard-library math.erfc. No C++ executed.",
+  "cases": [
+    {
+      "name": "positive_z",
+      "xs": [
+        0,
+        0.5,
+        1.2
+      ],
+      "ys": [
+        0.1,
+        0.8,
+        0.3
+      ],
+      "parameters": [
+        3,
+        2,
+        0.7,
+        1.3
+      ],
+      "steps": [
+        3e-05,
+        2e-05,
+        7e-06,
+        1.3e-05
+      ]
+    },
+    {
+      "name": "negative_z",
+      "xs": [
+        3,
+        4,
+        5
+      ],
+      "ys": [
+        0.8,
+        0.4,
+        0.2
+      ],
+      "parameters": [
+        3,
+        2,
+        0.7,
+        1.3
+      ],
+      "steps": [
+        3e-05,
+        2e-05,
+        7e-06,
+        1.3e-05
+      ]
+    },
+    {
+      "name": "mixed_z",
+      "xs": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "ys": [
+        0.1,
+        0.8,
+        1.4,
+        0.5,
+        0.2
+      ],
+      "parameters": [
+        3,
+        2,
+        0.7,
+        1.3
+      ],
+      "steps": [
+        3e-05,
+        2e-05,
+        7e-06,
+        1.3e-05
+      ]
+    },
+    {
+      "name": "rational",
+      "xs": [
+        0,
+        100000000.0,
+        200000000.0
+      ],
+      "ys": [
+        0.1,
+        0.8,
+        0.3
+      ],
+      "parameters": [
+        3,
+        100000000.0,
+        1000000000.0,
+        1
+      ],
+      "steps": [
+        3e-05,
+        1000.0,
+        10000.0,
+        0.5
+      ]
+    }
+  ],
+  "results": [
+    {
+      "case": "positive_z",
+      "parameter": "h",
+      "analytic": -0.00011776457333301238,
+      "finite_difference": -0.00011776457355579713,
+      "relative_difference": 1.891780714384787e-09
+    },
+    {
+      "case": "positive_z",
+      "parameter": "mu",
+      "analytic": 0.036368852740037594,
+      "finite_difference": 0.03636885261698586,
+      "relative_difference": 3.3834373700855906e-09
+    },
+    {
+      "case": "positive_z",
+      "parameter": "sigma",
+      "analytic": -0.14238897800916836,
+      "finite_difference": -0.14238897797740663,
+      "relative_difference": 2.230631371707494e-10
+    },
+    {
+      "case": "positive_z",
+      "parameter": "tau",
+      "analytic": 0.00142379686665655,
+      "finite_difference": 0.0014237968624610286,
+      "relative_difference": 2.9467135604870814e-09
+    },
+    {
+      "case": "negative_z",
+      "parameter": "h",
+      "analytic": 0.536868693000673,
+      "finite_difference": 0.5368686929999958,
+      "relative_difference": 1.2612488519944935e-12
+    },
+    {
+      "case": "negative_z",
+      "parameter": "mu",
+      "analytic": 0.688860557391802,
+      "finite_difference": 0.6888605572311078,
+      "relative_difference": 2.3327525861240057e-10
+    },
+    {
+      "case": "negative_z",
+      "parameter": "sigma",
+      "analytic": 1.8637951645408786,
+      "finite_difference": 1.8637951644727226,
+      "relative_difference": 3.6568356139454254e-11
+    },
+    {
+      "case": "negative_z",
+      "parameter": "tau",
+      "analytic": -0.1546361533481866,
+      "finite_difference": -0.15463615333094055,
+      "relative_difference": 1.1152655803744314e-10
+    },
+    {
+      "case": "mixed_z",
+      "parameter": "h",
+      "analytic": 0.3809385540736802,
+      "finite_difference": 0.38093855407317356,
+      "relative_difference": 1.3300052511610445e-12
+    },
+    {
+      "case": "mixed_z",
+      "parameter": "mu",
+      "analytic": 0.6482269068290397,
+      "finite_difference": 0.6482269067409341,
+      "relative_difference": 1.359178907440077e-10
+    },
+    {
+      "case": "mixed_z",
+      "parameter": "sigma",
+      "analytic": 1.079147565988909,
+      "finite_difference": 1.079147565974381,
+      "relative_difference": 1.3462416882460225e-11
+    },
+    {
+      "case": "mixed_z",
+      "parameter": "tau",
+      "analytic": -0.13227110879517046,
+      "finite_difference": -0.13227110878810677,
+      "relative_difference": 5.3403067655640677e-11
+    },
+    {
+      "case": "rational",
+      "parameter": "h",
+      "analytic": 5.161529340532024,
+      "finite_difference": 5.16152934057305,
+      "relative_difference": 7.948390230367975e-12
+    },
+    {
+      "case": "rational",
+      "parameter": "mu",
+      "analytic": -3.980051442264326e-11,
+      "finite_difference": -3.9800514883836514e-11,
+      "relative_difference": 1.1587620234133736e-08
+    },
+    {
+      "case": "rational",
+      "parameter": "sigma",
+      "analytic": 1.108458802955617e-10,
+      "finite_difference": 1.1084588034115938e-10,
+      "relative_difference": 4.1136111591871876e-10
+    },
+    {
+      "case": "rational",
+      "parameter": "tau",
+      "analytic": -3.980049882720933e-11,
+      "finite_difference": -3.980016316518231e-11,
+      "relative_difference": 8.43361357037813e-06
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+# Copyright (c) 2002-present, OpenMS Inc.
+# SPDX-License-Identifier: BSD-3-Clause
+# $Maintainer: OpenMS Rust contributors $
+source_rounded_mass	source_probability_literal	derived_mass	derived_mass_f64_bits	derived_probability_f32_bits
+170	0.254198270573	169.8366742	40653ac608f8cd06	3e822647
+171	0.002749339427	170.8400292	40655ae184eab5ec	3b342e44
+172	0.494555798854	171.8346277	40657ab545267abe	3efd366b
+173	0.005348981146	172.8379827	40659ad0c11863a4	3baf4682
+174	0.240545930573	173.8325812	4065baa481542876	3e7651ac
+175	0.002601679427	174.8359362	4065dabffd46115c	3b2a80f0

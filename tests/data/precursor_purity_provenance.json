@@ -1,0 +1,355 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "method": {
+    "tool": "Python standard-library xml.etree.ElementTree, base64, struct, bisect, hashlib; no OpenMS C++ or native Rust parser/executable",
+    "script_sha256": "0003003823ec7270665bec14d2ab474945e80b2b6b24ba1c0cd7c4433f54d242",
+    "data_license": "Pinned OpenMS source/test fixture; source files carry BSD-3-Clause notices. No new external data fetched.",
+    "numeric_policy": "Decode the original uncompressed little-endian binary64 m/z and binary32 intensity arrays directly. Decimal numbers are exact Python round-trip representations; hexadecimal bit strings are authoritative and written most-significant byte first. Precursor XML text is converted to binary64 and intensity to binary32, matching OpenMS fields. RT is already seconds. No peak interpolation, smoothing, rescaling or narrowing of m/z.",
+    "selection": "For each of five source precursors, retain every MS1 peak within the isolation window expanded by 20 ppm plus two immediate source neighbors on each side, in both MS1 scans. Union duplicate indices. MS2 peak arrays omitted because purity algorithms do not consume them.",
+    "scope": "Compact input reproduces the seven literal scalar/map cases: independently checked against all 3,872 original MS1 peaks before extraction. It is not a complete substitute for the original spectrum for arbitrary windows or global-peak operations.",
+    "literal_vs_derived": "source_test_literals are copied verbatim as decimal values from the class tests; rounded totals and ratios remain rounded. independent_decoded_data_calculation is a separate Python translation of scalar source operation order, not an executed C++ golden. No literal numerical fuzzy/interpolated golden exists in the source test.",
+    "extraction_script_note": "The recorded extraction script hash identifies the temporary independent Python script used during development; package tests load only bundled TSVs.",
+    "original_fixture": "A byte-identical copy of the full source mzML is bundled for the separate reader-to-purity workflow; independent reference tests continue to consume only extracted TSVs."
+  },
+  "reference_test": "tests/precursor_purity_reference.rs",
+  "sources": [
+    {
+      "path": "src/tests/class_tests/openms/data/PrecursorPurity_input.mzML",
+      "sha256": "2f5a1a3590bb5e261d3055041a55cf3888270028d76a1fbf898c9beb78181b44",
+      "bytes": 115055,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/data/PrecursorPurity_input.mzML"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/ID/PrecursorPurity.cpp",
+      "sha256": "144d00ebc32551b80df0decf47e7933d743100c9bdf947ec0a0ce948216e9946",
+      "bytes": 17994,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/ANALYSIS/ID/PrecursorPurity.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/ID/PrecursorPurity.h",
+      "sha256": "9a1229dc7136b03c5176dd26d37f331d9c08f11e696f02d015d968113a391f9b",
+      "bytes": 8250,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/ANALYSIS/ID/PrecursorPurity.h"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/PrecursorPurity_test.cpp",
+      "sha256": "03caba02d45acc3340fd965533d2be40deef3a65d9a8204bb72d97442f80d15c",
+      "bytes": 11756,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/PrecursorPurity_test.cpp"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+      "bytes": 29386,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/KERNEL/MSSpectrum.cpp"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05",
+      "bytes": 45373,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/KERNEL/MSExperiment.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+      "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8",
+      "bytes": 6157,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/Peak1D.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
+      "bytes": 26245,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CONCEPT/Constants.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+      "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e",
+      "bytes": 17044,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/MATH/MathFunctions.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp",
+      "sha256": "763d7e37041d3bed8f0b9fb122e43b5d6890fc699753e0f877ee3c50f2698325",
+      "bytes": 49344,
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/precursor_purity_peaks.tsv",
+      "sha256": "cd5964af21f1660f455100c6d89c67d8a11a5e46f0bc0c3b7e6f0b400da8950e",
+      "rows": 72
+    },
+    {
+      "path": "tests/data/precursor_purity_spectra.tsv",
+      "sha256": "3cf4b0a8e6f58285f9868786d15309e01e82710ec031960ca1b168b56b1f207e",
+      "rows": 7
+    },
+    {
+      "path": "tests/data/precursor_purity_scores.tsv",
+      "sha256": "17d22dd7425a9e4bd048f45cbeed9d1f0a8b339044496b634b16ea110ba8236d",
+      "rows": 7
+    },
+    {
+      "path": "tests/data/precursor_purity_sps.tsv",
+      "sha256": "7cb4806f05a300f2e1cd5f1ff5fcb7aeb02e1fd31ad92d16a0ad8b45255a66a6",
+      "rows": 8
+    },
+    {
+      "path": "tests/data/precursor_purity_input.mzML",
+      "sha256": "2f5a1a3590bb5e261d3055041a55cf3888270028d76a1fbf898c9beb78181b44",
+      "bytes": 115055,
+      "spectra": 7,
+      "kind": "Unmodified original mzML source fixture for separate end-to-end reader tests",
+      "source_path": "src/tests/class_tests/openms/data/PrecursorPurity_input.mzML"
+    }
+  ],
+  "original_ms1_arrays": [
+    {
+      "spectrum_index": 0,
+      "original_peak_count": 2003,
+      "array_encoding": {
+        "mz": {
+          "encoding": "IEEE-754 binary64",
+          "endianness": "little",
+          "compression": "none",
+          "decoded_byte_count": 16024,
+          "decoded_sha256": "0cdaae74e9ca2fe1f682300a47505889e178ccd4f0cb93b9ba29ec8c84f8cefc"
+        },
+        "intensity": {
+          "encoding": "IEEE-754 binary32",
+          "endianness": "little",
+          "compression": "none",
+          "decoded_byte_count": 8012,
+          "decoded_sha256": "1fdeacf7bb5ae2e6df862bfe2766a79e3c59425f2994978320061ad692753bed"
+        }
+      },
+      "retained_count": 37
+    },
+    {
+      "spectrum_index": 6,
+      "original_peak_count": 1869,
+      "array_encoding": {
+        "mz": {
+          "encoding": "IEEE-754 binary64",
+          "endianness": "little",
+          "compression": "none",
+          "decoded_byte_count": 14952,
+          "decoded_sha256": "abdeb0ffddf2c8149933c88ad4afaf424860fa757e1e5493a59f8e25da84dd17"
+        },
+        "intensity": {
+          "encoding": "IEEE-754 binary32",
+          "endianness": "little",
+          "compression": "none",
+          "decoded_byte_count": 7476,
+          "decoded_sha256": "8987a9fd92074e47036d986fdf9586283a25bf4ad80f6adc7c508e7e0efe5709"
+        }
+      },
+      "retained_count": 35
+    }
+  ],
+  "extracted_windows": [
+    {
+      "ms1_index": 0,
+      "ms2_index": 1,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 769.1284065906817,
+      "fuzzy_upper": 769.6591823422604,
+      "first_retained_source_index": 1827,
+      "last_retained_source_index": 1831,
+      "strict_window_source_indices": [
+        1829
+      ]
+    },
+    {
+      "ms1_index": 0,
+      "ms2_index": 2,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 421.3001587119053,
+      "fuzzy_upper": 421.8170210553006,
+      "first_retained_source_index": 315,
+      "last_retained_source_index": 322,
+      "strict_window_source_indices": [
+        317,
+        318,
+        319,
+        320
+      ]
+    },
+    {
+      "ms1_index": 0,
+      "ms2_index": 3,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 447.6481319367474,
+      "fuzzy_upper": 448.1660482201505,
+      "first_retained_source_index": 527,
+      "last_retained_source_index": 535,
+      "strict_window_source_indices": [
+        529,
+        530,
+        531,
+        532,
+        533
+      ]
+    },
+    {
+      "ms1_index": 0,
+      "ms2_index": 4,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 407.3211418991263,
+      "fuzzy_upper": 407.83744507066564,
+      "first_retained_source_index": 228,
+      "last_retained_source_index": 237,
+      "strict_window_source_indices": [
+        230,
+        231,
+        232,
+        233,
+        234,
+        235
+      ]
+    },
+    {
+      "ms1_index": 0,
+      "ms2_index": 5,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 748.636821710476,
+      "fuzzy_upper": 749.1667777822659,
+      "first_retained_source_index": 1797,
+      "last_retained_source_index": 1801,
+      "strict_window_source_indices": [
+        1799
+      ]
+    },
+    {
+      "ms1_index": 6,
+      "ms2_index": 1,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 769.1284065906817,
+      "fuzzy_upper": 769.6591823422604,
+      "first_retained_source_index": 1694,
+      "last_retained_source_index": 1698,
+      "strict_window_source_indices": [
+        1696
+      ]
+    },
+    {
+      "ms1_index": 6,
+      "ms2_index": 2,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 421.3001587119053,
+      "fuzzy_upper": 421.8170210553006,
+      "first_retained_source_index": 271,
+      "last_retained_source_index": 278,
+      "strict_window_source_indices": [
+        273,
+        274,
+        275,
+        276
+      ]
+    },
+    {
+      "ms1_index": 6,
+      "ms2_index": 3,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 447.6481319367474,
+      "fuzzy_upper": 448.1660482201505,
+      "first_retained_source_index": 471,
+      "last_retained_source_index": 478,
+      "strict_window_source_indices": [
+        473,
+        474,
+        475,
+        476
+      ]
+    },
+    {
+      "ms1_index": 6,
+      "ms2_index": 4,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 407.3211418991263,
+      "fuzzy_upper": 407.83744507066564,
+      "first_retained_source_index": 196,
+      "last_retained_source_index": 204,
+      "strict_window_source_indices": [
+        198,
+        199,
+        200,
+        201,
+        202
+      ]
+    },
+    {
+      "ms1_index": 6,
+      "ms2_index": 5,
+      "fuzzy_ppm": 20.0,
+      "fuzzy_lower": 748.636821710476,
+      "fuzzy_upper": 749.1667777822659,
+      "first_retained_source_index": 1665,
+      "last_retained_source_index": 1669,
+      "strict_window_source_indices": [
+        1667
+      ]
+    }
+  ],
+  "experiment_map": {
+    "tolerance": 0.1,
+    "ppm": false,
+    "expected_entry_count": 5,
+    "expected_ms2_indices": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "expected_parent_indices": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "note": "C++ test map access using MS1 native IDs and randomString inserts zero values; those keys are not returned by the algorithm."
+  },
+  "fuzzy_interpolation_source_tests": {
+    "ms2_index": 1,
+    "early_ms1_index": 0,
+    "ppm": 20.0,
+    "fallback_next_indices": [
+      999,
+      -1,
+      2
+    ],
+    "fallback_assertion": "Each returned value equals computeSingleScanPrecursorPurities(1,0,exp,20).",
+    "valid_next_index": 6,
+    "valid_assertion": "Same number of precursor purities and each in [0,1]. No literal numeric expected values in class test."
+  },
+  "source_behavior_notes": [
+    "Scalar isolation boundaries and nearest tolerance boundaries are inclusive. Nearest exact ties choose lower m/z. Matched peaks are erased and cannot be reused within that scalar call. Tolerance is doubled; ppm arithmetic is target_mz * tolerance * 2 * 1e-6 in that order.",
+    "Scalar charge is abs(charge), zero becomes one; isotope spacing is C13C12_MASSDIFF_U=1.0033548378. Negative isotope count starts as int(lower_offset * charge), not offset divided by isotope spacing. Total and target accumulate f32 observations into f64.",
+    "Scalar can identify isotope peaks even when the monoisotopic precursor peak is absent, contrary to a header claim. An empty isolation window returns zero scores.",
+    "Experiment scalar map uses the preceding parent scan only. Parent lookup first searches backward for a matching precursor spectrum_ref with MS level one lower, then falls back to the closest earlier spectrum with MS level one lower. Header description of combining neighboring MS1 scans does not describe this implementation.",
+    "Experiment map rejects missing/duplicate MS2 IDs by returning an empty map. Missing parent or a non-MS1 first spectrum also returns empty unless ignore_missing_precursor_spectra is true. Source empty experiment indexes spectra[0], and an MS2 with parent but no precursor indexes precursors[0] without checking.",
+    "Single-scan fuzzy purity uses raw signed charge (zero to one), NEUTRON_MASS_U=1.00866491566, globally nearest precursor without tolerance, f32 numerator/denominator accumulations and f32 division widened to f64. Exact fuzzy outer edges are excluded, exact strict edges are half-weighted. Zero-width precursor returns the whole partially filled vector immediately.",
+    "Fuzzy isotope matching compares lower_bound(expected) with its successor, never its predecessor. It may read beyond the restricted search range or dereference/increment the full end iterator. Exact distance ties choose the successor. Ppm match is strictly less than the tolerance. Negative charge can prevent loop progress. These unsafe source branches need explicit checked behavior in native implementation.",
+    "Fuzzy empty MS1 returns ones. Zero total may produce NaN. Interpolation validates only the next index/level and finite positive RT denominator, falling back to early values when invalid; otherwise abs RT differences permit extrapolation without clamping.",
+    "SPS counts each precursor independently, including duplicate precursor m/z. Generates default b/y sorted binary32 values for all lengths 1..N and charges 1..max; max charge below one normalizes to one. Bound endpoints are narrowed to f32 before inclusive comparisons, so matching differs from a full-f64 mass window. Ppm tolerance is abs((tolerance / 1e6) * mz), unlike scalar operation order.",
+    "Native implementation should bound isotope iterations, charge-to-count conversions and theoretical spectrum generation; reject invalid/nonfinite values before loops rather than reproduce signed-overflow, invalid iterator or NaN behavior."
+  ],
+  "sps_notes": [
+    "The source ppm test comment says 10 ppm, but the executable argument is 20 ppm.",
+    "The source b4+0.003 and b4+0.05 expressions are evaluated as binary64 additions before fixture decimal formatting.",
+    "The helper self-consistency case has 32 m/z values: eight residues, two default b/y series, two charges; this count is independently derived, not a literal upstream number."
+  ],
+  "numeric_assertions": {
+    "source_test_totals": "absolute tolerance 0.00001 for truncated source decimal literals",
+    "source_test_ratios": "absolute tolerance 0.00001 for five-decimal source literals",
+    "decoded_data_totals": "exact equality (f32 observations summed into f64)",
+    "decoded_data_ratios": "absolute tolerance 1e-14 against independent Python scalar calculation",
+    "fuzzy_synthetic": "exact widened binary32 where asserted; mathematical boundary/original-source algorithm cases, not measured C++ output"
+  }
+}

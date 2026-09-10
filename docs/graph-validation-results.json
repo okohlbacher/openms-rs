@@ -1,0 +1,39 @@
+{
+  "sdk_version": "4.0.0",
+  "sdk_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "release_library": "target/release/libopenms.rlib",
+  "release_build": "passed",
+  "rust_1_96_all_features_before_additive_layer": 1034,
+  "rust_1_85_all_features_before_additive_layer": 1034,
+  "current_focused_tests": {
+    "graph_operations": 12,
+    "graph_records": 12,
+    "graph_reference": 9,
+    "observations": 9,
+    "observation_matches": 8,
+    "peptide_formula": 8,
+    "private_budget_and_transaction": 54
+  },
+  "minimum_rust_no_default_focused": {
+    "observations": 9,
+    "observation_matches": 8,
+    "peptide_formula": 8
+  },
+  "quality": {
+    "clippy_current_all_targets": "passed",
+    "rustfmt": "passed",
+    "rustdoc": "passed",
+    "sdk_source_hashes": 1788,
+    "scientific_source_files": 1577,
+    "historical_reference_paths": 220,
+    "graph_source_references": 21,
+    "source_fixture_hashes": 442,
+    "documentation_links": 438,
+    "cpp_build_or_differential": false
+  },
+  "remaining": [
+    "IdentificationData match groups and parent groups",
+    "Graph cleanup, persistence and legacy converter",
+    "Broader retained Core SDK APIs"
+  ]
+}

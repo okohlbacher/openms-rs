@@ -1,0 +1,14 @@
+case	output_index	seed_index	initial_center	center	left	right	centroid_f64	mz_f32_bits	intensity_f64	intensity_f32_bits
+strict_greater_core	0	0	4	4	3	5	103.4	42cecccd	15.0	41700000
+one_seed_per_raw_index	0	1	4	4	3	5	103.4	42cecccd	15.0	41700000
+symmetric_recenter	0	0	4	3	0	6	103.0	42ce0000	20.0	41a00000
+fixed_min_spacing	0	0	3	3	0	6	102.725	42cd7333	20.0	41a00000
+strict_fall	0	0	3	3	2	4	103.0	42ce0000	18.0	41900000
+strict_width_equal	0	0	3	3	2	4	103.0	42ce0000	18.0	41900000
+strict_width_above	0	0	3	3	0	6	103.0	42ce0000	26.0	41d00000
+right_search_asymmetry	0	0	2	3	0	9	105.61538461538461	42d33b14	39.0	421c0000
+float_centroid_boundary	0	0	4	3	0	6	100000003.25	4cbebc20	20.0	41a00000
+sn_equal	0	0	3	3	1	5	103.0	42ce0000	48.0	42400000
+sn_above	0	0	3	3	2	4	103.0	42ce0000	40.0	42200000
+internal_width_equal	0	0	3	3	0	6	103.0	42ce0000	20.0	41a00000
+original_seed_priority	0	0	3	5	0	8	105.11627906976744	42d23b89	43.0	422c0000

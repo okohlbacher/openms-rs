@@ -1,0 +1,143 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "method": "Traces extracted independently from numeric initializer literals in the pinned C++ class tests with Python standard-library re/struct. Positions preserve binary64; each intensity literal is first parsed as binary64 then rounded to binary32, matching the source setters. Decimal representations were verified against emitted IEEE bits. All expected tables contain original upstream assertions, with only negative-trace height/apex inferred directly from its explicit samples. No C++ was built or executed. No Rust processing results were used to produce fixtures.",
+  "trace_counts": {
+    "glutamate": 107,
+    "negative_simpson": 3,
+    "srm_1": 18,
+    "srm_2": 18
+  },
+  "sources": [
+    {
+      "path": "src/tests/class_tests/openms/source/PeakIntegrator_test.cpp",
+      "sha256": "dfda657e349d84ec132c60a3ab8e554178e9a485d3d4034758b1eed3add56a2f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/PeakIntegrator_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/PeakPickerChromatogram_test.cpp",
+      "sha256": "2f2092579de4ab142ee149424efa20ac92a4ee8c7d2bc14d5bb417e18ba99420",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/PeakPickerChromatogram_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h",
+      "sha256": "93fbfa46f512181bd8a646026014f56a9614222dd1222cecb6fc8785ea693c86",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakIntegrator.cpp",
+      "sha256": "0c88cb7d0c88dd618039ae641186993af958f8d4b41e9bbbd8662bcba70367fb",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/ANALYSIS/OPENSWATH/PeakIntegrator.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h",
+      "sha256": "835e9bb87beaaba121abf96e92fdbaf73642180f14c8c453ceb59466ee436056",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp",
+      "sha256": "95164ec3705651d9cfe548d6dfab3d50e5ba5663acc87404e21d4e6471d552c7",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+      "sha256": "a40d2e48a7d24df3ebfb6e9ff5a0df5df3886ca8ddc8d83ef6f6a3f7c5b50d77",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+      "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/GaussFilter.h",
+      "sha256": "a2f5796b76b79f647dabe8662181ac631d969af4ccdc61ae7eed57854b2d6541",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/PROCESSING/SMOOTHING/GaussFilter.h"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp",
+      "sha256": "8d6ddcd32c7825f6f1157580f92be0ceb9214017e28ece00d54aa8f667d8f3df",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/GaussFilterAlgorithm.h",
+      "sha256": "e157085637030ae34dca38c7a8337cc401e2293bef8775a4fac98f99f58668ee",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/PROCESSING/SMOOTHING/GaussFilterAlgorithm.h"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/SMOOTHING/GaussFilterAlgorithm.cpp",
+      "sha256": "7f178b4cf9c00476caf5ef1841ac5ac96281ab35bbe17b2dbf49bf6c9a45ef5e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/PROCESSING/SMOOTHING/GaussFilterAlgorithm.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
+      "sha256": "65964ce9690052ed33cd7e2769eae1cb6c099b5579ffdb8b219f44ced75525c8",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/SMOOTHING/SavitzkyGolayFilter.cpp",
+      "sha256": "db318702abe049da5d85046bd7574b8689a7768972fe958846900d688402d668",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/PROCESSING/SMOOTHING/SavitzkyGolayFilter.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/MISC/CubicSpline2d.h",
+      "sha256": "494c38a0d5413616c9e8d0f81d2808efaaeb180a1b113b41c7a69c8ea7ce294e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/MATH/MISC/CubicSpline2d.h"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/CubicSpline2d.cpp",
+      "sha256": "c1494d069c0aaae074b1c3ebd8b87228ab96a65b3edc8f09e0fe7a8413b0dc04",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/MATH/MISC/CubicSpline2d.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
+      "sha256": "f6f81757669c754484cec642bffe9763bb03140f45163f70c13280301a10f54c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+      "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/Peak1D.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h",
+      "sha256": "6bb33197a8512c79e281e5567d672ba9a1f3459168be970b768f80df13b52f9d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/chromatogram_processing_traces.tsv",
+      "sha256": "598cb1c22925ce82b5c8f63f111bb7e603dda3985ffd7b6effa03c082c7f224a",
+      "rows": 146
+    },
+    {
+      "path": "tests/data/chromatogram_processing_integrals.tsv",
+      "sha256": "69d9f89089d7a5de4aa535a3627d4e26e354d52ebead45059d2363ee2a899bcc",
+      "rows": 8
+    },
+    {
+      "path": "tests/data/chromatogram_processing_backgrounds.tsv",
+      "sha256": "8adc5fdcf845d4496fe354dd70e1d6e601950ffc81a5f6ebd71d175c96a89fa1",
+      "rows": 6
+    },
+    {
+      "path": "tests/data/chromatogram_processing_shape.tsv",
+      "sha256": "02d0a9ff60bff06bb1ebd4859b0526d6a1034d9ae8a12a0f0d83cbfaa970032b",
+      "rows": 16
+    },
+    {
+      "path": "tests/data/chromatogram_processing_picked.tsv",
+      "sha256": "3b51f3e2609096b549bbd55410a9b1b849347b356e506fe63a6623df403c8aee",
+      "rows": 4
+    }
+  ],
+  "notes": [
+    "All glutamate shape/background goldens use left2.472833334/right3.022891666, selected57 points and apex2.7045.",
+    "Source even-count Simpson averages four integrations on glutamate, including a point outside each requested boundary.",
+    "Picker source goldens are approximate values with class-test floating tolerance; legacy/corrected apex literals differ slightly despite common smoothed seed picking. Exact f32 boundary coordinates and independent raw sums are verified separately.",
+    "Source picker HiRes seed S/N remains1 after constructor; boundary S/N options are separate because updateMembers does not update the internal HiRes.",
+    "Crawdad conditional source assertions are excluded: external backend is absent and those arrays differ structurally from the native corrected/legacy interface."
+  ]
+}

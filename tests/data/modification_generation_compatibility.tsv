@@ -1,0 +1,8 @@
+case	fixed	variable	peptide	expected
+compatibility_1	Carbamidomethyl (C)	Phospho (S);Phospho (T);Phospho (Y)	CCTKPESER	false
+compatibility_2	Carbamidomethyl (C)	Phospho (S);Phospho (T);Phospho (Y)	C(Carbamidomethyl)CTKPESER	false
+compatibility_3	Carbamidomethyl (C)	Phospho (S);Phospho (T);Phospho (Y)	C(Carbamidomethyl)C(Carbamidomethyl)TKPESER	true
+compatibility_4	Carbamidomethyl (C)	Phospho (S);Phospho (T);Phospho (Y)	C(Carbamidomethyl)C(Carbamidomethyl)T(Phospho)TKPESER	true
+compatibility_5	Carbamidomethyl (C)	Phospho (S);Phospho (T);Phospho (Y)	(Acetyl)CCTKPESER	false
+compatibility_6	Carbamidomethyl (C)	Phospho (S);Phospho (T);Phospho (Y)	(Acetyl)C(Carbamidomethyl)C(Carbamidomethyl)TKPES(Phospho)ER	false
+compatibility_7	Carbamidomethyl (C)	Phospho (S);Phospho (T);Phospho (Y)	(Acetyl)C(Carbamidomethyl)C(Carbamidomethyl)T(Phospho)KPES(Phospho)ER	false

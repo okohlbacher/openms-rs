@@ -1,0 +1,8 @@
+case	modifications	input	expected
+one_c	Carbamidomethyl (C)	AAAACAAAA	AAAAC(Carbamidomethyl)AAAA
+no_c	Carbamidomethyl (C)	AAAAAAAAA	AAAAAAAAA
+all_c	Carbamidomethyl (C)	CCCCCCCCC	C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)
+occupied_same	Carbamidomethyl (C)	AAAACAAC(Carbamidomethyl)AAA	AAAAC(Carbamidomethyl)AAC(Carbamidomethyl)AAA
+occupied_other	Carbamidomethyl (C)	AAAACAAC(Oxidation)AAA	AAAAC(Carbamidomethyl)AAC(Oxidation)AAA
+terminal	Carbamyl (N-term)	KAAAAAAAA	.(Carbamyl)KAAAAAAAA
+terminal_and_sidechain	Carbamyl (N-term)	K(Carbamyl)AAAAAAAA	.(Carbamyl)K(Carbamyl)AAAAAAAA

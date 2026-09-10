@@ -1,0 +1,13 @@
+case	enzyme	sequence	missed	min_length	max_length	source_line	count
+0	RNase_T1	AUC	0	0	0	61	1
+1	RNase_T1	AGUC	0	0	0	66	2
+2	RNase_T1	pAUGUCGCAG	0	0	0	72	3
+3	RNase_T1	G[m1G][Gm]A	0	0	0	80	3
+4	RNase_T1	pAUGUCGCAG	2	0	0	88	6
+5	cusativin	CCCAUCCG	0	0	0	100	3
+6	cusativin	CCCAUCCG	0	0	0	109	3
+7	mazF	A[m6A]CA[m5C]AGGACGACAAAG	0	0	0	118	2
+8	colicin_E5	GGAUGUAAA	0	0	0	127	2
+9	no cleavage	CCCAUCCG	3	0	0	135	1
+10	RNase_4c	UCCGUACGG	0	0	0	141	2
+11	unspecific cleavage	ACGU	0	0	0	148	10

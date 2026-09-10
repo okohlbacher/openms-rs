@@ -1,0 +1,447 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "sources": [
+    {
+      "path": "src/openms/source/ANALYSIS/ID/AhoCorasickAmbiguous.cpp",
+      "sha256": "65b0a2597a0c4a00af0502ad564397893f67a223033106f9d3abb1f371875c3c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/ANALYSIS/ID/AhoCorasickAmbiguous.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
+      "sha256": "259d1bb9d3858cf9a866fa4e56287693b72e1b8d6e5cb623c8d14dd1a063b37e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AhoCorasickAmbiguous_test.cpp",
+      "sha256": "eadb8d06c5c7347f23f65054cb7ef37a0cf0ba805a4ad01291f21177261b9c38",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/AhoCorasickAmbiguous_test.cpp"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/ID/PeptideIndexing.cpp",
+      "sha256": "ccf2f8ec617c2272ca779d619bb3a29d4de936284d0c8e4820ad37430034d4a5",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/ANALYSIS/ID/PeptideIndexing.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/PeptideIndexing_test.cpp",
+      "sha256": "fe270856a2da551964be73b9d3a3345c2633cae2efdd90357e59b5350d8ad1a2",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/PeptideIndexing_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/FASTAContainer.h",
+      "sha256": "de96e7716fa9c155b9c164b55bec6e0ff478350f8be041d0483e651064024d50",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/DATASTRUCTURES/FASTAContainer.h"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FASTAContainer_test.cpp",
+      "sha256": "343851aaed3e9339d48d421443dda2e31cd8cadcc838c385518d1d1e705dd5f7",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/FASTAContainer_test.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp",
+      "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp"
+    }
+  ],
+  "fixture": {
+    "path": "tests/data/peptide_indexing_matcher_reference.tsv",
+    "sha256": "302117db07ce4b9424738d12ebd3eebda0871f9312b55a2ba6f091aeb124b5b3",
+    "row_count": 121
+  },
+  "methodology": "Independent source-reading oracle. Rows with source test origins are transcribed numeric match positions from pinned upstream tests; remaining rows are hand-traced consequences of AA lookup, stepPrimary_/stepScout_, and PeptideIndexing preprocessing. A small independent positional Python interpretation cross-checked all rows against the upstream literal expectations. No C++ code was built or executed; these are not claimed as captured C++ execution results.",
+  "position_convention": "Sorted zero-based positions in the protein after removing all * characters, matching PeptideIndexing preprocessing. A dash denotes no match. Match ordering is intentionally normalized; raw AC scout visitation order is not part of this fixture.",
+  "matcher_semantics": {
+    "literal_case_insensitive_equality": "zero ambiguity and zero mismatch cost, including literal B/J/Z/X",
+    "protein_only_expansions": {
+      "B": "DN",
+      "J": "IL",
+      "Z": "EQ",
+      "X": "22 canonical letters including O and U, excluding B/J/Z/X"
+    },
+    "budget": "Let A be unequal compatible protein ambiguity expansions and M all other unequal positions. Accept when M+max(0,A-max_ambiguities)<=max_mismatches.",
+    "il_preprocessing": "Pinned source replaces uppercase L in peptide; uppercase L and J in protein. Peptide J is not replaced.",
+    "invalid_protein_input": "AC skips nonletters other than its internal $ superAA, and C-string iteration stops at NUL. Its end-minus-needle-length offsets are wrong for matches spanning skipped bytes. PeptideIndexing removes * first and errors for [ or (; other skipped bytes are an unsafe source behavior. A checked Rust adapter should reject them or explicitly document a safer changed policy.",
+    "evidence_order": "Peptide index, FASTA protein index, ascending match position, amino acid before, amino acid after. Evidence keeps actual matched positions/flanks even when enzyme validation temporarily extends an M/MX-clipped product to zero."
+  },
+  "decoy_cases": [
+    {
+      "case_id": "source_simple_prefix",
+      "accessions": [
+        "Protein1",
+        "DECOY_Protein2"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "source_plain_prefix",
+      "accessions": [
+        "Protein1",
+        "DECOYProtein2"
+      ],
+      "expected_name": "DECOY",
+      "expected_is_prefix": true,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "source_wrong_suffix",
+      "accessions": [
+        "Protein1",
+        "Protein2DECOY_"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": false
+    },
+    {
+      "case_id": "source_simple_suffix",
+      "accessions": [
+        "Protein1",
+        "Protein2_DECOY"
+      ],
+      "expected_name": "_DECOY",
+      "expected_is_prefix": false,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "source_reverse_prefix",
+      "accessions": [
+        "Protein1",
+        "reverse_Protein"
+      ],
+      "expected_name": "reverse_",
+      "expected_is_prefix": true,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "source_competing_prefixes",
+      "accessions": [
+        "rev_Protein1",
+        "reverse_Protein"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": false
+    },
+    {
+      "case_id": "inclusive_40_percent",
+      "accessions": [
+        "A",
+        "B",
+        "C",
+        "DECOY_D",
+        "DECOY_E"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "below_40_percent",
+      "accessions": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "DECOY_E"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": false
+    },
+    {
+      "case_id": "inclusive_80_percent",
+      "accessions": [
+        "DECOY_A",
+        "DECOY_B",
+        "DECOY_C",
+        "DECOY_D",
+        "rev_E"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "below_80_percent",
+      "accessions": [
+        "DECOY_A",
+        "DECOY_B",
+        "DECOY_C",
+        "rev_D"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": false
+    },
+    {
+      "case_id": "equal_prefix_suffix_occurrences",
+      "accessions": [
+        "DECOY_A",
+        "B_DECOY"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": false
+    },
+    {
+      "case_id": "prefix_checked_before_more_common_suffix",
+      "accessions": [
+        "DECOY_A",
+        "DECOY_B_DECOY",
+        "C_DECOY",
+        "D_DECOY"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "last_case_wins",
+      "accessions": [
+        "DECOY_A",
+        "decoy_B"
+      ],
+      "expected_name": "decoy_",
+      "expected_is_prefix": true,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "regex_first_alternative_reversed",
+      "accessions": [
+        "A",
+        "reversed_B"
+      ],
+      "expected_name": "reverse",
+      "expected_is_prefix": true,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "suffix_zero_last_letter",
+      "accessions": [
+        "A",
+        "B_deco"
+      ],
+      "expected_name": "_deco",
+      "expected_is_prefix": false,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "suffix_repeated_last_letter",
+      "accessions": [
+        "A",
+        "B_decoyyy"
+      ],
+      "expected_name": "_decoyyy",
+      "expected_is_prefix": false,
+      "expected_inferred": true
+    },
+    {
+      "case_id": "suffix_trailing_underscore_not_supported",
+      "accessions": [
+        "A",
+        "B_decoy_"
+      ],
+      "expected_name": "DECOY_",
+      "expected_is_prefix": true,
+      "expected_inferred": false
+    }
+  ],
+  "decoy_notes": [
+    "Expected names include PeptideIndexing fallback DECOY_ prefix on failed DecoyHelper inference.",
+    "Detected affix counts are case-insensitive, but returned spelling comes from the last occurrence and final accession classification is case-sensitive.",
+    "Prefix and suffix observations can count the same accession twice. Equal aggregate prefix/suffix counts cause failure even when one candidate otherwise qualifies.",
+    "Prefix candidates are checked before suffix candidates, regardless of which side has more total observations.",
+    "Suffix regex repeats the last letter of each affix except random; it does not support arbitrary trailing underscores. Prefix alternation order gives reverse priority over reversed."
+  ],
+  "enzyme_cases": [
+    {
+      "case_id": "m_clipping",
+      "protein": "MPEPTIDER",
+      "start": 1,
+      "length": 8,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": true,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": true
+    },
+    {
+      "case_id": "m_clipping_disabled",
+      "protein": "MPEPTIDER",
+      "start": 1,
+      "length": 8,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": false,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": false
+    },
+    {
+      "case_id": "mx_clipping_arbitrary_second_residue",
+      "protein": "MAPEPTIDER",
+      "start": 2,
+      "length": 8,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": true,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": true
+    },
+    {
+      "case_id": "clipping_not_at_third_position",
+      "protein": "MAAPEPTIDER",
+      "start": 3,
+      "length": 8,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": true,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": false
+    },
+    {
+      "case_id": "clipping_requires_initial_m",
+      "protein": "AAPEPTIDER",
+      "start": 2,
+      "length": 8,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": true,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": false
+    },
+    {
+      "case_id": "no_cleavage_m_clipping",
+      "protein": "MKDPLMMLK",
+      "start": 1,
+      "length": 8,
+      "enzyme": "no cleavage",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": true,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": true
+    },
+    {
+      "case_id": "source_no_cleavage_clipping_disabled",
+      "protein": "MKDPLMMLK",
+      "start": 1,
+      "length": 8,
+      "enzyme": "no cleavage",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": false,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": false
+    },
+    {
+      "case_id": "source_no_cleavage_whole",
+      "protein": "KDPLMMLK",
+      "start": 0,
+      "length": 8,
+      "enzyme": "no cleavage",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": false,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": true
+    },
+    {
+      "case_id": "source_no_cleavage_dp_fragment",
+      "protein": "KDPLMMLK",
+      "start": 0,
+      "length": 2,
+      "enzyme": "no cleavage",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": false,
+      "allow_random_asp_pro_cleavage": true,
+      "ignore_missed_cleavages": true,
+      "expected_valid": true
+    },
+    {
+      "case_id": "source_no_cleavage_dp_absent",
+      "protein": "KDPLMMLK",
+      "start": 0,
+      "length": 2,
+      "enzyme": "no cleavage",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": false,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": false
+    },
+    {
+      "case_id": "dp_n_terminal",
+      "protein": "ADPEPTIDER",
+      "start": 2,
+      "length": 8,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": true,
+      "allow_random_asp_pro_cleavage": true,
+      "ignore_missed_cleavages": true,
+      "expected_valid": true
+    },
+    {
+      "case_id": "dp_n_terminal_disabled",
+      "protein": "ADPEPTIDER",
+      "start": 2,
+      "length": 8,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": true,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": false
+    },
+    {
+      "case_id": "trypsin_before_proline_blocked",
+      "protein": "AKPEPTIDER",
+      "start": 2,
+      "length": 8,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": false,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": false
+    },
+    {
+      "case_id": "trypsin_p_before_proline",
+      "protein": "AKPEPTIDER",
+      "start": 2,
+      "length": 8,
+      "enzyme": "Trypsin/P",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": false,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": true
+    },
+    {
+      "case_id": "ignore_internal_missed_cleavages",
+      "protein": "AKRPEPTIDER",
+      "start": 0,
+      "length": 11,
+      "enzyme": "Trypsin",
+      "specificity": "full",
+      "allow_nterm_protein_cleavage": false,
+      "allow_random_asp_pro_cleavage": false,
+      "ignore_missed_cleavages": true,
+      "expected_valid": true
+    }
+  ],
+  "enzyme_notes": [
+    "Source FoundProteinFunctor always ignores missed-cleavage count.",
+    "N-terminal extension removes either M or any MX from a protein beginning M; it happens before enzyme-specific full-product checks.",
+    "X!Tandem adds D|P terminal cleavage even for no-cleavage enzyme. MSGF+ changes Trypsin to Trypsin/P across all runs if any run reports this engine."
+  ]
+}

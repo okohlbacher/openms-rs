@@ -1,0 +1,16 @@
+# Source-derived protein inference records; BSD-3-Clause; $Maintainer: OpenMS Rust contributors $
+kind	spectrum	sequence_or_accession	score	charge	accessions	target_decoy	protein_references	XTandem_score
+protein	-	A	0.258519381284714	-	-	target	-	-
+protein	-	D	0.258519381284714	-	-	target	-	-
+protein	-	B	0.258519381284714	-	-	target	-	-
+protein	-	C	0.258519381284714	-	-	target	-	-
+protein	-	Thyroglo	0	-	-	target	-	-
+protein	-	BSA4	0	-	-	target	-	-
+peptide	0	STFDFYQRRLVTLAESPRAPSP	0.4	2	A,D	decoy	non-unique	2.5
+peptide	0	EDQSCPSERRRAFSRLRFGPS	0.5	2	B	target	unique	2
+peptide	0	EWATYTCVLGFHVYVPVR	0.6	2	C	decoy	unique	1.666
+peptide	1	EWATYTCVLGFHVYVPVR	0.2	2	C	target	unique	5
+peptide	1	NIEMATCHED	0.3	2	-	-	unmatched	3.333
+peptide	2	LVTLAESPRAPSP	0.4	2	C,Thyroglo	target	non-unique	2.5
+peptide	2	EDQRRAFSRLRFGPS	0.5	2	D	target+decoy	unique	2
+peptide	3	FIANGE	0.1	2	BSA4	target	unique	10

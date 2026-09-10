@@ -1,0 +1,68 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "method": "First spectrum extracted without numerical processing by Python xml.etree, base64, zlib and struct; DTA fixtures copied unchanged.",
+  "records": [
+    {
+      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap.mzML",
+      "source_sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22",
+      "spectrum_index": 0,
+      "source_spectrum_id": "spectrum=2072",
+      "fixture": "tests/data/peak_picking_orbitrap.tsv",
+      "fixture_sha256": "d4727ad8db63a96e54804e6b7414b54d3b0bd216dc9767e9f257fb139a9beb35"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn1_out.mzML",
+      "source_sha256": "b7072a01b91544f95d2b942ac8ef144d6bd047416d58f85b6f17e773a9173fd2",
+      "spectrum_index": 0,
+      "source_spectrum_id": "spectrum=2072",
+      "fixture": "tests/data/peak_picking_orbitrap_sn1_out.tsv",
+      "fixture_sha256": "ebe91b8ba4cb20199d326bde49673e2cb2b57d117e808a91f6c90d72ecfe0d06"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn4_out.mzML",
+      "source_sha256": "1560b36de13933a2fe1f6ba830034d61964de38a2422b01e46cfde3568fabf59",
+      "spectrum_index": 0,
+      "source_spectrum_id": "spectrum=2072",
+      "fixture": "tests/data/peak_picking_orbitrap_sn4_out.tsv",
+      "fixture_sha256": "47335d3f3105779e368e75c411b44f588510151630703e096a72f01f5deedafe"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms.mzML",
+      "source_sha256": "5f811aebc429cc6e32edfa0600920f2d501f52b0657ecc967e772576bc25f171",
+      "spectrum_index": 0,
+      "source_spectrum_id": "spectrum=1",
+      "fixture": "tests/data/peak_picking_ftms.tsv",
+      "fixture_sha256": "4f5c3d353fe87e0d245afdaa667426226843ddb5f3191e1cdf30406ced6d5210"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms_sn1_out.mzML",
+      "source_sha256": "28883886a29c6c11ffef6f89e680551c69967070cf30623b8ee7a6a12e40d763",
+      "spectrum_index": 0,
+      "source_spectrum_id": "spectrum=1",
+      "fixture": "tests/data/peak_picking_ftms_sn1_out.tsv",
+      "fixture_sha256": "35794015a4e45833c9ecb2371a051a9d6b126d45d09dd3648d3b00028865aee8"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms_sn4_out.mzML",
+      "source_sha256": "3e2eeb659f4a4a0de9aac1a06a7b3631fcd0883ef61e6bac4abd3ab2c5a3ad91",
+      "spectrum_index": 0,
+      "source_spectrum_id": "spectrum=1",
+      "fixture": "tests/data/peak_picking_ftms_sn4_out.tsv",
+      "fixture_sha256": "2dd703d3a9c2d97f1bbe0002d6116b2fa34048a96cff67ab629d7ca041a23455"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/SignalToNoiseEstimator_test.dta",
+      "source_sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee",
+      "fixture": "tests/data/peak_picking_noise_input.dta",
+      "fixture_sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/SignalToNoiseEstimatorMedian_test.out",
+      "source_sha256": "9a46c52520ae14b171bcd9f076daa934bebdfdd018254d5c3a448e1330c264af",
+      "fixture": "tests/data/peak_picking_noise_historical.dta",
+      "fixture_sha256": "9a46c52520ae14b171bcd9f076daa934bebdfdd018254d5c3a448e1330c264af"
+    }
+  ]
+}

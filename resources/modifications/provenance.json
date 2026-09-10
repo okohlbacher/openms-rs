@@ -1,0 +1,18 @@
+{
+  "source_revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "source_files": [
+    {
+      "file": "unimod.xml",
+      "sha256": "22231d3289f2330895cee8bc119c1f9bc52b0006447b3f28a196e778e4591091",
+      "records": 1543
+    },
+    {
+      "file": "custom_mods.xml",
+      "sha256": "2078bf44aae64075cceb6a90549f20d203684df84ea11c7065293707ec8ba8b3",
+      "records": 14
+    }
+  ],
+  "specificity_records": 3035,
+  "generated_table_sha256": "853bad44502e32f280824ea05d13593f45b0723ac25b23b2fa08eca61e6f98f8",
+  "transformation": "XML records flattened by specificity; delta and neutral-loss atom counts canonicalized; original masses retained"
+}

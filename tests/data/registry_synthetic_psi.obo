@@ -1,0 +1,63 @@
+! Independently authored synthetic cases; no copied PSI-MOD ontology terms.
+! SPDX-License-Identifier: BSD-3-Clause
+! $Maintainer: OpenMS Rust contributors $
+format-version: 1.2
+
+[Term]
+id: MOD:9000001
+name: Reference resolved alias
+def: "Synthetic alias to the two-site base record." [UniMod:990001]
+synonym: "Reference alias label" EXACT PSI-MOD-label []
+property_value: Origin: "M" xsd:string
+property_value: TermSpec: "N-term" xsd:string
+
+[Term]
+id: MOD:9000002
+name: Reference unresolved alias
+def: "Synthetic alias with no installed target." [UniMod:990009]
+property_value: Origin: "M" xsd:string
+property_value: DiffMono: "12.5" xsd:float
+
+[Term]
+id: MOD:9000010
+name: Reference unchanged absolute record
+synonym: "Reference no change" EXACT PSI-MOD-label []
+property_value: Origin: "M" xsd:string
+property_value: DiffMono: "0" xsd:float
+property_value: DiffAvg: "0" xsd:float
+property_value: MassMono: "999" xsd:float
+property_value: Formula: "C" xsd:string
+
+[Term]
+id: MOD:9000011
+name: Reference absolute composition
+synonym: "Reference replacement" EXACT []
+property_value: Origin: "M" xsd:string
+property_value: DiffMono: "1" xsd:float
+property_value: MassMono: "777" xsd:float
+property_value: Formula: "C 4 H 9 N O 3" xsd:string
+
+[Term]
+id: MOD:9000012
+name: Reference delta composition precedence
+property_value: Origin: "M" xsd:string
+property_value: DiffMono: "100" xsd:float
+property_value: MassMono: "888" xsd:float
+property_value: DiffFormula: "O" xsd:string
+property_value: Formula: "C" xsd:string
+
+[Term]
+id: MOD:9000013
+name: Reference terminal delta only
+property_value: Origin: "X" xsd:string
+property_value: TermSpec: "N-term" xsd:string
+property_value: DiffMono: "12.5" xsd:float
+property_value: MassMono: "999" xsd:float
+property_value: Formula: "C" xsd:string
+
+[Term]
+id: MOD:9000014
+name: Reference final record
+synonym: "Reference final synonym" EXACT []
+property_value: Origin: "K" xsd:string
+property_value: DiffMono: "4.25" xsd:float

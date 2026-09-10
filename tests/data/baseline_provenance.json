@@ -1,0 +1,14 @@
+{
+  "source_revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "files": [
+    {
+      "path": "tests/data/baseline_morphological_golden.txt",
+      "sha256": "205453b0df7facf11208778f77c3b5f2d8725fb6fb1c3659e51f62a42329cfd4",
+      "source_path": "src/tests/class_tests/openms/data/MorphologicalFilter_test_1.txt",
+      "source_sha256": "205453b0df7facf11208778f77c3b5f2d8725fb6fb1c3659e51f62a42329cfd4",
+      "source_url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/data/MorphologicalFilter_test_1.txt",
+      "derivation": "byte-for-byte copy"
+    }
+  ]
+}

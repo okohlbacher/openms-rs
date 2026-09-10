@@ -1,0 +1,39 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "method": "Byte-identical source DTA input (shared with median-noise tests) and source historical mean-noise output. The source test uses absolute tolerance 0.5 for every stored f32 output intensity, with window 40.1, sparse fallback 2 and minimum 10. No C++ execution.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h",
+      "sha256": "702fc1891272baddc88301fab7276ca7a01d0fc1d7078b116f3457ea4755e55b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h",
+      "sha256": "16b78361f139b2ea0df77737b44980cadb052e5a805deaac85037e152538864a"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SignalToNoiseEstimatorMeanIterative_test.cpp",
+      "sha256": "b4e2c62e3f91014d7e4dd488df657078af1430ac36f76cd02ad1d959eb55c82b"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SignalToNoiseEstimator_test.dta",
+      "sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SignalToNoiseEstimatorMeanIterative_test.out",
+      "sha256": "4289fe8a8b6d8cd44e6036dab63b33295fc61ef9eb79d8e91a3b69c1d01d14a8"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/peak_picking_noise_input.dta",
+      "sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee",
+      "points": 2526
+    },
+    {
+      "path": "tests/data/mean_noise_historical.dta",
+      "sha256": "4289fe8a8b6d8cd44e6036dab63b33295fc61ef9eb79d8e91a3b69c1d01d14a8",
+      "points": 2526
+    }
+  ]
+}

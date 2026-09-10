@@ -1,0 +1,50 @@
+{
+  "source_revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "files": [
+    {
+      "path": "tests/data/mzml_upstream_minimal.mzML",
+      "source_path": "src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML",
+      "source_url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML",
+      "sha256": "01fdbc15e97c6ff2fb565fc5beea8e8e6d01474a2333da79b72f2440345ae6d3",
+      "copy": "byte-for-byte"
+    },
+    {
+      "path": "tests/data/mzml_upstream_serum.mzML",
+      "source_path": "src/tests/class_tests/openms/data/FIAMS_output/SerumTest_picked_10.mzML",
+      "source_url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/data/FIAMS_output/SerumTest_picked_10.mzML",
+      "sha256": "8ae288b606b959b532791d36450dc546c72fa6903a5ffe69bd9ec0659eac9cc4",
+      "copy": "byte-for-byte"
+    },
+    {
+      "path": "tests/data/mzml_1_10.xsd",
+      "source_path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+      "source_url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+      "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad",
+      "copy": "Schema content identical after CRLF/LF normalization; stored fixture has CRLF, immutable source has LF. sha256 identifies the stored fixture; source_sha256 identifies immutable source bytes.",
+      "source_sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+    }
+  ],
+  "auxiliary_array_sources": [
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+      "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
+    },
+    {
+      "path": "src/openms/source/FORMAT/Base64.cpp",
+      "sha256": "e72ee0f62de04a2a30ece314bfa8db2587950700d0868a34cffe2dc5fd87069e"
+    },
+    {
+      "path": "share/OpenMS/CV/psi-ms.obo",
+      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+    }
+  ],
+  "auxiliary_array_reference_tests": [
+    "tests/mzml_auxiliary_review.rs",
+    "tests/mzml_auxiliary_writer_review.rs"
+  ],
+  "auxiliary_array_conventions": "Named MS:1000786 arrays use source f32, signed i64 little-endian, and MS:1001479 NUL-terminated ASCII writer encodings; reader additionally accepts f64 and signed i32. Native values remain f32/i32/String. Empty string elements follow the explicit CV and source encoder, correcting the source decoder empty-token omission. No C++ was built or executed."
+}

@@ -1,0 +1,1070 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "maintainer": "OpenMS Rust contributors",
+  "artifact_scope": "Packaged independent RNA digestion, modification-generation and theoretical-spectrum references. No C++ execution and no native-generated expected values.",
+  "source_code_license": "BSD-3-Clause; original source comments attribute ion values to Ariadne (ariadne.riken.jp). Referenced MODOMICS resource notices are separate; hashes do not establish redistribution rights.",
+  "sources": [
+    {
+      "path": "src/tests/class_tests/openms/source/NucleicAcidSpectrumGenerator_test.cpp",
+      "sha256": "481fa0557b9ac892030acb91411a8dda223ea28eb93ec6855f7c20a2b01ea200",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/NucleicAcidSpectrumGenerator_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h",
+      "sha256": "64bc6d66df30683afd6a9d0ada5a807be22a01ed437659fb4c6326ce6b02bb35",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/NucleicAcidSpectrumGenerator.cpp",
+      "sha256": "0ec036f987d0b3cd5dc20575993eb28dab657373a358c2463fec60f1d10bd225",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/NucleicAcidSpectrumGenerator.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/NASequence.h",
+      "sha256": "e06f3bd0db9e816529009793112edb3a056a0295d3b5cc616ae79cf40185e11d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/NASequence.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/NASequence.cpp",
+      "sha256": "21a2a34389026ac9696d809d5e79f6141668f2b65c7d00081920775f5f929423",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/NASequence.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Ribonucleotide.cpp",
+      "sha256": "a40433bc08f7394327fa724aa6d48283fc1bd8a9c9f8096be6f4ea1c785826bb",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/Ribonucleotide.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h",
+      "sha256": "9c2a81ef15a7beb3e52c3ba9e1db9b98ae68f27aa3eb5f62cd3a5562f978927d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/EmpiricalFormula.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CONCEPT/Constants.h"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/Modomics.json",
+      "sha256": "2c98d258f2b88c126e88a06e080a0652053b77bc9d434ab8727c984dfa8436fc",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/Modomics.json"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/Custom_RNA_modifications.tsv",
+      "sha256": "155d7ff5c70c9c01ffd0d5a32fe7c4e200adc10ae5ed6d516b07ec8242faa23d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/Custom_RNA_modifications.tsv"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/RNaseDigestion.h",
+      "sha256": "080f4f853a5836d0bf2ba769d8124f259bf752c804cc80ee4e21d1346a4b8fad",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/RNaseDigestion.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeRNA.h",
+      "sha256": "bc19b7c721c12a27432bbaa150a4f59c8dd9170511a48f99eedbc5072d7a4a80",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeRNA.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/RNaseDB.h",
+      "sha256": "1aed0e9ec784848b1a57b7da95d0ff76c32a41a32e91dfb4e6219b3a201dd38d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/RNaseDB.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h",
+      "sha256": "aa00b90682191e324522b3ffd26db3bf7d904597dc0e350d921e1f749fcd69b1",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/RNaseDigestion.cpp",
+      "sha256": "ef0fadffcf635052cfc6af03046c56e6fef1fcec4fd0530613a72cb16f2a9f1f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/RNaseDigestion.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/DigestionEnzymeRNA.cpp",
+      "sha256": "8fc3167698c1830647cfe91d39ed5789b5ca2029a9d3e0fcc780aa3a39984be7",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/DigestionEnzymeRNA.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/RNaseDB.cpp",
+      "sha256": "8f7be48072f137dc641e50748128787c67f40d8cd6c0c474f491b50a9fa3602c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/RNaseDB.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModifiedNASequenceGenerator.cpp",
+      "sha256": "a838584c26985f75c50b1b1922d24cc8ade0379cde17f4473d44954acc10ed7e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModifiedNASequenceGenerator.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/RNaseDigestion_test.cpp",
+      "sha256": "65bab419c3e5c11245b90e90324b04cd6dd61117b8aeb9854e06da4df0a20906",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/RNaseDigestion_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DigestionEnzymeRNA_test.cpp",
+      "sha256": "2680172abb199f70a5b2a97f50de05a6653b8991ee26a9dbdd94172173e3573c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/DigestionEnzymeRNA_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/RNaseDB_test.cpp",
+      "sha256": "a56a26e79f48854290335e9472f35ba7b0227e1e4668b9402bbef31f66624ea0",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/RNaseDB_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ModifiedNASequenceGenerator_test.cpp",
+      "sha256": "fc9fd9eaf392d09f721c0f65ad0633bcb3a80ec25dcf2d3157738ec8b80b4ef6",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/ModifiedNASequenceGenerator_test.cpp"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/Enzymes_RNA.xml",
+      "sha256": "4c90a3630a1553ef7c75bae00f2731e2f5bb690f3ee9434d54cc3315a95fe899",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/Enzymes_RNA.xml"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeDB.h",
+      "sha256": "2b89aa4a51ddc169321fd1b24d5cd7a73c3ba0c9db11d8f548a89845e26b471f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeDB.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+      "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/Peak1D.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/MSSpectrum.h"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/KERNEL/MSSpectrum.cpp"
+    }
+  ],
+  "source_defaults": {
+    "add_metainfo": false,
+    "add_precursor_peaks": false,
+    "add_all_precursor_charges": false,
+    "add_first_prefix_ion": false,
+    "add_a_ions": false,
+    "add_b_ions": true,
+    "add_c_ions": false,
+    "add_d_ions": false,
+    "add_w_ions": false,
+    "add_x_ions": false,
+    "add_y_ions": true,
+    "add_z_ions": false,
+    "add_a-B_ions": false,
+    "a_intensity": 1.0,
+    "b_intensity": 1.0,
+    "c_intensity": 1.0,
+    "d_intensity": 1.0,
+    "w_intensity": 1.0,
+    "x_intensity": 1.0,
+    "y_intensity": 1.0,
+    "z_intensity": 1.0,
+    "a-B_intensity": 1.0,
+    "precursor_intensity": 1.0
+  },
+  "single_spectrum_cases": [
+    {
+      "case": "standard_linkages",
+      "sequence": "[m1A]UCCACAGp",
+      "literal_count": 66,
+      "compared_count": 63,
+      "runs": [
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": true,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 116,
+          "call_line": 117,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "a-B",
+          "source_array_line": 89,
+          "source_array_size": 8,
+          "source_size_assertion_line": 118,
+          "compared_count": 7,
+          "source_comparison_line": 121
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": true,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 127,
+          "call_line": 128,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "a",
+          "source_array_line": 91,
+          "source_array_size": 8,
+          "source_size_assertion_line": 129,
+          "compared_count": 7,
+          "source_comparison_line": 132
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": true,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 138,
+          "call_line": 139,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "b",
+          "source_array_line": 93,
+          "source_array_size": 8,
+          "source_size_assertion_line": 140,
+          "compared_count": 7,
+          "source_comparison_line": 143
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": true,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 149,
+          "call_line": 150,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "c",
+          "source_array_line": 95,
+          "source_array_size": 7,
+          "source_size_assertion_line": 151,
+          "compared_count": 7,
+          "source_comparison_line": 154
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": true,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 160,
+          "call_line": 161,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "d",
+          "source_array_line": 97,
+          "source_array_size": 7,
+          "source_size_assertion_line": 162,
+          "compared_count": 7,
+          "source_comparison_line": 165
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": true,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 171,
+          "call_line": 172,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "w",
+          "source_array_line": 99,
+          "source_array_size": 7,
+          "source_size_assertion_line": 173,
+          "compared_count": 7,
+          "source_comparison_line": 176
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": true,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 182,
+          "call_line": 183,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "x",
+          "source_array_line": 101,
+          "source_array_size": 7,
+          "source_size_assertion_line": 184,
+          "compared_count": 7,
+          "source_comparison_line": 187
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": true,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 193,
+          "call_line": 194,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "y",
+          "source_array_line": 103,
+          "source_array_size": 7,
+          "source_size_assertion_line": 195,
+          "compared_count": 7,
+          "source_comparison_line": 198
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": true,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 204,
+          "call_line": 205,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "z",
+          "source_array_line": 105,
+          "source_array_size": 7,
+          "source_size_assertion_line": 206,
+          "compared_count": 7,
+          "source_comparison_line": 209
+        }
+      ]
+    },
+    {
+      "case": "internal_phosphorothioates",
+      "sequence": "[m1A]UC[C*]AC[A*]Gp",
+      "literal_count": 66,
+      "compared_count": 63,
+      "runs": [
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": true,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 247,
+          "call_line": 248,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "a-B",
+          "source_array_line": 219,
+          "source_array_size": 8,
+          "source_size_assertion_line": 249,
+          "compared_count": 7,
+          "source_comparison_line": 252
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": true,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 258,
+          "call_line": 259,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "a",
+          "source_array_line": 221,
+          "source_array_size": 8,
+          "source_size_assertion_line": 260,
+          "compared_count": 7,
+          "source_comparison_line": 263
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": true,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 269,
+          "call_line": 270,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "b",
+          "source_array_line": 223,
+          "source_array_size": 8,
+          "source_size_assertion_line": 271,
+          "compared_count": 7,
+          "source_comparison_line": 274
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": true,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 280,
+          "call_line": 281,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "c",
+          "source_array_line": 225,
+          "source_array_size": 7,
+          "source_size_assertion_line": 282,
+          "compared_count": 7,
+          "source_comparison_line": 285
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": true,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 291,
+          "call_line": 292,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "d",
+          "source_array_line": 227,
+          "source_array_size": 7,
+          "source_size_assertion_line": 293,
+          "compared_count": 7,
+          "source_comparison_line": 296
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": true,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 302,
+          "call_line": 303,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "w",
+          "source_array_line": 229,
+          "source_array_size": 7,
+          "source_size_assertion_line": 304,
+          "compared_count": 7,
+          "source_comparison_line": 307
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": true,
+            "add_y_ions": false,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 313,
+          "call_line": 314,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "x",
+          "source_array_line": 231,
+          "source_array_size": 7,
+          "source_size_assertion_line": 315,
+          "compared_count": 7,
+          "source_comparison_line": 318
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": true,
+            "add_z_ions": false,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 324,
+          "call_line": 325,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "y",
+          "source_array_line": 233,
+          "source_array_size": 7,
+          "source_size_assertion_line": 326,
+          "compared_count": 7,
+          "source_comparison_line": 329
+        },
+        {
+          "settings": {
+            "add_metainfo": true,
+            "add_precursor_peaks": false,
+            "add_all_precursor_charges": false,
+            "add_first_prefix_ion": true,
+            "add_a_ions": false,
+            "add_b_ions": false,
+            "add_c_ions": false,
+            "add_d_ions": false,
+            "add_w_ions": false,
+            "add_x_ions": false,
+            "add_y_ions": false,
+            "add_z_ions": true,
+            "add_a-B_ions": false,
+            "a_intensity": 1.0,
+            "b_intensity": 1.0,
+            "c_intensity": 1.0,
+            "d_intensity": 1.0,
+            "w_intensity": 1.0,
+            "x_intensity": 1.0,
+            "y_intensity": 1.0,
+            "z_intensity": 1.0,
+            "a-B_intensity": 1.0,
+            "precursor_intensity": 1.0
+          },
+          "settings_applied_line": 335,
+          "call_line": 336,
+          "min_charge": -1,
+          "max_charge": -1,
+          "series": "z",
+          "source_array_line": 235,
+          "source_array_size": 7,
+          "source_size_assertion_line": 337,
+          "compared_count": 7,
+          "source_comparison_line": 340
+        }
+      ]
+    }
+  ],
+  "neutral_mass_assertions": [
+    {
+      "sequence": "[m1A]UCCACAGp",
+      "literal": "2585.3800",
+      "operation": "abs(seq.getMonoWeight() - literal) <= 0.01 required by ABORT_IF",
+      "source_line": 88
+    },
+    {
+      "sequence": "[m1A]UCCACA[G*]p",
+      "literal": "2585.3800",
+      "operation": "TEST_REAL_SIMILAR(seq.getMonoWeight(), literal); no additional fragment arrays",
+      "source_line": 213
+    },
+    {
+      "sequence": "[m1A]UC[C*]AC[A*]Gp",
+      "literal": "2617.334342",
+      "operation": "abs(seq.getMonoWeight() - literal) <= 0.01 required by ABORT_IF",
+      "source_line": 218
+    }
+  ],
+  "multiple_spectrum_case": {
+    "source_start_line": 348,
+    "sequence": "[m1A]UCCACAGp",
+    "charges_literal_order": [
+      -1,
+      -3,
+      -5
+    ],
+    "set_iteration_order": [
+      -5,
+      -3,
+      -1
+    ],
+    "base_charge": -1,
+    "constructed_but_unapplied_parameter_changes": [
+      {
+        "parameter": "add_first_prefix_ion",
+        "value": true,
+        "source_line": 352
+      },
+      {
+        "parameter": "add_metainfo",
+        "value": true,
+        "source_line": 353
+      },
+      {
+        "parameter": "add_a_ions",
+        "value": true,
+        "source_line": 355
+      },
+      {
+        "parameter": "add_b_ions",
+        "value": true,
+        "source_line": 356
+      },
+      {
+        "parameter": "add_c_ions",
+        "value": true,
+        "source_line": 357
+      },
+      {
+        "parameter": "add_d_ions",
+        "value": true,
+        "source_line": 358
+      },
+      {
+        "parameter": "add_w_ions",
+        "value": true,
+        "source_line": 359
+      },
+      {
+        "parameter": "add_x_ions",
+        "value": true,
+        "source_line": 360
+      },
+      {
+        "parameter": "add_y_ions",
+        "value": true,
+        "source_line": 361
+      },
+      {
+        "parameter": "add_z_ions",
+        "value": true,
+        "source_line": 362
+      },
+      {
+        "parameter": "add_a-B_ions",
+        "value": true,
+        "source_line": 363
+      }
+    ],
+    "set_parameters_called": false,
+    "actual_settings": {
+      "add_metainfo": false,
+      "add_precursor_peaks": false,
+      "add_all_precursor_charges": false,
+      "add_first_prefix_ion": false,
+      "add_a_ions": false,
+      "add_b_ions": true,
+      "add_c_ions": false,
+      "add_d_ions": false,
+      "add_w_ions": false,
+      "add_x_ions": false,
+      "add_y_ions": true,
+      "add_z_ions": false,
+      "add_a-B_ions": false,
+      "a_intensity": 1.0,
+      "b_intensity": 1.0,
+      "c_intensity": 1.0,
+      "d_intensity": 1.0,
+      "w_intensity": 1.0,
+      "x_intensity": 1.0,
+      "y_intensity": 1.0,
+      "z_intensity": 1.0,
+      "a-B_intensity": 1.0,
+      "precursor_intensity": 1.0
+    },
+    "assertions": "getMultipleSpectra map size equals three individually generated spectra; each map spectrum equals corresponding individually generated default spectrum. No literal mass vector is asserted in this section.",
+    "note": "The locally modified Param is never passed to gen.setParameters. Actual coverage is default b/y, no metadata, first prefix disabled and no precursor. The commented precursor option is also never applied."
+  },
+  "reference_boundaries": [
+    "a-B/a/b vectors have eight values per sequence, but the source compares only indexes0..6; index7 is deliberately untested full-length reference.",
+    "c/d/w/x/y/z vectors contain seven values each and all are compared.",
+    "Each of18 single-spectrum runs uses exactly one enabled ion series, charge-1, metadata and first-prefix enabled, all intensities1, no precursors.",
+    "Original decimal strings and bits are literal-reference encodings, not C++ runtime-generated peak observations.",
+    "TEST_REAL_SIMILAR default implementation is absent from this source snapshot; no exact source tolerance is inferred.",
+    "No source-provided intensity or label assertions accompany these literal mass loops; enabled metadata and default intensities are configuration facts.",
+    "Copy and assignment sections configure add_a_ions=true and a_intensity=.5 on top of defaults and compare generated spectra for equality; they do not provide extra literal ion arrays."
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/rna_processing_digestion_cases.tsv",
+      "rows": 12,
+      "sha256": "93faccdc6db01b2cf6da7e445798894f9db1344a5110cbf4ea93acbc9bf5a1a8"
+    },
+    {
+      "path": "tests/data/rna_processing_digestion_outputs.tsv",
+      "rows": 38,
+      "sha256": "59a4dd00535ca7e170eefa00cbd5b66ab92c45f0b36946b3b9dcb35daa461563"
+    },
+    {
+      "path": "tests/data/rna_processing_code_predicates.tsv",
+      "rows": 6048,
+      "sha256": "c078d42a1fcbf3fd8e2386d425784fd784499fce237e678a4f2ccc07ba570b7d"
+    },
+    {
+      "path": "tests/data/rna_processing_source_ions.tsv",
+      "rows": 132,
+      "sha256": "c7031cf7a3c770153f50c4179facee0567ba5ed9d117d0cd621594fdcc248e04"
+    },
+    {
+      "path": "tests/data/rna_processing_enzymes.tsv",
+      "rows": 14,
+      "sha256": "8e11f9ce7580a7e90261af87a12467a1d2cb35b5b0867c836df7bdcaaf2eb50e"
+    },
+    {
+      "path": "tests/data/rna_processing_modification_outputs.tsv",
+      "rows": 8,
+      "sha256": "7e8137925db76fcef0a899d7cde0c82596ee3b5bca1aff313f88473671ab1349"
+    },
+    {
+      "path": "tests/data/rna_processing_modification_counts.tsv",
+      "rows": 4,
+      "sha256": "5554b459fc32def0b129b4d1199737a78e7ec9ef046cd67fd2d63a35d0caa6d6"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/rna_registry_reference.tsv",
+      "rows": 378,
+      "sha256": "71c342eeb69b5b4754f70a920b3ebdab60a80489db1586e4914b6358fc0fcaab"
+    }
+  ],
+  "digestion": {
+    "literal_cases": 12,
+    "literal_outputs": 38,
+    "enzymes": 14,
+    "distinct_patterns": 16,
+    "predicate_rows": 6048,
+    "predicate_method": "Python stdlib re.search of exact registered XML expressions over independently extracted 378 source record codes; independently cross-checked against direct substring/anchor/lookaround predicates. This finite-pattern check does not claim arbitrary Boost regex equivalence.",
+    "output_order": "Source digest-call order, including duplicate cusativin case; within case original source output indices.",
+    "registry_table": "XML fields are copied verbatim; missing gains become empty. Main regex and synonyms are absent in these records."
+  },
+  "modifications": {
+    "source_counts": [
+      7,
+      6,
+      27,
+      432
+    ],
+    "source_strings": 8,
+    "independent_derived_checks": "Cartesian product identity sets for all 27 and 432 variants; coefficient counts (1+x)^4(1+2x)^3; hand-derived terminal-site order and caller-order alternative nesting.",
+    "native_order_policy": "Input slice order, retaining first occurrence of repeated Arc identity. Separate equal-value allocations remain distinct alternatives. Source pointer-address ordering is not portable.",
+    "max_one_empty": "Defined empty loop: NASequence custom iterator uses signed index -1 at both adjusted ends."
+  },
+  "validation_boundary": "Source ion literals retain all 132 values; six full-length a-B/a/b entries are not asserted by upstream and are not treated as generated expectations. All 126 compared values use explicit native absolute tolerance 0.001 Da; original macro tolerance is unavailable in pinned snapshot. Additional labels, intensities and algorithmic edge tests are source-derived assertions rather than upstream numeric literals.",
+  "native_reference_validation": {
+    "test_target": "rna_processing_reference",
+    "test_functions": 9,
+    "current_all_features": "passed",
+    "rust_1_85_no_default_features": "passed",
+    "strict_clippy_both_configurations": "passed",
+    "no_cpp_execution": true,
+    "expected_values_changed_after_execution": false,
+    "combined_matrix": {
+      "current_rust_1_96": "Complete locked/offline all-feature/all-target run: 993 passed, including all nine independent processing references.",
+      "minimum_rust_1_85": "All-feature RNA suites plus all unit tests: 129 passed.",
+      "no_default_features": "RNA suites plus all unit tests: 124 passed on Rust 1.96 and 1.85.",
+      "quality": "Three doctests on each compiler; strict all-target Clippy for current/all-features and minimum/no-default-features, warnings-denied rustdoc, Rustfmt, both registry generators, RNA processing example and package file-list check pass.",
+      "scope": "Source-derived scientific checks; no C++ compilation/execution, runtime differential comparison or publication."
+    }
+  }
+}

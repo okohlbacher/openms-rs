@@ -1,0 +1,379 @@
+provider	source_key_or_line	code	formula	origin	term	baseloss	mono_kind	mono_bits	average_kind	average_bits	alternative_1	alternative_2
+json	10	io6A	C15H21N5O5	A	Anywhere	C5H10O5	declared	4075f2780346dc5d	declared	4075f5ba5e353f7d		
+json	100	s2U	C9H12N2O5S	U	Anywhere	C5H10O5	declared	407040bf487fcb92	declared	40704445a1cac083		
+json	101	k2C	C15H25N5O6	C	Anywhere	C5H10O5	declared	407732e353f7ced9	declared	407736395810624e		
+json	102	m2Gm	C12H17N5O5	G	Anywhere	C6H12O5	declared	407371f7ced91687	declared	407374b439581062		
+json	103	Ym	C10H14N2O6	U	Anywhere	C6H12O5	declared	4070215cfaacd9e8	declared	407023a5e353f7cf		
+json	104	f5Cm	C11H15N3O6	C	Anywhere	C6H12O5	declared	4071d189a0275254	declared	4071d40c49ba5e35		
+json	105	Qbase	C12H15N5O3	G	Anywhere	C5H10O5	declared	407151e147ae147b	declared	40715476c8b43958		
+json	106	ac4Cm	C12H17N3O6	C	Anywhere	C6H12O5	declared	4072b1c985f06f69	declared	4072b47ae147ae14		
+json	108	imG-14	C13H15N5O5	G	Anywhere	C5H10O5	declared	407411b780346dc6	declared	4074149fbe76c8b4		
+json	109	A	C10H13N5O4	A	Anywhere	C5H10O5	declared	4070b18c7e28240b	declared	4070b3db22d0e560		
+json	11	cm5s2U	C11H14N2O7S	U	Anywhere	C5H10O5	declared	4073e0d5cfaacd9f	declared	4073e4d916872b02		
+json	110	mnm5s2U	C11H17N3O5S	U	Anywhere	C5H10O5	declared	4072f16c226809d5	declared	4072f55c28f5c28f		
+json	111	m2,2,7G	C13H19N5O5	G	Anywhere	C5H10O5	declared	40745237b4a2339c	declared	4074551eb851eb85		
+json	112	yW-58	C19H26N6O7	G	Anywhere	C5H10O5	declared	407c22fb15b573eb	declared	407c2722d0e56042		
+json	113	I	C10H12N4O5	A	Anywhere	C5H10O5	declared	4070c14af4f0d845	declared	4070c39db22d0e56		
+json	114	g6A	C13H16N6O7	A	Anywhere	C5H10O5	declared	407701ba5e353f7d	declared	407704d4fdf3b646		
+json	115	nm5U	C10H15N3O6	U	Anywhere	C5H10O5	declared	40711189a0275254	declared	407113e353f7ced9		
+json	116	m7G	C11H15N5O5	G	Anywhere	C5H10O5	declared	407291b780346dc6	declared	40729445a1cac083		
+json	117	s2Um	C10H14N2O5S	U	Anywhere	C6H12O5	declared	407120ff2e48e8a7	declared	407124b439581062		
+json	118	Y	C9H12N2O6	U	Anywhere	C5H10O5	declared	406e82395810624e	declared	406e866e978d4fdf		
+json	119	hm5C	C10H15N3O6	C	Anywhere	C5H10O5	declared	40711189a0275254	declared	407113e353f7ced9		
+json	12	m5U	C10H14N2O6	U	Anywhere	C5H10O5	declared	4070215cfaacd9e8	declared	407023a5e353f7cf		
+json	120	preQ0	C12H13N5O5	G	Anywhere	C5H10O5	declared	407331779a6b50b1	declared	4073343126e978d5		
+json	121	o2yW	C21H28N6O11	G	Anywhere	C5H10O5	declared	4080e173eab367a1	declared	4080e3d916872b02		
+json	122	m5Um	C11H16N2O6	U	Anywhere	C6H12O5	declared	4071019ce075f6fd	declared	407104147ae147ae		
+json	123	preQ1	C12H17N5O5	G	Anywhere	C5H10O5	declared	407371f7ced91687	declared	407374b439581062		
+json	124	m6,6Am	C13H19N5O4	A	Anywhere	C6H12O5	declared	4073524c985f06f7	declared	40735522d0e56042		
+json	125	ac6A	C12H15N5O5	A	Anywhere	C5H10O5	declared	407351b780346dc6	declared	40735472b020c49c		
+json	126	ms2io6A	C16H23N5O5S	A	Anywhere	C5H10O5	declared	4078d245a1cac083	declared	4078d72f1a9fbe77		
+json	127	Am	C11H15N5O4	A	Anywhere	C6H12O5	declared	407191cc63f14120	declared	40719449ba5e353f		
+json	128	Im	C11H14N4O5	A	Anywhere	C6H12O5	declared	4071a18adab9f55a	declared	4071a40c49ba5e35		
+json	129	mnm5U	C11H17N3O6	U	Anywhere	C5H10O5	declared	4071f1c985f06f69	declared	4071f44dd2f1a9fc		
+json	13	m2,2G	C12H17N5O5	G	Anywhere	C5H10O5	declared	407371f7ced91687	declared	407374b439581062		
+json	130	t6A	C15H21N7O7	A	Anywhere	C5H10O5	declared	4079b22617c1bda5	declared	4079b5eb851eb852		
+json	131	m8A	C11H15N5O4	A	Anywhere	C5H10O5	declared	407191cc63f14120	declared	40719449ba5e353f		
+json	132	m7GpppN	C16H23N5O17P3	X	FivePrime	C5H10O5	declared	407c7063886594af	declared	408452624dd2f1aa		
+json	133	m2,7GpppN	C17H25N5O17P3	X	FivePrime	C5H10O5	declared	407d50a3d70a3d71	declared	4084c2999999999a		
+json	134	m2,2,7GpppN	C18H27N5O17P3	X	FivePrime	C5H10O5	declared	407e30e3bcd35a86	declared	408532d0e5604189		
+json	135	mpppN	C6H11O13P3	X	FivePrime	C5H10O5	declared	40659e189374bc6a	declared	4078010a3d70a3d7		
+json	136	m2,8A	C12H17N5O4	A	Anywhere	C5H10O5	declared	4072720cb295e9e2	declared	407274b439581062		
+json	137	acp3D	C13H21N3O8	U	Anywhere	C5H10O5	declared	4075b2205bc01a37	declared	4075b522d0e56042		
+json	138	acp3Y	C13H19N3O8	U	Anywhere	C5H10O5	declared	407591e00d1b7176	declared	407594e147ae147b		
+json	139	imG	C14H17N5O5	G	Anywhere	C5H10O5	declared	4074f1f7ced91687	declared	4074f50a3d70a3d7		
+json	14	D	C9H14N2O6	U	Anywhere	C5H10O5	declared	406ec2b9f559b3d0	declared	406ec6f1a9fbe76d		
+json	140	N		X	Anywhere	C5H10O5	declared	0000000000000000	declared	0000000000000000		
+json	141	C+	C14H25N7O4	C	Anywhere	C5H10O5	declared	4076332617c1bda5	declared	40763649ba5e353f		
+json	142	m2,7Gm	C13H19N5O5	G	Anywhere	C6H12O5	declared	40745237b4a2339c	declared	4074551eb851eb85		
+json	143	ho5C	C9H13N3O6	C	Anywhere	C5H10O5	declared	407031495182a993	declared	40703374bc6a7efa		
+json	144	inm5U	C15H23N3O6	U	Anywhere	C5H10O5	declared	4075528a0902de01	declared	407555c28f5c28f6		
+json	145	inm5Um	C16H25N3O6	U	Anywhere	C6H12O5	declared	407632c9eecbfb16	declared	4076362d0e560419		
+json	146	inm5s2U	C15H23N3O5S	U	Anywhere	C5H10O5	declared	4076522c3c9eecc0	declared	407656cccccccccd		
+json	147	pppN	C5H8O13P3	X	FivePrime	C5H10O5	declared	4063bd5810624dd3	declared	4077107ef9db22d1		
+json	148	GpppN	C15H20N5O17P3	X	FivePrime	C5H10O5	declared	407b800346dc5d64	declared	4083da1cac083127		
+json	149	CoApN	C26H40N7O19P3S	X	FivePrime	C5H10O5	declared	40856100d1b71759	declared	408b7cf1a9fbe76d		
+json	15	m4,4C	C11H17N3O5	C	Anywhere	C5H10O5	declared	4070f1de69ad42c4	declared	4070f451eb851eb8		
+json	150	acCoApN	C28H42N7O20P3S	X	FivePrime	C5H10O5	declared	4087016c226809d5	declared	408ccd3b645a1cac		
+json	151	malonyl-CoApN	C29H42N7O22P3S	X	FivePrime	C5H10O5	declared	408861573eab367a	declared	408e2d4fdf3b645a		
+json	152	succinyl-CoApN	C30H44N7O22P3S	X	FivePrime	C5H10O5	declared	4088c9676c8b4396	declared	408e9d851eb851ec		
+json	153	ppN	C5H8O10P2	X	FivePrime	C5H10O5	declared	4053bd5810624dd3	declared	407220f1a9fbe76d		
+json	154	NADpN	C26H33N7O20P3	X	FivePrime	C5H10O5	declared	4084a8bf7ced9168	declared	408ac3f7ced91687		
+json	16	m6t6A	C15H20N6O8	A	Anywhere	C5H10O5	declared	4079c22617c1bda5	declared	4079c5ae147ae148		
+json	160	OHyWy	C19H26N6O8	G	Anywhere	C5H10O5	declared	407d22e631f8a090	declared	407d271eb851eb85		
+json	161	pG(pN)	C15H19N5O14P2	X	Anywhere	C5H10O5	declared	4076a0cd9e83e426	declared	40815a45a1cac083		
+json	162	ncm5s2U	C11H15N3O6S	U	Anywhere	C5H10O5	declared	4073d116f0068db9	declared	4073d516872b020c		
+json	163	nchm5U	C11H15N3O8	U	Anywhere	C5H10O5	declared	4073d15fd8adab9f	declared	4073d4083126e979		
+json	164	mchm5Um	C13H18N2O9	U	Anywhere	C6H12O5	declared	4075a19e83e425af	declared	4075a4a3d70a3d71		
+json	165	pN	C5H8O7P	X	FivePrime	C5H10O5	declared	406a60068db8bac7	declared	406a62c8b4395810		
+json	166	ges2U	C19H28N2O5S	U	Anywhere	C5H10O5	declared	4078c2c01a36e2eb	declared	4078c804189374bc		
+json	167	cmnm5ges2U	C22H33N3O7S	U	Anywhere	C5H10O5	declared	407e33432ca57a78	declared	407e393f7ced9168		
+json	168	mnm5ges2U	C21H33N3O5S	U	Anywhere	C5H10O5	declared	407b736cf41f212d	declared	407b791a9fbe76c9		
+json	169	nm5ges2U	C20H31N3O5S	U	Anywhere	C5H10O5	declared	407a932ca57a786c	declared	407a98ac083126e9		
+json	17	m5D	C10H16N2O6	U	Anywhere	C5H10O5	declared	4070419ce075f6fd	declared	407043e76c8b4396		
+json	170	mmpN	C7H14O7P	X	FivePrime	C5H10O5	declared	406e2186c226809d	declared	406e24fdf3b645a2		
+json	171	mpN	C6H11O7P	X	FivePrime	C5H10O5	declared	406c40c63f141206	declared	406c43df3b645a1d		
+json	173	5'-OH-N		X	Anywhere	C5H10O5	formula		declared	0000000000000000		
+json	174	N2'3'cp	C5H6O9P2	X	ThreePrime	C5H10O5	formula		declared	407100b020c49ba6		
+json	175	ct6A	C15H18N6O7	A	Anywhere	C5H10O5	declared	4078a1faacd9e83e	declared	4078a56c8b439581		
+json	176	hm6A	C11H15N5O5	A	Anywhere	C5H10O5	declared	407291b780346dc6	declared	40729445a1cac083		
+json	177	f6A	C11H13N5O5	A	Anywhere	C5H10O5	declared	407271779a6b50b1	declared	40727404189374bc		
+json	178	cnm5U	C11H13N3O6	U	Anywhere	C5H10O5	declared	4071b1495182a993	declared	4071b3cac083126f		
+json	179	mcmo5Um	C13H18N2O9	U	Anywhere	C6H12O5	declared	4075a19e83e425af	declared	4075a4a3d70a3d71		
+json	18	m5C	C10H15N3O5	C	Anywhere	C5H10O5	declared	4070119e83e425af	declared	407013e353f7ced9		
+json	180	ms2ct6A	C17H21N5O7S	A	Anywhere	C5H10O5	declared	407b71dbf487fcb9	declared	407b7716872b020c		
+json	181	ht6A	C15H20N6O9	A	Anywhere	C5H10O5	declared	407ac2113404ea4b	declared	407ac5a9fbe76c8b		
+json	182	msms2i6A	C17H25N5O4S2	A	Anywhere	C5H10O5	declared	407ab227bb2fec57	declared	407ab8ac083126e9		
+json	183	hm5Cm	C11H17N3O6	C	Anywhere	C6H12O5	declared	4071f1c985f06f69	declared	4071f44dd2f1a9fc		
+json	185	pY	C9H11N2O9P	U	Anywhere	C5H10O5	formula		declared	407422a3d70a3d71		
+json	186	pm5C	C10H14N3O8P	C	Anywhere	C5H10O5	formula		declared	4074f34fdf3b645a		
+json	187	ps2U	C9H11N2O8PS	U	Anywhere	C5H10O5	formula		declared	407523b22d0e5604		
+json	19	hn6A	C16H22N6O8	A	Anywhere	C5H10O5	declared	407aa265fd8adaba	declared	407aa6189374bc6a		
+json	190	pD	C9H13N2O9P	U	Anywhere	C5H10O5	formula		declared	407442e560418937		
+json	191	pm2G	C11H14N5O8P	G	Anywhere	C5H10O5	formula		declared	407773b22d0e5604		
+json	192	pm6,6A	C12H16N5O7P	A	Anywhere	C5H10O5	formula		declared	40775424dd2f1aa0		
+json	193	pGm	C11H14N5O8P	G	Anywhere	C6H12O5	formula		declared	407773b22d0e5604		
+json	194	pm5U	C10H12N2O9P	U	Anywhere	C5H10O5	formula		declared	4074f2f1a9fbe76d		
+json	198	pm2,2G	C12H16N5O8P	G	Anywhere	C5H10O5	formula		declared	40785420c49ba5e3		
+json	199	pm3U	C10H13N2O9P	U	Anywhere	C5H10O5	formula		declared	407503126e978d50		
+json	2	m5Cm	C11H17N3O5	C	Anywhere	C6H12O5	declared	4070f1de69ad42c4	declared	4070f451eb851eb8		
+json	20	Ar(p)	C15H20N5O11P	A	Anywhere	C10H19O21P	declared	407dd16f69446738	declared	407dd51eb851eb85		
+json	200	pac4C	C11H14N3O9P	C	Anywhere	C5H10O5	formula		declared	4076b378d4fdf3b6		
+json	201	pCm	C10H14N3O8P	C	Anywhere	C6H12O5	formula		declared	4074f34fdf3b645a		
+json	202	pppG	C10H11N5O14P3	G	Anywhere	C5H10O5	formula		declared	40803120c49ba5e3		
+json	203	pm7G	C11H14N5O8P	G	Anywhere	C5H10O5	formula		declared	407773b22d0e5604		
+json	204	pm1A	C11H14N5O7P	A	Anywhere	C5H10O5	formula		declared	407673b645a1cac1		
+json	205	pUm	C10H13N2O9P	U	Anywhere	C6H12O5	formula		declared	407503126e978d50		
+json	207	pAm	C11H14N5O7P	A	Anywhere	C6H12O5	formula		declared	407673b645a1cac1		
+json	208	pm4Cm	C11H16N3O8P	C	Anywhere	C6H12O5	formula		declared	4075d3be76c8b439		
+json	209	pC2'3'cp	C9H10N3O10P2	C	Anywhere	C5H10O5	formula		declared	4077e23126e978d5		
+json	21	tm5U	C12H19N3O9S	U	Anywhere	C5H10O5	declared	4077d158e219652c	declared	4077d5be76c8b439		
+json	211	pm6A	C11H14N5O7P	A	Anywhere	C5H10O5	formula		declared	407673b645a1cac1		
+json	213	pyW	C21H27N6O12P	G	Anywhere	C5H10O5	formula		declared	408253916872b021		
+json	214	pm1G	C11H14N5O8P	G	Anywhere	C5H10O5	formula		declared	407773b22d0e5604		
+json	215	pA2'3'cp	C10H10N5O9P2	A	Anywhere	C5H10O5	formula		declared	407962978d4fdf3b		
+json	216	ps4U	C9H11N2O8PS	U	Anywhere	C5H10O5	formula		declared	407523b22d0e5604		
+json	217	pI	C10H10N4O8P	A	Anywhere	C5H10O5	formula		declared	407592e978d4fdf4		
+json	218	ppG	C10H12N5O11P2	G	Anywhere	C5H10O5	formula		declared	407b82d4fdf3b646		
+json	219	pm2A	C11H14N5O7P	A	Anywhere	C5H10O5	formula		declared	407673b645a1cac1		
+json	22	m1G	C11H15N5O5	G	Anywhere	C5H10O5	declared	407291b780346dc6	declared	40729445a1cac083		
+json	223	pmcm5s2U	C12H15N2O10PS	U	Anywhere	C5H10O5	formula		declared	4079a4b439581062		
+json	23	cmnm5Um	C13H19N3O8	U	Anywhere	C6H12O5	declared	407591e00d1b7176	declared	407594e147ae147b		
+json	230	pse2U	C9H11N2O8PSe	U	Anywhere	C5H10O5	formula		declared	40781204189374bc		
+json	231	pt6A	C15H19N6O11P	A	Anywhere	C5H10O5	formula		declared	407ea51a9fbe76c9		
+json	232	pf5C	C10H12N3O9P	C	Anywhere	C5H10O5	formula		declared	4075d30e56041893		
+json	233	pppA	C10H12N5O13P3	A	Anywhere	C5H10O5	formula		declared	407f72624dd2f1aa		
+json	235	pG	C10H12N5O8P	G	Anywhere	C5H10O5	formula		declared	40769347ae147ae1		
+json	238	pG2'3'cp	C10H9N5O10P2	G	Anywhere	C5H10O5	formula		declared	407a5272b020c49c		
+json	240	pms2i6A	C16H22N5O7PS	A	Anywhere	C5H10O5	formula		declared	407cb69fbe76c8b4		
+json	241	pcmo5U	C11H13N2O12P	U	Anywhere	C5H10O5	formula		declared	4078c3374bc6a7f0		
+json	244	pyW	C21H27N6O12P	G	Anywhere	C5H10O5	formula		declared	408253916872b021		
+json	25	Xm		X	Anywhere	C6H12O5	declared	0000000000000000	declared	0000000000000000		
+json	250	pm4,4C	C11H16N3O8P	C	Anywhere	C5H10O5	formula		declared	4075d3be76c8b439		
+json	253	pi6A	C15H20N5O7P	A	Anywhere	C5H10O5	formula		declared	4079d526e978d4fe		
+json	254	phm5C	C10H14N3O9P	C	Anywhere	C5H10O5	formula		declared	4075f34fdf3b645a		
+json	255	pU	C9H11N2O9P	U	Anywhere	C5H10O5	formula		declared	407422a3d70a3d71		
+json	256	pAr(p)	C15H19N5O14P2	A	Anywhere	C10H19O21P	formula		declared	40815a45a1cac083		
+json	257	pac4Cm	C12H16N3O9P	C	Anywhere	C6H12O5	formula		declared	407793e76c8b4396		
+json	259	pGp	C10H10N5O11P2	G	Anywhere	C5H10O5	formula		declared	407b629374bc6a7f		
+json	26	m1I	C11H14N4O5	A	Anywhere	C5H10O5	declared	4071a18adab9f55a	declared	4071a40c49ba5e35		
+json	268	pU2'3'cp	C9H9N2O11P2	U	Anywhere	C5H10O5	formula		declared	4077f1f3b645a1cb		
+json	27	mcm5U	C12H16N2O8	U	Anywhere	C5H10O5	declared	4073c17381d7dbf5	declared	4073c4395810624e		
+json	28	Gm	C11H15N5O5	G	Anywhere	C6H12O5	declared	407291b780346dc6	declared	40729445a1cac083		
+json	281	pm4C	C10H14N3O8P	C	Anywhere	C5H10O5	formula		declared	4074f34fdf3b645a		
+json	29	ncm5Um	C12H17N3O7	U	Anywhere	C6H12O5	declared	4073b1b4a2339c0f	declared	4073b476c8b43958		
+json	296	pm5Um	C11H15N2O9P	U	Anywhere	C6H12O5	formula		declared	4075e3810624dd2f		
+json	297	pmnm5U	C11H16N3O9P	U	Anywhere	C5H10O5	formula		declared	4076d3ba5e353f7d		
+json	299	pm3C	C10H15N3O8P	C	Anywhere	C5H10O5	formula		declared	40750370a3d70a3d		
+json	3	m5s2U	C10H14N2O5S	U	Anywhere	C5H10O5	declared	407120ff2e48e8a7	declared	407124b439581062		
+json	30	yW	C21H28N6O9	G	Anywhere	C5H10O5	declared	407fc3119ce075f7	declared	407fc7b645a1cac1		
+json	300	pC	C9H12N3O8P	C	Anywhere	C5H10O5	formula		declared	407412e560418937		
+json	302	pm6t6A	C16H21N6O11P	A	Anywhere	C5H10O5	formula		declared	407f85851eb851ec		
+json	31	f5C	C10H13N3O6	C	Anywhere	C5H10O5	declared	4070f1495182a993	declared	4070f3a1cac08312		
+json	310	pAp	C10H11N5O10P2	A	Anywhere	C5H10O5	formula		declared	407a72b439581062		
+json	32	m1Am	C12H17N5O4	A	Anywhere	C6H12O5	declared	4072720cb295e9e2	declared	407274b439581062		
+json	33	m1Im	C12H16N4O5	A	Anywhere	C6H12O5	declared	407281cb295e9e1b	declared	40728476c8b43958		
+json	333	ApppN		X	FivePrime	C5H10O5	formula		declared	0000000000000000		
+json	334	AppppN		X	FivePrime	C5H10O5	formula		declared	0000000000000000		
+json	335	ApppppN		X	FivePrime	C5H10O5	formula		declared	0000000000000000		
+json	336	m6ApppN		X	FivePrime	C5H10O5	formula		declared	0000000000000000		
+json	337	m6AppppN		X	FivePrime	C5H10O5	formula		declared	0000000000000000		
+json	338	m6ApppppN		X	FivePrime	C5H10O5	formula		declared	0000000000000000		
+json	339	m7GppppN		X	FivePrime	C5H10O5	formula		declared	0000000000000000		
+json	34	Gr(p)	C15H20N5O12P	G	Anywhere	C10H19O21P	declared	407ed15a858793de	declared	407ed51a9fbe76c9		
+json	340	pm1Am	C12H16N5O7P	A	Anywhere	C6H12O5	formula		declared	40775424dd2f1aa0		
+json	341	pm1Gm	C12H16N5O8P	G	Anywhere	C6H12O5	formula		declared	40785420c49ba5e3		
+json	342	pm1Im	C12H15N4O8P	A	Anywhere	C6H12O5	formula		declared	407763e353f7ced9		
+json	343	pm1acp3Y	C14H20N3O11P	U	Anywhere	C5H10O5	formula		declared	407b54bc6a7ef9db		
+json	344	pm1I	C11H13N4O8P	A	Anywhere	C5H10O5	formula		declared	40768378d4fdf3b6		
+json	345	pm1Y	C10H13N2O9P	U	Anywhere	C5H10O5	formula		declared	407503126e978d50		
+json	346	pk2C	C15H24N5O9P	C	Anywhere	C5H10O5	formula		declared	407c15a5e353f7cf		
+json	347	ps2C	C9H12N3O7PS	C	Anywhere	C5H10O5	formula		declared	407513ef9db22d0e		
+json	348	pm1acp3Y	C13H18N3O11P	U	Anywhere	C5H10O5	formula		declared	407a744dd2f1a9fc		
+json	349	pm3Y	C10H13N2O9P	U	Anywhere	C5H10O5	formula		declared	407503126e978d50		
+json	35	nm5s2U	C10H15N3O5S	U	Anywhere	C5H10O5	declared	4072112bd3c36113	declared	407214ed916872b0		
+json	350	pm5Cm	C11H16N3O8P	C	Anywhere	C6H12O5	formula		declared	4075d3be76c8b439		
+json	351	pmchm5U	C12H15N2O12P	U	Anywhere	C5H10O5	formula		declared	4079a3a1cac08312		
+json	352	pinm5Um	C16H24N3O9P	U	Anywhere	C6H12O5	formula		declared	407b15999999999a		
+json	353	pinm5s2U	C15H22N3O8PS	U	Anywhere	C5H10O5	formula		declared	407b36395810624e		
+json	354	pinm5U	C15H22N3O9P	U	Anywhere	C5H10O5	formula		declared	407a352f1a9fbe77		
+json	355	pnm5U	C10H14N3O9P	U	Anywhere	C5H10O5	formula		declared	4075f34fdf3b645a		
+json	356	pncm5U	C11H14N3O10P	U	Anywhere	C5H10O5	formula		declared	4077b378d4fdf3b6		
+json	357	pchm5U	C11H13N2O12P	U	Anywhere	C5H10O5	formula		declared	4078c3374bc6a7f0		
+json	358	pcmnm5U	C12H16N3O11P	U	Anywhere	C5H10O5	formula		declared	407993e353f7ced9		
+json	359	pcm5U	C11H13N2O11P	U	Anywhere	C5H10O5	formula		declared	4077c3374bc6a7f0		
+json	36	m2G	C11H15N5O5	G	Anywhere	C5H10O5	declared	407291b780346dc6	declared	40729445a1cac083		
+json	360	pho5U	C9H11N2O10P	U	Anywhere	C5H10O5	formula		declared	407522a3d70a3d71		
+json	361	pmcm5Um	C13H17N2O11P	U	Anywhere	C6H12O5	formula		declared	407984147ae147ae		
+json	362	pmcm5U	C12H15N2O11P	U	Anywhere	C5H10O5	formula		declared	4078a3a5e353f7cf		
+json	363	pmo5U	C10H13N2O10P	U	Anywhere	C5H10O5	formula		declared	4076030e56041893		
+json	364	pm5D	C10H15N2O9P	U	Anywhere	C5H10O5	formula		declared	40752353f7ced917		
+json	365	pmimG	C15H18N5O8P	G	Anywhere	C5H10O5	formula		declared	407ab4e560418937		
+json	366	phm5Cm	C11H16N3O9P	C	Anywhere	C6H12O5	formula		declared	4076d3ba5e353f7d		
+json	367	pIm	C11H13N4O8P	A	Anywhere	C6H12O5	formula		declared	40768378d4fdf3b6		
+json	368	pYm	C10H13N2O9P	U	Anywhere	C6H12O5	formula		declared	407503126e978d50		
+json	369	pmcmo5Um	C13H17N2O12P	U	Anywhere	C6H12O5	formula		declared	407a8410624dd2f2		
+json	37	m2A	C11H15N5O4	A	Anywhere	C5H10O5	declared	407191cc63f14120	declared	40719449ba5e353f		
+json	370	pGr(p)	C15H18N5O15P2	G	Anywhere	C10H19O21P	formula		declared	4081d23333333333		
+json	371	pm2,8A	C12H16N5O7P	A	Anywhere	C5H10O5	formula		declared	40775424dd2f1aa0		
+json	372	pmsms2i6A	C17H24N5O7PS2	A	Anywhere	C5H10O5	formula		declared	407f98189374bc6a		
+json	373	pges2U	C19H27N2O8PS	U	Anywhere	C5H10O5	formula		declared	407da770a3d70a3d		
+json	374	pms2ct6A	C17H20N5O10PS	A	Anywhere	C5H10O5	formula		declared	40802b4189374bc7		
+json	375	pms2io6A	C16H22N5O8PS	A	Anywhere	C5H10O5	formula		declared	407db69ba5e353f8		
+json	376	pms2hn6A	C17H23N6O11PS	A	Anywhere	C5H10O5	formula		declared	4081337ef9db22d1		
+json	377	pms2m6A	C12H16N5O7PS	A	Anywhere	C5H10O5	formula		declared	4079552f1a9fbe77		
+json	378	pms2t6A	C16H21N6O11PS	A	Anywhere	C5H10O5	formula		declared	4080c347ae147ae1		
+json	379	ps2Um	C10H13N2O8PS	U	Anywhere	C6H12O5	formula		declared	40760420c49ba5e3		
+json	38	G	C10H13N5O5	G	Anywhere	C5H10O5	declared	4071b1779a6b50b1	declared	4071b3db22d0e560		
+json	380	pm3Um	C11H15N2O9P	U	Anywhere	C6H12O5	formula		declared	4075e3810624dd2f		
+json	381	pacp3D	C13H20N3O11P	U	Anywhere	C5H10O5	formula		declared	407a948f5c28f5c3		
+json	382	pacp3U	C13H18N3O11P	U	Anywhere	C5H10O5	formula		declared	407a744dd2f1a9fc		
+json	383	pimG-14	C13H14N5O8P	G	Anywhere	C5H10O5	formula		declared	4078f40c49ba5e35		
+json	384	pmchm5Um	C13H17N2O12P	U	Anywhere	C6H12O5	formula		declared	407a8410624dd2f2		
+json	385	pnm5ges2U	C20H30N3O8PS	U	Anywhere	C5H10O5	formula		declared	407f78189374bc6a		
+json	386	pnm5se2U	C10H14N3O8PSe	U	Anywhere	C5H10O5	formula		declared	4079e2ac083126e9		
+json	387	pnm5s2U	C10H14N3O8PS	U	Anywhere	C5H10O5	formula		declared	4076f45a1cac0831		
+json	388	pnchm5U	C11H14N3O11P	U	Anywhere	C5H10O5	formula		declared	4078b374bc6a7efa		
+json	389	pncm5Um	C12H16N3O10P	U	Anywhere	C6H12O5	formula		declared	407893e353f7ced9		
+json	39	m4Cm	C11H17N3O5	C	Anywhere	C6H12O5	declared	4070f1de69ad42c4	declared	4070f451eb851eb8		
+json	390	pncm5s2U	C11H14N3O9PS	U	Anywhere	C5H10O5	formula		declared	4078b483126e978d		
+json	391	pcm5s2U	C11H13N2O10PS	U	Anywhere	C5H10O5	formula		declared	4078c445a1cac083		
+json	392	pcmnm5Um	C13H18N3O11P	U	Anywhere	C6H12O5	formula		declared	407a744dd2f1a9fc		
+json	393	pcmnm5ges2U	C22H32N3O10PS	U	Anywhere	C5H10O5	formula		declared	40818c5604189375		
+json	394	pcmnm5se2U	C12H16N3O10PSe	U	Anywhere	C5H10O5	formula		declared	407d833f7ced9168		
+json	395	pcmnm5s2U	C12H16N3O10PS	U	Anywhere	C5H10O5	formula		declared	407a94ed916872b0		
+json	396	pcnm5U	C11H12N3O9P	U	Anywhere	C5H10O5	formula		declared	407693374bc6a7f0		
+json	397	pf5Cm	C11H14N3O9P	C	Anywhere	C6H12O5	formula		declared	4076b378d4fdf3b6		
+json	398	pho5C	C9H12N3O9P	C	Anywhere	C5H10O5	formula		declared	407512e147ae147b		
+json	399	pm5s2U	C10H13N2O8PS	U	Anywhere	C5H10O5	formula		declared	40760420c49ba5e3		
+json	4	m2,7G	C12H17N5O5	G	Anywhere	C5H10O5	declared	407371f7ced91687	declared	407374b439581062		
+json	40	m2,2Gm	C13H19N5O5	G	Anywhere	C6H12O5	declared	40745237b4a2339c	declared	4074551eb851eb85		
+json	400	pmnm5ges2U	C21H32N3O8PS	U	Anywhere	C5H10O5	formula		declared	40802c4395810625		
+json	401	pmnm5se2U	C11H16N3O8PSe	U	Anywhere	C5H10O5	formula		declared	407ac31a9fbe76c9		
+json	402	pmnm5s2U	C11H16N3O8PS	U	Anywhere	C5H10O5	formula		declared	4077d4c8b4395810		
+json	403	ptm5s2U	C12H18N3O11PS2	U	Anywhere	C5H10O5	formula		declared	407db6395810624e		
+json	404	ptm5U	C12H18N3O12PS	U	Anywhere	C5H10O5	formula		declared	407cb52b020c49ba		
+json	405	pyW-86	C17H21N6O10P	G	Anywhere	C5H10O5	formula		declared	407f45b645a1cac1		
+json	406	pyW-72	C18H23N6O10P	G	Anywhere	C5H10O5	formula		declared	40801310624dd2f2		
+json	407	pyW-58	C19H25N6O10P	G	Anywhere	C5H10O5	formula		declared	40808347ae147ae1		
+json	408	ppreQ1	C12H16N5O8P	G	Anywhere	C5H10O5	formula		declared	40785420c49ba5e3		
+json	409	ppreQ0	C12H12N5O8P	G	Anywhere	C5H10O5	formula		declared	4078139db22d0e56		
+json	41	m6,6A	C12H17N5O4	A	Anywhere	C5H10O5	declared	4072720cb295e9e2	declared	407274b439581062		
+json	410	pm8A	C11H14N5O7P	A	Anywhere	C5H10O5	formula		declared	407673b645a1cac1		
+json	411	pC+	C14H24N7O7P	C	Anywhere	C5H10O5	formula		declared	407b15b645a1cac1		
+json	412	pG+	C12H15N6O8P	G	Anywhere	C5H10O5	formula		declared	4079241cac083127		
+json	413	pct6A	C15H17N6O10P	A	Anywhere	C5H10O5	formula		declared	407d84d916872b02		
+json	414	poQ	C17H22N5O11P	G	Anywhere	C5H10O5	formula		declared	407f75b645a1cac1		
+json	415	pgalQ	C23H32N5O15P	G	Anywhere	C5H10O5	formula		declared	40844bfbe76c8b44		
+json	416	pgluQ	C22H29N6O13P	G	Anywhere	C5H10O5	formula		declared	408343c6a7ef9db2		
+json	417	pht6A	C15H19N6O12P	A	Anywhere	C5H10O5	formula		declared	407fa516872b020c		
+json	418	pOHyW	C21H27N6O13P	G	Anywhere	C5H10O5	formula		declared	4082d38f5c28f5c3		
+json	419	pimG2	C14H16N5O8P	G	Anywhere	C5H10O5	formula		declared	4079d476c8b43958		
+json	42	gluQ	C22H29N6O10	G	Anywhere	C5H10O5	declared	4080c99e4f765fd9	declared	4080cc0000000000		
+json	420	pmanQ	C23H32N5O15P	G	Anywhere	C5H10O5	formula		declared	40844bfbe76c8b44		
+json	421	pOHyWy	C19H25N6O11P	G	Anywhere	C5H10O5	formula		declared	40810345a1cac083		
+json	422	pm2,7Gm	C21H27N6O14P	G	Anywhere	C6H12O5	formula		declared	4083538f5c28f5c3		
+json	423	pQ	C17H22N5O10P	G	Anywhere	C5H10O5	formula		declared	407e75ba5e353f7d		
+json	424	pOHyWx	C18H23N6O11P	G	Anywhere	C5H10O5	formula		declared	40809310624dd2f2		
+json	425	pmcmo5U	C12H15N2O12P	U	Anywhere	C5H10O5	formula		declared	4079a3a1cac08312		
+json	426	pimG	C14H16N5O8P	G	Anywhere	C5H10O5	formula		declared	4079d476c8b43958		
+json	427	pm4,4Cm	C12H18N3O8P	C	Anywhere	C6H12O5	formula		declared	4076b428f5c28f5c		
+json	428	pm2Gm	C12H16N5O8P	G	Anywhere	C6H12O5	formula		declared	40785420c49ba5e3		
+json	429	pm2,2Gm	C13H18N5O8P	G	Anywhere	C6H12O5	formula		declared	4079348b43958106		
+json	43	ncm5U	C11H15N3O7	U	Anywhere	C5H10O5	declared	4072d174bc6a7efa	declared	4072d40c49ba5e35		
+json	430	pm6Am	C12H16N5O7P	A	Anywhere	C6H12O5	formula		declared	40775424dd2f1aa0		
+json	431	pm6,6Am	C13H18N5O7P	A	Anywhere	C6H12O5	formula		declared	4078348f5c28f5c3		
+json	432	pio6A	C15H20N5O8P	A	Anywhere	C5H10O5	formula		declared	407ad526e978d4fe		
+json	433	pac6A	C12H14N5O8P	A	Anywhere	C5H10O5	formula		declared	407833df3b645a1d		
+json	434	pf6A	C11H12N5O8P	A	Anywhere	C5H10O5	formula		declared	40775370a3d70a3d		
+json	435	pg6A	C13H15N6O10P	A	Anywhere	C5H10O5	formula		declared	407be44189374bc7		
+json	436	phm6A	C11H14N5O8P	A	Anywhere	C5H10O5	formula		declared	407773b22d0e5604		
+json	437	phn6A	C16H21N6O11P	A	Anywhere	C5H10O5	formula		declared	407f85851eb851ec		
+json	44	cm5U	C11H14N2O8	U	Anywhere	C5H10O5	declared	4072e13333333333	declared	4072e3cac083126f		
+json	440	pm2,7G	C12H16N5O8P	G	Anywhere	C5H10O5	formula		declared	40785420c49ba5e3		
+json	441	pm2,2,7G	C13H18N5O8P	G	Anywhere	C5H10O5	formula		declared	4079348b43958106		
+json	442	pm2,7Gm	C13H18N5O8P	G	Anywhere	C6H12O5	formula		declared	4079348b43958106		
+json	444	pA 	C10H12N5O7P	A	Anywhere	C5H10O5	formula		declared	40759347ae147ae1		
+json	45	cmnm5s2U	C12H17N3O7S	U	Anywhere	C5H10O5	declared	4075b1425aee6320	declared	4075b5810624dd2f		
+json	46	C	C9H13N3O5	C	Anywhere	C5H10O5	declared	406e62bc6a7ef9db	declared	406e66f1a9fbe76d		
+json	47	cmo5U	C11H14N2O9	U	Anywhere	C5H10O5	declared	4073e11e4f765fd9	declared	4073e3cac083126f		
+json	48	m3Y	C10H14N2O6	U	Anywhere	C5H10O5	declared	4070215cfaacd9e8	declared	407023a5e353f7cf		
+json	49	m3U	C10H14N2O6	U	Anywhere	C5H10O5	declared	4070215cfaacd9e8	declared	407023a5e353f7cf		
+json	5	ms2m6A	C12H17N5O4S	A	Anywhere	C5H10O5	declared	4074719a02752546	declared	407475be76c8b439		
+json	50	Um	C10H14N2O6	U	Anywhere	C6H12O5	declared	4070215cfaacd9e8	declared	407023a5e353f7cf		
+json	51	ms2i6A	C16H23N5O4S	A	Anywhere	C5H10O5	declared	4077d25a858793de	declared	4077d73333333333		
+json	52	m3C	C10H16N3O5	C	Anywhere	C5H10O5	declared	4070119e83e425af	declared	40702404189374bc		
+json	54	cmnm5se2U	C12H17N3O7Se	U	Anywhere	C5H10O5	declared	40789061e4f765fe	declared	4078a3d2f1a9fbe7		
+json	55	ms2t6A	C16H22N6O8S	A	Anywhere	C5H10O5	declared	407ca1f3b645a1cb	declared	407ca722d0e56042		
+json	56	i6A	C15H21N5O4	A	Anywhere	C5H10O5	declared	4074f28ce703afb8	declared	4074f5ba5e353f7d		
+json	57	m3Um	C11H16N2O6	U	Anywhere	C6H12O5	declared	4071019ce075f6fd	declared	407104147ae147ae		
+json	58	mcmo5U	C12H16N2O9	U	Anywhere	C5H10O5	declared	4074c15e9e1b089a	declared	4074c4353f7ced91		
+json	59	mimG	C15H19N5O5	G	Anywhere	C5H10O5	declared	4075d237b4a2339c	declared	4075d578d4fdf3b6		
+json	6	oQ	C17H23N5O8	G	Anywhere	C5H10O5	declared	407a9279a6b50b0f	declared	407a9649ba5e353f		
+json	60	U	C9H12N2O6	U	Anywhere	C5H10O5	declared	406e82395810624e	declared	406e866e978d4fdf		
+json	61	preQ1base	C7H9N5O	G	Anywhere	C5H10O5	declared	40666295182a9931	declared	406665ba5e353f7d		
+json	62	nm5se2U	C10H15N3O5Se	U	Anywhere	C5H10O5	declared	4075104816f0068e	declared	4075033f7ced9168		
+json	63	m1Gm	C12H17N5O5	G	Anywhere	C6H12O5	declared	407371f7ced91687	declared	407374b439581062		
+json	64	ho5U	C9H12N2O7	U	Anywhere	C5H10O5	declared	407041083126e979	declared	407043374bc6a7f0		
+json	65	Q	C17H23N5O7	G	Anywhere	C5H10O5	declared	4079928e219652bd	declared	4079964dd2f1a9fc		
+json	66	xG		G	Anywhere	C5H10O5	declared	0000000000000000	declared	0000000000000000		
+json	68	mcm5s2U	C12H16N2O7S	U	Anywhere	C5H10O5	declared	4074c115b573eab3	declared	4074c547ae147ae1		
+json	69	m4,4Cm	C12H19N3O5	C	Anywhere	C6H12O5	declared	4071d21eb851eb85	declared	4071d4bc6a7ef9db		
+json	7	s4U	C9H12N2O5S	U	Anywhere	C5H10O5	declared	407040bf487fcb92	declared	40704445a1cac083		
+json	70	xC		C	Anywhere	C5H10O5	declared	0000000000000000	declared	0000000000000000		
+json	71	yW-86	C17H22N6O7	G	Anywhere	C5H10O5	declared	407a627ae147ae14	declared	407a6649ba5e353f		
+json	72	xA		A	Anywhere	C5H10O5	declared	0000000000000000	declared	0000000000000000		
+json	73	chm5U	C11H14N2O9	U	Anywhere	C5H10O5	declared	4073e11e4f765fd9	declared	4073e3cac083126f		
+json	74	mo5U	C10H14N2O7	U	Anywhere	C5H10O5	declared	4071214816f0068e	declared	407123a1cac08312		
+json	75	acp3U	C13H19N3O8	U	Anywhere	C5H10O5	declared	407591e00d1b7176	declared	407594e147ae147b		
+json	76	xU		U	Anywhere	C5H10O5	declared	0000000000000000	declared	0000000000000000		
+json	77	yW-72	C18H24N6O7	G	Anywhere	C5H10O5	declared	407b42bac710cb29	declared	407b46b439581062		
+json	78	mnm5se2U	C11H17N3O5Se	U	Anywhere	C5H10O5	declared	4075d08bac710cb3	declared	4075e3ae147ae148		
+json	79	ms2hn6A	C17H24N6O8S	A	Anywhere	C5H10O5	declared	407d82339c0ebee0	declared	407d87916872b021		
+json	8	m1acp3Y	C14H21N3O8	U	Anywhere	C5H10O5	declared	407672205bc01a37	declared	4076754fdf3b645a		
+json	80	mcm5Um	C13H18N2O8	U	Anywhere	C6H12O5	declared	4074a1b367a0f909	declared	4074a4a7ef9db22d		
+json	81	ac4C	C11H15N3O6	C	Anywhere	C5H10O5	declared	4071d189a0275254	declared	4071d40c49ba5e35		
+json	82	m6Am	C12H17N5O4	A	Anywhere	C6H12O5	declared	4072720cb295e9e2	declared	407274b439581062		
+json	83	m1A	C11H15N5O4	A	Anywhere	C5H10O5	declared	407191cc63f14120	declared	40719449ba5e353f		
+json	84	Cm	C10H15N3O5	C	Anywhere	C6H12O5	declared	4070119e83e425af	declared	407013e353f7ced9		
+json	85	mchm5U	C12H16N2O9	U	Anywhere	C5H10O5	declared	4074c15e9e1b089a	declared	4074c4353f7ced91		
+json	86	galQ	C23H33N5O12	G	Anywhere	C5H10O5	declared	4081d9b367a0f909	declared	4081dc45a1cac083		
+json	87	cmnm5U	C12H17N3O8	U	Anywhere	C5H10O5	declared	4074b1a027525461	declared	4074b476c8b43958		
+json	88	m1Y	C10H14N2O6	U	Anywhere	C5H10O5	declared	4070215cfaacd9e8	declared	407023a5e353f7cf		
+json	89	imG2	C14H17N5O5	G	Anywhere	C5H10O5	declared	4074f1f7ced91687	declared	4074f50a3d70a3d7		
+json	9	m4C	C10H15N3O5	C	Anywhere	C5H10O5	declared	4070119e83e425af	declared	407013e353f7ced9		
+json	90	manQ	C23H32N5O12	G	Anywhere	C5H10O5	declared	4081d1b367a0f909	declared	4081d4353f7ced91		
+json	91	tm5s2U	C12H19N3O8S2	U	Anywhere	C5H10O5	declared	4078d0fb7e90ff97	declared	4078d6cccccccccd		
+json	92	s2C	C9H13N3O4S	C	Anywhere	C5H10O5	declared	40703100d1b71759	declared	40703483126e978d		
+json	93	OHyWx	C18H24N6O8	G	Anywhere	C5H10O5	declared	407c42a5e353f7cf	declared	407c46b439581062		
+json	94	se2U	C9H12N2O5Se	U	Anywhere	C5H10O5	declared	40731fded288ce70	declared	407332978d4fdf3b		
+json	95	preQ0base	C7H5N5O	G	Anywhere	C5H10O5	declared	4065e194af4f0d84	declared	4065e4bc6a7ef9db		
+json	96	m6A	C11H15N5O4	A	Anywhere	C5H10O5	declared	407191cc63f14120	declared	40719449ba5e353f		
+json	97	OHyW	C21H28N6O10	G	Anywhere	C5H10O5	declared	4080617e5c91d14e	declared	408063d916872b02		
+json	98	xX		X	Anywhere	C5H10O5	declared	0000000000000000	declared	0000000000000000		
+json	99	G+	C12H16N6O5	G	Anywhere	C5H10O5	declared	407441e425aee632	declared	407444b020c49ba6		
+tsv	6	3'-p	H2PO3	.	ThreePrime	C5H10O5	formula		formula			
+tsv	7	5'-p	H2PO3	.	FivePrime	C5H10O5	formula		formula			
+tsv	8	5'-p*	H2PO2S	.	FivePrime	C5H10O5	formula		formula			
+tsv	9	3'-c	PO2	.	ThreePrime	C5H10O5	formula		formula			
+tsv	10	mA	C11O4N5H15	A	Anywhere	C5H10O5	declared	407191cc63f14120	declared	40719459b3d07c85		
+tsv	11	mC	C10O5N3H15	C	Anywhere	C5H10O5	declared	4070119e83e425af	declared	407013f27bb2fec5		
+tsv	12	mG	C11O5N5H15	G	Anywhere	C5H10O5	declared	407291b780346dc6	declared	40729456d5cfaace		
+tsv	13	mU	C10O6N2H14	U	Anywhere	C5H10O5	declared	4070215cfaacd9e8	declared	407023b367a0f909		
+tsv	14	sU	C9O5N2H12S1	U	Anywhere	C5H10O5	declared	407040bf487fcb92	declared	4070444f765fd8ae		
+tsv	15	mmA	C12O4N5H17	A	Anywhere	C5H10O5	declared	4072720cb295e9e2	declared	407274c84b5dcc64		
+tsv	16	mAm	C12O4N5H17	A	Anywhere	C6H12O5	declared	4072720cb295e9e2	declared	407274c84b5dcc64		
+tsv	17	mCm	C11O5N3H17	C	Anywhere	C6H12O5	formula		formula			
+tsv	18	mGm	C12O5N5H17	G	Anywhere	C6H12O5	declared	407371f7ced91687	declared	407374c36113404f		
+tsv	19	mUm	C11O6N2H16	U	Anywhere	C6H12O5	declared	4071019ce075f6fd	declared	40710421ff2e48e9		
+tsv	20	cmo5U/chm5U	C11O9N2H14	U	Anywhere	C5H10O5	declared	4073e11e4f765fd9	declared	4073e3d844d013a9		
+tsv	21	mchm5U/mcmo5U	C12O9N2H16	U	Anywhere	C5H10O5	declared	4074c15e9e1b089a	declared	4074c4467381d7dc		
+tsv	22	mchm5Um/mcmo5Um	C13O9N2H18	U	Anywhere	C6H12O5	declared	4075a19e83e425af	declared	4075a4b439581062		
+tsv	23	m6t6A/hn6A	C16O8N6H22	A	Anywhere	C5H10O5	declared	407aa265fd8adaba	declared	407aa6305532617c		
+tsv	24	galQ/manQ	C23O12N5H33	G	Anywhere	C5H10O5	declared	4081d9b367a0f909	declared	4081dc56a161e4f7		
+tsv	25	mA?	C11O4N5H15	A	Anywhere	C5H10O5	declared	407191cc63f14120	declared	40719459b3d07c85	mA	Am
+tsv	26	mC?	C10O5N3H15	C	Anywhere	C5H10O5	declared	4070119e83e425af	declared	407013f27bb2fec5	mC	Cm
+tsv	27	mG?	C11O5N5H15	G	Anywhere	C5H10O5	declared	407291b780346dc6	declared	40729456d5cfaace	mG	Gm
+tsv	28	mU?	C10O6N2H14	U	Anywhere	C5H10O5	declared	4070215cfaacd9e8	declared	407023b367a0f909	mU	Um
+tsv	29	mI?	C11O5N4H14	A	Anywhere	C5H10O5	declared	4071a18adab9f55a	declared	4071a41a9fbe76c9	m1I	Im
+tsv	30	msU?	C10O5N2H14S1	U	Anywhere	C5H10O5	declared	407120ff2e48e8a7	declared	407124be0ded288d	m5s2U	s2Um
+tsv	31	mmA?	C12O4N5H17	A	Anywhere	C5H10O5	declared	4072720cb295e9e2	declared	407274c84b5dcc64	mmA	mAm
+tsv	32	mmC?	C11O5N3H17	C	Anywhere	C5H10O5	declared	4070f1de69ad42c4	declared	4070f46113404ea5	m4,4C	mCm
+tsv	33	mmG?	C12O5N5H17	G	Anywhere	C5H10O5	declared	407371f7ced91687	declared	407374c36113404f	m2,2G	mGm
+tsv	34	mmmG?	C13O5N5H21	G	Anywhere	C5H10O5	declared	407472780346dc5d	declared	40747572474538ef	m2,2,7G	m2,7Gm
+tsv	35	ac4C/f5Cm?	C11O6N3H15	C	Anywhere	C5H10O5	declared	4071d189a0275254	declared	4071d41cac083127	ac4C	f5Cm
+tsv	36	acp3U/cmnm5Um?	C13O8N3H19	U	Anywhere	C5H10O5	declared	407591e00d1b7176	declared	407594f41f212d77	acp3U	cmnm5Um
+tsv	37	dA	C10O3N5H13	A	Anywhere	C5H10O4	declared	406f6341f212d773	declared	406f67c1bda5119d		
+tsv	38	dC	C9O4N3H13	C	Anywhere	C5H10O4	declared	406c62e631f8a090	declared	406c66f694467382		
+tsv	39	dG	C10O4N5H13	G	Anywhere	C5H10O4	declared	4070b18c7e28240b	declared	4070b3de69ad42c4		
+tsv	40	dU	C9O5N2H12	U	Anywhere	C5H10O4	declared	406c82631f8a0903	declared	406c867a0f9096bc		
+tsv	41	dT	C10O5N2H14	U	Anywhere	C5H10O4	declared	406e42e3bcd35a86	declared	406e4753f7ced917		
+tsv	42	A*	C10O4N5H13	A	Anywhere	C5H10O5	declared	4070b18c7e28240b	declared	4070b3eb1c432ca5		
+tsv	43	C*	C9O5N3H13	C	Anywhere	C5H10O5	declared	406e62bc6a7ef9db	declared	406e6707c84b5dcc		
+tsv	44	G*	C10O5N5H13	G	Anywhere	C5H10O5	declared	4071b1779a6b50b1	declared	4071b3e83e425aee		
+tsv	45	U*	C9O6N2H12	U	Anywhere	C5H10O5	declared	406e82395810624e	declared	406e8689a0275254		
+tsv	46	dA*	C10O3N5H13	A	Anywhere	C5H10O4	declared	406f6341f212d773	declared	406f67c1bda5119d		
+tsv	47	dC*	C9O4N3H13	C	Anywhere	C5H10O4	declared	406c62e631f8a090	declared	406c66f694467382		
+tsv	48	dG*	C10O4N5H13	G	Anywhere	C5H10O4	declared	4070b18c7e28240b	declared	4070b3de69ad42c4		
+tsv	49	dU*	C9O5N2H12	U	Anywhere	C5H10O4	declared	406c82631f8a0903	declared	406c867a0f9096bc		
+tsv	50	dT*	C10O5N2H14	U	Anywhere	C5H10O4	declared	406e42e3bcd35a86	declared	406e4753f7ced917		

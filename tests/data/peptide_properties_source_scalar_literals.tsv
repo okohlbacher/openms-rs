@@ -1,0 +1,31 @@
+source_class	source_expression	source_decimal	f64_hex	active_absolute_tolerance	source_line
+AAIndex	AAIndex::calculateGB(seq1)	1337.53	4094e61eb851eb85	0.01	37
+AAIndex	AAIndex::calculateGB(seq2)	1442.70	40968acccccccccd	0.01	38
+AAIndex	AAIndex::calculateGB(seq3)	1442.70	40968acccccccccd	0.01	39
+IsoelectricPoint	pi_ala	6.015	40180f5c28f5c28f	unresolved_default	77
+IsoelectricPoint	pi_lys	10.11	40243851eb851eb8	unresolved_default	83
+IsoelectricPoint	pi_asp	2.995	4007f5c28f5c28f6	unresolved_default	89
+IsoelectricPoint	charge_at_pi	0.0	0000000000000000	1e-3	97
+IsoelectricPoint	pi_sec	4.035	401023d70a3d70a4	1e-5	114
+IsoelectricPoint	pi_polybasic	14.0	402c000000000000	1e-5	118
+IsoelectricPoint	pi_ala_bjellqvist	5.57	401647ae147ae148	1e-5	125
+IsoelectricPoint	pi_pro_bjellqvist	5.955	4017d1eb851eb852	1e-5	132
+IsoelectricPoint	"IsoelectricPoint::computePI(AASequence::fromString(""ACDEFGHIK""), ProteomicsPkaScale::EMBOSS, tol)"	5.4518	4015cea4a8c154ca	0.01	149
+IsoelectricPoint	"IsoelectricPoint::computePI(AASequence::fromString(""PEPTIDER""), ProteomicsPkaScale::EMBOSS, tol)"	3.9276	400f6bb98c7e2824	0.01	150
+IsoelectricPoint	"IsoelectricPoint::computePI(AASequence::fromString(""SAMPLER""), ProteomicsPkaScale::EMBOSS, tol)"	6.4101	4019a3f141205bc0	0.01	151
+IsoelectricPoint	"IsoelectricPoint::computePI(AASequence::fromString(""YGGFMR""), ProteomicsPkaScale::EMBOSS, tol)"	9.3488	4022b295e9e1b08a	0.01	152
+IsoelectricPoint	"IsoelectricPoint::computePI(AASequence::fromString(""DEEEAANK""), ProteomicsPkaScale::EMBOSS, tol)"	3.7782	400e39c0ebedfa44	0.01	153
+IsoelectricPoint	charge_at_pi	0.0	0000000000000000	1e-3	178
+HydrophobicityProfile	gravy	-0.675	bfe599999999999a	unresolved_default	48
+HydrophobicityProfile	vec[0]	1.8	3ffccccccccccccd	unresolved_default	64
+HydrophobicityProfile	vec[1]	2.5	4004000000000000	unresolved_default	65
+HydrophobicityProfile	vec[2]	-3.5	c00c000000000000	unresolved_default	66
+HydrophobicityProfile	vec[3]	-3.5	c00c000000000000	unresolved_default	67
+HydrophobicityProfile	profile.computeProfile(seq, HydrophobicityScaleMethod::EISENBERG)[0]	0.62	3fe3d70a3d70a3d7	unresolved_default	68
+HydrophobicityProfile	vec[0]	0.266666666666667	3fd1111111111117	unresolved_default	79
+HydrophobicityProfile	vec[1]	-1.5	bff8000000000000	unresolved_default	80
+HydrophobicityProfile	vec[2]	-1.4	bff6666666666666	unresolved_default	81
+HydrophobicityProfile	profile.computeWindowedProfile(seq, 6)[0]	0.02	3f947ae147ae147b	unresolved_default	82
+HydrophobicityProfile	vec[0]	0.511576803	3fe05ed650c8df1b	unresolved_default	94
+HydrophobicityProfile	vec[1]	0.435170599	3fdbd9d5c8b8afce	unresolved_default	95
+HydrophobicityProfile	vec[2]	0.734926405	3fe78484614e23a4	unresolved_default	96

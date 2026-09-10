@@ -1,0 +1,116 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "method": "The single spectrum in each pinned mzML was decoded independently using Python standard-library xml.etree.ElementTree, base64 and struct. These arrays are uncompressed, little-endian IEEE-754 binary64 m/z and binary32 intensity. No sorting, thresholding, deisotoping or other numerical processing was applied. All peaks, including 4514 input zeros, are retained in source order. Decimal output uses 17 significant digits for m/z and 9 for intensity; every emitted decimal was checked to reproduce its original binary value. The leading index is the zero-based original array offset. This extraction does not execute C++ or derive golden peaks from Rust output.",
+  "spectrum_metadata": {
+    "native_id": "controllerType=0 controllerNumber=1 scan=2",
+    "rt_seconds": 0.505660614,
+    "ms_level": 1,
+    "spectrum_type": "centroid",
+    "precursors": [],
+    "source_additional_binary_arrays": 0
+  },
+  "upstream_test_call": "Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 5000, 1, 3, true)",
+  "options": {
+    "fragment_tolerance": 10.0,
+    "fragment_unit_ppm": true,
+    "number_of_final_peaks": 5000,
+    "min_charge": 1,
+    "max_charge": 3,
+    "keep_only_deisotoped": true,
+    "min_isopeaks": 2,
+    "max_isopeaks": 10,
+    "make_single_charged": true,
+    "annotate_charge": false,
+    "annotate_iso_peak_count": false,
+    "add_up_intensity": false
+  },
+  "preprocessing": "The implementation applies ThresholdMower default intensity >= 0.05 before optional NLargest, including when number_of_final_peaks <= 0. Exactly 893 input peaks survive thresholding, so a 5000 peak limit does not further remove peaks. Source test line 419 additionally asserts 104 output peaks when the peak limit is disabled.",
+  "seed_mapping": {
+    "fixture": "tests/data/averagine_deisotoping_seeds.tsv",
+    "fixture_sha256": "06afc52a4cbcbd4ac3e77324a22d9e21a76db68fdb1b6e38b20ea5fb7bf44ca3",
+    "method": "For every source output peak, exhaustively enumerate input indices and charges 1..3. Require exact binary32 intensity equality (add_up_intensity=false) and absolute error <= 1e-9 between output m/z and input_mz*charge-(charge-1)*1.007276466771. Each of the 104 outputs has exactly one candidate. The actual maximum absolute error is recorded below. This derives seed identity and charge from the two independent source files, not from Rust cluster output; isotope memberships are not contained in the source files.",
+    "maximum_absolute_mz_error": 0.0
+  },
+  "sources": [
+    {
+      "path": "src/openms/source/PROCESSING/DEISOTOPING/Deisotoper.cpp",
+      "sha256": "026cb13ddf15362c5ddf7a7f736e6067b057cee6701f598de93154dfdb96e2e2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h",
+      "sha256": "2ec44f0d713cfb1ee3b442380a23a463796ab7e798e73415bad06bfc916541be"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/FILTERING/ThresholdMower.cpp",
+      "sha256": "8dba1681f4a8562d83025a373fbc2e082175ca209e135eef3462f710321d3403"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
+      "sha256": "4fd27a71c2ebfe56b9ff362c4a30fe7222a11246b47927aae18d11209e63c636"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Deisotoper_test.cpp",
+      "sha256": "4735917ba89129398c7d301c46329e641aeb5bc07767ff21a8866868fad97c5c"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.cpp",
+      "sha256": "0974fabc36a93f741c210d89e940215fa773306b99b5b45309a35cb4b43a2f8c"
+    }
+  ],
+  "records": [
+    {
+      "source": "src/tests/class_tests/openms/data/Deisotoper_test_in.mzML",
+      "source_sha256": "bcbbfef9f2e9591b38cfbbb94ed845c1bbf586d25f3fd674a9e12ffc00b1fcb6",
+      "spectrum_index": 0,
+      "spectrum_id": "controllerType=0 controllerNumber=1 scan=2",
+      "peak_count": 5407,
+      "zero_intensity_count": 4514,
+      "peaks_at_or_above_0_05": 893,
+      "fixture": "tests/data/averagine_deisotoping_in.tsv",
+      "fixture_sha256": "49578d1bda6265e4af2384294af98b74c118b37a5d6a75788c5d5fdb5b71ccf6"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/Deisotoper_test_out.mzML",
+      "source_sha256": "c5e25a10dfaf413ea4c47a8ac9a9c2118024a3738e4429d35c586e5c70cceb49",
+      "spectrum_index": 0,
+      "spectrum_id": "controllerType=0 controllerNumber=1 scan=2",
+      "peak_count": 104,
+      "zero_intensity_count": 0,
+      "peaks_at_or_above_0_05": 104,
+      "fixture": "tests/data/averagine_deisotoping_out.tsv",
+      "fixture_sha256": "4d246fe3580f0cbb8185dad7e012b5e8933989bd454c540294423abf6f8dd92d"
+    }
+  ],
+  "independent_overlap_check": {
+    "method": "Trace the pinned two-peak KL test using source input intensities and Poisson lambda=charge*(seed_mz-PROTON_MASS_U)/1800. For two peaks normalized model probabilities are 1/(1+lambda) and lambda/(1+lambda). Accumulate P*log(P/Q) with a binary32 cast after each addition, as in C++. Both ladders pass the 0.05 threshold; no third extension exists within 10 ppm. C++ skips assigned seeds but allows a previously assigned isotope to extend a later seed. A policy disallowing shared isotope membership loses the output at m/z 1931.072690310334.",
+    "shared_input_index": 4578,
+    "clusters": [
+      {
+        "seed_index": 4550,
+        "charge": 1,
+        "indices": [
+          4550,
+          4578
+        ],
+        "two_peak_kl": 0.018230384215712547,
+        "extension_mz_error_da": -0.0025488650321676687
+      },
+      {
+        "seed_index": 4564,
+        "charge": 3,
+        "indices": [
+          4564,
+          4578
+        ],
+        "two_peak_kl": 0.025065528228878975,
+        "extension_mz_error_da": -0.0005904392614866083
+      }
+    ]
+  }
+}

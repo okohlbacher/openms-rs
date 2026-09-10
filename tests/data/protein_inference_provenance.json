@@ -1,0 +1,26 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "fixture": "tests/data/protein_inference_merger.tsv",
+  "fixture_sha256": "355566eaee51fd32b8e5d1d226e112e0ea8cbb0e19f8de3ec0e0fc8e93d6caa3",
+  "extraction": "All protein accessions/scores/target_decoy and peptide hit sequences/scores/charges/accessions/target_decoy/protein_references/XTandem_score in original order. Spectrum index groups candidates. Omits invalid zero date, coordinates and unrelated metadata; no scientific field listed above is changed. Expected scores/counts/groups are taken from BasicProteinInferenceAlgorithm_test.cpp. Native tests use minimum1 to discard source nonfinite unreferenced score, separately test minimum0 rejection and minimum0 greedy golden.",
+  "sources": [
+    {
+      "source": "src/tests/class_tests/openms/data/newMergerTest_out.idXML",
+      "sha256": "0a8fbc1d7cc1cbf5004b6939290dd283fdcd0de48f6431ebbab76d7e7a859d38"
+    },
+    {
+      "source": "src/openms/source/ANALYSIS/ID/BasicProteinInferenceAlgorithm.cpp",
+      "sha256": "59f9e1083f57f34212a048dfe0458ee260615fda9bf435cf024e158198019fe4"
+    },
+    {
+      "source": "src/openms/source/ANALYSIS/ID/IDBoostGraph.cpp",
+      "sha256": "ed923b6b486daa3e158d8f23400881af5326dc06d5a200139888f16e3fc1b526"
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/BasicProteinInferenceAlgorithm_test.cpp",
+      "sha256": "914a4deff14c8b25048946d1e9c834f5139e8c95bcec5f14fa70571517432b39"
+    }
+  ]
+}

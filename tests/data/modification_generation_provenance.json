@@ -1,0 +1,122 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "method": "Literal sequence/count/ordering/compatibility assertions reconstructed directly from the pinned C++ class tests; no C++ was built or executed. Empty input fields denote empty AASequence. Multiple modification alternatives have source pointer/unordered ordering, so corresponding source assertions compare sorted results or counts. The native implementation uses deterministic full-ID order. Additional adversarial tests are source-derived analysis and identified separately in the reference review.",
+  "source_counts": {
+    "fixed_cases": 7,
+    "variable_cases": 19,
+    "compatibility_cases": 7
+  },
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h",
+      "sha256": "713a8d61c5f3eed0b2701e009df33ac2139be81c7d5b50131a6465e645624e61",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModificationDefinition.h",
+      "sha256": "ada84e90cc7c78f5d2881face4c13dd91ebb6178e75cdc37f94b09e601bd2b7a",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ModificationDefinition.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModificationDefinitionsSet.h",
+      "sha256": "bc453cc6554b693f7ba94c07b1aed682efbca164bc595f5f57eefe034f8d38fa",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ModificationDefinitionsSet.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModifiedPeptideGenerator.cpp",
+      "sha256": "464b6211342d320f97cc245bc20828c22f0710433e7a16338d9e8324d51763f0",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModifiedPeptideGenerator.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationDefinition.cpp",
+      "sha256": "1493dad1a926a083eeb987c937b31cac1132228f72346021f8a0158ac3588bbd",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModificationDefinition.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationDefinitionsSet.cpp",
+      "sha256": "53694e5c407461ed34d3edfee40482e0271f68f67d3b8e98dab4b5a66a5bad1a",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModificationDefinitionsSet.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ModifiedPeptideGenerator_test.cpp",
+      "sha256": "91b33f1fda97c1b0a7130d43ad0e0275545d67a8eb3bbae5590fcd2b6a3e2833",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/ModifiedPeptideGenerator_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ModificationDefinition_test.cpp",
+      "sha256": "cfc0e858207db258fa48cf01993a6ed1208370a1b2996e8da3bec92d3b0349d4",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/ModificationDefinition_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ModificationDefinitionsSet_test.cpp",
+      "sha256": "cc1d82a3e8f4c21169f0fc6607cd3eaec59b243776880678d802d1f5e4be3e60",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/ModificationDefinitionsSet_test.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/AASequence.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ResidueDB.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/Residue.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/OBODataProvider.cpp",
+      "sha256": "d75b0ae14e63dfdf26f69bb1c7b3a26ff33bdcee694c9bfaf463253b00f16ea6",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/OBODataProvider.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/UnimodXMLDataProvider.cpp",
+      "sha256": "9a69f0237624595b3a6451ee7cd8a77855c88c7de53ba9cc9f79445ffba2cae7",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/UnimodXMLDataProvider.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModificationsDB.cpp"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/UnimodXMLHandler.cpp",
+      "sha256": "a3039be959495b5287bdb0048398ccac0f93a4627e7ff4ffe6fa1efba076a317",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/FORMAT/HANDLERS/UnimodXMLHandler.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+      "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ResidueModification.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/EmpiricalFormula.cpp"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/modification_generation_compatibility.tsv",
+      "sha256": "cc3358182f017f73042a985e17ff9cdb51eb89246ab0ed78d2df86ab1bec3c72"
+    },
+    {
+      "path": "tests/data/modification_generation_expected.tsv",
+      "sha256": "d09215fbfca8d5a9d4ddf21270f79ef3306edc05253e3ee11e58aacaac57dbeb"
+    },
+    {
+      "path": "tests/data/modification_generation_fixed.tsv",
+      "sha256": "5edc34692bdca6b43095a605b1a979839dff6153c415466632bdbc8c08cdcd3d"
+    },
+    {
+      "path": "tests/data/modification_generation_variable.tsv",
+      "sha256": "2be168e23b6d8e60c8c472c009bc5a600a9865324097c4045e97ac1075f21bb3"
+    }
+  ],
+  "absolute_mass_provenance": "ModificationsDB routes UniMod/custom XML through UnimodXMLDataProvider and UnimodXMLHandler (delta masses); OBODataProvider reads MassMono/MassAvg into declared absolute fields. ResidueModification defaults absolute fields to zero and its existing record loader retains that default. Positive declared masses are independently tested using checked owned copies; this does not claim the native registry imports OBO datasets."
+}

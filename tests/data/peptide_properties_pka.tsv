@@ -1,0 +1,60 @@
+scale	entry_kind	group	residue	source_decimal	f64_hex	source_line
+lehninger	base	nterm		9.69	40236147ae147ae1	28
+lehninger	base	cterm		2.34	4002b851eb851eb8	28
+lehninger	base	D		3.65	400d333333333333	28
+lehninger	base	E		4.25	4011000000000000	28
+lehninger	base	C		8.18	40205c28f5c28f5c	28
+lehninger	base	Y		10.07	402423d70a3d70a4	28
+lehninger	base	H		6.00	4018000000000000	28
+lehninger	base	K		10.53	40250f5c28f5c28f	28
+lehninger	base	R		12.48	4028f5c28f5c28f6	28
+emboss	base	nterm		8.6	4021333333333333	30
+emboss	base	cterm		3.6	400ccccccccccccd	30
+emboss	base	D		3.9	400f333333333333	30
+emboss	base	E		4.1	4010666666666666	30
+emboss	base	C		8.5	4021000000000000	30
+emboss	base	Y		10.1	4024333333333333	30
+emboss	base	H		6.5	401a000000000000	30
+emboss	base	K		10.8	402599999999999a	30
+emboss	base	R		12.5	4029000000000000	30
+sillero	base	nterm		8.2	4020666666666666	32
+sillero	base	cterm		3.2	400999999999999a	32
+sillero	base	D		4.0	4010000000000000	32
+sillero	base	E		4.5	4012000000000000	32
+sillero	base	C		9.0	4022000000000000	32
+sillero	base	Y		10.0	4024000000000000	32
+sillero	base	H		6.4	401999999999999a	32
+sillero	base	K		10.4	4024cccccccccccd	32
+sillero	base	R		12.0	4028000000000000	32
+bjellqvist	base	nterm		7.50	401e000000000000	36
+bjellqvist	base	cterm		3.55	400c666666666666	37
+bjellqvist	base	D		4.05	4010333333333333	38
+bjellqvist	base	E		4.45	4011cccccccccccd	39
+bjellqvist	base	C		9.0	4022000000000000	40
+bjellqvist	base	Y		10.0	4024000000000000	41
+bjellqvist	base	H		5.98	4017eb851eb851ec	42
+bjellqvist	base	K		10.0	4024000000000000	43
+bjellqvist	base	R		12.0	4028000000000000	44
+bjellqvist	residue_override	nterm	A	7.59	401e5c28f5c28f5c	47
+bjellqvist	residue_override	nterm	R	7.70	401ecccccccccccd	47
+bjellqvist	residue_override	nterm	N	7.50	401e000000000000	47
+bjellqvist	residue_override	nterm	D	7.50	401e000000000000	47
+bjellqvist	residue_override	nterm	C	8.00	4020000000000000	47
+bjellqvist	residue_override	nterm	E	7.70	401ecccccccccccd	48
+bjellqvist	residue_override	nterm	Q	7.50	401e000000000000	48
+bjellqvist	residue_override	nterm	G	7.50	401e000000000000	48
+bjellqvist	residue_override	nterm	H	7.50	401e000000000000	48
+bjellqvist	residue_override	nterm	I	7.50	401e000000000000	48
+bjellqvist	residue_override	nterm	L	7.50	401e000000000000	49
+bjellqvist	residue_override	nterm	K	7.50	401e000000000000	49
+bjellqvist	residue_override	nterm	M	7.00	401c000000000000	49
+bjellqvist	residue_override	nterm	F	7.50	401e000000000000	49
+bjellqvist	residue_override	nterm	P	8.36	4020b851eb851eb8	49
+bjellqvist	residue_override	nterm	S	6.93	401bb851eb851eb8	50
+bjellqvist	residue_override	nterm	T	6.82	401b47ae147ae148	50
+bjellqvist	residue_override	nterm	W	7.50	401e000000000000	50
+bjellqvist	residue_override	nterm	Y	7.50	401e000000000000	50
+bjellqvist	residue_override	nterm	V	7.44	401dc28f5c28f5c3	50
+bjellqvist	residue_override	cterm	D	4.55	4012333333333333	54
+bjellqvist	residue_override	cterm	E	4.75	4013000000000000	54
+all	sidechain	U	U	5.73	4016eb851eb851ec	20

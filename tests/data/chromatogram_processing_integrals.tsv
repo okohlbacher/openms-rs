@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# OpenMS4-core 7c029e8cdba6abab503708ecdd56f6ab55e38ce4; Literal upstream area goldens; negative trace height/apex independently read from its three samples.
+trace	method	left	right	area	height	apex
+glutamate	intensity_sum	2.472833334	3.022891666	6768778	966489	2.7045
+glutamate	trapezoid	2.472833334	3.022891666	71540.2	966489	2.7045
+glutamate	simpson	2.472833334	3.022891666	71720.443144994	966489	2.7045
+glutamate	simpson	2.472833334	3.011416667	71515.0792609335	966489	2.7045
+glutamate	trapezoid	2.472833334	2.478	0	881	2.477966667
+glutamate	simpson	2.472833334	2.478	0	881	2.477966667
+glutamate	simpson	2.472833334	2.489	11.6081250000001	1384	2.488216667
+negative_simpson	simpson	2270.93	2273.16	-665788.77663627	896669	2273.16

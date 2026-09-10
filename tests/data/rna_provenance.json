@@ -1,0 +1,170 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "maintainer": "OpenMS Rust contributors",
+  "license": "Source code BSD-3-Clause; RNA resource-specific notices are separate in LICENSES.md and resources/rna. This manifest does not establish new dataset redistribution permission.",
+  "reference_test": "tests/rna_reference.rs",
+  "test_functions": 8,
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/Ribonucleotide.h",
+      "sha256": "73490e6d33be78469261a2dff83b6014c55f69f53d7c1ee5a3b84a8f3bb75c18",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/Ribonucleotide.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Ribonucleotide.cpp",
+      "sha256": "a40433bc08f7394327fa724aa6d48283fc1bd8a9c9f8096be6f4ea1c785826bb",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/Ribonucleotide.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDB.h",
+      "sha256": "3c777c503413784b1f08989a1e74519d49638921d7f9247bdc173bcaa8b527f8",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDB.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/RibonucleotideDB.cpp",
+      "sha256": "298aee9bb6a6e4017df06f9376f21096a4b4f445d9eb40be03f099e758d41665",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/RibonucleotideDB.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideTSVDataProvider.h",
+      "sha256": "9c49b197247849413f6384760a62d2df507c449f369bf6981f5d79e2a5127900",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/RibonucleotideTSVDataProvider.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/RibonucleotideTSVDataProvider.cpp",
+      "sha256": "8449ee241f9d6efbe86d50f3fe807ea0c88446e6c9eb7af4543a8aaf6ab168cc",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/RibonucleotideTSVDataProvider.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModomicsJSONDataProvider.h",
+      "sha256": "05300aee7d5841870d00ee716cb8d6f13400dd0e9aa8c9a29f4ef9f60654c873",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ModomicsJSONDataProvider.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModomicsJSONDataProvider.cpp",
+      "sha256": "27daa6869843cc462e54a2b1f8720ad8b9620d5c2182efc44c8c107db5557868",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModomicsJSONDataProvider.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/NASequence.h",
+      "sha256": "e06f3bd0db9e816529009793112edb3a056a0295d3b5cc616ae79cf40185e11d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/NASequence.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/NASequence.cpp",
+      "sha256": "21a2a34389026ac9696d809d5e79f6141668f2b65c7d00081920775f5f929423",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/NASequence.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDataProvider.h",
+      "sha256": "723d7d61422f7a9b6cc44c629b8af76ee17a7d4668a521452c02e3607de677a2",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDataProvider.h"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Ribonucleotide_test.cpp",
+      "sha256": "8cb8c031d2e6a07217233ecf59c608895f6e5be0ba5ab15bdb94a77602d2e4f4",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/Ribonucleotide_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/RibonucleotideDB_test.cpp",
+      "sha256": "884360043a29c1d82d40932734e54c7b3b0468f1aa2b35c647452c9097168feb",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/RibonucleotideDB_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/RibonucleotideDataProvider_test.cpp",
+      "sha256": "d6e194ed990a8ab57389229afb82ab03f88fb99646d366903ab53e53d04ec323",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/RibonucleotideDataProvider_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/NASequence_test.cpp",
+      "sha256": "3ad636f5a02e3734ae1c51e2aabddc6f7643e1fd8d9ae1a909283dba30f47931",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/NASequence_test.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/EmpiricalFormula.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ElementDB.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CONCEPT/Constants.h"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/LICENSE"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/Modomics.json",
+      "sha256": "2c98d258f2b88c126e88a06e080a0652053b77bc9d434ab8727c984dfa8436fc",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/Modomics.json"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/Custom_RNA_modifications.tsv",
+      "sha256": "155d7ff5c70c9c01ffd0d5a32fe7c4e200adc10ae5ed6d516b07ec8242faa23d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/Custom_RNA_modifications.tsv"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/Modomics.tsv",
+      "sha256": "ed458688c4cfdf1ea6eb4c618613befee411019f3b7665838685ae3dea411e76",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/Modomics.tsv"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h",
+      "sha256": "9c2a81ef15a7beb3e52c3ba9e1db9b98ae68f27aa3eb5f62cd3a5562f978927d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/rna_source_formulas.tsv",
+      "sha256": "2af3ebee0fb4ec0b5925e5714487e39255954c96abf18538669912f89fb0e6b0",
+      "rows": 15
+    },
+    {
+      "path": "tests/data/rna_source_masses.tsv",
+      "sha256": "25354c8c29e444601588d5d6f99567c84d8e18669e71ce3e359303851ee9d309",
+      "rows": 23
+    },
+    {
+      "path": "tests/data/rna_source_slices.tsv",
+      "sha256": "1a043c99eb467fdeb4504dcc9eda58785f82c06588e976221ee026f2e2e20925",
+      "rows": 10
+    },
+    {
+      "path": "tests/data/rna_registry_reference.tsv",
+      "sha256": "71c342eeb69b5b4754f70a920b3ebdab60a80489db1586e4914b6358fc0fcaab",
+      "rows": 378
+    }
+  ],
+  "extraction": {
+    "class_tests": "Independent Python stdlib extraction of literal variable assignments/assertions. All 15 formula-section assertions, all 18 mono and five average assertions, ten positive slice examples. Formula summands and decimal arithmetic/divisors preserved.",
+    "registry": "Independent source-rule projection of original lexical JSON object entries then custom TSV, before consulting generated expression. 333 nonempty JSON +45 custom=378 entries;375 unique codes. Per-field formulas/origin/term/base-loss/alternatives plus raw declared mass bits; formula fallback explicitly tagged.",
+    "execution": "No C++ compilation/execution; no production RNA output used to generate expected fixtures."
+  },
+  "comparison_policy": {
+    "formulas": "Exact empirical formula equality with preserved source summands.",
+    "source_mass_literals": "Native relative tolerance1e-5 except absolute0.05 for source1201.3; does not claim unavailable ClassTest default settings. Source expressions and f64 bits separately verified.",
+    "registry": "Every row compared against embedded registry; exact declared mass bits, formula-derived fallback evaluated by independently tested EmpiricalFormula. Live complete TSV and feature-gated JSON records compared with embedded entries.",
+    "sequence_identity": "Native full chemical values and relevant owned sulfur slicing context replace source allocation-dependent pointer identity.",
+    "formula_fallback_precision": "Source EmpiricalFormula uses std::map<const Element*,SignedSize> pointer iteration. Native fallback uses deterministic formula order. Exact embedded/live/native fallback equality is checked, not bitwise C++ parity; source literal declared f64 values remain independent."
+  },
+  "boundaries": [
+    "RNaseDigestion, IdentificationData/IdentifiedOligo, ModifiedNASequenceGenerator and NucleicAcidSpectrumGenerator are outside this increment.",
+    "No source runtime differential parity claimed.",
+    "Data notices and publication permissions are separate from scientific reference coverage."
+  ],
+  "validation": {
+    "current": "Complete locked/offline all-feature/all-target run:938 passed; no-default-feature/all-target run:863 passed; JSON-only RNA suites plus unit tests:73 passed. All eight independent RNA reference tests pass in each applicable run.",
+    "msrv_1_85": "Complete locked/offline all-feature/all-target run:938 passed; no-default-feature RNA suites plus unit tests:70 passed, including all eight independent references.",
+    "quality": "Three doctests pass on both compilers. Strict all-target Clippy, warnings-denied rustdoc, Rustfmt, registry regeneration, RNA example and package file-list check pass.",
+    "scope": "Source-derived scientific tests; no C++ compilation or execution, no runtime differential claim, no publication."
+  }
+}

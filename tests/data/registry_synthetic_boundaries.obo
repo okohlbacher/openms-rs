@@ -1,0 +1,32 @@
+! Independently authored source branch cases; SPDX-License-Identifier: BSD-3-Clause.
+! $Maintainer: OpenMS Rust contributors $
+format-version: 1.2
+
+[Term]
+id: XLMOD:990003
+name: Reference zero wildcard terminal
+property_value: reactionSites: "3" xsd:integer
+property_value: monoisotopicMass: "0" xsd:float
+property_value: specificities: "(X,Protein N-term)" xsd:string
+
+[Term]
+id: XLMOD:990002
+name: Reference cross only
+property_value: reactionSites: "2" xsd:integer
+property_value: monoisotopicMass: "2" xsd:float
+property_value: specificities: "(M)&(K)" xsd:string
+
+[Term]
+id: XLMOD:990001
+name: Reference mono only
+property_value: reactionSites: "1" xsd:integer
+property_value: monoisotopicMass: "1" xsd:float
+property_value: specificities: "K" xsd:string
+
+[Term]
+id: XLMOD:990000
+name: Reference union of sites
+synonym: "Reference site alias" EXACT []
+property_value: reactionSites: "3" xsd:integer
+property_value: monoisotopicMass: "3.25" xsd:float
+property_value: specificities: "(M,B,K,K,Protein N-term)&(J,Z,X,Protein C-term)" xsd:string

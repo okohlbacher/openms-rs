@@ -1,0 +1,218 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "reference_test": "tests/tagger_reference.rs",
+  "test_functions": 6,
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/Tagger.h",
+      "sha256": "3301abb060ca0716588e2847288ac68e6040814a27a32e40eb698f0cdb198d14",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/Tagger.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Tagger.cpp",
+      "sha256": "02cce0b7cef9196ba0939049d52c3d60788f8b0ee10596bcf24a6a76db0206f1",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/Tagger.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Tagger_test.cpp",
+      "sha256": "23d2fb46963bba93e5f3bc50dcaf7bf12758bf812caf3f99793fc23f5de19f5d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/Tagger_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/Residue.h",
+      "sha256": "8abda7e4cc2e2d9c19841c5c9e4c527f16e930e5c51e2490bbd6f4b2ac3ccc0e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/Residue.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/Residue.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueDB.h",
+      "sha256": "83316197a37a4fe36f885a0a1036757167c6e36711741e59e0964ef9bd929a3e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ResidueDB.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ResidueDB.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModificationsDB.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModificationsDB.h",
+      "sha256": "c815a5a5f47f0b5d495cdca2ef6b1fa9bd5115c43a4eb3c50e4f94d48bcd39a6",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ModificationsDB.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+      "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/MATH/MathFunctions.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/EmpiricalFormula.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ElementDB.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
+      "sha256": "c0f8fc0213c7a9103f3e3ebeb305d498a79666afdb189b2b3b36c7d129cc81c9",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp",
+      "sha256": "763d7e37041d3bed8f0b9fb122e43b5d6890fc699753e0f877ee3c50f2698325",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/tagger_source_counts.tsv",
+      "rows": 6,
+      "sha256": "753f4a404b477ea8a6a3e02b97dfa4f0aab2c4856c3608a2a322d2e134f6d407"
+    },
+    {
+      "path": "tests/data/tagger_source_membership.tsv",
+      "rows": 120,
+      "sha256": "bc9f610d89dd94fea2392cdb27e594d4250fdd69a2be2b27c1b61ce4a37deed4"
+    }
+  ],
+  "extraction": "Six exact tag counts and all 120 membership assertions from the first Tagger_test.cpp section were copied with their context and one-based source line. No C++ execution and no production-generated expected tags. Small trace arithmetic expressions are retained directly in the independent Rust test.",
+  "source_theoretical_input": {
+    "unmodified_peptide": "PEPTIDETESTTHISTAGGER",
+    "modified_peptide": "PEPTID(Oxidation)ETESTTHISTAGGER",
+    "ion_series": [
+      "a",
+      "b",
+      "y"
+    ],
+    "add_first_prefix_ion": true,
+    "add_losses": true,
+    "add_precursor_peaks": true,
+    "add_metainfo": false,
+    "unmodified_fragment_charges": [
+      1,
+      2
+    ],
+    "modified_fragment_charges": [
+      2,
+      2
+    ],
+    "expected_unmodified_peaks": 357,
+    "expected_modified_peaks": 180,
+    "isotope_model": "none",
+    "precursor_charge": "source automatic default"
+  },
+  "tagger_contexts": [
+    {
+      "context": "unmodified_q1",
+      "min_length": 2,
+      "max_length": 5,
+      "ppm": 10,
+      "charge_range": [
+        1,
+        1
+      ],
+      "fixed": [],
+      "variable": [],
+      "literal_count": 890
+    },
+    {
+      "context": "unmodified_q2",
+      "min_length": 2,
+      "max_length": 5,
+      "ppm": 10,
+      "charge_range": [
+        2,
+        2
+      ],
+      "fixed": [],
+      "variable": [],
+      "literal_count": 1006
+    },
+    {
+      "context": "unmodified_q1_q2",
+      "min_length": 2,
+      "max_length": 5,
+      "ppm": 10,
+      "charge_range": [
+        1,
+        2
+      ],
+      "fixed": [],
+      "variable": [],
+      "literal_count": 1094
+    },
+    {
+      "context": "modified_unaware",
+      "min_length": 2,
+      "max_length": 5,
+      "ppm": 10,
+      "charge_range": [
+        1,
+        2
+      ],
+      "fixed": [],
+      "variable": [],
+      "literal_count": 545
+    },
+    {
+      "context": "modified_fixed",
+      "min_length": 2,
+      "max_length": 5,
+      "ppm": 10,
+      "charge_range": [
+        2,
+        2
+      ],
+      "fixed": [
+        "Oxidation (D)"
+      ],
+      "variable": [],
+      "literal_count": 667
+    },
+    {
+      "context": "modified_variable",
+      "min_length": 2,
+      "max_length": 5,
+      "ppm": 10,
+      "charge_range": [
+        2,
+        2
+      ],
+      "fixed": [],
+      "variable": [
+        "Oxidation (D)"
+      ],
+      "literal_count": 739
+    }
+  ],
+  "derived_oracles": {
+    "small_traces": "Source literal P=97.0527, E=129.0426 and offsets 0.015/0.025 are evaluated as their original f64 addition expressions. These rounded source mass anchors are not exact residue table values.",
+    "custom_table": "Owned records have a nonzero declared delta to activate changes and an absolute free mass WATER+32/34/36/64. Source subtracts WATER, producing exact small binary integer keys. WATER uses source H=1.0078250319 and O=15.994915000000001. Record order, collision outcomes, tie behavior and strict lower-bound rejection are independent control-flow deductions.",
+    "l_i": "A selected L entry emits both L and I even for a modified L mass. A selected I entry emits only I. Two matched L gaps therefore yield II,IL,LI,LL in final lexical order.",
+    "ambiguous_residues": "ResidueDB constructs B/Z/X with empty empirical formulas; Residue caches free mono mass 0 and Internal subtracts water. Private Tagger keys -WATER are therefore source-derived, while public AASequence chemistry continues to distinguish unavailable mass.",
+    "input_order": "Unsorted traversal returns early after an overlarge first gap, preserving source index-dependent pruning. Zero charge and broad absolute tolerance make all gaps 0 and select G from the ordinary table.",
+    "append": "min_length>N is an untouched-output early return; min_length==N, max_length0 and inverted charge ranges still sort and deduplicate existing output."
+  },
+  "native_policies": [
+    "Finite signed/unsorted positions and zero/inverted length/charge settings preserve source operations; nonfinite arithmetic and resource exhaustion return atomic errors.",
+    "For both source modification lookups, first native provider-order match replaces allocation-dependent last-pointer source selection. Other public registry lookup behavior is unchanged.",
+    "Source pointer-map formula summation order is not treated as a portable bitwise contract. The helper preserves free-residue mass followed by water subtraction within the existing deterministic formula implementation.",
+    "Private empty-short-ID resolution scans actual empty-name records in provider order; unrelated empty aliases are not introduced into the public registry."
+  ],
+  "comparison": "Tag strings, lexical ordering, counts and membership are exact. No rounded tag counts or discarded source assertions are used. Theoretical inputs are generated by the native TSG with published source settings and verified source peak counts; this is a source-assertion integration test, not a runtime C++ differential dataset.",
+  "status": "Integrated: all six independent references, eight direct tests, fifteen private Tagger tests and enabled workflows pass in final Rust 1.96 and 1.85 checks with all features and without default features; all-target Clippy, rustdoc and formatting pass. All source counts and membership expectations remain unchanged."
+}

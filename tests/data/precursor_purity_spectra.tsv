@@ -1,0 +1,11 @@
+# Copyright (c) 2002-present, OpenMS Inc.
+# SPDX-License-Identifier: BSD-3-Clause
+# $Maintainer: OpenMS Rust contributors $
+index	native_id	ms_level	rt_seconds	rt_f64_bits	source_peak_count	precursor_mz	precursor_mz_f64_bits	charge	precursor_intensity	precursor_intensity_f32_bits	isolation_lower	isolation_upper
+0	controllerType=0 controllerNumber=1 scan=1	1	3610.81188	40ac359faebc408e	2003	-	-	-	-	-	-	-
+1	controllerType=0 controllerNumber=1 scan=2	2	3611.09208	40ac362f251c193b	60	769.393789466471	40880b267b178005	2	5251952.5	4aa046e1	0.25	0.25
+2	controllerType=0 controllerNumber=1 scan=4	2	3611.39772	40ac36cba1f4b1ee	73	421.558584883603	407a58eff6b3f1d6	3	7365030.0	4ae0c34c	0.25	0.25
+3	controllerType=0 controllerNumber=1 scan=6	2	3611.7015	40ac37672b020c4a	86	447.907085078449	407bfe836ba4aa0c	3	6835636.0	4ad09b68	0.25	0.25
+4	controllerType=0 controllerNumber=1 scan=8	2	3612.0051	40ac38029c779a6b	161	407.579288484896	40797944c400993e	3	6762358.0	4ace5eec	0.25	0.25
+5	controllerType=0 controllerNumber=1 scan=10	2	3612.31176	40ac389f9f01b867	74	748.901794746371	40876736e029faf2	2	5464634.5	4aa6c475	0.25	0.25
+6	controllerType=0 controllerNumber=1 scan=12	1	3612.63552	40ac394562e09fe8	1869	-	-	-	-	-	-	-

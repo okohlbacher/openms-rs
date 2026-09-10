@@ -1,0 +1,56 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "method": "Literal decimal arrays and asserted parameter/count/loss values extracted from the pinned C++ test source; no C++ was built or executed. Positions are literal f64; f64 raw intensity and f32 container intensity bits are retained separately. Fit parameter goldens were asserted through f32 metadata arrays. Training counts for second units follow the identical index selection as minute units. Loss goldens use raw f64 input intensities and fitted parameters rounded to f32; they are not the training loss.",
+  "sources": [
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "sha256": "584a23ffa22efdba082060f6160c6a4b2c85a697c7510e32fc488db182bc613e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/MATH/MISC/EmgGradientDescent.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/MISC/EmgGradientDescent.h",
+      "sha256": "91586579fd7e311fe56479a1397b1870ffd0c84aa634b135ac4fd27129dc9303",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/MATH/MISC/EmgGradientDescent.h"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/EmgGradientDescent_test.cpp",
+      "sha256": "62832ae3a40e258f4cb2480f6b2c5899310bfcf6c51ed11654746d09a61b8019",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/EmgGradientDescent_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CONCEPT/Constants.h"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakIntegrator.cpp",
+      "sha256": "0c88cb7d0c88dd618039ae641186993af958f8d4b41e9bbbd8662bcba70367fb",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/ANALYSIS/OPENSWATH/PeakIntegrator.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h",
+      "sha256": "93fbfa46f512181bd8a646026014f56a9614222dd1222cecb6fc8785ea693c86",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/emg_fits.tsv",
+      "sha256": "efe453a1ced40a6aea3cefabab1fd5ac7da7fb2443e12455b014a866960d6795"
+    },
+    {
+      "path": "tests/data/emg_gradient_review.json",
+      "sha256": "2fd53d53b9d0bf3cdcb86b5f4571ce90cd65b5e3633a727953c945c9f29166c2"
+    },
+    {
+      "path": "tests/data/emg_traces.tsv",
+      "sha256": "308aa130b0e200821926d81882aafe0cfd43717b93d97942207c13d558ca6ec7"
+    },
+    {
+      "path": "tests/data/emg_training.tsv",
+      "sha256": "332b78ee225c4135d71eabf1c7f711458f91b2e57ab82e57cb0856a6a72c45a6"
+    }
+  ],
+  "derived_training_oracles": "emg_training.tsv records ordered indices, initial mean and initial raw loss from an independent Python translation of source helper rules; source test directly asserts four training counts and four means. emg_gradient_review.json records independent derivative checks, not upstream test assertions."
+}

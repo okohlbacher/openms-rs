@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# OpenMS4-core 7c029e8cdba6abab503708ecdd56f6ab55e38ce4; Literal upstream glutamate goldens; interval [2.472833334,3.022891666], apex2.7045.
+method	baseline	area	height
+intensity_sum	base_to_base	123446.661339019	1908.59690598823
+intensity_sum	vertical_division_min	50217	881
+intensity_sum	vertical_division_max	190095	3335
+trapezoid	base_to_base	1140.392865964	1908.59690598823
+trapezoid	vertical_division_min	476.606316373	881
+trapezoid	vertical_division_max	1804.179415555	3335

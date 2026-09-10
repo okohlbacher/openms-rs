@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# OpenMS4-core 7c029e8cdba6abab503708ecdd56f6ab55e38ce4; Literal upstream Gaussian50, S/N1, all other default settings; one peak per case. Decimal goldens are approximate, not bitwise references.
+trace	method	peak_width	apex	intensity	integrated_intensity	left	right
+srm_1	legacy	40	1495.11321013749	9981.93933103869	59512.1	1490.95	1499.25
+srm_2	legacy	40	1492.830608593	78719.134569503	520301	1484.61	1501.23
+srm_1	corrected	-1	1495.11368082583	9981.93933103869	60605.7	1482.64	1504.8
+srm_2	corrected	-1	1492.8305	78719.1346	525672.0	1481.84	1504

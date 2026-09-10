@@ -1,0 +1,5 @@
+modifications	maximum	keep_original	literal	count	source_line
+m3U|s4U	1	true	7	7	61
+m3U|s4U	1	false	6	6	77
+m3U|s4U	3	true	3*3*3	27	82
+s4U|m3U|m1A	7	true	3*3*3*2*2*2*2	432	91

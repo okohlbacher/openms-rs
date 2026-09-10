@@ -1,0 +1,129 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "reference_test": "tests/fine_isotope_reference.rs",
+  "method": "Pinned source read and independent Python arithmetic only; no C++ execution. Original decimal literals remain in the TSVs. Source reference probabilities are rounded to f32 as in Peak1D. CBr2 exact masses/probabilities are separately derived from ElementDB isotope masses and f32-rounded natural abundances using the closed-form two-atom binomial. No native Rust generator produced expected fixture values. Package tests require no .reference checkout or /tmp artifacts.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h",
+      "sha256": "2a1d657b13d728ee4aff3ff2ef365067c35e00c97d98cad10371adf7bd08fab3",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.cpp",
+      "sha256": "738b9ec49ab5237a4cad4d59f8108301d96da24388fa93ceccdcff8309079859",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h",
+      "sha256": "43569a711a42493afa3587aebf033faca9f1e4b71de140feaf866a67e2411f29",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.cpp",
+      "sha256": "4d3abfdd5c4788ada887601489ab2741eae9688056289e00e268bd72ed4247cf",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FineIsotopeDistribution_test.cpp",
+      "sha256": "e9c5887d6aca04d00d6b71f374c52ffe40d106c819c87fcd04f5463f7a7e589b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/FineIsotopeDistribution_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IsoSpec_test.cpp",
+      "sha256": "fe294da8fa53e42eb3d03b4c1cb60a6aaf0883bfbf5e121f6494b951751c73bf",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/IsoSpec_test.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ElementDB.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+      "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/Peak1D.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.cpp",
+      "sha256": "987934145e3cf0d5f5eff97fc580ef2c680e8b3a932d36c8c4855d4ef063bf38",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/EmpiricalFormula.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp",
+      "sha256": "763d7e37041d3bed8f0b9fb122e43b5d6890fc699753e0f877ee3c50f2698325",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TheoreticalSpectrumGenerator_test.cpp",
+      "sha256": "8fc12ab3cea2f804e1374fdc43368ad82588f465e01423753d03babb4c4a77e1",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/TheoreticalSpectrumGenerator_test.cpp"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/fine_isotope_counts.tsv",
+      "sha256": "8aedc9e1e5b25e4622a5672a6f6925dc6d457b9d2fef9c7b0efd2c5f8d1e71e1",
+      "rows": 44
+    },
+    {
+      "path": "tests/data/fine_isotope_fructose.tsv",
+      "sha256": "2f62a41ef39bd32267a78438aa07472dcf5b2a65ba5af6b9fa18b2c886425223",
+      "rows": 14
+    },
+    {
+      "path": "tests/data/fine_isotope_bromine.tsv",
+      "sha256": "53121dffab49dc450200faccac53e28007c288df31aadbe9135596dbf74b41f7",
+      "rows": 6
+    }
+  ],
+  "comparison_policies": {
+    "IsoSpec_test": "my_real_similar(a,b) is a*(1-1e-7)<=b<=a*(1+1e-7), no absolute floor. Reference probability is first rounded into Peak1D f32. getConf().intensity must equal static_cast<float>(getIntensity()). Raw getIntensity must be similar to exp(getLogIntensity()).",
+    "Fine_class_test": "Uses TEST_REAL_SIMILAR default tolerances, not the explicit IsoSpec 1e-7 helper. ClassTest.h is absent from this first-party snapshot, so the global default tolerance is not asserted here. Older Fine scalar literals sometimes differ visibly from the stronger IsoSpec table; retain but do not promote them to exact high-precision oracles.",
+    "header_example": "Illustrative partial decimal output ending with ellipsis, no executable comparison tolerance, and a cutoff inconsistency; not an exact selected-set golden.",
+    "counts": "Exact integer source assertions; backend-sensitive untrimmed coverage output counts deliberately have no expected count."
+  },
+  "literal_source_metadata": {
+    "fructose": {
+      "source_path": "src/tests/class_tests/openms/source/IsoSpec_test.cpp",
+      "source_lines": [
+        95,
+        108
+      ],
+      "table_rows": 14,
+      "comparison": "1e-7 relative bounds with no absolute floor, following source my_real_similar. Source reference Peak1D probabilities are already f32."
+    },
+    "bromine": {
+      "source_path": "src/tests/class_tests/openms/source/FineIsotopeDistribution_test.cpp",
+      "table_rows": 6,
+      "comparison": "Rounded integer mass labels and old literal probabilities use an explicit native absolute 1e-7 allowance; separate derived masses use 1e-10 absolute and derived stored-f32 probabilities use exact equality. This allowance is not claimed to be an inspected ClassTest default.",
+      "source_size_note": "Source iterates result without an explicit size-6 assertion; six independently follows two carbon isotope choices times three Br2 isotope compositions."
+    }
+  },
+  "count_scope": "All 44 active source count cases from the temporary independent source inventory; coverage .99 for fructose derives from the exact source Fine missing-probability 0.01 call. C100H202 complete count 20503 derives from the source 101*203 assertion. Untrimmed layered wrapper counts are unspecified and are not tested.",
+  "excluded_illustrations": "The C100H202 header nine-row partial illustration is not bundled as a selected-set oracle: its last probability .0015837649 is below .01 times maximum .3603877127, or .0036038771. Older Fine fructose approximate values disagree with the stronger IsoSpec 14-row table and are not silently substituted.",
+  "independent_coverage_boundary": {
+    "formula": "C520H817N139O147S8",
+    "coverage_target": 0.99999,
+    "selected_count": 19615,
+    "sum_original_f64": 0.9999899999250583,
+    "sum_f32_rounded_into_f64": 0.9999900005385141,
+    "origin": "Separate independent Python prototype, not C++ output",
+    "prototype_path": "/tmp/openms-fine-isotope-prototype.py",
+    "prototype_sha256": "864149d8d5d71147f3209879b8785df0ec99795d426c488c95d5e47262112127",
+    "results_path": "/tmp/openms-fine-isotope-prototype-results.json",
+    "results_sha256": "70a05a3be1c9433cebfced1af207cbcabc10926822dba1a526d1474f25726751",
+    "interpretation": "At 19615 configurations, raw f64 coverage remains below the target while f32-rounded coverage crosses it; source literal count 19615 independently confirms stored-f32 trimming matters.",
+    "note": "Recorded prototype and results hashes identify the independent derivation during development; package tests use literal expected source count and stored sum only."
+  },
+  "api_scope": "Tests target materialized FineIsotopePatternGenerator. They do not claim the absent IsoSpec layered streaming backend, arbitrary custom-enrichment wrapper APIs or backend tie identity/order are implemented.",
+  "native_numeric_contract": "Natural abundances are f32-rounded and not normalized. Internal probability computation uses f64 logarithms; output probabilities are narrowed to f32 and widened into native f64 IsotopePeak fields; coverage uses those stored values. Formula charge behavior and resource/error controls have separate owner tests.",
+  "theoretical_reference_test": "tests/theoretical_fine_reference.rs"
+}

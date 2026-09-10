@@ -1,0 +1,59 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core.git",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "verified_date": "2026-09-10",
+  "maintainer": "OpenMS Rust contributors",
+  "scope": "Pinned RNA enzyme XML and deterministic six-field native registry projection; all fourteen source records are retained in document order.",
+  "source": {
+    "path": "resources/enzymes/Enzymes_RNA.xml",
+    "source_path": "share/OpenMS/CHEMISTRY/Enzymes_RNA.xml",
+    "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/Enzymes_RNA.xml",
+    "sha256": "4c90a3630a1553ef7c75bae00f2731e2f5bb690f3ee9434d54cc3315a95fe899",
+    "bytes": 8322,
+    "byte_identical_to_pinned_reference": true,
+    "declared_xml_encoding": "ISO-8859-1"
+  },
+  "projection": {
+    "path": "resources/enzymes/rna_enzymes.rs",
+    "sha256": "4bf96a2e125bd2ca61d2f156fba81ff3a31dfb03ce2fee15624a3e723b0d89ed",
+    "bytes": 1916,
+    "records": 14,
+    "fields_in_tuple_order": [
+      "Name",
+      "RegExDescription",
+      "CutsAfter",
+      "CutsBefore",
+      "FivePrimeGain",
+      "ThreePrimeGain"
+    ],
+    "verified_field_slots": 84,
+    "order": "Physical XML enzyme-node order; no sorting, normalization or dropped entries.",
+    "missing_fields": "Absent fields become empty strings. No main RegEx or synonym field exists in any of these fourteen XML records.",
+    "runtime_use": "RNaseDB::global includes the projection directly; no runtime XML parser is required."
+  },
+  "generator": {
+    "path": "tools/generate_rnases.py",
+    "sha256": "adab665f18507efb0725aaa06b3e3f509c87d192deecd01809b363123123634a",
+    "bytes": 1672,
+    "dependencies": "Python standard library only: ElementTree, json, hashlib, pathlib, argparse.",
+    "check_command": "python3 tools/generate_rnases.py --check",
+    "method": "Verify pinned XML SHA-256, require fourteen records and only the six expected fields, emit escaped Rust string tuples in XML order, and compare exact output text with --check."
+  },
+  "independent_reference": {
+    "path": "tests/data/rna_processing_enzymes.tsv",
+    "sha256": "8e11f9ce7580a7e90261af87a12467a1d2cb35b5b0867c836df7bdcaaf2eb50e",
+    "records": 14,
+    "provenance": "tests/data/rna_processing_provenance.json",
+    "comparison": "All 84 projected field slots and order independently matched both raw XML and the packaged reference TSV."
+  },
+  "license": {
+    "spdx": "BSD-3-Clause",
+    "basis": "OpenMS repository license for its enzyme data; original XML comments and descriptions are retained.",
+    "source_license": "LICENSE",
+    "source_license_sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677",
+    "boundary": "This metadata does not grant or infer separate rights for MODOMICS records used when resolving terminal gains."
+  },
+  "native_scope_boundary": "All fourteen registered RNA enzymes and composition of their supported per-code expressions or literal searches are implemented. Arbitrary Boost regex syntax, an XML input/provider API, and IdentificationData RNA graph digestion remain outside the native surface.",
+  "cpp_built": false,
+  "cpp_executed": false
+}

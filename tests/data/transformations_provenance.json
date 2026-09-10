@@ -1,0 +1,56 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "records": [
+    {
+      "source": "src/tests/class_tests/openms/data/TransformationModelInterpolated_base_data.txt",
+      "source_sha256": "7ebe1395abb3c401a361f3ae322a38a1ce2db54cb43c2389b4b4d5e93cb8a18e",
+      "fixture": "tests/data/transformations_interpolation_input.tsv",
+      "fixture_sha256": "7ebe1395abb3c401a361f3ae322a38a1ce2db54cb43c2389b4b4d5e93cb8a18e",
+      "extraction": "byte-for-byte copy"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/TransformationModelInterpolated_gsl_data.txt",
+      "source_sha256": "7312be97370c97bf89b3fea3113047e4198bd2bcf79802f8fbe08e1b5163911c",
+      "fixture": "tests/data/transformations_interpolation_golden.tsv",
+      "fixture_sha256": "7312be97370c97bf89b3fea3113047e4198bd2bcf79802f8fbe08e1b5163911c",
+      "extraction": "byte-for-byte copy"
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/TransformationModelLowess_test.cpp",
+      "source_sha256": "d90680fa60c41f36f3a04b65492a808ff005e57342fe5d19c1a051bcba317041",
+      "fixture": "tests/data/transformations_lowess_input.tsv",
+      "fixture_sha256": "506e6f0741ac44187493b1f424ffc68b7b6b1c23df9cef39848fbf621ee618dd",
+      "extraction": "double x/y/pred_low literal arrays; query x = -4 + index*0.2"
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/TransformationModelLowess_test.cpp",
+      "source_sha256": "d90680fa60c41f36f3a04b65492a808ff005e57342fe5d19c1a051bcba317041",
+      "fixture": "tests/data/transformations_lowess_golden.tsv",
+      "fixture_sha256": "d5ee5c3adfb046faaafb063469d3647ed9cfb64b3a3906ba63af906eb525b722",
+      "extraction": "double x/y/pred_low literal arrays; query x = -4 + index*0.2"
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/FastLowessSmoothing_test.cpp",
+      "source_sha256": "1c15d74e9d0124e27c5750f7e88b4650a23e0da6cea1da35f12d8813378956cc",
+      "fixture": "tests/data/transformations_lowess_cars.tsv",
+      "fixture_sha256": "ce0028874ab6076bbdad1a3de5831247725988de567fd12f6d309c5ad0c4c18b",
+      "extraction": "speed/dist/expected_3/expected_4 literal arrays"
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/FastLowessSmoothing_test.cpp",
+      "source_sha256": "1c15d74e9d0124e27c5750f7e88b4650a23e0da6cea1da35f12d8813378956cc",
+      "fixture": "tests/data/transformations_lowess_original.tsv",
+      "fixture_sha256": "10317147840ee840111661701074bdc3fe55a975d2c84c50d6fddd6038b1cb68",
+      "extraction": "xval/yval/ys_1/ys_2/ys_3 literal arrays from original FORTRAN examples in source test"
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/MapAlignmentTransformer_test.cpp",
+      "source_sha256": "4e5e180133fbfcc946256b427cccd930b06127cf70e616cb75e350900e3e0e32",
+      "fixture": "tests/alignment_transformer.rs",
+      "fixture_sha256": "77b6e01370a2e3ccf0e6b9fd8830a849a8f79978afecabf028d2391a95db087b",
+      "extraction": "Inline source RT examples (11.1,11.5,12.2,12.5) and expected (23.2,24,25.4,26), supplemented by native atomicity/metadata/hull/resource tests"
+    }
+  ]
+}

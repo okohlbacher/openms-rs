@@ -1,0 +1,217 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "reference_test": "tests/fine_isotope_stream_reference.rs",
+  "method": "Read pinned C++ source and reused original literal fixtures; no C++ execution and no native Rust output used as expected data. Custom toy examples use direct multinomial arithmetic. Tests have no .reference or /tmp runtime dependency.",
+  "sources": [
+    {
+      "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.cpp",
+      "sha256": "738b9ec49ab5237a4cad4d59f8108301d96da24388fa93ceccdcff8309079859",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h",
+      "sha256": "43569a711a42493afa3587aebf033faca9f1e4b71de140feaf866a67e2411f29",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.cpp",
+      "sha256": "4d3abfdd5c4788ada887601489ab2741eae9688056289e00e268bd72ed4247cf",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IsoSpec_test.cpp",
+      "sha256": "fe294da8fa53e42eb3d03b4c1cb60a6aaf0883bfbf5e121f6494b951751c73bf",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/IsoSpec_test.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ElementDB.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+      "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/Peak1D.h"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/fine_isotope_counts.tsv",
+      "sha256": "8aedc9e1e5b25e4622a5672a6f6925dc6d457b9d2fef9c7b0efd2c5f8d1e71e1",
+      "rows": 44
+    },
+    {
+      "path": "tests/data/fine_isotope_fructose.tsv",
+      "sha256": "2f62a41ef39bd32267a78438aa07472dcf5b2a65ba5af6b9fa18b2c886425223",
+      "rows": 14
+    }
+  ],
+  "source_cases": [
+    {
+      "interface": "ordered generator",
+      "formula": "C6H12O6",
+      "first_literal_configurations": 14,
+      "complete_support": 2548,
+      "source_lines": [
+        321,
+        332
+      ]
+    },
+    {
+      "interface": "ordered generator",
+      "formula": "C520H817N139O147S8",
+      "checked_prefix": 10000,
+      "source_lines": [
+        334,
+        335
+      ],
+      "scope": "Accessor consistency, not source literal configuration identities; native test additionally verifies descending probability from the header contract."
+    },
+    {
+      "interface": "threshold stream/materializer",
+      "formula": "C6H12O6",
+      "relative_threshold": 1e-05,
+      "absolute_threshold": 1e-05,
+      "count": 14,
+      "source_lines": [
+        178,
+        201,
+        388,
+        429
+      ]
+    },
+    {
+      "interface": "threshold stream/materializer",
+      "formula": "C520H817N139O147S8",
+      "relative_threshold_counts": {
+        "1e-5": 5513,
+        "0.01": 267
+      },
+      "absolute_threshold_counts": {
+        "1e-5": 1734,
+        "0.01": 21
+      },
+      "source_lines": [
+        195,
+        200,
+        410,
+        428
+      ]
+    },
+    {
+      "interface": "custom natural-table materializer",
+      "formula": "C6H12O6",
+      "coverage": 0.99999,
+      "count": 17,
+      "source_lines": [
+        474,
+        495
+      ]
+    }
+  ],
+  "custom_natural_tables": {
+    "source": "ElementDB.cpp, lines 134-211; original decimal strings retained in the test",
+    "order": [
+      "C",
+      "H",
+      "N",
+      "O",
+      "S"
+    ],
+    "mass_precision": "Parse each source decimal as f64.",
+    "probability_precision": "Parse source decimal as f64, narrow to f32, widen to f64 to recreate the source ElementDB -> Peak1D -> custom vector path.",
+    "zero_abundance": "Natural tritium is omitted, matching the source formula adapter and source test setup.",
+    "custom_insulin_note": "Upstream asserts insulin formula-constructor counts; applying identical source natural tables through custom input is an independent adapter consistency check, not a separate upstream custom-insulin assertion."
+  },
+  "comparison_policy": {
+    "source_literals": "IsoSpec_test.cpp my_real_similar: a*(1-1e-7)<=b<=a*(1+1e-7); no absolute floor. Fructose reference probabilities are stored f32 values.",
+    "accessors": "to_peak mass must equal raw mass; intensity must equal raw probability cast to f32. Raw probability agrees with exp(log_probability) at source relative tolerance.",
+    "custom_toy": "Mass absolute tolerance 1e-12, probability 1e-15, log probability 1e-14; no source tie order imposed.",
+    "iterator_thresholds": "Absolute thresholds compare returned raw f64 probability >= threshold. Relative thresholds compare raw probability / original-mode probability when both probabilities are finite and positive, otherwise use the canonical logarithmic cutoff. Relative values >1 exhaust immediately; zero allows remaining underflowed states. No epsilon is added: equality on returned values is retained and the next larger representable cutoff excludes that value.",
+    "materializer_thresholds": "FineIsotopePatternGenerator materialization retains its existing logarithmic threshold comparisons. Iterator raw-value boundaries are a separate explicit native policy, not a change to old materialized goldens."
+  },
+  "independent_custom_cases": [
+    {
+      "counts": [
+        1
+      ],
+      "masses": [
+        [
+          10,
+          20
+        ]
+      ],
+      "probabilities": [
+        [
+          "0.5000000000000001",
+          "0.4999999999999999"
+        ]
+      ],
+      "expectation": "Raw probability and logarithm retain their strict order around 0.5; both stored f32 intensities are 0.5."
+    },
+    {
+      "counts": [
+        2,
+        1
+      ],
+      "masses": [
+        [
+          10,
+          11
+        ],
+        [
+          100,
+          102
+        ]
+      ],
+      "probabilities": [
+        [
+          "0.25",
+          "0.75"
+        ],
+        [
+          "0.6",
+          "0.4"
+        ]
+      ],
+      "mass_probability_pairs_sorted_by_mass_then_probability": [
+        [
+          "120",
+          "0.0375"
+        ],
+        [
+          "121",
+          "0.225"
+        ],
+        [
+          "122",
+          "0.025"
+        ],
+        [
+          "122",
+          "0.3375"
+        ],
+        [
+          "123",
+          "0.15"
+        ],
+        [
+          "124",
+          "0.225"
+        ]
+      ],
+      "derivation": "Product of n=2 binomial probabilities [0.0625,0.375,0.5625] with the independent n=1 probabilities [0.6,0.4]. Equal-mass configurations are distinct."
+    }
+  ],
+  "boundaries": {
+    "formula_charge": "Raw wrapper formula adapter ignores charge; FineIsotopePatternGenerator separately adds positive natural H and rejects negative charge. Separate integration/adversarial tests cover this distinction.",
+    "total_hint": "Source total generator p is only a traversal hint and can continue to full support. No hint API or layer traversal is implemented or claimed by these tests.",
+    "stream_state": "Source current-state accessors are undefined before first successful advance and after false. Owning Rust values and fused exhaustion are explicit native safe contracts.",
+    "thresholds": "Consuming threshold methods filter the remaining stream against the original global mode. Iterator absolute/raw-ratio comparisons preserve returned-value equality, with a logarithmic fallback for nonpositive or nonfinite raw probabilities; relative >1 selects nothing. Materializers retain logarithmic comparisons. Exact boundary and deterministic tie policies are native; no backend equality/layer-order parity claim.",
+    "untrimmed_coverage": "Source untrimmed materializer and backend-dependent layer/pivot membership remain outside this increment.",
+    "custom_validation": "Source only checks outer lengths and probabilities >0; native checked shape, finite-value and resource limits are deliberate safety behavior, documented in support API."
+  }
+}

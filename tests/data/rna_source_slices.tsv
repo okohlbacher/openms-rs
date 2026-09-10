@@ -1,0 +1,11 @@
+sequence	operation	argument	length	expected	source_line
+A[ms2i6A]AACCGp	prefix	2	-	A[ms2i6A]	401
+AAACCG	prefix	3	-	AAA	402
+A[ms2i6A]AACAGp	suffix	6	-	[ms2i6A]AACAGp	417
+AAACAG	suffix	3	-	CAG	418
+[C*]AG	suffix	2	-	*AG	423
+pAUCGp	subsequence	0	-	pAUCGp	431
+pAUCGp	subsequence	1	-	UCGp	432
+pAUCGp	subsequence	0	2	pAU	433
+pAUCGp	subsequence	2	1	C	434
+[C*]AG	subsequence	1	-	*AG	436

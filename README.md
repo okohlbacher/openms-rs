@@ -1,0 +1,134 @@
+# OpenMS for Rust
+
+A native Rust port of selected [OpenMS4-core](https://github.com/okohlbacher/OpenMS4-core/tree/6bfc0e4711105f4eda2fea86812a83af7c7e791f) functionality: spectra, features, chemistry, identification records and analysis, retention-time transformations, common processing, and basic file interchange.
+
+**This port is in progress and does not yet replace the full OpenMS library.** The current reduced SDK contains 807 physical include-directory headers and about 468,000 lines of first-party runtime code. The [SDK update](docs/CORE_SDK_UPDATE.md) records the current target, `6bfc0e4`, and the product backends removed from its scope. This crate has its own Rust API, no C++ bindings, and no C++ build dependency. The [repository analysis](docs/REPOSITORY_ANALYSIS.md) explains the source architecture, dependencies, and path toward broader coverage.
+
+## What works
+
+| Area | Implemented |
+| --- | --- |
+| Spectra and experiments | Peaks, chromatograms, precursors, aligned annotation arrays, sorting, selection, checked nearest/bound searches, ranges, base peaks, TIC and RT filtering |
+| Features and geometry | Feature/consensus containers, checked maps and IDs, scan-envelope hulls, containment, consensus means and decharge summaries |
+| Chemistry | 84 element/isotope tables, formulas and masses, coarse isotope patterns/averagine, [fine isotope configurations, streaming and custom abundances](docs/FINE_ISOTOPE_SUPPORT.md), [named/numeric peptide annotations and unresolved residues](docs/SEQUENCE_SUPPORT.md), [33-enzyme full/semi/nonspecific digestion](docs/DIGESTION_SUPPORT.md), [fixed/variable modification generation](docs/MODIFIED_PEPTIDES_SUPPORT.md) and [named/anonymous definition sets and mass matching](docs/MODIFICATION_DEFINITIONS_SUPPORT.md), caller-owned registries and OBO/crosslink lookup, [charge/pI, hydrophobicity, amino-acid indices and gas basicity](docs/PEPTIDE_PROPERTIES_SUPPORT.md), [terminal/internal spectra, immonium ions, activation presets and compact mass ladders](docs/THEORETICAL_SPECTRA.md) with losses, precursors and annotations |
+| Processing | Normalization, threshold/top-N/window filtering, scaling, linear resampling, Gaussian/Savitzky–Golay smoothing, morphological baseline correction, median/iterative-mean noise estimates, HiRes and iterative centroiding, simple and Poisson/KL deisotoping with charge conversion |
+| Chromatogram processing | Legacy/corrected peak picking, exact sample boundaries, raw intensity sums, time-weighted integration, baseline estimates, sampled shape metrics and EMG reconstruction |
+| Spectrum comparisons | Absolute/ppm alignment, alignment scores, sparse bins, cosine/shared/agreeing scores, precursor, Zhang and Stein/Scott scores |
+| RNA chemistry | [Nucleotide records, full pinned registry, TSV/JSON providers and nucleic-acid sequences](docs/RNA_SUPPORT.md), terminal/sulfur linkages, all source fragment formulas and masses, owned custom chemistry and checked slicing |
+| Molecular adducts | [Neutral mass/m/z conversion, monomer/dimer notation, electron-aware shifts and formula compatibility](docs/ADDUCT_SUPPORT.md) |
+| Decoy sequences | [Whole-protein and peptide reversal, seeded peptide shuffling and deterministic variants](docs/DECOY_GENERATION_SUPPORT.md), with source enzyme/cache conventions and checked work limits |
+| Sequence tags | [Residue-mass tags from measured spectra](docs/TAGGER_SUPPORT.md), charge hypotheses, fixed/variable modifications, I/L alternatives and bounded atomic append |
+| Spectrum annotation | [Fragment labels, hit peak annotations and match statistics](docs/SPECTRUM_ANNOTATION_SUPPORT.md), source ion-name parsing/display, shared calculation budgets and atomic updates |
+| Precursor purity | [Scalar isolation scores, SPS matching, fuzzy scan purity and RT interpolation](docs/PRECURSOR_PURITY_SUPPORT.md), parent-scan lookup and checked experiment scoring |
+| Metadata and identifications | Typed values and CV terms, acquisition settings, peptide/protein evidence and scores, protein coverage/modifications, attachments to spectra and feature maps |
+| Identification graph | [Owned sequence and provenance records](docs/IDENTIFICATION_GRAPH_SUPPORT.md), stable typed references, score histories, parent matches and coverage, atomic registration/merge/copy and RNase integration |
+| Identification analysis | Score categories/switching, HyperScore/Morpheus fragment scores, peptide/protein filters, target/decoy FDR and q-values, picked proteins and probability estimates; peptide-to-protein indexing, basic protein inference/grouping, feature/spectrum conflicts and file-origin splitting |
+| Retention-time models | Linear regression with coordinate weights, linear/natural-cubic interpolation, robust LOWESS, inverse refits, deviations, residual windows and atomic application to experiments/feature maps |
+| File interchange | Streaming FASTA and MGF readers, DTA read/write, optional bounded mzML with precursor acquisition fields and named annotation arrays and idXML subset read/write with optional caller-supplied chemistry |
+| RNA processing | [Fourteen RNases, owned enzyme records and atomic graph registration](docs/RNASE_SUPPORT.md), [fixed/variable RNA modification generation](docs/RNA_MODIFICATION_SUPPORT.md), and [single/multiple annotated RNA spectra](docs/RNA_SPECTRUM_SUPPORT.md), with source mass/charge and terminal conventions |
+| Examples | Read/filter/normalize/write spectra; stream FASTA and calculate tryptic peptide masses; inspect modified-peptide masses, isotopes and theoretical fragments; identify a synthetic modified peptide and compute protein coverage; pick and integrate chromatograms; reconstruct a cropped EMG peak; estimate profile noise, centroid and retain local peaks; enumerate modified digest products; stream natural and enriched isotope configurations; calculate peptide physicochemical properties; annotate measured fragments and inspect matching statistics; generate decoy FASTA; extract and match sequence tags; inspect charged RNA formulas and isotope patterns; digest RNA, enumerate variants and generate annotated fragments |
+
+See the [coverage and differences](docs/PORTING_STATUS.md), [chemistry support](docs/CHEMISTRY_SUPPORT.md), and [mzML subset](docs/MZML_SUPPORT.md) before using this as a substitute for a C++ workflow. [Feature containers](docs/FEATURE_SUPPORT.md), [HiRes peak picking](docs/PEAK_PICKING_SUPPORT.md), [theoretical spectra](docs/THEORETICAL_SPECTRA.md), [simple deisotoping](docs/DEISOTOPING_SUPPORT.md), and [Poisson/KL deisotoping](docs/AVERAGINE_DEISOTOPING_SUPPORT.md) each have a defined supported subset.
+
+[Typed metadata](docs/METADATA_SUPPORT.md), [identification records](docs/IDENTIFICATION_SUPPORT.md), and [retention-time models](docs/TRANSFORMATIONS_SUPPORT.md) document the data and alignment capabilities. [Score handling and fragment scores](docs/SCORING_SUPPORT.md), [identification filtering](docs/ID_FILTER_SUPPORT.md), [FDR calculations](docs/FDR_SUPPORT.md), and [idXML interchange](docs/IDXML_SUPPORT.md) describe supported identification workflows and source conventions. [Peptide indexing](docs/PEPTIDE_INDEXING_SUPPORT.md) links identified sequences to FASTA proteins; [basic protein inference](docs/PROTEIN_INFERENCE_SUPPORT.md) aggregates evidence and resolves groups. [Conflict resolution](docs/ID_CONFLICT_SUPPORT.md) and [file-origin splitting](docs/ID_RIPPER_SUPPORT.md) handle competing and merged identifications.
+
+The [chromatogram picker](docs/CHROMATOGRAM_PICKING_SUPPORT.md) preserves source smoothing, seed and boundary conventions. The [peak integrator](docs/PEAK_INTEGRATION_SUPPORT.md) supports spectra and chromatograms, including the source's nonuniform Simpson averaging and sampled shape metrics. Optional [EMG fitting](docs/EMG_SUPPORT.md) reconstructs cropped peaks with the source iRprop+ optimizer and exposes typed fit diagnostics.
+
+The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds and reports exact input regions alongside the source’s rounded centroid and boundary arrays. [Window filtering](docs/WINDOW_MOWER_SUPPORT.md) supports sliding and jumping windows; the [iterative mean noise estimator](docs/MEAN_NOISE_SUPPORT.md) preserves the source’s three-pass clipping conventions.
+
+Identification-graph match groups, parent groups and legacy conversion; IsoSpec layered traversal; ProForma; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented.
+
+## Use locally
+
+Rust 1.85 or newer is required. Add this local crate to a consuming project:
+
+```toml
+[dependencies]
+openms = { path = "/absolute/path/to/OpenMS4-R" }
+```
+
+The `mzml`, `idxml` and `rna-json` features are enabled by default. The XML features use Rust XML parsing; mzML also uses base64 and zlib libraries. `rna-json` adds serde_json for caller-supplied MODOMICS JSON. The embedded RNA registry and TSV reader remain available without that feature. The scientific core uses the small pure Rust `libm` library for EMG's complementary error function. Disable default features to use the scientific core, identification analysis and text readers without the XML, JSON and compression dependencies:
+
+```toml
+openms = { path = "/absolute/path/to/OpenMS4-R", default-features = false }
+```
+
+Enable only idXML with `default-features = false, features = ["idxml"]` to use identification XML without the mzML codecs.
+
+```rust
+use openms::{MSSpectrum, Peak1D};
+use openms::chemistry::AASequence;
+use openms::processing::{Normalizer, SpectrumFilter};
+
+fn main() -> openms::Result<()> {
+    let mut spectrum = MSSpectrum::from_peaks(vec![
+        Peak1D::new(100.0, 10.0),
+        Peak1D::new(200.0, 40.0),
+    ]);
+    Normalizer::default().filter_spectrum(&mut spectrum)?;
+    assert_eq!(spectrum.peaks[0].intensity, 0.25);
+    assert_eq!(spectrum.find_nearest(199.0)?, Some(1));
+
+    let peptide = AASequence::parse("DFPIANGER")?;
+    println!("Neutral mass: {:.6} Da", peptide.mono_mass()?);
+    println!("Doubly protonated m/z: {:.6}", peptide.mz(2)?);
+    Ok(())
+}
+```
+
+Run the bundled examples without supplying any input files:
+
+```sh
+cargo run --locked --example process_spectra
+cargo run --locked --example digest_fasta
+cargo run --locked --example peptide_analysis
+cargo run --locked --example identify_peptides
+cargo run --locked --example integrate_chromatogram
+cargo run --locked --example fit_emg_peak
+cargo run --locked --example process_profile
+cargo run --locked --example enumerate_peptides
+cargo run --locked --example stream_isotopes
+cargo run --locked --example peptide_properties
+cargo run --locked --example annotate_spectrum
+cargo run --locked --example generate_decoys
+cargo run --locked --example extract_tags
+cargo run --locked --example analyze_rna
+cargo run --locked --example process_rna
+cargo run --locked --example identify_rna
+```
+
+The spectrum example uses the original OpenMS 121-peak DTA fixture, retains 14 peaks at threshold 10, and normalizes their TIC to one. The chromatogram example picks two synthetic peaks and prints raw intensity sums, time-weighted areas, baseline estimates and their signed differences. The EMG example fits a cropped synthetic trace and compares its observed and reconstructed areas with the known complete synthetic area. The profile example estimates noise for 401 samples, produces four iterative centroids and retains the two strongest peaks with their integration and width annotations. The enumeration example digests a small protein, applies fixed cysteine alkylation and lists peptide variants with up to two methionine oxidations and their masses. The isotope example prints a five-configuration natural glucose prefix and a threshold-selected enriched-carbon population. The property example reports charge at pH 7, isoelectric point, GRAVY and gas basicity at 500 K and 100 K. The annotation example matches eleven original source measurements and prints fragment labels and matching statistics. The decoy example writes two target proteins and two reproducible shuffled variants per target as FASTA. The RNA processing example digests AGUACG with RNase_T1, enumerates uridine modifications and prints annotated negative b/y fragments. The [RNA identification example](examples/identify_rna.rs) registers digest products with inclusive parent positions and processing history, then reports parent coverage. To use your own files:
+
+```sh
+cargo run --locked --example process_spectra -- input.mgf output.mgf
+cargo run --locked --example digest_fasta -- proteins.fasta
+cargo run --locked --example integrate_chromatogram -- chromatograms.mzML
+```
+
+The spectrum example also accepts DTA and mzML input. The output argument explicitly writes or replaces that MGF file. The FASTA example writes a TSV report to standard output; sequence offsets are zero-based and half-open. The peptide example prints modified-peptide masses, a coarse isotope envelope and annotated theoretical fragments. The identification example ranks candidates from a small embedded FASTA against a fixed synthetic spectrum, retains evidence and ion annotations, and computes coverage from the accepted peptide; its score is not a confidence/FDR estimate. The [identification pipeline test](tests/identification_pipeline.rs) separately demonstrates idXML → score switching/filtering → target/decoy q-values → reference cleanup → idXML with hand-computable confidence values. The [protein workflow test](tests/protein_workflow.rs) connects FASTA indexing, shared peptide evidence, basic inference, protein/peptide q-values, coverage, idXML round trips and file-origin partitions. Examples are demonstrations, not full TOPP command-line replacements.
+
+## Validation
+
+```sh
+cargo test --locked --all-features --all-targets
+cargo test --locked --all-features --doc
+cargo test --locked --no-default-features
+cargo test --locked --no-default-features --features idxml
+cargo clippy --locked --all-features --all-targets -- -D warnings
+cargo fmt --all -- --check
+cargo doc --locked --all-features --no-deps
+```
+
+Append `--offline` when dependencies are already cached. The lockfile fixes the tested dependency versions. Tests use upstream assertions and fixtures, numerical invariants, round trips, malformed-input cases, and complete small workflows. **The C++ library was not built or executed for this port**, so source-derived tests are not a live cross-language equivalence result. Cross-platform CI is provided; only the platforms actually listed in [validation notes](docs/VALIDATION.md) have been run locally.
+
+## Design
+
+Coordinates and retention times use `f64`; peak intensities use `f32` as in C++. Retention times are seconds. Algorithms return `Result` for invalid inputs and maintain valid annotation alignment. Centroiding reports profile arrays that lack an aggregation rule; resampling rejects populated auxiliary arrays. Public fields make construction straightforward; checked operations validate their preconditions, and ranges are computed on demand. Sorted searches currently spend O(n) validating order before the binary lookup.
+
+The crate uses no unsafe Rust. Core chemistry is immutable and embedded; no OpenMS resource-directory setup is necessary. Unsupported scientific features are documented rather than represented by placeholder classes.
+
+## Provenance and license
+
+Current SDK target: `okohlbacher/OpenMS4-core` at `6bfc0e4711105f4eda2fea86812a83af7c7e791f`. Historical implementation and fixture provenance retains `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`, verified against GitHub on 2026-09-10. See the [SDK update](docs/CORE_SDK_UPDATE.md), [source provenance](SOURCE_PROVENANCE.json), the [historical source inventory](docs/source-inventory.json), and [fixture provenance](tests/data/README.md).
+
+Implementation: BSD-3-Clause, with original OpenMS copyright and attribution in [LICENSE](LICENSE) and [AUTHORS](AUTHORS). Bundled UniMod-derived modification data: Design Science License, with complete source data and notices included. See [component licenses](LICENSES.md) and [data provenance](resources/modifications/README.md). The [RNA data notices](resources/rna/README.md) separately record the unresolved MODOMICS redistribution terms. This local package has not been published to crates.io.

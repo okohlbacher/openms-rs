@@ -1,0 +1,207 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "reference_test": "tests/decoy_reference.rs",
+  "status": "Native independent references; no C++ execution and no production-generated expected values.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/DecoyGenerator.h",
+      "sha256": "7941153a35b66a45fa0af499bbe70b9011a7966cbceff537d41f22c37802133f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/DecoyGenerator.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/DecoyGenerator.cpp",
+      "sha256": "b4c565e7486090d9e64c93f998f1558cd8d194a5e18c0f76f982d6916303f47b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/DecoyGenerator.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DecoyGenerator_test.cpp",
+      "sha256": "94210e47f327d9db2de5c714cb71b7fc46e11659d1e6602dc0458f8277bd0f16",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/DecoyGenerator_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+      "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/MATH/MathFunctions.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProteaseDigestion.cpp",
+      "sha256": "2f9f20d2ac22d83cc1f91635b4355f0a6382f58f12bb1f6c0d3016cca1cc767a",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ProteaseDigestion.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProteaseDigestion.h",
+      "sha256": "56c405f0c83f793737b588d0cec61265eda53201e116072f5acbd0cf49ad44c1",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ProteaseDigestion.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp",
+      "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ProteaseDigestion_test.cpp",
+      "sha256": "89768420c211b552f2994c0ab1e4699a3e66081baa0659c13acc2559a52d1045",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/ProteaseDigestion_test.cpp"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/Enzymes.xml",
+      "sha256": "2f160f3ec32db6257cb4eee43fd594b48cb36398a17b7af21bbba76bc8b16995",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/Enzymes.xml"
+    }
+  ],
+  "supplemental_boost": {
+    "version": "1.90.0",
+    "scope": "Locally inspected implementation evidence only; not pinned OpenMS source and not proof that upstream goldens were produced by this Boost version. Private RNG oracles and their packaged generator are recorded in rng_reference.",
+    "license": "Boost Software License 1.0",
+    "files": [
+      {
+        "path": "/opt/homebrew/include/boost/random/mersenne_twister.hpp",
+        "sha256": "1847490597aacd0804923b7daaf16545e855d00002e16d275a9f5feca6c8e0f8"
+      },
+      {
+        "path": "/opt/homebrew/include/boost/random/uniform_int.hpp",
+        "sha256": "a0516280fb7fc68a073e3d62a0a54dde55015ae3a682f5f7c31b911575710bcb"
+      },
+      {
+        "path": "/opt/homebrew/include/boost/random/uniform_int_distribution.hpp",
+        "sha256": "26eee0996477c9d770e57d79e302c5784aed0cf431387fbdb1596bd1d493843b"
+      },
+      {
+        "path": "/opt/homebrew/include/boost/version.hpp",
+        "sha256": "1a3a432bf24fbd21b3c9c90b3f5dce9456f2334f1d2b79b1e3318c780d8b1935"
+      }
+    ]
+  },
+  "fixtures": [
+    {
+      "path": "tests/data/decoy_source_goldens.tsv",
+      "sha256": "233c9922ac69c09a308e143735eca169d94902b6a5e42dbf944618d36e44a545",
+      "rows": 13,
+      "source_assertions": 15,
+      "columns": [
+        "operation",
+        "sequence",
+        "protease",
+        "initial_seed",
+        "stateful_call_order",
+        "variant_index",
+        "expected",
+        "source_lines"
+      ]
+    }
+  ],
+  "extraction": "Original expected uppercase strings copied from the numbered source assertion lines. Thirteen unique cases cover fifteen assertions because variant zero appears twice for TESTPEPTIDE and the top-down sequence. No shuffling/RNG or C++ implementation was executed to create this fixture.",
+  "stateful_order": "One object starts at seed 4711; three shuffle_peptides rows execute in order 1,2,3 without resetting RNG or cache. Earlier reversal calls do not change that state. Cached IDE from call 2 is reused in call 3. Outer shuffle rows use that same receiver but source creates a fresh seed 4711+variant per digested peptide and ignores receiver seed/cache.",
+  "derived_cases": {
+    "cross_context": "Fresh seed 4711 on isolated TESTRPEPTR with no cleavage is equivalent to the outer shuffle Trypsin first product. ETEPTSRRTP is its ten-letter prefix from source golden ETEPTSRRTPDIE. Caching it and then using TESTRPEPTRIDE/Trypsin with zero attempts gives ETEPTSRRTPIDE. This is a deduction from the algorithm and source outer golden, not an additional literal assertion.",
+    "reversal": "AK/Trypsin -> KA; ACDPEFDGK/Asp-N -> ACEPDFKGD; ABC/unspecific cleavage -> ABCABBCCBA. These are hand-derived from explicit cuts and source last-letter/final-product rules.",
+    "unspecific_zero_attempts": "ABC products A,B,C,AB,BC,ABC concatenate to ABCABBCABC when attempts are zero. Outer shuffle shortcuts products of length at most 2 and redigests ABC; output length is 17 with prefix ABCABBCABCABBC, followed by a permutation of ABC.",
+    "short_state": "AG/no cleavage has no candidate better than target/reverse under the max-identity objective. Direct 100-attempt shuffling returns AG but consumes 100 bounded draws; zero attempts stores the same cache without draws. AKR/Trypsin has only singleton shuffled ranges and consumes no draws even with 100 attempts.",
+    "empty": "Reverse whole empty is empty; source peptide methods index a nonexistent final product and native must error. Outer positive factor returns that many empty outputs; factor zero returns none.",
+    "modified": "All transformations enforce source !isModified precondition, including numeric/terminal modifications; header discard-modifications wording is not substituted for the implementation."
+  },
+  "comparison": "All sequence strings and state equality checks are exact. Mathematical shape/permutation assertions do not claim a particular unobserved RNG output.",
+  "regeneration_script_sha256": "b362f6ad4c1759a29ce41d7824d9b60e6fc5d144d698b7f56ed401ade09f7314",
+  "rng_reference": {
+    "generator": {
+      "path": "tools/generate_decoy_rng_reference.py",
+      "sha256": "5a7d623082d548b6df4eaa895f6e975a2bd87a825e4d8842bb752e2929a3a6db",
+      "command": "python3 tools/generate_decoy_rng_reference.py",
+      "output": "JSON on stdout; no file writes or dependencies beyond the Python standard library.",
+      "license": "BSD-3-Clause"
+    },
+    "native_tests": {
+      "path": "src/chemistry/decoy_random.rs",
+      "unit_test_count": 9,
+      "checkpoint_constant": "tests::REFERENCES",
+      "coverage": [
+        "Three seeds over four complete twist cycles, with checkpoints and whole-output checksums.",
+        "Primary-source 10000th-word literal for the standard default seed.",
+        "Clone/reseed state preservation and seed extrema.",
+        "Descending Fisher-Yates permutations and exact state/draw counts.",
+        "Zero-draw empty/singleton slices and zero-width inclusive range.",
+        "Bucket boundaries, full-width range, and division-versus-modulo discrimination.",
+        "Forced rejection consumes one draw; failed precharge does not advance state.",
+        "Private partial progress and public caller staging contract.",
+        "Boost redundant-bit normalization and all-zero-state repair."
+      ]
+    },
+    "method": "Derived Python exact-integer append-only MT19937-64 recurrence with 64-bit initialization and literal tempering masks, independent of the native cyclic in-place twist. The initial word's redundant low 31 bits are replaced before use, so the output oracle omits Boost's normalization; native state tests check normalization separately. No C++, Boost binary or native production algorithm generates these expected values.",
+    "words_per_seed": 1248,
+    "twist_cycles_per_seed": 4,
+    "checkpoint_count_per_seed": 20,
+    "checkpoint_indices_zero_based": [
+      0,
+      1,
+      2,
+      3,
+      154,
+      155,
+      156,
+      157,
+      310,
+      311,
+      312,
+      313,
+      467,
+      468,
+      623,
+      624,
+      935,
+      936,
+      999,
+      1247
+    ],
+    "checksum": {
+      "algorithm": "FNV-1a-64",
+      "offset_basis_hex": "cbf29ce484222325",
+      "prime_hex": "100000001b3",
+      "byte_encoding": "All 1248 raw u64 words as consecutive little-endian bytes.",
+      "arithmetic": "XOR each byte, multiply by the prime, reduce modulo 2^64."
+    },
+    "shuffle_mapping": "Descending Fisher-Yates. For each inclusive [0,high], divide a raw word by floor(2^64/(high+1)); accept quotient<=high, otherwise consume another word. Range high=0 uses no word.",
+    "derived_records": [
+      {
+        "seed": 0,
+        "fnv1a64_little_endian_1248": 16540305979319870945,
+        "shuffle_input": "ABCDEFGHIJKLMNOPQRST",
+        "shuffle_output": "ONLTGBCHMEJQFPRIKASD",
+        "shuffle_draws": 19
+      },
+      {
+        "seed": 4711,
+        "fnv1a64_little_endian_1248": 4366349731850474445,
+        "shuffle_input": "ABCDEFGHIJKLMNOPQRST",
+        "shuffle_output": "IHEDJOFCGMSTAKRPNLBQ",
+        "shuffle_draws": 19
+      },
+      {
+        "seed": 18446744073709551615,
+        "fnv1a64_little_endian_1248": 13937249967666308697,
+        "shuffle_input": "ABCDEFGHIJKLMNOPQRST",
+        "shuffle_output": "KEJPLCMBGQSRFDHOITNA",
+        "shuffle_draws": 19
+      }
+    ],
+    "primary_source_literal": {
+      "url": "https://eel.is/c++draft/rand.predef#4",
+      "seed": 5489,
+      "one_based_draw": 10000,
+      "value": 9981545732273789042
+    },
+    "artifact_policy": "The Rust test constants and generator output retain all checkpoint values; no duplicate JSON fixture is required. Per-seed raw words, checksums, and shuffle permutations are derived references, distinct from the literal standard and OpenMS class-test assertions.",
+    "implementation_attribution": {
+      "path": "src/chemistry/decoy_random.rs",
+      "license_expression": "BSD-3-Clause AND BSL-1.0",
+      "notices": [
+        "Copyright Jens Maurer 2000-2001",
+        "Copyright Steven Watanabe 2010, 2011"
+      ],
+      "full_license": "LICENSES.md",
+      "license_url": "https://www.boost.org/LICENSE_1_0.txt"
+    }
+  }
+}

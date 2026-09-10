@@ -1,0 +1,152 @@
+# XLMOD-derived reference data: Creative Commons Attribution 3.0 Unported.
+# Attribution: Lutz Fischer and Gerhard Mayer; XLMOD release 2016-07-13, version 1.0.0.
+# Source projection into modification/site rows; see registry_provenance.json.
+mode	index	accession	name	full_id	origin	term	mono_delta_literal	mono_delta_bits	synonyms
+monolink	0	XLMOD:01000	hydrolyzed BS3	hydrolyzed BS3 (K)	K	Anywhere	156.07864431	4063828441126eed	
+monolink	1	XLMOD:01000	hydrolyzed BS3	hydrolyzed BS3 (S)	S	Anywhere	156.07864431	4063828441126eed	
+monolink	2	XLMOD:01000	hydrolyzed BS3	hydrolyzed BS3 (T)	T	Anywhere	156.07864431	4063828441126eed	
+monolink	3	XLMOD:01000	hydrolyzed BS3	hydrolyzed BS3 (Y)	Y	Anywhere	156.07864431	4063828441126eed	
+monolink	4	XLMOD:01000	hydrolyzed BS3	hydrolyzed BS3 (Protein N-term)	X	Protein N-term	156.07864431	4063828441126eed	
+monolink	5	XLMOD:01001	amidated BS3	amidated BS3 (K)	K	Anywhere	155.094628715	4063630732cc8600	
+monolink	6	XLMOD:01001	amidated BS3	amidated BS3 (S)	S	Anywhere	155.094628715	4063630732cc8600	
+monolink	7	XLMOD:01001	amidated BS3	amidated BS3 (T)	T	Anywhere	155.094628715	4063630732cc8600	
+monolink	8	XLMOD:01001	amidated BS3	amidated BS3 (Y)	Y	Anywhere	155.094628715	4063630732cc8600	
+monolink	9	XLMOD:01001	amidated BS3	amidated BS3 (Protein N-term)	X	Protein N-term	155.094628715	4063630732cc8600	
+monolink	10	XLMOD:01002	hydrolyzed DSS	hydrolyzed DSS (K)	K	Anywhere	156.07864431	4063828441126eed	
+monolink	11	XLMOD:01002	hydrolyzed DSS	hydrolyzed DSS (S)	S	Anywhere	156.07864431	4063828441126eed	
+monolink	12	XLMOD:01002	hydrolyzed DSS	hydrolyzed DSS (T)	T	Anywhere	156.07864431	4063828441126eed	
+monolink	13	XLMOD:01002	hydrolyzed DSS	hydrolyzed DSS (Y)	Y	Anywhere	156.07864431	4063828441126eed	
+monolink	14	XLMOD:01002	hydrolyzed DSS	hydrolyzed DSS (Protein N-term)	X	Protein N-term	156.07864431	4063828441126eed	
+monolink	15	XLMOD:01003	amidated DSS	amidated DSS (K)	K	Anywhere	155.094628715	4063630732cc8600	
+monolink	16	XLMOD:01003	amidated DSS	amidated DSS (S)	S	Anywhere	155.094628715	4063630732cc8600	
+monolink	17	XLMOD:01003	amidated DSS	amidated DSS (T)	T	Anywhere	155.094628715	4063630732cc8600	
+monolink	18	XLMOD:01003	amidated DSS	amidated DSS (Y)	Y	Anywhere	155.094628715	4063630732cc8600	
+monolink	19	XLMOD:01003	amidated DSS	amidated DSS (Protein N-term)	X	Protein N-term	155.094628715	4063630732cc8600	
+monolink	20	XLMOD:01004	hydrolyzed DSS-d4	hydrolyzed DSS-d4 (K)	K	Anywhere	160.1037416836	40640351da144968	
+monolink	21	XLMOD:01004	hydrolyzed DSS-d4	hydrolyzed DSS-d4 (S)	S	Anywhere	160.1037416836	40640351da144968	
+monolink	22	XLMOD:01004	hydrolyzed DSS-d4	hydrolyzed DSS-d4 (T)	T	Anywhere	160.1037416836	40640351da144968	
+monolink	23	XLMOD:01004	hydrolyzed DSS-d4	hydrolyzed DSS-d4 (Y)	Y	Anywhere	160.1037416836	40640351da144968	
+monolink	24	XLMOD:01004	hydrolyzed DSS-d4	hydrolyzed DSS-d4 (Protein N-term)	X	Protein N-term	160.1037416836	40640351da144968	
+monolink	25	XLMOD:01005	amidated DSS-d4	amidated DSS-d4 (K)	K	Anywhere	159.1197260886	4063e3d4cbce607b	
+monolink	26	XLMOD:01005	amidated DSS-d4	amidated DSS-d4 (S)	S	Anywhere	159.1197260886	4063e3d4cbce607b	
+monolink	27	XLMOD:01005	amidated DSS-d4	amidated DSS-d4 (T)	T	Anywhere	159.1197260886	4063e3d4cbce607b	
+monolink	28	XLMOD:01005	amidated DSS-d4	amidated DSS-d4 (Y)	Y	Anywhere	159.1197260886	4063e3d4cbce607b	
+monolink	29	XLMOD:01005	amidated DSS-d4	amidated DSS-d4 (Protein N-term)	X	Protein N-term	159.1197260886	4063e3d4cbce607b	
+monolink	30	XLMOD:01006	hydrolyzed DSS-d12	hydrolyzed DSS-d12 (K)	K	Anywhere	168.153965238	406504ed4881bdca	
+monolink	31	XLMOD:01006	hydrolyzed DSS-d12	hydrolyzed DSS-d12 (S)	S	Anywhere	168.153965238	406504ed4881bdca	
+monolink	32	XLMOD:01006	hydrolyzed DSS-d12	hydrolyzed DSS-d12 (T)	T	Anywhere	168.153965238	406504ed4881bdca	
+monolink	33	XLMOD:01006	hydrolyzed DSS-d12	hydrolyzed DSS-d12 (Y)	Y	Anywhere	168.153965238	406504ed4881bdca	
+monolink	34	XLMOD:01006	hydrolyzed DSS-d12	hydrolyzed DSS-d12 (Protein N-term)	X	Protein N-term	168.153965238	406504ed4881bdca	
+monolink	35	XLMOD:01007	amidated DSS-d12	amidated DSS-d12 (K)	K	Anywhere	167.169949643	4064e5703a3bd4dc	
+monolink	36	XLMOD:01007	amidated DSS-d12	amidated DSS-d12 (S)	S	Anywhere	167.169949643	4064e5703a3bd4dc	
+monolink	37	XLMOD:01007	amidated DSS-d12	amidated DSS-d12 (T)	T	Anywhere	167.169949643	4064e5703a3bd4dc	
+monolink	38	XLMOD:01007	amidated DSS-d12	amidated DSS-d12 (Y)	Y	Anywhere	167.169949643	4064e5703a3bd4dc	
+monolink	39	XLMOD:01007	amidated DSS-d12	amidated DSS-d12 (Protein N-term)	X	Protein N-term	167.169949643	4064e5703a3bd4dc	
+monolink	40	XLMOD:01008	hydrolyzed BS3-d4	hydrolyzed BS3-d4 (K)	K	Anywhere	160.103751286	40640351ee378937	
+monolink	41	XLMOD:01008	hydrolyzed BS3-d4	hydrolyzed BS3-d4 (S)	S	Anywhere	160.103751286	40640351ee378937	
+monolink	42	XLMOD:01008	hydrolyzed BS3-d4	hydrolyzed BS3-d4 (T)	T	Anywhere	160.103751286	40640351ee378937	
+monolink	43	XLMOD:01008	hydrolyzed BS3-d4	hydrolyzed BS3-d4 (Y)	Y	Anywhere	160.103751286	40640351ee378937	
+monolink	44	XLMOD:01008	hydrolyzed BS3-d4	hydrolyzed BS3-d4 (Protein N-term)	X	Protein N-term	160.103751286	40640351ee378937	
+monolink	45	XLMOD:01009	amidated BS3-d4	amidated BS3-d4 (K)	K	Anywhere	159.119735691	4063e3d4dff1a049	
+monolink	46	XLMOD:01009	amidated BS3-d4	amidated BS3-d4 (S)	S	Anywhere	159.119735691	4063e3d4dff1a049	
+monolink	47	XLMOD:01009	amidated BS3-d4	amidated BS3-d4 (T)	T	Anywhere	159.119735691	4063e3d4dff1a049	
+monolink	48	XLMOD:01009	amidated BS3-d4	amidated BS3-d4 (Y)	Y	Anywhere	159.119735691	4063e3d4dff1a049	
+monolink	49	XLMOD:01009	amidated BS3-d4	amidated BS3-d4 (Protein N-term)	X	Protein N-term	159.119735691	4063e3d4dff1a049	
+monolink	50	XLMOD:01010	hydrolyzed BS2G	hydrolyzed BS2G (K)	K	Anywhere	114.0316941	405c820746b0be79	
+monolink	51	XLMOD:01010	hydrolyzed BS2G	hydrolyzed BS2G (S)	S	Anywhere	114.0316941	405c820746b0be79	
+monolink	52	XLMOD:01010	hydrolyzed BS2G	hydrolyzed BS2G (T)	T	Anywhere	114.0316941	405c820746b0be79	
+monolink	53	XLMOD:01010	hydrolyzed BS2G	hydrolyzed BS2G (Y)	Y	Anywhere	114.0316941	405c820746b0be79	
+monolink	54	XLMOD:01010	hydrolyzed BS2G	hydrolyzed BS2G (Protein N-term)	X	Protein N-term	114.0316941	405c820746b0be79	
+monolink	55	XLMOD:01011	amidated BS2G	amidated BS2G (K)	K	Anywhere	113.047678505	405c430d2a24ec9e	
+monolink	56	XLMOD:01011	amidated BS2G	amidated BS2G (S)	S	Anywhere	113.047678505	405c430d2a24ec9e	
+monolink	57	XLMOD:01011	amidated BS2G	amidated BS2G (T)	T	Anywhere	113.047678505	405c430d2a24ec9e	
+monolink	58	XLMOD:01011	amidated BS2G	amidated BS2G (Y)	Y	Anywhere	113.047678505	405c430d2a24ec9e	
+monolink	59	XLMOD:01011	amidated BS2G	amidated BS2G (Protein N-term)	X	Protein N-term	113.047678505	405c430d2a24ec9e	
+monolink	60	XLMOD:01012	hydrolyzed DSG	hydrolyzed DSG (K)	K	Anywhere	114.0316941	405c820746b0be79	
+monolink	61	XLMOD:01012	hydrolyzed DSG	hydrolyzed DSG (S)	S	Anywhere	114.0316941	405c820746b0be79	
+monolink	62	XLMOD:01012	hydrolyzed DSG	hydrolyzed DSG (T)	T	Anywhere	114.0316941	405c820746b0be79	
+monolink	63	XLMOD:01012	hydrolyzed DSG	hydrolyzed DSG (Y)	Y	Anywhere	114.0316941	405c820746b0be79	
+monolink	64	XLMOD:01012	hydrolyzed DSG	hydrolyzed DSG (Protein N-term)	X	Protein N-term	114.0316941	405c820746b0be79	
+monolink	65	XLMOD:01013	amidated DSG	amidated DSG (K)	K	Anywhere	113.047678505	405c430d2a24ec9e	
+monolink	66	XLMOD:01013	amidated DSG	amidated DSG (S)	S	Anywhere	113.047678505	405c430d2a24ec9e	
+monolink	67	XLMOD:01013	amidated DSG	amidated DSG (T)	T	Anywhere	113.047678505	405c430d2a24ec9e	
+monolink	68	XLMOD:01013	amidated DSG	amidated DSG (Y)	Y	Anywhere	113.047678505	405c430d2a24ec9e	
+monolink	69	XLMOD:01013	amidated DSG	amidated DSG (Protein N-term)	X	Protein N-term	113.047678505	405c430d2a24ec9e	
+monolink	70	XLMOD:01014	hydrolyzed DSG-d4	hydrolyzed DSG-d4 (K)	K	Anywhere	164.128858262	4064841f9b5ca380	
+monolink	71	XLMOD:01014	hydrolyzed DSG-d4	hydrolyzed DSG-d4 (S)	S	Anywhere	164.128858262	4064841f9b5ca380	
+monolink	72	XLMOD:01014	hydrolyzed DSG-d4	hydrolyzed DSG-d4 (T)	T	Anywhere	164.128858262	4064841f9b5ca380	
+monolink	73	XLMOD:01014	hydrolyzed DSG-d4	hydrolyzed DSG-d4 (Y)	Y	Anywhere	164.128858262	4064841f9b5ca380	
+monolink	74	XLMOD:01014	hydrolyzed DSG-d4	hydrolyzed DSG-d4 (Protein N-term)	X	Protein N-term	164.128858262	4064841f9b5ca380	
+monolink	75	XLMOD:01015	amidated DSG-d4	amidated DSG-d4 (K)	K	Anywhere	163.144842667	406464a28d16ba93	
+monolink	76	XLMOD:01015	amidated DSG-d4	amidated DSG-d4 (S)	S	Anywhere	163.144842667	406464a28d16ba93	
+monolink	77	XLMOD:01015	amidated DSG-d4	amidated DSG-d4 (T)	T	Anywhere	163.144842667	406464a28d16ba93	
+monolink	78	XLMOD:01015	amidated DSG-d4	amidated DSG-d4 (Y)	Y	Anywhere	163.144842667	406464a28d16ba93	
+monolink	79	XLMOD:01015	amidated DSG-d4	amidated DSG-d4 (Protein N-term)	X	Protein N-term	163.144842667	406464a28d16ba93	
+monolink	80	XLMOD:01016	hydrolyzed BS2G-d4	hydrolyzed BS2G-d4 (K)	K	Anywhere	118.056801076	405d83a2a0faf30c	
+monolink	81	XLMOD:01016	hydrolyzed BS2G-d4	hydrolyzed BS2G-d4 (S)	S	Anywhere	118.056801076	405d83a2a0faf30c	
+monolink	82	XLMOD:01016	hydrolyzed BS2G-d4	hydrolyzed BS2G-d4 (T)	T	Anywhere	118.056801076	405d83a2a0faf30c	
+monolink	83	XLMOD:01016	hydrolyzed BS2G-d4	hydrolyzed BS2G-d4 (Y)	Y	Anywhere	118.056801076	405d83a2a0faf30c	
+monolink	84	XLMOD:01016	hydrolyzed BS2G-d4	hydrolyzed BS2G-d4 (Protein N-term)	X	Protein N-term	118.056801076	405d83a2a0faf30c	
+monolink	85	XLMOD:01017	amidated BS2G-d4	amidated BS2G-d4 (K)	K	Anywhere	117.072785481	405d44a8846f2131	
+monolink	86	XLMOD:01017	amidated BS2G-d4	amidated BS2G-d4 (S)	S	Anywhere	117.072785481	405d44a8846f2131	
+monolink	87	XLMOD:01017	amidated BS2G-d4	amidated BS2G-d4 (T)	T	Anywhere	117.072785481	405d44a8846f2131	
+monolink	88	XLMOD:01017	amidated BS2G-d4	amidated BS2G-d4 (Y)	Y	Anywhere	117.072785481	405d44a8846f2131	
+monolink	89	XLMOD:01017	amidated BS2G-d4	amidated BS2G-d4 (Protein N-term)	X	Protein N-term	117.072785481	405d44a8846f2131	
+monolink	90	XLMOD:01018	BDP-NHP-stump	BDP-NHP-stump (K)	K	Anywhere	197.032422395	4068a1099ab0c5db	
+monolink	91	XLMOD:01018	BDP-NHP-stump	BDP-NHP-stump (Protein N-term)	X	Protein N-term	197.032422395	4068a1099ab0c5db	
+crosslink	0	XLMOD:02000	BS3	BS3 (K)	K	Anywhere	138.06807961	4061422db54a4f2f	BSSS;Bis(sulfosuccinimidyl)suberate;Suberic acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSS
+crosslink	1	XLMOD:02000	BS3	BS3 (S)	S	Anywhere	138.06807961	4061422db54a4f2f	BSSS;Bis(sulfosuccinimidyl)suberate;Suberic acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSS
+crosslink	2	XLMOD:02000	BS3	BS3 (T)	T	Anywhere	138.06807961	4061422db54a4f2f	BSSS;Bis(sulfosuccinimidyl)suberate;Suberic acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSS
+crosslink	3	XLMOD:02000	BS3	BS3 (Y)	Y	Anywhere	138.06807961	4061422db54a4f2f	BSSS;Bis(sulfosuccinimidyl)suberate;Suberic acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSS
+crosslink	4	XLMOD:02000	BS3	BS3 (N-term)	X	N-term	138.06807961	4061422db54a4f2f	BSSS;Bis(sulfosuccinimidyl)suberate;Suberic acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSS
+crosslink	5	XLMOD:02001	DSS	DSS (K)	K	Anywhere	138.06807961	4061422db54a4f2f	Bis(succinimidyl) suberate;DSS-d0;Disuccinimidyl octanedioate;Suberic acid bis(N-hydroxysuccinimide ester)
+crosslink	6	XLMOD:02001	DSS	DSS (S)	S	Anywhere	138.06807961	4061422db54a4f2f	Bis(succinimidyl) suberate;DSS-d0;Disuccinimidyl octanedioate;Suberic acid bis(N-hydroxysuccinimide ester)
+crosslink	7	XLMOD:02001	DSS	DSS (T)	T	Anywhere	138.06807961	4061422db54a4f2f	Bis(succinimidyl) suberate;DSS-d0;Disuccinimidyl octanedioate;Suberic acid bis(N-hydroxysuccinimide ester)
+crosslink	8	XLMOD:02001	DSS	DSS (Y)	Y	Anywhere	138.06807961	4061422db54a4f2f	Bis(succinimidyl) suberate;DSS-d0;Disuccinimidyl octanedioate;Suberic acid bis(N-hydroxysuccinimide ester)
+crosslink	9	XLMOD:02001	DSS	DSS (N-term)	X	N-term	138.06807961	4061422db54a4f2f	Bis(succinimidyl) suberate;DSS-d0;Disuccinimidyl octanedioate;Suberic acid bis(N-hydroxysuccinimide ester)
+crosslink	10	XLMOD:02002	DSS-d4	DSS-d4 (K)	K	Anywhere	142.093186586	4061c2fb626f6978	
+crosslink	11	XLMOD:02002	DSS-d4	DSS-d4 (S)	S	Anywhere	142.093186586	4061c2fb626f6978	
+crosslink	12	XLMOD:02002	DSS-d4	DSS-d4 (T)	T	Anywhere	142.093186586	4061c2fb626f6978	
+crosslink	13	XLMOD:02002	DSS-d4	DSS-d4 (Y)	Y	Anywhere	142.093186586	4061c2fb626f6978	
+crosslink	14	XLMOD:02002	DSS-d4	DSS-d4 (N-term)	X	N-term	142.093186586	4061c2fb626f6978	
+crosslink	15	XLMOD:02003	DSS-d12	DSS-d12 (K)	K	Anywhere	150.143400538	4062c496bcb99e0b	
+crosslink	16	XLMOD:02003	DSS-d12	DSS-d12 (S)	S	Anywhere	150.143400538	4062c496bcb99e0b	
+crosslink	17	XLMOD:02003	DSS-d12	DSS-d12 (T)	T	Anywhere	150.143400538	4062c496bcb99e0b	
+crosslink	18	XLMOD:02003	DSS-d12	DSS-d12 (Y)	Y	Anywhere	150.143400538	4062c496bcb99e0b	
+crosslink	19	XLMOD:02003	DSS-d12	DSS-d12 (N-term)	X	N-term	150.143400538	4062c496bcb99e0b	
+crosslink	20	XLMOD:02004	BS3-d4	BS3-d4 (K)	K	Anywhere	142.093186586	4061c2fb626f6978	
+crosslink	21	XLMOD:02004	BS3-d4	BS3-d4 (S)	S	Anywhere	142.093186586	4061c2fb626f6978	
+crosslink	22	XLMOD:02004	BS3-d4	BS3-d4 (T)	T	Anywhere	142.093186586	4061c2fb626f6978	
+crosslink	23	XLMOD:02004	BS3-d4	BS3-d4 (Y)	Y	Anywhere	142.093186586	4061c2fb626f6978	
+crosslink	24	XLMOD:02004	BS3-d4	BS3-d4 (N-term)	X	N-term	142.093186586	4061c2fb626f6978	
+crosslink	25	XLMOD:02005	BS2G	BS2G (K)	K	Anywhere	96.0211294	4058015a2f207efc	BS2G-d0;Glutaric acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSG
+crosslink	26	XLMOD:02005	BS2G	BS2G (S)	S	Anywhere	96.0211294	4058015a2f207efc	BS2G-d0;Glutaric acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSG
+crosslink	27	XLMOD:02005	BS2G	BS2G (T)	T	Anywhere	96.0211294	4058015a2f207efc	BS2G-d0;Glutaric acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSG
+crosslink	28	XLMOD:02005	BS2G	BS2G (Y)	Y	Anywhere	96.0211294	4058015a2f207efc	BS2G-d0;Glutaric acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSG
+crosslink	29	XLMOD:02005	BS2G	BS2G (N-term)	X	N-term	96.0211294	4058015a2f207efc	BS2G-d0;Glutaric acid bis(3-sulfo-N-hydroxysuccinimide ester);Sulfo-DSG
+crosslink	30	XLMOD:02006	DSG	DSG (K)	K	Anywhere	96.0211294	4058015a2f207efc	Bis-NHS glutarate;Di N-succinimidyl glutarate;Di(N-succinimidyl) glutarate;Di-succinimidyl glutarate;Disuccinimidyl glutaric dicarboxylate
+crosslink	31	XLMOD:02006	DSG	DSG (S)	S	Anywhere	96.0211294	4058015a2f207efc	Bis-NHS glutarate;Di N-succinimidyl glutarate;Di(N-succinimidyl) glutarate;Di-succinimidyl glutarate;Disuccinimidyl glutaric dicarboxylate
+crosslink	32	XLMOD:02006	DSG	DSG (T)	T	Anywhere	96.0211294	4058015a2f207efc	Bis-NHS glutarate;Di N-succinimidyl glutarate;Di(N-succinimidyl) glutarate;Di-succinimidyl glutarate;Disuccinimidyl glutaric dicarboxylate
+crosslink	33	XLMOD:02006	DSG	DSG (Y)	Y	Anywhere	96.0211294	4058015a2f207efc	Bis-NHS glutarate;Di N-succinimidyl glutarate;Di(N-succinimidyl) glutarate;Di-succinimidyl glutarate;Disuccinimidyl glutaric dicarboxylate
+crosslink	34	XLMOD:02006	DSG	DSG (N-term)	X	N-term	96.0211294	4058015a2f207efc	Bis-NHS glutarate;Di N-succinimidyl glutarate;Di(N-succinimidyl) glutarate;Di-succinimidyl glutarate;Disuccinimidyl glutaric dicarboxylate
+crosslink	35	XLMOD:02007	DSG-d4	DSG-d4 (K)	K	Anywhere	146.118293562	406243c90f9483c1	
+crosslink	36	XLMOD:02007	DSG-d4	DSG-d4 (S)	S	Anywhere	146.118293562	406243c90f9483c1	
+crosslink	37	XLMOD:02007	DSG-d4	DSG-d4 (T)	T	Anywhere	146.118293562	406243c90f9483c1	
+crosslink	38	XLMOD:02007	DSG-d4	DSG-d4 (Y)	Y	Anywhere	146.118293562	406243c90f9483c1	
+crosslink	39	XLMOD:02007	DSG-d4	DSG-d4 (N-term)	X	N-term	146.118293562	406243c90f9483c1	
+crosslink	40	XLMOD:02008	BS2G-d4	BS2G-d4 (K)	K	Anywhere	100.046236376	405902f5896ab38e	
+crosslink	41	XLMOD:02008	BS2G-d4	BS2G-d4 (S)	S	Anywhere	100.046236376	405902f5896ab38e	
+crosslink	42	XLMOD:02008	BS2G-d4	BS2G-d4 (T)	T	Anywhere	100.046236376	405902f5896ab38e	
+crosslink	43	XLMOD:02008	BS2G-d4	BS2G-d4 (Y)	Y	Anywhere	100.046236376	405902f5896ab38e	
+crosslink	44	XLMOD:02008	BS2G-d4	BS2G-d4 (N-term)	X	N-term	100.046236376	405902f5896ab38e	
+crosslink	45	XLMOD:02009	Disulfide	Disulfide (C)	C	Anywhere	-2.01565007	c000200d24d6a411	
+crosslink	46	XLMOD:02010	EDC	EDC (D)	D	Anywhere	-18.01056027	c03202b413ee4974	1-(3-Dimethylaminopropyl)-3-ethylcarbodiimide HCl;EDAC.HCl;EDC.HCl;EDCI;N-(3-Dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride
+crosslink	47	XLMOD:02010	EDC	EDC (E)	E	Anywhere	-18.01056027	c03202b413ee4974	1-(3-Dimethylaminopropyl)-3-ethylcarbodiimide HCl;EDAC.HCl;EDC.HCl;EDCI;N-(3-Dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride
+crosslink	48	XLMOD:02010	EDC	EDC (K)	K	Anywhere	-18.01056027	c03202b413ee4974	1-(3-Dimethylaminopropyl)-3-ethylcarbodiimide HCl;EDAC.HCl;EDC.HCl;EDCI;N-(3-Dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride
+crosslink	49	XLMOD:02010	EDC	EDC (S)	S	Anywhere	-18.01056027	c03202b413ee4974	1-(3-Dimethylaminopropyl)-3-ethylcarbodiimide HCl;EDAC.HCl;EDC.HCl;EDCI;N-(3-Dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride
+crosslink	50	XLMOD:02010	EDC	EDC (T)	T	Anywhere	-18.01056027	c03202b413ee4974	1-(3-Dimethylaminopropyl)-3-ethylcarbodiimide HCl;EDAC.HCl;EDC.HCl;EDCI;N-(3-Dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride
+crosslink	51	XLMOD:02010	EDC	EDC (Y)	Y	Anywhere	-18.01056027	c03202b413ee4974	1-(3-Dimethylaminopropyl)-3-ethylcarbodiimide HCl;EDAC.HCl;EDC.HCl;EDCI;N-(3-Dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride
+crosslink	52	XLMOD:02010	EDC	EDC (N-term)	X	N-term	-18.01056027	c03202b413ee4974	1-(3-Dimethylaminopropyl)-3-ethylcarbodiimide HCl;EDAC.HCl;EDC.HCl;EDCI;N-(3-Dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride
+crosslink	53	XLMOD:02010	EDC	EDC (C-term)	X	C-term	-18.01056027	c03202b413ee4974	1-(3-Dimethylaminopropyl)-3-ethylcarbodiimide HCl;EDAC.HCl;EDC.HCl;EDCI;N-(3-Dimethylaminopropyl)-N'-ethylcarbodiimide hydrochloride
+crosslink	54	XLMOD:02011	BDP-NHP	BDP-NHP (K)	K	Anywhere	1241.469925525	409365e1342825b9	
+crosslink	55	XLMOD:02011	BDP-NHP	BDP-NHP (N-term)	X	N-term	1241.469925525	409365e1342825b9	

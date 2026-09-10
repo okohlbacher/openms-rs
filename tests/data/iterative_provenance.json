@@ -1,0 +1,80 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "method": "Independent Python translation of the pinned header operations with hand-constructed raw/seed traces and IEEE binary32 intensity/candidate rounding. The source class test has no numerical assertions (only construction/destruction; remaining sections TODO). These are derived algorithm references, not C++ execution or upstream numerical goldens. No C++ was built or executed.",
+  "scope": "14 explicit-seed cases cover seed assignment, strict fall/width/spacing, fixed local spacing, original seed priority, right-search asymmetry, unrounded recentering, binary32 candidates, sparse-window S/N equality and internal-width rejection. Equal-priority order is tested separately as deterministic native policy.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h",
+      "sha256": "3fcb1c5347d13c0a6c72fe14f853afcca2d08bedb3709eeb8bfb96630690220c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerIterative.cpp",
+      "sha256": "503b71b5c1a4c0e14a7c2542c06b85005ee98fb5e0475c27748ac5569df9d164",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/PROCESSING/CENTROIDING/PeakPickerIterative.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/PeakPickerIterative_test.cpp",
+      "sha256": "9e48c32bb151b973b70b16b1ff2e402ef5cab06c410c6770ec18650f0c6d1ce4",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/PeakPickerIterative_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+      "sha256": "a40d2e48a7d24df3ebfb6e9ff5a0df5df3886ca8ddc8d83ef6f6a3f7c5b50d77",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+      "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
+      "sha256": "f6f81757669c754484cec642bffe9763bb03140f45163f70c13280301a10f54c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
+      "sha256": "70e1af93e346f655de0072f6424a7ea504252639a71f1dfe5ffac89cdc3b855d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/SpectrumHelper.h"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/iterative_expected.tsv",
+      "sha256": "04a198ec265406dab5f076650b901e41743bfaf530d19c91f7d742b7fae6cc67"
+    },
+    {
+      "path": "tests/data/iterative_options.tsv",
+      "sha256": "ff21c23ef940160257b87824af10cd145e9baccca56f234d7be859695380cc81"
+    },
+    {
+      "path": "tests/data/iterative_seeds.tsv",
+      "sha256": "2af5792b24eb1a331695b783540207f515e529aa8f64c819322f7b54af746d0d"
+    },
+    {
+      "path": "tests/data/iterative_traces.tsv",
+      "sha256": "b7c4c1a5c2bbe711f65c1a7158460e151516fd9e861281153c4bfebab68e3d84"
+    }
+  ],
+  "reused_profile_inputs": [
+    {
+      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap.mzML",
+      "source_sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22",
+      "spectrum_index": 0,
+      "source_spectrum_id": "spectrum=2072",
+      "fixture": "tests/data/peak_picking_orbitrap.tsv",
+      "fixture_sha256": "d4727ad8db63a96e54804e6b7414b54d3b0bd216dc9767e9f257fb139a9beb35"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms.mzML",
+      "source_sha256": "5f811aebc429cc6e32edfa0600920f2d501f52b0657ecc967e772576bc25f171",
+      "spectrum_index": 0,
+      "source_spectrum_id": "spectrum=1",
+      "fixture": "tests/data/peak_picking_ftms.tsv",
+      "fixture_sha256": "4f5c3d353fe87e0d245afdaa667426226843ddb5f3191e1cdf30406ced6d5210"
+    }
+  ],
+  "reused_input_checks": "Public workflow tests check integrated sample sums, centroid rounding and aligned raw regions on these two original profiles. Existing HiRes output fixtures are not used as iterative golden outputs."
+}

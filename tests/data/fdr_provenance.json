@@ -1,0 +1,49 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "records": [
+    {
+      "source": "src/tests/class_tests/openms/data/FalseDiscoveryRate_OMSSA.idXML",
+      "source_sha256": "c0d49f135ad698c3e8e7595e3d9f223e712254fc2d8a1aac9286a7c214fc7fba",
+      "fixture": "tests/data/fdr_omssa.tsv",
+      "fixture_sha256": "a17b29ab15f719b36f54519ff85a839c48c69d43a5fe6ecf4fc9ddc677d48a81",
+      "extraction": "PeptideIdentification index and PeptideHit score/charge/target_decoy, unchanged numeric strings; sequence is not needed for this source PSM test"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/XTandem_fwd_ids.idXML",
+      "source_sha256": "551f8376cd603422be27a3145f7b3417b296c7b0330fde97680e09eb3f9e2b02",
+      "fixture": "tests/data/fdr_xtandem_fwd_peptides.tsv",
+      "fixture_sha256": "61f66279e44e6bd9e34806fbd13c7a8da118b1fd9629b577fa8d20f2cf987c30",
+      "extraction": "PeptideIdentification index and every PeptideHit score/charge"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/XTandem_fwd_ids_withProtScores.idXML",
+      "source_sha256": "5fba5a18cf95789151da08e192bb57e4adce7a47d119a64387906c3781c215f8",
+      "fixture": "tests/data/fdr_xtandem_fwd_proteins.tsv",
+      "fixture_sha256": "97a0c592c416b6b135904b0459589fccca7454291d3071b862a3fdf364ac753d",
+      "extraction": "Every ProteinHit accession and score from scored source fixture; unscored XTandem files have all-zero protein scores and vacuous threshold checks"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/XTandem_rev_ids.idXML",
+      "source_sha256": "41e5d5346a024273bb146f285e58d0178789991b68411b792b0d22dd2b74d324",
+      "fixture": "tests/data/fdr_xtandem_rev_peptides.tsv",
+      "fixture_sha256": "e7e6b5fa8257e355534f374f0333448d07e054a9876bbe31a92547cc15bea89f",
+      "extraction": "PeptideIdentification index and every PeptideHit score/charge"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/XTandem_rev_ids_withProtScores.idXML",
+      "source_sha256": "aa2e24ba9027d41a18b80b0a9af1f8b86819696a84096cdbcdbcadb8c2c9f702",
+      "fixture": "tests/data/fdr_xtandem_rev_proteins.tsv",
+      "fixture_sha256": "102d3127ff0417318aaade7702b88a73f5133615c287f879acf11fd759cfe626",
+      "extraction": "Every ProteinHit accession and score from scored source fixture; unscored XTandem files have all-zero protein scores and vacuous threshold checks"
+    },
+    {
+      "source": "src/tests/class_tests/openms/data/FalseDiscoveryRate_picked_in.idXML",
+      "source_sha256": "5b2c745eace19a24b2b27a22720c4cea4e5534e175e4ca6fa039df7a0b237dfe",
+      "fixture": "tests/data/fdr_picked.tsv",
+      "fixture_sha256": "474f326baa7bf77fa56bb84b1e47c2143130ab70b9c736dec42773701f262106",
+      "extraction": "Every ProteinHit accession/score/target_decoy; source expected surviving values are 0.25,0.25,0.25,0.4,0.4,0.5"
+    }
+  ]
+}

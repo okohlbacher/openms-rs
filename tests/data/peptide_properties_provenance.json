@@ -1,0 +1,217 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "status": "Independent packaged source-reference fixtures; tests require neither .reference nor /tmp.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/AAIndex.h",
+      "sha256": "5acd8d76ef3d431955936efe4e0eb1e3a8159ae2c45c3f8e8f19ceee731557a7",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/AAIndex.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/AAIndex.cpp",
+      "sha256": "89f5ddaedfa2d54929d364e071a87279412a22a50ba26ad3c97f6df7f6cb02a2",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/AAIndex.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AAIndex_test.cpp",
+      "sha256": "3718540f323052abf658cba8d9ed6d097e74c94c8c6c1f6c32c7aa436b81d02c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/AAIndex_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/IsoelectricPoint.h",
+      "sha256": "113c12bc1eca8b649bbb67bf3068902c235c4a8999a6869df411b35be26cc61c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/IsoelectricPoint.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/IsoelectricPoint.cpp",
+      "sha256": "c3d1895541b9333c228339fb7d2fc777e1cd09acac4d69b15707de4a55114a23",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/IsoelectricPoint.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IsoelectricPoint_test.cpp",
+      "sha256": "b7625222e675c57c3ba4444639a32c6915d1a2f3a24071efc6ec6b8879a7e25f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/IsoelectricPoint_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/HydrophobicityProfile.h",
+      "sha256": "3771e893d6ff6eb32031bba7de80345a4334855d72c928f6327c9e5c16436e2a",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/HydrophobicityProfile.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/HydrophobicityProfile.cpp",
+      "sha256": "ccb32569f13b5ea7b3a3638cc625cdf19edb654e3e425041b8673e9172c9d491",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/HydrophobicityProfile.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/HydrophobicityProfile_test.cpp",
+      "sha256": "149e3567f135bea285971be95986d02a9317f5e6da943f89bb68882c3a5f9627",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/HydrophobicityProfile_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/Residue.h",
+      "sha256": "8abda7e4cc2e2d9c19841c5c9e4c527f16e930e5c51e2490bbd6f4b2ac3ccc0e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/Residue.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/Residue.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Residue_test.cpp",
+      "sha256": "4ddb0ec84320ab7aa346eb4efd2db6f7ecba94373ebccd883aa3bb849c4fbe0e",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/Residue_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/CommonEnums.h",
+      "sha256": "6957c1dc8ac4d6b6beace79726dc375b0abe02d079f6065bbbc55a7fc1ac58b5",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CONCEPT/CommonEnums.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CONCEPT/Constants.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/AASequence.h",
+      "sha256": "87e8f36d7f547258b2dbd472271d589e6fbad6ae7a0129bceecc780b0724dd4d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/AASequence.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/AASequence.cpp"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/peptide_properties_aaindex_gb.tsv",
+      "sha256": "0fe20aead2ad6da2b2f37b57cc419c09450bbb50428b9dfb308dc7e1abf45baf",
+      "rows": 262,
+      "columns": [
+        "function",
+        "residue",
+        "source_decimal",
+        "f64_hex",
+        "source_line"
+      ]
+    },
+    {
+      "path": "tests/data/peptide_properties_hydrophobicity.tsv",
+      "sha256": "46abf81f1203e435773cb8800dc5808da4d2277df8be4564feab334f86835552",
+      "rows": 182,
+      "columns": [
+        "scale_index",
+        "scale",
+        "residue",
+        "source_decimal",
+        "f64_hex",
+        "supported",
+        "source_line"
+      ]
+    },
+    {
+      "path": "tests/data/peptide_properties_pka.tsv",
+      "sha256": "99d281e5a5dea3dae8736c6d15de0be4bfd0032beb70abab90431462e007add2",
+      "rows": 59,
+      "columns": [
+        "scale",
+        "entry_kind",
+        "group",
+        "residue",
+        "source_decimal",
+        "f64_hex",
+        "source_line"
+      ]
+    },
+    {
+      "path": "tests/data/peptide_properties_source_scalar_literals.tsv",
+      "sha256": "35bae8b04ff3b95d33a3c5c290d5aefb9f50c024c8765e2fc4cccf90ef0fb9f9",
+      "rows": 30,
+      "columns": [
+        "source_class",
+        "source_expression",
+        "source_decimal",
+        "f64_hex",
+        "active_absolute_tolerance",
+        "source_line"
+      ]
+    },
+    {
+      "path": "tests/data/peptide_properties_gb_decimal.tsv",
+      "sha256": "e4c52b9b872ab27125eb9124804972e16fc7e11ea76e678f2742ab9c403aa060",
+      "rows": 100,
+      "columns": [
+        "sequence",
+        "temperature_decimal",
+        "temperature_f64_hex",
+        "decimal_90",
+        "rounded_f64_hex",
+        "direct_python"
+      ],
+      "kind": "independent derived arithmetic, not source literal or C++ execution"
+    }
+  ],
+  "regeneration": {
+    "script": "temporary preparation: /tmp/openms-peptide-properties-fixtures/regenerate.py",
+    "sha256": "d60ec451aac219b020de14467c2eb1adfa80c7d76ddf28d22eb426b133c8fe4e",
+    "command": "python3 regenerate.py --source-root /path/to/pinned/openms4-core",
+    "scope": "Original source-extraction script is staged outside the package; its hash records how the four unchanged source TSVs were extracted."
+  },
+  "extraction": "Original decimal tokens from literal source initializers and return statements; comments masked without moving line offsets. Python float parses each token to IEEE binary64; f64_hex is its big-endian 16-digit bit pattern. No numerical algorithms or production outputs generated expected values.",
+  "counts": {
+    "aaindex_public": 200,
+    "gb_protected": 62,
+    "hydrophobicity_valid": 140,
+    "hydrophobicity_sentinel": 42,
+    "pka_base": 36,
+    "pka_nterm_overrides": 20,
+    "pka_cterm_overrides": 2,
+    "pka_selenocysteine": 1,
+    "source_scalar_literals": 30
+  },
+  "independent_validation": [
+    "All TSV decimal cells round-trip to their recorded f64 bits.",
+    "All 181 AAIndex numeric-table literal assertions match extracted table bits.",
+    "All seven source alanine hydrophobicity assertions match extracted scale bits.",
+    "All twenty independently declared Eisenberg values in the profile class test match the residue table.",
+    "All seven hydrophobicity rows have exactly canonical-letter support; 999 remains a sentinel.",
+    "All source files and staged fixtures carry SHA-256 hashes."
+  ],
+  "scalar_tolerances": "The scalar table records the last explicit TOLERANCE_ABSOLUTE declaration before each assertion. unresolved_default means no explicit declaration yet; ClassTest.h defaults are unavailable in the pinned first-party snapshot. Relative defaults and macro combination behavior are not inferred. Decimal literals can be rounded references, not exact measured outputs.",
+  "scalar_scope": "Thirty source literals: three GB default-temperature assertions, fourteen pI/charge assertions (including two zero-residual checks), and thirteen profile/window/moment assertions. Source expressions retain local variable names and source line context. No values from the independent temporary GB arithmetic are included.",
+  "semantic_notes": [
+    "AAIndex indicators are not numeric tables: their unusual literal sets are documented in the analysis brief.",
+    "Hydrophobicity scalar sentinels are unsupported values, not usable hydrophobicity scores.",
+    "pKa field order follows the source PkaValues struct; U=5.73 applies to all scales.",
+    "Source scalar tests do not establish safe nonfinite inputs, PTM-specific property changes, or a complete literature validation."
+  ],
+  "reference_test": "tests/peptide_properties_reference.rs",
+  "derived_gb": {
+    "method": "Python stdlib arithmetic only; no C++ or Rust execution. Direct Python follows source operation order with host math exp/log. Decimal 90-digit evaluation uses exact binary64 energy values and R/T values, exact multiplication for RT and ln2, and omits terms exp(z) with z<=-10000.",
+    "source_results_sha256": "7b824826abd32b49c02d738607d898f2db1598eaeccf54d1e3cfd67952b175a0",
+    "prototype_sha256": "4de3eb810221f403ddcbc0393c396ad806ae01a6a0206cdfb5db83c2ca6bde9f",
+    "precision_decimal_digits": 90,
+    "gas_constant": 0.008314505189811899,
+    "gas_constant_hex": "0x1.10731fefb3776p-7",
+    "normal_path": "Reference test separately evaluates source-ordered binary64 expressions from the 62 protected lookup values. Decimal comparisons allow floating arithmetic/libm rounding and are not a universal correctly-rounded guarantee.",
+    "empty_and_underflow": "Empty peptide uses the single-term identity for all finite positive temperatures; R*T==0 uses the energy maximum limit. Both are explicit native differences from source numerical failure/finite cancellation."
+  },
+  "comparison_policy": {
+    "lookup_constants": "Exact IEEE binary64 equality with original decimal literals; sentinels must reject.",
+    "pka": "Isolate every group through terminal annotations or neutral unknown residue X; compare to independently arranged acid/base concentration fractions at pKa plus or minus0.75, tolerance2e-14.",
+    "source_scalars": "GB0.01 absolute; nonzero pI5e-4 absolute (rounded literals and source bisection), zero charge1e-3; hydro1e-8. These are explicit reference-suite tolerances, not a claim to reconstruct missing ClassTest relative defaults.",
+    "derived_gb": "Four ULPs from independently rounded 90-digit result; ordinary source-expression checks allow four ULPs.",
+    "moments": "Independent trigonometric sum using fixture Eisenberg values, angle160degrees, absolute2e-14."
+  },
+  "coverage_notes": [
+    "All 200 public AAIndex cells, all 140 usable hydrophobicity cells and all 42 sentinels are tested directly.",
+    "The 62 private GB constants are used by independent singleton and all400canonicalpair source expressions; no test-only public lookup API is added.",
+    "All 59 pKa constants are tested through charge calculations, including source terminal suppression and Bjellqvist override positions.",
+    "The 30 original scalar assertion rows remain unchanged and retain original tolerance context.",
+    "All expected data derive from pinned source literals or independent arithmetic; no native production result generated a golden."
+  ]
+}

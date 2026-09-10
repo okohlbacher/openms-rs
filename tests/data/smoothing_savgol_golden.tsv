@@ -1,0 +1,11 @@
+# source SavitzkyGolayFilter_test.cpp; frame_length=4 rounded to 5; polynomial_order=2
+# index intensity expected
+0	0	0
+1	0	0.0571429
+2	0	0.274286
+3	1	0.657143
+4	0.8	1.14286
+5	1.2	0.771429
+6	0	0.342857
+7	0	0.0914286
+8	0	0

@@ -1,0 +1,7 @@
+context	count	source_line
+unmodified_q1	890	46
+unmodified_q2	1006	77
+unmodified_q1_q2	1094	105
+modified_unaware	545	137
+modified_fixed	667	167
+modified_variable	739	196

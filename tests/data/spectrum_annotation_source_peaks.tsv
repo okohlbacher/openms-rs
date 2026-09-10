@@ -1,0 +1,14 @@
+source_index	mz_decimal	mz_f64_hex	intensity_decimal	intensity_f32_hex	sorted_source_label	role
+0	147.113	4062639db22d0e56	1.1	3f8ccccd	y1+	matched
+1	204.135	40698451eb851eb8	1.1	3f8ccccd	y2+	matched
+2	303.203	4072f33f7ced9168	1.1	3f8ccccd	y3+	matched
+3	431.262	407af43126e978d5	1.1	3f8ccccd	y4+	matched
+4	518.294	4080325a1cac0831	1.1	3f8ccccd	y5+	matched
+5	665.362	4084cae560418937	1.1	3f8ccccd	y6+	matched
+6	261.16	4070528f5c28f5c3	1.1	3f8ccccd	b2+	matched
+7	348.192	4075c3126e978d50	1.1	3f8ccccd	b3+	matched
+8	476.251	407dc404189374bc	1.1	3f8ccccd	b4+	matched
+9	575.319	4081fa8d4fdf3b64	1.1	3f8ccccd	b5+	matched
+10	632.341	4083c2ba5e353f7d	1.1	3f8ccccd	b6+	matched
+11	100.0	4059000000000000	0.5	3f000000		unmatched
+12	1000.0	408f400000000000	0.5	3f000000		unmatched

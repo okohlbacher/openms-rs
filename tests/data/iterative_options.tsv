@@ -1,0 +1,15 @@
+case	iterations	peak_width	spacing_difference	check_width_internally	signal_to_noise
+strict_greater_core	1	0.0	1.0	false	0.0
+one_seed_per_raw_index	1	0.0	1.0	false	0.0
+symmetric_recenter	5	0.0	1.5	false	0.0
+fixed_min_spacing	1	0.0	1.5	false	0.0
+strict_fall	1	0.0	1.5	false	0.0
+strict_width_equal	1	2.0	1.5	false	0.0
+strict_width_above	1	2.0000000000000004	1.5	false	0.0
+right_search_asymmetry	1	10.0	1.5	false	0.0
+float_centroid_boundary	5	0.0	1.5	false	0.0
+sn_equal	1	0.0	1.5	false	4e-20
+sn_above	1	0.0	1.5	false	4.0000000000000004e-20
+internal_width_equal	1	1.0	1.5	true	0.0
+internal_width_below	1	0.9999999999999999	1.5	true	0.0
+original_seed_priority	1	4.0	1.5	false	0.0

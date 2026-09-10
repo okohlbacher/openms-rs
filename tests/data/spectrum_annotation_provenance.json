@@ -1,0 +1,225 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "reference_test": "tests/spectrum_annotation_reference.rs",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/SpectrumAnnotator.h",
+      "sha256": "932baab6305f9a365cd1710ba661d71a7bc136212b75cdcb0a7a8a387e3be021",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/SpectrumAnnotator.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/SpectrumAnnotator.cpp",
+      "sha256": "35e2add302b5c830461539b8743cad51bee285182abf64b20b494c60faa1fe3d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/SpectrumAnnotator.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumAnnotator_test.cpp",
+      "sha256": "31a94b73cf1960e56a5d0fe567116a0a7c0fcc2acb7a4ade53268b0017e28633",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/SpectrumAnnotator_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/IonNaming.h",
+      "sha256": "db3c6c63fbe585a1b0c5fa42cd164cf85ac6527b788367774cd8e368e32b49e9",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/IonNaming.h"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IonNaming_test.cpp",
+      "sha256": "e3f220ab62ab3c1ab6faeafe31b6619e72fb1e1e4f227624328c0b40c23a4b13",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/IonNaming_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+      "sha256": "61c80a040673e0bca53086d2947b5bcd100c046c6024c8c99f5da6237b98ec7d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/MATH/StatisticFunctions.h"
+    },
+    {
+      "path": "src/openms/source/MATH/StatisticFunctions.cpp",
+      "sha256": "587b1ec4e84dfdc7399d4456c3e3125c36ceeba1478fe9f41679d41c2b2dda0f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/MATH/StatisticFunctions.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp",
+      "sha256": "763d7e37041d3bed8f0b9fb122e43b5d6890fc699753e0f877ee3c50f2698325",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/Residue.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ResidueDB.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ElementDB.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CONCEPT/Constants.h"
+    },
+    {
+      "path": "src/openms/source/COMPARISON/SpectrumAlignment.cpp",
+      "sha256": "34c39c22df3d5cb7d5d2781a39959023d80084277c40db9431d6ca8a4f3af008",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/COMPARISON/SpectrumAlignment.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/KERNEL/MSSpectrum.h"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/KERNEL/MSSpectrum.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/MetaInfoInterface.h",
+      "sha256": "5581d2dbbddd09739123a3a5731197f81ed4e7dd5e0565f6f2dcce9ff21aefa6",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/METADATA/MetaInfoInterface.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DataValue.h",
+      "sha256": "1ea32c73e80d7607aa699a26a22be0ed2eca2d9d0b3249b4850b466384f2a74f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/DATASTRUCTURES/DataValue.h"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/DATASTRUCTURES/DataValue.cpp"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/spectrum_annotation_source_peaks.tsv",
+      "sha256": "b156b20325e70c864db3797b0d88e01f6d0f3049de5d7f3f20942be3a4b9f458",
+      "rows": 13,
+      "columns": [
+        "source_index",
+        "mz_decimal",
+        "mz_f64_hex",
+        "intensity_decimal",
+        "intensity_f32_hex",
+        "sorted_source_label",
+        "role"
+      ]
+    },
+    {
+      "path": "tests/data/spectrum_annotation_source_statistics.tsv",
+      "sha256": "0dbddf5d00837674bbfcb781923e05f52759abda8860f554948da244eb621aa6",
+      "rows": 17,
+      "columns": [
+        "key",
+        "kind",
+        "source_literal",
+        "source_assertion",
+        "source_line"
+      ]
+    },
+    {
+      "path": "tests/data/spectrum_annotation_derived_masses.tsv",
+      "sha256": "5be50833ca2fe69e1862a0e5427700ebc2a75f77763c3ed81165eb3400e11192",
+      "rows": 11,
+      "columns": [
+        "label",
+        "derived_mz_decimal",
+        "derived_mz_f64_hex",
+        "derived_error_f32_hex"
+      ]
+    }
+  ],
+  "extraction": "Original decimal peak tokens and sorted labels read from SpectrumAnnotator_test.cpp. Source measured m/z uses binary64; 1.1f and 0.5f intensities use binary32. Two unmatched source peaks follow the original eleven in the compact fixture. Source scalar strings/macros retained verbatim. No C++ execution and no Rust-generated expected data.",
+  "derived_masses": {
+    "method": "Python standard library arithmetic from explicit source ElementDB C/H/N/O mono masses and ResidueDB I/F/S/Q/V/G/K full formulas. Full residue sum in C,H,N,O order minus water; prefix/suffix accumulation is proton-first, ion offset last. Source formula pointer iteration can differ in final binary64 rounding; tests allow1e-9absolute for source-derived error metrics and do not assert exact predicted mass bits as C++ output.",
+    "element_mono_masses": {
+      "C": 12.0,
+      "H": 1.0078250319,
+      "N": 14.003074,
+      "O": 15.994915
+    },
+    "full_residue_formulas_counts_CHNO": {
+      "I": [
+        6,
+        13,
+        1,
+        2
+      ],
+      "F": [
+        9,
+        11,
+        1,
+        2
+      ],
+      "S": [
+        3,
+        7,
+        1,
+        3
+      ],
+      "Q": [
+        5,
+        10,
+        2,
+        3
+      ],
+      "V": [
+        5,
+        11,
+        1,
+        2
+      ],
+      "G": [
+        2,
+        5,
+        1,
+        2
+      ],
+      "K": [
+        6,
+        14,
+        2,
+        2
+      ]
+    },
+    "proton_mass": 1.007276466771
+  },
+  "source_limits": [
+    "Source all-equal intensities do not specify std::sort tie order; native stable sorting keeps m/z order after initial sort.",
+    "Source DataValue equality for 12.1 does not mean f32 measured intensity sums are exactly 12.1. Native expected sum is 11*f64(f32(1.1)).",
+    "Source topN_MSEfragmenterror literal0 is rounded/weak. Independent errors have positive MSE.",
+    "ClassTest relative/absolute defaults are unavailable in this snapshot; test tolerances are stated explicitly.",
+    "Source chained nth_element ranges are undefined for matched n1/2/3; intended sorted-order indices are a native safe extension, not upstream numerical goldens.",
+    "Source topN1 sample deviation and enabled zero-denominator ratios are nonfinite; native atomic errors are checked boundaries.",
+    "Source boolean precursor_in_ms2 and fragment_mass_tolerance_ppm arguments promote to DataValue(int), since DataValue has no bool constructor. Typed hit metadata preserves integer 0/1; the native spectrum string map projects that integer as \"0\"/\"1\". Fixture bool kind records the original assertion literal, not the stored type."
+  ],
+  "regeneration_script_sha256": "6903350c71faca740cac9d313c8124af1000e19e0119d8739724cbcca2eb4b6c",
+  "source_configuration": {
+    "peptide": "IFSQVGK",
+    "hit_charge": 2,
+    "min_fragment_charge": 1,
+    "max_fragment_charge": 2,
+    "ion_series": [
+      "b",
+      "y"
+    ],
+    "first_prefix": false,
+    "add_metainfo": true,
+    "absolute_alignment_tolerance": 0.1,
+    "top_n_fragment_errors": 7
+  },
+  "independent_tests": {
+    "count": 7,
+    "source_literal_tolerances": "Totals: 1e-6; rounded weak MSE zero: 1e-6; N/C ratios: 1e-6; other fractional source statistics: 1e-7. Integer/zero assertions otherwise exact. Positive derived MSE and derived error metrics are checked separately within 1e-9.",
+    "controlled_error_cases": "Offsets 0.125, 0.25, 0.5, 1.0 and intensities 1, 2, 4, 8 yield exact binary statistics; mathematical variance uses sum(x^2)-sum(x)^2/N, divided by N-1.",
+    "small_n": "For n=1/2/3, median and IQR expected from intended sorted indices are checked native extensions; top N=1 with nonempty errors must fail atomically.",
+    "ppm_duplicate": "AG b1 at charges 1/2, measured m/z 50 and tolerance 1e6 ppm: sorted theory b1++ then b1+ both match the same peak; arrays/all-peaks keep b1+, matched-only keeps both.",
+    "ion_naming": "Selected original literals plus source-branch deductions; full direct IonNaming class-test coverage belongs to the separate implementation suite."
+  }
+}

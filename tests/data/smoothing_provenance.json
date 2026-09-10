@@ -1,0 +1,22 @@
+{
+  "source_revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "files": [
+    {
+      "path": "tests/data/smoothing_gaussian_golden.tsv",
+      "sha256": "a7da75a6f9e5bed44b86322786230605984ae042cd6e6ffc5f783f80256be012",
+      "source_path": "src/tests/class_tests/openms/source/GaussFilterAlgorithm_test.cpp",
+      "source_sha256": "95c4b96adbca5dcf556fb076fb3c0fe30eca75c135d430ee945d0e9eb3a2a626",
+      "source_url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/GaussFilterAlgorithm_test.cpp",
+      "derivation": "transcribed input and rounded numeric assertions"
+    },
+    {
+      "path": "tests/data/smoothing_savgol_golden.tsv",
+      "sha256": "797010cdc23d3f25378aec538d86c5f166f1f5c0280e8e3715a9c4a599a00ea0",
+      "source_path": "src/tests/class_tests/openms/source/SavitzkyGolayFilter_test.cpp",
+      "source_sha256": "c6caeb480127df0875dc9b4919b7cc550e4fe1831d0487f7ba94e54167fe3bb6",
+      "source_url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/SavitzkyGolayFilter_test.cpp",
+      "derivation": "transcribed intensities and rounded assertions; index coordinates explicit"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "license": "BSD-3-Clause",
+  "maintainer": "OpenMS Rust contributors",
+  "reference_test": "tests/adduct_reference.rs",
+  "test_functions": 5,
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/AdductInfo.h",
+      "sha256": "2c425222f3b714706bc306f5a7668976e3ac4ddedda8cf6e3d27fc796290179c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/AdductInfo.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/AdductInfo.cpp",
+      "sha256": "db735504dcb497f575769817daba024d86dedaa181c474314e5a37e83310e73b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/AdductInfo.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AdductInfo_test.cpp",
+      "sha256": "3a44f9291ca441e11bd3ab0ae5b9ad41c3b3fc8543fb3eb473555d4b4a76eff7",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/AdductInfo_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h",
+      "sha256": "9c2a81ef15a7beb3e52c3ba9e1db9b98ae68f27aa3eb5f62cd3a5562f978927d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/EmpiricalFormula.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ElementDB.h",
+      "sha256": "2903d20126658479d7376982c1c8be89ec7dbd2c6bd13d5b759b560128189836",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/ElementDB.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ElementDB.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+      "sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/DATASTRUCTURES/StringUtils.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CONCEPT/Constants.h"
+    }
+  ],
+  "source_literal_evidence": {
+    "class_test": "src/tests/class_tests/openms/source/AdductInfo_test.cpp",
+    "absolute_tolerance": "1e-3",
+    "neutral_mass_literals": [
+      "100.0",
+      "523.25"
+    ],
+    "names": [
+      "M+H;1+",
+      "2M+H;1+",
+      "M-H;1-",
+      "M+Na;1+",
+      "my_proton"
+    ],
+    "mass_expressions": [
+      "100.0 + PROTON",
+      "200.0 + PROTON",
+      "100.0 - PROTON",
+      "0.0",
+      "mass(Na) - mass(H)"
+    ],
+    "compatibility": [
+      {
+        "adduct": "M-H;1-",
+        "candidate": "C6H12O6",
+        "expected": true
+      },
+      {
+        "adduct": "M-H;1-",
+        "candidate": "O2",
+        "expected": false
+      },
+      {
+        "adduct": "M+Na;1+",
+        "candidate": "O2",
+        "expected": true
+      }
+    ]
+  },
+  "independent_constant_literals": {
+    "proton_mass_u": "1.0072764667710",
+    "electron_mass_u_expression": "1.0 / 1822.8885020477",
+    "hydrogen_mono_mass": "1.0078250319",
+    "hydrogen_abundances": [
+      "0.999885",
+      "0.000115",
+      "0.0"
+    ],
+    "hydrogen_isotope_masses": [
+      "1.0078250319",
+      "2.01410178",
+      "3.01604927"
+    ],
+    "sodium_mono_mass": "22.989769280899999",
+    "sodium_abundance": "1.0",
+    "oxygen_mono_mass": "15.994915000000001",
+    "carbon_13_mass": "13.003355000000001"
+  },
+  "derived_checks": [
+    "Atomic adduct mass and electron removal/addition are evaluated directly from pinned constants. Hydrogen atomic mass differs slightly from PROTON+ELECTRON, so the proton-adduct mass shift is small but nonzero.",
+    "Average-mass shifts retain the same monoisotopic proton/electron compensation. Sodium has one isotope with abundance 1 and equal average/monoisotopic mass; the class-test comment implying otherwise is not an asserted golden.",
+    "Numeric-only fragments become empty after stoichiometric coefficient stripping and are defined no-ops. Formula-part minus signs split terms rather than becoming negative element counts.",
+    "StringUtils toInt32 strips one leading plus and then accepts a negative integer, so a charge magnitude beginning +- is accepted before final-polarity normalization. Only space/tab/newline/carriage-return whitespace is stripped.",
+    "Compatibility compares candidate counts against negated adduct counts, including signed counts and isotope identity; it ignores charge and molecular multiplier.",
+    "All finite negative and zero scalar mass inputs retain source arithmetic. Checked nonfinite inputs/results, zero invariants, i32 minimum charge and native formula-count overflow are explicit safety boundaries."
+  ],
+  "comparison_policy": "Exact parsed field, formula and equality checks; upstream mass examples use their explicit 1e-3 absolute tolerance. Independent atomic-constant calculations use tighter absolute tolerances from 1e-15 to 1e-12 as stated in each test; they are newly derived assertions, not printed source numeric outputs.",
+  "extraction": "No large numeric dataset is needed: source scalar expressions and original constant decimal spellings are recorded here and evaluated in the independent test. No C++ build/execution or production-generated expected value was used.",
+  "status": "Integrated independent source references; current and minimum Rust Cargo tests passed with all features and no default features, plus current idXML-only checks. No C++ execution."
+}

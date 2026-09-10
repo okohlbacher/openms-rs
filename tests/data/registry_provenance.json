@@ -1,0 +1,135 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "maintainer": "OpenMS Rust contributors",
+  "method": "Independent literal parser of the pinned XLMOD resource, followed by explicit source OBODataProvider branch projection. No C++ build or execution. Order is source accession multimap order, sorted unique residue origins, then N-terminal and C-terminal expansion. The OBO resource is distributed separately; this fixture records transformed expected data, not measured C++ output. Synthetic PSI fixtures are independently authored from source behavior and contain no copied PSI-MOD terms.",
+  "data_license": "CC-BY-3.0",
+  "license_url": "https://creativecommons.org/licenses/by/3.0/",
+  "attribution": "XLMOD, Lutz Fischer and Gerhard Mayer, release 2016-07-13, version 1.0.0",
+  "projection_counts": {
+    "monolink": 92,
+    "crosslink": 56
+  },
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/OBODataProvider.h",
+      "sha256": "4391717c73234568f1f3df06a9bb50adfcb43bdb48d5612b3ce90546afaba084",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/CHEMISTRY/OBODataProvider.h"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/OBODataProvider.cpp",
+      "sha256": "d75b0ae14e63dfdf26f69bb1c7b3a26ff33bdcee694c9bfaf463253b00f16ea6",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/OBODataProvider.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModificationsDB.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/CrossLinksDB.cpp",
+      "sha256": "34d0cd262a357c09bc903991c55205b456ccfe0bd3fb311023d8c95f940ab664",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/CrossLinksDB.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+      "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ResidueModification.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/Residue.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/AASequence.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ModificationDataProvider_test.cpp",
+      "sha256": "2eda0761c5dd4dd77846239d76d0c101561779dc5cc3e9711d8baef9662444ed",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/ModificationDataProvider_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ModificationsDB_test.cpp",
+      "sha256": "74a615cd349ca80c1dfa472e6002551838ebfb2418579d35a6411bd25d517d06",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/ModificationsDB_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/CrossLinksDB_test.cpp",
+      "sha256": "ea05e896198cb8448f1e93f2c31d4a5483323349ada86ee37549c0bd95024c1c",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/CrossLinksDB_test.cpp"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/XLMOD.obo",
+      "sha256": "9792d18d47654ae1f3f31044f539c23967d347efee265781242062096ba7b540",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/CHEMISTRY/XLMOD.obo"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationDefinitionsSet.cpp",
+      "sha256": "53694e5c407461ed34d3edfee40482e0271f68f67d3b8e98dab4b5a66a5bad1a",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModificationDefinitionsSet.cpp"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationDefinition.cpp",
+      "sha256": "1493dad1a926a083eeb987c937b31cac1132228f72346021f8a0158ac3588bbd",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/CHEMISTRY/ModificationDefinition.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ModificationDefinitionsSet_test.cpp",
+      "sha256": "cc1d82a3e8f4c21169f0fc6607cd3eaec59b243776880678d802d1f5e4be3e60",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/tests/class_tests/openms/source/ModificationDefinitionsSet_test.cpp"
+    },
+    {
+      "path": "src/openms/source/METADATA/ProteinIdentification.cpp",
+      "sha256": "c4b8be0c5a733e6a1cb36c6fb3ab9b181688f6a487cd505b785b0051f83d9585",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/METADATA/ProteinIdentification.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/PeptideHit.h",
+      "sha256": "406d6ae3599524a43f8c86d2cbfbe3185dbae0c77da80a8e6eaa39244f4da747",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/include/OpenMS/METADATA/PeptideHit.h"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/ID/IDFilter.cpp",
+      "sha256": "2ee82a0096aaa2534ec498987d3490209371f11637d6ba706cae8bca6662cb90",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/PROCESSING/ID/IDFilter.cpp"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/ID/IDConflictResolverAlgorithm.cpp",
+      "sha256": "68a3f441618f51bf630cebd4def86659cc5df42725737d80c15cdf4090ac2ad2",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/ANALYSIS/ID/IDConflictResolverAlgorithm.cpp"
+    }
+  ],
+  "unredistributed_reference_metadata": {
+    "path": "share/OpenMS/CHEMISTRY/PSI-MOD.obo",
+    "sha256": "e620c9960cdda5a22c7562af07a4dc0e12794894d24ec0a936787e13d23c720e",
+    "version": "1.005",
+    "date": "2008-04-20",
+    "note": "Metadata only; old resource is not copied or bundled because historical license applicability remains unconfirmed."
+  },
+  "fixtures": [
+    {
+      "path": "tests/data/registry_synthetic_base.tsv",
+      "sha256": "0c95a04ac1b237808f829257e0a9df5702b373c415946d499e2e834375e65c78",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "path": "tests/data/registry_synthetic_boundaries.obo",
+      "sha256": "ad0ccc3ad24c6a94241dda5bee5bb973d1e84d8724a25066cd06cea7ffd7eed6",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "path": "tests/data/registry_synthetic_psi.obo",
+      "sha256": "16f9bb3aca306e0772124c3124149e562fdaf58b4b0eb9de788ff05f82216d0d",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "path": "tests/data/registry_xlmod_reference.tsv",
+      "sha256": "0468a2d0d5a3edc7af14280ce33777cdf417724c4a5efdedb91fb0e49d7e4f9b",
+      "license": "CC-BY-3.0"
+    }
+  ],
+  "identity_review": "Complete modification values preserve source sequence/record identity in protein observations, sequence duplicate filtering and conflict resolution. Display-only keys remain where the source explicitly uses toString/toUnmodifiedString. Native ordering is deterministic chemical-value order rather than pointer order."
+}

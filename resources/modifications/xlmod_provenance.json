@@ -1,0 +1,19 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "source_path": "share/OpenMS/CHEMISTRY/XLMOD.obo",
+  "data_version": "releases/2016-07-13",
+  "sha256": "9792d18d47654ae1f3f31044f539c23967d347efee265781242062096ba7b540",
+  "bytes": 24072,
+  "transformation": "None; byte-identical ontology copy",
+  "license": "CC-BY-3.0",
+  "creators": [
+    "Lutz Fischer",
+    "Gerhard Mayer"
+  ],
+  "native_projection": {
+    "monolink_specificity_records": 92,
+    "crosslink_specificity_records": 56
+  },
+  "historical_psi_mod_bundled": false
+}

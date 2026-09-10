@@ -1,0 +1,36 @@
+# Python re matching of exact pinned enzyme regex; FNV-1a64 of every A-Z context
+# Context order: all 2-residue strings at bond1, then all 3-residue strings at bond2.
+# name	cleaving_context_count	fnv1a64
+Trypsin	2025	b71cc070e9b00410
+Arg-C	1350	03b54a4f0ad70c85
+Arg-C/P	1404	aca8814fb5cdcd61
+Asp-N	2106	0f74240c4dea91ad
+Asp-N/B	1404	85824e57f4e648f5
+Asp-N_ambic	3510	83a51b11ceb4225d
+Chymotrypsin	4050	483229246a9ef7d5
+Chymotrypsin/P	4212	0b3ee453b0086fd9
+CNBr	1404	84569465385063d1
+Formic_acid	243	88f186dd5c429662
+Lys-C	1350	d80ee7ee51f3d3fd
+Lys-N	1404	f249a7b35271b131
+Lys-C/P	1404	6ee40353bec79db1
+PepsinA	2808	a054fec2a3570f2d
+TrypChymo	5400	334dfdd9e9c26f6d
+Trypsin/P	2106	bf4b170ab05cf9e7
+V8-DE	3375	58d4a0b553110130
+V8-E	2025	0aa735315b0be240
+leukocyte elastase	4050	74652394ff6b2f75
+proline endopeptidase	200	8959f0de8d062095
+glutamyl endopeptidase	3510	2d133dc7f3cbb193
+Alpha-lytic protease	3510	21cefe3e32a60de3
+2-iodobenzoate	1404	30ba46a0b6730c71
+iodosobenzoate	702	745541c74727a0db
+staphylococcal protease/D	2106	df24fdd5a9238c07
+proline-endopeptidase/HKR	1404	254c70031af19441
+Glu-C+P	3375	58d4a0b553110130
+PepsinA + P	2700	0c96e98a40888e15
+cyanogen-bromide	1404	84569465385063d1
+Clostripain/P	1404	aca8814fb5cdcd61
+elastase-trypsin-chymotrypsin	6750	1f877d1eacfe4c0d
+no cleavage	0	9fdc68bf54ed0595
+unspecific cleavage	18252	b2caebc99afc1b81

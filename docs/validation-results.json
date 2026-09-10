@@ -1,0 +1,639 @@
+{
+  "date": "2026-09-10",
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+  "checks": [
+    {
+      "name": "tests_all_features",
+      "command": "cargo test --locked --offline --all-features --all-targets",
+      "exit_code": 0,
+      "passed_test_instances": 829,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "doctests",
+      "command": "cargo test --locked --offline --all-features --doc",
+      "exit_code": 0,
+      "passed_test_instances": 3,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "minimum_rust",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --all-targets",
+      "exit_code": 0,
+      "passed_test_instances": 829,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "minimum_rust_doctests",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --doc",
+      "exit_code": 0,
+      "passed_test_instances": 3,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tests_no_default_features",
+      "command": "cargo test --locked --offline --no-default-features",
+      "exit_code": 0,
+      "passed_test_instances": 764,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tests_idxml_only",
+      "command": "cargo test --locked --offline --no-default-features --features idxml",
+      "exit_code": 0,
+      "passed_test_instances": 789,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "clippy",
+      "command": "cargo clippy --locked --offline --all-features --all-targets -- -D warnings",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rustdoc",
+      "command": "env \"RUSTDOCFLAGS=-D warnings\" cargo doc --locked --offline --all-features --no-deps",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "peptide_example",
+      "command": "cargo run --locked --offline --example peptide_analysis",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "spectrum_example",
+      "command": "cargo run --locked --offline --example process_spectra",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "digestion_example",
+      "command": "cargo run --locked --offline --example digest_fasta",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "mzml_example",
+      "command": "cargo run --locked --offline --example process_spectra -- tests/data/mzml_independent.mzML",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "identification_example",
+      "command": "cargo run --locked --offline --example identify_peptides",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "chromatogram_example",
+      "command": "cargo run --locked --offline --example integrate_chromatogram",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "emg_example",
+      "command": "cargo run --locked --offline --example fit_emg_peak",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "profile_example",
+      "command": "cargo run --locked --offline --example process_profile",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "enumeration_example",
+      "command": "cargo run --locked --offline --example enumerate_peptides",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "isotope_stream_example",
+      "command": "cargo run --locked --offline --example stream_isotopes",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "peptide_properties_example",
+      "command": "cargo run --locked --offline --example peptide_properties",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "spectrum_annotation_example",
+      "command": "cargo run --locked --offline --example annotate_spectrum",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "format",
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "generated_modification_data",
+      "command": "python3 tools/generate_modifications.py --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "Retained successful check from earlier on this date; generator and source data unchanged.",
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "generated_enzyme_data",
+      "command": "python3 tools/generate_enzymes.py --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "Retained successful check from earlier on this date; generator and source data unchanged.",
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "package_manifest",
+      "command": "cargo package --allow-dirty --no-verify --list",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "351 package files; source data/licenses, spectrum annotation/ion naming, peptide properties, shared-work regressions and prior isotope/precursor integration, theoretical-spectrum extensions, XLMOD/OBO and earlier scientific fixtures, all eleven examples and review tests included; reference snapshot and target excluded. Optional documentation/homepage/repository metadata warning.",
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "final_annotation_metadata_1.96.0",
+      "command": "cargo +1.96.0 test --locked --offline --all-features --test spectrum_annotator --test spectrum_annotation_reference --test spectrum_annotation_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 21,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "final_annotation_metadata_1.85.0",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --test spectrum_annotator --test spectrum_annotation_reference --test spectrum_annotation_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 21,
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "spectrum_annotation_provenance_and_document_links",
+      "command": "Python SHA-256 verification of spectrum annotation and previous scientific sources/fixtures, measured and derived binary values, case counts, libm archive/lock checksum and local Markdown links",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "252 source/fixture hashes and 307 local documentation links verified; 429 EMG samples match literal source arrays and IEEE bits; iterative 106-sample/16-seed/14-case fixtures retain centroid/intensity bits and raw-region sums; both 2526-point mean-noise fixtures match source bytes; modification-generation fixture counts match source manifest (including 26/71/199 variants); 148 XLMOD mass literals/bits and pinned ontology bytes verified; fine isotope 44-count/14-fructose/6-bromine fixtures and streaming source/reused fixtures, precursor purity sources/five fixtures and theoretical-spectrum source hashes verified; peptide-property sixteen source hashes, five fixture hashes, 633 rows and binary64 values verified; spectrum annotation eighteen source hashes, three fixture hashes, 41 rows and measured/derived binary values verified; libm archive checksum matches Cargo lock. Earlier source inventory and schema newline checks retained.",
+      "scope": "Retained complete pre-decoy/adduct baseline; existing scientific implementations unchanged by these additive modules. Retained unchanged through the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_all_current",
+      "command": "cargo +1.96.0 test --locked --offline --all-features --lib --test decoy_generator --test decoy_reference --test decoy_workflow --test adduct_info --test adduct_reference --test adduct_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 58,
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_all_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --lib --test decoy_generator --test decoy_reference --test decoy_workflow --test adduct_info --test adduct_reference --test adduct_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 58,
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_core_current",
+      "command": "cargo +1.96.0 test --locked --offline --no-default-features --lib --test decoy_generator --test decoy_reference --test decoy_workflow --test adduct_info --test adduct_reference --test adduct_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 56,
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_core_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --no-default-features --lib --test decoy_generator --test decoy_reference --test decoy_workflow --test adduct_info --test adduct_reference --test adduct_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 56,
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_idxml_current",
+      "command": "cargo +1.96.0 test --locked --offline --no-default-features --features idxml --lib --test decoy_generator --test decoy_reference --test decoy_workflow --test adduct_info --test adduct_reference --test adduct_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 57,
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_clippy",
+      "command": "cargo clippy --locked --offline --all-features --all-targets -- -D warnings",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_rustdoc",
+      "command": "cargo doc --locked --offline --all-features --no-deps",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      },
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_decoy_example",
+      "command": "cargo run --locked --offline --example generate_decoys",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_format",
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_package_manifest",
+      "command": "cargo package --locked --offline --list --allow-dirty",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "369 package files; all decoy/adduct modules, tests, source provenance, reproducible integer oracle, documentation, example and complete Boost license included. Local reference and build outputs excluded; package not built or published.",
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "decoy_adduct_provenance_and_document_links",
+      "command": "Python SHA-256, source constants/fixtures and Markdown-link audit; packaged independent integer oracle regenerated",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "277 source/fixture hashes and 336 local documentation links verified; 429 EMG samples match literal source arrays and IEEE bits; iterative 106-sample/16-seed/14-case fixtures retain centroid/intensity bits and raw-region sums; both 2526-point mean-noise fixtures match source bytes; modification-generation fixture counts match source manifest (including 26/71/199 variants); 148 XLMOD mass literals/bits and pinned ontology bytes verified; fine isotope 44-count/14-fructose/6-bromine fixtures and streaming source/reused fixtures, precursor purity sources/five fixtures and theoretical-spectrum source hashes verified; peptide-property sixteen source hashes, five fixture hashes, 633 rows and binary64 values verified; spectrum annotation eighteen source hashes, three fixture hashes, 41 rows and measured/derived binary values verified; decoy/adduct pinned and supplemental sources, fixture and packaged integer-oracle hashes verified; three four-cycle RNG checksums/permutations and the 10000th-word standard literal regenerated; libm archive checksum matches Cargo lock",
+      "scope": "Retained pre-Tagger decoy/adduct stage; these implementations are unchanged by the additive Tagger module. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_all_current",
+      "command": "cargo test --locked --offline --all-features --lib --test tagger --test tagger_reference --test tagger_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 58,
+      "duration_seconds": 7.61,
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_all_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --lib --test tagger --test tagger_reference --test tagger_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 58,
+      "duration_seconds": 24.71,
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_core_current",
+      "command": "cargo test --locked --offline --no-default-features --lib --test tagger --test tagger_reference --test tagger_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 57,
+      "duration_seconds": 22.08,
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_core_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --no-default-features --lib --test tagger --test tagger_reference --test tagger_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 57,
+      "duration_seconds": 8.62,
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_clippy",
+      "command": "cargo clippy --locked --offline --all-features --all-targets -- -D warnings",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 53.97,
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_rustdoc",
+      "command": "env RUSTDOCFLAGS=-D warnings cargo doc --locked --offline --all-features --no-deps",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 2.69,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      },
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_example",
+      "command": "cargo run --locked --offline --example extract_tags",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 1.72,
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_format",
+      "command": "cargo fmt --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 1.03,
+      "notes": "Passed after applying current-toolchain formatting to one reference-test assertion; no semantic change.",
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_package_manifest",
+      "command": "cargo package --locked --offline --list --allow-dirty",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 2.44,
+      "notes": "380 package files including all Tagger modules, tests, source/fixture provenance, support/review and example; local reference and build outputs excluded. No package build or publication.",
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "tagger_provenance_and_document_links",
+      "command": "Python SHA-256, source-line fixtures and Markdown-link audit; retained scientific fixtures and packaged RNG oracle checked",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "293 source/fixture hashes and 353 local documentation links verified; 429 EMG samples match literal source arrays and IEEE bits; iterative 106-sample/16-seed/14-case fixtures retain centroid/intensity bits and raw-region sums; both 2526-point mean-noise fixtures match source bytes; modification-generation fixture counts match source manifest (including 26/71/199 variants); 148 XLMOD mass literals/bits and pinned ontology bytes verified; fine isotope 44-count/14-fructose/6-bromine fixtures and streaming source/reused fixtures, precursor purity sources/five fixtures and theoretical-spectrum source hashes verified; peptide-property sixteen source hashes, five fixture hashes, 633 rows and binary64 values verified; spectrum annotation eighteen source hashes, three fixture hashes, 41 rows and measured/derived binary values verified; decoy/adduct pinned and supplemental sources, fixture and packaged integer-oracle hashes verified; three four-cycle RNG checksums/permutations and the 10000th-word standard literal regenerated; Tagger fourteen pinned source hashes, two fixtures, all six count rows and 120 membership rows verified directly at original source lines; libm archive checksum matches Cargo lock",
+      "scope": "Retained earlier check. Historical pre-RNA evidence; complete current all-feature suites have now been rerun on both compilers. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_all_current",
+      "command": "cargo test --locked --offline --all-features --all-targets",
+      "exit_code": 0,
+      "passed_test_instances": 938,
+      "duration_seconds": 502.07,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_all_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --all-targets",
+      "exit_code": 0,
+      "passed_test_instances": 938,
+      "duration_seconds": 497.42,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_core_current",
+      "command": "cargo test --locked --offline --no-default-features --all-targets",
+      "exit_code": 0,
+      "passed_test_instances": 863,
+      "duration_seconds": 354.52,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_core_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --no-default-features --lib --test ribonucleotides --test na_sequence --test rna_reference --test rna_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 70,
+      "duration_seconds": 12.29,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_json_only",
+      "command": "cargo test --locked --offline --no-default-features --features rna-json --lib --test ribonucleotides --test na_sequence --test rna_reference --test rna_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 73,
+      "duration_seconds": 19.38,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_doctests",
+      "command": "cargo test --locked --offline --all-features --doc",
+      "exit_code": 0,
+      "passed_test_instances": 3,
+      "duration_seconds": 3.91,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_minimum_doctests",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --doc",
+      "exit_code": 0,
+      "passed_test_instances": 3,
+      "duration_seconds": 4.43,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_clippy",
+      "command": "cargo clippy --locked --offline --all-features --all-targets -- -D warnings",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 15.16,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_rustdoc",
+      "command": "cargo doc --locked --offline --all-features --no-deps",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 1.99,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      },
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_example",
+      "command": "cargo run --locked --offline --example analyze_rna",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 1.28,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_format",
+      "command": "cargo fmt --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 0.73,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_generator",
+      "command": "python3 tools/generate_ribonucleotides.py --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 0.1,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_package_manifest",
+      "command": "cargo package --locked --offline --list --allow-dirty",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 3.79,
+      "notes": "403 package files including RNA modules, original resources, projection/generator, tests, provenance, support/review and example; local reference and build outputs excluded. File-list check only: no package build or publication. MODOMICS redistribution terms remain a separate release boundary.",
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_workflow_current",
+      "command": "cargo test --locked --offline --all-features --test rna_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 3,
+      "duration_seconds": 4.44,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_workflow_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --test rna_workflow",
+      "exit_code": 0,
+      "passed_test_instances": 3,
+      "duration_seconds": 4.69,
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_provenance_and_document_links",
+      "command": "Python SHA-256, source-line/IEEE fixtures, registry/resource/projection and Markdown-link audit; retained scientific fixtures and packaged RNG oracle checked",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "359 source/fixture hashes and 382 local documentation links verified; 429 EMG samples match literal source arrays and IEEE bits; iterative 106-sample/16-seed/14-case fixtures retain centroid/intensity bits and raw-region sums; both 2526-point mean-noise fixtures match source bytes; modification-generation fixture counts match source manifest (including 26/71/199 variants); 148 XLMOD mass literals/bits and pinned ontology bytes verified; fine isotope 44-count/14-fructose/6-bromine fixtures and streaming source/reused fixtures, precursor purity sources/five fixtures and theoretical-spectrum source hashes verified; peptide-property sixteen source hashes, five fixture hashes, 633 rows and binary64 values verified; spectrum annotation eighteen source hashes, three fixture hashes, 41 rows and measured/derived binary values verified; decoy/adduct pinned and supplemental sources, fixture and packaged integer-oracle hashes verified; three four-cycle RNG checksums/permutations and the 10000th-word standard literal regenerated; Tagger fourteen pinned source hashes, two fixtures, all six count rows and 120 membership rows verified directly at original source lines; libm and serde_json archive checksums match Cargo lock; RNA 23 source hashes, four fixture hashes, original resource bytes and generated projection/generator/element hashes verified, with 15 formulas, 23 mass references, ten slices and 378 ordered registry rows",
+      "scope": "Retained earlier check. Historical evidence before the RNA processing increment; see rna_processing_ checks for the current matrix."
+    },
+    {
+      "name": "rna_processing_full_current",
+      "command": "cargo test --locked --offline --all-features --all-targets",
+      "exit_code": 0,
+      "passed_test_instances": 993,
+      "duration_seconds": 542.22
+    },
+    {
+      "name": "rna_processing_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --lib --test rna_processing_reference --test rna_processing_workflow --test rnase --test nucleic_acid_spectrum_generator --test modified_na_sequence_generator --test na_sequence --test rna_reference --test rna_workflow --test ribonucleotides",
+      "exit_code": 0,
+      "passed_test_instances": 129,
+      "duration_seconds": 44.43
+    },
+    {
+      "name": "rna_processing_core_current",
+      "command": "cargo test --locked --offline --no-default-features --lib --test rna_processing_reference --test rna_processing_workflow --test rnase --test nucleic_acid_spectrum_generator --test modified_na_sequence_generator --test na_sequence --test rna_reference --test rna_workflow --test ribonucleotides",
+      "exit_code": 0,
+      "passed_test_instances": 124,
+      "duration_seconds": 39.47
+    },
+    {
+      "name": "rna_processing_core_minimum",
+      "command": "cargo +1.85.0 test --locked --offline --no-default-features --lib --test rna_processing_reference --test rna_processing_workflow --test rnase --test nucleic_acid_spectrum_generator --test modified_na_sequence_generator --test na_sequence --test rna_reference --test rna_workflow --test ribonucleotides",
+      "exit_code": 0,
+      "passed_test_instances": 124,
+      "duration_seconds": 36.5
+    },
+    {
+      "name": "rna_processing_doctests",
+      "command": "cargo test --locked --offline --all-features --doc",
+      "exit_code": 0,
+      "passed_test_instances": 3,
+      "duration_seconds": 5.15
+    },
+    {
+      "name": "rna_processing_minimum_doctests",
+      "command": "cargo +1.85.0 test --locked --offline --all-features --doc",
+      "exit_code": 0,
+      "passed_test_instances": 3,
+      "duration_seconds": 6.11
+    },
+    {
+      "name": "rna_processing_clippy",
+      "command": "cargo clippy --locked --offline --all-features --all-targets -- -D warnings",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 47.73
+    },
+    {
+      "name": "rna_processing_minimum_clippy",
+      "command": "cargo +1.85.0 clippy --locked --offline --no-default-features --all-targets -- -D warnings",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 48.45
+    },
+    {
+      "name": "rna_processing_rustdoc",
+      "command": "cargo doc --locked --offline --all-features --no-deps",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 1.85,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rna_processing_example",
+      "command": "cargo run --locked --offline --example process_rna",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 1.26
+    },
+    {
+      "name": "rna_processing_format",
+      "command": "cargo fmt --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 0.68
+    },
+    {
+      "name": "rna_processing_rna_generator",
+      "command": "python3 tools/generate_ribonucleotides.py --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 0.06
+    },
+    {
+      "name": "rna_processing_enzyme_generator",
+      "command": "python3 tools/generate_rnases.py --check",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 0.05
+    },
+    {
+      "name": "rna_processing_package_manifest",
+      "command": "cargo package --locked --offline --list --allow-dirty",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "duration_seconds": 2.2,
+      "notes": "428 package files including the RNA processing modules, original enzyme XML, projection/generator, tests, provenance, support/review and example; local reference and build outputs excluded. File-list check only: no package build or publication. MODOMICS redistribution terms remain a separate release boundary."
+    },
+    {
+      "name": "rna_processing_provenance_and_document_links",
+      "command": "Python SHA-256, source-line/IEEE fixtures, RNA/enzyme resources/projections and Markdown-link audit; retained scientific fixtures and packaged RNG oracle checked",
+      "exit_code": 0,
+      "passed_test_instances": 0,
+      "notes": "Verified14 RNA enzyme records\nRNA enzyme XML, projection, generator, reference and license hashes verified; 14 records / 84 field slots agree exactly.\nRNA processing: 42 additional hash checks; 28 source entries, seven new fixtures / 6256 rows, one reused fixture / 378 rows; all 6048 predicate results independently recalculated.\nSource literals: 18 ion arrays / 132 binary64 values and exact source lines (126 compared values, six excluded full-length tails), 18 parameter states, three neutral masses and unapplied multi-spectrum parameters verified; 12 digestion calls / 38 outputs and eight modification outputs / four count assertions (7, 6, 27, 432) match pinned source lines.\n421 source/fixture hashes and 413 local documentation links verified; 429 EMG samples match literal source arrays and IEEE bits; iterative 106-sample/16-seed/14-case fixtures retain centroid/intensity bits and raw-region sums; both 2526-point mean-noise fixtures match source bytes; modification-generation fixture counts match source manifest (including 26/71/199 variants); 148 XLMOD mass literals/bits and pinned ontology bytes verified; fine isotope 44-count/14-fructose/6-bromine fixtures and streaming source/reused fixtures, precursor purity sources/five fixtures and theoretical-spectrum source hashes verified; peptide-property sixteen source hashes, five fixture hashes, 633 rows and binary64 values verified; spectrum annotation eighteen source hashes, three fixture hashes, 41 rows and measured/derived binary values verified; decoy/adduct pinned and supplemental sources, fixture and packaged integer-oracle hashes verified; three four-cycle RNG checksums/permutations and the 10000th-word standard literal regenerated; Tagger fourteen pinned source hashes, two fixtures, all six count rows and 120 membership rows verified directly at original source lines; libm and serde_json archive checksums match Cargo lock; RNA 23 source hashes, four fixture hashes, original resource bytes and generated projection/generator/element hashes verified, with 15 formulas, 23 mass references, ten slices and 378 ordered registry rows"
+    }
+  ],
+  "cpp_built": false,
+  "cpp_runtime_differential_tests": false,
+  "remote_ci_executed": false,
+  "metadata_constructor_review": {
+    "description": "During the matrix, precursor_in_ms2 was corrected to typed integer 0/1 and fragment_mass_tolerance_ppm to string projection 0/1 after tracing C++ DataValue constructor selection. Both compiler all-feature annotation suites were rerun against the correction; optional-feature matrix, lint, documentation and example checks completed after it.",
+    "affected_test_instances_per_compiler": 21,
+    "cpp_executed": false
+  },
+  "coverage": {
+    "strategy": "Complete all-feature/all-target 993-test suite on Rust 1.96; focused all-feature RNA and unit tests on Rust 1.85; focused no-default-feature RNA and unit tests on both compilers. Complete pre-increment 938-test runs on both compilers retained as historical evidence.",
+    "integration_tests": 947,
+    "integration_suites": 110,
+    "unit_tests": 46,
+    "distinct_tests": 993,
+    "doctests": 3,
+    "package_files": 428
+  },
+  "rna_dependency_test_adjustment": {
+    "description": "The optional serde_json dependency added cross-type PartialEq implementations, making two old assert_eq!(integer_slice, []) statements ambiguous. They now use equivalent is_empty() assertions. No scientific expected values changed.",
+    "file": "tests/averagine_deisotoping.rs"
+  },
+  "rna_reference_literal_lint": {
+    "description": "Added a narrowly scoped Clippy excessive_precision allowance to the independently sourced carbon-13 mass literal13.003355000000001. Literal value and all scientific expectations retained; all three RNA workflows rerun on both compilers after this test-only annotation.",
+    "source": "src/openms/source/CHEMISTRY/ElementDB.cpp:160",
+    "file": "tests/rna_workflow.rs"
+  },
+  "rna_processing_shared_formula_budget": {
+    "description": "The private sequence formula helper now accepts shared counters for spectrum precursor generation while preserving public formula/mass arithmetic and order. Four sequence-private tests and one spectrum-private regression verify cumulative work/allocation, failure counters, original mass bits and unchanged inputs. All RNA suites and all unit tests pass on both compilers.",
+    "public_api_behavior_changed": false,
+    "scientific_expected_values_changed": false
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "files": [
+    {
+      "path": "resources/rna/Modomics.json",
+      "source": "share/OpenMS/CHEMISTRY/Modomics.json",
+      "sha256": "2c98d258f2b88c126e88a06e080a0652053b77bc9d434ab8727c984dfa8436fc",
+      "bytes": 217239
+    },
+    {
+      "path": "resources/rna/Modomics.tsv",
+      "source": "share/OpenMS/CHEMISTRY/Modomics.tsv",
+      "sha256": "ed458688c4cfdf1ea6eb4c618613befee411019f3b7665838685ae3dea411e76",
+      "bytes": 13774
+    },
+    {
+      "path": "resources/rna/Custom_RNA_modifications.tsv",
+      "source": "share/OpenMS/CHEMISTRY/Custom_RNA_modifications.tsv",
+      "sha256": "155d7ff5c70c9c01ffd0d5a32fe7c4e200adc10ae5ed6d516b07ec8242faa23d",
+      "bytes": 4442
+    }
+  ],
+  "projection": {
+    "path": "resources/rna/ribonucleotides.rs",
+    "sha256": "aa1eaa5dc2557316ada91bfae6900f28259d2ca5ceb46a4b5a617586b2c7ed11",
+    "entries": 378,
+    "unique_codes": 375,
+    "json_entries": 333,
+    "custom_entries": 45,
+    "empty_json_codes": 91,
+    "order": "Lexical JSON object key order, followed by physical custom TSV order. Duplicates retained; last code wins lookup."
+  },
+  "generator": {
+    "path": "tools/generate_ribonucleotides.py",
+    "sha256": "597123f75d536dac6deb591215a988faa77b2c6b564e2d8d8f44cbcf39e32ddc",
+    "formula_mass_table": "src/chemistry/elements.rs",
+    "formula_mass_table_sha256": "bb62e13788275500f700c03606b22f3589bc8eae0f80e80e6f83acdfd63843d8"
+  },
+  "license_status": {
+    "software": "BSD-3-Clause",
+    "modomics": "Separate data terms; legacy upstream notice says Data used with permission. General redistribution terms for the JSON and transformed records have not been established. Local unpublished analysis/validation snapshot. See README.md.",
+    "terms_checked_on": "2026-09-10",
+    "primary_references": [
+      "https://genesilico.pl/modomics/download",
+      "https://academic.oup.com/nar/article/50/D1/D231/6454677"
+    ]
+  }
+}
