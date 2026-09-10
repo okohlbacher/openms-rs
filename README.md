@@ -36,7 +36,7 @@ The [chromatogram picker](docs/CHROMATOGRAM_PICKING_SUPPORT.md) preserves source
 
 The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds and reports exact input regions alongside the source’s rounded centroid and boundary arrays. [Window filtering](docs/WINDOW_MOWER_SUPPORT.md) supports sliding and jumping windows; the [iterative mean noise estimator](docs/MEAN_NOISE_SUPPORT.md) preserves the source’s three-pass clipping conventions.
 
-Identification-graph match groups, parent groups and legacy conversion; IsoSpec layered traversal; ProForma; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented.
+IsoSpec layered traversal; ProForma; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups and the bounded legacy sequence/evidence conversion bridge are implemented, while graph persistence and full cleanup remain outstanding.
 
 ## Use locally
 
