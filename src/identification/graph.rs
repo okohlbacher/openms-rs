@@ -6,7 +6,8 @@
 //!
 //! IDs belong to one graph generation. Registration preserves source semantic
 //! keys, while references and equal-key comparisons use deterministic value order.
-//! Referential cleanup, persistence and full legacy conversion remain separate work.
+//! Referential cleanup preserves IDs of surviving records; persistence and full
+//! legacy conversion remain separate work.
 
 use crate::chemistry::{
     AASequence, AdductInfo, EmpiricalFormula, ModificationsDB, NAFragmentType, NASequence,
@@ -26,6 +27,8 @@ mod groups;
 pub use groups::*;
 mod converter;
 pub use converter::IdentificationDataConverter;
+mod cleanup;
+pub use cleanup::{CleanupOptions, CleanupReport};
 
 pub const MAX_GRAPH_RECORDS: usize = 100_000;
 pub const MAX_GRAPH_EDGES: usize = 1_000_000;
@@ -139,20 +142,24 @@ struct Size {
     edges: usize,
 }
 
+const TABLE_OVERHEAD: usize = 1280; // two sparse map roots/nodes and sorted slot index
+
 /// Slot order is stable; the separate sorted index avoids cloning chemical keys.
 #[derive(Clone, Debug)]
 struct Table<T> {
-    values: Vec<T>,
+    values: BTreeMap<usize, Box<T>>,
     order: Vec<usize>,
-    sizes: Vec<Size>,
+    sizes: BTreeMap<usize, Size>,
+    next_slot: usize,
     max_bytes: usize,
 }
 impl<T> Default for Table<T> {
     fn default() -> Self {
         Self {
-            values: Vec::new(),
+            values: BTreeMap::new(),
             order: Vec::new(),
-            sizes: Vec::new(),
+            sizes: BTreeMap::new(),
+            next_slot: 0,
             max_bytes: 0,
         }
     }
@@ -169,30 +176,41 @@ impl<T> Table<T> {
         work.consume(mul(add(bytes, self.max_bytes)?, comparisons)?)?;
         Ok(self
             .order
-            .binary_search_by(|&slot| cmp(&self.values[slot], value)))
+            .binary_search_by(|&slot| cmp(&self.values[&slot], value)))
     }
     fn stage_insert(&mut self, work: &mut GraphWork) -> Result<()> {
+        self.next_slot
+            .checked_add(1)
+            .ok_or_else(|| invalid("identification graph slot IDs exhausted"))?;
         let n = add(self.values.len(), 1)?;
         work.consume(n)?;
-        reserve(&mut self.values, n, work)?;
-        reserve(&mut self.order, n, work)?;
-        reserve(&mut self.sizes, n, work)
+        // Sparse slots release deleted payloads without reusing externally held IDs.
+        // Charge both map roots/nodes conservatively, including the value slot.
+        work.allocation(add(TABLE_OVERHEAD, std::mem::size_of::<T>())?)?;
+        reserve(&mut self.order, n, work)
     }
     fn insert(&mut self, position: usize, value: T, size: Size) -> usize {
-        let slot = self.values.len();
-        self.values.push(value);
-        self.sizes.push(size);
+        let slot = self.next_slot;
+        self.next_slot += 1; // checked by stage_insert, with no intervening insertion
+        self.values.insert(slot, Box::new(value));
+        self.sizes.insert(slot, size);
         self.order.insert(position, slot);
-        self.max_bytes = self.max_bytes.max(size.bytes);
+        self.max_bytes = self
+            .max_bytes
+            .max(size.bytes.saturating_sub(TABLE_OVERHEAD));
         slot
     }
     fn replace(&mut self, slot: usize, value: T, size: Size) {
-        self.values[slot] = value;
-        self.sizes[slot] = size;
-        self.max_bytes = self.max_bytes.max(size.bytes);
+        **self.values.get_mut(&slot).expect("live replacement slot") = value;
+        self.sizes.insert(slot, size);
+        self.max_bytes = self
+            .max_bytes
+            .max(size.bytes.saturating_sub(TABLE_OVERHEAD));
     }
     fn iter(&self) -> impl Iterator<Item = (usize, &T)> {
-        self.order.iter().map(|&slot| (slot, &self.values[slot]))
+        self.order
+            .iter()
+            .map(|&slot| (slot, self.values[&slot].as_ref()))
     }
 }
 
@@ -381,7 +399,7 @@ macro_rules! access {
         impl IdentificationData {
             pub fn $get(&self,id:$id)->Result<&$kind> {
                 if id.owner!=self.owner { return Err(invalid("foreign or stale identification graph ID")); }
-                self.$table.values.get(id.slot).ok_or_else(||invalid("invalid identification graph slot"))
+                self.$table.values.get(&id.slot).map(AsRef::as_ref).ok_or_else(||invalid("invalid identification graph slot"))
             }
             pub fn $iter(&self)->impl Iterator<Item=($id,&$kind)> {
                 self.$table.iter().map(|(slot,value)|($id{owner:self.owner,slot},value))
@@ -425,7 +443,7 @@ fn sequence_edges(
 }
 fn record_size(bytes: usize, edges: usize) -> Result<Size> {
     Ok(Size {
-        bytes: add(bytes, 3 * std::mem::size_of::<usize>())?,
+        bytes: add(bytes, TABLE_OVERHEAD)?,
         edges,
     })
 }
@@ -486,15 +504,15 @@ impl IdentificationData {
             let (slot, size, total) = match found {
                 Ok(position) => {
                     let slot = this.inputs.order[position];
-                    work.copy(this.inputs.sizes[slot].bytes)?;
-                    let mut merged = this.inputs.values[slot].clone();
+                    work.copy(this.inputs.sizes[&slot].bytes)?;
+                    let mut merged = (this.inputs.values[&slot].as_ref()).clone();
                     merged.merge_with_work(&value, work)?;
                     value = merged;
                     let size = record_size(value.measure(work)?, 0)?;
                     (
                         slot,
                         size,
-                        this.checked_size(this.inputs.sizes[slot], size, false)?,
+                        this.checked_size(this.inputs.sizes[&slot], size, false)?,
                     )
                 }
                 Err(position) => {
@@ -526,7 +544,7 @@ impl IdentificationData {
             let slot = match found {
                 Ok(position) => {
                     let slot = this.scores.order[position];
-                    if this.scores.values[slot].higher_better != value.higher_better {
+                    if this.scores.values[&slot].higher_better != value.higher_better {
                         return Err(invalid(
                             "score type already exists with opposite orientation",
                         ));
@@ -621,7 +639,7 @@ impl IdentificationData {
                 .locate(&value, bytes, ProcessingStep::key_cmp, work)?;
             let slot = match found {
                 Ok(position) => this.steps.order[position],
-                Err(_) => this.steps.values.len(),
+                Err(_) => this.steps.next_slot,
             };
             let id = ProcessingStepId {
                 owner: this.owner,
@@ -674,11 +692,11 @@ impl IdentificationData {
                 .locate(&value, bytes, ParentSequence::key_cmp, work)?;
             let old = if let Ok(position) = found {
                 let slot = this.parents.order[position];
-                work.copy(this.parents.sizes[slot].bytes)?;
-                let mut merged = this.parents.values[slot].clone();
+                work.copy(this.parents.sizes[&slot].bytes)?;
+                let mut merged = (this.parents.values[&slot].as_ref()).clone();
                 merged.merge_with_work(&value, work)?;
                 value = merged;
-                this.parents.sizes[slot]
+                this.parents.sizes[&slot]
             } else {
                 Size::default()
             };
@@ -724,11 +742,11 @@ macro_rules! register_sequence {
                     )?;
                     let old = if let Ok(position) = found {
                         let slot = this.$table.order[position];
-                        work.copy(this.$table.sizes[slot].bytes)?;
-                        let mut merged = this.$table.values[slot].clone();
+                        work.copy(this.$table.sizes[&slot].bytes)?;
+                        let mut merged = this.$table.values[&slot].as_ref().clone();
                         merged.merge_with_work(&value, work)?;
                         value = merged;
-                        this.$table.sizes[slot]
+                        this.$table.sizes[&slot]
                     } else {
                         Size::default()
                     };
@@ -840,8 +858,8 @@ macro_rules! update_result {
                 self.operation(|this, work| {
                     this.$getter(id)?;
                     this.score_type(score)?;
-                    work.copy(this.$table.sizes[id.slot].bytes)?;
-                    let mut record = this.$table.values[id.slot].clone();
+                    work.copy(this.$table.sizes[&id.slot].bytes)?;
+                    let mut record = this.$table.values[&id.slot].as_ref().clone();
                     let step = record
                         .result
                         .steps_and_scores
@@ -855,8 +873,8 @@ macro_rules! update_result {
                         work,
                     )?;
                     let bytes = record.measure(work)?;
-                    let old = this.$table.sizes[id.slot];
-                    let old_result = scored_edges(&this.$table.values[id.slot].result)?;
+                    let old = this.$table.sizes[&id.slot];
+                    let old_result = scored_edges(&this.$table.values[&id.slot].result)?;
                     let size = record_size(
                         bytes,
                         add(old.edges - old_result, scored_edges(&record.result)?)?,
@@ -875,10 +893,10 @@ macro_rules! update_result {
                         steps_and_scores: Vec::new(),
                     };
                     incoming.measure(work)?;
-                    work.copy(this.$table.sizes[id.slot].bytes)?;
-                    let mut record = this.$table.values[id.slot].clone();
+                    work.copy(this.$table.sizes[&id.slot].bytes)?;
+                    let mut record = this.$table.values[&id.slot].as_ref().clone();
                     record.result.merge_with_work(&incoming, work)?;
-                    let old = this.$table.sizes[id.slot];
+                    let old = this.$table.sizes[&id.slot];
                     let size = record_size(record.measure(work)?, old.edges)?;
                     let total = this.checked_size(old, size, false)?;
                     this.$table.replace(id.slot, record, size);
@@ -1186,15 +1204,19 @@ impl IdentificationData {
     ) -> Result<()> {
         self.operation(|this, work| {
             work.consume(this.parents.values.len())?;
-            work.allocation(mul(
-                this.parents.values.len(),
-                std::mem::size_of::<Coverage>(),
+            work.allocation(add(
+                512,
+                mul(
+                    this.parents.values.len(),
+                    add(128, std::mem::size_of::<Coverage>())?,
+                )?,
             )?)?;
-            let mut coverage = Vec::new();
-            coverage
-                .try_reserve_exact(this.parents.values.len())
-                .map_err(|_| invalid("coverage allocation failed"))?;
-            coverage.resize_with(this.parents.values.len(), Coverage::default);
+            let mut coverage: BTreeMap<usize, Coverage> = this
+                .parents
+                .values
+                .keys()
+                .map(|&slot| (slot, Coverage::default()))
+                .collect();
             for (_, molecule) in this.peptides() {
                 this.coverage_matches(
                     &molecule.parent_matches,
@@ -1230,7 +1252,7 @@ impl IdentificationData {
             fractions
                 .try_reserve_exact(coverage.len())
                 .map_err(|_| invalid("coverage allocation failed"))?;
-            for mut parent in coverage {
+            for (_, mut parent) in coverage {
                 let n = parent.intervals.len();
                 let comparisons = usize::BITS as usize - n.leading_zeros() as usize + 1;
                 work.consume(mul(mul(n, comparisons)?, 8)?)?;
@@ -1258,7 +1280,7 @@ impl IdentificationData {
                     covered as f64 / parent.length as f64
                 });
             }
-            for (parent, fraction) in this.parents.values.iter_mut().zip(fractions) {
+            for (parent, fraction) in this.parents.values.values_mut().zip(fractions) {
                 parent.coverage = fraction;
             }
             Ok(())
@@ -1270,7 +1292,7 @@ impl IdentificationData {
         matches: &ParentMatches,
         molecule_length: usize,
         rna: bool,
-        coverage: &mut [Coverage],
+        coverage: &mut BTreeMap<usize, Coverage>,
         peptides: &ModificationsDB,
         oligos: &RibonucleotideDB,
         work: &mut GraphWork,
@@ -1278,7 +1300,9 @@ impl IdentificationData {
         work.consume(matches.len())?;
         for (&id, positions) in matches {
             let parent = self.parent(id)?;
-            let data = &mut coverage[id.slot];
+            let data = coverage
+                .get_mut(&id.slot)
+                .expect("validated parent scratch");
             if data.length == 0 {
                 data.length = if rna {
                     NASequence::parse_with_budget(
@@ -1364,11 +1388,11 @@ impl IdentificationData {
                 .locate(&value, bytes, Observation::key_cmp, work)?;
             let old = if let Ok(position) = found {
                 let slot = this.observations.order[position];
-                work.copy(this.observations.sizes[slot].bytes)?;
-                let mut merged = this.observations.values[slot].clone();
+                work.copy(this.observations.sizes[&slot].bytes)?;
+                let mut merged = (this.observations.values[&slot].as_ref()).clone();
                 merged.merge_with_work(&value, work)?;
                 value = merged;
-                this.observations.sizes[slot]
+                this.observations.sizes[&slot]
             } else {
                 Size::default()
             };
@@ -1405,11 +1429,11 @@ impl IdentificationData {
                 .locate(&value, bytes, IdentifiedCompound::key_cmp, work)?;
             let old = if let Ok(position) = found {
                 let slot = this.compounds.order[position];
-                work.copy(this.compounds.sizes[slot].bytes)?;
-                let mut merged = this.compounds.values[slot].clone();
+                work.copy(this.compounds.sizes[&slot].bytes)?;
+                let mut merged = (this.compounds.values[&slot].as_ref()).clone();
                 merged.merge_with_work(&value, work)?;
                 value = merged;
-                this.compounds.sizes[slot]
+                this.compounds.sizes[&slot]
             } else {
                 Size::default()
             };
@@ -1453,7 +1477,11 @@ impl IdentificationData {
                     "observation coordinates must be finite when present",
                 ));
             }
-            let observation = &mut this.observations.values[id.slot];
+            let observation = this
+                .observations
+                .values
+                .get_mut(&id.slot)
+                .expect("validated observation");
             observation.rt = rt;
             observation.mz = mz;
             Ok(())
@@ -1472,12 +1500,12 @@ impl IdentificationData {
                 steps_and_scores: Vec::new(),
             };
             let bytes = incoming.measure(work)?;
-            work.copy(add(this.observations.sizes[id.slot].bytes, bytes)?)?;
-            let mut record = this.observations.values[id.slot].clone();
+            work.copy(add(this.observations.sizes[&id.slot].bytes, bytes)?)?;
+            let mut record = (this.observations.values[&id.slot].as_ref()).clone();
             // One bounded key comparison and insertion; existing coordinates stay intact.
             work.consume(mul(add(record.metadata.len(), 1)?, bytes)?)?;
             record.metadata.extend(incoming.metadata);
-            let old = this.observations.sizes[id.slot];
+            let old = this.observations.sizes[&id.slot];
             let size = record_size(record.measure(work)?, old.edges)?;
             let total = this.checked_size(old, size, false)?;
             this.observations.replace(id.slot, record, size);
@@ -1576,11 +1604,11 @@ impl IdentificationData {
                     .locate(&value, bytes, ObservationMatch::key_cmp, work)?;
             let old = if let Ok(position) = found {
                 let slot = this.observation_matches.order[position];
-                work.copy(this.observation_matches.sizes[slot].bytes)?;
-                let mut merged = this.observation_matches.values[slot].clone();
+                work.copy(this.observation_matches.sizes[&slot].bytes)?;
+                let mut merged = (this.observation_matches.values[&slot].as_ref()).clone();
                 merged.merge_with_work(&value, work)?;
                 value = merged;
-                this.observation_matches.sizes[slot]
+                this.observation_matches.sizes[&slot]
             } else {
                 Size::default()
             };
@@ -1617,11 +1645,11 @@ impl IdentificationData {
         let before = self
             .observation_matches
             .order
-            .partition_point(|&slot| self.observation_matches.values[slot].observation < id);
+            .partition_point(|&slot| self.observation_matches.values[&slot].observation < id);
         let after = self
             .observation_matches
             .order
-            .partition_point(|&slot| self.observation_matches.values[slot].observation <= id);
+            .partition_point(|&slot| self.observation_matches.values[&slot].observation <= id);
         Ok(self.observation_matches.order[before..after]
             .iter()
             .map(|&slot| {
@@ -1630,7 +1658,7 @@ impl IdentificationData {
                         owner: self.owner,
                         slot,
                     },
-                    &self.observation_matches.values[slot],
+                    self.observation_matches.values[&slot].as_ref(),
                 )
             }))
     }
@@ -1707,17 +1735,20 @@ impl IdentificationData {
     ) -> Result<()> {
         self.operation(|this, work| {
             this.observation_match(id)?;
-            let old = this.observation_matches.sizes[id.slot];
+            let old = this.observation_matches.sizes[&id.slot];
             work.copy(old.bytes)?;
             work.consume(mul(
                 key.len(),
-                this.observation_matches.values[id.slot]
+                this.observation_matches
+                    .values
+                    .get(&id.slot)
+                    .expect("validated match")
                     .result
                     .metadata
                     .len()
                     .saturating_add(1),
             )?)?;
-            let mut value = this.observation_matches.values[id.slot].clone();
+            let mut value = (this.observation_matches.values[&id.slot].as_ref()).clone();
             value.result.metadata.remove(key);
             let size = record_size(value.measure(work)?, old.edges)?;
             let total = this.checked_size(old, size, false)?;
@@ -1922,11 +1953,11 @@ impl IdentificationData {
             )?;
             let old = if let Ok(position) = found {
                 let slot = this.observation_match_groups.order[position];
-                work.copy(this.observation_match_groups.sizes[slot].bytes)?;
-                let mut merged = this.observation_match_groups.values[slot].clone();
+                work.copy(this.observation_match_groups.sizes[&slot].bytes)?;
+                let mut merged = (this.observation_match_groups.values[&slot].as_ref()).clone();
                 merged.merge_with_work(&value, work)?;
                 value = merged;
-                this.observation_match_groups.sizes[slot]
+                this.observation_match_groups.sizes[&slot]
             } else {
                 Size::default()
             };

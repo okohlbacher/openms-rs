@@ -424,7 +424,10 @@
       "Source inclusive coverage and registry-aware RNA/peptide parent parsing",
       "Both RNase IdentificationData digestion operations with whole-call rollback",
       "Typed peptide fragment formula dispatch",
-      "Observation, compound, adduct, molecule and observation-match records, queries and translated graph ownership"
+      "Observation, compound, adduct, molecule and observation-match records, queries and translated graph ownership",
+      "Parent and observation-match groups with translated graph ownership",
+      "Legacy sequence import and parent-evidence export",
+      "Referential cleanup with all five source options and conditional predicate filtering; sparse stable IDs"
     ],
     "native_boundaries": [
       "Deterministic owned IDs replace pointer ordering; foreign/stale IDs rejected",
@@ -433,9 +436,30 @@
       "Atomic failure preserves existing records; resource ceilings bound cumulative work and logical payload"
     ],
     "remaining": [
-      "Observation match groups and parent groups",
-      "Cleanup/filtering and graph persistence",
-      "Legacy IdentificationDataConverter"
-    ]
-  }
+      "Graph persistence",
+      "Remaining legacy IdentificationDataConverter APIs"
+    ],
+    "cleanup_provenance": "tests/data/identification_cleanup_provenance.json"
+  },
+  "file_handling": {
+    "reference_provenance": "tests/data/file_handling_provenance.json",
+    "support": "docs/FILE_HANDLING_SUPPORT.md",
+    "text_peak_lists_provenance": "tests/data/text_peak_lists_provenance.json",
+    "mzml_parameter_groups_provenance": "tests/data/mzml_param_groups_provenance.json"
+  },
+  "current_sdk_reference_manifests": [
+    "tests/data/identification_converter_provenance.json",
+    "tests/data/identification_groups_provenance.json",
+    "tests/data/identification_cleanup_provenance.json",
+    "tests/data/file_handling_provenance.json",
+    "tests/data/text_peak_lists_provenance.json",
+    "tests/data/mzml_param_groups_provenance.json",
+    "tests/data/native_equivalents_provenance.json",
+    "tests/data/text_csv_provenance.json",
+    "tests/data/param_provenance.json",
+    "tests/data/param_value_provenance.json",
+    "tests/data/paramxml_provenance.json",
+    "tests/data/list_utils_provenance.json",
+    "tests/data/default_param_handler_provenance.json"
+  ]
 }

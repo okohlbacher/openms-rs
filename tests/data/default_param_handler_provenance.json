@@ -1,0 +1,86 @@
+{
+  "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "method": "Header, implementation and class-test inspection; no C++ execution. Literal source expectations are distinguished from native atomicity, callback and resource regressions.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+      "sha256": "f51df94cda9975bf4b2e29b974a82a4e754a9aaf1f14b880021971fcc968e9b4",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/DATASTRUCTURES/DefaultParamHandler.h"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
+      "sha256": "20a4f3386a4fd3b9a203ed36008d7dccb35d2b7c5f0e42b556b4bc8995eecb53",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DefaultParamHandler_test.cpp",
+      "sha256": "ca5212b206178f3ea34a476b006aa970fdb847d3ca8dbd9ef23c78574e59e24f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/DefaultParamHandler_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/Param.h",
+      "sha256": "41e00ce7297ebb0bb80ca847431ead42baad5f6ba29df03f4fcbdb0c377dcfc8",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/DATASTRUCTURES/Param.h"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/Param.cpp",
+      "sha256": "5bfd393df12f6cc6d3238f3a31cdf33e72aeead1ec6831666ac8306889aec407",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/DATASTRUCTURES/Param.cpp"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/DATASTRUCTURES/DataValue.cpp"
+    }
+  ],
+  "tests": "tests/default_param_handler.rs",
+  "support": "docs/DEFAULT_PARAM_HANDLER_SUPPORT.md",
+  "source_literal_ranges": [
+    {
+      "path": "src/tests/class_tests/openms/source/DefaultParamHandler_test.cpp",
+      "first_line": 25,
+      "last_line": 67,
+      "purpose": "Derived handler defaults int=0/string=default, ignore subsection, typed string update."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DefaultParamHandler_test.cpp",
+      "first_line": 75,
+      "last_line": 170,
+      "purpose": "Name/default/subsection access, full and partial updates, equality and copy."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DefaultParamHandler_test.cpp",
+      "first_line": 172,
+      "last_line": 192,
+      "purpose": "Leaf metadata names and automatic prefix colon; bli=4711."
+    }
+  ],
+  "source_behavior_ranges": [
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
+      "first_line": 44,
+      "last_line": 71,
+      "purpose": "Default completion, registered subsection validation exclusion, warning switches and updateMembers lifecycle."
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
+      "first_line": 73,
+      "last_line": 95,
+      "purpose": "First-only missing-description warning; setDefaults preserves supplied current values; no restriction validation."
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
+      "first_line": 125,
+      "last_line": 139,
+      "purpose": "Metadata leaf names, prefix handling and source iteration collision order."
+    }
+  ],
+  "native_boundaries": [
+    "Validation and pure returned-state callback complete before handler commit, correcting source assignment-before-validation desynchronization.",
+    "Callbacks may return owned typed settings; side effects external to the callback cannot be rolled back. No inheritance/ABI or stored callback emulation.",
+    "Warnings returned as owned strings instead of writing process-global logs.",
+    "Metadata export rejects nonfinite floats because native MetaValue is finite-only; existing metadata is unchanged on every checked error.",
+    "Source equality available explicitly; Rust PartialEq retains full owned Param equality.",
+    "Shared 50,000,000 work / 64 MiB logical allocation ceilings apply across each operation, including default fill, validation, traversal, metadata and staged copies; 100,000 subsections cap. Ordinary Rust Clone is unchecked."
+  ]
+}

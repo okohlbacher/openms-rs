@@ -194,6 +194,8 @@ checked source keys. Match queries include per-observation ranges and best-score
 selection. Group records, source duplicate/history rules and translated copies
 are described in [group support](IDENTIFICATION_GROUPS_SUPPORT.md).
 
-Referential deletion/full cleanup and graph persistence remain unimplemented.
+Referential deletion and all five source cleanup switches are implemented with
+stable surviving IDs; see [cleanup support](IDENTIFICATION_CLEANUP_SUPPORT.md).
+Graph persistence remains unimplemented.
 The bounded sequence/evidence conversion bridge is implemented separately; full
 source conversion coverage and the complete source graph are not claimed.

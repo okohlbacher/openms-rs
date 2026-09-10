@@ -38,6 +38,20 @@ def verify(source=None):
     graph_refs = json.loads((ROOT / graph["reference_provenance"]).read_text())
     assert graph_refs["revision"] == revision
     graph_sources = graph_refs["sources"]
+    current_sources = []
+    for manifest in provenance.get("current_sdk_reference_manifests", []):
+        data = json.loads((ROOT / manifest).read_text())
+        pins = [data[key] for key in ["revision", "source_revision", "reference_revision", "commit"] if key in data]
+        assert pins and all(pin == revision for pin in pins), manifest
+        current_sources.extend(data.get("sources", data.get("source_files", [])))
+        for item in [*data.get("fixtures", []), *data.get("files", [])]:
+            path = Path(item["path"])
+            assert not path.is_absolute() and ".." not in path.parts, item["path"]
+            assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == item["sha256"], item["path"]
+    for item in current_sources:
+        path = Path(item["path"])
+        assert not path.is_absolute() and ".." not in path.parts, item["path"]
+        assert re.fullmatch(r"[0-9a-f]{64}", item["sha256"])
     assert len(graph_sources) == len({item["path"] for item in graph_sources})
     for item in graph_sources:
         assert scientific_path(item["path"]) or item["path"].startswith("src/tests/")
@@ -89,12 +103,12 @@ def verify(source=None):
         tracked = git("ls-files").splitlines()
         assert {path for path in tracked if scientific_path(path)} == set(by_path)
         verified = set()
-        for item in [*files, *refs, *record["registration_evidence"], *graph_sources]:
+        for item in [*files, *refs, *record["registration_evidence"], *graph_sources, *current_sources]:
             path = source / item["path"]
             assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"], item["path"]
             verified.add(item["path"])
         print(f"Verified {len(verified)} distinct current source/registration/reference files at {revision}.")
-    print(f"SDK {target['version']} target, {len(files)} scientific files, {len(refs)} historical reference paths and {len(graph_sources)} graph source references agree.")
+    print(f"SDK {target['version']} target, {len(files)} scientific files, {len(refs)} historical reference paths, {len(graph_sources)} graph and {len(current_sources)} added source references agree.")
 
 
 if __name__ == "__main__":

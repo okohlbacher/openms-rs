@@ -1,0 +1,39 @@
+{
+  "target_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/StandardTypes.h",
+      "sha256": "434a332d5ff5388768e66b463b6e32814d6f44990d8fa1b998041259c3b4047a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/PeptideIdentificationList.h",
+      "sha256": "8ec4241c46dec5448fdec64301e2fa98c529f8ac9b9de39ac03f8b8845084153"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ExposedVector.h",
+      "sha256": "2ba0662fe817fe9a1cc734da68cd823d033b45025a3f32b4cfdf343b6dcf048f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/TypeAliases.h",
+      "sha256": "2bd2e1f70d2909c1544c23cd15f334adc35adfda69b6f527f45a190b7867a261"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+      "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConstRefVector.h",
+      "sha256": "7e8691d681baab257ab7f591eb04cb058881f9e0c1bd1d13f543976c107168b8"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/StandardTypes_test.cpp",
+      "sha256": "5daffef668fe54e6bce15348745502908830e253567005b4390fe7fd2d522c73"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/PeptideIdentificationList_test.cpp",
+      "sha256": "6efa102bdecb74150b7523448ec454627ee2f8fe55db41e459eb677e8b4e0e45"
+    }
+  ],
+  "validation": "Read every declaration in all six headers and inspected existing native implementations/tests; no production changes or Cargo/C++ execution. native_equivalent entries identify idiomatic container capability with explicit representation/platform boundaries; partial classes remain partial."
+}

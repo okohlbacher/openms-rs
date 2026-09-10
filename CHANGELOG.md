@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.1.0 — Ongoing local Rust port
+## 0.1.0 — Ongoing native Rust SDK port
+
+- Add native parameter values, hierarchical parameters, defaults/restrictions/update/copy/merge, forward traces and both command-line parsers, with source quirks and transactional errors documented.
+- Add default-parameter lifecycle handling, pure typed-state callbacks, source warning policies and atomic leaf-key metadata export.
+- Add OpenMS parameter XML/INI read/write, legacy fixtures, UTF-8/Latin-1/UTF-16 input, full-precision special floats and checked metadata preservation.
+- Add complete source TextFile/CsvFile helpers and ListUtils/StringListUtils operations, using native streams, slices and standard containers.
+- Document four reviewed standard-container/alias equivalents separately from scientific class coverage.
+- Add an exhaustive completion ledger for 786 registered public SDK headers and direct dependencies from 146 TOPP sources, with reviewed coverage distinguished from names and source-reference evidence.
+- Port all 73 file-type descriptors and lexical filename helpers; add native experiment dispatch, bounded format sniffing, gzip transport and atomic path output.
+- Add source MS2/DTA2D readers, DTA2D filters/storage/TIC, and a checked native MS2 writer with original source fixtures.
+- Add mzML referenceable parameter groups, forward header references, shared inline validation and bounded definition/reference expansion.
+- Add graph referential cleanup with all five source switches and conditional predicate filtering; surviving IDs remain stable and removed IDs cannot be reused.
+- Add parent/match grouping, legacy sequence/evidence converters and charged peptide fragment mass queries, with focused source-derived tests.
 
 - Update the target to reduced Core SDK 4.0.0 at `6bfc0e4`; record retained/removed source scope and 220 unchanged historical reference paths, expose the exact target in Rust, and verify SDK/RNA resource consistency in CI.
 - Add the native identification sequence/provenance graph: typed graph-owned references, input/software/search/score history, parent/peptide/oligo registration, translated merge/copy, and inclusive sequence coverage with checked atomic updates.

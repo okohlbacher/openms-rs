@@ -1,0 +1,457 @@
+{
+  "target_sdk_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "platform": "macOS ARM64",
+  "checks": [
+    {
+      "name": "initial_all_targets_all_features",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "log_sha256": "72e45768c9ec629d419dfd9ff06972855f5642dc5c2e3c4fd7409d3bcc5d8ba9",
+      "passing_tests": 1128,
+      "failing_tests": 0,
+      "scope": "First batch graph cleanup, MS2/DTA2D, FileTypes/FileHandler and mzML groups. Compiled before temporary-name regression, Text/CSV and parameters; later checks cover additions."
+    },
+    {
+      "name": "final_private_and_file_dispatch",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "--test",
+        "file_handler",
+        "--test",
+        "file_types"
+      ],
+      "exit_code": 0,
+      "seconds": 30.38,
+      "log_sha256": "9de1bad1a123f8e3bfdebb1407e8180d1295ea3c28e9a7ab3064f15ea9a44e22",
+      "passing_tests": 67,
+      "failing_tests": 0
+    },
+    {
+      "name": "minimum_rust_no_defaults",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "file_handler",
+        "--test",
+        "file_types",
+        "--test",
+        "text_peak_lists",
+        "--test",
+        "identification_cleanup",
+        "--test",
+        "identification_graph_records"
+      ],
+      "exit_code": 0,
+      "seconds": 56.79,
+      "log_sha256": "7f64bddcc8db85f61b71f7d311cdda8f5479765bd8371d1251cb5163b5394c15",
+      "passing_tests": 99,
+      "failing_tests": 0
+    },
+    {
+      "name": "clippy_all_features",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 148.03,
+      "log_sha256": "3f3647e5822c62f91818e9f3ee3d5e2ad104b00657db1da5fe84376c0f608b58",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "clippy_minimum_no_defaults",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 130.31,
+      "log_sha256": "f60f127b9d480c898644a168c896aff5f427d13fc4c3d24920ecd45d9ed05489",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "doctests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc"
+      ],
+      "exit_code": 0,
+      "seconds": 26.68,
+      "log_sha256": "0dcd03bd7ede7dc622016e177f8533ce32290b11b3aeda55f394c1b79ba1ef90",
+      "passing_tests": 3,
+      "failing_tests": 0
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps"
+      ],
+      "exit_code": 0,
+      "seconds": 3.83,
+      "log_sha256": "7f0017f45e51f3470706ded90938cd6230516442eebc11d86a3078684391166e",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "release_library",
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--all-features",
+        "--lib",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 33.04,
+      "log_sha256": "61b8f8db602ac96ed6e1beb636d1caf548c4dd7a0ff76118d2b74cb7c1cc7b6e",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "formatting",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 1.36,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "source_and_fixtures",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-current"
+      ],
+      "exit_code": 0,
+      "seconds": 0.66,
+      "log_sha256": "1363a119765056185a1c66d21a48dba9eab32b5fdce644c57e0cee063f6f1950",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "coverage_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 1,
+      "seconds": 0.17,
+      "log_sha256": "39eacceac83b9638509be17890cf74c8a2d1aea1172e6619f8174046361f8e45",
+      "passing_tests": 0,
+      "failing_tests": 0,
+      "resolution": "Generated ledger was stale during development; regenerated and superseded by passing configuration_coverage."
+    },
+    {
+      "name": "configuration_current",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "--test",
+        "param",
+        "--test",
+        "param_value",
+        "--test",
+        "paramxml",
+        "--test",
+        "default_param_handler",
+        "--test",
+        "text_file",
+        "--test",
+        "csv_file",
+        "--test",
+        "list_utils",
+        "--test",
+        "string_list_utils"
+      ],
+      "exit_code": 0,
+      "seconds": 26.09,
+      "log_sha256": "030d5de1db7b0d9f05b76c8275b3fafead205b7d53952b260522efe4bf7e33b0",
+      "passing_tests": 137,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_minimum_no_defaults",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "param",
+        "--test",
+        "param_value",
+        "--test",
+        "paramxml",
+        "--test",
+        "default_param_handler",
+        "--test",
+        "text_file",
+        "--test",
+        "csv_file",
+        "--test",
+        "list_utils",
+        "--test",
+        "string_list_utils"
+      ],
+      "exit_code": 0,
+      "seconds": 29.57,
+      "log_sha256": "edf325c3e34aa57bb7155f27ff5f09c7f6b124ad34fdcff07764d088c9823165",
+      "passing_tests": 122,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_minimum_paramxml_only",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "paramxml",
+        "--test",
+        "paramxml"
+      ],
+      "exit_code": 0,
+      "seconds": 21.81,
+      "log_sha256": "52ebba5f76baec36db8c42ff211b0cfa572d5f5cec761c84c536f0b3e47d749d",
+      "passing_tests": 14,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_clippy_current",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 92.26,
+      "log_sha256": "7b9b0d2912b6efffb1505fcadd5e9e5f77971ce4edff16894edd975081754ba9",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_clippy_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 83.04,
+      "log_sha256": "f55b3d18ecc1ceeb6e49c894e60978a4342455011a09ff0eae0e971582fefd4a",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_doctests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc"
+      ],
+      "exit_code": 0,
+      "seconds": 8.6,
+      "log_sha256": "7a8bad7d0e85b34e404e291d747854e077e12b05fb9998ecca2b24bedecbb58e",
+      "passing_tests": 3,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_rustdoc",
+      "command": [
+        "cargo",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps"
+      ],
+      "exit_code": 0,
+      "seconds": 2.4,
+      "log_sha256": "e0884174bfbec6118f1883f900cce7cd8d4094bd0b00856499f0d07024c002f6",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_release",
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--all-features",
+        "--lib",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 15.09,
+      "log_sha256": "973d7a28e3da003262661a0edc73b7f369494a31ee57146f7ca384e74eac4835",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_formatting",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.57,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_source_and_fixtures",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-current"
+      ],
+      "exit_code": 0,
+      "seconds": 0.34,
+      "log_sha256": "cf260ab9a23707b80b9cad98779376df11310cf3e5d5cd776cc3deb5aad25fe7",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_coverage",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07,
+      "log_sha256": "d25a2212c23515db82d47beec7eb12946d10c327dc41786d7c9cb57ad7042da1",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_coverage_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.09,
+      "log_sha256": "fefd166249373c22bb2d282e0ce97b29629bb483ebf37ff0769f08b9370f8b7d",
+      "passing_tests": 0,
+      "failing_tests": 0
+    },
+    {
+      "name": "configuration_diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.02,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passing_tests": 0,
+      "failing_tests": 0
+    }
+  ],
+  "limitation": "Passing Rust tests and source references do not establish complete SDK parity or executed C++ differential parity.",
+  "incremental_validation_strategy": "The first batch passed the entire 1128-test all-feature/all-target suite. Later additive configuration/text helpers receive focused tests on both compilers and isolated feature checks; final lint/docs/release cover the combined crate. No executed C++ differential or full TOPP workflow certification.",
+  "completion_gate": {
+    "command": [
+      "python3",
+      "tools/core_sdk_coverage.py",
+      "--require-complete"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "log_sha256": "4c36271624390a65c6bdb07d7ccd49e8b3859a89decaa73909167136b110ee19",
+    "reason": "772 registered headers still require implementation or review; no TOPP workflow certified."
+  }
+}

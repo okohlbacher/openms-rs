@@ -101,5 +101,6 @@ complete translated copies, native metadata equality and atomic resource failure
 source hashes and distinguishes source assertions from derived checks and native
 corrections. No C++ executable was built or run.
 
-Referential deletion/cleanup, grouping algorithms, graph persistence and the
-remaining legacy conversion operations are separate porting work.
+Referential deletion and cleanup are implemented; see
+[cleanup support](IDENTIFICATION_CLEANUP_SUPPORT.md). Grouping algorithms, graph
+persistence and the remaining legacy conversion operations are separate work.

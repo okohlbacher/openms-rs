@@ -2,6 +2,8 @@
 
 A native Rust port of selected [OpenMS4-core](https://github.com/okohlbacher/OpenMS4-core/tree/6bfc0e4711105f4eda2fea86812a83af7c7e791f) functionality: spectra, features, chemistry, identification records and analysis, retention-time transformations, common processing, and basic file interchange.
 
+The target is a feature-complete native Core SDK that TOPP tools can be ported against. The [completion ledger](docs/CORE_SDK_COMPLETION.md) accounts for every registered public SDK header and maps direct dependencies from 146 local TOPP sources. It distinguishes reviewed APIs from partial and unverified coverage; full SDK and tool parity are still outstanding.
+
 **This port is in progress and does not yet replace the full OpenMS library.** The current reduced SDK contains 807 physical include-directory headers and about 468,000 lines of first-party runtime code. The [SDK update](docs/CORE_SDK_UPDATE.md) records the current target, `6bfc0e4`, and the product backends removed from its scope. This crate has its own Rust API, no C++ bindings, and no C++ build dependency. The [repository analysis](docs/REPOSITORY_ANALYSIS.md) explains the source architecture, dependencies, and path toward broader coverage.
 
 ## What works
@@ -11,6 +13,7 @@ A native Rust port of selected [OpenMS4-core](https://github.com/okohlbacher/Ope
 | Spectra and experiments | Peaks, chromatograms, precursors, aligned annotation arrays, sorting, selection, checked nearest/bound searches, ranges, base peaks, TIC and RT filtering |
 | Features and geometry | Feature/consensus containers, checked maps and IDs, scan-envelope hulls, containment, consensus means and decharge summaries |
 | Chemistry | 84 element/isotope tables, formulas and masses, coarse isotope patterns/averagine, [fine isotope configurations, streaming and custom abundances](docs/FINE_ISOTOPE_SUPPORT.md), [named/numeric peptide annotations and unresolved residues](docs/SEQUENCE_SUPPORT.md), [33-enzyme full/semi/nonspecific digestion](docs/DIGESTION_SUPPORT.md), [fixed/variable modification generation](docs/MODIFIED_PEPTIDES_SUPPORT.md) and [named/anonymous definition sets and mass matching](docs/MODIFICATION_DEFINITIONS_SUPPORT.md), caller-owned registries and OBO/crosslink lookup, [charge/pI, hydrophobicity, amino-acid indices and gas basicity](docs/PEPTIDE_PROPERTIES_SUPPORT.md), [terminal/internal spectra, immonium ions, activation presets and compact mass ladders](docs/THEORETICAL_SPECTRA.md) with losses, precursors and annotations |
+| Configuration and utilities | [Typed parameter values](docs/PARAM_VALUE_SUPPORT.md), [hierarchical defaults, restrictions, updates and CLI parsing](docs/PARAM_SUPPORT.md), [default-parameter lifecycles](docs/DEFAULT_PARAM_HANDLER_SUPPORT.md), [OpenMS INI read/write](docs/PARAMXML_SUPPORT.md), [literal text/CSV helpers](docs/TEXT_CSV_SUPPORT.md) and [list utilities](docs/LIST_UTILS_SUPPORT.md) |
 | Processing | Normalization, threshold/top-N/window filtering, scaling, linear resampling, Gaussian/Savitzky–Golay smoothing, morphological baseline correction, median/iterative-mean noise estimates, HiRes and iterative centroiding, simple and Poisson/KL deisotoping with charge conversion |
 | Chromatogram processing | Legacy/corrected peak picking, exact sample boundaries, raw intensity sums, time-weighted integration, baseline estimates, sampled shape metrics and EMG reconstruction |
 | Spectrum comparisons | Absolute/ppm alignment, alignment scores, sparse bins, cosine/shared/agreeing scores, precursor, Zhang and Stein/Scott scores |
@@ -21,10 +24,10 @@ A native Rust port of selected [OpenMS4-core](https://github.com/okohlbacher/Ope
 | Spectrum annotation | [Fragment labels, hit peak annotations and match statistics](docs/SPECTRUM_ANNOTATION_SUPPORT.md), source ion-name parsing/display, shared calculation budgets and atomic updates |
 | Precursor purity | [Scalar isolation scores, SPS matching, fuzzy scan purity and RT interpolation](docs/PRECURSOR_PURITY_SUPPORT.md), parent-scan lookup and checked experiment scoring |
 | Metadata and identifications | Typed values and CV terms, acquisition settings, peptide/protein evidence and scores, protein coverage/modifications, attachments to spectra and feature maps |
-| Identification graph | [Owned sequence and provenance records](docs/IDENTIFICATION_GRAPH_SUPPORT.md), stable typed references, score histories, parent matches and coverage, atomic registration/merge/copy and RNase integration |
+| Identification graph | [Owned sequence and provenance records](docs/IDENTIFICATION_GRAPH_SUPPORT.md), stable typed references, score histories, parent/match groups, coverage, atomic registration/merge/copy, [referential cleanup and filtering](docs/IDENTIFICATION_CLEANUP_SUPPORT.md), legacy sequence/evidence conversion and RNase integration |
 | Identification analysis | Score categories/switching, HyperScore/Morpheus fragment scores, peptide/protein filters, target/decoy FDR and q-values, picked proteins and probability estimates; peptide-to-protein indexing, basic protein inference/grouping, feature/spectrum conflicts and file-origin splitting |
 | Retention-time models | Linear regression with coordinate weights, linear/natural-cubic interpolation, robust LOWESS, inverse refits, deviations, residual windows and atomic application to experiments/feature maps |
-| File interchange | Streaming FASTA and MGF readers, DTA read/write, optional bounded mzML with precursor acquisition fields and named annotation arrays and idXML subset read/write with optional caller-supplied chemistry |
+| File interchange | [Complete file-type registry and shared native experiment dispatch](docs/FILE_HANDLING_SUPPORT.md), streaming FASTA/MGF, DTA and [MS2/DTA2D](docs/TEXT_PEAK_LIST_SUPPORT.md), optional bounded mzML with [reusable parameter groups](docs/MZML_PARAM_GROUPS_SUPPORT.md), precursor acquisition and annotation arrays, idXML subset with caller-supplied chemistry |
 | RNA processing | [Fourteen RNases, owned enzyme records and atomic graph registration](docs/RNASE_SUPPORT.md), [fixed/variable RNA modification generation](docs/RNA_MODIFICATION_SUPPORT.md), and [single/multiple annotated RNA spectra](docs/RNA_SPECTRUM_SUPPORT.md), with source mass/charge and terminal conventions |
 | Examples | Read/filter/normalize/write spectra; stream FASTA and calculate tryptic peptide masses; inspect modified-peptide masses, isotopes and theoretical fragments; identify a synthetic modified peptide and compute protein coverage; pick and integrate chromatograms; reconstruct a cropped EMG peak; estimate profile noise, centroid and retain local peaks; enumerate modified digest products; stream natural and enriched isotope configurations; calculate peptide physicochemical properties; annotate measured fragments and inspect matching statistics; generate decoy FASTA; extract and match sequence tags; inspect charged RNA formulas and isotope patterns; digest RNA, enumerate variants and generate annotated fragments |
 
@@ -36,7 +39,7 @@ The [chromatogram picker](docs/CHROMATOGRAM_PICKING_SUPPORT.md) preserves source
 
 The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds and reports exact input regions alongside the source’s rounded centroid and boundary arrays. [Window filtering](docs/WINDOW_MOWER_SUPPORT.md) supports sliding and jumping windows; the [iterative mean noise estimator](docs/MEAN_NOISE_SUPPORT.md) preserves the source’s three-pass clipping conventions.
 
-IsoSpec layered traversal; ProForma; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups and the bounded legacy sequence/evidence conversion bridge are implemented, while graph persistence and full cleanup remain outstanding.
+IsoSpec layered traversal; ProForma; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
 
 ## Use locally
 
@@ -47,13 +50,13 @@ Rust 1.85 or newer is required. Add this local crate to a consuming project:
 openms = { path = "/absolute/path/to/OpenMS4-R" }
 ```
 
-The `mzml`, `idxml` and `rna-json` features are enabled by default. The XML features use Rust XML parsing; mzML also uses base64 and zlib libraries. `rna-json` adds serde_json for caller-supplied MODOMICS JSON. The embedded RNA registry and TSV reader remain available without that feature. The scientific core uses the small pure Rust `libm` library for EMG's complementary error function. Disable default features to use the scientific core, identification analysis and text readers without the XML, JSON and compression dependencies:
+The `mzml`, `idxml`, `paramxml` and `rna-json` features are enabled by default. The XML features use Rust XML parsing; mzML also uses base64 and zlib libraries. `rna-json` adds serde_json for caller-supplied MODOMICS JSON. The embedded RNA registry and TSV reader remain available without that feature. The scientific core uses the small pure Rust `libm` library for EMG's complementary error function. Disable default features to use the scientific core, identification analysis and text readers without the XML, JSON and compression dependencies:
 
 ```toml
 openms = { path = "/absolute/path/to/OpenMS4-R", default-features = false }
 ```
 
-Enable only idXML with `default-features = false, features = ["idxml"]` to use identification XML without the mzML codecs.
+Enable only parameter XML with `default-features = false, features = ["paramxml"]`. Enable only idXML with `default-features = false, features = ["idxml"]` to use identification XML without the mzML codecs.
 
 ```rust
 use openms::{MSSpectrum, Peak1D};

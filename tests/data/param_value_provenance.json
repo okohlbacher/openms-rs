@@ -1,0 +1,161 @@
+{
+  "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "method": "Source/header/class-test inspection; no C++ execution. Rust tests contain source literal assertions and independently derived boundary/hash cases.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ParamValue.h",
+      "sha256": "8f4e1fcc598fe474922760b08f496846723e473e64f88b595981314f85a5f60a",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/DATASTRUCTURES/ParamValue.h"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/ParamValue.cpp",
+      "sha256": "0c0daf17316a0df783774dbb48381c38d761e563a459650a98d510d551af7ec9",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/DATASTRUCTURES/ParamValue.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ParamValue_test.cpp",
+      "sha256": "b2ccfd5906502b2cfc9799d642bf843e467f4e118c069a4ba5e899346a045dc3",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/ParamValue_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+      "sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/DATASTRUCTURES/StringUtils.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/StringUtils_test.cpp",
+      "sha256": "5a17a50dabf9703174850917df3a2a9ad5f59fd15fdce4f7c80ef910688af465",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/StringUtils_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+      "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/CONCEPT/Types.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
+      "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/CONCEPT/HashUtils.h"
+    }
+  ],
+  "tests": "tests/param_value.rs",
+  "support": "docs/PARAM_VALUE_SUPPORT.md",
+  "source_literal_ranges": [
+    {
+      "path": "src/tests/class_tests/openms/source/ParamValue_test.cpp",
+      "start_line": 45,
+      "end_line": 159,
+      "topic": "seven value types and scalar/list constructors"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ParamValue_test.cpp",
+      "start_line": 363,
+      "end_line": 518,
+      "topic": "strict typed conversions"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ParamValue_test.cpp",
+      "start_line": 572,
+      "end_line": 616,
+      "topic": "complete toString literals, bool and default stream"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ParamValue_test.cpp",
+      "start_line": 803,
+      "end_line": 885,
+      "topic": "equality-compatible hash properties"
+    }
+  ],
+  "derived_hashes": {
+    "method": "FNV-1a uint64 offset14695981039346656037/prime1099511628211; seed hashes one type byte. For each listed input, hash bytes with FNV then combine: seed ^= hash + 0x9e3779b97f4a7c15 + (seed<<6) + (seed>>2), uint64 wrapping after addition/multiplication. List length is uint64LE; integer scalar int64LE; integer-list element int32LE; doubles IEEE754binary64LE. Signed zero normalized.",
+    "records": [
+      {
+        "value": "Empty",
+        "type_byte": 6,
+        "combined_inputs_hex": [],
+        "expected_hex": "af63bb4c8601b479"
+      },
+      {
+        "value": "String(test)",
+        "type_byte": 0,
+        "combined_inputs_hex": [
+          "74657374"
+        ],
+        "expected_hex": "33851e51bcb4bb2e"
+      },
+      {
+        "value": "Integer(42)",
+        "type_byte": 1,
+        "combined_inputs_hex": [
+          "2a00000000000000"
+        ],
+        "expected_hex": "0d59e515dec3f9a3"
+      },
+      {
+        "value": "Float(3.14)",
+        "type_byte": 2,
+        "combined_inputs_hex": [
+          "1f85eb51b81e0940"
+        ],
+        "expected_hex": "0a4ed4905e3cb625"
+      },
+      {
+        "value": "Float(0)",
+        "type_byte": 2,
+        "combined_inputs_hex": [
+          "0000000000000000"
+        ],
+        "expected_hex": "e4ab8baccf524eae"
+      },
+      {
+        "value": "StringList(a,b)",
+        "type_byte": 3,
+        "combined_inputs_hex": [
+          "0200000000000000",
+          "61",
+          "62"
+        ],
+        "expected_hex": "4e8c47b9f79c4af8"
+      },
+      {
+        "value": "IntegerList(1,-2,3)",
+        "type_byte": 4,
+        "combined_inputs_hex": [
+          "0300000000000000",
+          "01000000",
+          "feffffff",
+          "03000000"
+        ],
+        "expected_hex": "48b4091067caadb8"
+      },
+      {
+        "value": "FloatList(1.1,2.2)",
+        "type_byte": 5,
+        "combined_inputs_hex": [
+          "0200000000000000",
+          "9a9999999999f13f",
+          "9a99999999990140"
+        ],
+        "expected_hex": "56df3d4e28346bec"
+      }
+    ]
+  },
+  "native_boundaries": [
+    "Checked integer storage/narrowing; checked finite f64-to-f32 overflow; nonnumeric float conversion rejects source inactive-union access.",
+    "NaN is retained with IEEE PartialEq; no Eq/Ord; explicit source size-only list comparison and lawful native PartialOrd.",
+    "Default classic-locale stream formatting is explicit; arbitrary C++ mutable stream flags/locales are caller-side Rust formatting.",
+    "Rust f64 represents source stored double; portable C++ long double type is not exposed."
+  ],
+  "limits": {
+    "max_list_elements": 1000000,
+    "max_logical_value_bytes": 67108864,
+    "max_operation_allocation_bytes": 67108864,
+    "max_work": 50000000,
+    "float_format_scratch_bytes_per_element": 256
+  }
+}

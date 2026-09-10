@@ -1,0 +1,6 @@
+# Pinned upstream fixtures retain byte-exact whitespace for provenance/tests.
+tests/data/mzml_param_groups_source.mzML -text -whitespace
+tests/data/text_file_source.txt -text -whitespace
+tests/data/text_peak_lists/DTA2DFile_test_2.dta2d -text -whitespace
+tests/data/text_peak_lists/DTA2DFile_test_3.dta2d -text -whitespace
+tests/data/text_peak_lists/MS2File_test_spectra.ms2 -text -whitespace

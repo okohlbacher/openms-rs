@@ -45,6 +45,12 @@ pub struct ReadOptions {
     pub max_total_arrays: usize,
     /// Maximum total spectra plus chromatograms.
     pub max_records: usize,
+    /// Maximum referenceable parameter groups (including unused and empty groups).
+    pub max_param_groups: usize,
+    /// Maximum groups, parameter definitions/applications, and reference occurrences combined.
+    pub max_total_params: usize,
+    /// Cumulative conservative storage/expansion bytes for parameters and group references.
+    pub max_param_bytes: usize,
 }
 impl Default for ReadOptions {
     fn default() -> Self {
@@ -56,6 +62,9 @@ impl Default for ReadOptions {
             max_total_array_bytes: 512 * 1024 * 1024,
             max_total_array_elements: 20_000_000,
             max_total_arrays: 1_000_000,
+            max_param_groups: 100_000,
+            max_total_params: 10_000_000,
+            max_param_bytes: 512 * 1024 * 1024,
         }
     }
 }
@@ -96,22 +105,33 @@ fn intensity(value: f64) -> Result<f32> {
 fn attributes(
     element: &BytesStart<'_>,
     decoder: quick_xml::encoding::Decoder,
+    mut budget: Option<&mut ParameterBudget>,
 ) -> Result<BTreeMap<String, String>> {
-    element
-        .attributes()
-        .map(|attribute| {
-            let attribute = attribute.map_err(|e| invalid(e.to_string()))?;
-            let key = std::str::from_utf8(attribute.key.as_ref())
-                .map_err(|e| invalid(e.to_string()))?
-                .to_owned();
-            let value = attribute
-                .decode_and_unescape_value(decoder)
-                .map_err(|e| invalid(e.to_string()))?
-                .into_owned();
-            xml_string(&value)?;
-            Ok((key, value))
-        })
-        .collect()
+    if let Some(budget) = &mut budget {
+        budget.begin()?;
+    }
+    let mut result = BTreeMap::new();
+    // The map detects duplicates logarithmically; quick-xml's optional duplicate
+    // scan would repeatedly compare all preceding attribute names.
+    for attribute in element.attributes().with_checks(false) {
+        let attribute = attribute.map_err(|e| invalid(e.to_string()))?;
+        if let Some(budget) = &mut budget {
+            // Unescaping XML character references cannot enlarge the UTF-8 data.
+            budget.attribute(attribute.key.as_ref().len(), attribute.value.len())?;
+        }
+        let key = std::str::from_utf8(attribute.key.as_ref())
+            .map_err(|e| invalid(e.to_string()))?
+            .to_owned();
+        let value = attribute
+            .decode_and_unescape_value(decoder)
+            .map_err(|e| invalid(e.to_string()))?
+            .into_owned();
+        xml_string(&value)?;
+        if result.insert(key, value).is_some() {
+            return Err(invalid("duplicate XML attribute"));
+        }
+    }
+    Ok(result)
 }
 fn required<'a>(attrs: &'a BTreeMap<String, String>, key: &str) -> Result<&'a str> {
     attrs
@@ -537,6 +557,193 @@ impl Record {
     }
 }
 
+// Inline and referenced parameters take exactly the same scientific path.
+fn apply_parameter(
+    tag: &str,
+    attrs: &BTreeMap<String, String>,
+    parent: &str,
+    record: &mut Option<Record>,
+    binary: &mut Option<Binary>,
+    experiment: &mut MSExperiment,
+) -> Result<()> {
+    required(
+        attrs,
+        if tag == "cvParam" {
+            "accession"
+        } else {
+            "name"
+        },
+    )?;
+    match tag {
+        "cvParam" => {
+            if parent == "binaryDataArray" {
+                binary
+                    .as_mut()
+                    .ok_or_else(|| invalid("CV outside binary array"))?
+                    .cv(attrs)?;
+            } else if let Some(r) = record {
+                r.cv(parent, attrs)?;
+            }
+        }
+        "userParam" if parent == "binaryDataArray" => {
+            return Err(Error::Unsupported(
+                "metadata on binary arrays is not represented".into(),
+            ));
+        }
+        "userParam" if matches!(parent, "run" | "spectrum" | "chromatogram") => {
+            let name = required(attrs, "name")?.to_owned();
+            let value = attrs.get("value").cloned().unwrap_or_default();
+            if name == NAME_KEY && parent == "run" {
+                return Err(invalid("reserved record name userParam at run level"));
+            }
+            if name == NAME_KEY && parent != "run" {
+                let r = record
+                    .as_mut()
+                    .ok_or_else(|| invalid("name outside record"))?;
+                if r.name_seen {
+                    return Err(invalid("duplicate record name userParam"));
+                }
+                r.name_seen = true;
+                if let Some(s) = &mut r.spectrum {
+                    s.name = value;
+                } else {
+                    r.chromatogram.as_mut().unwrap().name = value;
+                }
+            } else {
+                let metadata = if parent == "run" {
+                    &mut experiment.metadata
+                } else {
+                    record
+                        .as_mut()
+                        .ok_or_else(|| invalid("metadata outside record"))?
+                        .metadata()
+                };
+                if metadata.insert(name.clone(), value).is_some() {
+                    return Err(Error::Unsupported(format!(
+                        "duplicate userParam name {name}"
+                    )));
+                }
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+#[derive(Debug)]
+struct Parameter {
+    tag: &'static str,
+    attrs: BTreeMap<String, String>,
+}
+
+struct ParameterBudget {
+    remaining: usize,
+    bytes: usize,
+}
+impl ParameterBudget {
+    fn begin(&mut self) -> Result<()> {
+        self.remaining = self
+            .remaining
+            .checked_sub(1)
+            .ok_or_else(|| invalid("parameter count exceeds configured limit"))?;
+        // Covers even a sparsely occupied map node and Vec/String slots.
+        self.spend(1024)
+    }
+    fn spend(&mut self, bytes: usize) -> Result<()> {
+        self.bytes = self
+            .bytes
+            .checked_sub(bytes)
+            .ok_or_else(|| invalid("parameter bytes exceed configured limit"))?;
+        Ok(())
+    }
+    fn attribute(&mut self, key_bytes: usize, value_bytes: usize) -> Result<()> {
+        let cost = key_bytes
+            .checked_add(value_bytes)
+            .and_then(|n| n.checked_mul(2))
+            .and_then(|n| n.checked_add(256))
+            .ok_or_else(|| invalid("parameter byte size overflow"))?;
+        // Includes parsed strings plus any simultaneous retained metadata/ID copy.
+        self.spend(cost)
+    }
+    fn charge(&mut self, attrs: &BTreeMap<String, String>) -> Result<()> {
+        self.begin()?;
+        for (key, value) in attrs {
+            self.attribute(key.len(), value.len())?;
+        }
+        Ok(())
+    }
+}
+
+// XML Schema ID/IDREF use NCName, including the XML 1.0 Unicode name ranges.
+fn parameter_id(value: &str) -> Result<&str> {
+    let value = value.trim_matches([' ', '\t', '\r', '\n']);
+    fn start(c: char) -> bool {
+        matches!(c, 'A'..='Z' | '_' | 'a'..='z' | '\u{c0}'..='\u{d6}' |
+            '\u{d8}'..='\u{f6}' | '\u{f8}'..='\u{2ff}' | '\u{370}'..='\u{37d}' |
+            '\u{37f}'..='\u{1fff}' | '\u{200c}'..='\u{200d}' | '\u{2070}'..='\u{218f}' |
+            '\u{2c00}'..='\u{2fef}' | '\u{3001}'..='\u{d7ff}' | '\u{f900}'..='\u{fdcf}' |
+            '\u{fdf0}'..='\u{fffd}' | '\u{10000}'..='\u{effff}')
+    }
+    let mut chars = value.chars();
+    if !chars.next().is_some_and(start) || !chars.all(|c| start(c) ||
+        matches!(c, '-' | '.' | '0'..='9' | '\u{b7}' | '\u{300}'..='\u{36f}' | '\u{203f}'..='\u{2040}')) {
+        return Err(invalid("invalid parameter group ID/IDREF"));
+    }
+    Ok(value)
+}
+
+fn parameter_context(parent: &str) -> bool {
+    // Every ParamGroupType or extension in mzML 1.1.0, including header contexts
+    // whose metadata is outside the current native experiment representation.
+    matches!(
+        parent,
+        "fileContent"
+            | "sourceFile"
+            | "contact"
+            | "sample"
+            | "source"
+            | "analyzer"
+            | "detector"
+            | "instrumentConfiguration"
+            | "software"
+            | "processingMethod"
+            | "scanSettings"
+            | "target"
+            | "run"
+            | "scanList"
+            | "scan"
+            | "scanWindow"
+            | "binaryDataArray"
+            | "spectrum"
+            | "chromatogram"
+            | "isolationWindow"
+            | "activation"
+            | "selectedIon"
+    )
+}
+
+fn apply_group(
+    parameters: &[Parameter],
+    parent: &str,
+    budget: &mut ParameterBudget,
+    record: &mut Option<Record>,
+    binary: &mut Option<Binary>,
+    experiment: &mut MSExperiment,
+) -> Result<()> {
+    for parameter in parameters {
+        budget.charge(&parameter.attrs)?;
+        apply_parameter(
+            parameter.tag,
+            &parameter.attrs,
+            parent,
+            record,
+            binary,
+            experiment,
+        )?;
+    }
+    Ok(())
+}
+
 /// Read a complete experiment with default resource limits.
 pub fn read(reader: impl BufRead) -> Result<MSExperiment> {
     read_with_options(reader, &ReadOptions::default())
@@ -571,6 +778,16 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
     let mut remaining_array_elements = options.max_total_array_elements;
     let mut ids = BTreeSet::new();
     let mut counted_lists: Vec<(usize, &str, usize, usize)> = Vec::new();
+    let mut groups = BTreeMap::<String, Vec<Parameter>>::new();
+    let mut group: Option<(String, Vec<Parameter>)> = None;
+    let mut group_list_seen = false;
+    // fileDescription precedes the group list in the schema. Its parameter
+    // contexts carry no represented metadata, so defer these references until run.
+    let mut pending_header_refs = Vec::<(String, String)>::new();
+    let mut parameter_budget = ParameterBudget {
+        remaining: options.max_total_params,
+        bytes: options.max_param_bytes,
+    };
     let mut seen_declaration = false;
     let mut ascii_only = false;
     loop {
@@ -593,13 +810,38 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                 let tag = std::str::from_utf8(element.local_name().as_ref())
                     .map_err(|e| invalid(e.to_string()))?
                     .to_owned();
-                let attrs = attributes(&element, decoder)?;
+                let is_parameter = matches!(
+                    tag.as_str(),
+                    "cvParam"
+                        | "userParam"
+                        | "referenceableParamGroup"
+                        | "referenceableParamGroupRef"
+                );
+                let attrs = attributes(
+                    &element,
+                    decoder,
+                    is_parameter.then_some(&mut parameter_budget),
+                )?;
                 let parent = stack.last().map(String::as_str).unwrap_or("");
                 if stack.is_empty() {
                     if seen_root || !matches!(tag.as_str(), "mzML" | "indexedmzML") {
                         return Err(invalid("expected a single mzML or indexedmzML root"));
                     }
                     seen_root = true;
+                }
+                if matches!(
+                    parent,
+                    "cvParam" | "userParam" | "referenceableParamGroupRef"
+                ) {
+                    return Err(invalid("parameter/ref elements cannot have children"));
+                }
+                if (parent == "referenceableParamGroupList" && tag != "referenceableParamGroup")
+                    || (parent == "referenceableParamGroup"
+                        && !matches!(tag.as_str(), "cvParam" | "userParam"))
+                {
+                    return Err(invalid(
+                        "invalid child in referenceable parameter group/list",
+                    ));
                 }
                 if stack.len() >= 128 {
                     return Err(invalid("XML nesting exceeds 128 levels"));
@@ -677,12 +919,72 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                         if parent != "mzML" || seen_run {
                             return Err(invalid("expected exactly one mzML run"));
                         }
+                        for (id, context) in pending_header_refs.drain(..) {
+                            let parameters = groups
+                                .get(&id)
+                                .ok_or_else(|| invalid(format!("unknown parameter group {id}")))?;
+                            apply_group(
+                                parameters,
+                                &context,
+                                &mut parameter_budget,
+                                &mut record,
+                                &mut binary,
+                                &mut experiment,
+                            )?;
+                        }
                         seen_run = true;
                     }
-                    "referenceableParamGroup" | "referenceableParamGroupRef" => {
-                        return Err(Error::Unsupported(
-                            "mzML referenceable parameter groups".into(),
+                    "referenceableParamGroupList" => {
+                        if parent != "mzML" || group_list_seen || seen_run {
+                            return Err(invalid("misplaced/duplicate parameter group list"));
+                        }
+                        let expected =
+                            number::<usize>(required(&attrs, "count")?, "parameter group count")?;
+                        if expected == 0 || expected > options.max_param_groups {
+                            return Err(invalid(
+                                "parameter group count is zero or exceeds configured limit",
+                            ));
+                        }
+                        group_list_seen = true;
+                        counted_lists.push((
+                            stack.len() + 1,
+                            "referenceableParamGroup",
+                            expected,
+                            0,
                         ));
+                    }
+                    "referenceableParamGroup" => {
+                        if parent != "referenceableParamGroupList" || group.is_some() {
+                            return Err(invalid("misplaced parameter group"));
+                        }
+                        let id = parameter_id(required(&attrs, "id")?)?;
+                        if groups.contains_key(id) {
+                            return Err(invalid("duplicate parameter group ID"));
+                        }
+                        if groups.len() >= options.max_param_groups {
+                            return Err(invalid("parameter group count exceeds configured limit"));
+                        }
+                        group = Some((id.to_owned(), Vec::new()));
+                    }
+                    "referenceableParamGroupRef" => {
+                        if !parameter_context(parent) {
+                            return Err(invalid("misplaced parameter group reference"));
+                        }
+                        let id = parameter_id(required(&attrs, "ref")?)?;
+                        if let Some(parameters) = groups.get(id) {
+                            apply_group(
+                                parameters,
+                                parent,
+                                &mut parameter_budget,
+                                &mut record,
+                                &mut binary,
+                                &mut experiment,
+                            )?;
+                        } else if !seen_run && !group_list_seen {
+                            pending_header_refs.push((id.to_owned(), parent.to_owned()));
+                        } else {
+                            return Err(invalid(format!("unknown parameter group {id}")));
+                        }
                     }
                     "spectrumList" | "chromatogramList" => {
                         if parent != "run" {
@@ -841,54 +1143,41 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                         }
                         r.selected_ion = true;
                     }
-                    "cvParam" => {
-                        if parent == "binaryDataArray" {
-                            binary
-                                .as_mut()
-                                .ok_or_else(|| invalid("CV outside binary array"))?
-                                .cv(&attrs)?;
-                        } else if let Some(r) = &mut record {
-                            r.cv(parent, &attrs)?;
-                        }
-                    }
-                    "userParam" if parent == "binaryDataArray" => {
-                        return Err(Error::Unsupported(
-                            "metadata on binary arrays is not represented".into(),
-                        ));
-                    }
-                    "userParam" if matches!(parent, "run" | "spectrum" | "chromatogram") => {
-                        let name = required(&attrs, "name")?.to_owned();
-                        let value = attrs.get("value").cloned().unwrap_or_default();
-                        if name == NAME_KEY && parent == "run" {
-                            return Err(invalid("reserved record name userParam at run level"));
-                        }
-                        if name == NAME_KEY && parent != "run" {
-                            let r = record
-                                .as_mut()
-                                .ok_or_else(|| invalid("name outside record"))?;
-                            if r.name_seen {
-                                return Err(invalid("duplicate record name userParam"));
-                            }
-                            r.name_seen = true;
-                            if let Some(s) = &mut r.spectrum {
-                                s.name = value;
+                    "cvParam" | "userParam" => {
+                        required(
+                            &attrs,
+                            if tag == "cvParam" {
+                                "accession"
                             } else {
-                                r.chromatogram.as_mut().unwrap().name = value;
+                                "name"
+                            },
+                        )?;
+                        if parent == "referenceableParamGroup" {
+                            let (_, parameters) = group.as_mut().unwrap();
+                            if tag == "cvParam"
+                                && parameters.last().is_some_and(|p| p.tag == "userParam")
+                            {
+                                return Err(invalid(
+                                    "cvParam follows userParam in parameter group",
+                                ));
                             }
+                            parameters.push(Parameter {
+                                tag: if tag == "cvParam" {
+                                    "cvParam"
+                                } else {
+                                    "userParam"
+                                },
+                                attrs,
+                            });
                         } else {
-                            let metadata = if parent == "run" {
-                                &mut experiment.metadata
-                            } else {
-                                record
-                                    .as_mut()
-                                    .ok_or_else(|| invalid("metadata outside record"))?
-                                    .metadata()
-                            };
-                            if metadata.insert(name.clone(), value).is_some() {
-                                return Err(Error::Unsupported(format!(
-                                    "duplicate userParam name {name}"
-                                )));
-                            }
+                            apply_parameter(
+                                &tag,
+                                &attrs,
+                                parent,
+                                &mut record,
+                                &mut binary,
+                                &mut experiment,
+                            )?;
                         }
                     }
                     _ => {}
@@ -909,6 +1198,12 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                     .pop()
                     .ok_or_else(|| invalid("unmatched closing tag"))?;
                 match tag.as_str() {
+                    "referenceableParamGroup" => {
+                        let (id, parameters) = group
+                            .take()
+                            .ok_or_else(|| invalid("missing parameter group state"))?;
+                        groups.insert(id, parameters);
+                    }
                     "binaryDataArray" => {
                         let r = record
                             .as_mut()
@@ -1018,6 +1313,18 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                         }
                         b.encoded.push(char::from(byte));
                     }
+                } else if stack.last().is_some_and(|tag| {
+                    matches!(
+                        tag.as_str(),
+                        "referenceableParamGroupList"
+                            | "referenceableParamGroup"
+                            | "referenceableParamGroupRef"
+                            | "cvParam"
+                            | "userParam"
+                    )
+                }) && !text.trim().is_empty()
+                {
+                    return Err(invalid("text in parameter group/list/parameter/ref"));
                 } else if stack.is_empty() && !text.trim().is_empty() {
                     return Err(invalid("text outside XML root"));
                 }

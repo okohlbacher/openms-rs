@@ -1,0 +1,80 @@
+{
+  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtils.h",
+      "sha256": "3d3beaed797a88573fcaf9b9ee7fd01fb9c218ad0d615079b02fa7d054f13885"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringListUtils.h",
+      "sha256": "5bb6641c45a38a43d6e8baf443f3222508c90f5c38b2c23e2d3d8fa8a304343f"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/StringListUtils.cpp",
+      "sha256": "4487718f189fc6b84e2b666854a827e7e09b7ab9c3b7f74e2abc83e0046bbbb2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+      "sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ListUtils_test.cpp",
+      "sha256": "0dadde8c6754de6b8842b7e9a549c1df37536814280d8d5c74a884f5599924ff"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/StringListUtils_test.cpp",
+      "sha256": "df67012bdf002620744be15c14ceb3f6f27ac570e1f66380f91b951581f490c8"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/StringUtils_test.cpp",
+      "sha256": "5a17a50dabf9703174850917df3a2a9ad5f59fd15fdce4f7c80ef910688af465"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+      "sha256": "ae4767948b7c5b40bd7398e210a8fbabe008021210192d1c64f3d59d83c79212"
+    }
+  ],
+  "files": [
+    {
+      "path": "tests/data/text_file_source.txt",
+      "source_path": "src/tests/class_tests/openms/data/TextFile_test_infile.txt",
+      "sha256": "0b0ec2a204f3fc3d2a64ce8bd84bafe86a39c151662fd083f6c592de1dd8ee1d",
+      "source_sha256": "0b0ec2a204f3fc3d2a64ce8bd84bafe86a39c151662fd083f6c592de1dd8ee1d",
+      "copy": "Existing byte-for-byte TextFile fixture reused; its eleven lines equal the StringListUtils inline literal list."
+    }
+  ],
+  "reference_tests": [
+    "tests/list_utils.rs",
+    "tests/string_list_utils.rs"
+  ],
+  "source_literal_coverage": {
+    "ListUtils_test.cpp": "All distinct create/contains/getIndex/concatenate literals; no active toStringList or case-insensitive test exists in this source class test.",
+    "StringListUtils_test.cpp": "Inline eleven-string list, prefix/suffix positions and range exclusions, trim variants, uppercase/lowercase literals. Native borrowed slices collapse duplicate mutable/const overload assertions."
+  },
+  "derived_cases": [
+    "Strict floating tolerance equality, zero/negative/nonfinite tolerances.",
+    "Empty/trailing fields and quote-unaware split; ASCII-only trim/case rules; UTF-8 boundary errors.",
+    "One-plus integer/float parsing, unsigned versus signed NaN payload rules, numeric range and decimal underflow.",
+    "Direct binary32 decimal above midpoint 1 + 2^-24: expected next float above 1, without intermediate binary64 rounding.",
+    "Source numeric formatter thresholds and scientific spelling, native ParamValue and MetaValue list formatting.",
+    "Checked item limits, generic conversion failures, range validation and unchanged borrowed input."
+  ],
+  "native_boundaries": [
+    "Option<usize> indices instead of -1/narrowed Int or iterator end.",
+    "Portable decimal parsing; no libc++-fallback hexadecimal float extension. Nonzero decimal underflow-to-zero rejected; true signed zero and representable subnormals retained. This selects the source from_chars boundary over the more lenient libc++ fallback.",
+    "UTF-8 and deterministic ASCII case conversion instead of arbitrary bytes/current C locale.",
+    "No long-double storage; ListParse/ListFormat allow explicit user extensions.",
+    "One million items/64 MiB conservative allocating-helper storage; nonallocating searches remain linear and unrestricted."
+  ],
+  "evidence": "Literal expectations transcribed from pinned source; additional expectations independently follow source operations and named native checked policies. No C++ build/execution, and no expected values generated from native production.",
+  "license": "OpenMS BSD-3-Clause; source attribution retained through this manifest and repository notices."
+}

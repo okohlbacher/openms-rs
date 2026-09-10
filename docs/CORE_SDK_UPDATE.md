@@ -84,8 +84,10 @@ The identification graph remains registered and byte-identical. Its
 stable owned references, registration and score histories, translated merge/copy,
 parent coverage and atomic RNase integration. Observations, compounds, adducts and
 observation matches are also implemented with typed molecule dispatch and source
-merge semantics. Match groups, parent groups, full cleanup/persistence and the
-legacy converter remain separate requirements.
+merge semantics. Match groups, parent groups, referential cleanup and the bounded
+legacy sequence/evidence converter are implemented. Graph persistence and the
+remaining converter operations are still required. The [completion ledger](CORE_SDK_COMPLETION.md)
+tracks all registered public headers and direct TOPP dependencies.
 
 Other retained gaps include ProForma/MzPAF, mass decomposition and XLMS chemistry,
 additional formats and Arrow/Parquet, native readers, feature finding/grouping,

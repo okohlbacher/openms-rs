@@ -11,10 +11,11 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [features]
-default = ["mzml", "idxml", "rna-json"]
+default = ["mzml", "idxml", "rna-json", "paramxml"]
 mzml = ["dep:quick-xml", "dep:base64", "dep:flate2"]
 idxml = ["dep:quick-xml"]
 rna-json = ["dep:serde_json"]
+paramxml = ["dep:quick-xml"]
 
 [dependencies]
 libm = "=0.2.16"

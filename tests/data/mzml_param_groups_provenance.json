@@ -1,0 +1,115 @@
+{
+  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_files": [
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "sha256": "e806b32fb64458afae70b49b07458a8969c4ed20051c67465bb850945cce187e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+    }
+  ],
+  "files": [
+    {
+      "path": "tests/data/mzml_param_groups_source.mzML",
+      "sha256": "7b750071057eb746b028b87a264dcba6b797b52450e76772ec46c6090058465c",
+      "source_path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+      "projection": [
+        "Retain all source text before the run element, including the two group definitions.",
+        "Change ASCII-only source declaration ISO-8859-1 to UTF-8.",
+        "Retain source run opening tag and only spectrum index=0 (source lines 214-273); omit run userParams and all other records; make spectrumList count=1 and retain defaultDataProcessingRef=dp_sp_0.",
+        "Remove only the binary-array userParam named mzname and itname (source lines 262 and 269); all binary payloads and scientific scalar literals unchanged.",
+        "Append closing spectrumList/run/mzML elements; no other source spectra or chromatograms included."
+      ],
+      "independent_decode": {
+        "method": "Python standard library base64.b64decode and struct.unpack <15d; no native reader/writer output used",
+        "mz": [
+          0.0,
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          13.0,
+          14.0
+        ],
+        "intensity": [
+          15.0,
+          14.0,
+          13.0,
+          12.0,
+          11.0,
+          10.0,
+          9.0,
+          8.0,
+          7.0,
+          6.0,
+          5.0,
+          4.0,
+          3.0,
+          2.0,
+          1.0
+        ],
+        "source_precision": "binary64 for both arrays; native intensity stored binary32; all values exact integers"
+      }
+    },
+    {
+      "path": "tests/data/mzml_independent.mzML",
+      "sha256": "fe7f988538838bd11e0110dd84c024f824e5c2414e718d014f69aee471c2d63e",
+      "role": "Reused independent mixed-precision/compression fixture; test factors each inline CV/user parameter without changing values."
+    },
+    {
+      "path": "tests/data/mzml_1_10.xsd",
+      "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad",
+      "role": "Reused schema; normalized contents equal source, stored CRLF/source LF."
+    }
+  ],
+  "source_semantics": {
+    "handler_ref_lines": [
+      1119,
+      1127
+    ],
+    "handler_cv_definition_lines": [
+      1767,
+      1775
+    ],
+    "schema_group_types_lines": [
+      126,
+      162
+    ],
+    "schema_ref_lines": [
+      238,
+      247
+    ],
+    "native_schema_extensions": [
+      "Grouped userParam storage/application (C++ handler only stores CVs).",
+      "Dangling refs rejected (C++ map lookup silently creates empty group).",
+      "Header forward refs resolved before run (fileDescription precedes group list in schema).",
+      "XML ID/IDREF whitespace normalization and checked Unicode NCName syntax."
+    ]
+  },
+  "validation": "Source projection independently decoded and structurally validated with xmllint --nonet against pinned schema. Focused Rust tests assert scientific values and errors. No C++ build/execution or runtime differential claim.",
+  "reference_tests": "tests/mzml_param_groups.rs",
+  "license": "Source-derived projection follows existing OpenMS BSD-3-Clause notices; source fixture attribution retained here."
+}

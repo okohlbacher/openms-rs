@@ -170,7 +170,7 @@ zero and four, with independently derived inclusive ends and neighbor markers.
 They also check rollback after a later malformed RNA parent.
 
 An enzyme XML input provider and arbitrary Boost regex syntax remain outside
-this implemented digestion surface. The graph's match groups, parent groups,
-cleanup/persistence and legacy converter remain unimplemented; observations,
-compounds and observation matches are covered;
+this implemented digestion surface. Graph persistence and full legacy conversion
+remain unimplemented; observations, compounds, observation matches, parent/match
+groups, referential cleanup and the sequence/evidence converter are covered;
 see [graph support](IDENTIFICATION_GRAPH_SUPPORT.md).

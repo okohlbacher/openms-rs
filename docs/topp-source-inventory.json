@@ -1,0 +1,2510 @@
+{
+  "repository_revision": "d0234ccaa8760879e51ee2342f8920b927320436",
+  "scope": "All local src/topp/*.cpp files; registration conditions not evaluated. Per-file hashes identify working-tree content independently of the Git revision.",
+  "files": [
+    {
+      "path": "src/topp/AccurateMassSearch.cpp",
+      "sha256": "796bbff664b3a91848dde9c647d6dc9361e27f8892fe36cf54e42b2a4b6a397b",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/MzTab.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/FORMAT/MzTabMFile.h",
+        "OpenMS/FORMAT/OMSFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h"
+      ]
+    },
+    {
+      "path": "src/topp/AssayGeneratorMetabo.cpp",
+      "sha256": "cf31ac5bec8325407811de60269330541f106fe3a5bb95ce5b8ff055eeb0f30d",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+        "OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/RangeUtils.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
+        "OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h"
+      ]
+    },
+    {
+      "path": "src/topp/AssayGeneratorMetaboSirius.cpp",
+      "sha256": "cc3c1948b3993c29bc4871fcafb82522418063f03bf598ea70742e7706f4790f",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+        "OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h",
+        "OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h",
+        "OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/RangeUtils.h",
+        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
+        "OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/BaselineFilter.cpp",
+      "sha256": "9d4364e3e6c512589b3d6eaa9131d5be0bbabe408f9218a7f6a57e425b5e1bbd",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h"
+      ]
+    },
+    {
+      "path": "src/topp/CVInspector.cpp",
+      "sha256": "d12e902d6b58810794416ffaf6cf2663b8597f488390bfe71d103316ac534715",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/CVMappingTerm.h",
+        "OpenMS/DATASTRUCTURES/CVMappings.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/CVMappingFile.h",
+        "OpenMS/FORMAT/ControlledVocabulary.h",
+        "OpenMS/FORMAT/TextFile.h"
+      ]
+    },
+    {
+      "path": "src/topp/ClusterMassTraces.cpp",
+      "sha256": "aac4268ad08b0f84377ff972139d727518dbd21384626f139588931ce2d17110",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/ClusterMassTracesByPrecursor.cpp",
+      "sha256": "d168a549714ae7a7d2d6d3d031761d44beb10ed55279496cd979c47c954f2e9d",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/CometAdapter.cpp",
+      "sha256": "ae7b1ae0d52f199bdc0556c4d37d342936e5340fa67f8ebcd7765ff6ebb45a71",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/CometModification.h",
+        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
+        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+        "OpenMS/APPLICATIONS/SearchEngineBase.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CHEMISTRY/ResidueDB.h",
+        "OpenMS/CHEMISTRY/ResidueModification.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+        "OpenMS/FORMAT/BrukerTimsFile.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/PepXMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/MSSpectrum.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/SpectrumMetaDataLookup.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/ConsensusID.cpp",
+      "sha256": "a4fc8298627ef0a8e96027659ce5fa43e185c8f9051c2f7dda5d832a0a4d6052",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h",
+        "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h",
+        "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h",
+        "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h",
+        "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h",
+        "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/ConsensusMapNormalizer.cpp",
+      "sha256": "3633cd99513699f963eb6e88f9a29feca2ee509db028a58eb0fe80b480fc74ae",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/KERNEL/ConsensusMap.h"
+      ]
+    },
+    {
+      "path": "src/topp/DIAPseudoSpectra.cpp",
+      "sha256": "b460deb1b17e137bad4cb6fc74342d7b6ecd07f4a09ca274024c6865e3291d0f",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
+        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
+        "OpenMS/FORMAT/BrukerTimsFile.h",
+        "OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/IONMOBILITY/IMTypes.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/MassTrace.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h"
+      ]
+    },
+    {
+      "path": "src/topp/DTAExtractor.cpp",
+      "sha256": "dbca2d499887a43091891e7d599e70bb1c075986c2cf54dfaa0e6be747854df9",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/DatabaseFilter.cpp",
+      "sha256": "cb51ff262ae8b2e4dd4ac34b8a05d1e702d8a8341be9374d7d46ed07398a002d",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/DatabaseSuitability.cpp",
+      "sha256": "72fea1bed3be0d8745a265fcb489245940d7708280928d69f5342e0fb31ca8c3",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/QC/DBSuitability.h",
+        "OpenMS/QC/Ms2IdentificationRate.h",
+        "OpenMS/QC/PSMExplainedIonCurrent.h"
+      ]
+    },
+    {
+      "path": "src/topp/DeMeanderize.cpp",
+      "sha256": "20f5cf81939f4ca134c69ee142aa5f96da81bd9aa507e4d4794d48d8830093dd",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/Decharger.cpp",
+      "sha256": "3f4b762a00f4af47d5f4a0e036c8d80071041378b56e37674ddb779ded78a747",
+      "includes": [
+        "OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/SYSTEM/StopWatch.h"
+      ]
+    },
+    {
+      "path": "src/topp/DecoyDatabase.cpp",
+      "sha256": "8543de7ebdf7aa2d8a6d0a43d49bafff5e7011aaf775ff9e09d959143198c1de",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/NeighborSeq.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDigestion.h",
+        "OpenMS/CHEMISTRY/ResidueDB.h",
+        "OpenMS/DATASTRUCTURES/FASTAContainer.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/Digestor.cpp",
+      "sha256": "5972a30fdd34f56a469269dac1ea23dbb7ae80b44a5cad9851263c0028ec7286",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDigestion.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/DigestorMotif.cpp",
+      "sha256": "9af9b7d5fbf17e4f3d2a0ae3c949a9ed1694a01adcb49f6bae05006d0ac62297",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/Element.h",
+        "OpenMS/CHEMISTRY/ElementDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDigestion.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/EICExtractor.cpp",
+      "sha256": "56646fe5c87a320df5af3fe56b3c842648275fe98acb7199c70a5bb7f3290006",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/EDTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSChromatogram.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+        "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
+        "OpenMS/PROCESSING/SMOOTHING/GaussFilter.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/Epifany.cpp",
+      "sha256": "578e1fef5c8dbaeaab3b85dd19192ac70025a15d525bcd61acec3995ef8ac9b7",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/PeptideProteinResolution.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ExperimentalDesignFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/ExperimentalDesign.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/SYSTEM/StopWatch.h"
+      ]
+    },
+    {
+      "path": "src/topp/ExternalCalibration.cpp",
+      "sha256": "13aa627a126df86b3d0f85864e3d2809439e6b1822d19f16cdc39f2a848a7852",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/TransformationXMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h"
+      ]
+    },
+    {
+      "path": "src/topp/FLASHDeconv.cpp",
+      "sha256": "715d85ea15f3c18a94ad80729b78c59e9ae334d3436316ad9aef8d4f7e5f9e81",
+      "includes": [
+        "OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h",
+        "OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FLASHDeconvFeatureFile.h",
+        "OpenMS/FORMAT/FLASHDeconvSpectrumFile.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/MzMLFile.h"
+      ]
+    },
+    {
+      "path": "src/topp/FalseDiscoveryRate.cpp",
+      "sha256": "bd9837cc9bac44f4431074f67712eef5a980661ec109e528c0692b7d72e24d1c",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureFinderCentroided.cpp",
+      "sha256": "ac17738623b953862e6d31e5398291b140dbf839e97dfcadbf27f4ccb2c8d90f",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/IONMOBILITY/IMDataConverter.h",
+        "OpenMS/IONMOBILITY/IMTypes.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/RangeUtils.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureFinderIdentification.cpp",
+      "sha256": "6b40a762ef3c4cb0325722c7dcdb50dd8db5697e4533eae17706645276d98038",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureFinderLFQ.cpp",
+      "sha256": "f3b714eb3086ae7433665347a55f8341c3e944b9cfa3c4588aae7ad5a0b3e280",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/SYSTEM/StopWatch.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureFinderMetabo.cpp",
+      "sha256": "c252c9f0bd1b5caf0773f4217ecbfd227b4aefb6ec6a5232dd2f42ee294f7a79",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
+        "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
+        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/IONMOBILITY/FAIMSHelper.h",
+        "OpenMS/IONMOBILITY/IMDataConverter.h",
+        "OpenMS/IONMOBILITY/IMTypes.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/MassTrace.h",
+        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureFinderMetaboIdent.cpp",
+      "sha256": "1f785c98448256311482ad90700fe662a9c35127504c1f4969a6a1a452f51b14",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
+        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FEATUREFINDER/ElutionModelFitter.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/OMSFileLoad.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureFinderMultiplex.cpp",
+      "sha256": "fbd0a16db685320cfd0f9e772aa048a16ab27de7bf15a92bc938684def830b8b",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/DBoundingBox.h",
+        "OpenMS/DATASTRUCTURES/DPosition.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
+        "OpenMS/FEATUREFINDER/MultiplexClustering.h",
+        "OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h",
+        "OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h",
+        "OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h",
+        "OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h",
+        "OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h",
+        "OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/IONMOBILITY/FAIMSHelper.h",
+        "OpenMS/IONMOBILITY/IMDataConverter.h",
+        "OpenMS/IONMOBILITY/IMTypes.h",
+        "OpenMS/KERNEL/ChromatogramTools.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/RangeUtils.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/ML/CLUSTERING/GridBasedCluster.h",
+        "OpenMS/ML/REGRESSION/LinearRegression.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureLinkerBase.cpp",
+      "sha256": "fbede853815d10fe0e483912e22e8e3914f1fd21efe9b5215029d2e4caef1e43",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FORMAT/ExperimentalDesignFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/ConversionHelper.h",
+        "OpenMS/METADATA/ExperimentalDesign.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureLinkerLabeled.cpp",
+      "sha256": "fb7a67e497250f9a94355d0711f46a277f2d20650ea869201d094339205ef195",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureLinkerUnlabeled.cpp",
+      "sha256": "587d826c3aea5515be782ffb2578cfe858b30c42bd16f91183bfc63fea76e4c2",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureLinkerUnlabeledKD.cpp",
+      "sha256": "4b1ed0434ccfef66f84e277e16ad69ae08060c2a2569e963ff5d1b6de940027e",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/DefaultParamHandler.h"
+      ]
+    },
+    {
+      "path": "src/topp/FeatureLinkerUnlabeledQT.cpp",
+      "sha256": "66f3849feb993976932ee130dd68c543ef3e742dc11fd7bdd1c8c428beee394f",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h"
+      ]
+    },
+    {
+      "path": "src/topp/FileConverter.cpp",
+      "sha256": "eeb2c786fe43c13b10dd06815503e190be0ec8d3b3072b6ff605e06f9e52150a",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/BrukerTimsFile.h",
+        "OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/DTA2DFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/IBSpectraFile.h",
+        "OpenMS/FORMAT/MascotGenericFile.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/MzXMLFile.h",
+        "OpenMS/FORMAT/SqMassFile.h",
+        "OpenMS/KERNEL/ChromatogramTools.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/ConversionHelper.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/ID/IdentificationDataConverter.h"
+      ]
+    },
+    {
+      "path": "src/topp/FileFilter.cpp",
+      "sha256": "8b0a5436310eb198fa2cf9308e04a17cbc9dcdf412ddfd45f2314a178a9fbf03",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/COMPARISON/ZhangSimilarityScore.h",
+        "OpenMS/CONCEPT/EnumHelpers.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/FORMAT/MSNumpressCoder.h",
+        "OpenMS/KERNEL/ChromatogramTools.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/RangeUtils.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h"
+      ]
+    },
+    {
+      "path": "src/topp/FileInfo.cpp",
+      "sha256": "96446d82dfd4b67c1b23a2c5f452366ac2006a9c57197ce41d7cb733bb92646c",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/FORMAT/MzDataFile.h",
+        "OpenMS/FORMAT/MzIdentMLFile.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/FORMAT/MzXMLFile.h",
+        "OpenMS/FORMAT/PeakTypeEstimator.h",
+        "OpenMS/FORMAT/PepXMLFile.h",
+        "OpenMS/FORMAT/TransformationXMLFile.h",
+        "OpenMS/IONMOBILITY/FAIMSHelper.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/Feature.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/MATH/StatisticFunctions.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/SysInfo.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/FileMerger.cpp",
+      "sha256": "285edee9ae504d9bb2c3e3fa058c6701b83aff6e95d73de04858373ff20459ed",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h",
+        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/TextFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/FuzzyDiff.cpp",
+      "sha256": "540f83fefd7821618bea3ec76d6e192eb076a42e376c28b16fb58cffe64eae37",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/FuzzyStringComparator.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/GNPSExport.cpp",
+      "sha256": "ac9dcef515828f8a599d58e2b241fea7cca36ba8a4f7c4029928b72b329a7eac",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/GNPSMGFFile.h",
+        "OpenMS/FORMAT/GNPSMetaValueFile.h",
+        "OpenMS/FORMAT/GNPSQuantificationFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h"
+      ]
+    },
+    {
+      "path": "src/topp/HighResPrecursorMassCorrector.cpp",
+      "sha256": "447e94acd61668e12d791cf3cf35290594cbfcbf04426da0900e392cf0e1d716",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/DataValue.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDConflictResolver.cpp",
+      "sha256": "2ee29feb4926aeae8fc4d03ec53e5611d119459964d981c610d12ace31d90ea8",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/PeptideIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDDecoyProbability.cpp",
+      "sha256": "e2314aba88747d2882a5d2aacd3491738439e93cccb3d318460aec1ad0675166",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDDecoyProbability.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDExtractor.cpp",
+      "sha256": "ffe3f46555a622a0b17dd862558cfcd261b19fa78f6c04e98224439d3a5304eb",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/EnzymaticDigestion.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDFileConverter.cpp",
+      "sha256": "8c7eb31f8dcd2082129ef26f03bde5144abe1c2ee4ac56722432ab91184f20e5",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDigestion.h",
+        "OpenMS/CHEMISTRY/SpectrumAnnotator.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/FORMAT/MascotXMLFile.h",
+        "OpenMS/FORMAT/MzIdentMLFile.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/OMSFile.h",
+        "OpenMS/FORMAT/OMSSAXMLFile.h",
+        "OpenMS/FORMAT/PepXMLFile.h",
+        "OpenMS/FORMAT/PercolatorOutfile.h",
+        "OpenMS/FORMAT/ProtXMLFile.h",
+        "OpenMS/FORMAT/SequestOutfile.h",
+        "OpenMS/FORMAT/TextFile.h",
+        "OpenMS/FORMAT/XQuestResultXMLFile.h",
+        "OpenMS/FORMAT/XTandemXMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/ID/IdentificationDataConverter.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDFilter.cpp",
+      "sha256": "f69d1be726fcc067ddf05f105774b9505e0df67a239cead233f5838b9664957b",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDRipper.h",
+        "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/AASequence.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDigestion.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDMapper.cpp",
+      "sha256": "322aea8da3718f1d5c866b7f12a2839f596ce9fa7134fe4c0f6fe37045c1ced4",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDMapper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/FORMAT/MzIdentMLFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDMerger.cpp",
+      "sha256": "195d6f1852931345e3d97ac9efd8cb0a9bc386a2d1033acebccf6a94560435a9",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/OMSFile.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDPosteriorErrorProbability.cpp",
+      "sha256": "363bd1a5c947cbfa6ed1b4c13d0421acaa3b47689c30d8eadd844c46e48ba2df",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDRTCalibration.cpp",
+      "sha256": "7aaedf8161c830f8bb920e7b5feaed1fc481699b64730a92def97aceeadc5882",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDRipper.cpp",
+      "sha256": "cd0fdfb4f6b7e96478733a3006253a5cf60be7576399183fcd72a2f26b6d110d",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDRipper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/SYSTEM/PathUtils.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDScoreSwitcher.cpp",
+      "sha256": "224fbb81905a15f1cbaaeef490964e080dc3b52d69767f17916f7d5f879a9dae",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/IDSplitter.cpp",
+      "sha256": "17be610ebcbc697fbaa3516a7133067d4364d45165c0986e5d9133d9c3a0793e",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/METADATA/AnnotatedMSRun.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/InternalCalibration.cpp",
+      "sha256": "2b3b7c77b3882bee73cf754dc6d473db040a2a179ca3ff6b5b9d52a93485a712",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/CalibrationData.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/TextFile.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h",
+        "OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h"
+      ]
+    },
+    {
+      "path": "src/topp/IonMobilityBinning.cpp",
+      "sha256": "605b0e275f951d6d5d2187a44aee95870ae78c2d5117cacf2e4c311d92adfa7f",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/IONMOBILITY/FAIMSHelper.h",
+        "OpenMS/IONMOBILITY/IMDataConverter.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/IsobaricAnalyzer.cpp",
+      "sha256": "0c198e8cb53203170886c18a86de95ae57e58b8a188bd85fb3c1cc5b5f30eb19",
+      "includes": [
+        "OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h",
+        "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h",
+        "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/IsobaricWorkflow.cpp",
+      "sha256": "95848d445225a17f817a9e9060a397c3389c3ec6d98c18ec17092d968edddf75",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/PrecursorPurity.h",
+        "OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h",
+        "OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h",
+        "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h",
+        "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h",
+        "OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ConsensusMapArrowExport.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/ExperimentalDesignFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/FORMAT/ProteinGroupArrowExport.h",
+        "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h"
+      ]
+    },
+    {
+      "path": "src/topp/JSONExporter.cpp",
+      "sha256": "b049931f29c67fdac5647d1a898c88b1838afd7e7278751b3df335adfef25f5d",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/OMSFile.h"
+      ]
+    },
+    {
+      "path": "src/topp/LuciphorAdapter.cpp",
+      "sha256": "38437fd365e5224128cefd00ee0fb37ca3adb9ca426f558d5a6f8a02c34a8d7b",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ModificationDefinitionsSet.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/PepXMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/SYSTEM/JavaInfo.h"
+      ]
+    },
+    {
+      "path": "src/topp/MRMMapper.cpp",
+      "sha256": "506880747aaca4cf57c1c6f9016e70e948af1701a541dfd8584a63a41d861242",
+      "includes": [
+        "OpenMS/ANALYSIS/TARGETED/MRMMapping.h",
+        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/MRMPairFinder.cpp",
+      "sha256": "506109b2da90ff08b4b16a6751a12cc87cdecfb60674a059e98e91a88766507a",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/Feature.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/MATH/StatisticFunctions.h"
+      ]
+    },
+    {
+      "path": "src/topp/MRMTransitionGroupPicker.cpp",
+      "sha256": "47d5cb07d6f86c9607f90cb781e437de0fce7561143772e639764319f8159b8b",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h",
+        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MRMTransitionGroup.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MSFraggerAdapter.cpp",
+      "sha256": "df2a6d51fa092d987d90a1e5b8a9d32edd5a8ba72a86f89b239a37adf0cefb7a",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
+        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+        "OpenMS/APPLICATIONS/SearchEngineBase.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/PepXMLFile.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/SYSTEM/JavaInfo.h"
+      ]
+    },
+    {
+      "path": "src/topp/MSGFPlusAdapter.cpp",
+      "sha256": "352a43fdd8e72309867dc85fd9e65f937672ec88c456d9cafccd339d475b38f6",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
+        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+        "OpenMS/APPLICATIONS/SearchEngineBase.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/SpectrumMetaDataLookup.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/SYSTEM/JavaInfo.h"
+      ]
+    },
+    {
+      "path": "src/topp/MSstatsConverter.cpp",
+      "sha256": "2a050c3b9ba6fd98d28d85f61f6d9937a514f677c29fe9ced6d4c0d3edf32300",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ExperimentalDesignFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MSstatsFile.h",
+        "OpenMS/FORMAT/MzTab.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/FORMAT/TextFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/ExperimentalDesign.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MaRaClusterAdapter.cpp",
+      "sha256": "1291edbbc70b68a34fe9426ca5162ac83a91e1a3297581201b15faddc618b68c",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MapAlignerIdentification.cpp",
+      "sha256": "3ced1d46db8ca7ba4b00fbe8630126922585ebb9586c82b593bcdfe1b1cd20ec",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
+        "OpenMS/APPLICATIONS/MapAlignerBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/ExperimentalDesignFile.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/OMSFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/ExperimentalDesign.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/MapAlignerPoseClustering.cpp",
+      "sha256": "e82d4d272ddd613b24236ae986e91ea5627aded425509486e71ffeebcb066457",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h",
+        "OpenMS/APPLICATIONS/MapAlignerBase.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h"
+      ]
+    },
+    {
+      "path": "src/topp/MapAlignerTreeGuided.cpp",
+      "sha256": "46d956496a1f01e2778001c69b178e11e8b61720e33b5126ad24a51e6026f1c9",
+      "includes": [
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h",
+        "OpenMS/APPLICATIONS/MapAlignerBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/ML/CLUSTERING/ClusterAnalyzer.h"
+      ]
+    },
+    {
+      "path": "src/topp/MapNormalizer.cpp",
+      "sha256": "9a91a8a9fdb94767558d20faba2c93e4903629f9507aeb0fa5bd2934f422e526",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/MapRTTransformer.cpp",
+      "sha256": "3776d1d49ea29aeacfbe72c8ccd36569c92775a88bd56d31236f315afda77c55",
+      "includes": [
+        "OpenMS/APPLICATIONS/MapAlignerBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/MapStatistics.cpp",
+      "sha256": "c143ef0bf2efcb2bf8fb45ddf2d2017699cf133354c72c9a725939c47c9a9e88",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/MATH/StatisticFunctions.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/MascotAdapterOnline.cpp",
+      "sha256": "63d6b9c5789219c8074f80b1aada832173c323a3411fcd6ed10c1bca26a6b4e5",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+        "OpenMS/APPLICATIONS/SearchEngineBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/MascotGenericFile.h",
+        "OpenMS/FORMAT/MascotRemoteQuery.h",
+        "OpenMS/FORMAT/MascotXMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MassCalculator.cpp",
+      "sha256": "9bf1524c0d6141ce2b0e1e354f7c17353caf4a467719fa70e9eccecadec78006",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/AASequence.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FORMAT/SVOutStream.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MassTraceExtractor.cpp",
+      "sha256": "1526d5e07069ad472d5cee9d474998e9891150e384439cd9669e3a4420f07d20",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
+        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/MassTrace.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MetaProSIP.cpp",
+      "sha256": "ff921d8d53787d99e9b753279b3d23c997ed6316f03879a5ac86b0493690f6c0",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/Element.h",
+        "OpenMS/CHEMISTRY/ElementDB.h",
+        "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
+        "OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h",
+        "OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/COMPARISON/SpectrumAlignment.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/Param.h",
+        "OpenMS/FEATUREFINDER/GaussModel.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/SVOutStream.h",
+        "OpenMS/FORMAT/TextFile.h",
+        "OpenMS/KERNEL/Feature.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/MATH/MISC/CubicSpline2d.h",
+        "OpenMS/MATH/StatisticFunctions.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
+        "OpenMS/PROCESSING/SCALING/Normalizer.h",
+        "OpenMS/SYSTEM/ExternalProcess.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MetaboliteAdductDecharger.cpp",
+      "sha256": "fa2b6f2def7fa3933f634e44c998f74c274e04013e85c84103246e0ae09f2270",
+      "includes": [
+        "OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/SYSTEM/StopWatch.h"
+      ]
+    },
+    {
+      "path": "src/topp/MetaboliteSpectralMatcher.cpp",
+      "sha256": "bdd97e0ba5e03002992b0d829f0ef31859fe0a75459caa130bf94166a2d75a8a",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MSPGenericFile.h",
+        "OpenMS/FORMAT/MascotGenericFile.h",
+        "OpenMS/FORMAT/MzTab.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MultiplexResolver.cpp",
+      "sha256": "0af3fac02355df58c12523e355d045b3bf20b65beba4c820fa85dbb17503aea8",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h",
+        "OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h",
+        "OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/METADATA/PeptideHit.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/MzMLSplitter.cpp",
+      "sha256": "52b31912d8c2f5f6fe070510f7fd366bfeb41779a0279835d8cccca5d9a46b65",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/MzTabExporter.cpp",
+      "sha256": "be3aae6681cc872fc6a35a23a6d0eb2d7eab6ad59e3da1e7d8efda1d38569112",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/MzTab.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
+        "OpenMS/METADATA/PeptideEvidence.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinHit.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h"
+      ]
+    },
+    {
+      "path": "src/topp/NoiseFilterGaussian.cpp",
+      "sha256": "38662bf62e0fdc7426d5b7b3d48f521bcf4a427418c2bd5cc9e8bda9d68ca081",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/SMOOTHING/GaussFilter.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/NoiseFilterSGolay.cpp",
+      "sha256": "f1796fd876aa553d19b57456d48362e0c81b8490150e0624bad85709015d9c31",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/NovorAdapter.cpp",
+      "sha256": "1b28ce4945801eb6ad9df74f45f1c9639931968e56cc7af0894a2da0b672c7f4",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MascotGenericFile.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideHit.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/SpectrumLookup.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/SYSTEM/JavaInfo.h"
+      ]
+    },
+    {
+      "path": "src/topp/NucleicAcidSearchEngine.cpp",
+      "sha256": "444dd87bb9841d23c5d8718763e16bfcb0678fc89fe2be29fb07b499c251d32f",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ElementDB.h",
+        "OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h",
+        "OpenMS/CHEMISTRY/NASequence.h",
+        "OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h",
+        "OpenMS/CHEMISTRY/RNaseDB.h",
+        "OpenMS/CHEMISTRY/RNaseDigestion.h",
+        "OpenMS/CHEMISTRY/RibonucleotideDB.h",
+        "OpenMS/COMPARISON/SpectrumAlignment.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/Param.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/FORMAT/OMSFile.h",
+        "OpenMS/FORMAT/SVOutStream.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/MSSpectrum.h",
+        "OpenMS/KERNEL/Peak1D.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/MATH/StatisticFunctions.h",
+        "OpenMS/METADATA/ID/IdentificationData.h",
+        "OpenMS/METADATA/ID/IdentificationDataConverter.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/SpectrumSettings.h",
+        "OpenMS/PROCESSING/FILTERING/NLargest.h",
+        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
+        "OpenMS/PROCESSING/FILTERING/WindowMower.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/PROCESSING/SCALING/Normalizer.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenMSDatabasesInfo.cpp",
+      "sha256": "8416227406bfe302b8f36af6c49cf16f91baf1f042ee01a9b2740d4ab4570896",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/DigestionEnzymeProtein.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenMSInfo.cpp",
+      "sha256": "dbf1a7d165c7319f54b612d6fedaf79ef6dcdd90ebc772bfcfe86111656a84b9",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Colorizer.h",
+        "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/IndentedStream.h",
+        "OpenMS/SYSTEM/BuildInfo.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/config.h",
+        "OpenMS/openms_data_path.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenNuXL.cpp",
+      "sha256": "3e954f3cb7db64fa745ef53f99053c125900059ca88f94b1de38e36b85e68ea8",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/AScore.h",
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/HyperScore.h",
+        "OpenMS/ANALYSIS/ID/MorpheusScore.h",
+        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
+        "OpenMS/ANALYSIS/ID/PrecursorPurity.h",
+        "OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLConstants.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLDeisotoper.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLFDR.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLPresets.h",
+        "OpenMS/ANALYSIS/NUXL/NuXLReport.h",
+        "OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h",
+        "OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/DecoyGenerator.h",
+        "OpenMS/CHEMISTRY/ElementDB.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CHEMISTRY/ProteaseDigestion.h",
+        "OpenMS/CHEMISTRY/ResidueDB.h",
+        "OpenMS/CHEMISTRY/ResidueModification.h",
+        "OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
+        "OpenMS/COMPARISON/BinnedSpectralContrastAngle.h",
+        "OpenMS/COMPARISON/SpectrumAlignment.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+        "OpenMS/DATASTRUCTURES/Param.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/TextFile.h",
+        "OpenMS/KERNEL/BinnedSpectrum.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/MSSpectrum.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/MATH/StatisticFunctions.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/SpectrumLookup.h",
+        "OpenMS/METADATA/SpectrumSettings.h",
+        "OpenMS/ML/SVM/SimpleSVM.h",
+        "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h",
+        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
+        "OpenMS/PROCESSING/FILTERING/NLargest.h",
+        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
+        "OpenMS/PROCESSING/FILTERING/WindowMower.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/PROCESSING/SCALING/Normalizer.h",
+        "OpenMS/PROCESSING/SCALING/SqrtScaler.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenPepXL.cpp",
+      "sha256": "46c70427be2356353558a19d86d9867a80943f6d66dc96be25b8986087dcc23c",
+      "includes": [
+        "OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/XQuestResultXMLFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathAnalyzer.cpp",
+      "sha256": "dc735d62e70c4d488080d91eabe9dbf5996515188df5a542f60b2a75f76287f9",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
+        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathAssayGenerator.cpp",
+      "sha256": "b8db90d79ffab3f074b8cee39cdaec95865f4b1bcb5faf9c91e301eb84ca8128",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h",
+        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/AASequence.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/MATH/MathFunctions.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathChromatogramExtractor.cpp",
+      "sha256": "0ef47ea9646b53636aab15e65c79a282cd3e66bd4d8a4bb48b25e4026d56d3f9",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathConfidenceScoring.cpp",
+      "sha256": "976d1fab767ee0562baf8ac956306f0cf1c999796c3bd91bfcf6e1bf45f19943",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathDIAPreScoring.cpp",
+      "sha256": "54f94d03353a7350b8952cd05a8f8465e3e2991c1a2cf591ca31b23f36598278",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h",
+        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathDecoyGenerator.cpp",
+      "sha256": "5501a6530a865821af58749d54595900030bcd9a4ad4a46d95c208186d6cebb7",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathFeatureXMLToTSV.cpp",
+      "sha256": "1005b6cb4958b661ed2d70af0dc999c0c84ef7518d618b84bd848a87ea7db38e",
+      "includes": [
+        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Types.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/Feature.h",
+        "OpenMS/KERNEL/FeatureMap.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathFileSplitter.cpp",
+      "sha256": "ea662b9d0e31663425dbadcf1a726920c420ab2c011a76ec31138c0c3aa59ea9",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
+        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/SwathFile.h",
+        "OpenMS/METADATA/ExperimentalSettings.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathMzMLFileCacher.cpp",
+      "sha256": "0ab2dc7ba550b4a4097ff3b367813e1a46526fe8f9499a0ace5ac416a600b754",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/CachedMzML.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/SqMassFile.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathRTNormalizer.cpp",
+      "sha256": "fb32a8af9bef5b689d0441390878fe0a25a23d9a147316f767a727d6dd0ad946",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h",
+        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathRewriteToFeatureXML.cpp",
+      "sha256": "ad0880a9a794e17c7e452552a418421a95cd2aa2f4bab8aecdbaabb891757b64",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/Feature.h",
+        "OpenMS/KERNEL/FeatureMap.h"
+      ]
+    },
+    {
+      "path": "src/topp/OpenSwathWorkflow.cpp",
+      "sha256": "bf2a811db9c98d1799bead8623ac1cc6b59401df546f6febdec74dd79dbfcc1c",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h",
+        "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h",
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h",
+        "OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h",
+        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h",
+        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h",
+        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h",
+        "OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h",
+        "OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
+        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+        "OpenMS/ANALYSIS/TARGETED/MRMMapping.h",
+        "OpenMS/APPLICATIONS/OpenSwathBase.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/ParquetFile.h",
+        "OpenMS/FORMAT/SwathFile.h",
+        "OpenMS/FORMAT/TransformationXMLFile.h",
+        "OpenMS/FORMAT/ZipArchiveFile.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/PSMFeatureExtractor.cpp",
+      "sha256": "c7c7b8e637e9c0974d2ab542ea17d16a5c235e15bf6ab9df676b24b3904ade76",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/ParquetConverter.cpp",
+      "sha256": "84b83d940cc05eb24ccba69cf2e03de510f5e3458983928a749f535fd1cf8cf7",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ConsensusMapArrowIO.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/FeatureMapArrowIO.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h"
+      ]
+    },
+    {
+      "path": "src/topp/PeakPickerHiRes.cpp",
+      "sha256": "fb9822da610772ebb0f86a4e6651a5a85210b45ed2735f3bd6d0f8316fd454fe",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/IONMOBILITY/IMTypes.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h"
+      ]
+    },
+    {
+      "path": "src/topp/PeakPickerIM.cpp",
+      "sha256": "bda077bcf80025b6b60e964f4986b41f96628b06e9b74c8e639032a5fdd6d016",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/BrukerTimsFile.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/INTERFACES/IMSDataConsumer.h",
+        "OpenMS/IONMOBILITY/IMTypes.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h"
+      ]
+    },
+    {
+      "path": "src/topp/PeakPickerIterative.cpp",
+      "sha256": "60b24b59f7be850a54b1bcab32ddbaa555037b5f7acea6454cf122e269b609a6",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h"
+      ]
+    },
+    {
+      "path": "src/topp/PeptideIndexer.cpp",
+      "sha256": "32990d20addcb19d3ad51f7448f95de7e6f02144570687dc4d5ea2e12a3a0b18",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/PercolatorAdapter.cpp",
+      "sha256": "b79776a1169563303b474246834e04bb137a968b25a7f2935618f2ece4dde739",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/CONCEPT/EnumHelpers.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/OSWFile.h",
+        "OpenMS/FORMAT/PercolatorInfile.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/PhosphoScoring.cpp",
+      "sha256": "c5b58e8f26a105456501b8bacfaacb3a3a08ef71121ee01ec87f1d645b4342de",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/AScore.h",
+        "OpenMS/ANALYSIS/ID/IDMapper.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/SpectrumMetaDataLookup.h"
+      ]
+    },
+    {
+      "path": "src/topp/ProSE.cpp",
+      "sha256": "4b2ac8344163ffb684528b9004cab4d3af1bf94dd6600e598a689b2bc7eb3383",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/ProSEAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/ArrowIOHelpers.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/PercolatorInfile.h",
+        "OpenMS/FORMAT/ProteinGroupArrowExport.h",
+        "OpenMS/FORMAT/ProteinIdentificationArrowIO.h",
+        "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/ProteinInference.cpp",
+      "sha256": "ec1c929174490241b2d9cbdc1a4f75d1d69a385bbea16815c77a1e9456c33443",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/StopWatch.h"
+      ]
+    },
+    {
+      "path": "src/topp/ProteinQuantifier.cpp",
+      "sha256": "79fffcf6b8cda1f98298226aad287670a553760b4307c866ee2ffb14e93e5ef5",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/PeptideProteinResolution.h",
+        "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ConsensusMapArrowExport.h",
+        "OpenMS/FORMAT/ExperimentalDesignFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/MzTab.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/FORMAT/ProteinGroupArrowExport.h",
+        "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/FORMAT/SVOutStream.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/ExperimentalDesign.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/ProteomicsLFQ.cpp",
+      "sha256": "ef8d5505a813737af8e35601a503106056addab45b13a575e7f520dbabf97dc2",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/IDBoostGraph.h",
+        "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
+        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
+        "OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h",
+        "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
+        "OpenMS/APPLICATIONS/MapAlignerBase.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/CalibrationData.h",
+        "OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
+        "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
+        "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
+        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
+        "OpenMS/FORMAT/BrukerTimsFile.h",
+        "OpenMS/FORMAT/ConsensusMapArrowExport.h",
+        "OpenMS/FORMAT/ExperimentalDesignFile.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MSstatsFile.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/FORMAT/PeakTypeEstimator.h",
+        "OpenMS/FORMAT/ProteinGroupArrowExport.h",
+        "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/FORMAT/TriqlerFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/ConversionHelper.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/MassTrace.h",
+        "OpenMS/MATH/StatisticFunctions.h",
+        "OpenMS/METADATA/ExperimentalDesign.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/SpectrumMetaDataLookup.h",
+        "OpenMS/ML/SVM/SimpleSVM.h",
+        "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h",
+        "OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h",
+        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/QCCalculator.cpp",
+      "sha256": "09633eeb9131a283f45187047958dabc4052816e22a7ebb9bdb7dd24613224b0",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/QCEmbedder.cpp",
+      "sha256": "07b63c2556d0f895aa65fcfdcc28236a054776d6a249bbd8d88b0cde16936d40",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/UniqueIdGenerator.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/Base64.h",
+        "OpenMS/FORMAT/ControlledVocabulary.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/QcMLFile.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/QCExporter.cpp",
+      "sha256": "8742cd8ce66fe714c88b6cb25aba9ea1d17288c3324ce08b94a58dd959a200ba",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/ControlledVocabulary.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/QcMLFile.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/QCExtractor.cpp",
+      "sha256": "659a14470271b298dd8ba90e4a67d54a1cbb1999aec474c3169f422205c2a7d9",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/QcMLFile.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/QCImporter.cpp",
+      "sha256": "15c97d0abb80c70959961fdf755feeed2e7e1f006dd3b44a92dbb240202bbc45",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/UniqueIdGenerator.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/ControlledVocabulary.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/QcMLFile.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/QCMerger.cpp",
+      "sha256": "f948661d6e2c9de466889d8e6b44ff9a168e1967d14d716b576477be62c69473",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/QcMLFile.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/MATH/StatisticFunctions.h"
+      ]
+    },
+    {
+      "path": "src/topp/QCShrinker.cpp",
+      "sha256": "e6aaaa7a5d7dc28109babf856b745a9216e99dd250d5a1aea3372078f3c02e9d",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/String.h",
+        "OpenMS/FORMAT/CsvFile.h",
+        "OpenMS/FORMAT/QcMLFile.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/QPXConverter.cpp",
+      "sha256": "7ac8469e8fa85357f04c4a8095e6e27ed55868266ac8e057eebc2b92c84a6a14",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/QualityControl.cpp",
+      "sha256": "4a668e8d70e901064215b2ea165f613a8db6590fef5e6f3c3528385b9ca83f61",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/MzTab.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/IdentifierMSRunMapper.h",
+        "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
+        "OpenMS/METADATA/PeptideIdentification.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/QC/Contaminants.h",
+        "OpenMS/QC/FWHM.h",
+        "OpenMS/QC/FragmentMassError.h",
+        "OpenMS/QC/MQEvidenceExporter.h",
+        "OpenMS/QC/MQExporterHelper.h",
+        "OpenMS/QC/MQMsmsExporter.h",
+        "OpenMS/QC/MissedCleavages.h",
+        "OpenMS/QC/Ms2IdentificationRate.h",
+        "OpenMS/QC/Ms2SpectrumStats.h",
+        "OpenMS/QC/MzCalibration.h",
+        "OpenMS/QC/PSMExplainedIonCurrent.h",
+        "OpenMS/QC/PeptideMass.h",
+        "OpenMS/QC/RTAlignment.h",
+        "OpenMS/QC/TIC.h"
+      ]
+    },
+    {
+      "path": "src/topp/RNADigestor.cpp",
+      "sha256": "364545a596ed418fb7b38e73aed35863cd7c2ffa66de3bd92d99925a5d6e3e6b",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/RNaseDB.h",
+        "OpenMS/CHEMISTRY/RNaseDigestion.h",
+        "OpenMS/FORMAT/FASTAFile.h"
+      ]
+    },
+    {
+      "path": "src/topp/RNAMassCalculator.cpp",
+      "sha256": "3b5cb6708fe7de08c5f2523ee0e497f16c891ae8776020fb0c33d065fd10bf69",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/NASequence.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FORMAT/SVOutStream.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/RNPxlXICFilter.cpp",
+      "sha256": "7627128308d0cfe7f0c94d7a4653e40f85026e54ab6949120daecf1d569ffd4e",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/KERNEL/StandardTypes.h"
+      ]
+    },
+    {
+      "path": "src/topp/Resampler.cpp",
+      "sha256": "825c7a0e32df5a9f75c55e317a7b6b35c113104ad5aac1f90f99891d1df81d20",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/IONMOBILITY/IMTypes.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
+        "OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/SageAdapter.cpp",
+      "sha256": "41076b37b8193d406f3fbdadc11e17f2b3a2e3feb4f2899f4372fa28d5b265dc",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h",
+        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
+        "OpenMS/APPLICATIONS/SearchEngineBase.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h",
+        "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/CHEMISTRY/ResidueDB.h",
+        "OpenMS/CHEMISTRY/ResidueModification.h",
+        "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+        "OpenMS/FORMAT/ControlledVocabulary.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/PepXMLFile.h",
+        "OpenMS/FORMAT/PercolatorInfile.h",
+        "OpenMS/PROCESSING/ID/IDFilter.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/SeedListGenerator.cpp",
+      "sha256": "95e22b2e185e9c64713faec2b95b2cb70173aa6a2e738fe7f07a3000e49d7fe3",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FEATUREFINDER/SeedListGenerator.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/SVOutStream.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/SemanticValidator.cpp",
+      "sha256": "a018f505fcf22d122db543fd67f88b1599546f6009bbbea087a9b92e311ad65d",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/CVMappings.h",
+        "OpenMS/FORMAT/CVMappingFile.h",
+        "OpenMS/FORMAT/ControlledVocabulary.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
+        "OpenMS/SYSTEM/File.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/SequenceCoverageCalculator.cpp",
+      "sha256": "46b7ff46aaac42de2afd3cb799af2361e61378e82519a018d097bb0c185ba677",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/SequenceCoverage.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FASTAFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/SimpleSearchEngine.cpp",
+      "sha256": "d68a8c7af18c4a1bae59e264e1136ab458d6d809ef6355bd83a31a547b6d31db",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/StandardTypes.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/SiriusExport.cpp",
+      "sha256": "27b24dfea2be68ceb904282571e78714bd61d4b42ab7802cd5d89cfeace0d46e",
+      "includes": [
+        "OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h"
+      ]
+    },
+    {
+      "path": "src/topp/SpectraFilterNLargest.cpp",
+      "sha256": "0a10451573af8b4e034cf5a36afa21636ca619171fae86ac96330d85f86af98e",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/FILTERING/NLargest.h"
+      ]
+    },
+    {
+      "path": "src/topp/SpectraFilterNormalizer.cpp",
+      "sha256": "d7c8953115555ca83dca79e95e3a1b0e7034a863bf3c50279051804bd093153f",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/SCALING/Normalizer.h"
+      ]
+    },
+    {
+      "path": "src/topp/SpectraFilterThresholdMower.cpp",
+      "sha256": "4ad8bb5536f3864dd7cd3c509b8130577cae7044967d4d0a5dfe8649df9c4262",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h"
+      ]
+    },
+    {
+      "path": "src/topp/SpectraFilterWindowMower.cpp",
+      "sha256": "f009c51ecf0f5b83a71709066fccbd3106865e408eae85055750bceef653b2c0",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/FILTERING/WindowMower.h"
+      ]
+    },
+    {
+      "path": "src/topp/SpectraMerger.cpp",
+      "sha256": "b74401b368f2384cb18f92cc640bb78aea2369b7bbb3e614bfa88d1a494ca4f2",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h"
+      ]
+    },
+    {
+      "path": "src/topp/SpectraSTSearchAdapter.cpp",
+      "sha256": "c99d93f5c8c6c93dd4204bc04626bafa99a9982dd67c120eb74fa51272d87dc8",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/StaticModification.cpp",
+      "sha256": "dbc2aefc48cf6ebe3e38b32a472fc1f09bbbb3be80a68b54068b6135b764a61b",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CHEMISTRY/ModificationsDB.h",
+        "OpenMS/CHEMISTRY/ResidueDB.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/TICCalculator.cpp",
+      "sha256": "83eeb34f66776aaa95c881bb49fee24dd795ebd3514c08c9a1e8860f12c81102",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/CachedMzML.h",
+        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
+        "OpenMS/FORMAT/IndexedMzMLFileLoader.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+        "OpenMS/INTERFACES/IMSDataConsumer.h",
+        "OpenMS/KERNEL/OnDiscMSExperiment.h",
+        "OpenMS/SYSTEM/SysInfo.h",
+        "OpenMS/config.h"
+      ]
+    },
+    {
+      "path": "src/topp/TargetedFileConverter.cpp",
+      "sha256": "ce296dec1d39bc68b92e5ca4f415bbf68863efae1a908f9c533abc4e38d4e9b6",
+      "includes": [
+        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
+        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h"
+      ]
+    },
+    {
+      "path": "src/topp/TextExporter.cpp",
+      "sha256": "b2847aacde7b7d819d0549a00a76c99726dc42bfda35aa15278fef81bbc9073e",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/SVOutStream.h",
+        "OpenMS/FORMAT/XICParquetFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/KERNEL/FeatureMap.h",
+        "OpenMS/KERNEL/MSExperiment.h",
+        "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/USI.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/TriqlerConverter.cpp",
+      "sha256": "112afd2a450ea13e279f50761e6295aa7fdf112934bddff3b0359a2fb7a334da",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/ExperimentalDesignFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/MzTab.h",
+        "OpenMS/FORMAT/MzTabFile.h",
+        "OpenMS/FORMAT/TextFile.h",
+        "OpenMS/FORMAT/TriqlerFile.h",
+        "OpenMS/KERNEL/ConsensusMap.h",
+        "OpenMS/METADATA/ExperimentalDesign.h",
+        "OpenMS/SYSTEM/File.h"
+      ]
+    },
+    {
+      "path": "src/topp/XFDR.cpp",
+      "sha256": "3a3954379fe44d7bf1c5334645a4d551cb4e7f0c6a8c182aac42042c98b38f01",
+      "includes": [
+        "OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+        "OpenMS/FORMAT/XMLFile.h",
+        "OpenMS/FORMAT/XQuestResultXMLFile.h",
+        "OpenMS/METADATA/PeptideIdentificationList.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
+      ]
+    },
+    {
+      "path": "src/topp/XMLValidator.cpp",
+      "sha256": "ca1cc8ed25e9bccd2a329ca2557add8fa163e7d7e41225e0a882ed3799686a28",
+      "includes": [
+        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileTypes.h",
+        "OpenMS/FORMAT/IdXMLFile.h",
+        "OpenMS/FORMAT/MzDataFile.h",
+        "OpenMS/FORMAT/MzIdentMLFile.h",
+        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/MzXMLFile.h",
+        "OpenMS/FORMAT/ParamXMLFile.h",
+        "OpenMS/FORMAT/PepXMLFile.h",
+        "OpenMS/FORMAT/TraMLFile.h",
+        "OpenMS/FORMAT/VALIDATORS/XMLValidator.h",
+        "OpenMS/config.h"
+      ]
+    }
+  ]
+}

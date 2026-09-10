@@ -1,0 +1,163 @@
+{
+  "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "method": "Exact pinned fixture copies and source inspection; no C++ execution or differential-build output. Derived boundary cases are independent literals in the Rust test.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MS2File.h",
+      "sha256": "eb3a6823b981c32661f6a5cf80ad3b8162384b7a7a34ff59cf4fd68116b612b2",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/FORMAT/MS2File.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DTA2DFile.h",
+      "sha256": "2bb5d1ce9785fcd4b476a503dcc9e29a9f2b127d2d7f63b7b61d59c2aa8e3802",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/FORMAT/DTA2DFile.h"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MS2File.cpp",
+      "sha256": "acbb86979837ba523e1cdf612680d18de1f93eb5ddce1341dd69f635493465b3",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/FORMAT/MS2File.cpp"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DTA2DFile.cpp",
+      "sha256": "487e9b17797bcf0ea149e5bfcf1e8069e8341bf038e994a8bc5eadea95cd646f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/FORMAT/DTA2DFile.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MS2File_test.cpp",
+      "sha256": "109c1b8baaa640e5b47f338619947aaa61f4bc952a6e06b91f291ad585ce3d74",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/MS2File_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DTA2DFile_test.cpp",
+      "sha256": "02d702f03e66ce8253d7c6b70a3a545711bdefbe7c40b795fc19a10dcdba7bc3",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/DTA2DFile_test.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+      "sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/DATASTRUCTURES/StringUtils.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/DATASTRUCTURES/DRange.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h"
+    },
+    {
+      "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
+      "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/KERNEL/MSExperiment.cpp"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/KERNEL/MSSpectrum.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/PrecisionWrapper.h",
+      "sha256": "3134c07bdbd5a4faec1d18d91b4ea54abcc0aa811c643b74249811385724e9cb",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/CONCEPT/PrecisionWrapper.h"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/text_peak_lists/DTA2DFile_test_1.dta2d",
+      "source": "src/tests/class_tests/openms/data/DTA2DFile_test_1.dta2d",
+      "sha256": "2ae3ae9d954da10e8b83eb39bf2fd53eec08f7aa5d2e76aaba69da4daf346447",
+      "bytes": 251,
+      "nonempty_lines": 11,
+      "peak_rows": 11
+    },
+    {
+      "path": "tests/data/text_peak_lists/DTA2DFile_test_2.dta2d",
+      "source": "src/tests/class_tests/openms/data/DTA2DFile_test_2.dta2d",
+      "sha256": "04e38358b496cbe368feafef24642d3bd4e201da14a51b07ec6bcea905215dc0",
+      "bytes": 271,
+      "nonempty_lines": 12,
+      "peak_rows": 11
+    },
+    {
+      "path": "tests/data/text_peak_lists/DTA2DFile_test_3.dta2d",
+      "source": "src/tests/class_tests/openms/data/DTA2DFile_test_3.dta2d",
+      "sha256": "0b567ff93b0bbc6dcc4bf9cd94f6d37ac74d14823291237faa01dde781733bcb",
+      "bytes": 274,
+      "nonempty_lines": 12,
+      "peak_rows": 11
+    },
+    {
+      "path": "tests/data/text_peak_lists/MS2File_test_spectra.ms2",
+      "source": "src/tests/class_tests/openms/data/MS2File_test_spectra.ms2",
+      "sha256": "c609e857d09d9758846b9f436f36ac627e1ecd11f7464687643bb7a5c7ef458c",
+      "bytes": 292,
+      "nonempty_lines": 18,
+      "peak_rows": 8
+    }
+  ],
+  "reference_test": "tests/text_peak_lists.rs",
+  "source_cases": {
+    "ms2_spectra": 2,
+    "ms2_peak_counts": [
+      4,
+      4
+    ],
+    "ms2_precursor_mz": [
+      444.44,
+      555.555
+    ],
+    "dta2d_spectra": 9,
+    "dta2d_peaks": 11,
+    "rt_filter_native_indices": [
+      1,
+      2,
+      3
+    ],
+    "mz_filter_native_indices": [
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "intensity_filter_native_indices": [
+      0,
+      3,
+      4,
+      5,
+      6
+    ],
+    "first_tic_source_printed_literal": 141650,
+    "first_tic_derived_f32_bits": "480a546b",
+    "first_tic_derived_value": 141649.671875
+  },
+  "derived_cases": [
+    "half-open endpoints",
+    "anchor-based RT grouping and initial -1 sentinel",
+    "sticky MIN unit and deprecated header aliases",
+    "direct f32 parsing rather than f64 double rounding",
+    "filtered/discarded input resource charging",
+    "native writer loss-prevention preflight and flush errors",
+    "MS1-only TIC and explicit unconsumed metadata projection"
+  ],
+  "native_differences": [
+    "Malformed short DTA2D headers return checked errors instead of indexing beyond source vector.",
+    "Nonfinite/underflow numeric inputs and nonfinite minute/TIC results are rejected.",
+    "Writers use shortest round-trippable Rust float spelling rather than C++ PrecisionWrapper formatting.",
+    "Strict full-store preflight prevents known annotation loss and DTA2D scan merging; source store silently projects these away.",
+    "MS2 writer is a native extension; pinned source only loads.",
+    "Path wrappers do not invent loaded-file metadata in MSExperiment."
+  ]
+}

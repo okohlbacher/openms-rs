@@ -1,0 +1,37 @@
+{
+  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/IdentificationData.h",
+      "sha256": "3502df51b84731ecb8a0a5343d1ecda4249bb8e2376faa20779bcef730b28dff"
+    },
+    {
+      "path": "src/openms/source/METADATA/ID/IdentificationData.cpp",
+      "sha256": "434895912eccdc747a5bb3092d9785f09419b39fb28c118a0012efaaf6377ed0"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/ParentGroup.h",
+      "sha256": "f9a3ce46aff91f7f5cf7ea39f0d4fc38847101c5662b39361dc43e58d1ab7c17"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/ObservationMatchGroup.h",
+      "sha256": "43148da7651f4051acd7919bde5b92b0a0185f4e59121d34b17d87c6b7251b05"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+      "sha256": "5311c9503245ee6742c49d7d3d9f86bbf5be77fd7b7f78bc981cd0b148d6843d"
+    }
+  ],
+  "literal_source_assertions": "IdentificationData_test.cpp cleanup section: peptide counts4,3,1 and oligo counts2,1,1; all source preparation sequences preserved in focused literal-count test. No C++ execution.",
+  "independent_cases": [
+    "32 cleanup-option combinations with symbolic expected liveness",
+    "referential cascade, score flags, retained history and empty grouping operations",
+    "sparse ID lifetime, coverage and live-only translation",
+    "conditional no-op filtering and atomic predicate/work errors"
+  ],
+  "native_defined_extensions": [
+    "Atomic Result errors instead of partial mutation",
+    "Sparse owned IDs never reused after deletion",
+    "Group-key collisions retain first original semantic-key payload; source dereferences an invalidated iterator and has no defined winner"
+  ]
+}

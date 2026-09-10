@@ -123,9 +123,10 @@ IsoSpec layered traversal and backend performance hints; RNA enzyme XML import; 
 arbitrary enzyme regular expressions and protein-enzyme runtime registry overrides;
 property prediction beyond the documented pI, hydrophobicity and AAIndex utilities;
 and mutable element/residue databases are not implemented.
-The identification graph's match groups, parent groups and legacy converter remain
-outside the implemented sequence/provenance surface; observations, compounds,
-adducts and observation matches are covered.
+The separate identification graph covers observations, compounds, adducts,
+observation matches, parent/match groups, referential cleanup and the bounded
+legacy sequence/evidence conversion bridge. Graph persistence and full conversion
+remain outstanding.
 
 ## Verification
 

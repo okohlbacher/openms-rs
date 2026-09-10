@@ -286,17 +286,17 @@ fn rejects_nonfinite_and_overflowing_peak_values() {
 }
 
 #[test]
-fn rejects_unsupported_encodings_reference_groups_and_array_types() {
+fn rejects_unsupported_encodings_and_array_types() {
     let xml = encoded_xml(&sample(), false);
     for changed in [
         xml.replacen("MS:1000576", "MS:1002312", 1),
         xml.replacen("MS:1000523", "MS:1000522", 1),
         xml.replacen("MS:1000514", "MS:1000516", 1),
-        xml.replacen("<scan>", "<scan><referenceableParamGroupRef ref=\"test\"/>", 1),
         xml.replace("encoding=\"UTF-8\"", "encoding=\"UTF-16\""),
         xml.replace("version=\"1.1.0\"", "version=\"1.0.0\""),
-        xml.replace("<run ", "<referenceableParamGroupList count=\"1\"><referenceableParamGroup id=\"p\"/></referenceableParamGroupList><run "),
-    ] { assert!(matches!(parse(&changed), Err(Error::Unsupported(_)))); }
+    ] {
+        assert!(matches!(parse(&changed), Err(Error::Unsupported(_))));
+    }
     let dtd = xml.replace("<mzML ", "<!DOCTYPE mzML [<!ENTITY x 'test'>]><mzML ");
     assert!(matches!(parse(&dtd), Err(Error::Unsupported(_))));
 }

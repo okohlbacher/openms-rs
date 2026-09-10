@@ -1,0 +1,213 @@
+{
+  "target_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "headers": {
+    "src/openms/include/OpenMS/FORMAT/FileTypes.h": {
+      "status": "complete",
+      "rust": [
+        "src/format/file_types.rs"
+      ],
+      "tests": [
+        "tests/file_types.rs"
+      ],
+      "documentation": "docs/FILE_HANDLING_SUPPORT.md",
+      "scope": "All 73 source formats, names, descriptions, properties, CV names, directory kinds and FileTypeList filter generation/lookup. Rust enum excludes invalid numeric sentinel values. Source properties are distinct from Rust adapter support."
+    },
+    "src/openms/include/OpenMS/FORMAT/FileNameUtils.h": {
+      "status": "complete",
+      "rust": [
+        "src/format/file_types.rs"
+      ],
+      "tests": [
+        "tests/file_types.rs"
+      ],
+      "documentation": "docs/FILE_HANDLING_SUPPORT.md",
+      "scope": "All four lexical filename helpers, source alias/compression rules and source stripExtension quirks. Iterative compression peeling and checked underflow replace unsafe source behavior."
+    },
+    "src/openms/include/OpenMS/FORMAT/FileHandler.h": {
+      "status": "partial",
+      "rust": [
+        "src/format/file_handler.rs"
+      ],
+      "tests": [
+        "tests/file_handler.rs"
+      ],
+      "documentation": "docs/FILE_HANDLING_SUPPORT.md",
+      "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; gzip transport, allowed-input checks, common bounded content recognition and atomic path output. Feature/consensus/identification/transition dispatch, other formats, SHA1 and full source-file bookkeeping remain."
+    },
+    "src/openms/include/OpenMS/KERNEL/StandardTypes.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/kernel.rs",
+        "src/lib.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs"
+      ],
+      "documentation": "docs/NATIVE_EQUIVALENTS.md",
+      "scope": "All three aliases map directly to existing MSSpectrum, MSExperiment and MSChromatogram. No alias wrapper is needed. This closes only the alias header; it does not certify full underlying class or forward-declared Mobilogram behavior."
+    },
+    "src/openms/include/OpenMS/METADATA/PeptideIdentificationList.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/identification.rs",
+        "src/kernel.rs",
+        "src/analysis/id_filter.rs",
+        "src/analysis/protein_inference.rs"
+      ],
+      "tests": [
+        "tests/identification.rs",
+        "tests/id_filter.rs",
+        "tests/protein_inference.rs",
+        "tests/identification_pipeline.rs"
+      ],
+      "documentation": "docs/NATIVE_EQUIVALENTS.md",
+      "scope": "Vec<PeptideIdentification> supplies all container data operations, constructors and assignment. Rust ownership, checked access and std::mem replace C++ moved-from-object/iterator observability; no C++ ABI or exact allocator capacity parity. Underlying PeptideIdentification and downstream algorithm completeness remain separate reviews."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/ExposedVector.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/kernel.rs",
+        "src/analysis/id_filter.rs",
+        "src/analysis/protein_inference.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs",
+        "tests/id_filter.rs",
+        "tests/protein_inference.rs"
+      ],
+      "documentation": "docs/NATIVE_EQUIVALENTS.md",
+      "scope": "Every public delegated vector operation maps to Vec<T>, slices/iterators, trait-based comparison and std::mem operations; exact method-by-method mapping in documentation. Uses native allocation/byte limits instead of allocator-specific max_size, safe access instead of undefined indexing, and Rust ownership instead of template inheritance/moved-from inspection. This is a native container equivalent, not generic C++ ABI emulation."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/TypeAliases.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/kernel.rs",
+        "src/metadata/value.rs"
+      ],
+      "tests": [
+        "tests/metadata.rs",
+        "tests/precursor_workflow.rs"
+      ],
+      "documentation": "docs/NATIVE_EQUIVALENTS.md",
+      "scope": "All three aliases map to Vec<i32>, Vec<f64> and Vec<String>; arbitrary C++ byte strings can use Vec<Vec<u8>> without lossy UTF-8 conversion. Alias mapping does not imply ListUtils/StringUtils or all metadata API completion."
+    },
+    "src/openms/include/OpenMS/CONCEPT/Types.h": {
+      "status": "partial",
+      "rust": [
+        "src/kernel.rs",
+        "src/metadata/value.rs",
+        "src/metadata/acquisition.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs",
+        "tests/metadata.rs"
+      ],
+      "documentation": "docs/NATIVE_EQUIVALENTS.md",
+      "scope": "Fixed-width/native-size primitives and all15 ASCII names have native mappings. Whole time_t ABI and writtenDigits helper are not ported: includes generic fallback6, explicit long-to-int precision quirks and platform-specific long-double specialization. f32/f64 DIGITS alone cannot certify the whole header."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/ConstRefVector.h": {
+      "status": "partial",
+      "rust": [
+        "src/kernel.rs",
+        "src/analysis/id_filter.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs",
+        "tests/id_filter.rs"
+      ],
+      "documentation": "docs/NATIVE_EQUIVALENTS.md",
+      "scope": "Native borrowed/indirect views represent its primary use, but custom base-container/type-aware equality, size-only ordering, cached capacity, swap retaining identity/cache, null slots and custom iterator state are not represented. Do not classify the full header as Vec<&T> equivalence."
+    },
+    "src/openms/include/OpenMS/FORMAT/TextFile.h": {
+      "status": "complete",
+      "rust": [
+        "src/format/text.rs"
+      ],
+      "tests": [
+        "tests/text_file.rs"
+      ],
+      "documentation": "docs/TEXT_CSV_SUPPORT.md",
+      "scope": "Complete source operations with literal text/CSV semantics, source construction/load differences and native checked UTF-8/resource/I/O adaptations. No RFC CSV parsing promise."
+    },
+    "src/openms/include/OpenMS/FORMAT/CsvFile.h": {
+      "status": "complete",
+      "rust": [
+        "src/format/csv.rs"
+      ],
+      "tests": [
+        "tests/csv_file.rs"
+      ],
+      "documentation": "docs/TEXT_CSV_SUPPORT.md",
+      "scope": "Complete source operations with literal text/CSV semantics, source construction/load differences and native checked UTF-8/resource/I/O adaptations. No RFC CSV parsing promise."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/Param.h": {
+      "status": "complete",
+      "rust": [
+        "src/param.rs",
+        "src/param/tree.rs",
+        "src/param/operations.rs",
+        "src/param/iteration.rs"
+      ],
+      "tests": [
+        "tests/param.rs"
+      ],
+      "documentation": "docs/PARAM_SUPPORT.md",
+      "scope": "All public entry/node/tree, iterator, restrictions, defaults, update/copy/merge and CLI operations. Native full-value equality plus explicit checked source_equal; diagnostics replace logging and safe bounded errors replace undefined state."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/ParamValue.h": {
+      "status": "complete",
+      "rust": [
+        "src/param/value.rs"
+      ],
+      "tests": [
+        "tests/param_value.rs"
+      ],
+      "documentation": "docs/PARAM_VALUE_SUPPORT.md",
+      "scope": "All seven value alternatives, native constructors/conversions/ownership, source text/default-stream formatting, comparisons and explicit 64-bit little-endian source hashing with checked numerical adaptations."
+    },
+    "src/openms/include/OpenMS/FORMAT/ParamXMLFile.h": {
+      "status": "complete",
+      "rust": [
+        "src/format/paramxml.rs"
+      ],
+      "tests": [
+        "tests/paramxml.rs"
+      ],
+      "documentation": "docs/PARAMXML_SUPPORT.md",
+      "scope": "Source load/store/stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. Native XML encoding/precision/loss validation adaptations documented; generic inherited XMLFile schema APIs remain separate."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/ListUtils.h": {
+      "status": "complete",
+      "rust": [
+        "src/data_structures/list.rs"
+      ],
+      "tests": [
+        "tests/list_utils.rs"
+      ],
+      "documentation": "docs/LIST_UTILS_SUPPORT.md",
+      "scope": "Full defined generic conversion/formatting, membership/index, tolerance and string-case utilities through native functions and traits; checked UTF-8 and numeric/range boundaries."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/StringListUtils.h": {
+      "status": "complete",
+      "rust": [
+        "src/data_structures/string_list.rs"
+      ],
+      "tests": [
+        "tests/string_list_utils.rs"
+      ],
+      "documentation": "docs/LIST_UTILS_SUPPORT.md",
+      "scope": "Full prefix/suffix search with trim/ranges and ASCII case conversion; native slices and checked ranges replace C++ iterator overloads."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/DefaultParamHandler.h": {
+      "status": "complete",
+      "rust": [
+        "src/param/handler.rs"
+      ],
+      "tests": [
+        "tests/default_param_handler.rs"
+      ],
+      "documentation": "docs/DEFAULT_PARAM_HANDLER_SUPPORT.md",
+      "scope": "Current/default parameters, descriptions, subsections, flags, source equality, both initialization/replacement lifecycles and leaf-name metadata export. Pure return-value callbacks replace derived updateMembers; transaction errors prevent typed-state desynchronization."
+    }
+  }
+}

@@ -1,6 +1,41 @@
 # Validation of the ongoing Rust port
 
-## Reduced-SDK graph increment (2026-09-10)
+## Current SDK foundations increment (2026-09-10)
+
+The target remains Core SDK 4.0.0 at `6bfc0e4`. This increment adds identification
+cleanup, reusable mzML parameter groups, MS2/DTA2D, file dispatch, text/list
+utilities and the parameter/INI lifecycle used by TOPP tools. The final optimized
+all-feature library builds successfully. Results are recorded in
+[sdk-completion-validation.json](sdk-completion-validation.json).
+
+| Check | Result |
+| --- | --- |
+| Full all-feature/all-target suite before the additive configuration layer | 1,128 tests passed |
+| Final unit, parameter, INI, text and list suites, current Rust | 137 tests passed |
+| Same selected suites, Rust 1.85 without default features | 122 tests passed |
+| INI feature alone, Rust 1.85 | 14 tests passed |
+| Final file dispatch and unit regression checks | 67 tests passed |
+| Selected file, graph and unit suites, Rust 1.85 without default features | 99 tests passed |
+| Strict Clippy, all targets | Passed with all features on current Rust and no default features on Rust 1.85 |
+| Doctests, Rustdoc, optimized library, Rustfmt | Passed; three doctests, documentation warnings denied |
+| Pinned source/fixture audit | 1,813 distinct source, registration and reference files verified |
+| Completion inventory and its two regression tests | Passed; all 786 registered SDK headers accounted for |
+
+These overlapping test counts are separate runs, not an additive total. The
+full 1,128-test run preceded the additive parameter/text layer; focused tests
+cover that layer and final whole-crate lint, documentation and release checks
+cover the combined implementation. An initial inventory check found a stale
+generated ledger during development; regeneration and the final check passed.
+
+The completion gate deliberately still fails: 772 headers need implementation
+or further review. Fourteen headers have a reviewed complete implementation or
+native equivalent. An unmapped header can have Rust functionality that still
+needs explicit review; this is not a count of wholly missing classes. The
+[completion ledger](CORE_SDK_COMPLETION.md) is an inventory, not a completion
+percentage. Source fixtures, schema validation and native library workflows do
+not establish executed C++ differential parity or certify a complete TOPP tool.
+
+## Historical reduced-SDK graph increment (2026-09-10)
 
 The port now targets Core SDK 4.0.0 revision `6bfc0e4`. The optimized all-feature
 library builds successfully. The complete all-feature/all-target suite passed
@@ -14,8 +49,10 @@ Rustfmt, source-target inventory checks and the 442-hash/438-link audit pass.
 
 This increment adds observation and compound records, graph adducts, typed
 molecules, observation matches, best-match queries, translated ownership and
-typed peptide fragment formulas. Remaining graph groups, cleanup/persistence and
-the legacy converter remain outside the port.
+typed peptide fragment formulas. At that stage, graph groups, cleanup/persistence
+and the legacy converter were outside the port. Later increments add groups,
+cleanup and the sequence/evidence conversion bridge; graph persistence and full
+conversion remain outstanding.
 
 The machine-readable results for this increment are in
 [graph-validation-results.json](graph-validation-results.json).
@@ -34,7 +71,7 @@ chemistry, processing, kernel and format suite on Rust 1.96. The minimum-compile
 and no-default-feature runs in this increment are focused checks, not complete
 993-test runs.
 
-## Current checks
+## Historical RNA processing checks
 
 | Check | Result |
 | --- | --- |

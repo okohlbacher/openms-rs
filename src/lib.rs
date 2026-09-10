@@ -42,3 +42,7 @@ pub const CORE_SDK_VERSION: &str = "4.0.0";
 /// Exact upstream SDK source used for the current compatibility target.
 /// Historical scientific fixtures retain their original, independently recorded pins.
 pub const CORE_SDK_REVISION: &str = "6bfc0e4711105f4eda2fea86812a83af7c7e791f";
+
+pub mod data_structures;
+/// Hierarchical configuration parameters.
+pub mod param;

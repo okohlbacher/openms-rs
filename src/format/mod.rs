@@ -7,9 +7,24 @@
 //! DTA/MGF represent peak lists and a limited subset of experiment metadata;
 //! writing them does not preserve auxiliary arrays or arbitrary instrument data.
 
+pub mod csv;
+pub mod text;
+pub use csv::CsvFile;
+pub use text::TextFile;
+
+#[cfg(feature = "paramxml")]
+pub mod paramxml;
+
 pub mod dta;
+pub mod dta2d;
 pub mod fasta;
+pub mod file_handler;
+pub mod file_types;
 pub mod mgf;
+pub mod ms2;
+
+pub use file_handler::FileHandler;
+pub use file_types::{FileProperty, FileType, FileTypeList, FilterLayout};
 
 #[cfg(feature = "idxml")]
 pub mod idxml;

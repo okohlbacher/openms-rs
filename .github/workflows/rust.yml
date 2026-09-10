@@ -23,6 +23,7 @@ jobs:
       - run: cargo test --locked --all-features --doc
       - run: cargo test --locked --no-default-features
       - run: cargo test --locked --no-default-features --features idxml
+      - run: cargo test --locked --no-default-features --features paramxml --test paramxml
   quality:
     runs-on: ubuntu-latest
     steps:
@@ -36,6 +37,8 @@ jobs:
       - run: python3 tools/generate_ribonucleotides.py --check
       - run: python3 tools/generate_rnases.py --check
       - run: python3 tools/check_core_sdk.py
+      - run: python3 tools/core_sdk_coverage.py
+      - run: python3 tools/test_core_sdk_coverage.py
       - run: cargo clippy --locked --all-features --all-targets -- -D warnings
       - run: cargo doc --locked --all-features --no-deps
         env:

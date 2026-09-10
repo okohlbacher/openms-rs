@@ -1,0 +1,91 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/ParamXMLFile.h",
+      "sha256": "dca159fa413138db18bb391fa9a128110a075cf80baf7ec2f56a499bf4a8dbf2"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ParamXMLFile.cpp",
+      "sha256": "d4a90be0706c3462bb4690f756dc0b34043dabb4d93b5fbe6453a13d545f0605"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h",
+      "sha256": "3c7d0b2533ce753c53ba94b18a7c99ebda809e00e1ea877ce5d563fa267b498f"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/ParamXMLHandler.cpp",
+      "sha256": "ada71a177bfd23cd7499bfff25ab84b5ee6a017932a290d9f6134e0a20836246"
+    },
+    {
+      "path": "src/openms/source/FORMAT/XMLFile.cpp",
+      "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ParamXMLFile_test.cpp",
+      "sha256": "da14d38f45788cad1d076a35c75dd494fff7404c8ca0446b6ace08abbcde71e1"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/FILTERING/ThresholdMower.cpp",
+      "sha256": "8dba1681f4a8562d83025a373fbc2e082175ca209e135eef3462f710321d3403"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/ParamXMLFile_test_writeXMLToStream.xml",
+      "sha256": "4242668c0c15208f7e9058f11aac5e07fba7c65dc681a6898a15553d827bb454"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/Param_1_8_0.xsd",
+      "sha256": "d672b6b90b454ce9fad11524831e9d26ab52daba3f5b4d98beaed441aec2941a"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/Param_advanced_no_required.ini",
+      "sha256": "a1fa8482339e4658e373ae8b80e80f137d44fb6ccc046960276e3732bc5864bb"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/Param_post16_update.ini",
+      "sha256": "e01e053bdfeb15454a97723db7c4a04366161f4c052107c418d66d43975a64b7"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/Param_pre16_update.ini",
+      "sha256": "a3e0b2ee73d6884537bd506c590e551bb071bcf243a05173cd90baaa398f9155"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+      "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+    }
+  ],
+  "files": [
+    {
+      "path": "tests/data/paramxml/ParamXMLFile_test_writeXMLToStream.xml",
+      "source_path": "src/tests/class_tests/openms/data/ParamXMLFile_test_writeXMLToStream.xml",
+      "sha256": "4242668c0c15208f7e9058f11aac5e07fba7c65dc681a6898a15553d827bb454",
+      "derivation": "Copied byte-for-byte from the pinned SDK."
+    },
+    {
+      "path": "tests/data/paramxml/Param_1_8_0.xsd",
+      "source_path": "share/OpenMS/SCHEMAS/Param_1_8_0.xsd",
+      "sha256": "d672b6b90b454ce9fad11524831e9d26ab52daba3f5b4d98beaed441aec2941a",
+      "derivation": "Copied byte-for-byte from the pinned SDK."
+    },
+    {
+      "path": "tests/data/paramxml/Param_advanced_no_required.ini",
+      "source_path": "src/tests/class_tests/openms/data/Param_advanced_no_required.ini",
+      "sha256": "a1fa8482339e4658e373ae8b80e80f137d44fb6ccc046960276e3732bc5864bb",
+      "derivation": "Copied byte-for-byte from the pinned SDK."
+    },
+    {
+      "path": "tests/data/paramxml/Param_post16_update.ini",
+      "source_path": "src/tests/class_tests/openms/data/Param_post16_update.ini",
+      "sha256": "e01e053bdfeb15454a97723db7c4a04366161f4c052107c418d66d43975a64b7",
+      "derivation": "Copied byte-for-byte from the pinned SDK."
+    },
+    {
+      "path": "tests/data/paramxml/Param_pre16_update.ini",
+      "source_path": "src/tests/class_tests/openms/data/Param_pre16_update.ini",
+      "sha256": "a3e0b2ee73d6884537bd506c590e551bb071bcf243a05173cd90baaa398f9155",
+      "derivation": "Copied byte-for-byte from the pinned SDK."
+    }
+  ],
+  "validation": "Native assertions from source class tests/branches and immutable fixtures; source XML golden compared except UTF-8 declaration. No executed C++ differential parity claimed."
+}
