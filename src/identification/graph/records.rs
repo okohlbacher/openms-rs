@@ -52,7 +52,9 @@ ids!(
     ObservationId,
     CompoundId,
     AdductId,
-    ObservationMatchId
+    ObservationMatchId,
+    ParentGroupSetId,
+    ObservationMatchGroupId
 );
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -1048,7 +1050,7 @@ impl<'a> Meter<'a> {
         }
         Ok(())
     }
-    fn scores(&mut self, scores: &BTreeMap<ScoreTypeId, f64>) -> Result<()> {
+    pub(super) fn scores(&mut self, scores: &BTreeMap<ScoreTypeId, f64>) -> Result<()> {
         self.slots::<(ScoreTypeId, f64)>(scores.len())?;
         for value in scores.values() {
             finite(*value, "identification score")?;

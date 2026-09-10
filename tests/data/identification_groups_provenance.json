@@ -1,0 +1,61 @@
+{
+  "reference_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "reference_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/ParentGroup.h",
+      "sha256": "f9a3ce46aff91f7f5cf7ea39f0d4fc38847101c5662b39361dc43e58d1ab7c17"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/ObservationMatchGroup.h",
+      "sha256": "43148da7651f4051acd7919bde5b92b0a0185f4e59121d34b17d87c6b7251b05"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/IdentificationData.h",
+      "sha256": "3502df51b84731ecb8a0a5343d1ecda4249bb8e2376faa20779bcef730b28dff"
+    },
+    {
+      "path": "src/openms/source/METADATA/ID/IdentificationData.cpp",
+      "sha256": "434895912eccdc747a5bb3092d9785f09419b39fb28c118a0012efaaf6377ed0"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/ScoredProcessingResult.h",
+      "sha256": "13b523fb4bee6edce0c4512dcffbcea13745ffbc267de7eff929af4439ae00e1"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+      "sha256": "5311c9503245ee6742c49d7d3d9f86bbf5be77fd7b7f78bc981cd0b148d6843d"
+    }
+  ],
+  "literal_assertions": [
+    {
+      "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+      "lines": "241-252",
+      "assertions": "Label test_grouping, one parent group with both protein and RNA references."
+    },
+    {
+      "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+      "lines": "419-428",
+      "assertions": "One observation-match group with three registered match references."
+    }
+  ],
+  "source_derived_checks": [
+    "Parent-group set labels are nonunique and registration always appends.",
+    "Parent groups are unique by parent-reference set, preserving first scores.",
+    "Observation-match groups merge scored payload by member-reference set.",
+    "Current processing step is appended only when absent.",
+    "Empty/singleton allSameMolecule/allSameQuery return true; larger sets compare exact references.",
+    "Group registration validates all score/member/history references."
+  ],
+  "native_checked_differences": [
+    "Complete record equality includes metadata.",
+    "ParentGroupSet uses an owned vector normalized before registration; every incoming value is checked including discarded duplicate entries.",
+    "Typed owner/slot IDs replace allocation-dependent pointer order.",
+    "Atomic failures preserve existing records.",
+    "Copy and merge retain/translate observation-match groups omitted by upstream merge.",
+    "Nested ParentGroup records count toward GraphLimits.max_records; work/bytes/edges are bounded."
+  ],
+  "test": "tests/identification_groups.rs",
+  "cpp_execution": false
+}

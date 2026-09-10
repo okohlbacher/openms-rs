@@ -1,7 +1,7 @@
-# Identification sequence and provenance graph
+# Identification graph
 
-`openms::identification::graph` adds the sequence/provenance layer of the current
-Core SDK's `IdentificationData`. It coexists with the legacy peptide/protein
+`openms::identification::graph` implements sequence/provenance records, observations,
+compounds, matches and groups from the current Core SDK's `IdentificationData`. It coexists with the legacy peptide/protein
 identification records. This is a native owned graph, with no C++ references,
 database dependency or general-purpose graph framework.
 
@@ -30,11 +30,14 @@ positions, neighbor markers, processing history counts and parent coverage.
 The implemented records are `InputFile`, `ScoreType`, `ProcessingSoftware`,
 `DBSearchParam`, `ProcessingStep`, `AppliedProcessingStep`,
 `ScoredProcessingResult`, `ParentSequence`, `ParentMatch`, `IdentifiedPeptide`
-and `IdentifiedOligo`. Metadata remains typed `MetaInfo`. Peptide and RNA nodes
+and `IdentifiedOligo`, plus `Observation`, `IdentifiedCompound`, `IdentifiedMolecule`,
+`ObservationMatch`, `ParentGroup`, `ParentGroupSet` and `ObservationMatchGroup`.
+Graph adduct registration reuses the existing immutable `AdductInfo`.
+Metadata remains typed `MetaInfo`. Peptide and RNA nodes
 own the existing `AASequence` and `NASequence` values and their shared immutable
 chemical records.
 
-Registered records have immutable lookup views. The eight distinct ID types
+Registered records have immutable lookup views. The fourteen distinct ID types
 carry a private graph owner and stable slot; a reference from another graph or
 an earlier `clear()` fails validation. A move retains IDs. `new()` and `clear()`
 return `Result` so graph-owner counter exhaustion cannot wrap. `Default` is a
@@ -186,8 +189,12 @@ also checks custom chemistry survival, raw-code neighbors and atomic product,
 residue, parsing-byte and non-ASCII-neighbor failures.
 No C++ build or execution is used for these references.
 
-Observations, compounds, adduct registration, observation matches and groups,
-parent groups, best-match queries, deletion/full cleanup, graph persistence and
-IdentificationDataConverter remain unimplemented. No placeholder cleanup method
-erases sequence results, and this sequence/provenance layer does not claim the
-complete source IdentificationData API.
+Observations, compounds, adducts and observation matches are registered with
+checked source keys. Match queries include per-observation ranges and best-score
+selection. Group records, source duplicate/history rules and translated copies
+are described in [group support](IDENTIFICATION_GROUPS_SUPPORT.md).
+
+Referential deletion/full cleanup, graph persistence and the remaining legacy
+conversion operations remain unimplemented. No placeholder cleanup method erases
+sequence results, and the implemented layers do not claim the complete source
+IdentificationData API.

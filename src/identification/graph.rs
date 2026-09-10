@@ -6,7 +6,7 @@
 //!
 //! IDs belong to one graph generation. Registration preserves source semantic
 //! keys, while references and equal-key comparisons use deterministic value order.
-//! Groups, referential cleanup, persistence and the legacy converter remain separate work.
+//! Referential cleanup, persistence and full legacy conversion remain separate work.
 
 use crate::chemistry::{
     AASequence, AdductInfo, EmpiricalFormula, ModificationsDB, NAFragmentType, NASequence,
@@ -22,6 +22,10 @@ mod records;
 pub use records::*;
 mod matches;
 pub use matches::*;
+mod groups;
+pub use groups::*;
+mod converter;
+pub use converter::IdentificationDataConverter;
 
 pub const MAX_GRAPH_RECORDS: usize = 100_000;
 pub const MAX_GRAPH_EDGES: usize = 1_000_000;
@@ -209,6 +213,9 @@ pub struct IdentificationData {
     compounds: Table<IdentifiedCompound>,
     adducts: Table<AdductInfo>,
     observation_matches: Table<ObservationMatch>,
+    parent_group_sets: Table<ParentGroupSet>,
+    parent_group_nodes: usize,
+    observation_match_groups: Table<ObservationMatchGroup>,
     search_steps: BTreeMap<ProcessingStepId, SearchParamId>,
     current_step: Option<ProcessingStepId>,
     metadata: MetaInfo,
@@ -243,6 +250,9 @@ impl IdentificationData {
             compounds: Table::default(),
             adducts: Table::default(),
             observation_matches: Table::default(),
+            parent_group_sets: Table::default(),
+            parent_group_nodes: 0,
+            observation_match_groups: Table::default(),
             search_steps: BTreeMap::new(),
             current_step: None,
             metadata: MetaInfo::new(),
@@ -270,6 +280,9 @@ impl IdentificationData {
             + self.compounds.values.len()
             + self.adducts.values.len()
             + self.observation_matches.values.len()
+            + self.parent_group_sets.values.len()
+            + self.parent_group_nodes
+            + self.observation_match_groups.values.len()
     }
     pub fn metadata(&self) -> &MetaInfo {
         &self.metadata
@@ -338,6 +351,9 @@ impl IdentificationData {
             compounds: self.compounds.clone(),
             adducts: self.adducts.clone(),
             observation_matches: self.observation_matches.clone(),
+            parent_group_sets: self.parent_group_sets.clone(),
+            parent_group_nodes: self.parent_group_nodes,
+            observation_match_groups: self.observation_match_groups.clone(),
             search_steps: self.search_steps.clone(),
             current_step: self.current_step,
             metadata: self.metadata.clone(),
@@ -387,6 +403,8 @@ access! {
     compounds,IdentifiedCompound,CompoundId,compound,compounds,compound_count;
     adducts,AdductInfo,AdductId,adduct,adducts,adduct_count;
     observation_matches,ObservationMatch,ObservationMatchId,observation_match,observation_matches,observation_match_count;
+    parent_group_sets,ParentGroupSet,ParentGroupSetId,parent_group_set,parent_group_sets,parent_group_set_count;
+    observation_match_groups,ObservationMatchGroup,ObservationMatchGroupId,observation_match_group,observation_match_groups,observation_match_group_count;
 }
 
 fn scored_edges(result: &ScoredProcessingResult) -> Result<usize> {
@@ -924,6 +942,8 @@ pub struct ReferenceTranslator {
     compounds: BTreeMap<CompoundId, CompoundId>,
     adducts: BTreeMap<AdductId, AdductId>,
     observation_matches: BTreeMap<ObservationMatchId, ObservationMatchId>,
+    parent_group_sets: BTreeMap<ParentGroupSetId, ParentGroupSetId>,
+    observation_match_groups: BTreeMap<ObservationMatchGroupId, ObservationMatchGroupId>,
 }
 macro_rules! translate {
     ($($table:ident,$id:ident,$method:ident;)*)=>{$(
@@ -939,6 +959,8 @@ translate! {
     peptides,PeptideId,peptide;oligos,OligoId,oligo;
     observations,ObservationId,observation;compounds,CompoundId,compound;
     adducts,AdductId,adduct;observation_matches,ObservationMatchId,observation_match;
+    parent_group_sets,ParentGroupSetId,parent_group_set;
+    observation_match_groups,ObservationMatchGroupId,observation_match_group;
 }
 impl ReferenceTranslator {
     fn result(&self, result: &mut ScoredProcessingResult) -> Result<()> {
@@ -1090,6 +1112,37 @@ impl IdentificationData {
             trans
                 .observation_matches
                 .insert(id, self.register_observation_match(copy)?);
+        }
+        for (id, value) in other.parent_group_sets() {
+            let mut copy = value.clone();
+            trans.result(&mut copy.result)?;
+            for group in &mut copy.groups {
+                let old = std::mem::take(&mut group.scores);
+                for (score, value) in old {
+                    group.scores.insert(trans.score_type(score)?, value);
+                }
+                let old = std::mem::take(&mut group.parent_refs);
+                for parent in old {
+                    group.parent_refs.insert(trans.parent(parent)?);
+                }
+            }
+            trans
+                .parent_group_sets
+                .insert(id, self.register_parent_group_set(copy)?);
+        }
+        // The source merge/copy omits match groups. Native copies preserve their
+        // data and translate every member/history reference instead of dropping them.
+        for (id, value) in other.observation_match_groups() {
+            let mut copy = value.clone();
+            trans.result(&mut copy.result)?;
+            let old = std::mem::take(&mut copy.observation_match_refs);
+            for member in old {
+                copy.observation_match_refs
+                    .insert(trans.observation_match(member)?);
+            }
+            trans
+                .observation_match_groups
+                .insert(id, self.register_observation_match_group(copy)?);
         }
         Ok(trans)
     }
@@ -1789,5 +1842,131 @@ impl IdentificationData {
         charge: i32,
     ) -> Result<EmpiricalFormula> {
         self.molecule_formula(molecule, MoleculeFormulaKind::Full, charge)
+    }
+}
+
+fn parent_group_set_edges(value: &ParentGroupSet) -> Result<usize> {
+    value
+        .groups
+        .iter()
+        .try_fold(scored_edges(&value.result)?, |sum, group| {
+            add(sum, add(group.parent_refs.len(), group.scores.len())?)
+        })
+}
+impl IdentificationData {
+    /// Count nested ParentGroup records across all registered group sets.
+    pub fn parent_group_count(&self) -> usize {
+        self.parent_group_nodes
+    }
+    pub fn parent_group(&self, set: ParentGroupSetId, index: usize) -> Result<&ParentGroup> {
+        self.parent_group_set(set)?
+            .groups
+            .get(index)
+            .ok_or_else(|| invalid("parent group index out of range"))
+    }
+    /// Always append, including repeated/empty labels. Parent sets within the
+    /// incoming record are sorted and deduplicated, retaining the first scores.
+    pub fn register_parent_group_set(
+        &mut self,
+        mut value: ParentGroupSet,
+    ) -> Result<ParentGroupSetId> {
+        self.operation(|this, work| {
+            value.measure(work)?;
+            this.check_result(&value.result, work)?;
+            work.consume(value.groups.len())?;
+            for group in &value.groups {
+                work.consume(add(group.parent_refs.len(), group.scores.len())?)?;
+                for &id in &group.parent_refs {
+                    this.parent(id)?;
+                }
+                for &id in group.scores.keys() {
+                    this.score_type(id)?;
+                }
+            }
+            value.normalize(work)?;
+            this.apply_current(&mut value.result, work)?;
+            let nodes = add(value.groups.len(), 1)?;
+            if add(this.record_count(), nodes)? > this.limits.max_records {
+                return Err(invalid("identification graph record limit exceeded"));
+            }
+            let parent_group_nodes = add(this.parent_group_nodes, value.groups.len())?;
+            let size = record_size(value.measure(work)?, parent_group_set_edges(&value)?)?;
+            let total = this.checked_size(Size::default(), size, true)?;
+            this.parent_group_sets.stage_insert(work)?;
+            let position = this.parent_group_sets.values.len();
+            let slot = this.parent_group_sets.insert(position, value, size);
+            this.parent_group_nodes = parent_group_nodes;
+            this.retained = total;
+            Ok(ParentGroupSetId {
+                owner: this.owner,
+                slot,
+            })
+        })
+    }
+    pub fn register_observation_match_group(
+        &mut self,
+        mut value: ObservationMatchGroup,
+    ) -> Result<ObservationMatchGroupId> {
+        self.operation(|this, work| {
+            let bytes = value.measure(work)?;
+            this.check_result(&value.result, work)?;
+            work.consume(value.observation_match_refs.len())?;
+            for &id in &value.observation_match_refs {
+                this.observation_match(id)?;
+            }
+            let found = this.observation_match_groups.locate(
+                &value,
+                bytes,
+                ObservationMatchGroup::key_cmp,
+                work,
+            )?;
+            let old = if let Ok(position) = found {
+                let slot = this.observation_match_groups.order[position];
+                work.copy(this.observation_match_groups.sizes[slot].bytes)?;
+                let mut merged = this.observation_match_groups.values[slot].clone();
+                merged.merge_with_work(&value, work)?;
+                value = merged;
+                this.observation_match_groups.sizes[slot]
+            } else {
+                Size::default()
+            };
+            this.apply_current(&mut value.result, work)?;
+            let size = record_size(
+                value.measure(work)?,
+                add(
+                    value.observation_match_refs.len(),
+                    scored_edges(&value.result)?,
+                )?,
+            )?;
+            let total = this.checked_size(old, size, found.is_err())?;
+            let slot = match found {
+                Ok(position) => {
+                    let slot = this.observation_match_groups.order[position];
+                    this.observation_match_groups.replace(slot, value, size);
+                    slot
+                }
+                Err(position) => {
+                    this.observation_match_groups.stage_insert(work)?;
+                    this.observation_match_groups.insert(position, value, size)
+                }
+            };
+            this.retained = total;
+            Ok(ObservationMatchGroupId {
+                owner: this.owner,
+                slot,
+            })
+        })
+    }
+    pub fn match_group_all_same_molecule(&self, id: ObservationMatchGroupId) -> Result<bool> {
+        self.observation_match_group(id)?.all_same(
+            |member| Ok(self.observation_match(member)?.identified_molecule),
+            &mut GraphWork::new(self.limits),
+        )
+    }
+    pub fn match_group_all_same_query(&self, id: ObservationMatchGroupId) -> Result<bool> {
+        self.observation_match_group(id)?.all_same(
+            |member| Ok(self.observation_match(member)?.observation),
+            &mut GraphWork::new(self.limits),
+        )
     }
 }

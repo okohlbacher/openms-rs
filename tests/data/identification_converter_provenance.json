@@ -1,0 +1,70 @@
+{
+  "upstream": "https://github.com/okohlbacher/OpenMS4-core",
+  "commit": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "source_files": [
+    {
+      "path": "src/tests/class_tests/openms/data/FASTAFile_test.fasta",
+      "sha256": "5e9ddcc9410d382d5151c8701a011a323c50b4877405e484b73e8e817021baad"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/IdentificationDataConverter.h",
+      "sha256": "72ae6f6b5ba1d940a050b840e1fc7974b93edd1c50039a25f6ad6155fe150f75"
+    },
+    {
+      "path": "src/openms/source/METADATA/ID/IdentificationDataConverter.cpp",
+      "sha256": "88b3ea99a4bef7721dc3d7b85c26c4b99cf953f829f821ea81585e63977a5a13"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IdentificationDataConverter_test.cpp",
+      "sha256": "86687f842c496748130323058c0cb2e878964dc6586efd8f7937f0091bc011e6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/ParentSequence.h",
+      "sha256": "cb6af76c64fde6e6899aa95c5e8f5fee3eaef7a1e4ab84a29b686420d24e7143"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/IdentifiedSequence.h",
+      "sha256": "16167da9c7a9140e4af97b2a6add3c906c014a7a2438af3f2059835138752fed"
+    },
+    {
+      "path": "src/openms/source/METADATA/PeptideEvidence.cpp",
+      "sha256": "7c580274b885535f5237d74821cde3a03e71917a977ae632b753f3b7a4c3dddc"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/PeptideEvidence.h",
+      "sha256": "8f7d254f49d7ca63d505f85c5c8aa31235bb224036796baf395d39c8a6e0a55f"
+    },
+    {
+      "path": "src/openms/source/METADATA/ID/IdentificationData.cpp",
+      "sha256": "434895912eccdc747a5bb3092d9785f09419b39fb28c118a0012efaaf6377ed0"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/identification_converter_fasta.tsv",
+      "sha256": "e756253731a6657620172b38d6d2e6088b71ee9f5178eca6aba9d652e76e853d",
+      "rows": 5,
+      "method": "Independent Python standard-library projection of source FASTA literal headers and concatenated sequence lines. Skip leading PEFF # comments/blank lines, trim header outer whitespace, split first header token from description; retain sequence characters and case. No native Rust or C++ parser used."
+    }
+  ],
+  "literal_assertions": [
+    {
+      "source": "src/tests/class_tests/openms/source/IdentificationDataConverter_test.cpp",
+      "lines": [
+        128,
+        136
+      ],
+      "expectation": "importSequences of FASTAFile_test.fasta yields five parent sequences"
+    }
+  ],
+  "derived_assertions": [
+    "Case-sensitive accession substring decoy rule, current-step registration and existing parent merge follow source lines 764-779.",
+    "Parent matches append to existing evidence, preserve duplicates, and sort accession/start/end/before/after; first nonempty flank byte only, from converter lines 782-809 and PeptideEvidence.cpp comparator.",
+    "Unknown graph positions convert to native None; source size_t-to-Int overflow, invalid intervals and nonrepresentable flank bytes return atomic checked errors instead of narrowing/invalid legacy state."
+  ],
+  "limitations": [
+    "No C++ build/execution or runtime differential results.",
+    "The source FASTA fixture includes PEFF # comments and an annotated sequence not accepted by the current native streaming FASTA reader. The TSV constructs FASTAEntry records to test this converter without implying that reader syntax is supported.",
+    "Complete importIDs/exportIDs, mzTab, feature/consensus conversion and graph persistence are outside this bounded bridge."
+  ]
+}

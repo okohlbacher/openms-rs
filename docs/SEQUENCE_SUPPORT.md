@@ -87,6 +87,52 @@ fragment kinds, terminal selection, charge extrema, slicing, unavailable
 composition, custom absolute formulas, signed output and checked charge overflow.
 Private tests exercise cumulative budgets and empty typed terminal states.
 
+## Fragment monoisotopic and average masses
+
+`mono_mass_for(PeptideFragmentType, charge: i32)` and
+`average_mass_for(PeptideFragmentType, charge: i32)` return checked `f64` ion
+masses for all supplied residues. They use the same terminal-selection and
+fallback table as `formula_for`; slice first to select a fragment length.
+Charge contributes `charge * PROTON_MASS_U` to mass, with no division by charge.
+An empty sequence returns zero for every type and charge. Signed finite results
+are retained, including a negative mass caused by a large negative charge or a
+retained terminal delta. The existing `mz` accessor keeps its separate checked
+physical mass-to-charge contract.
+
+The monoisotopic method follows
+[the source scalar accumulation](https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/CHEMISTRY/AASequence.cpp#L512):
+proton contribution, relevant N-terminal delta, relevant C-terminal delta,
+internal residues in sequence order, then the fragment correction. It reuses
+the native residue chemistry, including formula-derived deltas, custom
+free-residue absolute-mass/formula replacement and numeric mass tags. Bare B/Z/X
+still return `Unsupported`; an explicit absolute mass can resolve their
+monoisotopic contribution. Discarded terminal tags do not contribute a shift.
+
+Average mass comes from the selected charged formula. It requires known
+composition and does not infer an average from an anonymous monoisotopic number
+or a formula-free record. A formula-bearing terminal annotation can intentionally
+have a declared monoisotopic delta different from its formula-derived average
+contribution: each query retains its source convention.
+
+These new calculations leave the existing cached `mono_mass()` and
+`average_mass()` APIs unchanged. Monoisotopic rounding can differ because the
+cached full mass combines terminal deltas first and adds full-residue water
+before the internal sum. At extreme magnitudes, source scalar order can lose a
+small initial charge contribution before two large, opposite terminal deltas
+cancel; `mono_mass_for` preserves that observable source behavior. Such a result
+has the limits of binary64 arithmetic, rather than arbitrary-precision chemistry.
+
+Each new call uses a cumulative 50-million-work and 256-MiB formula-scratch
+allowance. Monoisotopic mass queries charge formula creation and every custom
+formula traversal before calculating the residue mass; average queries share one
+allowance across formula construction and mass summation. Nonfinite intermediate
+or final masses return `InvalidValue`; failures never mutate the sequence.
+[Fragment mass tests](../tests/sequence_fragment_mass.rs) preserve source
+`DFPIANGER`, NIC/dNIC and Tripalmitate mass literals, alanine ion algebra, all 19
+types and charge extrema, mass-only/custom records, terminal selection and the
+explicit large-terminal rounding behavior. Private tests cover cumulative
+resource limits and empty typed terminal states.
+
 ## Named and numeric syntax
 
 Named annotations retain the existing registry syntax, including nested parentheses, UniMod accessions and explicit peptide/protein terminal names. For example, `(Acetyl)AC(Carbamidomethyl)M(Oxidation)K` remains supported. Existing named-annotation terminal fallback is retained.

@@ -35,9 +35,9 @@ fn terminal_base(term: TermSpecificity) -> f64 {
     }
 }
 
-/// All finite source peptide fragment types. This formula API deliberately
-/// retains the source's internal-formula fallback for radical, precursor,
-/// neutral-loss and unassigned variants; it does not generate a spectrum.
+/// All finite source peptide fragment types. Formula and mass queries retain
+/// the source's internal-residue fallback for radical, precursor, neutral-loss
+/// and unassigned variants; they do not generate a spectrum.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PeptideFragmentType {
     #[default]
@@ -60,6 +60,32 @@ pub enum PeptideFragmentType {
     YIonMinusNH3,
     NonIdentified,
     Unannotated,
+}
+impl PeptideFragmentType {
+    fn keeps_n_terminal(self) -> bool {
+        matches!(
+            self,
+            Self::Full | Self::NTerminal | Self::AIon | Self::BIon | Self::CIon
+        )
+    }
+    fn keeps_c_terminal(self) -> bool {
+        matches!(
+            self,
+            Self::Full | Self::CTerminal | Self::XIon | Self::YIon | Self::ZIon
+        )
+    }
+    fn correction(self) -> Option<[i32; 6]> {
+        match self {
+            Self::Full | Self::YIon => Some([0, 2, 0, 1, 0, 0]),
+            Self::NTerminal => Some([0, 1, 0, 0, 0, 0]),
+            Self::CTerminal => Some([0, 1, 0, 1, 0, 0]),
+            Self::AIon => Some([-1, 0, 0, -1, 0, 0]),
+            Self::CIon => Some([0, 3, 1, 0, 0, 0]),
+            Self::XIon => Some([1, 0, 0, 2, 0, 0]),
+            Self::ZIon => Some([0, -1, -1, 1, 0, 0]),
+            _ => None,
+        }
+    }
 }
 
 /// Owned anonymous monoisotopic annotation. The original decimal spelling is
@@ -334,15 +360,14 @@ impl AASequence {
             .checked_sub(self.len())
             .ok_or_else(|| invalid("peptide formula work limit exceeded"))?;
         let mut result = EmpiricalFormula::default().with_charge(charge);
-        use PeptideFragmentType::*;
         // AASequence.cpp adds relevant N/C deltas before internal residues.
         for modification in [
             self.n_terminal
                 .as_ref()
-                .filter(|_| matches!(fragment, Full | NTerminal | AIon | BIon | CIon)),
+                .filter(|_| fragment.keeps_n_terminal()),
             self.c_terminal
                 .as_ref()
-                .filter(|_| matches!(fragment, Full | CTerminal | XIon | YIon | ZIon)),
+                .filter(|_| fragment.keeps_c_terminal()),
         ]
         .into_iter()
         .flatten()
@@ -385,15 +410,8 @@ impl AASequence {
             })?;
             add_formula(&mut result, &internal, remaining_work, remaining_bytes)?;
         }
-        let correction = match fragment {
-            Full | YIon => [0, 2, 0, 1, 0, 0],
-            NTerminal => [0, 1, 0, 0, 0, 0],
-            CTerminal => [0, 1, 0, 1, 0, 0],
-            AIon => [-1, 0, 0, -1, 0, 0],
-            CIon => [0, 3, 1, 0, 0, 0],
-            XIon => [1, 0, 0, 2, 0, 0],
-            ZIon => [0, -1, -1, 1, 0, 0],
-            _ => return Ok(result),
+        let Some(correction) = fragment.correction() else {
+            return Ok(result);
         };
         reserve_formula(3, remaining_work, remaining_bytes)?;
         add_formula(
@@ -411,12 +429,85 @@ impl AASequence {
         self.mono_mass
             .ok_or_else(|| unknown("sequence contains a residue without a known monoisotopic mass"))
     }
+    /// Monoisotopic ion mass for all supplied residues and a source fragment
+    /// type. Includes `charge * PROTON_MASS_U`, without dividing by charge.
+    /// Source scalar order is charge, N/C deltas, residues, then correction;
+    /// rounding can differ from the cached neutral `mono_mass()` calculation.
+    /// Mass-only annotations are supported, and finite signed outputs are kept.
+    pub fn mono_mass_for(&self, fragment: PeptideFragmentType, charge: i32) -> Result<f64> {
+        self.mono_mass_for_with_budget(fragment, charge, &mut 50_000_000, &mut (256 * 1024 * 1024))
+    }
+    fn mono_mass_for_with_budget(
+        &self,
+        fragment: PeptideFragmentType,
+        charge: i32,
+        work: &mut usize,
+        bytes: &mut usize,
+    ) -> Result<f64> {
+        if self.is_empty() {
+            return Ok(0.0);
+        }
+        consume_mass_work(self.len(), work)?;
+        let mut mass = f64::from(charge) * PROTON_MASS_U;
+        for modification in [
+            self.n_terminal
+                .as_ref()
+                .filter(|_| fragment.keeps_n_terminal()),
+            self.c_terminal
+                .as_ref()
+                .filter(|_| fragment.keeps_c_terminal()),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            mass = finite_fragment_mass(mass + modification.diff_mono_mass()?)?;
+        }
+        for index in 0..self.len() {
+            // internal_mass builds the ordinary base formula even for a mass
+            // tag. Formula-free records can additionally build full-residue
+            // water/base maps; count them before calling the shared chemistry.
+            reserve_formula(6, work, bytes)?;
+            if let Some(SequenceModification::Known(modification)) =
+                &self.residue_modifications[index]
+            {
+                if missing_modification_formula(modification) {
+                    reserve_formula(2, work, bytes)?;
+                    if let Some(absolute) = modification.absolute_formula() {
+                        consume_mass_work(absolute.atoms.len(), work)?;
+                    } else if modification.mono_mass() == 0.0 {
+                        reserve_formula(6, work, bytes)?;
+                        reserve_formula(8, work, bytes)?;
+                    }
+                } else {
+                    consume_mass_work(modification.diff_formula().atoms.len(), work)?;
+                }
+            }
+            let internal = self.internal_mass(index)?.ok_or_else(|| {
+                unknown("fragment contains a residue without a known monoisotopic mass")
+            })?;
+            mass = finite_fragment_mass(mass + internal)?;
+        }
+        if let Some(correction) = fragment.correction() {
+            reserve_formula(3, work, bytes)?;
+            mass = finite_fragment_mass(mass + composition_formula(correction).mono_mass())?;
+        }
+        Ok(mass)
+    }
     /// Abundance-weighted average from the complete known formula.
     pub fn average_mass(&self) -> Result<f64> {
         self.formula
             .as_ref()
             .map(EmpiricalFormula::average_mass)
             .ok_or_else(|| unknown("sequence has no complete formula for an average mass"))
+    }
+    /// Abundance-weighted ion mass from the requested fragment formula. No
+    /// average mass is fabricated for anonymous or formula-free annotations.
+    /// Uses the same terminal selection, charge and limits as `formula_for`.
+    pub fn average_mass_for(&self, fragment: PeptideFragmentType, charge: i32) -> Result<f64> {
+        let (mut work, mut bytes) = (50_000_000, 256 * 1024 * 1024);
+        let formula = self.formula_for_with_budget(fragment, charge, &mut work, &mut bytes)?;
+        consume_mass_work(formula.atoms.len(), &mut work)?;
+        finite_fragment_mass(formula.average_mass())
     }
     pub fn mz(&self, charge: i32) -> Result<f64> {
         if self.is_empty() {
@@ -999,6 +1090,21 @@ fn reserve_formula(entries: usize, work: &mut usize, bytes: &mut usize) -> Resul
     Ok(())
 }
 
+fn consume_mass_work(amount: usize, work: &mut usize) -> Result<()> {
+    *work = work
+        .checked_sub(amount)
+        .ok_or_else(|| invalid("peptide mass work limit exceeded"))?;
+    Ok(())
+}
+
+fn finite_fragment_mass(mass: f64) -> Result<f64> {
+    if mass.is_finite() {
+        Ok(mass)
+    } else {
+        Err(invalid("fragment mass sum overflows"))
+    }
+}
+
 fn add_formula(
     result: &mut EmpiricalFormula,
     other: &EmpiricalFormula,
@@ -1513,5 +1619,71 @@ mod fragment_formula_budget_tests {
             EmpiricalFormula::default()
         );
         assert_eq!((work, bytes), (0, 0));
+        assert_eq!(
+            empty
+                .mono_mass_for_with_budget(
+                    PeptideFragmentType::Full,
+                    i32::MAX,
+                    &mut work,
+                    &mut bytes
+                )
+                .unwrap(),
+            0.0
+        );
+        assert_eq!((work, bytes), (0, 0));
+    }
+
+    #[test]
+    fn scalar_fragment_masses_share_limits_including_mass_only_records() {
+        let db = ModificationsDB::from_records(vec![
+            ResidueModification::from_record(super::super::ModificationRecord {
+                name: "Delta".into(),
+                origin: Some('M'),
+                diff_mono_mass: 12.5,
+                ..Default::default()
+            })
+            .unwrap(),
+        ])
+        .unwrap();
+        for peptide in [
+            AASequence::parse("AG").unwrap(),
+            AASequence::parse("AM(Oxidation)").unwrap(),
+            AASequence::parse("AX[999]").unwrap(),
+            AASequence::parse_with_registry("AM(Delta)", &db).unwrap(),
+        ] {
+            let (mut work, mut bytes) = (50_000_000, 256 * 1024 * 1024);
+            let mass = peptide
+                .mono_mass_for_with_budget(PeptideFragmentType::Full, 2, &mut work, &mut bytes)
+                .unwrap();
+            let (used_work, used_bytes) = (50_000_000 - work, 256 * 1024 * 1024 - bytes);
+            for constrain_work in [true, false] {
+                let (mut work, mut bytes) = if constrain_work {
+                    (used_work * 2 - 1, 256 * 1024 * 1024)
+                } else {
+                    (50_000_000, used_bytes * 2 - 1)
+                };
+                assert_eq!(
+                    peptide
+                        .mono_mass_for_with_budget(
+                            PeptideFragmentType::Full,
+                            2,
+                            &mut work,
+                            &mut bytes
+                        )
+                        .unwrap(),
+                    mass
+                );
+                assert!(
+                    peptide
+                        .mono_mass_for_with_budget(
+                            PeptideFragmentType::Full,
+                            2,
+                            &mut work,
+                            &mut bytes
+                        )
+                        .is_err()
+                );
+            }
+        }
     }
 }
