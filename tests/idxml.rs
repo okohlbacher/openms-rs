@@ -249,7 +249,7 @@ fn invalid_xml_structure_and_references_are_rejected() {
 }
 
 #[test]
-fn malformed_values_lists_dates_and_unsupported_definitions_fail() {
+fn malformed_values_lists_dates_and_malformed_definitions_fail() {
     for xml in [
         WHOLE.replace("score=\"0.9\"", "score=\"NaN\""),
         WHOLE.replace("aa_before=\"A X\"", "aa_before=\"ABC X\""),
@@ -281,10 +281,7 @@ fn malformed_values_lists_dates_and_unsupported_definitions_fail() {
     }
     let definition = parameter("string", "definition")
         .replace("name=\"custom\"", "name=\"modification_definitions\"");
-    assert!(matches!(
-        parse(&definition),
-        Err(openms::Error::Unsupported(_))
-    ));
+    assert!(parse(&definition).is_err());
 }
 
 #[test]

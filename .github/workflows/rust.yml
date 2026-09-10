@@ -24,6 +24,8 @@ jobs:
       - run: cargo test --locked --no-default-features
       - run: cargo test --locked --no-default-features --features idxml
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml
+      - run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
+      - run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
   quality:
     runs-on: ubuntu-latest
     steps:
@@ -50,3 +52,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.85.0
       - run: cargo test --locked --all-features --all-targets
       - run: cargo test --locked --all-features --doc
+      - run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
+      - run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler

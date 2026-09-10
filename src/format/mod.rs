@@ -22,9 +22,20 @@ pub mod file_handler;
 pub mod file_types;
 pub mod mgf;
 pub mod ms2;
+pub(crate) mod path_io;
 
 pub use file_handler::FileHandler;
 pub use file_types::{FileProperty, FileType, FileTypeList, FilterLayout};
+
+#[cfg(feature = "consensusxml")]
+pub mod consensusxml;
+#[cfg(feature = "featurexml")]
+pub mod featurexml;
+#[cfg(any(feature = "idxml", feature = "featurexml", feature = "consensusxml"))]
+pub(crate) mod identification_xml;
+#[cfg(any(feature = "featurexml", feature = "consensusxml"))]
+pub(crate) mod map_xml;
+pub mod modification_definitions;
 
 #[cfg(feature = "idxml")]
 pub mod idxml;

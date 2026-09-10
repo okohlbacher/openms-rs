@@ -120,13 +120,13 @@ fn upstream_feature_consensus_and_peptide_values() {
     for i in 0..4 {
         close(
             features.features[i].metadata["original_RT"]
-                .parse()
+                .as_f64()
                 .unwrap(),
             expected[i],
         );
         close(
             consensus.features[i].metadata["original_RT"]
-                .parse()
+                .as_f64()
                 .unwrap(),
             expected[i],
         );

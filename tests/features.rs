@@ -268,7 +268,7 @@ fn feature_maps_sort_stably_and_select_attached_subordinates() {
     assert_eq!(map, before);
     map.select(&[2, 0]).unwrap();
     assert_eq!(map.features[0].subordinates[0].unique_id, 99);
-    assert_eq!(map.features[0].metadata["sample"], "a");
+    assert_eq!(map.features[0].metadata["sample"].as_str().unwrap(), "a");
     map.select(&[]).unwrap();
     assert!(map.is_empty());
 }
@@ -433,7 +433,7 @@ fn source_decharge_consensus_with_adducts_and_weighting() {
         );
         if i > 0 {
             f.metadata
-                .insert("dc_charge_adduct_mass".into(), adduct[i].to_string());
+                .insert("dc_charge_adduct_mass".into(), adduct[i].to_string().into());
         }
         cf.insert(FeatureHandle::new(if i == 0 { 2 } else { 4 }, &f))
             .unwrap();
@@ -569,7 +569,7 @@ fn clear_preserves_metadata_unless_requested() {
     map.unique_id = 99;
     map.clear(false);
     assert_eq!(map.unique_id, 99);
-    assert_eq!(map.metadata["a"], "b");
+    assert_eq!(map.metadata["a"].as_str().unwrap(), "b");
     map.clear(true);
     assert_eq!(map, FeatureMap::new());
     let mut map = ConsensusMap::new();
@@ -584,4 +584,49 @@ fn clear_preserves_metadata_unless_requested() {
     assert_eq!(map.experiment_type, "labeled_MS2");
     map.clear(true);
     assert_eq!(map, ConsensusMap::new());
+}
+
+#[test]
+fn typed_map_metadata_processing_and_loaded_identity_follow_clear() {
+    use openms::format::FileType;
+    use openms::metadata::{DataProcessing, MetaValue, ProcessingAction};
+    let mut feature = Feature::default();
+    feature.set_width(1.25).unwrap();
+    assert_eq!(feature.metadata["FWHM"].as_f64().unwrap(), 1.25);
+    let before = feature.clone();
+    assert!(feature.set_width(f32::NAN).is_err());
+    assert_eq!(feature, before);
+    let mut map = FeatureMap::from_features(vec![feature]);
+    map.metadata
+        .insert("samples".into(), MetaValue::from(vec![1_i64, 2]));
+    let mut processing = DataProcessing::default();
+    processing.actions.insert(ProcessingAction::FeatureGrouping);
+    map.data_processing.push(processing.clone());
+    map.loaded_file_path = "input.featureXML".into();
+    map.loaded_file_type = FileType::FeatureXml;
+    map.clear(false);
+    assert!(map.is_empty());
+    assert_eq!(map.metadata["samples"].as_integer_list().unwrap(), &[1, 2]);
+    assert_eq!(map.data_processing, vec![processing]);
+    assert_eq!(map.loaded_file_type, FileType::FeatureXml);
+    map.clear(true);
+    assert_eq!(map, FeatureMap::default());
+    let mut consensus = ConsensusMap::default();
+    consensus
+        .column_headers
+        .entry(0)
+        .or_default()
+        .metadata
+        .insert("replicates".into(), 3_i64.into());
+    consensus.loaded_file_path = "input.consensusXML".into();
+    consensus.loaded_file_type = FileType::ConsensusXml;
+    consensus.clear(false);
+    assert_eq!(
+        consensus.column_headers[&0].metadata["replicates"]
+            .as_i64()
+            .unwrap(),
+        3
+    );
+    consensus.clear(true);
+    assert_eq!(consensus, ConsensusMap::default());
 }

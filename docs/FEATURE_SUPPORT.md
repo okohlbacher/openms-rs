@@ -6,7 +6,7 @@ The native `kernel::features` and `kernel::geometry` modules port a defined subs
 
 | OpenMS source | Native Rust coverage |
 | --- | --- |
-| `BaseFeature` / measured `RichPeak2D` fields | `BaseFeature`: RT, m/z, intensity, quality, charge, width, unique ID, string metadata, attached peptide identifications |
+| `BaseFeature` / measured `RichPeak2D` fields | `BaseFeature`: RT, m/z, intensity, quality, charge, width, unique ID, typed metadata, attached peptide identifications |
 | `Feature` | `Feature`: composed `base`, RT/m/z qualities, mass-trace hulls, subordinate features, overall hull and containment |
 | `FeatureHandle` | `FeatureHandle`: owned measured values and `(map_index, unique_id)` identity |
 | `ConsensusFeature` | Sorted, unique handles; insertion, replacement, set union; mean, monoisotopic and decharge consensus; handle ranges |
@@ -15,9 +15,9 @@ The native `kernel::features` and `kernel::geometry` modules port a defined subs
 | `ConvexHull2D` | Scan-interval hull construction, outline preservation, containment, compression, bounds and bounding-box expansion |
 | Selected `DPosition<2>` / `DBoundingBox<2>` operations | `Point2D` and validated, inclusive `BoundingBox2D` with rectangular union |
 
-`Feature` and `ConsensusFeature` compose a public `BaseFeature` and implement `Deref`/`DerefMut`: `feature.rt`, `feature.charge` and `feature.metadata` remain convenient field access. Set overall feature quality through `feature.quality`; dimension qualities are named `quality_rt` and `quality_mz`, avoiding unchecked numeric dimension indices. Width is an explicit field; assigning it does not synchronize an `FWHM` metadata alias.
+`Feature` and `ConsensusFeature` compose a public `BaseFeature` and implement `Deref`/`DerefMut`: `feature.rt`, `feature.charge` and `feature.metadata` remain convenient field access. Set overall feature quality through `feature.quality`; dimension qualities are named `quality_rt` and `quality_mz`, avoiding unchecked numeric dimension indices. Width is an explicit field; `set_width` updates it and the source `FWHM` metadata alias together. Direct field assignment still requires the caller to keep the alias consistent for featureXML output.
 
-Metadata values are owned strings, consistent with the existing native kernel. Peptide/protein records are attached through the [identification module](IDENTIFICATION_SUPPORT.md) and validated recursively. Identification references, annotation-state inference, ratios, data processing, document provenance graphs, automatic unique-ID generation, map append/split and label interpretation are not implemented here. Column headers preserve filename, label, feature count, unique ID and metadata. Consensus experiment type defaults to `label-free`; validation permits the source values `label-free`, `labeled_MS1` and `labeled_MS2`.
+Feature, map and column metadata uses owned typed `MetaInfo` values. Peptide/protein records are attached through the [identification module](IDENTIFICATION_SUPPORT.md) and validated recursively. Identification references, annotation-state inference, ratios, document provenance graphs, automatic unique-ID generation, map append/split and label interpretation are not implemented here. Maps additionally preserve `data_processing`, `loaded_file_path` and `loaded_file_type`; clearing metadata clears these fields too. Column headers preserve filename, label, feature count, unique ID and metadata. Consensus experiment type defaults to `label-free`; validation permits the source values `label-free`, `labeled_MS1` and `labeled_MS2`.
 
 ## Hull semantics
 

@@ -85,7 +85,7 @@ struct Parsed {
     bytes: usize,
 }
 impl Parsed {
-    fn push_term(&mut self, term: Term, options: &OboReadOptions) -> Result<()> {
+    fn push_term(&mut self, mut term: Term, options: &OboReadOptions) -> Result<()> {
         if term.skip || term.accession.is_empty() {
             return Ok(());
         }
@@ -129,6 +129,7 @@ impl Parsed {
         if sites.is_empty() {
             return Ok(());
         }
+        term.record.provenance = super::ModificationProvenance::Cv;
         let mut base = ResidueModification::from_record(term.record)
             .map_err(|e| error(term.line, e.to_string()))?;
         for (origin, specificity) in sites {

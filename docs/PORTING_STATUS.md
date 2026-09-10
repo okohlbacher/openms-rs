@@ -67,7 +67,10 @@ The current target is SDK 4.0.0 at `6bfc0e4`; the [SDK update](CORE_SDK_UPDATE.m
 | PROCESSING/RESAMPLING | `LinearResamplerAlign`, `resample_to_grid` | Absolute spacing and supplied grids for intensity redistribution; no ppm spacing |
 | FORMAT/DTAFile | `format::dta` | Buffered read/write with exact or legacy precursor-mass writer convention |
 | FORMAT/FileTypes, FileNameUtils | `format::file_types` | Complete 73-format registry, properties, names, lexical suffix helpers and source dialog filters; source properties do not imply Rust reader support |
-| FORMAT/FileHandler | `format::FileHandler` | Native experiment dispatch, allowed types, bounded common content detection, gzip transport and atomic path output; other source dispatch families remain |
+| FORMAT/FileHandler | `format::FileHandler` | Native experiment/feature/consensus dispatch, allowed types, bounded common content detection, gzip/bzip2 transport and atomic path output; other source dispatch families remain |
+| FORMAT/FeatureXMLFile, ConsensusXMLFile | `format::featurexml`, `format::consensusxml` | Recursive feature geometry, source filters, typed metadata, processing history, portable identification chemistry and consensus group quantities; [featureXML](FEATUREXML_SUPPORT.md), [consensusXML](CONSENSUSXML_SUPPORT.md); inherited XSD validation remains |
+| FORMAT/ModificationDefinitionIO | `format::modification_definitions` | Source escaped definition records, provenance-aware collection and owned local registration; [details](MODIFICATION_DEFINITION_IO_SUPPORT.md) |
+| SYSTEM/File | `system::file` | Native filesystem, resource/configuration discovery and owned temporary resources, with explicit platform differences; [details](SYSTEM_FILE_SUPPORT.md) |
 | FORMAT/MS2File, DTA2DFile | `format::ms2`, `format::dta2d` | Source text parsing, DTA2D ranges/storage/TIC and checked native MS2 writer; [details](TEXT_PEAK_LIST_SUPPORT.md) |
 | FORMAT/FASTAFile | `format::fasta` | Buffered collection or streaming entries; wrapped write; no PEFF interpretation |
 | FORMAT/MascotGenericFile | `format::mgf` | Buffered collection or streaming spectra; basic fields and unique extra key/value metadata; no Mascot submission |

@@ -289,7 +289,10 @@ fn map_annotations_subordinates_and_late_failures_are_transactional() {
     };
     resolve_feature_map(&mut map, ResolutionMethod::BestScore).unwrap();
     assert_eq!(map.features[0].subordinates, child);
-    assert_eq!(map.features[0].metadata["feature_id"], "99");
+    assert_eq!(
+        map.features[0].metadata["feature_id"].as_str().unwrap(),
+        "99"
+    );
     assert_eq!(
         map.unassigned_peptide_identifications[0].metadata["feature_id"]
             .as_str()

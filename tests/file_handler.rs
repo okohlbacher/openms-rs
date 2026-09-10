@@ -181,3 +181,65 @@ fn baseline_tool_core_chain_preserves_peaks_arrays_and_mzml_identity() {
     );
     assert_eq!(s.spectrum_type, SpectrumType::Profile);
 }
+
+#[cfg(feature = "file-compression")]
+#[test]
+fn bzip2_roundtrip_sniffing_and_truncated_stream_detection() {
+    let dir = Directory::new();
+    let path = dir.0.join("peaks.mgf.bz2");
+    FileHandler::store_experiment(&path, &experiment(), None).unwrap();
+    let compressed = std::fs::read(&path).unwrap();
+    assert!(compressed.starts_with(b"BZh"));
+    let unknown = dir.0.join("compressed.opaque");
+    std::fs::rename(&path, &unknown).unwrap();
+    assert_eq!(
+        FileHandler::load_experiment(&unknown, &[]).unwrap().spectra[0].peaks,
+        experiment().spectra[0].peaks
+    );
+    for cut in [3, compressed.len() - 1] {
+        std::fs::write(&path, &compressed[..cut]).unwrap();
+        assert!(FileHandler::load_experiment(&path, &[]).is_err());
+    }
+}
+
+#[cfg(not(feature = "file-compression"))]
+#[test]
+fn unavailable_compression_is_reported_before_touching_destination() {
+    let dir = Directory::new();
+    for suffix in ["gz", "bz2"] {
+        let path = dir.0.join(format!("peaks.mgf.{suffix}"));
+        std::fs::write(&path, "original").unwrap();
+        assert!(FileHandler::store_experiment(&path, &experiment(), None).is_err());
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "original");
+    }
+}
+
+#[cfg(all(feature = "featurexml", feature = "consensusxml"))]
+#[test]
+fn feature_and_consensus_dispatch_preserve_typed_maps_through_unknown_suffixes() {
+    let dir = Directory::new();
+    let source = openms::format::featurexml::read(
+        include_bytes!("data/featurexml_source_1.featureXML").as_slice(),
+    )
+    .unwrap();
+    let path = dir.0.join("features.opaque.gz");
+    FileHandler::store_feature_map(&path, &source, Some(FileType::FeatureXml)).unwrap();
+    let mut copy = FileHandler::load_feature_map(&path, &[FileType::FeatureXml]).unwrap();
+    assert_eq!(copy.loaded_file_type, FileType::FeatureXml);
+    copy.loaded_file_path.clear();
+    copy.loaded_file_type = FileType::Unknown;
+    assert_eq!(copy, source);
+    assert!(FileHandler::load_feature_map(&path, &[FileType::ConsensusXml]).is_err());
+    let source = openms::format::consensusxml::read(
+        include_bytes!("data/consensusxml/ConsensusXMLFile_1.consensusXML").as_slice(),
+    )
+    .unwrap();
+    let path = dir.0.join("consensus.opaque.bz2");
+    FileHandler::store_consensus_map(&path, &source, Some(FileType::ConsensusXml)).unwrap();
+    let mut copy = FileHandler::load_consensus_map(&path, &[FileType::ConsensusXml]).unwrap();
+    assert_eq!(copy.loaded_file_type, FileType::ConsensusXml);
+    copy.loaded_file_path.clear();
+    copy.loaded_file_type = FileType::Unknown;
+    assert_eq!(copy, source);
+    assert!(FileHandler::load_feature_map(&path, &[]).is_err());
+}

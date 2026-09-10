@@ -287,7 +287,7 @@ macro_rules! maps {
             }
             for feature in &mut next.features {
                 let feature = &mut feature.base;
-                feature.metadata.insert("feature_id".into(), feature.unique_id.to_string());
+                feature.metadata.insert("feature_id".into(), feature.unique_id.to_string().into());
                 resolve_inner(&mut feature.peptide_identifications, &mut next.unassigned_peptide_identifications, feature.unique_id, method)?;
             }
             *map = next;

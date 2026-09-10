@@ -13,9 +13,20 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::BufRead;
 use std::sync::{Arc, OnceLock};
 
+#[path = "modification_records.rs"]
+mod modification_records;
 #[path = "obo.rs"]
 mod obo;
 pub use obo::{OboLoadReport, OboReadOptions};
+
+/// Where an immutable modification definition originated; not chemical identity.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ModificationProvenance {
+    #[default]
+    Defined,
+    Cv,
+    MassOnly,
+}
 
 /// Positional specificity from OpenMS ResidueModification.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -106,6 +117,7 @@ impl NeutralLoss {
 /// masses, then freezes the result. Absolute formulas describe the free residue.
 #[derive(Clone, Debug)]
 pub struct ModificationRecord {
+    pub provenance: ModificationProvenance,
     pub record_id: Option<u32>,
     pub name: String,
     pub full_name: String,
@@ -128,6 +140,7 @@ pub struct ModificationRecord {
 impl Default for ModificationRecord {
     fn default() -> Self {
         Self {
+            provenance: ModificationProvenance::Defined,
             record_id: None,
             name: String::new(),
             full_name: String::new(),
@@ -163,8 +176,9 @@ pub(super) fn full_identifier(name: &str, origin: Option<char>, term: TermSpecif
 /// A chemically described modification at one residue/terminal specificity.
 ///
 /// Entries are immutable. One UniMod ID may have many specificity records.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct ResidueModification {
+    provenance: ModificationProvenance,
     record_id: Option<u32>,
     obo_accession: Option<String>,
     synonyms: BTreeSet<String>,
@@ -184,6 +198,11 @@ pub struct ResidueModification {
     neutral_losses: Vec<NeutralLoss>,
 }
 // The registry rejects NaN/Inf values before an entry is constructed.
+impl PartialEq for ResidueModification {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
 impl Eq for ResidueModification {}
 
 /// Complete value ordering, not identifier-only or pointer ordering. Every
@@ -274,6 +293,7 @@ impl ResidueModification {
             record.full_id = full_identifier(&record.name, record.origin, record.term_specificity);
         }
         Ok(Self {
+            provenance: record.provenance,
             record_id: record.record_id,
             name: record.name,
             full_name: record.full_name,
@@ -294,6 +314,13 @@ impl ResidueModification {
         })
     }
 
+    pub fn provenance(&self) -> ModificationProvenance {
+        self.provenance
+    }
+    pub fn with_provenance(mut self, provenance: ModificationProvenance) -> Self {
+        self.provenance = provenance;
+        self
+    }
     pub fn record_id(&self) -> Option<u32> {
         self.record_id
     }
@@ -476,6 +503,7 @@ impl ModificationsDB {
                 }
             }
             let modification = ResidueModification {
+                provenance: ModificationProvenance::Cv,
                 record_id: Some(
                     fields[0]
                         .parse()
@@ -873,7 +901,7 @@ impl ResidueModification {
         names.remove("");
         names
     }
-    fn payload_bytes(&self) -> Result<usize> {
+    pub(crate) fn payload_bytes(&self) -> Result<usize> {
         // Conservative payload accounting: strings plus map/atom/loss storage.
         let mut bytes = size_of::<Self>();
         for value in [
@@ -899,11 +927,7 @@ impl ResidueModification {
         {
             bytes = obo::checked(
                 bytes,
-                formula
-                    .to_string()
-                    .len()
-                    .saturating_mul(64)
-                    .saturating_add(64),
+                formula.atoms.len().saturating_mul(128).saturating_add(64),
                 usize::MAX,
                 "registry bytes",
             )?;
@@ -916,5 +940,113 @@ impl ResidueModification {
             usize::MAX,
             "registry bytes",
         )
+    }
+}
+
+impl ModificationsDB {
+    /// Charge the owned index copied by Clone; chemical Arc payload stays shared.
+    #[cfg(any(feature = "idxml", feature = "featurexml", feature = "consensusxml"))]
+    pub(crate) fn clone_with_budget(&self, work: &mut usize, bytes: &mut usize) -> Result<Self> {
+        *work = work
+            .checked_sub(self.entries.len().saturating_add(self.by_name.len()))
+            .ok_or_else(|| {
+                Error::InvalidValue("modification registry clone work limit exceeded".into())
+            })?;
+        let mut visits = 0usize;
+        let mut payload = self
+            .entries
+            .len()
+            .saturating_mul(size_of::<Arc<ResidueModification>>());
+        for (key, indices) in &self.by_name {
+            visits = visits
+                .saturating_add(key.len())
+                .saturating_add(indices.len())
+                .saturating_add(1);
+            payload = payload
+                .saturating_add(key.len())
+                .saturating_add(128)
+                .saturating_add(indices.len().saturating_mul(size_of::<usize>()));
+        }
+        *work = work.checked_sub(visits).ok_or_else(|| {
+            Error::InvalidValue("modification registry clone work limit exceeded".into())
+        })?;
+        *bytes = bytes.checked_sub(payload).ok_or_else(|| {
+            Error::InvalidValue("modification registry clone byte limit exceeded".into())
+        })?;
+        Ok(self.clone())
+    }
+}
+
+impl ModificationsDB {
+    pub(crate) fn charge_extension(&self, work: &mut usize, bytes: &mut usize) -> Result<()> {
+        *work = work
+            .checked_sub(self.entries.len().saturating_add(self.by_name.len()))
+            .ok_or_else(|| {
+                Error::InvalidValue("modification extension work limit exceeded".into())
+            })?;
+        let mut visits = 0usize;
+        let mut payload = 0usize;
+        for record in &self.entries {
+            let size = record.payload_bytes()?;
+            visits = visits.saturating_add(size);
+            payload = payload.saturating_add(32);
+        }
+        for (key, indices) in &self.by_name {
+            visits = visits
+                .saturating_add(key.len().saturating_mul(20))
+                .saturating_add(indices.len());
+            payload = payload
+                .saturating_add(key.len())
+                .saturating_add(128)
+                .saturating_add(indices.len().saturating_mul(size_of::<usize>()));
+        }
+        *work = work.checked_sub(visits).ok_or_else(|| {
+            Error::InvalidValue("modification extension work limit exceeded".into())
+        })?;
+        *bytes = bytes.checked_sub(payload).ok_or_else(|| {
+            Error::InvalidValue("modification extension byte limit exceeded".into())
+        })?;
+        Ok(())
+    }
+}
+
+impl ModificationsDB {
+    /// Register one owned named definition, retaining complete chemistry.
+    /// Identical full-ID registrations are idempotent; conflicts are errors.
+    pub fn register_definition(
+        &mut self,
+        definition: &ResidueModification,
+    ) -> Result<Arc<ResidueModification>> {
+        if definition.name().is_empty() {
+            return Err(Error::InvalidValue(
+                "definition requires a nonempty name".into(),
+            ));
+        }
+        if definition.payload_bytes()? > OboReadOptions::default().max_registry_bytes {
+            return Err(Error::InvalidValue(
+                "modification definition payload exceeds registry limit".into(),
+            ));
+        }
+        let matches = self.find_handles(definition.full_id(), None, None);
+        if let Some(existing) = matches.first() {
+            if matches.iter().any(|value| value.as_ref() != definition) {
+                return Err(Error::InvalidValue(
+                    "conflicting modification definition".into(),
+                ));
+            }
+            return Ok(Arc::clone(existing));
+        }
+        self.extend_records(vec![
+            definition
+                .clone()
+                .with_provenance(ModificationProvenance::Defined),
+        ])?;
+        self.get_modification_handle(definition.full_id(), None, None)
+    }
+    /// Whether any matching specificity is a named tool/file definition.
+    pub fn has_defined_modification(&self, name: &str) -> bool {
+        self.find(name, None, None).into_iter().any(|value| {
+            value.provenance() == ModificationProvenance::Defined && !value.name().is_empty()
+        })
     }
 }

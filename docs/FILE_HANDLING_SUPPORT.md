@@ -36,16 +36,25 @@ metadata and chromatograms, avoiding the source dispatch's potential data loss.
 `store_experiment` stages output in a newly created sibling file, flushes it,
 then renames it into place. Validation or serialization failures preserve an
 existing destination. I/O failures on a caller-owned writer can leave partial
-stream output. Gzip file transport reuses the optional `mzml` feature's existing
-compression dependency; concatenated gzip input members are supported.
-Bzip2/ZIP transport is recognized and rejected before output publication.
+stream output. Gzip/bzip2 transport uses the `file-compression` feature, enabled
+by mzML, featureXML and consensusXML. Both decoders support concatenated members.
+The bzip2 dependency uses its pure Rust backend. ZIP containers remain unsupported.
 
 Content recognition reads at most 64 KiB and examines five lines, or up to 512
 for IMS markers. It recognizes common XML and text signatures and replays all
 preview bytes to the real parser. It is a heuristic, not a validator or a complete
 port of every source content-detection rule. Directory probing, other formats,
-feature/consensus/identification/transition dispatch, source-file bookkeeping and
+identification/transition dispatch, source-file bookkeeping and
 SHA1 helpers remain open. No adapter is substituted for an unsupported format.
+
+## Feature and consensus dispatch
+
+`read_feature_map`/`write_feature_map` and `read_consensus_map`/`write_consensus_map`
+connect the optional featureXML and consensusXML stream adapters. Their
+`load_*`/`store_*` variants share content recognition, allowed input types,
+compressed transport and atomic publication. Loading records the source path
+and file type on the map. Other feature/consensus formats remain explicit errors.
+See [featureXML](FEATUREXML_SUPPORT.md) and [consensusXML](CONSENSUSXML_SUPPORT.md).
 
 ## Evidence
 

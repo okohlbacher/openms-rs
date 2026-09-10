@@ -138,3 +138,6 @@ the authors tag in the respective file header.
  - Witold Wolski
  - Xiao Liang
  - Yasset Perez-Riverol
+
+Native Rust implementation and interoperability additions are maintained by
+the OpenMS Rust contributors; contributor attribution is recorded in Git history.

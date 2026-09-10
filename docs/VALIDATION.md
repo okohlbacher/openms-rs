@@ -1,6 +1,44 @@
 # Validation of the ongoing Rust port
 
-## Current SDK foundations increment (2026-09-10)
+## Map interchange and runtime resources (2026-09-10)
+
+The target remains Core SDK 4.0.0 at `6bfc0e4`. Native featureXML and consensusXML,
+portable modification definitions, typed feature metadata, filesystem helpers,
+and shared gzip/bzip2 transport are integrated. The complete current-Rust suite
+passes **1,276 tests**. [Machine-readable results](map-interchange-validation.json)
+record the commands, outcomes and log hashes.
+
+| Check | Result |
+| --- | --- |
+| Current Rust, all features and all targets | 1,276 tests passed; examples compiled |
+| Rust 1.85, consensusXML alone plus unit/dispatch suites | 86 tests passed |
+| Rust 1.85, featureXML alone plus unit/dispatch suites | 85 tests passed |
+| Rust 1.85, idXML alone plus unit/custom-definition suites | 100 tests passed |
+| Rust 1.85, no default features, selected unit/filesystem/definition suites | 95 tests passed |
+| Strict Clippy, all targets | Passed on current Rust with all features and Rust 1.85 without default features |
+| Final strict idXML-only Clippy, Rust 1.85 | Passed after narrowing a map-only helper's feature gate |
+| Doctests, Rustdoc, optimized library, Rustfmt | Passed; three doctests, documentation warnings denied |
+| Source/fixture audit | 1,825 distinct current source/registration/reference files; 11 batch fixtures verified |
+| Coverage inventory and its regressions | All 786 headers accounted for; two regression tests passed |
+
+Focused test counts overlap and must not be added to the full-suite count. Both
+map dialects were tested against original fixtures; consensusXML output also
+passed the original XSD through the locally available `xmllint`. Metadata,
+protein references, portable chemistry, compressed paths and atomic failures
+have independent regression coverage. Reviews caught and closed reference
+expansion and validation-order resource-limit gaps.
+
+The completion review now records ZIP input as missing from both map XML
+loaders, and compressed input as missing from the INI loader. The INI entry was
+therefore corrected from complete to partial. Map-based public modification
+collection helpers, platform-specific filesystem behavior, inherited XML schema
+validation, and broad SDK parity remain open. The completion gate still fails
+for 772 headers requiring implementation or explicit review; it is not a count
+of wholly absent Rust classes. No C++ executable was built or run, and no TOPP
+workflow is yet certified as port-ready.
+
+
+## Historical SDK foundations increment (2026-09-10)
 
 The target remains Core SDK 4.0.0 at `6bfc0e4`. This increment adds identification
 cleanup, reusable mzML parameter groups, MS2/DTA2D, file dispatch, text/list

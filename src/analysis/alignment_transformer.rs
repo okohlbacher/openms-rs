@@ -147,7 +147,7 @@ fn apply_peptides(ids: &mut [PeptideIdentification], plans: Vec<Option<PeptidePl
     }
 }
 struct BasePlan {
-    position: PositionPlan,
+    position: PeptidePlan,
     peptides: Vec<Option<PeptidePlan>>,
 }
 impl BasePlan {
@@ -157,12 +157,24 @@ impl BasePlan {
         budget: &mut Budget,
     ) -> Result<Self> {
         Ok(Self {
-            position: PositionPlan::new(feature.rt, &feature.metadata, transformation, budget)?,
+            position: PeptidePlan {
+                rt: budget.value(feature.rt, transformation)?,
+                original: if budget.options.store_original_rt
+                    && !feature.metadata.contains_key("original_RT")
+                {
+                    Some(MetaValue::try_from(feature.rt)?)
+                } else {
+                    None
+                },
+            },
             peptides: plan_peptides(&feature.peptide_identifications, transformation, budget)?,
         })
     }
     fn apply(self, feature: &mut BaseFeature) {
-        self.position.apply(&mut feature.rt, &mut feature.metadata);
+        feature.rt = self.position.rt;
+        if let Some(value) = self.position.original {
+            feature.metadata.insert("original_RT".into(), value);
+        }
         apply_peptides(&mut feature.peptide_identifications, self.peptides);
     }
 }

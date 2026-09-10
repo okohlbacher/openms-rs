@@ -1,0 +1,317 @@
+{
+  "target_sdk_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "platform": "macOS ARM64",
+  "current_rust": "1.96.0",
+  "minimum_rust": "1.85.0",
+  "checks": [
+    {
+      "name": "all_features_all_targets",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "passed_tests": 1276,
+      "log_sha256": "fb860f3808c270b1b6c38c892535fe825bf82ccc71217d5d633517af5cfee709"
+    },
+    {
+      "name": "clippy-current",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j",
+        "4",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 76.5,
+      "passed_tests": 0,
+      "log_sha256": "bc0be7b4dc38764c244398ff5133476ebb887baeeab262a6ddb212c535998bc2"
+    },
+    {
+      "name": "minimum-consensus",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "consensusxml",
+        "--lib",
+        "--test",
+        "consensusxml",
+        "--test",
+        "file_handler",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 26.32,
+      "passed_tests": 86,
+      "log_sha256": "297943d202388698188ccf27a6289f5bf7f27b48525fa1ec7ea29ce8dee4a2b3"
+    },
+    {
+      "name": "minimum-feature",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "featurexml",
+        "--lib",
+        "--test",
+        "featurexml",
+        "--test",
+        "file_handler",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 21.87,
+      "passed_tests": 85,
+      "log_sha256": "35dbfca488d1635c62d8bdd11f03f32ebb1f00ba8ec637a7b7d3990150c8ae75"
+    },
+    {
+      "name": "minimum-idxml",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "idxml",
+        "--lib",
+        "--test",
+        "idxml",
+        "--test",
+        "idxml_definitions",
+        "--test",
+        "modification_definition_io",
+        "--test",
+        "custom_modification_workflow",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 43.63,
+      "passed_tests": 100,
+      "log_sha256": "641f4dc1b7df7a91d49b1f9bc01bf0d1b41df97bc9a747161248f18a753a4024"
+    },
+    {
+      "name": "clippy-minimum-no-default",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--all-targets",
+        "-j",
+        "4",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 82.0,
+      "passed_tests": 0,
+      "log_sha256": "ce6e18fbe5ab4fe44c76ed14d2d028a14a128b6c8c6b5fba0353714490c9fb64"
+    },
+    {
+      "name": "minimum-no-default",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "file_handler",
+        "--test",
+        "system_file",
+        "--test",
+        "modification_definition_io",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 30.77,
+      "passed_tests": 95,
+      "log_sha256": "29fb1a0f4f4f8d4c1eaeefd5ebada4dd9e194d636785ff5df06e5dd15a8cce11"
+    },
+    {
+      "name": "doctests",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--doc",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 11.33,
+      "passed_tests": 3,
+      "log_sha256": "b1e3bc0f38166f1a47793a2c8d467174f74f7b922829068e30e0b9724865751b"
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "rustdoc",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--lib",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 2.18,
+      "passed_tests": 0,
+      "log_sha256": "f867870425d69701df7f6e456ccc3ba643046579d6d69d3eb0de2227ea200261"
+    },
+    {
+      "name": "release",
+      "command": [
+        "cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--all-features",
+        "--release",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 16.93,
+      "passed_tests": 0,
+      "log_sha256": "1b3696d0adf7c6b25b5c3ec5485ef80f406cabfc1d81755856ddfe07e69ca23a"
+    },
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.6,
+      "passed_tests": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-current"
+      ],
+      "exit_code": 0,
+      "seconds": 0.32,
+      "passed_tests": 0,
+      "log_sha256": "01d1163988aacdf5700fb610488acf2c53ab3324e3e01a4a7c33b5f03607659b"
+    },
+    {
+      "name": "ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.06,
+      "passed_tests": 0,
+      "log_sha256": "1c30061e432981605f6c23c562d6cd51815ee3477bfa38fa2173758a04cfe5ad"
+    },
+    {
+      "name": "ledger-regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.09,
+      "passed_tests": 0,
+      "log_sha256": "41919cc1849a5baca889b145de1b4eb93cc6286c4e6b996e80ebf7981eee9f1c"
+    },
+    {
+      "name": "final_minimum_idxml_strict_lint",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "idxml",
+        "--lib",
+        "-j",
+        "2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "log_sha256": "9cff242b89da2cab24431dc156431f24209b7f6b8ca51b654610a9b84e26d2d5"
+    }
+  ],
+  "audit": {
+    "target_sdk_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+    "distinct_current_source_registration_reference_files": 1825,
+    "new_batch_fixture_hashes": 11,
+    "local_documentation_links": 480,
+    "cpp_built": false,
+    "cpp_runtime_differential_tests": false,
+    "validated_topp_workflows": 0
+  },
+  "completion": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 9,
+      "evidence_requires_review": 164,
+      "native_equivalent": 5,
+      "partial": 8,
+      "unmapped": 600
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "cpp_built": false,
+  "cpp_runtime_differential_tests": false,
+  "validated_topp_workflows": 0,
+  "scope": "Native featureXML/consensusXML, typed feature metadata, portable modification definitions and idXML integration, filesystem helpers, common gzip/bzip2 transport. Counts from focused runs overlap the full suite and are not additive.",
+  "development_checks": {
+    "initial_full_suite_compile": "A new regression used a nonexistent MetaValue::from(f64) conversion; corrected to a valid payload before the final full run.",
+    "isolated_idxml_warning": "An unused map-only render helper was gated to featurexml/consensusxml after the isolated tests. Final Rust1.85 idxml-only strict lint passed; all-feature behavior is unchanged.",
+    "initial_manifest_audit": "Normalized featureXML fixture path keys to the shared manifest schema; final source and fixture audits passed."
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "method": "Direct source/header/class-test audit; no C++ build or execution. Exact source bytes are packaged separately from synthetic native concurrency and filesystem tests.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/SYSTEM/File.h",
+      "sha256": "adafb26d518a73ee94a30c6a8ed9c2edb94983627df106d1e4738fbc3e3aec47",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/SYSTEM/File.h"
+    },
+    {
+      "path": "src/openms/source/SYSTEM/File.cpp",
+      "sha256": "1670f67c6c86a1026d12f2ceb78fcaf06d23b4181e81b8b76aaf91506d54b2e6",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/SYSTEM/File.cpp"
+    },
+    {
+      "path": "src/openms/source/SYSTEM/FileConfig.cpp",
+      "sha256": "bc436919bb1a79d14ac023310174a77ece46d61b40b1f263195684b4cbd96349",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/SYSTEM/FileConfig.cpp"
+    },
+    {
+      "path": "src/openms/source/SYSTEM/FileTemp.cpp",
+      "sha256": "3fab4161a5a65d3372a1f65a17991209a7b967ec78510cf85391a86d1ebcb6da",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/SYSTEM/FileTemp.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
+      "sha256": "bb67911e8e75e1a97243e859296b5b18d3e46f90e0db2fa138b36d3343356040",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/SYSTEM/PathUtils.h"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/FileNameUtils.h",
+      "sha256": "03a45edd288a3e5ef91423580043d882e6e02614e5e7f50798b2fc3ffbf5d771",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/FORMAT/FileNameUtils.h"
+    },
+    {
+      "path": "src/openms/source/FORMAT/FileNameUtils.cpp",
+      "sha256": "a3796bd2a77b24fb9e9748fe24a824231a31650258b065884e6b741742df004f",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/FORMAT/FileNameUtils.cpp"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
+      "sha256": "bc766b362acec369917682cbb0c14a22cfeb83cc4e5c28ead5fc9556bf02eba2",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/DATASTRUCTURES/DateTime.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/File_test.cpp",
+      "sha256": "74344b097fbb12698d127ff59dc76f68573f0f52be2a7caf02acf023771588f2",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/File_test.cpp"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/CoreDataPath_probe.cpp",
+      "sha256": "1d574af314d5c0f1bcd1fdcc48f8a1400e156103acffd8ff4d7852c651a3f1e0",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/CoreDataPath_probe.cpp"
+    },
+    {
+      "path": "src/openms/include/OpenMS/openms_data_path.h.in",
+      "sha256": "747a7612c363a2ed013bf80082d899920b8bfbce4347636001966a7427ee25f6",
+      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/openms_data_path.h.in"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/system_file_text.txt",
+      "source": "src/tests/class_tests/openms/data/File_test_text.txt",
+      "bytes": 15,
+      "sha256": "cc29e205d04a4062d0fb131700e8bfc8e54c44d0176a8dca22f40b24ef26d325"
+    },
+    {
+      "path": "tests/data/system_file_empty.txt",
+      "source": "src/tests/class_tests/openms/data/File_test_empty.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_surface": {
+    "public_function_names": 39,
+    "public_overloads": 40,
+    "tempdir_constructors": 2,
+    "class_test_sections": 35
+  },
+  "tests": [
+    "tests/system_file.rs",
+    "src/system/file.rs::tests"
+  ],
+  "support": "docs/SYSTEM_FILE_SUPPORT.md",
+  "source_ranges": [
+    {
+      "path": "src/tests/class_tests/openms/source/File_test.cpp",
+      "start": 39,
+      "end": 231,
+      "behavior": "Queries, exact 15-byte fixture, Unix epoch and non-destructive concurrent writable probes."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/File_test.cpp",
+      "start": 240,
+      "end": 380,
+      "behavior": "Resource lookup, lexical paths/extensions, directory lists, unique name."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/File_test.cpp",
+      "start": 400,
+      "end": 618,
+      "behavior": "Recursive copy modes, config/environment, executable and PATH behavior."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/File_test.cpp",
+      "start": 620,
+      "end": 726,
+      "behavior": "Temporary ownership and paired filename status."
+    },
+    {
+      "path": "src/openms/source/SYSTEM/FileConfig.cpp",
+      "start": 128,
+      "end": 177,
+      "behavior": "Five defaults and discarded repaired p_new quirk; source does not rewrite configuration."
+    }
+  ],
+  "native_adaptations": [
+    "Explicit FileContext replaces automatic library-address discovery and compiled-in checkout paths; successful discovery caching and retry policy preserved.",
+    "Owned temporary guards replace process-exit filename registry; default TempFile reserves an existing exclusive file.",
+    "Regular-file no-clobber publication requires hard links; unsupported filesystems and no-clobber directory/symlink moves error instead of racy emulation.",
+    "Overwrite moves do not pre-delete the destination. Directory copy preflights cycles, self/descendant copy, known Cancel conflicts and destination directory symlinks.",
+    "Semantic effective-process permission probes replace exact access/ACL queries; no FIFO/device open and no requested-basename creation.",
+    "Portable Unicode glob grammar; UTC/environment-hostname/process/counter names.",
+    "Checked Results replace sentinels and directory-list failure-as-empty; paths are native PathBuf without decorative trailing separators."
+  ],
+  "limits": {
+    "max_entry_visits": 100000,
+    "max_work": 50000000,
+    "max_logical_bytes": 67108864,
+    "max_path_or_pattern_bytes": 1048576,
+    "max_depth": 128,
+    "creation_attempts": 100,
+    "file_content_bytes": "streamed; no small content cap"
+  }
+}

@@ -278,12 +278,18 @@ fn custom_registry_idxml_roundtrip_checks_exact_chemistry_before_output() {
         ..Default::default()
     };
     let mut bytes = Vec::new();
-    assert!(idxml::write(&mut bytes, &document).is_err());
-    assert!(bytes.is_empty());
-    idxml::write_with_registry(&mut bytes, &document, &Default::default(), &db).unwrap();
-    let restored = idxml::read_with_registry(bytes.as_slice(), &Default::default(), &db).unwrap();
+    idxml::write(&mut bytes, &document).unwrap();
+    let mut restored =
+        idxml::read_with_registry(bytes.as_slice(), &Default::default(), &db).unwrap();
+    assert_eq!(restored, idxml::read(bytes.as_slice()).unwrap());
+    assert!(
+        restored.protein_identifications[0]
+            .search_parameters
+            .metadata
+            .remove("modification_definitions")
+            .is_some()
+    );
     assert_eq!(restored, document);
-    assert!(idxml::read(bytes.as_slice()).is_err());
     let conflicting =
         ModificationsDB::from_records(vec![record("LabO", 'M', 31.98983, "O2", None)]).unwrap();
     let mut untouched = vec![99];

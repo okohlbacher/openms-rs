@@ -19,14 +19,19 @@ generated Rust predicates are included under the OpenMS BSD-3-Clause terms.
 The RNA snapshot and its embedded projection retain separate MODOMICS data
 notices in [the RNA data record](resources/rna/README.md). General redistribution
 terms for this dataset are unresolved; the software BSD license does not grant
-rights to the MODOMICS data. The complete snapshot is retained for this local,
-unpublished port and its scientific validation.
+rights to the MODOMICS data. The complete snapshot is retained for the port
+and its scientific validation; public source availability does not resolve
+the separate dataset redistribution terms.
 
 External Cargo dependencies retain their own licenses and notices. The EMG
 fitter uses `libm` 0.2.16 (MIT) for the complementary error function; its source
 and full notices are distributed in the dependency's Cargo package. No `libm`
 source is vendored in this repository. The optional MODOMICS JSON reader uses
 serde_json 1.0.150 (MIT OR Apache-2.0), with its own Cargo dependency notices.
+Optional file compression uses bzip2 0.6.1 (MIT OR Apache-2.0) with its default
+pure Rust libbz2-rs-sys backend (bzip2-1.0.6), and flate2 1.1.9
+(MIT OR Apache-2.0). Their full licenses are supplied in the Cargo packages;
+no compression-library source is vendored here.
 
 ## OpenMS implementation and custom data: BSD-3-Clause
 

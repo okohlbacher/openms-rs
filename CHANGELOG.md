@@ -2,6 +2,12 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add featureXML and consensusXML adapters with typed feature metadata, processing history, assigned/unassigned identifications, checked custom chemistry, source filters, and protein-group quantity ownership guards.
+- Add reusable gzip/bzip2 transport using Rust backends, atomic file output and feature/consensus FileHandler dispatch.
+- Add portable modification definition records and owned-registry registration shared across all three identification XML formats.
+- Add native filesystem helpers, explicit runtime/data/configuration paths and owned temporary resources, with documented platform conventions.
+- Native API migration: feature/map/column metadata now uses typed MetaInfo; map records gain processing history and loaded-file path/type.
+
 - Add native parameter values, hierarchical parameters, defaults/restrictions/update/copy/merge, forward traces and both command-line parsers, with source quirks and transactional errors documented.
 - Add default-parameter lifecycle handling, pure typed-state callbacks, source warning policies and atomic leaf-key metadata export.
 - Add OpenMS parameter XML/INI read/write, legacy fixtures, UTF-8/Latin-1/UTF-16 input, full-precision special floats and checked metadata preservation.

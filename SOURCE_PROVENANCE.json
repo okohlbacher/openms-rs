@@ -5,11 +5,11 @@
   "verification": "Remote HEAD obtained with git ls-remote; analysis uses an immutable git archive under .reference/openms4-core at the pinned commit",
   "rust_package": "openms",
   "port_version": "0.1.0",
-  "scope": "Ongoing native Rust core port: spectra, feature/consensus geometry, typed metadata and acquisition records, peptide/protein identification records and filters, score switching, HyperScore/Morpheus, target/decoy FDR and q-values, idXML interchange, peptide-to-protein indexing, basic protein inference/grouping, identification conflict resolution and origin splitting, unresolved residues and owned numeric mass tags, modification/enzyme chemistry, shared caller-owned modification records, bounded OBO loading and PSI-MOD aliases, XLMOD monolink/crosslink lookup, absolute-formula replacement, fixed/variable modified-peptide generation, named/anonymous modification definitions/compatibility/inference and delta/absolute mass matching, charge/pI with four pKa scales, seven hydrophobicity scales with profiles/moments, ten AAindex scales and stable gas-phase basicity, coarse and materialized fine isotopes, ordered raw configurations with custom binary64 populations, precursor purity/SPS/fuzzy scoring and parent-aware acquisition metadata, spectrum annotation and ion naming, fragment-match statistics with shared calculation budgets, theoretical spectra with internal fragments, immonium ions, activation presets and compact mass ladders, smoothing, HiRes/iterative centroiding, sliding/jumping window filtering, median and iterative-mean noise estimation, legacy/corrected chromatogram picking, sampled integration/baselines/shape metrics with optional EMG reconstruction, native EMG parameter estimation and truncated-side fitting, simple and Poisson/KL deisotoping, spectrum comparison, retention-time models and container transforms, and documented I/O subsets including named mzML annotation arrays, native decoy reversal and seeded shuffling with source cache/digestion rules, molecular adduct parsing and electron-aware mass conversion, m/z-derived sequence tags with modification-aware residue dictionaries and source traversal rules, and RNA nucleoside records/providers with the complete pinned registry, owned nucleic-acid sequences, sulfur-aware slicing and all finite source fragment formula/mass variants, modified-RNA fixed/variable enumeration, RNase digestion with all fourteen registered enzymes and composed native code predicates, and nine-series signed-charge RNA theoretical spectra with single/multiple precursor conventions",
+  "scope": "Ongoing native Rust core port: spectra, feature/consensus geometry, typed metadata and acquisition records, peptide/protein identification records and filters, score switching, HyperScore/Morpheus, target/decoy FDR and q-values, idXML interchange, peptide-to-protein indexing, basic protein inference/grouping, identification conflict resolution and origin splitting, unresolved residues and owned numeric mass tags, modification/enzyme chemistry, shared caller-owned modification records, bounded OBO loading and PSI-MOD aliases, XLMOD monolink/crosslink lookup, absolute-formula replacement, fixed/variable modified-peptide generation, named/anonymous modification definitions/compatibility/inference and delta/absolute mass matching, charge/pI with four pKa scales, seven hydrophobicity scales with profiles/moments, ten AAindex scales and stable gas-phase basicity, coarse and materialized fine isotopes, ordered raw configurations with custom binary64 populations, precursor purity/SPS/fuzzy scoring and parent-aware acquisition metadata, spectrum annotation and ion naming, fragment-match statistics with shared calculation budgets, theoretical spectra with internal fragments, immonium ions, activation presets and compact mass ladders, smoothing, HiRes/iterative centroiding, sliding/jumping window filtering, median and iterative-mean noise estimation, legacy/corrected chromatogram picking, sampled integration/baselines/shape metrics with optional EMG reconstruction, native EMG parameter estimation and truncated-side fitting, simple and Poisson/KL deisotoping, spectrum comparison, retention-time models and container transforms, and documented I/O subsets including named mzML annotation arrays, native decoy reversal and seeded shuffling with source cache/digestion rules, molecular adduct parsing and electron-aware mass conversion, m/z-derived sequence tags with modification-aware residue dictionaries and source traversal rules, and RNA nucleoside records/providers with the complete pinned registry, owned nucleic-acid sequences, sulfur-aware slicing and all finite source fragment formula/mass variants, modified-RNA fixed/variable enumeration, RNase digestion with all fourteen registered enzymes and composed native code predicates, and nine-series signed-charge RNA theoretical spectra with single/multiple precursor conventions; native featureXML/consensusXML map interchange, typed feature metadata, portable named modification definitions and filesystem/resource discovery helpers",
   "cpp_built": false,
   "cpp_runtime_differential_tests": false,
   "source_inventory": "docs/source-inventory.json",
-  "license": "Implementation and OpenMS custom data: BSD-3-Clause; UniMod-derived modification data: Design Science License; XLMOD data/reference projection: CC-BY-3.0 (see LICENSES.md); private decoy RNG: BSD-3-Clause AND BSL-1.0; MODOMICS RNA inputs and transformed records retain separate data notices, with general redistribution terms unresolved for release (local unpublished snapshot); optional serde_json: MIT OR Apache-2.0",
+  "license": "Implementation and OpenMS custom data: BSD-3-Clause; UniMod-derived modification data: Design Science License; XLMOD data/reference projection: CC-BY-3.0 (see LICENSES.md); private decoy RNG: BSD-3-Clause AND BSL-1.0; MODOMICS RNA inputs and transformed records retain separate data notices, with general redistribution terms unresolved for release (see LICENSES.md); optional serde_json: MIT OR Apache-2.0; optional bzip2 and libbz2-rs-sys: MIT OR Apache-2.0",
   "source_files": {
     "LICENSE": {
       "sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677"
@@ -445,7 +445,12 @@
     "reference_provenance": "tests/data/file_handling_provenance.json",
     "support": "docs/FILE_HANDLING_SUPPORT.md",
     "text_peak_lists_provenance": "tests/data/text_peak_lists_provenance.json",
-    "mzml_parameter_groups_provenance": "tests/data/mzml_param_groups_provenance.json"
+    "mzml_parameter_groups_provenance": "tests/data/mzml_param_groups_provenance.json",
+    "map_xml_support": [
+      "docs/FEATUREXML_SUPPORT.md",
+      "docs/CONSENSUSXML_SUPPORT.md"
+    ],
+    "transport": "Plain, gzip and bzip2 streams with magic-based input detection and atomic path output; file-compression is optional."
   },
   "current_sdk_reference_manifests": [
     "tests/data/identification_converter_provenance.json",
@@ -460,6 +465,10 @@
     "tests/data/param_value_provenance.json",
     "tests/data/paramxml_provenance.json",
     "tests/data/list_utils_provenance.json",
-    "tests/data/default_param_handler_provenance.json"
+    "tests/data/default_param_handler_provenance.json",
+    "tests/data/featurexml_provenance.json",
+    "tests/data/consensusxml_provenance.json",
+    "tests/data/modification_definition_io_provenance.json",
+    "tests/data/system_file_provenance.json"
   ]
 }

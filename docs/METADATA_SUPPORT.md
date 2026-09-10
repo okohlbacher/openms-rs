@@ -16,7 +16,7 @@
 
 Equality compares exact type, exact values and unit identity. This deliberately differs from source DataValue scalar-double equality (`abs(a-b) < 1e-6`), which is not transitive and differs from the source's exact list equality. No approximate hash or cross-type ordering is exposed. Finite -0 and +0 compare equal as ordinary Rust floats do.
 
-The existing kernel's string metadata remains usable through explicit bridges:
+Spectra, chromatograms and experiments still use string metadata through explicit bridges. Feature, consensus, map and column records now use `MetaInfo` directly:
 
 | Function | Behavior |
 | --- | --- |

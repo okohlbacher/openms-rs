@@ -1,0 +1,77 @@
+{
+  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/ConsensusXMLFile.h",
+      "sha256": "6d247eda3b816bed45c919700135b8cd46264baf2059538bb590d44652de2230"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ConsensusXMLFile.cpp",
+      "sha256": "94247197099fafb4dbee77148c44660fc50663a31ccddbb304ca871edfdb81c6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h",
+      "sha256": "4fcddc2fe74837c7859173a6a690cc78e7e7f65c1015eed3203228c4bbaa40f8"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/ConsensusXMLHandler.cpp",
+      "sha256": "644fc07a41fb609c1672c8eb0edac89c040a778f5c3ea68cc18a01c106771c7a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
+    },
+    {
+      "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
+      "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/UniqueIdInterface.cpp",
+      "sha256": "8b8986e908bd6c6523ad8c87874e3f3a55f5835aea2bbf947c42b9530224b365"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "sha256": "bc5fa8b64feb192eda86f1dd6606aba6108e97fc5cdcc7b600574189bc166449"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ConsensusXMLFile_test.cpp",
+      "sha256": "aef14709560cb5fb74f089148e3cc29d0acc829f3e12cf67fc7108b2a48fa08d"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/ConsensusXMLFile_1.consensusXML",
+      "sha256": "771a84b7b2c9ffdc484e84660c8cfedb902418257c68440d1bd35640eb60cd7d"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/ConsensusXMLFile_2_options.consensusXML",
+      "sha256": "2a8a9a8e77cd632e64a467286774db5caba3bd1a37c41b0342b5be8ea3b2c965"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd",
+      "sha256": "37e0575633930869c39aa67aad2d8bef28d495df105c4fb474717e2597b370fb"
+    }
+  ],
+  "files": [
+    {
+      "source_path": "src/tests/class_tests/openms/data/ConsensusXMLFile_1.consensusXML",
+      "path": "tests/data/consensusxml/ConsensusXMLFile_1.consensusXML",
+      "sha256": "771a84b7b2c9ffdc484e84660c8cfedb902418257c68440d1bd35640eb60cd7d",
+      "source_sha256": "771a84b7b2c9ffdc484e84660c8cfedb902418257c68440d1bd35640eb60cd7d",
+      "copy": "byte-for-byte"
+    },
+    {
+      "source_path": "src/tests/class_tests/openms/data/ConsensusXMLFile_2_options.consensusXML",
+      "path": "tests/data/consensusxml/ConsensusXMLFile_2_options.consensusXML",
+      "sha256": "2a8a9a8e77cd632e64a467286774db5caba3bd1a37c41b0342b5be8ea3b2c965",
+      "source_sha256": "2a8a9a8e77cd632e64a467286774db5caba3bd1a37c41b0342b5be8ea3b2c965",
+      "copy": "byte-for-byte"
+    },
+    {
+      "source_path": "share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd",
+      "path": "tests/data/consensusxml/ConsensusXML_1_7.xsd",
+      "sha256": "37e0575633930869c39aa67aad2d8bef28d495df105c4fb474717e2597b370fb",
+      "source_sha256": "37e0575633930869c39aa67aad2d8bef28d495df105c4fb474717e2597b370fb",
+      "copy": "byte-for-byte"
+    }
+  ],
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core"
+}

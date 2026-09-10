@@ -8,10 +8,8 @@
 use super::file_types::{consistent_output_type, type_by_file_name};
 use super::{FileType, dta, mgf};
 use crate::{Error, MSExperiment, Result};
-use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, BufWriter, Read, Write};
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::io::{BufRead, BufReader, Read, Write};
+use std::path::Path;
 
 /// Native reader/writer dispatch; unsupported formats return explicit errors.
 pub struct FileHandler;
@@ -76,32 +74,11 @@ impl FileHandler {
 
     /// Load by extension, falling back to bounded content recognition only for
     /// unknown extensions. An empty allowed list accepts every available adapter.
-    /// Gzip containers use the existing `mzml` feature's compression dependency.
+    /// Gzip and bzip2 containers use the optional `file-compression` feature.
     pub fn load_experiment(path: impl AsRef<Path>, allowed: &[FileType]) -> Result<MSExperiment> {
         let path = path.as_ref();
         let kind = type_by_file_name(path.to_str().unwrap_or(""));
-        let mut reader = BufReader::new(File::open(path)?);
-        let magic = reader.fill_buf()?;
-        if magic.starts_with(&[0x1f, 0x8b]) {
-            #[cfg(feature = "mzml")]
-            {
-                return load_stream(
-                    BufReader::new(flate2::read::MultiGzDecoder::new(reader)),
-                    kind,
-                    allowed,
-                );
-            }
-            #[cfg(not(feature = "mzml"))]
-            {
-                return Err(Error::Unsupported(
-                    "gzip input requires the mzml feature".into(),
-                ));
-            }
-        }
-        if magic.starts_with(b"BZh") || magic.starts_with(b"PK\x03\x04") {
-            return Err(Error::Unsupported("bzip2/ZIP experiment input".into()));
-        }
-        load_stream(reader, kind, allowed)
+        load_stream(super::path_io::open(path)?, kind, allowed)
     }
 
     /// Store to a sibling temporary file, replacing the destination only after
@@ -120,39 +97,111 @@ impl FileHandler {
         if !Self::can_write_experiment(kind) {
             return Err(unsupported(kind, "writing"));
         }
-        let suffix = path.extension().and_then(|s| s.to_str()).unwrap_or("");
-        if ["bz2", "zip"]
-            .iter()
-            .any(|s| suffix.eq_ignore_ascii_case(s))
-        {
-            return Err(Error::Unsupported("bzip2/ZIP experiment output".into()));
+        super::path_io::write(path, |writer| {
+            Self::write_experiment(writer, experiment, kind)
+        })
+    }
+
+    /// Read a native feature map. Other feature-map formats remain explicit errors.
+    pub fn read_feature_map(
+        reader: impl BufRead,
+        kind: FileType,
+    ) -> Result<crate::kernel::FeatureMap> {
+        #[cfg(feature = "featurexml")]
+        if kind == FileType::FeatureXml {
+            return super::featurexml::read(reader);
         }
-        let gzip = suffix.eq_ignore_ascii_case("gz");
-        if gzip && !cfg!(feature = "mzml") {
-            return Err(Error::Unsupported(
-                "gzip output requires the mzml feature".into(),
-            ));
+        let _ = reader;
+        Err(Error::Unsupported(format!(
+            "native {} feature-map input",
+            kind.name()
+        )))
+    }
+    pub fn write_feature_map(
+        writer: impl Write,
+        map: &crate::kernel::FeatureMap,
+        kind: FileType,
+    ) -> Result<()> {
+        #[cfg(feature = "featurexml")]
+        if kind == FileType::FeatureXml {
+            return super::featurexml::write(writer, map);
         }
-        let (temporary, mut file) = TemporaryFile::create(path)?;
-        {
-            let mut writer = BufWriter::new(&mut file);
-            if gzip {
-                #[cfg(feature = "mzml")]
-                {
-                    let mut encoder =
-                        flate2::write::GzEncoder::new(&mut writer, flate2::Compression::default());
-                    Self::write_experiment(&mut encoder, experiment, kind)?;
-                    encoder.finish()?;
-                }
-            } else {
-                Self::write_experiment(&mut writer, experiment, kind)?;
-            }
-            writer.flush()?;
+        let _ = (writer, map);
+        Err(Error::Unsupported(format!(
+            "native {} feature-map output",
+            kind.name()
+        )))
+    }
+    pub fn load_feature_map(
+        path: impl AsRef<Path>,
+        allowed: &[FileType],
+    ) -> Result<crate::kernel::FeatureMap> {
+        let path = path.as_ref();
+        let reader = map_input(path, allowed, FileType::FeatureXml)?;
+        let mut map = Self::read_feature_map(reader, FileType::FeatureXml)?;
+        map.loaded_file_path = filename(path)?.into();
+        map.loaded_file_type = FileType::FeatureXml;
+        Ok(map)
+    }
+    pub fn store_feature_map(
+        path: impl AsRef<Path>,
+        map: &crate::kernel::FeatureMap,
+        requested: Option<FileType>,
+    ) -> Result<()> {
+        let path = path.as_ref();
+        let kind =
+            consistent_output_type(filename(path)?, requested.map(FileType::name).unwrap_or(""));
+        super::path_io::write(path, |writer| Self::write_feature_map(writer, map, kind))
+    }
+    pub fn read_consensus_map(
+        reader: impl BufRead,
+        kind: FileType,
+    ) -> Result<crate::kernel::ConsensusMap> {
+        #[cfg(feature = "consensusxml")]
+        if kind == FileType::ConsensusXml {
+            return super::consensusxml::read(reader);
         }
-        file.sync_all()?;
-        drop(file);
-        std::fs::rename(&temporary.0, path)?;
-        Ok(())
+        let _ = reader;
+        Err(Error::Unsupported(format!(
+            "native {} consensus-map input",
+            kind.name()
+        )))
+    }
+    pub fn write_consensus_map(
+        writer: impl Write,
+        map: &crate::kernel::ConsensusMap,
+        kind: FileType,
+    ) -> Result<()> {
+        #[cfg(feature = "consensusxml")]
+        if kind == FileType::ConsensusXml {
+            return super::consensusxml::write(writer, map);
+        }
+        let _ = (writer, map);
+        Err(Error::Unsupported(format!(
+            "native {} consensus-map output",
+            kind.name()
+        )))
+    }
+    pub fn load_consensus_map(
+        path: impl AsRef<Path>,
+        allowed: &[FileType],
+    ) -> Result<crate::kernel::ConsensusMap> {
+        let path = path.as_ref();
+        let reader = map_input(path, allowed, FileType::ConsensusXml)?;
+        let mut map = Self::read_consensus_map(reader, FileType::ConsensusXml)?;
+        map.loaded_file_path = filename(path)?.into();
+        map.loaded_file_type = FileType::ConsensusXml;
+        Ok(map)
+    }
+    pub fn store_consensus_map(
+        path: impl AsRef<Path>,
+        map: &crate::kernel::ConsensusMap,
+        requested: Option<FileType>,
+    ) -> Result<()> {
+        let path = path.as_ref();
+        let kind =
+            consistent_output_type(filename(path)?, requested.map(FileType::name).unwrap_or(""));
+        super::path_io::write(path, |writer| Self::write_consensus_map(writer, map, kind))
     }
 }
 
@@ -299,76 +348,26 @@ pub fn type_by_content(bytes: &[u8]) -> FileType {
     FileType::Unknown
 }
 
-struct TemporaryFile(PathBuf);
-impl TemporaryFile {
-    fn create(destination: &Path) -> Result<(Self, File)> {
-        static NEXT: AtomicU64 = AtomicU64::new(0);
-        Self::create_with_counter(destination, &NEXT)
-    }
-
-    fn create_with_counter(destination: &Path, next: &AtomicU64) -> Result<(Self, File)> {
-        let parent = destination.parent().unwrap_or_else(|| Path::new("."));
-        for _ in 0..32 {
-            let id = next.fetch_add(1, Ordering::Relaxed);
-            let name = format!(".openms-{}-{id}.tmp", std::process::id());
-            // Renaming a temporary file onto itself would succeed, after which
-            // its cleanup guard would delete the output. Compare basenames so
-            // relative paths and case-insensitive filesystems are safe too.
-            if destination
-                .file_name()
-                .and_then(|s| s.to_str())
-                .is_some_and(|s| s.eq_ignore_ascii_case(&name))
-            {
-                continue;
-            }
-            let path = parent.join(name);
-            match OpenOptions::new().write(true).create_new(true).open(&path) {
-                Ok(file) => return Ok((Self(path), file)),
-                Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
-                Err(e) => return Err(e.into()),
-            }
-        }
-        Err(Error::Io(std::io::Error::new(
-            std::io::ErrorKind::AlreadyExists,
-            "cannot allocate temporary output",
-        )))
-    }
+fn filename(path: &Path) -> Result<&str> {
+    path.to_str()
+        .ok_or_else(|| Error::InvalidValue("filename must be UTF-8".into()))
 }
-impl Drop for TemporaryFile {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_file(&self.0);
+fn map_input(path: &Path, allowed: &[FileType], expected: FileType) -> Result<Box<dyn BufRead>> {
+    let mut kind = type_by_file_name(filename(path)?);
+    let mut reader = super::path_io::open(path)?;
+    if kind == FileType::Unknown {
+        let mut preview = Vec::new();
+        reader.by_ref().take(65_536).read_to_end(&mut preview)?;
+        kind = type_by_content(&preview);
+        reader = Box::new(BufReader::new(std::io::Cursor::new(preview).chain(reader)));
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn output_named_like_temporary_survives_cleanup() {
-        let directory = std::env::temp_dir().join(format!(
-            "openms-handler-temp-collision-{}",
-            std::process::id()
-        ));
-        std::fs::create_dir(&directory).unwrap();
-        for uppercase in [false, true] {
-            let mut name = format!(".openms-{}-0.tmp", std::process::id());
-            if uppercase {
-                name.make_ascii_uppercase();
-            }
-            let destination = directory.join(".").join(name);
-            let next = AtomicU64::new(0);
-            let (temporary, mut file) =
-                TemporaryFile::create_with_counter(&destination, &next).unwrap();
-            assert_eq!(next.load(Ordering::Relaxed), 2);
-            file.write_all(b"complete output").unwrap();
-            drop(file);
-            std::fs::rename(&temporary.0, &destination).unwrap();
-            drop(temporary);
-            assert_eq!(std::fs::read(&destination).unwrap(), b"complete output");
-            std::fs::remove_file(destination).unwrap();
-        }
-        assert_eq!(std::fs::read_dir(&directory).unwrap().count(), 0);
-        std::fs::remove_dir(directory).unwrap();
+    check_allowed(kind, allowed)?;
+    if kind != expected {
+        return Err(Error::Unsupported(format!(
+            "expected {} map, found {}",
+            expected.name(),
+            kind.name()
+        )));
     }
+    Ok(reader)
 }

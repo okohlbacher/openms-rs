@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 10,
-      "evidence_requires_review": 159,
-      "native_equivalent": 4,
-      "partial": 3,
-      "unmapped": 610
+      "complete": 9,
+      "evidence_requires_review": 164,
+      "native_equivalent": 5,
+      "partial": 8,
+      "unmapped": 600
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2356,6 +2356,7 @@
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/registry_provenance.json",
@@ -2844,6 +2845,7 @@
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/registry_provenance.json",
         "tests/data/tagger_provenance.json"
@@ -2975,6 +2977,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/registry_provenance.json"
       ],
@@ -3125,6 +3128,7 @@
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/registry_provenance.json"
       ],
@@ -3799,10 +3803,12 @@
       "header": "src/openms/include/OpenMS/CONCEPT/UniqueIdInterface.h",
       "sha256": "5fc3df97e46ca21770f0a37fa7b40579445fcdfa72778dfe56a8dc41e7bf22a4",
       "domain": "CONCEPT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/consensusxml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -3998,6 +4004,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/featurexml_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -4032,10 +4039,12 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/DateTime.h",
       "sha256": "50a9834bbe7d2723850aca762e3cca31777aa0d2c472e908f174c92fadc60e2f",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/system_file_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -5122,10 +5131,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/ConsensusXMLFile.h",
       "sha256": "6d247eda3b816bed45c919700135b8cd46264baf2059538bb590d44652de2230",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/consensusxml.rs",
+          "src/format/consensusxml/groups.rs",
+          "src/format/map_xml.rs"
+        ],
+        "tests": [
+          "tests/consensusxml.rs"
+        ],
+        "documentation": "docs/CONSENSUSXML_SUPPORT.md",
+        "scope": "Native load/store and the three range options consumed by the source handler, centroid/handle geometry, typed metadata, protein group quantities, identification references and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Full passive PeakFileOptions and generic inherited XMLFile/ProgressLogger APIs remain separate. Quantity ownership failures default to a checked error with explicit source-compatible discard mode."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/consensusxml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "ConsensusMapNormalizer",
         "FileFilter",
@@ -5473,10 +5496,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/FeatureXMLFile.h",
       "sha256": "d75295765c70bcbcb3654fe984051a7ddfe9bd5b69f19210629747ffc9bf7b61",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/featurexml.rs",
+          "src/format/map_xml.rs",
+          "src/format/identification_xml.rs"
+        ],
+        "tests": [
+          "tests/featurexml.rs"
+        ],
+        "documentation": "docs/FEATUREXML_SUPPORT.md",
+        "scope": "Native load/store, count-only load and owned options, recursive geometry, typed metadata, identification runs/evidence and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Generic inherited XMLFile schema and ProgressLogger APIs remain separate; documented checked representation boundaries and corrected subordinate metadata ownership apply."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/featurexml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FeatureFinderLFQ",
         "FeatureLinkerUnlabeled",
@@ -5499,13 +5536,14 @@
       "review": {
         "status": "partial",
         "rust": [
-          "src/format/file_handler.rs"
+          "src/format/file_handler.rs",
+          "src/format/path_io.rs"
         ],
         "tests": [
           "tests/file_handler.rs"
         ],
         "documentation": "docs/FILE_HANDLING_SUPPORT.md",
-        "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; gzip transport, allowed-input checks, common bounded content recognition and atomic path output. Feature/consensus/identification/transition dispatch, other formats, SHA1 and full source-file bookkeeping remain."
+        "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; featureXML/consensusXML map dispatch; plain/gzip/bzip2 transport, allowed-input checks, bounded content recognition and atomic path output. Identification/transition dispatch, other formats, ZIP input, SHA1 and full source-file bookkeeping remain."
       },
       "candidate_rust_files": [
         "src/format/file_handler.rs"
@@ -5662,7 +5700,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/file_handling_provenance.json"
+        "tests/data/file_handling_provenance.json",
+        "tests/data/system_file_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -5798,20 +5837,26 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h",
       "sha256": "4fcddc2fe74837c7859173a6a690cc78e7e7f65c1015eed3203228c4bbaa40f8",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/consensusxml_provenance.json",
+        "tests/data/modification_definition_io_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h",
       "sha256": "35369ecae3055c8a677158b0ce05ede91070fd67b541d055673dcb1d5630257f",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/featurexml_provenance.json",
+        "tests/data/modification_definition_io_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -6055,6 +6100,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -6078,6 +6124,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/idxml_provenance.json",
+        "tests/data/modification_definition_io_provenance.json",
         "tests/data/paramxml_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -6124,7 +6171,8 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/idxml_provenance.json"
+        "tests/data/idxml_provenance.json",
+        "tests/data/modification_definition_io_provenance.json"
       ],
       "direct_topp_consumers": [
         "DigestorMotif",
@@ -6343,10 +6391,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/ModificationDefinitionIO.h",
       "sha256": "ce7316b27116feb61596f11ce0165187f963715d59f2411dbb824f2447d42b1d",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/modification_definitions.rs",
+          "src/chemistry/modification_records.rs"
+        ],
+        "tests": [
+          "tests/modification_definition_io.rs",
+          "tests/idxml_definitions.rs"
+        ],
+        "documentation": "docs/MODIFICATION_DEFINITION_IO_SUPPORT.md",
+        "scope": "Definition selection, per-run collection from slices/iterators, deterministic codec/union, run encoding, direct and search-parameter registration with owned registries and strict chemistry checks. Source FeatureMap/ConsensusMap collection traversal is exercised through XML writers but dedicated public map collection entry points remain absent. Full ResidueModification and ProForma parsing are separate."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/modification_definition_io_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -6556,10 +6618,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h",
       "sha256": "113c4b4e1b035022776dbc837dd080840dd4313e408da7a7c36588f49bb4762f",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/featurexml.rs"
+        ],
+        "tests": [
+          "tests/featurexml.rs"
+        ],
+        "documentation": "docs/FEATUREXML_SUPPORT.md",
+        "scope": "Every passive field, constructor default, get/set and has-range operation maps to the owned public options record with Option ranges. Reader semantics independently tested, including half-open filters, metadata-only early stop and the source size_only no-op."
+      },
+      "candidate_rust_files": [
+        "src/format/featurexml.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/featurexml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -6570,6 +6646,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/consensusxml_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -6652,9 +6729,9 @@
       "header": "src/openms/include/OpenMS/FORMAT/ParamXMLFile.h",
       "sha256": "dca159fa413138db18bb391fa9a128110a075cf80baf7ec2f56a499bf4a8dbf2",
       "domain": "FORMAT",
-      "status": "complete",
+      "status": "partial",
       "review": {
-        "status": "complete",
+        "status": "partial",
         "rust": [
           "src/format/paramxml.rs"
         ],
@@ -6662,7 +6739,7 @@
           "tests/paramxml.rs"
         ],
         "documentation": "docs/PARAMXML_SUPPORT.md",
-        "scope": "Source load/store/stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. Native XML encoding/precision/loss validation adaptations documented; generic inherited XMLFile schema APIs remain separate."
+        "scope": "Plain source load/store/stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. Source compressed input (gzip, bzip2, ZIP) is not yet wired through native load/load_into. Native XML encoding/precision/loss validation adaptations documented; generic inherited XMLFile schema APIs remain separate."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -7426,7 +7503,9 @@
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/featurexml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -7502,7 +7581,9 @@
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/consensusxml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "AccurateMassSearch",
         "ClusterMassTraces",
@@ -7589,7 +7670,9 @@
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/featurexml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileInfo",
         "MRMPairFinder",
@@ -7619,7 +7702,9 @@
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/featurexml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "AccurateMassSearch",
         "Decharger",
@@ -10139,10 +10224,22 @@
       "header": "src/openms/include/OpenMS/SYSTEM/File.h",
       "sha256": "adafb26d518a73ee94a30c6a8ed9c2edb94983627df106d1e4738fbc3e3aec47",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/system/file.rs"
+        ],
+        "tests": [
+          "tests/system_file.rs"
+        ],
+        "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
+        "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/system_file_provenance.json"
+      ],
       "direct_topp_consumers": [
         "AssayGeneratorMetaboSirius",
         "CometAdapter",
@@ -10238,10 +10335,12 @@
       "header": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
       "sha256": "bb67911e8e75e1a97243e859296b5b18d3e46f90e0db2fa138b36d3343356040",
       "domain": "SYSTEM",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/system_file_provenance.json"
+      ],
       "direct_topp_consumers": [
         "IDRipper"
       ]
@@ -14941,6 +15040,7 @@
         "OpenMS/FORMAT/MzIdentMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/MzXMLFile.h",
+        "OpenMS/FORMAT/ParamXMLFile.h",
         "OpenMS/FORMAT/PepXMLFile.h",
         "OpenMS/FORMAT/TraMLFile.h",
         "OpenMS/FORMAT/VALIDATORS/XMLValidator.h"

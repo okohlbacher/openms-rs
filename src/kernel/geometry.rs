@@ -131,6 +131,15 @@ impl ConvexHull2D {
     pub fn scan_count(&self) -> usize {
         self.scans.len()
     }
+    /// Allocation-free upper bound before exporting or cloning hull points.
+    #[cfg(feature = "featurexml")]
+    pub(crate) fn point_count_bound(&self) -> usize {
+        if self.scans.is_empty() {
+            self.outline.len()
+        } else {
+            self.scans.len().saturating_mul(2)
+        }
+    }
     pub fn clear(&mut self) {
         self.scans.clear();
         self.outline.clear();

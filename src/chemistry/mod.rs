@@ -79,8 +79,8 @@ pub use modification_definitions::{
     ModificationMatchOptions,
 };
 pub use modifications::{
-    ModificationRecord, ModificationsDB, NeutralLoss, OboLoadReport, OboReadOptions,
-    ResidueModification, TermSpecificity,
+    ModificationProvenance, ModificationRecord, ModificationsDB, NeutralLoss, OboLoadReport,
+    OboReadOptions, ResidueModification, TermSpecificity,
 };
 pub use modified_peptides::ModifiedPeptideGenerator;
 pub use sequence::{AASequence, MassTag, PeptideFragmentType, SequenceModification};

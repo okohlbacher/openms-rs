@@ -44,7 +44,7 @@ def verify(source=None):
         pins = [data[key] for key in ["revision", "source_revision", "reference_revision", "commit"] if key in data]
         assert pins and all(pin == revision for pin in pins), manifest
         current_sources.extend(data.get("sources", data.get("source_files", [])))
-        for item in [*data.get("fixtures", []), *data.get("files", [])]:
+        for item in [*data.get("fixtures", []), *data.get("files", []), *data.get("reused_fixtures", [])]:
             path = Path(item["path"])
             assert not path.is_absolute() and ".." not in path.parts, item["path"]
             assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == item["sha256"], item["path"]

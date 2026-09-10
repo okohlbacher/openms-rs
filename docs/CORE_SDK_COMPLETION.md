@@ -6,11 +6,11 @@ This is a work inventory, not a completion percentage. Matching declarations and
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 10 |
-| evidence_requires_review | 159 |
-| native_equivalent | 4 |
-| partial | 3 |
-| unmapped | 610 |
+| complete | 9 |
+| evidence_requires_review | 164 |
+| native_equivalent | 5 |
+| partial | 8 |
+| unmapped | 600 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -22,7 +22,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/CONCEPT/LogStream.h` | 76 | unmapped |
 | `OpenMS/KERNEL/MSExperiment.h` | 70 | evidence_requires_review |
 | `OpenMS/METADATA/ProteinIdentification.h` | 56 | evidence_requires_review |
-| `OpenMS/SYSTEM/File.h` | 53 | unmapped |
+| `OpenMS/SYSTEM/File.h` | 53 | partial |
 | `OpenMS/KERNEL/ConsensusMap.h` | 40 | evidence_requires_review |
 | `OpenMS/KERNEL/FeatureMap.h` | 22 | evidence_requires_review |
 | `OpenMS/FORMAT/MzMLFile.h` | 19 | unmapped |
@@ -33,14 +33,14 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/CHEMISTRY/ProteaseDB.h` | 13 | evidence_requires_review |
 | `OpenMS/METADATA/PeptideIdentification.h` | 12 | evidence_requires_review |
 | `OpenMS/CHEMISTRY/ModificationsDB.h` | 11 | evidence_requires_review |
-| `OpenMS/FORMAT/FeatureXMLFile.h` | 11 | unmapped |
+| `OpenMS/FORMAT/FeatureXMLFile.h` | 11 | partial |
 | `OpenMS/FORMAT/MzTabFile.h` | 11 | unmapped |
 | `OpenMS/MATH/MathFunctions.h` | 11 | evidence_requires_review |
 | `OpenMS/CONCEPT/Exception.h` | 10 | unmapped |
 | `OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h` | 10 | unmapped |
 | `OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h` | 9 | evidence_requires_review |
 | `OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h` | 9 | unmapped |
-| `OpenMS/FORMAT/ConsensusXMLFile.h` | 9 | unmapped |
+| `OpenMS/FORMAT/ConsensusXMLFile.h` | 9 | partial |
 | `OpenMS/FORMAT/IdXMLFile.h` | 9 | evidence_requires_review |
 | `OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h` | 8 | unmapped |
 | `OpenMS/FORMAT/ExperimentalDesignFile.h` | 8 | unmapped |

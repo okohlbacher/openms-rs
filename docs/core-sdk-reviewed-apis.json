@@ -26,13 +26,14 @@
     "src/openms/include/OpenMS/FORMAT/FileHandler.h": {
       "status": "partial",
       "rust": [
-        "src/format/file_handler.rs"
+        "src/format/file_handler.rs",
+        "src/format/path_io.rs"
       ],
       "tests": [
         "tests/file_handler.rs"
       ],
       "documentation": "docs/FILE_HANDLING_SUPPORT.md",
-      "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; gzip transport, allowed-input checks, common bounded content recognition and atomic path output. Feature/consensus/identification/transition dispatch, other formats, SHA1 and full source-file bookkeeping remain."
+      "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; featureXML/consensusXML map dispatch; plain/gzip/bzip2 transport, allowed-input checks, bounded content recognition and atomic path output. Identification/transition dispatch, other formats, ZIP input, SHA1 and full source-file bookkeeping remain."
     },
     "src/openms/include/OpenMS/KERNEL/StandardTypes.h": {
       "status": "native_equivalent",
@@ -166,7 +167,7 @@
       "scope": "All seven value alternatives, native constructors/conversions/ownership, source text/default-stream formatting, comparisons and explicit 64-bit little-endian source hashing with checked numerical adaptations."
     },
     "src/openms/include/OpenMS/FORMAT/ParamXMLFile.h": {
-      "status": "complete",
+      "status": "partial",
       "rust": [
         "src/format/paramxml.rs"
       ],
@@ -174,7 +175,7 @@
         "tests/paramxml.rs"
       ],
       "documentation": "docs/PARAMXML_SUPPORT.md",
-      "scope": "Source load/store/stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. Native XML encoding/precision/loss validation adaptations documented; generic inherited XMLFile schema APIs remain separate."
+      "scope": "Plain source load/store/stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. Source compressed input (gzip, bzip2, ZIP) is not yet wired through native load/load_into. Native XML encoding/precision/loss validation adaptations documented; generic inherited XMLFile schema APIs remain separate."
     },
     "src/openms/include/OpenMS/DATASTRUCTURES/ListUtils.h": {
       "status": "complete",
@@ -208,6 +209,67 @@
       ],
       "documentation": "docs/DEFAULT_PARAM_HANDLER_SUPPORT.md",
       "scope": "Current/default parameters, descriptions, subsections, flags, source equality, both initialization/replacement lifecycles and leaf-name metadata export. Pure return-value callbacks replace derived updateMembers; transaction errors prevent typed-state desynchronization."
+    },
+    "src/openms/include/OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/format/featurexml.rs"
+      ],
+      "tests": [
+        "tests/featurexml.rs"
+      ],
+      "documentation": "docs/FEATUREXML_SUPPORT.md",
+      "scope": "Every passive field, constructor default, get/set and has-range operation maps to the owned public options record with Option ranges. Reader semantics independently tested, including half-open filters, metadata-only early stop and the source size_only no-op."
+    },
+    "src/openms/include/OpenMS/FORMAT/FeatureXMLFile.h": {
+      "status": "partial",
+      "rust": [
+        "src/format/featurexml.rs",
+        "src/format/map_xml.rs",
+        "src/format/identification_xml.rs"
+      ],
+      "tests": [
+        "tests/featurexml.rs"
+      ],
+      "documentation": "docs/FEATUREXML_SUPPORT.md",
+      "scope": "Native load/store, count-only load and owned options, recursive geometry, typed metadata, identification runs/evidence and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Generic inherited XMLFile schema and ProgressLogger APIs remain separate; documented checked representation boundaries and corrected subordinate metadata ownership apply."
+    },
+    "src/openms/include/OpenMS/FORMAT/ConsensusXMLFile.h": {
+      "status": "partial",
+      "rust": [
+        "src/format/consensusxml.rs",
+        "src/format/consensusxml/groups.rs",
+        "src/format/map_xml.rs"
+      ],
+      "tests": [
+        "tests/consensusxml.rs"
+      ],
+      "documentation": "docs/CONSENSUSXML_SUPPORT.md",
+      "scope": "Native load/store and the three range options consumed by the source handler, centroid/handle geometry, typed metadata, protein group quantities, identification references and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Full passive PeakFileOptions and generic inherited XMLFile/ProgressLogger APIs remain separate. Quantity ownership failures default to a checked error with explicit source-compatible discard mode."
+    },
+    "src/openms/include/OpenMS/FORMAT/ModificationDefinitionIO.h": {
+      "status": "partial",
+      "rust": [
+        "src/format/modification_definitions.rs",
+        "src/chemistry/modification_records.rs"
+      ],
+      "tests": [
+        "tests/modification_definition_io.rs",
+        "tests/idxml_definitions.rs"
+      ],
+      "documentation": "docs/MODIFICATION_DEFINITION_IO_SUPPORT.md",
+      "scope": "Definition selection, per-run collection from slices/iterators, deterministic codec/union, run encoding, direct and search-parameter registration with owned registries and strict chemistry checks. Source FeatureMap/ConsensusMap collection traversal is exercised through XML writers but dedicated public map collection entry points remain absent. Full ResidueModification and ProForma parsing are separate."
+    },
+    "src/openms/include/OpenMS/SYSTEM/File.h": {
+      "status": "partial",
+      "rust": [
+        "src/system/file.rs"
+      ],
+      "tests": [
+        "tests/system_file.rs"
+      ],
+      "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
+      "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
     }
   }
 }

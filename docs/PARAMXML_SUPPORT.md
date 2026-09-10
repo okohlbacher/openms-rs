@@ -32,3 +32,9 @@ Limits default to 64 MiB raw/decoded/output XML, one million XML elements, one m
 [Tests](../tests/paramxml.rs) load four immutable upstream fixtures, compare the entire source writer golden with only its encoding declaration changed to UTF-8, exercise all source list/scalar alternatives, legacy tags, optional-required regressions, restrictions, special floats, Unicode/encodings, malformed XML, bounded failures and stream errors. A native workflow loads a threshold from INI, filters a DTA2D experiment, writes it, and reloads the expected retained peaks. It is a library integration test, not a full TOPP executable or C++ differential certification.
 
 [Provenance](../tests/data/paramxml_provenance.json) pins the original headers, handlers, class tests, schema and fixtures to `6bfc0e4711105f4eda2fea86812a83af7c7e791f`. No generated Rust result is used as an expected scientific oracle.
+
+## Remaining input transport
+
+The native path loader currently opens plain input. The source XML loader also
+recognizes gzip, bzip2 and ZIP by content; these compressed INI input paths remain
+unimplemented. Source ParamXML output is plain, including its stdout option.

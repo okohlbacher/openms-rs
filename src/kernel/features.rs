@@ -6,7 +6,9 @@
 
 use super::NumericRange;
 use super::geometry::{BoundingBox2D, ConvexHull2D, Point2D};
+use crate::format::FileType;
 use crate::identification::{PeptideIdentification, ProteinIdentification};
+use crate::metadata::{DataProcessing, MetaInfo, MetaValue, validate_meta};
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::{Deref, DerefMut};
@@ -23,7 +25,7 @@ pub struct BaseFeature {
     pub width: f32,
     pub unique_id: u64,
     pub peptide_identifications: Vec<PeptideIdentification>,
-    pub metadata: BTreeMap<String, String>,
+    pub metadata: MetaInfo,
 }
 
 impl BaseFeature {
@@ -39,9 +41,24 @@ impl BaseFeature {
     pub fn validate(&self) -> Result<()> {
         validate_values(self.rt, self.mz, self.intensity, self.width)?;
         finite(f64::from(self.quality), "feature quality")?;
+        validate_meta(&self.metadata)?;
         for identification in &self.peptide_identifications {
             identification.validate()?;
         }
+        Ok(())
+    }
+
+    /// Store width and the source featureXML FWHM metadata bridge together.
+    pub fn set_width(&mut self, width: f32) -> Result<()> {
+        finite(f64::from(width), "feature width")?;
+        if width < 0.0 {
+            return Err(Error::InvalidValue(
+                "feature width must be nonnegative".into(),
+            ));
+        }
+        self.metadata
+            .insert("FWHM".into(), MetaValue::try_from(f64::from(width))?);
+        self.width = width;
         Ok(())
     }
 
@@ -394,9 +411,12 @@ impl ConsensusFeature {
                     ))
                 })?;
             let adduct = match feature.metadata.get("dc_charge_adduct_mass") {
-                Some(value) => value
-                    .parse::<f64>()
-                    .map_err(|_| Error::InvalidValue("invalid dc_charge_adduct_mass".into()))?,
+                Some(value) => match value.as_str() {
+                    Ok(text) => text
+                        .parse::<f64>()
+                        .map_err(|_| Error::InvalidValue("invalid dc_charge_adduct_mass".into()))?,
+                    Err(_) => value.as_f64()?,
+                },
                 None => f64::from(handle.charge) * crate::chemistry::PROTON_MASS_U,
             };
             finite(adduct, "adduct mass")?;
@@ -437,14 +457,33 @@ impl ConsensusFeature {
 }
 
 /// Owned features; subordinate features stay attached to their parents.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FeatureMap {
     pub features: Vec<Feature>,
     pub protein_identifications: Vec<ProteinIdentification>,
     pub unassigned_peptide_identifications: Vec<PeptideIdentification>,
     pub unique_id: u64,
     pub identifier: String,
-    pub metadata: BTreeMap<String, String>,
+    pub metadata: MetaInfo,
+    pub data_processing: Vec<DataProcessing>,
+    pub loaded_file_path: String,
+    pub loaded_file_type: FileType,
+}
+
+impl Default for FeatureMap {
+    fn default() -> Self {
+        Self {
+            features: Vec::new(),
+            protein_identifications: Vec::new(),
+            unassigned_peptide_identifications: Vec::new(),
+            unique_id: 0,
+            identifier: String::new(),
+            metadata: MetaInfo::new(),
+            data_processing: Vec::new(),
+            loaded_file_path: String::new(),
+            loaded_file_type: FileType::Unknown,
+        }
+    }
 }
 
 impl FeatureMap {
@@ -469,6 +508,10 @@ impl FeatureMap {
             feature.validate()?;
         }
         unique_index(self.features.iter().map(|feature| feature.unique_id))?;
+        validate_meta(&self.metadata)?;
+        for processing in &self.data_processing {
+            processing.validate()?;
+        }
         for identification in &self.protein_identifications {
             identification.validate()?;
         }
@@ -545,13 +588,13 @@ impl FeatureMap {
 }
 
 /// Description of a source-map column in a consensus map.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct ColumnHeader {
     pub filename: String,
     pub label: String,
     pub size: usize,
     pub unique_id: u64,
-    pub metadata: BTreeMap<String, String>,
+    pub metadata: MetaInfo,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -563,7 +606,10 @@ pub struct ConsensusMap {
     pub unique_id: u64,
     pub identifier: String,
     pub experiment_type: String,
-    pub metadata: BTreeMap<String, String>,
+    pub metadata: MetaInfo,
+    pub data_processing: Vec<DataProcessing>,
+    pub loaded_file_path: String,
+    pub loaded_file_type: FileType,
 }
 
 impl Default for ConsensusMap {
@@ -576,7 +622,10 @@ impl Default for ConsensusMap {
             unique_id: 0,
             identifier: String::new(),
             experiment_type: "label-free".into(),
-            metadata: BTreeMap::new(),
+            metadata: MetaInfo::new(),
+            data_processing: Vec::new(),
+            loaded_file_path: String::new(),
+            loaded_file_type: FileType::Unknown,
         }
     }
 }
@@ -609,10 +658,17 @@ impl ConsensusMap {
                 "unknown consensus experiment type".into(),
             ));
         }
+        for header in self.column_headers.values() {
+            validate_meta(&header.metadata)?;
+        }
         for feature in &self.features {
             feature.validate()?;
         }
         unique_index(self.features.iter().map(|feature| feature.unique_id))?;
+        validate_meta(&self.metadata)?;
+        for processing in &self.data_processing {
+            processing.validate()?;
+        }
         for identification in &self.protein_identifications {
             identification.validate()?;
         }

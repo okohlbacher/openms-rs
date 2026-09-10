@@ -46,3 +46,5 @@ pub const CORE_SDK_REVISION: &str = "6bfc0e4711105f4eda2fea86812a83af7c7e791f";
 pub mod data_structures;
 /// Hierarchical configuration parameters.
 pub mod param;
+/// Filesystem helpers and explicit runtime resource locations.
+pub mod system;
