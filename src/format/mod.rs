@@ -41,6 +41,8 @@ pub mod modification_definitions;
 pub mod idxml;
 
 #[cfg(feature = "mzml")]
+pub mod indexed_mzml;
+#[cfg(feature = "mzml")]
 pub mod mzml;
 
 use crate::{Error, Result};

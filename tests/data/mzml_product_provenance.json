@@ -1,0 +1,109 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "sources": [
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+      "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/Product.h",
+      "sha256": "47a07370bf43179bb194af9f8a1e1620e1d097e400701cdc532eea53dc926758"
+    },
+    {
+      "path": "src/openms/source/METADATA/Product.cpp",
+      "sha256": "74cf66fde1ac87c7fb9126df01590a04f2db52705c88b33c10d27335f5f2205c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd"
+    }
+  ],
+  "tests": "tests/mzml_product.rs",
+  "support": "docs/MZML_PRODUCT_SUPPORT.md",
+  "source_literal_references": [
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+      "lines": [
+        418,
+        425
+      ],
+      "description": "First spectrum Product 18.88/1.0/2.0 and iwname=isolationwindow3; reused explicitly in a chromatogram, which the source handler processes through its parallel owner branch."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "lines": [
+        535,
+        537,
+        653
+      ],
+      "description": "Literal quantity and metadata assertions."
+    }
+  ],
+  "source_implementation_ranges": {
+    "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp": [
+      [
+        1354,
+        1366
+      ],
+      [
+        2211,
+        2255
+      ],
+      [
+        3522,
+        3532
+      ],
+      [
+        3637,
+        3730
+      ],
+      [
+        4742,
+        4757
+      ],
+      [
+        5930,
+        5934
+      ]
+    ],
+    "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h": [
+      [
+        146,
+        181
+      ]
+    ]
+  },
+  "native_differences": [
+    "Checked negative/nonfinite offsets instead of source negative-offset omission. Signed finite target retained.",
+    "Duplicate quantities, names and malformed/duplicate Product containers rejected.",
+    "Arbitrary Product CVs and native Empty/list metadata rejected before writing rather than losing typed identity.",
+    "Explicit MS/UO unit identity retained without ontology lookup/name promotion.",
+    "Nonempty spectrum product lists rejected because native MSSpectrum has no product vector."
+  ],
+  "validation": "Source read-only audit; independently constructed scalar assertions and XSD validation of writer output when xmllint is available. No C++ build or execution.",
+  "license": "Source-derived tests follow repository OpenMS BSD-3-Clause attribution.",
+  "derived_cases": [
+    "Two-region native XIC extraction: region99.5..101.5 gives midpoint100.5, MS1 samples[30,11] at RT[1,3]; MS2 sample999 excluded. Both compression modes preserve complete derived chromatograms and input remains unchanged."
+  ]
+}

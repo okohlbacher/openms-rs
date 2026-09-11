@@ -15,6 +15,35 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def reference_sources(data, revision, manifest):
+    """Keep fixture origin pins while checking an explicit newer-target review."""
+    pins = [data[key] for key in ["revision", "source_revision", "reference_revision", "commit"] if key in data]
+    assert pins and all(re.fullmatch(r"[0-9a-f]{40}", pin) for pin in pins), manifest
+    sources = data.get("sources", data.get("source_files", []))
+    verification = data.get("target_verification")
+    if verification is None:
+        assert all(pin == revision for pin in pins), manifest
+        return sources
+    assert verification["revision"] == revision, manifest
+    assert verification["source_revisions"] == sorted(set(pins)), manifest
+    changes = verification["source_changes"]
+    by_path = {item["path"]: item for item in changes}
+    assert len(by_path) == len(changes), manifest
+    assert set(by_path) <= {item["path"] for item in sources}, manifest
+    result = []
+    for item in sources:
+        change = by_path.get(item["path"])
+        if change is None:
+            result.append(item)
+            continue
+        assert change["source_sha256"] == item["sha256"], (manifest, item["path"])
+        assert re.fullmatch(r"[0-9a-f]{64}", change["target_sha256"]), manifest
+        assert change["target_sha256"] != change["source_sha256"], manifest
+        assert change["review"].strip(), manifest
+        result.append({**item, "sha256": change["target_sha256"]})
+    return result
+
+
 def scientific_path(path):
     return (
         path.startswith("src/openms/include/OpenMS/") and path.endswith(".h")
@@ -36,14 +65,11 @@ def verify(source=None):
     graph = provenance["identification_graph"]
     assert graph["target_revision"] == revision
     graph_refs = json.loads((ROOT / graph["reference_provenance"]).read_text())
-    assert graph_refs["revision"] == revision
-    graph_sources = graph_refs["sources"]
+    graph_sources = reference_sources(graph_refs, revision, graph["reference_provenance"])
     current_sources = []
     for manifest in provenance.get("current_sdk_reference_manifests", []):
         data = json.loads((ROOT / manifest).read_text())
-        pins = [data[key] for key in ["revision", "source_revision", "reference_revision", "commit"] if key in data]
-        assert pins and all(pin == revision for pin in pins), manifest
-        current_sources.extend(data.get("sources", data.get("source_files", [])))
+        current_sources.extend(reference_sources(data, revision, manifest))
         for item in [*data.get("fixtures", []), *data.get("files", []), *data.get("reused_fixtures", [])]:
             path = Path(item["path"])
             assert not path.is_absolute() and ".." not in path.parts, item["path"]
@@ -77,6 +103,10 @@ def verify(source=None):
     assert len(refs) == target["carried_forward_reference_paths"]
     for item in refs:
         assert not Path(item["path"]).is_absolute()
+        if "source_sha256" in item:
+            assert re.fullmatch(r"[0-9a-f]{64}", item["source_sha256"])
+            assert item["sha256"] != item["source_sha256"]
+            assert item["review"].strip()
         for manifest in item["original_manifests"]:
             assert (ROOT / manifest).is_file(), manifest
     changes = record["scope_delta"]["changed_or_removed"]
@@ -84,7 +114,7 @@ def verify(source=None):
         if item["status"] == "removed":
             assert item["path"] not in by_path
         else:
-            assert item["status"] == "changed"
+            assert item["status"] in {"changed", "added"}
             assert by_path[item["path"]]["sha256"] == item["current"]["sha256"]
     assert Counter(item["status"] for item in changes) == {
         key: value for key, value in record["scope_delta"]["summary"].items() if key != "unchanged"

@@ -1,5 +1,5 @@
 {
-  "target_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "target_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
   "headers": {
     "src/openms/include/OpenMS/FORMAT/FileTypes.h": {
       "status": "complete",
@@ -292,6 +292,96 @@
       ],
       "documentation": "docs/LOG_STREAM_SUPPORT.md",
       "scope": "Native owned streams/sinks/notifications/guards, source 32K buffering, partial flush, two-entry duplicate cache, all prefix tokens and nine ANSI styles, five global/TLS routes and location macros. Pointer/streambuf ownership maps to safe Write/callbacks. Automatic Windows console VT mode and process-exit flushing of directly buffered global streams remain absent; general Colorizer is a separate header. Explicit global finish and source-style macro flushing are available."
+    },
+    "src/openms/include/OpenMS/FORMAT/FASTAFile.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/format/fasta.rs"
+      ],
+      "tests": [
+        "tests/fasta.rs",
+        "tests/formats.rs"
+      ],
+      "documentation": "docs/FASTA_SUPPORT.md",
+      "scope": "All entry, aggregate, streaming, seek, output-lifecycle and inherited progress operations; original PEFF prologue/modified-sequence/description/80-byte writer rules. Owned records, bounded cumulative input/work, UTF-8 field representation, checked header output and atomic owned read results are explicit native differences. Plain source path transport; no PEFF semantic interpretation."
+    },
+    "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/format/indexed_mzml.rs"
+      ],
+      "tests": [
+        "tests/indexed_mzml.rs"
+      ],
+      "documentation": "docs/INDEXED_MZML_SUPPORT.md",
+      "scope": "Both public decoder operations: configurable bounded footer probe and owned spectrum/chromatogram offset vectors. Source scanner, order/duplicate/replacement behavior retained; checked 63-bit offsets, small-file reads and bounded UTF-8 XML correct unchecked/undefined source behavior. Compact XML preserves the first offset rather than reproducing the DOM sibling bug. Index payload decoding, checksums and writing are separate classes."
+    },
+    "src/openms/include/OpenMS/KERNEL/MSExperiment.h": {
+      "status": "partial",
+      "rust": [
+        "src/kernel.rs",
+        "src/kernel/experiment_aggregation.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs",
+        "tests/experiment_aggregation.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
+      "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata, binned TIC and remaining specialized operations still require implementation/review."
+    },
+    "src/openms/include/OpenMS/FORMAT/MzMLFile.h": {
+      "status": "partial",
+      "rust": [
+        "src/format/mzml.rs",
+        "src/format/mzml_precursor.rs",
+        "src/format/indexed_mzml.rs"
+      ],
+      "tests": [
+        "tests/mzml.rs",
+        "tests/mzml_product.rs",
+        "tests/indexed_mzml.rs"
+      ],
+      "documentation": "docs/MZML_SUPPORT.md",
+      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product targets/isolation/scalar metadata and hasIndex probe. Complete PeakFileOptions, loadSize/transform/centroid summary, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
+    },
+    "src/openms/include/OpenMS/METADATA/Product.h": {
+      "status": "partial",
+      "rust": [
+        "src/metadata/acquisition.rs",
+        "src/kernel.rs"
+      ],
+      "tests": [
+        "tests/metadata.rs",
+        "tests/experiment_aggregation.rs",
+        "tests/mzml_product.rs"
+      ],
+      "documentation": "docs/MZML_PRODUCT_SUPPORT.md",
+      "scope": "All three scalar fields, cloning/equality and inherited CV/ordinary metadata represented, now attached to chromatograms. Public Product hash operation remains; native string metadata keys differ from source numeric registry keys. mzML transports representable fields and rejects arbitrary CV/list/Empty metadata before output."
+    },
+    "src/openms/include/OpenMS/KERNEL/Peak1D.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/kernel.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs",
+        "tests/kernel_value_traits.rs"
+      ],
+      "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
+      "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
+    },
+    "src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/kernel.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs",
+        "tests/kernel_value_traits.rs"
+      ],
+      "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
+      "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
     }
-  }
+  },
+  "upstream_refresh_review": "docs/CORE_SDK_54A232F_REVIEW.md"
 }

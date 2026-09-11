@@ -2,7 +2,7 @@
   "schema_version": 1,
   "identity": {
     "old_package_revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
-    "current_package_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+    "current_package_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
     "original_openms_revision": "ca32296038839459d8c9b075b759e285913d6294",
     "old_checkout_kind": "immutable source archive; no Git commands used",
     "current_checkout_kind": "independent Git clone",
@@ -24,18 +24,18 @@
     "by_kind": {
       "core_header": {
         "files": 794,
-        "physical_lines": 158807,
-        "bytes": 6065528
+        "physical_lines": 158808,
+        "bytes": 6065647
       },
       "core_implementation": {
         "files": 746,
-        "physical_lines": 304500,
-        "bytes": 11675069
+        "physical_lines": 304445,
+        "bytes": 11676215
       },
       "core_private_header": {
-        "files": 15,
-        "physical_lines": 2525,
-        "bytes": 81074
+        "files": 16,
+        "physical_lines": 2556,
+        "bytes": 81964
       },
       "openswath_header": {
         "files": 13,
@@ -50,12 +50,12 @@
     },
     "registration": {
       "registered_public_header": 786,
-      "not_in_scientific_registration_union": 17,
+      "not_in_scientific_registration_union": 18,
       "registered_private_header": 20,
       "implementation": 754
     },
     "class_test_cpp_files": 703,
-    "class_test_cpp_lines": 230032
+    "class_test_cpp_lines": 229849
   },
   "files": [
     {
@@ -3378,9 +3378,9 @@
       "path": "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h",
       "kind": "core_header",
       "domain": "FEATUREFINDER",
-      "bytes": 8362,
-      "physical_lines": 207,
-      "sha256": "2b9b40d48475881553fc0e1aecad4e85b8796187a4ffb14f68a15e6b0fa29940",
+      "bytes": 8476,
+      "physical_lines": 208,
+      "sha256": "b175eed90064859338e32c3a07bb35b43446e07566be864f5049a1e0022d39e7",
       "registration": "registered_public_header",
       "registration_file": "src/openms/include/OpenMS/FEATUREFINDER/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -5391,9 +5391,9 @@
       "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/UniProtXMLHandler.h",
       "kind": "core_header",
       "domain": "FORMAT",
-      "bytes": 4753,
-      "physical_lines": 111,
-      "sha256": "1f25f5bb1dd03555a8bf8a2ad0678066e9a9bafabb80bc331ccc5dd6abbf7122",
+      "bytes": 4648,
+      "physical_lines": 110,
+      "sha256": "d9b28e7957fb9c009759a9620222357c095ced40d76215f421811c1eb4e91f12",
       "registration": "registered_public_header",
       "registration_file": "src/openms/include/OpenMS/FORMAT/HANDLERS/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -6050,9 +6050,9 @@
       "path": "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h",
       "kind": "core_header",
       "domain": "MATH",
-      "bytes": 6790,
-      "physical_lines": 196,
-      "sha256": "cd349601a860f6b4bf1630c128a4a904cfea9bc5085ce7161f05fe6b0bd118b6",
+      "bytes": 6896,
+      "physical_lines": 197,
+      "sha256": "1fb266f3fd996fcc0a7bea6f93eb3ee96a7733419ad1791f03917665f80f58cc",
       "registration": "registered_public_header",
       "registration_file": "src/openms/include/OpenMS/MATH/MISC/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -7709,9 +7709,9 @@
       "path": "src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
       "kind": "core_header",
       "domain": "ANALYSIS",
-      "bytes": 23181,
+      "bytes": 23176,
       "physical_lines": 561,
-      "sha256": "259d1bb9d3858cf9a866fa4e56287693b72e1b8d6e5cb623c8d14dd1a063b37e",
+      "sha256": "f3e3fb246277dd84d562b3e96346f5c9325fe29e277f66f9b891161f3c3ce452",
       "registration": "registered_public_header",
       "registration_file": "src/openms/include/OpenMS/ANALYSIS/ID/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -8721,9 +8721,9 @@
       "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
       "kind": "core_header",
       "domain": "ANALYSIS",
-      "bytes": 8612,
+      "bytes": 8621,
       "physical_lines": 271,
-      "sha256": "12206f8ba30eff01901baa69c37a8bc8fdbdbb87195d69b0939e351ef3bf94d1",
+      "sha256": "7090946da2015c1de8fe51b248d2c2504c5240cb6c2d0933cf878896037a489a",
       "registration": "registered_public_header",
       "registration_file": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -8919,9 +8919,9 @@
       "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
       "kind": "core_implementation",
       "domain": "DATASTRUCTURES",
-      "bytes": 23199,
-      "physical_lines": 682,
-      "sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
+      "bytes": 23998,
+      "physical_lines": 699,
+      "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
       "registration": "implementation",
       "registration_file": "src/openms/source/DATASTRUCTURES/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -9557,9 +9557,9 @@
       "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
       "kind": "core_implementation",
       "domain": "CHEMISTRY",
-      "bytes": 114976,
-      "physical_lines": 2859,
-      "sha256": "cf2666edfa066cdcbfd02f4d7118d1b356f02aadcc380f0a120e3acea1243ec6",
+      "bytes": 114926,
+      "physical_lines": 2857,
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c",
       "registration": "implementation",
       "registration_file": "src/openms/source/CHEMISTRY/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -9601,9 +9601,9 @@
       "path": "src/openms/source/CHEMISTRY/IsoelectricPoint.cpp",
       "kind": "core_implementation",
       "domain": "CHEMISTRY",
-      "bytes": 7200,
+      "bytes": 7224,
       "physical_lines": 227,
-      "sha256": "c3d1895541b9333c228339fb7d2fc777e1cd09acac4d69b15707de4a55114a23",
+      "sha256": "f74153bcffb1846158f27defa2af3ec837719abe2792b8ff71827c8cb91fb236",
       "registration": "implementation",
       "registration_file": "src/openms/source/CHEMISTRY/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -9777,9 +9777,9 @@
       "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
       "kind": "core_implementation",
       "domain": "IONMOBILITY",
-      "bytes": 2751,
-      "physical_lines": 84,
-      "sha256": "531f7072b54515c9301db3ed72c30cd630b869b0d4854a1328bf66d7b1a754ba",
+      "bytes": 2788,
+      "physical_lines": 85,
+      "sha256": "2477cd337d99f670558b9a30e78c2fb3c0d0a9f351acfcbf2f4240d6e74a8249",
       "registration": "implementation",
       "registration_file": "src/openms/source/IONMOBILITY/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -9865,9 +9865,9 @@
       "path": "src/openms/source/SYSTEM/JavaInfo.cpp",
       "kind": "core_implementation",
       "domain": "SYSTEM",
-      "bytes": 3812,
-      "physical_lines": 117,
-      "sha256": "e3a82455e8b4cbf3dd9bcbda441597aebe3e009b5e51d5b552491d628930719a",
+      "bytes": 3855,
+      "physical_lines": 119,
+      "sha256": "373949a9a80e25ce4aee16cdcdc39381d862f02aa0cf27d849e6e2997c6471c8",
       "registration": "implementation",
       "registration_file": "src/openms/source/SYSTEM/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -9920,9 +9920,9 @@
       "path": "src/openms/source/SYSTEM/PythonInfo.cpp",
       "kind": "core_implementation",
       "domain": "SYSTEM",
-      "bytes": 5204,
-      "physical_lines": 176,
-      "sha256": "5fc8d961309856958ffc8babf949f11661e2fcd80f5dd6be90f32900e10ad644",
+      "bytes": 5281,
+      "physical_lines": 178,
+      "sha256": "231dd358e00e1e87ae0480b39ea16b7d5b26036d4d1f6e259bb1bacc8553d12b",
       "registration": "implementation",
       "registration_file": "src/openms/source/SYSTEM/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -10569,9 +10569,9 @@
       "path": "src/openms/source/FORMAT/ZipArchiveFile.cpp",
       "kind": "core_implementation",
       "domain": "FORMAT",
-      "bytes": 17779,
-      "physical_lines": 528,
-      "sha256": "b4753ed04b06521c55dc58c23f8cc42e87cc1e8f69c3b8ca2070e8f63d7a6c3b",
+      "bytes": 17874,
+      "physical_lines": 533,
+      "sha256": "28dec95d506e2bacfd431015cdfcec48ab864b968662bc81327f4b7808124456",
       "registration": "implementation",
       "registration_file": "src/openms/source/FORMAT/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -10866,9 +10866,9 @@
       "path": "src/openms/source/FORMAT/ParamCWLFile.cpp",
       "kind": "core_implementation",
       "domain": "FORMAT",
-      "bytes": 11474,
-      "physical_lines": 332,
-      "sha256": "0913553ace3aea3f0958cec11581b4895495e567b9145bd0125f900de95fb5c5",
+      "bytes": 11505,
+      "physical_lines": 334,
+      "sha256": "d0e254d6d5b312fe67bebdd0a9771026838ca0944bf2db379d49a7a0dd64e8eb",
       "registration": "implementation",
       "registration_file": "src/openms/source/FORMAT/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -11603,9 +11603,9 @@
       "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
       "kind": "core_implementation",
       "domain": "COMPARISON",
-      "bytes": 13435,
+      "bytes": 13403,
       "physical_lines": 410,
-      "sha256": "f736d2af68fe036279b9a013443ccb810821615cd982a8c82de1bfe7a174709a",
+      "sha256": "a621dee886979eba7771ddbe52cc8c450d108e872971baef395542e04979a053",
       "registration": "implementation",
       "registration_file": "src/openms/source/COMPARISON/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -13792,9 +13792,9 @@
       "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
       "kind": "core_implementation",
       "domain": "FORMAT",
-      "bytes": 11986,
-      "physical_lines": 378,
-      "sha256": "7abdece6a5413dc0b92536352ecf0c434316fd811a0c25be3657e231ee6eed71",
+      "bytes": 12019,
+      "physical_lines": 381,
+      "sha256": "79722cdffaa819085bc5572f3f99a307448badf475772011ffe233b180f6a049",
       "registration": "implementation",
       "registration_file": "src/openms/source/FORMAT/HANDLERS/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -13814,9 +13814,9 @@
       "path": "src/openms/source/FORMAT/HANDLERS/UniProtXMLHandler.cpp",
       "kind": "core_implementation",
       "domain": "FORMAT",
-      "bytes": 13113,
-      "physical_lines": 398,
-      "sha256": "740889b8e12a6288f9d648314c2751ea8e356dc87a4c3d5ee90568ef81e35d02",
+      "bytes": 13040,
+      "physical_lines": 396,
+      "sha256": "3db5b5c7bc6ec51765ff1943b0b8a75f98136afbd6cd9d5508ec22b3cb677bc9",
       "registration": "implementation",
       "registration_file": "src/openms/source/FORMAT/HANDLERS/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -15079,9 +15079,9 @@
       "path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 7969,
+      "bytes": 7975,
       "physical_lines": 213,
-      "sha256": "612974a97cfc4b5c19fbc1acf26eab7a35e14bb5896fb9b68ead96f15ba3a49d",
+      "sha256": "574563a585667efa35804d0c2ce46b6e88a7e701c7632c15cd247298332c1a8f",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/MAPMATCHING/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -15464,9 +15464,9 @@
       "path": "src/openms/source/ANALYSIS/QUANTITATION/ItraqConstants.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 11768,
+      "bytes": 11764,
       "physical_lines": 288,
-      "sha256": "f6c174239752e7a8a0dc1eee8b5239edf352054fa2265d0b4605850d26a49329",
+      "sha256": "e22d666a8b32e524380024f2f170c418f641970e182e4b81944be2eb6ab0f373",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/QUANTITATION/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -15574,9 +15574,9 @@
       "path": "src/openms/source/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 15527,
+      "bytes": 15519,
       "physical_lines": 360,
-      "sha256": "2f666e5ebfdd11f8ca34f60ab41e2ce0c290750c3a0d2b55f9e2fdc74edb32b1",
+      "sha256": "d483baeba0565c152c20af6c1c95a407777b4ba451aac6fc9e29c8c4993b73f9",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/QUANTITATION/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -15805,9 +15805,9 @@
       "path": "src/openms/source/ANALYSIS/ID/Percolator.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 54276,
-      "physical_lines": 1360,
-      "sha256": "fc33be2089160ce1f03df7e1e2acb54d5fef6238c7b7a9189e295e0bb5fe3003",
+      "bytes": 52762,
+      "physical_lines": 1328,
+      "sha256": "104fdcd7bbafdc43c445f12719b6d9a82241bd7c621a85d6d8161ef7e22fe5ac",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/ID/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -15915,9 +15915,9 @@
       "path": "src/openms/source/ANALYSIS/ID/FragmentIndex.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 126429,
-      "physical_lines": 2639,
-      "sha256": "078d968848d1f0ead738058ccfab8f5d178f0eadf3514a702e92119dda2b0c89",
+      "bytes": 125833,
+      "physical_lines": 2625,
+      "sha256": "9547d6fc5b05ee93bb0a023f6319ee55f90916c08bffbf92d53b5b972d53c110",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/ID/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -16344,9 +16344,9 @@
       "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 66475,
-      "physical_lines": 1558,
-      "sha256": "86a5662c3c552ed535ffbb9b89f6db18cd20fe686e8e045f4fe07e1cf558e6bd",
+      "bytes": 66389,
+      "physical_lines": 1551,
+      "sha256": "fde680471e57f29e26eb94162786c21bb3052b22f682118f7ed00ca33ab3faba",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -16366,9 +16366,9 @@
       "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 74856,
-      "physical_lines": 1454,
-      "sha256": "2b6939dee08c1c43a6fd64bcb70ac343e4a9621f122368b95881f33cc02e9a65",
+      "bytes": 74698,
+      "physical_lines": 1449,
+      "sha256": "90d331695058d3ec9b6cb6105f56d1153a71d3baa61c2531a4258784c2400cbe",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -16707,9 +16707,9 @@
       "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 16642,
-      "physical_lines": 353,
-      "sha256": "53a6430a625e3ea32a32d6f07869fb4ea84f47cf03a80fa1a5ce552575efa892",
+      "bytes": 19893,
+      "physical_lines": 354,
+      "sha256": "4cd6b4e1455e3d5a2d49e711c06910515e630d9ec54858705c09af0aa8e5d048",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -16729,9 +16729,9 @@
       "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 85412,
-      "physical_lines": 1336,
-      "sha256": "6caf9b4d20550ce2d83196c4f079d548f42be2f832cee963d7c1d373cc47c9d7",
+      "bytes": 84678,
+      "physical_lines": 1309,
+      "sha256": "a00f65aff14cca6c20c0f13a199699acb11f20099278f0a46a29d80a474e69c2",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -16751,9 +16751,9 @@
       "path": "src/openms/source/ANALYSIS/OPENSWATH/TransitionParquetFile.cpp",
       "kind": "core_implementation",
       "domain": "ANALYSIS",
-      "bytes": 35079,
-      "physical_lines": 758,
-      "sha256": "2f16112de767443b85a22ba61669473f9c0f6a15d2418f6bd80022a6e434d191",
+      "bytes": 35084,
+      "physical_lines": 759,
+      "sha256": "5e1c17a4a65718de7c40a59d205416c2e1406c3145bc2143a31ab979b856cfa1",
       "registration": "implementation",
       "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -16985,6 +16985,15 @@
       "bytes": 26693,
       "physical_lines": 961,
       "sha256": "f904d6d4c5e96791ce0f0c4c1baffc453f6bc380109982edfa6821fac1c3260e",
+      "registration": "not_in_scientific_registration_union"
+    },
+    {
+      "path": "src/openms/source/SYSTEM/ProcessWait.h",
+      "kind": "core_private_header",
+      "domain": "SYSTEM",
+      "bytes": 890,
+      "physical_lines": 31,
+      "sha256": "0ddec12524a6ad825334f5ac5ae31a8f7c95a5ef0281e2c2a46f0477b9b9547f",
       "registration": "not_in_scientific_registration_union"
     },
     {
@@ -17867,7 +17876,7 @@
     },
     {
       "path": "src/openms/CMakeLists.txt",
-      "sha256": "4e55e355493ac8042f3d439cfd07858d18052477c18fd16fdc27c911b98c3068"
+      "sha256": "bf5c287d64ea4f1bf24e60de8959f097e74eb9397f0775638bdcf6ccd96ec459"
     },
     {
       "path": "src/openswathalgo/source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake",
@@ -17956,7 +17965,8 @@
     },
     "SYSTEM": {
       "core_header": 14,
-      "core_implementation": 14
+      "core_implementation": 14,
+      "core_private_header": 1
     }
   },
   "scope_delta": {
@@ -17998,16 +18008,17 @@
       "class_test_cpp_lines": 234968
     },
     "summary": {
-      "unchanged": 1569,
+      "unchanged": 1543,
+      "changed": 34,
       "removed": 41,
-      "changed": 8
+      "added": 1
     },
     "by_domain": {
       "ANALYSIS": {
         "added": 0,
         "removed": 34,
-        "changed": 3,
-        "unchanged": 400
+        "changed": 15,
+        "unchanged": 388
       },
       "APPLICATIONS": {
         "added": 0,
@@ -18018,14 +18029,14 @@
       "CHEMISTRY": {
         "added": 0,
         "removed": 0,
-        "changed": 0,
-        "unchanged": 126
+        "changed": 2,
+        "unchanged": 124
       },
       "COMPARISON": {
         "added": 0,
         "removed": 0,
-        "changed": 0,
-        "unchanged": 26
+        "changed": 1,
+        "unchanged": 25
       },
       "CONCEPT": {
         "added": 0,
@@ -18036,20 +18047,20 @@
       "DATASTRUCTURES": {
         "added": 0,
         "removed": 0,
-        "changed": 0,
-        "unchanged": 80
+        "changed": 1,
+        "unchanged": 79
       },
       "FEATUREFINDER": {
         "added": 0,
         "removed": 0,
-        "changed": 0,
-        "unchanged": 89
+        "changed": 1,
+        "unchanged": 88
       },
       "FORMAT": {
         "added": 0,
         "removed": 4,
-        "changed": 1,
-        "unchanged": 366
+        "changed": 6,
+        "unchanged": 361
       },
       "IMAGING": {
         "added": 0,
@@ -18072,8 +18083,8 @@
       "IONMOBILITY": {
         "added": 0,
         "removed": 0,
-        "changed": 0,
-        "unchanged": 9
+        "changed": 1,
+        "unchanged": 8
       },
       "KERNEL": {
         "added": 0,
@@ -18084,8 +18095,8 @@
       "MATH": {
         "added": 0,
         "removed": 0,
-        "changed": 0,
-        "unchanged": 33
+        "changed": 1,
+        "unchanged": 32
       },
       "METADATA": {
         "added": 0,
@@ -18118,13 +18129,41 @@
         "unchanged": 36
       },
       "SYSTEM": {
-        "added": 0,
+        "added": 1,
         "removed": 0,
-        "changed": 2,
-        "unchanged": 26
+        "changed": 4,
+        "unchanged": 24
       }
     },
     "changed_or_removed": [
+      {
+        "path": "src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
+        "status": "changed",
+        "kind": "core_header",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
+          "kind": "core_header",
+          "domain": "ANALYSIS",
+          "bytes": 23181,
+          "physical_lines": 561,
+          "sha256": "259d1bb9d3858cf9a866fa4e56287693b72e1b8d6e5cb623c8d14dd1a063b37e",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/ANALYSIS/ID/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
+          "kind": "core_header",
+          "domain": "ANALYSIS",
+          "bytes": 23176,
+          "physical_lines": 561,
+          "sha256": "f3e3fb246277dd84d562b3e96346f5c9325fe29e277f66f9b891161f3c3ce452",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/ANALYSIS/ID/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
       {
         "path": "src/openms/include/OpenMS/ANALYSIS/ID/ProSEAlgorithm.h",
         "status": "removed",
@@ -18342,6 +18381,34 @@
         "current": null
       },
       {
+        "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
+        "status": "changed",
+        "kind": "core_header",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
+          "kind": "core_header",
+          "domain": "ANALYSIS",
+          "bytes": 8612,
+          "physical_lines": 271,
+          "sha256": "12206f8ba30eff01901baa69c37a8bc8fdbdbb87195d69b0939e351ef3bf94d1",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
+          "kind": "core_header",
+          "domain": "ANALYSIS",
+          "bytes": 8621,
+          "physical_lines": 271,
+          "sha256": "7090946da2015c1de8fe51b248d2c2504c5240cb6c2d0933cf878896037a489a",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
         "path": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h",
         "status": "removed",
         "kind": "core_header",
@@ -18506,6 +18573,62 @@
         }
       },
       {
+        "path": "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h",
+        "status": "changed",
+        "kind": "core_header",
+        "domain": "FEATUREFINDER",
+        "old": {
+          "path": "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h",
+          "kind": "core_header",
+          "domain": "FEATUREFINDER",
+          "bytes": 8362,
+          "physical_lines": 207,
+          "sha256": "2b9b40d48475881553fc0e1aecad4e85b8796187a4ffb14f68a15e6b0fa29940",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/FEATUREFINDER/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h",
+          "kind": "core_header",
+          "domain": "FEATUREFINDER",
+          "bytes": 8476,
+          "physical_lines": 208,
+          "sha256": "b175eed90064859338e32c3a07bb35b43446e07566be864f5049a1e0022d39e7",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/FEATUREFINDER/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/UniProtXMLHandler.h",
+        "status": "changed",
+        "kind": "core_header",
+        "domain": "FORMAT",
+        "old": {
+          "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/UniProtXMLHandler.h",
+          "kind": "core_header",
+          "domain": "FORMAT",
+          "bytes": 4753,
+          "physical_lines": 111,
+          "sha256": "1f25f5bb1dd03555a8bf8a2ad0678066e9a9bafabb80bc331ccc5dd6abbf7122",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/FORMAT/HANDLERS/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/UniProtXMLHandler.h",
+          "kind": "core_header",
+          "domain": "FORMAT",
+          "bytes": 4648,
+          "physical_lines": 110,
+          "sha256": "d9b28e7957fb9c009759a9620222357c095ced40d76215f421811c1eb4e91f12",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/FORMAT/HANDLERS/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
         "path": "src/openms/include/OpenMS/FORMAT/MascotRemoteQuery.h",
         "status": "removed",
         "kind": "core_header",
@@ -18540,6 +18663,34 @@
           "configuration_note": "union of selectable profiles; conditions not evaluated"
         },
         "current": null
+      },
+      {
+        "path": "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h",
+        "status": "changed",
+        "kind": "core_header",
+        "domain": "MATH",
+        "old": {
+          "path": "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h",
+          "kind": "core_header",
+          "domain": "MATH",
+          "bytes": 6790,
+          "physical_lines": 196,
+          "sha256": "cd349601a860f6b4bf1630c128a4a904cfea9bc5085ce7161f05fe6b0bd118b6",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/MATH/MISC/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h",
+          "kind": "core_header",
+          "domain": "MATH",
+          "bytes": 6896,
+          "physical_lines": 197,
+          "sha256": "1fb266f3fd996fcc0a7bea6f93eb3ee96a7733419ad1791f03917665f80f58cc",
+          "registration": "registered_public_header",
+          "registration_file": "src/openms/include/OpenMS/MATH/MISC/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
       },
       {
         "path": "src/openms/include/OpenMS/METADATA/CometNativeIDRemapper.h",
@@ -18606,6 +18757,62 @@
         }
       },
       {
+        "path": "src/openms/source/ANALYSIS/ID/FragmentIndex.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/ID/FragmentIndex.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 126429,
+          "physical_lines": 2639,
+          "sha256": "078d968848d1f0ead738058ccfab8f5d178f0eadf3514a702e92119dda2b0c89",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/ID/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/ID/FragmentIndex.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 125833,
+          "physical_lines": 2625,
+          "sha256": "9547d6fc5b05ee93bb0a023f6319ee55f90916c08bffbf92d53b5b972d53c110",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/ID/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/ANALYSIS/ID/Percolator.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/ID/Percolator.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 54276,
+          "physical_lines": 1360,
+          "sha256": "fc33be2089160ce1f03df7e1e2acb54d5fef6238c7b7a9189e295e0bb5fe3003",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/ID/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/ID/Percolator.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 52762,
+          "physical_lines": 1328,
+          "sha256": "104fdcd7bbafdc43c445f12719b6d9a82241bd7c621a85d6d8161ef7e22fe5ac",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/ID/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
         "path": "src/openms/source/ANALYSIS/ID/ProSEAlgorithm.cpp",
         "status": "removed",
         "kind": "core_implementation",
@@ -18622,6 +18829,34 @@
           "configuration_note": "union of selectable profiles; conditions not evaluated"
         },
         "current": null
+      },
+      {
+        "path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 7969,
+          "physical_lines": 213,
+          "sha256": "612974a97cfc4b5c19fbc1acf26eab7a35e14bb5896fb9b68ead96f15ba3a49d",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/MAPMATCHING/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 7975,
+          "physical_lines": 213,
+          "sha256": "574563a585667efa35804d0c2ce46b6e88a7e701c7632c15cd247298332c1a8f",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/MAPMATCHING/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
       },
       {
         "path": "src/openms/source/ANALYSIS/NUXL/NuXLAnnotateAndLocate.cpp",
@@ -18786,6 +19021,146 @@
         "current": null
       },
       {
+        "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 74856,
+          "physical_lines": 1454,
+          "sha256": "2b6939dee08c1c43a6fd64bcb70ac343e4a9621f122368b95881f33cc02e9a65",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 74698,
+          "physical_lines": 1449,
+          "sha256": "90d331695058d3ec9b6cb6105f56d1153a71d3baa61c2531a4258784c2400cbe",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 85412,
+          "physical_lines": 1336,
+          "sha256": "6caf9b4d20550ce2d83196c4f079d548f42be2f832cee963d7c1d373cc47c9d7",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 84678,
+          "physical_lines": 1309,
+          "sha256": "a00f65aff14cca6c20c0f13a199699acb11f20099278f0a46a29d80a474e69c2",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 66475,
+          "physical_lines": 1558,
+          "sha256": "86a5662c3c552ed535ffbb9b89f6db18cd20fe686e8e045f4fe07e1cf558e6bd",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathPercolatorScoring.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 66389,
+          "physical_lines": 1551,
+          "sha256": "fde680471e57f29e26eb94162786c21bb3052b22f682118f7ed00ca33ab3faba",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 16642,
+          "physical_lines": 353,
+          "sha256": "53a6430a625e3ea32a32d6f07869fb4ea84f47cf03a80fa1a5ce552575efa892",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathResultsExporter.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 19893,
+          "physical_lines": 354,
+          "sha256": "4cd6b4e1455e3d5a2d49e711c06910515e630d9ec54858705c09af0aa8e5d048",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/ANALYSIS/OPENSWATH/TransitionParquetFile.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/TransitionParquetFile.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 35079,
+          "physical_lines": 758,
+          "sha256": "2f16112de767443b85a22ba61669473f9c0f6a15d2418f6bd80022a6e434d191",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/TransitionParquetFile.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 35084,
+          "physical_lines": 759,
+          "sha256": "5e1c17a4a65718de7c40a59d205416c2e1406c3145bc2143a31ab979b856cfa1",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/OPENSWATH/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
         "path": "src/openms/source/ANALYSIS/QUANTITATION/DDAWorkflowCommons.cpp",
         "status": "removed",
         "kind": "core_implementation",
@@ -18802,6 +19177,62 @@
           "configuration_note": "union of selectable profiles; conditions not evaluated"
         },
         "current": null
+      },
+      {
+        "path": "src/openms/source/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 15527,
+          "physical_lines": 360,
+          "sha256": "2f666e5ebfdd11f8ca34f60ab41e2ce0c290750c3a0d2b55f9e2fdc74edb32b1",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/QUANTITATION/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 15519,
+          "physical_lines": 360,
+          "sha256": "d483baeba0565c152c20af6c1c95a407777b4ba451aac6fc9e29c8c4993b73f9",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/QUANTITATION/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/ANALYSIS/QUANTITATION/ItraqConstants.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "ANALYSIS",
+        "old": {
+          "path": "src/openms/source/ANALYSIS/QUANTITATION/ItraqConstants.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 11768,
+          "physical_lines": 288,
+          "sha256": "f6c174239752e7a8a0dc1eee8b5239edf352054fa2265d0b4605850d26a49329",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/QUANTITATION/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/ANALYSIS/QUANTITATION/ItraqConstants.cpp",
+          "kind": "core_implementation",
+          "domain": "ANALYSIS",
+          "bytes": 11764,
+          "physical_lines": 288,
+          "sha256": "e22d666a8b32e524380024f2f170c418f641970e182e4b81944be2eb6ab0f373",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/ANALYSIS/QUANTITATION/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
       },
       {
         "path": "src/openms/source/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.cpp",
@@ -18950,6 +19381,90 @@
         "current": null
       },
       {
+        "path": "src/openms/source/CHEMISTRY/IsoelectricPoint.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "CHEMISTRY",
+        "old": {
+          "path": "src/openms/source/CHEMISTRY/IsoelectricPoint.cpp",
+          "kind": "core_implementation",
+          "domain": "CHEMISTRY",
+          "bytes": 7200,
+          "physical_lines": 227,
+          "sha256": "c3d1895541b9333c228339fb7d2fc777e1cd09acac4d69b15707de4a55114a23",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/CHEMISTRY/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/CHEMISTRY/IsoelectricPoint.cpp",
+          "kind": "core_implementation",
+          "domain": "CHEMISTRY",
+          "bytes": 7224,
+          "physical_lines": 227,
+          "sha256": "f74153bcffb1846158f27defa2af3ec837719abe2792b8ff71827c8cb91fb236",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/CHEMISTRY/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "CHEMISTRY",
+        "old": {
+          "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+          "kind": "core_implementation",
+          "domain": "CHEMISTRY",
+          "bytes": 114976,
+          "physical_lines": 2859,
+          "sha256": "cf2666edfa066cdcbfd02f4d7118d1b356f02aadcc380f0a120e3acea1243ec6",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/CHEMISTRY/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+          "kind": "core_implementation",
+          "domain": "CHEMISTRY",
+          "bytes": 114926,
+          "physical_lines": 2857,
+          "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/CHEMISTRY/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "COMPARISON",
+        "old": {
+          "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+          "kind": "core_implementation",
+          "domain": "COMPARISON",
+          "bytes": 13435,
+          "physical_lines": 410,
+          "sha256": "f736d2af68fe036279b9a013443ccb810821615cd982a8c82de1bfe7a174709a",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/COMPARISON/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+          "kind": "core_implementation",
+          "domain": "COMPARISON",
+          "bytes": 13403,
+          "physical_lines": 410,
+          "sha256": "a621dee886979eba7771ddbe52cc8c450d108e872971baef395542e04979a053",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/COMPARISON/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
         "path": "src/openms/source/CONCEPT/VersionInfo.cpp",
         "status": "changed",
         "kind": "core_implementation",
@@ -18974,6 +19489,90 @@
           "sha256": "32d69d27b24c5fb23911355b4428114dceda5197681fe3cd2b96541a152cfe68",
           "registration": "implementation",
           "registration_file": "src/openms/source/CONCEPT/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "DATASTRUCTURES",
+        "old": {
+          "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+          "kind": "core_implementation",
+          "domain": "DATASTRUCTURES",
+          "bytes": 23199,
+          "physical_lines": 682,
+          "sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/DATASTRUCTURES/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+          "kind": "core_implementation",
+          "domain": "DATASTRUCTURES",
+          "bytes": 23998,
+          "physical_lines": 699,
+          "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/DATASTRUCTURES/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "FORMAT",
+        "old": {
+          "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+          "kind": "core_implementation",
+          "domain": "FORMAT",
+          "bytes": 11986,
+          "physical_lines": 378,
+          "sha256": "7abdece6a5413dc0b92536352ecf0c434316fd811a0c25be3657e231ee6eed71",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/FORMAT/HANDLERS/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+          "kind": "core_implementation",
+          "domain": "FORMAT",
+          "bytes": 12019,
+          "physical_lines": 381,
+          "sha256": "79722cdffaa819085bc5572f3f99a307448badf475772011ffe233b180f6a049",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/FORMAT/HANDLERS/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/FORMAT/HANDLERS/UniProtXMLHandler.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "FORMAT",
+        "old": {
+          "path": "src/openms/source/FORMAT/HANDLERS/UniProtXMLHandler.cpp",
+          "kind": "core_implementation",
+          "domain": "FORMAT",
+          "bytes": 13113,
+          "physical_lines": 398,
+          "sha256": "740889b8e12a6288f9d648314c2751ea8e356dc87a4c3d5ee90568ef81e35d02",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/FORMAT/HANDLERS/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/FORMAT/HANDLERS/UniProtXMLHandler.cpp",
+          "kind": "core_implementation",
+          "domain": "FORMAT",
+          "bytes": 13040,
+          "physical_lines": 396,
+          "sha256": "3db5b5c7bc6ec51765ff1943b0b8a75f98136afbd6cd9d5508ec22b3cb677bc9",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/FORMAT/HANDLERS/sources.cmake",
           "configuration_note": "union of selectable profiles; conditions not evaluated"
         }
       },
@@ -19024,6 +19623,34 @@
         }
       },
       {
+        "path": "src/openms/source/FORMAT/ParamCWLFile.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "FORMAT",
+        "old": {
+          "path": "src/openms/source/FORMAT/ParamCWLFile.cpp",
+          "kind": "core_implementation",
+          "domain": "FORMAT",
+          "bytes": 11474,
+          "physical_lines": 332,
+          "sha256": "0913553ace3aea3f0958cec11581b4895495e567b9145bd0125f900de95fb5c5",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/FORMAT/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/FORMAT/ParamCWLFile.cpp",
+          "kind": "core_implementation",
+          "domain": "FORMAT",
+          "bytes": 11505,
+          "physical_lines": 334,
+          "sha256": "d0e254d6d5b312fe67bebdd0a9771026838ca0944bf2db379d49a7a0dd64e8eb",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/FORMAT/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
         "path": "src/openms/source/FORMAT/ParquetTableComparator.cpp",
         "status": "removed",
         "kind": "core_implementation",
@@ -19040,6 +19667,62 @@
           "configuration_note": "union of selectable profiles; conditions not evaluated"
         },
         "current": null
+      },
+      {
+        "path": "src/openms/source/FORMAT/ZipArchiveFile.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "FORMAT",
+        "old": {
+          "path": "src/openms/source/FORMAT/ZipArchiveFile.cpp",
+          "kind": "core_implementation",
+          "domain": "FORMAT",
+          "bytes": 17779,
+          "physical_lines": 528,
+          "sha256": "b4753ed04b06521c55dc58c23f8cc42e87cc1e8f69c3b8ca2070e8f63d7a6c3b",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/FORMAT/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/FORMAT/ZipArchiveFile.cpp",
+          "kind": "core_implementation",
+          "domain": "FORMAT",
+          "bytes": 17874,
+          "physical_lines": 533,
+          "sha256": "28dec95d506e2bacfd431015cdfcec48ab864b968662bc81327f4b7808124456",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/FORMAT/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "IONMOBILITY",
+        "old": {
+          "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+          "kind": "core_implementation",
+          "domain": "IONMOBILITY",
+          "bytes": 2751,
+          "physical_lines": 84,
+          "sha256": "531f7072b54515c9301db3ed72c30cd630b869b0d4854a1328bf66d7b1a754ba",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/IONMOBILITY/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+          "kind": "core_implementation",
+          "domain": "IONMOBILITY",
+          "bytes": 2788,
+          "physical_lines": 85,
+          "sha256": "2477cd337d99f670558b9a30e78c2fb3c0d0a9f351acfcbf2f4240d6e74a8249",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/IONMOBILITY/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
       },
       {
         "path": "src/openms/source/QC/DBSuitability.cpp",
@@ -19086,10 +19769,81 @@
           "registration_file": "src/openms/source/SYSTEM/sources.cmake",
           "configuration_note": "union of selectable profiles; conditions not evaluated"
         }
+      },
+      {
+        "path": "src/openms/source/SYSTEM/JavaInfo.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "SYSTEM",
+        "old": {
+          "path": "src/openms/source/SYSTEM/JavaInfo.cpp",
+          "kind": "core_implementation",
+          "domain": "SYSTEM",
+          "bytes": 3812,
+          "physical_lines": 117,
+          "sha256": "e3a82455e8b4cbf3dd9bcbda441597aebe3e009b5e51d5b552491d628930719a",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/SYSTEM/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/SYSTEM/JavaInfo.cpp",
+          "kind": "core_implementation",
+          "domain": "SYSTEM",
+          "bytes": 3855,
+          "physical_lines": 119,
+          "sha256": "373949a9a80e25ce4aee16cdcdc39381d862f02aa0cf27d849e6e2997c6471c8",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/SYSTEM/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
+      },
+      {
+        "path": "src/openms/source/SYSTEM/ProcessWait.h",
+        "status": "added",
+        "kind": "core_private_header",
+        "domain": "SYSTEM",
+        "old": null,
+        "current": {
+          "path": "src/openms/source/SYSTEM/ProcessWait.h",
+          "kind": "core_private_header",
+          "domain": "SYSTEM",
+          "bytes": 890,
+          "physical_lines": 31,
+          "sha256": "0ddec12524a6ad825334f5ac5ae31a8f7c95a5ef0281e2c2a46f0477b9b9547f",
+          "registration": "not_in_scientific_registration_union"
+        }
+      },
+      {
+        "path": "src/openms/source/SYSTEM/PythonInfo.cpp",
+        "status": "changed",
+        "kind": "core_implementation",
+        "domain": "SYSTEM",
+        "old": {
+          "path": "src/openms/source/SYSTEM/PythonInfo.cpp",
+          "kind": "core_implementation",
+          "domain": "SYSTEM",
+          "bytes": 5204,
+          "physical_lines": 176,
+          "sha256": "5fc8d961309856958ffc8babf949f11661e2fcd80f5dd6be90f32900e10ad644",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/SYSTEM/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        },
+        "current": {
+          "path": "src/openms/source/SYSTEM/PythonInfo.cpp",
+          "kind": "core_implementation",
+          "domain": "SYSTEM",
+          "bytes": 5281,
+          "physical_lines": 178,
+          "sha256": "231dd358e00e1e87ae0480b39ea16b7d5b26036d4d1f6e259bb1bacc8553d12b",
+          "registration": "implementation",
+          "registration_file": "src/openms/source/SYSTEM/sources.cmake",
+          "configuration_note": "union of selectable profiles; conditions not evaluated"
+        }
       }
     ]
   },
-  "carried_forward_reference_count": 220,
   "carried_forward_references": [
     {
       "path": "LICENSE",
@@ -19182,10 +19936,12 @@
     },
     {
       "path": "src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
-      "sha256": "259d1bb9d3858cf9a866fa4e56287693b72e1b8d6e5cb623c8d14dd1a063b37e",
+      "sha256": "f3e3fb246277dd84d562b3e96346f5c9325fe29e277f66f9b891161f3c3ce452",
       "original_manifests": [
         "tests/data/peptide_indexing_matcher_reference_provenance.json"
-      ]
+      ],
+      "source_sha256": "259d1bb9d3858cf9a866fa4e56287693b72e1b8d6e5cb623c8d14dd1a063b37e",
+      "review": "Removes noexcept from the existing checked index conversion; native indexing uses checked Rust values and does not expose this low-level converter. No peptide-matching result changes."
     },
     {
       "path": "src/openms/include/OpenMS/ANALYSIS/ID/PrecursorPurity.h",
@@ -19860,10 +20616,12 @@
     },
     {
       "path": "src/openms/source/CHEMISTRY/IsoelectricPoint.cpp",
-      "sha256": "c3d1895541b9333c228339fb7d2fc777e1cd09acac4d69b15707de4a55114a23",
+      "sha256": "f74153bcffb1846158f27defa2af3ec837719abe2792b8ff71827c8cb91fb236",
       "original_manifests": [
         "tests/data/peptide_properties_provenance.json"
-      ]
+      ],
+      "source_sha256": "c3d1895541b9333c228339fb7d2fc777e1cd09acac4d69b15707de4a55114a23",
+      "review": "Explicitly initializes three previously value-initialized empty residue-override maps. All pKa values and arithmetic remain unchanged."
     },
     {
       "path": "src/openms/source/CHEMISTRY/ModificationDefinition.cpp",
@@ -20070,10 +20828,12 @@
     },
     {
       "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
-      "sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
+      "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
       "original_manifests": [
         "tests/data/adduct_provenance.json"
-      ]
+      ],
+      "source_sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
+      "review": "Adds extended-long-double libc++ formatting and removes equivalent redundant branches. Native f32/f64 formatting rules are unchanged; extended long double remains outside the native value surface."
     },
     {
       "path": "src/openms/source/FORMAT/Base64.cpp",
@@ -20435,10 +21195,12 @@
     },
     {
       "path": "src/tests/class_tests/openms/source/AASequence_test.cpp",
-      "sha256": "d40acc86f1b46211db7b66c613c0b0156ee1c0917021f6c0941c50c9494cb95e",
+      "sha256": "bb6a8c0b3646b38f343cb6dffd5315b122f8c4e6ac8870404361372bd27d5e38",
       "original_manifests": [
         "SOURCE_PROVENANCE.json"
-      ]
+      ],
+      "source_sha256": "d40acc86f1b46211db7b66c613c0b0156ee1c0917021f6c0941c50c9494cb95e",
+      "review": "Changes four null-pointer comparisons from 0 to nullptr; scientific assertions and fixtures are unchanged."
     },
     {
       "path": "src/tests/class_tests/openms/source/AdductInfo_test.cpp",
@@ -20449,10 +21211,12 @@
     },
     {
       "path": "src/tests/class_tests/openms/source/AhoCorasickAmbiguous_test.cpp",
-      "sha256": "eadb8d06c5c7347f23f65054cb7ef37a0cf0ba805a4ad01291f21177261b9c38",
+      "sha256": "a3c2e4c9392897dff2dc2025f2d8d6b6f61bef61cd16d9f14b9e30af787f1eb4",
       "original_manifests": [
         "tests/data/peptide_indexing_matcher_reference_provenance.json"
-      ]
+      ],
+      "source_sha256": "eadb8d06c5c7347f23f65054cb7ef37a0cf0ba805a4ad01291f21177261b9c38",
+      "review": "Adds valid-boundary and invalid-index conversion checks for the noexcept fix. Existing peptide matching assertions remain unchanged; the native low-level class is not claimed complete."
     },
     {
       "path": "src/tests/class_tests/openms/source/BasicProteinInferenceAlgorithm_test.cpp",
@@ -20651,10 +21415,12 @@
     },
     {
       "path": "src/tests/class_tests/openms/source/PeptideIndexing_test.cpp",
-      "sha256": "fe270856a2da551964be73b9d3a3345c2633cae2efdd90357e59b5350d8ad1a2",
+      "sha256": "156997f4866fc336401dd485f9403f134601b0fdb193520527371841031e67cb",
       "original_manifests": [
         "tests/data/peptide_indexing_matcher_reference_provenance.json"
-      ]
+      ],
+      "source_sha256": "fe270856a2da551964be73b9d3a3345c2633cae2efdd90357e59b5350d8ad1a2",
+      "review": "Uses logical conjunction instead of bitwise conjunction for two boolean values without side effects; expected peptide matches are unchanged."
     },
     {
       "path": "src/tests/class_tests/openms/source/PrecursorPurity_test.cpp",
@@ -20757,10 +21523,12 @@
     },
     {
       "path": "src/tests/class_tests/openms/source/TransformationModelLowess_test.cpp",
-      "sha256": "d90680fa60c41f36f3a04b65492a808ff005e57342fe5d19c1a051bcba317041",
+      "sha256": "d5a7683fcd77a15915eb98e39da27789fdf894b369dd3f88b8b427c0bad023ca",
       "original_manifests": [
         "tests/data/transformations_provenance.json"
-      ]
+      ],
+      "source_sha256": "d90680fa60c41f36f3a04b65492a808ff005e57342fe5d19c1a051bcba317041",
+      "review": "Changes the constructor null-pointer comparison from 0 to nullptr; fitting assertions are unchanged."
     },
     {
       "path": "src/tests/class_tests/openms/source/WindowMower_test.cpp",
@@ -20770,5 +21538,14 @@
       ]
     }
   ],
-  "reference_policy": "Historical fixtures retain their original source pins; this record proves listed source bytes are unchanged at the new target. External Boost headers are outside this SDK comparison."
+  "carried_forward_reference_count": 220,
+  "reference_policy": "Historical fixture revisions and hashes remain unchanged. Carried references use target hashes; changed source bytes record original hashes and explicit behavior reviews. Current-source manifests separately record target_verification. External Boost headers are outside this SDK comparison.",
+  "previous_target_update": {
+    "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+    "target_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "comparison": "https://github.com/okohlbacher/OpenMS4-core/compare/6bfc0e4711105f4eda2fea86812a83af7c7e791f...54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "review": "docs/CORE_SDK_54A232F_REVIEW.md",
+    "registered_public_header_scope_unchanged": true,
+    "changed_historical_reference_paths": 7
+  }
 }

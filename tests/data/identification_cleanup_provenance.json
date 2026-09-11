@@ -33,5 +33,12 @@
     "Atomic Result errors instead of partial mutation",
     "Sparse owned IDs never reused after deletion",
     "Group-key collisions retain first original semantic-key payload; source dereferences an invalidated iterator and has no defined winner"
-  ]
+  ],
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": []
+  }
 }

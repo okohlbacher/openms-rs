@@ -1,10 +1,10 @@
 # OpenMS for Rust
 
-A native Rust port of selected [OpenMS4-core](https://github.com/okohlbacher/OpenMS4-core/tree/6bfc0e4711105f4eda2fea86812a83af7c7e791f) functionality: spectra, features, chemistry, identification records and analysis, retention-time transformations, common processing, and basic file interchange.
+A native Rust port of selected [OpenMS4-core](https://github.com/okohlbacher/OpenMS4-core/tree/54a232fe2cae9c590d5c997fa49d20e7769860fb) functionality: spectra, features, chemistry, identification records and analysis, retention-time transformations, common processing, and basic file interchange.
 
 The target is a feature-complete native Core SDK that TOPP tools can be ported against. The [completion ledger](docs/CORE_SDK_COMPLETION.md) accounts for every registered public SDK header and maps direct dependencies from 146 local TOPP sources. It distinguishes reviewed APIs from partial and unverified coverage; full SDK and tool parity are still outstanding.
 
-**This port is in progress and does not yet replace the full OpenMS library.** The current reduced SDK contains 807 physical include-directory headers and about 468,000 lines of first-party runtime code. The [SDK update](docs/CORE_SDK_UPDATE.md) records the current target, `6bfc0e4`, and the product backends removed from its scope. This crate has its own Rust API, no C++ bindings, and no C++ build dependency. The [repository analysis](docs/REPOSITORY_ANALYSIS.md) explains the source architecture, dependencies, and path toward broader coverage.
+**This port is in progress and does not yet replace the full OpenMS library.** The current reduced SDK contains 807 physical include-directory headers and about 468,000 lines of first-party runtime code. The [SDK update](docs/CORE_SDK_UPDATE.md) records the current target, `54a232f`, and the product backends removed from its scope. This crate has its own Rust API, no C++ bindings, and no C++ build dependency. Native [FASTA lifecycle](docs/FASTA_SUPPORT.md), [aggregation/XICs](docs/EXPERIMENT_AGGREGATION_SUPPORT.md), [mzML Product transport](docs/MZML_PRODUCT_SUPPORT.md) and [indexed-mzML offsets](docs/INDEXED_MZML_SUPPORT.md) are now available. The [repository analysis](docs/REPOSITORY_ANALYSIS.md) explains the source architecture, dependencies, and path toward broader coverage.
 
 ## What works
 
@@ -132,6 +132,6 @@ The crate uses no unsafe Rust. Core chemistry is immutable and embedded; no Open
 
 ## Provenance and license
 
-Current SDK target: `okohlbacher/OpenMS4-core` at `6bfc0e4711105f4eda2fea86812a83af7c7e791f`. Historical implementation and fixture provenance retains `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`, verified against GitHub on 2026-09-10. See the [SDK update](docs/CORE_SDK_UPDATE.md), [source provenance](SOURCE_PROVENANCE.json), the [historical source inventory](docs/source-inventory.json), and [fixture provenance](tests/data/README.md).
+Current SDK target: `okohlbacher/OpenMS4-core` at `54a232fe2cae9c590d5c997fa49d20e7769860fb`. Historical implementation and fixture provenance retains `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`, verified against GitHub on 2026-09-10. See the [SDK update](docs/CORE_SDK_UPDATE.md), [source provenance](SOURCE_PROVENANCE.json), the [historical source inventory](docs/source-inventory.json), and [fixture provenance](tests/data/README.md).
 
 Implementation: BSD-3-Clause, with original OpenMS copyright and attribution in [LICENSE](LICENSE) and [AUTHORS](AUTHORS). Bundled UniMod-derived modification data: Design Science License, with complete source data and notices included. See [component licenses](LICENSES.md) and [data provenance](resources/modifications/README.md). The [RNA data notices](resources/rna/README.md) separately record the unresolved MODOMICS redistribution terms. This local package has not been published to crates.io.

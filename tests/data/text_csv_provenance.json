@@ -124,5 +124,12 @@
     "addRow double-quotes without escaping; literal delimiters/newlines can change reloaded rows.",
     "TextFile handles CR/LF/CRLF independently and preserves source store suffix/platform translation."
   ],
-  "license": "OpenMS BSD-3-Clause; copied source fixtures retain attribution via this manifest and repository notices."
+  "license": "OpenMS BSD-3-Clause; copied source fixtures retain attribution via this manifest and repository notices.",
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": []
+  }
 }

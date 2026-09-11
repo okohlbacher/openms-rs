@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "target_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+  "target_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
   "methodology": "Every registered public SDK header is accounted for. Direct include dependencies and candidate Rust declarations guide review; neither source hashes nor names demonstrate method coverage. Transitive dependencies, conditional configurations, runtime data and tool workflows need separate validation. External/product-owned headers are not added to Core scope.",
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 167,
-      "native_equivalent": 6,
-      "partial": 8,
-      "unmapped": 595
+      "evidence_requires_review": 163,
+      "native_equivalent": 10,
+      "partial": 11,
+      "unmapped": 592
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -76,7 +76,7 @@
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
-      "sha256": "259d1bb9d3858cf9a866fa4e56287693b72e1b8d6e5cb623c8d14dd1a063b37e",
+      "sha256": "f3e3fb246277dd84d562b3e96346f5c9325fe29e277f66f9b891161f3c3ce452",
       "domain": "ANALYSIS",
       "status": "evidence_requires_review",
       "review": null,
@@ -1128,7 +1128,7 @@
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
-      "sha256": "12206f8ba30eff01901baa69c37a8bc8fdbdbb87195d69b0939e351ef3bf94d1",
+      "sha256": "7090946da2015c1de8fe51b248d2c2504c5240cb6c2d0933cf878896037a489a",
       "domain": "ANALYSIS",
       "status": "unmapped",
       "review": null,
@@ -3559,6 +3559,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/kernel_value_traits_provenance.json",
         "tests/data/param_value_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -3736,6 +3737,7 @@
         "src/concept/progress_logger.rs"
       ],
       "reference_manifests": [
+        "tests/data/fasta_provenance.json",
         "tests/data/progress_logger_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4811,7 +4813,7 @@
     },
     {
       "header": "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h",
-      "sha256": "2b9b40d48475881553fc0e1aecad4e85b8796187a4ffb14f68a15e6b0fa29940",
+      "sha256": "b175eed90064859338e32c3a07bb35b43446e07566be864f5049a1e0022d39e7",
       "domain": "FEATUREFINDER",
       "status": "unmapped",
       "review": null,
@@ -5463,10 +5465,25 @@
       "header": "src/openms/include/OpenMS/FORMAT/FASTAFile.h",
       "sha256": "18f2d87524e401f38beea74900596c70cdd157a8e964f44bfed69cb4064d49d0",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/fasta.rs"
+        ],
+        "tests": [
+          "tests/fasta.rs",
+          "tests/formats.rs"
+        ],
+        "documentation": "docs/FASTA_SUPPORT.md",
+        "scope": "All entry, aggregate, streaming, seek, output-lifecycle and inherited progress operations; original PEFF prologue/modified-sequence/description/80-byte writer rules. Owned records, bounded cumulative input/work, UTF-8 field representation, checked header output and atomic owned read results are explicit native differences. Plain source path transport; no PEFF semantic interpretation."
+      },
+      "candidate_rust_files": [
+        "src/format/fasta.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/fasta_provenance.json"
+      ],
       "direct_topp_consumers": [
         "DatabaseFilter",
         "DecoyDatabase",
@@ -5579,6 +5596,7 @@
         "src/format/file_handler.rs"
       ],
       "reference_manifests": [
+        "tests/data/fasta_provenance.json",
         "tests/data/file_handling_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -5933,10 +5951,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
       "sha256": "acb4f9a230851f6dd1359cfba4e188458436e2de6122b7b75c992cb808ff9dfb",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/indexed_mzml.rs"
+        ],
+        "tests": [
+          "tests/indexed_mzml.rs"
+        ],
+        "documentation": "docs/INDEXED_MZML_SUPPORT.md",
+        "scope": "Both public decoder operations: configurable bounded footer probe and owned spectrum/chromatogram offset vectors. Source scanner, order/duplicate/replacement behavior retained; checked 63-bit offsets, small-file reads and bounded UTF-8 XML correct unchecked/undefined source behavior. Compact XML preserves the first offset rather than reproducing the DOM sibling bug. Index payload decoding, checksums and writing are separate classes."
+      },
+      "candidate_rust_files": [
+        "src/format/indexed_mzml.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/indexed_mzml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CometAdapter",
         "SageAdapter"
@@ -5994,6 +6026,7 @@
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
         "tests/data/mzml_param_groups_provenance.json",
+        "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -6114,7 +6147,7 @@
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/UniProtXMLHandler.h",
-      "sha256": "1f25f5bb1dd03555a8bf8a2ad0678066e9a9bafabb80bc331ccc5dd6abbf7122",
+      "sha256": "d9b28e7957fb9c009759a9620222357c095ced40d76215f421811c1eb4e91f12",
       "domain": "FORMAT",
       "status": "unmapped",
       "review": null,
@@ -6155,6 +6188,7 @@
       "reference_manifests": [
         "tests/data/idxml_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
+        "tests/data/mzml_product_provenance.json",
         "tests/data/paramxml_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -6483,10 +6517,26 @@
       "header": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
       "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mzml.rs",
+          "src/format/mzml_precursor.rs",
+          "src/format/indexed_mzml.rs"
+        ],
+        "tests": [
+          "tests/mzml.rs",
+          "tests/mzml_product.rs",
+          "tests/indexed_mzml.rs"
+        ],
+        "documentation": "docs/MZML_SUPPORT.md",
+        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product targets/isolation/scalar metadata and hasIndex probe. Complete PeakFileOptions, loadSize/transform/centroid summary, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/indexed_mzml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CometAdapter",
         "FLASHDeconv",
@@ -7556,13 +7606,26 @@
       "header": "src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h",
       "sha256": "6bb33197a8512c79e281e5567d672ba9a1f3459168be970b768f80df13b52f9d",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel.rs"
+        ],
+        "tests": [
+          "tests/kernel.rs",
+          "tests/kernel_value_traits.rs"
+        ],
+        "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
+        "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
+      },
       "candidate_rust_files": [
         "src/kernel.rs"
       ],
       "reference_manifests": [
-        "tests/data/chromatogram_processing_provenance.json"
+        "tests/data/chromatogram_processing_provenance.json",
+        "tests/data/experiment_aggregation_provenance.json",
+        "tests/data/kernel_value_traits_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -7791,7 +7854,9 @@
       "candidate_rust_files": [
         "src/kernel.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/experiment_aggregation_provenance.json"
+      ],
       "direct_topp_consumers": [
         "EICExtractor"
       ]
@@ -7800,12 +7865,26 @@
       "header": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
       "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/kernel.rs",
+          "src/kernel/experiment_aggregation.rs"
+        ],
+        "tests": [
+          "tests/kernel.rs",
+          "tests/experiment_aggregation.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
+        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata, binned TIC and remaining specialized operations still require implementation/review."
+      },
       "candidate_rust_files": [
         "src/kernel.rs"
       ],
       "reference_manifests": [
+        "tests/data/experiment_aggregation_provenance.json",
+        "tests/data/mzml_product_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -7975,16 +8054,29 @@
       "header": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
       "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel.rs"
+        ],
+        "tests": [
+          "tests/kernel.rs",
+          "tests/kernel_value_traits.rs"
+        ],
+        "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
+        "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
+      },
       "candidate_rust_files": [
         "src/kernel.rs"
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
         "tests/data/chromatogram_processing_provenance.json",
+        "tests/data/experiment_aggregation_provenance.json",
         "tests/data/fine_isotope_provenance.json",
         "tests/data/fine_isotope_stream_provenance.json",
+        "tests/data/kernel_value_traits_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/rna_processing_provenance.json"
       ],
@@ -8125,7 +8217,7 @@
     },
     {
       "header": "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h",
-      "sha256": "cd349601a860f6b4bf1630c128a4a904cfea9bc5085ce7161f05fe6b0bd118b6",
+      "sha256": "1fb266f3fd996fcc0a7bea6f93eb3ee96a7733419ad1791f03917665f80f58cc",
       "domain": "MATH",
       "status": "unmapped",
       "review": null,
@@ -9065,12 +9157,28 @@
       "header": "src/openms/include/OpenMS/METADATA/Product.h",
       "sha256": "47a07370bf43179bb194af9f8a1e1620e1d097e400701cdc532eea53dc926758",
       "domain": "METADATA",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/metadata/acquisition.rs",
+          "src/kernel.rs"
+        ],
+        "tests": [
+          "tests/metadata.rs",
+          "tests/experiment_aggregation.rs",
+          "tests/mzml_product.rs"
+        ],
+        "documentation": "docs/MZML_PRODUCT_SUPPORT.md",
+        "scope": "All three scalar fields, cloning/equality and inherited CV/ordinary metadata represented, now attached to chromatograms. Public Product hash operation remains; native string metadata keys differ from source numeric registry keys. mzML transports representable fields and rejects arbitrary CV/list/Empty metadata before output."
+      },
       "candidate_rust_files": [
         "src/metadata/acquisition.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/experiment_aggregation_provenance.json",
+        "tests/data/mzml_product_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -10810,7 +10918,6 @@
         "OpenMS/FORMAT/BrukerTimsFile.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/PepXMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -10958,7 +11065,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/ProteinIdentification.h"
@@ -11058,7 +11164,6 @@
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
         "OpenMS/CHEMISTRY/ResidueDB.h",
         "OpenMS/DATASTRUCTURES/FASTAContainer.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/SYSTEM/File.h"
@@ -11086,7 +11191,6 @@
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
@@ -11112,7 +11216,6 @@
         "OpenMS/CHEMISTRY/ElementDB.h",
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
@@ -11723,7 +11826,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h",
@@ -11773,7 +11875,6 @@
         "OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h",
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
         "OpenMS/CONCEPT/VersionInfo.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -11910,7 +12011,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/EnzymaticDigestion.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/METADATA/PeptideIdentification.h",
@@ -12008,7 +12108,6 @@
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/PeptideIdentification.h",
@@ -12896,7 +12995,6 @@
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/GaussModel.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/KERNEL/Feature.h",
@@ -13206,14 +13304,12 @@
         "OpenMS/CHEMISTRY/RibonucleotideDB.h",
         "OpenMS/COMPARISON/SpectrumAlignment.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/OMSFile.h",
         "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/KERNEL/MSSpectrum.h",
-        "OpenMS/KERNEL/Peak1D.h",
         "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/METADATA/ID/IdentificationData.h",
         "OpenMS/METADATA/ID/IdentificationDataConverter.h",
@@ -13374,7 +13470,6 @@
         "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
         "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
         "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
@@ -13421,7 +13516,6 @@
         "OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/XQuestResultXMLFile.h",
         "OpenMS/KERNEL/ConsensusMap.h",
@@ -14051,7 +14145,6 @@
         "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
         "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
         "OpenMS/FORMAT/ArrowIOHelpers.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/PercolatorInfile.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
@@ -14469,7 +14562,6 @@
         "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
@@ -14509,8 +14601,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/RNaseDB.h",
-        "OpenMS/CHEMISTRY/RNaseDigestion.h",
-        "OpenMS/FORMAT/FASTAFile.h"
+        "OpenMS/CHEMISTRY/RNaseDigestion.h"
       ],
       "workflow_validated": false
     },
@@ -14614,7 +14705,6 @@
         "OpenMS/CHEMISTRY/ResidueModification.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
-        "OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/PepXMLFile.h",
@@ -14697,7 +14787,6 @@
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/SequenceCoverage.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],

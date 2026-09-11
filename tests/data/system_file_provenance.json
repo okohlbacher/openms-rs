@@ -132,5 +132,12 @@
     "max_depth": 128,
     "creation_attempts": 100,
     "file_content_bytes": "streamed; no small content cap"
+  },
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": []
   }
 }

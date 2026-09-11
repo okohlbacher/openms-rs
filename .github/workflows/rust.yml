@@ -39,6 +39,7 @@ jobs:
       - run: python3 tools/generate_ribonucleotides.py --check
       - run: python3 tools/generate_rnases.py --check
       - run: python3 tools/check_core_sdk.py
+      - run: python3 tools/test_core_sdk.py
       - run: python3 tools/core_sdk_coverage.py
       - run: python3 tools/test_core_sdk_coverage.py
       - run: cargo clippy --locked --all-features --all-targets -- -D warnings
@@ -56,3 +57,5 @@ jobs:
       - run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
       - run: cargo test --locked --no-default-features --test log_stream --test progress_logger --test modification_definition_io
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
+      - run: cargo test --locked --no-default-features --test fasta --test formats --test experiment_aggregation --test kernel_value_traits
+      - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml --test mzml_product

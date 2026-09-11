@@ -76,5 +76,19 @@
     "One million items/64 MiB conservative allocating-helper storage; nonallocating searches remain linear and unrestricted."
   ],
   "evidence": "Literal expectations transcribed from pinned source; additional expectations independently follow source operations and named native checked policies. No C++ build/execution, and no expected values generated from native production.",
-  "license": "OpenMS BSD-3-Clause; source attribution retained through this manifest and repository notices."
+  "license": "OpenMS BSD-3-Clause; source attribution retained through this manifest and repository notices.",
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": [
+      {
+        "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+        "source_sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
+        "target_sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
+        "review": "Adds extended-long-double libc++ formatting and removes equivalent redundant branches. Native f32/f64 formatting rules are unchanged; extended long double remains outside the native value surface."
+      }
+    ]
+  }
 }

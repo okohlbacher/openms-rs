@@ -25,14 +25,14 @@ The API accepts `BufRead`/`Write`; file handling and outer gzip decoding are the
 | Area | Reader | Writer |
 | --- | --- | --- |
 | XML | XML 1.0 encoded as UTF-8 or US-ASCII; mzML namespace, including namespace prefixes | UTF-8, plain mzML 1.1.0 |
-| Indexed mzML | Sequentially reads the inner mzML; ignores index offsets/checksum | No index generation |
+| Indexed mzML | Sequentially reads inner mzML; separate [offset decoder and has_index](INDEXED_MZML_SUPPORT.md) inspect the index | No index generation |
 | Peak arrays | Little-endian IEEE f32 or f64 coordinate/intensity arrays, base64 with optional whitespace, uncompressed or zlib | f64 coordinates and f32 intensities; uncompressed by default, optional zlib |
 | Named auxiliary arrays | `MS:1000786` names with f32/f64, signed i32/i64, or NUL-terminated ASCII strings; uncompressed or zlib | Native f32, signed integer annotations encoded as i64, and NUL-terminated ASCII strings; explicit `arrayLength` |
 | Spectra | Native ID, MS level, profile/centroid flag, scan retention time, m/z and intensity | Same fields; unset retention time `-1` omitted |
-| Chromatograms | Native ID, time and intensity arrays, one precursor | Same fields |
+| Chromatograms | Native ID, time and intensity arrays, one precursor and one Product | Same fields |
 | Time units | Explicit seconds or minutes; minutes converted to seconds for scan time and chromatogram coordinates | Seconds |
 | Precursors | One selected ion per precursor; selected m/z, charge/intensity, isolation target/offsets, activation methods/energy, possible charges, mobility and spectrum reference | Same supported fields; native fields outside this subset are rejected |
-| User parameters | Direct `run`, `spectrum`, and `chromatogram` userParam names/values as strings | Stored maps written as string userParams |
+| User parameters | Direct `run`, `spectrum`, and `chromatogram` userParam names/values as strings; Product isolation-window scalar values and units | Stored maps written as string userParams; Product metadata retains String/i64/f64 types and MS/UO unit identities |
 | Container names | Reserved record userParam `openms-rust:name` | Same reserved userParam |
 
 Intensity values are converted to the kernel's `f32` type. A f64 intensity outside the finite f32 range is an error; ordinary f64-to-f32 rounding is expected. All decoded coordinates and intensities must be finite. Peak order is preserved. Missing MS level uses the kernel default of 1; missing spectrum representation remains `Unknown`.
@@ -55,6 +55,12 @@ Selected-ion mobility supports drift time in milliseconds (`MS:1002476`, `UO:000
 
 Drift-window offsets and arbitrary precursor CV terms/ordinary CV-list metadata have no supported writer representation and are rejected. A drift value requires a known unit, and a unit requires a value. Activation containers use an explicit placeholder only when neither a method nor an energy is available. These limitations apply equally to chromatogram precursors.
 
+## Chromatogram Product
+
+`MSChromatogram::product` preserves the isolation target m/z and lower/upper offsets (`MS:1000827`/`1000828`/`1000829`). Finite signed targets are retained; offsets must be finite and nonnegative. Product isolation-window userParams retain String, i64 or f64 values with optional complete MS/UO unit identity in `product.cv_terms.metadata`. Inline parameters and referenceable groups use the same parser and cumulative limits. The writer emits a Product even when its values are all default, matching the source writer.
+
+Duplicate Product/isolation containers, quantities or metadata keys are errors. Arbitrary Product CV terms and Empty/list metadata are rejected before writing; the source would discard or flatten their identity. Nonempty spectrum product lists are also rejected because `MSSpectrum` has no product vector. See [Product transport](MZML_PRODUCT_SUPPORT.md) for exact XSD conversion, source differences, and tests.
+
 ## Explicit limits and unsupported features
 
 `read_with_options` accepts `ReadOptions`. Defaults are 512 MiB XML input, 64 MiB compressed or decoded binary bytes per array, 10 million total peaks, and 1 million total spectrum/chromatogram records. Additional cumulative limits are 512 MiB decoded array bytes, 20 million array elements and 1 million binary arrays. These include primary arrays; empty string elements count toward the element limit, while empty placeholders count toward the array limit. These bounds cover annotation storage independently of peak count. Parameter definitions and expansion have additional defaults of 100,000 groups, 10 million combined groups/parameters/reference occurrences, and 512 MiB cumulative conservative parameter bytes; these include unused definitions and ignored-header expansion.
@@ -69,9 +75,9 @@ The writer rejects nonfinite data, duplicate IDs, invalid XML characters, reserv
 
 ## Metadata preservation boundary
 
-This adapter is **not a lossless mzML archival converter**. Source files, instruments, scan windows, polarity, original data-processing history, arbitrary controlled-vocabulary lists, units on userParams, typed userParam semantics, product ions, acquisition CV fields outside the supported precursor subset, and nested userParams are not retained by this adapter. Multiple selected ions within one precursor remain unsupported. The only automatic name mapping is the reserved Rust name userParam; other title conventions are not inferred.
+This adapter is **not a lossless mzML archival converter**. Source files, instruments, scan windows, polarity, original data-processing history, arbitrary controlled-vocabulary lists, units/typed semantics on userParams outside Product, spectrum product ions, acquisition CV fields outside the supported precursor subset, and nested userParams are not retained by this adapter. Multiple selected ions within one precursor remain unsupported. The only automatic name mapping is the reserved Rust name userParam; other title conventions are not inferred.
 
-Stored metadata maps are string-valued. The `openms-rust:name` key is reserved and rejected in user maps; it is used only for the spectrum/chromatogram `name` fields. Unknown acquisition metadata outside the supported model is ignored during reading. Unsupported binary arrays are rejected, rather than discarded.
+Run/spectrum/chromatogram metadata maps are string-valued; Product metadata uses the typed exception described above. The `openms-rust:name` key is reserved and rejected in user maps; it is used only for the spectrum/chromatogram `name` fields. Unknown acquisition metadata outside the supported model is ignored during reading. Unsupported binary arrays are rejected, rather than discarded.
 
 Use the documented peak/metadata subset for analysis and interchange. Preserve the original source file when its acquisition metadata is needed.
 

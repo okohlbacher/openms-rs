@@ -66,5 +66,12 @@
     "No C++ build/execution or runtime differential results.",
     "The source FASTA fixture includes PEFF # comments and an annotated sequence not accepted by the current native streaming FASTA reader. The TSV constructs FASTAEntry records to test this converter without implying that reader syntax is supported.",
     "Complete importIDs/exportIDs, mzTab, feature/consensus conversion and graph persistence are outside this bounded bridge."
-  ]
+  ],
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": []
+  }
 }

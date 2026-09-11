@@ -13,9 +13,13 @@
 
 use crate::error::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt;
+use std::hash::{Hash, Hasher};
 
+mod experiment_aggregation;
 pub mod features;
 pub mod geometry;
+pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};
 pub use features::{
     BaseFeature, ColumnHeader, ConsensusFeature, ConsensusMap, Feature, FeatureHandle, FeatureMap,
     FeatureRanges,
@@ -47,6 +51,47 @@ impl ChromatogramPeak {
         Self { rt, intensity }
     }
 }
+
+// The source's comparator overloads map directly to scalar comparisons on the
+// public fields. Formatting and hashing are the remaining value operations.
+macro_rules! peak_value_traits {
+    ($peak:ty, $position:ident) => {
+        impl fmt::Display for $peak {
+            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                match formatter.precision() {
+                    Some(precision) => write!(
+                        formatter,
+                        "POS: {:.*} INT: {:.*}",
+                        precision, self.$position, precision, self.intensity
+                    ),
+                    None => write!(formatter, "POS: {} INT: {}", self.$position, self.intensity),
+                }
+            }
+        }
+
+        impl Hash for $peak {
+            fn hash<H: Hasher>(&self, state: &mut H) {
+                // Ordinary floating equality identifies the two zero signs.
+                // Other bits, including NaN payloads, remain distinct inputs.
+                let position = if self.$position == 0.0 {
+                    0
+                } else {
+                    self.$position.to_bits()
+                };
+                let intensity = if self.intensity == 0.0 {
+                    0
+                } else {
+                    self.intensity.to_bits()
+                };
+                position.hash(state);
+                intensity.hash(state);
+            }
+        }
+    };
+}
+
+peak_value_traits!(Peak1D, mz);
+peak_value_traits!(ChromatogramPeak, rt);
 
 /// Selected precursor ion and its acquisition metadata. Charge zero means unknown.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -186,6 +231,8 @@ pub struct MSChromatogram {
     pub native_id: String,
     pub name: String,
     pub precursor: Precursor,
+    /// Product isolation information; XIC extraction sets its target m/z.
+    pub product: crate::metadata::Product,
     pub metadata: BTreeMap<String, String>,
     pub float_data_arrays: Vec<DataArray<f32>>,
     pub integer_data_arrays: Vec<DataArray<i32>>,
@@ -535,6 +582,7 @@ impl MSChromatogram {
             finite(f64::from(peak.intensity), "chromatogram intensity")?;
         }
         self.precursor.validate()?;
+        self.product.validate()?;
         self.validate_data_arrays()
     }
 

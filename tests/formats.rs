@@ -80,16 +80,10 @@ fn fasta_streaming_whitespace_and_roundtrip() {
 
 #[test]
 fn fasta_rejects_malformed_entries_and_stops_after_error() {
-    for input in [
-        "PEPTIDE",
-        ">\nABC",
-        ">empty\n>next\nABC",
-        ">p\nA1B",
-        ">p\né",
-    ] {
+    for input in ["PEPTIDE", ">\nABC", ">empty\n", ">p", ">p description"] {
         assert!(fasta::read(input.as_bytes()).is_err(), "accepted {input}");
     }
-    let mut reader = fasta::FastaReader::new(b">p\n123\n>q\nABC".as_slice());
+    let mut reader = fasta::FastaReader::new(b">p\n\xff\n>q\nABC".as_slice());
     assert!(reader.next().unwrap().is_err());
     assert!(reader.next().is_none());
 }
@@ -109,7 +103,7 @@ fn fasta_writer_wraps_and_rejects_header_injection_before_writing() {
             .lines()
             .map(str::len)
             .collect::<Vec<_>>(),
-        [2, 80, 80, 1]
+        [3, 80, 80, 1]
     );
     let bad = fasta::FASTAEntry {
         description: "injected\n>evil".into(),
@@ -222,7 +216,7 @@ fn text_writers_propagate_final_flush_errors() {
 #[test]
 fn short_malformed_ascii_inputs_never_panic() {
     // Bounded deterministic corpus exercising parser state transitions.
-    let alphabet = [b'>', b'\n', b' ', b'0', b'-', b'=', b'A', b'\t'];
+    let alphabet = *b">\n 0-=A\t";
     for a in alphabet {
         for b in alphabet {
             for c in alphabet {

@@ -1,16 +1,16 @@
 # Core SDK completion ledger
 
-Target: `6bfc0e4711105f4eda2fea86812a83af7c7e791f`. This ledger covers all **786 registered public headers** and direct includes from **146 TOPP source files**.
+Target: `54a232fe2cae9c590d5c997fa49d20e7769860fb`. This ledger covers all **786 registered public headers** and direct includes from **146 TOPP source files**.
 
 This is a work inventory, not a completion percentage. Matching declarations and source references remain unverified until each API and its behavior are reviewed. No TOPP workflow is yet certified as port-ready. Physical unregistered headers and product backends are tracked separately by the SDK source inventory.
 
 | Review state | Headers |
 | --- | ---: |
 | complete | 10 |
-| evidence_requires_review | 167 |
-| native_equivalent | 6 |
-| partial | 8 |
-| unmapped | 595 |
+| evidence_requires_review | 163 |
+| native_equivalent | 10 |
+| partial | 11 |
+| unmapped | 592 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -20,14 +20,13 @@ These counts show direct consumers; they do not establish full dependency closur
 | --- | ---: | --- |
 | `OpenMS/FORMAT/FileHandler.h` | 118 | partial |
 | `OpenMS/CONCEPT/LogStream.h` | 76 | partial |
-| `OpenMS/KERNEL/MSExperiment.h` | 70 | evidence_requires_review |
+| `OpenMS/KERNEL/MSExperiment.h` | 70 | partial |
 | `OpenMS/METADATA/ProteinIdentification.h` | 56 | evidence_requires_review |
 | `OpenMS/SYSTEM/File.h` | 53 | partial |
 | `OpenMS/KERNEL/ConsensusMap.h` | 40 | evidence_requires_review |
 | `OpenMS/KERNEL/FeatureMap.h` | 22 | evidence_requires_review |
-| `OpenMS/FORMAT/MzMLFile.h` | 19 | unmapped |
+| `OpenMS/FORMAT/MzMLFile.h` | 19 | partial |
 | `OpenMS/CONCEPT/Constants.h` | 16 | evidence_requires_review |
-| `OpenMS/FORMAT/FASTAFile.h` | 16 | unmapped |
 | `OpenMS/PROCESSING/ID/IDFilter.h` | 14 | evidence_requires_review |
 | `OpenMS/CHEMISTRY/ProteaseDB.h` | 13 | evidence_requires_review |
 | `OpenMS/METADATA/PeptideIdentification.h` | 12 | evidence_requires_review |
@@ -53,6 +52,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/IONMOBILITY/IMTypes.h` | 7 | unmapped |
 | `OpenMS/METADATA/ExperimentalDesign.h` | 7 | unmapped |
 | `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 6 | unmapped |
+| `OpenMS/CHEMISTRY/ProteaseDigestion.h` | 6 | evidence_requires_review |
 
 ## Completion requirements
 

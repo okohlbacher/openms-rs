@@ -1,5 +1,41 @@
 # Validation of the ongoing Rust port
 
+## SDK update and extraction operations (2026-09-11)
+
+The port now targets Core SDK 4.0.0 at `54a232f`. This increment completes the
+reviewed native FASTA lifecycle and indexed mzML offset decoder, adds experiment
+aggregation and XIC extraction with mzML Product interchange, and implements
+peak display/hash traits. The original provenance is retained for carried-forward
+fixtures; changed source files receive explicit review records.
+[Recorded results](extraction-validation.json) contain the commands and log hashes.
+
+| Check | Result |
+| --- | --- |
+| Rust 1.98, all features and all targets | 1,356 tests passed; examples compiled |
+| Documentation examples | Three passed |
+| Strict Clippy, all targets | Passed on Rust 1.98 with all features and Rust 1.85 without defaults |
+| Rustdoc, optimized library, Rustfmt | Passed; documentation warnings denied |
+| Indexed mzML alone, Rust 1.85 | Nine tests passed |
+| Source/fixture audit | 1,834 distinct source/registration/reference files verified |
+| Source-review and coverage regressions | Three source-review tests and two ledger tests passed |
+
+All added components also passed their targeted current/minimum compiler tests
+before integration. These overlapping runs are not added to the full-suite count.
+Independent review closed XML lexical validation, duplicate-attribute work limits,
+FASTA byte-wrapping and mzML Product metadata issues. Existing EMG regression tests
+cover the private fitted-trace storage adjustment required by the larger Product
+representation.
+
+The preceding published commit `8fb47cb` passed Linux, macOS, Windows and Rust 1.85
+CI, including 1,310 tests in the Linux all-target suite. Its quality job found a
+new Rust 1.98 test-expression lint; the corrected expression and entire combined
+crate now pass strict local Rust 1.98 checks.
+
+The completion inventory still records 766 headers requiring implementation or
+review. Twenty headers have a reviewed complete implementation or native equivalent;
+this does not establish full dependency or TOPP workflow parity. No C++ executable
+was built or run and no TOPP workflow is certified.
+
 ## Logging, progress and remaining map helpers (2026-09-10)
 
 Owned logging, replaceable progress reporting, public feature/consensus
@@ -681,10 +717,11 @@ source-derived reference tests, independently reconstructed numerical
 expectations, fixture/schema checks and Rust invariants. They are not runtime
 differential tests against OpenMS or proof of full workflow equivalence.
 
-Linux and Windows CI configurations are included but have not been executed
-remotely. Linux CI installs xmllint; on other hosts the schema tests explicitly
-report when that optional executable is unavailable. It was available and
-executed locally. Rust 1.85 compatibility was exercised locally.
+Linux, macOS, Windows and Rust 1.85 CI have passed for the preceding published
+commit, as recorded above; newer local changes have separate validation records.
+Linux CI installs xmllint; on other hosts the schema tests explicitly report when
+that optional executable is unavailable. It was available and executed locally.
+Rust 1.85 compatibility was also exercised locally.
 
 There are no runtime performance/memory benchmarks, external application
 interoperability certification or full PSI controlled-vocabulary validation.

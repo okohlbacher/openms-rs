@@ -35,5 +35,12 @@
       "sha256": "6efa102bdecb74150b7523448ec454627ee2f8fe55db41e459eb677e8b4e0e45"
     }
   ],
-  "validation": "Read every declaration in all six headers and inspected existing native implementations/tests; no production changes or Cargo/C++ execution. native_equivalent entries identify idiomatic container capability with explicit representation/platform boundaries; partial classes remain partial."
+  "validation": "Read every declaration in all six headers and inspected existing native implementations/tests; no production changes or Cargo/C++ execution. native_equivalent entries identify idiomatic container capability with explicit representation/platform boundaries; partial classes remain partial.",
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": []
+  }
 }

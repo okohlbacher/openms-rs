@@ -2,6 +2,12 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Update the SDK target to `54a232f`, retaining historical fixture pins and explicit changed-source compatibility reviews.
+- Complete native FASTA parsing/file/stream/seek/progress lifecycle, including source modified sequences and PEFF prologue handling.
+- Add bounded experiment aggregation and XIC extraction with all four source reducers and product m/z metadata.
+- Preserve chromatogram product isolation/scalar metadata through mzML; add bounded indexed-mzML footer/offset parsing and index detection.
+- Validate with Rust 1.98 and 1.85 and correct the newer compiler test-formatting check.
+
 - Add owned logging with source routing, prefixes, duplicate caching and notifications, and replaceable progress backends with process CPU timing.
 - Complete public modification collection for feature/consensus maps and nested subordinates; charge even empty search-name lookups.
 - Add gzip/bzip2 INI loading with content detection, decoded limits and atomic parameter updates, preserving source plain output.

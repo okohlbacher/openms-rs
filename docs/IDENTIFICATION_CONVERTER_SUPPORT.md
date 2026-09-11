@@ -61,9 +61,10 @@ before assignment. No new dependency is used.
 five-parent FASTA assertion and independently check merge, decoy, append/sort,
 reference and rollback rules. [Provenance](../tests/data/identification_converter_provenance.json)
 records nine source hashes and the independent five-row fixture projection.
-The upstream FASTA contains PEFF comments and an annotated sequence beyond the
-current streaming reader's syntax; its TSV constructs `FASTAEntry` values directly
-and does not claim broader FASTA reader coverage. No C++ runtime was executed.
+The original bridge test constructs `FASTAEntry` values directly from its TSV.
+The [native FASTA reader](FASTA_SUPPORT.md) now also checks the unmodified source
+file, including its PEFF prologue, annotated sequence and preserved description
+spaces. Neither set of tests executes the C++ runtime.
 
 Complete `importIDs`/`exportIDs` remains separate work, including run grouping,
 score priority, metadata conventions and protein-group conversion. mzTab export

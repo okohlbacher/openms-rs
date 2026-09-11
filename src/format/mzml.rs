@@ -6,10 +6,12 @@
 //! Numeric peak arrays are little-endian f32/f64, optionally zlib compressed.
 //! This is an event parser, but the returned experiment is held in memory.
 
+pub use super::indexed_mzml::has_index;
 use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor,
     SpectrumType,
 };
+use crate::metadata::{MetaValue, MetaValueData, Product, Unit};
 use crate::{Error, Result};
 #[path = "mzml_precursor.rs"]
 mod precursor_metadata;
@@ -441,6 +443,10 @@ struct Record {
     precursor_list_seen: bool,
     selected_list_seen: bool,
     scan_list_seen: bool,
+    product_active: bool,
+    product_seen: bool,
+    product_fields: BTreeSet<&'static str>,
+    product_list_seen: bool,
 }
 impl Record {
     fn metadata(&mut self) -> &mut BTreeMap<String, String> {
@@ -453,6 +459,44 @@ impl Record {
     fn cv(&mut self, parent: &str, attrs: &BTreeMap<String, String>) -> Result<()> {
         let accession = required(attrs, "accession")?;
         let value = attrs.get("value").map(String::as_str).unwrap_or("");
+        if self.product_active {
+            if parent != "isolationWindow" {
+                return Err(invalid("product CV outside isolation window"));
+            }
+            let field = match accession {
+                "MS:1000827" => "target",
+                "MS:1000828" => "lower",
+                "MS:1000829" => "upper",
+                _ => {
+                    return Err(Error::Unsupported(format!(
+                        "product isolation CV {accession}"
+                    )));
+                }
+            };
+            if !self.product_fields.insert(field) {
+                return Err(invalid("duplicate product isolation quantity"));
+            }
+            if attrs
+                .get("unitAccession")
+                .is_some_and(|u| u != "MS:1000040")
+                || attrs.get("unitCvRef").is_some_and(|u| u != "MS")
+            {
+                return Err(Error::Unsupported(
+                    "product isolation quantity requires m/z units".into(),
+                ));
+            }
+            let quantity = finite(value, "product isolation quantity")?;
+            let product = &mut self.chromatogram.as_mut().unwrap().product;
+            match field {
+                "target" => product.mz = quantity,
+                "lower" => product.isolation_window_lower_offset = quantity,
+                _ => product.isolation_window_upper_offset = quantity,
+            }
+            if field != "target" && quantity < 0.0 {
+                return Err(invalid("negative product isolation offset"));
+            }
+            return Ok(());
+        }
         let field = match (parent, accession) {
             ("spectrum", "MS:1000511") => Some("ms_level"),
             ("spectrum", "MS:1000127" | "MS:1000128") => Some("spectrum_type"),
@@ -589,6 +633,25 @@ fn apply_parameter(
             return Err(Error::Unsupported(
                 "metadata on binary arrays is not represented".into(),
             ));
+        }
+        "userParam" if record.as_ref().is_some_and(|r| r.product_active) => {
+            if parent != "isolationWindow" {
+                return Err(invalid("product userParam outside isolation window"));
+            }
+            let name = required(attrs, "name")?;
+            let value = product_user_value(attrs)?;
+            let metadata = &mut record
+                .as_mut()
+                .unwrap()
+                .chromatogram
+                .as_mut()
+                .unwrap()
+                .product
+                .cv_terms
+                .metadata;
+            if metadata.insert(name.into(), value).is_some() {
+                return Err(invalid("duplicate product userParam name"));
+            }
         }
         "userParam" if matches!(parent, "run" | "spectrum" | "chromatogram") => {
             let name = required(attrs, "name")?.to_owned();
@@ -846,6 +909,9 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                 if stack.len() >= 128 {
                     return Err(invalid("XML nesting exceeds 128 levels"));
                 }
+                if parent == "product" && tag != "isolationWindow" {
+                    return Err(invalid("product only permits an isolation window"));
+                }
                 if let Some((depth, child, _, actual)) = counted_lists.last_mut() {
                     if *depth == stack.len() && *child == tag {
                         *actual += 1;
@@ -857,8 +923,12 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                     }
                     "isolationWindow" | "activation" => {
                         if parent == "product" && tag == "isolationWindow" {
-                            if record.as_ref().is_some_and(|r| r.precursor.is_some()) {
-                                return Err(invalid("product nested inside precursor"));
+                            let r = record
+                                .as_mut()
+                                .filter(|r| r.product_active)
+                                .ok_or_else(|| invalid("isolation window outside product"))?;
+                            if !r.product_fields.insert("isolation_element") {
+                                return Err(invalid("duplicate product isolation window"));
                             }
                         } else {
                             if parent != "precursor" {
@@ -877,6 +947,44 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                                 return Err(invalid("duplicate precursor acquisition element"));
                             }
                         }
+                    }
+                    "productList" => {
+                        if parent != "spectrum" {
+                            return Err(invalid("product list outside spectrum"));
+                        }
+                        let r = record
+                            .as_mut()
+                            .ok_or_else(|| invalid("product list outside record"))?;
+                        if r.product_list_seen {
+                            return Err(invalid("duplicate product list"));
+                        }
+                        r.product_list_seen = true;
+                        let count = number::<usize>(required(&attrs, "count")?, "product count")?;
+                        if count != 0 {
+                            return Err(Error::Unsupported(
+                                "spectrum products are not represented".into(),
+                            ));
+                        }
+                        counted_lists.push((stack.len() + 1, "product", count, 0));
+                    }
+                    "product" => {
+                        if parent == "productList" {
+                            return Err(Error::Unsupported(
+                                "spectrum products are not represented".into(),
+                            ));
+                        }
+                        if parent != "chromatogram" {
+                            return Err(invalid("product outside chromatogram"));
+                        }
+                        let r = record
+                            .as_mut()
+                            .filter(|r| r.chromatogram.is_some())
+                            .ok_or_else(|| invalid("product outside chromatogram record"))?;
+                        if r.product_seen || r.product_active || r.precursor.is_some() {
+                            return Err(invalid("duplicate or nested chromatogram product"));
+                        }
+                        r.product_seen = true;
+                        r.product_active = true;
                     }
                     "precursorList" | "selectedIonList" | "scanList" => {
                         let expected_parent = match tag.as_str() {
@@ -1049,6 +1157,10 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                             precursor_list_seen: false,
                             selected_list_seen: false,
                             scan_list_seen: false,
+                            product_active: false,
+                            product_seen: false,
+                            product_fields: BTreeSet::new(),
+                            product_list_seen: false,
                         });
                         array_count = None;
                         arrays_seen = 0;
@@ -1290,6 +1402,15 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                             r.chromatogram.as_mut().unwrap().precursor = p;
                         }
                     }
+                    "product" => {
+                        let r = record
+                            .as_mut()
+                            .ok_or_else(|| invalid("product outside record"))?;
+                        if !r.product_active {
+                            return Err(invalid("missing product state"));
+                        }
+                        r.product_active = false;
+                    }
                     "spectrum" | "chromatogram" => record
                         .take()
                         .ok_or_else(|| invalid("missing record state"))?
@@ -1405,6 +1526,149 @@ fn xml_string(value: &str) -> Result<()> {
             "text contains invalid XML 1.0 characters".into(),
         ))
     }
+}
+
+// XMLHandler::fromXSDString retains scalar numeric types, and treats every
+// other XSD type as text. Lists and Empty have no reversible source encoding.
+fn product_user_value(attrs: &BTreeMap<String, String>) -> Result<MetaValue> {
+    use crate::data_structures::list::ListParse;
+    let text = attrs.get("value").map(String::as_str).unwrap_or("");
+    let data = match attrs.get("type").map(String::as_str).unwrap_or("") {
+        "xsd:double" | "xsd:float" | "xsd:decimal" => {
+            MetaValueData::Float(f64::from_list_item(text)?)
+        }
+        "xsd:byte" | "xsd:int" | "xsd:unsignedShort" | "xsd:short" | "xsd:unsignedByte"
+        | "xsd:unsignedInt" => MetaValueData::Integer(i64::from(i32::from_list_item(text)?)),
+        "xsd:long"
+        | "xsd:unsignedLong"
+        | "xsd:integer"
+        | "xsd:negativeInteger"
+        | "xsd:nonNegativeInteger"
+        | "xsd:nonPositiveInteger"
+        | "xsd:positiveInteger" => {
+            let token = text.trim_matches([' ', '\t', '\n', '\r']);
+            let token = token.strip_prefix('+').unwrap_or(token);
+            if token.starts_with('+') {
+                return Err(invalid("invalid product metadata integer"));
+            }
+            MetaValueData::Integer(number(token, "product metadata integer")?)
+        }
+        _ => MetaValueData::String(text.into()),
+    };
+    let mut result = MetaValue::new(data)?;
+    if let Some(accession) = attrs.get("unitAccession") {
+        let cv_ref = attrs
+            .get("unitCvRef")
+            .map(String::as_str)
+            .unwrap_or_else(|| accession.split_once(':').map_or("", |(prefix, _)| prefix));
+        let unit = Unit::new(
+            accession,
+            attrs.get("unitName").map(String::as_str).unwrap_or(""),
+            cv_ref,
+        )?;
+        product_unit(&unit)?;
+        result = result.with_unit(unit)?;
+    } else if attrs.contains_key("unitCvRef") || attrs.contains_key("unitName") {
+        return Err(invalid("product metadata unit has no accession"));
+    }
+    Ok(result)
+}
+
+fn product_unit(unit: &Unit) -> Result<()> {
+    if !matches!(unit.cv_ref(), "MS" | "UO")
+        || unit.accession().split_once(':').map(|(prefix, _)| prefix) != Some(unit.cv_ref())
+    {
+        return Err(Error::Unsupported(
+            "product metadata units require MS or UO identity".into(),
+        ));
+    }
+    for text in [unit.accession(), unit.name(), unit.cv_ref()] {
+        xml_string(text)?;
+    }
+    Ok(())
+}
+
+fn validate_product_write(product: &Product) -> Result<()> {
+    product.validate()?;
+    // Source MzMLHandler does not preserve arbitrary Product CVTermList entries
+    // with their typed identity through this isolation-window representation.
+    if !product.cv_terms.is_empty() {
+        return Err(Error::Unsupported(
+            "arbitrary product CV terms are not represented in mzML".into(),
+        ));
+    }
+    for (key, value) in &product.cv_terms.metadata {
+        xml_string(key)?;
+        match value.data() {
+            MetaValueData::String(text) => xml_string(text)?,
+            MetaValueData::Integer(_) | MetaValueData::Float(_) => {}
+            _ => {
+                return Err(Error::Unsupported(
+                    "product Empty/list metadata has no lossless mzML scalar encoding".into(),
+                ));
+            }
+        }
+        if let Some(unit) = value.unit() {
+            product_unit(unit)?;
+        }
+    }
+    Ok(())
+}
+
+fn write_product(w: &mut impl Write, product: &Product) -> Result<()> {
+    const MZ_UNIT: &str = " unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"";
+    writeln!(w, "<product><isolationWindow>")?;
+    cv(
+        w,
+        "MS:1000827",
+        "isolation window target m/z",
+        &product.mz.to_string(),
+        MZ_UNIT,
+    )?;
+    for (quantity, accession, name) in [
+        (
+            product.isolation_window_lower_offset,
+            "MS:1000828",
+            "isolation window lower offset",
+        ),
+        (
+            product.isolation_window_upper_offset,
+            "MS:1000829",
+            "isolation window upper offset",
+        ),
+    ] {
+        if quantity > 0.0 {
+            cv(w, accession, name, &quantity.to_string(), MZ_UNIT)?;
+        }
+    }
+    for (name, value) in &product.cv_terms.metadata {
+        let (kind, text) = match value.data() {
+            MetaValueData::String(text) => {
+                ("xsd:string", std::borrow::Cow::Borrowed(text.as_str()))
+            }
+            MetaValueData::Integer(n) => ("xsd:integer", std::borrow::Cow::Owned(n.to_string())),
+            MetaValueData::Float(n) => ("xsd:double", std::borrow::Cow::Owned(n.to_string())),
+            _ => unreachable!("product preflight checked scalar metadata"),
+        };
+        write!(
+            w,
+            "<userParam name=\"{}\" type=\"{kind}\" value=\"{}\"",
+            escape(name),
+            escape(&text)
+        )?;
+        if let Some(unit) = value.unit() {
+            write!(
+                w,
+                " unitAccession=\"{}\" unitCvRef=\"{}\" unitName=\"{}\"",
+                escape(unit.accession()),
+                escape(unit.cv_ref()),
+                escape(unit.name())
+            )?;
+        }
+        writeln!(w, "/>")?;
+    }
+    writeln!(w, "</isolationWindow></product>")?;
+    Ok(())
 }
 fn user_params(w: &mut impl Write, metadata: &BTreeMap<String, String>, name: &str) -> Result<()> {
     if !name.is_empty() {
@@ -1662,6 +1926,7 @@ pub fn write_with_options(
     }
     for (i, c) in experiment.chromatograms.iter().enumerate() {
         precursor_metadata::validate_write(&c.precursor)?;
+        validate_product_write(&c.product)?;
         check_metadata(&c.metadata, &c.name)?;
         let id = if c.native_id.is_empty() {
             format!("chromatogram={i}")
@@ -1842,6 +2107,7 @@ pub fn write_with_options(
             if chromatogram.precursor != Precursor::default() {
                 write_precursor(&mut w, &chromatogram.precursor)?;
             }
+            write_product(&mut w, &chromatogram.product)?;
             writeln!(
                 w,
                 "<binaryDataArrayList count=\"{}\">",

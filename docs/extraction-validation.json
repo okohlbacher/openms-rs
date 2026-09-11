@@ -1,0 +1,200 @@
+{
+  "target_sdk_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "platform": "macOS ARM64",
+  "current_rust": "1.98.0",
+  "minimum_rust": "1.85.0",
+  "checks": [
+    {
+      "name": "full_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 624.44,
+      "log_sha256": "512f20d8efca376990a9b2344cbc511c15b244ebf997ac1a73ff6159c7883446",
+      "log_bytes": 137155,
+      "tests_passed": 1356
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 4.44,
+      "log_sha256": "50a95bc383c603d072b455dd73e26928762e3dc28219f42ca8d284ab2968d71f",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 64.3,
+      "log_sha256": "0a840ddc768b8dfbf1edb5284cf0cacf56f3972a27ed5fecf2dcd3fd404b8348",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 78.17,
+      "log_sha256": "391dd53591ef9a22ff793d798c554876a757fa1f345bd8892d6ea4ab0c50ab94",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 44.6,
+      "log_sha256": "601f064ee7ef4135ddd21c5b1a7ba3c9a626ed18d5c991968619b1e37180298c",
+      "log_bytes": 839
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.08,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-54a232f"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.58,
+      "log_sha256": "72091ab7200cad0e3990007b36e93b259044c68af1979c9142177a6fbf4ea5e5",
+      "log_bytes": 233
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.09,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.14,
+      "log_sha256": "e946b4f814d41b4c5830403689c6b59b9973ca7ccce94ff96036c1d22138be35",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.17,
+      "log_sha256": "ada8287c158c47db545f6c9e762701c9fdb3de124ea9dbacac45d9e31b016b77",
+      "log_bytes": 100
+    },
+    {
+      "name": "rustdoc",
+      "command": "RUSTDOCFLAGS=-D warnings cargo +1.98.0 doc --locked --all-features --no-deps -j2",
+      "exit_code": 0,
+      "log_sha256": "a63bc9df8ff190e3d8758b54e01049093aea430b1afe418ba9b40b6c1f66b141",
+      "log_bytes": 263
+    },
+    {
+      "name": "minimum_indexed_mzml",
+      "command": "cargo +1.85.0 test --locked --no-default-features --features mzml --test indexed_mzml -j2",
+      "exit_code": 0,
+      "log_sha256": "5a4501e24c5897484cbca92290b3047b7a65bffc76ff7cf21f0fac92fba36cfa",
+      "log_bytes": 927,
+      "tests_passed": 9
+    }
+  ],
+  "scope": "FASTA lifecycle, experiment aggregation and XIC extraction, mzML Product transport, indexed mzML offset decoding, peak value traits and updated SDK provenance.",
+  "cpp_built": false,
+  "cpp_runtime_differential_tests": false,
+  "validated_topp_workflows": 0,
+  "completion": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "evidence_requires_review": 163,
+      "native_equivalent": 10,
+      "partial": 11,
+      "unmapped": 592
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "source_files_verified": 1834,
+  "preceding_ci": {
+    "commit": "8fb47cb14cda84579631ff26ff9b1c71afbc1957",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34527954078",
+    "linux": "success",
+    "macos": "success",
+    "windows": "success",
+    "minimum_rust": "success",
+    "linux_all_target_tests": 1310,
+    "quality": "New Rust 1.98 byte_char_slices diagnostic in a test; corrected and whole-crate strict Clippy now passes locally on Rust 1.98."
+  }
+}

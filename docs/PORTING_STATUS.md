@@ -2,7 +2,7 @@
 
 The target is a feature-complete reduced Core SDK suitable for porting TOPP tools, with an idiomatic Rust API. Spectra, chemistry and common processing were the starting priorities. This document describes the implemented surface rather than claiming parity for every method of a similarly named C++ class. The [completion ledger](CORE_SDK_COMPLETION.md) tracks all registered public headers and direct TOPP dependencies.
 
-The current target is SDK 4.0.0 at `6bfc0e4`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
+The current target is SDK 4.0.0 at `54a232f`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
 
 ## Capability mapping
 
@@ -15,8 +15,8 @@ The current target is SDK 4.0.0 at `6bfc0e4`; the [SDK update](CORE_SDK_UPDATE.m
 | KERNEL/Peak1D, ChromatogramPeak | `Peak1D`, `ChromatogramPeak` | Coordinates, intensity, construction, equality |
 | METADATA/Precursor | `Precursor` | Selected m/z, charge/intensity, activation, isolation, mobility, possible charges, CV terms and parent spectrum reference directly on kernel records; `PrecursorInfo` is a compatibility wrapper; [details](METADATA_SUPPORT.md) |
 | KERNEL/MSSpectrum | `MSSpectrum` | Owned peaks and basic metadata; named float/integer/string arrays; validation, stable sorting, selection/retention, TIC, base peak, nearest and bounded searches, current ranges |
-| KERNEL/MSChromatogram | `MSChromatogram` | RT peaks, precursor, basic metadata and aligned arrays; sorting, selection, ranges and nearest search |
-| KERNEL/MSExperiment | `MSExperiment` | Spectrum/chromatogram storage, validation, RT sorting/search/filtering, MS-level queries, TIC chromatogram, ranges and referenced/acquisition-order parent lookup |
+| KERNEL/MSChromatogram | `MSChromatogram` | RT peaks, precursor and product ions, basic metadata and aligned arrays; sorting, selection, ranges and nearest search |
+| KERNEL/MSExperiment | `MSExperiment` | Spectrum/chromatogram storage, validation, RT sorting/search/filtering, MS-level queries, TIC chromatogram, ranges, referenced/acquisition-order parent lookup and complete window aggregation/XIC operations; [aggregation](EXPERIMENT_AGGREGATION_SUPPORT.md) |
 | KERNEL/BaseFeature, Feature, FeatureHandle | `BaseFeature`, `Feature`, `FeatureHandle` | Measured values, metadata, attached peptide IDs, subordinate features, mass-trace hulls and owned handle identities |
 | KERNEL/ConsensusFeature, FeatureMap, ConsensusMap | `ConsensusFeature`, `FeatureMap`, `ConsensusMap` | Mean/monoisotopic/decharge summaries, checked handle union and IDs, stable sorting, selection, ranges and column consistency; [details](FEATURE_SUPPORT.md) |
 | DATASTRUCTURES/DataValue, METADATA/MetaInfo/CVTerm/settings | `metadata` | Typed values/units, CV terms, acquisition/precursor/instrument/processing/settings models and validated merging; [details](METADATA_SUPPORT.md) |
@@ -72,9 +72,10 @@ The current target is SDK 4.0.0 at `6bfc0e4`; the [SDK update](CORE_SDK_UPDATE.m
 | FORMAT/ModificationDefinitionIO | `format::modification_definitions` | Source escaped definition records, provenance-aware collection and owned local registration; [details](MODIFICATION_DEFINITION_IO_SUPPORT.md) |
 | SYSTEM/File | `system::file` | Native filesystem, resource/configuration discovery and owned temporary resources, with explicit platform differences; [details](SYSTEM_FILE_SUPPORT.md) |
 | FORMAT/MS2File, DTA2DFile | `format::ms2`, `format::dta2d` | Source text parsing, DTA2D ranges/storage/TIC and checked native MS2 writer; [details](TEXT_PEAK_LIST_SUPPORT.md) |
-| FORMAT/FASTAFile | `format::fasta` | Buffered collection or streaming entries; wrapped write; no PEFF interpretation |
+| FORMAT/FASTAFile | `format::fasta` | Complete file/stream reader/writer lifecycle, source lexical rules, bounded seek/progress and PEFF prologue skipping; [details](FASTA_SUPPORT.md) |
 | FORMAT/MascotGenericFile | `format::mgf` | Buffered collection or streaming spectra; basic fields and unique extra key/value metadata; no Mascot submission |
 | FORMAT/IdXMLFile | `format::idxml` | Optional bounded native identification read/write, typed UserParam metadata and run/evidence references; [detailed support](IDXML_SUPPORT.md) |
+| FORMAT/HANDLERS/IndexedMzMLDecoder | `format::indexed_mzml` | Bounded footer discovery and both offset vectors, with source duplicate/order behavior and checked XML; [details](INDEXED_MZML_SUPPORT.md) |
 | FORMAT/MzMLFile | `format::mzml` | Optional bounded subset; see [detailed support](MZML_SUPPORT.md) |
 
 ## Deliberate behavior differences

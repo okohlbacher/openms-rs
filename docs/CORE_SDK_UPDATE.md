@@ -1,7 +1,7 @@
 # Current reduced Core SDK target
 
 The Rust port now targets OpenMS Core SDK **4.0.0** at
-[`6bfc0e4711105f4eda2fea86812a83af7c7e791f`](https://github.com/okohlbacher/OpenMS4-core/tree/6bfc0e4711105f4eda2fea86812a83af7c7e791f),
+[`54a232fe2cae9c590d5c997fa49d20e7769860fb`](https://github.com/okohlbacher/OpenMS4-core/tree/54a232fe2cae9c590d5c997fa49d20e7769860fb),
 fetched from the repository's default `codex/package-split` branch on 2026-09-10.
 The original reference archive at `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`
 is retained for the existing scientific fixtures. The package's upstream
@@ -9,8 +9,9 @@ extraction revision `ca32296038839459d8c9b075b759e285913d6294` identifies a
 separate historical input, not the current SDK package.
 
 The [inventory and comparison](core-sdk-update.json) records every current
-scientific source path, hash, size and build-registration role, all changed or
-removed paths, and **220 unchanged historical reference paths**. It distinguishes
+scientific source path, hash, size and build-registration role, all changed, added or
+removed paths, and **220 historical reference paths** (213 unchanged and seven
+with explicit source-change reviews). It distinguishes
 current target identity from the origins of existing source-derived tests.
 `openms::CORE_SDK_VERSION` and `openms::CORE_SDK_REVISION` expose this target in Rust;
 they do not assert a C++ ABI, a Rust artifact hash or complete API parity.
@@ -24,14 +25,14 @@ library. The comparable physical inventory is:
 | --- | ---: | ---: | ---: |
 | Core include-directory `.h` files | 816 | 794 | 22 |
 | Core `.cpp` implementations | 765 | 746 | 19 |
-| Core source-side private headers | 15 | 15 | 0 |
+| Core source-side private headers | 15 | 16 | 0 (one added) |
 | OpenSwathAlgo include headers | 13 | 13 | 0 |
 | OpenSwathAlgo `.cpp` files | 9 | 9 | 0 |
 | Core class-test `.cpp` files | 715 | 703 | 12 |
 
 Including private headers and OpenSwathAlgo, runtime physical lines decrease
-from **484,760 to 468,372**. Of 1,618 old/current runtime paths, 1,569 are
-unchanged, 41 removed and eight changed. File and line counts are not method
+from **484,760 to 468,349**. Of 1,619 old/current runtime paths, 1,543 are
+unchanged, 41 removed, 34 changed and one added. File and line counts are not method
 coverage percentages.
 
 Current reachable build registrations contain 774 Core and twelve OpenSwathAlgo
@@ -59,24 +60,28 @@ None had a corresponding implementation in this Rust port, so updating scope
 does not require deleting working Rust APIs. Core still owns `NuXLReport`,
 `NuXLMarkerIonExtractor`, `PeakGroup`, `PeakGroupScoring`, `DeconvolvedSpectrum`,
 FLASH records/file writers, Comet modification records and reusable readers and
-writers. The current [SDK ownership notes](https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/README.md#tool-backend-extraction)
+writers. The current [SDK ownership notes](https://github.com/okohlbacher/OpenMS4-core/blob/54a232fe2cae9c590d5c997fa49d20e7769860fb/README.md#tool-backend-extraction)
 are authoritative for this split.
 
 ## Changes relevant to the port
 
-All chemistry, kernel, processing, comparison, mathematical and data-structure
-scientific sources used by the existing Rust implementation are unchanged.
-The historical reference comparison also verifies the existing test inputs,
-source assertions, CV/mapping files and XML schemas. No mass-table regeneration,
-fixture replacement or numerical tolerance change is justified by this update.
+The latest update from `6bfc0e4` to `54a232f` retains the same public headers and
+scientific datasets. Its [source review](CORE_SDK_54A232F_REVIEW.md) records C++
+lifetime/error fixes, portability and build changes, and extended-long-double
+formatting outside the Rust value surface. Existing native f32/f64 formulas do
+not change. Seven historical reference source paths have reviewed edits;
+reference fixtures, CV/mapping files and XML schemas remain unchanged. No
+mass-table regeneration, fixture replacement or numerical tolerance change is
+justified by this update. Historical source revisions and hashes are preserved
+separately from explicit verification against the new target.
 
-The retained changes are:
+The earlier package reduction introduced these retained changes:
 
 | Source | Consequence |
 | --- | --- |
 | `PeakGroup` and `PeakGroupScoring` | Isotope-cosine helpers move from the extracted FLASH backend into retained scoring. Fractional isotope residuals now use floating-point absolute values; the new source regression must guide their eventual Rust implementation. |
 | `VersionInfo` | Full package revision, source dirtiness and native build identity are exposed. The Rust target constants identify the reference SDK separately from the Rust package/build. |
-| `SYSTEM/File` | Installed data discovery and error/retry behavior change. Embedded Rust chemistry resources do not need C++ runtime path discovery. The broader filesystem API is still unported. |
+| `SYSTEM/File` | Installed data discovery and error/retry behavior change. Embedded Rust chemistry resources do not need C++ runtime path discovery. Native filesystem/resource helpers are now implemented with explicit platform differences. |
 | `ParamCTDFile` | An explicit `StringUtils` include repairs dependency closure; scientific serialization behavior is unchanged. |
 
 The identification graph remains registered and byte-identical. Its
@@ -107,11 +112,11 @@ python3 tools/check_core_sdk.py
 ```
 
 With a clean independent checkout of the pinned SDK, it also verifies the exact
-revision, full scientific file set and 1,788 distinct source/registration/reference
+revision, full scientific file set and all recorded source/registration/reference
 hashes:
 
 ```bash
-python3 tools/check_core_sdk.py --source .reference/openms4-core-current
+python3 tools/check_core_sdk.py --source .reference/openms4-core-54a232f
 ```
 
 The old archive is not a Git checkout. The check explicitly verifies the supplied

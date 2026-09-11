@@ -82,5 +82,12 @@
     "Metadata export rejects nonfinite floats because native MetaValue is finite-only; existing metadata is unchanged on every checked error.",
     "Source equality available explicitly; Rust PartialEq retains full owned Param equality.",
     "Shared 50,000,000 work / 64 MiB logical allocation ceilings apply across each operation, including default fill, validation, traversal, metadata and staged copies; 100,000 subsections cap. Ordinary Rust Clone is unchecked."
-  ]
+  ],
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": []
+  }
 }

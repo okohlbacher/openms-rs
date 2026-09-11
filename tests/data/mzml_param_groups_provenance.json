@@ -111,5 +111,19 @@
   },
   "validation": "Source projection independently decoded and structurally validated with xmllint --nonet against pinned schema. Focused Rust tests assert scientific values and errors. No C++ build/execution or runtime differential claim.",
   "reference_tests": "tests/mzml_param_groups.rs",
-  "license": "Source-derived projection follows existing OpenMS BSD-3-Clause notices; source fixture attribution retained here."
+  "license": "Source-derived projection follows existing OpenMS BSD-3-Clause notices; source fixture attribution retained here.",
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": [
+      {
+        "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+        "source_sha256": "e806b32fb64458afae70b49b07458a8969c4ed20051c67465bb850945cce187e",
+        "target_sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe",
+        "review": "Changes the accession test-loop variable from string reference to const char pointer; XML assertions and input fixtures are unchanged."
+      }
+    ]
+  }
 }

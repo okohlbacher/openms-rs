@@ -13,7 +13,6 @@
 use crate::analysis::emg::EmgGradientDescent;
 use crate::error::{Error, Result};
 use crate::kernel::{MSChromatogram, MSSpectrum};
-use std::borrow::Cow;
 use std::fmt;
 use std::ops::Range;
 use std::str::FromStr;
@@ -254,10 +253,7 @@ impl PeakIntegrator {
         // Bound the whole original trace before fitting allocates its working vectors.
         self.range(trace, left, right)?;
         match (&self.emg, trace) {
-            (None, Trace::Spectrum(input)) => Ok(PreparedTrace::Spectrum(Cow::Borrowed(input))),
-            (None, Trace::Chromatogram(input)) => {
-                Ok(PreparedTrace::Chromatogram(Cow::Borrowed(input)))
-            }
+            (None, trace) => Ok(PreparedTrace::Borrowed(trace)),
             (Some(config), trace) => {
                 let fitter = EmgGradientDescent {
                     max_points: config.max_points.min(self.max_points),
@@ -266,12 +262,12 @@ impl PeakIntegrator {
                 // Some(0.0) is a literal boundary, unlike the C++ zero sentinel.
                 // The fitter returns typed parameter diagnostics, never an unaligned array.
                 match trace {
-                    Trace::Spectrum(input) => Ok(PreparedTrace::Spectrum(Cow::Owned(
+                    Trace::Spectrum(input) => Ok(PreparedTrace::Spectrum(Box::new(
                         fitter
                             .fit_spectrum(input, Some(left), Some(right))?
                             .spectrum,
                     ))),
-                    Trace::Chromatogram(input) => Ok(PreparedTrace::Chromatogram(Cow::Owned(
+                    Trace::Chromatogram(input) => Ok(PreparedTrace::Chromatogram(Box::new(
                         fitter
                             .fit_chromatogram(input, Some(left), Some(right))?
                             .chromatogram,
@@ -478,21 +474,18 @@ impl PeakIntegrator {
 
 // The fitted container is owned only for this operation; no-fit paths borrow input.
 enum PreparedTrace<'a> {
-    Spectrum(Cow<'a, MSSpectrum>),
-    Chromatogram(Cow<'a, MSChromatogram>),
+    Borrowed(Trace<'a>),
+    Spectrum(Box<MSSpectrum>),
+    Chromatogram(Box<MSChromatogram>),
 }
 
 impl PreparedTrace<'_> {
     fn view(&self, left: f64, right: f64) -> Result<(Trace<'_>, f64, f64)> {
-        let (trace, fitted) = match self {
-            Self::Spectrum(input) => (Trace::Spectrum(input), matches!(input, Cow::Owned(_))),
-            Self::Chromatogram(input) => {
-                (Trace::Chromatogram(input), matches!(input, Cow::Owned(_)))
-            }
+        let trace = match self {
+            Self::Borrowed(trace) => return Ok((*trace, left, right)),
+            Self::Spectrum(input) => Trace::Spectrum(input),
+            Self::Chromatogram(input) => Trace::Chromatogram(input),
         };
-        if !fitted {
-            return Ok((trace, left, right));
-        }
         if trace.len() == 0 {
             return Err(invalid("EMG preprocessing returned no fitted points"));
         }

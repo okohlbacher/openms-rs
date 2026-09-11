@@ -57,5 +57,12 @@
     "Nested ParentGroup records count toward GraphLimits.max_records; work/bytes/edges are bounded."
   ],
   "test": "tests/identification_groups.rs",
-  "cpp_execution": false
+  "cpp_execution": false,
+  "target_verification": {
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "source_revisions": [
+      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+    ],
+    "source_changes": []
+  }
 }
