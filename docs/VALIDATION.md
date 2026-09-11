@@ -1,5 +1,45 @@
 # Validation of the ongoing Rust port
 
+## ProForma conversion and CV mappings (2026-09-11)
+
+[Recorded checks](conversion-mapping-validation.json) cover complete ProForma
+AASequence conversion in both directions and the five-class CV mapping group,
+adding 30 tests against SDK `82ce5b3`.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,953 tests passed |
+| Doctests, both compiler versions | Four passed per compiler |
+| Rust 1.85/CV mapping and library selection | 126 passed |
+| Rust 1.85/native and adjacent selection | 260 passed |
+| Rust 1.85/JSON and mass selection | 142 passed |
+| Strict Clippy, release library, Rustdoc and Rustfmt | Passed |
+| Source audit, independent projections and completion ledger | Passed |
+
+The [previous published checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34580543352)
+passed all Linux, macOS, Windows, minimum-Rust and quality jobs. This is distinct
+from CI for the present increment.
+
+All 21 integrated checks passed on their first run. Selected totals overlap.
+Every one of 1,078 executed C++ formatter cases is exercised through native
+reverse conversion, writing and parsing. Only the exact source formatter helper
+was compiled; this is not an executed C++ conversion or spectrum oracle. Mapping
+tests compare all 683 full records projected independently from six unchanged
+source XML files. Complete operation and evidence review is recorded in the
+[conversion](PROFORMA_CONVERSION_SUPPORT.md) and [mapping](CV_MAPPING_SUPPORT.md)
+support documents.
+
+The [C++ issue log](../OpenMS_CPP_ISSUES.md) contains 38 entries. New source-reviewed
+findings document charge loss during formula combination and duplicate linker
+mass in the still-unported ProForma XLMS spectrum wrapper. Proposed C++ fixes,
+executed evidence and native compatibility behavior remain separate.
+
+The ledger records 66 complete or native-equivalent headers and 720 requiring
+implementation or review, with zero certified TOPP workflows. Source verification
+covers 1,925 distinct current files, 220 historical references, 21 graph references
+and 776 added references. Full mzML headers/consumers, ProForma spectra and general
+semantic validation remain ongoing groups; staged work is not certified here.
+
 ## ProForma mass and controlled vocabularies (2026-09-11)
 
 [Recorded checks](vocabulary-mass-validation.json) cover the complete ProForma

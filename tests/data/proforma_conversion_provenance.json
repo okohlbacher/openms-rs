@@ -1,0 +1,285 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "3b776acb70f40a624d8e70cb0bdf175c8b15d6fe",
+  "native_base_note": "Fresh isolated copy of frozen ProForma mass stage (itself based on root working snapshot); only explicit conversion extraction files contributed.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
+      "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModificationsDB.h",
+      "sha256": "c815a5a5f47f0b5d495cdca2ef6b1fa9bd5115c43a4eb3c50e4f94d48bcd39a6"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueModification.h",
+      "sha256": "c9e87e432f3399782dc5148af1465d021a578468076b4e386a544bfd5359bf0e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+      "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/Residue.h",
+      "sha256": "8abda7e4cc2e2d9c19841c5c9e4c527f16e930e5c51e2490bbd6f4b2ac3ccc0e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/AASequence.h",
+      "sha256": "87e8f36d7f547258b2dbd472271d589e6fbad6ae7a0129bceecc780b0724dd4d"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693"
+    }
+  ],
+  "source_ranges": {
+    "ProForma.h": "58-86,800-859",
+    "ProForma.cpp": "1712-1758,1879-1886,2136-2485",
+    "AASequence.cpp": "1442-1449,1601-1611",
+    "ResidueModification.cpp": "567-707"
+  },
+  "source_sections_reviewed": [
+    {
+      "line": 1454,
+      "section": "START_SECTION(isRepresentableAsAASequence - simple sequence)"
+    },
+    {
+      "line": 1466,
+      "section": "START_SECTION(isRepresentableAsAASequence - unsupported features)"
+    },
+    {
+      "line": 1482,
+      "section": "START_SECTION(getAASequenceConversionIssues)"
+    },
+    {
+      "line": 1518,
+      "section": "START_SECTION(toAASequence - simple sequence)"
+    },
+    {
+      "line": 1529,
+      "section": "START_SECTION(toAASequence - with UNIMOD modification)"
+    },
+    {
+      "line": 1543,
+      "section": "START_SECTION(toAASequence - with N-terminal modification)"
+    },
+    {
+      "line": 1554,
+      "section": "START_SECTION(toAASequence - FAIL_ON_LOSS policy throws on unsupported)"
+    },
+    {
+      "line": 1564,
+      "section": "START_SECTION(toAASequence - BEST_EFFORT policy ignores unsupported)"
+    },
+    {
+      "line": 1574,
+      "section": "START_SECTION([EXTRA] toAASequence - mass-delta mods without CV accession - lossy contract)"
+    },
+    {
+      "line": 1619,
+      "section": "START_SECTION(fromAASequence - simple sequence)"
+    },
+    {
+      "line": 1636,
+      "section": "START_SECTION(fromAASequence - with modification)"
+    },
+    {
+      "line": 1652,
+      "section": "START_SECTION(fromAASequence - roundtrip)"
+    },
+    {
+      "line": 1675,
+      "section": "START_SECTION(ProForma to AASequence roundtrip)"
+    },
+    {
+      "line": 1694,
+      "section": "START_SECTION([EXTRA] QPX/Parquet lane peptidoform round-trip preserves modifications)"
+    },
+    {
+      "line": 1738,
+      "section": "START_SECTION([EXTRA] toAASequence - a Formula tag resolves to a modification carrying that chemistry)"
+    },
+    {
+      "line": 1767,
+      "section": "START_SECTION([EXTRA] toAASequence - one database entry per formula whatever the spelling)"
+    },
+    {
+      "line": 1784,
+      "section": "START_SECTION([EXTRA] toAASequence - an unusable Formula tag stays unresolved)"
+    },
+    {
+      "line": 1800,
+      "section": "START_SECTION([EXTRA] getAASequenceConversionIssues - an INFO alternative is not an alternative)"
+    },
+    {
+      "line": 1819,
+      "section": "START_SECTION([EXTRA] toAASequence - several brackets on one residue combine their chemistry)"
+    },
+    {
+      "line": 1886,
+      "section": "START_SECTION([EXTRA] fromAASequence - an anonymous modification must not serialise as an empty bracket)"
+    },
+    {
+      "line": 1906,
+      "section": "START_SECTION([EXTRA] fromAASequence - a formula-carrying anonymous modification round-trips its chemistry)"
+    },
+    {
+      "line": 1924,
+      "section": "START_SECTION([EXTRA] toAASequence - the parquet peptidoform encoding is chemically complete on its own)"
+    },
+    {
+      "line": 1945,
+      "section": "START_SECTION([EXTRA] toAASequence - a Formula tag on an unknown residue must not crash)"
+    },
+    {
+      "line": 1954,
+      "section": "START_SECTION([EXTRA] fromAASequence - extreme mass deltas stay parseable)"
+    },
+    {
+      "line": 1973,
+      "section": "START_SECTION([EXTRA] toAASequence - the order of tags inside one bracket does not change the result)"
+    },
+    {
+      "line": 1989,
+      "section": "START_SECTION([EXTRA] toAASequence - combination trusts the diff masses and only a consistent formula)"
+    },
+    {
+      "line": 2027,
+      "section": "START_SECTION([EXTRA] toAASequence - a label-only terminal bracket must not hide the chemistry behind it)"
+    },
+    {
+      "line": 2038,
+      "section": "START_SECTION([EXTRA] getAASequenceConversionIssues - unresolved chemistry behind an empty INFO is still reported)"
+    },
+    {
+      "line": 2060,
+      "section": "START_SECTION([EXTRA] getAASequenceConversionIssues - a residue-incompatible accession is an issue not an exception)"
+    },
+    {
+      "line": 2079,
+      "section": "START_SECTION([EXTRA] getMonoWeight - tag order inside a bracket does not change the mass either)"
+    },
+    {
+      "line": 2088,
+      "section": "START_SECTION([EXTRA] fromAASequence - a huge mass delta is written in full rather than as zero)"
+    },
+    {
+      "line": 2102,
+      "section": "START_SECTION([EXTRA] fromAASequence - a tool-defined modification is written as its chemistry plus an INFO tag)"
+    },
+    {
+      "line": 2119,
+      "section": "START_SECTION([EXTRA] toAASequence - the INFO name restores the identity of a tool-defined modification)"
+    },
+    {
+      "line": 2144,
+      "section": "START_SECTION([EXTRA] toAASequence - the definition wins over disagreeing inline chemistry and says so)"
+    },
+    {
+      "line": 2169,
+      "section": "START_SECTION([EXTRA] toAASequence - free text naming a vocabulary entry does not override the chemistry)"
+    },
+    {
+      "line": 2181,
+      "section": "START_SECTION([EXTRA] toAASequence - a Formula tag yields an anonymous modification)"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/proforma_conversion_mass_text.tsv",
+      "sha256": "01e4b2eff8f400477605ab33e34441ee37b303e3ae2cdaaf5ffdf5a84687be3d"
+    }
+  ],
+  "files": [
+    {
+      "path": "tools/generate_proforma_conversion_mass_probe.py",
+      "sha256": "9fe21dc748786f62371777895704ed18a0dee41e1a69b2d3ccbaf174824eb02f"
+    }
+  ],
+  "fixture_policy": "Source literal/structural chemistry assertions are inline and source-reviewed. External TSV is actual execution of the exact extracted massDeltaText_ formatter helper only. No native Rust output generated expected values; no C++ full SDK or conversion algorithm execution claimed.",
+  "formatter_probe": {
+    "source_helper": "ProForma.cpp::massDeltaText_",
+    "source_helper_sha256": "748a90b1a9c0085ddbe3726c07a5ac7fea85f60ba064a94527cbcd7c3c21cab6",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "flags": [
+      "-std=c++17",
+      "-O2"
+    ],
+    "rows": 1078,
+    "inputs": "Both signs of zero, minimum subnormal, largest subnormal, minimum normal, maximum finite, neighbors of explicit decimal/2^52/2^53/large-integral values, plus 512 steps of the documented 64-bit integer recurrence filtered to finite magnitudes; deduplicated and sorted.",
+    "stand_in": "Only OpenMS exception construction and OPENMS_PRETTY_FUNCTION use a small standard-library stand-in; finite source helper body is extracted unchanged.",
+    "native_assertion": "Every row exercises complete from_aa_sequence and lossless writer/parser. Input record declares positive absolute residue mass independently of diff mass, preserving existing AASequence cached-mass validity for negative extremes.",
+    "reproduce": "python3 tools/generate_proforma_conversion_mass_probe.py --source-root /path/to/pinned/source --check"
+  },
+  "implemented_scope": [
+    "Four source AASequence conversion functions plus native explicit-policy/default wrappers; already available resolver remains reused.",
+    "Existing three policies and all conversion issue variants, complete source combination/reverse helpers and owned diagnostics."
+  ],
+  "native_tests": [
+    "tests/proforma_conversion.rs",
+    "src/chemistry/proforma_conversion.rs::tests"
+  ],
+  "case_counts": {
+    "direct_tests": 13,
+    "new_private_tests": 4,
+    "reviewed_source_sections": 36,
+    "executed_formatter_rows": 1078
+  },
+  "preserved_cpp_issues": [
+    "CPP-029: annotations-only ordinary bracket passes issues/can but strict null-handle attachment throws.",
+    "CPP-030: terminal crosslink label omitted from issue checking and attachment.",
+    "CPP-031: empty public ambiguous section advances cursor without emitting residue; checked index error retained.",
+    "CPP-037: charged formula combination canonicalizes to neutral text and loses PROTON_MASS_U; direct source-reviewed AST formula and mass-difference regression."
+  ],
+  "native_differences": [
+    "Immutable inputs and caller-owned registry transaction; every Err rolls back, completed issues/can reports commit formula interning.",
+    "Owned typed resolution/formula-disagreement warnings replace global logging.",
+    "Existing deterministic provider-first DB lookup replaces C++ allocation-dependent pointer ordering; no public lookup policies changed.",
+    "Existing native AASequence grammar, known/unknown chemistry, nonnegative cached-mass and finite/count bounds remain inherited.",
+    "Native anonymous MassTag reverse conversion materializes owned records; absolute B/Z/X locally derives source-zero-base delta as internal target + H2O without changing public MassTag availability.",
+    "Conservative cumulative logical bounds and safe index errors replace undefined overflow/unchecked allocation. Integral finite mass text uses exact fixed zero precision; 1078 source outputs verify fractional/integral formatting."
+  ],
+  "limits": {
+    "work": 50000000,
+    "items": 1000000,
+    "logical_allocation_bytes": 268435456,
+    "text_value_bytes": 4194304
+  },
+  "remaining_scope": [
+    "Ordinary and XLMS spectrum operation groups; overall ProForma header remains partial."
+  ],
+  "licensing": "Source-derived native code and source formatter extraction retain OpenMS BSD-3-Clause provenance; no new dependency."
+}

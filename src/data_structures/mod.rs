@@ -7,3 +7,8 @@ pub mod string_list;
 
 pub mod datetime;
 pub use datetime::DateTime;
+
+pub mod cv_mapping;
+pub use cv_mapping::{
+    CVMappingRule, CVMappingTerm, CVMappings, CVReference, CombinationsLogic, RequirementLevel,
+};

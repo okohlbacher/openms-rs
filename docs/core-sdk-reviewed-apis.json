@@ -826,7 +826,8 @@
         "src/chemistry/proforma_json.rs",
         "src/chemistry/proforma_resolution.rs",
         "src/chemistry/modifications.rs",
-        "src/chemistry/proforma_mass.rs"
+        "src/chemistry/proforma_mass.rs",
+        "src/chemistry/proforma_conversion.rs"
       ],
       "tests": [
         "tests/proforma.rs",
@@ -835,10 +836,11 @@
         "tests/proforma_parser_probe.rs",
         "tests/proforma_json.rs",
         "tests/proforma_resolution.rs",
-        "tests/proforma_mass.rs"
+        "tests/proforma_mass.rs",
+        "tests/proforma_conversion.rs"
       ],
       "documentation": "docs/PROFORMA_SUPPORT.md",
-      "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution and all mass/mz/can/issues/optional operation groups. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. AASequence conversion/policies and ordinary/XLMS spectrum methods remain outstanding."
+      "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution, all mass/mz/can/issues/optional operations, and complete AASequence conversion/policies/diagnostics in both directions. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. Conversion preserves source defects explicitly; 1078 executed source formatter cases cover reverse mass text. Ordinary/XLMS spectrum methods remain outstanding."
     },
     "src/openms/include/OpenMS/METADATA/ProteinIdentification.h": {
       "status": "partial",
@@ -1028,6 +1030,67 @@
       ],
       "documentation": "docs/CONTROLLED_VOCABULARY_SUPPORT.md",
       "scope": "Complete owned term definition and all class-specific lookup, cumulative OBO loading, ordered graph traversal, typed/string XML, score direction, stream output, FNV and five-provider singleton operations. All 9254 final definitions and 16852 aliases checked against independent source-loop projection. Exact raw resources retained; explicit BTO decoding and data-license boundaries documented. Transactional/cycle/resource checks, actual typed units, full attribute escaping and legacy binary-prefix/stream corrections replace source defects. Mapping rules, general semantic validation and header consumers remain separate."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/CVReference.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "tests": [
+        "tests/cv_mapping_values.rs",
+        "tests/cv_mapping_file.rs"
+      ],
+      "documentation": "docs/CV_MAPPING_SUPPORT.md",
+      "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/CVMappingTerm.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "tests": [
+        "tests/cv_mapping_values.rs",
+        "tests/cv_mapping_file.rs"
+      ],
+      "documentation": "docs/CV_MAPPING_SUPPORT.md",
+      "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/CVMappingRule.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "tests": [
+        "tests/cv_mapping_values.rs",
+        "tests/cv_mapping_file.rs"
+      ],
+      "documentation": "docs/CV_MAPPING_SUPPORT.md",
+      "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/CVMappings.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "tests": [
+        "tests/cv_mapping_values.rs",
+        "tests/cv_mapping_file.rs"
+      ],
+      "documentation": "docs/CV_MAPPING_SUPPORT.md",
+      "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+    },
+    "src/openms/include/OpenMS/FORMAT/CVMappingFile.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/format/cv_mapping.rs",
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "tests": [
+        "tests/cv_mapping_file.rs",
+        "tests/cv_mapping_values.rs"
+      ],
+      "documentation": "docs/CV_MAPPING_SUPPORT.md",
+      "scope": "Complete class-specific load/namespace option group with atomic owned/path/BufRead operations. Six unchanged source fixtures and independent 683-record full-field projection. Local parser state and corrected namespace stripping avoid documented defects; exact qname/boolean/enum-fallback and append conventions retained. Explicit bounded encoding/DTD/ZIP boundaries; inherited general XMLFile, semantic/XSD validation and XPath evaluation remain separate."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

@@ -9,6 +9,8 @@
 
 pub mod controlled_vocabulary;
 pub mod csv;
+#[cfg(feature = "cv-mapping")]
+pub mod cv_mapping;
 pub mod numpress;
 #[cfg(feature = "numpress")]
 pub mod numpress_coder;

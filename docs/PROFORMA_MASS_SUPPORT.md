@@ -33,9 +33,9 @@ assert!((mz - 400.6872).abs() < 0.001);
 Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
-The overall [ProForma header](PROFORMA_SUPPORT.md) remains partial: sequence
-conversion and ordinary/XLMS spectrum generation are separate, unimplemented
-groups. These operations preserve the pinned SDK's behavior, including known
+The overall [ProForma header](PROFORMA_SUPPORT.md) remains partial: ordinary/XLMS
+spectrum generation is a separate, unimplemented group.
+[AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md) is available separately. These operations preserve the pinned SDK's behavior, including known
 C++ defects; they are not a standards-corrected interpretation of all notation.
 
 ## Calculation and lookup

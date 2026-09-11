@@ -170,8 +170,8 @@ parser differential run or a complete SDK build. The earlier writer extraction
 probe remains separate evidence in [the AST/writer support document](PROFORMA_SUPPORT.md).
 [Modification resolution](PROFORMA_RESOLUTION_SUPPORT.md) is available as a
 separate explicit operation, as are [mass/mz calculations](PROFORMA_MASS_SUPPORT.md)
-with issue/can/try variants. Conversion policies and ordinary/XLMS spectra remain
-unimplemented; no parser success claims those capabilities.
+with issue/can/try variants and [AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md).
+Ordinary/XLMS spectra remain unimplemented; no parser success claims those capabilities.
 
 ## Executed C++ text comparisons
 

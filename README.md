@@ -78,7 +78,7 @@ The [chromatogram picker](docs/CHROMATOGRAM_PICKING_SUPPORT.md) preserves source
 
 The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds and reports exact input regions alongside the source’s rounded centroid and boundary arrays. [Window filtering](docs/WINDOW_MOWER_SUPPORT.md) supports sliding and jumping windows; the [iterative mean noise estimator](docs/MEAN_NOISE_SUPPORT.md) preserves the source’s three-pass clipping conventions.
 
-IsoSpec layered traversal; ProForma AASequence conversion and spectrum generation; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
+IsoSpec layered traversal; ProForma ordinary/XLMS spectrum generation; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
 
 The [mobility containers](docs/MOBILOGRAM_SUPPORT.md) provide checked mobilogram
 search, sorting, selection and summaries. Generic `DataArray` values now retain
@@ -102,6 +102,8 @@ The `mzml`, `idxml`, `paramxml`, `featurexml`, `consensusxml` and `rna-json` fea
 ```toml
 openms = { path = "/absolute/path/to/OpenMS4-R", default-features = false }
 ```
+
+[ProForma AASequence conversion](docs/PROFORMA_CONVERSION_SUPPORT.md) supports both directions, all policies and diagnostics with an explicit registry. [CV mapping records and XML loading](docs/CV_MAPPING_SUPPORT.md) are available; `cv-mapping` is included by default and can be enabled independently. General semantic validation remains separate.
 
 Enable ProForma JSON independently with `default-features = false, features = ["proforma-json"]`.
 

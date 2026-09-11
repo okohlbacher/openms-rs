@@ -10,8 +10,9 @@ The optional [JSON transport](PROFORMA_JSON_SUPPORT.md) provides both top-level
 read/write operations with the source tagged schema. The
 [modification resolver](PROFORMA_RESOLUTION_SUPPORT.md) fills chemistry handles
 against a caller-owned registry. [Mass/mz operations](PROFORMA_MASS_SUPPORT.md)
-include predicates, diagnostics and optional results. There is no AASequence
-conversion or spectrum generation API in this module yet. No placeholder
+include predicates, diagnostics and optional results. [AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md)
+provides both directions, all policies and diagnostics. There is no spectrum
+generation API in this module yet. No placeholder
 functions stand in for those operations. Existing
 [AASequence](SEQUENCE_SUPPORT.md), [modification records](MODIFICATION_SUPPORT.md),
 and [MonosaccharideDB](MONOSACCHARIDE_SUPPORT.md) remain separately usable.
@@ -144,9 +145,7 @@ All failures leave input ownership/state unchanged and return no partial string.
 
 ## Remaining source operation groups
 
-The remaining groups are AASequence conversion
-with all policies/diagnostics; ordinary
-and cross-linked spectrum generation. The latter needs a native
+The remaining groups are ordinary and cross-linked spectrum generation. The latter needs a native
 `TheoreticalSpectrumGeneratorXLMS` backend, which is not supplied by the ordinary
 [theoretical spectrum generator](THEORETICAL_SPECTRA.md).
 

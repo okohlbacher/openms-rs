@@ -797,7 +797,7 @@ fn copy_modifications(value: &[Modification], budget: &mut Budget) -> Result<()>
 fn copy_element(element: &SequenceElement, budget: &mut Budget) -> Result<()> {
     copy_modifications(&element.modifications, budget)
 }
-fn clone_chain(chain: &Peptidoform, budget: &mut Budget) -> Result<Peptidoform> {
+pub(super) fn clone_chain(chain: &Peptidoform, budget: &mut Budget) -> Result<Peptidoform> {
     budget.consume(size_of::<Peptidoform>())?;
     budget.allocate(size_of::<Peptidoform>())?;
     if let Some(name) = &chain.name {

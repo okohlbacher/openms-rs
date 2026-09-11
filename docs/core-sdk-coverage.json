@@ -7,9 +7,9 @@
     "by_status": {
       "complete": 10,
       "evidence_requires_review": 166,
-      "native_equivalent": 51,
+      "native_equivalent": 56,
       "partial": 21,
-      "unmapped": 538
+      "unmapped": 533
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2360,6 +2360,7 @@
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/registry_provenance.json",
         "tests/data/sequence_coverage_provenance.json",
         "tests/data/theoretical_extension_provenance.json"
@@ -2514,6 +2515,7 @@
         "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/fine_isotope_provenance.json",
         "tests/data/fine_isotope_stream_provenance.json",
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/rna_provenance.json",
@@ -2543,6 +2545,7 @@
         "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/fine_isotope_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/rna_processing_provenance.json",
@@ -3018,6 +3021,7 @@
         "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/registry_provenance.json",
@@ -3183,7 +3187,8 @@
           "src/chemistry/proforma_json.rs",
           "src/chemistry/proforma_resolution.rs",
           "src/chemistry/modifications.rs",
-          "src/chemistry/proforma_mass.rs"
+          "src/chemistry/proforma_mass.rs",
+          "src/chemistry/proforma_conversion.rs"
         ],
         "tests": [
           "tests/proforma.rs",
@@ -3192,13 +3197,15 @@
           "tests/proforma_parser_probe.rs",
           "tests/proforma_json.rs",
           "tests/proforma_resolution.rs",
-          "tests/proforma_mass.rs"
+          "tests/proforma_mass.rs",
+          "tests/proforma_conversion.rs"
         ],
         "documentation": "docs/PROFORMA_SUPPORT.md",
-        "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution and all mass/mz/can/issues/optional operation groups. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. AASequence conversion/policies and ordinary/XLMS spectrum methods remain outstanding."
+        "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution, all mass/mz/can/issues/optional operations, and complete AASequence conversion/policies/diagnostics in both directions. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. Conversion preserves source defects explicitly; 1078 executed source formatter cases cover reverse mass text. Ordinary/XLMS spectrum methods remain outstanding."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_json_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_parser_probe_provenance.json",
@@ -3305,6 +3312,7 @@
         "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/registry_provenance.json",
@@ -3325,6 +3333,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
@@ -3352,6 +3361,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/registry_provenance.json"
@@ -3734,6 +3744,7 @@
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/precursor_purity_provenance.json",
+        "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/rna_provenance.json",
@@ -4175,20 +4186,50 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/CVMappingRule.h",
       "sha256": "d80c7d8a017992cc025d56fc987c38c9db893c8d722cd00fccaca0d370de28c8",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/data_structures/cv_mapping.rs"
+        ],
+        "tests": [
+          "tests/cv_mapping_values.rs",
+          "tests/cv_mapping_file.rs"
+        ],
+        "documentation": "docs/CV_MAPPING_SUPPORT.md",
+        "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+      },
+      "candidate_rust_files": [
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/cv_mapping_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/CVMappingTerm.h",
       "sha256": "31583c6444662d06e74defcd25882541df6f298afc00315e32a67b0dd6a9d84a",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/data_structures/cv_mapping.rs"
+        ],
+        "tests": [
+          "tests/cv_mapping_values.rs",
+          "tests/cv_mapping_file.rs"
+        ],
+        "documentation": "docs/CV_MAPPING_SUPPORT.md",
+        "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+      },
+      "candidate_rust_files": [
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/cv_mapping_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CVInspector"
       ]
@@ -4197,10 +4238,25 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/CVMappings.h",
       "sha256": "c86b00e21665606730cfbed1f6c9e727f6694a70c153e072bfb5433cf99029c8",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/data_structures/cv_mapping.rs"
+        ],
+        "tests": [
+          "tests/cv_mapping_values.rs",
+          "tests/cv_mapping_file.rs"
+        ],
+        "documentation": "docs/CV_MAPPING_SUPPORT.md",
+        "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+      },
+      "candidate_rust_files": [
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/cv_mapping_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CVInspector",
         "SemanticValidator"
@@ -4210,10 +4266,25 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/CVReference.h",
       "sha256": "5c8c254aa87ad55679f6bcafe5804c29573649ead2ff1e20eb16ee1a846f8b92",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/data_structures/cv_mapping.rs"
+        ],
+        "tests": [
+          "tests/cv_mapping_values.rs",
+          "tests/cv_mapping_file.rs"
+        ],
+        "documentation": "docs/CV_MAPPING_SUPPORT.md",
+        "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+      },
+      "candidate_rust_files": [
+        "src/data_structures/cv_mapping.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/cv_mapping_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -4353,6 +4424,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/controlled_vocabulary_provenance.json",
+        "tests/data/cv_mapping_provenance.json",
         "tests/data/default_param_handler_provenance.json",
         "tests/data/list_utils_provenance.json",
         "tests/data/metadata_hash_provenance.json",
@@ -4758,6 +4830,7 @@
         "tests/data/adduct_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/controlled_vocabulary_provenance.json",
+        "tests/data/cv_mapping_provenance.json",
         "tests/data/datetime_provenance.json",
         "tests/data/experiment_metadata_provenance.json",
         "tests/data/list_utils_provenance.json",
@@ -5484,10 +5557,26 @@
       "header": "src/openms/include/OpenMS/FORMAT/CVMappingFile.h",
       "sha256": "25d60db0934103cd118ea65ea245eba15a9b9610b1eeb273d1c45bbb5b23d7e6",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/cv_mapping.rs",
+          "src/data_structures/cv_mapping.rs"
+        ],
+        "tests": [
+          "tests/cv_mapping_file.rs",
+          "tests/cv_mapping_values.rs"
+        ],
+        "documentation": "docs/CV_MAPPING_SUPPORT.md",
+        "scope": "Complete class-specific load/namespace option group with atomic owned/path/BufRead operations. Six unchanged source fixtures and independent 683-record full-field projection. Local parser state and corrected namespace stripping avoid documented defects; exact qname/boolean/enum-fallback and append conventions retained. Explicit bounded encoding/DTD/ZIP boundaries; inherited general XMLFile, semantic/XSD validation and XPath evaluation remain separate."
+      },
+      "candidate_rust_files": [
+        "src/format/cv_mapping.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/cv_mapping_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CVInspector",
         "SemanticValidator"
@@ -6607,6 +6696,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/controlled_vocabulary_provenance.json",
+        "tests/data/cv_mapping_provenance.json",
         "tests/data/experimental_settings_provenance.json",
         "tests/data/idxml_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
@@ -7860,6 +7950,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/cv_mapping_provenance.json",
         "tests/data/identification_paths_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_paths_provenance.json",
@@ -11818,10 +11909,7 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/DATASTRUCTURES/CVMappingTerm.h",
-        "OpenMS/DATASTRUCTURES/CVMappings.h",
-        "OpenMS/FORMAT/CVMappingFile.h"
+        "OpenMS/CONCEPT/LogStream.h"
       ],
       "workflow_validated": false
     },
@@ -15707,8 +15795,6 @@
         "OpenMS/config.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/DATASTRUCTURES/CVMappings.h",
-        "OpenMS/FORMAT/CVMappingFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
         "OpenMS/SYSTEM/File.h"

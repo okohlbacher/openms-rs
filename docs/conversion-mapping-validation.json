@@ -1,0 +1,458 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "e98d2333db6ec9f6f866155272d456d599c4607d",
+  "scope": [
+    "Complete ProForma AASequence conversion group in both directions, all policies and diagnostics",
+    "Complete five-class CV mapping value and XML load group",
+    "C++ issue log expanded to 38 entries with explicit source evidence and proposed fixes"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 304.86,
+      "log_sha256": "fe2bc5b7f3a15b1f3ec8a032ac6075e1bdc8331ebb49645d26d3a08b2fe819b5",
+      "log_bytes": 203106,
+      "tests_passed": 1953
+    },
+    {
+      "name": "docs_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.67,
+      "log_sha256": "0b44ef48c4ddc7ead964ef6f2b2879c42fec0d7ce1afb6340a515d54ac11e583",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 44.25,
+      "log_sha256": "c53efbe93b08c623d1e26d04e662836bbc03db7b9b5698f21244025037a14625",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 33.48,
+      "log_sha256": "99ee4e7101f2de240db6ebf7716ec745a2d6e34cb3597974d2b96bd559521597",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.89,
+      "log_sha256": "14e3ed3b7121329425578f6ccfadd1c8417afba2854072969e3d8acdb2b42a42",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.89,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.44,
+      "log_sha256": "cb2d2467e53cc40d7dd5eb4ab082506809ce260c234b207ae8a4dd4733578e53",
+      "log_bytes": 233
+    },
+    {
+      "name": "mapping_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_cv_mapping_reference.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "2d9a8fec403aa748c44c79e05813a3ef4ae15beb831b7e76741f0a28bf3f9c7b",
+      "log_bytes": 44
+    },
+    {
+      "name": "conversion_formatter",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_proforma_conversion_mass_probe.py",
+        "--source-root",
+        ".reference/openms4-core-82ce5b3",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.72,
+      "log_sha256": "5f273a5b05980ac7f0d71ecfed3240c2e946b78a8073c77a8410755f84436c73",
+      "log_bytes": 547
+    },
+    {
+      "name": "vocabulary_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_controlled_vocabulary_reference.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.41,
+      "log_sha256": "efb52c2938751c18143f76d47982e0db276493a7289bd457d13d54594ea9b902",
+      "log_bytes": 325
+    },
+    {
+      "name": "metabolite_model_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_metabo_isotope_models.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "7b491f74722286e8632f85d151557291f35a0f000a429809eaf0477727005cd0",
+      "log_bytes": 72
+    },
+    {
+      "name": "source_review_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.08,
+      "log_sha256": "4a4e913b8e1a9b3c70f4ffba50a3e3efef7dad6954f103df8918cbed97c2155b",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.11,
+      "log_sha256": "b38122eb00786a1dde791468e577d2a36fbd71bde53d316bdbbeaf12a03db7c1",
+      "log_bytes": 100
+    },
+    {
+      "name": "mapping_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "cv-mapping",
+        "--lib",
+        "--test",
+        "cv_mapping_file",
+        "--test",
+        "cv_mapping_values",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 15.91,
+      "log_sha256": "c054afa8baa65cc3690fe3e78912b455180aff3d7457eae156a0933efaf09de7",
+      "log_bytes": 14285,
+      "tests_passed": 126
+    },
+    {
+      "name": "mapping_strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "cv-mapping",
+        "--lib",
+        "--test",
+        "cv_mapping_file",
+        "--test",
+        "cv_mapping_values",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 6.49,
+      "log_sha256": "aa325aeea56fcb7a3534f9d36ec218ea57120631cd4d285d51f848a92219f1e3",
+      "log_bytes": 161
+    },
+    {
+      "name": "native_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "cv_mapping_values",
+        "--test",
+        "proforma_conversion",
+        "--test",
+        "controlled_vocabulary",
+        "--test",
+        "proforma_mass",
+        "--test",
+        "proforma_resolution",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_parser",
+        "--test",
+        "modifications",
+        "--test",
+        "registry_reference",
+        "--test",
+        "modification_registry",
+        "--test",
+        "metadata",
+        "--test",
+        "formats",
+        "--test",
+        "file_handler",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 16.94,
+      "log_sha256": "13aa1440de9fffdcf9b7ba84656967ef393b5b01c3faa9b85a4d754121a906c8",
+      "log_bytes": 26456,
+      "tests_passed": 260
+    },
+    {
+      "name": "json_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "proforma-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "proforma_mass",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 10.71,
+      "log_sha256": "fe07deb81e5061e4e1ed7d201a2997f5992bee6748665ca01fe2219c8874195e",
+      "log_bytes": 15545,
+      "tests_passed": 142
+    },
+    {
+      "name": "docs_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.16,
+      "log_sha256": "0d24f3f8768ecffbbd4c262b1078fc231519f5cc808d06134efbdbcf5c353110",
+      "log_bytes": 526,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 14.6,
+      "log_sha256": "3fe3376f063167f884c9bc1defe7ea0e883e1712e2ee64af399ce20b12523147",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_json_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "proforma-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "proforma_mass",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 5.73,
+      "log_sha256": "d38d192bf68a31eb796e983e85e22648c4465b98367893d5fd72363968ff82d3",
+      "log_bytes": 161
+    }
+  ],
+  "tests_note": "1953 all-feature/all-target tests and four doctests; 30 new tests. Minimum selections overlap and must not be summed.",
+  "independent_evidence": [
+    "1078 actual executed extracted C++ massDeltaText_ helper cases; full C++ conversion and spectrum algorithms not executed",
+    "683 complete independent XML-projection records across six byte-identical original mapping files"
+  ],
+  "source_audit": {
+    "distinct_current_files": 1925,
+    "historical_references": 220,
+    "graph_references": 21,
+    "added_references": 776
+  },
+  "completion": {
+    "complete_or_native_equivalent_headers": 66,
+    "headers_remaining": 720,
+    "certified_topp_workflows": 0
+  },
+  "cpp_issues": {
+    "entries": 38,
+    "new_entries": [
+      "CPP-037",
+      "CPP-038"
+    ],
+    "upstream_patches_applied": false
+  },
+  "review": "Root reviewed complete conversion/mapping production, source branches, helpers, all direct tests and generators. Exact 28 contribution files preserved; three CV mapping central files merged narrowly. mzML header/consumer work remains in an isolated unfinished stage and is not part of this validation.",
+  "previous_checkpoint_ci": {
+    "revision": "e98d2333db6ec9f6f866155272d456d599c4607d",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34580543352",
+    "conclusion": "success",
+    "jobs": [
+      "Linux",
+      "macOS",
+      "Windows",
+      "minimum-rust",
+      "quality"
+    ],
+    "note": "Separate published prior revision, not current changes."
+  }
+}

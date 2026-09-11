@@ -8,9 +8,9 @@ This is a work inventory, not a completion percentage. Matching declarations and
 | --- | ---: |
 | complete | 10 |
 | evidence_requires_review | 166 |
-| native_equivalent | 51 |
+| native_equivalent | 56 |
 | partial | 21 |
-| unmapped | 538 |
+| unmapped | 533 |
 
 ## Highest fan-out open SDK dependencies
 

@@ -25,6 +25,7 @@ jobs:
       - run: cargo test --locked --no-default-features --features idxml
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
       - run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
+      - run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
   quality:
     runs-on: ubuntu-latest
@@ -40,6 +41,7 @@ jobs:
       - run: python3 tools/generate_rnases.py --check
       - run: python3 tools/generate_monosaccharides.py --check
       - run: python3 tools/generate_controlled_vocabulary_reference.py --check
+      - run: python3 tools/generate_cv_mapping_reference.py --check
       - run: python3 tools/generate_metabo_isotope_models.py --check
       - run: python3 tools/probes/ims_witness_source_oracle.py --check
       - run: python3 tools/check_core_sdk.py
@@ -58,11 +60,12 @@ jobs:
       - run: cargo test --locked --all-features --all-targets
       - run: cargo test --locked --all-features --doc
       - run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
+      - run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
       - run: cargo test --locked --no-default-features --features numpress --test numpress_coder --test numpress
       - run: cargo test --locked --no-default-features --test chromatogram_tools --test processing_acquisition
       - run: cargo test --locked --no-default-features --test mass_trace --test constants --test monosaccharide_db
-      - run: cargo test --locked --no-default-features --test mass_trace_detection --test elution_peak_detection --test proforma --test proforma_writer_probe --test proforma_parser --test proforma_parser_probe --test proforma_resolution --test proforma_mass --test controlled_vocabulary --test protein_run --test run_mapping --test experiment_metadata --test feature_hypothesis --test document_identifier --test datetime --test experimental_settings --test experiment_values --test feature_finding_metabo
+      - run: cargo test --locked --no-default-features --test mass_trace_detection --test elution_peak_detection --test proforma --test proforma_writer_probe --test proforma_parser --test proforma_parser_probe --test proforma_resolution --test proforma_mass --test proforma_conversion --test cv_mapping_values --test controlled_vocabulary --test protein_run --test run_mapping --test experiment_metadata --test feature_hypothesis --test document_identifier --test datetime --test experimental_settings --test experiment_values --test feature_finding_metabo
       - run: cargo test --locked --no-default-features --test unique_id --test peak2d --test experiment_2d --test ims_mass_decomposers --test sequence_coverage
       - run: cargo test --locked --no-default-features --test ims_isotopes --test ims_element --test ims_alphabet --test area_iteration --test peak_data --test peak_index --test numpress
       - run: cargo test --locked --no-default-features --test log_stream --test progress_logger --test modification_definition_io

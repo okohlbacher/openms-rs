@@ -150,6 +150,9 @@ impl<'a> Resolver<'a> {
             warnings: Vec::new(),
         }
     }
+    pub(super) fn warning_count(&self) -> usize {
+        self.warnings.len()
+    }
     pub(super) fn finish(self) -> (Option<ModificationsDB>, Vec<ResolutionWarning>) {
         (self.staged, self.warnings)
     }
@@ -229,7 +232,7 @@ impl<'a> Resolver<'a> {
     }
 }
 impl Resolver<'_> {
-    fn database(&self) -> &ModificationsDB {
+    pub(super) fn database(&self) -> &ModificationsDB {
         self.staged.as_ref().unwrap_or(self.original)
     }
     fn group<'a>(
@@ -432,7 +435,14 @@ impl Resolver<'_> {
             | ModificationTag::PositionConstraint(_) => Ok(None),
         }
     }
-    fn formula(
+    pub(super) fn existing_full_id(
+        &mut self,
+        full_id: &str,
+    ) -> Result<Option<Arc<ResidueModification>>> {
+        self.lookup_charge(full_id)?;
+        Ok(select_exact(self.database(), full_id, None, None, false).1)
+    }
+    pub(super) fn formula(
         &mut self,
         tag: &FormulaTag,
         residue: Option<char>,
@@ -535,11 +545,18 @@ impl Resolver<'_> {
             average_mass: absolute_average,
             ..ModificationRecord::default()
         })?;
+        self.insert_record(record)
+    }
+    /// Caller supplies an absent full ID; the shared transaction owns insertion.
+    pub(super) fn insert_record(
+        &mut self,
+        record: ResidueModification,
+    ) -> Result<Option<Arc<ResidueModification>>> {
         self.budget.record(&record)?;
         self.budget.allocate(
             record
                 .payload_bytes()?
-                .saturating_add(full_id.len())
+                .saturating_add(record.full_id().len())
                 .saturating_add(1024),
         )?;
         if self.staged.is_none() {
@@ -618,7 +635,7 @@ fn select_exact(
     (key_exists, first, count)
 }
 
-fn canonical_formula(formula: &EmpiricalFormula, budget: &mut Budget) -> Result<String> {
+pub(super) fn canonical_formula(formula: &EmpiricalFormula, budget: &mut Budget) -> Result<String> {
     let count = formula.stored_atom_types();
     budget.consume(count.saturating_mul(1024))?;
     budget.allocate(count.saturating_mul(128).saturating_add(64))?;

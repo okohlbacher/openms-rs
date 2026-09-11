@@ -11,7 +11,7 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [features]
-default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml"]
+default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "cv-mapping"]
 mzml = ["dep:quick-xml", "file-compression", "numpress"]
 numpress = ["dep:base64", "dep:flate2"]
 idxml = ["dep:quick-xml"]
@@ -20,6 +20,7 @@ proforma-json = ["dep:serde_json"]
 paramxml = ["dep:quick-xml", "file-compression"]
 featurexml = ["dep:quick-xml", "file-compression"]
 consensusxml = ["dep:quick-xml", "file-compression"]
+cv-mapping = ["dep:quick-xml", "file-compression"]
 file-compression = ["dep:flate2", "dep:bzip2"]
 
 [dependencies]

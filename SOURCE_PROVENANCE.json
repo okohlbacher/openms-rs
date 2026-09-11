@@ -529,7 +529,9 @@
     "tests/data/experimental_settings_provenance.json",
     "tests/data/ims_witness_source_oracle_provenance.json",
     "tests/data/proforma_mass_provenance.json",
-    "tests/data/controlled_vocabulary_provenance.json"
+    "tests/data/controlled_vocabulary_provenance.json",
+    "tests/data/proforma_conversion_provenance.json",
+    "tests/data/cv_mapping_provenance.json"
   ],
   "full_cpp_sdk_built": false,
   "cpp_reference_probe_built": true,
@@ -555,6 +557,10 @@
       {
         "manifest": "tests/data/datetime_provenance.json",
         "scope": "301 ordinary unmodified DateTime.cpp probe rows with narrow dependency adapters; 266 exact native matches and 35 independently corrected calendar rows. Three separate UBSan overflow executions and host libc diagnostic are distinct evidence."
+      },
+      {
+        "manifest": "tests/data/proforma_conversion_provenance.json",
+        "scope": "1,078 actual C++ massDeltaText_ helper formatter cases; complete C++ conversion algorithms were not executed."
       }
     ]
   }

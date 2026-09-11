@@ -50,6 +50,8 @@ are not classified as confirmed defects here.
 | CPP-034 | CV reference bulk assignment invalidates an aliased input iterator | Source-reviewed | Open |
 | CPP-035 | Invalid CV mapping enum values silently change validation rules | Source-reviewed | Open |
 | CPP-036 | XML compression sniffing reads uninitialized bytes from short files | Source-reviewed | Open |
+| CPP-037 | ProForma modification combination loses charged-formula mass | Source-reviewed; public AST trigger | Open |
+| CPP-038 | ProForma crosslink spectra count resolved linker mass twice | Source-reviewed; public AST trigger | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -714,7 +716,7 @@ annotation-loss policy consistently in both the diagnostic and conversion APIs;
 if annotations are intentionally droppable, skip them in both. Test INFO-only,
 position-only and empty ordinary brackets alongside actual unresolved chemistry.
 
-**Rust handling:** The conversion group under development preserves this
+**Rust handling:** The [native conversion group](docs/PROFORMA_CONVERSION_SUPPORT.md) preserves this
 observable source inconsistency and tests it explicitly. A correction must be
 documented as a deliberate change to the conversion policy.
 
@@ -736,7 +738,7 @@ the first-resolved-terminal attachment loops. No C++ execution is claimed.
 so `FAIL_ON_LOSS` rejects them consistently with ordinary-residue links. Test
 both termini, label-only brackets and resolved chemistry bearing a link label.
 
-**Rust handling:** The conversion group under development preserves the source
+**Rust handling:** The [native conversion group](docs/PROFORMA_CONVERSION_SUPPORT.md) preserves the source
 terminal omission with an explicit regression and compatibility note.
 
 ## CPP-031 — An empty ambiguous region shifts the conversion attachment index
@@ -761,7 +763,7 @@ residue, or reject empty regions explicitly before constructing the sequence.
 Test an empty region before and between ordinary modified residues under both
 permissive policies.
 
-**Rust handling:** The conversion group under development preserves the source
+**Rust handling:** The [native conversion group](docs/PROFORMA_CONVERSION_SUPPORT.md) preserves the source
 index rule with checked errors and a direct public-AST regression.
 
 ## CPP-032 — CV mapping namespace stripping mishandles path segments
@@ -785,7 +787,7 @@ a namespace prefix, retain any leading `@` that identifies an attribute.
 Reject genuinely ambiguous multiple-colon segments explicitly. Test plain,
 fully prefixed and mixed element/attribute paths.
 
-**Rust handling:** The CV mapping loader under development applies these
+**Rust handling:** The [native CV mapping loader](docs/CV_MAPPING_SUPPORT.md) applies these
 checked corrections, while preserving the source's slash normalization and
 separate `scopePath` behavior.
 
@@ -809,7 +811,7 @@ reset all accumulators, including the current rule, at entry and on every exit.
 Test failure after a reference, a completed rule and a partial term sequence,
 followed by an empty and a valid load using the same reader.
 
-**Rust handling:** The mapping loader under development uses local parsing
+**Rust handling:** The [native mapping loader](docs/CV_MAPPING_SUPPORT.md) uses local parsing
 state and atomic destination publication; its reader can be reused after error.
 
 ## CPP-034 — CV reference bulk assignment can invalidate its input iterator
@@ -853,7 +855,7 @@ and empty error branches. No C++ parser/validator execution is claimed.
 **Proposed fix:** Raise a parse error for unknown enum values, identifying the
 attribute and supplied value. Cover every valid literal, empty values and typos.
 
-**Rust handling:** The mapping loader under development preserves these source
+**Rust handling:** The [native mapping loader](docs/CV_MAPPING_SUPPORT.md) preserves these source
 fallbacks with explicit tests and documentation. Stricter rejection would be
 a deliberate compatibility change rather than a hidden parser difference.
 
@@ -881,6 +883,67 @@ Test zero/one-byte inputs, ordinary short XML and complete compression headers.
 length-aware input. The new CV mapping transport reuses that path handling;
 the C++ defect is in the shared upstream XMLFile implementation, outside its
 five-header conversion group.
+
+## CPP-037 — ProForma combination discards a formula's charge contribution
+
+**Affected files:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 1734–1738](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L1734), formula combination and re-interning; [`src/openms/source/CHEMISTRY/EmpiricalFormula.cpp`, lines 47–54 and 258–276](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/EmpiricalFormula.cpp#L47), charge-dependent mass and charge-free canonical text.
+
+**Issue and reproduction:** Directly construct M with two pre-resolved
+modification records and empty alternative lists. Give the records oxygen
+formulas with charges +1 and 0 respectively, and set each declared delta mass
+equal to its formula's `getMonoWeight()`. Their summed formula and declared
+mass agree, so combination takes the formula branch. `toString()` drops the
+charge and re-interns neutral `O2`. The combined modification consequently
+loses one `PROTON_MASS_U` contribution despite passing the agreement check.
+
+**Evidence:** Source review of charge-dependent mass, formula summation,
+canonical serialization and neutral re-parsing. This is a public-AST trigger,
+not a claimed parser-produced annotation or executed C++ conversion result.
+
+**Proposed fix:** Check charge before choosing the formula-interning branch.
+If the destination cannot represent it, preserve the summed declared mass in
+an anonymous mass-only record or report the unsupported conversion explicitly.
+Do not validate one charged formula then silently store a neutral one. Test
+nonzero, cancelling and zero summed charges with exact mass accounting.
+
+**Rust handling:** The [native conversion group](docs/PROFORMA_CONVERSION_SUPPORT.md) preserves this source
+consequence explicitly and includes a charged-formula regression. A scientific
+correction remains a separately documented compatibility decision.
+
+## CPP-038 — ProForma crosslink spectra count resolved linker mass twice
+
+**Affected files:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2820–2833](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2820), crosslink extraction and sequence conversion; modification attachment at 2305–2316; [`src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp`, lines 920–925 and 967–971](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp#L920), combined precursor mass.
+
+**Issue and reproduction:** Directly construct two nonempty chains with matching
+ordinary-residue crosslink labels. On the alpha endpoint, supply a resolved
+modification with positive delta mass D and a first mass-delta alternative D
+bearing the label. Give the beta endpoint only the matching label. For example,
+use alpha AM linked at M and beta MA linked at M. Request precursor peaks with
+`generateSpectrum(ion, 1, 1, "M", false, true)`.
+
+`findCrossLink` supplies D as the separate linker mass. `toAASequence(BEST_EFFORT)`
+also attaches the resolved endpoint modification to alpha, so its mass already
+includes D. The XLMS backend then adds alpha mass, beta mass and linker mass D.
+The precursor is heavier by D than the two unmodified chains plus one linker;
+at charge z its m/z excess is D/z. Other linked fragments using this same
+precursor mass are affected. The source mass-calculation API counts the shared
+linker label once and does not introduce this extra copy.
+
+**Evidence:** Direct review of extraction, unfiltered resolved-handle attachment
+and both backend precursor-mass expressions. This is a public-AST trigger with
+source-derived arithmetic; no executed C++ spectrum comparison or parser-produced
+linker record is claimed.
+
+**Proposed fix:** Build the XLMS input sequences with the selected linker
+modification removed, retaining unrelated residue and terminal modifications,
+then pass its mass once through `cross_linker_mass`. Resolve and validate both
+endpoints before extracting that mass. Test the same linker represented on one
+or both endpoints and check precursor and linked-fragment mass conservation.
+
+**Rust handling:** ProForma's XLMS spectrum group is not yet implemented. The
+existing conversion and mass APIs preserve their separately documented source
+behavior. This finding is a required compatibility decision and regression case
+for the upcoming spectrum wrapper; no native or upstream spectrum fix is claimed.
 
 ## Maintaining this log
 

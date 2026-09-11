@@ -5,8 +5,8 @@
 //! Owned ProForma annotation data, parsing, serialization and mass operations.
 //!
 //! This module implements the annotation AST, both text grammars, structured
-//! errors and both text writers from the pinned source. It does not yet
-//! convert sequences or generate spectra. Modification resolution and mass/mz use
+//! errors, text writers and AASequence conversion from the pinned source.
+//! Spectrum generation is not yet available. Resolution, conversion and mass/mz use
 //! an explicitly supplied mutable registry. JSON
 //! transport is available with the `proforma-json` feature.
 //! Serialization preserves source omissions and does not validate ProForma
@@ -24,7 +24,7 @@ pub const MAX_PROFORMA_NODES: usize = 1_000_000;
 /// Maximum charged traversal, copying and numeric-formatting work per call.
 pub const MAX_PROFORMA_WORK: usize = 50_000_000;
 
-/// Source conversion policy vocabulary; conversion operations are not yet ported.
+/// Source conversion policies. Both permissive variants currently have identical source behavior.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConversionPolicy {
     FailOnLoss,
@@ -651,4 +651,12 @@ mod mass;
 pub use mass::{
     MAX_PROFORMA_MASS_BYTES, MAX_PROFORMA_MASS_ITEMS, MAX_PROFORMA_MASS_TEXT_BYTES,
     MAX_PROFORMA_MASS_WORK, MassAttempt, MassEvaluation,
+};
+
+#[path = "proforma_conversion.rs"]
+mod conversion;
+pub use conversion::{
+    ConversionEvaluation, ConversionWarning, MAX_PROFORMA_CONVERSION_BYTES,
+    MAX_PROFORMA_CONVERSION_ITEMS, MAX_PROFORMA_CONVERSION_TEXT_BYTES,
+    MAX_PROFORMA_CONVERSION_WORK,
 };
