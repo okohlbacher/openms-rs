@@ -14,6 +14,14 @@ Native [spectrum–chromatogram conversion](docs/CHROMATOGRAM_TOOLS_SUPPORT.md) 
 
 ## What works
 
+[MassTrace](docs/MASS_TRACE_SUPPORT.md) provides owned trace peaks, cached centroids,
+raw/smoothed quantification, FWHM and hull calculations. The complete
+[constants and metadata-key collection](docs/CONSTANTS_SUPPORT.md) is also available.
+[mzML record settings](docs/MZML_SETTINGS_SUPPORT.md) preserve spectrum scan modes,
+polarity, zoom, scan windows and Product lists, plus chromatogram types.
+The [monosaccharide database](docs/MONOSACCHARIDE_SUPPORT.md) contains the complete
+source collection of 24 records and 12 aliases.
+
 | Area | Implemented |
 | --- | --- |
 | Spectra and experiments | Peaks, chromatograms, precursors, aligned annotation arrays, sorting, selection, checked nearest/bound searches, ranges, base peaks, TIC and RT filtering |

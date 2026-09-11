@@ -34,10 +34,12 @@ pub mod kernel;
 pub mod metadata;
 pub mod processing;
 
+pub use concept::constants;
 pub use error::{Error, Result};
 pub use kernel::{
-    ChromatogramPeak, MSChromatogram, MSExperiment, MSSpectrum, MobilityPeak1D, MobilityPeak2D,
-    Mobilogram, MobilogramLimits, MobilogramRanges, Peak1D, Peak2D, Precursor, RichPeak2D,
+    ChromatogramPeak, MSChromatogram, MSExperiment, MSSpectrum, MassTrace, MassTraceLimits,
+    MassTraceQuantMethod, MobilityPeak1D, MobilityPeak2D, Mobilogram, MobilogramLimits,
+    MobilogramRanges, Peak1D, Peak2D, Precursor, RichPeak2D,
 };
 
 /// Version of the upstream scientific SDK targeted by this native Rust port.

@@ -106,6 +106,8 @@
   "derived_cases": [
     "Two-region native XIC extraction: region99.5..101.5 gives midpoint100.5, MS1 samples[30,11] at RT[1,3]; MS2 sample999 excluded. Both compression modes preserve complete derived chromatograms and input remains unchanged."
   ],
+  "scope_status": "Historical completed scope at the recorded source revision; current spectrum Product/settings support supersedes the earlier blanket rejection boundary.",
+  "superseded_scope_reference": "tests/data/mzml_settings_provenance.json",
   "target_verification": {
     "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
     "source_revisions": [

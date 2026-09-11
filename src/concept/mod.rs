@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Runtime logging, progress reporting, and owned unique ID services.
+//! Shared constants, runtime logging, progress reporting, and owned unique IDs.
 
+pub mod constants;
 pub mod log_stream;
 pub mod progress_logger;
 pub mod unique_id;

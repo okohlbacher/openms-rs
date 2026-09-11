@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 164,
-      "native_equivalent": 32,
+      "evidence_requires_review": 163,
+      "native_equivalent": 35,
       "partial": 19,
-      "unmapped": 561
+      "unmapped": 559
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -3077,10 +3077,24 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MonosaccharideDB.h",
       "sha256": "334d3c076172451cb7778b04160fc97b08a16ede84619f86083ab273980f3ac8",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/monosaccharide_db.rs"
+        ],
+        "tests": [
+          "tests/monosaccharide_db.rs"
+        ],
+        "documentation": "docs/MONOSACCHARIDE_SUPPORT.md",
+        "scope": "Complete immutable builtin lookup surface and all five owned record fields:24 primary records,12 synonyms,36 keys. Exact stored mass/formula, lexical source order, aliases and primary overwrite precedence retained. Native Option/Result and borrowed records/symbols replace pointers/exceptions/copied strings. Approved embedded dataset replaces private installed-file/environment discovery; runtime override/provider and ProForma parser remain outside this API."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/monosaccharide_db.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/monosaccharide_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -3650,13 +3664,25 @@
       "header": "src/openms/include/OpenMS/CONCEPT/Constants.h",
       "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
       "domain": "CONCEPT",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/concept/constants.rs",
+          "src/chemistry/mod.rs"
+        ],
+        "tests": [
+          "tests/constants.rs"
+        ],
+        "documentation": "docs/CONSTANTS_SUPPORT.md",
+        "scope": "All 38 numeric declarations and 91 UserParam strings; aliases, original expressions and historical physical values preserved. Writable source EPSILON maps to atomic bit-preserving epsilon()/set_epsilon(); default exposed separately. Exact f64 bits and strings verified against actually compiled unchanged C++ header with unused config include shim. Underlying algorithm tolerance behavior remains independently reviewed."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
         "tests/data/adduct_provenance.json",
         "tests/data/averagine_deisotoping_provenance.json",
+        "tests/data/constants_provenance.json",
         "tests/data/emg_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/precursor_purity_provenance.json",
@@ -4202,7 +4228,9 @@
       "candidate_rust_files": [
         "src/kernel/geometry.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_trace_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -6260,7 +6288,8 @@
         "tests/data/mzml_numpress_provenance.json",
         "tests/data/mzml_param_groups_provenance.json",
         "tests/data/mzml_product_provenance.json",
-        "tests/data/mzml_provenance.json"
+        "tests/data/mzml_provenance.json",
+        "tests/data/mzml_settings_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -6424,6 +6453,7 @@
         "tests/data/idxml_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/mzml_product_provenance.json",
+        "tests/data/mzml_settings_provenance.json",
         "tests/data/paramxml_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -6811,7 +6841,8 @@
           "src/format/indexed_mzml.rs",
           "src/format/mzml_load.rs",
           "src/format/mzml_paths.rs",
-          "src/format/mzml_numpress.rs"
+          "src/format/mzml_numpress.rs",
+          "src/format/mzml_settings.rs"
         ],
         "tests": [
           "tests/mzml.rs",
@@ -6820,10 +6851,12 @@
           "tests/mzml_load_options.rs",
           "tests/mzml_paths.rs",
           "tests/data_array_xml.rs",
-          "tests/mzml_numpress.rs"
+          "tests/mzml_numpress.rs",
+          "tests/mzml_settings.rs",
+          "tests/mzml_acquisition_guards.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition/spectrum-product transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate."
+        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. AcquisitionInfo/SourceFile/DataProcessing and unrepresented instrument metadata remain guarded."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -7990,7 +8023,8 @@
       ],
       "reference_manifests": [
         "tests/data/chromatogram_tools_provenance.json",
-        "tests/data/mzml_acquisition_guards_provenance.json"
+        "tests/data/mzml_acquisition_guards_provenance.json",
+        "tests/data/mzml_settings_provenance.json"
       ],
       "direct_topp_consumers": [
         "FeatureFinderMultiplex",
@@ -8381,10 +8415,24 @@
       "header": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
       "sha256": "f29b0530d8a01411c58458e8aeb476963b4e204949c578a0fa57beedf8db7d82",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/mass_trace.rs"
+        ],
+        "tests": [
+          "tests/mass_trace.rs"
+        ],
+        "documentation": "docs/MASS_TRACE_SUPPORT.md",
+        "scope": "Complete public value/container surface and all eight centroid updates, raw/smoothed areas, quantification, FWHM/interpolation/cache, hull, IM presence and width metadata. Owned Vec and borrowed fixed-length slices replace C++ list/vector constructors and iterators. Source mixed smoothed/raw area, endpoint-apex cached width, right-rectangle RT and exp/log SD expressions retained. Finite consumed-input/result, atomic-error and configurable work/allocation boundaries are explicit."
+      },
+      "candidate_rust_files": [
+        "src/kernel/mass_trace.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mass_trace_provenance.json"
+      ],
       "direct_topp_consumers": [
         "DIAPseudoSpectra",
         "FeatureFinderMetabo",
@@ -8543,6 +8591,7 @@
         "src/kernel/peak2d.rs"
       ],
       "reference_manifests": [
+        "tests/data/mass_trace_provenance.json",
         "tests/data/peak2d_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -9004,7 +9053,8 @@
       ],
       "reference_manifests": [
         "tests/data/chromatogram_tools_provenance.json",
-        "tests/data/mzml_acquisition_guards_provenance.json"
+        "tests/data/mzml_acquisition_guards_provenance.json",
+        "tests/data/mzml_settings_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9430,7 +9480,8 @@
       ],
       "reference_manifests": [
         "tests/data/chromatogram_tools_provenance.json",
-        "tests/data/mzml_acquisition_guards_provenance.json"
+        "tests/data/mzml_acquisition_guards_provenance.json",
+        "tests/data/mzml_settings_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9720,7 +9771,8 @@
       "reference_manifests": [
         "tests/data/experiment_aggregation_provenance.json",
         "tests/data/metadata_hash_provenance.json",
-        "tests/data/mzml_product_provenance.json"
+        "tests/data/mzml_product_provenance.json",
+        "tests/data/mzml_settings_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9838,7 +9890,9 @@
       "candidate_rust_files": [
         "src/metadata/acquisition.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzml_settings_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -11571,7 +11625,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FEATUREFINDER/MassTraceDetection.h",
         "OpenMS/FORMAT/BrukerTimsFile.h",
@@ -11579,7 +11632,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MassTrace.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h"
       ],
       "workflow_validated": false
@@ -11942,7 +11994,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -12027,7 +12078,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
@@ -12038,7 +12088,6 @@
         "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MassTrace.h",
         "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -12073,7 +12122,6 @@
         "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
         "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/ElutionModelFitter.h",
         "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h",
@@ -12123,7 +12171,6 @@
         "OpenMS/config.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/DBoundingBox.h",
         "OpenMS/DATASTRUCTURES/DPosition.h",
@@ -12490,7 +12537,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/DataValue.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
@@ -12603,7 +12649,6 @@
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
         "OpenMS/CHEMISTRY/SpectrumAnnotator.h",
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
@@ -13097,7 +13142,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/Feature.h",
@@ -13269,7 +13313,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -13483,7 +13526,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FEATUREFINDER/MassTraceDetection.h",
@@ -13491,7 +13533,6 @@
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MassTrace.h",
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -13538,7 +13579,6 @@
         "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/COMPARISON/SpectrumAlignment.h",
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/GaussModel.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -13632,7 +13672,6 @@
         "OpenMS/config.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h",
         "OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h",
@@ -14010,7 +14049,6 @@
         "OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
         "OpenMS/COMPARISON/BinnedSpectralContrastAngle.h",
         "OpenMS/COMPARISON/SpectrumAlignment.h",
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
         "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
@@ -14472,7 +14510,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/ProteinIdentification.h"
@@ -14629,7 +14666,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/EnumHelpers.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -14875,7 +14911,6 @@
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/ConversionHelper.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MassTrace.h",
         "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/METADATA/ExperimentalDesign.h",
         "OpenMS/METADATA/ProteinIdentification.h",
@@ -15184,7 +15219,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h"

@@ -502,7 +502,11 @@
     "tests/data/sequence_coverage_provenance.json",
     "tests/data/chromatogram_tools_provenance.json",
     "tests/data/mzml_acquisition_guards_provenance.json",
-    "tests/data/sdk_numeric_formatting_provenance.json"
+    "tests/data/sdk_numeric_formatting_provenance.json",
+    "tests/data/constants_provenance.json",
+    "tests/data/mass_trace_provenance.json",
+    "tests/data/mzml_settings_provenance.json",
+    "tests/data/monosaccharide_provenance.json"
   ],
   "full_cpp_sdk_built": false,
   "cpp_reference_probe_built": true,

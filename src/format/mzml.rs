@@ -28,6 +28,8 @@ pub use paths::{
 };
 #[path = "mzml_precursor.rs"]
 mod precursor_metadata;
+#[path = "mzml_settings.rs"]
+mod settings_metadata;
 use base64::{Engine, engine::general_purpose::STANDARD};
 use flate2::{Compression, Decompress, FlushDecompress, Status, write::ZlibEncoder};
 use quick_xml::{
@@ -613,6 +615,12 @@ struct Record {
     product_seen: bool,
     product_fields: BTreeSet<&'static str>,
     product_list_seen: bool,
+    product: Option<Product>,
+    scan_active: bool,
+    scan_window_list_seen: bool,
+    scan_window: Option<crate::metadata::ScanWindow>,
+    scan_window_fields: BTreeSet<&'static str>,
+    scan_window_unit: Option<String>,
     precursor_filter: Option<crate::kernel::NumericRange>,
     precursor_outside: bool,
     raw_float_arrays: Vec<DataArray<f64>>,
@@ -655,7 +663,7 @@ impl Record {
                 ));
             }
             let quantity = finite(value, "product isolation quantity")?;
-            let product = &mut self.chromatogram.as_mut().unwrap().product;
+            let product = self.product.as_mut().expect("active product");
             match field {
                 "target" => product.mz = quantity,
                 "lower" => product.isolation_window_lower_offset = quantity,
@@ -664,6 +672,9 @@ impl Record {
             if field != "target" && quantity < 0.0 {
                 return Err(invalid("negative product isolation offset"));
             }
+            return Ok(());
+        }
+        if settings_metadata::read_cv(self, parent, attrs)? {
             return Ok(());
         }
         let field = match (parent, accession) {
@@ -864,14 +875,31 @@ fn apply_parameter(
             let metadata = &mut record
                 .as_mut()
                 .unwrap()
-                .chromatogram
+                .product
                 .as_mut()
                 .unwrap()
-                .product
                 .cv_terms
                 .metadata;
             if metadata.insert(name.into(), value).is_some() {
                 return Err(invalid("duplicate product userParam name"));
+            }
+        }
+        "userParam" if parent == "scanWindow" => {
+            let name = required(attrs, "name")?;
+            // The dedicated unit field is derived from endpoint CV parameters.
+            // A competing userParam would silently overwrite that identity.
+            if name == "unit_accession" {
+                return Err(Error::Unsupported(
+                    "scan window unit_accession must use endpoint units".into(),
+                ));
+            }
+            let value = product_user_value(attrs)?;
+            let window = record
+                .as_mut()
+                .and_then(|r| r.scan_window.as_mut())
+                .ok_or_else(|| invalid("userParam outside scan window"))?;
+            if window.metadata.insert(name.into(), value).is_some() {
+                return Err(invalid("duplicate scan window userParam name"));
             }
         }
         "userParam" if matches!(parent, "run" | "spectrum" | "chromatogram") => {
@@ -1161,6 +1189,16 @@ fn read_impl(
                 if parent == "product" && tag != "isolationWindow" {
                     return Err(invalid("product only permits an isolation window"));
                 }
+                if (parent == "scanWindowList" && tag != "scanWindow")
+                    || (parent == "scanWindow"
+                        && !matches!(
+                            tag.as_str(),
+                            "cvParam" | "userParam" | "referenceableParamGroupRef"
+                        ))
+                    || (parent == "productList" && tag != "product")
+                {
+                    return Err(invalid("invalid scan window/product list child"));
+                }
                 if let Some((depth, child, _, actual)) = counted_lists.last_mut() {
                     if *depth == stack.len() && *child == tag {
                         *actual += 1;
@@ -1209,31 +1247,85 @@ fn read_impl(
                         }
                         r.product_list_seen = true;
                         let count = number::<usize>(required(&attrs, "count")?, "product count")?;
-                        if count != 0 {
-                            return Err(Error::Unsupported(
-                                "spectrum products are not represented".into(),
-                            ));
+                        if count > parameter_budget.remaining {
+                            return Err(invalid("product count exceeds parameter limit"));
                         }
                         counted_lists.push((stack.len() + 1, "product", count, 0));
                     }
                     "product" => {
-                        if parent == "productList" {
-                            return Err(Error::Unsupported(
-                                "spectrum products are not represented".into(),
+                        if !matches!(parent, "productList" | "chromatogram") {
+                            return Err(invalid(
+                                "product outside spectrum productList/chromatogram",
                             ));
-                        }
-                        if parent != "chromatogram" {
-                            return Err(invalid("product outside chromatogram"));
                         }
                         let r = record
                             .as_mut()
-                            .filter(|r| r.chromatogram.is_some())
-                            .ok_or_else(|| invalid("product outside chromatogram record"))?;
-                        if r.product_seen || r.product_active || r.precursor.is_some() {
+                            .ok_or_else(|| invalid("product outside record"))?;
+                        if (parent == "productList") != r.spectrum.is_some() {
+                            return Err(invalid("product owner mismatch"));
+                        }
+                        if (r.chromatogram.is_some() && r.product_seen)
+                            || r.product_active
+                            || r.precursor.is_some()
+                        {
                             return Err(invalid("duplicate or nested chromatogram product"));
                         }
+                        parameter_budget.begin()?;
                         r.product_seen = true;
                         r.product_active = true;
+                        r.product_fields.clear();
+                        r.product = Some(Product::default());
+                    }
+                    "scan" => {
+                        if parent != "scanList" {
+                            return Err(invalid("scan outside scanList"));
+                        }
+                        let r = record
+                            .as_mut()
+                            .filter(|r| r.spectrum.is_some())
+                            .ok_or_else(|| invalid("scan outside spectrum"))?;
+                        if r.scan_active {
+                            return Err(invalid("nested scan"));
+                        }
+                        r.scan_active = true;
+                        r.scan_window_list_seen = false;
+                    }
+                    "scanWindowList" => {
+                        if parent != "scan" {
+                            return Err(invalid("scanWindowList outside scan"));
+                        }
+                        let r = record
+                            .as_mut()
+                            .filter(|r| r.scan_active)
+                            .ok_or_else(|| invalid("scan window list outside active scan"))?;
+                        if r.scan_window_list_seen {
+                            return Err(invalid("duplicate scanWindowList"));
+                        }
+                        r.scan_window_list_seen = true;
+                        let count =
+                            number::<usize>(required(&attrs, "count")?, "scan window count")?;
+                        if count > parameter_budget.remaining {
+                            return Err(invalid("scan window count exceeds parameter limit"));
+                        }
+                        counted_lists.push((stack.len() + 1, "scanWindow", count, 0));
+                    }
+                    "scanWindow" => {
+                        if parent != "scanWindowList" {
+                            return Err(invalid("scanWindow outside scanWindowList"));
+                        }
+                        let r = record
+                            .as_mut()
+                            .filter(|r| r.scan_active)
+                            .ok_or_else(|| invalid("scan window outside active scan"))?;
+                        parameter_budget.begin()?;
+                        if r.scan_window
+                            .replace(crate::metadata::ScanWindow::default())
+                            .is_some()
+                        {
+                            return Err(invalid("nested scan window"));
+                        }
+                        r.scan_window_fields.clear();
+                        r.scan_window_unit = None;
                     }
                     "precursorList" | "selectedIonList" | "scanList" => {
                         let expected_parent = match tag.as_str() {
@@ -1417,6 +1509,12 @@ fn read_impl(
                             product_seen: false,
                             product_fields: BTreeSet::new(),
                             product_list_seen: false,
+                            product: None,
+                            scan_active: false,
+                            scan_window_list_seen: false,
+                            scan_window: None,
+                            scan_window_fields: BTreeSet::new(),
+                            scan_window_unit: None,
                             precursor_filter: load.and_then(|o| {
                                 o.scientific
                                     .has_precursor_mz_range()
@@ -1689,6 +1787,35 @@ fn read_impl(
                             return Err(invalid("missing product state"));
                         }
                         r.product_active = false;
+                        let product = r.product.take().ok_or_else(|| invalid("missing product"))?;
+                        product.validate()?;
+                        if let Some(spectrum) = &mut r.spectrum {
+                            spectrum.products.push(product);
+                        } else {
+                            r.chromatogram.as_mut().unwrap().product = product;
+                        }
+                    }
+                    "scanWindow" => {
+                        let r = record
+                            .as_mut()
+                            .ok_or_else(|| invalid("scan window outside record"))?;
+                        let window = r
+                            .scan_window
+                            .take()
+                            .ok_or_else(|| invalid("missing scan window"))?;
+                        window.validate()?;
+                        r.spectrum
+                            .as_mut()
+                            .ok_or_else(|| invalid("scan window outside spectrum"))?
+                            .instrument_settings
+                            .scan_windows
+                            .push(window);
+                    }
+                    "scan" => {
+                        record
+                            .as_mut()
+                            .ok_or_else(|| invalid("scan outside record"))?
+                            .scan_active = false;
                     }
                     "spectrum" | "chromatogram" => record
                         .take()
@@ -1876,14 +2003,17 @@ fn validate_product_write(product: &Product) -> Result<()> {
             "arbitrary product CV terms are not represented in mzML".into(),
         ));
     }
-    for (key, value) in &product.cv_terms.metadata {
+    validate_scalar_metadata(&product.cv_terms.metadata)
+}
+fn validate_scalar_metadata(metadata: &crate::metadata::MetaInfo) -> Result<()> {
+    for (key, value) in metadata {
         xml_string(key)?;
         match value.data() {
             MetaValueData::String(text) => xml_string(text)?,
             MetaValueData::Integer(_) | MetaValueData::Float(_) => {}
             _ => {
                 return Err(Error::Unsupported(
-                    "product Empty/list metadata has no lossless mzML scalar encoding".into(),
+                    "Empty/list metadata has no lossless mzML scalar encoding".into(),
                 ));
             }
         }
@@ -1916,11 +2046,23 @@ fn write_product(w: &mut impl Write, product: &Product) -> Result<()> {
             "isolation window upper offset",
         ),
     ] {
-        if quantity > 0.0 {
+        if quantity > 0.0 || quantity.is_sign_negative() {
             cv(w, accession, name, &quantity.to_string(), MZ_UNIT)?;
         }
     }
-    for (name, value) in &product.cv_terms.metadata {
+    write_scalar_metadata(w, &product.cv_terms.metadata, None)?;
+    writeln!(w, "</isolationWindow></product>")?;
+    Ok(())
+}
+fn write_scalar_metadata(
+    w: &mut impl Write,
+    metadata: &crate::metadata::MetaInfo,
+    skip: Option<&str>,
+) -> Result<()> {
+    for (name, value) in metadata {
+        if skip == Some(name.as_str()) {
+            continue;
+        }
         let (kind, text) = match value.data() {
             MetaValueData::String(text) => {
                 ("xsd:string", std::borrow::Cow::Borrowed(text.as_str()))
@@ -1946,7 +2088,6 @@ fn write_product(w: &mut impl Write, product: &Product) -> Result<()> {
         }
         writeln!(w, "/>")?;
     }
-    writeln!(w, "</isolationWindow></product>")?;
     Ok(())
 }
 fn user_params(w: &mut impl Write, metadata: &BTreeMap<String, String>, name: &str) -> Result<()> {
@@ -2211,15 +2352,9 @@ pub fn write_with_options(
     write_impl(&mut w, experiment, options, &mut None)
 }
 fn validate_write(experiment: &MSExperiment) -> Result<()> {
-    // These newly owned settings have no representation in this adapter yet.
-    // Inspect only scalar fields/container lengths before general validation
-    // can walk large acquisition, processing, product or array descriptions.
+    // O(1) loss guards precede validation of newly supported owned settings.
     for spectrum in &experiment.spectra {
-        if spectrum.has_acquisition_settings() {
-            return Err(Error::Unsupported(
-                "mzML spectrum acquisition settings, source/processing records or product lists are not represented".into(),
-            ));
-        }
+        settings_metadata::spectrum_guard(spectrum)?;
         check_array_descriptions(
             &spectrum.float_data_arrays,
             &spectrum.integer_data_arrays,
@@ -2227,16 +2362,30 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
         )?;
     }
     for chromatogram in &experiment.chromatograms {
-        if chromatogram.has_acquisition_settings() {
-            return Err(Error::Unsupported(
-                "mzML chromatogram acquisition settings, source/processing records or non-Mass type are not represented".into(),
-            ));
-        }
+        settings_metadata::chromatogram_guard(chromatogram)?;
         check_array_descriptions(
             &chromatogram.float_data_arrays,
             &chromatogram.integer_data_arrays,
             &chromatogram.string_data_arrays,
         )?;
+    }
+    // Fixed cumulative settings preflight, independent of binary encoding.
+    // Cover owned scalar metadata before validation/rendering traverses it.
+    let mut settings_work = 50_000_000usize;
+    let mut settings_bytes = 256 * 1024 * 1024;
+    settings_work = settings_work
+        .checked_sub(
+            experiment
+                .spectra
+                .len()
+                .checked_mul(2)
+                .and_then(|n| n.checked_add(256))
+                .ok_or_else(|| invalid("mzML settings work overflow"))?,
+        )
+        .ok_or_else(|| invalid("mzML settings record limit exceeded"))?;
+    for spectrum in &experiment.spectra {
+        spectrum.acquisition_with_budget(&mut settings_work, &mut settings_bytes)?;
+        settings_metadata::validate_spectrum(spectrum)?;
     }
     experiment.validate()?;
     let check_metadata = |metadata: &BTreeMap<String, String>, name: &str| -> Result<()> {
@@ -2345,7 +2494,7 @@ fn write_impl(
         w,
         "<cvList count=\"2\"><cv id=\"MS\" fullName=\"PSI-MS\" URI=\"https://purl.obolibrary.org/obo/ms.obo\"/><cv id=\"UO\" fullName=\"Unit Ontology\" URI=\"https://purl.obolibrary.org/obo/uo.obo\"/></cvList>\n<fileDescription><fileContent>"
     )?;
-    cv(&mut w, "MS:1000294", "mass spectrum", "", "")?;
+    settings_metadata::write_file_content(&mut w, experiment)?;
     writeln!(
         w,
         "</fileContent></fileDescription>\n<softwareList count=\"1\"><software id=\"openms_rust\" version=\"{}\">",
@@ -2398,26 +2547,22 @@ fn write_impl(
                 SpectrumType::Profile => cv(&mut w, "MS:1000128", "profile spectrum", "", "")?,
                 SpectrumType::Unknown => {}
             }
+            settings_metadata::write_spectrum(&mut w, spectrum)?;
             user_params(&mut w, &spectrum.metadata, &spectrum.name)?;
-            if spectrum.rt != -1.0 {
-                writeln!(w, "<scanList count=\"1\">")?;
-                cv(&mut w, "MS:1000795", "no combination", "", "")?;
-                writeln!(w, "<scan>")?;
-                cv(
-                    &mut w,
-                    "MS:1000016",
-                    "scan start time",
-                    &spectrum.rt.to_string(),
-                    SECOND,
-                )?;
-                writeln!(w, "</scan></scanList>")?;
-            }
+            settings_metadata::write_scan(&mut w, spectrum)?;
             if !spectrum.precursors.is_empty() {
                 writeln!(w, "<precursorList count=\"{}\">", spectrum.precursors.len())?;
                 for precursor in &spectrum.precursors {
                     write_precursor(&mut w, precursor)?;
                 }
                 writeln!(w, "</precursorList>")?;
+            }
+            if !spectrum.products.is_empty() {
+                writeln!(w, "<productList count=\"{}\">", spectrum.products.len())?;
+                for product in &spectrum.products {
+                    write_product(&mut w, product)?;
+                }
+                writeln!(w, "</productList>")?;
             }
             writeln!(
                 w,
@@ -2486,6 +2631,7 @@ fn write_impl(
                 escape(&id),
                 chromatogram.len()
             )?;
+            settings_metadata::write_chromatogram(&mut w, chromatogram)?;
             user_params(&mut w, &chromatogram.metadata, &chromatogram.name)?;
             if chromatogram.precursor != Precursor::default() {
                 write_precursor(&mut w, &chromatogram.precursor)?;

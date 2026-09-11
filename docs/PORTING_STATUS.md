@@ -4,6 +4,15 @@ The target is a feature-complete reduced Core SDK suitable for porting TOPP tool
 
 The current target is SDK 4.0.0 at `82ce5b3`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
 
+## Mass traces and additional SDK values
+
+The complete [MassTrace surface](MASS_TRACE_SUPPORT.md) is available, including
+all centroid updates, cached widths and borders, quantification, smoothing and
+hulls. [SDK constants](CONSTANTS_SUPPORT.md) expose every numeric entry and metadata
+key with exact source values. The [monosaccharide database](MONOSACCHARIDE_SUPPORT.md)
+provides the complete built-in source lookup surface. Mass-trace detection and
+ProForma sequence parsing remain separate algorithms.
+
 ## Mobility containers, array descriptions and path operations
 
 [MobilityPeak1D/Mobilogram](MOBILOGRAM_SUPPORT.md) now represent the source

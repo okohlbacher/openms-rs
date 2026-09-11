@@ -2,6 +2,11 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add the complete built-in monosaccharide database, preserving 24 records, 12 aliases and exact source mass/formula fields without a runtime dependency.
+- Transport mzML scan modes, polarity, zoom, scan windows, spectrum Product lists and chromatogram types, including source file-content summaries and bounded validation.
+- Add the complete MassTrace container and centroid/area/FWHM operations, preserving source cache and numerical conventions with bounded native failures.
+- Expose every source numeric constant and metadata key, with all 129 values checked against an executed unchanged C++ header and existing chemistry mass paths preserved.
+
 - Update the SDK target to `82ce5b3`, verifying the unchanged numeric formatter after its upstream relocation and retaining original fixture pins.
 - Add source-compatible spectrum/chromatogram conversion, attached acquisition settings and shared processing handles. Existing constructors retain defaults; struct literals require the new fields or defaults.
 - Preserve newly attached fields through processing under cumulative copy bounds; reject unsupported mzML settings before output.

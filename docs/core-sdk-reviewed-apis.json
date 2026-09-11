@@ -348,7 +348,8 @@
         "src/format/indexed_mzml.rs",
         "src/format/mzml_load.rs",
         "src/format/mzml_paths.rs",
-        "src/format/mzml_numpress.rs"
+        "src/format/mzml_numpress.rs",
+        "src/format/mzml_settings.rs"
       ],
       "tests": [
         "tests/mzml.rs",
@@ -357,10 +358,12 @@
         "tests/mzml_load_options.rs",
         "tests/mzml_paths.rs",
         "tests/data_array_xml.rs",
-        "tests/mzml_numpress.rs"
+        "tests/mzml_numpress.rs",
+        "tests/mzml_settings.rs",
+        "tests/mzml_acquisition_guards.rs"
       ],
       "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition/spectrum-product transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate."
+      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. AcquisitionInfo/SourceFile/DataProcessing and unrepresented instrument metadata remain guarded."
     },
     "src/openms/include/OpenMS/METADATA/Product.h": {
       "status": "partial",
@@ -762,6 +765,40 @@
       ],
       "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
       "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review."
+    },
+    "src/openms/include/OpenMS/CONCEPT/Constants.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/concept/constants.rs",
+        "src/chemistry/mod.rs"
+      ],
+      "tests": [
+        "tests/constants.rs"
+      ],
+      "documentation": "docs/CONSTANTS_SUPPORT.md",
+      "scope": "All 38 numeric declarations and 91 UserParam strings; aliases, original expressions and historical physical values preserved. Writable source EPSILON maps to atomic bit-preserving epsilon()/set_epsilon(); default exposed separately. Exact f64 bits and strings verified against actually compiled unchanged C++ header with unused config include shim. Underlying algorithm tolerance behavior remains independently reviewed."
+    },
+    "src/openms/include/OpenMS/KERNEL/MassTrace.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/kernel/mass_trace.rs"
+      ],
+      "tests": [
+        "tests/mass_trace.rs"
+      ],
+      "documentation": "docs/MASS_TRACE_SUPPORT.md",
+      "scope": "Complete public value/container surface and all eight centroid updates, raw/smoothed areas, quantification, FWHM/interpolation/cache, hull, IM presence and width metadata. Owned Vec and borrowed fixed-length slices replace C++ list/vector constructors and iterators. Source mixed smoothed/raw area, endpoint-apex cached width, right-rectangle RT and exp/log SD expressions retained. Finite consumed-input/result, atomic-error and configurable work/allocation boundaries are explicit."
+    },
+    "src/openms/include/OpenMS/CHEMISTRY/MonosaccharideDB.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/chemistry/monosaccharide_db.rs"
+      ],
+      "tests": [
+        "tests/monosaccharide_db.rs"
+      ],
+      "documentation": "docs/MONOSACCHARIDE_SUPPORT.md",
+      "scope": "Complete immutable builtin lookup surface and all five owned record fields:24 primary records,12 synonyms,36 keys. Exact stored mass/formula, lexical source order, aliases and primary overwrite precedence retained. Native Option/Result and borrowed records/symbols replace pointers/exceptions/copied strings. Approved embedded dataset replaces private installed-file/environment discovery; runtime override/provider and ProForma parser remain outside this API."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

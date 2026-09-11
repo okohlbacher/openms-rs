@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
+  <referenceableParamGroupList count="2">
+    <referenceableParamGroup id="CommonMS1SpectrumParams">
+      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value="" />
+    </referenceableParamGroup>
+    <referenceableParamGroup id="CommonMS2SpectrumParams">
+      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value="" />
+    </referenceableParamGroup>
+  </referenceableParamGroupList>
+  <run id="settings_projection">
+    <spectrumList count="4">
+      <spectrum id="index=0" defaultArrayLength="0">
+        <referenceableParamGroupRef ref="CommonMS1SpectrumParams" />
+        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value="" />
+        <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value="" />
+        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+        <scanList count="2">
+          <scan>
+            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+            <scanWindowList count="1">
+              <scanWindow>
+                <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <userParam name="name" value="scanwindow1" />
+              </scanWindow>
+            </scanWindowList>
+          </scan>
+          <scan />
+        </scanList>
+      </spectrum>
+      <spectrum id="index=1" defaultArrayLength="0">
+        <referenceableParamGroupRef ref="CommonMS2SpectrumParams" />
+        <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value="" />
+        <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value="" />
+        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+        <scanList count="1">
+          <scan>
+            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.2" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+            <scanWindowList count="3">
+              <scanWindow>
+                <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              </scanWindow>
+              <scanWindow>
+                <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="600" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1000" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              </scanWindow>
+              <scanWindow>
+                <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="1100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              </scanWindow>
+            </scanWindowList>
+          </scan>
+        </scanList>
+      </spectrum>
+      <spectrum id="index=2" defaultArrayLength="0">
+        <referenceableParamGroupRef ref="CommonMS1SpectrumParams" />
+        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value="" />
+        <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value="" />
+        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+        <scanList count="2">
+          <scan>
+            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.3" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+            <scanWindowList count="1">
+              <scanWindow>
+                <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              </scanWindow>
+            </scanWindowList>
+          </scan>
+          <scan />
+        </scanList>
+        <productList count="2">
+          <product>
+            <isolationWindow>
+              <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.88" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="1.0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="2.0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <userParam name="iwname" value="isolationwindow3" />
+            </isolationWindow>
+          </product>
+          <product>
+            <isolationWindow>
+              <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.99" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="3.0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="4.0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              <userParam name="iwname" value="isolationwindow4" />
+            </isolationWindow>
+          </product>
+        </productList>
+      </spectrum>
+      <spectrum id="index=3" defaultArrayLength="0">
+        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value="" />
+        <cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" value="" />
+        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+        <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value="" />
+        <scanList count="1">
+          <scan>
+            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.4" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+            <cvParam cvRef="MS" accession="MS:1000497" name="zoom scan" />
+            <scanWindowList count="1">
+              <scanWindow>
+                <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+                <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="905" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+              </scanWindow>
+            </scanWindowList>
+          </scan>
+        </scanList>
+      </spectrum>
+    </spectrumList>
+  </run>
+</mzML>

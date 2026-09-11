@@ -1,5 +1,41 @@
 # Validation of the ongoing Rust port
 
+## Mass traces, constants, monosaccharides and mzML settings (2026-09-11)
+
+The four additions are integrated against SDK 82ce5b3.
+[Recorded checks](trace-settings-validation.json) include commands, outcomes,
+log hashes, staged scope and the executed C++ constants probe.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,658 tests passed |
+| Doctests | Three passed |
+| Native unit and adjacent tests, Rust 1.85/no defaults | 153 passed |
+| Staged mzML settings and adjacent tests | 91 passed on Rust 1.98; 90 on Rust 1.85/mzML only |
+| Strict Clippy, all targets | Passed on Rust 1.98/all features and Rust 1.85/no defaults |
+| Staged mzML-only strict Clippy, Rust 1.85 | Passed |
+| Release library, Rustdoc, Rustfmt | Passed; documentation warnings denied |
+| Source audit, projection and ledger/regression checks | Passed |
+
+This group adds 29 tests. Selected and staged totals overlap the full suite.
+All 38 numeric declarations and 91 metadata strings match an actually compiled,
+unchanged C++ Constants header. Its unused configuration include needs only an
+empty shim, with no scientific declarations replaced. This is not a full SDK
+build. The other three ports do not claim C++ execution.
+
+MassTrace tests preserve source numerical/cache quirks and use independently
+computed expected values where broad upstream comparison constants are stale.
+Monosaccharides retain every source field, literal mass and synonym precedence.
+The mzML projection preserves scientific literals and explicitly repairs its
+original Product count mismatch; ordinary and Numpress writer outputs pass
+independent schema tests. Acquisition fields outside this expanded representation
+remain guarded before output.
+
+The [preceding acquisition checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34568959479)
+passed every CI job. The ledger now records 45 complete/native-equivalent headers,
+741 requiring implementation or review, and no certified TOPP workflow.
+
+
 ## Acquisition, chromatogram conversion and SDK refresh (2026-09-11)
 
 The acquisition fields, [ChromatogramTools](CHROMATOGRAM_TOOLS_SUPPORT.md),

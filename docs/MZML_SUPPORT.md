@@ -60,7 +60,7 @@ Drift-window offsets and arbitrary precursor CV terms/ordinary CV-list metadata 
 
 `MSChromatogram::product` preserves the isolation target m/z and lower/upper offsets (`MS:1000827`/`1000828`/`1000829`). Finite signed targets are retained; offsets must be finite and nonnegative. Product isolation-window userParams retain String, i64 or f64 values with optional complete MS/UO unit identity in `product.cv_terms.metadata`. Inline parameters and referenceable groups use the same parser and cumulative limits. The writer emits a Product even when its values are all default, matching the source writer.
 
-Duplicate Product/isolation containers, quantities or metadata keys are errors. Arbitrary Product CV terms and Empty/list metadata are rejected before writing; the source would discard or flatten their identity. Nonempty spectrum product lists are also rejected because `MSSpectrum` has no product vector. See [Product transport](MZML_PRODUCT_SUPPORT.md) for exact XSD conversion, source differences, and tests.
+Duplicate Product/isolation containers, quantities or metadata keys are errors. Arbitrary Product CV terms and Empty/list metadata are rejected before writing; the source would discard or flatten their identity. Ordered spectrum Product lists use the same codec and preserve each Product; duplicate spectrum product-list containers are errors. See [Product transport](MZML_PRODUCT_SUPPORT.md) for exact XSD conversion, source differences, and tests.
 
 ## Explicit limits and unsupported features
 
@@ -76,7 +76,7 @@ The writer rejects nonfinite data, duplicate IDs, invalid XML characters, reserv
 
 ## Metadata preservation boundary
 
-This adapter is **not a lossless mzML archival converter**. Source files, instruments, scan windows, polarity, original data-processing history, arbitrary controlled-vocabulary lists, units/typed semantics on userParams outside Product, spectrum product ions, acquisition CV fields outside the supported precursor subset, and nested userParams are not retained by this adapter. Multiple selected ions within one precursor remain unsupported. The only automatic name mapping is the reserved Rust name userParam; other title conventions are not inferred.
+This adapter is **not a lossless mzML archival converter**. Source files, full instrument inventories, original data-processing history, arbitrary controlled-vocabulary lists, units/typed semantics on userParams outside Product and scan windows, and acquisition fields outside the documented precursor/record settings subsets are not retained by this adapter. Multiple selected ions within one precursor remain unsupported. The only automatic name mapping is the reserved Rust name userParam; other title conventions are not inferred.
 
 Run/spectrum/chromatogram metadata maps are string-valued; Product metadata uses the typed exception described above. The `openms-rust:name` key is reserved and rejected in user maps; it is used only for the spectrum/chromatogram `name` fields. Unknown acquisition metadata outside the supported model is ignored during reading. Unsupported binary arrays are rejected, rather than discarded.
 
@@ -111,7 +111,13 @@ writers; [details](DATA_ARRAY_XML_SUPPORT.md).
 
 ## Attached acquisition state
 
-New native spectrum/chromatogram acquisition fields have explicit
-[writer loss guards](MZML_ACQUISITION_GUARDS.md). Their nondefault state is rejected
-before output until transport is implemented; existing precursor and singular
-chromatogram Product support remains available.
+[Record settings transport](MZML_SETTINGS_SUPPORT.md) preserves spectrum scan
+modes, polarity, zoom, ordered scan windows and Product lists, plus the nine
+represented chromatogram types. File-content metadata summarizes spectrum modes
+in source order. Inline/grouped parameters share the same validation and budgets.
+
+[Writer loss guards](MZML_ACQUISITION_GUARDS.md) remain for attached AcquisitionInfo,
+SourceFile and DataProcessing, spectrum InstrumentSettings metadata, and nondefault
+chromatogram InstrumentSettings. Unknown chromatogram type is also rejected to
+avoid silently rereading it as Mass. Binary-array processing descriptions remain
+separately guarded.

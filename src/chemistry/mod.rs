@@ -101,20 +101,16 @@ pub use modifications::{
     OboReadOptions, ResidueModification, TermSpecificity,
 };
 pub use modified_peptides::ModifiedPeptideGenerator;
+pub mod monosaccharide_db;
+pub use monosaccharide_db::{Monosaccharide, MonosaccharideDB};
 pub use sequence::{AASequence, MassTag, PeptideFragmentType, SequenceModification};
 pub use theoretical::{
     TheoreticalIonIntensities, TheoreticalIonSeries, TheoreticalIsotopeModel,
     TheoreticalSpectrumGenerator,
 };
 
-/// Proton mass in unified atomic mass units, from OpenMS `Constants.h`.
-pub const PROTON_MASS_U: f64 = 1.007_276_466_771;
-/// Electron mass in unified atomic mass units, from OpenMS `Constants.h`.
-pub const ELECTRON_MASS_U: f64 = 1.0 / 1_822.888_502_047_7;
-/// Carbon-13/carbon-12 spacing constant from OpenMS `Constants.h`.
-///
-/// This intentionally differs slightly from the rounded masses in ElementDB.
-pub const C13C12_MASSDIFF_U: f64 = 1.003_354_837_8;
+/// Existing chemistry names retain the source constants and exact values.
+pub use crate::constants::{C13C12_MASSDIFF_U, ELECTRON_MASS_U, PROTON_MASS_U};
 
 /// An isotope's exact upstream tabulated mass and fractional natural abundance.
 #[derive(Clone, Copy, Debug, PartialEq)]

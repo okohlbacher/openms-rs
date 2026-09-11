@@ -66,7 +66,7 @@ fn populated() -> MSExperiment {
 fn source_product_literals_and_metadata_use_chromatogram_owner() {
     // MzMLFile_1.mzML lines418-425 and class assertions535-537,653.
     // The same source handler routes this spectrum Product to a chromatogram
-    // when outside spectrumList; the native kernel only models that owner.
+    // when outside spectrumList; this projection exercises that owner.
     let params = format!(
         "{}{}{}<userParam name=\"iwname\" value=\"isolationwindow3\"/>",
         cv("MS:1000827", "18.88"),
@@ -188,7 +188,7 @@ fn source_scalar_xsd_dispatch_preserves_types_ranges_and_unit_identity() {
 }
 
 #[test]
-fn product_structure_conflicts_and_unrepresented_spectrum_products_are_errors() {
+fn product_structure_conflicts_and_spectrum_product_support() {
     let valid = product(&cv("MS:1000827", "1"));
     for bad in [
         format!("{valid}{valid}"),
@@ -204,7 +204,10 @@ fn product_structure_conflicts_and_unrepresented_spectrum_products_are_errors() 
         assert!(read(&doc("", &bad)).is_err(), "{bad}");
     }
     let spectrum = "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" version=\"1.1.0\"><run><spectrumList count=\"1\"><spectrum id=\"scan=1\" defaultArrayLength=\"0\"><productList count=\"1\"><product/></productList></spectrum></spectrumList></run></mzML>";
-    assert!(matches!(read(spectrum), Err(openms::Error::Unsupported(_))));
+    assert_eq!(
+        read(spectrum).unwrap().spectra[0].products,
+        [Product::default()]
+    );
 }
 
 #[test]

@@ -31,9 +31,11 @@ pub use peak_index::PeakIndex;
 mod acquisition_fields;
 mod chromatogram_tools;
 mod data_array;
+mod mass_trace;
 pub use chromatogram_tools::{
     ChromatogramConversionLimits, ChromatogramConversionReport, ChromatogramTools,
 };
+pub use mass_trace::{MassTrace, MassTraceLimits, MassTraceQuantMethod};
 mod experiment_aggregation;
 mod experiment_summary;
 mod mobilogram;

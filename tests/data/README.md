@@ -264,8 +264,34 @@ no new C++ execution is used.
 ## Acquisition conversion and current SDK refresh
 
 [ChromatogramTools](chromatogram_tools_provenance.json) and
-[mzML guards](mzml_acquisition_guards_provenance.json) retain their original54a
-source evidence with explicit82ce target verification. The
+[mzML guards](mzml_acquisition_guards_provenance.json) retain their original 54a
+source evidence with explicit 82ce target verification. The
 [numeric-formatting refresh](sdk_numeric_formatting_provenance.json) hashes the
 new upstream changes and records the unchanged moved function body. Processing
 propagation tests use existing numerical fixtures and independent ownership checks.
+
+## Mass traces and constants
+
+[MassTrace provenance](mass_trace_provenance.json) pins the source operations and
+class inputs. Native tests retain accurate source literals and independently
+check area, centroid and variance calculations; approximate source assertions
+are distinguished from exact input arithmetic. [Constants provenance](constants_provenance.json)
+records an actual unchanged-header C++ probe for all 38 numeric entries and
+91 metadata strings. The probe's unused configuration include shim does not
+replace any scientific declaration. This is not a full C++ SDK build.
+
+## mzML record settings
+
+[Settings provenance](mzml_settings_provenance.json) retains the unchanged original
+source document and describes its four-spectrum projection. The original declares
+one Product while containing two; the projection explicitly repairs that count
+and preserves the two source Product tuples. Settings, units, parameter limits
+and an actual native conversion/transport workflow are checked independently of
+the existing binary codecs. No new C++ execution is claimed for this transport.
+
+## Monosaccharides
+
+[Monosaccharide provenance](monosaccharide_provenance.json) records the complete
+unchanged source JSON, generated embedded rows and original license notice.
+All 24 masses/formulas and 12 aliases are checked; the optional JSON decoder
+compares every stored field and f64 bit. The generator check is part of CI.

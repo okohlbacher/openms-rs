@@ -1,0 +1,296 @@
+{
+  "target_sdk_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "platform": "macOS ARM64",
+  "current_rust": "1.98.0",
+  "minimum_rust": "1.85.0",
+  "scope": "MassTrace full value/computational surface, complete builtin MonosaccharideDB and Constants collection, expanded mzML scan/window/Product/chromatogram settings.",
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 186.8,
+      "log_sha256": "83fbd835385e1f77f752048336ef6ef268a84b91bb8d62c47fe479b3d0fabdd1",
+      "log_bytes": 173753,
+      "tests_passed": 1658
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.15,
+      "log_sha256": "89a4324c5488f347e69a46b37b7c713a12b5f941382989ded12c7aa88cdcb740",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 14.45,
+      "log_sha256": "49ac065a266eff8a38df6ec3649e1d63fea0b8152d3e477886f5c91f7a5a4561",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 30.42,
+      "log_sha256": "143305e986ffa1c71d34e7420e02915292f802e99b18e69f8870a6ed8252bc0a",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.41,
+      "log_sha256": "74442d488b45e75b506acd4f464b55fe55425c142b2bbbc0df3c199b9b6d0e84",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.75,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36,
+      "log_sha256": "ac07541eb98b9f4b556ab84964ea9c012f0b2ecdbb39103e03f8be0901f9292f",
+      "log_bytes": 233
+    },
+    {
+      "name": "monosaccharide_projection",
+      "command": [
+        "python3",
+        "tools/generate_monosaccharides.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9",
+      "log_bytes": 48
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "ee5f3b77622111e3b4640dfbf278c4e3e7432e35328ab210a455b3f53fe06a0d",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "bbf220d889d409913082932298af56e5c6199e198725dc0cb2584e097ddc68d6",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "mass_trace",
+        "--test",
+        "constants",
+        "--test",
+        "features",
+        "--test",
+        "peak2d",
+        "--test",
+        "chemistry",
+        "--test",
+        "adduct_info",
+        "--test",
+        "theoretical",
+        "--test",
+        "monosaccharide_db",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 24.65,
+      "log_sha256": "b1d32b05bffd99cb5bbca26b370b6e01f464b88aff9fe87d5222402ca274d855",
+      "log_bytes": 16060,
+      "tests_passed": 153
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 18.62,
+      "log_sha256": "471b5f4e5126578782f47b78ba0d798dd8de92963480f65d64e8425f8edca677",
+      "log_bytes": 162
+    }
+  ],
+  "staged_checks": [
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-settings-target cargo +1.98.0 test --locked --offline -j2 --all-features --test mzml_settings --test mzml_acquisition_guards --test mzml_product --test mzml --test mzml_load_options --test mzml_param_groups --test mzml_numpress --test mzml_paths --test file_handler",
+      "exit_code": 0,
+      "log_sha256": "b9d62a5b14e1b71237b44aecb1d2a5f050229a724d3e02219f122e5e6490e31f",
+      "log_bytes": 9034,
+      "tests_passed": 91,
+      "scope": "Frozen mzML settings stage; production and Rust test bytes verified against the integrated tree. Historical manifest target verification restored at root integration."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-settings-target cargo +1.98.0 clippy --locked --offline -j2 --all-features --lib --test mzml_settings --test mzml_acquisition_guards --test mzml_product -- -D warnings",
+      "exit_code": 0,
+      "log_sha256": "bfefc465c4ce32e4b8389bab50fc451cf39ce2aee87252c2456b2a01566655ab",
+      "log_bytes": 143,
+      "scope": "Frozen mzML settings stage; production and Rust test bytes verified against the integrated tree. Historical manifest target verification restored at root integration."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-settings-target cargo +1.85.0 test --locked --offline -j2 --no-default-features --features mzml --test mzml_settings --test mzml_acquisition_guards --test mzml_product --test mzml --test mzml_load_options --test mzml_param_groups --test mzml_numpress --test mzml_paths --test file_handler",
+      "exit_code": 0,
+      "log_sha256": "fe8509af27f473eb0e8a03bf45408bc8c4e7e4cc540fd05a854f87f1ab8a0bd1",
+      "log_bytes": 8946,
+      "tests_passed": 90,
+      "scope": "Frozen mzML settings stage; production and Rust test bytes verified against the integrated tree. Historical manifest target verification restored at root integration."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-settings-target cargo +1.85.0 clippy --locked --offline -j2 --no-default-features --features mzml --lib --test mzml_settings --test mzml_acquisition_guards --test mzml_product -- -D warnings",
+      "exit_code": 0,
+      "log_sha256": "bcd8089dc230832dc99bef60d8340363fa80ce3b85d6d007bebd87418a928d62",
+      "log_bytes": 143,
+      "scope": "Frozen mzML settings stage; production and Rust test bytes verified against the integrated tree. Historical manifest target verification restored at root integration."
+    }
+  ],
+  "cpp_execution": {
+    "scope": "All129 numeric/string entries in unchanged Constants.h, compiled and executed using an unused configuration include shim. Full SDK not built.",
+    "provenance": "tests/data/constants_provenance.json",
+    "numeric_entries": 38,
+    "metadata_keys": 91,
+    "full_sdk_build": false
+  },
+  "new_tests": {
+    "mass_trace": 12,
+    "constants": 2,
+    "monosaccharide_integration": 6,
+    "monosaccharide_private": 1,
+    "mzml_settings": 8,
+    "total": 29
+  },
+  "preceding_ci": {
+    "commit": "169162c78b9e3b1d8a9c7faaf2d53f5f4dfa44c4",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34568959479",
+    "conclusion": "success",
+    "scope": "Every Linux, macOS, Windows, minimum-Rust and quality job on preceding acquisition checkpoint; separate from local checks for this group."
+  },
+  "notes": [
+    "Selected/staged totals overlap the full combined suite.",
+    "Independent XSD tests actually ran for settings/Product/Numpress output in the frozen stage.",
+    "No C++ execution claimed for MassTrace, MonosaccharideDB or mzML settings; source fixtures and independent checks remain distinct from actual constant header execution.",
+    "Original mzML source declares one Product but contains two; projection explicitly repairs count to2 without changing original fixture.",
+    "Source fields still not represented by mzML remain guarded before output; no complete MzMLFile or TOPP certification claim."
+  ],
+  "ledger": {
+    "registered_public_headers": 786,
+    "complete_or_native_equivalent": 45,
+    "requires_implementation_or_review": 741,
+    "certified_topp_workflows": 0
+  }
+}

@@ -72,6 +72,8 @@
   ],
   "test_file": "tests/mzml_acquisition_guards.rs",
   "tests": 7,
+  "scope_status": "Historical completed scope at the recorded source revision; current spectrum Product/settings support supersedes the earlier blanket rejection boundary.",
+  "superseded_scope_reference": "tests/data/mzml_settings_provenance.json",
   "target_verification": {
     "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
     "source_revisions": [

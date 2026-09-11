@@ -7,10 +7,10 @@ This is a work inventory, not a completion percentage. Matching declarations and
 | Review state | Headers |
 | --- | ---: |
 | complete | 10 |
-| evidence_requires_review | 164 |
-| native_equivalent | 32 |
+| evidence_requires_review | 163 |
+| native_equivalent | 35 |
 | partial | 19 |
-| unmapped | 561 |
+| unmapped | 559 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -26,7 +26,6 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/KERNEL/ConsensusMap.h` | 40 | evidence_requires_review |
 | `OpenMS/KERNEL/FeatureMap.h` | 22 | evidence_requires_review |
 | `OpenMS/FORMAT/MzMLFile.h` | 19 | partial |
-| `OpenMS/CONCEPT/Constants.h` | 16 | evidence_requires_review |
 | `OpenMS/PROCESSING/ID/IDFilter.h` | 14 | evidence_requires_review |
 | `OpenMS/CHEMISTRY/ProteaseDB.h` | 13 | evidence_requires_review |
 | `OpenMS/METADATA/PeptideIdentification.h` | 12 | evidence_requires_review |
@@ -53,6 +52,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/METADATA/ExperimentalDesign.h` | 7 | unmapped |
 | `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 6 | unmapped |
 | `OpenMS/CHEMISTRY/ProteaseDigestion.h` | 6 | evidence_requires_review |
+| `OpenMS/CONCEPT/VersionInfo.h` | 6 | unmapped |
 
 ## Completion requirements
 

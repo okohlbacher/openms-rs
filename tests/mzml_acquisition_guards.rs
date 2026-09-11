@@ -9,8 +9,7 @@ use openms::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D,
 };
 use openms::metadata::{
-    Acquisition, ChecksumType, ChromatogramType, DataProcessing, Polarity, Product, ScanMode,
-    ScanWindow,
+    Acquisition, ChecksumType, ChromatogramType, DataProcessing, Product, ScanMode, ScanWindow,
 };
 use std::{io::Cursor, sync::Arc};
 
@@ -101,18 +100,11 @@ fn default_source_settings_and_existing_precursor_product_transport_remain_suppo
     }
 }
 #[test]
-fn every_nondefault_spectrum_acquisition_category_rejects_before_output() {
-    for case in 0..19 {
+fn unrepresented_spectrum_acquisition_categories_reject_before_output() {
+    for case in 4..19 {
         let mut e = base();
         let s = &mut e.spectra[0];
         match case {
-            0 => s.instrument_settings.scan_mode = ScanMode::MassSpectrum,
-            1 => s.instrument_settings.zoom_scan = true,
-            2 => s.instrument_settings.polarity = Polarity::Positive,
-            3 => s
-                .instrument_settings
-                .scan_windows
-                .push(ScanWindow::default()),
             4 => {
                 s.instrument_settings
                     .metadata
@@ -155,7 +147,7 @@ fn every_nondefault_spectrum_acquisition_category_rejects_before_output() {
     }
 }
 #[test]
-fn chromatogram_settings_and_all_nondefault_type_variants_reject() {
+fn chromatogram_settings_and_unknown_type_remain_rejected() {
     for case in 0..6 {
         let mut e = base();
         let c = &mut e.chromatograms[0];
@@ -177,31 +169,26 @@ fn chromatogram_settings_and_all_nondefault_type_variants_reject() {
         }
         rejected(&e, "chromatogram");
     }
-    for kind in [
-        ChromatogramType::TotalIonCurrent,
-        ChromatogramType::SelectedIonCurrent,
-        ChromatogramType::BasePeak,
-        ChromatogramType::SelectedIonMonitoring,
-        ChromatogramType::SelectedReactionMonitoring,
-        ChromatogramType::ElectromagneticRadiation,
-        ChromatogramType::Absorption,
-        ChromatogramType::Emission,
-        ChromatogramType::Unknown,
-    ] {
-        let mut e = base();
-        e.chromatograms[0].chromatogram_type = kind;
-        rejected(&e, "chromatogram");
-    }
+    let mut e = base();
+    e.chromatograms[0].chromatogram_type = ChromatogramType::Unknown;
+    rejected(&e, "chromatogram");
 }
 #[test]
-fn even_default_or_invalid_spectrum_products_are_not_silently_dropped() {
-    for mz in [0., 250., f64::NAN] {
-        let mut e = base();
-        e.spectra[0].products.push(Product {
-            mz,
-            ..Default::default()
-        });
-        rejected(&e, "spectrum");
+fn invalid_spectrum_products_error_before_output() {
+    let mut e = base();
+    e.spectra[0].products.push(Product {
+        mz: f64::NAN,
+        ..Default::default()
+    });
+    for numpress in [false, true] {
+        let mut bytes = b"preserved".to_vec();
+        let result = if numpress {
+            mzml::write_with_numpress(&mut bytes, &e, &Default::default()).map(|_| ())
+        } else {
+            mzml::write(&mut bytes, &e)
+        };
+        assert!(result.is_err());
+        assert_eq!(bytes, b"preserved");
     }
 }
 #[test]
@@ -249,7 +236,7 @@ fn array_description_rejection_precedes_deep_validation_in_both_writers() {
 #[test]
 fn path_and_dispatch_failures_preserve_existing_files() {
     let mut e = base();
-    e.spectra[0].products.push(Product::default());
+    e.spectra[0].source_file.name = "unrepresented.raw".into();
     for suffix in ["mzML", "mzML.gz", "mzML.bz2"] {
         let path = std::env::temp_dir().join(format!(
             "openms-acquisition-guard-{}.{}",

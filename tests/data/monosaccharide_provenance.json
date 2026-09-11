@@ -1,0 +1,68 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/MonosaccharideDB.h",
+      "sha256": "334d3c076172451cb7778b04160fc97b08a16ede84619f86083ab273980f3ac8"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/MonosaccharideDB.cpp",
+      "sha256": "1ecb881e1853758d531f9c205ae01c9b0f131cc927e2eb023674135b851a9937"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MonosaccharideDB_test.cpp",
+      "sha256": "db6200f387e1ac0686cc72a95e71a5bddcad0e57d97e8bc1d0bc0ff8745efc4a"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/monosaccharides.json",
+      "sha256": "59e8e5558d10581f148964b54297474044beefd04510069cfecb4109e8f9173f"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677"
+    }
+  ],
+  "source_compatibility": {
+    "previous_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "checked_paths": [
+      "src/openms/include/OpenMS/CHEMISTRY/MonosaccharideDB.h",
+      "src/openms/source/CHEMISTRY/MonosaccharideDB.cpp",
+      "src/tests/class_tests/openms/source/MonosaccharideDB_test.cpp",
+      "share/OpenMS/CHEMISTRY/monosaccharides.json"
+    ],
+    "result": "All four Monosaccharide header, implementation, class test and JSON bytes unchanged."
+  },
+  "fixtures": [
+    {
+      "path": "resources/monosaccharides/monosaccharides.json",
+      "sha256": "59e8e5558d10581f148964b54297474044beefd04510069cfecb4109e8f9173f"
+    }
+  ],
+  "generated_files": [
+    {
+      "path": "resources/monosaccharides/monosaccharides.rs",
+      "sha256": "9fad315a7001e14b43d391d011de3a2c95ca10ba5d1ca030945ba475691e053e"
+    }
+  ],
+  "generator": {
+    "path": "tools/generate_monosaccharides.py",
+    "sha256": "00d6ed409a2f61650c763727d6c7fe9a0505e5e847d4a6d8b32519c75544187e",
+    "check_command": "python3 tools/generate_monosaccharides.py --check"
+  },
+  "counts": {
+    "primary_records": 24,
+    "synonym_entries": 12,
+    "distinct_lookup_keys": 36
+  },
+  "fixture_policy": "All 24 decimal mass/formula pairs and 12 aliases independently transcribed into native tests. All-features test independently decodes untouched original JSON and compares every field/mass bit; no C++ program was built or executed.",
+  "projection_policy": "Lexical JSON primary order; missing mass skipped before aliases; missing name defaults to primary; absent formula empty; non-array synonyms ignored; f64 mass bits preserve declared values independently of formula text.",
+  "runtime_boundary": "Immutable compiled dataset, no runtime installation/environment lookup, JSON provider or caller registry constructor. The original source private loader remains represented by deterministic offline generation only.",
+  "native_differences": [
+    "Borrowed all_symbols strings instead of copied source strings.",
+    "Option replaces null and InvalidValue replaces ElementNotFound; unknown query is not copied into the error.",
+    "Rust owned cloned record edits do not mutate registry.",
+    "Generator limits source to 1 MiB/1,024 rows, finite numbers and control-free scientific strings."
+  ],
+  "licensing": "Original JSON metadata attribution retained. Original OpenMS LICENSE reproduced unchanged in resources/monosaccharides/README.md; no additional dataset license is asserted."
+}
