@@ -1,0 +1,68 @@
+{
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source_path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
+  "source_sha256": "bc766b362acec369917682cbb0c14a22cfeb83cc4e5c28ead5fc9556bf02eba2",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+  "probe_binary_sha256": "408d907c3e6a9ebd7c61346ed3001d762bcee96cf77c39e04e8d347174bbefbf",
+  "issues": [
+    {
+      "issue": "Unchecked host timegm failure changes early-year dates to epoch-adjacent values",
+      "lines": [
+        48,
+        68,
+        71,
+        77,
+        80
+      ],
+      "minimal_cpp": "OpenMS::DateTime d; d.set(\"0001-01-01T00:00:00\"); d.addSecs(0); std::cout << d.get();",
+      "observed": "1969-12-31 23:59:59",
+      "expected": "0001-01-01 00:00:00",
+      "fixture": "tests/data/datetime_cpp_probe.tsv case_0239",
+      "libc_diagnostic": "tests/data/datetime_libc_diagnostic.tsv",
+      "platform_details": "Apple clang21, arm64-apple-darwin25.5.0; sampled input years-1,0,1,400,1800,1899 return time_t(-1) with errno0, while sampled1900+ inputs convert. DateTime ignores return/failure state.",
+      "fix": "Use checked Gregorian normalization and integer calendar arithmetic over the supported year domain, preserving milliseconds/validity. Reject resulting overflow atomically. If libc remains, detect failure reliably; errno-only checks are insufficient here and -1 can also be a legitimate timestamp.",
+      "native_policy": "Deterministic Gregorian arithmetic, tested with35 independent month-step corrections; no macOS failure emulation."
+    },
+    {
+      "issue": "Signed overflow while normalizing scanf-accepted fractional seconds",
+      "lines": [
+        230,
+        255,
+        586
+      ],
+      "minimal_cpp": "OpenMS::DateTime d; d.set(\"2000-01-01T00:00:00. 2147483647\");",
+      "expected": "Defined checked rejection or safe normalization; preserving existing scanf rules and mathematical scaling gives milliseconds0.",
+      "fix": "Perform at most three multiplications in int64_t before remainder1000, or reduce modulo1000 before scaling; centralize the duplicated helper. Alternatively checked reject while preserving each operation error-publication policy.",
+      "native_policy": "Checked scaling rejects: automatic set clears then errors; from_format returns invalid. No source undefined result is used as an oracle.",
+      "executions": [
+        {
+          "operation": "set",
+          "source_line": 255,
+          "input_tsv": "fraction_overflow\t\tset\t323030302d30312d30315430303a30303a30302e2032313437343833363437\t\t\n",
+          "returncode": -6,
+          "stderr": "/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.reference/openms4-core-82ce5b3/src/openms/source/DATASTRUCTURES/DateTime.cpp:255:65: runtime error: signed integer overflow: 2147483647 * 10 cannot be represented in type 'int'\nSUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.reference/openms4-core-82ce5b3/src/openms/source/DATASTRUCTURES/DateTime.cpp:255:65 \n",
+          "stderr_sha256": "68902515e45eb5c890662250f9a051d28d1e9946ef6f94df120dfb93ba003a03",
+          "stdout_empty": true
+        },
+        {
+          "operation": "fromString with ISO-ms",
+          "source_line": 586,
+          "input_tsv": "fraction_overflow\t\tfrom\t323030302d30312d30315430303a30303a30302e2032313437343833363437\t797979792d4d4d2d64645468683a6d6d3a73732e7a7a7a\t\n",
+          "returncode": -6,
+          "stderr": "/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.reference/openms4-core-82ce5b3/src/openms/source/DATASTRUCTURES/DateTime.cpp:586:59: runtime error: signed integer overflow: 2147483647 * 10 cannot be represented in type 'int'\nSUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.reference/openms4-core-82ce5b3/src/openms/source/DATASTRUCTURES/DateTime.cpp:586:59 \n",
+          "stderr_sha256": "7ffc10f1bf0ee3e1e4aae0b8b3034b807a9e20244bd6d1f18ece4efe00340210",
+          "stdout_empty": true
+        },
+        {
+          "operation": "set with +00:00 suffix",
+          "source_line": 230,
+          "input_tsv": "fraction_overflow\t\tset\t323030302d30312d30315430303a30303a30302e20323134373438333634372b30303a3030\t\t\n",
+          "returncode": -6,
+          "stderr": "/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.reference/openms4-core-82ce5b3/src/openms/source/DATASTRUCTURES/DateTime.cpp:230:67: runtime error: signed integer overflow: 2147483647 * 10 cannot be represented in type 'int'\nSUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.reference/openms4-core-82ce5b3/src/openms/source/DATASTRUCTURES/DateTime.cpp:230:67 \n",
+          "stderr_sha256": "55ae373b1593eba3445720fe2897b87e06a29e99c850408cb0016be353fe2921",
+          "stdout_empty": true
+        }
+      ]
+    }
+  ]
+}

@@ -464,7 +464,9 @@ fn empty_conversions_preserve_unrelated_buffer_and_metadata() {
         chromatograms: vec![MSChromatogram::default()],
         ..Default::default()
     };
-    e.metadata.insert("experiment".into(), "unchanged".into());
+    e.settings
+        .metadata
+        .insert("experiment".into(), "unchanged".into());
     let ptr = e.spectra.as_ptr();
     let report = ChromatogramTools::default()
         .convert_chromatograms_to_spectra(&mut e)
@@ -476,7 +478,10 @@ fn empty_conversions_preserve_unrelated_buffer_and_metadata() {
         .unwrap();
     assert_eq!(report.added_chromatograms, 0);
     assert_eq!(e.spectra.as_ptr(), ptr);
-    assert_eq!(e.metadata["experiment"], "unchanged");
+    assert_eq!(
+        e.settings.metadata["experiment"].as_str().unwrap(),
+        "unchanged"
+    );
 }
 
 #[test]

@@ -78,6 +78,9 @@ impl AcquisitionCopies {
         Ok(())
     }
     pub(super) fn experiment(&mut self, input: &MSExperiment) -> Result<()> {
+        input
+            .settings
+            .with_budget(&mut self.work, &mut self.bytes)?;
         self.spectra(&input.spectra)?;
         self.visit(input.chromatograms.len())?;
         for chromatogram in &input.chromatograms {

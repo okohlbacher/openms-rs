@@ -168,8 +168,9 @@ source and copied-fixture hashes, case counts and native differences. These are
 native source-derived tests; this parser group does not claim an executed C++
 parser differential run or a complete SDK build. The earlier writer extraction
 probe remains separate evidence in [the AST/writer support document](PROFORMA_SUPPORT.md).
-Resolution/conversion policies, mass/m/z and ordinary/XLMS spectra remain
-separate unimplemented groups; no parser success claims those capabilities.
+[Modification resolution](PROFORMA_RESOLUTION_SUPPORT.md) is available as a
+separate explicit operation. Conversion policies, mass/m/z and ordinary/XLMS
+spectra remain unimplemented; no parser success claims those capabilities.
 
 ## Executed C++ text comparisons
 

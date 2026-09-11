@@ -131,11 +131,13 @@ impl FileHandler {
     ) -> Result<()> {
         match kind {
             FileType::Dta => {
+                if experiment.settings.has_transport_metadata() {
+                    return Err(Error::Unsupported(
+                        "DTA cannot store experiment settings".into(),
+                    ));
+                }
                 experiment.validate()?;
-                if experiment.spectra.len() != 1
-                    || !experiment.chromatograms.is_empty()
-                    || !experiment.metadata.is_empty()
-                {
+                if experiment.spectra.len() != 1 || !experiment.chromatograms.is_empty() {
                     return Err(Error::Unsupported("DTA experiment output requires exactly one spectrum and no experiment metadata or chromatograms".into()));
                 }
                 dta::write(writer, &experiment.spectra[0])
@@ -155,7 +157,13 @@ impl FileHandler {
     pub fn load_experiment(path: impl AsRef<Path>, allowed: &[FileType]) -> Result<MSExperiment> {
         let path = path.as_ref();
         let kind = type_by_file_name(path.to_str().unwrap_or(""));
-        load_stream(super::path_io::open(path)?, kind, allowed)
+        let mut document = crate::metadata::DocumentIdentifier::new();
+        document.set_loaded_file_path(filename(path)?)?;
+        document.set_loaded_file_type(path)?;
+        let mut result = load_stream(super::path_io::open(path)?, kind, allowed)?;
+        result.settings.document.loaded_file_path = document.loaded_file_path;
+        result.settings.document.loaded_file_type = document.loaded_file_type;
+        Ok(result)
     }
 
     /// Store to a sibling temporary file, replacing the destination only after

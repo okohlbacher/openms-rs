@@ -367,7 +367,10 @@ fn experiment_auto_manual_selection_and_atomic_errors() {
         spectra: vec![profile, centroid.clone()],
         ..Default::default()
     };
-    experiment.metadata.insert("study".into(), "test".into());
+    experiment
+        .settings
+        .metadata
+        .insert("study".into(), "test".into());
     let out = PeakPickerHiRes::default()
         .pick_experiment(&experiment)
         .unwrap();
@@ -375,7 +378,10 @@ fn experiment_auto_manual_selection_and_atomic_errors() {
     assert_eq!(out.experiment.spectra[1], centroid);
     assert!(out.spectrum_boundaries[0].is_some());
     assert!(out.spectrum_boundaries[1].is_none());
-    assert_eq!(out.experiment.metadata, experiment.metadata);
+    assert_eq!(
+        out.experiment.settings.metadata,
+        experiment.settings.metadata
+    );
     let manual = PeakPickerHiRes {
         ms_levels: vec![2],
         ..Default::default()

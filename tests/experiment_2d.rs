@@ -19,7 +19,8 @@ fn old_map() -> MSExperiment {
         chromatograms: vec![MSChromatogram::new()],
         ..Default::default()
     };
-    m.metadata
+    m.settings
+        .metadata
         .insert("old".into(), "preserve previous ownership".into());
     m.spectra[0]
         .metadata
@@ -59,13 +60,13 @@ fn source_plain_roundtrip_replaces_all_current_data_and_returns_old_ownership() 
     ];
     let mut exp = old_map();
     let before = exp.clone();
-    let ptr = exp.metadata["old"].as_ptr();
+    let ptr = exp.settings.metadata["old"].as_str().unwrap().as_ptr();
     let peak_ptr = exp.spectra[0].peaks.as_ptr();
     let old = exp.set_2d_data(&input).unwrap();
     assert_eq!(old, before);
-    assert_eq!(old.metadata["old"].as_ptr(), ptr);
+    assert_eq!(old.settings.metadata["old"].as_str().unwrap().as_ptr(), ptr);
     assert_eq!(old.spectra[0].peaks.as_ptr(), peak_ptr);
-    assert!(exp.metadata.is_empty());
+    assert!(exp.settings.metadata.is_empty());
     assert!(exp.chromatograms.is_empty());
     assert_eq!(exp.spectra.len(), 3);
     assert!(

@@ -1,2 +1,5 @@
 # Scientific fixtures retain exact bytes on every checkout platform.
 tests/data/** -text -whitespace
+# Original classifier resources are byte-pinned source inputs too.
+resources/metabolite_isotope_models/*.svm -text -whitespace
+resources/metabolite_isotope_models/*.scale -text -whitespace

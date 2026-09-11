@@ -45,7 +45,7 @@ fn ms2_literal_source_fixture_ignores_charge_and_analysis_lines() {
             ]
         );
     }
-    assert!(e.metadata.is_empty());
+    assert!(e.settings.metadata.is_empty());
     let mut text = Vec::new();
     ms2::write(&mut text, &e).unwrap();
     assert_eq!(ms2::read(text.as_slice()).unwrap(), e);
@@ -366,7 +366,10 @@ fn tic_matches_source_ms1_only_f32_accumulation_and_explicit_projection() {
                 ..Default::default()
             },
         ],
-        metadata: [("discarded".into(), "for explicit TIC".into())].into(),
+        settings: openms::metadata::ExperimentalSettings {
+            metadata: [("discarded".into(), "for explicit TIC".into())].into(),
+            ..Default::default()
+        },
         ..Default::default()
     };
     text.clear();

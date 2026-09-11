@@ -403,6 +403,7 @@ fn experiment_limits_are_global_and_errors_do_not_partially_commit() {
         ..Default::default()
     };
     experiment
+        .settings
         .metadata
         .insert("experiment".into(), "keep".into());
     let before = experiment.clone();
@@ -437,5 +438,5 @@ fn experiment_limits_are_global_and_errors_do_not_partially_commit() {
         .unwrap();
     assert_eq!(experiment.spectra, vec![expected.clone(), expected]);
     assert_eq!(experiment.chromatograms, before.chromatograms);
-    assert_eq!(experiment.metadata, before.metadata);
+    assert_eq!(experiment.settings.metadata, before.settings.metadata);
 }

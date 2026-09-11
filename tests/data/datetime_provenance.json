@@ -1,0 +1,164 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "rust_base_revision": "145ab93d7c9a23ee48fef4f855b9c881171f4898",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DateTime.h",
+      "sha256": "50a9834bbe7d2723850aca762e3cca31777aa0d2c472e908f174c92fadc60e2f"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
+      "sha256": "bc766b362acec369917682cbb0c14a22cfeb83cc4e5c28ead5fc9556bf02eba2"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DateTime_test.cpp",
+      "sha256": "b4c3fb100367c3325b244bf2d12d64255130b902f0326e68aa81a9c9e07fab54"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
+      "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+      "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Exception.h",
+      "sha256": "620da10fdd42133622a159cca1b7b45328dd36f34496d8f6de965ee89f9bebda"
+    }
+  ],
+  "native_implementation": [
+    "src/data_structures/datetime.rs"
+  ],
+  "native_tests": [
+    "tests/datetime.rs"
+  ],
+  "support_document": "docs/DATETIME_SUPPORT.md",
+  "fixtures": [
+    {
+      "path": "tests/data/datetime_class_literals.tsv",
+      "sha256": "a85f1aa1522853e67ba83a8f23b6fda41fb863815d8b09b527546c2dc99079c4",
+      "rows": 19,
+      "kind": "published source literal"
+    },
+    {
+      "path": "tests/data/datetime_cpp_probe.tsv",
+      "sha256": "1773e494e2cf4505a6893e19287183d0235da1a3a5e74bf018c857b95fa4b014",
+      "rows": 301,
+      "kind": "executed unmodified DateTime C++ body with dependency adapters"
+    },
+    {
+      "path": "tests/data/datetime_calendar_corrections.tsv",
+      "sha256": "880208db80308261f6d7892885788d8e0ac19a147e0ad733b37b02a828fd45f1",
+      "rows": 35,
+      "kind": "independent Python calendar.monthrange month-step mathematical oracle"
+    },
+    {
+      "path": "tests/data/datetime_libc_diagnostic.tsv",
+      "sha256": "1487200d006a2bb789ebc033301072c95389171173bf1169d0be517f95313929",
+      "rows": 11,
+      "kind": "executed host timegm diagnostic; no header"
+    },
+    {
+      "path": "tests/data/datetime_cpp_issues.json",
+      "sha256": "d0b11c262db1e314db8393378e9775af065627848227316e60e4ffb5cadb1538",
+      "kind": "Two confirmed C++ issues; three actual UBSan overflow executions separate from301 ordinary reference rows"
+    }
+  ],
+  "reference_tools": [
+    {
+      "path": "tools/datetime_probe/README.md",
+      "sha256": "46def21912ebc697431a8da6bbac8577fb08decedd0f3581a2b7fca99745b933"
+    },
+    {
+      "path": "tools/datetime_probe/derive_calendar_corrections.py",
+      "sha256": "19b6caea843f98b953798a7ce758c5385c3cf232c9ebe1badd7e42299998a4dc"
+    },
+    {
+      "path": "tools/datetime_probe/generate_cases.py",
+      "sha256": "2f998390ebe7f5f4c455371bba5c13d1265c04d10abb4ec0dacbdb8429e7a41c"
+    },
+    {
+      "path": "tools/datetime_probe/include/OpenMS/CONCEPT/Exception.h",
+      "sha256": "1ca5431537b195f7d9afbf68848db6042fb8263cdea9e16bed49a0713c0f97ed"
+    },
+    {
+      "path": "tools/datetime_probe/include/OpenMS/CONCEPT/Types.h",
+      "sha256": "015fb528c00aa969fae1e40b03673fa4af94eba4db48b66317eb90b310b17cd0"
+    },
+    {
+      "path": "tools/datetime_probe/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "97d25a755c473b80fac635b135ea77e9f90ea916b14bb1a3e70f819db3d4f5dc"
+    },
+    {
+      "path": "tools/datetime_probe/include/OpenMS/OpenMSConfig.h",
+      "sha256": "29496151329ec95107bb315b992a4be07346bf1373dc18bf39692af7b6e04a40"
+    },
+    {
+      "path": "tools/datetime_probe/main.cpp",
+      "sha256": "a3883eb147f08fccd212505e0b55cbc45806e0c6ba7ff6885725e7b865c07f0e"
+    },
+    {
+      "path": "tools/datetime_probe/timegm_diagnostic.cpp",
+      "sha256": "7412c34182f158d06dc5673f06caa5d53c40ddb9083f454addf7f12c7cf9f32d"
+    }
+  ],
+  "cpp_probe": {
+    "execution": true,
+    "scientific_source_modified": false,
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "architecture": "arm64",
+    "locale": "C",
+    "flags": [
+      "-std=c++20",
+      "-O0",
+      "-g",
+      "-fsanitize=undefined",
+      "-fno-sanitize-recover=undefined"
+    ],
+    "binary_sha256": "408d907c3e6a9ebd7c61346ed3001d762bcee96cf77c39e04e8d347174bbefbf",
+    "build_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_empty": true,
+    "cases": 301,
+    "exact_matching_cases": 266,
+    "independently_corrected_cases": 35,
+    "adaptations": [
+      "UInt and export/pretty-function macro shims",
+      "Source-equivalent used StringUtils has/prefix semantics; std::to_string for integer exception diagnostic construction",
+      "Exception class tags replace SDK error hierarchy and messages",
+      "No scientific DateTime.cpp/header or HashUtils.h modification; all real system libc calendar calls remain active"
+    ],
+    "libc_diagnostic_binary_sha256": "a9b9526db9145f4090c27d5b005cd90fb822109f815b5ea93c9af7d54c514bb3"
+  },
+  "class_test_review": {
+    "path": "src/tests/class_tests/openms/source/DateTime_test.cpp",
+    "lines": "1-403",
+    "literal_extraction": "19 immediate set/get or exception rows include original source line; other class numeric/copy/getter/default/clock operations are tested directly. Locale/TZ independence follows the native ASCII scanner and naive arithmetic without process-state changes."
+  },
+  "source_anchors": {
+    "fields_validation": "DateTime.cpp25-45",
+    "arithmetic_host_calls": "DateTime.cpp48-83",
+    "comparison_and_rendering": "DateTime.cpp106-194",
+    "automatic_parser": "DateTime.cpp196-355",
+    "numeric_set_and_clocks": "DateTime.cpp357-411",
+    "partial_setters_and_getters": "DateTime.cpp437-550",
+    "from_format": "DateTime.cpp565-637",
+    "rendered_hash": "DateTime.h204-216"
+  },
+  "native_boundaries": [
+    "Deterministic Gregorian arithmetic corrects macOS timegm failure for early input years; 35 original rows retained and independently checked via month stepping",
+    "Resulting year outside i32 and integer/scaling conversion overflow are checked",
+    "Input byte cap is 1MiB and preflight before set clear; fixed-stack parse and sub64-byte output",
+    "Signed component getters expose negative years instead of source UInt wrap",
+    "Eq includes valid; source_less excludes valid; no inconsistent Ord",
+    "Rust Hash follows rendered identity without C++ numeric digest guarantee",
+    "No DateTime aggregate migration, CompletionTime replacement or mzML timestamp adapter changes"
+  ],
+  "license": "BSD-3-Clause for source-derived code/literals/probe; existing chrono dependency unchanged"
+}

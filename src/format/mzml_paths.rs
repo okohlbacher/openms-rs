@@ -16,18 +16,26 @@ pub fn load(path: impl AsRef<Path>) -> Result<MSExperiment> {
 
 /// Read with explicit scientific settings and independent XML/binary limits.
 /// Input limits count decompressed XML bytes. Unsupported scientific settings
-/// are rejected before opening the file. No loaded-path metadata is invented.
+/// are rejected before opening the file. Successful loads record document path
+/// and bounded content-detected type; stream readers leave provenance unset.
 pub fn load_with_options(
     path: impl AsRef<Path>,
     scientific: &LoadOptions,
     limits: &ReadOptions,
 ) -> Result<MSExperiment> {
     scientific.validate()?;
-    super::read_with_load_options(
-        crate::format::path_io::open(path.as_ref())?,
-        scientific,
-        limits,
-    )
+    let path = path.as_ref();
+    let mut document = crate::metadata::DocumentIdentifier::new();
+    let text = path
+        .to_str()
+        .ok_or_else(|| crate::Error::InvalidValue("mzML filename is not UTF-8".into()))?;
+    document.set_loaded_file_path(text)?;
+    document.set_loaded_file_type(path)?;
+    let mut result =
+        super::read_with_load_options(crate::format::path_io::open(path)?, scientific, limits)?;
+    result.settings.document.loaded_file_path = document.loaded_file_path;
+    result.settings.document.loaded_file_type = document.loaded_file_type;
+    Ok(result)
 }
 
 /// Replace the destination only after successful parsing and validation.

@@ -325,7 +325,7 @@ pub(super) fn check_experiment(experiment: &MSExperiment, options: &Limits) -> R
     if experiment.spectra.len() > options.max_spectra {
         return Err(invalid("spectrum limit exceeded"));
     }
-    if !experiment.chromatograms.is_empty() || !experiment.metadata.is_empty() {
+    if !experiment.chromatograms.is_empty() || experiment.settings.has_transport_metadata() {
         return Err(unsupported(
             "flat peak list cannot store experiment metadata or chromatograms",
         ));

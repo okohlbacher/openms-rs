@@ -945,7 +945,6 @@ impl ResidueModification {
 
 impl ModificationsDB {
     /// Charge the owned index copied by Clone; chemical Arc payload stays shared.
-    #[cfg(any(feature = "idxml", feature = "featurexml", feature = "consensusxml"))]
     pub(crate) fn clone_with_budget(&self, work: &mut usize, bytes: &mut usize) -> Result<Self> {
         *work = work
             .checked_sub(self.entries.len().saturating_add(self.by_name.len()))
@@ -974,6 +973,14 @@ impl ModificationsDB {
             Error::InvalidValue("modification registry clone byte limit exceeded".into())
         })?;
         Ok(self.clone())
+    }
+}
+
+impl ModificationsDB {
+    /// Exact aliases for the ProForma resolver's source lookup precedence.
+    /// This intentionally does not change public lookup normalization/filtering.
+    pub(crate) fn exact_name_indices(&self, name: &str) -> Option<&[usize]> {
+        self.by_name.get(name).map(Vec::as_slice)
     }
 }
 

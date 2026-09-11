@@ -240,6 +240,7 @@ fn independent_binary_layout_preserves_empty_placeholders_empty_strings_and_inte
 fn names_and_within_type_order_survive_xml_escaping_on_both_record_kinds() {
     let mut input = sample();
     input
+        .settings
         .metadata
         .insert("run <&>".into(), "µ\r\n\t<&>\"".into());
     for spectrum in &mut input.spectra {

@@ -1,5 +1,48 @@
 # Validation of the ongoing Rust port
 
+## Experiment settings, DateTime and ProForma resolution (2026-09-11)
+
+[Recorded checks](settings-resolution-validation.json) cover the integrated
+settings ownership migration, DateTime operations and ProForma resolver at
+SDK `82ce5b3`, with 42 additional tests.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,886 tests passed |
+| Doctests, both compiler versions | Four passed per compiler |
+| Rust 1.85/native unit and adjacent selection | 400 passed |
+| Rust 1.85/JSON and RNA selection | 155 passed |
+| Rust 1.85/mzML and settings selection | 103 passed |
+| Final private-test repeats, current/minimum | 110/102 passed |
+| Strict Clippy, release library, Rustdoc and Rustfmt | Passed |
+| Source audit, independent projections and completion ledger | Passed |
+
+Selected totals overlap the full suite. The record retains an initial minimum
+lint failure and its successful retry after correcting a test initializer.
+The original-file metabolite example still produces 81 features; its output
+passes the original schema and 1,458 scalar/typed-metadata comparisons with the
+source expected file. Default hull omission remains covered by direct tests.
+
+DateTime retains 301 executed unmodified-source probe rows: 266 native matches
+and 35 deliberately corrected early-year calendar results. Independent Python
+month stepping regenerates all 35 corrections exactly. Three separate UBSan
+executions expose signed fractional-second overflow. The
+[C++ issue log](../OpenMS_CPP_ISSUES.md) records these and source-reviewed defects,
+with an independent sorted-weight reproduction of the IMS nonprogressing witness.
+Proposed upstream fixes are distinct from the native compatibility policy.
+
+The [previous checkpoint's CI](https://github.com/okohlbacher/openms-rs/actions/runs/34576479236)
+failed on Windows because Git converted the original SVM resources to CRLF.
+Explicit byte-preservation rules fix that checkout issue; all four resources
+now remain identical under Windows-style conversion. Cross-platform CI for
+this checkpoint is a separate check, not inferred from local success.
+
+The ledger records 60 complete or native-equivalent headers and 726 requiring
+implementation or review, with zero certified TOPP workflows. Source verification
+covers 1,910 distinct current files, 220 historical references, 21 graph references
+and 702 added references. Full header transport, streaming consumers and the
+remaining ProForma scientific operations are ongoing work.
+
 ## Metabolite feature finding and experiment values (2026-09-11)
 
 [Recorded checks](metabo-values-validation.json) cover the integrated feature

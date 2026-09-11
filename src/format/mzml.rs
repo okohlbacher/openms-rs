@@ -928,13 +928,25 @@ fn apply_parameter(
                 return Err(invalid("duplicate scan window userParam name"));
             }
         }
-        "userParam" if matches!(parent, "run" | "spectrum" | "chromatogram") => {
-            let name = required(attrs, "name")?.to_owned();
-            let value = attrs.get("value").cloned().unwrap_or_default();
-            if name == NAME_KEY && parent == "run" {
+        "userParam" if parent == "run" => {
+            let name = required(attrs, "name")?;
+            if name == NAME_KEY {
                 return Err(invalid("reserved record name userParam at run level"));
             }
-            if name == NAME_KEY && parent != "run" {
+            let value = product_user_value(attrs)?;
+            if experiment
+                .settings
+                .metadata
+                .insert(name.into(), value)
+                .is_some()
+            {
+                return Err(invalid("duplicate run userParam name"));
+            }
+        }
+        "userParam" if matches!(parent, "spectrum" | "chromatogram") => {
+            let name = required(attrs, "name")?.to_owned();
+            let value = attrs.get("value").cloned().unwrap_or_default();
+            if name == NAME_KEY {
                 let r = record
                     .as_mut()
                     .ok_or_else(|| invalid("name outside record"))?;
@@ -948,14 +960,10 @@ fn apply_parameter(
                     r.chromatogram.as_mut().unwrap().name = value;
                 }
             } else {
-                let metadata = if parent == "run" {
-                    &mut experiment.metadata
-                } else {
-                    record
-                        .as_mut()
-                        .ok_or_else(|| invalid("metadata outside record"))?
-                        .metadata()
-                };
+                let metadata = record
+                    .as_mut()
+                    .ok_or_else(|| invalid("metadata outside record"))?
+                    .metadata();
                 if metadata.insert(name.clone(), value).is_some() {
                     return Err(Error::Unsupported(format!(
                         "duplicate userParam name {name}"
@@ -2462,7 +2470,16 @@ pub fn write_with_options(
     validate_write(experiment)?;
     write_impl(&mut w, experiment, options, &mut None)
 }
+fn experiment_header_guard(experiment: &MSExperiment) -> Result<()> {
+    if experiment.settings.has_nondefault_header() {
+        return Err(Error::Unsupported(
+            "mzML experiment header settings are not yet represented".into(),
+        ));
+    }
+    Ok(())
+}
 fn validate_write(experiment: &MSExperiment) -> Result<()> {
+    experiment_header_guard(experiment)?;
     // O(1) loss guards precede validation of newly supported owned settings.
     for spectrum in &experiment.spectra {
         settings_metadata::spectrum_guard(spectrum)?;
@@ -2484,6 +2501,27 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
     // Cover owned scalar metadata before validation/rendering traverses it.
     let mut settings_work = 50_000_000usize;
     let mut settings_bytes = 256 * 1024 * 1024;
+    let initial_work = settings_work;
+    let initial_bytes = settings_bytes;
+    experiment
+        .settings
+        .with_budget(&mut settings_work, &mut settings_bytes)?;
+    // Cover XML validation, scalar rendering and worst-case entity escaping
+    // before any typed run value is formatted. Separate from binary budgets.
+    settings_work = settings_work
+        .checked_sub(
+            (initial_work - settings_work)
+                .checked_mul(7)
+                .ok_or_else(|| invalid("mzML run metadata work overflow"))?,
+        )
+        .ok_or_else(|| invalid("mzML run metadata work limit"))?;
+    settings_bytes = settings_bytes
+        .checked_sub(
+            (initial_bytes - settings_bytes)
+                .checked_mul(7)
+                .ok_or_else(|| invalid("mzML run metadata byte overflow"))?,
+        )
+        .ok_or_else(|| invalid("mzML run metadata byte limit"))?;
     settings_work = settings_work
         .checked_sub(
             experiment
@@ -2512,7 +2550,10 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
         }
         Ok(())
     };
-    check_metadata(&experiment.metadata, "")?;
+    if experiment.settings.metadata.contains_key(NAME_KEY) {
+        return Err(invalid("reserved record name userParam at run level"));
+    }
+    validate_scalar_metadata(&experiment.settings.metadata)?;
     let mut spectrum_ids = BTreeSet::new();
     let mut chromatogram_ids = BTreeSet::new();
     for (i, s) in experiment.spectra.iter().enumerate() {
@@ -2627,7 +2668,7 @@ fn write_impl(
         w,
         "</processingMethod></dataProcessing></dataProcessingList>\n<run id=\"run\" defaultInstrumentConfigurationRef=\"unknown_instrument\">"
     )?;
-    user_params(&mut w, &experiment.metadata, "")?;
+    write_scalar_metadata(&mut w, &experiment.settings.metadata, None)?;
     if !experiment.spectra.is_empty() {
         writeln!(
             w,

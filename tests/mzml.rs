@@ -23,6 +23,7 @@ fn parse(xml: &str) -> openms::Result<MSExperiment> {
 fn sample() -> MSExperiment {
     let mut experiment = MSExperiment::new();
     experiment
+        .settings
         .metadata
         .insert("sample".into(), "A & B \"quoted\" <values>\nUTF-8 µ".into());
     let mut spectrum =
@@ -344,9 +345,13 @@ fn writing_rejects_data_loss_invalid_ids_and_invalid_xml_before_output() {
     let mut duplicate = sample();
     duplicate.spectra.push(duplicate.spectra[0].clone());
     let mut invalid_text = sample();
-    invalid_text.metadata.insert("invalid".into(), "\0".into());
+    invalid_text
+        .settings
+        .metadata
+        .insert("invalid".into(), "\0".into());
     let mut reserved = sample();
     reserved
+        .settings
         .metadata
         .insert("openms-rust:name".into(), "reserved".into());
     let mut bad_value = sample();

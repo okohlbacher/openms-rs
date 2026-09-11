@@ -201,6 +201,11 @@ pub fn read(reader: impl BufRead) -> Result<MSExperiment> {
 /// Write MGF peak lists. Chromatograms and multiple precursors are unsupported.
 /// Native IDs and auxiliary arrays are not represented in MGF.
 pub fn write(mut writer: impl Write, experiment: &MSExperiment) -> Result<()> {
+    if experiment.settings.has_transport_metadata() {
+        return Err(Error::Unsupported(
+            "MGF cannot store experiment settings".into(),
+        ));
+    }
     if !experiment.chromatograms.is_empty() {
         return Err(Error::Unsupported("MGF cannot store chromatograms".into()));
     }

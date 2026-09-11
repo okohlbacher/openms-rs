@@ -6,7 +6,8 @@
 //!
 //! This module implements the annotation AST, both text grammars, structured
 //! errors and both text writers from the pinned source. It does not yet
-//! resolve modifications, convert sequences or calculate masses/spectra. JSON
+//! convert sequences or calculate masses/spectra. Modification resolution uses
+//! an explicitly supplied mutable registry. JSON
 //! transport is available with the `proforma-json` feature.
 //! Serialization preserves source omissions and does not validate ProForma
 //! grammar. See `docs/PROFORMA_SUPPORT.md` and `docs/PROFORMA_PARSER_SUPPORT.md`.
@@ -626,6 +627,13 @@ pub use parser::{
     ErrorCode, MAX_PROFORMA_DIAGNOSTIC_BYTES, MAX_PROFORMA_PARSE_BYTES, MAX_PROFORMA_PARSE_DEPTH,
     MAX_PROFORMA_PARSE_INPUT_BYTES, MAX_PROFORMA_PARSE_NODES, MAX_PROFORMA_PARSE_WORK, ParseError,
     ParseFailure,
+};
+
+#[path = "proforma_resolution.rs"]
+mod resolution;
+pub use resolution::{
+    MAX_PROFORMA_RESOLUTION_BYTES, MAX_PROFORMA_RESOLUTION_ITEMS,
+    MAX_PROFORMA_RESOLUTION_TEXT_BYTES, MAX_PROFORMA_RESOLUTION_WORK, ResolutionWarning,
 };
 
 #[cfg(feature = "proforma-json")]

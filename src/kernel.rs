@@ -28,9 +28,9 @@ pub use area_iteration::{
 };
 pub use peak_data::{FlatPeakData, PeakDataLimits, SpectrumPeakData};
 pub use peak_index::PeakIndex;
-mod acquisition_fields;
+pub(crate) mod acquisition_fields;
 mod chromatogram_tools;
-mod data_array;
+pub(crate) mod data_array;
 mod mass_trace;
 pub use chromatogram_tools::{
     ChromatogramConversionLimits, ChromatogramConversionReport, ChromatogramTools,
@@ -715,7 +715,8 @@ impl MSChromatogram {
 pub struct MSExperiment {
     pub spectra: Vec<MSSpectrum>,
     pub chromatograms: Vec<MSChromatogram>,
-    pub metadata: BTreeMap<String, String>,
+    /// Authoritative experiment-wide settings and typed run metadata owner.
+    pub settings: crate::metadata::ExperimentalSettings,
 }
 
 impl MSExperiment {
@@ -760,6 +761,7 @@ impl MSExperiment {
     }
 
     pub fn validate(&self) -> Result<()> {
+        self.settings.validate()?;
         for spectrum in &self.spectra {
             spectrum.validate()?;
         }
@@ -898,7 +900,7 @@ impl MSExperiment {
         self.spectra.clear();
         self.chromatograms.clear();
         if clear_metadata {
-            self.metadata.clear();
+            self.settings = crate::metadata::ExperimentalSettings::default();
         }
     }
 }

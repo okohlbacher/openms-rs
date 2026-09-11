@@ -57,23 +57,23 @@ impl<T> DataArray<T> {
 fn limit() -> Error {
     Error::InvalidValue("data array description resource limit exceeded".into())
 }
-pub(super) struct Meter<'a> {
-    pub(super) work: &'a mut usize,
-    pub(super) bytes: &'a mut usize,
+pub(crate) struct Meter<'a> {
+    pub(crate) work: &'a mut usize,
+    pub(crate) bytes: &'a mut usize,
 }
 impl Meter<'_> {
-    pub(super) fn charge(&mut self, work: usize, bytes: usize) -> Result<()> {
+    pub(crate) fn charge(&mut self, work: usize, bytes: usize) -> Result<()> {
         *self.work = self.work.checked_sub(work).ok_or_else(limit)?;
         *self.bytes = self.bytes.checked_sub(bytes).ok_or_else(limit)?;
         Ok(())
     }
-    pub(super) fn slots<T>(&mut self, count: usize) -> Result<()> {
+    pub(crate) fn slots<T>(&mut self, count: usize) -> Result<()> {
         self.charge(count, count.checked_mul(size_of::<T>()).ok_or_else(limit)?)
     }
-    pub(super) fn text(&mut self, text: &str) -> Result<()> {
+    pub(crate) fn text(&mut self, text: &str) -> Result<()> {
         self.charge(text.len(), text.len())
     }
-    pub(super) fn tree<T>(&mut self, count: usize) -> Result<()> {
+    pub(crate) fn tree<T>(&mut self, count: usize) -> Result<()> {
         if count != 0 {
             // BTree nodes can be sparsely occupied. Cover their root, spare
             // element slots and child pointers, not just logical element bytes.
@@ -82,7 +82,7 @@ impl Meter<'_> {
         }
         Ok(())
     }
-    pub(super) fn meta(&mut self, meta: &MetaInfo) -> Result<()> {
+    pub(crate) fn meta(&mut self, meta: &MetaInfo) -> Result<()> {
         self.tree::<(String, MetaValue)>(meta.len())?;
         for (name, value) in meta {
             self.text(name)?;
@@ -90,7 +90,7 @@ impl Meter<'_> {
         }
         Ok(())
     }
-    pub(super) fn value(&mut self, value: &MetaValue) -> Result<()> {
+    pub(crate) fn value(&mut self, value: &MetaValue) -> Result<()> {
         if let Some(unit) = value.unit() {
             self.text(unit.accession())?;
             self.text(unit.name())?;
@@ -110,7 +110,7 @@ impl Meter<'_> {
         }
         Ok(())
     }
-    pub(super) fn cv(&mut self, terms: &CVTermList) -> Result<()> {
+    pub(crate) fn cv(&mut self, terms: &CVTermList) -> Result<()> {
         self.meta(&terms.metadata)?;
         self.tree::<(String, Vec<crate::metadata::CVTerm>)>(terms.terms().len())?;
         for (key, values) in terms.terms() {

@@ -1,0 +1,632 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "scope": [
+    "Complete DateTime native value/operation group",
+    "Complete ExperimentalSettings, single MSExperiment settings owner, typed run metadata and transport guards",
+    "ProForma modification resolution with atomic caller-registry publication",
+    "Persistent original C++ issue log and durable DateTime/IMS evidence",
+    "Preserve original SVM resource bytes on Windows checkouts"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 315.45,
+      "log_sha256": "48a9e8673de9256051bc70720ea100595851187a821072de4ada0a2d37c99ea3",
+      "log_bytes": 196846,
+      "tests_passed": 1886,
+      "attempt": 1
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.88,
+      "log_sha256": "4856b7a6dff28c06ccd5993d61c137fbc94675778d94661d8f5c7a92d389a199",
+      "log_bytes": 794,
+      "tests_passed": 4,
+      "attempt": 1
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 32.1,
+      "log_sha256": "802c4a4f4b8d55cbd5d6d7304c8686eaada44ca2cb0651b7b4932b0b336d0965",
+      "log_bytes": 162,
+      "attempt": 1
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 41.66,
+      "log_sha256": "c531eacc26258f03ac155e1442df20e5da50b9f74bd741f03e2e0984a8d205f9",
+      "log_bytes": 152,
+      "attempt": 1
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.43,
+      "log_sha256": "bc3c08fc72bdfe1f720643f227ac8fdddb0c6ccf8adfde337f9a0ba0268dcff6",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      },
+      "attempt": 1
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.86,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0,
+      "attempt": 1
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36,
+      "log_sha256": "18c53940e8d3e5146232ea8e62322f094f2102bf5cde09e6a79674b6698919d5",
+      "log_bytes": 233,
+      "attempt": 1
+    },
+    {
+      "name": "metabolite_model_projection",
+      "command": [
+        "python3",
+        "tools/generate_metabo_isotope_models.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "7b491f74722286e8632f85d151557291f35a0f000a429809eaf0477727005cd0",
+      "log_bytes": 72,
+      "attempt": 1
+    },
+    {
+      "name": "ims_witness_oracle",
+      "command": [
+        "python3",
+        "tools/probes/ims_witness_source_oracle.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.03,
+      "log_sha256": "7556d0af95f7272add3979e04fa25d7984bba438ee13e9b75cc59f6971f36a44",
+      "log_bytes": 72,
+      "attempt": 1
+    },
+    {
+      "name": "monosaccharide_projection",
+      "command": [
+        "python3",
+        "tools/generate_monosaccharides.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9",
+      "log_bytes": 48,
+      "attempt": 1
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101,
+      "attempt": 1
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.08,
+      "log_sha256": "ab0d358078dcf3c15e14d16d8b10d79dbf35ec570ec32ce63f9bfe4b9ff69f18",
+      "log_bytes": 208,
+      "attempt": 1
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.11,
+      "log_sha256": "620d24d66057e458ce1594cdef9cd666253ce1c9ee632cfa6d81f272cdab56b5",
+      "log_bytes": 100,
+      "attempt": 1
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "mass_trace_detection",
+        "--test",
+        "elution_peak_detection",
+        "--test",
+        "run_mapping",
+        "--test",
+        "mass_trace",
+        "--test",
+        "area_iteration",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_writer_probe",
+        "--test",
+        "proforma_parser",
+        "--test",
+        "proforma_parser_probe",
+        "--test",
+        "protein_run",
+        "--test",
+        "identification",
+        "--test",
+        "experiment_metadata",
+        "--test",
+        "feature_hypothesis",
+        "--test",
+        "feature_finding_metabo",
+        "--test",
+        "document_identifier",
+        "--test",
+        "experiment_values",
+        "--test",
+        "experimental_settings",
+        "--test",
+        "datetime",
+        "--test",
+        "proforma_resolution",
+        "--test",
+        "processing_acquisition",
+        "--test",
+        "smoothing",
+        "--test",
+        "peak_picking",
+        "--test",
+        "iterative_picking",
+        "--test",
+        "window_mower",
+        "--test",
+        "text_peak_lists",
+        "--test",
+        "file_handler",
+        "--test",
+        "system_file",
+        "--test",
+        "metadata",
+        "--test",
+        "metadata_hash",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 26.55,
+      "log_sha256": "2d2abe0450f5a2dd98390bf29a3d599f41fa37b2f433cc5f940be72bab461f5d",
+      "log_bytes": 40647,
+      "tests_passed": 400,
+      "attempt": 1
+    },
+    {
+      "name": "json_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "proforma-json,rna-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "proforma_resolution",
+        "--test",
+        "ribonucleotides",
+        "--test",
+        "rna_reference",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 14.36,
+      "log_sha256": "547655582c1c1a30a34236c9eec1f6ac664991cc7628edd2ba8a1f2270de9032",
+      "log_bytes": 16812,
+      "tests_passed": 155,
+      "attempt": 1
+    },
+    {
+      "name": "counts_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "experimental_settings",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_paths",
+        "--test",
+        "mzml_auxiliary_writer_review",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_acquisition",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 18.83,
+      "log_sha256": "a6089951559fd2e0778190de34dcfad4740b7d1e46a7751d6a49b17e1def536d",
+      "log_bytes": 10177,
+      "tests_passed": 103,
+      "attempt": 1
+    },
+    {
+      "name": "docs_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.11,
+      "log_sha256": "041bf4495d3aece4857baf043db20e67e0d9610664ba2cdf302ceacd7387fe1d",
+      "log_bytes": 526,
+      "tests_passed": 4,
+      "attempt": 1
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 101,
+      "elapsed_seconds": 5.71,
+      "log_sha256": "7c226b35d56fdfda036c3218a6c26f24e3587f7d0651697b88c5612bff1e01dd",
+      "log_bytes": 1159,
+      "attempt": 1
+    },
+    {
+      "name": "strict_minimum",
+      "attempt": 2,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 17.58,
+      "log_sha256": "6bf8829d93eefb6cd6e8eb40955926123d6bde95c6990d9b11c61c918aa16a45",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_json_counts_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,proforma-json,rna-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "mzml_counts",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.49,
+      "log_sha256": "d80286764cc0826b118fa2e81d9201a9c2c8a0cc846c7919b22eddc9d9bc89d1",
+      "log_bytes": 161
+    },
+    {
+      "name": "final_private_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.2,
+      "log_sha256": "9d605859aa276c92f16f5ded3b2410f972afb0b7fbae82cb5def6f63229c6c26",
+      "log_bytes": 12621,
+      "tests_passed": 110,
+      "attempt": 1
+    },
+    {
+      "name": "final_private_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.85,
+      "log_sha256": "c3f51354d7f6c7ea0c6334498c4e58cc54e9564cae7c8bc71c74969534e248c7",
+      "log_bytes": 11771,
+      "tests_passed": 102,
+      "attempt": 1
+    },
+    {
+      "name": "original_file_workflow",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "run",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--example",
+        "find_metabolite_features",
+        "--",
+        ".reference/openms4-core-82ce5b3/src/tests/class_tests/openms/data/FeatureFindingMetabo_input1.mzML",
+        "/tmp/openms-rs-settings-metabolite-features.featureXML"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.95,
+      "log_sha256": "ea24c208d88fece20f8b548fc6e81c36ae068589e4bd8db669fa238bef847ea1",
+      "log_bytes": 736,
+      "attempt": 1
+    },
+    {
+      "name": "workflow_schema",
+      "command": [
+        "xmllint",
+        "--nonet",
+        "--noout",
+        "--schema",
+        ".reference/openms4-core-82ce5b3/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd",
+        "/tmp/openms-rs-settings-metabolite-features.featureXML"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.0,
+      "log_sha256": "164a491c74eca818b1023f8b3a0de019d1481a1e300146528f7f9e19d1447b33",
+      "log_bytes": 65,
+      "attempt": 1
+    }
+  ],
+  "new_tests": 42,
+  "test_count_note": "Selected configurations and final private repeats overlap the full suite; totals are not additive. One initial lint failure is retained with its successful retry.",
+  "staged_reviews": [
+    "Root reviewed complete DateTime source, probe adapters, all native operations and independent calendar corrections.",
+    "Root reviewed complete resolver lookup/traversal/transaction/budget behavior; private late-failure cases added before freeze.",
+    "Root corrected checked sample-depth bypass to a hard cap of64; all ExperimentalSettings payload and ownership paths reviewed.",
+    "Independent whole-experiment processing review and typed-run transport review closed without remaining findings.",
+    "Root fixed a private-test initializer lint caught by the full minimum all-target check; private targets then reran on both compilers."
+  ],
+  "cpp_evidence": {
+    "datetime_ordinary_executed_cases": 301,
+    "exact_native_matches": 266,
+    "independently_corrected_calendar_rows": 35,
+    "separate_ubsan_overflow_executions": 3,
+    "calendar_projection": {
+      "command": [
+        "python3",
+        "tools/datetime_probe/derive_calendar_corrections.py",
+        "--data-dir",
+        "/var/folders/0d/nx2m0w3n76s59tfg8g708d240000gn/T/openms-datetime-calendar-check-47usk_g4"
+      ],
+      "exit_code": 0,
+      "rows": 35,
+      "sha256": "880208db80308261f6d7892885788d8e0ac19a147e0ad733b37b02a828fd45f1",
+      "method": "Independent Python calendar month stepping; byte-identical retained correction rows."
+    },
+    "ims": "Independent executed Python translation of pinned recurrence plus exhaustive integer arithmetic, not a C++ execution. Both sorted73 and earlier33 witnesses retained.",
+    "issue_log": "OpenMS_CPP_ISSUES.md",
+    "issue_count": 26
+  },
+  "windows_checkout": {
+    "core_autocrlf": true,
+    "resources": [
+      {
+        "path": "resources/metabolite_isotope_models/MetaboliteIsoModelNoised2.scale",
+        "sha256": "86aeb1c8c13fafa074a2950598cf36c49695e11d4367d8a3bc82bad5f4c9217c",
+        "checkout_bytes": 142
+      },
+      {
+        "path": "resources/metabolite_isotope_models/MetaboliteIsoModelNoised2.svm",
+        "sha256": "763c2dfcf5e2b848dd30db30974b5fd72d3ff5a2a0d2a2c8d6d5b6dadf654dd6",
+        "checkout_bytes": 40098
+      },
+      {
+        "path": "resources/metabolite_isotope_models/MetaboliteIsoModelNoised5.scale",
+        "sha256": "d829d9d60055b8904e41315071f18daf184d639ce23906ace0c39f8bdd37e005",
+        "checkout_bytes": 142
+      },
+      {
+        "path": "resources/metabolite_isotope_models/MetaboliteIsoModelNoised5.svm",
+        "sha256": "89b2c4b69b1986c804f588bd05fff29b67ed801ae503b241e101365d9ee27f64",
+        "checkout_bytes": 72397
+      }
+    ]
+  },
+  "workflow": {
+    "features": 81,
+    "numeric_comparisons": 1458,
+    "comparison": "Every scalar, quality, charge and typed metadata value under exact source FuzzyStringComparator tolerance; default hulls omitted and covered by direct tests.",
+    "source_expected_sha256": "cbe225942240be9d803d68ed3396d0be150b1feff213b8af023cafc4879d9183",
+    "native_output_sha256": "13d428aba77c3719d66fce99b5eab6157e0e2f845d312dfb7a266ee0661987da",
+    "schema": "FeatureXML_1_9.xsd",
+    "schema_exit_code": 0
+  },
+  "source_audit": {
+    "distinct_current_files": 1910,
+    "historical_references": 220,
+    "graph_references": 21,
+    "added_references": 702
+  },
+  "coverage": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "native_equivalent": 50,
+      "partial": 21,
+      "evidence_requires_review": 166,
+      "unmapped": 539
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "production_sha256": {
+    "src/data_structures/datetime.rs": "46f90cc61cc678a18e87bdf098b641cb0bdd6372e2f6152ecb411a30cc12bbdc",
+    "src/metadata/experimental_settings.rs": "dae6ce51cc4508dd807edcbf0c6741bc1aa33ea086223e5ba1185113087209fc",
+    "src/chemistry/proforma_resolution.rs": "d2c3c9a4081b41ff7946ad8ea5e3b1f2c995f1252ac5322c14910bf60c97fc0b",
+    "src/chemistry/modifications.rs": "6a6392d80300baf92451c41f82ebc6d2ba5535d9cfb12922745bba1b8ef888b1",
+    "src/chemistry/proforma.rs": "43eee686f681b9be056e5cf5d6f91026932ca532cb9341e629b196ef406280e4",
+    "src/kernel.rs": "09bcdb3a128d9091f3b626949371dd0eb80e72e5a67f33d30077082553a7b6d1",
+    "src/processing.rs": "10cbbd5c12ffe1d4d2d5149ba15d7f42b4190ec4c904346b4bdc60f1841bd7ed",
+    "src/format/mzml.rs": "056d65f463e472a38e4170c2da13db49326c9148d677fb8d79a416dab84d91fc",
+    "src/format/mzml_numpress.rs": "021c50af17c6ab62ce5c443b9b0d4fb036159110e3f992f8d00232d876a6f8a7",
+    "src/format/mzml_paths.rs": "e90496fbead07299da3ba948ea9150fc6eb5fc8b3728bdeb25952f3482eaa51c",
+    "src/format/file_handler.rs": "d1817b4d1f92d2056476be388b7b9a42a9ea9262dd7f317dc23b695f4e583b46"
+  },
+  "previous_ci": {
+    "commit": "3b776acb70f40a624d8e70cb0bdf175c8b15d6fe",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34576479236",
+    "conclusion": "failure",
+    "cause": "Windows checkout converted original .svm resources to CRLF; the source-bit fixture separator expected original LF bytes.",
+    "fix": "Explicit -text rules for the four original .svm/.scale files; Windows-style Git checkout conversion is now byte-identical. New multi-platform CI remains separate validation."
+  },
+  "limitations": [
+    "Full SDK completeness and TOPP certification remain outstanding.",
+    "No full C++ SDK execution; focused probes retain their stated dependency adapters and host limitations.",
+    "The source-only C++ issue entries are not claimed runtime reproductions or applied upstream patches.",
+    "Full mzML header/consumer transport and ProForma mass/sequence/spectrum operations are separate ongoing work."
+  ]
+}

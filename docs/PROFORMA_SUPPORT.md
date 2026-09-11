@@ -7,8 +7,9 @@ structured errors are also available; see [text parser support](PROFORMA_PARSER_
 The overall `ProForma` public header remains partially implemented.
 
 The optional [JSON transport](PROFORMA_JSON_SUPPORT.md) provides both top-level
-read/write operations with the source tagged schema. There is no modification
-resolver, AASequence conversion,
+read/write operations with the source tagged schema. The
+[modification resolver](PROFORMA_RESOLUTION_SUPPORT.md) fills chemistry handles
+against a caller-owned registry. There is no AASequence conversion,
 mass calculation, or spectrum generation API in this module yet. No placeholder
 functions stand in for those operations. Existing
 [AASequence](SEQUENCE_SUPPORT.md), [modification records](MODIFICATION_SUPPORT.md),
@@ -142,7 +143,7 @@ All failures leave input ownership/state unchanged and return no partial string.
 
 ## Remaining source operation groups
 
-The remaining groups are modification resolution and AASequence conversion
+The remaining groups are AASequence conversion
 with all policies/diagnostics; mass/m/z and all try/issue/can variants; ordinary
 and cross-linked spectrum generation. The latter needs a native
 `TheoreticalSpectrumGeneratorXLMS` backend, which is not supplied by the ordinary

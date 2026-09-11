@@ -257,7 +257,10 @@ fn sorts_and_filters_all_array_kinds_without_losing_metadata_or_ties() {
     assert_eq!(s.string_data_arrays[0].data, ["a", "d", "b"]);
     assert_eq!((s.rt, s.ms_level), (8., 2));
     assert_eq!(s.metadata["note"], "unchanged");
-    assert_eq!(exp.metadata["project"], "preserved");
+    assert_eq!(
+        exp.settings.metadata["project"].as_str().unwrap(),
+        "preserved"
+    );
     o.scientific.sort_spectra_by_mz = false;
     assert_eq!(
         read(&xml, &o).unwrap().spectra[0]

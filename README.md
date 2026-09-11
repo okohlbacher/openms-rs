@@ -197,3 +197,20 @@ See [feature-finding support](docs/FEATURE_FINDING_METABO_SUPPORT.md),
 [sample and instrument values](docs/EXPERIMENT_VALUES_SUPPORT.md).
 This example exercises SDK operations; complete TOPP command behavior remains
 subject to the [completion ledger](docs/CORE_SDK_COMPLETION.md).
+
+Original C++ defects discovered during porting are tracked in
+[OpenMS_CPP_ISSUES.md](OpenMS_CPP_ISSUES.md), with affected source files,
+reproductions, evidence level and proposed upstream fixes.
+
+[ProForma modification resolution](docs/PROFORMA_RESOLUTION_SUPPORT.md) now
+fills shared chemistry handles using a caller-owned registry with atomic failure
+handling. Sequence conversion and mass/spectrum operations remain separate work.
+
+[DateTime support](docs/DATETIME_SUPPORT.md) includes source-compatible parsing,
+all seven formats, local/UTC clocks and checked Gregorian arithmetic.
+
+[Experiment settings](docs/EXPERIMENTAL_SETTINGS_SUPPORT.md) now own sample,
+instrument, chromatography, date, provenance and typed run metadata. Callers
+using `MSExperiment::metadata` must migrate to `experiment.settings.metadata`.
+Processing preserves the complete settings; full mzML header transport is
+still being implemented.

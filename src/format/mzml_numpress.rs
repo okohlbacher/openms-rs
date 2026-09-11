@@ -36,6 +36,7 @@ pub fn write_with_numpress(
     experiment: &MSExperiment,
     options: &NumpressWriteOptions,
 ) -> Result<NumpressWriteReport> {
+    experiment_header_guard(experiment)?;
     let mut work = coder::Work::new(options.limits);
     work.spend(add(
         experiment.spectra.len(),

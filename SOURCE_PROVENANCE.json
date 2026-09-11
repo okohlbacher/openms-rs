@@ -523,15 +523,37 @@
     "tests/data/document_identifier_provenance.json",
     "tests/data/experiment_values_provenance.json",
     "tests/data/feature_finding_metabo_provenance.json",
-    "tests/data/metabo_predictor_provenance.json"
+    "tests/data/metabo_predictor_provenance.json",
+    "tests/data/proforma_resolution_provenance.json",
+    "tests/data/datetime_provenance.json",
+    "tests/data/experimental_settings_provenance.json",
+    "tests/data/ims_witness_source_oracle_provenance.json"
   ],
   "full_cpp_sdk_built": false,
   "cpp_reference_probe_built": true,
   "cpp_reference_evidence": {
     "manifest": "tests/data/numpress_provenance.json",
-    "scope": "Only the unmodified pinned MSNumpress raw C++ implementation was compiled and executed. The full C++ SDK was not built.",
+    "scope": "The primary entry describes the unmodified pinned MSNumpress raw C++ probe. Additional executed probes have independent source/adaptation/fixture evidence in the manifests below. The full C++ SDK was not built.",
     "cases": 295,
     "decoder_cases": 287,
-    "skipped_undefined_empty_safe_decodes": 8
+    "skipped_undefined_empty_safe_decodes": 8,
+    "additional_manifests": [
+      {
+        "manifest": "tests/data/proforma_writer_probe_provenance.json",
+        "scope": "160 actual C++ writer comparisons from extracted pinned source blocks; see adapters and limitations in manifest."
+      },
+      {
+        "manifest": "tests/data/proforma_parser_probe_provenance.json",
+        "scope": "476 actual C++ parser/output/error comparisons from extracted pinned source blocks; see adapters and limitations in manifest."
+      },
+      {
+        "manifest": "tests/data/metabo_predictor_provenance.json",
+        "scope": "488 actual predictions from separately compiled unmodified external LIBSVM, not full OpenMS feature finding."
+      },
+      {
+        "manifest": "tests/data/datetime_provenance.json",
+        "scope": "301 ordinary unmodified DateTime.cpp probe rows with narrow dependency adapters; 266 exact native matches and 35 independently corrected calendar rows. Three separate UBSan overflow executions and host libc diagnostic are distinct evidence."
+      }
+    ]
   }
 }

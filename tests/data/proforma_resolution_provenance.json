@@ -1,0 +1,118 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "145ab93d7c9a23ee48fef4f855b9c881171f4898",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
+      "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModificationsDB.h",
+      "sha256": "c815a5a5f47f0b5d495cdca2ef6b1fa9bd5115c43a4eb3c50e4f94d48bcd39a6"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueModification.h",
+      "sha256": "c9e87e432f3399782dc5148af1465d021a578468076b4e386a544bfd5359bf0e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+      "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/Residue.h",
+      "sha256": "8abda7e4cc2e2d9c19841c5c9e4c527f16e930e5c51e2490bbd6f4b2ac3ccc0e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58"
+    }
+  ],
+  "fixtures": [],
+  "fixture_policy": "Direct tests retain the two literal resolution calls and resolution-only assertions from formula/INFO conversion examples. Independent custom AST/registry cases are inline Rust fixtures, not output from production. No new C++ probe or full SDK execution is claimed; historical parser/writer/JSON/probe manifests are unchanged.",
+  "source_ranges": {
+    "ProForma.cpp": {
+      "formula_interning": "1622-1700",
+      "single_tag": "1755-1801",
+      "alternative_selection_and_warning": "1810-1865",
+      "public_traversal": "2098-2134"
+    },
+    "ModificationsDB.cpp": {
+      "source_residue_matching": "32-57",
+      "exact_then_normalized_names": "137-186",
+      "accession_preference_and_ambiguity": "281-311",
+      "mass_selection": "465-493",
+      "formula_intern_existing_id": "495-518",
+      "defined_gate": "591-607"
+    },
+    "ProFormaParser_test.cpp": {
+      "direct_literal_resolution": "1415-1450",
+      "formula_identity_terminal_unusable": "1738-1800",
+      "lowercase_formula": "1945-1952",
+      "info_order": "1973-1989",
+      "incompatible_accession": "2060-2077",
+      "defined_info_identity_and_warning": "2119-2167",
+      "vocabulary_info_not_override": "2169-2179",
+      "anonymous_formula": "2181-2197"
+    }
+  },
+  "implemented_scope": [
+    "Peptidoform::resolve_modifications with caller-owned ModificationsDB and atomic registry/AST publication.",
+    "Owned typed diagnostics for missing alias keys, ambiguous CV selection and INFO-definition disagreement.",
+    "Complete public source traversal, including deliberate omission of ModifiedRange element annotations; exact first-chemistry and empty-alternatives behavior.",
+    "Canonical neutral formula interning with immutable Arc identity and source absolute mass defaults."
+  ],
+  "remaining_scope": [
+    "AASequence conversion/combination, complete policies and issue/can variants.",
+    "Mass/mz and all throwing/try/issue/can variants.",
+    "Ordinary/XLMS spectrum generation and corresponding backend."
+  ],
+  "native_tests": [
+    "tests/proforma_resolution.rs",
+    "src/chemistry/proforma_resolution.rs::tests"
+  ],
+  "case_counts": {
+    "direct_tests": 16,
+    "private_budget_tests": 4
+  },
+  "limits": {
+    "consumed_items": 1000000,
+    "work": 50000000,
+    "logical_allocation_bytes": 268435456,
+    "individual_consumed_text_bytes": 4194304
+  },
+  "native_differences": [
+    "First native provider match replaces unspecified source pointer ordering; CV preserves Anywhere-first retry, with ambiguity returned as a diagnostic. Generic native registry lookup is unchanged.",
+    "Explicit mutable registry and owned warning records replace global DB/logger state; failure publishes neither registry nor handle mutations.",
+    "Native char is a Unicode scalar rather than C++ raw byte; formula sites require known ASCII residue codes, while named queries use scalar equality/source wildcard behavior. Complete valid UTF-8 names and INFO text are retained.",
+    "Existing native formula syntax/checked i32 counts/element data and deterministic mass order apply. Invalid or unrepresentable formula parsing becomes unresolved; resource exhaustion remains a call-level error.",
+    "Nonfinite consumed MassDelta values are errors; unused label/charge/glycan fields remain unconsumed.",
+    "Repeated index copies and comparisons are conservatively charged against one shared budget; logical allocation allowance is not a physical-memory ceiling."
+  ],
+  "licensing": "Source-derived code retains OpenMS copyright and BSD-3-Clause notices; no external implementation or dependency is introduced.",
+  "native_base_note": "The isolated working snapshot also included root-owned in-flight DocumentIdentifier updates. These and all shared status files are excluded from this nine-file extraction."
+}

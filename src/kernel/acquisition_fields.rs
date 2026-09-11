@@ -26,7 +26,7 @@ pub(super) fn acquisition(m: &mut Meter<'_>, v: &AcquisitionInfo) -> Result<()> 
     }
     Ok(())
 }
-pub(super) fn source(m: &mut Meter<'_>, v: &SourceFile) -> Result<()> {
+pub(crate) fn source(m: &mut Meter<'_>, v: &SourceFile) -> Result<()> {
     m.slots::<SourceFile>(1)?;
     for text in [
         &v.name,
