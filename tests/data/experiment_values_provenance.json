@@ -1,0 +1,147 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "rust_base_revision": "145ab93d7c9a23ee48fef4f855b9c881171f4898",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/METADATA/Sample.h",
+      "sha256": "b3a0933b2d851c87b6e69fd53e226a26df0d5ef5ddb448b2305a34c982cb95d7"
+    },
+    {
+      "path": "src/openms/source/METADATA/Sample.cpp",
+      "sha256": "2d0586ecdb44c9d4bdf11a5a52c72c40fe9c5f77bdf558ae3cc3ef959b7297dd"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Sample_test.cpp",
+      "sha256": "ba078fd9b76aba39074617beb2a3c73d995107eb639be6077bb37ded8efe4cd2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/IonSource.h",
+      "sha256": "089a7c3335d3950da9d225541ad2f1e0e73fefa7760541fae54123274962a09f"
+    },
+    {
+      "path": "src/openms/source/METADATA/IonSource.cpp",
+      "sha256": "f2a0ad53161df232724456e96c8aad0b834351091526be788f0edef62200986e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IonSource_test.cpp",
+      "sha256": "aa05c651e41ace5a212b0f84c240c128af3d4bb96d9a9d64a66b57d146d9104c"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/MassAnalyzer.h",
+      "sha256": "aafdb8633ab279e28bb20bdda593462b8d0bdfc7c73f6e358c2a5be8d2dbb954"
+    },
+    {
+      "path": "src/openms/source/METADATA/MassAnalyzer.cpp",
+      "sha256": "48fdcfa835b1b44cb2609df6cddfcb56c346da337a48efb8ac829dda96ff9560"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MassAnalyzer_test.cpp",
+      "sha256": "d6e06d4f4871c4f4fa44b98e5a80ae635ad649a1c18ce4cb1c7f9c58bb751505"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/IonDetector.h",
+      "sha256": "0f9ec61448117a0df22275023feb5124fe7be132d6a4878b3adc7d1eac8f8e8f"
+    },
+    {
+      "path": "src/openms/source/METADATA/IonDetector.cpp",
+      "sha256": "d7b401e894f5ddaeead78ff8087e1f14a2e082af2c795ad0a2e459c79b25e96f"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IonDetector_test.cpp",
+      "sha256": "03cbb170472f389fde8d2730bb114ecd6bdc2ef0fc96ee54f7a8d582790386d3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/Instrument.h",
+      "sha256": "10458d839ed1a7f4d6b2dc44e2baaa0e76b0cbed6f6246dee746586c4024e464"
+    },
+    {
+      "path": "src/openms/source/METADATA/Instrument.cpp",
+      "sha256": "430d5f28dbcdaaf27c6dc5a6a7ef0eff68449bfa167c095dfad035589e1e0a7c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Instrument_test.cpp",
+      "sha256": "cf50638688d3af45f43dcd4c1488a290ee423ba7f895b6b06967b98de047cfac"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/MetaInfoInterface.h",
+      "sha256": "5581d2dbbddd09739123a3a5731197f81ed4e7dd5e0565f6f2dcce9ff21aefa6"
+    },
+    {
+      "path": "src/openms/source/METADATA/MetaInfoInterface.cpp",
+      "sha256": "4784d93bf3e62f4774f926520f1f9c7b0ab3598e686091c5c83ecf1569368699"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/Software.h",
+      "sha256": "66462b0ea38a7e1b3899ca8e9b427b53f36552a7aa01adbfc3bed5d0baa13370"
+    },
+    {
+      "path": "src/openms/source/METADATA/Software.cpp",
+      "sha256": "5f28a7ed32798212cee7673145253dc89ba73a4c2a1269219ad3da85dce98367"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
+      "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b"
+    }
+  ],
+  "native_implementation": [
+    "src/metadata/experiment_values.rs"
+  ],
+  "native_tests": [
+    "tests/experiment_values.rs"
+  ],
+  "support_document": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+  "fixtures": [
+    {
+      "path": "tests/data/experiment_value_names.tsv",
+      "sha256": "e9d45fb920df8409a6b5036cbc736668eb8e5c476e00fe8d883014ce22eb069b",
+      "rows": 154,
+      "kind": "source_literal",
+      "extraction": "Each source NamesOf* initializer string, in order, paired with the corresponding header enum symbol before SIZE_OF; source declaration path and 1-based line retained. No production output used."
+    }
+  ],
+  "literal_case_anchors": [
+    {
+      "path": "src/tests/class_tests/openms/source/Sample_test.cpp",
+      "lines": "45-95,165-179,191-234",
+      "details": "Sample defaults, ordered children, TTEST/TTEST2/Sample4711/SampleDescription, 4711.2/4711.3/4711.4 and metadata horse"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IonSource_test.cpp",
+      "lines": "82-95",
+      "details": "Direct/ESI/positive/order45, copied label metadata"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MassAnalyzer_test.cpp",
+      "lines": "205-245",
+      "details": "Complete analyzer copy with distinct 47.11 through 47.17 values, exponent47 and order45"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IonDetector_test.cpp",
+      "lines": "92-107",
+      "details": "Electron multiplier/Pulse counting, 47.11 resolution, 47.21 ADC sampling frequency, order45"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Instrument_test.cpp",
+      "lines": "127-149,213-247",
+      "details": "Ordered analyzer scan times47.11/47.12, Name/Vendor/Model/Customizations, software sn, Reflectron and label metadata"
+    }
+  ],
+  "derived_cases": [
+    "Every scalar/enum/string/collection/metadata field changes full equality",
+    "Deep owned copies and independently mutated nested software/metadata",
+    "Signed unsorted component order remains independent from vector position",
+    "Direct scalar assignment permits negative/zero/infinite/NaN f64 bits, full signed i32 domain, and IEEE equality",
+    "Source Hash field selection: source metadata included, analyzer/detector metadata omitted; zero-equivalent Rust hashes"
+  ],
+  "native_boundaries": [
+    "Native owned fields and ordinary Vec/MetaInfo operations replace source accessors and copying",
+    "Enum sentinels and arbitrary casts excluded; exact names retained, no ABI representation guarantee",
+    "Existing native typed metadata exact equality remains in force, not source scalar epsilon comparison",
+    "Rust Hash uses source field selection but does not claim portable C++ digest numbers",
+    "Public field/copy/recursive tree operations retain standard Rust costs; no untrusted-input parser is introduced",
+    "No ExperimentalSettings aggregate migration or header/CV/consumer transport"
+  ],
+  "license": "BSD-3-Clause, matching audited OpenMS source headers; source-derived literals retain provenance",
+  "cpp_execution": false
+}

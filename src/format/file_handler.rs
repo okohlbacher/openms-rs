@@ -422,6 +422,29 @@ pub fn type_by_content(bytes: &[u8]) -> FileType {
     if first.starts_with('H') && first.contains("CreationDate") {
         return FileType::Ms2;
     }
+    for (marker, kind) in [
+        ("MTD\tmzTab-version", FileType::MzTab),
+        (
+            "scan\ttime\tmz\taccurateMZ\tmass\tintensity\tcharge\tchargeStates\tkl\tbackground\tmedian\tpeaks\tscanFirst\tscanLast\tscanCount\ttotalIntensity\tsumSquaresDist\tdescription",
+            FileType::Tsv,
+        ),
+    ] {
+        if lines.iter().take(5).any(|line| line.contains(marker)) {
+            return kind;
+        }
+    }
+    if let Some(line) = lines.first() {
+        // Leading indentation is already removed by the bounded line reader.
+        if line.contains("m/z\t     rt(min)\t       snr\t      charge\t   intensity") {
+            return FileType::Peplist;
+        }
+        if line.contains("File\tFirst Scan\tLast Scan\tNum of Scans\tCharge\tMonoisotopic Mass\tBase Isotope Peak\tBest Intensity\tSummed Intensity\tFirst RTime\tLast RTime\tBest RTime\tBest Correlation\tModifications") {
+            return FileType::Kroenik;
+        }
+        if line.starts_with("PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds") {
+            return FileType::Psms;
+        }
+    }
     FileType::Unknown
 }
 

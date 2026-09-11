@@ -1,5 +1,42 @@
 # Validation of the ongoing Rust port
 
+## Metabolite feature finding and experiment values (2026-09-11)
+
+[Recorded checks](metabo-values-validation.json) cover the integrated feature
+finder, DocumentIdentifier, five sample/instrument value types and the mzML
+ASCII-subset Latin-1 fix against SDK `82ce5b3`.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,844 tests passed |
+| Doctests, both compiler versions | Four passed per compiler |
+| Native unit/adjacent tests, Rust 1.85/no defaults | 306 passed |
+| Rust 1.85/JSON and RNA selection | 134 passed |
+| Rust 1.85/mzML count and adjacent selection | 70 passed |
+| Strict Clippy, release library, Rustdoc and Rustfmt | Passed; warnings denied |
+| Source audit, model projections, ledger and regression checks | Passed |
+
+The batch adds 41 tests; selected totals overlap the full suite. The feature
+finder reproduces the source 83/81/80 counts and all 81 expected scientific
+records, including typed metadata and compressed hulls. Both fixed classifiers
+match 488 separately executed LIBSVM reference cases; all 7,755 model constants
+are checked by bits. Four independent peptide scores cover source f32 rounding
+and the declared native f64 precision boundary.
+
+The file example reads the unchanged original mzML and writes 81 features.
+Its featureXML passes the original schema; all scalar and typed metadata fields
+match the source expected output, including 1,053 numerical comparisons. This
+workflow exposed an ASCII-only Latin-1 declaration compatibility gap, now fixed
+with explicit non-ASCII rejection. It does not certify complete TOPP behavior.
+
+The ledger now has 58 complete or native-equivalent headers and 728 requiring
+implementation or review, with zero certified TOPP workflows. Source verification
+covers 1,908 distinct current files, 220 historical references, 21 graph references
+and 660 added references. The [previous checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34574946683)
+passed every GitHub job. Full experiment/header transport, generic SVM support
+and ProForma scientific backends remain separate work.
+
+
 ## Experiment metadata, feature hypotheses, ProForma JSON and mzML counts (2026-09-11)
 
 All four groups are integrated against SDK `82ce5b3`. [Recorded checks](annotation-counts-validation.json)

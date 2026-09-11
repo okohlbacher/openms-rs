@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 164,
-      "native_equivalent": 41,
-      "partial": 22,
-      "unmapped": 549
+      "evidence_requires_review": 166,
+      "native_equivalent": 48,
+      "partial": 21,
+      "unmapped": 541
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2511,6 +2511,7 @@
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
         "tests/data/adduct_provenance.json",
+        "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/fine_isotope_provenance.json",
         "tests/data/fine_isotope_stream_provenance.json",
         "tests/data/rna_provenance.json",
@@ -2537,6 +2538,7 @@
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
         "tests/data/adduct_provenance.json",
+        "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/fine_isotope_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/rna_processing_provenance.json",
@@ -2596,7 +2598,8 @@
         "src/chemistry/isotopes.rs"
       ],
       "reference_manifests": [
-        "tests/data/averagine_deisotoping_provenance.json"
+        "tests/data/averagine_deisotoping_provenance.json",
+        "tests/data/feature_finding_metabo_provenance.json"
       ],
       "direct_topp_consumers": [
         "FeatureFinderMetaboIdent",
@@ -2641,6 +2644,7 @@
         "src/chemistry/isotopes.rs"
       ],
       "reference_manifests": [
+        "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/fine_isotope_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -3786,6 +3790,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/experiment_values_provenance.json",
         "tests/data/kernel_value_traits_provenance.json",
         "tests/data/metadata_hash_provenance.json",
         "tests/data/param_value_provenance.json"
@@ -4253,6 +4258,7 @@
         "src/kernel/geometry.rs"
       ],
       "reference_manifests": [
+        "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/feature_hypothesis_provenance.json",
         "tests/data/mass_trace_provenance.json"
       ],
@@ -5018,21 +5024,30 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
       "sha256": "7a7f8c784de5f6b9dca82c204cedda780ccebf0adce1d3dedc44a8967179e689",
       "domain": "FEATUREFINDER",
-      "status": "partial",
+      "status": "native_equivalent",
       "review": {
-        "status": "partial",
+        "status": "native_equivalent",
         "rust": [
-          "src/analysis/feature_hypothesis.rs"
+          "src/analysis/feature_finding_metabo.rs",
+          "src/analysis/feature_finding_metabo/predictor.rs",
+          "src/analysis/feature_hypothesis.rs",
+          "src/chemistry/metabo_elements.rs"
         ],
         "tests": [
-          "tests/feature_hypothesis.rs"
+          "tests/feature_finding_metabo.rs",
+          "tests/feature_hypothesis.rs",
+          "src/analysis/feature_finding_metabo/predictor_tests.rs"
         ],
-        "documentation": "docs/FEATURE_HYPOTHESIS_SUPPORT.md",
-        "scope": "Complete FeatureHypothesis public subgroup, comparison predicates and isotope mass-window record. Ordered borrowed traces, summaries, hulls and chromatograms retain source behavior with checked lifetimes, arithmetic and cumulative operation limits. Main FeatureFindingMetabo orchestration and isotope models remain under implementation; no end-to-end feature-finding or TOPP certification."
+        "documentation": "docs/FEATURE_FINDING_METABO_SUPPORT.md",
+        "scope": "Complete class-specific public feature-finding operation, all19 typed options, grouped chromatograms, both fixed isotope models and FeatureHypothesis subgroup. Source83/81/80 counts and all81 golden feature values/hulls match;488 actual LIBSVM reference rows validate predictors. Native ownership, stable serial ties, bounded atomic publication and inherited f64 coarse-isotope precision are documented. General SimpleSVM and inherited generic Param wrappers remain separate, and no complete TOPP workflow is certified."
       },
-      "candidate_rust_files": [],
+      "candidate_rust_files": [
+        "src/analysis/feature_finding_metabo.rs"
+      ],
       "reference_manifests": [
-        "tests/data/feature_hypothesis_provenance.json"
+        "tests/data/feature_finding_metabo_provenance.json",
+        "tests/data/feature_hypothesis_provenance.json",
+        "tests/data/metabo_predictor_provenance.json"
       ],
       "direct_topp_consumers": [
         "FeatureFinderMetabo",
@@ -5925,6 +5940,7 @@
         "src/format/file_handler.rs"
       ],
       "reference_manifests": [
+        "tests/data/document_identifier_provenance.json",
         "tests/data/fasta_provenance.json",
         "tests/data/file_handling_provenance.json",
         "tests/data/identification_paths_provenance.json",
@@ -6102,6 +6118,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/document_identifier_provenance.json",
         "tests/data/file_handling_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -6235,6 +6252,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/data_array_xml_provenance.json",
+        "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/featurexml_provenance.json",
         "tests/data/modification_definition_io_provenance.json"
       ],
@@ -8265,6 +8283,7 @@
         "src/kernel/features.rs"
       ],
       "reference_manifests": [
+        "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/featurexml_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8524,6 +8543,7 @@
       ],
       "reference_manifests": [
         "tests/data/elution_peak_detection_provenance.json",
+        "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/feature_hypothesis_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/mass_trace_provenance.json"
@@ -9235,10 +9255,26 @@
       "header": "src/openms/include/OpenMS/METADATA/DocumentIdentifier.h",
       "sha256": "25b6506df645aa82b2876c375b99a71f59849f20d4772dbb78dfabfdc1b7d158",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/document_identifier.rs",
+          "src/format/file_handler.rs"
+        ],
+        "tests": [
+          "tests/document_identifier.rs",
+          "tests/file_handler.rs"
+        ],
+        "documentation": "docs/DOCUMENT_IDENTIFIER_SUPPORT.md",
+        "scope": "All own identity/provenance value operations, identifier-only equality, exact absolute/relative path policy, clone/assignment/swap and independent content type selection. Native UTF-8/path/resource/atomic checks and shared bounded detector/optional compression are documented adaptations; exact full FileHandler heuristic parity and aggregate migration remain separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/document_identifier.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/document_identifier_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -9618,10 +9654,24 @@
       "header": "src/openms/include/OpenMS/METADATA/Instrument.h",
       "sha256": "10458d839ed1a7f4d6b2dc44e2baaa0e76b0cbed6f6246dee746586c4024e464",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/experiment_values.rs"
+        ],
+        "tests": [
+          "tests/experiment_values.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+        "scope": "Complete Instrument owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experiment_values_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -9644,30 +9694,72 @@
       "header": "src/openms/include/OpenMS/METADATA/IonDetector.h",
       "sha256": "0f9ec61448117a0df22275023feb5124fe7be132d6a4878b3adc7d1eac8f8e8f",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/experiment_values.rs"
+        ],
+        "tests": [
+          "tests/experiment_values.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+        "scope": "Complete IonDetector owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experiment_values_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/METADATA/IonSource.h",
       "sha256": "089a7c3335d3950da9d225541ad2f1e0e73fefa7760541fae54123274962a09f",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/experiment_values.rs"
+        ],
+        "tests": [
+          "tests/experiment_values.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+        "scope": "Complete IonSource owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experiment_values_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/METADATA/MassAnalyzer.h",
       "sha256": "aafdb8633ab279e28bb20bdda593462b8d0bdfc7c73f6e358c2a5be8d2dbb954",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/experiment_values.rs"
+        ],
+        "tests": [
+          "tests/experiment_values.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+        "scope": "Complete MassAnalyzer owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experiment_values_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -9718,6 +9810,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/experiment_values_provenance.json",
         "tests/data/metadata_hash_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
@@ -9741,10 +9834,12 @@
       "header": "src/openms/include/OpenMS/METADATA/MetaInfoRegistry.h",
       "sha256": "0690f2361d45ea427133a9264dc66d46e45c32cdaca748c726db10f803f51bd3",
       "domain": "METADATA",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/feature_finding_metabo_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -10046,10 +10141,24 @@
       "header": "src/openms/include/OpenMS/METADATA/Sample.h",
       "sha256": "b3a0933b2d851c87b6e69fd53e226a26df0d5ef5ddb448b2305a34c982cb95d7",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/experiment_values.rs"
+        ],
+        "tests": [
+          "tests/experiment_values.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+        "scope": "Complete Sample owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experiment_values_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -10076,6 +10185,7 @@
         "src/metadata/acquisition.rs"
       ],
       "reference_manifests": [
+        "tests/data/experiment_values_provenance.json",
         "tests/data/identification_graph_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -10426,10 +10536,13 @@
       "header": "src/openms/include/OpenMS/ML/SVM/SimpleSVM.h",
       "sha256": "360c978fd5c9e5327243428e0a96595de2d1bb7fb071272403bc7896cd99b9ca",
       "domain": "ML",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/feature_finding_metabo_provenance.json",
+        "tests/data/metabo_predictor_provenance.json"
+      ],
       "direct_topp_consumers": [
         "OpenNuXL",
         "ProteomicsLFQ"
@@ -11154,6 +11267,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/document_identifier_provenance.json",
         "tests/data/mzml_acquisition_provenance.json",
         "tests/data/system_file_provenance.json"
       ],
@@ -12251,7 +12365,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
@@ -15064,7 +15177,6 @@
         "OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
         "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
         "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
-        "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
         "OpenMS/FORMAT/BrukerTimsFile.h",
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
         "OpenMS/FORMAT/ExperimentalDesignFile.h",

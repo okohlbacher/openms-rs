@@ -44,6 +44,8 @@ record counts without decoding peak arrays.
 
 [Contact and chromatography metadata](docs/EXPERIMENT_METADATA_SUPPORT.md) provide
 complete ContactPerson, HPLC and Gradient records and operations.
+[Document identity](docs/DOCUMENT_IDENTIFIER_SUPPORT.md) retains source equality,
+path spelling and independent bounded content-type selection.
 
 | Area | Implemented |
 | --- | --- |
@@ -182,3 +184,16 @@ The crate uses no unsafe Rust. Core chemistry is immutable and embedded; no Open
 Current SDK target: `okohlbacher/OpenMS4-core` at `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`. Historical implementation and fixture provenance retains `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`, verified against GitHub on 2026-09-10. See the [SDK update](docs/CORE_SDK_UPDATE.md), [source provenance](SOURCE_PROVENANCE.json), the [historical source inventory](docs/source-inventory.json), and [fixture provenance](tests/data/README.md).
 
 Implementation: BSD-3-Clause, with original OpenMS copyright and attribution in [LICENSE](LICENSE) and [AUTHORS](AUTHORS). Bundled UniMod-derived modification data: Design Science License, with complete source data and notices included. See [component licenses](LICENSES.md) and [data provenance](resources/modifications/README.md). The [RNA data notices](resources/rna/README.md) separately record the unresolved MODOMICS redistribution terms. This local package has not been published to crates.io.
+
+The native metabolite feature-finding chain combines mass-trace detection,
+elution peak detection and FeatureFindingMetabo. With centroided input:
+
+```sh
+cargo run --release --features mzml,featurexml --example find_metabolite_features -- input.mzML output.featureXML
+```
+
+See [feature-finding support](docs/FEATURE_FINDING_METABO_SUPPORT.md),
+[fixed isotope predictors](docs/METABO_PREDICTOR_SUPPORT.md), and
+[sample and instrument values](docs/EXPERIMENT_VALUES_SUPPORT.md).
+This example exercises SDK operations; complete TOPP command behavior remains
+subject to the [completion ledger](docs/CORE_SDK_COMPLETION.md).

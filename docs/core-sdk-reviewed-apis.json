@@ -901,15 +901,88 @@
       "scope": "Complete Gradient class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
     },
     "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h": {
-      "status": "partial",
+      "status": "native_equivalent",
       "rust": [
-        "src/analysis/feature_hypothesis.rs"
+        "src/analysis/feature_finding_metabo.rs",
+        "src/analysis/feature_finding_metabo/predictor.rs",
+        "src/analysis/feature_hypothesis.rs",
+        "src/chemistry/metabo_elements.rs"
       ],
       "tests": [
-        "tests/feature_hypothesis.rs"
+        "tests/feature_finding_metabo.rs",
+        "tests/feature_hypothesis.rs",
+        "src/analysis/feature_finding_metabo/predictor_tests.rs"
       ],
-      "documentation": "docs/FEATURE_HYPOTHESIS_SUPPORT.md",
-      "scope": "Complete FeatureHypothesis public subgroup, comparison predicates and isotope mass-window record. Ordered borrowed traces, summaries, hulls and chromatograms retain source behavior with checked lifetimes, arithmetic and cumulative operation limits. Main FeatureFindingMetabo orchestration and isotope models remain under implementation; no end-to-end feature-finding or TOPP certification."
+      "documentation": "docs/FEATURE_FINDING_METABO_SUPPORT.md",
+      "scope": "Complete class-specific public feature-finding operation, all19 typed options, grouped chromatograms, both fixed isotope models and FeatureHypothesis subgroup. Source83/81/80 counts and all81 golden feature values/hulls match;488 actual LIBSVM reference rows validate predictors. Native ownership, stable serial ties, bounded atomic publication and inherited f64 coarse-isotope precision are documented. General SimpleSVM and inherited generic Param wrappers remain separate, and no complete TOPP workflow is certified."
+    },
+    "src/openms/include/OpenMS/METADATA/DocumentIdentifier.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/document_identifier.rs",
+        "src/format/file_handler.rs"
+      ],
+      "tests": [
+        "tests/document_identifier.rs",
+        "tests/file_handler.rs"
+      ],
+      "documentation": "docs/DOCUMENT_IDENTIFIER_SUPPORT.md",
+      "scope": "All own identity/provenance value operations, identifier-only equality, exact absolute/relative path policy, clone/assignment/swap and independent content type selection. Native UTF-8/path/resource/atomic checks and shared bounded detector/optional compression are documented adaptations; exact full FileHandler heuristic parity and aggregate migration remain separate."
+    },
+    "src/openms/include/OpenMS/METADATA/Sample.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "tests": [
+        "tests/experiment_values.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+      "scope": "Complete Sample owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+    },
+    "src/openms/include/OpenMS/METADATA/IonSource.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "tests": [
+        "tests/experiment_values.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+      "scope": "Complete IonSource owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+    },
+    "src/openms/include/OpenMS/METADATA/MassAnalyzer.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "tests": [
+        "tests/experiment_values.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+      "scope": "Complete MassAnalyzer owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+    },
+    "src/openms/include/OpenMS/METADATA/IonDetector.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "tests": [
+        "tests/experiment_values.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+      "scope": "Complete IonDetector owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+    },
+    "src/openms/include/OpenMS/METADATA/Instrument.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/experiment_values.rs"
+      ],
+      "tests": [
+        "tests/experiment_values.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+      "scope": "Complete Instrument owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

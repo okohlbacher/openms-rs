@@ -7,10 +7,10 @@ This is a work inventory, not a completion percentage. Matching declarations and
 | Review state | Headers |
 | --- | ---: |
 | complete | 10 |
-| evidence_requires_review | 164 |
-| native_equivalent | 41 |
-| partial | 22 |
-| unmapped | 549 |
+| evidence_requires_review | 166 |
+| native_equivalent | 48 |
+| partial | 21 |
+| unmapped | 541 |
 
 ## Highest fan-out open SDK dependencies
 

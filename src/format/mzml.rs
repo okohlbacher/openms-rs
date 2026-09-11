@@ -1158,6 +1158,7 @@ fn read_impl(
     };
     let mut seen_declaration = false;
     let mut ascii_only = false;
+    let mut latin1_subset = false;
     loop {
         let decoder = reader.decoder();
         let (namespace, event) = reader
@@ -1165,6 +1166,11 @@ fn read_impl(
             .map_err(|e| invalid(e.to_string()))?;
         let namespace_ok = matches!(namespace, ResolveResult::Bound(ns) if ns.as_ref() == NS);
         if ascii_only && !event.is_ascii() {
+            if latin1_subset {
+                return Err(Error::Unsupported(
+                    "non-ASCII ISO-8859-1 mzML requires transcoding".into(),
+                ));
+            }
             return Err(invalid("non-ASCII bytes in US-ASCII XML"));
         }
         if reader.buffer_position() > options.max_xml_bytes {
@@ -1974,12 +1980,11 @@ fn read_impl(
                 }
                 if let Some(encoding) = declaration.encoding() {
                     let encoding = encoding.map_err(|e| invalid(e.to_string()))?;
-                    ascii_only = encoding.eq_ignore_ascii_case(b"US-ASCII");
-                    if !encoding.eq_ignore_ascii_case(b"UTF-8")
-                        && !encoding.eq_ignore_ascii_case(b"US-ASCII")
-                    {
+                    latin1_subset = encoding.eq_ignore_ascii_case(b"ISO-8859-1");
+                    ascii_only = encoding.eq_ignore_ascii_case(b"US-ASCII") || latin1_subset;
+                    if !encoding.eq_ignore_ascii_case(b"UTF-8") && !ascii_only {
                         return Err(Error::Unsupported(
-                            "only UTF-8/US-ASCII mzML XML encodings are supported".into(),
+                            "only UTF-8 or ASCII-compatible US-ASCII/ISO-8859-1 mzML XML is supported".into(),
                         ));
                     }
                 }

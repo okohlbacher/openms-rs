@@ -77,12 +77,9 @@ fn encoded_xml(experiment: &MSExperiment, zlib: bool) -> String {
 #[test]
 fn reads_pinned_upstream_minimal_and_indexed_fixture() {
     assert_eq!(parse(MINIMAL).unwrap(), MSExperiment::new());
-    // The original bytes stay unchanged. This fixture is ASCII; an explicit
-    // declaration conversion prepares it for the reader's UTF-8 subset.
+    // The original ASCII bytes and Latin-1 declaration are accepted unchanged.
     assert!(SERUM.is_ascii());
-    assert!(matches!(parse(SERUM), Err(Error::Unsupported(_))));
-    let source = SERUM.replace("ISO-8859-1", "UTF-8");
-    let experiment = parse(&source).unwrap();
+    let experiment = parse(SERUM).unwrap();
     assert_eq!(experiment.spectra.len(), 1);
     let spectrum = &experiment.spectra[0];
     assert_eq!(spectrum.native_id, "spectrum=0");
@@ -451,4 +448,24 @@ fn writer_propagates_buffer_flush_errors() {
         mzml::write(FlushFailure, &sample()),
         Err(Error::Io(_))
     ));
+}
+
+#[test]
+fn latin1_declaration_accepts_ascii_and_character_references_without_misdecoding_bytes() {
+    let latin = MINIMAL.replace("UTF-8", "iSo-8859-1");
+    assert!(parse(&latin).is_ok());
+    // ASCII character references are decoded by XML independently of byte encoding.
+    let escaped = latin.replace("<run ", "<run harmless=\"caf&#233;\" ");
+    assert!(parse(&escaped).is_ok());
+    for text in ["<!-- café -->", "<?example café?>"] {
+        let xml = latin.replace("<mzML ", &format!("{text}<mzML "));
+        assert!(matches!(parse(&xml), Err(Error::Unsupported(_))));
+        let mut bytes = xml.as_bytes().to_vec();
+        let index = bytes.windows(2).position(|s| s == [0xc3, 0xa9]).unwrap();
+        bytes.splice(index..index + 2, [0xe9]);
+        assert!(matches!(
+            mzml::read(Cursor::new(bytes)),
+            Err(Error::Unsupported(_))
+        ));
+    }
 }

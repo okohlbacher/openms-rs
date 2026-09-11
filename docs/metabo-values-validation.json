@@ -1,0 +1,466 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "scope": [
+    "Complete class-specific FeatureFindingMetabo with both fixed isotope classifiers",
+    "DocumentIdentifier and five additional FileHandler tabular signatures",
+    "Complete Sample, IonSource, MassAnalyzer, IonDetector and Instrument values",
+    "ASCII-subset ISO-8859-1 mzML acceptance and original-file metabolite workflow"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 232.09,
+      "log_sha256": "7423b917dc6c029042f5d9a9d95306c836dfc80110b552c40c6e4b6edeb9600f",
+      "log_bytes": 192709,
+      "tests_passed": 1844
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.49,
+      "log_sha256": "9cf0e3558c59195fbb06150142f8d75205d0e559608f0990064344fa5be352f0",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 23.49,
+      "log_sha256": "28e7ad73808b549b7e1769b10085398d67ac261b85d20e3a0b4f4e16df8d8dda",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 32.64,
+      "log_sha256": "0c660387c5e14dd790417c60601eb3324773674db4062ea0b4f0bd0b69ecb21c",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.66,
+      "log_sha256": "1e84227a3d04d955972de6f6fef7fad56f82f2d4a17ffa47d3e9c331c6a5317d",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.79,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3,
+      "log_sha256": "b75fc001205e86736d932dd29dd90cce0bdc6adb0e62f68a5deff0f6a1ed98b8",
+      "log_bytes": 233
+    },
+    {
+      "name": "metabolite_model_projection",
+      "command": [
+        "python3",
+        "tools/generate_metabo_isotope_models.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "7b491f74722286e8632f85d151557291f35a0f000a429809eaf0477727005cd0",
+      "log_bytes": 72
+    },
+    {
+      "name": "monosaccharide_projection",
+      "command": [
+        "python3",
+        "tools/generate_monosaccharides.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.03,
+      "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9",
+      "log_bytes": 48
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.06,
+      "log_sha256": "91484b514ff5b422a04f53875f8fdfd3082d3e26a083fd6c21d36ff0b9a63715",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "f2f7f20b09268ff1a5a9edf399b32bb047568b9780fc65a6c38dee4a6be91892",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "mass_trace_detection",
+        "--test",
+        "elution_peak_detection",
+        "--test",
+        "run_mapping",
+        "--test",
+        "mass_trace",
+        "--test",
+        "area_iteration",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_writer_probe",
+        "--test",
+        "proforma_parser",
+        "--test",
+        "proforma_parser_probe",
+        "--test",
+        "protein_run",
+        "--test",
+        "identification",
+        "--test",
+        "experiment_metadata",
+        "--test",
+        "feature_hypothesis",
+        "--test",
+        "feature_finding_metabo",
+        "--test",
+        "document_identifier",
+        "--test",
+        "experiment_values",
+        "--test",
+        "file_handler",
+        "--test",
+        "system_file",
+        "--test",
+        "metadata",
+        "--test",
+        "metadata_hash",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 18.38,
+      "log_sha256": "48d103d77e0c842e82b3f3936022714209dd72838e4258aafb78e5d259f35b23",
+      "log_bytes": 31363,
+      "tests_passed": 306
+    },
+    {
+      "name": "json_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "proforma-json,rna-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "ribonucleotides",
+        "--test",
+        "rna_reference",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 11.09,
+      "log_sha256": "a67befe69ccfc9abf7f1aceb80d1b384847c7d548466840593d3557263308f00",
+      "log_bytes": 14749,
+      "tests_passed": 134
+    },
+    {
+      "name": "counts_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_acquisition",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.58,
+      "log_sha256": "99c64745385ebb6e73619e68a7636be9ff9c0a0442b566526d71e7504ab9f6b9",
+      "log_bytes": 6639,
+      "tests_passed": 70
+    },
+    {
+      "name": "docs_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.08,
+      "log_sha256": "1f86cd2a65b9f3d9bb560e249b7dbde30acb225d18c190007719a2f8008ffc95",
+      "log_bytes": 526,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 13.43,
+      "log_sha256": "a32ddf3c85d485e28af22c6f8d1f926e0d1650dda27c0db439cee805eb0278e4",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_json_counts_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,proforma-json,rna-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "mzml_counts",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 5.77,
+      "log_sha256": "a408222874fe411840c2609befa8b25b7dd289f3926c9ba5dacbdf0abdd8a640",
+      "log_bytes": 161
+    }
+  ],
+  "new_tests": 41,
+  "staged_validation": {
+    "feature_finding_metabo": "79 distinct tests on each compiler:15 public main,6 private main,6 private predictor and52 adjacent. Strict scoped lint and format passed.",
+    "document_identifier": "113 current no-default unit/direct/adjacent tests,15 current all-feature direct/dispatch tests,29 minimum no-default direct/dispatch/system tests; strict scoped lint both.",
+    "experiment_values": "42 tests on each compiler including7 new value tests and35 adjacent metadata tests; strict scoped lint and format passed.",
+    "encoding": "15 direct mzML tests on current/all-features including the new raw-byte regression; included in full current and minimum selected suites."
+  },
+  "scientific_evidence": {
+    "upstream_feature_counts": [
+      83,
+      81,
+      80
+    ],
+    "golden_feature_records": 81,
+    "golden_comparison": "All scientific scalar, typed metadata and compressed hull coordinates under exact source FuzzyStringComparator tolerance. Source fixture bytes retained.",
+    "libsvm_executed_rows": 488,
+    "model_f64_constants_bit_checked": 7755,
+    "peptide_reference": "Four source-expression scores with all24 active-element permutations, independent Python f32 convolution; native f64 score tolerance1e-7.",
+    "source_projections": "All three FFM projections and independent peptide reference regenerated byte-for-byte; all seven model resource hashes checked."
+  },
+  "file_workflow": {
+    "features": 81,
+    "numeric_comparisons": 1053,
+    "schema": "FeatureXML_1_9.xsd",
+    "source_expected_sha256": "cbe225942240be9d803d68ed3396d0be150b1feff213b8af023cafc4879d9183",
+    "native_output_sha256": "b2a494534a70d594103e5629abce503eafbe8ad347ac70da72d9439bff2ca6a0",
+    "source_input_unchanged": true,
+    "comparison": "Original scalar and typed metadata fields, source FuzzyStringComparator tolerance. Default hull export is off, so hulls are covered separately by direct tests.",
+    "commands": [
+      [
+        "cargo",
+        "+1.98.0",
+        "run",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--example",
+        "find_metabolite_features",
+        "--",
+        ".reference/openms4-core-82ce5b3/src/tests/class_tests/openms/data/FeatureFindingMetabo_input1.mzML",
+        "/tmp/openms-rs-metabolite-features.featureXML"
+      ],
+      [
+        "xmllint",
+        "--nonet",
+        "--noout",
+        "--schema",
+        ".reference/openms4-core-82ce5b3/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd",
+        "/tmp/openms-rs-metabolite-features.featureXML"
+      ]
+    ]
+  },
+  "reviews": [
+    "Root reviewed complete main feature-finding source/science/resources and fixed predictor; independent source_analysis predictor review closed clean.",
+    "Exact source comparator and negative-offset documentation corrected before freeze.",
+    "Root reviewed all five value types, all source enum names/defaults/field/equality/hash selections, tests and docs without outstanding findings.",
+    "Independent DocumentIdentifier review closed clean; bounded native file sniffing differences are explicit.",
+    "Original file workflow exposed ASCII Latin-1 declaration rejection; reader now accepts ASCII subset and rejects non-ASCII Latin-1 with explicit Unsupported. Regression and adjacent tests pass."
+  ],
+  "source_audit": {
+    "distinct_current_files": 1908,
+    "historical_references": 220,
+    "graph_references": 21,
+    "added_references": 660
+  },
+  "coverage": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "native_equivalent": 48,
+      "partial": 21,
+      "evidence_requires_review": 166,
+      "unmapped": 541
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "production_sha256": {
+    "src/analysis/feature_finding_metabo.rs": "4b3632f9502f542c27e02195bebcb955a80d1a15763d7863bc12f9bbe26aea95",
+    "src/analysis/feature_finding_metabo/predictor.rs": "494257a6fb3e0d505d06d1cb80d4b10d7424ba5b3f2a7c4d94dd1ca9153d440f",
+    "src/chemistry/metabo_elements.rs": "a4b774920cca1cc388ec8f173c91a8463ec6aa44ff1e47e18671c5b36d556a46",
+    "src/metadata/document_identifier.rs": "7ef0e6c32cb7c6be750c4e545ffe94deb16f125c1941ebc6b0b7db76453e38b8",
+    "src/metadata/experiment_values.rs": "1c97d43858fb532caa1282bdba652840660dc7d117ae0474b9e2573dd59994c0",
+    "src/format/mzml.rs": "27729c8c724708316ae7320bee4f19a3cfc9571e65bdd21de8f82b983a1f95d8",
+    "src/format/file_handler.rs": "e06fc8dff1c7bd74ba22495bb60cdd5c9e4e538ae9bdad101ed9dc7019177e13"
+  },
+  "previous_ci": {
+    "commit": "145ab93d7c9a23ee48fef4f855b9c881171f4898",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34574946683",
+    "conclusion": "success"
+  },
+  "limitations": [
+    "Full core SDK completion and TOPP command certification remain outstanding.",
+    "No full C++ SDK execution: LIBSVM fixture is a separately compiled unmodified library; FFM expectations are original committed source data and independent expressions.",
+    "ExperimentalSettings/MSExperiment ownership and header transport remain separate; current metadata values are standalone.",
+    "General SVM and ProForma scientific backends remain separate operation groups.",
+    "Latin-1 support is the ASCII subset, not a full transcoder."
+  ]
+}

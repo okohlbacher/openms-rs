@@ -1,0 +1,137 @@
+{
+  "origin": "Independent Python stdlib translation of source expressions, not source class literal or C++/Rust output. All24 active element permutations account for source pointer-key formula traversal. Zero S/P and charge0 identity convolutions do not change values.",
+  "weight": 1000.0,
+  "formula_counts": {
+    "C": 44,
+    "N": 12,
+    "O": 13,
+    "S": 0,
+    "P": 0,
+    "H": 95
+  },
+  "factor": 8.99897578176639,
+  "rows": [
+    {
+      "hypothesis": [
+        10.0,
+        10.0
+      ],
+      "source_f32_HCNO_distribution": [
+        0.651002049446106,
+        0.34899792075157166
+      ],
+      "source_f32_HCNO_score": 0.9572966255102681,
+      "source_f32_all24orders_distribution_min": [
+        0.651002049446106,
+        0.34899792075157166
+      ],
+      "source_f32_all24orders_distribution_max": [
+        0.6510021090507507,
+        0.34899798035621643
+      ],
+      "source_f32_all24orders_score_interval": [
+        0.9572966144876327,
+        0.9572966460712992
+      ],
+      "independent_f64_distribution": [
+        0.6510020623957913,
+        0.3489979376042086
+      ],
+      "independent_f64_score": 0.9572966289289274
+    },
+    {
+      "hypothesis": [
+        10.0,
+        5.0
+      ],
+      "source_f32_HCNO_distribution": [
+        0.651002049446106,
+        0.34899792075157166
+      ],
+      "source_f32_HCNO_score": 0.9995951520171115,
+      "source_f32_all24orders_distribution_min": [
+        0.651002049446106,
+        0.34899792075157166
+      ],
+      "source_f32_all24orders_distribution_max": [
+        0.6510021090507507,
+        0.34899798035621643
+      ],
+      "source_f32_all24orders_score_interval": [
+        0.999595149993612,
+        0.9995951531018942
+      ],
+      "independent_f64_distribution": [
+        0.6510020623957913,
+        0.3489979376042086
+      ],
+      "independent_f64_score": 0.9995951516806668
+    },
+    {
+      "hypothesis": [
+        10.0,
+        10.0,
+        10.0
+      ],
+      "source_f32_HCNO_distribution": [
+        0.5869063138961792,
+        0.31463661789894104,
+        0.09845706075429916
+      ],
+      "source_f32_HCNO_score": 0.8576672937856934,
+      "source_f32_all24orders_distribution_min": [
+        0.5869062542915344,
+        0.31463658809661865,
+        0.09845706075429916
+      ],
+      "source_f32_all24orders_distribution_max": [
+        0.5869063138961792,
+        0.3146366477012634,
+        0.09845708310604095
+      ],
+      "source_f32_all24orders_score_interval": [
+        0.8576672937856934,
+        0.8576673316933445
+      ],
+      "independent_f64_distribution": [
+        0.5869063087780956,
+        0.31463662430906975,
+        0.09845706691283466
+      ],
+      "independent_f64_score": 0.8576673008962115
+    },
+    {
+      "hypothesis": [
+        10.0,
+        5.0,
+        2.0
+      ],
+      "source_f32_HCNO_distribution": [
+        0.5869063138961792,
+        0.31463661789894104,
+        0.09845706075429916
+      ],
+      "source_f32_HCNO_score": 0.9991489830493052,
+      "source_f32_all24orders_distribution_min": [
+        0.5869062542915344,
+        0.31463658809661865,
+        0.09845706075429916
+      ],
+      "source_f32_all24orders_distribution_max": [
+        0.5869063138961792,
+        0.3146366477012634,
+        0.09845708310604095
+      ],
+      "source_f32_all24orders_score_interval": [
+        0.9991489817008051,
+        0.9991489848978399
+      ],
+      "independent_f64_distribution": [
+        0.5869063087780956,
+        0.31463662430906975,
+        0.09845706691283466
+      ],
+      "independent_f64_score": 0.9991489829974327
+    }
+  ]
+}

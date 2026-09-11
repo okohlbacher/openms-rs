@@ -6,9 +6,14 @@
 //! See `docs/METADATA_SUPPORT.md` for the supported source subset and policies.
 
 mod acquisition;
+mod document_identifier;
 mod experiment_support;
 mod value;
 
 pub use acquisition::*;
+pub use document_identifier::*;
 pub use experiment_support::*;
 pub use value::*;
+
+mod experiment_values;
+pub use experiment_values::*;

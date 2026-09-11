@@ -1,0 +1,155 @@
+family	index	source_symbol	literal_name	source_path	source_line
+SampleState	0	SAMPLENULL	Unknown	src/openms/source/METADATA/Sample.cpp	18
+SampleState	1	SOLID	solid	src/openms/source/METADATA/Sample.cpp	18
+SampleState	2	LIQUID	liquid	src/openms/source/METADATA/Sample.cpp	18
+SampleState	3	GAS	gas	src/openms/source/METADATA/Sample.cpp	18
+SampleState	4	SOLUTION	solution	src/openms/source/METADATA/Sample.cpp	18
+SampleState	5	EMULSION	emulsion	src/openms/source/METADATA/Sample.cpp	18
+SampleState	6	SUSPENSION	suspension	src/openms/source/METADATA/Sample.cpp	18
+InletType	0	INLETNULL	Unknown	src/openms/source/METADATA/IonSource.cpp	19
+InletType	1	DIRECT	Direct	src/openms/source/METADATA/IonSource.cpp	19
+InletType	2	BATCH	Batch	src/openms/source/METADATA/IonSource.cpp	19
+InletType	3	CHROMATOGRAPHY	Chromatography	src/openms/source/METADATA/IonSource.cpp	19
+InletType	4	PARTICLEBEAM	Particle beam	src/openms/source/METADATA/IonSource.cpp	19
+InletType	5	MEMBRANESEPARATOR	Membrane sparator	src/openms/source/METADATA/IonSource.cpp	19
+InletType	6	OPENSPLIT	Open split	src/openms/source/METADATA/IonSource.cpp	19
+InletType	7	JETSEPARATOR	Jet separator	src/openms/source/METADATA/IonSource.cpp	19
+InletType	8	SEPTUM	Septum	src/openms/source/METADATA/IonSource.cpp	19
+InletType	9	RESERVOIR	Reservoir	src/openms/source/METADATA/IonSource.cpp	19
+InletType	10	MOVINGBELT	Moving belt	src/openms/source/METADATA/IonSource.cpp	19
+InletType	11	MOVINGWIRE	Moving wire	src/openms/source/METADATA/IonSource.cpp	19
+InletType	12	FLOWINJECTIONANALYSIS	Flow injection analysis	src/openms/source/METADATA/IonSource.cpp	19
+InletType	13	ELECTROSPRAYINLET	Electro spray	src/openms/source/METADATA/IonSource.cpp	19
+InletType	14	THERMOSPRAYINLET	Thermo spray	src/openms/source/METADATA/IonSource.cpp	19
+InletType	15	INFUSION	Infusion	src/openms/source/METADATA/IonSource.cpp	19
+InletType	16	CONTINUOUSFLOWFASTATOMBOMBARDMENT	Continuous flow fast atom bombardment	src/openms/source/METADATA/IonSource.cpp	19
+InletType	17	INDUCTIVELYCOUPLEDPLASMA	Inductively coupled plasma	src/openms/source/METADATA/IonSource.cpp	19
+InletType	18	MEMBRANE	Membrane inlet	src/openms/source/METADATA/IonSource.cpp	19
+InletType	19	NANOSPRAY	Nanospray inlet	src/openms/source/METADATA/IonSource.cpp	19
+IonizationMethod	0	IONMETHODNULL	Unknown	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	1	ESI	Electrospray ionisation	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	2	EI	Electron ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	3	CI	Chemical ionisation	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	4	FAB	Fast atom bombardment	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	5	TSP	Thermospray	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	6	LD	Laser desorption	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	7	FD	Field desorption	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	8	FI	Flame ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	9	PD	Plasma desorption	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	10	SI	Secondary ion MS	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	11	TI	Thermal ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	12	API	Atmospheric pressure ionisation	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	13	ISI	ISI	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	14	CID	Collsion induced decomposition	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	15	CAD	Collsiona activated decomposition	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	16	HN	HN	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	17	APCI	Atmospheric pressure chemical ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	18	APPI	Atmospheric pressure photo ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	19	ICP	Inductively coupled plasma	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	20	NESI	Nano electrospray ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	21	MESI	Micro electrospray ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	22	SELDI	Surface enhanced laser desorption ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	23	SEND	Surface enhanced neat desorption	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	24	FIB	Fast ion bombardment	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	25	MALDI	Matrix-assisted laser desorption ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	26	MPI	Multiphoton ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	27	DI	Desorption ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	28	FA	Flowing afterglow	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	29	FII	Field ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	30	GD_MS	Glow discharge ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	31	NICI	Negative ion chemical ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	32	NRMS	Neutralization reionization mass spectrometry	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	33	PI	Photoionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	34	PYMS	Pyrolysis mass spectrometry	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	35	REMPI	Resonance enhanced multiphoton ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	36	AI	Adiabatic ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	37	ASI	Associative ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	38	AD	Autodetachment	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	39	AUI	Autoionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	40	CEI	Charge exchange ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	41	CHEMI	Chemi-ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	42	DISSI	Dissociative ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	43	LSI	Liquid secondary ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	44	PEI	Penning ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	45	SOI	Soft ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	46	SPI	Spark ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	47	SUI	Surface ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	48	VI	Vertical ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	49	AP_MALDI	Atmospheric pressure matrix-assisted laser desorption ionization	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	50	SILI	Desorption/ionization on silicon	src/openms/source/METADATA/IonSource.cpp	21
+IonizationMethod	51	SALDI	Surface-assisted laser desorption ionization	src/openms/source/METADATA/IonSource.cpp	21
+Polarity	0	POLNULL	unknown	src/openms/source/METADATA/IonSource.cpp	23
+Polarity	1	POSITIVE	positive	src/openms/source/METADATA/IonSource.cpp	23
+Polarity	2	NEGATIVE	negative	src/openms/source/METADATA/IonSource.cpp	23
+AnalyzerType	0	ANALYZERNULL	Unknown	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	1	QUADRUPOLE	Quadrupole	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	2	PAULIONTRAP	Quadrupole ion trap	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	3	RADIALEJECTIONLINEARIONTRAP	Radial ejection linear ion trap	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	4	AXIALEJECTIONLINEARIONTRAP	Axial ejection linear ion trap	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	5	TOF	Time-of-flight	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	6	SECTOR	Magnetic sector	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	7	FOURIERTRANSFORM	Fourier transform ion cyclotron resonance mass spectrometer	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	8	IONSTORAGE	Ion storage	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	9	ESA	Electrostatic energy analyzer	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	10	IT	Ion trap	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	11	SWIFT	Stored waveform inverse fourier transform	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	12	CYCLOTRON	Cyclotron	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	13	ORBITRAP	Orbitrap	src/openms/source/METADATA/MassAnalyzer.cpp	19
+AnalyzerType	14	LIT	Linear ion trap	src/openms/source/METADATA/MassAnalyzer.cpp	19
+ResolutionMethod	0	RESMETHNULL	Unknown	src/openms/source/METADATA/MassAnalyzer.cpp	21
+ResolutionMethod	1	FWHM	Full width at half max	src/openms/source/METADATA/MassAnalyzer.cpp	21
+ResolutionMethod	2	TENPERCENTVALLEY	Ten percent valley	src/openms/source/METADATA/MassAnalyzer.cpp	21
+ResolutionMethod	3	BASELINE	Baseline	src/openms/source/METADATA/MassAnalyzer.cpp	21
+ResolutionType	0	RESTYPENULL	Unknown	src/openms/source/METADATA/MassAnalyzer.cpp	23
+ResolutionType	1	CONSTANT	Constant	src/openms/source/METADATA/MassAnalyzer.cpp	23
+ResolutionType	2	PROPORTIONAL	Proportional	src/openms/source/METADATA/MassAnalyzer.cpp	23
+ScanDirection	0	SCANDIRNULL	Unknown	src/openms/source/METADATA/MassAnalyzer.cpp	25
+ScanDirection	1	UP	Up	src/openms/source/METADATA/MassAnalyzer.cpp	25
+ScanDirection	2	DOWN	Down	src/openms/source/METADATA/MassAnalyzer.cpp	25
+ScanLaw	0	SCANLAWNULL	Unknown	src/openms/source/METADATA/MassAnalyzer.cpp	27
+ScanLaw	1	EXPONENTIAL	Exponential	src/openms/source/METADATA/MassAnalyzer.cpp	27
+ScanLaw	2	LINEAR	Linar	src/openms/source/METADATA/MassAnalyzer.cpp	27
+ScanLaw	3	QUADRATIC	Quadratic	src/openms/source/METADATA/MassAnalyzer.cpp	27
+ReflectronState	0	REFLSTATENULL	Unknown	src/openms/source/METADATA/MassAnalyzer.cpp	29
+ReflectronState	1	ON	On	src/openms/source/METADATA/MassAnalyzer.cpp	29
+ReflectronState	2	OFF	Off	src/openms/source/METADATA/MassAnalyzer.cpp	29
+ReflectronState	3	NONE	None	src/openms/source/METADATA/MassAnalyzer.cpp	29
+DetectorType	0	TYPENULL	Unknown	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	1	ELECTRONMULTIPLIER	Electron multiplier	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	2	PHOTOMULTIPLIER	Photo multiplier	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	3	FOCALPLANEARRAY	Focal plane array	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	4	FARADAYCUP	Faraday cup	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	5	CONVERSIONDYNODEELECTRONMULTIPLIER	Conversion dynode electron multiplier	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	6	CONVERSIONDYNODEPHOTOMULTIPLIER	Conversion dynode photo multiplier	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	7	MULTICOLLECTOR	Multi-collector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	8	CHANNELELECTRONMULTIPLIER	Channel electron multiplier	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	9	CHANNELTRON	channeltron	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	10	DALYDETECTOR	daly detector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	11	MICROCHANNELPLATEDETECTOR	microchannel plate detector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	12	ARRAYDETECTOR	array detector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	13	CONVERSIONDYNODE	conversion dynode	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	14	DYNODE	dynode	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	15	FOCALPLANECOLLECTOR	focal plane collector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	16	IONTOPHOTONDETECTOR	ion-to-photon detector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	17	POINTCOLLECTOR	point collector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	18	POSTACCELERATIONDETECTOR	postacceleration detector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	19	PHOTODIODEARRAYDETECTOR	photodiode array detector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	20	INDUCTIVEDETECTOR	inductive detector	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorType	21	ELECTRONMULTIPLIERTUBE	electron multiplier tube	src/openms/source/METADATA/IonDetector.cpp	18
+DetectorAcquisitionMode	0	ACQMODENULL	Unknown	src/openms/source/METADATA/IonDetector.cpp	20
+DetectorAcquisitionMode	1	PULSECOUNTING	Pulse counting	src/openms/source/METADATA/IonDetector.cpp	20
+DetectorAcquisitionMode	2	ADC	Analog-digital converter	src/openms/source/METADATA/IonDetector.cpp	20
+DetectorAcquisitionMode	3	TDC	Time-digital converter	src/openms/source/METADATA/IonDetector.cpp	20
+DetectorAcquisitionMode	4	TRANSIENTRECORDER	Transient recorder	src/openms/source/METADATA/IonDetector.cpp	20
+IonOpticsType	0	UNKNOWN	Unknown	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	1	MAGNETIC_DEFLECTION	magnetic deflection	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	2	DELAYED_EXTRACTION	delayed extraction	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	3	COLLISION_QUADRUPOLE	collision quadrupole	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	4	SELECTED_ION_FLOW_TUBE	selected ion flow tube	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	5	TIME_LAG_FOCUSING	time lag focusing	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	6	REFLECTRON	reflectron	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	7	EINZEL_LENS	einzel lens	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	8	FIRST_STABILITY_REGION	first stability region	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	9	FRINGING_FIELD	fringing field	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	10	KINETIC_ENERGY_ANALYZER	kinetic energy analyzer	src/openms/source/METADATA/Instrument.cpp	16
+IonOpticsType	11	STATIC_FIELD	static field	src/openms/source/METADATA/Instrument.cpp	16

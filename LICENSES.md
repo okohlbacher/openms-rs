@@ -335,3 +335,12 @@ Native Rust MSNumpress codecs
         OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
+
+## Fixed metabolite isotope predictors: LIBSVM BSD-3-Clause
+
+The private native RBF predictor follows the LIBSVM classification algorithm by
+Chih-Chung Chang and Chih-Jen Lin. Its full copyright, redistribution conditions
+and disclaimer are retained in [LIBSVM_COPYRIGHT.txt](resources/metabolite_isotope_models/LIBSVM_COPYRIGHT.txt).
+Original OpenMS pretrained model and scale resources are retained under the
+source BSD-3-Clause terms. The unmodified external LIBSVM reference is used only
+for test-oracle generation; there is no runtime LIBSVM dependency.

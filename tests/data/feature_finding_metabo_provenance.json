@@ -1,0 +1,188 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
+      "sha256": "7a7f8c784de5f6b9dca82c204cedda780ccebf0adce1d3dedc44a8967179e689"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/FeatureFindingMetabo.cpp",
+      "sha256": "1d0b69f96c544c59978ecaa5d7191138098de028f736b21228f71a287392d287"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FeatureFindingMetabo_test.cpp",
+      "sha256": "ce5d55806acd8997dadd566cce3f017976182c8d744fe7ce8121a25b7faad287"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/FeatureFindingMetabo_input1.mzML",
+      "sha256": "f516b4fd6350b89f9e1cbd797c69f3557404b809a02461f6e049180e70756e2a"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/FeatureFindingMetabo_output1.featureXML",
+      "sha256": "cbe225942240be9d803d68ed3396d0be150b1feff213b8af023cafc4879d9183"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/extracted_topp/FeatureFinderMetabo_6_input.mzML",
+      "sha256": "e29c0533ca7e2761c7312898f5811e53ea5d147f106a2628b56e7d73151366a0"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ML/SVM/SimpleSVM.h",
+      "sha256": "360c978fd5c9e5327243428e0a96595de2d1bb7fb071272403bc7896cd99b9ca"
+    },
+    {
+      "path": "src/openms/source/ML/SVM/SimpleSVM.cpp",
+      "sha256": "dc1715004a8321140bccf8bd00c8eab807bea69123bffc7d5ef731168d5eedfe"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised2.svm",
+      "sha256": "763c2dfcf5e2b848dd30db30974b5fd72d3ff5a2a0d2a2c8d6d5b6dadf654dd6"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised2.scale",
+      "sha256": "86aeb1c8c13fafa074a2950598cf36c49695e11d4367d8a3bc82bad5f4c9217c"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised5.svm",
+      "sha256": "89b2c4b69b1986c804f588bd05fff29b67ed801ae503b241e101365d9ee27f64"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised5.scale",
+      "sha256": "d829d9d60055b8904e41315071f18daf184d639ce23906ace0c39f8bdd37e005"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
+      "sha256": "f29b0530d8a01411c58458e8aeb476963b4e204949c578a0fa57beedf8db7d82"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MassTrace.cpp",
+      "sha256": "35370f232ab6adbcc0d5dde09ce0ffc6376b09722adc4e244a0ae655e63964e7"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.cpp",
+      "sha256": "0974fabc36a93f741c210d89e940215fa773306b99b5b45309a35cb4b43a2f8c"
+    },
+    {
+      "path": "src/openms/source/METADATA/MetaInfoRegistry.cpp",
+      "sha256": "250336c39f160a30b07354b7c04df81ede906f141d25583bb4c77e5c7da4c922"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+      "sha256": "210ebf2fbe17259af5034b78855d0f57e16becf525aae370217a044f0c926a27"
+    },
+    {
+      "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
+      "sha256": "9b7c5bd57ed1751e281c9e31ce46d81e49c82ded6749131b459f648f2107a97b"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/FeatureXMLHandler.cpp",
+      "sha256": "1430b1286eeaf0f8c40f8ddd882d6f680e3932149ed743fb6e0f7dbc909e58fc"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+      "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.cpp",
+      "sha256": "987934145e3cf0d5f5eff97fc580ef2c680e8b3a932d36c8c4855d4ef063bf38"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd",
+      "sha256": "9c66e9abeead72ad60296ff442a8029fd04ec76c3ab80c2c0ff46063743b99a3"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/feature_finding_metabo_source.tsv",
+      "sha256": "1fb2ef257506cf232b777e3c5c84bb406127a2c7d78d7223f976ad21c42e3649"
+    },
+    {
+      "path": "tests/data/feature_finding_metabo_im_source.tsv",
+      "sha256": "27bcb697ba182d424040b53e7a392618283053bcf724a29eb9d4b614bc95637a"
+    },
+    {
+      "path": "tests/data/feature_finding_metabo_expected.tsv",
+      "sha256": "24f25f96a0a00d57edf409b7ee25fdbb2a05a7ea80df5d2782792bc53d5c8c91"
+    },
+    {
+      "path": "tools/generate_feature_finding_metabo_fixtures.py",
+      "sha256": "44e03d78ee647c604d7e677494f0d8306583ce533cd2f207032487107d52dbf8"
+    },
+    {
+      "path": "tests/data/metabo_peptide_reference.json",
+      "sha256": "546509001d7c5ea43b7baa13473cb828ccf877a1867cdaaaa5d99af15169b993"
+    },
+    {
+      "path": "tools/generate_metabo_peptide_reference.py",
+      "sha256": "377212007c19fc4baa0a85af1e39c365aadeffc19f61f845e5eb2c65bf7075d8"
+    }
+  ],
+  "source_assertions": {
+    "input_spectra": 360,
+    "input_peaks": 11646,
+    "c13_feature_count": 83,
+    "kenar_feature_count": 81,
+    "element_feature_count": 80,
+    "im_spectra": 31,
+    "im_peaks": 4873,
+    "im_feature_assertion": "Nonempty feature map and masstrace_centroid_im metadata, as the class test; no numeric IM count is claimed."
+  },
+  "golden_comparison": {
+    "source": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:602-680",
+    "absolute_tolerance": 1.0,
+    "relative_ratio": 1.001,
+    "rule": "abs(actual-expected)<=1 OR both nonzero/same sign and max(actual/expected,expected/actual)<=1.001",
+    "fields": "All81 feature RT/mz/intensity/overallquality/charge values, typed direct UserParams, and every hull point; IDs/XML presentation excluded.",
+    "hulls": "Source FeatureXMLHandler compresses a hull copy before emission; the test applies ConvexHull2D::compress before comparison."
+  },
+  "fixture_policy": "Independent Python standard-library XML/base64/zlib projection from committed SDK inputs/expected output; no Rust-generated expected values. Only raw f64 primary intensities/IM values narrow to native f32 as source containers do.",
+  "independent_cases": [
+    "Raw/smoothed/summed intensity reporting, raw chromatogram points and independent RT cosine",
+    "Both overlap references, strict Gaussian/window boundaries, duplicate and signed-zero RT groups",
+    "Integer isotope-gap division; zero-count, negative-count and labeled alphabets",
+    "Both pinned models and mass cap tied to actual LIBSVM fixture rows (see metabo_predictor_provenance.json)",
+    "Label exclusion, deterministic ties, zero/inverted ranges, mixed IM and effective model state",
+    "Atomic input/output/RNG/flags on late arithmetic or progress failure; returned previous output ownership",
+    "Cumulative counts/work/bytes with individually valid records exceeding aggregate allowance"
+  ],
+  "native_boundaries": [
+    "Deterministic stable serial score/RT ties instead of source unspecified OpenMP/unstable-sort ties",
+    "Atomic scientific publication; progress side effects are not reversible",
+    "Checked consumed nonfinite, zero total, f32 narrowing and signed32 offset/charge conversion failures",
+    "Inherited native averagine f64 probabilities; no bitwise source f32 intermediate parity claimed",
+    "Caller-owned seeded RNG and explicit warning diagnostics"
+  ],
+  "private_predictor": "tests/data/metabo_predictor_provenance.json",
+  "independent_peptide_oracle": {
+    "path": "tests/data/metabo_peptide_reference.json",
+    "origin": "Independent Python source-expression projection with source f32 convolution narrowing; all24 active element orders bound source pointer-key iteration. Not a source literal or C++ execution.",
+    "mass": 1000,
+    "formula": "C44H95N12O13",
+    "source_f32_HCNO_scores": [
+      0.9572966255102681,
+      0.9995951520171115,
+      0.8576672937856934,
+      0.9991489830493052
+    ],
+    "score_absolute_tolerance": 1e-07,
+    "public_mixed_raw_smoothed_test": true,
+    "native_precision": "Existing f64 isotope probabilities remain; independent f64 and source-f32 results are both retained in fixture."
+  },
+  "file_workflow": {
+    "example": "examples/find_metabolite_features.rs",
+    "input": "src/tests/class_tests/openms/data/FeatureFindingMetabo_input1.mzML",
+    "input_normalization": null,
+    "features": 81,
+    "schema": "share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd",
+    "expected": "src/tests/class_tests/openms/data/FeatureFindingMetabo_output1.featureXML",
+    "comparison": "Every scientific scalar and typed metadata field with the exact source comparator; hulls are disabled by default in the example and covered separately by direct tests. Native generated IDs are excluded."
+  }
+}

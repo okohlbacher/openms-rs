@@ -1,0 +1,201 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
+      "sha256": "7a7f8c784de5f6b9dca82c204cedda780ccebf0adce1d3dedc44a8967179e689"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/FeatureFindingMetabo.cpp",
+      "sha256": "1d0b69f96c544c59978ecaa5d7191138098de028f736b21228f71a287392d287"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FeatureFindingMetabo_test.cpp",
+      "sha256": "ce5d55806acd8997dadd566cce3f017976182c8d744fe7ce8121a25b7faad287"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ML/SVM/SimpleSVM.h",
+      "sha256": "360c978fd5c9e5327243428e0a96595de2d1bb7fb071272403bc7896cd99b9ca"
+    },
+    {
+      "path": "src/openms/source/ML/SVM/SimpleSVM.cpp",
+      "sha256": "dc1715004a8321140bccf8bd00c8eab807bea69123bffc7d5ef731168d5eedfe"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised2.svm",
+      "sha256": "763c2dfcf5e2b848dd30db30974b5fd72d3ff5a2a0d2a2c8d6d5b6dadf654dd6"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised2.scale",
+      "sha256": "86aeb1c8c13fafa074a2950598cf36c49695e11d4367d8a3bc82bad5f4c9217c"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised5.svm",
+      "sha256": "89b2c4b69b1986c804f588bd05fff29b67ed801ae503b241e101365d9ee27f64"
+    },
+    {
+      "path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised5.scale",
+      "sha256": "d829d9d60055b8904e41315071f18daf184d639ce23906ace0c39f8bdd37e005"
+    }
+  ],
+  "resources": [
+    {
+      "path": "resources/metabolite_isotope_models/LIBSVM_COPYRIGHT.txt",
+      "sha256": "958fd47be5e5b94dabeb68b077fbe2adbbd49c015fe2e453fe11afeb4a73c7e5"
+    },
+    {
+      "path": "resources/metabolite_isotope_models/MetaboliteIsoModelNoised2.scale",
+      "sha256": "86aeb1c8c13fafa074a2950598cf36c49695e11d4367d8a3bc82bad5f4c9217c",
+      "source_path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised2.scale"
+    },
+    {
+      "path": "resources/metabolite_isotope_models/MetaboliteIsoModelNoised2.svm",
+      "sha256": "763c2dfcf5e2b848dd30db30974b5fd72d3ff5a2a0d2a2c8d6d5b6dadf654dd6",
+      "source_path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised2.svm"
+    },
+    {
+      "path": "resources/metabolite_isotope_models/MetaboliteIsoModelNoised5.scale",
+      "sha256": "d829d9d60055b8904e41315071f18daf184d639ce23906ace0c39f8bdd37e005",
+      "source_path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised5.scale"
+    },
+    {
+      "path": "resources/metabolite_isotope_models/MetaboliteIsoModelNoised5.svm",
+      "sha256": "89b2c4b69b1986c804f588bd05fff29b67ed801ae503b241e101365d9ee27f64",
+      "source_path": "share/OpenMS/CHEMISTRY/MetaboliteIsoModelNoised5.svm"
+    },
+    {
+      "path": "resources/metabolite_isotope_models/noise2.rs",
+      "sha256": "425600cf3ec006551e24308ca7c09371b2aa002d29a262d65eedf50ebdb44cdc"
+    },
+    {
+      "path": "resources/metabolite_isotope_models/noise5.rs",
+      "sha256": "07881691fe76e37607839554072736e69e8d2171511ea83bfc682bca46499b0d"
+    }
+  ],
+  "external_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/cjlin1/libsvm/v337/svm.cpp",
+      "revision": "v337",
+      "sha256": "bfe02a7c001151ab703c206ff6a9136c75eb704b4427536e3f65d3ac90bd0eb6"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cjlin1/libsvm/v337/svm.h",
+      "revision": "v337",
+      "sha256": "597aff50cfb9a04922736472bd125862439c87408a83cb57fb04980744dffd51"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/cjlin1/libsvm/v337/COPYRIGHT",
+      "revision": "v337",
+      "sha256": "958fd47be5e5b94dabeb68b077fbe2adbbd49c015fe2e453fe11afeb4a73c7e5"
+    }
+  ],
+  "files": [
+    {
+      "path": "tools/generate_metabo_isotope_models.py",
+      "sha256": "c147f8423cd48612d36232705d61c94fca4a015045e0bdf81268226bafe2658c"
+    },
+    {
+      "path": "tools/generate_metabo_predictor_reference.py",
+      "sha256": "8e6ee3958b03b74e07d057d433c476e6abce5015d41858c2e886ffa660fc9ce7"
+    },
+    {
+      "path": "tests/data/metabo_predictor_probe.cpp",
+      "sha256": "702c38ad535b2c24c2e8c810737914bc363fc72a9001a969844f1cf63e114671"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/metabo_predictor_libsvm.tsv",
+      "sha256": "b4078d79235d196ab6e3bbf9ce027c60ed338471e590dabe85115b7f706553b4",
+      "case_count": 488,
+      "origin": "Executed unmodified LIBSVM v337 with original OpenMS model/scales and the packaged test-only wrapper."
+    }
+  ],
+  "fixture_policy": "Expected labels and decisions are produced only by LIBSVM; Python generates deterministic inputs, including boundary neighborhoods selected with an independent equation. Rust is never used to generate this oracle. No full SDK execution is claimed.",
+  "source_ranges": {
+    "FeatureFindingMetabo.cpp": {
+      "raw_features_scaling_prediction": "395-456",
+      "model_and_scale_loading": "459-502"
+    },
+    "SimpleSVM.cpp": {
+      "load_model": "542-553",
+      "dense_nodes_and_predict": "571-589"
+    },
+    "external LIBSVM v337 svm.cpp": {
+      "rbf_k_function": "320-367",
+      "binary_classification": "2600-2680"
+    }
+  },
+  "model_metadata": [
+    {
+      "noise_percent": 2,
+      "support_vectors": 548,
+      "gamma_literal": "2",
+      "rho_literal": "22.9038",
+      "labels": [
+        2,
+        1
+      ],
+      "work_per_call": 17552
+    },
+    {
+      "noise_percent": 5,
+      "support_vectors": 999,
+      "gamma_literal": "0.535887",
+      "rho_literal": "34.1652",
+      "labels": [
+        2,
+        1
+      ],
+      "work_per_call": 31984
+    }
+  ],
+  "projection": {
+    "generator": "tools/generate_metabo_isotope_models.py",
+    "float_constants": 7755,
+    "runtime_parsing": false,
+    "check": "python3 tools/generate_metabo_isotope_models.py --check"
+  },
+  "probe": {
+    "compiler": "Apple clang 21.0.0 (clang-2100.1.1.101)",
+    "target": "arm64-apple-darwin25.5.0",
+    "compile_options": [
+      "-std=c++17",
+      "-O2",
+      "-ffp-contract=off"
+    ],
+    "unmodified_library": true,
+    "full_sdk": false,
+    "case_count": 488,
+    "cases_per_model": 244,
+    "minimum_absolute_decision": 7.133711321216651e-06,
+    "label_counts": {
+      "noise2": {
+        "1": 197,
+        "2": 47
+      },
+      "noise5": {
+        "1": 202,
+        "2": 42
+      }
+    },
+    "portable_comparison": "Exact labels, decision absolute error <=1e-10 + abs(reference)*1e-11; exact fixture generation may differ by platform libm."
+  },
+  "native_tests": [
+    "src/analysis/feature_finding_metabo/predictor_tests.rs"
+  ],
+  "scope": "Only the two private fixed pretrained RBF classifiers used by FeatureFindingMetabo; no SimpleSVM public API completion claim.",
+  "native_differences": [
+    "Immutable embedded builtin models replace installation/runtime file discovery; no runtime model override.",
+    "Reject nonfinite raw features; preserve finite scaling/distance overflow through exp(-Inf)=0.",
+    "Precharge shared work, no successful prediction heap allocation; no output published on failure.",
+    "Source caller mass cap, missing ratios and singleton handling remain the main algorithm responsibility."
+  ],
+  "licensing": "Original OpenMS model resources retain source BSD-3-Clause coverage. LIBSVM algorithm attribution and full copyright/conditions are retained in resources/metabolite_isotope_models/LIBSVM_COPYRIGHT.txt; unmodified svm.cpp/h are external test-only inputs, not vendored dependencies.",
+  "isolated_validation_harness": {
+    "path": "/tmp/openms-rs-next-metabo-predictor/tests/metabo_predictor.rs",
+    "packaged": false,
+    "reason": "The isolated harness executes the same six private tests; the integrated library runs them directly without duplicate test targets."
+  }
+}
