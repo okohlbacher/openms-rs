@@ -89,8 +89,10 @@ pub mod cross_links;
 pub mod modification_definitions;
 mod modifications;
 pub mod modified_peptides;
+pub mod protein_cross_link;
 mod sequence;
 pub mod theoretical;
+pub mod theoretical_xlms;
 pub use cross_links::CrossLinksDB;
 pub use modification_definitions::{
     ModificationDefinition, ModificationDefinitionsSet, ModificationMassMode, ModificationMatch,
@@ -101,6 +103,8 @@ pub use modifications::{
     OboReadOptions, ResidueModification, TermSpecificity,
 };
 pub use modified_peptides::ModifiedPeptideGenerator;
+pub use protein_cross_link::{ProteinProteinCrossLink, ProteinProteinCrossLinkType};
+pub use theoretical_xlms::{LossIndex, TheoreticalSpectrumGeneratorXLMS, XLMSLimits, XLMSOptions};
 pub mod monosaccharide_db;
 pub use monosaccharide_db::{Monosaccharide, MonosaccharideDB};
 pub use sequence::{AASequence, MassTag, PeptideFragmentType, SequenceModification};

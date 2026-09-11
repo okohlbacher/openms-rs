@@ -1121,6 +1121,32 @@
       ],
       "documentation": "docs/SEMANTIC_VALIDATOR_SUPPORT.md",
       "scope": "Complete class-specific general CV/mapping validation, ParsedCVTerm value, configurable qnames/attributes/switches, borrowed providers, owned error/warning report and selection-only locate_term. Source order/count collisions, MUST/MAY/SHOULD logic and value conversions retained, including documented non-XSD date behavior CPP-046. Unit descendant target, failed-parse state and history-dependent absent-path lookup corrected (CPP-039/040/044). Exact historical 738-term CV, valid/corrupt XML and all nine diagnostic literals; independent branch/resource/transport tests. Shared private XML extraction preserves CVMapping behavior; optional semantic-validation feature. Inherited XMLFile, C++ subclass extension points, derived format validators and full XSD lexical/schema validation are separate."
+    },
+    "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/chemistry/theoretical_xlms.rs",
+        "src/chemistry/theoretical_xlms_helpers.rs"
+      ],
+      "tests": [
+        "tests/theoretical_xlms.rs",
+        "tests/protein_cross_link.rs",
+        "tests/sequence_fragment_mass.rs"
+      ],
+      "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
+      "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers and other XLMS algorithms remain separate."
+    },
+    "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h": {
+      "status": "partial",
+      "rust": [
+        "src/chemistry/protein_cross_link.rs"
+      ],
+      "tests": [
+        "tests/protein_cross_link.rs",
+        "tests/theoretical_xlms.rs"
+      ],
+      "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
+      "scope": "Complete ProteinProteinCrossLink value and reaction enum only. Arc allocation identity supplies source pointer equality/hash with owned lifetimes; finite private linker mass and normalized signed-zero hash. Defaults, position/terminal/name/correction fields and cross/loop/mono selection retained. Other OPXL records and comparators remain unimplemented; no whole-header completion or C++ hash-byte equivalence claimed."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

@@ -7,9 +7,9 @@
     "by_status": {
       "complete": 10,
       "evidence_requires_review": 164,
-      "native_equivalent": 58,
-      "partial": 21,
-      "unmapped": 533
+      "native_equivalent": 59,
+      "partial": 22,
+      "unmapped": 531
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2259,10 +2259,23 @@
       "header": "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h",
       "sha256": "60d78d3462191f893dbb92620791eb4a55177936f62578a24fbc414a6efb64bf",
       "domain": "ANALYSIS",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/chemistry/protein_cross_link.rs"
+        ],
+        "tests": [
+          "tests/protein_cross_link.rs",
+          "tests/theoretical_xlms.rs"
+        ],
+        "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
+        "scope": "Complete ProteinProteinCrossLink value and reaction enum only. Arc allocation identity supplies source pointer equality/hash with owned lifetimes; finite private linker mass and normalized signed-zero hash. Defaults, position/terminal/name/correction fields and cross/loop/mono selection retained. Other OPXL records and comparators remain unimplemented; no whole-header completion or C++ hash-byte equivalence claimed."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/xlms_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -2363,7 +2376,8 @@
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/registry_provenance.json",
         "tests/data/sequence_coverage_provenance.json",
-        "tests/data/theoretical_extension_provenance.json"
+        "tests/data/theoretical_extension_provenance.json",
+        "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": [
         "IDFilter",
@@ -3318,7 +3332,8 @@
         "tests/data/registry_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/tagger_provenance.json",
-        "tests/data/theoretical_extension_provenance.json"
+        "tests/data/theoretical_extension_provenance.json",
+        "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -3338,7 +3353,8 @@
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/tagger_provenance.json",
-        "tests/data/theoretical_extension_provenance.json"
+        "tests/data/theoretical_extension_provenance.json",
+        "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": [
         "CometAdapter",
@@ -3523,10 +3539,27 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h",
       "sha256": "4d4c95c2ee66e6d51d9f799fe220c5cd62fb20928210a25d210b76f7d62f0921",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/theoretical_xlms.rs",
+          "src/chemistry/theoretical_xlms_helpers.rs"
+        ],
+        "tests": [
+          "tests/theoretical_xlms.rs",
+          "tests/protein_cross_link.rs",
+          "tests/sequence_fragment_mass.rs"
+        ],
+        "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
+        "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers and other XLMS algorithms remain separate."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/theoretical_xlms.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/xlms_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -3749,7 +3782,8 @@
         "tests/data/rna_processing_provenance.json",
         "tests/data/rna_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
-        "tests/data/theoretical_extension_provenance.json"
+        "tests/data/theoretical_extension_provenance.json",
+        "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": [
         "DIAPseudoSpectra",
@@ -8710,7 +8744,8 @@
         "tests/data/precursor_purity_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
-        "tests/data/text_peak_lists_provenance.json"
+        "tests/data/text_peak_lists_provenance.json",
+        "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": [
         "CometAdapter",

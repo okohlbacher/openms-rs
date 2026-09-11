@@ -1,5 +1,35 @@
 # Validation of the ongoing Rust port
 
+## Crosslink spectrum generation (2026-09-11)
+
+[Recorded checks](xlms-validation.json) cover the complete class-specific
+[XLMS generator](THEORETICAL_XLMS_SUPPORT.md), all 25 source options, and the
+ProteinProteinCrossLink record/reaction enum. Other OPXL records remain separate.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 2,023 tests passed |
+| Doctests, Rust 1.98 | Four passed |
+| Rust 1.85/no-default library and adjacent selection | 176 passed |
+| Strict Clippy, release library, Rustdoc and Rustfmt | Passed |
+| Source audit, XLMS fixture extraction and completion checks | Passed |
+
+All 12 integrated checks passed on their first run. Selected counts overlap;
+the full suite adds 25 tests. All ten frozen extraction files remain exact.
+The independent extractor reproduces 52 literal source masses and 113 allowed
+annotation strings. Native tests additionally cover source branches, cumulative
+limits, sequence identity and atomic aligned appending. Review corrected linked
+loss endpoint guards, empty-alpha pair behavior and portable charge-span handling
+before integration. No C++ spectrum execution or full SDK build is claimed.
+
+The generator explicitly retains the finite source suffix-loss and precursor
+isotope defects (CPP-042/043), with separately calculated chemical expectations.
+The C++ issue log contains 48 entries. The ledger records 69 complete or
+native-equivalent headers, 717 requiring implementation or review and zero
+certified TOPP workflows. Source verification covers 1,932 distinct current
+files, 220 historical references, 21 graph references and 835 added references.
+ProForma wrappers, mzML consumers and broader XLMS analysis remain ongoing work.
+
 ## General semantic validation (2026-09-11)
 
 [Recorded checks](semantic-validation.json) cover the complete class-specific

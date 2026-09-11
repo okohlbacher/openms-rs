@@ -1,0 +1,318 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "69717811f3d3c0fdd58d4969603316f293d495de",
+  "scope": [
+    "Complete class-specific TheoreticalSpectrumGeneratorXLMS and 25 options",
+    "Complete ProteinProteinCrossLink value/reaction enum only; OPXLDataStructs remains partial",
+    "Finite source CPP-042/043 behavior retained with separate chemical expectations"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "--no-fail-fast",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 391.4,
+      "log_sha256": "02f332c1e1f9f18f13833958dedbaa87fcf7a546747542aa0c40c604d2b88694",
+      "log_bytes": 209447,
+      "tests_passed": 2023
+    },
+    {
+      "name": "docs_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.32,
+      "log_sha256": "b50597030986cd63fc5dbec24f310fb3411c7caf7501090400cbabb81d6d5a71",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 46.96,
+      "log_sha256": "be1baafd692b554888f40f9902fc79a153e07c6b2c98a1315be3bec94a2bfe4b",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 38.45,
+      "log_sha256": "cc180e5d048f34a249c1b3baa39e34623b701ae986c280672e9b69469601bba3",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.92,
+      "log_sha256": "caeb4dad684d8aeada8421ed59b09ffbbe325ce47781743bbe79070f69096025",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.89,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.19,
+      "log_sha256": "3d4370005bf95593a8c073762ee0fee57e9dbc42de1829c91ac862a6c3388e75",
+      "log_bytes": 233
+    },
+    {
+      "name": "xlms_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_xlms_reference.py",
+        ".reference/openms4-core-82ce5b3",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.03,
+      "log_sha256": "d6f12e828f5e50791ff66482424c8af5baee9c8c41a95cfffd4d8c920c59cb15",
+      "log_bytes": 218
+    },
+    {
+      "name": "completion_ledger",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "4186a61b97671368eebe0de094b12e36dda71d1aa01accf47e05ee2f5ebbdec9",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "396fa13ad4a55a2d25fc003254aa0f52822528c1bc15e9d3fd6f0d2e3ba2dc86",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "theoretical_xlms",
+        "--test",
+        "protein_cross_link",
+        "--test",
+        "theoretical",
+        "--test",
+        "sequence_fragment_mass",
+        "--test",
+        "kernel",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 13.21,
+      "log_sha256": "dc7c0a9859736a11dccd60f983717eefd9840da70f2ecd59085e298095405e19",
+      "log_bytes": 18423,
+      "tests_passed": 176
+    },
+    {
+      "name": "strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 15.25,
+      "log_sha256": "2e1cb54171004ffd174352661ec009ca8d4a6f1bb23db63fbd3b9fbe66757ff4",
+      "log_bytes": 162
+    }
+  ],
+  "integration_files": [
+    {
+      "path": "src/chemistry/protein_cross_link.rs",
+      "sha256": "d8f784d3c8a06010fd29629a7e509d50f8507b4ca1151c9e16766e8071b695c5",
+      "bytes": 3769
+    },
+    {
+      "path": "src/chemistry/theoretical_xlms.rs",
+      "sha256": "7d0f9f0b0907b324f3c3f8afb89bc24dd19e5196e5505f8923ad5d722e142a1b",
+      "bytes": 23889
+    },
+    {
+      "path": "src/chemistry/theoretical_xlms_helpers.rs",
+      "sha256": "5ae117f7f4cfc68a510230d7babf2bf6ddffef3f980a6daa6f42afe301026266",
+      "bytes": 13302
+    },
+    {
+      "path": "tests/protein_cross_link.rs",
+      "sha256": "938ed913d20aa6c0f2645b424ae8c9d667560bbca04087c6493b3345adc74bfc",
+      "bytes": 2772
+    },
+    {
+      "path": "tests/theoretical_xlms.rs",
+      "sha256": "be3d075c45180c31b0916893b2268e338b1826b44e947201f72113a66d92f3b6",
+      "bytes": 22524
+    },
+    {
+      "path": "tests/data/xlms_source_masses.tsv",
+      "sha256": "dc70f9768989740100366b9ee5bf30f8278dd61fe0b3092e746d1ad4d3e5dbfa",
+      "bytes": 825
+    },
+    {
+      "path": "tests/data/xlms_source_names.tsv",
+      "sha256": "8bd6270443b002ca571d8f919e4ec3290b0a43e662531be7eceac4c457d68c1c",
+      "bytes": 2315
+    },
+    {
+      "path": "tools/generate_xlms_reference.py",
+      "sha256": "24b8055fbeb27927e19932f2eee114d22ae3799d796cc522251e59450c4971dd",
+      "bytes": 2166
+    },
+    {
+      "path": "docs/THEORETICAL_XLMS_SUPPORT.md",
+      "sha256": "50b603df77636d4735bba6f319bfbe2da538fb22ed54963749f2b47e90b109ca",
+      "bytes": 11552
+    },
+    {
+      "path": "tests/data/xlms_provenance.json",
+      "sha256": "fee354ad19a9912ff46501dae14bea350e0bff32ae0531889e6187c9938a2450",
+      "bytes": 5438
+    }
+  ],
+  "first_run_integrated_checks": "All 12 integrated checks passed on their first run. Stage development and its fixed review findings are separate.",
+  "review_fixes_before_integration": [
+    "Guard unavailable linked loss state at source endpoint boundaries",
+    "Suppress both pair ladders for empty alpha, preserving separate K-linked and precursor behavior",
+    "Checked portable charge-span conversion and omission of empty beta mass addition to retain source operation order"
+  ],
+  "independent_reference_checks": {
+    "exact_integration_files": 10,
+    "source_hashes": 11,
+    "fixture_hashes": 2,
+    "generator_hashes": 1,
+    "source_mass_values": 52,
+    "source_mass_arrays": 3,
+    "source_allowed_name_strings": 113,
+    "source_allowed_name_sets": 6,
+    "mass_tolerance_da": 0.001,
+    "cpp_execution": "No C++ spectrum execution or full SDK build. Unchanged source test arrays/name sets, direct source branch review, independent scalar/formula expectations and native tests are separate evidence."
+  },
+  "source_audit": {
+    "distinct_current_files": 1932,
+    "historical_reference_paths": 220,
+    "graph_references": 21,
+    "added_source_references": 835
+  },
+  "completion": {
+    "complete": 10,
+    "native_equivalent": 59,
+    "partial": 22,
+    "evidence_requires_review": 164,
+    "unmapped": 531,
+    "registered_headers": 786,
+    "topp_sources": 146,
+    "certified_topp_workflows": 0
+  },
+  "cpp_issue_entries": 48,
+  "remaining": "ProForma spectrum wrappers, mzML consumers and the broader SDK remain outside this checkpoint. Only one OPXL record and its reaction enum are implemented; no general XLMS workflow or TOPP certification."
+}

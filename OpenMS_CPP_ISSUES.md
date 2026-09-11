@@ -61,6 +61,7 @@ are not classified as confirmed defects here.
 | CPP-045 | PeptideEvidence rejects valid first-residue limits and accepts invalid ranges | Source-reviewed; zero-based range trigger | Open |
 | CPP-046 | Semantic date validation applies date-time syntax to xsd:date | Source-reviewed; XSD lexical contract | Open |
 | CPP-047 | ProForma XLMS link positions ignore preceding flattened ranges | Source-reviewed; explicit AST trigger | Open |
+| CPP-048 | Zero centroid-inspection limit underflows and depends on spectrum type | Source-reviewed; unsigned counter trigger | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -1039,11 +1040,10 @@ branches, with independent algebra. No C++ spectrum execution is claimed.
 `addLinearIonLosses_` in the suffix branch. Test charge-one and charge-two suffix
 losses alongside prefixes, asserting the intact-to-loss spacing is L/z.
 
-**Rust handling:** The XLMS generator is being ported separately from the
-ordinary generator. Its initial compatibility implementation will retain finite
-source results with an explicit regression and warning in the support document;
-a scientific correction must be documented separately. No completed native or
-upstream fix is claimed.
+**Rust handling:** The [native XLMS generator](docs/THEORETICAL_XLMS_SUPPORT.md)
+retains the finite source expression, with a charge-two suffix-loss regression
+and a separately calculated correct chemical expectation. The support document
+makes this compatibility behavior explicit. No upstream correction is claimed.
 
 ## CPP-043 — XLMS precursor isotope companions omit charge normalization
 
@@ -1066,9 +1066,10 @@ spectrum execution is claimed.
 companion branches, or derive each from its already normalized monoisotopic m/z.
 Test the companion spacing at charges 1, 2 and 3 for intact and both loss peaks.
 
-**Rust handling:** The pending XLMS port will document and explicitly test these
-finite source values. A corrected scientific mode or compatibility change is
-separate work; no native or upstream correction is claimed yet.
+**Rust handling:** The [native XLMS generator](docs/THEORETICAL_XLMS_SUPPORT.md)
+retains these finite source values. Tests distinguish all three source
+expressions from the independently calculated isotope spacing. No native or
+upstream scientific correction is claimed.
 
 ## CPP-044 — Unmapped CV lookup depends on earlier validation calls
 
@@ -1182,3 +1183,33 @@ ambiguous region preceding each chain's endpoint, independently of linker mass.
 this finite source behavior with an explicit regression and a separate correct
 flattened-position expectation, consistent with its source compatibility policy.
 No upstream fix has been applied.
+
+## CPP-048 — Zero centroid-inspection limit depends on the first spectrum type
+
+**Affected files:** [`src/openms/source/FORMAT/MzMLFile.cpp`, lines 233–268](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/MzMLFile.cpp#L233), `getCentroidInfo`; public limit contract in `src/openms/include/OpenMS/FORMAT/MzMLFile.h`, lines 180–193; unsigned `Size` definition in `src/openms/include/OpenMS/CONCEPT/Types.h`, line 97.
+
+**Issue and reproduction:** Call `getCentroidInfo(filename, 0)` on a valid file.
+The remaining counter starts at zero. If the first accepted spectrum is
+centroided or profile, its branch decrements the unsigned counter to `SIZE_MAX`,
+and the zero-stop test fails. Parsing normally continues through the file,
+counting its recognized spectra despite the requested zero limit. If the first
+spectrum remains unknown, its branch does not decrement the counter; the same
+stop test instead ends parsing after that one unknown spectrum. There is no
+documented special zero mode or positive-limit precondition. This inconsistent
+limit behavior is separate from the option-restoration defect in CPP-018.
+
+**Evidence:** Direct source control-flow review and the exact `typedef size_t
+Size` declaration establish defined unsigned wraparound. The public comment
+says only the requested number of non-unknown spectra is inspected. This is
+source evidence, not an executed C++ reproduction or inferred native test result.
+
+**Proposed fix:** Handle zero before constructing the consumer or parsing input:
+either return an empty result to implement a zero inspection count, or reject
+zero with a documented positive-limit precondition. Guard decrement/termination
+so it cannot wrap. Test zero with both known-first and unknown-first files,
+then positive limits with unknown spectra interleaved between recognized ones.
+
+**Rust handling:** The planned native centroid-inspection operation will reject
+a zero limit with `InvalidValue` before opening input and retain the source
+count/stop order for positive limits. No native implementation or upstream fix
+is claimed at this checkpoint.

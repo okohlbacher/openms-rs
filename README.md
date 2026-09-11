@@ -231,3 +231,8 @@ aliases are checked against an independent source projection.
 with `features = ["semantic-validation"]`. It checks mapping rules, term names,
 values and optional units, returning ordered errors and warnings. It preserves
 documented source value conventions and does not perform full XSD validation.
+
+[Crosslink spectrum generation](docs/THEORETICAL_XLMS_SUPPORT.md) now provides
+all three source XLMS append operations and their full options. The owned
+crosslink record preserves sequence identity. ProForma spectrum wrappers and
+other XLMS analysis classes remain separate work.
