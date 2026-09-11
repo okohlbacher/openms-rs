@@ -825,7 +825,8 @@
         "src/chemistry/proforma_parser.rs",
         "src/chemistry/proforma_json.rs",
         "src/chemistry/proforma_resolution.rs",
-        "src/chemistry/modifications.rs"
+        "src/chemistry/modifications.rs",
+        "src/chemistry/proforma_mass.rs"
       ],
       "tests": [
         "tests/proforma.rs",
@@ -833,10 +834,11 @@
         "tests/proforma_parser.rs",
         "tests/proforma_parser_probe.rs",
         "tests/proforma_json.rs",
-        "tests/proforma_resolution.rs"
+        "tests/proforma_resolution.rs",
+        "tests/proforma_mass.rs"
       ],
       "documentation": "docs/PROFORMA_SUPPORT.md",
-      "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers and source modification-resolution operation with caller-owned registry, warnings and atomic handle/interning publication. Source modified-range omission and provider-order adaptation are explicit. AASequence conversion/policies, mass/mz/try/issues and ordinary/XLMS spectrum methods remain outstanding."
+      "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution and all mass/mz/can/issues/optional operation groups. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. AASequence conversion/policies and ordinary/XLMS spectrum methods remain outstanding."
     },
     "src/openms/include/OpenMS/METADATA/ProteinIdentification.h": {
       "status": "partial",
@@ -1014,6 +1016,18 @@
       ],
       "documentation": "docs/EXPERIMENTAL_SETTINGS_SUPPORT.md",
       "scope": "Complete owned aggregate: document identity/provenance, recursive Sample, source files, contacts, default/additional instruments, HPLC/Gradient, DateTime, comment, fraction and typed run MetaInfo. Fields, Clone, PartialEq, moves and Display replace source accessors/value operations. Checked copies preflight all owned payload with a hard 64 sample-depth cap. MSExperiment owns this single settings record; processing, clearing and replacement preserve source ownership semantics. This closes the value API, not full mzML header or consumer transport."
+    },
+    "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/format/controlled_vocabulary.rs",
+        "src/format/controlled_vocabulary/obo.rs"
+      ],
+      "tests": [
+        "tests/controlled_vocabulary.rs"
+      ],
+      "documentation": "docs/CONTROLLED_VOCABULARY_SUPPORT.md",
+      "scope": "Complete owned term definition and all class-specific lookup, cumulative OBO loading, ordered graph traversal, typed/string XML, score direction, stream output, FNV and five-provider singleton operations. All 9254 final definitions and 16852 aliases checked against independent source-loop projection. Exact raw resources retained; explicit BTO decoding and data-license boundaries documented. Transactional/cycle/resource checks, actual typed units, full attribute escaping and legacy binary-prefix/stream corrections replace source defects. Mapping rules, general semantic validation and header consumers remain separate."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Owned ProForma annotation data, text parsing and source text serialization.
+//! Owned ProForma annotation data, parsing, serialization and mass operations.
 //!
 //! This module implements the annotation AST, both text grammars, structured
 //! errors and both text writers from the pinned source. It does not yet
-//! convert sequences or calculate masses/spectra. Modification resolution uses
+//! convert sequences or generate spectra. Modification resolution and mass/mz use
 //! an explicitly supplied mutable registry. JSON
 //! transport is available with the `proforma-json` feature.
 //! Serialization preserves source omissions and does not validate ProForma
-//! grammar. See `docs/PROFORMA_SUPPORT.md` and `docs/PROFORMA_PARSER_SUPPORT.md`.
+//! grammar. See `docs/PROFORMA_SUPPORT.md`, `docs/PROFORMA_PARSER_SUPPORT.md`
+//! and `docs/PROFORMA_MASS_SUPPORT.md`.
 
 use super::ResidueModification;
 use crate::{Error, Result};
@@ -643,4 +644,11 @@ mod json;
 pub use json::{
     MAX_PROFORMA_JSON_BYTES, MAX_PROFORMA_JSON_DEPTH, MAX_PROFORMA_JSON_ITEMS,
     MAX_PROFORMA_JSON_TEXT_BYTES, MAX_PROFORMA_JSON_WORK,
+};
+
+#[path = "proforma_mass.rs"]
+mod mass;
+pub use mass::{
+    MAX_PROFORMA_MASS_BYTES, MAX_PROFORMA_MASS_ITEMS, MAX_PROFORMA_MASS_TEXT_BYTES,
+    MAX_PROFORMA_MASS_WORK, MassAttempt, MassEvaluation,
 };

@@ -78,7 +78,7 @@ The [chromatogram picker](docs/CHROMATOGRAM_PICKING_SUPPORT.md) preserves source
 
 The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds and reports exact input regions alongside the source’s rounded centroid and boundary arrays. [Window filtering](docs/WINDOW_MOWER_SUPPORT.md) supports sliding and jumping windows; the [iterative mean noise estimator](docs/MEAN_NOISE_SUPPORT.md) preserves the source’s three-pass clipping conventions.
 
-IsoSpec layered traversal; ProForma scientific backends; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
+IsoSpec layered traversal; ProForma AASequence conversion and spectrum generation; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
 
 The [mobility containers](docs/MOBILOGRAM_SUPPORT.md) provide checked mobilogram
 search, sorting, selection and summaries. Generic `DataArray` values now retain
@@ -204,7 +204,9 @@ reproductions, evidence level and proposed upstream fixes.
 
 [ProForma modification resolution](docs/PROFORMA_RESOLUTION_SUPPORT.md) now
 fills shared chemistry handles using a caller-owned registry with atomic failure
-handling. Sequence conversion and mass/spectrum operations remain separate work.
+handling. [Mass and m/z operations](docs/PROFORMA_MASS_SUPPORT.md) include
+issue reports, availability checks and optional results. Sequence conversion
+and spectrum generation remain separate work.
 
 [DateTime support](docs/DATETIME_SUPPORT.md) includes source-compatible parsing,
 all seven formats, local/UTC clocks and checked Gregorian arithmetic.
@@ -214,3 +216,8 @@ instrument, chromatography, date, provenance and typed run metadata. Callers
 using `MSExperiment::metadata` must migrate to `experiment.settings.metadata`.
 Processing preserves the complete settings; full mzML header transport is
 still being implemented.
+
+[Controlled vocabularies](docs/CONTROLLED_VOCABULARY_SUPPORT.md) now provide
+complete term records, cumulative OBO loading, hierarchy queries, typed XML
+values and all five pinned source providers. All 9,254 terms and 16,852 name
+aliases are checked against an independent source projection.

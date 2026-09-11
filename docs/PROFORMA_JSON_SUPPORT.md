@@ -158,6 +158,7 @@ This group claims no executed C++ JSON differential run or full SDK build.
 
 The [overall ProForma support](PROFORMA_SUPPORT.md) remains partial.
 [Chemistry resolution](PROFORMA_RESOLUTION_SUPPORT.md) is a separate explicit
-operation; decoded handles initially remain unset. AASequence conversion and its policies, mass/mz operations, and
-ordinary/XLMS spectrum generation are separate remaining groups. No placeholder
+operation; decoded handles initially remain unset. [Mass/mz operations](PROFORMA_MASS_SUPPORT.md)
+can resolve decoded annotations using a supplied registry. AASequence conversion
+and its policies and ordinary/XLMS spectrum generation remain separate groups. No placeholder
 API is supplied for them.

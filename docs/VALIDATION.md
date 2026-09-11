@@ -1,5 +1,44 @@
 # Validation of the ongoing Rust port
 
+## ProForma mass and controlled vocabularies (2026-09-11)
+
+[Recorded checks](vocabulary-mass-validation.json) cover the complete ProForma
+mass operation group and ControlledVocabulary at SDK `82ce5b3`, adding 37 tests.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,923 tests passed |
+| Doctests, both compiler versions | Four passed per compiler |
+| Rust 1.85/native unit and adjacent selection | 240 passed |
+| Rust 1.85/ProForma JSON and mass selection | 138 passed |
+| Strict Clippy, release library, Rustdoc and Rustfmt | Passed |
+| Source audit, independent projections and completion ledger | Passed |
+
+All 17 integrated checks passed. Selected totals overlap. Root review covered
+the complete new operation groups, including shared registry transactions,
+source mass pass order, iterative graph behavior and cumulative allocation
+limits. The vocabulary tests compare every field of all 9,254 final terms and
+all 16,852 name aliases with an independent source-loop projection. Five raw
+providers retain their original bytes and separate data-license notices.
+No executed C++ mass or vocabulary differential result is claimed.
+
+The [previous checkpoint's CI](https://github.com/okohlbacher/openms-rs/actions/runs/34578513534)
+passed every Linux, macOS, Windows, minimum-Rust and quality job, confirming the
+Windows resource checkout correction. That result is distinct from CI for
+this later change.
+
+The [C++ issue log](../OpenMS_CPP_ISSUES.md) now contains 36 stable entries,
+including ten newly source-reviewed defects found during subsequent header,
+conversion and mapping work. Executed evidence, source deductions, proposed
+upstream fixes and native handling remain distinguished.
+
+The completion ledger records 61 complete or native-equivalent headers and
+725 still requiring implementation or review, with zero certified TOPP workflows.
+Source verification covers 1,915 distinct current files, 220 historical references,
+21 graph references and 734 added references. Full mzML headers/consumers,
+ProForma sequence conversion/spectra and CV mapping/semantic validation remain
+separate ongoing groups.
+
 ## Experiment settings, DateTime and ProForma resolution (2026-09-11)
 
 [Recorded checks](settings-resolution-validation.json) cover the integrated

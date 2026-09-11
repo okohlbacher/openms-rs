@@ -7,6 +7,7 @@
 //! DTA/MGF represent peak lists and a limited subset of experiment metadata;
 //! writing them does not preserve auxiliary arrays or arbitrary instrument data.
 
+pub mod controlled_vocabulary;
 pub mod csv;
 pub mod numpress;
 #[cfg(feature = "numpress")]

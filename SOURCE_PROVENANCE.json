@@ -527,7 +527,9 @@
     "tests/data/proforma_resolution_provenance.json",
     "tests/data/datetime_provenance.json",
     "tests/data/experimental_settings_provenance.json",
-    "tests/data/ims_witness_source_oracle_provenance.json"
+    "tests/data/ims_witness_source_oracle_provenance.json",
+    "tests/data/proforma_mass_provenance.json",
+    "tests/data/controlled_vocabulary_provenance.json"
   ],
   "full_cpp_sdk_built": false,
   "cpp_reference_probe_built": true,

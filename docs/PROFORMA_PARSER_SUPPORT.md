@@ -169,8 +169,9 @@ native source-derived tests; this parser group does not claim an executed C++
 parser differential run or a complete SDK build. The earlier writer extraction
 probe remains separate evidence in [the AST/writer support document](PROFORMA_SUPPORT.md).
 [Modification resolution](PROFORMA_RESOLUTION_SUPPORT.md) is available as a
-separate explicit operation. Conversion policies, mass/m/z and ordinary/XLMS
-spectra remain unimplemented; no parser success claims those capabilities.
+separate explicit operation, as are [mass/mz calculations](PROFORMA_MASS_SUPPORT.md)
+with issue/can/try variants. Conversion policies and ordinary/XLMS spectra remain
+unimplemented; no parser success claims those capabilities.
 
 ## Executed C++ text comparisons
 

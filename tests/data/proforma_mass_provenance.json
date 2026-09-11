@@ -1,0 +1,247 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "3b776acb70f40a624d8e70cb0bdf175c8b15d6fe",
+  "native_base_note": "Isolated copy includes root integrated resolver and in-flight DateTime files; only mass extraction files are contributed.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
+      "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModificationsDB.h",
+      "sha256": "c815a5a5f47f0b5d495cdca2ef6b1fa9bd5115c43a4eb3c50e4f94d48bcd39a6"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueModification.h",
+      "sha256": "c9e87e432f3399782dc5148af1465d021a578468076b4e386a544bfd5359bf0e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+      "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/Residue.h",
+      "sha256": "8abda7e4cc2e2d9c19841c5c9e4c527f16e930e5c51e2490bbd6f4b2ac3ccc0e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+    }
+  ],
+  "source_ranges": {
+    "ProForma.cpp": {
+      "modification_mass_and_chain_arithmetic": "1875-2008",
+      "public_mass_group": "2488-2743",
+      "resolver_pass_interaction": "1622-1700,2098-2134"
+    },
+    "ProFormaParser_test.cpp": {
+      "mass_sections": "2541-2994",
+      "charged_formula_tag_order": "2079-2085"
+    }
+  },
+  "source_test_sections": [
+    {
+      "line": 2079,
+      "section": "START_SECTION([EXTRA] getMonoWeight - tag order inside a bracket does not change the mass either)"
+    },
+    {
+      "line": 2541,
+      "section": "START_SECTION(ProForma::canCalculateMass - simple sequence)"
+    },
+    {
+      "line": 2548,
+      "section": "START_SECTION(ProForma::canCalculateMass - with UNIMOD modification)"
+    },
+    {
+      "line": 2556,
+      "section": "START_SECTION(ProForma::canCalculateMass - with mass delta)"
+    },
+    {
+      "line": 2564,
+      "section": "START_SECTION(ProForma::canCalculateMass - with formula)"
+    },
+    {
+      "line": 2572,
+      "section": "START_SECTION(ProForma::getMassCalculationIssues - unresolved modification)"
+    },
+    {
+      "line": 2582,
+      "section": "START_SECTION(ProForma::getMonoWeight - simple sequence)"
+    },
+    {
+      "line": 2595,
+      "section": "START_SECTION(ProForma::getMonoWeight - with UNIMOD modification)"
+    },
+    {
+      "line": 2608,
+      "section": "START_SECTION(ProForma::getMonoWeight - with mass delta)"
+    },
+    {
+      "line": 2621,
+      "section": "START_SECTION(ProForma::getMonoWeight - with terminal modifications)"
+    },
+    {
+      "line": 2634,
+      "section": "START_SECTION(ProForma::getMonoWeight - cross-linked single chain)"
+    },
+    {
+      "line": 2654,
+      "section": "START_SECTION(ProForma::getMonoWeight - multi-chain cross-link)"
+    },
+    {
+      "line": 2673,
+      "section": "START_SECTION(ProForma::getMZ - with charge state)"
+    },
+    {
+      "line": 2686,
+      "section": "START_SECTION(ProForma::getMZ - Peptidoform with charge)"
+    },
+    {
+      "line": 2699,
+      "section": "START_SECTION(ProForma::getMonoWeight - throws on unresolved)"
+    },
+    {
+      "line": 2706,
+      "section": "START_SECTION(ProForma::getMZ - throws on zero charge)"
+    },
+    {
+      "line": 2713,
+      "section": "START_SECTION(ProForma::getMZ - throws on missing charge)"
+    },
+    {
+      "line": 2720,
+      "section": "START_SECTION(ProForma::getMonoWeight - reference peptide DFPIANGER)"
+    },
+    {
+      "line": 2733,
+      "section": "START_SECTION(ProForma::getMonoWeight - phosphorylation)"
+    },
+    {
+      "line": 2749,
+      "section": "START_SECTION(ProForma::getMonoWeight - carbamidomethyl)"
+    },
+    {
+      "line": 2761,
+      "section": "START_SECTION(ProForma::getMonoWeight - combined terminal mods)"
+    },
+    {
+      "line": 2779,
+      "section": "START_SECTION(ProForma::getMonoWeight - multiple modifications)"
+    },
+    {
+      "line": 2791,
+      "section": "START_SECTION(ProForma::getMonoWeight - formula tag)"
+    },
+    {
+      "line": 2805,
+      "section": "START_SECTION(ProForma::getMonoWeight - unlocalised modification)"
+    },
+    {
+      "line": 2820,
+      "section": "START_SECTION(ProForma::getMonoWeight - labile modification)"
+    },
+    {
+      "line": 2836,
+      "section": "START_SECTION(ProForma::getMonoWeight - global modification)"
+    },
+    {
+      "line": 2855,
+      "section": "START_SECTION(ProForma::getMonoWeight - disulfide cross-link)"
+    },
+    {
+      "line": 2871,
+      "section": "START_SECTION(ProForma::getMonoWeight - throws on chimeric)"
+    },
+    {
+      "line": 2888,
+      "section": "START_SECTION(ProForma::tryGetMonoWeight - basic usage)"
+    },
+    {
+      "line": 2901,
+      "section": "START_SECTION(ProForma::tryGetMonoWeight - with issues)"
+    },
+    {
+      "line": 2923,
+      "section": "START_SECTION(ProForma::tryGetMonoWeight - PeptidoformIon)"
+    },
+    {
+      "line": 2940,
+      "section": "START_SECTION(ProForma::tryGetMZ - basic usage)"
+    },
+    {
+      "line": 2960,
+      "section": "START_SECTION(ProForma::tryGetMZ - PeptidoformIon)"
+    },
+    {
+      "line": 2977,
+      "section": "START_SECTION(ProForma::tryGetMonoWeight - efficiency test)"
+    }
+  ],
+  "fixtures": [],
+  "fixture_policy": "Inline source literal and source-expression assertions plus independent custom AST/arithmetic tests; no Rust-generated external goldens and no C++ mass execution claimed.",
+  "implemented_scope": [
+    "All sixteen source public mass/can/issue/mz/optional overloads mapped to twelve native methods on Peptidoform and PeptidoformIon.",
+    "Owned MassEvaluation and MassAttempt diagnostics, caller registry transaction and exact source repeated resolution passes."
+  ],
+  "native_tests": [
+    "tests/proforma_mass.rs",
+    "src/chemistry/proforma_mass.rs::tests"
+  ],
+  "case_counts": {
+    "direct_tests": 13,
+    "new_private_budget_tests": 4,
+    "source_test_sections": 34
+  },
+  "limits": {
+    "work": 50000000,
+    "items": 1000000,
+    "logical_allocation_bytes": 268435456,
+    "copied_or_consumed_text_bytes": 4194304
+  },
+  "preserved_cpp_issues": [
+    "CPP-008: modified-range inner annotations omitted",
+    "CPP-009: ambiguous validation ignores modification masses",
+    "CPP-015: label-only endpoint reserves crosslink before chemistry",
+    "CPP-020: repeated resolution validates second copy but optional chain mass calculates first copy; direct AST interning reproduction"
+  ],
+  "native_differences": [
+    "Explicit registry/owned warnings replace global mutation/logger. Any Err rolls back; completed Ok unavailable/issue reports publish interning.",
+    "Native checked numerical/charge/count/resource limits and usize::MAX textual unknown-position convention; source byte residue semantics become Unicode scalar matching with known ASCII chemistry.",
+    "Inherited native formula grammar/data/deterministic sum applies; no exact C++ pointer-order floating equality claim.",
+    "AST copies preserve source fields including ignored values after conservative logical payload preflight; shared Arc chemical ownership and cached source free-residue masses avoid duplicate deep copies."
+  ],
+  "remaining_scope": [
+    "AASequence conversion/combination and full policy/issue/can operations",
+    "Ordinary and XLMS spectrum operations/backends"
+  ],
+  "licensing": "OpenMS source-derived code retains BSD-3-Clause notices. No new dependency or external implementation."
+}

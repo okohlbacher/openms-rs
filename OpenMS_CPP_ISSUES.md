@@ -40,6 +40,16 @@ are not classified as confirmed defects here.
 | CPP-024 | CV XML output leaves several attribute values unescaped | Source-reviewed | Open |
 | CPP-025 | Processing-action fallback state leaks between mzML methods | Source-reviewed | Open |
 | CPP-026 | mzML writer gives every processing step the same order value | Source-reviewed; schema contract | Open |
+| CPP-027 | mzML writing discards processing completion seconds | Source-reviewed | Open |
+| CPP-028 | Recognized software metadata reaches a missing mzML mapping path | Source-reviewed | Open |
+| CPP-029 | Annotation-only brackets pass AASequence checks but fail conversion | Source-reviewed | Open |
+| CPP-030 | Strict AASequence conversion silently drops terminal crosslinks | Source-reviewed; public AST trigger | Open |
+| CPP-031 | Empty ambiguous regions shift AASequence attachment indices | Source-reviewed; public AST trigger | Open |
+| CPP-032 | CV mapping namespace stripping rejects plain segments and loses attribute markers | Source-reviewed | Open |
+| CPP-033 | Failed CV mapping loads contaminate later loads on the same reader | Source-reviewed | Open |
+| CPP-034 | CV reference bulk assignment invalidates an aliased input iterator | Source-reviewed | Open |
+| CPP-035 | Invalid CV mapping enum values silently change validation rules | Source-reviewed | Open |
+| CPP-036 | XML compression sniffing reads uninitialized bytes from short files | Source-reviewed | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -226,9 +236,9 @@ validation and accumulation before processing the range-level modifications.
 Keep positions and cross-link counting consistent with ordinary elements. Add
 modified-range examples with known, unknown and multiply annotated residues.
 
-**Rust handling:** The native resolver currently preserves the omission for
-source compatibility and documents it. The mass backend is still being ported;
-this issue must remain explicit when deciding its compatibility policy.
+**Rust handling:** The native resolver and mass operations preserve this source
+omission explicitly. [Mass support](docs/PROFORMA_MASS_SUPPORT.md) documents the
+policy; [direct regressions](tests/proforma_mass.rs) retain the affected range.
 
 ## CPP-009 — Ambiguous mass checks ignore modifications on candidates
 
@@ -250,8 +260,9 @@ instead of choosing a mass through candidate order. Add equal-base/different-mod
 unresolved-mod and truly equal modified-mass regression cases.
 
 **Rust handling:** Resolution visits ambiguous-region annotations, matching the
-source resolver. Mass validation/calculation are outstanding; the source defect
-is recorded before implementing those operations.
+source resolver. Native mass validation and accumulation preserve the source
+omissions, with [direct regressions](tests/proforma_mass.rs) and an explicit
+[compatibility policy](docs/PROFORMA_MASS_SUPPORT.md).
 
 ## CPP-010 — Integer mass decomposition can loop without progress
 
@@ -390,8 +401,9 @@ reserving its ID. Prefer collecting and validating one definition per link,
 then summing once. Preserve explicit zero-mass chemistry and diagnose conflicting
 definitions. Test both endpoint orders and annotation-only carriers.
 
-**Rust handling:** The mass backend is being ported. This source defect is
-recorded before implementing its compatibility policy.
+**Rust handling:** Native mass operations preserve first-label reservation and
+its endpoint-order dependence, with a [direct regression](tests/proforma_mass.rs)
+and an explicit [compatibility policy](docs/PROFORMA_MASS_SUPPORT.md).
 
 ## CPP-016 — Count-only mzML loading can still decode peak arrays
 
@@ -504,9 +516,10 @@ formula aliases are supported, collect definitions before resolving their uses
 or repeat resolution explicitly before both operations. Test a fresh registry,
 repeated calls and a prepopulated registry with identical ASTs.
 
-**Rust handling:** The mass port is retaining the source's observable pass order
-with one checked registry transaction and a dedicated regression. The behavior
-must remain documented until a deliberate scientific correction is adopted.
+**Rust handling:** Native mass operations retain the source's observable pass
+order with one checked registry transaction and a [dedicated regression](tests/proforma_mass.rs).
+The behavior is documented in [mass support](docs/PROFORMA_MASS_SUPPORT.md)
+until a deliberate scientific correction is adopted.
 
 ## CPP-021 — CV XML formatting ignores the value's actual unit
 
@@ -527,7 +540,7 @@ against allowed units separately if desired; do not silently relabel it.
 Handle an empty constraint set safely. Test multiple allowed units, explicit
 units with no constraints and unitless values.
 
-**Rust handling:** The vocabulary port will use the actual `MetaValue` unit
+**Rust handling:** The vocabulary port uses the actual `MetaValue` unit
 identity, including its name, with checked XML rendering. Allowed-unit metadata
 remains a separate vocabulary constraint.
 
@@ -548,7 +561,7 @@ is claimed.
 Test ordinary and legacy spellings with whitespace, escaped separators and
 quoted descriptions.
 
-**Rust handling:** The vocabulary parser will explicitly correct this prefix
+**Rust handling:** The vocabulary parser explicitly corrects this prefix
 handling while retaining the ordinary source branch semantics.
 
 ## CPP-023 — Vocabulary printing splits output between two streams
@@ -566,7 +579,7 @@ reproduction is claimed.
 **Proposed fix:** Send every line to `os`. Capture the requested stream and stdout
 separately in a regression, verifying complete output and no console write.
 
-**Rust handling:** All vocabulary diagnostic output will use the caller's
+**Rust handling:** All vocabulary diagnostic output uses the caller's
 requested destination or an owned returned string.
 
 ## CPP-024 — CV parameter rendering does not escape every XML attribute
@@ -587,9 +600,9 @@ escaping. No C++ runtime reproduction is claimed.
 reject characters XML 1.0 cannot represent. Add ampersand, quote, less-than,
 Unicode and forbidden-control cases for each consumed attribute.
 
-**Rust handling:** Vocabulary XML rendering will validate and escape all
+**Rust handling:** Vocabulary XML rendering validates and escapes all
 consumed attributes before returning output. Unrelated opaque ontology text
-will not be rejected merely because it is not suitable for XML.
+is not rejected merely because it is not suitable for XML.
 
 ## CPP-025 — A later processing method can omit its required action term
 
@@ -637,6 +650,237 @@ input using the attribute's documented contract.
 **Rust handling:** The complete header writer will emit distinct sequential
 indices. Source encounter-order reading remains an explicit compatibility
 decision until external ordering behavior is separately reviewed.
+
+## CPP-027 — mzML writing discards processing completion seconds
+
+**Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, line 3947](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L3947), completion-time output; reader at lines 3246–3249; full timestamp contract in [`src/openms/include/OpenMS/METADATA/DataProcessing.h`, lines 111–120](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/include/OpenMS/METADATA/DataProcessing.h#L111).
+
+**Issue and reproduction:** A processing record completed at `2001-02-03
+04:05:37` is written as `2001-02-03+04:05`. Reloading that value reconstructs
+`04:05:00`, silently losing the seconds in the stored `DateTime`. No
+minutes-only restriction is documented on the completion-time field.
+
+**Evidence:** Source review of the explicit `yyyy-MM-dd+hh:mm` output format,
+the completion-time reader and the DateTime parser. This is not an executed
+C++ round trip. The existing source fixture uses minute precision and therefore
+does not expose the loss.
+
+**Proposed fix:** Emit an accepted timestamp format retaining seconds and any
+stored fractional precision. Add a seconds-bearing round trip, with separate
+fractional-second coverage where supported.
+
+**Rust handling:** The complete header writer under development will retain
+the represented completion timestamp's precision and test the seconds-bearing
+case. The published minimal writer still rejects such unsupported headers.
+
+## CPP-028 — Recognized software metadata can throw during mzML writing
+
+**Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, line 3787](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L3787), software metadata output and validation at lines 3595 and 3668–3673; [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, line 538](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L538); mapping in [`share/OpenMS/MAPPING/ms-mapping.xml`, line 94](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/share/OpenMS/MAPPING/ms-mapping.xml#L94).
+
+**Issue and reproduction:** Add an ordinary software metadata key recognized
+by the loaded vocabulary, for example `completion time`, then write mzML.
+The writer passes `/mzML/Software/cvParam/@accession` to validation. The mapping
+only defines `/mzML/softwareList/software/cvParam/@accession`. Once the known
+key reaches `locateTerm`, `rules_.at(path)` throws `std::out_of_range` instead
+of emitting an allowed CV term or falling back to a user parameter. Unknown
+arbitrary keys bypass this lookup and are not the trigger.
+
+**Evidence:** Direct source review of the known-name branch, validation call,
+map lookup and pinned mapping path. No C++ execution is claimed.
+
+**Proposed fix:** Pass the exact software mapping path. Test both a recognized
+software term and a recognized term disallowed at that path, verifying CV
+promotion or user-parameter fallback respectively without an exception.
+
+**Rust handling:** The complete header writer under development uses the
+pinned software mapping path and checked lookup. Header regressions will
+cover recognized names and path-specific fallback.
+
+## CPP-029 — Annotation-only brackets pass conversion checks but fail conversion
+
+**Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2194–2200](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2194), issue collection; representability at 2268–2270 and strict attachment at 2307–2311.
+
+**Issue and reproduction:** For `M[INFO:note]`, the issue collector deliberately
+excludes annotation-only brackets from unresolved chemistry. It reports no
+conversion issues and `isRepresentableAsAASequence` returns true. Default
+strict conversion nevertheless throws an unresolved-modification error because
+the attachment loop rejects every null handle, including this annotation.
+
+**Evidence:** Direct source review of the chemistry predicate and the stricter
+attachment branch. No C++ execution is claimed.
+
+**Proposed fix:** Apply the same chemistry predicate during attachment. Define
+annotation-loss policy consistently in both the diagnostic and conversion APIs;
+if annotations are intentionally droppable, skip them in both. Test INFO-only,
+position-only and empty ordinary brackets alongside actual unresolved chemistry.
+
+**Rust handling:** The conversion group under development preserves this
+observable source inconsistency and tests it explicitly. A correction must be
+documented as a deliberate change to the conversion policy.
+
+## CPP-030 — Strict AASequence conversion silently drops terminal crosslinks
+
+**Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2220–2260](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2220), terminal issue collection; terminal attachment at 2337–2346. Ordinary-residue crosslink detection is at 2206–2213.
+
+**Issue and reproduction:** Construct a public peptidoform containing M and
+an N-terminal label-only modification whose empty INFO tag carries a CROSSLINK
+label. The terminal issue loops check chemistry and alternatives, but never
+inspect labels. The issue list is empty, and strict conversion returns M while
+discarding the crosslink. The C-terminal path has the same omission. No claim
+is made that this directly constructed AST has been obtained by parsing text.
+
+**Evidence:** Source comparison of ordinary versus terminal label handling and
+the first-resolved-terminal attachment loops. No C++ execution is claimed.
+
+**Proposed fix:** Include terminal crosslink labels in conversion diagnostics,
+so `FAIL_ON_LOSS` rejects them consistently with ordinary-residue links. Test
+both termini, label-only brackets and resolved chemistry bearing a link label.
+
+**Rust handling:** The conversion group under development preserves the source
+terminal omission with an explicit regression and compatibility note.
+
+## CPP-031 — An empty ambiguous region shifts the conversion attachment index
+
+**Affected files:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2288–2293](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2288), residue emission; attachment cursor at 2330–2331; bounds check in [`src/openms/source/CHEMISTRY/AASequence.cpp`, lines 1442–1449](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/AASequence.cpp#L1442).
+
+**Issue and reproduction:** Directly construct an empty ambiguous region
+followed by a single M with a resolved oxidation modification, then use
+`BEST_EFFORT`. The emitted sequence contains one residue because the empty
+region contributes none. The attachment pass still increments its cursor for
+that region, then attempts to modify index 1 of the one-residue sequence.
+`AASequence::setModification` throws `IndexOverflow`. This is a checked C++
+exception, not an out-of-bounds memory-access claim. Strict mode rejects the
+ambiguous region earlier.
+
+**Evidence:** Source review of the two unequal cursor rules and the actual
+AASequence bounds check. No C++ execution or parser-produced-empty-region
+claim is made.
+
+**Proposed fix:** Advance the cursor only when an ambiguous region emitted a
+residue, or reject empty regions explicitly before constructing the sequence.
+Test an empty region before and between ordinary modified residues under both
+permissive policies.
+
+**Rust handling:** The conversion group under development preserves the source
+index rule with checked errors and a direct public-AST regression.
+
+## CPP-032 — CV mapping namespace stripping mishandles path segments
+
+**Affected files:** [`src/openms/source/FORMAT/CVMappingFile.cpp`, lines 68–102](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/CVMappingFile.cpp#L68), namespace stripping; [`src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h`, lines 603–609](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h#L603), delimiter-free split behavior.
+
+**Issue and reproduction:** Load a mapping with element path
+`/mzML/run/@accession` and `strip_namespaces=true`. Splitting an unprefixed
+segment at `:` returns one item. The loader expects an empty vector for that
+case, treats the one-item result as invalid and raises a parse error. The
+option therefore fails on ordinary paths and paths mixing prefixed and plain
+segments. Separately, a path containing only prefixed segments such as
+`/p:root/@p:accession` becomes `/root/accession`, losing the attribute marker.
+
+**Evidence:** Direct source review of `split` and every reconstruction branch.
+No C++ execution is claimed. The unchanged handling of `scopePath` is a
+separate source convention, not part of this demonstrated finding.
+
+**Proposed fix:** Accept a single unprefixed segment unchanged. When removing
+a namespace prefix, retain any leading `@` that identifies an attribute.
+Reject genuinely ambiguous multiple-colon segments explicitly. Test plain,
+fully prefixed and mixed element/attribute paths.
+
+**Rust handling:** The CV mapping loader under development applies these
+checked corrections, while preserving the source's slash normalization and
+separate `scopePath` behavior.
+
+## CPP-033 — Failed CV mapping loads contaminate later loads
+
+**Affected files:** [`src/openms/source/FORMAT/CVMappingFile.cpp`, lines 29–42](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/CVMappingFile.cpp#L29), load/publication/cleanup and callbacks at 52–65; cleanup dispatch in [`src/openms/source/FORMAT/XMLFile.cpp`, lines 41–55 and 116–120](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/XMLFile.cpp#L41); empty inherited [`XMLHandler::reset`, lines 37–39](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp#L37).
+
+**Issue and reproduction:** Reuse one `CVMappingFile`. First load
+`<CvMapping><CvReference cvName="old" cvIdentifier="OLD"/><CvMappingRule/></CvMapping>`.
+The reference is accumulated before the rule's missing required `id` raises
+an error. Catch it, then load `<CvMapping/>` into a fresh destination. The
+second load publishes the stale OLD reference even though its input is empty.
+Completed rules and partially accumulated rule terms can survive similarly.
+
+**Evidence:** Source review confirms cleanup is after `parse_`, the inherited
+RAII cleaner calls an empty `reset`, and this class supplies no override.
+No C++ execution is claimed.
+
+**Proposed fix:** Use local per-load state and publish only on success, or
+reset all accumulators, including the current rule, at entry and on every exit.
+Test failure after a reference, a completed rule and a partial term sequence,
+followed by an empty and a valid load using the same reader.
+
+**Rust handling:** The mapping loader under development uses local parsing
+state and atomic destination publication; its reader can be reused after error.
+
+## CPP-034 — CV reference bulk assignment can invalidate its input iterator
+
+**Affected files:** [`src/openms/source/DATASTRUCTURES/CVMappings.cpp`, lines 68–75](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/DATASTRUCTURES/CVMappings.cpp#L68), `setCVReferences`; public const-reference getter at lines 77–80.
+
+**Issue and reproduction:** On a nonempty object call
+`m.setCVReferences(m.getCVReferences())`. The input aliases the destination
+vector. The loop appends to that vector while traversing it, invalidating its
+iterator when capacity grows; later iterator use has undefined behavior.
+The public API does not forbid this ordinary getter-to-setter call.
+
+The method also appends rather than replaces references for nonaliased input;
+that observable behavior is recorded separately as a compatibility convention,
+not the basis for this memory-safety finding.
+
+**Evidence:** Direct source review of the const-reference argument, returned
+member reference and vector mutation. No sanitizer/C++ execution is claimed.
+
+**Proposed fix:** Decide replacement versus append semantics explicitly. Build
+a separate draft from the supplied range before mutating either stored index
+or vector, then publish it atomically. Test self-assignment and duplicate IDs.
+
+**Rust handling:** The owned-input native bulk method cannot alias its internal
+reference slice. It preserves source append semantics; a separately named
+replacement operation supplies actual replacement.
+
+## CPP-035 — Invalid CV mapping enums silently select different rules
+
+**Affected file:** [`src/openms/source/FORMAT/CVMappingFile.cpp`, lines 103–157](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/CVMappingFile.cpp#L103), requirement-level and combination-logic attribute parsing.
+
+**Issue and reproduction:** Supply otherwise complete rule attributes with
+`requirementLevel="MAYY"` and `cvTermsCombinationLogic="ANDD"`. The loader
+silently converts these misspellings into MUST and OR. Both unknown-value
+branches contain only unimplemented exception comments, so malformed settings
+change the resulting validation constraints without reporting the input error.
+
+**Evidence:** Source review of default initialization, accepted literal branches
+and empty error branches. No C++ parser/validator execution is claimed.
+
+**Proposed fix:** Raise a parse error for unknown enum values, identifying the
+attribute and supplied value. Cover every valid literal, empty values and typos.
+
+**Rust handling:** The mapping loader under development preserves these source
+fallbacks with explicit tests and documentation. Stricter rejection would be
+a deliberate compatibility change rather than a hidden parser difference.
+
+## CPP-036 — XML compression sniffing reads uninitialized short-file bytes
+
+**Affected file:** [`src/openms/source/FORMAT/XMLFile.cpp`, lines 141–159](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/XMLFile.cpp#L141), the shared XML file loader's compression-prefix probe.
+
+**Issue and reproduction:** Load an empty file or a one-byte non-NUL file.
+The loader declares `char tmp_bz[3]` without initialization, requests two bytes
+without checking the short read, and initializes only byte 2 before constructing
+`std::string(tmp_bz)`. Empty input leaves both prefix bytes uninitialized;
+one-byte input leaves byte 1 uninitialized. Constructing the prefix reads that
+indeterminate data before XML parsing can report the incomplete document.
+
+**Evidence:** Direct source review of buffer initialization, unchecked read and
+C-string construction. No C++ execution or sanitizer result is claimed. This
+finding does not additionally claim that reading `std::string[size()]` is out
+of bounds; that sentinel access is permitted.
+
+**Proposed fix:** Initialize the prefix buffer and inspect only the bytes
+actually read. Require at least two bytes before comparing compression magic.
+Test zero/one-byte inputs, ordinary short XML and complete compression headers.
+
+**Rust handling:** Native file readers use initialized buffers and bounded
+length-aware input. The new CV mapping transport reuses that path handling;
+the C++ defect is in the shared upstream XMLFile implementation, outside its
+five-header conversion group.
 
 ## Maintaining this log
 

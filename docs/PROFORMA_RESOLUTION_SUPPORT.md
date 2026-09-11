@@ -19,7 +19,9 @@ Ok::<(), Box<dyn std::error::Error>>(())
 
 This operation fills handles; it does not rewrite annotation text, combine
 brackets, convert to AASequence, calculate masses, validate cross-links or
-generate spectra. Those are separate remaining [ProForma groups](PROFORMA_SUPPORT.md).
+generate spectra. [Mass/mz operations](PROFORMA_MASS_SUPPORT.md) use resolution
+through their own atomic transaction; conversion and spectra remain separate
+[ProForma groups](PROFORMA_SUPPORT.md).
 
 ## Traversal and alternatives
 

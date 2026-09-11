@@ -3,3 +3,6 @@ tests/data/** -text -whitespace
 # Original classifier resources are byte-pinned source inputs too.
 resources/metabolite_isotope_models/*.svm -text -whitespace
 resources/metabolite_isotope_models/*.scale -text -whitespace
+
+# Pinned source ontology bytes, including legacy encoding, must not be normalized.
+resources/cv/*.obo -text -whitespace

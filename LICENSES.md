@@ -344,3 +344,12 @@ and disclaimer are retained in [LIBSVM_COPYRIGHT.txt](resources/metabolite_isoto
 Original OpenMS pretrained model and scale resources are retained under the
 source BSD-3-Clause terms. The unmodified external LIBSVM reference is used only
 for test-oracle generation; there is no runtime LIBSVM dependency.
+
+## Pinned controlled-vocabulary data
+
+The five unchanged historical ontology resources and their derived test
+projections have separate data provenance. Their original creator/citation
+headers are retained. See [the resource notices](resources/cv/NOTICE.md) for
+PSI-MS, PATO, UO, BTO and GO attribution, license links, exact versions and
+explicit historical license limitations. The code license does not relicense
+these definitions.

@@ -47,10 +47,10 @@ impl Peptidoform {
     }
 }
 
-struct Budget {
-    work: usize,
-    bytes: usize,
-    items: usize,
+pub(super) struct Budget {
+    pub(super) work: usize,
+    pub(super) bytes: usize,
+    pub(super) items: usize,
 }
 impl Default for Budget {
     fn default() -> Self {
@@ -62,25 +62,25 @@ impl Default for Budget {
     }
 }
 impl Budget {
-    fn consume(&mut self, amount: usize) -> Result<()> {
+    pub(super) fn consume(&mut self, amount: usize) -> Result<()> {
         self.work = self.work.checked_sub(amount).ok_or_else(limit)?;
         Ok(())
     }
-    fn allocate(&mut self, amount: usize) -> Result<()> {
+    pub(super) fn allocate(&mut self, amount: usize) -> Result<()> {
         self.bytes = self.bytes.checked_sub(amount).ok_or_else(limit)?;
         Ok(())
     }
-    fn items(&mut self, amount: usize) -> Result<()> {
+    pub(super) fn items(&mut self, amount: usize) -> Result<()> {
         self.items = self.items.checked_sub(amount).ok_or_else(limit)?;
         self.consume(amount)
     }
-    fn text(&mut self, text: &str) -> Result<()> {
+    pub(super) fn text(&mut self, text: &str) -> Result<()> {
         if text.len() > MAX_PROFORMA_RESOLUTION_TEXT_BYTES {
             return Err(limit());
         }
         self.consume(text.len().saturating_add(1))
     }
-    fn reserve<T>(&mut self, values: &mut Vec<T>) -> Result<()> {
+    pub(super) fn reserve<T>(&mut self, values: &mut Vec<T>) -> Result<()> {
         if values.len() == values.capacity() {
             let additional = values.len().max(1);
             self.consume(values.len().saturating_add(additional))?;
@@ -94,7 +94,7 @@ impl Budget {
         }
         Ok(())
     }
-    fn record(&mut self, record: &ResidueModification) -> Result<()> {
+    pub(super) fn record(&mut self, record: &ResidueModification) -> Result<()> {
         // Precharge collection walks before payload_bytes visits arbitrary
         // caller-defined synonyms/losses. Formula maps themselves need only len.
         self.consume(
@@ -126,97 +126,107 @@ fn resolve(
     registry: &mut ModificationsDB,
     budget: &mut Budget,
 ) -> Result<Vec<ResolutionWarning>> {
-    let mut resolver = Resolver {
-        original: registry,
-        staged: None,
-        budget,
-        warnings: Vec::new(),
-    };
-    let mut patches = Vec::new();
-    resolver.budget.items(pf.sequence.len())?;
-    for section in &mut pf.sequence {
-        match section {
-            SequenceSection::Element(element) => {
-                resolver.group(
-                    &mut element.modifications,
-                    Some(element.amino_acid),
-                    None,
-                    &mut patches,
-                )?;
-            }
-            SequenceSection::AmbiguousRegion(region) => {
-                resolver.budget.items(region.elements.len())?;
-                for element in &mut region.elements {
-                    resolver.group(
+    let mut resolver = Resolver::new(registry, budget);
+    resolver.resolve_chain(pf)?;
+    let (staged, warnings) = resolver.finish();
+    if let Some(next) = staged {
+        *registry = next;
+    }
+    Ok(warnings)
+}
+
+pub(super) struct Resolver<'a> {
+    original: &'a ModificationsDB,
+    staged: Option<ModificationsDB>,
+    pub(super) budget: &'a mut Budget,
+    warnings: Vec<ResolutionWarning>,
+}
+impl<'a> Resolver<'a> {
+    pub(super) fn new(original: &'a ModificationsDB, budget: &'a mut Budget) -> Self {
+        Self {
+            original,
+            staged: None,
+            budget,
+            warnings: Vec::new(),
+        }
+    }
+    pub(super) fn finish(self) -> (Option<ModificationsDB>, Vec<ResolutionWarning>) {
+        (self.staged, self.warnings)
+    }
+    /// Stage one chain's complete handle patch before assigning any handle.
+    /// The registry stays in this private session until its caller publishes it.
+    pub(super) fn resolve_chain(&mut self, pf: &mut Peptidoform) -> Result<()> {
+        let mut patches = Vec::new();
+        self.budget.items(pf.sequence.len())?;
+        for section in &mut pf.sequence {
+            match section {
+                SequenceSection::Element(element) => {
+                    self.group(
                         &mut element.modifications,
                         Some(element.amino_acid),
                         None,
                         &mut patches,
                     )?;
                 }
-            }
-            SequenceSection::ModifiedRange(range) => {
-                // Literal source omission: modifications on range.elements
-                // are not traversed by resolveModifications.
-                resolver.group(&mut range.modifications, None, None, &mut patches)?;
+                SequenceSection::AmbiguousRegion(region) => {
+                    self.budget.items(region.elements.len())?;
+                    for element in &mut region.elements {
+                        self.group(
+                            &mut element.modifications,
+                            Some(element.amino_acid),
+                            None,
+                            &mut patches,
+                        )?;
+                    }
+                }
+                SequenceSection::ModifiedRange(range) => {
+                    // Literal source omission: modifications on range.elements
+                    // are not traversed by resolveModifications.
+                    self.group(&mut range.modifications, None, None, &mut patches)?;
+                }
             }
         }
-    }
-    resolver.group(
-        &mut pf.n_term_mods,
-        None,
-        Some(TermSpecificity::NTerm),
-        &mut patches,
-    )?;
-    resolver.group(
-        &mut pf.c_term_mods,
-        None,
-        Some(TermSpecificity::CTerm),
-        &mut patches,
-    )?;
-    resolver.budget.items(pf.unlocalised_mods.len())?;
-    for group in &mut pf.unlocalised_mods {
-        resolver.group(&mut group.modifications, None, None, &mut patches)?;
-    }
-    resolver.budget.items(pf.labile_mods.len())?;
-    for labile in &mut pf.labile_mods {
-        resolver.group(
-            std::slice::from_mut(&mut labile.modification),
+        self.group(
+            &mut pf.n_term_mods,
             None,
-            None,
+            Some(TermSpecificity::NTerm),
             &mut patches,
         )?;
-    }
-    resolver.budget.items(pf.global_mods.len())?;
-    for entry in &mut pf.global_mods {
-        if let GlobalModEntry::GlobalModification(global) = entry {
-            resolver.group(
-                std::slice::from_mut(&mut global.modification),
+        self.group(
+            &mut pf.c_term_mods,
+            None,
+            Some(TermSpecificity::CTerm),
+            &mut patches,
+        )?;
+        self.budget.items(pf.unlocalised_mods.len())?;
+        for group in &mut pf.unlocalised_mods {
+            self.group(&mut group.modifications, None, None, &mut patches)?;
+        }
+        self.budget.items(pf.labile_mods.len())?;
+        for labile in &mut pf.labile_mods {
+            self.group(
+                std::slice::from_mut(&mut labile.modification),
                 None,
                 None,
                 &mut patches,
             )?;
         }
+        self.budget.items(pf.global_mods.len())?;
+        for entry in &mut pf.global_mods {
+            if let GlobalModEntry::GlobalModification(global) = entry {
+                self.group(
+                    std::slice::from_mut(&mut global.modification),
+                    None,
+                    None,
+                    &mut patches,
+                )?;
+            }
+        }
+        for (target, value) in patches {
+            target.resolved_mod = value;
+        }
+        Ok(())
     }
-    // Everything that can fail precedes publication; old handles/index drops
-    // have already been charged. Neither commit walks or copies the AST text.
-    let staged = resolver.staged.take();
-    let warnings = std::mem::take(&mut resolver.warnings);
-    drop(resolver);
-    if let Some(next) = staged {
-        *registry = next;
-    }
-    for (target, value) in patches {
-        target.resolved_mod = value;
-    }
-    Ok(warnings)
-}
-
-struct Resolver<'a> {
-    original: &'a ModificationsDB,
-    staged: Option<ModificationsDB>,
-    budget: &'a mut Budget,
-    warnings: Vec<ResolutionWarning>,
 }
 impl Resolver<'_> {
     fn database(&self) -> &ModificationsDB {

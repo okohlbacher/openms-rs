@@ -1,0 +1,92 @@
+{
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "method": "Independent Python transcription of pinned OBO/index loops, not Rust-produced expected values.",
+  "corrections": [
+    "explicit Windows-1252 BTO decoding",
+    "correct xref_analog binary prefix length"
+  ],
+  "providers": [
+    {
+      "load_name": "MS",
+      "definitions": 3569,
+      "terms": 3569,
+      "placeholders": 0,
+      "names": 3569,
+      "label": "MS",
+      "version": "4.1.155",
+      "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+    },
+    {
+      "load_name": "PATO",
+      "definitions": 1976,
+      "terms": 5545,
+      "placeholders": 0,
+      "names": 9073,
+      "label": "quality",
+      "version": "4.1.155",
+      "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+    },
+    {
+      "load_name": "UO",
+      "definitions": 285,
+      "terms": 5780,
+      "placeholders": 0,
+      "names": 10384,
+      "label": "unit.ontology",
+      "version": "4.1.155",
+      "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+    },
+    {
+      "load_name": "BTO",
+      "definitions": 3402,
+      "terms": 9182,
+      "placeholders": 0,
+      "names": 14021,
+      "label": "BrendaTissue563",
+      "version": "4.1.155",
+      "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+    },
+    {
+      "load_name": "GO",
+      "definitions": 72,
+      "terms": 9254,
+      "placeholders": 0,
+      "names": 16852,
+      "label": "gene_ontology",
+      "version": "4.1.155",
+      "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+    }
+  ],
+  "raw_hashes": [
+    {
+      "file": "psi-ms.obo",
+      "bytes": 985486,
+      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3",
+      "fnv1a64": 1880820938405340563
+    },
+    {
+      "file": "quality.obo",
+      "bytes": 305675,
+      "sha256": "9c759c87833b7c966dab66bfb31bf94d7196546eb2aef84776397a0e64d245e3",
+      "fnv1a64": 17963641850810773392
+    },
+    {
+      "file": "unit.obo",
+      "bytes": 89140,
+      "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df",
+      "fnv1a64": 17816829084039043071
+    },
+    {
+      "file": "brenda.obo",
+      "bytes": 932031,
+      "sha256": "4466c14e537ec6ae2b79d7cb22ea16ef0e79f9317d65d1f281c0003e9dbb846a",
+      "fnv1a64": 15642686075072363256
+    },
+    {
+      "file": "goslim_goa.obo",
+      "bytes": 28100,
+      "sha256": "542711370e7406b3461902b2e0214a054237e51c8d1f2dd01f07059001cb50f8",
+      "fnv1a64": 14078192894626321412
+    }
+  ]
+}

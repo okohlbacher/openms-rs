@@ -7,9 +7,9 @@
     "by_status": {
       "complete": 10,
       "evidence_requires_review": 166,
-      "native_equivalent": 50,
+      "native_equivalent": 51,
       "partial": 21,
-      "unmapped": 539
+      "unmapped": 538
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2514,6 +2514,7 @@
         "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/fine_isotope_provenance.json",
         "tests/data/fine_isotope_stream_provenance.json",
+        "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/rna_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
@@ -2542,6 +2543,7 @@
         "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/fine_isotope_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/rna_provenance.json",
@@ -3016,6 +3018,7 @@
         "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/registry_provenance.json",
         "tests/data/tagger_provenance.json"
@@ -3179,7 +3182,8 @@
           "src/chemistry/proforma_parser.rs",
           "src/chemistry/proforma_json.rs",
           "src/chemistry/proforma_resolution.rs",
-          "src/chemistry/modifications.rs"
+          "src/chemistry/modifications.rs",
+          "src/chemistry/proforma_mass.rs"
         ],
         "tests": [
           "tests/proforma.rs",
@@ -3187,14 +3191,16 @@
           "tests/proforma_parser.rs",
           "tests/proforma_parser_probe.rs",
           "tests/proforma_json.rs",
-          "tests/proforma_resolution.rs"
+          "tests/proforma_resolution.rs",
+          "tests/proforma_mass.rs"
         ],
         "documentation": "docs/PROFORMA_SUPPORT.md",
-        "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers and source modification-resolution operation with caller-owned registry, warnings and atomic handle/interning publication. Source modified-range omission and provider-order adaptation are explicit. AASequence conversion/policies, mass/mz/try/issues and ordinary/XLMS spectrum methods remain outstanding."
+        "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution and all mass/mz/can/issues/optional operation groups. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. AASequence conversion/policies and ordinary/XLMS spectrum methods remain outstanding."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/proforma_json_provenance.json",
+        "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_parser_probe_provenance.json",
         "tests/data/proforma_parser_provenance.json",
         "tests/data/proforma_provenance.json",
@@ -3299,6 +3305,7 @@
         "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
+        "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/registry_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
@@ -3318,6 +3325,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/tagger_provenance.json",
@@ -3344,6 +3352,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
         "tests/data/registry_provenance.json"
       ],
@@ -3725,6 +3734,7 @@
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/precursor_purity_provenance.json",
+        "tests/data/proforma_mass_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/rna_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
@@ -4342,6 +4352,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/default_param_handler_provenance.json",
         "tests/data/list_utils_provenance.json",
         "tests/data/metadata_hash_provenance.json",
@@ -4564,6 +4575,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/list_utils_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4745,6 +4757,7 @@
       "reference_manifests": [
         "tests/data/adduct_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
+        "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/datetime_provenance.json",
         "tests/data/experiment_metadata_provenance.json",
         "tests/data/list_utils_provenance.json",
@@ -5567,10 +5580,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h",
       "sha256": "51c903feea91b532f401c4f63cf9f34aa83c9673d076c843ee63aac2f07a9eba",
       "domain": "FORMAT",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/controlled_vocabulary.rs",
+          "src/format/controlled_vocabulary/obo.rs"
+        ],
+        "tests": [
+          "tests/controlled_vocabulary.rs"
+        ],
+        "documentation": "docs/CONTROLLED_VOCABULARY_SUPPORT.md",
+        "scope": "Complete owned term definition and all class-specific lookup, cumulative OBO loading, ordered graph traversal, typed/string XML, score direction, stream output, FNV and five-provider singleton operations. All 9254 final definitions and 16852 aliases checked against independent source-loop projection. Exact raw resources retained; explicit BTO decoding and data-license boundaries documented. Transactional/cycle/resource checks, actual typed units, full attribute escaping and legacy binary-prefix/stream corrections replace source defects. Mapping rules, general semantic validation and header consumers remain separate."
+      },
+      "candidate_rust_files": [
+        "src/format/controlled_vocabulary.rs"
+      ],
       "reference_manifests": [
+        "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/mzml_acquisition_provenance.json"
       ],
@@ -6407,6 +6434,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/data_array_xml_provenance.json",
         "tests/data/experimental_settings_provenance.json",
         "tests/data/mzml_acquisition_guards_provenance.json",
@@ -6578,6 +6606,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/experimental_settings_provenance.json",
         "tests/data/idxml_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
@@ -7759,10 +7788,12 @@
       "header": "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
       "sha256": "539f5dd9331d6f343257477a871ffdd5a157374a92dc12da4d65c75c058cf858",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/controlled_vocabulary_provenance.json"
+      ],
       "direct_topp_consumers": [
         "SemanticValidator"
       ]
@@ -11790,8 +11821,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/CVMappingTerm.h",
         "OpenMS/DATASTRUCTURES/CVMappings.h",
-        "OpenMS/FORMAT/CVMappingFile.h",
-        "OpenMS/FORMAT/ControlledVocabulary.h"
+        "OpenMS/FORMAT/CVMappingFile.h"
       ],
       "workflow_validated": false
     },
@@ -15311,7 +15341,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/Base64.h",
-        "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/QcMLFile.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -15332,7 +15361,6 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/QcMLFile.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -15373,7 +15401,6 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/QcMLFile.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -15623,7 +15650,6 @@
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CHEMISTRY/ResidueDB.h",
         "OpenMS/CHEMISTRY/ResidueModification.h",
-        "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
@@ -15683,7 +15709,6 @@
       "open_sdk_headers": [
         "OpenMS/DATASTRUCTURES/CVMappings.h",
         "OpenMS/FORMAT/CVMappingFile.h",
-        "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
         "OpenMS/SYSTEM/File.h"

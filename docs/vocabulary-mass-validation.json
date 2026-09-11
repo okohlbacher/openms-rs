@@ -1,0 +1,502 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "983c34d18b1eb5c8927e0c01f7fa774a52fa48be",
+  "scope": [
+    "Complete ProForma mass/mz/can/issues/optional operation group and private shared resolver session",
+    "Complete ControlledVocabulary and all five original providers",
+    "Ten new source-reviewed C++ defect entries; existing mass/vocabulary handling updated"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 278.12,
+      "log_sha256": "bb9180ee850a2d7a5183f94d2babac9fb489cf4d85d5d202db0c0399ac847fe9",
+      "log_bytes": 200173,
+      "tests_passed": 1923
+    },
+    {
+      "name": "docs_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.75,
+      "log_sha256": "0d5f886188896f5a56f1eb6cbd01936eafd9c3065929375d32714fab8fc43502",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 32.18,
+      "log_sha256": "9edb23a5872a315efc301959793a7c54c6f7138304a45afe12d1b5236cba1b06",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 35.19,
+      "log_sha256": "5aab583e3bd3029bf63747d77740e6702e9643e9cb0b3ea2a21b8cdfa475cb94",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.83,
+      "log_sha256": "dd9c34d8d2eced6d56df0a1f726d93b5da953ea10b35809832811821ee059cc9",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.9,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.39,
+      "log_sha256": "2b07ca4b09072867c39e9b3d5da3d967f7e0d4a60a94d52046d3ef5095ecacbd",
+      "log_bytes": 233
+    },
+    {
+      "name": "vocabulary_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_controlled_vocabulary_reference.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4,
+      "log_sha256": "efb52c2938751c18143f76d47982e0db276493a7289bd457d13d54594ea9b902",
+      "log_bytes": 325
+    },
+    {
+      "name": "metabolite_model_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_metabo_isotope_models.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "7b491f74722286e8632f85d151557291f35a0f000a429809eaf0477727005cd0",
+      "log_bytes": 72
+    },
+    {
+      "name": "source_review_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "2a2b2a4b8bf8060acfa057672322cf3f5f6c3a6eb8af9edbececf91774b7b956",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.12,
+      "log_sha256": "8c0c710a9cad36089f960746fc1afcfeb546ed537958a35e6fe4ae372d08815c",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "controlled_vocabulary",
+        "--test",
+        "proforma_mass",
+        "--test",
+        "proforma_resolution",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_parser",
+        "--test",
+        "modifications",
+        "--test",
+        "registry_reference",
+        "--test",
+        "modification_registry",
+        "--test",
+        "metadata",
+        "--test",
+        "formats",
+        "--test",
+        "file_handler",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 18.04,
+      "log_sha256": "76200e1d5bf3e88c4bdaafb04f50c400c0873fd6056c6cf20e08ea1013f90d83",
+      "log_bytes": 24440,
+      "tests_passed": 240
+    },
+    {
+      "name": "json_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "proforma-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "proforma_mass",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 16.72,
+      "log_sha256": "e540e3bbc35e77edd018a30e8d80dd95eff212b343fc55dd4696ec00bbc68dba",
+      "log_bytes": 15098,
+      "tests_passed": 138
+    },
+    {
+      "name": "docs_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.17,
+      "log_sha256": "e86afa7c174c6b2707123b13fd990450e09132562a9bbb10a755c05c7040ee9f",
+      "log_bytes": 526,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 14.24,
+      "log_sha256": "36ec1d8438d7c1329cc301518cef8039b06c5804d0152ebb80793991a4682331",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_json_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "proforma-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "proforma_mass",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.56,
+      "log_sha256": "0d4b37fd3c47f73465040029ff96116a79696780f47f90a7f6d63f462ade4009",
+      "log_bytes": 221
+    }
+  ],
+  "new_tests": {
+    "total": 37,
+    "proforma_mass": {
+      "public": 13,
+      "private": 4
+    },
+    "controlled_vocabulary": {
+      "public": 17,
+      "private": 3
+    }
+  },
+  "counts_note": "Minimum compiler selections overlap each other and the full current suite; do not add them as distinct tests. No C++ mass or vocabulary execution is claimed.",
+  "source_audit": {
+    "distinct_current_files": 1915,
+    "historical_references": 220,
+    "graph_references": 21,
+    "added_references": 734
+  },
+  "provider_evidence": {
+    "original_bytes": 2340432,
+    "raw_term_stanzas": 9304,
+    "final_definitions": 9254,
+    "name_aliases": 16852,
+    "method": "Independent Python transcription of pinned source loops, every native field and alias compared; no Rust-derived expected output."
+  },
+  "integration_audit": {
+    "exact_frozen_files": [
+      {
+        "path": "src/chemistry/proforma_mass.rs",
+        "sha256": "8e9622fc86c45766bf0323f43fdc9419905b410f50674f449886326726855006"
+      },
+      {
+        "path": "tests/proforma_mass.rs",
+        "sha256": "e5cad9ec06109297f08aad4e7ef354ee5504a9eeb52a9e622c5368c3f866695b"
+      },
+      {
+        "path": "tests/data/proforma_mass_provenance.json",
+        "sha256": "dda5e71948ba3c272656e2577f8c7226a8e4a93bbecc563fe3d4b9bf24ed4b25"
+      },
+      {
+        "path": "docs/PROFORMA_MASS_SUPPORT.md",
+        "sha256": "a56b0c167bb7ec0837b280f474bd4721cdfa3a7b613f81e72de4169cfd24592c"
+      },
+      {
+        "path": "src/chemistry/proforma_resolution.rs",
+        "sha256": "5a60d0df81e3ac8fbf0adc4535e702763938b59bc63fce20fb8cc39bdac6a8aa"
+      },
+      {
+        "path": "src/chemistry/proforma.rs",
+        "sha256": "15b6ff5789bb3494d1c9ff64e3dd90c06a6d3351d342d6774af635498aa13f9a"
+      },
+      {
+        "path": "docs/PROFORMA_SUPPORT.md",
+        "sha256": "3cc5cabfb4f681326324ed5392ad146b576c0f5f40fef9ef0ac37d1aec1f4992"
+      },
+      {
+        "path": "docs/PROFORMA_PARSER_SUPPORT.md",
+        "sha256": "22a0225a0d5dd8f904f99b162a8f263f78f16e43fa4f024180d9132590cd495c"
+      },
+      {
+        "path": "docs/PROFORMA_JSON_SUPPORT.md",
+        "sha256": "77328503ef4267a68a60f59c6858edc07223fc42e8f918210624f5203a700ba7"
+      },
+      {
+        "path": "docs/PROFORMA_RESOLUTION_SUPPORT.md",
+        "sha256": "d22c34184aeb4bfdfeb09f7319491da6b698555947ca867bc46ba50c3492ad9d"
+      },
+      {
+        "path": "src/format/controlled_vocabulary.rs",
+        "sha256": "5a85bde40e0b48b49fedf770d8d0038a9e21884403e3b80a03bbc2050c5e69f2"
+      },
+      {
+        "path": "src/format/controlled_vocabulary/obo.rs",
+        "sha256": "6d19bf0891032ec2803bc21e7906322ded06fd3a4d45fb7dc357a2e31ed5257b"
+      },
+      {
+        "path": "tests/controlled_vocabulary.rs",
+        "sha256": "2156a56edad036d26392de64fa7b6c2cc638a74c56b866af63b3f8d737bdc840"
+      },
+      {
+        "path": "tests/data/controlled_vocabulary_source.obo",
+        "sha256": "de2084bff5c52be8f5f60bc023ff142ff04b4a1234aec29781b3b2287164823f"
+      },
+      {
+        "path": "tests/data/controlled_vocabulary_projection.tsv",
+        "sha256": "4e78d2bfcf2b1e476943a4d800d850728a9bae6d80658230f7b3b26bee3e6fb6"
+      },
+      {
+        "path": "tests/data/controlled_vocabulary_aliases.tsv",
+        "sha256": "d25df16aa8c13423176598c0a778dc869abe917ed45a4b4017424fa6c426a365"
+      },
+      {
+        "path": "tests/data/controlled_vocabulary_projection.json",
+        "sha256": "7442b447584fdb64051734a0baff1dec53187c692c51f1d6ba32ec84be297e9d"
+      },
+      {
+        "path": "tests/data/controlled_vocabulary_provenance.json",
+        "sha256": "bd95796d6aa2904e8e6b4a4b6b3e3ada3a875474fb5f5c0d71ccab48726fe918"
+      },
+      {
+        "path": "resources/cv/psi-ms.obo",
+        "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+      },
+      {
+        "path": "resources/cv/quality.obo",
+        "sha256": "9c759c87833b7c966dab66bfb31bf94d7196546eb2aef84776397a0e64d245e3"
+      },
+      {
+        "path": "resources/cv/unit.obo",
+        "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
+      },
+      {
+        "path": "resources/cv/brenda.obo",
+        "sha256": "4466c14e537ec6ae2b79d7cb22ea16ef0e79f9317d65d1f281c0003e9dbb846a"
+      },
+      {
+        "path": "resources/cv/goslim_goa.obo",
+        "sha256": "542711370e7406b3461902b2e0214a054237e51c8d1f2dd01f07059001cb50f8"
+      },
+      {
+        "path": "resources/cv/NOTICE.md",
+        "sha256": "e16c3061084b6dd76d1cb8c8ad73abcfb3a0c4d8e22f544bcdfce634cd7aed59"
+      },
+      {
+        "path": "docs/CONTROLLED_VOCABULARY_SUPPORT.md",
+        "sha256": "ff039a9ff5eb09c44075680f686d8fc2e744e9d058fba01efc0a095f2fddebd7"
+      },
+      {
+        "path": "tools/generate_controlled_vocabulary_reference.py",
+        "sha256": "f6c564fc5cf5e1f08d05cba1023f78c8dffb6a64df226a95b094cb6e65f5050c"
+      }
+    ],
+    "historical_manifests_unchanged": true,
+    "cpp_issue_entries": 36,
+    "root_review": "All mass/resolver and vocabulary/parser production, direct/private tests and source branches reviewed. Sparse large map-root precharge corrected and missing typed-list test added before freeze."
+  },
+  "coverage": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "evidence_requires_review": 166,
+      "native_equivalent": 51,
+      "partial": 21,
+      "unmapped": 538
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "previous_published_ci": {
+    "revision": "983c34d18b1eb5c8927e0c01f7fa774a52fa48be",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34578513534",
+    "conclusion": "success",
+    "jobs": [
+      "minimum-rust",
+      "quality",
+      "test (macos-latest)",
+      "test (ubuntu-latest)",
+      "test (windows-latest)"
+    ],
+    "scope": "Previous published checkpoint, including actual Windows resource-byte fix validation. Not the CI result of this later change."
+  },
+  "limitations": [
+    "Full SDK and TOPP workflow certification remain incomplete.",
+    "ProForma AASequence conversion and spectra, full mzML headers and consumers, and CV mapping/semantic validation are separate ongoing groups.",
+    "Historical ontology data licensing boundaries and original damaged BTO description remain explicit in resources/cv/NOTICE.md."
+  ]
+}
