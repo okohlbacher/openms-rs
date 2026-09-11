@@ -275,6 +275,9 @@ impl<'a> Xml<'a> {
 }
 fn reversible_metadata(owner: &str, key: &str, id: &str) -> bool {
     match owner {
+        "spectrum" => record_transport::SPECTRUM_CV
+            .iter()
+            .any(|row| row.0 == id && row.1 == key),
         "sample" => key == "sample batch" || id.starts_with("PATO:"),
         "instrumentConfiguration" => matches!(
             key,

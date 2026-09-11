@@ -18,6 +18,8 @@ pub(crate) struct Plan {
     pub spectra: Vec<String>,
     pub chromatograms: Vec<String>,
     pub arrays: Vec<ArrayHeader>,
+    pub spectrum_metadata: Vec<String>,
+    pub chromatogram_metadata: Vec<String>,
 }
 struct RecordRef {
     source: Option<usize>,
@@ -104,6 +106,8 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
     work.slots::<&SourceFile>(settings.source_files.len().saturating_mul(4))?;
     build.sources.extend(&settings.source_files);
     for spectrum in &experiment.spectra {
+        work.meter().meta(&spectrum.metadata)?;
+        record_transport::validate(&spectrum.metadata, false)?;
         build.record(&spectrum.source_file, &spectrum.data_processing, &mut work)?;
         build.arrays(&spectrum.float_data_arrays, &mut work)?;
         build.arrays(&spectrum.integer_data_arrays, &mut work)?;
@@ -125,6 +129,8 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
         }
     }
     for c in &experiment.chromatograms {
+        work.meter().meta(&c.metadata)?;
+        record_transport::validate(&c.metadata, true)?;
         if source_nondefault(&c.source_file) {
             return Err(Error::Unsupported(
                 "chromatogram source-file has no mzML schema representation".into(),
@@ -345,7 +351,53 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
             params: std::mem::take(&mut x.text),
         });
     }
+    x.work.slots::<String>(
+        experiment
+            .spectra
+            .len()
+            .saturating_add(experiment.chromatograms.len()),
+    )?;
+    let mut spectrum_metadata = Vec::new();
+    let mut chromatogram_metadata = Vec::new();
+    spectrum_metadata
+        .try_reserve_exact(experiment.spectra.len())
+        .map_err(|_| resource())?;
+    chromatogram_metadata
+        .try_reserve_exact(experiment.chromatograms.len())
+        .map_err(|_| resource())?;
+    for (meta, name, chrom) in experiment
+        .spectra
+        .iter()
+        .map(|s| (&s.metadata, &s.name, false))
+        .chain(
+            experiment
+                .chromatograms
+                .iter()
+                .map(|c| (&c.metadata, &c.name, true)),
+        )
+    {
+        x.metadata(
+            if chrom { "chromatogram" } else { "spectrum" },
+            meta,
+            if chrom {
+                &record_transport::CHROMATOGRAM_SKIP
+            } else {
+                &record_transport::SPECTRUM_SKIP
+            },
+        )?;
+        if !name.is_empty() {
+            let value = MetaValue::from(x.work.copy(name)?);
+            x.user(NAME_KEY, &value)?;
+        }
+        if chrom {
+            chromatogram_metadata.push(std::mem::take(&mut x.text));
+        } else {
+            spectrum_metadata.push(std::mem::take(&mut x.text));
+        }
+    }
     Ok(Plan {
+        spectrum_metadata,
+        chromatogram_metadata,
         prefix,
         spectra: refs,
         chromatograms,

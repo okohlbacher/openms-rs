@@ -68,7 +68,7 @@ fn upstream_experiment_retention_times_and_original_value_preservation() {
         .transform_experiment(&mut experiment, &transformation)
         .unwrap();
     for (spectrum, expected) in experiment.spectra.iter().zip(expected) {
-        close(spectrum.metadata["original_RT"].parse().unwrap(), expected);
+        close(spectrum.metadata["original_RT"].as_f64().unwrap(), expected);
     }
     close(experiment.ranges(0).unwrap().rt.unwrap().min, 95.8);
 }
@@ -176,8 +176,10 @@ fn chromatogram_arrays_order_ranges_and_optional_spectrum_identifications() {
     );
     assert!(!experiment.chromatograms[0].is_sorted());
     assert_eq!(
-        experiment.chromatograms[0].metadata["original_rt"],
-        "[1, 3]"
+        experiment.chromatograms[0].metadata["original_rt"]
+            .as_float_list()
+            .unwrap(),
+        &[1., 3.]
     );
     assert_eq!(
         experiment.chromatograms[0].string_data_arrays[0].data,
@@ -210,8 +212,10 @@ fn chromatogram_arrays_order_ranges_and_optional_spectrum_identifications() {
         3.
     );
     assert_eq!(
-        experiment.chromatograms[0].metadata["original_rt"],
-        "[1, 3]"
+        experiment.chromatograms[0].metadata["original_rt"]
+            .as_float_list()
+            .unwrap(),
+        &[1., 3.]
     );
     assert_eq!(experiment.spectra[0].peaks, [Peak1D::new(100., 2.)]);
 }

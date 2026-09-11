@@ -4,6 +4,9 @@
 //! Pinned source mapping-path membership only; not full semantic validation.
 use super::*;
 pub(super) fn permitted(owner: &str, id: &str, work: &mut Work) -> Result<bool> {
+    if owner == "spectrum" && record_transport::SPECTRUM_CV.iter().any(|row| row.0 == id) {
+        return Ok(true);
+    }
     let rules: &[(&str, bool, bool)] = match owner {
         "analyzer" => &[("MS:1000443", true, true), ("MS:1000480", false, true)],
         "binaryDataArray" => &[

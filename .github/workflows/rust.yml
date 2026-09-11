@@ -16,9 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: Install independent XML schema validator
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+      - uses: ./.github/actions/setup-libxml
       - run: cargo test --locked --all-features --all-targets
       - run: cargo test --locked --all-features --doc
       - run: cargo test --locked --no-default-features
@@ -28,6 +26,7 @@ jobs:
       - run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features semantic-validation --test semantic_validator --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features mzml-validation --test mzml_validator --test semantic_validator --test cv_mapping_file
+      - run: cargo test --locked --no-default-features --features mzml-schema --test mzml_schema --test mzml_schema_offline
       - run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
   quality:
     runs-on: ubuntu-latest
@@ -36,6 +35,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - uses: ./.github/actions/setup-libxml
       - run: cargo fmt --all -- --check
       - run: python3 tools/generate_modifications.py --check
       - run: python3 tools/generate_enzymes.py --check
@@ -60,12 +60,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.85.0
+      - uses: ./.github/actions/setup-libxml
       - run: cargo test --locked --all-features --all-targets
       - run: cargo test --locked --all-features --doc
       - run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
       - run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features semantic-validation --test semantic_validator --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features mzml-validation --test mzml_validator --test semantic_validator --test cv_mapping_file
+      - run: cargo test --locked --no-default-features --features mzml-schema --test mzml_schema --test mzml_schema_offline
       - run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
       - run: cargo test --locked --no-default-features --features numpress --test numpress_coder --test numpress
       - run: cargo test --locked --no-default-features --test chromatogram_tools --test processing_acquisition
@@ -76,7 +78,23 @@ jobs:
       - run: cargo test --locked --no-default-features --test log_stream --test progress_logger --test modification_definition_io
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
       - run: cargo test --locked --no-default-features --test fasta --test formats --test experiment_aggregation --test experiment_summary --test kernel_value_traits --test peak_file_options --test identification --test metadata_hash --test mass_decomposition --test mass_decomposition_algorithm --test ims_weights --test mobilogram --test data_array_descriptions
-      - run: cargo test --locked --no-default-features --features mzml --test mzml_normalization --test mzml_write_options --test mzml_isolation --test mzml_centroid --test mzml_consumer --test mzml_header --test mzml_numpress --test numpress_coder --test mzml_acquisition_guards --test mzml_settings --test mzml_acquisition --test mzml_counts
+      - run: cargo test --locked --no-default-features --features mzml --test mzml_typed_transport --test record_metadata --test mzml_normalization --test mzml_write_options --test mzml_isolation --test mzml_centroid --test mzml_consumer --test mzml_header --test mzml_numpress --test numpress_coder --test mzml_acquisition_guards --test mzml_settings --test mzml_acquisition --test mzml_counts
       - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml --test mzml_product --test mzml_load_options --test mzml_paths --test data_array_xml
       - run: cargo test --locked --no-default-features --features proforma-json --test proforma_json
       - run: cargo test --locked --no-default-features --features idxml --test identification_paths --test data_array_xml
+  schema-minimum-platforms:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.0
+      - uses: ./.github/actions/setup-libxml
+      - run: cargo test --locked --no-default-features --features mzml-schema --test mzml_schema --test mzml_schema_offline
+  portable-feature-graph:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.0
+      - run: python3 tools/check_schema_feature_graph.py

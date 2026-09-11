@@ -119,7 +119,7 @@ impl Work {
         &mut self,
         id: &str,
         name: &str,
-        meta: &BTreeMap<String, String>,
+        meta: &crate::metadata::MetaInfo,
         floats: &[DataArray<f32>],
         integers: &[DataArray<i32>],
         strings: &[DataArray<String>],
@@ -127,11 +127,7 @@ impl Work {
         let mut m = self.meter();
         m.text(id)?;
         m.text(name)?;
-        m.tree::<(String, String)>(meta.len())?;
-        for (key, value) in meta {
-            m.text(key)?;
-            m.text(value)?;
-        }
+        m.meta(meta)?;
         m.slots::<String>(add(floats.len(), add(integers.len(), strings.len())?)?)?;
         for name in floats
             .iter()

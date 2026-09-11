@@ -107,7 +107,12 @@ fn digested_modified_peptide_annotates_independent_fragment_formulas_and_retains
         id.hits[0].metadata["precursor_in_ms2"],
         MetaValue::from(0_i64)
     );
-    assert_eq!(spectrum.metadata["fragment_mass_tolerance_ppm"], "0");
+    assert_eq!(
+        spectrum.metadata["fragment_mass_tolerance_ppm"]
+            .as_i64()
+            .unwrap(),
+        0
+    );
     for (peak, annotation) in spectrum.peaks.iter().zip(&id.hits[0].peak_annotations) {
         assert_eq!(annotation.mz, peak.mz);
         assert_eq!(annotation.intensity, f64::from(peak.intensity));

@@ -81,7 +81,8 @@ fn adduct_metadata_charge_and_isotope_masses_roundtrip_through_mzml() {
             .unwrap();
         let restored = mzml::read(bytes.as_slice()).unwrap();
         assert_eq!(restored.spectra[0], experiment.spectra[0]);
-        let adduct = AdductInfo::parse(&restored.spectra[0].metadata["adduct"]).unwrap();
+        let adduct =
+            AdductInfo::parse(restored.spectra[0].metadata["adduct"].as_str().unwrap()).unwrap();
         assert_eq!(adduct.charge(), restored.spectra[0].precursors[0].charge);
     }
 }

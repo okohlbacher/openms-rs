@@ -1,0 +1,70 @@
+   Compiling openms v0.1.0 (/private/tmp/openms-rs-next-mzml-schema)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.82s
+     Running tests/cv_mapping_file.rs (/tmp/openms-mzml-schema-target-minimum/debug/deps/cv_mapping_file-ec24e39de470da97)
+
+running 10 tests
+test source_qnames_ignored_payload_and_single_current_rule_state ... ok
+test malformed_xml_and_short_inputs_fail_without_publication ... ok
+test atomic_repeated_load_references_append_rules_replace_and_failure_does_not_leak ... ok
+test all_record_and_payload_limits_are_atomic ... ok
+test xml_entities_line_endings_and_chunk_independent_encoding ... ok
+test xml_defaults_exact_booleans_and_source_enum_fallbacks ... ok
+test compressed_magic_corruption_and_io_failure ... ok
+test original_class_test_literal_records ... ok
+test corrected_namespace_stripping_preserves_attributes_and_scope ... ok
+test all_six_source_files_match_complete_independent_xml_projection ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/cv_mapping_values.rs (/tmp/openms-mzml-schema-target-minimum/debug/deps/cv_mapping_values-86c258619fb4becd)
+
+running 3 tests
+test equality_observes_every_leaf_and_rule_field ... ok
+test complete_source_defaults_and_literal_fields ... ok
+test ordered_bulk_append_duplicate_add_and_explicit_replacement ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mzml_validator.rs (/tmp/openms-mzml-schema-target-minimum/debug/deps/mzml_validator-c6eb5f4d256fe1c3)
+
+running 16 tests
+test locate_selection_keeps_stable_missing_path_error_and_ignores_mzml_exclusions ... ok
+test go_bto_skip_after_unknown_obsolete_encounter_and_do_not_fulfill_rules ... ok
+test original_source_resources_retain_exact_bytes_on_every_platform ... ok
+test indexed_root_paths_and_literal_nested_names ... ok
+test nested_group_current_id_is_not_restored_and_user_params_do_not_enter_groups ... ok
+test fixed_special_tags_win_over_configured_cv_tag_and_qnames_are_literal ... ok
+test groups_defer_validation_and_warn_at_definition_only ... ok
+test duplicate_definitions_append_and_nonrepeatable_counts_include_every_use ... ok
+test units_default_and_all_configured_attribute_controls ... ok
+test shared_limits_count_referenced_uses_and_late_diagnostics ... ok
+test forward_and_missing_references_are_empty_and_no_state_survives_calls ... ok
+test binary_pair_order_group_expansion_repeated_errors_and_reset ... ok
+test lexical_errors_and_compressed_paths_use_the_shared_parser ... ok
+test repeated_borrowed_group_terms_exhaust_shared_work_after_a_successful_use ... ok
+test default_mapping_convenience_and_native_writer_are_distinct_from_source_goldens ... ok
+test unchanged_source_class_fixture_counts ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+
+     Running tests/semantic_validator.rs (/tmp/openms-mzml-schema-target-minimum/debug/deps/semantic_validator-8a738a6115342ad8)
+
+running 15 tests
+test locate_is_selection_only_and_absent_path_stays_error_cpp044 ... ok
+test descendant_matching_retains_source_stale_children_index ... ok
+test configurable_qnames_attributes_flags_and_root_double_slash ... ok
+test utf16_declarations_and_ignored_text_still_checked ... ok
+test unknown_obsolete_name_and_diagnostic_order ... ok
+test failed_xml_never_publishes_or_contaminates_next_call_cpp040 ... ok
+test first_match_each_rule_duplicates_and_ignored_scope_name_fields ... ok
+test empty_rules_absent_elements_repeat_checks_and_sibling_reset ... ok
+test operation_limits_and_error_precedence_are_not_hidden_reports ... ok
+test unit_exact_child_unrelated_and_flags_cpp039 ... ok
+test raw_historical_fixture_bytes_are_stable_on_every_platform ... ok
+test requirement_truth_table_including_source_should_omission ... ok
+test compressed_paths_and_xml_lexical_failures ... ok
+test all_value_types_preserve_source_conversions_and_empty_value_rules ... ok
+test exact_source_valid_and_corrupt_diagnostics_in_order ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+

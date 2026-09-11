@@ -89,16 +89,18 @@ fn processed_spectra() -> Vec<MSSpectrum> {
             spectrum.native_id = format!("scan={}", i + 1);
             spectrum
                 .metadata
-                .insert("RNA sequence".into(), variant.to_string());
+                .insert("RNA sequence".into(), variant.to_string().into());
             spectrum
                 .metadata
-                .insert("RNA parent sequence".into(), source.to_string());
-            spectrum
-                .metadata
-                .insert("RNA parent start".into(), digest[1].start.to_string());
-            spectrum
-                .metadata
-                .insert("RNA parent end exclusive".into(), digest[1].end.to_string());
+                .insert("RNA parent sequence".into(), source.to_string().into());
+            spectrum.metadata.insert(
+                "RNA parent start".into(),
+                digest[1].start.to_string().into(),
+            );
+            spectrum.metadata.insert(
+                "RNA parent end exclusive".into(),
+                digest[1].end.to_string().into(),
+            );
             spectrum
         })
         .collect()
@@ -135,7 +137,8 @@ fn annotated_rna_products_roundtrip_with_coordinates_and_both_compression_modes(
         let restored = mzml::read(bytes.as_slice()).unwrap();
         assert_eq!(restored.spectra, experiment.spectra);
         for spectrum in restored.spectra {
-            let sequence = NASequence::parse(&spectrum.metadata["RNA sequence"]).unwrap();
+            let sequence =
+                NASequence::parse(spectrum.metadata["RNA sequence"].as_str().unwrap()).unwrap();
             let regenerated = generator().generate(&sequence, -1, -1).unwrap();
             assert_eq!(regenerated.peaks, spectrum.peaks);
             assert_eq!(regenerated.string_data_arrays, spectrum.string_data_arrays);

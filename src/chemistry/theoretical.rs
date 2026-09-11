@@ -487,7 +487,9 @@ impl TheoreticalSpectrumGenerator {
     ) -> Result<()> {
         // Acquisition settings are owned by the appended record; meter their
         // copy separately from the unchanged theoretical-generation work limit.
-        spectrum.acquisition_with_budget(&mut 50_000_000, &mut (256 * 1024 * 1024))?;
+        let (mut copy_work, mut copy_bytes) = (50_000_000, 256 * 1024 * 1024);
+        spectrum.record_metadata_with_budget(&mut copy_work, &mut copy_bytes)?;
+        spectrum.acquisition_with_budget(&mut copy_work, &mut copy_bytes)?;
         spectrum.validate()?;
         let names = unique_named_array(&spectrum.string_data_arrays, ION_NAMES)?;
         let charges = unique_named_array(&spectrum.integer_data_arrays, CHARGES)?;

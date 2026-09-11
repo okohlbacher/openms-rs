@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 166,
+      "evidence_requires_review": 167,
       "native_equivalent": 62,
       "partial": 21,
-      "unmapped": 527
+      "unmapped": 526
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -882,7 +882,9 @@
       "candidate_rust_files": [
         "src/analysis/alignment_transformer.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzml_typed_transport_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileMerger",
         "ProteomicsLFQ"
@@ -3506,6 +3508,7 @@
         "src/chemistry/spectrum_annotator.rs"
       ],
       "reference_manifests": [
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4483,6 +4486,7 @@
         "tests/data/default_param_handler_provenance.json",
         "tests/data/list_utils_provenance.json",
         "tests/data/metadata_hash_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/peak2d_provenance.json",
         "tests/data/protein_run_provenance.json",
         "tests/data/run_mapping_provenance.json",
@@ -6532,7 +6536,8 @@
         "src/format/indexed_mzml.rs"
       ],
       "reference_manifests": [
-        "tests/data/indexed_mzml_provenance.json"
+        "tests/data/indexed_mzml_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json"
       ],
       "direct_topp_consumers": [
         "CometAdapter",
@@ -6606,6 +6611,7 @@
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_provenance.json",
         "tests/data/mzml_settings_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_writing_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -6622,6 +6628,7 @@
         "tests/data/mzml_normalization_provenance.json",
         "tests/data/mzml_numpress_provenance.json",
         "tests/data/mzml_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_writing_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -6779,6 +6786,7 @@
         "tests/data/mzml_header_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_settings_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_validator_provenance.json",
         "tests/data/paramxml_provenance.json",
         "tests/data/semantic_validator_provenance.json"
@@ -7181,7 +7189,9 @@
           "src/format/mzml_centroid.rs",
           "src/kernel/spectrum_type.rs",
           "src/format/mzml_validator.rs",
-          "src/format/mzml_write_options.rs"
+          "src/format/mzml_write_options.rs",
+          "src/format/mzml_record.rs",
+          "src/format/mzml_schema.rs"
         ],
         "tests": [
           "tests/mzml.rs",
@@ -7204,10 +7214,14 @@
           "tests/mzml_isolation.rs",
           "tests/mzml_validator.rs",
           "tests/mzml_write_options.rs",
-          "tests/mzml_normalization.rs"
+          "tests/mzml_normalization.rs",
+          "tests/mzml_typed_transport.rs",
+          "tests/record_metadata.rs",
+          "tests/mzml_schema.rs",
+          "tests/mzml_schema_offline.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array metadata, independently sampled noise grids and alternate primary roles require further native transport; independent primary-array history remains a checked error. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. Complete centroid inspection/SpecInfo uses one consumer pass, a global recognized quota with Unknown bookkeeping, exact history/type/estimator precedence and cumulative query/map limits. Local fill_data override and pre-input zero-quota errors correct CPP-018/048. Isolation-target loading now preserves immediate sticky target filtering and differing first-selected-ion Float metadata across stream/path/consumer/count APIs; source count RT-event order remains distinct. Default selected-ion multiple/duplicate boundaries remain explicit. Every writer now consumes differing selected-ion metadata and preserves its separate effective isolation target; TPP intentionally suppresses precursor windows. Optional complete MzMLValidator specialization and file semantic convenience use shared bounded CV/XML logic and exact mapping; CPP-051 cross-document group state is corrected. Complete represented writer PeakFileOptions execution adds primary precision, all three Numpress configurations, zlib, TPP and indexed UTF-8 output with actual SHA-1 and byte offsets. One prepared payload supports two precharged markup passes and atomic path publication; ignored read options are not cloned. CPP-049/050 are corrected. skip_xml_checks executes only source four-character binary whitespace-normalization bypass, preserving checked XML/Base64/length/resource behavior and all no-decode modes; CPP-055 malformed-source behavior is rejected. MzMLFile remains partial: XSD validation, typed/primary/noise transport, spectrum mobility/IMPeakType and remaining precursor activation metadata/unit routes remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
+        "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array scalar metadata and units, all source record CV routes, optical/pressure/flow primary roles and independent f64 noise grids are transported with source merge order and checked ownership. Generic lists/Empty, ambiguous primaries and independent primary-array history remain checked errors; CPP-053/058 are corrected. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. Complete centroid inspection/SpecInfo uses one consumer pass, a global recognized quota with Unknown bookkeeping, exact history/type/estimator precedence and cumulative query/map limits. Local fill_data override and pre-input zero-quota errors correct CPP-018/048. Isolation-target loading now preserves immediate sticky target filtering and differing first-selected-ion Float metadata across stream/path/consumer/count APIs; source count RT-event order remains distinct. Default selected-ion multiple/duplicate boundaries remain explicit. Every writer now consumes differing selected-ion metadata and preserves its separate effective isolation target; TPP intentionally suppresses precursor windows. Optional complete MzMLValidator specialization and file semantic convenience use shared bounded CV/XML logic and exact mapping; CPP-051 cross-document group state is corrected. Complete represented writer PeakFileOptions execution adds primary precision, all three Numpress configurations, zlib, TPP and indexed UTF-8 output with actual SHA-1 and byte offsets. One prepared payload supports two precharged markup passes and atomic path publication; ignored read options are not cloned. CPP-049/050 are corrected. skip_xml_checks executes only source four-character binary whitespace-normalization bypass, preserving checked XML/Base64/length/resource behavior and all no-decode modes; CPP-055 malformed-source behavior is rejected. Optional mzML-schema provides original fixed ordinary/indexed XSD validation through unmodified libxml0.3.14 with owned diagnostics, checked root/namespaces and UTF-16 input. Native limits do not bound opaque C allocations/time. CPP-052 schema selection is corrected; original CPP-054 schema defect remains explicit with separate integrity checks. MzMLFile remains partial: spectrum mobility/IMPeakType, remaining precursor activation metadata/unit routes and adapter progress hooks remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -7220,6 +7234,8 @@
         "tests/data/mzml_isolation_provenance.json",
         "tests/data/mzml_normalization_provenance.json",
         "tests/data/mzml_paths_provenance.json",
+        "tests/data/mzml_schema_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_validator_provenance.json",
         "tests/data/mzml_writing_provenance.json"
       ],
@@ -7432,6 +7448,7 @@
         "tests/data/mzml_load_provenance.json",
         "tests/data/mzml_normalization_provenance.json",
         "tests/data/mzml_numpress_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_writing_provenance.json",
         "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
@@ -7566,7 +7583,8 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mzml_centroid_provenance.json"
+        "tests/data/mzml_centroid_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json"
       ],
       "direct_topp_consumers": [
         "FileInfo",
@@ -7997,6 +8015,7 @@
         "src/format/mzml_validator.rs"
       ],
       "reference_manifests": [
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_validator_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -8027,6 +8046,7 @@
       "reference_manifests": [
         "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/mzml_header_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_validator_provenance.json",
         "tests/data/semantic_validator_provenance.json"
       ],
@@ -8048,10 +8068,13 @@
       "header": "src/openms/include/OpenMS/FORMAT/VALIDATORS/XMLValidator.h",
       "sha256": "d1af4acfc0836b18a4a7969ff0c4a69dfe48845595a081a516071682de49556f",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzml_schema_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json"
+      ],
       "direct_topp_consumers": [
         "XMLValidator"
       ]
@@ -8667,10 +8690,11 @@
           "tests/kernel.rs",
           "tests/chromatogram_tools.rs",
           "tests/processing_acquisition.rs",
-          "tests/mzml_acquisition_guards.rs"
+          "tests/mzml_acquisition_guards.rs",
+          "tests/record_metadata.rs"
         ],
         "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review."
+        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
@@ -8820,10 +8844,11 @@
           "tests/chromatogram_tools.rs",
           "tests/processing_acquisition.rs",
           "tests/mzml_acquisition_guards.rs",
-          "tests/spectrum_type.rs"
+          "tests/spectrum_type.rs",
+          "tests/record_metadata.rs"
         ],
         "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md."
+        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
@@ -8835,6 +8860,7 @@
         "tests/data/experiment_summary_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/mzml_centroid_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/proforma_spectra_provenance.json",
@@ -10038,7 +10064,8 @@
       "reference_manifests": [
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/mzml_acquisition_guards_provenance.json",
-        "tests/data/mzml_settings_provenance.json"
+        "tests/data/mzml_settings_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -10132,6 +10159,7 @@
       "reference_manifests": [
         "tests/data/metadata_hash_provenance.json",
         "tests/data/mzml_header_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/protein_run_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -10172,6 +10200,7 @@
         "tests/data/experiment_values_provenance.json",
         "tests/data/metadata_hash_provenance.json",
         "tests/data/mzml_header_provenance.json",
+        "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": []

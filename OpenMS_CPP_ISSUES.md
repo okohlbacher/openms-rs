@@ -70,6 +70,8 @@ are not classified as confirmed defects here.
 | CPP-054 | Indexed mzML schema does not enforce offset ID references | Source-reviewed; independently executed XSD checks | Open |
 | CPP-055 | SIMD Base64 decoding accepts characters outside the Base64 alphabet | Source-reviewed; malformed numeric payload trigger | Open |
 | CPP-056 | mzML writing drops spectrum mobility when acquisition records are empty | Source-reviewed; synthetic scan branch | Open |
+| CPP-057 | Spectrum settings equality omits both ion-mobility state fields | Source-reviewed; distinct mobility-state trigger | Open |
+| CPP-058 | Floating DataValue casts read an inactive union member for strings and lists | Source-reviewed; public numeric-cast trigger | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -1340,9 +1342,10 @@ name, allowing legal prolog whitespace, comments and namespace prefixes. Keep
 XML parsing bounded, then validate against the matching schema. Test a root
 beyond line four and equivalent prefixed/default-namespace forms.
 
-**Rust handling:** Runtime XSD validation remains outstanding. Its native schema
-selection will use the document element rather than a fixed line prefix. No
-implemented native or upstream fix is claimed at this checkpoint.
+**Rust handling:** The optional [XSD validator](docs/MZML_SCHEMA_SUPPORT.md)
+selects the schema from the checked document root and namespace. Direct tests
+cover delayed and prefixed roots, UTF-16 input and malformed namespaces. No
+upstream fix is claimed.
 
 ## CPP-053 — Chromatogram array promotion mismatches values and their physical role
 
@@ -1371,10 +1374,11 @@ primary candidates explicitly. Test both input orders and a canonical intensity
 array combined with pressure, flow or detector-signal arrays, checking values,
 roles and units after a write/read cycle.
 
-**Rust handling:** Alternate primary roles are being designed. The planned
-native reader will reject multiple primary candidates before publishing a
-record, consistent with its existing duplicate-primary policy. No implemented
-native correction is claimed at this checkpoint.
+**Rust handling:** The native reader rejects competing primary intensity
+candidates before publishing a record. Writer preflight also rejects auxiliary
+names which would become competing primaries on reload. Direct typed transport
+tests cover pressure/flow ambiguity, canonical intensity competition and all
+writer families; see [typed transport](docs/MZML_TYPED_TRANSPORT_SUPPORT.md).
 
 ## CPP-054 — Shipped indexed mzML schema leaves index references unchecked
 
@@ -1401,10 +1405,11 @@ path. Select `dx:indexList/dx:index/dx:offset` for the key reference and use
 IDs and both indexed record kinds. Byte offsets and checksum still require
 separate integrity checks beyond XSD.
 
-**Rust handling:** The planned runtime XSD operation retains the original schema
-bytes and will document this source limitation. The indexed writer's separate
-tests check actual ID/offset correspondence and checksum. No upstream schema
-patch or implemented runtime XSD correction is claimed.
+**Rust handling:** The optional [XSD operation](docs/MZML_SCHEMA_SUPPORT.md)
+retains the exact original schema bytes and explicitly tests this limitation.
+Separate genuine key/keyref failures verify that the engine enforces other
+identity constraints. The indexed writer's independent tests check actual
+ID/offset correspondence and checksum. The upstream schema has not been patched.
 
 ## CPP-055 — Base64 SIMD decoding does not validate its alphabet
 
@@ -1461,3 +1466,63 @@ carries the spectrum mobility and that a store/load cycle retains it.
 **Rust handling:** Spectrum mobility transport is being implemented separately.
 The native writer will use the same first-scan path for explicit and synthetic
 acquisitions. No implemented native correction is claimed at this checkpoint.
+
+## CPP-057 — Spectrum equality ignores ion-mobility format and peak type
+
+**Affected files:** [`src/openms/source/METADATA/SpectrumSettings.cpp`, lines 23–43](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/METADATA/SpectrumSettings.cpp#L23), equality and inequality; `src/openms/include/OpenMS/METADATA/SpectrumSettings.h`, lines 170–171, mobility fields; `src/openms/source/KERNEL/MSSpectrum.cpp`, lines 514–529, spectrum equality.
+
+**Issue and reproduction:** Create two otherwise identical `SpectrumSettings`
+values and set their IM peak types to `IM_CENTROIDED` and `IM_PROFILE`.
+`operator==` returns true because it compares neither `im_peak_type_` nor
+`im_type_`. Changing only the IM format is also invisible to equality.
+`MSSpectrum::operator==` delegates to this comparison and does not compare these
+fields separately, so spectra with different IM representation state also
+compare equal. The header declares ordinary equality; unlike the documented
+name/range exclusions in spectrum equality, these omissions are not documented
+as intentional.
+
+**Evidence:** Direct review of the complete comparisons, member defaults and
+the public setters/getters at `SpectrumSettings.cpp:80–97`. This is a source
+control-flow finding, not an executed C++ reproduction.
+
+**Proposed fix:** Compare both `im_type_` and `im_peak_type_` in
+`SpectrumSettings::operator==`. Keep inequality as its negation. Test settings
+and spectra which differ in each field independently, plus equal copies and
+ordinary spectrum-type differences.
+
+**Rust handling:** The existing native `SpectrumSettings` derives value equality
+including both mobility fields. The spectrum mobility port will also include
+its represented fields in record equality and add direct regressions. No
+upstream patch or completed spectrum mobility implementation is claimed here.
+
+## CPP-058 — Nonnumeric DataValue casts read an inactive union member
+
+**Affected files:** [`src/openms/source/DATASTRUCTURES/DataValue.cpp`, lines 452–491](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/DATASTRUCTURES/DataValue.cpp#L452), conversion to long double, double and float; `src/openms/include/OpenMS/DATASTRUCTURES/DataValue.h`, lines 159–184 and 409–417, conversion contract and tagged union; `src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, lines 1400–1403, elution-time fallback.
+
+**Issue and reproduction:** Construct `DataValue(std::string("42"))` and request
+a floating conversion, such as `static_cast<double>(value)`. Each floating
+conversion rejects only Empty and handles Integer separately; every other
+alternative reads `data_.dou_`. String and list alternatives store pointers in
+other union members. Reading the inactive double member is undefined C++
+behavior, violating the documented `ConversionError` contract for a wrong type.
+This is not a numeric-string parser. No specific resulting number is guaranteed.
+
+The same public cast is reached when a spectrum without scan RT contains a
+String-valued `elution time (seconds)` user parameter: the mzML close handler
+passes that DataValue directly to `setRT`.
+
+**Evidence:** Direct review of all three conversions, the tagged-union members,
+the public exception documentation and the mzML caller. No C++ execution,
+sanitizer result or predicted pointer-dependent numeric output is claimed.
+
+**Proposed fix:** Switch explicitly on the stored type: convert Integer, return
+the floating member for Double, and throw `ConversionError` for every other
+alternative. Apply the same rule to all three floating conversions. Test Empty,
+String and all list alternatives, positive/negative numeric values and the mzML
+fallback with a nonnumeric metadata value.
+
+**Rust handling:** `MetaValue` accessors match the stored variant and cannot read
+inactive storage. The typed mzML elution-time fallback accepts Integer/Float
+variants and rejects String/list/Empty values before publishing a record. Direct
+tests cover consumed nonnumeric values, explicit scan RT precedence and the
+source ordering before primary-array metadata merges. No upstream fix is claimed.

@@ -257,3 +257,14 @@ Stream writes preflight the complete output; path writes publish atomically.
 
 [Binary whitespace normalization](docs/MZML_NORMALIZATION_SUPPORT.md) follows
 `skip_xml_checks` while retaining checked XML, payload and resource validation.
+
+[Explicit mzML XSD validation](docs/MZML_SCHEMA_SUPPORT.md) is available with
+`features = ["mzml-schema"]`. This optional feature uses the original ordinary and
+indexed schemas through libxml2 and requires its development library plus
+libclang at build time. Default builds do not enable this dependency. Schema,
+controlled-vocabulary, binary and index-integrity checks have separate contracts.
+
+Spectrum and chromatogram metadata now uses typed values. See the
+[API migration guide](docs/RECORD_METADATA_MIGRATION.md) and
+[mzML transport details](docs/MZML_TYPED_TRANSPORT_SUPPORT.md) for optical spectra,
+pressure/flow chromatograms, primary metadata and independent noise grids.

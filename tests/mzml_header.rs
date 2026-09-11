@@ -504,7 +504,7 @@ fn precursor_source_references_preserve_external_id_and_typed_metadata() {
 }
 
 #[test]
-fn primary_metadata_source_merge_order_and_checked_typed_boundary() {
+fn primary_metadata_source_merge_order_and_typed_values() {
     fn array(accession: &str, value: &str, kind: &str) -> String {
         format!(
             r#"<binaryDataArray encodedLength="0"><cvParam accession="MS:1000523" name="64-bit float"/><cvParam accession="MS:1000576" name="no compression"/><cvParam accession="{accession}" name="primary" unitCvRef="UO" unitAccession="UO:0000010" unitName="second"/><userParam name="owner" value="{value}" type="{kind}"/><binary/></binaryDataArray>"#
@@ -524,7 +524,7 @@ fn primary_metadata_source_merge_order_and_checked_typed_boundary() {
         } else {
             (&e.spectra[0].metadata, "intensity")
         };
-        assert_eq!(metadata["owner"], expected);
+        assert_eq!(metadata["owner"].as_str().unwrap(), expected);
         let mut output = Vec::new();
         mzml::write(&mut output, &e).unwrap();
         assert_eq!(mzml::read(Cursor::new(output)).unwrap(), e);
@@ -532,7 +532,18 @@ fn primary_metadata_source_merge_order_and_checked_typed_boundary() {
             "value=\"coordinate\" type=\"xsd:string\"",
             "value=\"1\" type=\"xsd:integer\"",
         );
-        assert!(mzml::read(Cursor::new(wrapper("", &typed))).is_err());
+        let typed = mzml::read(Cursor::new(wrapper("", &typed))).unwrap();
+        if chrom {
+            assert_eq!(
+                typed.chromatograms[0].metadata["owner"].as_i64().unwrap(),
+                1
+            );
+        } else {
+            assert_eq!(
+                typed.spectra[0].metadata["owner"].as_str().unwrap(),
+                "intensity"
+            );
+        }
     }
 }
 

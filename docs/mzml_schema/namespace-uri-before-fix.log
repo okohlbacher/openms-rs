@@ -1,0 +1,14 @@
+   Compiling openms v0.1.0 (/private/tmp/openms-rs-next-mzml-schema)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.00s
+     Running tests/mzml_schema.rs (/tmp/openms-mzml-schema-target-minimum/debug/deps/mzml_schema-6edf6cb34832b44c)
+
+running 1 test
+namespace-URI-probe "foo bar": Ok(SchemaValidationReport { schema: MzML, diagnostics: [], engine_valid: true })
+namespace-URI-probe "urn:a&#xA;b": Ok(SchemaValidationReport { schema: MzML, diagnostics: [], engine_valid: true })
+namespace-URI-probe "urn:a%zz": Ok(SchemaValidationReport { schema: MzML, diagnostics: [], engine_valid: true })
+namespace-URI-probe "urn:a&lt;b": Ok(SchemaValidationReport { schema: MzML, diagnostics: [], engine_valid: true })
+namespace-URI-probe "relative": Ok(SchemaValidationReport { schema: MzML, diagnostics: [], engine_valid: true })
+test namespace_uri_probe ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.03s
+

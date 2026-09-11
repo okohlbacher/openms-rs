@@ -139,7 +139,9 @@ impl EmgGradientDescent {
         self.preflight(input.len())?;
         // Preserve owned acquisition data while bounding the metadata clone;
         // shared processing records require only Arc handle copies here.
-        input.acquisition_with_budget(&mut 50_000_000, &mut (256 * 1024 * 1024))?;
+        let (mut copy_work, mut copy_bytes) = (50_000_000, 256 * 1024 * 1024);
+        input.record_metadata_with_budget(&mut copy_work, &mut copy_bytes)?;
+        input.acquisition_with_budget(&mut copy_work, &mut copy_bytes)?;
         input.validate()?;
         let xs: Vec<_> = input.peaks.iter().map(|p| p.mz).collect();
         let range = self.selected_range(&xs, left, right)?;
@@ -184,7 +186,9 @@ impl EmgGradientDescent {
         self.preflight(input.len())?;
         // Preserve owned acquisition data while bounding the metadata clone;
         // shared processing records require only Arc handle copies here.
-        input.acquisition_with_budget(&mut 50_000_000, &mut (256 * 1024 * 1024))?;
+        let (mut copy_work, mut copy_bytes) = (50_000_000, 256 * 1024 * 1024);
+        input.record_metadata_with_budget(&mut copy_work, &mut copy_bytes)?;
+        input.acquisition_with_budget(&mut copy_work, &mut copy_bytes)?;
         input.validate()?;
         let xs: Vec<_> = input.peaks.iter().map(|p| p.rt).collect();
         let range = self.selected_range(&xs, left, right)?;

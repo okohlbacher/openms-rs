@@ -15,7 +15,6 @@ use openms::identification::{
     EnzymeTermSpecificity, FlankingResidue, PeakAnnotation, PeptideEvidence, PeptideHit,
     PeptideIdentification, ProteinHit, ProteinIdentification, SearchParameters,
 };
-use openms::metadata::meta_from_strings;
 use openms::{Error, MSSpectrum, Peak1D, Precursor, Result};
 use std::collections::BTreeSet;
 use std::io::Cursor;
@@ -76,7 +75,7 @@ pub fn identify_demo() -> Result<DemoIdentification> {
         rt: Some(spectrum.rt),
         mz: Some(spectrum.precursors[0].mz),
         // The bridge is explicit: legacy spectrum strings become typed strings.
-        metadata: meta_from_strings(&spectrum.metadata),
+        metadata: spectrum.metadata.clone(),
         ..Default::default()
     };
     candidates.set_spectrum_reference(spectrum.native_id.clone());

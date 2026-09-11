@@ -392,7 +392,7 @@ fn real_sha1_covers_block_boundaries_and_only_successful_partial_writes() {
     for n in 0..64 {
         e.spectra[0]
             .metadata
-            .insert("padding".into(), "a".repeat(n));
+            .insert("padding".into(), "a".repeat(n).into());
         let bytes = output(&e, &Default::default());
         let start = std::str::from_utf8(&bytes)
             .unwrap()
@@ -651,7 +651,7 @@ fn markup_and_index_allowances_accumulate_across_records_before_external_output(
     let mut single = experiment();
     single.spectra[0]
         .metadata
-        .insert("large & key".into(), "<&\"λ".repeat(4096));
+        .insert("large & key".into(), "<&\"λ".repeat(4096).into());
     let mut repeated = single.clone();
     for i in 1..8 {
         let mut spectrum = single.spectra[0].clone();

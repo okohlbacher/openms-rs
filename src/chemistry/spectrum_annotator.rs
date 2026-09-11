@@ -76,6 +76,13 @@ impl SpectrumAnnotator {
         let matched = match_spectrum(&spectrum.peaks, hit, generator, alignment, &mut work)?;
         let staged = matched.into_annotations(&mut work)?;
         let updates = tolerance_metadata(alignment)?;
+        for (key, _) in &updates {
+            crate::kernel::data_array::Meter {
+                work: &mut work.remaining,
+                bytes: &mut work.bytes,
+            }
+            .meta_update(&spectrum.metadata, key)?;
+        }
         spectrum.array_descriptions_with_budget(&mut work.remaining, &mut work.bytes)?;
         commit_spectrum(spectrum, staged, updates);
         Ok(())
@@ -200,6 +207,13 @@ impl SpectrumAnnotator {
             last = Some(staged);
         }
         let updates = tolerance_metadata(alignment)?;
+        for (key, _) in &updates {
+            crate::kernel::data_array::Meter {
+                work: &mut work.remaining,
+                bytes: &mut work.bytes,
+            }
+            .meta_update(&spectrum.metadata, key)?;
+        }
         let tolerance = MetaValue::try_from(raw_tolerance(alignment))?;
         spectrum.array_descriptions_with_budget(&mut work.remaining, &mut work.bytes)?;
         // No fallible scientific operation remains once mutations start.
@@ -218,7 +232,11 @@ impl SpectrumAnnotator {
     }
 }
 
-fn commit_spectrum(spectrum: &mut MSSpectrum, staged: MSSpectrum, updates: [(String, String); 2]) {
+fn commit_spectrum(
+    spectrum: &mut MSSpectrum,
+    staged: MSSpectrum,
+    updates: [(String, MetaValue); 2],
+) {
     spectrum.peaks = staged.peaks;
     spectrum.float_data_arrays = staged.float_data_arrays;
     spectrum.integer_data_arrays = staged.integer_data_arrays;
@@ -230,16 +248,19 @@ fn raw_tolerance(alignment: &SpectrumAlignment) -> f64 {
         Tolerance::Absolute(value) | Tolerance::Ppm(value) => value,
     }
 }
-fn tolerance_metadata(alignment: &SpectrumAlignment) -> Result<[(String, String); 2]> {
+fn tolerance_metadata(alignment: &SpectrumAlignment) -> Result<[(String, MetaValue); 2]> {
     let tolerance = finite(
         raw_tolerance(alignment),
         "annotation tolerance is nonfinite",
     )?;
     Ok([
-        ("fragment_mass_tolerance".into(), tolerance.to_string()),
+        (
+            "fragment_mass_tolerance".into(),
+            MetaValue::try_from(tolerance)?,
+        ),
         (
             "fragment_mass_tolerance_ppm".into(),
-            u8::from(matches!(alignment.tolerance, Tolerance::Ppm(_))).to_string(),
+            i64::from(matches!(alignment.tolerance, Tolerance::Ppm(_))).into(),
         ),
     ])
 }

@@ -542,7 +542,9 @@
     "tests/data/mzml_isolation_provenance.json",
     "tests/data/mzml_validator_provenance.json",
     "tests/data/mzml_writing_provenance.json",
-    "tests/data/mzml_normalization_provenance.json"
+    "tests/data/mzml_normalization_provenance.json",
+    "tests/data/mzml_schema_provenance.json",
+    "tests/data/mzml_typed_transport_provenance.json"
   ],
   "full_cpp_sdk_built": false,
   "cpp_reference_probe_built": true,

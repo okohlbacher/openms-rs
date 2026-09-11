@@ -11,7 +11,7 @@ pub mod controlled_vocabulary;
 pub mod csv;
 #[cfg(feature = "cv-mapping")]
 pub mod cv_mapping;
-#[cfg(feature = "cv-mapping")]
+#[cfg(any(feature = "cv-mapping", feature = "mzml-schema"))]
 mod cv_xml;
 pub mod numpress;
 #[cfg(feature = "numpress")]
@@ -58,6 +58,8 @@ pub mod idxml;
 pub mod indexed_mzml;
 #[cfg(feature = "mzml")]
 pub mod mzml;
+#[cfg(feature = "mzml-schema")]
+pub mod mzml_schema;
 
 use crate::{Error, Result};
 

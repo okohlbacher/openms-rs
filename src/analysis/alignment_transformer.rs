@@ -10,9 +10,8 @@ use crate::identification::PeptideIdentification;
 use crate::kernel::MSExperiment;
 use crate::kernel::features::{BaseFeature, ConsensusFeature, ConsensusMap, Feature, FeatureMap};
 use crate::kernel::geometry::ConvexHull2D;
-use crate::metadata::MetaValue;
+use crate::metadata::{MetaInfo, MetaValue};
 use crate::{Error, Result};
-use std::collections::BTreeMap;
 
 /// Source `MapAlignmentTransformer` behavior with explicit resource limits.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -43,6 +42,8 @@ struct Budget {
     options: MapAlignmentTransformer,
     values: usize,
     records: usize,
+    work: usize,
+    bytes: usize,
 }
 impl Budget {
     fn new(options: MapAlignmentTransformer) -> Result<Self> {
@@ -56,6 +57,8 @@ impl Budget {
             options,
             values: 0,
             records: 0,
+            work: 50_000_000,
+            bytes: 256 * 1024 * 1024,
         })
     }
     fn records(&mut self, amount: usize) -> Result<()> {
@@ -84,23 +87,37 @@ fn bad(message: &str) -> Error {
 }
 struct PositionPlan {
     rt: f64,
-    original: Option<String>,
+    original: Option<MetaValue>,
 }
 impl PositionPlan {
     fn new(
         rt: f64,
-        metadata: &BTreeMap<String, String>,
+        metadata: &MetaInfo,
         transformation: &TransformationDescription,
         budget: &mut Budget,
     ) -> Result<Self> {
         let transformed = budget.value(rt, transformation)?;
+        if budget.options.store_original_rt {
+            let mut meter = crate::kernel::data_array::Meter {
+                work: &mut budget.work,
+                bytes: &mut budget.bytes,
+            };
+            meter.charge(
+                16 * 12 * (usize::BITS - metadata.len().max(1).leading_zeros()) as usize,
+                0,
+            )?;
+            if !metadata.contains_key("original_RT") {
+                meter.meta_update(metadata, "original_RT")?;
+            }
+        }
         Ok(Self {
             rt: transformed,
             original: (budget.options.store_original_rt && !metadata.contains_key("original_RT"))
-                .then(|| rt.to_string()),
+                .then(|| MetaValue::try_from(rt))
+                .transpose()?,
         })
     }
-    fn apply(self, rt: &mut f64, metadata: &mut BTreeMap<String, String>) {
+    fn apply(self, rt: &mut f64, metadata: &mut MetaInfo) {
         *rt = self.rt;
         if let Some(value) = self.original {
             metadata.insert("original_RT".into(), value);
@@ -282,16 +299,27 @@ impl MapAlignmentTransformer {
             for peak in &chromatogram.peaks {
                 times.push(budget.value(peak.rt, transformation)?);
             }
-            // Kernel metadata currently stores strings. Display of a typed float
-            // list supplies deterministic, round-trippable source-style syntax.
+            if self.store_original_rt {
+                let mut meter = crate::kernel::data_array::Meter {
+                    work: &mut budget.work,
+                    bytes: &mut budget.bytes,
+                };
+                meter.charge(
+                    16 * 12
+                        * (usize::BITS - chromatogram.metadata.len().max(1).leading_zeros())
+                            as usize,
+                    0,
+                )?;
+                if !chromatogram.metadata.contains_key("original_rt") {
+                    meter.meta_update(&chromatogram.metadata, "original_rt")?;
+                    meter.slots::<f64>(chromatogram.len())?;
+                }
+            }
             let original =
                 if self.store_original_rt && !chromatogram.metadata.contains_key("original_rt") {
-                    Some(
-                        MetaValue::try_from(
-                            chromatogram.peaks.iter().map(|p| p.rt).collect::<Vec<_>>(),
-                        )?
-                        .to_string(),
-                    )
+                    Some(MetaValue::try_from(
+                        chromatogram.peaks.iter().map(|p| p.rt).collect::<Vec<_>>(),
+                    )?)
                 } else {
                     None
                 };

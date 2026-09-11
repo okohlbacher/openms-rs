@@ -186,7 +186,10 @@ fn apply_fields(
             .ok_or_else(|| parse_error(line, "invalid MSLEVEL"))?;
     }
     spectrum.precursors.push(precursor);
-    spectrum.metadata = fields;
+    spectrum.metadata = fields
+        .into_iter()
+        .map(|(key, value)| (key, value.into()))
+        .collect();
     Ok(())
 }
 
@@ -237,6 +240,14 @@ pub fn write(mut writer: impl Write, experiment: &MSExperiment) -> Result<()> {
         }
         let mut keys = BTreeSet::new();
         for (key, value) in &spectrum.metadata {
+            if value.unit().is_some() {
+                return Err(Error::Unsupported(
+                    "MGF cannot retain metadata units".into(),
+                ));
+            }
+            let value = value
+                .as_str()
+                .map_err(|_| Error::Unsupported("MGF can retain only String metadata".into()))?;
             let normalized = key.to_ascii_uppercase();
             if key.is_empty()
                 || !single_line(key)
@@ -279,7 +290,7 @@ pub fn write(mut writer: impl Write, experiment: &MSExperiment) -> Result<()> {
             writeln!(writer, "MSLEVEL={}", spectrum.ms_level)?;
         }
         for (key, value) in &spectrum.metadata {
-            writeln!(writer, "{key}={value}")?;
+            writeln!(writer, "{key}={}", value.as_str()?)?;
         }
         for peak in &spectrum.peaks {
             writeln!(writer, "{} {}", peak.mz, peak.intensity)?;

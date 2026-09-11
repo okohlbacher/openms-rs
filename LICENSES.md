@@ -364,3 +364,12 @@ The optional RustCrypto `sha1 0.10.7` dependency is licensed MIT OR Apache-2.0.
 Its versioned notices and transitive package versions are recorded in
 [the dependency reference](docs/MZML_WRITER_DEPENDENCY.md). SHA-1 implements
 the mzML checksum convention; the OpenMS license does not relicense this dependency.
+
+## Optional mzML XSD backend and schemas
+
+The optional registry dependency `libxml 0.3.14` is MIT-licensed; its unchanged
+[license notice](docs/mzml_schema/libxml-MIT.txt) is retained. Installed libxml2 is
+a separate C library with its own distribution notices. The two unchanged mzML
+schemas retain their original creator comments and source attribution; see
+[the schema resource notices](resources/schemas/NOTICE.md) and
+[dependency provenance](tests/data/mzml_schema_provenance.json).

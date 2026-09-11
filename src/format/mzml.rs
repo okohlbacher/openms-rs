@@ -7,6 +7,12 @@
 //! This is an event parser, but the returned experiment is held in memory.
 
 pub use super::indexed_mzml::has_index;
+#[cfg(feature = "mzml-schema")]
+pub use super::mzml_schema::{
+    SchemaDiagnostic, SchemaDiagnosticLevel, SchemaKind, SchemaValidationLimits,
+    SchemaValidationOptions, SchemaValidationReport, validate_schema, validate_schema_reader,
+    validate_schema_with_options,
+};
 #[path = "mzml_write_options.rs"]
 mod peak_writer;
 pub use peak_writer::{
@@ -57,6 +63,8 @@ pub use paths::{
 };
 #[path = "mzml_precursor.rs"]
 mod precursor_metadata;
+#[path = "mzml_record.rs"]
+mod record_transport;
 #[path = "mzml_settings.rs"]
 mod settings_metadata;
 use base64::{Engine, engine::general_purpose::STANDARD};
@@ -208,6 +216,7 @@ enum Kind {
     Time,
     Intensity,
     Auxiliary(String),
+    Role(record_transport::Role),
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Encoding {
@@ -233,6 +242,7 @@ enum Values {
 }
 #[derive(Default)]
 struct Binary {
+    spectrum: bool,
     metadata: crate::metadata::MetaInfo,
     data_processing: Vec<std::sync::Arc<crate::metadata::DataProcessing>>,
     kind: Option<Kind>,
@@ -326,36 +336,41 @@ fn integer_array_encoding(name: &str) -> Encoding {
 }
 
 impl Binary {
-    fn cv(&mut self, attrs: &BTreeMap<String, String>) -> Result<()> {
+    fn cv(&mut self, attrs: &BTreeMap<String, String>, budget: &mut ParameterBudget) -> Result<()> {
         let accession = required(attrs, "accession")?;
-        let kind = match accession {
-            "MS:1000514" => Some(Kind::Mz),
-            "MS:1000515" => Some(Kind::Intensity),
-            "MS:1000595" => {
-                self.time_scale = seconds(attrs.get("unitAccession"))?;
-                Some(Kind::Time)
+        let detected_role = record_transport::array_role(self, attrs, budget)?;
+        let kind = if detected_role.is_some() {
+            detected_role
+        } else {
+            match accession {
+                "MS:1000514" => Some(Kind::Mz),
+                "MS:1000515" => Some(Kind::Intensity),
+                "MS:1000595" => {
+                    self.time_scale = seconds(attrs.get("unitAccession"))?;
+                    Some(Kind::Time)
+                }
+                "MS:1000786" => {
+                    let name = required(attrs, "value")?;
+                    if canonical_array_accession(name).is_some() {
+                        return Err(Error::Unsupported(
+                            "nonstandard array name collides with a canonical array".into(),
+                        ));
+                    }
+                    if name.is_empty() {
+                        return Err(invalid("auxiliary array name is empty"));
+                    }
+                    if ["unitAccession", "unitCvRef", "unitName"]
+                        .iter()
+                        .any(|k| attrs.contains_key(*k))
+                    {
+                        return Err(Error::Unsupported(
+                            "units on auxiliary arrays are not represented".into(),
+                        ));
+                    }
+                    Some(Kind::Auxiliary(name.to_owned()))
+                }
+                _ => canonical_array_name(accession).map(|name| Kind::Auxiliary(name.into())),
             }
-            "MS:1000786" => {
-                let name = required(attrs, "value")?;
-                if canonical_array_accession(name).is_some() {
-                    return Err(Error::Unsupported(
-                        "nonstandard array name collides with a canonical array".into(),
-                    ));
-                }
-                if name.is_empty() {
-                    return Err(invalid("auxiliary array name is empty"));
-                }
-                if ["unitAccession", "unitCvRef", "unitName"]
-                    .iter()
-                    .any(|k| attrs.contains_key(*k))
-                {
-                    return Err(Error::Unsupported(
-                        "units on auxiliary arrays are not represented".into(),
-                    ));
-                }
-                Some(Kind::Auxiliary(name.to_owned()))
-            }
-            _ => canonical_array_name(accession).map(|name| Kind::Auxiliary(name.into())),
         };
         if matches!(kind, Some(Kind::Auxiliary(_)))
             && ["unitAccession", "unitCvRef", "unitName"]
@@ -442,13 +457,19 @@ impl Binary {
             check_canonical_encoding(name, encoding)?;
         }
         let auxiliary = matches!(kind, Kind::Auxiliary(_));
+        let empty_wavelength = matches!(kind, Kind::Role(record_transport::Role::Wavelength))
+            && self.array_length == Some(0);
         if !auxiliary && !matches!(encoding, Encoding::Float32 | Encoding::Float64) {
             return Err(Error::Unsupported(
                 "primary peak arrays must use floating-point encoding".into(),
             ));
         }
         let count = self.array_length.unwrap_or(default_count);
-        if count != default_count && !(auxiliary && count == 0) {
+        let valid_length = count == default_count
+            || (auxiliary && count == 0)
+            || empty_wavelength
+            || matches!(kind, Kind::Role(role) if role.noise());
+        if !valid_length {
             return Err(invalid(
                 "nonempty arrayLength differs from defaultArrayLength",
             ));
@@ -674,6 +695,7 @@ struct Record {
     raw_float_arrays: Vec<DataArray<f64>>,
     primary_metadata: [crate::metadata::MetaInfo; 2],
     intensity_first: bool,
+    wavelength: Option<(usize, usize)>,
 }
 impl Record {
     fn check_array_kind(&mut self, kind: &Kind) -> Result<()> {
@@ -684,7 +706,13 @@ impl Record {
                 }
                 return Ok(());
             }
-            Kind::Intensity => 1,
+            Kind::Role(role) if *role == record_transport::Role::Wavelength || role.noise() => {
+                if !self.array_names.insert(role.terms().1.into()) {
+                    return Err(invalid("duplicate wavelength/noise array"));
+                }
+                return Ok(());
+            }
+            Kind::Role(_) | Kind::Intensity => 1,
             Kind::Mz if self.spectrum.is_some() => 0,
             Kind::Time if self.chromatogram.is_some() => 0,
             _ => return Err(invalid("coordinate array has wrong type for record")),
@@ -695,7 +723,7 @@ impl Record {
         Ok(())
     }
 
-    fn metadata(&mut self) -> &mut BTreeMap<String, String> {
+    fn metadata(&mut self) -> &mut crate::metadata::MetaInfo {
         if let Some(s) = &mut self.spectrum {
             &mut s.metadata
         } else {
@@ -748,8 +776,19 @@ impl Record {
             }
             return Ok(());
         }
+        if record_transport::read_cv(self, parent, attrs, budget)? {
+            return Ok(());
+        }
         if acquisition_metadata::read_cv(self, parent, attrs)? {
             return Ok(());
+        }
+        if parent == "chromatogram"
+            && matches!(
+                required(attrs, "accession")?,
+                "MS:1003019" | "MS:1003020" | "MS:1000626"
+            )
+        {
+            record_transport::slot(budget, "chromatogram type accession")?;
         }
         if settings_metadata::read_cv(self, parent, attrs)? {
             return Ok(());
@@ -978,7 +1017,7 @@ fn apply_parameter(
                 binary
                     .as_mut()
                     .ok_or_else(|| invalid("CV outside binary array"))?
-                    .cv(attrs)?;
+                    .cv(attrs, budget)?;
             } else if let Some(r) = record {
                 r.cv(parent, attrs, budget)?;
             } else if parent == "run" && required(attrs, "accession")? == "MS:1000858" {
@@ -1077,8 +1116,13 @@ fn apply_parameter(
         }
         "userParam" if matches!(parent, "spectrum" | "chromatogram") => {
             let name = required(attrs, "name")?.to_owned();
-            let value = attrs.get("value").cloned().unwrap_or_default();
+            let value = product_user_value(attrs)?;
+            record_transport::slot(budget, &name)?;
             if name == NAME_KEY {
+                if value.unit().is_some() {
+                    return Err(invalid("record name cannot have units"));
+                }
+                let value = value.as_str()?.to_owned();
                 let r = record
                     .as_mut()
                     .ok_or_else(|| invalid("name outside record"))?;
@@ -1818,6 +1862,7 @@ fn read_engine(
                             precursor_outside: false,
                             raw_float_arrays: Vec::new(),
                             primary_metadata: Default::default(),
+                            wavelength: None,
                             intensity_first: false,
                         });
                         let processing = if let Some(id) = attrs.get("dataProcessingRef") {
@@ -1842,6 +1887,17 @@ fn read_engine(
                         if let Some(s) = &mut r.spectrum {
                             s.data_processing = processing;
                             s.source_file = source;
+                            if let Some(spot) = attrs.get("spotID") {
+                                if !spot.is_empty() {
+                                    header_work
+                                        .meter()
+                                        .meta_update(&s.metadata, "maldi_spot_id")?;
+                                    s.metadata.insert(
+                                        "maldi_spot_id".into(),
+                                        header_work.copy(spot)?.into(),
+                                    );
+                                }
+                            }
                         } else {
                             let c = r.chromatogram.as_mut().unwrap();
                             c.data_processing = processing;
@@ -1877,6 +1933,7 @@ fn read_engine(
                             return Err(invalid("encodedLength exceeds configured byte limit"));
                         }
                         binary = Some(Binary {
+                            spectrum: record.as_ref().is_some_and(|r| r.spectrum.is_some()),
                             encoded_length,
                             data_processing: attrs
                                 .get("dataProcessingRef")
@@ -2040,8 +2097,14 @@ fn read_engine(
                             .take()
                             .ok_or_else(|| invalid("missing binary array state"))?;
                         if !fill_data {
-                            b.descriptor(r.count)?;
+                            let (_, _, count) = b.descriptor(r.count)?;
                             r.check_array_kind(b.kind.as_ref().unwrap())?;
+                            if matches!(
+                                b.kind,
+                                Some(Kind::Role(record_transport::Role::Wavelength))
+                            ) {
+                                r.wavelength = Some((0, count));
+                            }
                             // Source creates no primary/auxiliary data or descriptions
                             // when data population is disabled. XML descriptors were
                             // parsed, but their encoded payload is never decoded.
@@ -2058,8 +2121,43 @@ fn read_engine(
                             &mut numpress_work,
                         )?;
                         r.check_array_kind(&kind)?;
+                        if let Kind::Role(role) = kind {
+                            if role.noise() {
+                                if !metadata.is_empty() || !data_processing.is_empty() {
+                                    return Err(Error::Unsupported("independent noise array descriptions/history have no owner".into()));
+                                }
+                                let Values::Floats(values) = values else {
+                                    return Err(invalid("noise array must be floating point"));
+                                };
+                                let key = role.terms().1;
+                                header_work.meter().meta_update(r.metadata(), key)?;
+                                header_work.charge(values.len(), 0)?;
+                                if r.metadata()
+                                    .insert(key.into(), MetaValue::try_from(values)?)
+                                    .is_some()
+                                {
+                                    return Err(invalid("duplicate noise metadata owner"));
+                                }
+                                buffer.clear();
+                                continue;
+                            }
+                            if role == record_transport::Role::Wavelength {
+                                let Values::Floats(values) = values else {
+                                    return Err(invalid("wavelength array must be floating point"));
+                                };
+                                r.wavelength = Some((r.raw_float_arrays.len(), values.len()));
+                                r.raw_float_arrays.push(DataArray {
+                                    name: "wavelength array".into(),
+                                    data: values,
+                                    metadata,
+                                    data_processing,
+                                });
+                                buffer.clear();
+                                continue;
+                            }
+                        }
                         if let Kind::Auxiliary(name) = kind {
-                            let (floats, integers, strings) =
+                            let (_floats, integers, strings) =
                                 if let Some(spectrum) = &mut r.spectrum {
                                     (
                                         &mut spectrum.float_data_arrays,
@@ -2076,24 +2174,12 @@ fn read_engine(
                                 };
                             match values {
                                 Values::Floats(values) => {
-                                    if selection.is_some() {
-                                        r.raw_float_arrays.push(DataArray {
-                                            name,
-                                            data: values,
-                                            metadata,
-                                            data_processing,
-                                        });
-                                    } else {
-                                        floats.push(DataArray {
-                                            name,
-                                            data: values
-                                                .into_iter()
-                                                .map(intensity)
-                                                .collect::<Result<_>>()?,
-                                            metadata,
-                                            data_processing,
-                                        });
-                                    }
+                                    r.raw_float_arrays.push(DataArray {
+                                        name,
+                                        data: values,
+                                        metadata,
+                                        data_processing,
+                                    });
                                 }
                                 Values::Integers(values) => integers.push(DataArray {
                                     name,
@@ -2117,7 +2203,8 @@ fn read_engine(
                             }
                             // Source spectra merge m/z metadata before intensity, regardless
                             // of XML order; chromatograms merge in encounter order.
-                            let index = usize::from(matches!(kind, Kind::Intensity));
+                            let index =
+                                usize::from(matches!(kind, Kind::Intensity | Kind::Role(_)));
                             if r.coordinates.is_none() && r.intensities.is_none() {
                                 r.intensity_first = index == 1;
                             }
@@ -2126,7 +2213,7 @@ fn read_engine(
                                 return Err(invalid("non-floating primary binary array"));
                             };
                             let slot = match kind {
-                                Kind::Intensity => &mut r.intensities,
+                                Kind::Intensity | Kind::Role(_) => &mut r.intensities,
                                 Kind::Mz if r.spectrum.is_some() => &mut r.coordinates,
                                 Kind::Time if r.chromatogram.is_some() => &mut r.coordinates,
                                 _ => {
@@ -2210,6 +2297,38 @@ fn read_engine(
                                 &mut s.acquisition_info,
                                 options.acquisition_mode,
                             );
+                            // Source fallback precedes primary-array metadata merging
+                            // and does not manufacture a scan-time filtering event.
+                            if !record.rt_seen {
+                                let height = (usize::BITS - s.metadata.len().max(1).leading_zeros())
+                                    as usize;
+                                header_work.charge(height.saturating_mul(16 * 23), 0)?;
+                                if let Some(value) = s.metadata.get("elution time (seconds)") {
+                                    s.rt = value.as_f64()?;
+                                }
+                            }
+                        }
+                        if let Some((index, count)) = record.wavelength.take() {
+                            if !record.primary_seen[0] && count != record.count {
+                                return Err(invalid(
+                                    "primary wavelength length differs from defaultArrayLength",
+                                ));
+                            }
+                            if fill_data && record.coordinates.is_none() {
+                                if !record.raw_float_arrays[index].data_processing.is_empty() {
+                                    return Err(Error::Unsupported(
+                                        "wavelength processing has no primary owner".into(),
+                                    ));
+                                }
+                                header_work.charge(record.raw_float_arrays.len(), 0)?;
+                                let array = record.raw_float_arrays.remove(index);
+                                record.coordinates = Some(array.data);
+                                record.primary_metadata[0] = array.metadata;
+                            } else if fill_data {
+                                record.raw_float_arrays[index]
+                                    .metadata
+                                    .remove(record_transport::COORDINATE);
+                            }
                         }
                         let order = if record.chromatogram.is_some() && record.intensity_first {
                             [1, 0]
@@ -2218,18 +2337,16 @@ fn read_engine(
                         };
                         for index in order {
                             let metadata = std::mem::take(&mut record.primary_metadata[index]);
-                            header_work
-                                .meter()
-                                .tree::<(String, String)>(metadata.len())?;
                             for (name, value) in metadata {
-                                if value.unit().is_some() {
-                                    return Err(Error::Unsupported(
-                                        "primary-array units require typed record metadata".into(),
+                                if record.spectrum.is_some()
+                                    && record_transport::NOISE.contains(&name.as_str())
+                                {
+                                    return Err(invalid(
+                                        "primary metadata collides with independent noise ownership",
                                     ));
                                 }
-                                let text = value.as_str().map_err(|_| Error::Unsupported("non-string primary-array metadata requires typed record metadata".into()))?;
-                                header_work.charge(name.len().saturating_mul(64), 0)?;
-                                record.metadata().insert(name, header_work.copy(text)?);
+                                header_work.meter().meta_update(record.metadata(), &name)?;
+                                record.metadata().insert(name, value);
                             }
                         }
                         if let Some(completed) = record.finish(selection.as_mut(), fill_data)? {
@@ -2450,19 +2567,23 @@ fn validate_product_write(product: &Product) -> Result<()> {
 }
 fn validate_scalar_metadata(metadata: &crate::metadata::MetaInfo) -> Result<()> {
     for (key, value) in metadata {
-        xml_string(key)?;
-        match value.data() {
-            MetaValueData::String(text) => xml_string(text)?,
-            MetaValueData::Integer(_) | MetaValueData::Float(_) => {}
-            _ => {
-                return Err(Error::Unsupported(
-                    "Empty/list metadata has no lossless mzML scalar encoding".into(),
-                ));
-            }
+        validate_scalar_value(key, value)?;
+    }
+    Ok(())
+}
+fn validate_scalar_value(key: &str, value: &MetaValue) -> Result<()> {
+    xml_string(key)?;
+    match value.data() {
+        MetaValueData::String(text) => xml_string(text)?,
+        MetaValueData::Integer(_) | MetaValueData::Float(_) => {}
+        _ => {
+            return Err(Error::Unsupported(
+                "Empty/list metadata has no lossless mzML scalar encoding".into(),
+            ));
         }
-        if let Some(unit) = value.unit() {
-            product_unit(unit)?;
-        }
+    }
+    if let Some(unit) = value.unit() {
+        product_unit(unit)?;
     }
     Ok(())
 }
@@ -2540,24 +2661,7 @@ fn write_scalar_metadata_skipping(
     }
     Ok(())
 }
-fn user_params(w: &mut impl Write, metadata: &BTreeMap<String, String>, name: &str) -> Result<()> {
-    if !name.is_empty() {
-        writeln!(
-            w,
-            "<userParam name=\"{NAME_KEY}\" value=\"{}\" type=\"xsd:string\"/>",
-            escape(name)
-        )?;
-    }
-    for (key, value) in metadata {
-        writeln!(
-            w,
-            "<userParam name=\"{}\" value=\"{}\" type=\"xsd:string\"/>",
-            escape(key),
-            escape(value)
-        )?;
-    }
-    Ok(())
-}
+
 fn cv(w: &mut impl Write, accession: &str, name: &str, value: &str, unit: &str) -> Result<()> {
     writeln!(
         w,
@@ -2655,6 +2759,28 @@ fn write_array(
         cv(w, "MS:1000576", "no compression", "", "")?;
     }
     match kind {
+        Kind::Role(role) => {
+            let (accession, name, unit, unit_name) = role.terms();
+            let unit = if unit.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    " unitCvRef=\"{}\" unitAccession=\"{unit}\" unitName=\"{unit_name}\"",
+                    unit.split_once(':').unwrap().0
+                )
+            };
+            cv(
+                w,
+                accession,
+                name,
+                if role == record_transport::Role::Detector {
+                    "detector signal"
+                } else {
+                    ""
+                },
+                &unit,
+            )?;
+        }
         Kind::Mz => cv(
             w,
             "MS:1000514",
@@ -2830,6 +2956,13 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
     // O(1) loss guards precede validation of newly supported owned settings.
     for spectrum in &experiment.spectra {
         settings_metadata::spectrum_guard(spectrum)?;
+        record_transport::array_owners(
+            &spectrum.metadata,
+            false,
+            &spectrum.float_data_arrays,
+            &spectrum.integer_data_arrays,
+            &spectrum.string_data_arrays,
+        )?;
         check_array_descriptions(
             &spectrum.float_data_arrays,
             &spectrum.integer_data_arrays,
@@ -2838,6 +2971,13 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
     }
     for chromatogram in &experiment.chromatograms {
         settings_metadata::chromatogram_guard(chromatogram)?;
+        record_transport::array_owners(
+            &chromatogram.metadata,
+            true,
+            &chromatogram.float_data_arrays,
+            &chromatogram.integer_data_arrays,
+            &chromatogram.string_data_arrays,
+        )?;
         check_array_descriptions(
             &chromatogram.float_data_arrays,
             &chromatogram.integer_data_arrays,
@@ -2880,23 +3020,33 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
         )
         .ok_or_else(|| invalid("mzML settings record limit exceeded"))?;
     for spectrum in &experiment.spectra {
+        spectrum.record_metadata_with_budget(&mut settings_work, &mut settings_bytes)?;
         spectrum.acquisition_with_budget(&mut settings_work, &mut settings_bytes)?;
         settings_metadata::validate_spectrum(spectrum)?;
     }
-    experiment.validate()?;
-    let check_metadata = |metadata: &BTreeMap<String, String>, name: &str| -> Result<()> {
-        xml_string(name)?;
-        for (key, value) in metadata {
-            xml_string(key)?;
-            xml_string(value)?;
-            if key == NAME_KEY {
-                return Err(Error::InvalidValue(format!(
-                    "reserved metadata name {NAME_KEY}"
-                )));
+    for chromatogram in &experiment.chromatograms {
+        chromatogram.record_metadata_with_budget(&mut settings_work, &mut settings_bytes)?;
+    }
+    // New independent grids are never bounded by the aligned peak count. Cover
+    // ordinary binary bytes, compression scratch and Base64 before emission.
+    for spectrum in &experiment.spectra {
+        for index in 0..3 {
+            if let Some(values) = record_transport::noise_values(&spectrum.metadata, index)? {
+                let cost = values
+                    .len()
+                    .checked_mul(64)
+                    .and_then(|n| n.checked_add(4096))
+                    .ok_or_else(|| invalid("noise output budget overflow"))?;
+                settings_work = settings_work
+                    .checked_sub(cost)
+                    .ok_or_else(|| invalid("noise output work limit"))?;
+                settings_bytes = settings_bytes
+                    .checked_sub(cost)
+                    .ok_or_else(|| invalid("noise output byte limit"))?;
             }
         }
-        Ok(())
-    };
+    }
+    experiment.validate()?;
     if experiment.settings.metadata.contains_key(NAME_KEY) {
         return Err(invalid("reserved record name userParam at run level"));
     }
@@ -2912,7 +3062,8 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
                 "mzML writer cannot store peptide identifications".into(),
             ));
         }
-        check_metadata(&s.metadata, &s.name)?;
+        xml_string(&s.name)?;
+        record_transport::validate(&s.metadata, false)?;
         let id = if s.native_id.is_empty() {
             format!("index={i}")
         } else {
@@ -2943,7 +3094,8 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
     for (i, c) in experiment.chromatograms.iter().enumerate() {
         precursor_metadata::validate_write(&c.precursor)?;
         validate_product_write(&c.product)?;
-        check_metadata(&c.metadata, &c.name)?;
+        xml_string(&c.name)?;
+        record_transport::validate(&c.metadata, true)?;
         let id = if c.native_id.is_empty() {
             format!("chromatogram={i}")
         } else {
@@ -3028,7 +3180,7 @@ fn write_document<W: Write>(
                 SpectrumType::Unknown => {}
             }
             settings_metadata::write_spectrum(&mut w, spectrum)?;
-            user_params(&mut w, &spectrum.metadata, &spectrum.name)?;
+            w.write_all(header.spectrum_metadata[i].as_bytes())?;
             settings_metadata::write_scan(&mut w, spectrum)?;
             if !spectrum.precursors.is_empty() {
                 writeln!(w, "<precursorList count=\"{}\">", spectrum.precursors.len())?;
@@ -3047,7 +3199,11 @@ fn write_document<W: Write>(
             writeln!(
                 w,
                 "<binaryDataArrayList count=\"{}\">",
-                2 + spectrum.float_data_arrays.len()
+                2 + record_transport::NOISE
+                    .iter()
+                    .filter(|key| spectrum.metadata.contains_key(**key))
+                    .count()
+                    + spectrum.float_data_arrays.len()
                     + spectrum.integer_data_arrays.len()
                     + spectrum.string_data_arrays.len()
             )?;
@@ -3060,7 +3216,7 @@ fn write_document<W: Write>(
                         .flat_map(|p| p.mz.to_le_bytes())
                         .collect()
                 },
-                Kind::Mz,
+                record_transport::primary_kind(&spectrum.metadata, false, true)?,
                 Encoding::Float64,
                 None,
                 options,
@@ -3076,13 +3232,27 @@ fn write_document<W: Write>(
                         .flat_map(|p| p.intensity.to_le_bytes())
                         .collect()
                 },
-                Kind::Intensity,
+                record_transport::primary_kind(&spectrum.metadata, false, false)?,
                 Encoding::Float32,
                 None,
                 options,
                 prepared,
                 None,
             )?;
+            for index in 0..3 {
+                if let Some(values) = record_transport::noise_values(&spectrum.metadata, index)? {
+                    write_array(
+                        &mut w,
+                        || values.iter().flat_map(|v| v.to_le_bytes()).collect(),
+                        Kind::Role(record_transport::noise_role(index)),
+                        Encoding::Float64,
+                        Some(values.len()),
+                        options,
+                        prepared,
+                        None,
+                    )?;
+                }
+            }
             write_auxiliary_arrays(
                 &mut w,
                 &spectrum.float_data_arrays,
@@ -3113,7 +3283,7 @@ fn write_document<W: Write>(
                 header.chromatograms[i]
             )?;
             settings_metadata::write_chromatogram(&mut w, chromatogram)?;
-            user_params(&mut w, &chromatogram.metadata, &chromatogram.name)?;
+            w.write_all(header.chromatogram_metadata[i].as_bytes())?;
             if tpp || chromatogram.precursor != Precursor::default() {
                 write_precursor(&mut w, &chromatogram.precursor, tpp)?;
             }
@@ -3134,7 +3304,7 @@ fn write_document<W: Write>(
                         .flat_map(|p| p.rt.to_le_bytes())
                         .collect()
                 },
-                Kind::Time,
+                record_transport::primary_kind(&chromatogram.metadata, true, true)?,
                 Encoding::Float64,
                 None,
                 options,
@@ -3150,7 +3320,7 @@ fn write_document<W: Write>(
                         .flat_map(|p| p.intensity.to_le_bytes())
                         .collect()
                 },
-                Kind::Intensity,
+                record_transport::primary_kind(&chromatogram.metadata, true, false)?,
                 Encoding::Float32,
                 None,
                 options,

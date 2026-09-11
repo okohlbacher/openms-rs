@@ -226,7 +226,7 @@ existence, single/all compositions, counts and constrained real-mass queries.
 
 [Explicit scientific loading](MZML_LOAD_OPTIONS_SUPPORT.md) now consumes the
 supported PeakFileOptions filters/sorting and preserves aligned arrays with
-26 canonical binary roles. Source-supported headers and metadata-only reading are implemented; consumer paths remain open; [Numpress transport](MZML_NUMPRESS_SUPPORT.md) is implemented.
+26 canonical binary roles. Source-supported headers, metadata-only reading and streaming consumer paths are implemented; [Numpress transport](MZML_NUMPRESS_SUPPORT.md) is implemented.
 
 
 ## IMS foundations, peak traversal and raw compression (2026-09-11)
@@ -247,8 +247,9 @@ and fixed-point helpers. Its 295 executed C++ reference cases are narrow codec
 evidence, not a full SDK comparison. The [base64/zlib wrapper](MSNUMPRESS_CODER_SUPPORT.md) also provides source
 estimation, verification and fallback diagnostics. [mzML Numpress transport](MZML_NUMPRESS_SUPPORT.md)
 accepts all six source CV modes and provides preflighted writing with ordinary
-fallback. Full metadata and PeakFileOptions writer execution remain open; normal
-builds require no C++ compiler.
+fallback. The represented PeakFileOptions writer settings are implemented. Remaining
+metadata transport is tracked by the mzML support pages; default builds require
+no C++ compiler.
 
 ## Unique IDs and two-dimensional values
 
@@ -273,3 +274,14 @@ Spectra/chromatograms now own acquisition records and shared processing handles.
 [Processing propagation](PROCESSING_ACQUISITION_SUPPORT.md) retains these fields;
 [mzML guards](MZML_ACQUISITION_GUARDS.md) reject their unrepresented transport.
 Full settings bridges, comments and scan mobility remain separate work.
+
+## Typed record transport and mzML schema validation
+
+[Spectrum/chromatogram metadata](RECORD_METADATA_MIGRATION.md) now uses typed
+values with one owner. [mzML transport](MZML_TYPED_TRANSPORT_SUPPORT.md) adds
+primary metadata merges, optical/pressure/flow roles and independently sampled
+noise arrays, including checked copy propagation and explicit flat-format limits.
+[Optional XSD validation](MZML_SCHEMA_SUPPORT.md) uses the original schemas with
+libxml2; scientific reading, CV validation and index integrity remain separate
+contracts. Spectrum mobility, remaining precursor metadata and adapter progress
+hooks still require work; the MzMLFile header remains partial.

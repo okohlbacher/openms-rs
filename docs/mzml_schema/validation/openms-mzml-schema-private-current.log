@@ -1,0 +1,12 @@
+   Compiling openms v0.1.0 (/private/tmp/openms-rs-next-mzml-schema)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.76s
+     Running unittests src/lib.rs (/tmp/openms-mzml-schema-target-current/debug/deps/openms-3b3093e81a295518)
+
+running 4 tests
+test format::mzml_schema::tests::declaration_replacement_preserves_layout_and_does_not_change_stylesheet_pi ... ok
+test format::mzml_schema::tests::diagnostic_limits_are_cumulative_after_successful_collection ... ok
+test format::mzml_schema::tests::warning_policy_and_structured_severity_are_not_empty_vector_policy ... ok
+test format::mzml_schema::tests::namespace_resolution_spends_shared_work_after_successful_scope_setup ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 139 filtered out; finished in 0.00s
+

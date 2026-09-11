@@ -224,7 +224,7 @@ pub struct MSSpectrum {
     pub peaks: Vec<Peak1D>,
     /// Retention time in seconds; -1 is the OpenMS default for an unset value.
     pub rt: f64,
-    /// Positive MS level (1 for survey scans, 2 for MS/MS).
+    /// MS level (1 for survey scans, 2 for MS/MS); zero is allowed for the three optical scan modes.
     pub ms_level: u32,
     pub native_id: String,
     pub name: String,
@@ -237,7 +237,7 @@ pub struct MSSpectrum {
     pub products: Vec<crate::metadata::Product>,
     pub precursors: Vec<Precursor>,
     pub peptide_identifications: Vec<crate::identification::PeptideIdentification>,
-    pub metadata: BTreeMap<String, String>,
+    pub metadata: crate::metadata::MetaInfo,
     pub float_data_arrays: Vec<DataArray<f32>>,
     pub integer_data_arrays: Vec<DataArray<i32>>,
     pub string_data_arrays: Vec<DataArray<String>>,
@@ -282,7 +282,7 @@ pub struct MSChromatogram {
     pub precursor: Precursor,
     /// Product isolation information; XIC extraction sets its target m/z.
     pub product: crate::metadata::Product,
-    pub metadata: BTreeMap<String, String>,
+    pub metadata: crate::metadata::MetaInfo,
     pub float_data_arrays: Vec<DataArray<f32>>,
     pub integer_data_arrays: Vec<DataArray<i32>>,
     pub string_data_arrays: Vec<DataArray<String>>,
@@ -413,6 +413,19 @@ macro_rules! peak_container {
                 array_sizes(&self.float_data_arrays, self.len())?;
                 array_sizes(&self.integer_data_arrays, self.len())?;
                 array_sizes(&self.string_data_arrays, self.len())
+            }
+
+            /// Charge the single record metadata owner before copying or replacing it.
+            pub(crate) fn record_metadata_with_budget(
+                &self,
+                work: &mut usize,
+                bytes: &mut usize,
+            ) -> Result<()> {
+                data_array::Meter { work, bytes }.meta(&self.metadata)
+            }
+            fn validate_record_metadata(&self) -> Result<()> {
+                self.record_metadata_with_budget(&mut 50_000_000, &mut (256 * 1024 * 1024))?;
+                crate::metadata::validate_meta(&self.metadata)
             }
 
             /// Charge complete array descriptions before copying or dropping
@@ -560,11 +573,18 @@ peak_container!(MSSpectrum, Peak1D, mz);
 peak_container!(MSChromatogram, ChromatogramPeak, rt);
 
 impl MSSpectrum {
-    /// Validate finite values, positive MS level and parallel array lengths.
+    /// Validate finite values, the MS-level/scan-mode combination and parallel array lengths.
     /// Signed finite intensities and coordinates are permitted, as in OpenMS.
     pub fn validate(&self) -> Result<()> {
         finite(self.rt, "spectrum retention time")?;
-        if self.ms_level == 0 {
+        if self.ms_level == 0
+            && !matches!(
+                self.instrument_settings.scan_mode,
+                crate::metadata::ScanMode::ElectromagneticRadiation
+                    | crate::metadata::ScanMode::Emission
+                    | crate::metadata::ScanMode::Absorption
+            )
+        {
             return Err(Error::InvalidValue(
                 "spectrum MS level must be positive".into(),
             ));
@@ -579,6 +599,7 @@ impl MSSpectrum {
         for identification in &self.peptide_identifications {
             identification.validate()?;
         }
+        self.validate_record_metadata()?;
         self.validate_data_arrays()?;
         self.validate_array_descriptions()?;
         self.validate_acquisition_settings()
@@ -677,6 +698,7 @@ impl MSChromatogram {
         }
         self.precursor.validate()?;
         self.product.validate()?;
+        self.validate_record_metadata()?;
         self.validate_data_arrays()?;
         self.validate_array_descriptions()?;
         self.validate_acquisition_settings()

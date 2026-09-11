@@ -21,7 +21,10 @@ fn modified_digest_identifies_known_peptide_and_retains_evidence_and_metadata() 
     assert!((candidate.score - 7.0 / 63.0_f64.sqrt()).abs() < 1e-12);
 
     let spectrum = &result.spectrum;
-    assert_eq!(spectrum.metadata["sample"], "synthetic digest");
+    assert_eq!(
+        spectrum.metadata["sample"].as_str().unwrap(),
+        "synthetic digest"
+    );
     assert_eq!(spectrum.peptide_identifications.len(), 1);
     let id = &spectrum.peptide_identifications[0];
     assert_eq!(id.hits.len(), 1);

@@ -1,0 +1,107 @@
+   Compiling openms v0.1.0 (/private/tmp/openms-rs-next-mzml-schema)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.27s
+     Running tests/cv_mapping_file.rs (/tmp/openms-mzml-schema-target-current/debug/deps/cv_mapping_file-b3c47d6553d2e77a)
+
+running 10 tests
+test malformed_xml_and_short_inputs_fail_without_publication ... ok
+test source_qnames_ignored_payload_and_single_current_rule_state ... ok
+test atomic_repeated_load_references_append_rules_replace_and_failure_does_not_leak ... ok
+test all_record_and_payload_limits_are_atomic ... ok
+test xml_entities_line_endings_and_chunk_independent_encoding ... ok
+test xml_defaults_exact_booleans_and_source_enum_fallbacks ... ok
+test compressed_magic_corruption_and_io_failure ... ok
+test original_class_test_literal_records ... ok
+test corrected_namespace_stripping_preserves_attributes_and_scope ... ok
+test all_six_source_files_match_complete_independent_xml_projection ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/cv_mapping_values.rs (/tmp/openms-mzml-schema-target-current/debug/deps/cv_mapping_values-eb6a20efcb27a40b)
+
+running 3 tests
+test complete_source_defaults_and_literal_fields ... ok
+test equality_observes_every_leaf_and_rule_field ... ok
+test ordered_bulk_append_duplicate_add_and_explicit_replacement ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mzml_schema.rs (/tmp/openms-mzml-schema-target-current/debug/deps/mzml_schema-9d9d2f9a4dea5870)
+
+running 18 tests
+test cpp054_raw_index_schema_does_not_establish_index_integrity ... ok
+test root_attributes_are_normalized_and_namespace_errors_precede_engine ... ok
+test exact_schema_bytes_are_preserved_and_have_no_external_grammar_imports ... ok
+test real_xsd_order_and_unknown_elements ... ok
+test malformed_xml_and_ascii_latin1_boundary_are_checked_before_schema_result ... ok
+test identity_dangling_keyref_is_rejected_in_both_schemas ... ok
+test identity_duplicate_key_is_rejected_in_both_schemas ... ok
+test schema_is_not_checksum_offset_count_or_cv_semantic_validation ... ok
+test namespace_uri_characters_are_checked_without_resolving_relative_names ... ok
+test unchanged_originals_validate_against_exact_schemas ... ok
+test real_xsd_required_attributes_and_numeric_facets ... ok
+test namespace_root_selection_corrects_four_line_heuristic ... ok
+test namespaces_reject_reserved_bindings_undefined_prefixes_and_expanded_duplicates ... ok
+test native_preflight_and_post_engine_result_limits_are_explicit ... ok
+test path_magic_compression_crc_and_decoded_caps ... ok
+test local_contexts_are_reusable_and_independent_between_threads ... ok
+test utf16_declaration_is_canonicalized_without_losing_unicode_or_standalone ... ok
+test native_writer_documents_are_engine_checks_not_source_generated_goldens ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/mzml_schema_offline.rs (/tmp/openms-mzml-schema-target-current/debug/deps/mzml_schema_offline-07235fa5391e6e9a)
+
+running 1 test
+file:///etc/xml/catalog:1: parser error : Document is empty
+
+^
+audit:///positive-control:1: parser error : Document is empty
+
+^
+test offline_document_and_schema_fetching_is_blocked_with_observed_positive_control ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/mzml_validator.rs (/tmp/openms-mzml-schema-target-current/debug/deps/mzml_validator-a9ea92a74446e25d)
+
+running 16 tests
+test original_source_resources_retain_exact_bytes_on_every_platform ... ok
+test locate_selection_keeps_stable_missing_path_error_and_ignores_mzml_exclusions ... ok
+test go_bto_skip_after_unknown_obsolete_encounter_and_do_not_fulfill_rules ... ok
+test indexed_root_paths_and_literal_nested_names ... ok
+test fixed_special_tags_win_over_configured_cv_tag_and_qnames_are_literal ... ok
+test nested_group_current_id_is_not_restored_and_user_params_do_not_enter_groups ... ok
+test duplicate_definitions_append_and_nonrepeatable_counts_include_every_use ... ok
+test groups_defer_validation_and_warn_at_definition_only ... ok
+test units_default_and_all_configured_attribute_controls ... ok
+test forward_and_missing_references_are_empty_and_no_state_survives_calls ... ok
+test shared_limits_count_referenced_uses_and_late_diagnostics ... ok
+test binary_pair_order_group_expansion_repeated_errors_and_reset ... ok
+test lexical_errors_and_compressed_paths_use_the_shared_parser ... ok
+test repeated_borrowed_group_terms_exhaust_shared_work_after_a_successful_use ... ok
+test default_mapping_convenience_and_native_writer_are_distinct_from_source_goldens ... ok
+test unchanged_source_class_fixture_counts ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/semantic_validator.rs (/tmp/openms-mzml-schema-target-current/debug/deps/semantic_validator-2c0df2f1fa0d57e1)
+
+running 15 tests
+test locate_is_selection_only_and_absent_path_stays_error_cpp044 ... ok
+test configurable_qnames_attributes_flags_and_root_double_slash ... ok
+test descendant_matching_retains_source_stale_children_index ... ok
+test failed_xml_never_publishes_or_contaminates_next_call_cpp040 ... ok
+test utf16_declarations_and_ignored_text_still_checked ... ok
+test operation_limits_and_error_precedence_are_not_hidden_reports ... ok
+test unknown_obsolete_name_and_diagnostic_order ... ok
+test first_match_each_rule_duplicates_and_ignored_scope_name_fields ... ok
+test empty_rules_absent_elements_repeat_checks_and_sibling_reset ... ok
+test unit_exact_child_unrelated_and_flags_cpp039 ... ok
+test raw_historical_fixture_bytes_are_stable_on_every_platform ... ok
+test requirement_truth_table_including_source_should_omission ... ok
+test all_value_types_preserve_source_conversions_and_empty_value_rules ... ok
+test compressed_paths_and_xml_lexical_failures ... ok
+test exact_source_valid_and_corrupt_diagnostics_in_order ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+

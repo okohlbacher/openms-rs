@@ -96,7 +96,7 @@ fn source_product_literals_and_metadata_use_chromatogram_owner() {
         "isolationwindow3"
     );
     assert_eq!(c.precursor.mz, 99.0);
-    assert_eq!(c.metadata["owner"], "chromatogram");
+    assert_eq!(c.metadata["owner"].as_str().unwrap(), "chromatogram");
     assert!(!c.metadata.contains_key("iwname"));
 }
 

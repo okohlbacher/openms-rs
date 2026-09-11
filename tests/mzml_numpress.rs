@@ -131,7 +131,7 @@ fn published_bytes_all_six_accessions_and_separate_zlib() {
                 for (p, expected) in e.spectra[0].peaks.iter().zip(LITERAL) {
                     assert!((p.mz - expected).abs() < tolerance);
                 }
-                assert_eq!(e.spectra[0].metadata["transport"], "kept");
+                assert_eq!(e.spectra[0].metadata["transport"].as_str().unwrap(), "kept");
             }
         }
     }
@@ -185,7 +185,7 @@ fn writer_three_configs_and_ordinary_metadata_roundtrip() {
             assert!(text.contains(term));
         }
         let e = read(&text).unwrap();
-        assert_eq!(e.spectra[0].metadata["tag"], "preserved");
+        assert_eq!(e.spectra[0].metadata["tag"].as_str().unwrap(), "preserved");
         assert_eq!(
             e.spectra[0].integer_data_arrays,
             populated().spectra[0].integer_data_arrays

@@ -169,9 +169,17 @@ pub(super) fn read_cv(
             return Ok(true);
         }
         if matches!(accession, "MS:1003019" | "MS:1003020" | "MS:1000626") {
-            return Err(Error::Unsupported(
-                "non-mass chromatogram coordinate/intensity roles are not represented".into(),
-            ));
+            let c = record
+                .chromatogram
+                .as_mut()
+                .ok_or_else(|| invalid("chromatogram type outside record"))?;
+            if c.metadata
+                .insert("chromatogram type accession".into(), accession.into())
+                .is_some()
+            {
+                return Err(invalid("duplicate chromatogram type override"));
+            }
+            return Ok(true);
         }
     }
     if parent == "scanWindow" {
@@ -270,6 +278,16 @@ pub(super) fn chromatogram_guard(c: &MSChromatogram) -> Result<()> {
         || instrument_unrepresented(&c.instrument_settings)
     {
         return Err(Error::Unsupported("mzML chromatogram instrument/acquisition/source/processing settings are not represented".into()));
+    }
+    if let Some(value) = c.metadata.get("chromatogram type accession") {
+        if value.unit().is_some()
+            || !matches!(value.as_str()?, "MS:1003019" | "MS:1003020" | "MS:1000626")
+            || c.chromatogram_type != ChromatogramType::Mass
+        {
+            return Err(Error::Unsupported(
+                "chromatogram type override conflicts with typed settings".into(),
+            ));
+        }
     }
     if c.chromatogram_type == ChromatogramType::Unknown {
         return Err(Error::Unsupported(
@@ -437,6 +455,16 @@ pub(super) fn write_scan(w: &mut impl Write, spectrum: &MSSpectrum) -> Result<()
     Ok(())
 }
 pub(super) fn write_chromatogram(w: &mut impl Write, c: &MSChromatogram) -> Result<()> {
+    if let Some(value) = c.metadata.get("chromatogram type accession") {
+        let id = value.as_str()?;
+        let name = match id {
+            "MS:1003019" => "pressure chromatogram",
+            "MS:1003020" => "flow rate chromatogram",
+            "MS:1000626" => "chromatogram type",
+            _ => return Err(invalid("unsupported chromatogram type override")),
+        };
+        return cv(w, id, name, "", "");
+    }
     let &(_, accession, name) = CHROMATOGRAM_TYPES
         .iter()
         .find(|t| t.0 == c.chromatogram_type)

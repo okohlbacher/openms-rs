@@ -88,12 +88,27 @@ pub(super) fn prepare(
             add(2, add(floats.len(), add(integers.len(), strings.len())?)?)?,
         )?;
     }
+    for spectrum in &experiment.spectra {
+        count = add(
+            count,
+            record_transport::NOISE
+                .iter()
+                .filter(|key| spectrum.metadata.contains_key(**key))
+                .count(),
+        )?;
+    }
     work.spend(count)?;
     let arrays = work.vector(count)?;
     // Bound lengths and charge validation before the general validator visits
     // any peak or auxiliary scalar. Per-array limits cannot be deferred until
     // encoding: a late invalid value must not force an over-limit scan first.
     for spectrum in &experiment.spectra {
+        for index in 0..3 {
+            if let Some(values) = record_transport::noise_values(&spectrum.metadata, index)? {
+                work.value_count(values.len())?;
+                work.spend(values.len())?;
+            }
+        }
         preflight_values(
             &mut work,
             spectrum.len(),
@@ -134,6 +149,16 @@ pub(super) fn prepare(
             &options.intensity,
             None,
         )?;
+        for index in 0..3 {
+            if let Some(values) = record_transport::noise_values(&spectrum.metadata, index)? {
+                prepared.floats(
+                    values.iter().copied(),
+                    Encoding::Float64,
+                    &NumpressConfig::default(),
+                    None,
+                )?;
+            }
+        }
         prepared.auxiliary(
             &spectrum.float_data_arrays,
             &spectrum.integer_data_arrays,

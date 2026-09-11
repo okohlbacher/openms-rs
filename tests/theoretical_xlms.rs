@@ -437,7 +437,7 @@ fn append_preserves_descriptions_and_moves_all_supported_arrays_stably() {
     assert_eq!(s.name, "caller");
     assert_eq!(s.ms_level, 1);
     assert!(s.precursors.is_empty());
-    assert_eq!(s.metadata["keep"], "value");
+    assert_eq!(s.metadata["keep"].as_str().unwrap(), "value");
 }
 #[test]
 fn missing_old_annotations_are_padded_but_unrelated_data_reject_atomically() {

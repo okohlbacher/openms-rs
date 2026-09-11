@@ -493,7 +493,10 @@ fn clear_arrays_is_source_spectrum_only_and_atomic_on_late_work_failure() {
     assert!(exp.clear_meta_data_arrays().unwrap());
     assert!(!exp.clear_meta_data_arrays().unwrap());
     assert_eq!(exp.total_peak_count().unwrap(), 3);
-    assert_eq!(exp.spectra[1].metadata["ordinary"], "kept");
+    assert_eq!(
+        exp.spectra[1].metadata["ordinary"].as_str().unwrap(),
+        "kept"
+    );
     assert_eq!(exp.chromatograms, before.chromatograms);
     assert!(exp.spectra.iter().all(|s| s.float_data_arrays.is_empty()
         && s.integer_data_arrays.is_empty()

@@ -1,0 +1,15 @@
+   Compiling openms v0.1.0 (/private/tmp/openms-rs-next-mzml-schema)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.20s
+     Running tests/mzml_schema_offline.rs (/tmp/openms-mzml-schema-target-current/debug/deps/mzml_schema_offline-07235fa5391e6e9a)
+
+running 1 test
+audit:///catalog-probe:1: parser error : Document is empty
+
+^
+audit:///positive-control:1: parser error : Document is empty
+
+^
+test offline_document_and_schema_fetching_is_blocked_with_observed_positive_control ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+

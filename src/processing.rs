@@ -40,7 +40,7 @@ pub trait SpectrumFilter {
     }
 }
 
-// Fixed acquisition-copy ceiling, separate from existing numerical algorithm
+// Fixed record/acquisition metadata-copy ceiling, separate from existing numerical algorithm
 // budgets. Carry one ledger through nested bundled transformations and batches.
 // Processing records behind Arc remain shared; their payload is not copied.
 pub(super) struct AcquisitionCopies {
@@ -64,10 +64,12 @@ impl AcquisitionCopies {
     }
     pub(super) fn spectrum(&mut self, input: &MSSpectrum) -> Result<()> {
         self.visit(1)?;
+        input.record_metadata_with_budget(&mut self.work, &mut self.bytes)?;
         input.acquisition_with_budget(&mut self.work, &mut self.bytes)
     }
     pub(super) fn chromatogram(&mut self, input: &MSChromatogram) -> Result<()> {
         self.visit(1)?;
+        input.record_metadata_with_budget(&mut self.work, &mut self.bytes)?;
         input.acquisition_with_budget(&mut self.work, &mut self.bytes)
     }
     pub(super) fn spectra(&mut self, spectra: &[MSSpectrum]) -> Result<()> {
@@ -539,5 +541,27 @@ mod acquisition_copy_tests {
             &output.data_processing[0]
         ));
         assert_eq!(Arc::strong_count(&record), 3);
+    }
+    #[test]
+    fn typed_record_copy_budget_is_cumulative_and_precedes_copy() {
+        let mut s = MSSpectrum::default();
+        s.metadata.insert(
+            "typed".into(),
+            crate::metadata::MetaValue::try_from(vec![1.; 200]).unwrap(),
+        );
+        let mut first = AcquisitionCopies {
+            work: 100_000,
+            bytes: 100_000,
+        };
+        let before = first.bytes;
+        first.spectrum(&s).unwrap();
+        let cost = before - first.bytes;
+        let mut shared = AcquisitionCopies {
+            work: 100_000,
+            bytes: cost * 2 - 1,
+        };
+        shared.spectrum(&s).unwrap();
+        assert!(shared.spectrum(&s).is_err());
+        assert_eq!(s.metadata["typed"].as_float_list().unwrap().len(), 200);
     }
 }

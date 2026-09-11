@@ -1,0 +1,429 @@
+{
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "evidence": "Verbatim source slices; source-reviewed evidence, no executed C++ parity claim and no Rust-derived expected output.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
+      "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+      "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
+    },
+    {
+      "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
+      "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "sha256": "a0b5d1ac569910120c039e996be8e6e05829642ba00d52b9dc96ba6ec398d16e"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+      "sha256": "039634ddb6e898e0c76428723a0a88a3069a380bf09e7421d2d2ae640fea218e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/PeakTypeEstimator_test.cpp",
+      "sha256": "313686c99b54d2f0cb4658836cc2610563b518774afb59355b56d9c6a26c9c10"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h",
+      "sha256": "c36f957c183551e34ada80ac5c595d4352fdc473e7820ef129189887004095b0"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+      "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/MzMLValidator.h",
+      "sha256": "7da5dad2c7c950883db37db044af658fed0e29012af4a2a7205847b64f5c708f"
+    },
+    {
+      "path": "src/openms/source/FORMAT/VALIDATORS/MzMLValidator.cpp",
+      "sha256": "4e7ef71c2fb4c486308b4b0bbf8d79fea3f1ba310d860a7f13be13535425f776"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLValidator_test.cpp",
+      "sha256": "64824e2fac71f7a44ea9fc9b2776a1326405550696613cf92f18277136fc41a5"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
+      "sha256": "539f5dd9331d6f343257477a871ffdd5a157374a92dc12da4d65c75c058cf858"
+    },
+    {
+      "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",
+      "sha256": "99d9ee2fc48a95880b935b5ffc4a35433cad25850d4e6cebc7e319358daeac59"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/XMLValidator.h",
+      "sha256": "d1af4acfc0836b18a4a7969ff0c4a69dfe48845595a081a516071682de49556f"
+    },
+    {
+      "path": "src/openms/source/FORMAT/VALIDATORS/XMLValidator.cpp",
+      "sha256": "16193b35d7de8885d1061581d9e3eac717b0bfdd0aee41c6ba37a9a5f5bde7cc"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
+      "sha256": "acb4f9a230851f6dd1359cfba4e188458436e2de6122b7b75c992cb808ff9dfb"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLDecoder.cpp",
+      "sha256": "fc9343bf28a6756f063f1fa91471a015d2f6d09e572b6a136372fa9d0473478c"
+    },
+    {
+      "path": "share/OpenMS/MAPPING/ms-mapping.xml",
+      "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
+      "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_3_invalid.mzML",
+      "sha256": "3ee7f12e2d111d4c2db39c79ce16244b45d43249ff2de902de249ae7e1e3b013"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
+      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakTypeEstimator_raw.dta",
+      "sha256": "262bb2a65406892bd6ed1c0027151a863d91e7653bc487402ae58122647ea792"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakTypeEstimator_rawTOF.dta",
+      "sha256": "8419dab0821b3ea794a8fa73c1846c5b0f933564f2fc5618a65756d03b70de14"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakTypeEstimator_peak.dta",
+      "sha256": "69d552ec11db33256f09c1e403aecc45018f3d4c2553ba27112d8ebecd6d5297"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+      "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+    },
+    {
+      "path": "src/openms/source/METADATA/MetaInfoInterface.cpp",
+      "sha256": "4784d93bf3e62f4774f926520f1f9c7b0ab3598e686091c5c83ecf1569368699"
+    },
+    {
+      "path": "src/openms/source/METADATA/MetaInfo.cpp",
+      "sha256": "bafa2699024ef964a166234e0706bc0b29d5314abd45ff516046dd568ba42e18"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.cpp",
+      "sha256": "a0e5ea8e0ecc64635b3f4a453e4d4e315d4087572f974dad819c590298bc1dbd"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/SpectrumAnnotator.cpp",
+      "sha256": "35e2add302b5c830461539b8743cad51bee285182abf64b20b494c60faa1fe3d"
+    },
+    {
+      "path": "share/OpenMS/CV/psi-ms.obo",
+      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+    },
+    {
+      "path": "share/OpenMS/CV/unit.obo",
+      "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/InstrumentSettings.h",
+      "sha256": "6c7e3122bfe3f6fddc39102ce91c5a87053946d642353d0f6388ab7501a836ed"
+    },
+    {
+      "path": "src/openms/source/METADATA/InstrumentSettings.cpp",
+      "sha256": "f412905ada7edc511bb89f974be4a694163e3a247db483999a9cf28757c64632"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DataValue.h",
+      "sha256": "1ea32c73e80d7607aa699a26a22be0ed2eca2d9d0b3249b4850b466384f2a74f"
+    }
+  ],
+  "sections": [
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+      "first_line": 452,
+      "last_line": 491,
+      "purpose": "source numeric casts and CPP-058 boundary",
+      "text": "  DataValue::operator long double() const\n  {\n    if (value_type_ == EMPTY_VALUE)\n    {\n      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, \n        \"Could not convert DataValue of type '\" + NamesOfDataType[value_type_] + \"' to long double\");\n    }\n    else if (value_type_ == INT_VALUE)\n    {\n      return (long double)(data_.ssize_);\n    }\n    return data_.dou_;\n  }\n\n  DataValue::operator double() const\n  {\n    if (value_type_ == EMPTY_VALUE)\n    {\n      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, \n        \"Could not convert DataValue of type '\" + NamesOfDataType[value_type_] + \"' to double\");\n    }\n    else if (value_type_ == INT_VALUE)\n    {\n      return double(data_.ssize_);\n    }\n    return data_.dou_;\n  }\n\n  DataValue::operator float() const\n  {\n    if (value_type_ == EMPTY_VALUE)\n    {\n      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, \n        \"Could not convert DataValue of type '\" + NamesOfDataType[value_type_] + \"' to float\");\n    }\n    else if (value_type_ == INT_VALUE)\n    {\n      return float(data_.ssize_);\n    }\n    return data_.dou_;\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 1380,
+      "last_line": 1408,
+      "purpose": "elution-time fallback before array metadata merging",
+      "text": "      {\n        spec_.getInstrumentSettings().getScanWindows().emplace_back();\n      }\n    }\n\n    void MzMLHandler::onEndElement(const char16_t* qname)\n    {\n      constexpr XMLCh s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};\n      constexpr XMLCh s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};\n      constexpr XMLCh s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};\n      constexpr XMLCh s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};\n      constexpr XMLCh s_mzml[] = { 'm','z','M','L' , 0};\n      constexpr XMLCh s_sourceFileList[] = { 's','o','u','r','c','e','F','i','l','e','L','i','s','t', 0};\n\n      open_tags_.pop_back();\n\n      if (equal_(qname, s_spectrum))\n      {\n        if (!skip_spectrum_)\n        {\n          // catch errors stemming from confusion about elution time and scan time\n          if (!rt_set_ && spec_.metaValueExists(\"elution time (seconds)\"))\n          {\n            spec_.setRT(spec_.getMetaValue(\"elution time (seconds)\"));\n          }\n          /* this is too hot (could be SRM as well? -- check!):\n          // correct spectrum type if possible (i.e., make it more specific)\n          if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::ScanMode::MASSSPECTRUM)\n          {\n"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "first_line": 1362,
+      "last_line": 1515,
+      "purpose": "source typed/independent-noise/PDA/pressure class-test literals",
+      "text": "START_SECTION((Thermo metadata survives mzML serialization, sorting, and reloading))\n{\n  PeakMap original;\n  original.setDateTime(DateTime::fromString(\"2024-01-02T03:04:05\", \"yyyy-MM-ddThh:mm:ss\"));\n  original.setMetaValue(\"mzml_start_time_stamp\", \"2024-01-02T03:04:05.1234567Z\");\n  original.setMetaValue(\"Thermo instrument methods\", \"[\\\"method\\\\nsecond line\\\"]\");\n  original.getSample().setMetaValue(\"Thermo sample volume\", 2.5);\n  const std::string utf8_sample_name(\"M\\xC3\\xBC\" \"ller & sample \\xCE\\xB1 \\xF0\\x9F\\xA7\\xAA\"); // \"Müller & sample α 🧪\" as UTF-8 bytes\n  original.getSample().setName(utf8_sample_name);\n  original.getSample().setComment(\"first line\\nsecond line\\tend\");\n  Instrument instrument;\n  instrument.setName(\"Orbitrap Astral\");\n  instrument.setMetaValue(\"instrument serial number\", \"serial-123\");\n  IonSource source;\n  source.setOrder(1);\n  source.setIonizationMethod(IonSource::IonizationMethod::ESI);\n  instrument.getIonSources().push_back(source);\n  MassAnalyzer analyzer;\n  analyzer.setOrder(2);\n  analyzer.setType(MassAnalyzer::AnalyzerType::ORBITRAP);\n  instrument.getMassAnalyzers().push_back(analyzer);\n  IonDetector detector;\n  detector.setOrder(3);\n  detector.setType(IonDetector::Type::INDUCTIVEDETECTOR);\n  instrument.getIonDetectors().push_back(detector);\n  original.setInstrument(instrument);\n  instrument.getMassAnalyzers()[0].setMetaValue(\"mass analyzer accession\", \"MS:1003379\");\n  original.getInstrumentConfigurations()[\"astral\"] = instrument;\n\n  MSSpectrum parent;\n  parent.setNativeID(\"controllerType=0 controllerNumber=1 scan=10\");\n  parent.setRT(1);\n  parent.setMSLevel(1);\n  parent.setType(SpectrumSettings::SpectrumType::CENTROID);\n  Peak1D peak;\n  peak.setMZ(501); peak.setIntensity(10); parent.push_back(peak);\n  peak.setMZ(499); peak.setIntensity(20); parent.push_back(peak);\n  // Three independently sampled points versus two spectrum peaks; double precision matters.\n  const vector<double> noise_mz = {498.123456789012, 500.345678901234, 502.567890123456};\n  parent.setMetaValue(\"sampled noise m/z array\", noise_mz);\n  parent.setMetaValue(\"sampled noise intensity array\", vector<double>{1, 2, 3});\n  parent.setMetaValue(\"sampled noise baseline array\", vector<double>{0.1, 0.2, 0.3});\n  MSSpectrum::IntegerDataArray charges;\n  charges.setName(\"charge array\"); charges.push_back(1); charges.push_back(2);\n  parent.getIntegerDataArrays().push_back(charges);\n  Acquisition acquisition;\n  acquisition.setMetaValue(\"Thermo trailer extra\", \"[{\\\"label\\\":\\\"example:\\\",\\\"value\\\":\\\"a & b\\\"}]\");\n  parent.getAcquisitionInfo().push_back(acquisition);\n  original.addSpectrum(parent);\n\n  MSSpectrum child;\n  child.setNativeID(\"controllerType=0 controllerNumber=1 scan=11\");\n  child.setRT(2); child.setMSLevel(2);\n  child.setType(SpectrumSettings::SpectrumType::CENTROID);\n  child.push_back(peak);\n  acquisition.setMetaValue(\"instrument_configuration_ref\", \"astral\");\n  child.getAcquisitionInfo().push_back(acquisition);\n  Precursor precursor;\n  precursor.setMZ(500);\n  precursor.setMetaValue(\"selected ion m/z\", 499.5);\n  precursor.setIsolationWindowLowerOffset(0);\n  precursor.setIsolationWindowUpperOffset(2);\n  precursor.setMetaValue(\"isolation window lower offset\", 0.0);\n  precursor.setMetaValue(\"spectrum_ref\", parent.getNativeID());\n  precursor.setIntensity(30);\n  precursor.setMetaValue(\"peak intensity unit accession\", \"MS:1000131\");\n  precursor.getActivationMethods().insert(Precursor::ActivationMethod::ETD);\n  precursor.setMetaValue(\"supplemental beam-type collision-induced dissociation\", \"\");\n  DataValue energy(25.0);\n  energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY); energy.setUnit(266);\n  precursor.setMetaValue(\"collision energy\", energy);\n  precursor.setMetaValue(\"supplemental collision energy\", energy);\n  child.getPrecursors().push_back(precursor);\n  original.addSpectrum(child);\n\n  MSSpectrum pda;\n  pda.setNativeID(\"controllerType=4 controllerNumber=1 scan=1\");\n  pda.setRT(3); pda.setMSLevel(0); pda.setType(SpectrumSettings::SpectrumType::PROFILE);\n  pda.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::ABSORPTION);\n  pda.setMetaValue(\"mzml coordinate array\", \"wavelength\");\n  pda.setMetaValue(\"mzml intensity array\", \"absorption\");\n  peak.setMZ(220); peak.setIntensity(0.25); pda.push_back(peak);\n  peak.setMZ(500); peak.setIntensity(0.5); pda.push_back(peak);\n  ScanWindow window;\n  window.begin = 220; window.end = 500; window.setMetaValue(\"unit_accession\", \"UO:0000018\");\n  pda.getInstrumentSettings().getScanWindows().push_back(window);\n  original.addSpectrum(pda);\n\n  MSChromatogram pressure;\n  pressure.setNativeID(\"Analog#1_Pressure\");\n  pressure.setMetaValue(\"chromatogram type accession\", \"MS:1003019\");\n  pressure.setMetaValue(\"mzml intensity array\", \"pressure\");\n  pressure.setMetaValue(\"Thermo detector units\", \"bar\");\n  pressure.push_back(ChromatogramPeak(1, 200));\n  pressure.push_back(ChromatogramPeak(2, 210));\n  original.addChromatogram(pressure);\n\n  MzMLFile file;\n  string encoded;\n  file.storeBuffer(encoded, original);\n  for (const char* accession : {\"MS:1000529\", \"MS:1003379\", \"MS:1002678\", \"MS:1002680\", \"MS:1002743\", \"MS:1002744\", \"MS:1002745\", \"MS:1000516\", \"MS:1000617\", \"MS:1003019\", \"MS:1000821\"})\n  {\n    TEST_TRUE(StringUtils::hasSubstring(encoded, accession))\n  }\n  TEST_TRUE(StringUtils::hasSubstring(encoded, \"2024-01-02T03:04:05.1234567Z\"))\n  TEST_TRUE(StringUtils::hasSubstring(encoded, \"instrumentConfigurationRef=\\\"astral\\\"\"))\n  TEST_TRUE(StringUtils::hasSubstring(encoded, \"&#252;\"))\n  TEST_TRUE(StringUtils::hasSubstring(encoded, \"&#129514;\"))\n  PeakMap loaded;\n  file.loadBuffer(encoded, loaded);\n  TEST_EQUAL(loaded.size(), 3)\n  TEST_EQUAL(loaded.getSample().getName(), utf8_sample_name)\n  TEST_EQUAL(loaded.getSample().getComment(), \"first line\\nsecond line\\tend\")\n  TEST_EQUAL(loaded.getInstrumentConfigurations().size(), 1)\n  TEST_EQUAL(loaded.getInstrumentConfigurations().at(\"astral\").getMassAnalyzers()[0].getMetaValue(\"mass analyzer accession\"), \"MS:1003379\")\n  TEST_EQUAL(loaded[0].getMetaValue(\"sampled noise m/z array\").toDoubleList(), noise_mz)\n  TEST_EQUAL(loaded[0].getFloatDataArrays().size(), 0)\n  TEST_EQUAL(loaded[0].getIntegerDataArrays()[0].size(), 2)\n  TEST_EQUAL(loaded[0].getIntegerDataArrays()[0][0], 2) // charge follows sorted peak\n  TEST_REAL_SIMILAR(loaded[1].getPrecursors()[0].getMZ(), 499.5)\n  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue(\"isolation window target m/z\"), 500.0)\n  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue(\"spectrum_ref\"), parent.getNativeID())\n  TEST_EQUAL(loaded[1].getPrecursors()[0].getMetaValue(\"peak intensity unit accession\"), \"MS:1000131\")\n  TEST_TRUE(loaded[1].getPrecursors()[0].metaValueExists(\"supplemental collision energy\"))\n  TEST_EQUAL(loaded[2].size(), 2)\n  TEST_REAL_SIMILAR(loaded[2][0].getMZ(), 220)\n  TEST_EQUAL(loaded[2].getMetaValue(\"mzml intensity array\"), \"absorption\")\n  TEST_EQUAL(loaded.getChromatograms().size(), 1)\n  TEST_EQUAL(loaded.getChromatograms()[0].size(), 2)\n  TEST_EQUAL(loaded.getChromatograms()[0].getMetaValue(\"mzml intensity array\"), \"pressure\")\n  TEST_EQUAL(loaded.getChromatograms()[0].getMetaValue(\"Thermo detector units\"), \"bar\")\n  // Re-export must retain CV terms instead of falling back to unrelated generic arrays.\n  string encoded_again;\n  file.storeBuffer(encoded_again, loaded);\n  TEST_TRUE(StringUtils::hasSubstring(encoded_again, \"MS:1002743\"))\n  TEST_TRUE(StringUtils::hasSubstring(encoded_again, \"MS:1000617\"))\n  TEST_TRUE(StringUtils::hasSubstring(encoded_again, \"MS:1002678\"))\n\n  // A zero-valued measurement is distinct from an absent intensity: the \"peak intensity\"\n  // meta value forces the export of a zero intensity (as ThermoRawFileParser does). Editing\n  // a previously zero isolation offset must override its preservation metadata.\n  auto& edited_precursor = loaded[1].getPrecursors()[0];\n  edited_precursor.setIntensity(0);\n  edited_precursor.setMetaValue(\"peak intensity\", 0.0);\n  edited_precursor.setIsolationWindowLowerOffset(1.25);\n  file.storeBuffer(encoded_again, loaded);\n  TEST_TRUE(StringUtils::hasSubstring(encoded_again, \"name=\\\"peak intensity\\\" value=\\\"0\\\"\"))\n  PeakMap edited;\n  file.loadBuffer(encoded_again, edited);\n  TEST_REAL_SIMILAR(edited[1].getPrecursors()[0].getIsolationWindowLowerOffset(), 1.25)\n  TEST_REAL_SIMILAR(edited[1].getPrecursors()[0].getIntensity(), 0)\n  TEST_EQUAL(edited[1].getPrecursors()[0].getMetaValue(\"peak intensity unit accession\"), \"MS:1000131\")\n}\nEND_SECTION\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 350,
+      "last_line": 450,
+      "purpose": "spectrum noise extraction and primary metadata merge",
+      "text": "                                               Size& default_arr_length,\n                                               const PeakFileOptions& peak_file_options,\n                                               SpectrumType& spectrum)\n    {\n      typedef SpectrumType::PeakType PeakType;\n\n      // decode all base64 arrays\n      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());\n\n      for (auto it = input_data.begin(); it != input_data.end();)\n      {\n        const std::string name = it->meta.getName();\n        if (name == \"sampled noise m/z array\" || name == \"sampled noise intensity array\" || name == \"sampled noise baseline array\")\n        {\n          std::vector<double> values = it->precision == MzMLHandlerHelper::BinaryData::PRE_64 ? it->floats_64 :\n            std::vector<double>(it->floats_32.begin(), it->floats_32.end());\n          spectrum.setMetaValue(name, values);\n          it = input_data.erase(it);\n        }\n        else ++it;\n      }\n\n      //look up the precision and the index of the intensity and m/z array\n      bool mz_precision_64 = true;\n      bool int_precision_64 = true;\n      SignedSize mz_index = -1;\n      SignedSize int_index = -1;\n      MzMLHandlerHelper::computeDataProperties_(input_data, mz_precision_64, mz_index, \"m/z array\");\n      if (mz_index == -1)\n      {\n        MzMLHandlerHelper::computeDataProperties_(input_data, mz_precision_64, mz_index, \"wavelength array\");\n        if (mz_index != -1) spectrum.setMetaValue(\"mzml coordinate array\", \"wavelength\");\n      }\n      MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, \"intensity array\");\n\n      //Abort if no m/z or intensity array is present\n      if (int_index == -1 || mz_index == -1)\n      {\n        //if defaultArrayLength > 0 : warn that no m/z or int arrays is present\n        if (default_arr_length != 0)\n        {\n          warning(LOAD,std::string(\"The m/z or intensity array of spectrum '\") + spectrum.getNativeID() + \"' is missing and default_arr_length is \" + default_arr_length + \".\");\n        }\n        return;\n      }\n\n      // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!\n      if ((!input_data[mz_index].ints_32.empty()) || (!input_data[mz_index].ints_64.empty()))\n      {\n        fatalError(LOAD, \"Encoding m/z array as integer is not allowed!\");\n      }\n      if ((!input_data[int_index].ints_32.empty()) || (!input_data[int_index].ints_64.empty()))\n      {\n        fatalError(LOAD, \"Encoding intensity array as integer is not allowed!\");\n      }\n\n      // Warn if the decoded data has a different size than the defaultArrayLength\n      Size mz_size = mz_precision_64 ? input_data[mz_index].floats_64.size() : input_data[mz_index].floats_32.size();\n      Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();\n      // Check if int-size and mz-size are equal\n      if (mz_size != int_size)\n      {\n        fatalError(LOAD,std::string(\"The length of m/z and integer values of spectrum '\") + spectrum.getNativeID() + \"' differ (mz-size: \" + mz_size + \", int-size: \" + int_size + \"! Not reading spectrum!\");\n      }\n      bool repair_array_length = false;\n      if (default_arr_length != mz_size)\n      {\n        warning(LOAD,std::string(\"The m/z array of spectrum '\") + spectrum.getNativeID() + \"' has the size \" + mz_size + \", but it should have size \" + default_arr_length + \" (defaultArrayLength).\");\n        repair_array_length = true;\n      }\n      if (default_arr_length != int_size)\n      {\n        warning(LOAD,std::string(\"The intensity array of spectrum '\") + spectrum.getNativeID() + \"' has the size \" + int_size + \", but it should have size \" + default_arr_length + \" (defaultArrayLength).\");\n        repair_array_length = true;\n      }\n      if (repair_array_length)\n      {\n        default_arr_length = int_size;\n        warning(LOAD,std::string(\"Fixing faulty defaultArrayLength to \") + default_arr_length + \".\");\n      }\n\n      // Copy meta data from m/z and intensity binary\n      // We don't have this as a separate location => store it in spectrum\n      spectrum.addMetaValues(input_data[mz_index].meta);\n      spectrum.addMetaValues(input_data[int_index].meta);\n\n      //add the peaks and the meta data to the container (if they pass the restrictions)\n      PeakType tmp;\n      spectrum.reserve(default_arr_length);\n\n      // Optimized code paths for different scenarios\n      bool has_mz_range = peak_file_options.hasMZRange();\n      bool has_intensity_range = peak_file_options.hasIntensityRange();\n      bool has_metadata = input_data.size() > 2;\n\n      // Pre-identify metadata arrays and create spectrum arrays for efficient access\n      struct MetaArrayInfo {\n        Size input_index;\n        Size spectrum_index;\n        MzMLHandlerHelper::BinaryData::DATA_TYPE data_type;\n        MzMLHandlerHelper::BinaryData::PRECISION precision;\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 620,
+      "last_line": 755,
+      "purpose": "chromatogram roles and metadata order; CPP-053",
+      "text": "        }\n      }\n    }\n\n    void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,\n                                                     Size& default_arr_length,\n                                                     const PeakFileOptions& peak_file_options,\n                                                     ChromatogramType& inp_chromatogram)\n    {\n      typedef ChromatogramType::PeakType ChromatogramPeakType;\n\n      //decode all base64 arrays\n      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());\n\n      for (auto& array : input_data)\n      {\n        const std::map<std::string, std::string> types = {{\"pressure array\", \"pressure\"}, {\"flow rate array\", \"flow\"}, {\"detector signal\", \"nonstandard\"}};\n        const auto it = types.find(array.meta.getName());\n        if (it != types.end())\n        {\n          inp_chromatogram.setMetaValue(\"mzml intensity array\", it->second);\n          array.meta.setName(\"intensity array\");\n        }\n      }\n\n      //look up the precision and the index of the intensity and m/z array\n      bool int_precision_64 = true;\n      bool rt_precision_64 = true;\n      SignedSize int_index = -1;\n      SignedSize rt_index = -1;\n      MzMLHandlerHelper::computeDataProperties_(input_data, rt_precision_64, rt_index, \"time array\");\n      MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, \"intensity array\");\n\n      //Abort if no m/z or intensity array is present\n      if (int_index == -1 || rt_index == -1)\n      {\n        //if defaultArrayLength > 0 : warn that no time or int arrays is present\n        if (default_arr_length != 0)\n        {\n          warning(LOAD,std::string(\"The time or intensity array of chromatogram '\") +\n              inp_chromatogram.getNativeID() + \"' is missing and default_arr_length is \" + default_arr_length + \".\");\n        }\n        return;\n      }\n\n      // Warn if the decoded data has a different size than the defaultArrayLength\n      Size rt_size = rt_precision_64 ? input_data[rt_index].floats_64.size() : input_data[rt_index].floats_32.size();\n      Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();\n      // Check if int-size and rt-size are equal\n      if (rt_size != int_size)\n      {\n        fatalError(LOAD,std::string(\"The length of RT and intensity values of chromatogram '\") + inp_chromatogram.getNativeID() + \"' differ (rt-size: \" + rt_size + \", int-size: \" + int_size + \"! Not reading chromatogram!\");\n      }\n      bool repair_array_length = false;\n      if (default_arr_length != rt_size)\n      {\n        warning(LOAD,std::string(\"The base64-decoded rt array of chromatogram '\") + inp_chromatogram.getNativeID() + \"' has the size \" + rt_size + \", but it should have size \" + default_arr_length + \" (defaultArrayLength).\");\n        repair_array_length = true;\n      }\n      if (default_arr_length != int_size)\n      {\n        warning(LOAD,std::string(\"The base64-decoded intensity array of chromatogram '\") + inp_chromatogram.getNativeID() + \"' has the size \" + int_size + \", but it should have size \" + default_arr_length + \" (defaultArrayLength).\");\n        repair_array_length = true;\n      }\n      // repair size of array, accessing memory that is beyond int_size will lead to segfaults later\n      if (repair_array_length)\n      {\n        default_arr_length = int_size; // set to length of actual data (int_size and rt_size are equal, s.a.)\n        warning(LOAD,std::string(\"Fixing faulty defaultArrayLength to \") + default_arr_length + \".\");\n      }\n\n      // Create meta data arrays and reserve enough space for the content\n      if (input_data.size() > 2)\n      {\n        for (Size i = 0; i < input_data.size(); i++)\n        {\n          if (input_data[i].meta.getName() != \"intensity array\" && input_data[i].meta.getName() != \"time array\")\n          {\n            if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)\n            {\n              //create new array\n              inp_chromatogram.getFloatDataArrays().resize(inp_chromatogram.getFloatDataArrays().size() + 1);\n              //reserve space in the array\n              inp_chromatogram.getFloatDataArrays().back().reserve(input_data[i].size);\n              //copy meta info into MetaInfoDescription\n              inp_chromatogram.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);\n            }\n            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)\n            {\n              //create new array\n              inp_chromatogram.getIntegerDataArrays().resize(inp_chromatogram.getIntegerDataArrays().size() + 1);\n              //reserve space in the array\n              inp_chromatogram.getIntegerDataArrays().back().reserve(input_data[i].size);\n              //copy meta info into MetaInfoDescription\n              inp_chromatogram.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);\n            }\n            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)\n            {\n              //create new array\n              inp_chromatogram.getStringDataArrays().resize(inp_chromatogram.getStringDataArrays().size() + 1);\n              //reserve space in the array\n              inp_chromatogram.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());\n              //copy meta info into MetaInfoDescription\n              inp_chromatogram.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);\n            }\n          }\n        }\n      }\n\n      // Copy meta data from time and intensity binary\n      // We don't have this as a separate location => store it directly in spectrum meta data\n      for (Size i = 0; i < input_data.size(); i++)\n      {\n        if (input_data[i].meta.getName() == \"time array\" || input_data[i].meta.getName() == \"intensity array\")\n        {\n          std::vector<UInt> keys;\n          input_data[i].meta.getKeys(keys);\n          for (Size k = 0; k < keys.size(); ++k)\n          {\n            inp_chromatogram.setMetaValue(keys[k], input_data[i].meta.getMetaValue(keys[k]));\n          }\n        }\n      }\n\n      // Add the peaks and the meta data to the container (if they pass the restrictions)\n      inp_chromatogram.reserve(default_arr_length);\n      ChromatogramPeakType tmp;\n      for (Size n = 0; n < default_arr_length; n++)\n      {\n        double rt = rt_precision_64 ? input_data[rt_index].floats_64[n] : input_data[rt_index].floats_32[n];\n        double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];\n        if ((!peak_file_options.hasRTRange() || peak_file_options.getRTRange().encloses(DPosition<1>(rt)))\n           && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))\n        {\n          //add peak\n          tmp.setIntensity(intensity);\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 1550,
+      "last_line": 1580,
+      "purpose": "absorption role",
+      "text": "        {\n          warning(LOAD,std::string(\"Unhandled cvParam '\") + accession + \"' in tag '\" + parent_tag + \"'.\");\n        }\n      }\n      //------------------------- binaryDataArray ----------------------------\n      else if (parent_tag == \"binaryDataArray\")\n      {\n        // store name for all non-default arrays\n        if (cv_.isChildOf(accession, \"MS:1000513\")) // other array names as string\n        {\n          bin_data_.back().meta.setName(cv_.getTerm(accession).name);\n          if (accession == \"MS:1000515\" && unit_accession == \"UO:0000269\")\n            bin_data_.back().meta.setMetaValue(\"mzml intensity array\", \"absorption\");\n        }\n\n        if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(bin_data_, accession, value, name, unit_accession))\n        {\n          if (!cv_.isChildOf(accession, \"MS:1000513\")) //other array names as string\n          {\n            warning(LOAD,std::string(\"Unhandled cvParam '\") + accession + \"' in tag '\" + parent_tag + \"'.\");\n          }\n        }\n      }\n      //------------------------- spectrum ----------------------------\n      else if (parent_tag == \"spectrum\")\n      {\n        //spectrum type\n        if (accession == \"MS:1000294\") //mass spectrum\n        {\n          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ScanMode::MASSSPECTRUM);\n        }\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 1677,
+      "last_line": 1729,
+      "purpose": "spectrum record CV routes",
+      "text": "        else if (accession == \"MS:1000285\") //total ion current\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"total ion current\", termValue);\n        }\n        else if (accession == \"MS:1000504\") //base peak m/z\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"base peak m/z\", termValue);\n        }\n        else if (accession == \"MS:1000618\" || accession == \"MS:1000619\") // observed wavelength limits\n        {\n          spec_.setMetaValue(cv_.getTerm(accession).name, termValue);\n        }\n        else if (accession == \"MS:1000505\") //base peak intensity\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"base peak intensity\", termValue);\n        }\n        else if (accession == \"MS:1000527\") //highest observed m/z\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"highest observed m/z\", termValue);\n        }\n        else if (accession == \"MS:1000528\") //lowest observed m/z\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"lowest observed m/z\", termValue);\n        }\n        else if (accession == \"MS:1000618\") //highest observed wavelength\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"highest observed wavelength\", termValue);\n        }\n        else if (accession == \"MS:1000619\") //lowest observed wavelength\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"lowest observed wavelength\", termValue);\n        }\n        else if (accession == \"MS:1000796\") //spectrum title\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"spectrum title\", termValue);\n        }\n        else if (accession == \"MS:1000797\") //peak list scans\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"peak list scans\", termValue);\n        }\n        else if (accession == \"MS:1000798\") //peak list raw scans\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"peak list raw scans\", termValue);\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 2273,
+      "last_line": 2420,
+      "purpose": "scan record CV routes",
+      "text": "        //scan attributes\n        if (accession == \"MS:1000502\") //dwell time\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"dwell time\", termValue);\n        }\n        else if (accession == \"MS:1002476\" || accession == \"MS:1002815\" || accession == \"MS:1001581\" || accession == \"MS:1002954\") //ion mobility drift time, FAIMS CV, or CCS\n        {\n          // Drift time may be a property of the precursor (in case we are\n          // acquiring a fragment ion spectrum) or of the spectrum itself.\n          // According to the updated OBO, it can be a precursor or a scan\n          // attribute.\n          //\n          // If we find it here, it relates to the scan or spectrum itself and\n          // not to a particular precursor.\n          //\n          // Note: this is where pwiz stores the ion mobility for a spectrum\n\n          auto unit = DriftTimeUnit::MILLISECOND;\n          if (accession == \"MS:1002476\")\n          {\n            unit = DriftTimeUnit::MILLISECOND;\n          }\n          else if (accession == \"MS:1002815\")\n          {\n            unit = DriftTimeUnit::VSSC;\n          }\n          else if (accession == \"MS:1001581\")\n          {\n            unit = DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;\n          }\n          else if (accession == \"MS:1002954\")\n          {\n            unit = DriftTimeUnit::CCS;\n          }\n\n          spec_.setDriftTime(StringUtils::toDouble(value));\n          spec_.setDriftTimeUnit(unit);\n        }\n        else if (accession == \"MS:1000011\") //mass resolution\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"mass resolution\", termValue);\n        }\n        else if (accession == \"MS:1000015\") //scan rate\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"scan rate\", termValue);\n        }\n        else if (accession == \"MS:1000016\") //scan start time\n        {\n          if (unit_accession == \"UO:0000031\") //minutes\n          {\n            spec_.setRT(60.0 * StringUtils::toDouble(value));\n          }\n          else //seconds\n          {\n            spec_.setRT(StringUtils::toDouble(value));\n          }\n          rt_set_ = true;\n          if (options_.hasRTRange())\n          {\n            if (!options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))\n            {\n              skip_spectrum_ = true;\n            }\n            else\n            { // we are within RT range\n              if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)\n              { //, but we only want to count\n                skip_spectrum_ = true;\n                ++scan_count_;\n              }\n            }\n          }\n          else if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)\n          { // all RTs are valid, and the MS level of the current spectrum is in our MSLevels (otherwise we would not be here)\n            skip_spectrum_ = true;\n            ++scan_count_;\n          }\n        }\n        else if (accession == \"MS:1000826\") //elution time\n        {\n          if (unit_accession == \"UO:0000031\") //minutes\n          {\n            spec_.setMetaValue(\"elution time (seconds)\", 60.0 * StringUtils::toDouble(value));\n          }\n          else //seconds\n          {\n            spec_.setMetaValue(\"elution time (seconds)\", StringUtils::toDouble(value));\n          }\n        }\n        else if (accession == \"MS:1000512\") //filter string\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"filter string\", termValue);\n        }\n        else if (accession == \"MS:1000803\") //analyzer scan offset\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"analyzer scan offset\", termValue); // used in SpectraIDViewTab()\n        }\n        else if (accession == \"MS:1000616\") //preset scan configuration\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"preset scan configuration\", termValue);\n        }\n        else if (accession == \"MS:1000800\") //mass resolving power\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"mass resolving power\", termValue);\n        }\n        else if (accession == \"MS:1000880\") //interchannel delay\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"interchannel delay\", termValue);\n        }\n        //scan direction\n        else if (accession == \"MS:1000092\") //decreasing m/z scan\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"scan direction\",std::string(\"decreasing\"));\n        }\n        else if (accession == \"MS:1000093\") //increasing m/z scan\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"scan direction\",std::string(\"increasing\"));\n        }\n        //scan law\n        else if (accession == \"MS:1000094\") //scan law: exponential\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"scan law\",std::string(\"exponential\"));\n        }\n        else if (accession == \"MS:1000095\") //scan law: linear\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"scan law\",std::string(\"linear\"));\n        }\n        else if (accession == \"MS:1000096\") //scan law: quadratic\n        {\n          //No member => meta data\n          spec_.setMetaValue(\"scan law\",std::string(\"quadratic\"));\n        }\n        else if (accession == \"MS:1000497\") // zoom scan\n        {\n          spec_.getInstrumentSettings().setZoomScan(true);\n        }\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 3418,
+      "last_line": 3570,
+      "purpose": "typed user parameters",
+      "text": "    void MzMLHandler::handleUserParam_(const std::string& parent_parent_tag,\n                                       const std::string& parent_tag,\n                                       const std::string& name,\n                                       const std::string& type,\n                                       const std::string& value,\n                                       const std::string& unit_accession)\n    {\n      // create a DataValue that contains the data in the right type\n      DataValue data_value = fromXSDString(type, value);\n\n      if (!unit_accession.empty())\n      {\n        if (StringUtils::hasPrefix(unit_accession, \"UO:\"))\n        {\n          data_value.setUnit(StringUtils::toInt32(StringUtils::suffix(unit_accession, unit_accession.size() - 3)));\n          data_value.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);\n        }\n        else if (StringUtils::hasPrefix(unit_accession, \"MS:\"))\n        {\n          data_value.setUnit(StringUtils::toInt32(StringUtils::suffix(unit_accession, unit_accession.size() - 3)));\n          data_value.setUnitType(DataValue::UnitType::MS_ONTOLOGY);\n        }\n        else\n        {\n          warning(LOAD,std::string(\"Unhandled unit '\") + unit_accession + \"' in tag '\" + parent_tag + \"'.\");\n        }\n      }\n\n      //find the right MetaInfoInterface\n      if (parent_tag == \"run\")\n      {\n        exp_->setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"instrumentConfiguration\")\n      {\n        instruments_[current_id_].setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"source\")\n      {\n        instruments_[current_id_].getIonSources().back().setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"analyzer\")\n      {\n        instruments_[current_id_].getMassAnalyzers().back().setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"detector\")\n      {\n        instruments_[current_id_].getIonDetectors().back().setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"sample\")\n      {\n        if (name == \"comment\") { samples_[current_id_].setComment(value); }\n        else { samples_[current_id_].setMetaValue(name, data_value); }\n      }\n      else if (parent_tag == \"software\")\n      {\n        software_[current_id_].setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"contact\")\n      {\n        exp_->getContacts().back().setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"sourceFile\")\n      {\n        source_files_[current_id_].setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"binaryDataArray\")\n      {\n        bin_data_.back().meta.setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"spectrum\")\n      {\n        spec_.setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"chromatogram\")\n      {\n        chromatogram_.setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"scanList\")\n      {\n        spec_.getAcquisitionInfo().setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"scan\")\n      {\n        spec_.getAcquisitionInfo().back().setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"scanWindow\")\n      {\n        spec_.getInstrumentSettings().getScanWindows().back().setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"isolationWindow\")\n      {\n        //We don't have this as a separate location => store it in the precursor\n        if (parent_parent_tag == \"precursor\")\n        {\n          if (in_spectrum_list_)\n          {\n            spec_.getPrecursors().back().setMetaValue(name, data_value);\n          }\n          else\n          {\n            chromatogram_.getPrecursor().setMetaValue(name, data_value);\n          }\n        }\n        else if (parent_parent_tag == \"product\")\n        {\n          if (in_spectrum_list_)\n          {\n            spec_.getProducts().back().setMetaValue(name, data_value);\n          }\n          else\n          {\n            chromatogram_.getProduct().setMetaValue(name, data_value);\n          }\n        }\n      }\n      else if (parent_tag == \"selectedIon\")\n      {\n        //parse only the first selected ion\n        if (selected_ion_count_ > 1)\n          return;\n\n        //We don't have this as a separate location => store it in the precursor\n        if (in_spectrum_list_)\n        {\n          spec_.getPrecursors().back().setMetaValue(name, data_value);\n        }\n        else\n        {\n          chromatogram_.getPrecursor().setMetaValue(name, data_value);\n        }\n      }\n      else if (parent_tag == \"activation\")\n      {\n        //We don't have this as a separate location => store it in the precursor\n        if (in_spectrum_list_)\n        {\n          spec_.getPrecursors().back().setMetaValue(name, data_value);\n        }\n        else\n        {\n          chromatogram_.getPrecursor().setMetaValue(name, data_value);\n        }\n      }\n      else if (parent_tag == \"processingMethod\")\n      {\n        processing_[current_id_].back()->setMetaValue(name, data_value);\n      }\n      else if (parent_tag == \"fileContent\")\n      {\n        //exp_->setMetaValue(name, data_value);\n      }\n      else\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 3637,
+      "last_line": 3737,
+      "purpose": "source scalar/list serialization",
+      "text": "    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const std::string& path, const Internal::MzMLValidator& validator, const std::set<std::string>& exclude) const\n    {\n      std::vector<std::string> cvParams;\n      std::vector<std::string> userParams;\n\n      std::vector<std::string> keys;\n      meta.getKeys(keys);\n\n      for (std::vector<std::string>::iterator key = keys.begin(); key != keys.end(); ++key)\n      {\n        if (exclude.contains(*key)) continue; // skip excluded entries\n\n        // special treatment of GO and BTO terms\n        // <cvParam cvRef=\"BTO\" accession=\"BTO:0000199\" name=\"cardiac muscle\"/>\n\n        if (*key == \"GO cellular component\" || *key == \"brenda source tissue\")\n        {\n          // the CVTerm info is in the meta value\n          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(meta.getMetaValue(*key));\n\n          if (c != nullptr)\n          {\n            // TODO: validate CV, we currently cannot do this as the relations in the BTO and GO are not captured by our CV impl\n            cvParams.push_back(writeCV_(*c, DataValue::EMPTY));\n          }\n        }\n        else\n        {\n          bool writtenAsCVTerm = false;\n          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(*key);\n          if (c != nullptr)\n          {\n            if (validateCV_(*c, path, validator))\n            {\n              // write CV\n              cvParams.push_back(writeCV_(*c, meta.getMetaValue(*key)));\n              writtenAsCVTerm = true;\n            }\n          }\n\n          // if we could not write it as CVTerm we will store it at least as userParam\n          if (!writtenAsCVTerm)\n          {\n            std::string userParam = \"<userParam name=\\\"\" + writeXMLAttribute_(*key) + \"\\\" type=\\\"\";\n\n            const DataValue& d = meta.getMetaValue(*key);\n            //determine type\n            if (d.valueType() == DataValue::INT_VALUE)\n            {\n              userParam += \"xsd:integer\";\n            }\n            else if (d.valueType() == DataValue::DOUBLE_VALUE)\n            {\n              userParam += \"xsd:double\";\n            }\n            else //string or lists are converted to string\n            {\n              userParam += \"xsd:string\";\n            }\n\n            userParam += \"\\\" value=\\\"\" + writeXMLAttribute_(d.toString());\n\n            if (d.hasUnit())\n            {\n              //  unitAccession=\"UO:0000021\" unitName=\"gram\" unitCvRef=\"UO\"\n              //\n              // We need to identify the correct CV term for the *unit* by\n              // retrieving the identifier and looking up the term within the\n              // correct ontology in our cv_ object.\n              char s[8];\n              snprintf(s, sizeof(s), \"%07d\", d.getUnit()); // all CV use 7 digit identifiers padded with zeros\n              std::string unitstring =std::string(s);\n              if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)\n              {\n                unitstring = \"UO:\" + unitstring;\n              }\n              else if (d.getUnitType() == DataValue::UnitType::MS_ONTOLOGY)\n              {\n                unitstring = \"MS:\" + unitstring;\n              }\n              else\n              {\n                warning(LOAD,std::string(\"Unhandled unit ontology '\") );\n              }\n\n              ControlledVocabulary::CVTerm unit = cv_.getTerm(unitstring);\n              userParam += \"\\\" unitAccession=\\\"\" + unit.id + \"\\\" unitName=\\\"\" + unit.name + \"\\\" unitCvRef=\\\"\" + StringUtils::prefix(unit.id, 2);\n            }\n\n            userParam += \"\\\"/>\\n\";\n\n\n            userParams.push_back(std::move(userParam));\n          }\n        }\n      }\n\n      // write out all the cvParams and userParams in correct order\n      for (const auto& p : cvParams)\n      {\n        os << std::string(indent, '\\t') << p;\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 5529,
+      "last_line": 5543,
+      "purpose": "independent-noise write order",
+      "text": "      const std::vector<std::string> noise_names = {\"sampled noise m/z array\", \"sampled noise intensity array\", \"sampled noise baseline array\"};\n      Size noise_count = 0;\n      for (const auto& name : noise_names) noise_count += spec.metaValueExists(name);\n      if (spec.size() != 0 || noise_count != 0)\n      {\n        std::string encoded_string;\n        os << \"\\t\\t\\t\\t<binaryDataArrayList count=\\\"\" << (2 + noise_count + spec.getFloatDataArrays().size() + spec.getStringDataArrays().size() + spec.getIntegerDataArrays().size()) << \"\\\">\\n\";\n\n        writeContainerData_<SpectrumType>(os, options_, spec, \"mz\");\n        writeContainerData_<SpectrumType>(os, options_, spec, \"intensity\");\n        for (const auto& name : noise_names)\n        {\n          if (!spec.metaValueExists(name)) continue;\n          std::vector<double> values = spec.getMetaValue(name).toDoubleList();\n          writeBinaryDataArray_(os, options_, values, false, name);\n"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "first_line": 5611,
+      "last_line": 5720,
+      "purpose": "primary precision, roles, units and noise codec suppression",
+      "text": "    }\n\n    template <typename ContainerT>\n    void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, const std::string& array_type)\n    {\n      // Intensity is the same for chromatograms and spectra, the second\n      // dimension is either \"time\" or \"mz\" (both of these are controlled by\n      // getMz32Bit)\n      const std::string stored_type = container.getMetaValue(array_type == \"intensity\" ? \"mzml intensity array\" : \"mzml coordinate array\", array_type).toString();\n      bool is32Bit = array_type == \"intensity\" ? pf_options_.getIntensity32Bit() : pf_options_.getMz32Bit();\n      if (!is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)\n      {\n        std::vector<double> data_to_encode(container.size());\n        if (array_type == \"intensity\")\n        {\n          for (Size p = 0; p < container.size(); ++p)\n          {\n            data_to_encode[p] = container[p].getIntensity();\n          }\n        }\n        else\n        {\n          for (Size p = 0; p < container.size(); ++p)\n          {\n            data_to_encode[p] = container[p].getPos();\n          }\n        }\n        writeBinaryDataArray_(os, pf_options_, data_to_encode, false, stored_type);\n      }\n      else\n      {\n        std::vector<float> data_to_encode(container.size());\n\n        if (array_type == \"intensity\")\n        {\n          for (Size p = 0; p < container.size(); ++p)\n          {\n            data_to_encode[p] = container[p].getIntensity();\n          }\n        }\n        else\n        {\n          for (Size p = 0; p < container.size(); ++p)\n          {\n            data_to_encode[p] = container[p].getPos();\n          }\n        }\n        writeBinaryDataArray_(os, pf_options_, data_to_encode, true, stored_type);\n      }\n\n    }\n\n    template <typename DataType>\n    void MzMLHandler::writeBinaryDataArray_(std::ostream& os,\n                                            const PeakFileOptions& pf_options_,\n                                            std::vector<DataType>& data_to_encode,\n                                            bool is32bit,\n                                            std::string array_type)\n    {\n      std::string encoded_string;\n      bool no_numpress = true;\n\n      const bool coordinate = array_type == \"mz\" || array_type == \"time\" || array_type == \"wavelength\" || array_type == \"sampled noise m/z array\";\n      const bool noise = array_type.rfind(\"sampled noise \", 0) == 0;\n      // Compute the array-type CV term. The three default arrays keep their historical,\n      // byte-identical terms; the additional array types are looked up in the CV.\n      std::string cv_term_type;\n      if (array_type == \"mz\")\n      {\n        cv_term_type = \"\\t\\t\\t\\t\\t\\t<cvParam cvRef=\\\"MS\\\" accession=\\\"MS:1000514\\\" name=\\\"m/z array\\\" unitAccession=\\\"MS:1000040\\\" unitName=\\\"m/z\\\" unitCvRef=\\\"MS\\\" />\\n\";\n      }\n      else if (array_type == \"time\")\n      {\n        cv_term_type = \"\\t\\t\\t\\t\\t\\t<cvParam cvRef=\\\"MS\\\" accession=\\\"MS:1000595\\\" name=\\\"time array\\\" unitAccession=\\\"UO:0000010\\\" unitName=\\\"second\\\" unitCvRef=\\\"MS\\\" />\\n\";\n      }\n      else if (array_type == \"intensity\")\n      {\n        cv_term_type = \"\\t\\t\\t\\t\\t\\t<cvParam cvRef=\\\"MS\\\" accession=\\\"MS:1000515\\\" name=\\\"intensity array\\\" unitAccession=\\\"MS:1000131\\\" unitName=\\\"number of detector counts\\\" unitCvRef=\\\"MS\\\"/>\\n\";\n      }\n      else\n      {\n        const std::map<std::string, std::pair<std::string, std::string>> terms = {\n          {\"wavelength\", {\"MS:1000617\", \"UO:0000018\"}},\n          {\"absorption\", {\"MS:1000515\", \"UO:0000269\"}}, {\"pressure\", {\"MS:1000821\", \"UO:0000109\"}},\n          {\"flow\", {\"MS:1000820\", \"UO:0000270\"}}, {\"nonstandard\", {\"MS:1000786\", \"UO:0000000\"}},\n          {\"sampled noise m/z array\", {\"MS:1002743\", \"MS:1000040\"}},\n          {\"sampled noise intensity array\", {\"MS:1002744\", \"MS:1000131\"}},\n          {\"sampled noise baseline array\", {\"MS:1002745\", \"\"}}};\n        const auto term = terms.find(array_type);\n        if (term == terms.end()) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, \"Unknown array type\", array_type);\n        const auto& cv_term = cv_.getTerm(term->second.first);\n        cv_term_type = \"\\t\\t\\t\\t\\t\\t<cvParam cvRef=\\\"MS\\\" accession=\\\"\" + cv_term.id + \"\\\" name=\\\"\" + cv_term.name + \"\\\"\";\n        if (!term->second.second.empty())\n        {\n          const auto& unit = cv_.getTerm(term->second.second);\n          cv_term_type += \" unitAccession=\\\"\" + unit.id + \"\\\" unitName=\\\"\" + unit.name + \"\\\" unitCvRef=\\\"\" + unit.id.substr(0, unit.id.find(':')) + \"\\\"\";\n        }\n        if (array_type == \"nonstandard\") cv_term_type += \" value=\\\"detector signal\\\"\";\n        cv_term_type += \" />\\n\";\n      }\n      // The independently sampled noise grids can be shorter or longer than the spectrum, so they\n      // carry their own arrayLength. The default arrays must not override defaultArrayLength.\n      const std::string array_length = noise ? \" arrayLength=\\\"\" + std::to_string(data_to_encode.size()) + \"\\\"\" : \"\";\n      MSNumpressCoder::NumpressConfig np_config = coordinate ? pf_options_.getNumpressConfigurationMassTime() : pf_options_.getNumpressConfigurationIntensity();\n      if (noise) np_config.np_compression = MSNumpressCoder::NONE;\n      std::string compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, np_config, \"\\t\\t\\t\\t\\t\\t\", true);\n      std::string compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, np_config, \"\\t\\t\\t\\t\\t\\t\", false);\n\n      // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails\n      if (np_config.np_compression != MSNumpressCoder::NONE)\n"
+    },
+    {
+      "path": "src/openms/source/METADATA/MetaInfo.cpp",
+      "first_line": 45,
+      "last_line": 65,
+      "purpose": "right metadata overwrites left",
+      "text": "    auto end_this = index_to_value_.end();\n    auto it_rhs = rhs.index_to_value_.begin();\n    auto end_rhs = rhs.index_to_value_.end();\n\n    // Merge with deduplication: rhs values overwrite\n    while (it_this != end_this && it_rhs != end_rhs)\n    {\n      if (it_this->first < it_rhs->first)\n      {\n        merged.push_back(*it_this++);\n      }\n      else if (it_rhs->first < it_this->first)\n      {\n        merged.push_back(*it_rhs++);\n      }\n      else\n      {\n        // Equal keys: rhs value overwrites\n        merged.push_back(*it_rhs++);\n        ++it_this;\n      }\n"
+    }
+  ],
+  "cv_terms": [
+    {
+      "accession": "MS:1000011",
+      "first_line": 276,
+      "last_line": 282,
+      "text": "[Term]\nid: MS:1000011\nname: mass resolution\ndef: \"Smallest mass difference between two equal magnitude peaks so that the valley between them is a specified fraction of the peak height.\" [PSI:MS]\nis_a: MS:1000503 ! scan attribute\nrelationship: has_value_type xsd:string ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000015",
+      "first_line": 305,
+      "last_line": 312,
+      "text": "[Term]\nid: MS:1000015\nname: scan rate\ndef: \"Rate in Th/sec for scanning analyzers.\" [PSI:MS]\nis_a: MS:1000503 ! scan attribute\nrelationship: has_units MS:1000807 ! Th/s\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000285",
+      "first_line": 2164,
+      "last_line": 2171,
+      "text": "[Term]\nid: MS:1000285\nname: total ion current\ndef: \"The sum of all the separate ion currents carried by the ions of different m/z contributing to a complete mass spectrum or in a specified m/z range of a mass spectrum.\" [PSI:MS]\nsynonym: \"TIC\" EXACT []\nis_a: MS:1003058 ! spectrum property\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000502",
+      "first_line": 3623,
+      "last_line": 3632,
+      "text": "[Term]\nid: MS:1000502\nname: dwell time\ndef: \"The time spent gathering data across a peak.\" [PSI:MS]\nsynonym: \"Scan Duration\" RELATED []\nis_a: MS:1000503 ! scan attribute\nrelationship: has_units UO:0000010 ! second\nrelationship: has_units UO:0000031 ! minute\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000504",
+      "first_line": 3640,
+      "last_line": 3647,
+      "text": "[Term]\nid: MS:1000504\nname: base peak m/z\ndef: \"M/z value of the signal of highest intensity in the mass spectrum.\" [PSI:MS]\nis_a: MS:1003058 ! spectrum property\nrelationship: has_units MS:1000040 ! m/z\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000505",
+      "first_line": 3648,
+      "last_line": 3659,
+      "text": "[Term]\nid: MS:1000505\nname: base peak intensity\ndef: \"The intensity of the greatest peak in the mass spectrum.\" [PSI:MS]\nis_a: MS:1003058 ! spectrum property\nrelationship: has_units MS:1000131 ! number of detector counts\nrelationship: has_units MS:1000132 ! percent of base peak\nrelationship: has_units MS:1000814 ! counts per second\nrelationship: has_units MS:1000905 ! percent of base peak times 100\nrelationship: has_units UO:0000269 ! absorbance unit\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000512",
+      "first_line": 3701,
+      "last_line": 3707,
+      "text": "[Term]\nid: MS:1000512\nname: filter string\ndef: \"A string unique to Thermo instrument describing instrument settings for the scan.\" [PSI:MS]\nis_a: MS:1000503 ! scan attribute\nrelationship: has_value_type xsd:string ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000515",
+      "first_line": 3724,
+      "last_line": 3736,
+      "text": "[Term]\nid: MS:1000515\nname: intensity array\ndef: \"A data array of intensity values.\" [PSI:MS]\nxref: binary-data-type:MS\\:1000521 \"32-bit float\"\nxref: binary-data-type:MS\\:1000523 \"64-bit float\"\nis_a: MS:1000513 ! binary data array\nrelationship: has_units MS:1000131 ! number of detector counts\nrelationship: has_units MS:1000132 ! percent of base peak\nrelationship: has_units MS:1000814 ! counts per second\nrelationship: has_units MS:1000905 ! percent of base peak times 100\nrelationship: has_units UO:0000269 ! absorbance unit\n\n"
+    },
+    {
+      "accession": "MS:1000527",
+      "first_line": 3808,
+      "last_line": 3816,
+      "text": "[Term]\nid: MS:1000527\nname: highest observed m/z\ndef: \"Highest m/z value observed in the m/z array.\" [PSI:MS]\nis_a: MS:1000808 ! chromatogram attribute\nis_a: MS:1003058 ! spectrum property\nrelationship: has_units MS:1000040 ! m/z\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000528",
+      "first_line": 3817,
+      "last_line": 3825,
+      "text": "[Term]\nid: MS:1000528\nname: lowest observed m/z\ndef: \"Lowest m/z value observed in the m/z array.\" [PSI:MS]\nis_a: MS:1000808 ! chromatogram attribute\nis_a: MS:1003058 ! spectrum property\nrelationship: has_units MS:1000040 ! m/z\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000616",
+      "first_line": 4414,
+      "last_line": 4420,
+      "text": "[Term]\nid: MS:1000616\nname: preset scan configuration\ndef: \"A user-defined scan configuration that specifies the instrumental settings in which a spectrum is acquired. An instrument may cycle through a list of preset scan configurations to acquire data. This is a more generic term for the Thermo \\\"scan event\\\", which is defined in the Thermo Xcalibur glossary as: a mass spectrometer scan that is defined by choosing the necessary scan parameter settings. Multiple scan events can be defined for each segment of time.\" [PSI:MS]\nis_a: MS:1000503 ! scan attribute\nrelationship: has_value_type xsd:string ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000617",
+      "first_line": 4421,
+      "last_line": 4429,
+      "text": "[Term]\nid: MS:1000617\nname: wavelength array\ndef: \"A data array of electromagnetic radiation wavelength values.\" [PSI:MS]\nxref: binary-data-type:MS\\:1000521 \"32-bit float\"\nxref: binary-data-type:MS\\:1000523 \"64-bit float\"\nis_a: MS:1000513 ! binary data array\nrelationship: has_units UO:0000018 ! nanometer\n\n"
+    },
+    {
+      "accession": "MS:1000618",
+      "first_line": 4430,
+      "last_line": 4438,
+      "text": "[Term]\nid: MS:1000618\nname: highest observed wavelength\ndef: \"Highest wavelength observed in an EMR spectrum.\" [PSI:MS]\nis_a: MS:1003058 ! spectrum property\nis_a: MS:1000808 ! chromatogram attribute\nrelationship: has_units UO:0000018 ! nanometer\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000619",
+      "first_line": 4439,
+      "last_line": 4447,
+      "text": "[Term]\nid: MS:1000619\nname: lowest observed wavelength\ndef: \"Lowest wavelength observed in an EMR spectrum.\" [PSI:MS]\nis_a: MS:1003058 ! spectrum property\nis_a: MS:1000808 ! chromatogram attribute\nrelationship: has_units UO:0000018 ! nanometer\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000786",
+      "first_line": 5565,
+      "last_line": 5576,
+      "text": "[Term]\nid: MS:1000786\nname: non-standard data array\ndef: \"A data array that contains data not covered by any other term in this group. Please do not use this term, if the binary data array type might be commonly used - contact the PSI-MS working group in order to have another CV term added.\" [PSI:MS]\nxref: binary-data-type:MS\\:1000519 \"32-bit integer\"\nxref: binary-data-type:MS\\:1000521 \"32-bit float\"\nxref: binary-data-type:MS\\:1000522 \"64-bit integer\"\nxref: binary-data-type:MS\\:1000523 \"64-bit float\"\nxref: binary-data-type:MS\\:1001479 \"null-terminated ASCII string\"\nis_a: MS:1000513 ! binary data array\nrelationship: has_value_type xsd:string ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000796",
+      "first_line": 5653,
+      "last_line": 5661,
+      "text": "[Term]\nid: MS:1000796\nname: spectrum title\ndef: \"Free-form text title describing a spectrum, usually a series of key value pairs as used in an MGF file.\" [PSI:MS]\ncomment: This is the preferred storage place for the spectrum TITLE from an MGF peak list.\nis_a: MS:1001405 ! spectrum identification result details\nis_a: MS:1000499 ! spectrum attribute\nrelationship: has_value_type xsd:string ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000797",
+      "first_line": 5662,
+      "last_line": 5670,
+      "text": "[Term]\nid: MS:1000797\nname: peak list scans\ndef: \"A list of scan numbers and or scan ranges associated with a peak list. If possible the list of scans should be converted to native spectrum identifiers instead of using this term.\" [PSI:MS]\ncomment: This is the preferred storage place for the spectrum SCANS attribute from an MGF peak list.\nis_a: MS:1001405 ! spectrum identification result details\nis_a: MS:1003058 ! spectrum property\nrelationship: has_value_type xsd:string ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000798",
+      "first_line": 5671,
+      "last_line": 5679,
+      "text": "[Term]\nid: MS:1000798\nname: peak list raw scans\ndef: \"A list of raw scans and or scan ranges used to generate a peak list. If possible the list of scans should be converted to native spectrum identifiers instead of using this term.\" [PSI:MS]\ncomment: This is the preferred storage place for the spectrum RAWSCANS attribute from an MGF peak list.\nis_a: MS:1001405 ! spectrum identification result details\nis_a: MS:1003058 ! spectrum property\nrelationship: has_value_type xsd:string ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000800",
+      "first_line": 5687,
+      "last_line": 5693,
+      "text": "[Term]\nid: MS:1000800\nname: mass resolving power\ndef: \"The observed mass divided by the difference between two masses that can be separated: m/dm. The procedure by which dm was obtained and the mass at which the measurement was made should be reported.\" [PSI:MS]\nis_a: MS:1000503 ! scan attribute\nrelationship: has_value_type xsd:string ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000803",
+      "first_line": 5708,
+      "last_line": 5715,
+      "text": "[Term]\nid: MS:1000803\nname: analyzer scan offset\ndef: \"Offset between two analyzers in a constant neutral loss or neutral gain scan. The value corresponds to the neutral loss or neutral gain value.\" [PSI:MS]\nis_a: MS:1000503 ! scan attribute\nrelationship: has_units MS:1000040 ! m/z\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1000820",
+      "first_line": 5824,
+      "last_line": 5832,
+      "text": "[Term]\nid: MS:1000820\nname: flow rate array\ndef: \"A data array of flow rate measurements.\" [PSI:MS]\nxref: binary-data-type:MS\\:1000521 \"32-bit float\"\nxref: binary-data-type:MS\\:1000523 \"64-bit float\"\nis_a: MS:1000513 ! binary data array\nrelationship: has_units UO:0000271 ! microliters per minute\n\n"
+    },
+    {
+      "accession": "MS:1000821",
+      "first_line": 5833,
+      "last_line": 5841,
+      "text": "[Term]\nid: MS:1000821\nname: pressure array\ndef: \"A data array of pressure measurements.\" [PSI:MS]\nxref: binary-data-type:MS\\:1000521 \"32-bit float\"\nxref: binary-data-type:MS\\:1000523 \"64-bit float\"\nis_a: MS:1000513 ! binary data array\nrelationship: has_units UO:0000110 ! pascal\n\n"
+    },
+    {
+      "accession": "MS:1000880",
+      "first_line": 6247,
+      "last_line": 6254,
+      "text": "[Term]\nid: MS:1000880\nname: interchannel delay\ndef: \"The duration of intervals between scanning, during which the instrument configuration is switched.\" [PSI:MS]\nis_a: MS:1000503 ! scan attribute\nrelationship: has_units UO:0000010 ! second\nrelationship: has_value_type xsd:float ! The allowed value-type for this CV term\n\n"
+    },
+    {
+      "accession": "MS:1002743",
+      "first_line": 18061,
+      "last_line": 18069,
+      "text": "[Term]\nid: MS:1002743\nname: sampled noise m/z array\ndef: \"A data array of parallel, independent m/z values for a sampling of noise across a spectrum (typically much smaller than MS:1000514, the m/z array).\" [PSI:MS]\nxref: binary-data-type:MS\\:1000521 \"32-bit float\"\nxref: binary-data-type:MS\\:1000523 \"64-bit float\"\nis_a: MS:1000513 ! binary data array\nrelationship: has_units MS:1000040 ! m/z\n\n"
+    },
+    {
+      "accession": "MS:1002744",
+      "first_line": 18070,
+      "last_line": 18078,
+      "text": "[Term]\nid: MS:1002744\nname: sampled noise intensity array\ndef: \"A data array of intensity values for the amplitude of noise variation superposed on the baseline (MS:1002745) across a spectrum (for use with MS:1002743, sampled noise m/z array).\" [PSI:MS]\nxref: binary-data-type:MS\\:1000521 \"32-bit float\"\nxref: binary-data-type:MS\\:1000523 \"64-bit float\"\nis_a: MS:1000513 ! binary data array\nrelationship: has_units MS:1000131 ! number of detector counts\n\n"
+    },
+    {
+      "accession": "MS:1002745",
+      "first_line": 18079,
+      "last_line": 18086,
+      "text": "[Term]\nid: MS:1002745\nname: sampled noise baseline array\ndef: \"A data array of baseline intensity values (the intensity in the absence of analytes) for a sampling of noise across a spectrum (for use with MS:1002743, sampled noise m/z array).\" [PSI:MS]\nxref: binary-data-type:MS\\:1000521 \"32-bit float\"\nxref: binary-data-type:MS\\:1000523 \"64-bit float\"\nis_a: MS:1000513 ! binary data array\n\n"
+    }
+  ]
+}

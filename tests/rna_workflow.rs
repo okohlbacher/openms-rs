@@ -41,10 +41,10 @@ fn sulfur_rna_spectrum() -> MSSpectrum {
     spectrum.precursors.push(Precursor::new(ion_mass / 2.0, -2));
     spectrum
         .metadata
-        .insert("RNA sequence".into(), rna.to_string());
+        .insert("RNA sequence".into(), rna.to_string().into());
     spectrum
         .metadata
-        .insert("RNA ion formula".into(), ion_atoms.to_string());
+        .insert("RNA ion formula".into(), ion_atoms.to_string().into());
     spectrum
         .integer_data_arrays
         .push(DataArray::new("RNA ion charge", vec![-2; spectrum.len()]));
@@ -59,7 +59,7 @@ fn sulfur_rna_composition_produces_negative_ion_isotope_coordinates() {
     assert!(spectrum.is_sorted());
     assert_eq!(spectrum.peaks[0].mz, spectrum.precursors[0].mz);
     assert_eq!(spectrum.integer_data_arrays[0].data, [-2; 5]);
-    let sequence = NASequence::parse(&spectrum.metadata["RNA sequence"]).unwrap();
+    let sequence = NASequence::parse(spectrum.metadata["RNA sequence"].as_str().unwrap()).unwrap();
     let suffix = sequence.suffix(1).unwrap();
     assert_eq!(suffix.to_string(), "*Gp");
     // Cutting after C* transfers the sulfur linkage to the retained 5' end.
@@ -138,7 +138,12 @@ fn rna_isotope_coordinates_and_negative_charge_roundtrip_through_mzml() {
             .unwrap();
         let restored = mzml::read(bytes.as_slice()).unwrap();
         assert_eq!(restored.spectra[0], experiment.spectra[0]);
-        let rna = NASequence::parse(&restored.spectra[0].metadata["RNA sequence"]).unwrap();
+        let rna = NASequence::parse(
+            restored.spectra[0].metadata["RNA sequence"]
+                .as_str()
+                .unwrap(),
+        )
+        .unwrap();
         assert_eq!(
             rna.mono_mass(NAFragmentType::Full, -2).unwrap() / 2.0,
             restored.spectra[0].precursors[0].mz

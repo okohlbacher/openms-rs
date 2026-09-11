@@ -22,10 +22,12 @@ featurexml = ["dep:quick-xml", "file-compression"]
 consensusxml = ["dep:quick-xml", "file-compression"]
 semantic-validation = ["cv-mapping"]
 mzml-validation = ["mzml", "semantic-validation"]
+mzml-schema = ["mzml", "dep:libxml"]
 cv-mapping = ["dep:quick-xml", "file-compression"]
 file-compression = ["dep:flate2", "dep:bzip2"]
 
 [dependencies]
+libxml = { version = "=0.3.14", optional = true }
 sha1 = { version = "=0.10.7", default-features = false, features = ["force-soft"], optional = true }
 libm = "=0.2.16"
 chrono = { version = "=0.4.45", default-features = false, features = ["clock"] }

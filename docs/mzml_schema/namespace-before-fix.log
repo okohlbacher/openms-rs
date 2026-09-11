@@ -1,0 +1,21 @@
+   Compiling openms v0.1.0 (/private/tmp/openms-rs-next-mzml-schema)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.90s
+     Running tests/mzml_schema.rs (/tmp/openms-mzml-schema-target-minimum/debug/deps/mzml_schema-6edf6cb34832b44c)
+
+running 1 test
+namespace-engine-probe: Ok(SchemaValidationReport { schema: MzML, diagnostics: [SchemaDiagnostic { level: Error, message: "Element '{http://www.w3.org/XML/1998/namespace}mzML': No matching global declaration available for the validation root.\n", filename: None, line: Some(1), column: None, domain: 17, code: 1845 }], engine_valid: false })
+namespace-engine-probe: Ok(SchemaValidationReport { schema: MzML, diagnostics: [], engine_valid: true })
+
+thread 'root_attributes_are_normalized_and_namespace_legality_stays_with_engine' panicked at tests/mzml_schema.rs:179:9:
+<xml:mzML xmlns:xml='http://psi.hupo.org/ms/mzml'/>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test root_attributes_are_normalized_and_namespace_legality_stays_with_engine ... FAILED
+
+failures:
+
+failures:
+    root_attributes_are_normalized_and_namespace_legality_stays_with_engine
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--test mzml_schema`

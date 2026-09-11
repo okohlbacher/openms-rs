@@ -112,9 +112,19 @@ fn array_replacement_is_aligned_and_does_not_validate_unrelated_state() {
     assert!(spectrum.precursors[0].activation_energy.is_nan());
     assert!(spectrum.peptide_identifications[0].hits[0].score.is_nan());
     assert_eq!(spectrum.native_id, "scan=25");
-    assert_eq!(spectrum.metadata["keep"], "unrelated");
-    assert_eq!(spectrum.metadata["fragment_mass_tolerance"], "0.1");
-    assert_eq!(spectrum.metadata["fragment_mass_tolerance_ppm"], "0");
+    assert_eq!(spectrum.metadata["keep"].as_str().unwrap(), "unrelated");
+    assert_eq!(
+        spectrum.metadata["fragment_mass_tolerance"]
+            .as_f64()
+            .unwrap(),
+        0.1
+    );
+    assert_eq!(
+        spectrum.metadata["fragment_mass_tolerance_ppm"]
+            .as_i64()
+            .unwrap(),
+        0
+    );
 }
 
 #[test]

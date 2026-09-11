@@ -118,7 +118,7 @@ fn reads_independently_encoded_mixed_precision_compression_and_minutes() {
             ..Precursor::default()
         }]
     );
-    assert_eq!(spectrum.metadata["label"], "A & B");
+    assert_eq!(spectrum.metadata["label"].as_str().unwrap(), "A & B");
     let chromatogram = &experiment.chromatograms[0];
     assert_eq!(
         chromatogram.peaks,
@@ -129,7 +129,10 @@ fn reads_independently_encoded_mixed_precision_compression_and_minutes() {
         ]
     );
     assert_eq!(chromatogram.native_id, "TIC");
-    assert_eq!(chromatogram.metadata["label"], "chromatogram");
+    assert_eq!(
+        chromatogram.metadata["label"].as_str().unwrap(),
+        "chromatogram"
+    );
 }
 
 #[test]

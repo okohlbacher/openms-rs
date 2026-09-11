@@ -275,7 +275,7 @@ fn append_preserves_unrelated_metadata_and_first_array_names_with_aligned_paddin
     spectrum
         .metadata
         .insert("retained".into(), "retained string allocation".into());
-    let metadata_pointer = spectrum.metadata["retained"].as_ptr();
+    let metadata_pointer = spectrum.metadata["retained"].as_str().unwrap().as_ptr();
     spectrum.peaks = vec![Peak1D::new(900.0, 7.0), Peak1D::new(10.0, -3.0)];
     spectrum
         .integer_data_arrays
@@ -297,7 +297,10 @@ fn append_preserves_unrelated_metadata_and_first_array_names_with_aligned_paddin
         .unwrap();
     assert!(spectrum.rt.is_nan());
     assert_eq!(spectrum.ms_level, 0);
-    assert_eq!(spectrum.metadata["retained"].as_ptr(), metadata_pointer);
+    assert_eq!(
+        spectrum.metadata["retained"].as_str().unwrap().as_ptr(),
+        metadata_pointer
+    );
     assert_eq!(spectrum.string_data_arrays[0].name.as_ptr(), name_pointer);
     assert_eq!(
         spectrum.integer_data_arrays[0].name,

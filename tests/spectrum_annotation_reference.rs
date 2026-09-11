@@ -108,9 +108,19 @@ fn source_eleven_peak_annotations_and_thirteen_peak_unmatched_variant() {
     assert_eq!(spectrum.integer_data_arrays[0].name, "Charges");
     assert_eq!(spectrum.string_data_arrays[0].data, source_labels());
     assert_eq!(spectrum.integer_data_arrays[0].data, vec![1; 11]);
-    assert_eq!(spectrum.metadata["fragment_mass_tolerance"], "0.1");
-    assert_eq!(spectrum.metadata["fragment_mass_tolerance_ppm"], "0");
-    assert_eq!(spectrum.metadata["retained"], "metadata");
+    assert_eq!(
+        spectrum.metadata["fragment_mass_tolerance"]
+            .as_f64()
+            .unwrap(),
+        0.1
+    );
+    assert_eq!(
+        spectrum.metadata["fragment_mass_tolerance_ppm"]
+            .as_i64()
+            .unwrap(),
+        0
+    );
+    assert_eq!(spectrum.metadata["retained"].as_str().unwrap(), "metadata");
     for (actual, row) in spectrum.float_data_arrays[0].data.iter().zip(rows(DERIVED)) {
         near(f64::from(*actual), f64::from(f32_bits(row[3])), 1e-9);
     }
@@ -362,7 +372,12 @@ fn source_precursor_check_uses_raw_ppm_value_as_daltons_and_restores_mz_order() 
     assert!(spectrum.is_sorted());
     let value = id.hits[0].metadata["precursor_in_ms2"].data();
     assert_eq!(value, &MetaValueData::Integer(1));
-    assert_eq!(spectrum.metadata["fragment_mass_tolerance_ppm"], "1");
+    assert_eq!(
+        spectrum.metadata["fragment_mass_tolerance_ppm"]
+            .as_i64()
+            .unwrap(),
+        1
+    );
     assert!((spectrum.peaks[0].mz - 150.0).abs() > 150.0 * 5e-6);
     assert_eq!(
         id.metadata["fragment_match_tolerance"].as_f64().unwrap(),

@@ -9,3 +9,6 @@ resources/cv/*.obo -text -whitespace
 
 # Pinned mzML semantic mapping is an original runtime resource.
 resources/cv/ms-mapping.xml -text -whitespace
+
+# Byte-pinned historical XSDs include Windows-1252 comments.
+resources/schemas/*.xsd -text -whitespace

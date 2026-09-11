@@ -1,0 +1,367 @@
+{
+  "scope": "Scoped isolated production checks, not a full all-target suite.",
+  "records": [
+    {
+      "name": "current-integration",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--test",
+        "mzml_schema",
+        "--test",
+        "mzml_schema_offline",
+        "--test",
+        "cv_mapping_file",
+        "--test",
+        "cv_mapping_values",
+        "--test",
+        "semantic_validator",
+        "--test",
+        "mzml_validator",
+        "-j2"
+      ],
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-tests-current-final.log",
+      "exit_code": 0,
+      "original_log": "/tmp/openms-mzml-schema-tests-current-final.log",
+      "log_sha256": "ec38b76a0535b3c920dac7efe957bb09081dc2668285acb27b88da44b19aa2ec",
+      "test_results": [
+        {
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 18,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 16,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 15,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        }
+      ]
+    },
+    {
+      "name": "minimum-final",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml-schema",
+        "--test",
+        "mzml_schema",
+        "--test",
+        "mzml_schema_offline",
+        "-j2"
+      ],
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-minimum-final.log",
+      "exit_code": 0,
+      "seconds": 3.119,
+      "original_log": "/tmp/openms-mzml-schema-minimum-final.log",
+      "log_sha256": "9842c00f16cd770de3c9a30733f18230c7395bc602ed24204ffbe10d7ef38731",
+      "test_results": [
+        {
+          "passed": 18,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        }
+      ]
+    },
+    {
+      "name": "minimum-adjacent",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml-validation",
+        "--test",
+        "cv_mapping_file",
+        "--test",
+        "cv_mapping_values",
+        "--test",
+        "semantic_validator",
+        "--test",
+        "mzml_validator",
+        "-j2"
+      ],
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-minimum-adjacent.log",
+      "exit_code": 0,
+      "seconds": 15.592,
+      "original_log": "/tmp/openms-mzml-schema-minimum-adjacent.log",
+      "log_sha256": "e8de02e9a987d16fcf63a58c5e3a88db4ba692ca450a053d3455c20240787164",
+      "test_results": [
+        {
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 16,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        },
+        {
+          "passed": 15,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        }
+      ]
+    },
+    {
+      "name": "private-minimum-final",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml-schema",
+        "--lib",
+        "format::mzml_schema::tests",
+        "-j2"
+      ],
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-private-minimum-final.log",
+      "exit_code": 0,
+      "seconds": 6.111,
+      "original_log": "/tmp/openms-mzml-schema-private-minimum-final.log",
+      "log_sha256": "bb0095c503e2b4dee8dcbb2962d504dd5fd0692f59687228e0e406c8d2249de0",
+      "test_results": [
+        {
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 128
+        }
+      ]
+    },
+    {
+      "name": "private-current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "format::mzml_schema::tests",
+        "-j2"
+      ],
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-private-current.log",
+      "exit_code": 0,
+      "seconds": 4.204,
+      "original_log": "/tmp/openms-mzml-schema-private-current.log",
+      "log_sha256": "1092cdae727188fe3e32cd3b625dcbf5594701c531a722fe1e0fa9fd242f147c",
+      "test_results": [
+        {
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 139
+        }
+      ]
+    },
+    {
+      "name": "clippy-minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml-schema",
+        "--lib",
+        "--test",
+        "mzml_schema",
+        "--test",
+        "mzml_schema_offline",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-clippy-minimum.log",
+      "exit_code": 0,
+      "seconds": 5.197,
+      "original_log": "/tmp/openms-mzml-schema-clippy-minimum.log",
+      "log_sha256": "0e1a7ec5819000261e039dede73f0f5de2b349d275ac4fc931361dcb0f4602d4",
+      "test_results": []
+    },
+    {
+      "name": "clippy-current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "--test",
+        "mzml_schema",
+        "--test",
+        "mzml_schema_offline",
+        "--test",
+        "cv_mapping_file",
+        "--test",
+        "cv_mapping_values",
+        "--test",
+        "semantic_validator",
+        "--test",
+        "mzml_validator",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-clippy-current.log",
+      "exit_code": 0,
+      "seconds": 2.312,
+      "original_log": "/tmp/openms-mzml-schema-clippy-current.log",
+      "log_sha256": "a2138954d2569028bfbcbb855888358d66d59c439666137591561e9f88cc2f9c",
+      "test_results": []
+    },
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-format.log",
+      "exit_code": 0,
+      "seconds": 1.229,
+      "original_log": "/tmp/openms-mzml-schema-format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test_results": []
+    },
+    {
+      "name": "portable-feature-graph",
+      "command": [
+        "python3",
+        "tools/check_schema_feature_graph.py"
+      ],
+      "environment": {
+        "RUSTUP_TOOLCHAIN": "1.85.0",
+        "CARGO_NET_OFFLINE": "true",
+        "CARGO_TARGET_DIR": "/tmp/openms-mzml-schema-target-portable"
+      },
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-portable-graph.log",
+      "exit_code": 0,
+      "original_log": "/tmp/openms-mzml-schema-portable-graph.log",
+      "log_sha256": "3f0d55735a26f58a4166630f15cbb6ed53d4bc5fe50c87aa676da4a5065a27af",
+      "test_results": []
+    },
+    {
+      "name": "offline-with-catalog-control",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--test",
+        "mzml_schema_offline",
+        "offline_document_and_schema_fetching_is_blocked_with_observed_positive_control",
+        "--",
+        "--exact"
+      ],
+      "environment": {
+        "XML_CATALOG_FILES": "audit:///catalog-probe"
+      },
+      "log": "docs/mzml_schema/validation/openms-mzml-schema-offline-catalog.log",
+      "exit_code": 0,
+      "original_log": "/tmp/openms-mzml-schema-offline-catalog.log",
+      "log_sha256": "2fa781967d2efab239dd3fb3ca51d2e7a33d218c04ec9200c328d6c7f7e6531e",
+      "test_results": [
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "filtered": 0
+        }
+      ]
+    }
+  ],
+  "additional_checks": [
+    "Parsed both YAML files with PyYAML",
+    "git apply --check succeeded against shared a463e3e without applying changes"
+  ],
+  "environment": {
+    "host": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "libxml2_runtime": "20913",
+    "pkg_config_version": "2.9.13",
+    "linkage": "/tmp/openms-mzml-schema-target-current/debug/deps/mzml_schema-9d9d2f9a4dea5870:\n\t/usr/lib/libxml2.2.dylib (compatibility version 10.0.0, current version 10.9.0)\n\t/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5026.5.4)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+    "rust_1_85": "rustc 1.85.0 (4d91de4e4 2025-02-17)\nbinary: rustc\ncommit-hash: 4d91de4e48198da2e33413efdcd9cd2cc0c46688\ncommit-date: 2025-02-17\nhost: aarch64-apple-darwin\nrelease: 1.85.0\nLLVM version: 19.1.7\n",
+    "rust_1_98": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: aarch64-apple-darwin\nrelease: 1.98.0\nLLVM version: 22.1.8\n",
+    "linux_windows": "CI setup prepared; neither platform executed locally."
+  },
+  "earlier_failures": [
+    "Initial minimum 14/15 passed; illegal namespace rebinding produced an engine-valid document. Fixed using checked shared lexical callbacks.",
+    "Unused malformed namespace URI characters also produced valid documents. Added lexical guard and preserved actual pre-fix evidence logs."
+  ],
+  "observed_counts": {
+    "current_integration": 63,
+    "minimum_integration": 63,
+    "private_per_version": 4,
+    "additional_catalog_observer": 1
+  }
+}

@@ -74,7 +74,10 @@ fn factored_independent_fixture_preserves_every_supported_parameter() {
     assert_eq!(actual.spectra[0].rt, 90.0);
     assert_eq!(actual.spectra[0].ms_level, 2);
     assert_eq!(actual.spectra[0].precursors[0].mz, 500.25);
-    assert_eq!(actual.spectra[0].metadata["label"], "A & B");
+    assert_eq!(
+        actual.spectra[0].metadata["label"].as_str().unwrap(),
+        "A & B"
+    );
     assert_eq!(actual.chromatograms[0].peaks[1].rt, 60.0);
     let mut encoded = Vec::new();
     mzml::write(&mut encoded, &actual).unwrap();
@@ -103,7 +106,10 @@ fn source_spectrum_projection_keeps_original_ieee_arrays_and_reference() {
     let s = &exp.spectra[0];
     assert_eq!(s.native_id, "index=0");
     assert_eq!(s.rt, 5.1);
-    assert_eq!(s.metadata["sdname"], "spectrumdescription1");
+    assert_eq!(
+        s.metadata["sdname"].as_str().unwrap(),
+        "spectrumdescription1"
+    );
     assert_eq!(s.len(), 15);
     for (i, peak) in s.peaks.iter().enumerate() {
         assert_eq!(peak.mz.to_bits(), (i as f64).to_bits());
@@ -251,7 +257,7 @@ fn mixed_group_order_unicode_ids_names_and_empty_groups() {
     let s = read(&xml).unwrap().spectra.remove(0);
     assert_eq!(s.ms_level, 2);
     assert_eq!(s.name, "A & B");
-    assert_eq!(s.metadata["unicode"], "αβ");
+    assert_eq!(s.metadata["unicode"].as_str().unwrap(), "αβ");
     read(&doc(&group(""), &reference().repeat(10))).unwrap();
     let spaced = doc(&group(""), reference())
         .replace("id=\"g\"", "id=\" g \"")

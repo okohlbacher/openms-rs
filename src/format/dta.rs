@@ -77,6 +77,11 @@ pub fn write_with_convention(
     convention: MassConvention,
 ) -> Result<()> {
     spectrum.validate()?;
+    if !spectrum.metadata.is_empty() {
+        return Err(Error::Unsupported(
+            "DTA cannot store spectrum metadata".into(),
+        ));
+    }
     if spectrum.precursors.len() > 1 {
         return Err(Error::Unsupported("DTA supports only one precursor".into()));
     }

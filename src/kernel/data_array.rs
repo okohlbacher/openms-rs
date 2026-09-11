@@ -90,6 +90,21 @@ impl Meter<'_> {
         }
         Ok(())
     }
+    pub(crate) fn meta_update(&mut self, meta: &MetaInfo, key: &str) -> Result<()> {
+        let height = (usize::BITS - meta.len().max(1).leading_zeros()) as usize;
+        self.charge(
+            height
+                .saturating_mul(key.len().saturating_add(1))
+                .saturating_mul(16),
+            0,
+        )?;
+        self.tree::<(String, MetaValue)>(height.saturating_add(1))?;
+        self.text(key)?;
+        if let Some(old) = meta.get(key) {
+            self.value(old)?;
+        }
+        Ok(())
+    }
     pub(crate) fn value(&mut self, value: &MetaValue) -> Result<()> {
         if let Some(unit) = value.unit() {
             self.text(unit.accession())?;
@@ -152,5 +167,31 @@ mod sparse_tree_tests {
         .tree::<Large>(1)
         .unwrap();
         assert_eq!(bytes, 0);
+    }
+    #[test]
+    fn replacing_typed_metadata_precharges_old_list_and_sparse_map_atomically() {
+        let meta = MetaInfo::from([("key".into(), vec!["x".repeat(100); 4].into())]);
+        let original = meta.clone();
+        let mut work = 100_000;
+        let mut bytes = 100_000;
+        Meter {
+            work: &mut work,
+            bytes: &mut bytes,
+        }
+        .meta_update(&meta, "key")
+        .unwrap();
+        let cost = 100_000 - bytes;
+        let mut work = 100_000;
+        let mut bytes = cost - 1;
+        assert!(
+            Meter {
+                work: &mut work,
+                bytes: &mut bytes
+            }
+            .meta_update(&meta, "key")
+            .is_err()
+        );
+        assert_eq!(meta, original);
+        assert!(work < 100_000);
     }
 }

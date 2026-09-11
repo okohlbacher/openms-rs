@@ -1,0 +1,25 @@
+name: Install optional libxml2 schema backend
+description: Native headers, library and libclang for the exact libxml Rust binding
+runs:
+  using: composite
+  steps:
+    - if: runner.os == 'Linux'
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y libxml2-dev libxml2-utils libclang-dev clang pkg-config
+    - if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        brew install libxml2 llvm pkgconf
+        echo "PKG_CONFIG_PATH=$(brew --prefix libxml2)/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}" >> "$GITHUB_ENV"
+        echo "LIBCLANG_PATH=$(brew --prefix llvm)/lib" >> "$GITHUB_ENV"
+    - if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        if (-not $env:VCPKG_INSTALLATION_ROOT) { throw 'Hosted runner is missing VCPKG_INSTALLATION_ROOT' }
+        & "$env:VCPKG_INSTALLATION_ROOT/vcpkg.exe" install libxml2:x64-windows-static-md
+        if ($LASTEXITCODE -ne 0) { throw 'vcpkg libxml2 installation failed' }
+        "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+        "VCPKGRS_TRIPLET=x64-windows-static-md" >> $env:GITHUB_ENV
+        $clang = "$env:ProgramFiles/LLVM/bin"
+        if (-not (Test-Path "$clang/libclang.dll")) { throw 'Hosted runner is missing LLVM/libclang.dll' }
+        "LIBCLANG_PATH=$clang" >> $env:GITHUB_ENV

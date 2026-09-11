@@ -133,8 +133,8 @@ fn mgf_streaming_global_parameters_and_charge() {
     assert_eq!(spec.rt, 30.5);
     assert_eq!(spec.name, "peptide spectrum");
     assert_eq!(spec.native_id, "index=0");
-    assert_eq!(spec.metadata["SCANS"], "42");
-    assert_eq!(spec.metadata["COM"], "global");
+    assert_eq!(spec.metadata["SCANS"].as_str().unwrap(), "42");
+    assert_eq!(spec.metadata["COM"].as_str().unwrap(), "global");
     assert_eq!(exp.spectra[1].precursors[0].charge, -1);
     assert_eq!(exp.spectra[1].ms_level, 3);
     let mut output = Vec::new();

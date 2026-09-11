@@ -465,7 +465,7 @@ fn append_is_atomic_and_extends_named_annotations() {
     assert_eq!(s.len(), 13);
     assert_eq!(s.rt, 7.5);
     assert_eq!(s.name, "retained");
-    assert_eq!(s.metadata["source"], "retained");
+    assert_eq!(s.metadata["source"].as_str().unwrap(), "retained");
     assert_eq!(s.precursors.len(), 2);
     assert_eq!(names(&s)[0], "");
     assert_eq!(charges(&s)[0], 0);

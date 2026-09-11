@@ -1,0 +1,39 @@
+   Compiling openms v0.1.0 (/private/tmp/openms-rs-next-mzml-schema)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.20s
+     Running tests/mzml_schema.rs (/tmp/openms-mzml-schema-target-minimum/debug/deps/mzml_schema-6edf6cb34832b44c)
+
+running 18 tests
+test cpp054_raw_index_schema_does_not_establish_index_integrity ... ok
+test root_attributes_are_normalized_and_namespace_errors_precede_engine ... ok
+test exact_schema_bytes_are_preserved_and_have_no_external_grammar_imports ... ok
+test identity_dangling_keyref_is_rejected_in_both_schemas ... ok
+test identity_duplicate_key_is_rejected_in_both_schemas ... ok
+test real_xsd_order_and_unknown_elements ... ok
+test schema_is_not_checksum_offset_count_or_cv_semantic_validation ... ok
+test real_xsd_required_attributes_and_numeric_facets ... ok
+test malformed_xml_and_ascii_latin1_boundary_are_checked_before_schema_result ... ok
+test namespace_uri_characters_are_checked_without_resolving_relative_names ... ok
+test unchanged_originals_validate_against_exact_schemas ... ok
+test namespace_root_selection_corrects_four_line_heuristic ... ok
+test native_preflight_and_post_engine_result_limits_are_explicit ... ok
+test namespaces_reject_reserved_bindings_undefined_prefixes_and_expanded_duplicates ... ok
+test path_magic_compression_crc_and_decoded_caps ... ok
+test local_contexts_are_reusable_and_independent_between_threads ... ok
+test utf16_declaration_is_canonicalized_without_losing_unicode_or_standalone ... ok
+test native_writer_documents_are_engine_checks_not_source_generated_goldens ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/mzml_schema_offline.rs (/tmp/openms-mzml-schema-target-minimum/debug/deps/mzml_schema_offline-30fa91af7512046c)
+
+running 1 test
+file:///etc/xml/catalog:1: parser error : Document is empty
+
+^
+audit:///positive-control:1: parser error : Document is empty
+
+^
+test offline_document_and_schema_fetching_is_blocked_with_observed_positive_control ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
