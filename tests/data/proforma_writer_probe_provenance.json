@@ -1,0 +1,50 @@
+{
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
+    }
+  ],
+  "ast_block_sha256": "44ddf5bdbe0d1edeb8ba032d3ee9ffa5e1e79cc0d5fa833bb8026c528c12a206",
+  "writer_block_sha256": "d05c98e0643eb025950dbf9c5f6b636d5d5ce2f4d3b0c5d975a4d9af9b870296",
+  "translation_unit_sha256": "cd647b111cdd47ece87d4d1436db1c8e174b5db89b79279bf100af7655f649cf",
+  "method": "Exact contiguous source AST and complete writer blocks; only standalone includes, DLL macro, opaque pointer forward declaration, namespace/class enclosure and test harness added.",
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_tests": [
+    "tests/proforma_writer_probe.rs"
+  ],
+  "fixtures": [
+    {
+      "path": "tools/generate_proforma_writer_probe.py",
+      "sha256": "7d8de8ab75a46930310ce7e1711b2681c0c13851069f1b86759de7bfca613dd0"
+    },
+    {
+      "path": "tests/data/proforma_writer_probe.cpp",
+      "sha256": "cca5c288e9e92a541aa88eea0444144aee9535e56c552b8d1284a967273eabc2"
+    },
+    {
+      "path": "tests/data/proforma_writer_reference.tsv",
+      "sha256": "29a204a4e06bbfd41fc5b09d3168b6f6caef598b8df93d39e0a068317425775f"
+    }
+  ],
+  "cpp_execution": {
+    "executed": true,
+    "full_sdk_build": false,
+    "command": [
+      "clang++",
+      "-std=c++17",
+      "-O2",
+      "/tmp/openms-proforma-writer-probe.cpp",
+      "-o",
+      "/tmp/openms-proforma-writer-probe"
+    ],
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
+    "output_cases": 160,
+    "comparison": "20 exact f64 bit patterns, both modes and4 stream-state/chain cases; every output byte compared with native writer; no C++ parser or chemistry backend linked."
+  }
+}

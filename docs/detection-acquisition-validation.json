@@ -1,0 +1,365 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "scope": [
+    "MassTraceDetection complete class-specific scientific operations",
+    "ProForma owned annotation AST and both text writers",
+    "Spectrum mzML AcquisitionInfo transport",
+    "ProteinIdentification inference/export/grouping/metadata-copy helpers"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 167.33,
+      "log_sha256": "4ade94088631708287a760372f130a8f5230d22c477c420c36bf525404aa2608",
+      "log_bytes": 178691,
+      "tests_passed": 1706
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.52,
+      "log_sha256": "555350588d16f369d96348231c2e8ea2e8469aa68c934471b950cef74327c5d2",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 15.25,
+      "log_sha256": "f851e796364e4bd57e4077cc5b4106c06d17f8bd93eb0e2e569c27974028b9fd",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 35.2,
+      "log_sha256": "ec7f4de9e9db220c326aae3949244513849f7db6726fec82223ce1f40fbbbfed",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.55,
+      "log_sha256": "8b7ab921757eb470690992aae1295b0454526c86532a76836b6682bebb3cbb04",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.99,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.47,
+      "log_sha256": "63775087b6ad9c311506c4bd3a7f3cc7a1c03a9be388b8eedb93fdd3a2a69546",
+      "log_bytes": 233
+    },
+    {
+      "name": "monosaccharide_projection",
+      "command": [
+        "python3",
+        "tools/generate_monosaccharides.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9",
+      "log_bytes": 48
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.06,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.12,
+      "log_sha256": "601fe042391a99393fa82171330c063518b3dc893b751f9d47488bee401b67c9",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.12,
+      "log_sha256": "396fa13ad4a55a2d25fc003254aa0f52822528c1bc15e9d3fd6f0d2e3ba2dc86",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "mass_trace_detection",
+        "--test",
+        "mass_trace",
+        "--test",
+        "area_iteration",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_writer_probe",
+        "--test",
+        "protein_run",
+        "--test",
+        "identification",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.07,
+      "log_sha256": "c0e5f3c8e47ee9be52af18fd2901dbd86ccff5e7b0c72c6501d57428ca5338ba",
+      "log_bytes": 16495,
+      "tests_passed": 155
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.95,
+      "log_sha256": "be851009c7e6eafa3850c4a6d18d4c5587207fee14ec45060c3358db5e13c60b",
+      "log_bytes": 162
+    }
+  ],
+  "staged_validation": {
+    "mass_trace_detection": {
+      "current_tests": 37,
+      "minimum_tests": 37,
+      "strict_scoped_both": true,
+      "fixture_regeneration": "byte-identical",
+      "source_files": 13
+    },
+    "proforma": {
+      "current_tests": 11,
+      "minimum_tests": 11,
+      "strict_scoped_both": true,
+      "source_files": 8
+    },
+    "mzml_acquisition": [
+      {
+        "name": "focused_tests_198",
+        "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-acquisition-target cargo +1.98.0 test --locked --offline -j2 --all-features --test mzml_acquisition --test mzml_acquisition_guards --test mzml_settings --test mzml_param_groups --test mzml --test mzml_product --test mzml_numpress --test mzml_load_options --test mzml_paths --test file_handler",
+        "cwd": "/tmp/openms-rs-next-mzml-acquisition",
+        "log": "/tmp/openms-mzml-acquisition-198.log",
+        "exit_code": 0,
+        "suite_pass_counts": [
+          9,
+          14,
+          10,
+          7,
+          18,
+          14,
+          8,
+          4,
+          9,
+          8
+        ],
+        "passed": 101,
+        "final_schema_order_fix_included": true
+      },
+      {
+        "name": "focused_tests_185",
+        "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-acquisition-target cargo +1.85.0 test --locked --offline -j2 --no-default-features --features mzml --test mzml_acquisition --test mzml_acquisition_guards --test mzml_settings --test mzml_param_groups --test mzml --test mzml_product --test mzml_numpress --test mzml_load_options --test mzml_paths --test file_handler",
+        "cwd": "/tmp/openms-rs-next-mzml-acquisition",
+        "log": "/tmp/openms-mzml-acquisition-185.log",
+        "exit_code": 0,
+        "suite_pass_counts": [
+          8,
+          14,
+          10,
+          7,
+          18,
+          14,
+          8,
+          4,
+          9,
+          8
+        ],
+        "passed": 100,
+        "final_schema_order_fix_included": true
+      },
+      {
+        "name": "strict_clippy_198",
+        "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-acquisition-target cargo +1.98.0 clippy --locked --offline -j2 --all-features --lib --test mzml_acquisition --test mzml_acquisition_guards --test mzml_param_groups --test mzml_settings -- -D warnings",
+        "cwd": "/tmp/openms-rs-next-mzml-acquisition",
+        "log": "/tmp/openms-mzml-acquisition-clippy198.log",
+        "exit_code": 0,
+        "final_schema_order_fix_included": true
+      },
+      {
+        "name": "strict_clippy_185",
+        "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-acquisition-target cargo +1.85.0 clippy --locked --offline -j2 --no-default-features --features mzml --lib --test mzml_acquisition --test mzml_acquisition_guards --test mzml_param_groups --test mzml_settings -- -D warnings",
+        "cwd": "/tmp/openms-rs-next-mzml-acquisition",
+        "log": "/tmp/openms-mzml-acquisition-clippy185.log",
+        "exit_code": 0,
+        "final_schema_order_fix_included": true
+      },
+      {
+        "name": "owned_rustfmt",
+        "command": "rustup run 1.98.0 rustfmt --check --edition 2024 src/format/mzml.rs src/format/mzml_acquisition.rs src/format/mzml_settings.rs tests/mzml_acquisition.rs tests/mzml_acquisition_guards.rs tests/mzml_param_groups.rs tests/mzml_settings.rs",
+        "cwd": "/tmp/openms-rs-next-mzml-acquisition",
+        "log": "/tmp/openms-mzml-acquisition-fmt.log",
+        "exit_code": 0,
+        "final_schema_order_fix_included": true
+      },
+      {
+        "name": "source_and_fixture_audit",
+        "source_hashes": 18,
+        "fixture_and_generator_hashes": 4,
+        "extraction_hashes": 13,
+        "projection_regeneration_identical": true,
+        "ontology_method_rows": 4,
+        "ontology_scan_fallback_rows": 9,
+        "ontology_scan_descendants": 28,
+        "original_bytes_match_pinned_source": true,
+        "local_doc_links_valid": true,
+        "exit_code": 0,
+        "final_schema_order_fix_included": true
+      },
+      {
+        "name": "independent_xsd_availability",
+        "version": "xmllint: using libxml version 20913\n   compiled with: Threads Tree Output Push Reader Patterns Writer SAXv1 FTP HTTP DTDValid HTML Legacy C14N Catalog XPath XPointer XInclude ICU ISO8859X Unicode Regexps Automata Schemas Schematron Modules Debug Zlib",
+        "execution": "Both new acquisition ordinary/prepared writer outputs validated in each compiler test run; test assertions passed.",
+        "exit_code": 0,
+        "final_schema_order_fix_included": true
+      }
+    ]
+  },
+  "independent_probes": {
+    "proforma_writer": "tests/data/proforma_writer_probe_provenance.json",
+    "source_writer_cases": 160,
+    "native_comparison_test": "tests/proforma_writer_probe.rs",
+    "full_cpp_sdk_build": false
+  },
+  "resolved_review_findings": [
+    "Mass-trace vector initialization now charged before allocation",
+    "Protein-run settings/scratch, existing group-vector growth and sparse metadata nodes now precharged",
+    "Native metadata lexical ordering explicitly distinguished from C++ numeric registry order",
+    "mzML sourceFile lexical normalization restored; host-filesystem absolute resolution excluded",
+    "mzML zoom CV emitted before acquisition user parameters to repair source schema ordering"
+  ],
+  "new_tests": 48,
+  "source_audit": {
+    "distinct_current_files": 1883,
+    "historical_references": 220,
+    "graph_references": 21,
+    "added_source_references": 533
+  },
+  "completion_ledger": {
+    "complete": 10,
+    "native_equivalent": 36,
+    "partial": 21,
+    "evidence_requires_review": 164,
+    "unmapped": 555,
+    "validated_topp_workflows": 0
+  },
+  "local_doc_links_checked": 756,
+  "previous_checkpoint_ci": "https://github.com/okohlbacher/openms-rs/actions/runs/34570080887"
+}

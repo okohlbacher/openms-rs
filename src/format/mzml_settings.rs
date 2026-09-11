@@ -5,9 +5,7 @@
 //! Record-local mzML acquisition settings, without an instrument registry.
 
 use super::*;
-use crate::metadata::{
-    AcquisitionInfo, ChromatogramType, InstrumentSettings, Polarity, ScanMode, SourceFile,
-};
+use crate::metadata::{ChromatogramType, InstrumentSettings, Polarity, ScanMode, SourceFile};
 
 const SCAN_MODES: &[(ScanMode, &str, &str)] = &[
     (ScanMode::MassSpectrum, "MS:1000294", "mass spectrum"),
@@ -252,15 +250,8 @@ fn unit_identity(accession: &str) -> Result<(&str, Option<&'static str>)> {
     ))
 }
 
-fn common_unrepresented(
-    acquisition: &AcquisitionInfo,
-    source: &SourceFile,
-    processing: usize,
-) -> bool {
-    !acquisition.acquisitions.is_empty()
-        || !acquisition.metadata.is_empty()
-        || !acquisition.method_of_combination.is_empty()
-        || !source.name.is_empty()
+fn common_unrepresented(source: &SourceFile, processing: usize) -> bool {
+    !source.name.is_empty()
         || !source.path.is_empty()
         || source.size_mb.to_bits() != 0
         || !source.file_type.is_empty()
@@ -280,15 +271,18 @@ fn instrument_unrepresented(settings: &InstrumentSettings) -> bool {
         || !settings.metadata.is_empty()
 }
 pub(super) fn spectrum_guard(s: &MSSpectrum) -> Result<()> {
-    if common_unrepresented(&s.acquisition_info, &s.source_file, s.data_processing.len())
+    if common_unrepresented(&s.source_file, s.data_processing.len())
         || !s.instrument_settings.metadata.is_empty()
     {
-        return Err(Error::Unsupported("mzML spectrum AcquisitionInfo, SourceFile, DataProcessing or InstrumentSettings metadata are not represented".into()));
+        return Err(Error::Unsupported("mzML spectrum SourceFile, DataProcessing or InstrumentSettings metadata are not represented".into()));
     }
     Ok(())
 }
 pub(super) fn chromatogram_guard(c: &MSChromatogram) -> Result<()> {
-    if common_unrepresented(&c.acquisition_info, &c.source_file, c.data_processing.len())
+    if common_unrepresented(&c.source_file, c.data_processing.len())
+        || !c.acquisition_info.acquisitions.is_empty()
+        || !c.acquisition_info.metadata.is_empty()
+        || !c.acquisition_info.method_of_combination.is_empty()
         || instrument_unrepresented(&c.instrument_settings)
     {
         return Err(Error::Unsupported("mzML chromatogram instrument/acquisition/source/processing settings are not represented".into()));
@@ -301,6 +295,7 @@ pub(super) fn chromatogram_guard(c: &MSChromatogram) -> Result<()> {
     Ok(())
 }
 pub(super) fn validate_spectrum(s: &MSSpectrum) -> Result<()> {
+    acquisition_metadata::validate(&s.acquisition_info)?;
     for window in &s.instrument_settings.scan_windows {
         validate_scalar_metadata(&window.metadata)?;
         if let Some(value) = window.metadata.get("unit_accession") {
@@ -369,57 +364,85 @@ pub(super) fn write_file_content(w: &mut impl Write, experiment: &MSExperiment) 
 }
 pub(super) fn write_scan(w: &mut impl Write, spectrum: &MSSpectrum) -> Result<()> {
     let settings = &spectrum.instrument_settings;
-    if spectrum.rt == -1.0 && !settings.zoom_scan && settings.scan_windows.is_empty() {
+    let info = &spectrum.acquisition_info;
+    if spectrum.rt == -1.0
+        && !settings.zoom_scan
+        && settings.scan_windows.is_empty()
+        && info.acquisitions.is_empty()
+        && info.metadata.is_empty()
+        && info.method_of_combination.is_empty()
+    {
         return Ok(());
     }
-    writeln!(w, "<scanList count=\"1\">")?;
-    cv(w, "MS:1000795", "no combination", "", "")?;
-    writeln!(w, "<scan>")?;
-    if spectrum.rt != -1.0 {
-        cv(
-            w,
-            "MS:1000016",
-            "scan start time",
-            &spectrum.rt.to_string(),
-            SECOND,
-        )?;
-    }
-    if settings.zoom_scan {
-        cv(w, "MS:1000497", "zoom scan", "", "")?;
-    }
-    if !settings.scan_windows.is_empty() {
-        writeln!(
-            w,
-            "<scanWindowList count=\"{}\">",
-            settings.scan_windows.len()
-        )?;
-        for window in &settings.scan_windows {
-            writeln!(w, "<scanWindow>")?;
-            let accession = window
-                .metadata
-                .get("unit_accession")
-                .map(|v| v.as_str().expect("validated unit"))
-                .unwrap_or("MS:1000040");
-            let (prefix, name) = unit_identity(accession)?;
-            for (value, term, label) in [
-                (window.begin, "MS:1000501", "scan window lower limit"),
-                (window.end, "MS:1000500", "scan window upper limit"),
-            ] {
-                write!(
-                    w,
-                    "<cvParam cvRef=\"MS\" accession=\"{term}\" name=\"{label}\" value=\"{value}\" unitAccession=\"{accession}\" unitCvRef=\"{prefix}\""
-                )?;
-                if let Some(name) = name {
-                    write!(w, " unitName=\"{name}\"")?;
-                }
-                writeln!(w, "/>")?;
+    let count = info.acquisitions.len().max(1);
+    writeln!(w, "<scanList count=\"{count}\">")?;
+    let (accession, name) = acquisition_metadata::COMBINATIONS
+        .iter()
+        .copied()
+        .find(|t| t.1 == info.method_of_combination)
+        .unwrap_or(("MS:1000795", "no combination"));
+    cv(w, accession, name, "", "")?;
+    write_scalar_metadata(w, &info.metadata, None)?;
+    for index in 0..count {
+        write!(w, "<scan")?;
+        if let Some(scan) = info.acquisitions.get(index) {
+            if !scan.identifier.is_empty() {
+                write!(w, " externalSpectrumID=\"{}\"", escape(&scan.identifier))?;
             }
-            write_scalar_metadata(w, &window.metadata, Some("unit_accession"))?;
-            writeln!(w, "</scanWindow>")?;
         }
-        writeln!(w, "</scanWindowList>")?;
+        writeln!(w, ">")?;
+        if index == 0 && spectrum.rt != -1.0 {
+            cv(
+                w,
+                "MS:1000016",
+                "scan start time",
+                &spectrum.rt.to_string(),
+                SECOND,
+            )?;
+        }
+        // ParamGroupType requires all CVs before userParams. The source emits
+        // zoom later, producing invalid XML when acquisition metadata is present.
+        if settings.zoom_scan {
+            cv(w, "MS:1000497", "zoom scan", "", "")?;
+        }
+        if let Some(scan) = info.acquisitions.get(index) {
+            write_scalar_metadata(w, &scan.metadata, None)?;
+        }
+        if index == 0 && !settings.scan_windows.is_empty() {
+            writeln!(
+                w,
+                "<scanWindowList count=\"{}\">",
+                settings.scan_windows.len()
+            )?;
+            for window in &settings.scan_windows {
+                writeln!(w, "<scanWindow>")?;
+                let accession = window
+                    .metadata
+                    .get("unit_accession")
+                    .map(|v| v.as_str().expect("validated unit"))
+                    .unwrap_or("MS:1000040");
+                let (prefix, name) = unit_identity(accession)?;
+                for (value, term, label) in [
+                    (window.begin, "MS:1000501", "scan window lower limit"),
+                    (window.end, "MS:1000500", "scan window upper limit"),
+                ] {
+                    write!(
+                        w,
+                        "<cvParam cvRef=\"MS\" accession=\"{term}\" name=\"{label}\" value=\"{value}\" unitAccession=\"{accession}\" unitCvRef=\"{prefix}\""
+                    )?;
+                    if let Some(name) = name {
+                        write!(w, " unitName=\"{name}\"")?;
+                    }
+                    writeln!(w, "/>")?;
+                }
+                write_scalar_metadata(w, &window.metadata, Some("unit_accession"))?;
+                writeln!(w, "</scanWindow>")?;
+            }
+            writeln!(w, "</scanWindowList>")?;
+        }
+        writeln!(w, "</scan>")?;
     }
-    writeln!(w, "</scan></scanList>")?;
+    writeln!(w, "</scanList>")?;
     Ok(())
 }
 pub(super) fn write_chromatogram(w: &mut impl Write, c: &MSChromatogram) -> Result<()> {

@@ -349,7 +349,8 @@
         "src/format/mzml_load.rs",
         "src/format/mzml_paths.rs",
         "src/format/mzml_numpress.rs",
-        "src/format/mzml_settings.rs"
+        "src/format/mzml_settings.rs",
+        "src/format/mzml_acquisition.rs"
       ],
       "tests": [
         "tests/mzml.rs",
@@ -360,10 +361,11 @@
         "tests/data_array_xml.rs",
         "tests/mzml_numpress.rs",
         "tests/mzml_settings.rs",
-        "tests/mzml_acquisition_guards.rs"
+        "tests/mzml_acquisition_guards.rs",
+        "tests/mzml_acquisition.rs"
       ],
       "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. AcquisitionInfo/SourceFile/DataProcessing and unrepresented instrument metadata remain guarded."
+      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. Ordered spectrum AcquisitionInfo, all4 combination methods, scalar list/scan metadata and9 typed acquisition CV fallbacks are transported; Canonical/Source read modes distinguish implicit default singleton normalization. Minimal source/instrument reference lookup validates IDs and preserves source lexical repairs without filesystem probing. Zoom precedes acquisition user parameters to repair source schema order. Chromatogram AcquisitionInfo, record SourceFile/DataProcessing and unrepresented instrument metadata remain guarded."
     },
     "src/openms/include/OpenMS/METADATA/Product.h": {
       "status": "partial",
@@ -799,6 +801,42 @@
       ],
       "documentation": "docs/MONOSACCHARIDE_SUPPORT.md",
       "scope": "Complete immutable builtin lookup surface and all five owned record fields:24 primary records,12 synonyms,36 keys. Exact stored mass/formula, lexical source order, aliases and primary overwrite precedence retained. Native Option/Result and borrowed records/symbols replace pointers/exceptions/copied strings. Approved embedded dataset replaces private installed-file/environment discovery; runtime override/provider and ProForma parser remain outside this API."
+    },
+    "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/analysis/mass_trace_detection.rs"
+      ],
+      "tests": [
+        "tests/mass_trace_detection.rs"
+      ],
+      "documentation": "docs/MASS_TRACE_DETECTION_SUPPORT.md",
+      "scope": "All11 typed source options, both source run overloads, availability queries and explicit progress reporting. Retains filtering, apex ties, double-apex incremental means, IM/nearest/visited selection, both termination criteria and accepted summaries. Owned atomic results/cursor and successful flag reset, scalar area iterator, finite consumed arithmetic and cumulative work/allocation limits are explicit native adaptations. No ElutionPeakDetection or complete metabolite workflow certification."
+    },
+    "src/openms/include/OpenMS/CHEMISTRY/ProForma.h": {
+      "status": "partial",
+      "rust": [
+        "src/chemistry/proforma.rs"
+      ],
+      "tests": [
+        "tests/proforma.rs",
+        "tests/proforma_writer_probe.rs"
+      ],
+      "documentation": "docs/PROFORMA_SUPPORT.md",
+      "scope": "Complete owned annotation AST and both lossless/canonical text writers, preserving source ordering, stream precision state and source omissions.160 compiled exact-source writer-extraction cases match native outputs. Structured parser errors, text parsing, JSON, modification resolution, AASequence conversion, masses/mz and ordinary/XLMS spectra remain unimplemented."
+    },
+    "src/openms/include/OpenMS/METADATA/ProteinIdentification.h": {
+      "status": "partial",
+      "rust": [
+        "src/identification.rs",
+        "src/identification/protein_run.rs"
+      ],
+      "tests": [
+        "tests/identification.rs",
+        "tests/protein_run.rs"
+      ],
+      "documentation": "docs/PROTEIN_RUN_SUPPORT.md",
+      "scope": "Existing owned records, sorting, coverage/modifications and search settings plus inference metadata, original-engine recovery, mergeability,12-field settings export, singleton group completion and metadata-only copying. Native lexical metadata ordering may select a different original engine from source numeric registry-ID order. Typed fields and conservative atomic owned-output limits; filesystem-aware path selection, additional specificity states and full inherited/header review remain open."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

@@ -117,7 +117,17 @@ fn all_schema_parameter_contexts_resolve_and_unknown_references_fail() {
     ] {
         // The reader does not validate the full header inventories, but every
         // legal ParamGroupType context must resolve references, even if ignored.
-        let header = format!("<{context}>{}</{context}>", reference());
+        let header = match context {
+            "sourceFile" => format!(
+                "<fileDescription><sourceFileList count=\"1\"><sourceFile id=\"f\" name=\"file\" location=\"/\">{}</sourceFile></sourceFileList></fileDescription>",
+                reference()
+            ),
+            "instrumentConfiguration" => format!(
+                "<instrumentConfigurationList count=\"1\"><instrumentConfiguration id=\"i\">{}</instrumentConfiguration></instrumentConfigurationList>",
+                reference()
+            ),
+            _ => format!("<{context}>{}</{context}>", reference()),
+        };
         let xml = doc(&format!("{}{header}", group(cv)), "");
         read(&xml).unwrap();
         assert!(
@@ -335,11 +345,11 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
     let xml = doc(&group("<userParam name=\"k\" value=\"v\"/>"), reference());
     let read_limit =
         |xml: &str, options: ReadOptions| mzml::read_with_options(Cursor::new(xml), &options);
-    // One group, one definition, one reference, one application.
+    // One group, one definition, one reference, one application, and run descriptor.
     read_limit(
         &xml,
         ReadOptions {
-            max_total_params: 4,
+            max_total_params: 5,
             ..Default::default()
         },
     )
@@ -348,7 +358,7 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
         read_limit(
             &xml,
             ReadOptions {
-                max_total_params: 3,
+                max_total_params: 4,
                 ..Default::default()
             }
         )
@@ -378,7 +388,7 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
     read_limit(
         &empty,
         ReadOptions {
-            max_total_params: 101,
+            max_total_params: 102,
             ..Default::default()
         },
     )
@@ -387,7 +397,7 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
         read_limit(
             &empty,
             ReadOptions {
-                max_total_params: 100,
+                max_total_params: 101,
                 ..Default::default()
             }
         )

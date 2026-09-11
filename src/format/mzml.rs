@@ -16,6 +16,9 @@ use crate::kernel::{
 use crate::metadata::{MetaValue, MetaValueData, Product, Unit};
 use crate::{Error, Result};
 pub use load::LoadOptions;
+#[path = "mzml_acquisition.rs"]
+mod acquisition_metadata;
+pub use acquisition_metadata::AcquisitionMode;
 #[path = "mzml_numpress.rs"]
 mod numpress_transport;
 use super::numpress_coder::{self as coder, NumpressCompression, NumpressConfig};
@@ -45,9 +48,12 @@ use std::{
 const NS: &[u8] = b"http://psi.hupo.org/ms/mzml";
 const NAME_KEY: &str = "openms-rust:name";
 
-/// Resource limits apply before allocation from declared lengths and during decoding.
+/// Resource limits and acquisition normalization for mzML loading.
+/// Limits apply before allocation from declared lengths and during decoding.
 #[derive(Clone, Copy, Debug)]
 pub struct ReadOptions {
+    /// Materialize source dummy scans, or preserve the canonical empty native form.
+    pub acquisition_mode: AcquisitionMode,
     /// Maximum XML input bytes, including metadata and encoded arrays.
     pub max_xml_bytes: u64,
     /// Maximum compressed or decoded bytes for each binary array.
@@ -64,14 +70,15 @@ pub struct ReadOptions {
     pub max_records: usize,
     /// Maximum referenceable parameter groups (including unused and empty groups).
     pub max_param_groups: usize,
-    /// Maximum groups, parameter definitions/applications, and reference occurrences combined.
+    /// Maximum groups, parameters/ref uses and supported acquisition descriptors combined.
     pub max_total_params: usize,
-    /// Cumulative conservative storage/expansion bytes for parameters and group references.
+    /// Cumulative parameter, acquisition descriptor and resolved-reference storage bytes.
     pub max_param_bytes: usize,
 }
 impl Default for ReadOptions {
     fn default() -> Self {
         Self {
+            acquisition_mode: AcquisitionMode::default(),
             max_xml_bytes: 512 * 1024 * 1024,
             max_array_bytes: 64 * 1024 * 1024,
             max_total_peaks: 10_000_000,
@@ -674,6 +681,9 @@ impl Record {
             }
             return Ok(());
         }
+        if acquisition_metadata::read_cv(self, parent, attrs)? {
+            return Ok(());
+        }
         if settings_metadata::read_cv(self, parent, attrs)? {
             return Ok(());
         }
@@ -884,6 +894,16 @@ fn apply_parameter(
                 return Err(invalid("duplicate product userParam name"));
             }
         }
+        "userParam" if matches!(parent, "scan" | "scanList") => {
+            acquisition_metadata::insert(
+                record
+                    .as_mut()
+                    .ok_or_else(|| invalid("acquisition metadata outside record"))?,
+                parent,
+                required(attrs, "name")?,
+                product_user_value(attrs)?,
+            )?;
+        }
         "userParam" if parent == "scanWindow" => {
             let name = required(attrs, "name")?;
             // The dedicated unit field is derived from endpoint CV parameters.
@@ -1086,6 +1106,8 @@ fn read_impl(
     load: Option<&LoadOptions>,
 ) -> Result<MSExperiment> {
     let mut selection = load.map(load::State::new).transpose()?;
+    let mut acquisition_headers = acquisition_metadata::Headers::default();
+    let mut acquisition_header_lists = BTreeSet::new();
     let mut actual_spectra = 0usize;
     let mut actual_chromatograms = 0usize;
     let limit = options
@@ -1156,6 +1178,10 @@ fn read_impl(
                         | "userParam"
                         | "referenceableParamGroup"
                         | "referenceableParamGroupRef"
+                        | "scan"
+                        | "sourceFile"
+                        | "instrumentConfiguration"
+                        | "run"
                 );
                 let attrs = attributes(
                     &element,
@@ -1189,7 +1215,20 @@ fn read_impl(
                 if parent == "product" && tag != "isolationWindow" {
                     return Err(invalid("product only permits an isolation window"));
                 }
-                if (parent == "scanWindowList" && tag != "scanWindow")
+                if (parent == "scanList"
+                    && !matches!(
+                        tag.as_str(),
+                        "cvParam" | "userParam" | "referenceableParamGroupRef" | "scan"
+                    ))
+                    || (parent == "scan"
+                        && !matches!(
+                            tag.as_str(),
+                            "cvParam"
+                                | "userParam"
+                                | "referenceableParamGroupRef"
+                                | "scanWindowList"
+                        ))
+                    || (parent == "scanWindowList" && tag != "scanWindow")
                     || (parent == "scanWindow"
                         && !matches!(
                             tag.as_str(),
@@ -1205,6 +1244,46 @@ fn read_impl(
                     }
                 }
                 match tag.as_str() {
+                    "sourceFileList" | "instrumentConfigurationList" => {
+                        let expected_parent = if tag == "sourceFileList" {
+                            "fileDescription"
+                        } else {
+                            "mzML"
+                        };
+                        if parent != expected_parent
+                            || seen_run
+                            || !acquisition_header_lists.insert(tag.clone())
+                        {
+                            return Err(invalid("misplaced/duplicate acquisition header list"));
+                        }
+                        let count = number::<usize>(
+                            required(&attrs, "count")?,
+                            "acquisition header count",
+                        )?;
+                        if count > parameter_budget.remaining {
+                            return Err(invalid(
+                                "acquisition header count exceeds parameter limit",
+                            ));
+                        }
+                        let child = if tag == "sourceFileList" {
+                            "sourceFile"
+                        } else {
+                            "instrumentConfiguration"
+                        };
+                        counted_lists.push((stack.len() + 1, child, count, 0));
+                    }
+                    "sourceFile" => {
+                        if parent != "sourceFileList" || seen_run {
+                            return Err(invalid("misplaced sourceFile"));
+                        }
+                        acquisition_headers.source_file(&attrs, &mut parameter_budget)?;
+                    }
+                    "instrumentConfiguration" => {
+                        if parent != "instrumentConfigurationList" || seen_run {
+                            return Err(invalid("misplaced instrumentConfiguration"));
+                        }
+                        acquisition_headers.instrument(&attrs)?;
+                    }
                     "indexedmzML" if !parent.is_empty() => {
                         return Err(invalid("nested indexedmzML wrapper"));
                     }
@@ -1287,6 +1366,12 @@ fn read_impl(
                         if r.scan_active {
                             return Err(invalid("nested scan"));
                         }
+                        r.spectrum
+                            .as_mut()
+                            .unwrap()
+                            .acquisition_info
+                            .acquisitions
+                            .push(acquisition_headers.scan(&attrs, &mut parameter_budget)?);
                         r.scan_active = true;
                         r.scan_window_list_seen = false;
                     }
@@ -1348,6 +1433,9 @@ fn read_impl(
                         }
                         *seen = true;
                         let expected: usize = number(required(&attrs, "count")?, "list count")?;
+                        if tag == "scanList" && expected > parameter_budget.remaining {
+                            return Err(invalid("scan count exceeds parameter limit"));
+                        }
                         let child = match tag.as_str() {
                             "precursorList" => "precursor",
                             "selectedIonList" => "selectedIon",
@@ -1382,6 +1470,7 @@ fn read_impl(
                                 selection.as_mut(),
                             )?;
                         }
+                        acquisition_headers.run(&attrs)?;
                         seen_run = true;
                     }
                     "referenceableParamGroupList" => {
@@ -1817,10 +1906,18 @@ fn read_impl(
                             .ok_or_else(|| invalid("scan outside record"))?
                             .scan_active = false;
                     }
-                    "spectrum" | "chromatogram" => record
-                        .take()
-                        .ok_or_else(|| invalid("missing record state"))?
-                        .finish(&mut experiment, selection.as_mut())?,
+                    "spectrum" | "chromatogram" => {
+                        let mut record = record
+                            .take()
+                            .ok_or_else(|| invalid("missing record state"))?;
+                        if let Some(s) = &mut record.spectrum {
+                            acquisition_metadata::normalize(
+                                &mut s.acquisition_info,
+                                options.acquisition_mode,
+                            );
+                        }
+                        record.finish(&mut experiment, selection.as_mut())?;
+                    }
                     _ => {}
                 }
             }
@@ -1937,9 +2034,12 @@ fn xml_string(value: &str) -> Result<()> {
 // XMLHandler::fromXSDString retains scalar numeric types, and treats every
 // other XSD type as text. Lists and Empty have no reversible source encoding.
 fn product_user_value(attrs: &BTreeMap<String, String>) -> Result<MetaValue> {
+    scalar_user_value(attrs, attrs.get("type").map(String::as_str).unwrap_or(""))
+}
+fn scalar_user_value(attrs: &BTreeMap<String, String>, kind: &str) -> Result<MetaValue> {
     use crate::data_structures::list::ListParse;
     let text = attrs.get("value").map(String::as_str).unwrap_or("");
-    let data = match attrs.get("type").map(String::as_str).unwrap_or("") {
+    let data = match kind {
         "xsd:double" | "xsd:float" | "xsd:decimal" => {
             MetaValueData::Float(f64::from_list_item(text)?)
         }

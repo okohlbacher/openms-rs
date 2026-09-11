@@ -17,3 +17,5 @@ pub mod protein_inference;
 pub mod psm_scoring;
 pub mod scores;
 pub mod transformations;
+
+pub mod mass_trace_detection;

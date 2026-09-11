@@ -1,5 +1,44 @@
 # Validation of the ongoing Rust port
 
+## Detection, ProForma writing, protein runs and mzML acquisitions (2026-09-11)
+
+All four additions are integrated against SDK 82ce5b3. [Recorded checks](detection-acquisition-validation.json)
+include exact commands, outcomes, log hashes, staged validation and review fixes.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,706 tests passed |
+| Doctests | Three passed |
+| Native unit and adjacent tests, Rust 1.85/no defaults | 155 passed |
+| Staged mzML acquisition and adjacent tests | 101 current / 100 minimum passed |
+| Strict Clippy, all targets | Passed on Rust 1.98/all features and Rust 1.85/no defaults |
+| Staged mzML-only strict Clippy, Rust 1.85 | Passed |
+| Release library, Rustdoc, Rustfmt | Passed; documentation warnings denied |
+| Source audit, projection, ledger and regression checks | Passed |
+
+This group adds 48 tests; selected and staged totals overlap the full suite.
+The [ProForma extraction probe](../tests/data/proforma_writer_probe_provenance.json)
+actually compiled the exact C++ annotation declarations and complete writer,
+with no scientific substitutions or backend linkage. All 160 output cases match
+native output, covering both modes, twenty precise float bit patterns and four
+formatting/chain scenarios. This is not a full C++ SDK build. The other three
+increments use source fixtures, branch analysis and independent native oracles.
+
+Mass-trace detection retains source growth/termination and metadata rules, with
+explicit atomic failure and reusable-state corrections. Protein-run helpers
+preserve target result ownership; native lexical metadata ordering is distinguished
+from C++ registry ordering. The mzML tests include real independent XSD checks
+for acquisition metadata combined with zoom and scan windows in both writers.
+Zoom CV placement repairs a source ordering bug; all supported parameters precede
+scan windows. Historical fixture bytes and pins are retained.
+
+Source verification covers 1,883 distinct current files, 220 historical references,
+21 graph references and 533 added references. The ledger records 46 complete or
+native-equivalent headers and 740 requiring implementation or review; no TOPP
+workflow is certified. The [preceding published checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34570080887)
+passed all CI jobs, including Linux, macOS, Windows and minimum Rust.
+
+
 ## Mass traces, constants, monosaccharides and mzML settings (2026-09-11)
 
 The four additions are integrated against SDK 82ce5b3.

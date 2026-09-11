@@ -7,10 +7,10 @@ This is a work inventory, not a completion percentage. Matching declarations and
 | Review state | Headers |
 | --- | ---: |
 | complete | 10 |
-| evidence_requires_review | 163 |
-| native_equivalent | 35 |
-| partial | 19 |
-| unmapped | 559 |
+| evidence_requires_review | 164 |
+| native_equivalent | 36 |
+| partial | 21 |
+| unmapped | 555 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -21,7 +21,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/FORMAT/FileHandler.h` | 118 | partial |
 | `OpenMS/CONCEPT/LogStream.h` | 76 | partial |
 | `OpenMS/KERNEL/MSExperiment.h` | 70 | partial |
-| `OpenMS/METADATA/ProteinIdentification.h` | 56 | evidence_requires_review |
+| `OpenMS/METADATA/ProteinIdentification.h` | 56 | partial |
 | `OpenMS/SYSTEM/File.h` | 53 | partial |
 | `OpenMS/KERNEL/ConsensusMap.h` | 40 | evidence_requires_review |
 | `OpenMS/KERNEL/FeatureMap.h` | 22 | evidence_requires_review |

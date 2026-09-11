@@ -7,6 +7,7 @@
 //! Missing values use Option rather than numeric sentinels or NaN.
 
 pub mod graph;
+mod protein_run;
 
 use crate::chemistry::{AASequence, SequenceModification};
 use crate::comparison::Tolerance;

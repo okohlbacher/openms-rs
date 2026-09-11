@@ -63,7 +63,7 @@ existing default omission. No numerical rounding is introduced.
 
 ## Boundaries and failure behavior
 
-AcquisitionInfo, SourceFile and DataProcessing attachments still fail the O(1)
+Chromatogram AcquisitionInfo, SourceFile and DataProcessing attachments still fail the O(1)
 loss guard. Nondefault InstrumentSettings on **chromatograms** also fail: the
 pinned source writer and standard chromatogram XML grammar have no scan-list
 location. Consequently a spectrum-to-chromatogram conversion can produce native
@@ -113,3 +113,5 @@ case; unsupported PDA arrays and source MS level zero are not claimed.
 See [Product transport](MZML_PRODUCT_SUPPORT.md),
 [remaining acquisition guards](MZML_ACQUISITION_GUARDS.md) and
 [general mzML support](MZML_SUPPORT.md) for adjoining interfaces and limitations.
+
+Spectrum AcquisitionInfo is subsequently supported by the [acquisition transport](MZML_ACQUISITION_SUPPORT.md), with explicit Canonical/Source loading and source writer normalizations. Its supported scalar metadata shares this settings preflight.

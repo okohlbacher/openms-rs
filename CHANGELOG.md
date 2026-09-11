@@ -2,6 +2,11 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Transport ordered mzML spectrum acquisitions with explicit read normalization, source combination/CV metadata, bounded header references and schema-valid parameter order.
+- Add native MassTraceDetection with all source settings, mobility-aware extension, both termination criteria, area input and cumulative bounded atomic results.
+- Add the complete ProForma annotation AST and both text writers; compare 160 numerical/formatting cases with compiled exact-source writer extraction. Parser and scientific backends remain open.
+- Add protein-run inference metadata, settings export, singleton groups and metadata-only copying with preserved target result ownership.
+
 - Add the complete built-in monosaccharide database, preserving 24 records, 12 aliases and exact source mass/formula fields without a runtime dependency.
 - Transport mzML scan modes, polarity, zoom, scan windows, spectrum Product lists and chromatogram types, including source file-content summaries and bounded validation.
 - Add the complete MassTrace container and centroid/area/FWHM operations, preserving source cache and numerical conventions with bounded native failures.

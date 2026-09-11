@@ -102,8 +102,17 @@ fn source_class_literals_windows_modes_products_and_user_metadata() {
         );
         assert_eq!(p.cv_terms.metadata["iwname"].as_str().unwrap(), label);
     }
+    // This older projection deliberately removed combination CVs but kept two
+    // scans in spectra 0/2. The acquisition writer's documented source fallback
+    // supplies no-combination; all source settings/quantities remain unchanged.
+    let mut expected = e.clone();
+    for index in [0, 2] {
+        expected.spectra[index]
+            .acquisition_info
+            .method_of_combination = "no combination".into();
+    }
     for compressed in [false, true] {
-        assert_eq!(roundtrip(&e, compressed), e);
+        assert_eq!(roundtrip(&e, compressed), expected);
     }
 }
 

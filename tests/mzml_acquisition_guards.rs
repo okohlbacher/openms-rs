@@ -101,19 +101,12 @@ fn default_source_settings_and_existing_precursor_product_transport_remain_suppo
 }
 #[test]
 fn unrepresented_spectrum_acquisition_categories_reject_before_output() {
-    for case in 4..19 {
+    for case in [4, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18] {
         let mut e = base();
         let s = &mut e.spectra[0];
         match case {
             4 => {
                 s.instrument_settings
-                    .metadata
-                    .insert("empty".into(), "".into());
-            }
-            5 => s.acquisition_info.acquisitions.push(Acquisition::default()),
-            6 => s.acquisition_info.method_of_combination = "no combination".into(),
-            7 => {
-                s.acquisition_info
                     .metadata
                     .insert("empty".into(), "".into());
             }

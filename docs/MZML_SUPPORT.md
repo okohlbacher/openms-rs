@@ -76,9 +76,9 @@ The writer rejects nonfinite data, duplicate IDs, invalid XML characters, reserv
 
 ## Metadata preservation boundary
 
-This adapter is **not a lossless mzML archival converter**. Source files, full instrument inventories, original data-processing history, arbitrary controlled-vocabulary lists, units/typed semantics on userParams outside Product and scan windows, and acquisition fields outside the documented precursor/record settings subsets are not retained by this adapter. Multiple selected ions within one precursor remain unsupported. The only automatic name mapping is the reserved Rust name userParam; other title conventions are not inferred.
+This adapter is **not a lossless mzML archival converter**. Source files, full instrument inventories, original data-processing history, arbitrary controlled-vocabulary lists, units/typed semantics on userParams outside Product, scan windows and spectrum acquisitions, and acquisition fields outside the documented precursor/record settings subsets are not retained by this adapter. Multiple selected ions within one precursor remain unsupported. The only automatic name mapping is the reserved Rust name userParam; other title conventions are not inferred.
 
-Run/spectrum/chromatogram metadata maps are string-valued; Product metadata uses the typed exception described above. The `openms-rust:name` key is reserved and rejected in user maps; it is used only for the spectrum/chromatogram `name` fields. Unknown acquisition metadata outside the supported model is ignored during reading. Unsupported binary arrays are rejected, rather than discarded.
+Run/spectrum/chromatogram metadata maps are string-valued; Product, scan-window and spectrum-acquisition metadata use the typed exceptions documented in their support pages. The `openms-rust:name` key is reserved and rejected in user maps; it is used only for the spectrum/chromatogram `name` fields. Unknown acquisition metadata outside the supported model is ignored during reading. Unsupported binary arrays are rejected, rather than discarded.
 
 Use the documented peak/metadata subset for analysis and interchange. Preserve the original source file when its acquisition metadata is needed.
 
@@ -116,8 +116,12 @@ modes, polarity, zoom, ordered scan windows and Product lists, plus the nine
 represented chromatogram types. File-content metadata summarizes spectrum modes
 in source order. Inline/grouped parameters share the same validation and budgets.
 
-[Writer loss guards](MZML_ACQUISITION_GUARDS.md) remain for attached AcquisitionInfo,
-SourceFile and DataProcessing, spectrum InstrumentSettings metadata, and nondefault
+[Ordered acquisitions](MZML_ACQUISITION_SUPPORT.md) preserve spectrum scan IDs,
+combination methods, scalar list/scan metadata and the documented header-reference
+subset. Canonical/Source read modes control implicit default-scan normalization.
+
+[Writer loss guards](MZML_ACQUISITION_GUARDS.md) remain for chromatogram AcquisitionInfo,
+record SourceFile and DataProcessing, spectrum InstrumentSettings metadata, and nondefault
 chromatogram InstrumentSettings. Unknown chromatogram type is also rejected to
 avoid silently rereading it as Mass. Binary-array processing descriptions remain
 separately guarded.

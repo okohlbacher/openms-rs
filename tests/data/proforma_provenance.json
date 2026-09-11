@@ -1,0 +1,90 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProFormaDataJson.h",
+      "sha256": "f904d6d4c5e96791ce0f0c4c1baffc453f6bc380109982edfa6821fac1c3260e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
+      "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/ProFormaParser_positive_tests.txt",
+      "sha256": "fb7d9c4c44d333c2855f973df4b079cdb827a6408951c74ce5a2583ff4cd52f9"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/ProFormaParser_negative_tests.txt",
+      "sha256": "4dc0154caadc344747b3758273d1225d4c8c120d50f6f13f55ccaa7571b52077"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ParamValue.h",
+      "sha256": "8f4e1fcc598fe474922760b08f496846723e473e64f88b595981314f85a5f60a"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/ParamValue.cpp",
+      "sha256": "0c0daf17316a0df783774dbb48381c38d761e563a459650a98d510d551af7ec9"
+    }
+  ],
+  "fixtures": [],
+  "fixture_policy": "Native tests construct AST values directly. Exact upstream writer string assertions are distinguished from independently derived structural, formatting and boundary examples. The two source grammar fixtures are recorded for scope/provenance only and are NOT executed by this writer-only port. No C++ execution is claimed by these native fixtures.",
+  "source_literal_ranges": {
+    "src/tests/class_tests/openms/source/ProFormaParser_test.cpp": [
+      "298",
+      "548",
+      "571",
+      "635",
+      "649",
+      "1146-1167",
+      "1337-1407"
+    ]
+  },
+  "source_grammar_cases_not_executed": {
+    "ProFormaParser_positive_tests.txt": 176,
+    "ProFormaParser_negative_tests.txt": 22
+  },
+  "implemented_scope": "Complete annotation AST and both source text writer modes only; overall ProForma header remains partial.",
+  "remaining_scope": [
+    "structured parse errors and text parsers",
+    "JSON readers and writers for all variants",
+    "modification resolution and AASequence conversion with diagnostics/policies",
+    "chain/ion mass and m/z including try/issue/can operations",
+    "ordinary and two-chain XLMS spectrum operations, including missing native XLMS backend"
+  ],
+  "native_tests": "tests/proforma.rs",
+  "native_differences": [
+    "Owned Arc resolved chemistry instead of a non-owning pointer; standard Clone and value PartialEq.",
+    "Unknown ConversionIssue position uses Option instead of SIZE_MAX.",
+    "ASCII-only individual character fields; annotation strings retain Unicode bytes.",
+    "Consumed nonfinite floats and i32 adduct arithmetic overflow return errors atomically.",
+    "The i32::MIN aggregate-charge absolute value uses a defined unsigned magnitude.",
+    "Explicit empty/zero Rust defaults replace uninitialized source aggregate scalar states.",
+    "Classic-locale numeric formatting without process locale mutation."
+  ],
+  "preserved_source_quirks": [
+    "Stored order is unchanged in Canonical mode.",
+    "Mass spelling bypasses numeric mass in Lossless; otherwise fixed4 including +-0.0000.",
+    "Lossless score begins defaultfloat6 and inherits fixed4 after numeric mass formatting; Canonical scores fixed2; chain streams reset.",
+    "Ion.name omitted; single chain charge omitted; per-chain ion charges emitted only for chimeric ions.",
+    "Label.type ignored; empty INFO is label-only only in square brackets.",
+    "All glycan counts emitted, no separators; adduct total-charge suffix emitted.",
+    "No grammar, formula, glycan lookup, ambiguity or cross-link validation during writing."
+  ],
+  "limits": {
+    "max_output_bytes": 4194304,
+    "max_consumed_items": 1000000,
+    "max_work": 50000000,
+    "numeric_scalar_work_precharge": 2048,
+    "policy": "One shared writer ledger across chains, charged collection lengths, copied text and output growth before work/allocation. Output cap bounds requested output capacity, not allocator bookkeeping or preexisting caller AST. Only consumed fields are traversed."
+  },
+  "licensing": "Source-derived native code retains OpenMS BSD-3-Clause copyright/SPDX notices; no new runtime data resource is packaged."
+}

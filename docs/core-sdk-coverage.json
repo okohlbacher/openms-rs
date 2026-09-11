@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 163,
-      "native_equivalent": 35,
-      "partial": 19,
-      "unmapped": 559
+      "evidence_requires_review": 164,
+      "native_equivalent": 36,
+      "partial": 21,
+      "unmapped": 555
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2555,7 +2555,8 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/decoy_provenance.json",
-        "tests/data/peptide_indexing_matcher_reference_provenance.json"
+        "tests/data/peptide_indexing_matcher_reference_provenance.json",
+        "tests/data/protein_run_provenance.json"
       ],
       "direct_topp_consumers": [
         "IDExtractor"
@@ -3162,10 +3163,24 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
       "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/chemistry/proforma.rs"
+        ],
+        "tests": [
+          "tests/proforma.rs",
+          "tests/proforma_writer_probe.rs"
+        ],
+        "documentation": "docs/PROFORMA_SUPPORT.md",
+        "scope": "Complete owned annotation AST and both lossless/canonical text writers, preserving source ordering, stream precision state and source omissions.160 compiled exact-source writer-extraction cases match native outputs. Structured parser errors, text parsing, JSON, modification resolution, AASequence conversion, masses/mz and ordinary/XLMS spectra remain unimplemented."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/proforma_provenance.json",
+        "tests/data/proforma_writer_probe_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -3684,6 +3699,7 @@
         "tests/data/averagine_deisotoping_provenance.json",
         "tests/data/constants_provenance.json",
         "tests/data/emg_provenance.json",
+        "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/rna_processing_provenance.json",
@@ -4299,6 +4315,7 @@
         "tests/data/list_utils_provenance.json",
         "tests/data/metadata_hash_provenance.json",
         "tests/data/peak2d_provenance.json",
+        "tests/data/protein_run_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4621,7 +4638,8 @@
         "src/param/value.rs"
       ],
       "reference_manifests": [
-        "tests/data/param_value_provenance.json"
+        "tests/data/param_value_provenance.json",
+        "tests/data/proforma_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -4684,6 +4702,7 @@
         "tests/data/list_utils_provenance.json",
         "tests/data/mass_decomposition_provenance.json",
         "tests/data/param_value_provenance.json",
+        "tests/data/protein_run_provenance.json",
         "tests/data/sdk_numeric_formatting_provenance.json",
         "tests/data/text_csv_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
@@ -5066,10 +5085,24 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h",
       "sha256": "b175eed90064859338e32c3a07bb35b43446e07566be864f5049a1e0022d39e7",
       "domain": "FEATUREFINDER",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/analysis/mass_trace_detection.rs"
+        ],
+        "tests": [
+          "tests/mass_trace_detection.rs"
+        ],
+        "documentation": "docs/MASS_TRACE_DETECTION_SUPPORT.md",
+        "scope": "All11 typed source options, both source run overloads, availability queries and explicit progress reporting. Retains filtering, apex ties, double-apex incremental means, IM/nearest/visited selection, both termination criteria and accepted summaries. Owned atomic results/cursor and successful flag reset, scalar area iterator, finite consumed arithmetic and cumulative work/allocation limits are explicit native adaptations. No ElutionPeakDetection or complete metabolite workflow certification."
+      },
+      "candidate_rust_files": [
+        "src/analysis/mass_trace_detection.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mass_trace_detection_provenance.json"
+      ],
       "direct_topp_consumers": [
         "DIAPseudoSpectra",
         "FeatureFinderMetabo",
@@ -5449,10 +5482,13 @@
       "header": "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h",
       "sha256": "51c903feea91b532f401c4f63cf9f34aa83c9673d076c843ee63aac2f07a9eba",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_trace_detection_provenance.json",
+        "tests/data/mzml_acquisition_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CVInspector",
         "QCEmbedder",
@@ -6284,6 +6320,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/data_array_xml_provenance.json",
         "tests/data/mzml_acquisition_guards_provenance.json",
+        "tests/data/mzml_acquisition_provenance.json",
         "tests/data/mzml_load_provenance.json",
         "tests/data/mzml_numpress_provenance.json",
         "tests/data/mzml_param_groups_provenance.json",
@@ -6452,6 +6489,7 @@
       "reference_manifests": [
         "tests/data/idxml_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
+        "tests/data/mzml_acquisition_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_settings_provenance.json",
         "tests/data/paramxml_provenance.json"
@@ -6842,7 +6880,8 @@
           "src/format/mzml_load.rs",
           "src/format/mzml_paths.rs",
           "src/format/mzml_numpress.rs",
-          "src/format/mzml_settings.rs"
+          "src/format/mzml_settings.rs",
+          "src/format/mzml_acquisition.rs"
         ],
         "tests": [
           "tests/mzml.rs",
@@ -6853,10 +6892,11 @@
           "tests/data_array_xml.rs",
           "tests/mzml_numpress.rs",
           "tests/mzml_settings.rs",
-          "tests/mzml_acquisition_guards.rs"
+          "tests/mzml_acquisition_guards.rs",
+          "tests/mzml_acquisition.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. AcquisitionInfo/SourceFile/DataProcessing and unrepresented instrument metadata remain guarded."
+        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. Ordered spectrum AcquisitionInfo, all4 combination methods, scalar list/scan metadata and9 typed acquisition CV fallbacks are transported; Canonical/Source read modes distinguish implicit default singleton normalization. Minimal source/instrument reference lookup validates IDs and preserves source lexical repairs without filesystem probing. Zoom precedes acquisition user parameters to repair source schema order. Chromatogram AcquisitionInfo, record SourceFile/DataProcessing and unrepresented instrument metadata remain guarded."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -7870,10 +7910,12 @@
       "header": "src/openms/include/OpenMS/IONMOBILITY/IMDataArrayUtils.h",
       "sha256": "5e6ed7bbd5afe5eb74388056c8f7767de7ecb86dd616013f2ff6cdc342017d7c",
       "domain": "IONMOBILITY",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_trace_detection_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -7930,6 +7972,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/area_iteration_provenance.json",
+        "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peak_data_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -8399,6 +8442,7 @@
         "tests/data/area_iteration_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/experiment_summary_provenance.json",
+        "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/rna_processing_provenance.json",
@@ -8431,6 +8475,7 @@
         "src/kernel/mass_trace.rs"
       ],
       "reference_manifests": [
+        "tests/data/mass_trace_detection_provenance.json",
         "tests/data/mass_trace_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8942,6 +8987,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/mass_trace_detection_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8974,7 +9020,9 @@
       "candidate_rust_files": [
         "src/metadata/acquisition.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzml_acquisition_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8988,7 +9036,8 @@
       ],
       "reference_manifests": [
         "tests/data/chromatogram_tools_provenance.json",
-        "tests/data/mzml_acquisition_guards_provenance.json"
+        "tests/data/mzml_acquisition_guards_provenance.json",
+        "tests/data/mzml_acquisition_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9525,7 +9574,8 @@
         "src/metadata/value.rs"
       ],
       "reference_manifests": [
-        "tests/data/metadata_hash_provenance.json"
+        "tests/data/metadata_hash_provenance.json",
+        "tests/data/protein_run_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9794,12 +9844,25 @@
       "header": "src/openms/include/OpenMS/METADATA/ProteinIdentification.h",
       "sha256": "539ca870452824774023ee96112f279d319a00053fa8ddc9c9ae8faa942f86be",
       "domain": "METADATA",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/identification.rs",
+          "src/identification/protein_run.rs"
+        ],
+        "tests": [
+          "tests/identification.rs",
+          "tests/protein_run.rs"
+        ],
+        "documentation": "docs/PROTEIN_RUN_SUPPORT.md",
+        "scope": "Existing owned records, sorting, coverage/modifications and search settings plus inference metadata, original-engine recovery, mergeability,12-field settings export, singleton group completion and metadata-only copying. Native lexical metadata ordering may select a different original engine from source numeric registry-ID order. Typed fields and conservative atomic owned-output limits; filesystem-aware path selection, additional specificity states and full inherited/header review remain open."
+      },
       "candidate_rust_files": [
         "src/identification.rs"
       ],
       "reference_manifests": [
+        "tests/data/protein_run_provenance.json",
         "tests/data/registry_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -10982,6 +11045,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/mzml_acquisition_provenance.json",
         "tests/data/system_file_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -11083,6 +11147,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/mzml_acquisition_provenance.json",
         "tests/data/system_file_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -11626,7 +11691,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
-        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
         "OpenMS/FORMAT/BrukerTimsFile.h",
         "OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -12081,7 +12145,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
-        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
@@ -13528,7 +13591,6 @@
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
-        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
@@ -14897,7 +14959,6 @@
         "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
         "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
         "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
-        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
         "OpenMS/FORMAT/BrukerTimsFile.h",
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
         "OpenMS/FORMAT/ExperimentalDesignFile.h",

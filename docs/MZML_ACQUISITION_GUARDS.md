@@ -3,12 +3,13 @@
 The [record settings extension](MZML_SETTINGS_SUPPORT.md) now transports spectrum
 scan modes, polarity, zoom, windows and Product lists, plus represented
 chromatogram types. The original blanket guard has been narrowed only for these
-source-backed paths.
+source-backed paths. [Acquisition transport](MZML_ACQUISITION_SUPPORT.md) further
+retains informative spectrum scan lists and scalar acquisition metadata.
 
 Before general validation or output, the shared ordinary/Numpress writer checks
 unsupported state using scalar fields and container lengths:
 
-- Nonempty AcquisitionInfo entries, combination method or metadata.
+- Nonempty **chromatogram** AcquisitionInfo entries, combination method or metadata.
 - Any SourceFile strings, noncanonical file size, checksum type, CV terms or
   metadata. Only positive zero is the canonical default size; negative zero
   would otherwise silently lose its sign.
@@ -19,15 +20,17 @@ unsupported state using scalar fields and container lengths:
 - Auxiliary array description metadata or processing handles.
 
 Empty metadata values count if the map has a key. An empty AcquisitionInfo vector
-can still carry unsupported method/metadata. Checks do not allocate defaults,
+can still carry unsupported method/metadata on chromatograms. Checks do not allocate defaults,
 clone handles, compare nested values or traverse shared processing payload.
-Supported spectrum settings and Product lists then receive a bounded cumulative
-preflight and ordinary value validation before XML begins.
+Supported spectrum settings, acquisition records and Product lists then receive a bounded cumulative
+preflight and ordinary value validation before XML begins. Unknown combination
+methods, unrepresentable instrument-reference metadata and nonscalar acquisition
+values fail during that bounded preflight.
 
 Existing precursor isolation/activation/mobility, singular chromatogram Product,
 record names/metadata, aligned arrays and binary precision remain on their
-established paths. SourceFile, AcquisitionInfo and processing attachments remain
-at defaults in the supported reader subset. Precursor-specific acquisition data
+established paths. SourceFile and processing attachments remain at defaults in the supported reader
+subset; spectrum AcquisitionInfo now follows its explicit Canonical/Source mode. Precursor-specific acquisition data
 does not populate those separate attachments.
 
 `mzml::write`, `write_with_options`, `write_with_numpress`, mzML path stores and

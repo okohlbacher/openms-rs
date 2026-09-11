@@ -1,0 +1,130 @@
+{
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "license": "BSD-3-Clause; PSI-MS ontology retains its upstream data license",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h",
+      "sha256": "b175eed90064859338e32c3a07bb35b43446e07566be864f5049a1e0022d39e7"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/MassTraceDetection.cpp",
+      "sha256": "a860fe4ed02d4343ba0e902803ad71edc4358d8ccec487da36e0c0a7db9a7821"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MassTraceDetection_test.cpp",
+      "sha256": "1e85057d8755d3c36b655d52b9a25cd11c2aa7bc71dd0621230adc2bbdcf9d2c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MassTraceDetection_input1.mzML",
+      "sha256": "9c4e5b5a51ce8faae2b7b64890ce840aa598132936f77c096fece4fb8c118246"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
+      "sha256": "f29b0530d8a01411c58458e8aeb476963b4e204949c578a0fa57beedf8db7d82"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MassTrace.cpp",
+      "sha256": "35370f232ab6adbcc0d5dde09ce0ffc6376b09722adc4e244a0ae655e63964e7"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "sha256": "ee0c62b7a97bacb035bc1a4084f753dbf37619e1410bdc7f5a8008af8bb00cb3"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "sha256": "f6a4a70d3f55cc9337dbeb6ec3156cbaeb4b8cfe6a35412347689a0e26065869"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ControlledVocabulary.cpp",
+      "sha256": "1b145685423fd481149b624a22b2740df25a4278e0704b5e0b3588e6a8a7cbc2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+      "sha256": "61c80a040673e0bca53086d2947b5bcd100c046c6024c8c99f5da6237b98ec7d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+    },
+    {
+      "path": "share/OpenMS/CV/psi-ms.obo",
+      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/mass_trace_detection.rs"
+  ],
+  "native_tests": [
+    "tests/mass_trace_detection.rs"
+  ],
+  "support": "docs/MASS_TRACE_DETECTION_SUPPORT.md",
+  "fixture": {
+    "path": "tests/data/mass_trace_detection_source.tsv",
+    "sha256": "737511841c8a3c34a03de906e5c870945ba06d52f3e226035e7829f4a5af9930",
+    "spectra": 133,
+    "rows": 1539,
+    "generator": "tools/generate_mass_trace_detection_fixture.py",
+    "method": "stdlib XML/base64/zlib/little-endian decoding; seconds RT conversion; explicit source f32 intensity narrowing; no C++ execution"
+  },
+  "source_anchors": [
+    {
+      "path": "src/openms/source/FEATUREFINDER/MassTraceDetection.cpp",
+      "line": 29,
+      "operation": "all eleven parameter defaults and CMD progress"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/MassTraceDetection.cpp",
+      "line": 69,
+      "operation": "iterative weighted mean operation order"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/MassTraceDetection.cpp",
+      "line": 89,
+      "operation": "first float-array vector determines IM/FWHM indices"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/MassTraceDetection.cpp",
+      "line": 154,
+      "operation": "area reconstruction, equal-end no-op and RT -1 sentinel"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/MassTraceDetection.cpp",
+      "line": 203,
+      "operation": "MS1 filtering, strict thresholds and first IM diagnostic"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/MassTraceDetection.cpp",
+      "line": 290,
+      "operation": "nearest candidate, IM gate and visited check"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/MassTraceDetection.cpp",
+      "line": 477,
+      "operation": "double-apex initialization, down/up termination, accepted summaries"
+    }
+  ],
+  "evidence": "Source fixture two/three trace counts, exact 86/31/16 lengths and precise area literals; declared 0.0005-s/0.0001-Da/1e-8 area tolerances. One hundred direct per-mass grid enumeration oracles. Targeted metadata reuse, inclusive IM, FWHM, both termination criteria, source area sentinel, progress failures and cumulative budgets. Private exact source iterative mean literals. No source build.",
+  "native_boundaries": [
+    "Atomic output/cursor/availability publication; successful-run availability reset",
+    "Finite consumed numerical domain and retained-mz ordering validation",
+    "Typed options instead of duplicated Param state; explicit unsigned outlier count",
+    "CCS diagnostic getter instead of global logging warning",
+    "Borrowed metadata and selected-index views; no unrelated full-spectrum cloning",
+    "Source scalar area overload only; scan-mobility area filtering remains separate",
+    "Configurable cumulative count/work/logical allocation limits and conservative summary precharge"
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/mass_trace_detection_source.tsv",
+      "sha256": "737511841c8a3c34a03de906e5c870945ba06d52f3e226035e7829f4a5af9930"
+    },
+    {
+      "path": "tools/generate_mass_trace_detection_fixture.py",
+      "sha256": "7239bed8f36759b621e6eab0d63876f42127dd8e2dd6229d5b0fb754fc199d2c"
+    }
+  ]
+}

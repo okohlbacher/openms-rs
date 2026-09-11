@@ -15,12 +15,20 @@ Native [spectrum–chromatogram conversion](docs/CHROMATOGRAM_TOOLS_SUPPORT.md) 
 ## What works
 
 [MassTrace](docs/MASS_TRACE_SUPPORT.md) provides owned trace peaks, cached centroids,
-raw/smoothed quantification, FWHM and hull calculations. The complete
+raw/smoothed quantification, FWHM and hull calculations.
+[Mass-trace detection](docs/MASS_TRACE_DETECTION_SUPPORT.md) now supplies both source
+run operations, mobility-aware trace growth and all eleven settings. The complete
 [constants and metadata-key collection](docs/CONSTANTS_SUPPORT.md) is also available.
 [mzML record settings](docs/MZML_SETTINGS_SUPPORT.md) preserve spectrum scan modes,
 polarity, zoom, scan windows and Product lists, plus chromatogram types.
+[Ordered acquisition records](docs/MZML_ACQUISITION_SUPPORT.md) retain spectrum
+scan identifiers, combination methods, scalar metadata and source-file references.
 The [monosaccharide database](docs/MONOSACCHARIDE_SUPPORT.md) contains the complete
 source collection of 24 records and 12 aliases.
+[ProForma annotation data and text writers](docs/PROFORMA_SUPPORT.md) retain every
+annotation variant, with 160 executed C++ writer comparisons.
+[Protein-run helpers](docs/PROTEIN_RUN_SUPPORT.md) cover inference metadata, settings
+export, singleton groups and metadata-only copying.
 
 | Area | Implemented |
 | --- | --- |
@@ -53,7 +61,7 @@ The [chromatogram picker](docs/CHROMATOGRAM_PICKING_SUPPORT.md) preserves source
 
 The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds and reports exact input regions alongside the source’s rounded centroid and boundary arrays. [Window filtering](docs/WINDOW_MOWER_SUPPORT.md) supports sliding and jumping windows; the [iterative mean noise estimator](docs/MEAN_NOISE_SUPPORT.md) preserves the source’s three-pass clipping conventions.
 
-IsoSpec layered traversal; ProForma; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
+IsoSpec layered traversal; ProForma parsing, JSON and scientific backends; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
 
 The [mobility containers](docs/MOBILOGRAM_SUPPORT.md) provide checked mobilogram
 search, sorting, selection and summaries. Generic `DataArray` values now retain
