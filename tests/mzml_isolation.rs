@@ -475,31 +475,59 @@ fn plain_and_compressed_path_load_count_and_transform_use_target_mode() {
 }
 
 #[test]
-fn existing_writer_uses_generic_metadata_until_source_writer_group_is_implemented() {
-    let xml = doc(
+fn every_writer_preserves_isolation_and_selected_values_without_activation_shadow() {
+    let synthetic = doc(
         &[spec(0, &[parts(Some("250"), Some("999"))], false)],
-        &[],
+        &[chrom(&parts(Some("250"), Some("999")))],
         "",
     );
-    let mut e = read(&xml, &options()).unwrap();
-    e.spectra[0].native_id = "scan=0".into();
-    let mut bytes = Vec::new();
-    mzml::write(&mut bytes, &e).unwrap();
-    let encoded = String::from_utf8(bytes).unwrap();
-    assert!(encoded.contains("name=\"selected ion m/z\" type=\"xsd:double\" value=\"999\""));
-    let default = read(&encoded, &LoadOptions::default()).unwrap();
-    assert_eq!(default.spectra[0].precursors[0].mz, 250.);
-    assert_eq!(extra(&default.spectra[0].precursors[0]), Some(999.));
-    // Without offsets or an explicit retained target, the existing writer emits
-    // selected-ion250 and no isolation CV. Target-mode read first stores250,
-    // then rejects the duplicate activation metadata999. This is deliberately
-    // an observed writer boundary, not an asserted round-trip capability.
-    assert!(
-        read(&encoded, &options())
-            .unwrap_err()
-            .to_string()
-            .contains("duplicate precursor metadata key")
-    );
+    for xml in [
+        synthetic.as_str(),
+        include_str!("data/mzml_isolation_target.mzML"),
+    ] {
+        let mut e = read(xml, &options()).unwrap();
+        // Synthetic read fixtures use arbitrary IDs; writer's established native
+        // ID contract requires the key=value form. Only the fixture ID changes.
+        for (index, spectrum) in e.spectra.iter_mut().enumerate() {
+            spectrum.native_id = format!("scan={index}");
+        }
+        let target = e.spectra[0].precursors[0].mz;
+        let ion = extra(&e.spectra[0].precursors[0]).unwrap();
+        for mode in 0..4 {
+            let mut bytes = Vec::new();
+            match mode {
+                0 => mzml::write(&mut bytes, &e).unwrap(),
+                1 => {
+                    mzml::write_with_numpress(&mut bytes, &e, &Default::default()).unwrap();
+                }
+                _ => {
+                    let mut options = openms::format::peak_options::PeakFileOptions::default();
+                    options.force_tpp_compatibility = mode == 3;
+                    mzml::write_with_peak_options(&mut bytes, &e, &options).unwrap();
+                }
+            }
+            let encoded = String::from_utf8(bytes).unwrap();
+            assert!(!encoded.contains("<userParam name=\"selected ion m/z\""));
+            let default = read(&encoded, &LoadOptions::default()).unwrap();
+            let isolation = read(&encoded, &options()).unwrap();
+            for p in std::iter::once(&default.spectra[0].precursors[0])
+                .chain(default.chromatograms.iter().map(|c| &c.precursor))
+            {
+                assert_eq!(p.mz, ion);
+                assert_eq!(
+                    p.isolation_target_mz,
+                    if mode == 3 { None } else { Some(target) }
+                );
+                assert_eq!(extra(p), None);
+            }
+            for p in std::iter::once(&isolation.spectra[0].precursors[0])
+                .chain(isolation.chromatograms.iter().map(|c| &c.precursor))
+            {
+                assert_eq!(p.mz, if mode == 3 { 0. } else { target });
+                assert_eq!(extra(p), Some(ion));
+            }
+        }
+    }
 }
 
 #[test]

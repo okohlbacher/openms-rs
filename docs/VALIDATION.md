@@ -1,5 +1,47 @@
 # Validation of the ongoing Rust port
 
+## Indexed mzML writing and binary normalization (2026-09-11)
+
+[Recorded checks](mzml-output-validation.json) cover complete represented
+[source writer options](MZML_WRITE_OPTIONS_SUPPORT.md) and the
+[binary whitespace option](MZML_NORMALIZATION_SUPPORT.md). The group adds 24 tests;
+MzMLFile remains partial while typed/noise/detector transport and XSD validation
+are implemented separately. Spectrum mobility/IMPeakType and additional precursor
+activation metadata/unit routes also remain.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 2,139 tests passed |
+| Doctests, Rust 1.98 | Four passed |
+| Rust 1.85/minimal mzML-validation selection | 373 passed |
+| Strict Clippy on both compilers; release library, Rustdoc, Rustfmt | Passed |
+| Source audit, extraction integrity and two independent fixture regenerations | Passed |
+| Completion checks and optional checksum dependency boundary | Passed |
+
+All 15 integrated checks passed on their first run. Selected counts overlap.
+Twenty-six final extraction files remain exact; Cargo.toml retains only the
+previous semantic-feature registration in addition to the frozen writer change.
+The final reader's normalization patch starts from the exact reviewed writer
+and earlier centroid/semantic registrations. All 28 source hashes and nine
+fixture/generator/reused-resource hashes were independently verified.
+
+The writer reuses one prepared header/binary payload across two precharged markup
+passes. Independent Python checks verify the actual SHA-1 prefix and every
+record/index ID and byte offset, including partial writes and UTF-8. The unchanged
+indexed XSD passes actual validation; this is separate from index integrity.
+Original Numpress literals and independent precision/whitespace input fixtures
+are retained. CPP-049/050 are corrected, and both normalization settings retain
+checked malformed-Base64 rejection for CPP-055. No C++ method execution or full
+C++ SDK build is claimed.
+
+The [published ProForma checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34588912206)
+passed CI. The ledger remains at 72 complete/native-equivalent headers and 714 requiring
+implementation or review, with zero certified TOPP workflows. Source verification
+covers 1,945 distinct current files, 220 historical references, 21 graph references
+and 952 added references. The source issue log contains 56 entries, including the newly source-reviewed
+CPP-056 synthetic-scan mobility omission. Full SDK
+completion remains outstanding.
+
 ## mzML inspection, isolation loading and semantic validation (2026-09-11)
 
 [Recorded checks](mzml-operations-validation.json) cover

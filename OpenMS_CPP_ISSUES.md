@@ -69,6 +69,7 @@ are not classified as confirmed defects here.
 | CPP-053 | Chromatogram primary-array selection can relabel pressure values as flow | Source-reviewed; competing primary-array trigger | Open |
 | CPP-054 | Indexed mzML schema does not enforce offset ID references | Source-reviewed; independently executed XSD checks | Open |
 | CPP-055 | SIMD Base64 decoding accepts characters outside the Base64 alphabet | Source-reviewed; malformed numeric payload trigger | Open |
+| CPP-056 | mzML writing drops spectrum mobility when acquisition records are empty | Source-reviewed; synthetic scan branch | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -1248,9 +1249,10 @@ without feeding the digest text into its own calculation. Test a minimal file
 and varied spectrum/header data against an independent digest over the emitted
 prefix; include byte-offset and line-ending cases.
 
-**Rust handling:** Indexed writing remains outstanding. Its planned native
-implementation will calculate the actual checksum and verify it independently;
-it will not preserve this placeholder. No native or upstream fix is claimed.
+**Rust handling:** The [native indexed writer](docs/MZML_WRITE_OPTIONS_SUPPORT.md)
+calculates the real checksum from successfully written bytes. Independent Python
+hashlib tests cover UTF-8, escaping, partial writes and SHA-1 block boundaries.
+No upstream fix has been applied.
 
 ## CPP-050 — Empty indexed mzML declares zero indices but emits a dummy index
 
@@ -1277,10 +1279,10 @@ silently emit a nonexistent index target. Derive every declared index count
 from the indices actually written. Test empty, spectrum-only, chromatogram-only
 and mixed experiments with independent count and byte-target checks.
 
-**Rust handling:** Indexed writing remains outstanding. The planned native
-indexed writer will reject an empty experiment before external output; callers
-can explicitly request ordinary mzML for an empty experiment. No native or
-upstream fix is claimed at this checkpoint.
+**Rust handling:** The [native indexed writer](docs/MZML_WRITE_OPTIONS_SUPPORT.md)
+rejects an empty experiment before requesting a path or writing external bytes.
+Tests verify unchanged output; explicit ordinary mzML still accepts empty input.
+No upstream fix has been applied.
 
 ## CPP-051 — mzML semantic validation reuses parameter groups from earlier documents
 
@@ -1427,8 +1429,35 @@ whitespace-normalization policy, but reject invalid remaining characters. Test
 punctuation, misplaced padding and malformed tails in ordinary and compressed
 numeric decoding; no partially decoded array should escape on error.
 
-**Rust handling:** The current mzML transport uses a checked Base64 decoder and
-rejects invalid alphabet bytes. Execution of `skip_xml_checks` remains a
-separate outstanding option; any native implementation will preserve checked
-decoding and XML well-formedness even when skipping whitespace normalization.
-No upstream fix has been applied.
+**Rust handling:** The mzML transport uses checked Base64 decoding and rejects
+invalid alphabet bytes. [The normalization option](docs/MZML_NORMALIZATION_SUPPORT.md)
+executes `skip_xml_checks` without disabling decoding checks or XML legality.
+Direct tests cover malformed alphabets, padding, XML, every supported codec and
+both option settings. No upstream fix has been applied.
+
+## CPP-056 — Synthetic mzML scans omit spectrum ion mobility
+
+**Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, lines 5393–5435](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L5393), `writeSpectrum_`; lines 5468–5500, the fallback for empty acquisition information.
+
+**Issue and reproduction:** Construct a spectrum with drift time 1.5 and
+`DriftTimeUnit::MILLISECOND`, no precursors and empty acquisition information.
+The writer emits mobility only inside the first iteration of the acquisition
+loop. With no acquisition records, it creates a synthetic scan containing RT,
+zoom state and scan windows, but no mobility CV term. The otherwise represented
+spectrum drift time and unit are absent from the file. The same omission affects
+inverse reduced mobility, collision cross section and signed FAIMS voltage.
+
+**Evidence:** Direct review of the complete acquisition loop, its first-scan
+mobility switch and the synthetic-scan branch at the pinned revision. The input
+above isolates spectrum mobility from selected-ion mobility. No C++ execution,
+full SDK build or upstream fix is claimed.
+
+**Proposed fix:** Share first-scan RT/mobility emission between real and synthetic
+scans. Emit the same supported mobility term and unit in both branches, keeping
+signed FAIMS values and the unset-value rules. Test all four units with zero,
+one and multiple acquisition records, checking that exactly the first scan
+carries the spectrum mobility and that a store/load cycle retains it.
+
+**Rust handling:** Spectrum mobility transport is being implemented separately.
+The native writer will use the same first-scan path for explicit and synthetic
+acquisitions. No implemented native correction is claimed at this checkpoint.

@@ -158,7 +158,6 @@ fn run<R: BufRead>(
     destination: Option<&mut MSExperiment>,
     options: &TransformOptions,
 ) -> Result<TransformReport> {
-    options.load.validate()?;
     let mut admin = Admin {
         work: options.max_work,
         bytes: options.max_bytes,

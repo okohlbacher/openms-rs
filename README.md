@@ -250,3 +250,10 @@ counts by MS level with an explicit recognized-spectrum quota and preserved call
 the isolation window while retaining differing selected-ion metadata.
 [Explicit mzML semantic validation](docs/MZML_VALIDATOR_SUPPORT.md) is available
 with `mzml-validation`; it checks CV rules and values using the pinned vocabulary.
+
+[Source mzML writer options](docs/MZML_WRITE_OPTIONS_SUPPORT.md) now support indexed
+output, real SHA-1 checksums, primary precision, Numpress, zlib and TPP compatibility.
+Stream writes preflight the complete output; path writes publish atomically.
+
+[Binary whitespace normalization](docs/MZML_NORMALIZATION_SUPPORT.md) follows
+`skip_xml_checks` while retaining checked XML, payload and resource validation.

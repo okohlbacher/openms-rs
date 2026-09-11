@@ -36,6 +36,28 @@ pub fn write_with_numpress(
     experiment: &MSExperiment,
     options: &NumpressWriteOptions,
 ) -> Result<NumpressWriteReport> {
+    let prepared = prepare(experiment, options, Encoding::Float64, Encoding::Float32)?;
+    write_impl(
+        writer,
+        experiment,
+        &options.binary,
+        &mut Some(prepared.arrays.iter()),
+        &prepared.header,
+    )?;
+    Ok(prepared.report)
+}
+
+pub(super) struct Prepared {
+    pub(super) header: header::Plan,
+    pub(super) arrays: Vec<PreparedArray>,
+    pub(super) report: NumpressWriteReport,
+}
+pub(super) fn prepare(
+    experiment: &MSExperiment,
+    options: &NumpressWriteOptions,
+    coordinate: Encoding,
+    intensity_encoding: Encoding,
+) -> Result<Prepared> {
     experiment_header_guard(experiment)?;
     let mut work = coder::Work::new(options.limits);
     work.spend(add(
@@ -102,13 +124,13 @@ pub fn write_with_numpress(
     for spectrum in &experiment.spectra {
         prepared.floats(
             spectrum.peaks.iter().map(|p| p.mz),
-            Encoding::Float64,
+            coordinate,
             &options.mass_time,
             None,
         )?;
         prepared.floats(
             spectrum.peaks.iter().map(|p| f64::from(p.intensity)),
-            Encoding::Float32,
+            intensity_encoding,
             &options.intensity,
             None,
         )?;
@@ -121,13 +143,13 @@ pub fn write_with_numpress(
     for chromatogram in &experiment.chromatograms {
         prepared.floats(
             chromatogram.peaks.iter().map(|p| p.rt),
-            Encoding::Float64,
+            coordinate,
             &options.mass_time,
             None,
         )?;
         prepared.floats(
             chromatogram.peaks.iter().map(|p| f64::from(p.intensity)),
-            Encoding::Float32,
+            intensity_encoding,
             &options.intensity,
             None,
         )?;
@@ -137,14 +159,11 @@ pub fn write_with_numpress(
             &chromatogram.string_data_arrays,
         )?;
     }
-    write_impl(
-        writer,
-        experiment,
-        &options.binary,
-        &mut Some(prepared.arrays.into_iter()),
-        &header,
-    )?;
-    Ok(prepared.report)
+    Ok(Prepared {
+        header,
+        arrays: prepared.arrays,
+        report: prepared.report,
+    })
 }
 
 fn preflight_values(
@@ -246,7 +265,13 @@ impl Preparation<'_> {
         let mut bytes = self.work.vector(length)?;
         for value in values {
             if encoding == Encoding::Float32 {
-                bytes.extend_from_slice(&(value as f32).to_le_bytes());
+                let narrowed = value as f32;
+                if !narrowed.is_finite() {
+                    return Err(Error::InvalidValue(
+                        "mzML coordinate overflows requested f32 precision".into(),
+                    ));
+                }
+                bytes.extend_from_slice(&narrowed.to_le_bytes());
             } else {
                 bytes.extend_from_slice(&value.to_le_bytes());
             }

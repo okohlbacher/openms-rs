@@ -7,6 +7,12 @@
 //! This is an event parser, but the returned experiment is held in memory.
 
 pub use super::indexed_mzml::has_index;
+#[path = "mzml_write_options.rs"]
+mod peak_writer;
+pub use peak_writer::{
+    PeakWriteLimits, PeakWriteReport, store_with_peak_options, store_with_peak_options_and_limits,
+    write_with_peak_options, write_with_peak_options_and_limits,
+};
 #[path = "mzml_counts.rs"]
 mod counts;
 pub use counts::{
@@ -1280,9 +1286,9 @@ fn read_engine(
     mut consumer: Option<&mut consumer::Sink<'_>>,
 ) -> Result<MSExperiment> {
     let fill_data = load.is_none_or(|o| o.scientific.fill_data);
-    if let Some(load) = load {
-        load.validate()?;
-    }
+    // The source option bypasses only the helper's four-character whitespace
+    // removal, never XML syntax checks or strict native Base64 validation.
+    let normalize_binary = load.is_none_or(|o| !o.scientific.skip_xml_checks);
     let mut selection = if metadata_only {
         None
     } else {
@@ -2258,7 +2264,10 @@ fn read_engine(
                     let b = binary
                         .as_mut()
                         .ok_or_else(|| invalid("text outside binary array"))?;
-                    for byte in text.bytes().filter(|b| !b.is_ascii_whitespace()) {
+                    for byte in text
+                        .bytes()
+                        .filter(|b| !normalize_binary || !matches!(b, b' ' | b'\t' | b'\n' | b'\r'))
+                    {
                         if !byte.is_ascii() {
                             return Err(invalid("non-ASCII base64 text"));
                         }
@@ -2267,9 +2276,6 @@ fn read_engine(
                         }
                         if b.encoded.len() >= b.encoded_length {
                             return Err(invalid("binary text exceeds encodedLength"));
-                        }
-                        if !byte.is_ascii() {
-                            return Err(invalid("non-ASCII base64 text"));
                         }
                         b.encoded.push(char::from(byte));
                     }
@@ -2496,8 +2502,15 @@ fn write_scalar_metadata(
     metadata: &crate::metadata::MetaInfo,
     skip: Option<&str>,
 ) -> Result<()> {
+    write_scalar_metadata_skipping(w, metadata, skip.as_slice())
+}
+fn write_scalar_metadata_skipping(
+    w: &mut impl Write,
+    metadata: &crate::metadata::MetaInfo,
+    skip: &[&str],
+) -> Result<()> {
     for (name, value) in metadata {
-        if skip == Some(name.as_str()) {
+        if skip.contains(&name.as_str()) {
             continue;
         }
         let (kind, text) = match value.data() {
@@ -2554,16 +2567,16 @@ fn cv(w: &mut impl Write, accession: &str, name: &str, value: &str, unit: &str) 
     Ok(())
 }
 const SECOND: &str = " unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"";
-fn write_precursor(w: &mut impl Write, precursor: &Precursor) -> Result<()> {
-    precursor_metadata::write_start(w, precursor)?;
+fn write_precursor(w: &mut impl Write, precursor: &Precursor, tpp: bool) -> Result<()> {
+    precursor_metadata::write_start(w, precursor, tpp)?;
     cv(
         w,
         "MS:1000744",
         "selected ion m/z",
-        &precursor.mz.to_string(),
+        &precursor_metadata::selected_mz(precursor)?.to_string(),
         " unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"",
     )?;
-    if precursor.charge != 0 {
+    if tpp || precursor.charge != 0 {
         cv(
             w,
             "MS:1000041",
@@ -2590,12 +2603,16 @@ fn write_array(
     encoding: Encoding,
     array_length: Option<usize>,
     options: &WriteOptions,
-    prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
+    prepared: &mut Option<std::slice::Iter<'_, numpress_transport::PreparedArray>>,
     header: Option<&header::ArrayHeader>,
 ) -> Result<()> {
     let (encoded, encoding, mode) = if let Some(arrays) = prepared {
         let array = arrays.next().expect("preflight array order matches writer");
-        (array.encoded, array.encoding, array.mode)
+        (
+            std::borrow::Cow::Borrowed(array.encoded.as_str()),
+            array.encoding,
+            array.mode,
+        )
     } else {
         let bytes = bytes();
         let bytes = if options.zlib_compression {
@@ -2606,7 +2623,11 @@ fn write_array(
             bytes
         };
         let encoded = STANDARD.encode(bytes);
-        (encoded, encoding, NumpressCompression::None)
+        (
+            std::borrow::Cow::Owned(encoded),
+            encoding,
+            NumpressCompression::None,
+        )
     };
     write!(w, "<binaryDataArray encodedLength=\"{}\"", encoded.len())?;
     if let Some(length) = array_length {
@@ -2664,7 +2685,7 @@ fn write_auxiliary_arrays(
     integers: &[DataArray<i32>],
     strings: &[DataArray<String>],
     options: &WriteOptions,
-    prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
+    prepared: &mut Option<std::slice::Iter<'_, numpress_transport::PreparedArray>>,
     headers: &mut std::slice::Iter<'_, header::ArrayHeader>,
 ) -> Result<()> {
     for array in floats {
@@ -2959,13 +2980,24 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
     Ok(())
 }
 fn write_impl(
-    mut w: impl Write,
+    w: impl Write,
     experiment: &MSExperiment,
     options: &WriteOptions,
-    prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
+    prepared: &mut Option<std::slice::Iter<'_, numpress_transport::PreparedArray>>,
     header: &header::Plan,
 ) -> Result<()> {
-    w.write_all(header.prefix.as_bytes())?;
+    let mut w = peak_writer::Output::legacy(w);
+    write_document(&mut w, experiment, options, prepared, header, false)
+}
+fn write_document<W: Write>(
+    mut w: &mut peak_writer::Output<'_, W>,
+    experiment: &MSExperiment,
+    options: &WriteOptions,
+    prepared: &mut Option<std::slice::Iter<'_, numpress_transport::PreparedArray>>,
+    header: &header::Plan,
+    tpp: bool,
+) -> Result<()> {
+    w.header(&header.prefix)?;
     let mut array_headers = header.arrays.iter();
     if !experiment.spectra.is_empty() {
         writeln!(
@@ -2974,11 +3006,8 @@ fn write_impl(
             experiment.spectra.len()
         )?;
         for (i, spectrum) in experiment.spectra.iter().enumerate() {
-            let id = if spectrum.native_id.is_empty() {
-                format!("index={i}")
-            } else {
-                spectrum.native_id.clone()
-            };
+            let id = peak_writer::native_id(&spectrum.native_id, i, false);
+            w.record(false)?;
             writeln!(
                 w,
                 "<spectrum id=\"{}\" index=\"{i}\" defaultArrayLength=\"{}\"{}>",
@@ -3004,7 +3033,7 @@ fn write_impl(
             if !spectrum.precursors.is_empty() {
                 writeln!(w, "<precursorList count=\"{}\">", spectrum.precursors.len())?;
                 for precursor in &spectrum.precursors {
-                    write_precursor(&mut w, precursor)?;
+                    write_precursor(&mut w, precursor, tpp)?;
                 }
                 writeln!(w, "</precursorList>")?;
             }
@@ -3074,11 +3103,8 @@ fn write_impl(
             experiment.chromatograms.len()
         )?;
         for (i, chromatogram) in experiment.chromatograms.iter().enumerate() {
-            let id = if chromatogram.native_id.is_empty() {
-                format!("chromatogram={i}")
-            } else {
-                chromatogram.native_id.clone()
-            };
+            let id = peak_writer::native_id(&chromatogram.native_id, i, true);
+            w.record(true)?;
             writeln!(
                 w,
                 "<chromatogram id=\"{}\" index=\"{i}\" defaultArrayLength=\"{}\"{}>",
@@ -3088,8 +3114,8 @@ fn write_impl(
             )?;
             settings_metadata::write_chromatogram(&mut w, chromatogram)?;
             user_params(&mut w, &chromatogram.metadata, &chromatogram.name)?;
-            if chromatogram.precursor != Precursor::default() {
-                write_precursor(&mut w, &chromatogram.precursor)?;
+            if tpp || chromatogram.precursor != Precursor::default() {
+                write_precursor(&mut w, &chromatogram.precursor, tpp)?;
             }
             write_product(&mut w, &chromatogram.product)?;
             writeln!(
@@ -3145,6 +3171,7 @@ fn write_impl(
         writeln!(w, "</chromatogramList>")?;
     }
     writeln!(w, "</run></mzML>")?;
+    w.footer(experiment)?;
     w.flush()?;
     Ok(())
 }

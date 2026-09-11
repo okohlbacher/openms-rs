@@ -117,6 +117,7 @@ pub(super) fn read_cv(
 
 pub(super) fn validate_write(p: &Precursor) -> Result<()> {
     p.validate()?;
+    selected_mz(p)?;
     if (p.isolation_target_mz.is_some()
         || p.isolation_window_lower_offset != 0.0
         || p.isolation_window_upper_offset != 0.0)
@@ -159,7 +160,22 @@ pub(super) fn validate_write(p: &Precursor) -> Result<()> {
     Ok(())
 }
 
-pub(super) fn write_start(w: &mut impl Write, p: &Precursor) -> Result<()> {
+/// Source-owned discriminator: emitted in selectedIon, never as activation metadata.
+pub(super) fn selected_mz(p: &Precursor) -> Result<f64> {
+    let Some(value) = p.cv_terms.metadata.get("selected ion m/z") else {
+        return Ok(p.mz);
+    };
+    if value.unit().is_some() {
+        return Err(invalid("selected ion m/z metadata cannot have a unit"));
+    }
+    let mz = value.as_f64()?;
+    if !mz.is_finite() || mz < 0.0 {
+        return Err(invalid("invalid selected ion m/z metadata"));
+    }
+    Ok(mz)
+}
+
+pub(super) fn write_start(w: &mut impl Write, p: &Precursor, tpp: bool) -> Result<()> {
     write!(w, "<precursor")?;
     if let Some(reference) = &p.spectrum_reference {
         write!(w, " spectrumRef=\"{}\"", escape(reference))?;
@@ -168,9 +184,11 @@ pub(super) fn write_start(w: &mut impl Write, p: &Precursor) -> Result<()> {
         write!(w, " externalSpectrumID=\"{}\"", escape(value.as_str()?))?;
     }
     writeln!(w, ">")?;
-    if p.isolation_target_mz.is_some()
-        || p.isolation_window_lower_offset != 0.0
-        || p.isolation_window_upper_offset != 0.0
+    if !tpp
+        && (p.isolation_target_mz.is_some()
+            || p.cv_terms.metadata.contains_key("selected ion m/z")
+            || p.isolation_window_lower_offset != 0.0
+            || p.isolation_window_upper_offset != 0.0)
     {
         writeln!(w, "<isolationWindow>")?;
         for (accession, name, value) in [
@@ -258,7 +276,11 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
             "<userParam name=\"activation information unavailable\"/>"
         )?;
     }
-    super::write_scalar_metadata(w, &p.cv_terms.metadata, Some("external_spectrum_id"))?;
+    super::write_scalar_metadata_skipping(
+        w,
+        &p.cv_terms.metadata,
+        &["external_spectrum_id", "selected ion m/z"],
+    )?;
     writeln!(w, "</activation></precursor>")?;
     Ok(())
 }

@@ -15,15 +15,13 @@ pub fn load(path: impl AsRef<Path>) -> Result<MSExperiment> {
 }
 
 /// Read with explicit scientific settings and independent XML/binary limits.
-/// Input limits count decompressed XML bytes. Unsupported scientific settings
-/// are rejected before opening the file. Successful loads record document path
+/// Input limits count decompressed XML bytes. Successful loads record document path
 /// and bounded content-detected type; stream readers leave provenance unset.
 pub fn load_with_options(
     path: impl AsRef<Path>,
     scientific: &LoadOptions,
     limits: &ReadOptions,
 ) -> Result<MSExperiment> {
-    scientific.validate()?;
     let path = path.as_ref();
     let mut document = crate::metadata::DocumentIdentifier::new();
     let text = path

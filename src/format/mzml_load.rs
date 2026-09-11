@@ -29,21 +29,7 @@ impl Default for LoadOptions {
         }
     }
 }
-impl LoadOptions {
-    pub(super) fn validate(&self) -> Result<()> {
-        let unsupported = if self.scientific.skip_xml_checks {
-            Some("disabling XML checks")
-        } else {
-            None
-        };
-        if let Some(option) = unsupported {
-            return Err(Error::Unsupported(format!(
-                "mzML loading does not implement {option}"
-            )));
-        }
-        Ok(())
-    }
-}
+
 fn limit() -> Error {
     Error::InvalidValue("mzML selection resource limit exceeded".into())
 }
@@ -63,7 +49,6 @@ pub(super) struct State<'a> {
 }
 impl<'a> State<'a> {
     pub fn new(options: &'a LoadOptions) -> Result<Self> {
-        options.validate()?;
         let mut state = Self {
             options,
             work: options.max_selection_work,

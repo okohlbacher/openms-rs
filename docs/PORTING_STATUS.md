@@ -38,13 +38,14 @@ utility, including source GCD and floating-rounding behavior. The
 [mzML filesystem API](MZML_PATH_SUPPORT.md) applies scientific load settings,
 magic-based compression detection and atomic replacement/publication.
 Standalone IMS isotope, alphabet and decomposition APIs are also implemented;
-[source-supported mzML headers](MZML_HEADER_SUPPORT.md) are transported; consumers remain outstanding. Loaded-file
+[source-supported mzML headers](MZML_HEADER_SUPPORT.md) and
+[streaming consumers](MZML_CONSUMER_SUPPORT.md) are implemented. Loaded-file
 bookkeeping is retained in the experiment settings.
 
 [ControlledVocabulary](CONTROLLED_VOCABULARY_SUPPORT.md) supplies complete
 term definitions, OBO loading, graph queries, XML values and all five original
 providers. General CV mapping and source-supported header transport are implemented;
-[general semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) and [streaming consumers/transforms](MZML_CONSUMER_SUPPORT.md) are implemented. [Centroid inspection](MZML_CENTROID_SUPPORT.md), [isolation-target loading](MZML_ISOLATION_SUPPORT.md) and [mzML semantic validation](MZML_VALIDATOR_SUPPORT.md) are also implemented. XSD validation, indexed/source-option writing and broader typed array transport remain separate groups.
+[general semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) and [streaming consumers/transforms](MZML_CONSUMER_SUPPORT.md) are implemented. [Centroid inspection](MZML_CENTROID_SUPPORT.md), [isolation-target loading](MZML_ISOLATION_SUPPORT.md) and [mzML semantic validation](MZML_VALIDATOR_SUPPORT.md) are also implemented. [Indexed/source-option writing](MZML_WRITE_OPTIONS_SUPPORT.md) now executes the represented source writer flags with independent offset/checksum checks. XSD validation, typed array transport, spectrum ion mobility and the remaining precursor activation metadata routes are separate groups.
 
 ## Capability mapping
 

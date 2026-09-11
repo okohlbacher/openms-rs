@@ -12,7 +12,7 @@ path = "src/lib.rs"
 
 [features]
 default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "cv-mapping"]
-mzml = ["dep:quick-xml", "file-compression", "numpress"]
+mzml = ["dep:quick-xml", "dep:sha1", "file-compression", "numpress"]
 numpress = ["dep:base64", "dep:flate2"]
 idxml = ["dep:quick-xml"]
 rna-json = ["dep:serde_json"]
@@ -26,6 +26,7 @@ cv-mapping = ["dep:quick-xml", "file-compression"]
 file-compression = ["dep:flate2", "dep:bzip2"]
 
 [dependencies]
+sha1 = { version = "=0.10.7", default-features = false, features = ["force-soft"], optional = true }
 libm = "=0.2.16"
 chrono = { version = "=0.4.45", default-features = false, features = ["clock"] }
 quick-xml = { version = "=0.39.4", optional = true }

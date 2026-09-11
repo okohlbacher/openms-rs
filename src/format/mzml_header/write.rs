@@ -150,7 +150,7 @@ fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> 
         )?;
         default_instrument.push('_');
     }
-    x.raw("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.1.0\"")?;
+    x.raw("<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.1.0\"")?;
     if !settings.document.identifier.is_empty() {
         x.attribute("accession", &settings.document.identifier)?;
     }

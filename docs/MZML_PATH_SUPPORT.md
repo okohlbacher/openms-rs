@@ -36,10 +36,11 @@ This completes the file/owned-replacement entry points for the represented mzML
 subset. Subsequent increments add DocumentIdentifier loaded-path/file-type state,
 [count-only operations](MZML_COUNTS_SUPPORT.md) and [source-supported headers and
 metadata-only reading](MZML_HEADER_SUPPORT.md). [Consumers and transform passes](MZML_CONSUMER_SUPPORT.md), including disabled
-record population, are implemented. Format-specific XML schema/CV validation,
-[centroid inspection](MZML_CENTROID_SUPPORT.md) is available separately; indexed output remains outstanding. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
-also works through these path entry points; configured Numpress writing currently
-uses its separate stream operation.
+record population, are implemented. [Centroid inspection](MZML_CENTROID_SUPPORT.md)
+and [explicit semantic validation](MZML_VALIDATOR_SUPPORT.md) have path APIs;
+runtime XSD validation remains outstanding. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
+also works through these paths. [Source-option storage](MZML_WRITE_OPTIONS_SUPPORT.md)
+adds configured Numpress, precision, TPP and indexed output with atomic publication.
 `Read`/`Write` stream APIs already cover the native equivalent of buffer I/O.
 See [scientific loading](MZML_LOAD_OPTIONS_SUPPORT.md) and
 [mzML representation support](MZML_SUPPORT.md) for the remaining limits.

@@ -6,7 +6,7 @@ use base64::{Engine, engine::general_purpose::STANDARD};
 use openms::format::mzml::{self, LoadOptions, ReadOptions};
 use openms::kernel::NumericRange;
 use openms::{Error, MSExperiment};
-use std::io::{self, BufRead, Cursor, Read};
+use std::io::Cursor;
 
 const SOURCE: &str = include_str!("data/mzml_load_source_projection.mzML");
 fn read(xml: &str, options: &LoadOptions) -> openms::Result<MSExperiment> {
@@ -427,26 +427,8 @@ fn selection_budget_is_cumulative_across_records_and_independent_of_binary_caps(
     assert!(read(&xml, &o).is_err());
 }
 
-struct NoRead;
-impl Read for NoRead {
-    fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
-        panic!("input read before options validation")
-    }
-}
-impl BufRead for NoRead {
-    fn fill_buf(&mut self) -> io::Result<&[u8]> {
-        panic!("input read before options validation")
-    }
-    fn consume(&mut self, _: usize) {}
-}
 #[test]
-fn unsupported_requested_behavior_is_rejected_before_input_and_write_flags_are_ignored() {
-    let mut unsupported = LoadOptions::default();
-    unsupported.scientific.skip_xml_checks = true;
-    assert!(matches!(
-        mzml::read_with_load_options(NoRead, &unsupported, &ReadOptions::default()),
-        Err(Error::Unsupported(_))
-    ));
+fn write_flags_are_ignored_on_load() {
     let mut o = LoadOptions::default();
     o.scientific.zlib_compression = true;
     o.scientific.mz_32_bit = true;

@@ -357,3 +357,10 @@ these definitions.
 The unchanged OpenMS mzML semantic mapping resource, `resources/cv/ms-mapping.xml`,
 has its pinned source path and license evidence recorded in the same
 [resource notices](resources/cv/NOTICE.md#mzml-mapping-resource).
+
+## Indexed mzML checksum dependency
+
+The optional RustCrypto `sha1 0.10.7` dependency is licensed MIT OR Apache-2.0.
+Its versioned notices and transitive package versions are recorded in
+[the dependency reference](docs/MZML_WRITER_DEPENDENCY.md). SHA-1 implements
+the mzML checksum convention; the OpenMS license does not relicense this dependency.
