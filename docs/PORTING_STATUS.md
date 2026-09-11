@@ -10,7 +10,7 @@ The target is a feature-complete reduced Core SDK suitable for porting TOPP tool
 
 The current target is SDK 4.0.0 at `82ce5b3`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
 
-[CV mapping records and XML loading](CV_MAPPING_SUPPORT.md) cover all five class-specific source APIs, with atomic loads and explicit compatibility corrections. [General semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) now supplies the complete class-specific mapping/term validator with ordered diagnostics and bounded, reusable operations. Format-specific derived validators and XSD validation remain separate.
+[CV mapping records and XML loading](CV_MAPPING_SUPPORT.md) cover all five class-specific source APIs, with atomic loads and explicit compatibility corrections. [General semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) now supplies the complete class-specific mapping/term validator with ordered diagnostics and bounded, reusable operations. [MzMLValidator](MZML_VALIDATOR_SUPPORT.md) is also implemented; other derived validators and XSD validation remain separate.
 
 ## Mass traces and additional SDK values
 
@@ -44,7 +44,7 @@ bookkeeping is retained in the experiment settings.
 [ControlledVocabulary](CONTROLLED_VOCABULARY_SUPPORT.md) supplies complete
 term definitions, OBO loading, graph queries, XML values and all five original
 providers. General CV mapping and source-supported header transport are implemented;
-[general semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) and [streaming consumers/transforms](MZML_CONSUMER_SUPPORT.md) are implemented. Centroid inspection and remaining mzML format-specific validation/writer options remain separate groups.
+[general semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) and [streaming consumers/transforms](MZML_CONSUMER_SUPPORT.md) are implemented. [Centroid inspection](MZML_CENTROID_SUPPORT.md), [isolation-target loading](MZML_ISOLATION_SUPPORT.md) and [mzML semantic validation](MZML_VALIDATOR_SUPPORT.md) are also implemented. XSD validation, indexed/source-option writing and broader typed array transport remain separate groups.
 
 ## Capability mapping
 

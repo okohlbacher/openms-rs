@@ -353,3 +353,7 @@ headers are retained. See [the resource notices](resources/cv/NOTICE.md) for
 PSI-MS, PATO, UO, BTO and GO attribution, license links, exact versions and
 explicit historical license limitations. The code license does not relicense
 these definitions.
+
+The unchanged OpenMS mzML semantic mapping resource, `resources/cv/ms-mapping.xml`,
+has its pinned source path and license evidence recorded in the same
+[resource notices](resources/cv/NOTICE.md#mzml-mapping-resource).

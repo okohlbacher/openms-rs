@@ -18,6 +18,8 @@ pub mod numpress;
 pub mod numpress_coder;
 #[cfg(feature = "semantic-validation")]
 pub mod semantic_validator;
+#[cfg(feature = "mzml-validation")]
+pub use semantic_validator::mzml as mzml_validator;
 pub mod text;
 pub use csv::CsvFile;
 pub use text::TextFile;

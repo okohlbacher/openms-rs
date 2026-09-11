@@ -441,17 +441,12 @@ impl BufRead for NoRead {
 }
 #[test]
 fn unsupported_requested_behavior_is_rejected_before_input_and_write_flags_are_ignored() {
-    for choice in 0..2 {
-        let mut o = LoadOptions::default();
-        match choice {
-            0 => o.scientific.skip_xml_checks = true,
-            _ => o.scientific.precursor_mz_selected_ion = false,
-        }
-        assert!(matches!(
-            mzml::read_with_load_options(NoRead, &o, &ReadOptions::default()),
-            Err(Error::Unsupported(_))
-        ));
-    }
+    let mut unsupported = LoadOptions::default();
+    unsupported.scientific.skip_xml_checks = true;
+    assert!(matches!(
+        mzml::read_with_load_options(NoRead, &unsupported, &ReadOptions::default()),
+        Err(Error::Unsupported(_))
+    ));
     let mut o = LoadOptions::default();
     o.scientific.zlib_compression = true;
     o.scientific.mz_32_bit = true;

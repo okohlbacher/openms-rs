@@ -37,7 +37,7 @@ subset. Subsequent increments add DocumentIdentifier loaded-path/file-type state
 [count-only operations](MZML_COUNTS_SUPPORT.md) and [source-supported headers and
 metadata-only reading](MZML_HEADER_SUPPORT.md). [Consumers and transform passes](MZML_CONSUMER_SUPPORT.md), including disabled
 record population, are implemented. Format-specific XML schema/CV validation,
-centroid inference and indexed output remain separate work. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
+[centroid inspection](MZML_CENTROID_SUPPORT.md) is available separately; indexed output remains outstanding. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
 also works through these path entry points; configured Numpress writing currently
 uses its separate stream operation.
 `Read`/`Write` stream APIs already cover the native equivalent of buffer I/O.

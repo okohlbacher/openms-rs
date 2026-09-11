@@ -241,3 +241,12 @@ these backends; other XLMS analysis classes remain separate work.
 batched callbacks, early stopping and optional retention of modified records.
 The consumer trait is available without XML features. Metadata-only record
 loading now supports `fill_data=false` while retaining descriptor checks.
+
+[Spectrum type queries and mzML centroid inspection](docs/MZML_CENTROID_SUPPORT.md)
+use stored type, processing history and optional signal estimation. File inspection
+counts by MS level with an explicit recognized-spectrum quota and preserved caller options.
+
+[Isolation-target loading](docs/MZML_ISOLATION_SUPPORT.md) selects and filters by
+the isolation window while retaining differing selected-ion metadata.
+[Explicit mzML semantic validation](docs/MZML_VALIDATOR_SUPPORT.md) is available
+with `mzml-validation`; it checks CV rules and values using the pinned vocabulary.

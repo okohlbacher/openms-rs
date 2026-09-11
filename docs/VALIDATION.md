@@ -1,5 +1,45 @@
 # Validation of the ongoing Rust port
 
+## mzML inspection, isolation loading and semantic validation (2026-09-11)
+
+[Recorded checks](mzml-operations-validation.json) cover
+[spectrum type/centroid inspection](MZML_CENTROID_SUPPORT.md),
+[isolation-target loading](MZML_ISOLATION_SUPPORT.md) and the complete native
+[MzMLValidator specialization](MZML_VALIDATOR_SUPPORT.md). This checkpoint adds
+47 tests and closes one public header; MzMLFile itself remains partial.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 2,115 tests passed |
+| Doctests, Rust 1.98 | Four passed |
+| Rust 1.85/minimal mzML-validation selection | 349 passed |
+| Spectrum type queries without format features, Rust 1.85 | Seven passed |
+| Strict Clippy on both compilers; release library, Rustdoc, Rustfmt | Passed |
+| Source audit, source projection, extraction integrity and completion checks | Passed |
+
+All 15 integrated checks passed on their first run. Selected test counts overlap.
+Of 34 integrated extraction files, 33 remain exact; the shared reader merges
+only the frozen isolation implementation and centroid/semantic registrations.
+All 47 source hashes and 16 fixture/resource/tool/projection hashes were checked,
+including the unchanged DTA files, original validator inputs, mapping and reused
+ontologies. Native tests verify cumulative limits, source event order, caller
+option preservation and fresh validator state across documents. No C++ method
+execution or full SDK build is claimed.
+
+The [published XLMS checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34586771858)
+passed CI. The issue log now contains 55 entries. New findings concern mixed
+chromatogram primary roles, ineffective indexed-schema ID references and unchecked
+source Base64 alphabet bytes. The [index-schema probe](mzml-index-schema-probe.json)
+records actual acceptance of a dangling reference by the unchanged XSD; it does
+not claim byte-offset or checksum validity.
+
+The ledger records 72 complete/native-equivalent headers and 714 requiring
+implementation or review, with zero certified TOPP workflows. Source verification
+covers 1,942 distinct current files, 220 historical references, 21 graph references
+and 924 added references. Indexed writing, complete writer options, typed/noise
+transport, runtime XSD validation, whitespace-normalization options and broader
+SDK work remain outstanding.
+
 ## ProForma spectrum generation (2026-09-11)
 
 [Recorded checks](proforma-spectra-validation.json) cover all six

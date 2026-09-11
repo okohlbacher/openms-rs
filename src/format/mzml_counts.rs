@@ -763,6 +763,7 @@ impl Setup {
                     &mut None,
                     &mut self.experiment,
                     None,
+                    &mut state.budget,
                 )?;
                 return Ok(None);
             }

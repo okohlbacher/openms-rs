@@ -21,6 +21,7 @@ paramxml = ["dep:quick-xml", "file-compression"]
 featurexml = ["dep:quick-xml", "file-compression"]
 consensusxml = ["dep:quick-xml", "file-compression"]
 semantic-validation = ["cv-mapping"]
+mzml-validation = ["mzml", "semantic-validation"]
 cv-mapping = ["dep:quick-xml", "file-compression"]
 file-compression = ["dep:flate2", "dep:bzip2"]
 

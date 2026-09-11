@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "issue": "CPP-054",
+  "sources": [
+    {
+      "path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
+      "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
+      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc"
+    }
+  ],
+  "transformation": {
+    "replace_first_ascii": "idRef=\"index=19\"",
+    "with": "idRef=\"does_not_exist\"",
+    "matched_occurrences": 1
+  },
+  "checks": [
+    {
+      "input": "original",
+      "exit_code": 0,
+      "stderr": "/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.reference/openms4-core-82ce5b3/src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML validates\n",
+      "input_sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc"
+    },
+    {
+      "input": "dangling_index_idref",
+      "exit_code": 0,
+      "stderr": "/tmp/openms-mzml-schema-bad-idref.mzML validates\n",
+      "input_sha256": "956e8d42cbf98e053b3e99b5b68f772b163529c90f853ca2a0a04ba10d18e580"
+    }
+  ],
+  "validator_version": "xmllint: using libxml version 20913\n   compiled with: Threads Tree Output Push Reader Patterns Writer SAXv1 FTP HTTP DTDValid HTML Legacy C14N Catalog XPath XPointer XInclude ICU ISO8859X Unicode Regexps Automata Schemas Schematron Modules Debug Zlib \n",
+  "scope": "Actual pinned-XSD validation; source C++ method not executed. No index byte offsets or checksum repaired. This demonstrates missing idRef validation, not file integrity."
+}

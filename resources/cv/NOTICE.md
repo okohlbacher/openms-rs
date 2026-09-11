@@ -25,3 +25,13 @@ Owner/catalog sources were checked 2026-09-11. Historical snapshot licensing det
 ## Existing source damage
 
 The original brenda.obo contains 335 bytes invalid under UTF-8 and eight NUL bytes in the `BTO:0002243` hypanthium definition. The raw bytes remain unchanged; the provider's explicit Windows-1252 decoding retains the damaged description as opaque data. No inferred scientific text replaces it. XML consumers validate only fields actually rendered. Exact SHA-256 hashes, offsets and source paths are in [the provenance manifest](../../tests/data/controlled_vocabulary_provenance.json).
+
+## mzML mapping resource
+
+`ms-mapping.xml` is an unchanged copy of `share/OpenMS/MAPPING/ms-mapping.xml`
+from the same pinned OpenMS4-core revision. It contains the source mzML semantic
+mapping rules and has no separate embedded license notice. The resource and
+source SDK license hashes are recorded in [its provenance manifest](../../tests/data/mzml_validator_provenance.json).
+The source OpenMS copyright and BSD-3-Clause license are retained in the root
+[license notices](../../LICENSES.md); this attribution does not alter the
+separate ontology terms described above.

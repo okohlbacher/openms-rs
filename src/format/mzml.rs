@@ -13,6 +13,9 @@ pub use counts::{
     MAX_COUNT_EVENT_BYTES, MAX_COUNT_WORK, MAX_COUNT_XML_DEPTH, MzMLCounts, load_size,
     load_size_with_options, read_size, read_size_with_options,
 };
+#[path = "mzml_centroid.rs"]
+mod centroid;
+pub use centroid::{CentroidInfoLimits, SpecInfo, centroid_info, centroid_info_with_options};
 #[path = "mzml_consumer.rs"]
 mod consumer;
 #[path = "mzml_header.rs"]
@@ -24,6 +27,8 @@ pub use consumer::{
 };
 #[path = "mzml_load.rs"]
 mod load;
+#[cfg(feature = "mzml-validation")]
+pub use super::mzml_validator::{validate_semantics, validate_semantics_with_options};
 use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor,
     SpectrumType,
@@ -154,6 +159,9 @@ fn attributes(
     // scan would repeatedly compare all preceding attribute names.
     for attribute in element.attributes().with_checks(false) {
         let attribute = attribute.map_err(|e| invalid(e.to_string()))?;
+        if attribute.value.contains(&b'<') {
+            return Err(invalid("raw less-than sign in XML attribute"));
+        }
         if let Some(budget) = &mut budget {
             // Unescaping XML character references cannot enlarge the UTF-8 data.
             budget.attribute(attribute.key.as_ref().len(), attribute.value.len())?;
@@ -634,6 +642,8 @@ struct Record {
     intensities: Option<Vec<f64>>,
     precursor: Option<Precursor>,
     selected_ion: bool,
+    ignore_selected_ion: bool,
+    precursor_mz_selected_ion: bool,
     selected_mz: bool,
     rt_seen: bool,
     precursors_seen: usize,
@@ -686,7 +696,12 @@ impl Record {
             &mut self.chromatogram.as_mut().unwrap().metadata
         }
     }
-    fn cv(&mut self, parent: &str, attrs: &BTreeMap<String, String>) -> Result<()> {
+    fn cv(
+        &mut self,
+        parent: &str,
+        attrs: &BTreeMap<String, String>,
+        budget: &mut ParameterBudget,
+    ) -> Result<()> {
         let accession = required(attrs, "accession")?;
         let value = attrs.get("value").map(String::as_str).unwrap_or("");
         if self.product_active {
@@ -751,12 +766,31 @@ impl Record {
             } else {
                 &mut self.seen_fields
             };
-            if !seen.insert(field) {
+            let repeated_mz = !self.precursor_mz_selected_ion
+                && matches!(field, "precursor_mz" | "isolation_target");
+            if !seen.insert(field) && !repeated_mz {
                 return Err(invalid(format!("duplicate scientific field {field}")));
             }
         }
         if let Some(p) = self.precursor.as_mut() {
-            if precursor_metadata::read_cv(p, parent, accession, value, attrs, self.selected_mz)? {
+            if precursor_metadata::read_cv(
+                p,
+                parent,
+                accession,
+                value,
+                attrs,
+                self.selected_mz && self.precursor_mz_selected_ion,
+            )? {
+                if parent == "isolationWindow"
+                    && accession == "MS:1000827"
+                    && !self.precursor_mz_selected_ion
+                    && self.spectrum.is_some()
+                    && self
+                        .precursor_filter
+                        .is_some_and(|range| !load::contains(range, p.mz))
+                {
+                    self.precursor_outside = true;
+                }
                 return Ok(());
             }
         }
@@ -788,7 +822,8 @@ impl Record {
             }
             ("selectedIon", "MS:1000744" | "MS:1000040") => {
                 let mz = finite(value, "precursor m/z")?;
-                if self.spectrum.is_some()
+                if self.precursor_mz_selected_ion
+                    && self.spectrum.is_some()
                     && self.precursor.as_ref().is_some_and(|p| p.mz != mz)
                     && self
                         .precursor_filter
@@ -796,11 +831,22 @@ impl Record {
                 {
                     self.precursor_outside = true;
                 }
-                self.precursor
+                let p = self
+                    .precursor
                     .as_mut()
-                    .ok_or_else(|| invalid("selected ion outside precursor"))?
-                    .mz = finite(value, "precursor m/z")?;
-                self.selected_mz = true;
+                    .ok_or_else(|| invalid("selected ion outside precursor"))?;
+                if self.precursor_mz_selected_ion {
+                    p.mz = mz;
+                    self.selected_mz = true;
+                } else if p.mz != mz {
+                    // Source stores the first selected ion separately in target
+                    // mode. Equal later events do not erase an earlier value.
+                    let slot = std::mem::size_of::<(String, MetaValue)>() + 32;
+                    budget.spend(512usize.saturating_add(11 * slot).saturating_add(17))?;
+                    p.cv_terms
+                        .metadata
+                        .insert("selected ion m/z".into(), MetaValue::try_from(mz)?);
+                }
             }
             ("selectedIon", "MS:1000041") => {
                 self.precursor
@@ -876,6 +922,7 @@ impl Record {
 }
 
 // Inline and referenced parameters take exactly the same scientific path.
+#[allow(clippy::too_many_arguments)]
 fn apply_parameter(
     tag: &str,
     attrs: &BTreeMap<String, String>,
@@ -884,6 +931,7 @@ fn apply_parameter(
     binary: &mut Option<Binary>,
     experiment: &mut MSExperiment,
     selection: Option<&mut load::State<'_>>,
+    budget: &mut ParameterBudget,
 ) -> Result<()> {
     required(
         attrs,
@@ -893,15 +941,27 @@ fn apply_parameter(
             "name"
         },
     )?;
-    if tag == "cvParam"
-        && parent == "selectedIon"
-        && matches!(
-            attrs.get("accession").map(String::as_str),
-            Some("MS:1000744" | "MS:1000040")
-        )
-    {
+    // Later selected ions are scientifically ignored by the source. Attribute,
+    // XML, group-reference and expansion checks have already run for this event.
+    if parent == "selectedIon" && record.as_ref().is_some_and(|r| r.ignore_selected_ion) {
+        return Ok(());
+    }
+    if tag == "cvParam" {
         if let Some(selection) = selection {
-            if selection.options.scientific.has_precursor_mz_range() {
+            let selected = selection.options.scientific.precursor_mz_selected_ion;
+            let accession = attrs.get("accession").map(String::as_str);
+            let target_event = !selected
+                && parent == "isolationWindow"
+                && accession == Some("MS:1000827")
+                && record
+                    .as_ref()
+                    .is_some_and(|r| r.precursor.is_some() && !r.product_active);
+            let selected_event = selected
+                && parent == "selectedIon"
+                && matches!(accession, Some("MS:1000744" | "MS:1000040"));
+            if selection.options.scientific.has_precursor_mz_range()
+                && (target_event || selected_event)
+            {
                 selection.spend(1)?;
             }
         }
@@ -914,7 +974,7 @@ fn apply_parameter(
                     .ok_or_else(|| invalid("CV outside binary array"))?
                     .cv(attrs)?;
             } else if let Some(r) = record {
-                r.cv(parent, attrs)?;
+                r.cv(parent, attrs, budget)?;
             } else if parent == "run" && required(attrs, "accession")? == "MS:1000858" {
                 experiment.settings.fraction_identifier =
                     attrs.get("value").cloned().unwrap_or_default();
@@ -1153,6 +1213,7 @@ fn apply_group(
             binary,
             experiment,
             selection.as_deref_mut(),
+            budget,
         )?;
     }
     Ok(())
@@ -1721,6 +1782,9 @@ fn read_engine(
                             intensities: None,
                             precursor: None,
                             selected_ion: false,
+                            ignore_selected_ion: false,
+                            precursor_mz_selected_ion: load
+                                .is_none_or(|o| o.scientific.precursor_mz_selected_ion),
                             selected_mz: false,
                             rt_seen: false,
                             precursors_seen: 0,
@@ -1872,6 +1936,7 @@ fn read_engine(
                             );
                         }
                         r.selected_ion = false;
+                        r.ignore_selected_ion = false;
                         r.selected_mz = false;
                         r.selected_list_seen = false;
                         r.precursor_fields.clear();
@@ -1886,11 +1951,12 @@ fn read_engine(
                         if r.precursor.is_none() {
                             return Err(invalid("selected ion outside precursor"));
                         }
-                        if r.selected_ion {
+                        if r.selected_ion && r.precursor_mz_selected_ion {
                             return Err(Error::Unsupported(
                                 "multiple selected ions in one precursor".into(),
                             ));
                         }
+                        r.ignore_selected_ion = r.selected_ion;
                         r.selected_ion = true;
                     }
                     "cvParam" | "userParam" => {
@@ -1928,6 +1994,7 @@ fn read_engine(
                                 &mut binary,
                                 &mut experiment,
                                 selection.as_mut(),
+                                &mut parameter_budget,
                             )?;
                         }
                     }

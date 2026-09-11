@@ -1,0 +1,570 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "4b0124ce2c647a24b9f01ffca17a4b68a5997e05",
+  "scope": [
+    "Source getType(bool) and bounded mzML centroid inspection",
+    "Isolation-target selection across read/load/consumer/count paths",
+    "Complete native MzMLValidator specialization and semantic-validation convenience",
+    "CPP018/048/051 corrections; new source findings CPP053/054/055"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "--no-fail-fast",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 500.29,
+      "log_sha256": "a24092035e57cdaf05363d4debffcc8adb90cdf58cb8cb3466c8ab0ff9e4c76f",
+      "log_bytes": 218444,
+      "tests_passed": 2115
+    },
+    {
+      "name": "docs_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.55,
+      "log_sha256": "85a6b2a4c779c222e107550d1f80d4c94c99275d63330ca403784471dbf00434",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 59.79,
+      "log_sha256": "98df08c3cdd906ea92982bf88d5240eba06e837877929ba9be00598ce6cf2590",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 38.25,
+      "log_sha256": "8d6798a12b719b293a23480dd9f4574c0b46a26ae7202c01457db751d89f6350",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.34,
+      "log_sha256": "4b3e64c0051fde77dea3730cd1a90759232e728edc18e0210ff7e7915fcda814",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.24,
+      "log_sha256": "9f7907197b10935f7da852b20c48bf6fae6fe355205c00880bac484062a899e6",
+      "log_bytes": 233
+    },
+    {
+      "name": "operation_evidence",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "/tmp/check-openms-mzml-operations-integration.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "3cd00e2c3199c2b4e88ea55a26d57e5629ca7f0f62638ba12fb4bd69b6c24c5a",
+      "log_bytes": 133
+    },
+    {
+      "name": "validator_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_mzml_validator_reference.py",
+        ".reference/openms4-core-82ce5b3",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "completion_ledger",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "c3f32abe8faf4797fcfb0e4786087dfe9ff02451b8410becddfd0d10d6f109f1",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.11,
+      "log_sha256": "6f75a31c67524e73d50ce119fb4aff1f3416319c0134de5f53c07e69c7b53af7",
+      "log_bytes": 100
+    },
+    {
+      "name": "mzml_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml-validation",
+        "--lib",
+        "--test",
+        "mzml_validator",
+        "--test",
+        "semantic_validator",
+        "--test",
+        "cv_mapping_file",
+        "--test",
+        "cv_mapping_values",
+        "--test",
+        "mzml_isolation",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_product",
+        "--test",
+        "spectrum_type",
+        "--test",
+        "mzml_centroid",
+        "--test",
+        "peak_picking",
+        "--test",
+        "interfaces",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_consumer",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_header",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_paths",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 36.82,
+      "log_sha256": "6384265d3fe6d2cac61e886fd17f20b8244ee0bd9cefcdcdfd275872a9878cec",
+      "log_bytes": 35391,
+      "tests_passed": 349
+    },
+    {
+      "name": "strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 14.7,
+      "log_sha256": "8d35ac3a59dbf47726cd250560c4ef893b6afd66005d1341526fde274d63e862",
+      "log_bytes": 162
+    },
+    {
+      "name": "mzml_validation_strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml-validation",
+        "--lib",
+        "--test",
+        "mzml_validator",
+        "--test",
+        "semantic_validator",
+        "--test",
+        "cv_mapping_file",
+        "--test",
+        "cv_mapping_values",
+        "--test",
+        "mzml_isolation",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_product",
+        "--test",
+        "spectrum_type",
+        "--test",
+        "mzml_centroid",
+        "--test",
+        "peak_picking",
+        "--test",
+        "interfaces",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_consumer",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_header",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_paths",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.25,
+      "log_sha256": "3901facc83a64f8e6e37c46dd3d5be745a6644c47a21fc6e47aaebb91f7d9f58",
+      "log_bytes": 161
+    },
+    {
+      "name": "spectrum_type_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--test",
+        "spectrum_type",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 10.01,
+      "log_sha256": "3819f2286a8c69bbb3a3b760f31fb3c38ddc72d0b29a489db1376e38d8964e3d",
+      "log_bytes": 906,
+      "tests_passed": 7
+    }
+  ],
+  "integration_files": [
+    {
+      "path": "src/kernel/spectrum_type.rs",
+      "sha256": "327f96fc77640f93afa407374cd4981e2008867f1daa87780c08823d536570c7",
+      "bytes": 5705
+    },
+    {
+      "path": "src/format/mzml_centroid.rs",
+      "sha256": "78665fd7f222a8d346a1d8b45f70127b5af3e12081701ddbd973dc477a6dc9cc",
+      "bytes": 4926
+    },
+    {
+      "path": "src/processing/peak_picking.rs",
+      "sha256": "940908fb1fee779c688f4b6b5cf42e02c4009558aa83ebea30b0863ee89b4040",
+      "bytes": 23166
+    },
+    {
+      "path": "src/kernel.rs",
+      "sha256": "e38b1515c099f92dd681e21f4ddb2ce9bb63c5eb3c78242acd85e5c6b4ae1e2c",
+      "bytes": 32983
+    },
+    {
+      "path": "src/format/mzml.rs",
+      "sha256": "3f81dc449ae2afe019c0c8023fef92ed015a936f1c0419d6d0994bec89a1a0b8",
+      "bytes": 130623
+    },
+    {
+      "path": "tests/spectrum_type.rs",
+      "sha256": "5b1ae85b5e66eb14f27927363630077ca9729d387b9a7b436598b32a121feb4f",
+      "bytes": 8342
+    },
+    {
+      "path": "tests/mzml_centroid.rs",
+      "sha256": "c68deffa7bfb4d27e8958364aac399dfa41d1e8170ca3f0a448c15f48fc391d7",
+      "bytes": 12553
+    },
+    {
+      "path": "tests/data/spectrum_type/PeakTypeEstimator_raw.dta",
+      "sha256": "262bb2a65406892bd6ed1c0027151a863d91e7653bc487402ae58122647ea792",
+      "bytes": 619
+    },
+    {
+      "path": "tests/data/spectrum_type/PeakTypeEstimator_rawTOF.dta",
+      "sha256": "8419dab0821b3ea794a8fa73c1846c5b0f933564f2fc5618a65756d03b70de14",
+      "bytes": 1095666
+    },
+    {
+      "path": "tests/data/spectrum_type/PeakTypeEstimator_peak.dta",
+      "sha256": "69d552ec11db33256f09c1e403aecc45018f3d4c2553ba27112d8ebecd6d5297",
+      "bytes": 1404
+    },
+    {
+      "path": "tests/data/mzml_centroid_provenance.json",
+      "sha256": "469379be566510e6db6ef7e6202428c21d07391b153f3c13afeb02da3c53405b",
+      "bytes": 6171
+    },
+    {
+      "path": "docs/MZML_CENTROID_SUPPORT.md",
+      "sha256": "771f5cdb3707b5c85784692e3ffdc12999460ea3e9ff3c7913b5ac7a11f61e5b",
+      "bytes": 7165
+    },
+    {
+      "path": "tests/mzml_isolation.rs",
+      "sha256": "4ae253ff63601fba57a509921559333e339d7ae510b9eb77181a82e5bb70a41d",
+      "bytes": 22108
+    },
+    {
+      "path": "tests/data/mzml_isolation_target.mzML",
+      "sha256": "c238cda393ee4b9882ecdade2606f9b025dc7150cfdf1c0b511e17c193cc05f4",
+      "bytes": 1710
+    },
+    {
+      "path": "tests/data/mzml_isolation_provenance.json",
+      "sha256": "6a5edd9a8de37bc953bac9c9774796cf21ac49fc68bc924db8f4f6393ffd5c34",
+      "bytes": 3872
+    },
+    {
+      "path": "docs/MZML_ISOLATION_SUPPORT.md",
+      "sha256": "061e0e539ba2d6dd94ee630dac057f0b11fe8e195196227cfdc53c6e74ebe611",
+      "bytes": 8047
+    },
+    {
+      "path": "src/format/mzml_load.rs",
+      "sha256": "27d185adabde7b4409b67dc6a1fb082c1bfd6e6924a0ec85f0b5941676a3111f",
+      "bytes": 8453
+    },
+    {
+      "path": "tests/mzml_load_options.rs",
+      "sha256": "09685616298bd312222ebbde0af4277fc4899e28dde874c341c0cee5fbb5ca9b",
+      "bytes": 21443
+    },
+    {
+      "path": "src/format/mzml_counts.rs",
+      "sha256": "e494c881ba39afe5fef8dc67e75a1a580277a839975887989a370df0e1fae5c0",
+      "bytes": 40406
+    },
+    {
+      "path": "docs/MZML_LOAD_OPTIONS_SUPPORT.md",
+      "sha256": "74980a5e5d22401baae688e986c9746dbb48d9973b3aada5942b4f5d4817d14f",
+      "bytes": 7859
+    },
+    {
+      "path": "src/format/mzml_validator.rs",
+      "sha256": "9e4e5223cbf2db5834fe960e59fcfb1ca3b275a76b802cfd4ab2f09ca6055ce9",
+      "bytes": 12375
+    },
+    {
+      "path": "src/format/semantic_validator.rs",
+      "sha256": "f0b6c3ea2aeb98c8b361152eee86e7aa1192ab33fb51b0b27c121f17c110a9be",
+      "bytes": 30965
+    },
+    {
+      "path": "src/format/mod.rs",
+      "sha256": "14ee936aa5c754e9dc9c4ec2d093b3655cbcd512a25e5d1e256b8336e248bddb",
+      "bytes": 2412
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "b1ba06438bb645f07a4775f34857912140a0567cc464fad03b6de7dce942be83",
+      "bytes": 1393
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "3b261f267188b0cecdb45815079978046c1be7b9ed856acb09f4552d62d51c58",
+      "bytes": 522
+    },
+    {
+      "path": "tests/mzml_validator.rs",
+      "sha256": "1412414f361e6cff6704696f3256567571b78cffc3bf42cfb2193facf081455f",
+      "bytes": 20103
+    },
+    {
+      "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+      "bytes": 37187
+    },
+    {
+      "path": "tests/data/mzml_validator/MzMLFile_3_invalid.mzML",
+      "sha256": "3ee7f12e2d111d4c2db39c79ce16244b45d43249ff2de902de249ae7e1e3b013",
+      "bytes": 22820
+    },
+    {
+      "path": "tests/data/mzml_validator/MzMLFile_4_indexed.mzML",
+      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc",
+      "bytes": 27526
+    },
+    {
+      "path": "resources/cv/ms-mapping.xml",
+      "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff",
+      "bytes": 21470
+    },
+    {
+      "path": "tools/generate_mzml_validator_reference.py",
+      "sha256": "d2a9f54f18d3cc2d3a8d275b6870bac36f58f6e3f6ba203c5cb1f991b84ea930",
+      "bytes": 2798
+    },
+    {
+      "path": "tests/data/mzml_validator_source.json",
+      "sha256": "b6f527c61a80e35496f0c24b9470cffd03b18e812d0f084d43e161ab4acc1916",
+      "bytes": 4757
+    },
+    {
+      "path": "tests/data/mzml_validator_provenance.json",
+      "sha256": "b57a5619a1ddcf045da4462479ded7514efc67c00de4ce0951aa00a40c61e95b",
+      "bytes": 10978
+    },
+    {
+      "path": "docs/MZML_VALIDATOR_SUPPORT.md",
+      "sha256": "4d38d6b65858dfe85cf87b9369ee1c9947d52982ebbf929a4673d9f2469b8d7a",
+      "bytes": 9368
+    }
+  ],
+  "integration_merge": "33 frozen files remain exact. mzml.rs is the frozen isolation reader plus only centroid registration and semantic-validation cfg reexports.",
+  "first_run_integrated_checks": "All 15 integrated checks passed on their first run. Prior isolated test setup/lint corrections are separate.",
+  "stage_validation_history": {
+    "centroid": "Reviewed original estimator loop moved unchanged; focused current/minimum tests passed before integration.",
+    "isolation": "Initial fixture setup corrected a nonexistent setter, missing required CV names and invalid native ID. Final scientific/read tests and strict checks passed.",
+    "validator": "Source projection retains only original literal assertions; unavailable source-written inputs were not replaced with native golden outputs. Final focused current/minimum and strict checks passed."
+  },
+  "independent_reference_checks": {
+    "unchanged_extraction_files": 33,
+    "registration_only_merged_files": 1,
+    "source_hashes": 47,
+    "fixture_resource_tool_projection_hashes": 16,
+    "original_dta_fixtures": 3,
+    "original_mzml_validator_fixtures": 3,
+    "source_validator_scenarios": 5,
+    "literal_validator_assertions": 15,
+    "issue_054_source_hashes": 2,
+    "issue_054_schema_checks": [
+      0,
+      0
+    ],
+    "issue_054_probe": "docs/mzml-index-schema-probe.json",
+    "cpp_execution": false,
+    "reference_scope": "Original source assertions and byte-identical resources plus independent native boundary tests; no full C++ SDK build or C++ method execution."
+  },
+  "source_audit": {
+    "distinct_current_files": 1942,
+    "historical_reference_paths": 220,
+    "graph_references": 21,
+    "added_source_references": 924
+  },
+  "completion": {
+    "complete": 10,
+    "evidence_requires_review": 166,
+    "native_equivalent": 62,
+    "partial": 21,
+    "unmapped": 527,
+    "registered_headers": 786,
+    "topp_sources": 146,
+    "certified_topp_workflows": 0
+  },
+  "cpp_issue_entries": 55,
+  "published_xlms_ci": {
+    "revision": "cb89f038d9d1d4ec605154ade26766191dc8f1ca",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34586771858",
+    "conclusion": "success"
+  },
+  "remaining": "Indexed writing, complete writer options, typed record/primary/noise transport, runtime XSD validation, skip_xml_checks normalization and broader SDK groups remain incomplete; zero certified TOPP workflows."
+}

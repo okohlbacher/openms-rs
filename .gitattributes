@@ -6,3 +6,6 @@ resources/metabolite_isotope_models/*.scale -text -whitespace
 
 # Pinned source ontology bytes, including legacy encoding, must not be normalized.
 resources/cv/*.obo -text -whitespace
+
+# Pinned mzML semantic mapping is an original runtime resource.
+resources/cv/ms-mapping.xml -text -whitespace

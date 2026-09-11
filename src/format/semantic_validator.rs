@@ -3,6 +3,10 @@
 // $Maintainer: OpenMS Rust contributors $
 //! General source CV mapping validation with operation-local XML and rule state.
 
+#[cfg(feature = "mzml-validation")]
+#[path = "mzml_validator.rs"]
+pub mod mzml;
+
 use super::controlled_vocabulary::{CVTermDefinition, ControlledVocabulary, XRefType};
 use super::cv_xml::{Attributes, Element, Meter, XmlLimits, document, scan_elements};
 use crate::data_structures::list::ListParse;
@@ -157,30 +161,40 @@ impl<'a> SemanticValidator<'a> {
     /// Selection only. An absent mapping path is always an error, independent of
     /// earlier validate calls (the source persistent empty-cache quirk is CPP-044).
     pub fn locate_term(&self, path: &str, term: &ParsedCVTerm) -> Result<bool> {
-        let mut m = self.options.limits.meter();
-        let mut index = Index::new(self.mapping, &self.options.limits, &mut m)?;
-        let group = index
-            .get(path, &mut m)?
-            .ok_or_else(|| Error::InvalidValue("unknown semantic mapping path".into()))?;
-        m.spend(group.rules.len().saturating_mul(2), 0)?;
-        for r in &group.rules {
-            m.spend(r.terms.len(), 0)?;
-            for t in &r.terms {
-                if matches_term(
-                    self.cv,
-                    &t.accession,
-                    t.use_term,
-                    t.allow_children,
-                    &term.accession,
-                    &mut m,
-                )? {
-                    return Ok(true);
-                }
-            }
-        }
-        Ok(false)
+        locate(self.mapping, self.cv, &self.options, path, term)
     }
 }
+fn locate(
+    mapping: &CVMappings,
+    cv: &ControlledVocabulary,
+    options: &ValidationOptions,
+    path: &str,
+    term: &ParsedCVTerm,
+) -> Result<bool> {
+    let mut m = options.limits.meter();
+    let mut index = Index::new(mapping, &options.limits, &mut m)?;
+    let group = index
+        .get(path, &mut m)?
+        .ok_or_else(|| Error::InvalidValue("unknown semantic mapping path".into()))?;
+    m.spend(group.rules.len().saturating_mul(2), 0)?;
+    for r in &group.rules {
+        m.spend(r.terms.len(), 0)?;
+        for t in &r.terms {
+            if matches_term(
+                cv,
+                &t.accession,
+                t.use_term,
+                t.allow_children,
+                &term.accession,
+                &mut m,
+            )? {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
+
 fn bad(message: impl Into<String>) -> Error {
     Error::Parse {
         line: 0,
@@ -467,13 +481,26 @@ fn handle(
     report: &mut ValidationReport,
     m: &mut Meter,
 ) -> Result<()> {
+    let Some(term) = encounter(cv, p, parent, o, report, m)? else {
+        return Ok(());
+    };
+    handle_known(index, cv, term, p, key, parent, o, report, m)
+}
+fn encounter<'a>(
+    cv: &'a ControlledVocabulary,
+    p: &ParsedCVTerm,
+    parent: &str,
+    o: &ValidationOptions,
+    report: &mut ValidationReport,
+    m: &mut Meter,
+) -> Result<Option<&'a CVTermDefinition>> {
     let n = p
         .accession
         .len()
         .saturating_add(p.name.len())
         .saturating_add(parent.len());
     let Some(term) = cv.find_term_with_budget(&p.accession, &mut m.work, &mut m.bytes)? else {
-        return emit(
+        emit(
             report,
             false,
             o,
@@ -483,7 +510,8 @@ fn handle(
                 "Unknown CV term: '{} - {}' at element '{parent}'",
                 p.accession, p.name
             ),
-        );
+        )?;
+        return Ok(None);
     };
     if term.obsolete {
         emit(
@@ -498,6 +526,25 @@ fn handle(
             ),
         )?;
     }
+    Ok(Some(term))
+}
+#[allow(clippy::too_many_arguments)] // Shared exact rule callback for the two concrete validators.
+fn handle_known(
+    index: &mut Index<'_>,
+    cv: &ControlledVocabulary,
+    term: &CVTermDefinition,
+    p: &ParsedCVTerm,
+    key: &str,
+    parent: &str,
+    o: &ValidationOptions,
+    report: &mut ValidationReport,
+    m: &mut Meter,
+) -> Result<()> {
+    let n = p
+        .accession
+        .len()
+        .saturating_add(p.name.len())
+        .saturating_add(parent.len());
     let mut allowed = false;
     let mut rule_found = false;
     if let Some(group) = index.get(key, m)? {

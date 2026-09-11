@@ -66,6 +66,9 @@ are not classified as confirmed defects here.
 | CPP-050 | Empty indexed mzML declares zero indices but emits a dummy entry | Source-reviewed; empty-offset-list branch | Open |
 | CPP-051 | mzML validation reuses parameter groups from earlier documents | Source-reviewed; successful repeated-call trigger | Open |
 | CPP-052 | Four-line schema detection rejects indexed mzML with a longer XML prolog | Source-reviewed; independently executed XSD checks | Open |
+| CPP-053 | Chromatogram primary-array selection can relabel pressure values as flow | Source-reviewed; competing primary-array trigger | Open |
+| CPP-054 | Indexed mzML schema does not enforce offset ID references | Source-reviewed; independently executed XSD checks | Open |
+| CPP-055 | SIMD Base64 decoding accepts characters outside the Base64 alphabet | Source-reviewed; malformed numeric payload trigger | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -482,8 +485,10 @@ normal-return restoration. No C++ runtime reproduction is claimed.
 scope guard that restores the original value on every exit. Test success, missing
 input and malformed input with both initial settings.
 
-**Rust handling:** This centroid-inspection convenience API remains outstanding.
-Existing native load options are borrowed and do not require temporary mutation.
+**Rust handling:** [Native centroid inspection](docs/MZML_CENTROID_SUPPORT.md)
+borrows caller options and forces population only in a bounded local copy. Tests
+cover success, missing/malformed inputs, decoding and classification failures;
+the original options and their vector allocation remain unchanged.
 
 ## CPP-019 — Declared processing count includes records that are not written
 
@@ -1214,10 +1219,10 @@ zero with a documented positive-limit precondition. Guard decrement/termination
 so it cannot wrap. Test zero with both known-first and unknown-first files,
 then positive limits with unknown spectra interleaved between recognized ones.
 
-**Rust handling:** The planned native centroid-inspection operation will reject
-a zero limit with `InvalidValue` before opening input and retain the source
-count/stop order for positive limits. No native implementation or upstream fix
-is claimed at this checkpoint.
+**Rust handling:** [Native centroid inspection](docs/MZML_CENTROID_SUPPORT.md)
+rejects a zero limit with `InvalidValue` before even requesting the path. Tests
+cover this boundary and retain source count/stop order for positive quotas,
+including Unknown interleaving and multiple MS levels. No upstream fix is claimed.
 
 ## CPP-049 — Indexed mzML output writes a constant placeholder checksum
 
@@ -1302,9 +1307,11 @@ exception-safe cleanup. Preserve repeated-group behavior within a document.
 Test reuse after successful and failed parses against a fresh validator,
 including missing references and repeated IDs.
 
-**Rust handling:** The mzML-specific validator is under development with
-operation-local group and binary state. Its integration will include a
-two-document regression. No completed native or upstream fix is claimed yet.
+**Rust handling:** The [native mzML validator](docs/MZML_VALIDATOR_SUPPORT.md)
+uses operation-local group, binary and rule state. Direct two-document tests
+verify fresh behavior after successful and failed parses, while within-document
+duplicate and forward-reference semantics remain source-compatible. No upstream
+fix has been applied.
 
 ## CPP-052 — mzML schema selection depends on the first four physical lines
 
@@ -1334,3 +1341,94 @@ beyond line four and equivalent prefixed/default-namespace forms.
 **Rust handling:** Runtime XSD validation remains outstanding. Its native schema
 selection will use the document element rather than a fixed line prefix. No
 implemented native or upstream fix is claimed at this checkpoint.
+
+## CPP-053 — Chromatogram array promotion mismatches values and their physical role
+
+**Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, lines 634–650](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L634), chromatogram population; `src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp`, lines 268–281, `computeDataProperties_`; `MzMLHandler.cpp`, lines 5614–5619 and 5693–5695, output role selection.
+
+**Issue and reproduction:** Supply a chromatogram with equally sized time,
+pressure and flow-rate arrays, in that order, with one pressure value of 200
+and one flow value of 3. Population renames both physical arrays to `intensity
+array`, while repeatedly setting the record's `mzml intensity array` metadata.
+The final selector is `flow`, but `computeDataProperties_` returns the first
+matching intensity array, so the resulting peak contains 200. Writing uses the
+stored selector and emits that pressure value as flow, with flow units. A
+canonical intensity array followed by a pressure array has the same mismatch.
+The other promoted arrays are also excluded from supplemental-array creation
+because they now carry the primary name.
+
+**Evidence:** Direct review of the promotion loop, first-match lookup, peak
+assignment, supplemental-array exclusion and writer's selector lookup. The
+values above are an independent control-flow example, not an executed C++
+reproduction. No full C++ SDK build or upstream fix is claimed.
+
+**Proposed fix:** Select the primary array deterministically before assigning its
+role. Set the selector from that selected array only, and preserve other arrays
+under their actual names and physical units. Alternatively, reject ambiguous
+primary candidates explicitly. Test both input orders and a canonical intensity
+array combined with pressure, flow or detector-signal arrays, checking values,
+roles and units after a write/read cycle.
+
+**Rust handling:** Alternate primary roles are being designed. The planned
+native reader will reject multiple primary candidates before publishing a
+record, consistent with its existing duplicate-primary policy. No implemented
+native correction is claimed at this checkpoint.
+
+## CPP-054 — Shipped indexed mzML schema leaves index references unchecked
+
+**Affected files:** [`share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd`, lines 1193–1200](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd#L1193), `KEY_ID_IDX` and `FKNID`; lines 1147–1155, `OffsetType`.
+
+**Issue and reproduction:** Change the original indexed mzML fixture's offset
+reference from `index=19` to the nonexistent `does_not_exist`. Both the record
+key and offset-reference selectors start with `.//dx:indexedmzML/...` inside
+the declaration for that root. They therefore look for another indexed root
+below the current root and select no normal records or offsets. The reference
+field also names `@id`, although offsets use `@idRef`. A dangling index
+reference passes this shipped schema.
+
+**Evidence:** The [recorded probe](docs/mzml-index-schema-probe.json) preserves
+source hashes, the exact single replacement and independent `xmllint` results:
+the original and changed documents both pass the unchanged pinned XSD. No
+C++ method execution is claimed. The transformation does not repair byte offsets
+or checksum; this probe demonstrates missing ID-reference validation only.
+
+**Proposed fix:** Make the key selectors relative to the declared root:
+`dx:mzML/dx:run/dx:spectrumList/dx:spectrum` and the equivalent chromatogram
+path. Select `dx:indexList/dx:index/dx:offset` for the key reference and use
+`@idRef` as its field. Test valid references, missing targets, duplicate record
+IDs and both indexed record kinds. Byte offsets and checksum still require
+separate integrity checks beyond XSD.
+
+**Rust handling:** The planned runtime XSD operation retains the original schema
+bytes and will document this source limitation. The indexed writer's separate
+tests check actual ID/offset correspondence and checksum. No upstream schema
+patch or implemented runtime XSD correction is claimed.
+
+## CPP-055 — Base64 SIMD decoding does not validate its alphabet
+
+**Affected files:** [`src/openms/source/FORMAT/Base64.cpp`, lines 83–110 and 166–208](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/Base64.cpp#L83), `registerDecoder_` and `stringSimdDecoder_`; `src/openms/include/OpenMS/FORMAT/Base64.h`, lines 310–350, numeric uncompressed decoding; `src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp`, lines 138–195, mzML numeric decoding.
+
+**Issue and reproduction:** Pass 16 exclamation marks to the uncompressed
+numeric Base64 decoder. The length check accepts this multiple of four. The
+SIMD decoder then classifies each exclamation mark as a number using only an
+upper-bound comparison against `'9' + 1`; it has no lower-bound or invalid-byte
+check. It produces bytes that the caller interprets as numeric data instead of
+reporting malformed Base64. mzML's optional whitespace removal cannot correct
+these non-whitespace invalid characters.
+
+**Evidence:** Direct review of the public numeric decode path, SIMD masks and
+output conversion. No executed C++ reproduction or particular resulting numeric
+value is asserted. The trigger is invalid Base64 independently of the selected
+floating-point type and byte order.
+
+**Proposed fix:** Validate alphabet membership, padding position and decoded
+length before converting SIMD output into numeric values. Retain an explicit
+whitespace-normalization policy, but reject invalid remaining characters. Test
+punctuation, misplaced padding and malformed tails in ordinary and compressed
+numeric decoding; no partially decoded array should escape on error.
+
+**Rust handling:** The current mzML transport uses a checked Base64 decoder and
+rejects invalid alphabet bytes. Execution of `skip_xml_checks` remains a
+separate outstanding option; any native implementation will preserve checked
+decoding and XML well-formedness even when skipping whitespace normalization.
+No upstream fix has been applied.
