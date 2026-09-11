@@ -144,6 +144,8 @@ impl PeakPickerChromatogram {
         if input.peaks.windows(2).any(|p| p[0].rt == p[1].rt) {
             return Err(invalid("chromatogram picking requires distinct RT samples"));
         }
+        let mut copies = super::AcquisitionCopies::default();
+        copies.chromatogram(input)?;
         let mut smoothed = input.clone();
         self.smooth(&mut smoothed)?;
         let mut seed_noise = self.seed_noise_estimator.clone();
@@ -159,7 +161,7 @@ impl PeakPickerChromatogram {
             max_work: self.max_work,
             ..Default::default()
         }
-        .pick_chromatogram(&smoothed)?;
+        .pick_chromatogram_with_acquisition(&smoothed, false, &mut copies)?;
         let boundary_signal = match self.method {
             ChromatogramPickingMethod::Legacy => input,
             ChromatogramPickingMethod::Corrected => &smoothed,

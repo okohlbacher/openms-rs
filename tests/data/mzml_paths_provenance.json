@@ -46,5 +46,12 @@
       "path": "tests/data/mzml_load_source_values.tsv",
       "sha256": "3869ee85a0c2b14d7959c4bc03e5456d1d30127eb1e3bae206b14745392e8546"
     }
-  ]
+  ],
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

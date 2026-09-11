@@ -163,5 +163,12 @@
     ],
     "independent_source_review": "Kernel agent read both pinned source classes and the new interface/generator; no actionable finding.",
     "test_counts": "Six new tests; overlapping existing decoy/private/unit suite gives84 current and81 minimum tests."
+  },
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
   }
 }

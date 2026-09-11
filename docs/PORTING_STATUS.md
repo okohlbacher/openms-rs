@@ -2,7 +2,7 @@
 
 The target is a feature-complete reduced Core SDK suitable for porting TOPP tools, with an idiomatic Rust API. Spectra, chemistry and common processing were the starting priorities. This document describes the implemented surface rather than claiming parity for every method of a similarly named C++ class. The [completion ledger](CORE_SDK_COMPLETION.md) tracks all registered public headers and direct TOPP dependencies.
 
-The current target is SDK 4.0.0 at `54a232f`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
+The current target is SDK 4.0.0 at `82ce5b3`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
 
 ## Mobility containers, array descriptions and path operations
 
@@ -238,3 +238,12 @@ and generic range/container behavior remain separately tracked.
 unmodified peptide occurrence, including overlaps and repeats, as a protein
 coverage percentage. Modifications do not alter symbol matching; this utility
 does not use identification scores, digestion rules or peptide evidence positions.
+
+## Acquisition records and chromatogram conversion
+
+[ChromatogramTools](CHROMATOGRAM_TOOLS_SUPPORT.md) implements both source conversion
+operations with explicit grouping, first-record metadata and removal behavior.
+Spectra/chromatograms now own acquisition records and shared processing handles.
+[Processing propagation](PROCESSING_ACQUISITION_SUPPORT.md) retains these fields;
+[mzML guards](MZML_ACQUISITION_GUARDS.md) reject their unrepresented transport.
+Full settings bridges, comments and scan mobility remain separate work.

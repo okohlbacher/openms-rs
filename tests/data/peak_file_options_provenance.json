@@ -120,5 +120,12 @@
     "No C++ sentinel enum variant is exposed as a valid compression mode."
   ],
   "method": "Source-only extraction and independently specified state tests. No C++ build/execution and no production outputs used to manufacture expected values.",
-  "license": "OpenMS source BSD-3-Clause; no new redistributed algorithm dependency or data resource."
+  "license": "OpenMS source BSD-3-Clause; no new redistributed algorithm dependency or data resource.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

@@ -147,7 +147,7 @@
   "validation_method": "Rust source-derived and independent tests only; no C++ build, runtime differential, or production-generated expectation.",
   "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
   "target_verification": {
-    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
     "source_revisions": [
       "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
     ],

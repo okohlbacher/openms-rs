@@ -76,5 +76,12 @@
       "operation": "separate get2DData template group inspected but explicitly deferred with set2DData metadata/mass-trace overloads"
     }
   ],
-  "evidence": "Source literal queries plus 640 independent linear-enumeration comparisons. No C++ compilation or execution. Non-mobility filtered exports only; preserves source row-grouping and RT -1 existing-row quirks. Undefined empty-row back(), nonfinite output, malformed used parallel prefixes, arithmetic/resource failures become checked atomic errors."
+  "evidence": "Source literal queries plus 640 independent linear-enumeration comparisons. No C++ compilation or execution. Non-mobility filtered exports only; preserves source row-grouping and RT -1 existing-row quirks. Undefined empty-row back(), nonfinite output, malformed used parallel prefixes, arithmetic/resource failures become checked atomic errors.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

@@ -363,6 +363,18 @@ impl PeakPickerHiRes {
         input: &MSSpectrum,
         check_spacings: bool,
     ) -> Result<PickedSpectrum> {
+        self.pick_spectrum_with_acquisition(
+            input,
+            check_spacings,
+            &mut super::AcquisitionCopies::default(),
+        )
+    }
+    pub(super) fn pick_spectrum_with_acquisition(
+        &self,
+        input: &MSSpectrum,
+        check_spacings: bool,
+        copies: &mut super::AcquisitionCopies,
+    ) -> Result<PickedSpectrum> {
         self.validate()?;
         if input.len() > self.max_points {
             return Err(bad("spectrum exceeds peak picker point limit"));
@@ -401,6 +413,7 @@ impl PeakPickerHiRes {
             .chain(input.integer_data_arrays.iter().map(|a| a.name.clone()))
             .chain(input.string_data_arrays.iter().map(|a| a.name.clone()))
             .collect();
+        copies.spectrum(input)?;
         let mut output = input.clone();
         output.peaks = picked
             .positions
@@ -438,6 +451,18 @@ impl PeakPickerHiRes {
         input: &MSChromatogram,
         check_spacings: bool,
     ) -> Result<PickedChromatogram> {
+        self.pick_chromatogram_with_acquisition(
+            input,
+            check_spacings,
+            &mut super::AcquisitionCopies::default(),
+        )
+    }
+    pub(super) fn pick_chromatogram_with_acquisition(
+        &self,
+        input: &MSChromatogram,
+        check_spacings: bool,
+        copies: &mut super::AcquisitionCopies,
+    ) -> Result<PickedChromatogram> {
         self.validate()?;
         if input.len() > self.max_points {
             return Err(bad("chromatogram exceeds peak picker point limit"));
@@ -453,6 +478,7 @@ impl PeakPickerHiRes {
             .chain(input.integer_data_arrays.iter().map(|a| a.name.clone()))
             .chain(input.string_data_arrays.iter().map(|a| a.name.clone()))
             .collect();
+        copies.chromatogram(input)?;
         let mut output = input.clone();
         output.peaks = picked
             .positions
@@ -479,6 +505,8 @@ impl PeakPickerHiRes {
     pub fn pick_experiment(&self, input: &MSExperiment) -> Result<PickedExperiment> {
         self.validate()?;
         input.validate()?;
+        let mut copies = super::AcquisitionCopies::default();
+        copies.experiment(input)?;
         let mut result = PickedExperiment {
             experiment: input.clone(),
             spectrum_boundaries: Vec::new(),
@@ -509,13 +537,14 @@ impl PeakPickerHiRes {
             {
                 return Err(bad("centroid spectrum selected but profile input required"));
             }
-            let picked = self.pick_spectrum(spectrum)?;
+            let picked = self.pick_spectrum_with_acquisition(spectrum, true, &mut copies)?;
             result.experiment.spectra[i] = picked.spectrum;
             result.spectrum_boundaries.push(Some(picked.boundaries));
             result.omitted_spectrum_arrays.push(picked.omitted_arrays);
         }
         for (i, chromatogram) in input.chromatograms.iter().enumerate() {
-            let picked = self.pick_chromatogram(chromatogram)?;
+            let picked =
+                self.pick_chromatogram_with_acquisition(chromatogram, false, &mut copies)?;
             result.experiment.chromatograms[i] = picked.chromatogram;
             result.chromatogram_boundaries.push(picked.boundaries);
             result

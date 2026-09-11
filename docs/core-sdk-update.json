@@ -2,15 +2,15 @@
   "schema_version": 1,
   "identity": {
     "old_package_revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
-    "current_package_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "current_package_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
     "original_openms_revision": "ca32296038839459d8c9b075b759e285913d6294",
     "old_checkout_kind": "immutable source archive; no Git commands used",
-    "current_checkout_kind": "independent Git clone",
+    "current_checkout_kind": "clean detached Git worktree sharing the preserved54a checkout object store",
     "current_worktree_status": "clean",
     "sdk_version": "4.0.0",
     "repository": "https://github.com/okohlbacher/OpenMS4-core.git",
     "default_branch": "codex/package-split",
-    "retrieved_on": "2026-09-10"
+    "retrieved_on": "2026-09-11"
   },
   "methodology": [
     "Physical headers are not equivalent to installed public APIs; registration records distinguish installed public versus private/unregistered files.",
@@ -18,7 +18,8 @@
     "Generated configuration/export headers and third-party/contrib code are excluded; core source-side private headers are inventoried separately.",
     "OpenSwath physical lists include unregistered stubs; registration identifies the actual target union.",
     "No class-level parity percentage can be inferred from file or line counts.",
-    "Historical archive lacks top-level registration entrypoints, so only physical counts are compared across versions. The current registration union follows includes.cmake and all conditional sources; it is not a configured-profile or binary acceptance result."
+    "Historical archive lacks top-level registration entrypoints, so only physical counts are compared across versions. The current registration union follows includes.cmake and all conditional sources; it is not a configured-profile or binary acceptance result.",
+    "The82ce update adds a shared private numeric formatter under src/common/include, outside the comparable scientific inventory roots. It is explicitly hashed and reviewed in tests/data/sdk_numeric_formatting_provenance.json and is not an installed public SDK header."
   ],
   "summary": {
     "by_kind": {
@@ -29,8 +30,8 @@
       },
       "core_implementation": {
         "files": 746,
-        "physical_lines": 304445,
-        "bytes": 11676215
+        "physical_lines": 304324,
+        "bytes": 11670748
       },
       "core_private_header": {
         "files": 16,
@@ -8919,9 +8920,9 @@
       "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
       "kind": "core_implementation",
       "domain": "DATASTRUCTURES",
-      "bytes": 23998,
-      "physical_lines": 699,
-      "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
+      "bytes": 18531,
+      "physical_lines": 578,
+      "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
       "registration": "implementation",
       "registration_file": "src/openms/source/DATASTRUCTURES/sources.cmake",
       "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -17876,7 +17877,7 @@
     },
     {
       "path": "src/openms/CMakeLists.txt",
-      "sha256": "bf5c287d64ea4f1bf24e60de8959f097e74eb9397f0775638bdcf6ccd96ec459"
+      "sha256": "0a5f4d52b9add6a6f63209d182506fd3e9f41193041cfc5655d0dd25d216c6fb"
     },
     {
       "path": "src/openswathalgo/source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake",
@@ -19512,9 +19513,9 @@
           "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
           "kind": "core_implementation",
           "domain": "DATASTRUCTURES",
-          "bytes": 23998,
-          "physical_lines": 699,
-          "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
+          "bytes": 18531,
+          "physical_lines": 578,
+          "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
           "registration": "implementation",
           "registration_file": "src/openms/source/DATASTRUCTURES/sources.cmake",
           "configuration_note": "union of selectable profiles; conditions not evaluated"
@@ -20828,12 +20829,12 @@
     },
     {
       "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
-      "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
+      "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
       "original_manifests": [
         "tests/data/adduct_provenance.json"
       ],
       "source_sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
-      "review": "Adds extended-long-double libc++ formatting and removes equivalent redundant branches. Native f32/f64 formatting rules are unchanged; extended long double remains outside the native value surface."
+      "review": "Adds extended-long-double libc++ formatting and removes equivalent redundant branches. Native f32/f64 formatting rules are unchanged; extended long double remains outside the native value surface. The 54a232f-to-82ce5b3 update moves appendNumeric into the shared private NumericFormatting.h and qualifies the six callers. The complete function body is identical after indentation normalization; native f32/f64 formatting rules and parsing are unchanged. The earlier extended-long-double boundary remains outside the native API."
     },
     {
       "path": "src/openms/source/FORMAT/Base64.cpp",
@@ -21540,11 +21541,21 @@
   ],
   "carried_forward_reference_count": 220,
   "reference_policy": "Historical fixture revisions and hashes remain unchanged. Carried references use target hashes; changed source bytes record original hashes and explicit behavior reviews. Current-source manifests separately record target_verification. External Boost headers are outside this SDK comparison.",
+  "target_update_history": [
+    {
+      "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+      "target_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+      "comparison": "https://github.com/okohlbacher/OpenMS4-core/compare/6bfc0e4711105f4eda2fea86812a83af7c7e791f...54a232fe2cae9c590d5c997fa49d20e7769860fb",
+      "review": "docs/CORE_SDK_54A232F_REVIEW.md",
+      "registered_public_header_scope_unchanged": true,
+      "changed_historical_reference_paths": 7
+    }
+  ],
   "previous_target_update": {
-    "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
-    "target_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-    "comparison": "https://github.com/okohlbacher/OpenMS4-core/compare/6bfc0e4711105f4eda2fea86812a83af7c7e791f...54a232fe2cae9c590d5c997fa49d20e7769860fb",
-    "review": "docs/CORE_SDK_54A232F_REVIEW.md",
+    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "target_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "comparison": "https://github.com/okohlbacher/OpenMS4-core/compare/54a232fe2cae9c590d5c997fa49d20e7769860fb...82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "review": "docs/CORE_SDK_82CE5B3_REVIEW.md",
     "registered_public_header_scope_unchanged": true,
     "changed_historical_reference_paths": 7
   }

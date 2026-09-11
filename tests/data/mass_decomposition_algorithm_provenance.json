@@ -246,5 +246,12 @@
     "Warnings returned as diagnostics; numeric masses owned independently of the registry."
   ],
   "validation": "Seven native integration tests plus four private solver tests passed Rust1.98 all-features and Rust1.85 no-default; strict focused Clippy passed both profiles. Existing ten MassDecomposition value tests passed current. Independent read-only source review confirmed the four-weight finite-sentinel discrepancy; no C++ execution.",
-  "license": "Source-derived code and assertions retain BSD-3-Clause attribution."
+  "license": "Source-derived code and assertions retain BSD-3-Clause attribution.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

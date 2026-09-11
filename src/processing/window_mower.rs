@@ -83,6 +83,7 @@ impl WindowMower {
     /// Produce an owned filtered spectrum without modifying the input.
     pub fn filtered_spectrum(&self, input: &MSSpectrum) -> Result<MSSpectrum> {
         let indices = self.retained_indices(input)?;
+        super::AcquisitionCopies::default().spectrum(input)?;
         let mut output = input.clone();
         output.select(&indices)?;
         Ok(output)
@@ -261,6 +262,7 @@ impl SpectrumFilter for WindowMower {
             .iter()
             .map(|spectrum| self.indices(spectrum, &mut work))
             .collect::<Result<Vec<_>>>()?;
+        super::AcquisitionCopies::default().spectra(&input.spectra)?;
         let mut spectra = input.spectra.clone();
         for (spectrum, indices) in spectra.iter_mut().zip(plans) {
             spectrum.select(&indices)?;

@@ -36,5 +36,12 @@
     "Peak1D_test.cpp": 343,
     "ChromatogramPeak_test.cpp": 388
   },
-  "evidence": "Source literal hash-input values, equality and differing-value assertions; exact source output label layout; independent signed-zero and partial-equality checks. Numeric formatting is native Rust and hashes use the caller-supplied Hasher; no source digest golden or C++ execution."
+  "evidence": "Source literal hash-input values, equality and differing-value assertions; exact source output label layout; independent signed-zero and partial-equality checks. Numeric formatting is native Rust and hashes use the caller-supplied Hasher; no source digest golden or C++ execution.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

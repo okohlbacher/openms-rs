@@ -141,9 +141,16 @@ impl PeakPickerIterative {
     /// Pick a spectrum without mutating input. Output intensity is the inclusive
     /// raw sample sum, not a trapezoidal area. Equal-priority seeds retain order.
     pub fn pick_spectrum(&self, input: &MSSpectrum) -> Result<IterativePickingResult> {
+        self.pick_spectrum_with_acquisition(input, &mut super::AcquisitionCopies::default())
+    }
+    fn pick_spectrum_with_acquisition(
+        &self,
+        input: &MSSpectrum,
+        copies: &mut super::AcquisitionCopies,
+    ) -> Result<IterativePickingResult> {
         self.validate_input(input)?;
         if input.len() < 3 {
-            return self.output(input, Vec::new());
+            return self.output(input, Vec::new(), copies);
         }
         let mut seed_noise = SignalToNoiseEstimatorMedian::default();
         if self.signal_to_noise > 0.0 {
@@ -163,8 +170,8 @@ impl PeakPickerIterative {
             peaks: input.peaks.clone(),
             ..Default::default()
         };
-        let seeds = seed_picker.pick_spectrum(&seed_input)?;
-        self.refine_with_seeds(input, &seeds.spectrum)
+        let seeds = seed_picker.pick_spectrum_with_acquisition(&seed_input, true, copies)?;
+        self.refine_with_seeds_with_acquisition(input, &seeds.spectrum, copies)
     }
 
     /// Pick selected spectra and preserve chromatograms and experiment metadata.
@@ -178,6 +185,8 @@ impl PeakPickerIterative {
             }
         }
         input.validate()?;
+        let mut copies = super::AcquisitionCopies::default();
+        copies.experiment(input)?;
         let mut result = IterativeExperimentResult {
             experiment: input.clone(),
             spectrum_regions: Vec::with_capacity(input.spectra.len()),
@@ -189,7 +198,7 @@ impl PeakPickerIterative {
                 result.omitted_spectrum_arrays.push(Vec::new());
                 continue;
             }
-            let mut picked = self.pick_spectrum(spectrum)?;
+            let mut picked = self.pick_spectrum_with_acquisition(spectrum, &mut copies)?;
             if self.clear_meta_data {
                 picked.picked.spectrum.float_data_arrays.clear();
             }
@@ -215,10 +224,23 @@ impl PeakPickerIterative {
         Ok(())
     }
 
+    #[cfg(test)]
     fn refine_with_seeds(
         &self,
         input: &MSSpectrum,
         seeds: &MSSpectrum,
+    ) -> Result<IterativePickingResult> {
+        self.refine_with_seeds_with_acquisition(
+            input,
+            seeds,
+            &mut super::AcquisitionCopies::default(),
+        )
+    }
+    fn refine_with_seeds_with_acquisition(
+        &self,
+        input: &MSSpectrum,
+        seeds: &MSSpectrum,
+        copies: &mut super::AcquisitionCopies,
     ) -> Result<IterativePickingResult> {
         self.validate_input(input)?;
         if seeds.len() > self.max_points {
@@ -232,7 +254,7 @@ impl PeakPickerIterative {
             return Err(Error::UnsortedData);
         }
         if input.len() < 3 {
-            return self.output(input, Vec::new());
+            return self.output(input, Vec::new(), copies);
         }
         let mut work = self.max_work;
         let mut candidates = Vec::new();
@@ -311,7 +333,7 @@ impl PeakPickerIterative {
         candidates.retain(|c| c.valid);
         charge_sort(&mut work, candidates.len())?;
         candidates.sort_by(|a, b| a.mz.total_cmp(&b.mz));
-        self.output(input, candidates)
+        self.output(input, candidates, copies)
     }
 
     fn recenter(
@@ -411,7 +433,9 @@ impl PeakPickerIterative {
         &self,
         input: &MSSpectrum,
         candidates: Vec<Candidate>,
+        copies: &mut super::AcquisitionCopies,
     ) -> Result<IterativePickingResult> {
+        copies.spectrum(input)?;
         let mut spectrum = input.clone();
         spectrum.peaks.clear();
         let omitted_arrays = input

@@ -1,16 +1,16 @@
 # Core SDK completion ledger
 
-Target: `54a232fe2cae9c590d5c997fa49d20e7769860fb`. This ledger covers all **786 registered public headers** and direct includes from **146 TOPP source files**.
+Target: `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`. This ledger covers all **786 registered public headers** and direct includes from **146 TOPP source files**.
 
 This is a work inventory, not a completion percentage. Matching declarations and source references remain unverified until each API and its behavior are reviewed. No TOPP workflow is yet certified as port-ready. Physical unregistered headers and product backends are tracked separately by the SDK source inventory.
 
 | Review state | Headers |
 | --- | ---: |
 | complete | 10 |
-| evidence_requires_review | 166 |
-| native_equivalent | 31 |
-| partial | 17 |
-| unmapped | 562 |
+| evidence_requires_review | 164 |
+| native_equivalent | 32 |
+| partial | 19 |
+| unmapped | 561 |
 
 ## Highest fan-out open SDK dependencies
 

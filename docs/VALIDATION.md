@@ -1,5 +1,40 @@
 # Validation of the ongoing Rust port
 
+## Acquisition, chromatogram conversion and SDK refresh (2026-09-11)
+
+The acquisition fields, [ChromatogramTools](CHROMATOGRAM_TOOLS_SUPPORT.md),
+[processing propagation](PROCESSING_ACQUISITION_SUPPORT.md) and
+[mzML write guards](MZML_ACQUISITION_GUARDS.md) are integrated against
+[SDK 82ce5b3](CORE_SDK_82CE5B3_REVIEW.md). [Recorded checks](acquisition-validation.json)
+include exact commands, outcomes, log hashes and separate staged scope.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,629 tests passed |
+| Doctests | Three passed |
+| Native acquisition and adjacent tests, Rust 1.85/no defaults | 167 passed |
+| Staged mzML guards and adjacent tests | 79 passed on Rust 1.98; 78 on Rust 1.85/mzML only |
+| Final signed-zero guard regression | Seven passed on each Rust version |
+| Strict Clippy, all targets | Passed on Rust 1.98/all features and Rust 1.85/no defaults |
+| Staged mzML-only strict Clippy, Rust 1.85 | Passed |
+| Release library, Rustdoc, Rustfmt | Passed; documentation warnings denied |
+| Source audit and ledger/regression checks | Passed; 1,872 distinct current files verified |
+
+This group adds 27 tests. The full count also includes the preceding seven-test
+SequenceCoverage addition; selected totals overlap. Review covered exact grouping
+and encounter order, atomic conversion failures, preservation of owned metadata
+and shared processing identity, cumulative nested copy budgets, and early XML
+rejection for fields that cannot yet be represented. Existing numerical
+processing operations are unchanged.
+
+Both preceding published checkpoints passed every CI job:
+[5a90169](https://github.com/okohlbacher/openms-rs/actions/runs/34567597493) and
+[4d2b648](https://github.com/okohlbacher/openms-rs/actions/runs/34567824647).
+These are separate from the local checks for this new group. No new C++ execution
+or full SDK build is claimed. The ledger records 42 complete/native-equivalent
+headers, 744 requiring implementation or review, and no certified TOPP workflow.
+
+
 ## Standalone sequence coverage (2026-09-11)
 
 [SequenceCoverage](SEQUENCE_COVERAGE_SUPPORT.md) is integrated. Seven new tests

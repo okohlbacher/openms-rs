@@ -1,0 +1,307 @@
+{
+  "target_sdk_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "platform": "macOS ARM64",
+  "current_rust": "1.98.0",
+  "minimum_rust": "1.85.0",
+  "scope": "Attached acquisition metadata, bounded ChromatogramTools conversion, acquisition-copy accounting through processing and guarded mzML writing. SDK refresh preserves original scientific fixtures.",
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 142.48,
+      "log_sha256": "1b672f8b3d55816d4383d6e6e75e33ed1de7f830c7a1e81b02cad25fdceb49bd",
+      "log_bytes": 170626,
+      "tests_passed": 1629
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.08,
+      "log_sha256": "d996a51e396cbb28ee53329ebeb3aae2c06f12d1b56a08d7fc140e4138ad1e33",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 11.49,
+      "log_sha256": "8caafae1bdd32dbf2443d0e882d6c5b5be32a1a1995e11d5cf98ad88f72d7940",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 30.04,
+      "log_sha256": "2676ecc8281f60d32f3b814f667f1d245b2bc75a7d055d0d3de34027a6191bac",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.37,
+      "log_sha256": "4b48f186985e13160f5b3cc9a253607e299dba9cf63e9fe03ea90b13108ef6c2",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.71,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3,
+      "log_sha256": "72bca7a33488151ea0463dd8f7151c66ccec6f55f5897c617fddf86ac638663d",
+      "log_bytes": 233
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "193c7f71c7c6505a8b3f421d3014c4ac7148bf550c15b4c67e2028fac19b7744",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "bbf220d889d409913082932298af56e5c6199e198725dc0cb2584e097ddc68d6",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "chromatogram_tools",
+        "--test",
+        "processing_acquisition",
+        "--test",
+        "kernel",
+        "--test",
+        "experiment_2d",
+        "--test",
+        "experiment_aggregation",
+        "--test",
+        "experiment_summary",
+        "--test",
+        "theoretical",
+        "--test",
+        "emg",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 18.71,
+      "log_sha256": "6c944d4716fd55e343614a32d10fd55c73d070c6391487a18cbc8574b312060d",
+      "log_bytes": 17274,
+      "tests_passed": 167
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 11.93,
+      "log_sha256": "85caf024b3e908101de3c820bb114bd655e8a6642fdb14636d75b9b3eb855e78",
+      "log_bytes": 380
+    }
+  ],
+  "staged_checks": [
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-chromatogram-xml-198-target cargo +1.98.0 test --locked --offline --all-features --test mzml_acquisition_guards --test mzml_numpress --test mzml --test mzml_product --test mzml_param_groups --test mzml_load_options --test file_handler -j2",
+      "cwd": "/tmp/openms-rs-next-chromatogram-tools",
+      "exit_code": 0,
+      "tests_passed": 79,
+      "log_sha256": "ee3c8f89f69a00de71793a07e4cea2f01ca80769286c3a1027964602bbcd355e",
+      "log_bytes": 8416,
+      "scope": "Frozen acquisition-guard format stage; exact production bytes were verified at integration. Later -0.0 regression reruns are recorded separately from the adjacent suites."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-chromatogram-xml-198-target cargo +1.98.0 test --locked --offline --all-features --test mzml_acquisition_guards -j2",
+      "cwd": "/tmp/openms-rs-next-chromatogram-tools",
+      "exit_code": 0,
+      "tests_passed": 7,
+      "log_sha256": "11d57a30bbee3fe9816b4759162d4a3d00f60d723dbabf6b4b76440c6e256624",
+      "log_bytes": 966,
+      "scope": "Frozen acquisition-guard format stage; exact production bytes were verified at integration. Later -0.0 regression reruns are recorded separately from the adjacent suites."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-chromatogram-xml-198-target cargo +1.98.0 clippy --locked --offline --all-features --lib --test mzml_acquisition_guards -j2 -- -D warnings",
+      "cwd": "/tmp/openms-rs-next-chromatogram-tools",
+      "exit_code": 0,
+      "tests_passed": null,
+      "log_sha256": "9bcd3799507059d9b6bc01c346f13a07943bac1e2a1e0492ba78d54cd0cf67db",
+      "log_bytes": 807,
+      "scope": "Frozen acquisition-guard format stage; exact production bytes were verified at integration. Later -0.0 regression reruns are recorded separately from the adjacent suites."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-chromatogram-xml-185-target cargo +1.85.0 test --locked --offline --no-default-features --features mzml --test mzml_acquisition_guards --test mzml_numpress --test mzml --test mzml_product --test mzml_param_groups --test mzml_load_options --test file_handler -j2",
+      "cwd": "/tmp/openms-rs-next-chromatogram-tools",
+      "exit_code": 0,
+      "tests_passed": 78,
+      "log_sha256": "077113232d439f294fd0a8ef3ca21c217977d78cbf8cd704aba80d40ec5f6778",
+      "log_bytes": 8210,
+      "scope": "Frozen acquisition-guard format stage; exact production bytes were verified at integration. Later -0.0 regression reruns are recorded separately from the adjacent suites."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-chromatogram-xml-185-target cargo +1.85.0 test --locked --offline --no-default-features --features mzml --test mzml_acquisition_guards -j2",
+      "cwd": "/tmp/openms-rs-next-chromatogram-tools",
+      "exit_code": 0,
+      "tests_passed": 7,
+      "log_sha256": "d01a7e9cbeec34c337cbf095469005b2a5b527b3abe0a5fec256af67abd50bfc",
+      "log_bytes": 966,
+      "scope": "Frozen acquisition-guard format stage; exact production bytes were verified at integration. Later -0.0 regression reruns are recorded separately from the adjacent suites."
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-chromatogram-xml-185-target cargo +1.85.0 clippy --locked --offline --no-default-features --features mzml --lib --test mzml_acquisition_guards -j2 -- -D warnings",
+      "cwd": "/tmp/openms-rs-next-chromatogram-tools",
+      "exit_code": 0,
+      "tests_passed": null,
+      "log_sha256": "cf9b5c995c06fdac3e3c83ea71413636861af095dd713aae22e4adbfd40908c0",
+      "log_bytes": 689,
+      "scope": "Frozen acquisition-guard format stage; exact production bytes were verified at integration. Later -0.0 regression reruns are recorded separately from the adjacent suites."
+    }
+  ],
+  "preceding_ci": [
+    {
+      "commit": "5a9016938e6e3f3dec383337620e9619d3abec28",
+      "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34567597493",
+      "conclusion": "success",
+      "scope": "All Linux, macOS, Windows, minimum-Rust and quality jobs; preceding published checkpoints, not this new acquisition batch."
+    },
+    {
+      "commit": "4d2b648d606b50a17c77c099c436ce5f3579df65",
+      "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34567824647",
+      "conclusion": "success",
+      "scope": "All Linux, macOS, Windows, minimum-Rust and quality jobs; preceding published checkpoints, not this new acquisition batch."
+    }
+  ],
+  "new_tests": {
+    "converter": 13,
+    "processing_integration": 4,
+    "processing_private": 3,
+    "mzml_guards": 7,
+    "total": 27
+  },
+  "notes": [
+    "The full combined count includes the preceding seven-test SequenceCoverage addition. Selected and staged counts overlap the full suite.",
+    "No new C++ execution, full SDK build or TOPP workflow certification is claimed.",
+    "The 54a232f-to-82ce5b3 numeric-formatting body is unchanged after indentation normalization; all thirteen upstream changed paths are hashed separately.",
+    "Acquisition settings unsupported by the current mzML projection return an error before output; supported native conversion and processing preserve represented fields."
+  ],
+  "ledger": {
+    "registered_public_headers": 786,
+    "complete_or_native_equivalent": 42,
+    "requires_implementation_or_review": 744,
+    "certified_topp_workflows": 0
+  }
+}

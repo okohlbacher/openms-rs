@@ -128,5 +128,12 @@
   },
   "validation": "Eight integration tests plus one private cumulative-work atomicity test pass Rust1.98 all-features and Rust1.85 no-default, locked/offline -j2; strict focused Clippy passes both profiles. No C++ build or runtime parity claim.",
   "license": "Source-derived behavior/code/tests retain BSD-3-Clause attribution.",
-  "review": "Independent source-only review by source_analysis confirmed literal rounding, signed/zero/empty behavior, full-u64 bounds, pair-coprime return quirk and atomic GCD preflight; no implementation finding."
+  "review": "Independent source-only review by source_analysis confirmed literal rounding, signed/zero/empty behavior, full-u64 bounds, pair-coprime return quirk and atomic GCD preflight; no implementation finding.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

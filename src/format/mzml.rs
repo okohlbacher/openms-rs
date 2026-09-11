@@ -2134,7 +2134,7 @@ fn write_auxiliary_arrays(
     Ok(())
 }
 
-fn check_auxiliary_arrays(
+fn check_array_descriptions(
     floats: &[DataArray<f32>],
     integers: &[DataArray<i32>],
     strings: &[DataArray<String>],
@@ -2147,6 +2147,15 @@ fn check_auxiliary_arrays(
             "mzML array description metadata or processing is not represented".into(),
         ));
     }
+    Ok(())
+}
+
+fn check_auxiliary_arrays(
+    floats: &[DataArray<f32>],
+    integers: &[DataArray<i32>],
+    strings: &[DataArray<String>],
+) -> Result<()> {
+    check_array_descriptions(floats, integers, strings)?;
     for array in floats {
         check_canonical_encoding(&array.name, Encoding::Float32)?;
     }
@@ -2202,6 +2211,33 @@ pub fn write_with_options(
     write_impl(&mut w, experiment, options, &mut None)
 }
 fn validate_write(experiment: &MSExperiment) -> Result<()> {
+    // These newly owned settings have no representation in this adapter yet.
+    // Inspect only scalar fields/container lengths before general validation
+    // can walk large acquisition, processing, product or array descriptions.
+    for spectrum in &experiment.spectra {
+        if spectrum.has_acquisition_settings() {
+            return Err(Error::Unsupported(
+                "mzML spectrum acquisition settings, source/processing records or product lists are not represented".into(),
+            ));
+        }
+        check_array_descriptions(
+            &spectrum.float_data_arrays,
+            &spectrum.integer_data_arrays,
+            &spectrum.string_data_arrays,
+        )?;
+    }
+    for chromatogram in &experiment.chromatograms {
+        if chromatogram.has_acquisition_settings() {
+            return Err(Error::Unsupported(
+                "mzML chromatogram acquisition settings, source/processing records or non-Mass type are not represented".into(),
+            ));
+        }
+        check_array_descriptions(
+            &chromatogram.float_data_arrays,
+            &chromatogram.integer_data_arrays,
+            &chromatogram.string_data_arrays,
+        )?;
+    }
     experiment.validate()?;
     let check_metadata = |metadata: &BTreeMap<String, String>, name: &str| -> Result<()> {
         xml_string(name)?;

@@ -34,5 +34,12 @@
       "sha256": "0b5506dacd470abe850de55f21fdd40c7684592405ffdf65eca4cdfe54a0d9fc"
     }
   ],
-  "methodology": "Unmodified upstream indexed-mzML file, source class-test assertions and independently constructed boundary/malformed inputs. No C++ execution. Literal index offset667742, spectrum offsets24146/345745, chromatogram665563; fixture index is parsed, not rewritten."
+  "methodology": "Unmodified upstream indexed-mzML file, source class-test assertions and independently constructed boundary/malformed inputs. No C++ execution. Literal index offset667742, spectrum offsets24146/345745, chromatogram665563; fixture index is parsed, not rewritten.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

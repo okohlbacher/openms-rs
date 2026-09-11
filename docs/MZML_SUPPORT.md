@@ -108,3 +108,10 @@ Direct [mzML filesystem operations](MZML_PATH_SUPPORT.md) accept scientific load
 settings and provide atomic replacement/output. Array description metadata and
 shared processing handles are retained natively but rejected by current XML
 writers; [details](DATA_ARRAY_XML_SUPPORT.md).
+
+## Attached acquisition state
+
+New native spectrum/chromatogram acquisition fields have explicit
+[writer loss guards](MZML_ACQUISITION_GUARDS.md). Their nondefault state is rejected
+before output until transport is implemented; existing precursor and singular
+chromatogram Product support remains available.

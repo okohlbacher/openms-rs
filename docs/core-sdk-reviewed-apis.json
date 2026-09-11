@@ -1,5 +1,5 @@
 {
-  "target_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "target_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
   "headers": {
     "src/openms/include/OpenMS/FORMAT/FileTypes.h": {
       "status": "complete",
@@ -720,7 +720,49 @@
       ],
       "documentation": "docs/SEQUENCE_COVERAGE_SUPPORT.md",
       "scope": "Complete single static scientific operation: borrowed unmodified residue bytes, every exact overlapping occurrence, union of duplicate/overlapping coverage, source empty shortcuts and count*100.0/length order. Native input sizes and conservative worst-case comparison precharges bound work; annotation chemistry is neither traversed nor copied. All four source test sections plus an independent per-position oracle and checked resource boundaries."
+    },
+    "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/kernel/chromatogram_tools.rs",
+        "src/kernel/acquisition_fields.rs"
+      ],
+      "tests": [
+        "tests/chromatogram_tools.rs"
+      ],
+      "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
+      "scope": "Both complete concrete MSExperiment conversions: one MS2 record per chromatogram point, exact SRM/XIC grouping and source first-record metadata selection, native-ID/scan-mode construction, source-only SRM removal and skipped count diagnostics. Owned reports return all removed records; shared checked work/allocation and finite consumed scalars replace undefined maps or partial mutation. Arbitrary C++ experiment template ABI is not emulated."
+    },
+    "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
+      "status": "partial",
+      "rust": [
+        "src/kernel.rs",
+        "src/kernel/acquisition_fields.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs",
+        "tests/chromatogram_tools.rs",
+        "tests/processing_acquisition.rs",
+        "tests/mzml_acquisition_guards.rs"
+      ],
+      "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
+      "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review."
+    },
+    "src/openms/include/OpenMS/KERNEL/MSChromatogram.h": {
+      "status": "partial",
+      "rust": [
+        "src/kernel.rs",
+        "src/kernel/acquisition_fields.rs"
+      ],
+      "tests": [
+        "tests/kernel.rs",
+        "tests/chromatogram_tools.rs",
+        "tests/processing_acquisition.rs",
+        "tests/mzml_acquisition_guards.rs"
+      ],
+      "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
+      "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review."
     }
   },
-  "upstream_refresh_review": "docs/CORE_SDK_54A232F_REVIEW.md"
+  "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"
 }

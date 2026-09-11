@@ -28,7 +28,12 @@ pub use area_iteration::{
 };
 pub use peak_data::{FlatPeakData, PeakDataLimits, SpectrumPeakData};
 pub use peak_index::PeakIndex;
+mod acquisition_fields;
+mod chromatogram_tools;
 mod data_array;
+pub use chromatogram_tools::{
+    ChromatogramConversionLimits, ChromatogramConversionReport, ChromatogramTools,
+};
 mod experiment_aggregation;
 mod experiment_summary;
 mod mobilogram;
@@ -220,6 +225,12 @@ pub struct MSSpectrum {
     pub native_id: String,
     pub name: String,
     pub spectrum_type: SpectrumType,
+    pub instrument_settings: crate::metadata::InstrumentSettings,
+    pub acquisition_info: crate::metadata::AcquisitionInfo,
+    pub source_file: crate::metadata::SourceFile,
+    /// Shared source processing handles. Conversion creates new outputs without history.
+    pub data_processing: Vec<std::sync::Arc<crate::metadata::DataProcessing>>,
+    pub products: Vec<crate::metadata::Product>,
     pub precursors: Vec<Precursor>,
     pub peptide_identifications: Vec<crate::identification::PeptideIdentification>,
     pub metadata: BTreeMap<String, String>,
@@ -237,6 +248,11 @@ impl Default for MSSpectrum {
             native_id: String::new(),
             name: String::new(),
             spectrum_type: SpectrumType::Unknown,
+            instrument_settings: Default::default(),
+            acquisition_info: Default::default(),
+            source_file: Default::default(),
+            data_processing: Vec::new(),
+            products: Vec::new(),
             precursors: Vec::new(),
             peptide_identifications: Vec::new(),
             metadata: BTreeMap::new(),
@@ -250,6 +266,12 @@ impl Default for MSSpectrum {
 /// Chromatogram with retention times in seconds and aligned annotations.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct MSChromatogram {
+    pub instrument_settings: crate::metadata::InstrumentSettings,
+    pub acquisition_info: crate::metadata::AcquisitionInfo,
+    pub source_file: crate::metadata::SourceFile,
+    /// Shared source processing handles. Conversion creates new outputs without history.
+    pub data_processing: Vec<std::sync::Arc<crate::metadata::DataProcessing>>,
+    pub chromatogram_type: crate::metadata::ChromatogramType,
     pub peaks: Vec<ChromatogramPeak>,
     pub native_id: String,
     pub name: String,
@@ -554,7 +576,8 @@ impl MSSpectrum {
             identification.validate()?;
         }
         self.validate_data_arrays()?;
-        self.validate_array_descriptions()
+        self.validate_array_descriptions()?;
+        self.validate_acquisition_settings()
     }
 
     /// Inclusive bounds, recomputed from current peaks.
@@ -651,7 +674,8 @@ impl MSChromatogram {
         self.precursor.validate()?;
         self.product.validate()?;
         self.validate_data_arrays()?;
-        self.validate_array_descriptions()
+        self.validate_array_descriptions()?;
+        self.validate_acquisition_settings()
     }
 
     pub fn ranges(&self) -> Result<ChromatogramRanges> {

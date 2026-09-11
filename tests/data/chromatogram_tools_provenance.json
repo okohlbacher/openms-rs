@@ -1,0 +1,147 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h",
+      "sha256": "8c91556e0b00cd2041cc71a57c75fa85f36b406694b0ad9b9e69f1374fb46d6e"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ChromatogramTools.cpp",
+      "sha256": "f993368fba4e116b96b39b80cac5c5f59a9e49cb4a2b6112bbd1cc59f40d46ab"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ChromatogramTools_test.cpp",
+      "sha256": "68c45cc3ca459e32fa638315021ad6ea48d376d75649ba186c3865b9ab4cdec5"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+      "sha256": "3f9f2f06c2e259dd719b328b160874c846ae24c73294c61b36f1573f46984117"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+      "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/SpectrumSettings.h",
+      "sha256": "adf1f2f327a7bc9149a61a90adf5db16970446fcf69f3397421a4bb0c38eddc6"
+    },
+    {
+      "path": "src/openms/source/METADATA/SpectrumSettings.cpp",
+      "sha256": "1c0f999341b221548a751e51adbde3025db84d5a7e18bf25e020ce43a6ec2f7b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ChromatogramSettings.h",
+      "sha256": "f1bc2c181cf2e2227973c7f9b1ac1c7bb2a63ecfb1fafa4c69a201be63a04025"
+    },
+    {
+      "path": "src/openms/source/METADATA/ChromatogramSettings.cpp",
+      "sha256": "2af3b20decd7a06a4546b60056f4a86f7ea42ef81df73534c646743080db849f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/InstrumentSettings.h",
+      "sha256": "6c7e3122bfe3f6fddc39102ce91c5a87053946d642353d0f6388ab7501a836ed"
+    },
+    {
+      "path": "src/openms/source/METADATA/InstrumentSettings.cpp",
+      "sha256": "f412905ada7edc511bb89f974be4a694163e3a247db483999a9cf28757c64632"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/AcquisitionInfo.h",
+      "sha256": "37bf43638163b6c90862222bfccd984cfe3b10a4507a81b8871069494c96bac1"
+    },
+    {
+      "path": "src/openms/source/METADATA/AcquisitionInfo.cpp",
+      "sha256": "d9c2a1339224a402cadc4b0f6f0e8eef270ab3cb88d9d5b75ccf125c3b17e231"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/SourceFile.h",
+      "sha256": "d085b080ca404e598cc20c6a63858131869e23a1376579e3a1078c3da1bb4492"
+    },
+    {
+      "path": "src/openms/source/METADATA/SourceFile.cpp",
+      "sha256": "7e5d940889144bc47fe3fff9a63ba8eba17d337ac2009e4c67e7743ee3aea4d3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/DataProcessing.h",
+      "sha256": "7fcc9f2913cf1356a486675a4ba9afff617037d85d40cf6a508e9b99e36438ce"
+    },
+    {
+      "path": "src/openms/source/METADATA/DataProcessing.cpp",
+      "sha256": "283a93d7d36c6bf76da711d19c373daad164d601c8b3810503a5b99cb14da4b4"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+      "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/EmgGradientDescent_test.cpp",
+      "sha256": "62832ae3a40e258f4cb2480f6b2c5899310bfcf6c51ed11654746d09a61b8019"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/chromatogram_tools.rs",
+    "src/kernel/acquisition_fields.rs",
+    "src/kernel.rs",
+    "src/kernel/data_array.rs",
+    "src/chemistry/theoretical.rs",
+    "src/analysis/emg.rs"
+  ],
+  "native_tests": [
+    "tests/chromatogram_tools.rs"
+  ],
+  "support": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h",
+      "line": 63,
+      "operation": "one MS2 spectrum per chromatogram point, exact selected acquisition copies and SIM/SRM override"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h",
+      "line": 110,
+      "operation": "SRM/forced branches, XIC before SRM, first-record metadata, exact grouping, SRM-only removal"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ChromatogramTools_test.cpp",
+      "line": 52,
+      "operation": "100.1/100.2 precursor, 200.1/200.2 product and 0.1/0.2 RT source four-spectrum conversion"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ChromatogramTools_test.cpp",
+      "line": 104,
+      "operation": "four SRM scans plus one MassSpectrum produce two chromatograms, optional removal leaves one scan"
+    }
+  ],
+  "evidence": "Literal source fixture cases plus direct forced/multiple-precursor, first-payload, unsorted/duplicate/signed-zero, clear/equality/Arc ownership, late atomic/resource and 2D/TSG/EMG integration regressions. No C++ build or execution. XML and processing propagation tests/provenance are separate sibling handoffs.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": [
+      {
+        "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+        "source_sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
+        "target_sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+        "review": "The 54a232f-to-82ce5b3 update moves appendNumeric into the shared private NumericFormatting.h and qualifies the six callers. The complete function body is identical after indentation normalization; native f32/f64 formatting rules and parsing are unchanged. The earlier extended-long-double boundary remains outside the native API."
+      }
+    ]
+  }
+}

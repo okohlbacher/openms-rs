@@ -161,7 +161,7 @@
     "Path wrappers do not invent loaded-file metadata in MSExperiment."
   ],
   "target_verification": {
-    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
     "source_revisions": [
       "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
     ],
@@ -169,8 +169,8 @@
       {
         "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
         "source_sha256": "74c4878997b6de4faab86b08827784ea5a09d41a077a66210a0d6c79d7560c4b",
-        "target_sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
-        "review": "Adds extended-long-double libc++ formatting and removes equivalent redundant branches. Native f32/f64 formatting rules are unchanged; extended long double remains outside the native value surface."
+        "target_sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+        "review": "Adds extended-long-double libc++ formatting and removes equivalent redundant branches. Native f32/f64 formatting rules are unchanged; extended long double remains outside the native value surface. The 54a232f-to-82ce5b3 update moves appendNumeric into the shared private NumericFormatting.h and qualifies the six callers. The complete function body is identical after indentation normalization; native f32/f64 formatting rules and parsing are unchanged. The earlier extended-long-double boundary remains outside the native API."
       }
     ]
   }

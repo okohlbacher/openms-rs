@@ -260,3 +260,12 @@ The [SequenceCoverage manifest](sequence_coverage_provenance.json) pins the comp
 source operation and four class-test cases. Independent positional enumeration
 checks overlap, repetition, annotation independence and literal unknown residues;
 no new C++ execution is used.
+
+## Acquisition conversion and current SDK refresh
+
+[ChromatogramTools](chromatogram_tools_provenance.json) and
+[mzML guards](mzml_acquisition_guards_provenance.json) retain their original54a
+source evidence with explicit82ce target verification. The
+[numeric-formatting refresh](sdk_numeric_formatting_provenance.json) hashes the
+new upstream changes and records the unchanged moved function body. Processing
+propagation tests use existing numerical fixtures and independent ownership checks.

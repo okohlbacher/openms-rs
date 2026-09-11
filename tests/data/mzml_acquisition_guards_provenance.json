@@ -1,0 +1,82 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/METADATA/InstrumentSettings.h",
+      "sha256": "6c7e3122bfe3f6fddc39102ce91c5a87053946d642353d0f6388ab7501a836ed"
+    },
+    {
+      "path": "src/openms/source/METADATA/InstrumentSettings.cpp",
+      "sha256": "f412905ada7edc511bb89f974be4a694163e3a247db483999a9cf28757c64632"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/AcquisitionInfo.h",
+      "sha256": "37bf43638163b6c90862222bfccd984cfe3b10a4507a81b8871069494c96bac1"
+    },
+    {
+      "path": "src/openms/source/METADATA/AcquisitionInfo.cpp",
+      "sha256": "d9c2a1339224a402cadc4b0f6f0e8eef270ab3cb88d9d5b75ccf125c3b17e231"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/SourceFile.h",
+      "sha256": "d085b080ca404e598cc20c6a63858131869e23a1376579e3a1078c3da1bb4492"
+    },
+    {
+      "path": "src/openms/source/METADATA/SourceFile.cpp",
+      "sha256": "7e5d940889144bc47fe3fff9a63ba8eba17d337ac2009e4c67e7743ee3aea4d3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ChromatogramSettings.h",
+      "sha256": "f1bc2c181cf2e2227973c7f9b1ac1c7bb2a63ecfb1fafa4c69a201be63a04025"
+    },
+    {
+      "path": "src/openms/source/METADATA/ChromatogramSettings.cpp",
+      "sha256": "2af3b20decd7a06a4546b60056f4a86f7ea42ef81df73534c646743080db849f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/SpectrumSettings.h",
+      "sha256": "adf1f2f327a7bc9149a61a90adf5db16970446fcf69f3397421a4bb0c38eddc6"
+    },
+    {
+      "path": "src/openms/source/METADATA/SpectrumSettings.cpp",
+      "sha256": "1c0f999341b221548a751e51adbde3025db84d5a7e18bf25e020ce43a6ec2f7b"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h",
+      "sha256": "8c91556e0b00cd2041cc71a57c75fa85f36b406694b0ad9b9e69f1374fb46d6e"
+    }
+  ],
+  "source_semantics": {
+    "InstrumentSettings.cpp:23-40": "Unknown scan and polarity, false zoom, empty windows; equality includes every scalar, windows and metadata.",
+    "AcquisitionInfo.cpp:19-24": "Equality includes method, metadata and vector entries, even when the vector is empty.",
+    "SourceFile.cpp:17-45; SourceFile.h:102": "Empty strings/CV data, zero size and Unknown checksum; equality includes full CVTermList and numerical size equality.",
+    "ChromatogramSettings.cpp:23-56": "Mass is the constructor type; equality includes instrument/acquisition/source, processing-vector size/content and type.",
+    "MzMLHandler.cpp:5202-5272,5453-5523": "Source emits acquisition/source/processing links and spectrum Product lists; native guards mark those fields unsupported in its current transport.",
+    "ChromatogramTools.h:65-98,187-215": "Conversions copy selected instrument/acquisition/source/product fields into new records, motivating explicit transport guards."
+  },
+  "evidence": "Source-derived default/equality and native checked-rejection tests; no C++ execution, no production-generated numeric goldens.",
+  "native_policy": "Reject new nondefault acquisition/source/processing/Product-list/type fields before deep validation or XML output. Existing supported precursor and singular chromatogram Product paths remain unchanged. SourceFile negative-zero size is rejected by native bitwise default checking although source numerical equality equates it to zero.",
+  "xml_scope": [
+    "mzML ordinary and Numpress writers",
+    "mzML path stores",
+    "FileHandler mzML dispatch"
+  ],
+  "unaffected_xml_models": [
+    "idXML identification documents",
+    "FeatureXML feature maps",
+    "ConsensusXML consensus maps"
+  ],
+  "test_file": "tests/mzml_acquisition_guards.rs",
+  "tests": 7,
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
+}

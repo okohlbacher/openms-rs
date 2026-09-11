@@ -2,6 +2,10 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Update the SDK target to `82ce5b3`, verifying the unchanged numeric formatter after its upstream relocation and retaining original fixture pins.
+- Add source-compatible spectrum/chromatogram conversion, attached acquisition settings and shared processing handles. Existing constructors retain defaults; struct literals require the new fields or defaults.
+- Preserve newly attached fields through processing under cumulative copy bounds; reject unsupported mzML settings before output.
+
 - Add exact overlapping unmodified peptide-to-protein sequence coverage with source percentage arithmetic and bounded native work.
 
 - Add all six mzML Numpress read transports and configurable writing with bounded preparation, source precision repairs and ordinary fallback.

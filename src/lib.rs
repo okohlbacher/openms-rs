@@ -45,7 +45,7 @@ pub use kernel::{
 pub const CORE_SDK_VERSION: &str = "4.0.0";
 /// Exact upstream SDK source used for the current compatibility target.
 /// Historical scientific fixtures retain their original, independently recorded pins.
-pub const CORE_SDK_REVISION: &str = "54a232fe2cae9c590d5c997fa49d20e7769860fb";
+pub const CORE_SDK_REVISION: &str = "82ce5b373c97f934ffd9b1ffd80215ca66473d0b";
 
 pub mod data_structures;
 /// Hierarchical configuration parameters.

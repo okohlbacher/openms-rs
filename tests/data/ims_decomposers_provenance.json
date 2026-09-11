@@ -72,5 +72,12 @@
     "materialized_outputs": 100000
   },
   "support_document": "docs/IMS_DECOMPOSER_SUPPORT.md",
-  "validation_policy": "Native current/minimum compiler tests and strict Clippy; no C++ execution for this increment."
+  "validation_policy": "Native current/minimum compiler tests and strict Clippy; no C++ execution for this increment.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

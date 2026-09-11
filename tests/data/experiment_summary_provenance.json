@@ -71,5 +71,12 @@
       "operation": "spectrum-only clearing of all metadata arrays"
     }
   ],
-  "evidence": "Source literals and independently evaluated source expressions. Native checked resources/atomicity and stable outer tie order are explicit. No source C++ build or execution. No mobility or full range-manager claim."
+  "evidence": "Source literals and independently evaluated source expressions. Native checked resources/atomicity and stable outer tie order are explicit. No source C++ build or execution. No mobility or full range-manager claim.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

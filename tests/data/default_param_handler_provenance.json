@@ -84,7 +84,7 @@
     "Shared 50,000,000 work / 64 MiB logical allocation ceilings apply across each operation, including default fill, validation, traversal, metadata and staged copies; 100,000 subsections cap. Ordinary Rust Clone is unchecked."
   ],
   "target_verification": {
-    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
     "source_revisions": [
       "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
     ],

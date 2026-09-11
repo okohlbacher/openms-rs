@@ -61,5 +61,12 @@
     }
   ],
   "native_test": "tests/experiment_aggregation.rs",
-  "independent_oracles": "Hand arithmetic: f32 default versus f64 matrix cancellation; inclusive duplicates and negative extrema; exact f64 RT, f32 narrowing, empty and resource/failure cases. No C++ build/execution and no generated numerical goldens."
+  "independent_oracles": "Hand arithmetic: f32 default versus f64 matrix cancellation; inclusive duplicates and negative extrema; exact f64 RT, f32 narrowing, empty and resource/failure cases. No C++ build/execution and no generated numerical goldens.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

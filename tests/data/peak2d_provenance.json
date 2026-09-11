@@ -163,5 +163,12 @@
     "Returned old experiment/rich ownership avoids unbounded unrelated graph clone/destruction during checked replacement",
     "Finite consumed-coordinate/present numeric conversion checks preserve source missing-metadata NaNs",
     "Rich unique-ID behavior uses the separate caller-owned native generator; global singleton and inherited metadata registry services not emulated"
-  ]
+  ],
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

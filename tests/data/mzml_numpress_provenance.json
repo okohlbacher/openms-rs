@@ -103,5 +103,12 @@
     "primary_writer_fallback": "MzMLHandler.cpp:5714-5750",
     "auxiliary_writer_fallback": "MzMLHandler.cpp:5798-5828",
     "source_type_selection_interaction": "MzMLHandler.cpp:5621-5660; fixed native ordinary precision intentionally retained"
+  },
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
   }
 }

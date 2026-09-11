@@ -1,8 +1,8 @@
 # Current reduced Core SDK target
 
 The Rust port now targets OpenMS Core SDK **4.0.0** at
-[`54a232fe2cae9c590d5c997fa49d20e7769860fb`](https://github.com/okohlbacher/OpenMS4-core/tree/54a232fe2cae9c590d5c997fa49d20e7769860fb),
-fetched from the repository's default `codex/package-split` branch on 2026-09-10.
+[`82ce5b373c97f934ffd9b1ffd80215ca66473d0b`](https://github.com/okohlbacher/OpenMS4-core/tree/82ce5b373c97f934ffd9b1ffd80215ca66473d0b),
+fetched from the repository's default `codex/package-split` branch on 2026-09-11.
 The original reference archive at `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`
 is retained for the existing scientific fixtures. The package's upstream
 extraction revision `ca32296038839459d8c9b075b759e285913d6294` identifies a
@@ -31,7 +31,7 @@ library. The comparable physical inventory is:
 | Core class-test `.cpp` files | 715 | 703 | 12 |
 
 Including private headers and OpenSwathAlgo, runtime physical lines decrease
-from **484,760 to 468,349**. Of 1,619 old/current runtime paths, 1,543 are
+from **484,760 to 468,228**. Of 1,619 old/current runtime paths, 1,543 are
 unchanged, 41 removed, 34 changed and one added. File and line counts are not method
 coverage percentages.
 
@@ -60,12 +60,18 @@ None had a corresponding implementation in this Rust port, so updating scope
 does not require deleting working Rust APIs. Core still owns `NuXLReport`,
 `NuXLMarkerIonExtractor`, `PeakGroup`, `PeakGroupScoring`, `DeconvolvedSpectrum`,
 FLASH records/file writers, Comet modification records and reusable readers and
-writers. The current [SDK ownership notes](https://github.com/okohlbacher/OpenMS4-core/blob/54a232fe2cae9c590d5c997fa49d20e7769860fb/README.md#tool-backend-extraction)
+writers. The current [SDK ownership notes](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/README.md#tool-backend-extraction)
 are authoritative for this split.
 
 ## Changes relevant to the port
 
-The latest update from `6bfc0e4` to `54a232f` retains the same public headers and
+The latest refresh from `54a232f` to `82ce5b3` changes no public API or dataset.
+Its [review](CORE_SDK_82CE5B3_REVIEW.md) verifies the identical moved numeric
+formatter body and tracks the new shared private header outside the comparable
+inventory roots. Windows CI/acceptance changes do not require a Rust algorithm change.
+
+
+The preceding update from `6bfc0e4` to `54a232f` retains the same public headers and
 scientific datasets. Its [source review](CORE_SDK_54A232F_REVIEW.md) records C++
 lifetime/error fixes, portability and build changes, and extended-long-double
 formatting outside the Rust value surface. Existing native f32/f64 formulas do

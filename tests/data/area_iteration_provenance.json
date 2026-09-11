@@ -102,5 +102,12 @@
       "operation": "mutable and const MZBegin/MZEnd lower/upper bounds"
     }
   ],
-  "evidence": "Source literals and control-flow-derived cases; 800 independent deterministic brute-enumeration queries. No C++ build/execution. Scalar RT/mz operation group only: scan-mobility Range overload, getDriftTime and generic RangeManager remain partial. Checked ordering/resources and safe borrowed mutable ownership are explicit native boundaries."
+  "evidence": "Source literals and control-flow-derived cases; 800 independent deterministic brute-enumeration queries. No C++ build/execution. Scalar RT/mz operation group only: scan-mobility Range overload, getDriftTime and generic RangeManager remain partial. Checked ordering/resources and safe borrowed mutable ownership are explicit native boundaries.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

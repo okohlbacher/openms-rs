@@ -267,6 +267,7 @@ impl SpectrumFilter for GaussFilter {
 
     /// Like OpenMS, smooth spectra AND chromatograms; any error is atomic.
     fn filter_experiment(&self, experiment: &mut MSExperiment) -> Result<()> {
+        super::AcquisitionCopies::default().experiment(experiment)?;
         let mut output = experiment.clone();
         for spectrum in &mut output.spectra {
             self.filter_spectrum(spectrum)?;
@@ -460,6 +461,7 @@ impl SpectrumFilter for SavitzkyGolayFilter {
 
     /// Like OpenMS, smooth spectra AND chromatograms; any error is atomic.
     fn filter_experiment(&self, experiment: &mut MSExperiment) -> Result<()> {
+        super::AcquisitionCopies::default().experiment(experiment)?;
         let mut output = experiment.clone();
         for spectrum in &mut output.spectra {
             self.filter_spectrum(spectrum)?;

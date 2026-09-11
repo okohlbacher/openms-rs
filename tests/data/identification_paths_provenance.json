@@ -47,5 +47,12 @@
     "Owned result/atomic replacement and file publication.",
     "Only idXML identification adapter; gzip/bzip2 feature-gated; ZIP unavailable.",
     "FileHandler native return preserves document identifier rather than discarding it through vector-only API."
-  ]
+  ],
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

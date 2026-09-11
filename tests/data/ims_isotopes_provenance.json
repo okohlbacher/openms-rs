@@ -147,5 +147,12 @@
     "native_element_tests": 5,
     "cxx_execution": false,
     "reference_review": "Independent read-only source/numeric/resource review by source_analysis; formatter precharge issue resolved before final validation."
+  },
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
   }
 }

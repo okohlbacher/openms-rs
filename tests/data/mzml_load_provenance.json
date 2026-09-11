@@ -83,5 +83,12 @@
     "The 26 canonical non-primary names are reserved roles and serialize to their pinned CV accessions. Nonstandard input names equal to a reserved canonical name are rejected; aliases and case variants are not inferred.",
     "Canonical declared binary type constraints are checked; charge-array output uses signed i32. Missing CV type restrictions remain permissive. Auxiliary units are unsupported.",
     "Metadata-only, fill_data=false, skip_xml_checks and isolation-target precursor output are rejected."
-  ]
+  ],
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

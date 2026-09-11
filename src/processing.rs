@@ -30,11 +30,59 @@ pub trait SpectrumFilter {
     ///
     /// Uses a temporary copy so an error leaves the whole experiment unchanged.
     fn filter_experiment(&self, experiment: &mut MSExperiment) -> Result<()> {
+        AcquisitionCopies::default().spectra(&experiment.spectra)?;
         let mut spectra = experiment.spectra.clone();
         for spectrum in &mut spectra {
             self.filter_spectrum(spectrum)?;
         }
         experiment.spectra = spectra;
+        Ok(())
+    }
+}
+
+// Fixed acquisition-copy ceiling, separate from existing numerical algorithm
+// budgets. Carry one ledger through nested bundled transformations and batches.
+// Processing records behind Arc remain shared; their payload is not copied.
+pub(super) struct AcquisitionCopies {
+    work: usize,
+    bytes: usize,
+}
+impl Default for AcquisitionCopies {
+    fn default() -> Self {
+        Self {
+            work: 50_000_000,
+            bytes: 256 * 1024 * 1024,
+        }
+    }
+}
+impl AcquisitionCopies {
+    fn visit(&mut self, count: usize) -> Result<()> {
+        self.work = self.work.checked_sub(count).ok_or_else(|| {
+            Error::InvalidValue("processing acquisition copy work limit exceeded".into())
+        })?;
+        Ok(())
+    }
+    pub(super) fn spectrum(&mut self, input: &MSSpectrum) -> Result<()> {
+        self.visit(1)?;
+        input.acquisition_with_budget(&mut self.work, &mut self.bytes)
+    }
+    pub(super) fn chromatogram(&mut self, input: &MSChromatogram) -> Result<()> {
+        self.visit(1)?;
+        input.acquisition_with_budget(&mut self.work, &mut self.bytes)
+    }
+    pub(super) fn spectra(&mut self, spectra: &[MSSpectrum]) -> Result<()> {
+        self.visit(spectra.len())?;
+        for spectrum in spectra {
+            self.spectrum(spectrum)?;
+        }
+        Ok(())
+    }
+    pub(super) fn experiment(&mut self, input: &MSExperiment) -> Result<()> {
+        self.spectra(&input.spectra)?;
+        self.visit(input.chromatograms.len())?;
+        for chromatogram in &input.chromatograms {
+            self.chromatogram(chromatogram)?;
+        }
         Ok(())
     }
 }
@@ -406,5 +454,87 @@ fn checked_intensity(value: f64) -> Result<f32> {
         Ok(result)
     } else {
         Err(Error::InvalidValue("intensity overflow".into()))
+    }
+}
+
+#[cfg(test)]
+mod acquisition_copy_tests {
+    use super::*;
+    use crate::metadata::DataProcessing;
+    use std::sync::Arc;
+
+    #[test]
+    fn acquisition_copy_work_and_bytes_are_cumulative_before_cloning() {
+        let mut input = MSSpectrum::default();
+        input.source_file.name = "x".repeat(100);
+        let mut copies = AcquisitionCopies {
+            work: 150,
+            bytes: 1_000_000,
+        };
+        copies.spectrum(&input).unwrap();
+        assert!(copies.spectrum(&input).is_err());
+        let mut copies = AcquisitionCopies {
+            work: 150,
+            bytes: 1_000_000,
+        };
+        assert!(copies.spectra(&[input.clone(), input.clone()]).is_err());
+        let mut copies = AcquisitionCopies {
+            work: 1_000_000,
+            bytes: 1,
+        };
+        assert!(copies.spectrum(&input).is_err());
+        assert_eq!(input.source_file.name.len(), 100);
+    }
+
+    #[test]
+    fn nested_picking_uses_the_same_acquisition_copy_ledger() {
+        let mut spectrum = MSSpectrum::default();
+        spectrum.source_file.name = "x".repeat(100);
+        let input = MSExperiment {
+            spectra: vec![spectrum],
+            ..Default::default()
+        };
+        let mut copies = AcquisitionCopies {
+            work: 150,
+            bytes: 1_000_000,
+        };
+        copies.experiment(&input).unwrap();
+        let mut staged = input.clone();
+        let result = peak_picking::PeakPickerHiRes::default().pick_spectrum_with_acquisition(
+            &input.spectra[0],
+            true,
+            &mut copies,
+        );
+        assert!(result.is_err());
+        // The rejected picked value cannot replace the already staged record.
+        assert_eq!(staged, input);
+        let picked = peak_picking::PeakPickerHiRes::default()
+            .pick_spectrum(&input.spectra[0])
+            .unwrap();
+        staged.spectra[0] = picked.spectrum;
+        assert_eq!(staged.spectra[0].source_file, input.spectra[0].source_file);
+    }
+
+    #[test]
+    fn acquisition_copy_counts_processing_handles_without_copying_shared_payload() {
+        let mut record = DataProcessing::default();
+        record.software.name = "shared".repeat(10_000);
+        let record = Arc::new(record);
+        let input = MSSpectrum {
+            data_processing: vec![Arc::clone(&record)],
+            ..Default::default()
+        };
+        let mut copies = AcquisitionCopies {
+            work: 100,
+            bytes: 4096,
+        };
+        copies.spectrum(&input).unwrap();
+        assert_eq!(Arc::strong_count(&record), 2);
+        let output = input.clone();
+        assert!(Arc::ptr_eq(
+            &input.data_processing[0],
+            &output.data_processing[0]
+        ));
+        assert_eq!(Arc::strong_count(&record), 3);
     }
 }

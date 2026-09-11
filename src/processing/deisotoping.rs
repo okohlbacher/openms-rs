@@ -103,6 +103,13 @@ impl Deisotoper {
     /// allow_shared_isotopes enables the source's shared-extension behavior.
     /// An unassigned peak has charge 0, isotope count 1 and feature number -1.
     pub fn deisotope(&self, input: &MSSpectrum) -> Result<DeisotopingResult> {
+        self.deisotope_with_acquisition(input, &mut super::AcquisitionCopies::default())
+    }
+    fn deisotope_with_acquisition(
+        &self,
+        input: &MSSpectrum,
+        copies: &mut super::AcquisitionCopies,
+    ) -> Result<DeisotopingResult> {
         self.validate()?;
         validate_spectrum(
             input,
@@ -111,6 +118,7 @@ impl Deisotoper {
             self.annotate_features,
         )?;
         if input.is_empty() {
+            copies.spectrum(input)?;
             return Ok(DeisotopingResult {
                 spectrum: input.clone(),
                 clusters: Vec::new(),
@@ -120,6 +128,7 @@ impl Deisotoper {
         let mut features = vec![-1_i32; input.len()];
         let mut charges = vec![0_i32; input.len()];
         let mut counts = vec![1_i32; input.len()];
+        copies.spectrum(input)?;
         let mut output = input.clone();
         let precursor_mass = if let [p] = input.precursors.as_slice() {
             let mass = p.mz * f64::from(p.charge) - PROTON_MASS_U * f64::from(p.charge);
@@ -257,6 +266,18 @@ impl Deisotoper {
     }
 }
 impl SpectrumFilter for Deisotoper {
+    fn filter_experiment(&self, experiment: &mut crate::kernel::MSExperiment) -> Result<()> {
+        let mut copies = super::AcquisitionCopies::default();
+        copies.spectra(&experiment.spectra)?;
+        let mut spectra = experiment.spectra.clone();
+        for spectrum in &mut spectra {
+            *spectrum = self
+                .deisotope_with_acquisition(spectrum, &mut copies)?
+                .spectrum;
+        }
+        experiment.spectra = spectra;
+        Ok(())
+    }
     fn filter_spectrum(&self, spectrum: &mut MSSpectrum) -> Result<()> {
         *spectrum = self.deisotope(spectrum)?.spectrum;
         Ok(())
@@ -369,6 +390,13 @@ impl AveragineDeisotoper {
     /// By default extensions can be shared, matching C++; disabling
     /// allow_shared_isotopes makes accepted ladders disjoint. Input is untouched.
     pub fn deisotope(&self, input: &MSSpectrum) -> Result<DeisotopingResult> {
+        self.deisotope_with_acquisition(input, &mut super::AcquisitionCopies::default())
+    }
+    fn deisotope_with_acquisition(
+        &self,
+        input: &MSSpectrum,
+        copies: &mut super::AcquisitionCopies,
+    ) -> Result<DeisotopingResult> {
         self.validate()?;
         validate_spectrum(
             input,
@@ -377,6 +405,7 @@ impl AveragineDeisotoper {
             self.annotate_features,
         )?;
         if input.is_empty() {
+            copies.spectrum(input)?;
             return Ok(DeisotopingResult {
                 spectrum: input.clone(),
                 clusters: Vec::new(),
@@ -409,8 +438,10 @@ impl AveragineDeisotoper {
                 original_indices.sort_unstable();
             }
         }
+        copies.spectrum(input)?;
         let mut selected = input.clone();
         selected.select(&original_indices)?;
+        copies.spectrum(&selected)?;
         let mut output = selected.clone();
         let mut clusters = Vec::new();
         let mut features = vec![-1_i32; selected.len()];
@@ -603,6 +634,18 @@ impl AveragineDeisotoper {
     }
 }
 impl SpectrumFilter for AveragineDeisotoper {
+    fn filter_experiment(&self, experiment: &mut crate::kernel::MSExperiment) -> Result<()> {
+        let mut copies = super::AcquisitionCopies::default();
+        copies.spectra(&experiment.spectra)?;
+        let mut spectra = experiment.spectra.clone();
+        for spectrum in &mut spectra {
+            *spectrum = self
+                .deisotope_with_acquisition(spectrum, &mut copies)?
+                .spectrum;
+        }
+        experiment.spectra = spectra;
+        Ok(())
+    }
     fn filter_spectrum(&self, spectrum: &mut MSSpectrum) -> Result<()> {
         *spectrum = self.deisotope(spectrum)?.spectrum;
         Ok(())

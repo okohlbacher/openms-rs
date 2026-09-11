@@ -109,5 +109,12 @@
     ],
     "strict_clippy": "Both compiler/feature combinations passed scoped -D warnings",
     "independent_review": "Parent full source/API/resource review closed with no actionable findings; eight source hashes and two documentation links audited."
+  },
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
   }
 }

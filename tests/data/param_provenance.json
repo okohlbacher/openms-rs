@@ -21,7 +21,7 @@
   "derivation": "Literal source test values and direct translations of source control-flow boundary cases; no C++ execution or generated implementation goldens. Full native equality is separate from explicit source_equal; checked limits and atomic errors are documented in docs/PARAM_SUPPORT.md.",
   "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
   "target_verification": {
-    "revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
     "source_revisions": [
       "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
     ],

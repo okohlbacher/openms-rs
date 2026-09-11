@@ -59,5 +59,12 @@
       "sha256": "7fcc9f2913cf1356a486675a4ba9afff617037d85d40cf6a508e9b99e36438ce"
     }
   ],
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }

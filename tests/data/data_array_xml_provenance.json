@@ -28,5 +28,12 @@
   ],
   "tests": "tests/data_array_xml.rs",
   "basis": "Native transport-safety regressions for newly owned source MetaInfoDescription and shared DataProcessing fields; no new source numerical literals or C++ execution.",
-  "checked_boundary": "Current array XML codecs encode names/values, so nonempty description metadata and processing handles error before output. idXML/consensusXML group arrays are checked in shared preflight before cloning/quantity omission; FeatureXML rejects all structured groups in an earlier preflight."
+  "checked_boundary": "Current array XML codecs encode names/values, so nonempty description metadata and processing handles error before output. idXML/consensusXML group arrays are checked in shared preflight before cloning/quantity omission; FeatureXML rejects all structured groups in an earlier preflight.",
+  "target_verification": {
+    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+    "source_revisions": [
+      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+    ],
+    "source_changes": []
+  }
 }
