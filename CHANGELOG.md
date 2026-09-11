@@ -2,6 +2,7 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add the TOPP command-line framework (the native `OpenMS4-cli` TOPPBase) and the first TOPP tool, DTAExtractor. Its three upstream tests are reproduced byte-for-byte against the retained C++ outputs, making it the first validated TOPP workflow. Header list `count` attributes are now advisory on mzML reading, and `dta::WriteOptions::source()` selects the source writer conventions.
 - Add the complete experimental design: both public classes, all five path/label mappings, both sample-grouping rules, the consensus/feature/identification constructors, column-header annotation and the tab-separated reader in both source table layouts. Ragged rows and negative indices are rejected rather than read out of bounds or wrapped.
 - Transport ordered mzML spectrum acquisitions with explicit read normalization, source combination/CV metadata, bounded header references and schema-valid parameter order.
 - Add native MassTraceDetection with all source settings, mobility-aware extension, both termination criteria, area input and cumulative bounded atomic results.

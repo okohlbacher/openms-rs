@@ -69,29 +69,83 @@ pub fn write(writer: impl Write, spectrum: &MSSpectrum) -> Result<()> {
     write_with_convention(writer, spectrum, MassConvention::ExactProton)
 }
 
+/// How much of a record the writer may discard.
+///
+/// The native default refuses to drop anything DTA cannot represent, so a
+/// caller cannot lose metadata without saying so. The source `DTAFile::store`
+/// has no such guard: it writes the precursor mass and charge plus the peaks
+/// and silently ignores everything else, warning only that it used the first of
+/// several precursors. `discard_unrepresentable` selects that source behavior,
+/// which a TOPP tool reproducing C++ output needs.
+#[derive(Clone, Copy, Debug)]
+pub struct WriteOptions {
+    pub convention: MassConvention,
+    pub discard_unrepresentable: bool,
+}
+impl Default for WriteOptions {
+    fn default() -> Self {
+        Self {
+            convention: MassConvention::ExactProton,
+            discard_unrepresentable: false,
+        }
+    }
+}
+impl WriteOptions {
+    /// The source `DTAFile::store` behavior: legacy proton mass, discard the rest.
+    pub fn source() -> Self {
+        Self {
+            convention: MassConvention::LegacyOpenMS,
+            discard_unrepresentable: true,
+        }
+    }
+}
+
+/// Write a DTA peak list under explicit options.
+pub fn write_with_options(
+    writer: impl Write,
+    spectrum: &MSSpectrum,
+    options: &WriteOptions,
+) -> Result<()> {
+    write_inner(
+        writer,
+        spectrum,
+        options.convention,
+        options.discard_unrepresentable,
+    )
+}
+
 /// Write a DTA peak list using an explicit precursor-mass convention.
 /// More than one precursor is rejected; DTA cannot represent that information.
 pub fn write_with_convention(
-    mut writer: impl Write,
+    writer: impl Write,
     spectrum: &MSSpectrum,
     convention: MassConvention,
 ) -> Result<()> {
+    write_inner(writer, spectrum, convention, false)
+}
+
+fn write_inner(
+    mut writer: impl Write,
+    spectrum: &MSSpectrum,
+    convention: MassConvention,
+    discard: bool,
+) -> Result<()> {
     spectrum.validate()?;
-    if !spectrum.metadata.is_empty() {
+    if !discard && !spectrum.metadata.is_empty() {
         return Err(Error::Unsupported(
             "DTA cannot store spectrum metadata".into(),
         ));
     }
-    if spectrum.precursors.len() > 1 {
+    if !discard && spectrum.precursors.len() > 1 {
         return Err(Error::Unsupported("DTA supports only one precursor".into()));
     }
-    if !spectrum.peptide_identifications.is_empty() {
+    if !discard && !spectrum.peptide_identifications.is_empty() {
         return Err(Error::Unsupported(
             "DTA cannot store peptide identifications".into(),
         ));
     }
     let precursor = spectrum.precursors.first().cloned().unwrap_or_default();
-    if precursor.has_acquisition_metadata() {
+    if !discard && precursor.has_acquisition_metadata() {
         return Err(Error::Unsupported(
             "DTA cannot store precursor acquisition metadata".into(),
         ));

@@ -280,10 +280,18 @@ fn header_reference_resolution_and_additional_instrument_writer_are_checked() {
             "instrumentConfigurationRef=\"missing\"",
         ),
         xml.replace("id=\"b\"", "id=\"a\""),
-        xml.replace("sourceFileList count=\"1\"", "sourceFileList count=\"2\""),
     ] {
         assert!(mzml::read(Cursor::new(broken)).is_err());
     }
+    // A header list `count` that disagrees with the number of children is
+    // advisory on reading, as in source. The upstream TOPP fixture
+    // DTAExtractor_1_input.mzML declares softwareList count="5" with four
+    // entries and dataProcessingList count="3" with one, and C++ loads it;
+    // rejecting the mismatch made this port unable to read its own reference
+    // data. Writing still emits the true count.
+    let miscounted = xml.replace("sourceFileList count=\"1\"", "sourceFileList count=\"2\"");
+    let loaded = mzml::read(Cursor::new(miscounted)).expect("advisory count must not fail reading");
+    assert_eq!(loaded.settings.source_files.len(), 1);
 }
 #[test]
 fn unsupported_combination_list_metadata_and_missing_instrument_fail_before_output() {

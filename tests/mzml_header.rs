@@ -186,11 +186,16 @@ fn metadata_only_stops_before_bad_count_binary_and_tail() {
 fn header_references_and_counts_fail_without_partial_result() {
     for text in [
         REFERENCES.replace("softwareRef=\"sw\"", "softwareRef=\"absent\""),
-        REFERENCES.replace("softwareList count=\"1\"", "softwareList count=\"2\""),
         REFERENCES.replace("id=\"other\"", "id=\"dp\""),
     ] {
         assert!(mzml::read(Cursor::new(wrapper(&text, ""))).is_err());
     }
+    // A header list `count` that disagrees with the number of children is
+    // advisory on reading, as in source: the upstream TOPP fixture
+    // DTAExtractor_1_input.mzML declares softwareList count="5" with four
+    // entries and C++ loads it. Unresolved references above still fail.
+    let miscounted = REFERENCES.replace("softwareList count=\"1\"", "softwareList count=\"2\"");
+    assert!(mzml::read(Cursor::new(wrapper(&miscounted, ""))).is_ok());
     let mut limits = mzml::ReadOptions {
         max_param_bytes: 1,
         ..Default::default()

@@ -552,7 +552,8 @@
   "tests/data/mzml_normalization_provenance.json",
   "tests/data/mzml_schema_provenance.json",
   "tests/data/mzml_typed_transport_provenance.json",
-  "tests/data/experimental_design_provenance.json"
+  "tests/data/experimental_design_provenance.json",
+  "tests/data/topp_cli_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -585,5 +586,6 @@
    }
   ]
  },
- "experimental_design_fixture_provenance": "tests/data/experimental_design_provenance.json"
+ "experimental_design_fixture_provenance": "tests/data/experimental_design_provenance.json",
+ "topp_cli_provenance": "tests/data/topp_cli_provenance.json"
 }

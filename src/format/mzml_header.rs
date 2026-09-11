@@ -104,14 +104,19 @@ impl Node {
     fn id(&self) -> Result<&str> {
         parameter_id(self.get("id")?)
     }
+    /// Header list children. The schema's `count` attribute must be present and
+    /// numeric, but a value disagreeing with the actual number of children is
+    /// **advisory on reading**: the source reader ignores it and real files
+    /// carry wrong counts. The OpenMS TOPP fixture `DTAExtractor_1_input.mzML`
+    /// declares `softwareList count="5"` with four entries and
+    /// `dataProcessingList count="3"` with one, and C++ loads it. Rejecting the
+    /// mismatch made the port unable to read its own reference data. Writing
+    /// still emits the true count.
     fn children(&self, expected: &str) -> Result<&[Node]> {
         if self.children.iter().any(|child| child.name != expected) {
             return Err(invalid(format!("unexpected child of {}", self.name)));
         }
-        let count: usize = number(self.get("count")?, "header list count")?;
-        if count != self.children.len() {
-            return Err(invalid("header list count mismatch"));
-        }
+        let _declared: usize = number(self.get("count")?, "header list count")?;
         Ok(&self.children)
     }
 }

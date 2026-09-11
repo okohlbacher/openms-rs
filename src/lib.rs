@@ -50,8 +50,12 @@ pub const CORE_SDK_VERSION: &str = "4.0.0";
 /// Historical scientific fixtures retain their original, independently recorded pins.
 pub const CORE_SDK_REVISION: &str = "82ce5b373c97f934ffd9b1ffd80215ca66473d0b";
 
-pub mod data_structures;
 /// Hierarchical configuration parameters.
+/// The TOPP command-line framework. Needs `paramxml`, because every tool
+/// supports `-ini` and `-write_ini`.
+#[cfg(feature = "paramxml")]
+pub mod cli;
+pub mod data_structures;
 pub mod param;
 /// Filesystem helpers and explicit runtime resource locations.
 pub mod system;

@@ -1,0 +1,85 @@
+{
+ "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "method": "TOPPBase, ParameterInformation and DTAExtractor transcribed from the pinned C++ cli and topp packages. The four DTA fixtures are the retained outputs of the C++ TOPP test suite; the three upstream TOPP_DTAExtractor_* invocations are reproduced against them byte for byte. This is executed differential evidence for the whole command line to output chain, though the C++ binary itself was not run here: the comparison is against its committed outputs.",
+ "evidence_tier": "executed differential (tier 1), against retained C++ tool output",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPBase.h",
+   "sha256": "576cea45f0a5eea7827c44f8080c98759aea16d34c854f8867132e6f54d102b3"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPBase.cpp",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/ParameterInformation.h",
+   "sha256": "0c30e363a6d4481a3362094898409ef6ff297430b4fd3aecfbdfef44784be303"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/ParameterInformation.cpp",
+   "sha256": "cddf8e2e1eb0112c10a71a016aaed2ef2a023dea230cba3ee9078f049fb0463c"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/DTAExtractor.cpp",
+   "sha256": "0450b63576ec4916a0a0bdace902e43e40373a663ef5edb5b58e44480a1c8d3f"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/DTAExtractor_1_input.mzML",
+   "sha256": "da6175cbdb6e82e46ab55094e467dee3fc71468870b06f0f5a920ca25e1886e0",
+   "retained_as": "tests/data/dta_extractor_input.mzML"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/DTAExtractor_1_output.dta",
+   "sha256": "5fd48b00011a69ac7374c109758cc8650f574dd3b0e484da35a7bd7a800fd9de",
+   "retained_as": "tests/data/dta_extractor_1_output.dta"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/DTAExtractor_2_output.dta",
+   "sha256": "5fd48b00011a69ac7374c109758cc8650f574dd3b0e484da35a7bd7a800fd9de",
+   "retained_as": "tests/data/dta_extractor_2_output.dta"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/DTAExtractor_3_output.dta",
+   "sha256": "2cfe22c2474965cea618e73b450569b2473f1eee8e90176da385d27a06603f27",
+   "retained_as": "tests/data/dta_extractor_3_output.dta"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/dta_extractor_input.mzML",
+   "sha256": "da6175cbdb6e82e46ab55094e467dee3fc71468870b06f0f5a920ca25e1886e0"
+  },
+  {
+   "path": "tests/data/dta_extractor_1_output.dta",
+   "sha256": "5fd48b00011a69ac7374c109758cc8650f574dd3b0e484da35a7bd7a800fd9de"
+  },
+  {
+   "path": "tests/data/dta_extractor_2_output.dta",
+   "sha256": "5fd48b00011a69ac7374c109758cc8650f574dd3b0e484da35a7bd7a800fd9de"
+  },
+  {
+   "path": "tests/data/dta_extractor_3_output.dta",
+   "sha256": "2cfe22c2474965cea618e73b450569b2473f1eee8e90176da385d27a06603f27"
+  }
+ ],
+ "native_implementation": [
+  "src/cli.rs",
+  "src/cli/parameter.rs",
+  "src/cli/spec.rs",
+  "src/cli/context.rs",
+  "src/cli/usage.rs",
+  "src/bin/DTAExtractor.rs"
+ ],
+ "native_tests": [
+  "tests/topp_dta_extractor.rs"
+ ],
+ "support": "docs/TOPP_CLI_SUPPORT.md",
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 366-376",
+ "target_verification": {
+  "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
+}

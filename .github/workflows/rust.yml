@@ -22,6 +22,7 @@ jobs:
       - run: cargo test --locked --no-default-features
       - run: cargo test --locked --no-default-features --features idxml
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
+      - run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_dta_extractor
       - run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
       - run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features semantic-validation --test semantic_validator --test cv_mapping_file --test cv_mapping_values
