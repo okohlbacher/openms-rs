@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.2.0 — 2026-09-11
+
+First release with executable TOPP tools.
+
+### Core SDK
+
+- Target advanced to `bc9cc12`. Registered public headers: 786
+  (12 complete, 62 native-equivalent,
+  21 partial, 167 evidence-requires-review,
+  524 unmapped).
+- Typed record metadata, mzML primary-array roles and an optional libxml2-backed
+  `mzml-schema` validator.
+- The complete experimental design and its tab-separated reader.
+- The whole kernel is documented from the C++: all sixteen `src/kernel*` modules
+  at 100% rustdoc coverage, crate-wide 47.5%, enforced by a per-module ratchet.
+
+### TOPP
+
+- A native `TOPPBase`: registration, defaults/INI/command-line resolution,
+  `-write_ini`, usage text and all fifteen source exit codes.
+- **Five executable tools**, each reproducing its upstream test against retained
+  C++ output: `BaselineFilter`, `DTAExtractor`, `MapNormalizer`, `MzMLSplitter`
+  and `SpectraFilterWindowMower`. `validated_topp_workflows` is 5, the first
+  nonzero value the ledger has reported.
+- Algorithm subsections, porting `getSubsectionDefaults_`.
+
+### Evidence
+
+- `docs/DIFFERENTIAL_VALIDATION.md` defines four evidence tiers and a
+  canonical, tolerance-based comparison policy. Byte equality is not the
+  contract for mzML, because the upstream suite itself uses FuzzyDiff.
+- No C++ is committed to this repository; probe sources live outside it and are
+  recorded by hash, enforced by `tools/check_core_sdk.py`.
+- The top-level differential-testing claim was corrected: 2310 executed cases
+  against extracted OpenMS translation units, and no algorithm with SDK
+  dependency closure compared against running C++.
+
+### Known limits
+
+- 524 of 786 headers are unmapped; 141 of 146 TOPP tools are not ported.
+- The port is serial; the source parallelises with OpenMP in 36 files.
+- Vendor formats, HDF5 and ONNX are out of scope.
+
 ## 0.1.0 — Ongoing native Rust SDK port
 
 - Add algorithm subsections to the TOPP framework (`Tool::subsection_defaults`, porting `getSubsectionDefaults_`) and two more tools: `MapNormalizer` and `SpectraFilterWindowMower`, both reproducing their upstream tests against retained C++ output.
