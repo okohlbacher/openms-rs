@@ -7,11 +7,13 @@
 //! `src/bin/` executable and the differential test in `tests/` share exactly
 //! one definition of its parameters and behaviour.
 
+mod baseline_filter;
 mod dta_extractor;
 mod map_normalizer;
 mod mzml_splitter;
 mod spectra_filter_window_mower;
 
+pub use baseline_filter::BaselineFilter;
 pub use dta_extractor::DTAExtractor;
 pub use map_normalizer::MapNormalizer;
 pub use mzml_splitter::MzMLSplitter;

@@ -51,6 +51,25 @@ def referenced_paths(value):
             yield from referenced_paths(item)
 
 
+def validated_workflows():
+    """Tools with executed differential evidence, from the TOPP provenance manifests.
+
+    A manifest qualifies only when it declares tier 1 and names the upstream
+    test definition it reproduces; a tool whose manifest records source review
+    is not a validated workflow.
+    """
+    provenance = json.loads((ROOT / 'SOURCE_PROVENANCE.json').read_text())
+    found = {}
+    for manifest in provenance.get('topp_package_reference_manifests', []):
+        data = json.loads((ROOT / manifest).read_text())
+        if 'tier 1' not in data.get('evidence_tier', '') or not data.get('upstream_test_definition'):
+            continue
+        for path in data.get('native_implementation', []):
+            if path.startswith('src/bin/') and path.endswith('.rs'):
+                found[Path(path).stem] = manifest
+    return found
+
+
 def build(snapshot):
     inventory = json.loads((ROOT / 'docs/core-sdk-update.json').read_text())
     headers = [item for item in inventory['files'] if item['registration'] == 'registered_public_header']
@@ -95,14 +114,20 @@ def build(snapshot):
                      'status': status, 'review': review, 'candidate_rust_files': rust,
                      'reference_manifests': refs, 'direct_topp_consumers': sorted(consumers[include])})
     states = {row['header'].split('/include/', 1)[1]: row['status'] for row in rows}
+    validated = validated_workflows()
     for tool in tools:
         tool['open_sdk_headers'] = [h for h in tool['sdk_headers'] if states[h] not in {'complete', 'native_equivalent'}]
         # A direct include match never establishes behavioral tool compatibility.
-        tool['workflow_validated'] = False
+        # Only an executed differential comparison against retained C++ output
+        # does, which a TOPP provenance manifest records as tier 1.
+        tool['workflow_validated'] = tool['name'] in validated
+        if tool['workflow_validated']:
+            tool['workflow_evidence'] = validated[tool['name']]
     return {'schema_version': 1, 'target_revision': reviewed['target_revision'],
             'methodology': 'Every registered public SDK header is accounted for. Direct include dependencies and candidate Rust declarations guide review; neither source hashes nor names demonstrate method coverage. Transitive dependencies, conditional configurations, runtime data and tool workflows need separate validation. External/product-owned headers are not added to Core scope.',
             'counts': {'registered_public_headers': len(rows), 'by_status': dict(sorted(Counter(r['status'] for r in rows).items())),
-                       'topp_sources': len(tools), 'validated_topp_workflows': 0},
+                       'topp_sources': len(tools),
+                       'validated_topp_workflows': sum(1 for t in tools if t['workflow_validated'])},
             'headers': rows, 'tools': tools}
 
 
@@ -110,7 +135,8 @@ def markdown(data):
     counts = data['counts']
     lines = ['# Core SDK completion ledger', '',
              f"Target: `{data['target_revision']}`. This ledger covers all **{counts['registered_public_headers']} registered public headers** and direct includes from **{counts['topp_sources']} TOPP source files**.", '',
-             'This is a work inventory, not a completion percentage. Matching declarations and source references remain unverified until each API and its behavior are reviewed. No TOPP workflow is yet certified as port-ready. Physical unregistered headers and product backends are tracked separately by the SDK source inventory.', '',
+             'This is a work inventory, not a completion percentage. Matching declarations and source references remain unverified until each API and its behavior are reviewed. A TOPP workflow counts as validated only when an executed differential comparison against retained C++ output is recorded in its provenance manifest. Physical unregistered headers and product backends are tracked separately by the SDK source inventory.', '',
+             f"Validated TOPP workflows: **{counts['validated_topp_workflows']}** of {counts['topp_sources']}, each reproducing its upstream test against retained C++ output.", '',
              '| Review state | Headers |', '| --- | ---: |']
     lines.extend(f'| {status} | {count} |' for status, count in counts['by_status'].items())
     lines += ['', '## Highest fan-out open SDK dependencies', '',

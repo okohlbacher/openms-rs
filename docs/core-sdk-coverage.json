@@ -12,7 +12,7 @@
       "unmapped": 524
     },
     "topp_sources": 146,
-    "validated_topp_workflows": 0
+    "validated_topp_workflows": 5
   },
   "headers": [
     {
@@ -12134,7 +12134,8 @@
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h"
       ],
-      "workflow_validated": false
+      "workflow_validated": true,
+      "workflow_evidence": "tests/data/topp_baseline_filter_provenance.json"
     },
     {
       "name": "CVInspector",
@@ -12362,7 +12363,8 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
-      "workflow_validated": false
+      "workflow_validated": true,
+      "workflow_evidence": "tests/data/topp_cli_provenance.json"
     },
     {
       "name": "DatabaseFilter",
@@ -14104,7 +14106,8 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
-      "workflow_validated": false
+      "workflow_validated": true,
+      "workflow_evidence": "tests/data/topp_map_normalizer_provenance.json"
     },
     {
       "name": "MapRTTransformer",
@@ -14398,7 +14401,8 @@
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/SYSTEM/File.h"
       ],
-      "workflow_validated": false
+      "workflow_validated": true,
+      "workflow_evidence": "tests/data/topp_mzml_splitter_provenance.json"
     },
     {
       "name": "MzTabExporter",
@@ -16156,7 +16160,8 @@
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FILTERING/WindowMower.h"
       ],
-      "workflow_validated": false
+      "workflow_validated": true,
+      "workflow_evidence": "tests/data/topp_spectra_filter_window_mower_provenance.json"
     },
     {
       "name": "SpectraMerger",

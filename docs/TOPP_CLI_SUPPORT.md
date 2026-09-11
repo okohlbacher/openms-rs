@@ -132,6 +132,12 @@ be set on a section that holds no entries, so `ToolSpec::to_param` no longer
 writes subsection descriptions and the caller applies them after inserting the
 algorithm defaults.
 
+`BaselineFilter` removes the baseline by morphological filtering and reproduces
+its retained output with zero difference across all 132 intensities. It takes
+the filter's three parameters as ordinary options rather than a subsection,
+exactly as the source does, and keeps the source's two refusals: a run holding
+only chromatograms, and spectra that are not sorted by m/z.
+
 The second DTA finding above is the first concrete instance of the port's "checked boundaries"
 convention blocking C++ parity. The resolution pattern — keep the guard as the
 library default, add an explicit source-behavior option, and have the tool opt

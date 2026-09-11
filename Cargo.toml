@@ -11,6 +11,11 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [[bin]]
+name = "BaselineFilter"
+path = "src/bin/BaselineFilter.rs"
+required-features = ["mzml", "paramxml"]
+
+[[bin]]
 name = "DTAExtractor"
 path = "src/bin/DTAExtractor.rs"
 required-features = ["mzml", "paramxml"]

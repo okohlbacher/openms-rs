@@ -1,0 +1,48 @@
+{
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
+ },
+ "scope": "Sources and fixtures come from the independently versioned OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages.",
+ "method": "Tool transcribed from the pinned C++; the upstream invocation with -struc_elem_length 1.5 is reproduced and every intensity compared against the retained output. Observed maximum absolute difference over 132 intensities was zero.",
+ "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/topp/src/BaselineFilter.cpp",
+   "sha256": "5742cc6e325e71f164e22c22c77bc171240006f9b1d506e46f6d1537e9e0f1d2"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/BaselineFilter_input.mzML",
+   "sha256": "4f694e838c83df0368673b0b023ad7a53b8990f9d6ad7eedf1a737ea977720c5",
+   "retained_as": "tests/data/baseline_filter_tool_input.mzML"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/BaselineFilter_output.mzML",
+   "sha256": "0d32ade099d09e4c56183b6d19d78316d1460e62e5d786f9d7ab84a536766ec0",
+   "retained_as": "tests/data/baseline_filter_tool_output.mzML"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/baseline_filter_tool_input.mzML",
+   "sha256": "4f694e838c83df0368673b0b023ad7a53b8990f9d6ad7eedf1a737ea977720c5"
+  },
+  {
+   "path": "tests/data/baseline_filter_tool_output.mzML",
+   "sha256": "0d32ade099d09e4c56183b6d19d78316d1460e62e5d786f9d7ab84a536766ec0"
+  }
+ ],
+ "native_implementation": [
+  "src/cli/tools/baseline_filter.rs",
+  "src/bin/BaselineFilter.rs"
+ ],
+ "native_tests": [
+  "tests/topp_baseline_filter.rs"
+ ],
+ "support": "docs/TOPP_CLI_SUPPORT.md",
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 331-333",
+ "native_differences": [
+  "The source accepts erosion_simple and dilation_simple as alternative implementations; they select the same native methods because this port has one implementation of each."
+ ]
+}
