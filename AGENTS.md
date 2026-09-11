@@ -14,3 +14,12 @@ must be labeled as such; ordinary API differences are not automatically defects.
 
 When multiple agents work in parallel, send findings to the integrating agent,
 which owns this shared log, to avoid conflicting edits and duplicate IDs.
+
+## Evidence and the C++ oracle
+
+No C++ is committed to this repository. Probe sources and oracle drivers live outside it,
+under `../oracle/`; manifests record them in `external_reference_artifacts` with their
+sha256, and `tools/check_core_sdk.py` enforces that shape. Comparison policy, evidence
+tiers and the current state of the prebuilt C++ reference are in
+[docs/DIFFERENTIAL_VALIDATION.md](docs/DIFFERENTIAL_VALIDATION.md). A group may not claim
+executed evidence without a hashed artifact in its manifest.

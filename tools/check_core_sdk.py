@@ -53,6 +53,27 @@ def scientific_path(path):
     )
 
 
+def check_external_artifacts(data, manifest):
+    """Validate recorded C++ probe artifacts that deliberately live outside this repository.
+
+    No C++ is committed here, so these cannot be hash-verified from the crate. They are
+    still held to a shape: an ``../oracle/`` path, a well-formed sha256, the in-repo key
+    they came from, and a manifest-level note. That keeps the relocation auditable and
+    stops an unverifiable claim from entering through this key.
+    """
+    external = data.get("external_reference_artifacts", [])
+    if not external:
+        return
+    assert data.get("external_reference_note"), f"{manifest}: external artifacts need a note"
+    for item in external:
+        path = item["path"]
+        assert path.startswith("../oracle/"), f"{manifest}: {path} is not under ../oracle/"
+        assert not Path(path).is_absolute(), path
+        assert re.fullmatch(r"[0-9a-f]{64}", item["sha256"]), path
+        assert item.get("origin_key"), f"{manifest}: {path} must record its origin_key"
+        assert not (ROOT / Path(path).name).exists(), f"{manifest}: {path} still present in repo"
+
+
 def verify(source=None):
     record = json.loads((ROOT / "docs/core-sdk-update.json").read_text())
     identity = record["identity"]
@@ -74,6 +95,7 @@ def verify(source=None):
             path = Path(item["path"])
             assert not path.is_absolute() and ".." not in path.parts, item["path"]
             assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == item["sha256"], item["path"]
+        check_external_artifacts(data, manifest)
     for item in current_sources:
         path = Path(item["path"])
         assert not path.is_absolute() and ".." not in path.parts, item["path"]

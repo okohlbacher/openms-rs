@@ -1,5 +1,10 @@
 # Bounded DateTime reference probe
 
+> The C++ sources and stub headers for this probe live **outside this repository**, at
+> `../oracle/datetime/`, so that no C++ is committed here. Their sha256 values are
+> recorded in [datetime_provenance.json](../../tests/data/datetime_provenance.json)
+> and were verified unchanged at the move. The Python case generators stay here.
+
 This harness compiles the pinned DateTime.cpp scientific body and its DateTime.h/HashUtils.h headers **unmodified**. It does not build the SDK. The `include` directory supplies only:
 
 - UInt = unsigned int and export/pretty-function macros;
@@ -13,13 +18,13 @@ With `SOURCE` set to the exact 82ce5b3 checkout and `WORK` to an existing tempor
 
 ```sh
 clang++ -std=c++20 -O0 -g -fsanitize=undefined -fno-sanitize-recover=undefined \
-  -I tools/datetime_probe/include -I "$SOURCE/src/openms/include" \
-  tools/datetime_probe/main.cpp "$SOURCE/src/openms/source/DATASTRUCTURES/DateTime.cpp" \
+  -I ../oracle/datetime/include -I "$SOURCE/src/openms/include" \
+  ../oracle/datetime/main.cpp "$SOURCE/src/openms/source/DATASTRUCTURES/DateTime.cpp" \
   -o "$WORK/probe"
 python3 tools/datetime_probe/generate_cases.py --source-root "$SOURCE" \
   --probe "$WORK/probe" --work-dir "$WORK" --output-dir "$WORK/fixtures"
 python3 tools/datetime_probe/derive_calendar_corrections.py --data-dir "$WORK/fixtures"
-clang++ -std=c++20 tools/datetime_probe/timegm_diagnostic.cpp -o "$WORK/timegm_diagnostic"
+clang++ -std=c++20 ../oracle/datetime/timegm_diagnostic.cpp -o "$WORK/timegm_diagnostic"
 "$WORK/timegm_diagnostic"
 ```
 

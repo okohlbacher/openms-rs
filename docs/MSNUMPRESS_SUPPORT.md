@@ -143,7 +143,7 @@ allocation overhead and process RSS are not promised by the logical bounds.
   Safe rounding and a long overflowing linear recurrence are checked separately.
 - [295 differential cases](../tests/data/numpress_cpp_differential.tsv) were
   actually encoded using the **unmodified pinned C++ source**, linked only to a
-  [temporary driver](../tests/data/numpress_probe/probe.cpp). The driver also ran
+  [temporary driver](../../oracle/probes/numpress_probe/probe.cpp). The driver also ran
   the decoders and all three helpers. Eight empty Safe cases skip its undefined
   empty decoder and use the native empty-result extension; all other 287 cases
   execute a C++ decoder. Rust checks every encoded byte and helper result;

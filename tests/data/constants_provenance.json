@@ -1,50 +1,54 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
-      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
-    }
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+   "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/constants_reference.tsv",
+   "sha256": "237fb9e527d2bc250359ebc9ac54c689f2280e0a3208d222d8734cfd65841b8b"
+  }
+ ],
+ "scope": "All 38 source numeric entries including aliases and writable EPSILON, and all 91 UserParam strings. Existing three chemistry masses become identical re-exports.",
+ "native_mapping": "f64 constants, static borrowed strings, atomic bit-preserving epsilon()/set_epsilon() plus DEFAULT_EPSILON. Does not change explicit algorithm tolerances.",
+ "rust_implementation": [
+  "src/concept/constants.rs",
+  "src/chemistry/mod.rs"
+ ],
+ "native_tests": [
+  "tests/constants.rs"
+ ],
+ "cpp_execution": {
+  "executed": true,
+  "command": [
+   "clang++",
+   "-std=c++17",
+   "-O2",
+   "-I/tmp/openms-rs-constants-probe-include",
+   "-I.reference/openms4-core-82ce5b3/src/openms/include",
+   "../oracle/probes/constants_probe.cpp",
+   "-o",
+   "/tmp/openms-rs-constants-probe"
   ],
-  "fixtures": [
-    {
-      "path": "tests/data/constants_probe.cpp",
-      "sha256": "32b796fa1f1012d8e3fc9a52b729eeee8d90e15ec525643e4a1fb39aee4dedd3"
-    },
-    {
-      "path": "tests/data/constants_reference.tsv",
-      "sha256": "237fb9e527d2bc250359ebc9ac54c689f2280e0a3208d222d8734cfd65841b8b"
-    }
-  ],
-  "scope": "All 38 source numeric entries including aliases and writable EPSILON, and all 91 UserParam strings. Existing three chemistry masses become identical re-exports.",
-  "native_mapping": "f64 constants, static borrowed strings, atomic bit-preserving epsilon()/set_epsilon() plus DEFAULT_EPSILON. Does not change explicit algorithm tolerances.",
-  "rust_implementation": [
-    "src/concept/constants.rs",
-    "src/chemistry/mod.rs"
-  ],
-  "native_tests": [
-    "tests/constants.rs"
-  ],
-  "cpp_execution": {
-    "executed": true,
-    "command": [
-      "clang++",
-      "-std=c++17",
-      "-O2",
-      "-I/tmp/openms-rs-constants-probe-include",
-      "-I.reference/openms4-core-82ce5b3/src/openms/include",
-      "tests/data/constants_probe.cpp",
-      "-o",
-      "/tmp/openms-rs-constants-probe"
-    ],
-    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
-    "output_lines": 129,
-    "cpp_exit_code": 0,
-    "run_exit_code": 0,
-    "configuration": "Empty OpenMS/config.h include shim; unchanged Constants.h uses no configuration macros. No scientific replacement definitions.",
-    "comparison": "Every source f64 emitted as uint64 bits via memcpy; every std::string emitted verbatim.",
-    "full_sdk_build": false
-  },
-  "support_document": "docs/CONSTANTS_SUPPORT.md"
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
+  "output_lines": 129,
+  "cpp_exit_code": 0,
+  "run_exit_code": 0,
+  "configuration": "Empty OpenMS/config.h include shim; unchanged Constants.h uses no configuration macros. No scientific replacement definitions.",
+  "comparison": "Every source f64 emitted as uint64 bits via memcpy; every std::string emitted verbatim.",
+  "full_sdk_build": false
+ },
+ "support_document": "docs/CONSTANTS_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/probes/constants_probe.cpp",
+   "sha256": "32b796fa1f1012d8e3fc9a52b729eeee8d90e15ec525643e4a1fb39aee4dedd3",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "C++ probe sources live outside this repository under ../oracle/ so that no C++ is committed here. Their sha256 values were verified unchanged at the move and remain the evidence chain for the executed cases recorded in this manifest. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate."
 }

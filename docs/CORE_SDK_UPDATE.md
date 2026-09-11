@@ -122,7 +122,7 @@ revision, full scientific file set and all recorded source/registration/referenc
 hashes:
 
 ```bash
-python3 tools/check_core_sdk.py --source .reference/openms4-core-54a232f
+python3 tools/check_core_sdk.py --source .reference/openms4-core-82ce5b3
 ```
 
 The old archive is not a Git checkout. The check explicitly verifies the supplied

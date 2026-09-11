@@ -53,7 +53,7 @@ For example, `user_param::FWHM_MZ_ppm` is exactly `"FWHM_ppm"`, and
 [Two native tests](../tests/constants.rs) compare every numeric bit pattern and
 string with [129 recorded values](../tests/data/constants_reference.tsv) emitted
 by an actually compiled, unchanged source `Constants.h`. The
-[C++ probe](../tests/data/constants_probe.cpp) uses only an empty `OpenMS/config.h`
+[C++ probe](../../oracle/probes/constants_probe.cpp) uses only an empty `OpenMS/config.h`
 include shim: this header contains no conditional scientific definitions and
 uses no configuration macro. No source declarations or formulas are substituted.
 This is a header-only reference execution, not a full C++ SDK build.
