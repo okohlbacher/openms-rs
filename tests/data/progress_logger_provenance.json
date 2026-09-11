@@ -1,64 +1,64 @@
 {
-  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
-  "license": "BSD-3-Clause",
-  "source_files": [
-    {
-      "path": "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h",
-      "sha256": "e06ba1466a0ed9c2f509281b2938f60c62510c9ab3c98323e8f0b54885e8cf1f"
-    },
-    {
-      "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
-      "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/ProgressLogger_test.cpp",
-      "sha256": "456b65e76fb0808f016ef0e6061c7c8e2b703c760642e2f0b77b0f7bc5d759e5"
-    },
-    {
-      "path": "src/openms/include/OpenMS/SYSTEM/StopWatch.h",
-      "sha256": "3b4af741005190fe4edfa126fa06d6107b8bf4ed36e0f46b0cfbd94f71bf83a5"
-    },
-    {
-      "path": "src/openms/source/SYSTEM/StopWatch.cpp",
-      "sha256": "c928fab2492d7be3e530ee639245f675ff7d799e069e2a5836e03d471cf4441b"
-    },
-    {
-      "path": "src/openms/include/OpenMS/SYSTEM/SysInfo.h",
-      "sha256": "1a32bff6d8e2d99343824b0a48ab0e5f13f06977f5308fb59e544d7aa1a8448c"
-    },
-    {
-      "path": "src/openms/source/SYSTEM/SysInfo.cpp",
-      "sha256": "4f3e9606fc9bdc7c4e103953404310088df3edf68354097bf04d423f0ebf8905"
-    }
-  ],
-  "evidence": "Source mode/copy/NONE class-test assertions and independently derived deterministic dispatch, duration, percentage and throughput oracles; no C++ execution.",
-  "runtime_dependency": {
-    "name": "cpu-time",
-    "version": "1.0.0",
-    "crate_checksum": "e9e393a7668fe1fad3075085b86c781883000b4ede868f43627b34a87c8b7ded",
-    "documentation": "https://docs.rs/cpu-time/1.0.0/cpu_time/struct.ProcessTime.html",
-    "target": "cfg(any(unix, windows))",
-    "source_files": [
-      {
-        "path": "src/lib.rs",
-        "sha256": "743cf13d3dacf703191756baa4184ec00121724c9fb296f4181d73779b1cff90"
-      },
-      {
-        "path": "src/clock_gettime.rs",
-        "sha256": "50dccb3788a397ed45e4c06b57dd7b7aed19ca4d1129a01eed265a43a6e8d90d"
-      },
-      {
-        "path": "src/windows.rs",
-        "sha256": "d61828a44e1be3657cd14a9bcc859893f6cf5fc88d584b6e12cb53d383a91eae"
-      }
-    ],
-    "license": "MIT OR Apache-2.0"
+ "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h",
+   "sha256": "e06ba1466a0ed9c2f509281b2938f60c62510c9ab3c98323e8f0b54885e8cf1f"
   },
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
-    ],
-    "source_changes": []
+  {
+   "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
+   "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ProgressLogger_test.cpp",
+   "sha256": "456b65e76fb0808f016ef0e6061c7c8e2b703c760642e2f0b77b0f7bc5d759e5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/StopWatch.h",
+   "sha256": "3b4af741005190fe4edfa126fa06d6107b8bf4ed36e0f46b0cfbd94f71bf83a5"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "sha256": "c928fab2492d7be3e530ee639245f675ff7d799e069e2a5836e03d471cf4441b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/SysInfo.h",
+   "sha256": "1a32bff6d8e2d99343824b0a48ab0e5f13f06977f5308fb59e544d7aa1a8448c"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "sha256": "4f3e9606fc9bdc7c4e103953404310088df3edf68354097bf04d423f0ebf8905"
   }
+ ],
+ "evidence": "Source mode/copy/NONE class-test assertions and independently derived deterministic dispatch, duration, percentage and throughput oracles; no C++ execution.",
+ "runtime_dependency": {
+  "name": "cpu-time",
+  "version": "1.0.0",
+  "crate_checksum": "e9e393a7668fe1fad3075085b86c781883000b4ede868f43627b34a87c8b7ded",
+  "documentation": "https://docs.rs/cpu-time/1.0.0/cpu_time/struct.ProcessTime.html",
+  "target": "cfg(any(unix, windows))",
+  "source_files": [
+   {
+    "path": "src/lib.rs",
+    "sha256": "743cf13d3dacf703191756baa4184ec00121724c9fb296f4181d73779b1cff90"
+   },
+   {
+    "path": "src/clock_gettime.rs",
+    "sha256": "50dccb3788a397ed45e4c06b57dd7b7aed19ca4d1129a01eed265a43a6e8d90d"
+   },
+   {
+    "path": "src/windows.rs",
+    "sha256": "d61828a44e1be3657cd14a9bcc859893f6cf5fc88d584b6e12cb53d383a91eae"
+   }
+  ],
+  "license": "MIT OR Apache-2.0"
+ },
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+  ],
+  "source_changes": []
+ }
 }

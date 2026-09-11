@@ -1,154 +1,161 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h",
-      "sha256": "4d4c95c2ee66e6d51d9f799fe220c5cd62fb20928210a25d210b76f7d62f0921",
-      "lines": 313
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp",
-      "sha256": "270de96ff3f41a748f44ec44ea3002579289d2e7d534ee4e6b3cfa82bb3fdb1e",
-      "lines": 1148
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/TheoreticalSpectrumGeneratorXLMS_test.cpp",
-      "sha256": "44b65c0954621f0d3d1f68b9efe716076172c194c0aead818214ba1a1ea31417",
-      "lines": 818
-    },
-    {
-      "path": "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h",
-      "sha256": "60d78d3462191f893dbb92620791eb4a55177936f62578a24fbc414a6efb64bf",
-      "lines": 369
-    },
-    {
-      "path": "src/openms/source/ANALYSIS/XLMS/OPXLDataStructs.cpp",
-      "sha256": "f3bea4259c24b6906985ccbf2492e6ec52c3f24810ead3cc670173086e9da1d4",
-      "lines": 12
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/OPXLDataStructs_test.cpp",
-      "sha256": "5d2b56bead5a0fdabc7b513e7dc127470bfae812c369dddaa9ae858f0b7ccc25",
-      "lines": 193
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
-      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693",
-      "lines": 1719
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
-      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83",
-      "lines": 741
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
-      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f",
-      "lines": 515
-    },
-    {
-      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
-      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
-      "lines": 691
-    },
-    {
-      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
-      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
-      "lines": 968
-    }
-  ],
-  "native_scope": {
-    "TheoreticalSpectrumGeneratorXLMS.h": "Complete class-specific generator, LossIndex and 25 options; direct native options replace inherited Param/cache lifecycle.",
-    "OPXLDataStructs.h": "ProteinProteinCrossLinkType and complete ProteinProteinCrossLink only; remaining records/comparators excluded.",
-    "ProForma.h": "Spectrum wrappers remain excluded; CPP-038 is not compensated in backend."
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h",
+   "sha256": "4d4c95c2ee66e6d51d9f799fe220c5cd62fb20928210a25d210b76f7d62f0921",
+   "lines": 313
   },
-  "fixture_policy": "Unchanged source-class-test decimal and string extraction; independent scalar/formula assertions are written in direct tests. No C++ spectrum execution or full SDK build.",
-  "fixtures": [
-    {
-      "path": "tests/data/xlms_source_masses.tsv",
-      "sha256": "dc70f9768989740100366b9ee5bf30f8278dd61fe0b3092e746d1ad4d3e5dbfa"
-    },
-    {
-      "path": "tests/data/xlms_source_names.tsv",
-      "sha256": "8bd6270443b002ca571d8f919e4ec3290b0a43e662531be7eceac4c457d68c1c"
-    }
-  ],
-  "generator": {
-    "path": "tools/generate_xlms_reference.py",
-    "sha256": "24b8055fbeb27927e19932f2eee114d22ae3799d796cc522251e59450c4971dd",
-    "command": "python3 tools/generate_xlms_reference.py /path/to/OpenMS4-core --check"
+  {
+   "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp",
+   "sha256": "270de96ff3f41a748f44ec44ea3002579289d2e7d534ee4e6b3cfa82bb3fdb1e",
+   "lines": 1148
   },
-  "fixture_records": {
-    "mass_arrays": 3,
-    "mass_values": 52,
-    "allowed_annotation_sets": 6,
-    "allowed_annotation_strings": 113,
-    "source_mass_array_lines": [
-      98,
-      330,
-      620
-    ],
-    "source_name_set_lines": [
-      [
-        140,
-        151
-      ],
-      [
-        166,
-        177
-      ],
-      [
-        372,
-        392
-      ],
-      [
-        407,
-        427
-      ],
-      [
-        662,
-        683
-      ],
-      [
-        699,
-        723
-      ]
-    ],
-    "mass_tolerance_da": 0.001
+  {
+   "path": "src/tests/class_tests/openms/source/TheoreticalSpectrumGeneratorXLMS_test.cpp",
+   "sha256": "44b65c0954621f0d3d1f68b9efe716076172c194c0aead818214ba1a1ea31417",
+   "lines": 818
   },
-  "known_source_defects": [
-    {
-      "id": "CPP-042",
-      "source_lines": [
-        311,
-        570,
-        589
-      ],
-      "behavior": "Suffix linear neutral losses divide an already divided m/z again. Finite source values preserved; independent chemical expectation retained separately."
-    },
-    {
-      "id": "CPP-043",
-      "source_lines": [
-        623,
-        653,
-        682
-      ],
-      "behavior": "Precursor companions add isotope/charge to undivided charged mass. Finite source values preserved; independent chemical expectation retained separately."
-    }
-  ],
-  "native_boundaries": [
-    "Finite record linker mass with Arc allocation identity and normalized-zero hashing; C++ hash values/ABI not emulated.",
-    "Finite option and output values; checked consumed positions, empty loss preprocessing and zero division. Signed finite values retained.",
-    "Source loops use checked portable charge-span arithmetic; shared conservative work charges also cover early-exit branches.",
-    "Atomic append, stable equal-m/z order, neutral old-row annotation padding, rejection of unrelated populated arrays that cannot be extended.",
-    "Existing deterministic empirical-formula element order; no blanket bitwise C++ mass parity claim."
-  ],
-  "default_limits": {
-    "residues_per_peptide": 4096,
-    "combined_output_peaks": 100000,
-    "shared_work_units": 50000000,
-    "shared_logical_allocation_bytes": 268435456
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h",
+   "sha256": "60d78d3462191f893dbb92620791eb4a55177936f62578a24fbc414a6efb64bf",
+   "lines": 369
   },
-  "support_document": "docs/THEORETICAL_XLMS_SUPPORT.md",
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core"
+  {
+   "path": "src/openms/source/ANALYSIS/XLMS/OPXLDataStructs.cpp",
+   "sha256": "f3bea4259c24b6906985ccbf2492e6ec52c3f24810ead3cc670173086e9da1d4",
+   "lines": 12
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/OPXLDataStructs_test.cpp",
+   "sha256": "5d2b56bead5a0fdabc7b513e7dc127470bfae812c369dddaa9ae858f0b7ccc25",
+   "lines": 193
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+   "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693",
+   "lines": 1719
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+   "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83",
+   "lines": 741
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+   "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f",
+   "lines": 515
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+   "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d",
+   "lines": 691
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+   "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+   "lines": 968
+  }
+ ],
+ "native_scope": {
+  "TheoreticalSpectrumGeneratorXLMS.h": "Complete class-specific generator, LossIndex and 25 options; direct native options replace inherited Param/cache lifecycle.",
+  "OPXLDataStructs.h": "ProteinProteinCrossLinkType and complete ProteinProteinCrossLink only; remaining records/comparators excluded.",
+  "ProForma.h": "Spectrum wrappers remain excluded; CPP-038 is not compensated in backend."
+ },
+ "fixture_policy": "Unchanged source-class-test decimal and string extraction; independent scalar/formula assertions are written in direct tests. No C++ spectrum execution or full SDK build.",
+ "fixtures": [
+  {
+   "path": "tests/data/xlms_source_masses.tsv",
+   "sha256": "dc70f9768989740100366b9ee5bf30f8278dd61fe0b3092e746d1ad4d3e5dbfa"
+  },
+  {
+   "path": "tests/data/xlms_source_names.tsv",
+   "sha256": "8bd6270443b002ca571d8f919e4ec3290b0a43e662531be7eceac4c457d68c1c"
+  }
+ ],
+ "generator": {
+  "path": "tools/generate_xlms_reference.py",
+  "sha256": "24b8055fbeb27927e19932f2eee114d22ae3799d796cc522251e59450c4971dd",
+  "command": "python3 tools/generate_xlms_reference.py /path/to/OpenMS4-core --check"
+ },
+ "fixture_records": {
+  "mass_arrays": 3,
+  "mass_values": 52,
+  "allowed_annotation_sets": 6,
+  "allowed_annotation_strings": 113,
+  "source_mass_array_lines": [
+   98,
+   330,
+   620
+  ],
+  "source_name_set_lines": [
+   [
+    140,
+    151
+   ],
+   [
+    166,
+    177
+   ],
+   [
+    372,
+    392
+   ],
+   [
+    407,
+    427
+   ],
+   [
+    662,
+    683
+   ],
+   [
+    699,
+    723
+   ]
+  ],
+  "mass_tolerance_da": 0.001
+ },
+ "known_source_defects": [
+  {
+   "id": "CPP-042",
+   "source_lines": [
+    311,
+    570,
+    589
+   ],
+   "behavior": "Suffix linear neutral losses divide an already divided m/z again. Finite source values preserved; independent chemical expectation retained separately."
+  },
+  {
+   "id": "CPP-043",
+   "source_lines": [
+    623,
+    653,
+    682
+   ],
+   "behavior": "Precursor companions add isotope/charge to undivided charged mass. Finite source values preserved; independent chemical expectation retained separately."
+  }
+ ],
+ "native_boundaries": [
+  "Finite record linker mass with Arc allocation identity and normalized-zero hashing; C++ hash values/ABI not emulated.",
+  "Finite option and output values; checked consumed positions, empty loss preprocessing and zero division. Signed finite values retained.",
+  "Source loops use checked portable charge-span arithmetic; shared conservative work charges also cover early-exit branches.",
+  "Atomic append, stable equal-m/z order, neutral old-row annotation padding, rejection of unrelated populated arrays that cannot be extended.",
+  "Existing deterministic empirical-formula element order; no blanket bitwise C++ mass parity claim."
+ ],
+ "default_limits": {
+  "residues_per_peptide": 4096,
+  "combined_output_peaks": 100000,
+  "shared_work_units": 50000000,
+  "shared_logical_allocation_bytes": 268435456
+ },
+ "support_document": "docs/THEORETICAL_XLMS_SUPPORT.md",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
 }

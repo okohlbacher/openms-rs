@@ -1,153 +1,160 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "native_baseline": "13d5cf1c15090972d7ebddbcf8e26da71a6a5c51",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
-      "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
-    },
-    {
-      "path": "src/openms/source/FORMAT/MzMLFile.cpp",
-      "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
-      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
-      "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
-    },
-    {
-      "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",
-      "sha256": "99d9ee2fc48a95880b935b5ffc4a35433cad25850d4e6cebc7e319358daeac59"
-    },
-    {
-      "path": "share/OpenMS/MAPPING/ms-mapping.xml",
-      "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/Instrument.h",
-      "sha256": "10458d839ed1a7f4d6b2dc44e2baaa0e76b0cbed6f6246dee746586c4024e464"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/IonSource.h",
-      "sha256": "089a7c3335d3950da9d225541ad2f1e0e73fefa7760541fae54123274962a09f"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/MassAnalyzer.h",
-      "sha256": "aafdb8633ab279e28bb20bdda593462b8d0bdfc7c73f6e358c2a5be8d2dbb954"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/IonDetector.h",
-      "sha256": "0f9ec61448117a0df22275023feb5124fe7be132d6a4878b3adc7d1eac8f8e8f"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/DataProcessing.h",
-      "sha256": "7fcc9f2913cf1356a486675a4ba9afff617037d85d40cf6a508e9b99e36438ce"
-    },
-    {
-      "path": "src/openms/source/METADATA/DataProcessing.cpp",
-      "sha256": "283a93d7d36c6bf76da711d19c373daad164d601c8b3810503a5b99cb14da4b4"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DateTime.h",
-      "sha256": "50a9834bbe7d2723850aca762e3cca31777aa0d2c472e908f174c92fadc60e2f"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
-      "sha256": "bc766b362acec369917682cbb0c14a22cfeb83cc4e5c28ead5fc9556bf02eba2"
-    },
-    {
-      "path": "src/openms/source/METADATA/MetaInfo.cpp",
-      "sha256": "bafa2699024ef964a166234e0706bc0b29d5314abd45ff516046dd568ba42e18"
-    },
-    {
-      "path": "src/openms/source/METADATA/MetaInfoInterface.cpp",
-      "sha256": "4784d93bf3e62f4774f926520f1f9c7b0ab3598e686091c5c83ecf1569368699"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
-      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
-      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
-    }
-  ],
-  "fixtures": [
-    {
-      "path": "tests/data/mzml_header/MzMLFile_1.original.mzML",
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
-    },
-    {
-      "path": "tests/data/mzml_header/header.mzML",
-      "sha256": "e387f23ceda9bf151637a9fccab98c761a427d4acd3a0471b38c9f81637339ae"
-    },
-    {
-      "path": "tests/data/mzml_header/header_projection.json",
-      "sha256": "e28ac3aed55977377c213cf38aad50856c5f42349a8a49f2ca4a2f8ba861c7ef"
-    },
-    {
-      "path": "tests/data/mzml_header/instrument_enum_pairs.json",
-      "sha256": "0b6249dfc006ca02c63216cdd0dc2c63b83b3f49ac01a5c97f0cd41f77ccc364"
-    },
-    {
-      "path": "tests/data/mzml_header/instrument_enum_pairs.tsv",
-      "sha256": "7cd838629ea6d442b781ce1b8dd0a31455ea4e9e3d89ef63cc8aa2d1a1c703fe"
-    },
-    {
-      "path": "tests/data/mzml_header/mapping_rules.json",
-      "sha256": "e8b06072292d0c51a91b1810ea6ebd403e7f2db3d74bf8bb83ead1270aacdecb"
-    },
-    {
-      "path": "tools/mzml_header/header_fixture.py",
-      "sha256": "f9e513e04b8ba9b992c72ed529c906146c7808da73ffd717d52030209bb0a99c"
-    },
-    {
-      "path": "tools/mzml_header/mapping_projection.py",
-      "sha256": "60ff96311545e97e9607066144972ab08720fc68e7db73adea7a04f901d62d90"
-    },
-    {
-      "path": "tools/mzml_header/source_projection.py",
-      "sha256": "d2cb4985c0f658485ec87a0652ee0422dc81a441353f8a4d22db6e8e31426a6c"
-    }
-  ],
-  "reused_fixtures": [
-    {
-      "path": "tests/data/mzml_1_10.xsd",
-      "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad"
-    },
-    {
-      "path": "tests/data/mzml_param_groups_source.mzML",
-      "sha256": "7b750071057eb746b028b87a264dcba6b797b52450e76772ec46c6090058465c"
-    }
-  ],
-  "oracles": [
-    "Original MzMLFile class-test header literals; original fixture bytes retained. Header projection removes all records and repairs only sample count1->2, software3->4, processing3->4.",
-    "Independent Python extraction of all116 matching C++ reader/writer enum/accession routes, checked against source header enum discriminants; no Rust production generates expected values.",
-    "Pinned mzML XSD validates rich source headers, both reserved marker shapes, precursor/array/record settings and a default-source chromatogram through ordinary and Numpress writers.",
-    "Independent source expression cases: m/z-before-intensity primary metadata merge, chronological encounter processing order, original seconds/fractions preservation and software metadata fallback."
-  ],
-  "checked_native_boundaries": [
-    "typed DateTime replaces seconds-only DataProcessing CompletionTime; graph ProcessingStep is unchanged",
-    "empty history and empty action exact reserved marker payloads, invalid raw extras rejected",
-    "primary record metadata remains String-only; primary processing and nondefault chromatogram SourceFile have no schema/model owner and are rejected",
-    "source-unsupported sample/HPLC/instrument/CV fields fail before output; scope is source-supported header/reference group, not full schema or inherited MzMLFile operations",
-    "one shared header work/allocation allowance plus existing XML/parameter/binary limits; sparse root capacity and reference copies precharged"
-  ],
-  "original_cpp_issues": {
-    "CPP-019": "declared array/history processing count differs from emission",
-    "CPP-025": "later empty action method loses fallback term",
-    "CPP-026": "every processingMethod order emitted as zero",
-    "CPP-027": "completion timestamp source yyyy-MM-dd+hh:mm loses seconds/fractions",
-    "CPP-028": "wrong software semantic path can throw for recognized metadata",
-    "CPP-041": "unescaped source software version/checksum/fraction attributes; native valid fields escape and invalid digest strings remain rejected"
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "native_baseline": "13d5cf1c15090972d7ebddbcf8e26da71a6a5c51",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
+   "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
   },
-  "evidence_status": "C++ defects verified by pinned-source inspection and independent peer review, not execution of a new C++ probe. Rust tests and XML schema validation are native behavior evidence."
+  {
+   "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+   "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+  },
+  {
+   "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",
+   "sha256": "99d9ee2fc48a95880b935b5ffc4a35433cad25850d4e6cebc7e319358daeac59"
+  },
+  {
+   "path": "share/OpenMS/MAPPING/ms-mapping.xml",
+   "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/Instrument.h",
+   "sha256": "10458d839ed1a7f4d6b2dc44e2baaa0e76b0cbed6f6246dee746586c4024e464"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/IonSource.h",
+   "sha256": "089a7c3335d3950da9d225541ad2f1e0e73fefa7760541fae54123274962a09f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/MassAnalyzer.h",
+   "sha256": "aafdb8633ab279e28bb20bdda593462b8d0bdfc7c73f6e358c2a5be8d2dbb954"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/IonDetector.h",
+   "sha256": "0f9ec61448117a0df22275023feb5124fe7be132d6a4878b3adc7d1eac8f8e8f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/DataProcessing.h",
+   "sha256": "7fcc9f2913cf1356a486675a4ba9afff617037d85d40cf6a508e9b99e36438ce"
+  },
+  {
+   "path": "src/openms/source/METADATA/DataProcessing.cpp",
+   "sha256": "283a93d7d36c6bf76da711d19c373daad164d601c8b3810503a5b99cb14da4b4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DateTime.h",
+   "sha256": "50a9834bbe7d2723850aca762e3cca31777aa0d2c472e908f174c92fadc60e2f"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
+   "sha256": "bc766b362acec369917682cbb0c14a22cfeb83cc4e5c28ead5fc9556bf02eba2"
+  },
+  {
+   "path": "src/openms/source/METADATA/MetaInfo.cpp",
+   "sha256": "bafa2699024ef964a166234e0706bc0b29d5314abd45ff516046dd568ba42e18"
+  },
+  {
+   "path": "src/openms/source/METADATA/MetaInfoInterface.cpp",
+   "sha256": "4784d93bf3e62f4774f926520f1f9c7b0ab3598e686091c5c83ecf1569368699"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+   "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+   "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_header/MzMLFile_1.original.mzML",
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+  },
+  {
+   "path": "tests/data/mzml_header/header.mzML",
+   "sha256": "e387f23ceda9bf151637a9fccab98c761a427d4acd3a0471b38c9f81637339ae"
+  },
+  {
+   "path": "tests/data/mzml_header/header_projection.json",
+   "sha256": "e28ac3aed55977377c213cf38aad50856c5f42349a8a49f2ca4a2f8ba861c7ef"
+  },
+  {
+   "path": "tests/data/mzml_header/instrument_enum_pairs.json",
+   "sha256": "0b6249dfc006ca02c63216cdd0dc2c63b83b3f49ac01a5c97f0cd41f77ccc364"
+  },
+  {
+   "path": "tests/data/mzml_header/instrument_enum_pairs.tsv",
+   "sha256": "7cd838629ea6d442b781ce1b8dd0a31455ea4e9e3d89ef63cc8aa2d1a1c703fe"
+  },
+  {
+   "path": "tests/data/mzml_header/mapping_rules.json",
+   "sha256": "e8b06072292d0c51a91b1810ea6ebd403e7f2db3d74bf8bb83ead1270aacdecb"
+  },
+  {
+   "path": "tools/mzml_header/header_fixture.py",
+   "sha256": "f9e513e04b8ba9b992c72ed529c906146c7808da73ffd717d52030209bb0a99c"
+  },
+  {
+   "path": "tools/mzml_header/mapping_projection.py",
+   "sha256": "60ff96311545e97e9607066144972ab08720fc68e7db73adea7a04f901d62d90"
+  },
+  {
+   "path": "tools/mzml_header/source_projection.py",
+   "sha256": "d2cb4985c0f658485ec87a0652ee0422dc81a441353f8a4d22db6e8e31426a6c"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/mzml_1_10.xsd",
+   "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad"
+  },
+  {
+   "path": "tests/data/mzml_param_groups_source.mzML",
+   "sha256": "7b750071057eb746b028b87a264dcba6b797b52450e76772ec46c6090058465c"
+  }
+ ],
+ "oracles": [
+  "Original MzMLFile class-test header literals; original fixture bytes retained. Header projection removes all records and repairs only sample count1->2, software3->4, processing3->4.",
+  "Independent Python extraction of all116 matching C++ reader/writer enum/accession routes, checked against source header enum discriminants; no Rust production generates expected values.",
+  "Pinned mzML XSD validates rich source headers, both reserved marker shapes, precursor/array/record settings and a default-source chromatogram through ordinary and Numpress writers.",
+  "Independent source expression cases: m/z-before-intensity primary metadata merge, chronological encounter processing order, original seconds/fractions preservation and software metadata fallback."
+ ],
+ "checked_native_boundaries": [
+  "typed DateTime replaces seconds-only DataProcessing CompletionTime; graph ProcessingStep is unchanged",
+  "empty history and empty action exact reserved marker payloads, invalid raw extras rejected",
+  "primary record metadata remains String-only; primary processing and nondefault chromatogram SourceFile have no schema/model owner and are rejected",
+  "source-unsupported sample/HPLC/instrument/CV fields fail before output; scope is source-supported header/reference group, not full schema or inherited MzMLFile operations",
+  "one shared header work/allocation allowance plus existing XML/parameter/binary limits; sparse root capacity and reference copies precharged"
+ ],
+ "original_cpp_issues": {
+  "CPP-019": "declared array/history processing count differs from emission",
+  "CPP-025": "later empty action method loses fallback term",
+  "CPP-026": "every processingMethod order emitted as zero",
+  "CPP-027": "completion timestamp source yyyy-MM-dd+hh:mm loses seconds/fractions",
+  "CPP-028": "wrong software semantic path can throw for recognized metadata",
+  "CPP-041": "unescaped source software version/checksum/fraction attributes; native valid fields escape and invalid digest strings remain rejected"
+ },
+ "evidence_status": "C++ defects verified by pinned-source inspection and independent peer review, not execution of a new C++ probe. Rust tests and XML schema validation are native behavior evidence.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
 }

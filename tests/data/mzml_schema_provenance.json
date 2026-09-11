@@ -1,275 +1,282 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "native_baseline": {
-    "head": "1c13a6911359b059da6d532f433acbee9f793424",
-    "files": [
-      {
-        "path": "Cargo.toml",
-        "sha256": "5eca25e6ee37ebc56b7cd245f963ac65160847da72de442658c5cc0b7d994d2b"
-      },
-      {
-        "path": "Cargo.lock",
-        "sha256": "b3b9acd4153033c1b4d7369b233fb568791f92f6df1ad8fe59e5f4f74956ce8d"
-      },
-      {
-        "path": "src/format/mod.rs",
-        "sha256": "14ee936aa5c754e9dc9c4ec2d093b3655cbcd512a25e5d1e256b8336e248bddb"
-      },
-      {
-        "path": "src/format/mzml.rs",
-        "sha256": "a29ad3f6897e6693a796c7d6b5475a9f2433bd1d0427abdbafd4c82ddc97a220"
-      },
-      {
-        "path": "src/format/cv_xml.rs",
-        "sha256": "6dd9d138734321faca904111020d8f0c6eb702edafa0d52bafb7e2310e2cee24"
-      },
-      {
-        "path": ".gitattributes",
-        "sha256": "3b261f267188b0cecdb45815079978046c1be7b9ed856acb09f4552d62d51c58"
-      },
-      {
-        "path": ".github/workflows/rust.yml",
-        "sha256": "ef91f826d6c9a47b7b7d2e954506a5dae395dd89811a08f453935d3923045f55"
-      }
-    ]
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "native_baseline": {
+  "head": "1c13a6911359b059da6d532f433acbee9f793424",
+  "files": [
+   {
+    "path": "Cargo.toml",
+    "sha256": "5eca25e6ee37ebc56b7cd245f963ac65160847da72de442658c5cc0b7d994d2b"
+   },
+   {
+    "path": "Cargo.lock",
+    "sha256": "b3b9acd4153033c1b4d7369b233fb568791f92f6df1ad8fe59e5f4f74956ce8d"
+   },
+   {
+    "path": "src/format/mod.rs",
+    "sha256": "14ee936aa5c754e9dc9c4ec2d093b3655cbcd512a25e5d1e256b8336e248bddb"
+   },
+   {
+    "path": "src/format/mzml.rs",
+    "sha256": "a29ad3f6897e6693a796c7d6b5475a9f2433bd1d0427abdbafd4c82ddc97a220"
+   },
+   {
+    "path": "src/format/cv_xml.rs",
+    "sha256": "6dd9d138734321faca904111020d8f0c6eb702edafa0d52bafb7e2310e2cee24"
+   },
+   {
+    "path": ".gitattributes",
+    "sha256": "3b261f267188b0cecdb45815079978046c1be7b9ed856acb09f4552d62d51c58"
+   },
+   {
+    "path": ".github/workflows/rust.yml",
+    "sha256": "ef91f826d6c9a47b7b7d2e954506a5dae395dd89811a08f453935d3923045f55"
+   }
+  ]
+ },
+ "scope": "MzMLFile::isValid via a real optional fixed-schema libxml2 engine; not generic XMLValidator or index/CV validity. No C++ execution or shared repository edits.",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
+   "bytes": 8512,
+   "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
   },
-  "scope": "MzMLFile::isValid via a real optional fixed-schema libxml2 engine; not generic XMLValidator or index/CV validity. No C++ execution or shared repository edits.",
-  "source_files": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
-      "bytes": 8512,
-      "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
-    },
-    {
-      "path": "src/openms/source/FORMAT/MzMLFile.cpp",
-      "bytes": 8851,
-      "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
-      "bytes": 67280,
-      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/XMLValidator.h",
-      "bytes": 1978,
-      "sha256": "d1af4acfc0836b18a4a7969ff0c4a69dfe48845595a081a516071682de49556f"
-    },
-    {
-      "path": "src/openms/source/FORMAT/VALIDATORS/XMLValidator.cpp",
-      "bytes": 3946,
-      "sha256": "16193b35d7de8885d1061581d9e3eac717b0bfdd0aee41c6ba37a9a5f5bde7cc"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
-      "bytes": 55272,
-      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
-      "bytes": 58735,
-      "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
-      "bytes": 37187,
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
-      "bytes": 27526,
-      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc"
-    },
-    {
-      "path": "LICENSE.md",
-      "bytes": 1609,
-      "sha256": "1ea84de2119824afbd561fde5d4f2f541cbaae7187666d9e7b8dcf147ce99182"
-    }
-  ],
-  "source_anchors": {
-    "public": "MzMLFile.h:132-143",
-    "schema_selection": "MzMLFile.cpp:58-79",
-    "warning_policy": "XMLValidator.cpp:31-33,107-111",
-    "source_test": "MzMLFile_test.cpp:1181-1201",
-    "indexed_identity_defect": "mzML_idx_1_10.xsd:1194-1203"
+  {
+   "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+   "bytes": 8851,
+   "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
   },
-  "source_test_excerpt": "START_SECTION(bool isValid(const std::string& filename, std::ostream& os = std::cerr))\n{\n  std::string tmp_filename;\n  MzMLFile file;\n  PeakMap e;\n\n  //written empty file\n  NEW_TMP_FILE(tmp_filename);\n  file.store(tmp_filename,e);\n  TEST_EQUAL(file.isValid(tmp_filename),true);\n\n  //written filled file\n  NEW_TMP_FILE(tmp_filename);\n  file.load(OPENMS_GET_TEST_DATA_PATH(\"MzMLFile_1.mzML\"),e);\n  file.store(tmp_filename,e);\n  TEST_EQUAL(file.isValid(tmp_filename),true);\n\n  //indexed file\n  TEST_EQUAL(file.isValid(OPENMS_GET_TEST_DATA_PATH(\"MzMLFile_4_indexed.mzML\")),true)\n}\nEND_SECTION\n",
-  "source_test_evidence_strength": "Literal source assertions: C++-written empty valid, C++-written loaded valid, original indexed fixture valid. Native writer test is independent, not a preserved C++ output.",
-  "original_resources": [
-    {
-      "path": "resources/schemas/mzML_1_10.xsd",
-      "bytes": 55272,
-      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db",
-      "source_path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
-      "unchanged": true
-    },
-    {
-      "path": "resources/schemas/mzML_idx_1_10.xsd",
-      "bytes": 58735,
-      "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0",
-      "source_path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
-      "unchanged": true
-    },
-    {
-      "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
-      "bytes": 37187,
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
-      "source_path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
-      "unchanged": true
-    },
-    {
-      "path": "tests/data/mzml_validator/MzMLFile_4_indexed.mzML",
-      "bytes": 27526,
-      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc",
-      "source_path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
-      "unchanged": true
-    }
-  ],
-  "projections": [
-    {
-      "issue": "CPP-054",
-      "base": "tests/data/mzml_validator/MzMLFile_4_indexed.mzML",
-      "original_sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc",
-      "original_occurrences": 1,
-      "replacements": 1,
-      "old_ascii": "idRef=\"index=19\"",
-      "new_ascii": "idRef=\"does_not_exist\"",
-      "transformed_sha256": "956e8d42cbf98e053b3e99b5b68f772b163529c90f853ca2a0a04ba10d18e580",
-      "expected_engine_valid": true,
-      "expected_diagnostics": 0,
-      "meaning": "Schema defect preserved; not an index-integrity assertion."
-    },
-    {
-      "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
-      "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
-      "replacement_ascii": "<fileDescription xmlns:xml='urn:illegal'>",
-      "transformed_sha256": "d24fb518613a9db96cfc65f44447fdf848dc33af6ea5290f6a8e221213eb6441",
-      "before_fix_observed_engine_valid": true,
-      "before_fix_observed_diagnostics": 0,
-      "final_expected": "Native namespace preflight Error::Parse before engine",
-      "evidence": "docs/mzml_schema/namespace-before-fix.log"
-    },
-    {
-      "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
-      "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
-      "replacement_ascii": "<fileDescription xmlns:p='foo bar'>",
-      "transformed_sha256": "497e882325f54b8c34be4b77818ae91f4589d8a4e1ab6d3950aad46229f8fd1d",
-      "before_fix_observed_engine_valid": true,
-      "before_fix_observed_diagnostics": 0,
-      "final_expected": "Native namespace preflight Error::Parse before engine",
-      "evidence": "docs/mzml_schema/namespace-uri-before-fix.log"
-    },
-    {
-      "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
-      "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
-      "replacement_ascii": "<fileDescription xmlns:p='urn:a&#xA;b'>",
-      "transformed_sha256": "414b79a9788cdd0ab6df59e2b8e570616e8af06aa8f96d2988257abceb41d684",
-      "before_fix_observed_engine_valid": true,
-      "before_fix_observed_diagnostics": 0,
-      "final_expected": "Native namespace preflight Error::Parse before engine",
-      "evidence": "docs/mzml_schema/namespace-uri-before-fix.log"
-    },
-    {
-      "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
-      "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
-      "replacement_ascii": "<fileDescription xmlns:p='urn:a%zz'>",
-      "transformed_sha256": "21c430b5c1a98dccf72044551d16fb12153e1eadc9b582fcaea4c897654dd2bf",
-      "before_fix_observed_engine_valid": true,
-      "before_fix_observed_diagnostics": 0,
-      "final_expected": "Native namespace preflight Error::Parse before engine",
-      "evidence": "docs/mzml_schema/namespace-uri-before-fix.log"
-    },
-    {
-      "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
-      "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
-      "replacement_ascii": "<fileDescription xmlns:p='urn:a&lt;b'>",
-      "transformed_sha256": "83837039fd87f284eb685cc8345e0ffff1971d67beba9fa1d5be3045a734ed4b",
-      "before_fix_observed_engine_valid": true,
-      "before_fix_observed_diagnostics": 0,
-      "final_expected": "Native namespace preflight Error::Parse before engine",
-      "evidence": "docs/mzml_schema/namespace-uri-before-fix.log"
-    }
-  ],
-  "source_issue_links": [
-    "CPP-052",
-    "CPP-054"
-  ],
-  "dependency": {
-    "registry": "https://static.crates.io/crates/libxml/libxml-0.3.14.crate",
-    "version": "0.3.14",
-    "upstream_commit": "95f02f36449d32d4b578cdf769370fe580098346",
-    "archive_sha256": "d3e969617eea4e728856e3629229ed5ee92aa0b0a8cc2b7b42171b8a9ba4916e",
-    "source_unmodified": true,
-    "license": "MIT",
-    "audited_files": [
-      {
-        "path": "Cargo.toml",
-        "bytes": 2926,
-        "sha256": "bb17d4ed23949bd0e46dfc78008f6f6babb685c39ee49300107ddbd902f0b605"
-      },
-      {
-        "path": "Cargo.toml.orig",
-        "bytes": 1992,
-        "sha256": "51f6fcd9262a891c77898a2f41e2ae3040cd746331dbb211fa2fa7c3712fc4d2"
-      },
-      {
-        "path": "build.rs",
-        "bytes": 6303,
-        "sha256": "5a16c77568b84720b8d1537d16ac87aba8dc4da42ad7eb26dd092dda245b28f0"
-      },
-      {
-        "path": "LICENSE",
-        "bytes": 1124,
-        "sha256": "7b1ecc3b341c6515618d01ed9d5d8f428fc44f97f40a8ee3f7c4c02e4a0b9b06"
-      },
-      {
-        "path": "src/parser.rs",
-        "bytes": 12182,
-        "sha256": "03cc365ac932562aaeeec3e603b7d315fee3d71152589589bdd889c976dc7888"
-      },
-      {
-        "path": "src/error.rs",
-        "bytes": 3861,
-        "sha256": "0a701ede3d7b2ff40e846f2df0aca20550292635c85fa07d53ffab2ae585a5dd"
-      },
-      {
-        "path": "src/io.rs",
-        "bytes": 9878,
-        "sha256": "f2165b9b6af0e674614faf3f011d36708801c84293b40e742bc2fc71f6641d48"
-      },
-      {
-        "path": "src/schemas/parser.rs",
-        "bytes": 2962,
-        "sha256": "d934fdc52a64831ab4afea23a1423a14c3de035d9d4ea7eb4608da4c1f3d5678"
-      },
-      {
-        "path": "src/schemas/schema.rs",
-        "bytes": 1398,
-        "sha256": "c20b3384019610ae02c5ef3608cd8c84d953f7fae23c65aa51831eba650ef605"
-      },
-      {
-        "path": "src/schemas/validation.rs",
-        "bytes": 3880,
-        "sha256": "398b5a209d10bf98ccefb57e105385c64522a8507661688c0084e5ffc50c36fa"
-      },
-      {
-        "path": "src/schemas/common.rs",
-        "bytes": 858,
-        "sha256": "270e98b492f8afb90958963af04bedc256f5762170cc48161afc4afaeba30924"
-      }
-    ]
+  {
+   "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+   "bytes": 67280,
+   "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
   },
-  "standalone_spike": {
-    "path": "/tmp/openms-rs-mzml-xsd-spike",
-    "immutable_manifest_sha256": "0ee5e4bc26e20577be8600f242a43eaa76e545eba409c909a765371bad141a2c",
-    "immutable_executed_evidence_sha256": "979ab532cbc9c9c68dc25b0d9173016a318dd4636adb5644ca411300a4aa9826",
-    "actual_tests": "13 per Rust version, plus24 CLI cases total; frozen before production integration"
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/XMLValidator.h",
+   "bytes": 1978,
+   "sha256": "d1af4acfc0836b18a4a7969ff0c4a69dfe48845595a081a516071682de49556f"
   },
-  "primary_references": [
-    "https://www.w3.org/TR/REC-xml-names/",
-    "https://www.rfc-editor.org/rfc/rfc3986",
-    "https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md"
+  {
+   "path": "src/openms/source/FORMAT/VALIDATORS/XMLValidator.cpp",
+   "bytes": 3946,
+   "sha256": "16193b35d7de8885d1061581d9e3eac717b0bfdd0aee41c6ba37a9a5f5bde7cc"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+   "bytes": 55272,
+   "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
+   "bytes": 58735,
+   "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+   "bytes": 37187,
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
+   "bytes": 27526,
+   "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc"
+  },
+  {
+   "path": "LICENSE.md",
+   "bytes": 1609,
+   "sha256": "1ea84de2119824afbd561fde5d4f2f541cbaae7187666d9e7b8dcf147ce99182"
+  }
+ ],
+ "source_anchors": {
+  "public": "MzMLFile.h:132-143",
+  "schema_selection": "MzMLFile.cpp:58-79",
+  "warning_policy": "XMLValidator.cpp:31-33,107-111",
+  "source_test": "MzMLFile_test.cpp:1181-1201",
+  "indexed_identity_defect": "mzML_idx_1_10.xsd:1194-1203"
+ },
+ "source_test_excerpt": "START_SECTION(bool isValid(const std::string& filename, std::ostream& os = std::cerr))\n{\n  std::string tmp_filename;\n  MzMLFile file;\n  PeakMap e;\n\n  //written empty file\n  NEW_TMP_FILE(tmp_filename);\n  file.store(tmp_filename,e);\n  TEST_EQUAL(file.isValid(tmp_filename),true);\n\n  //written filled file\n  NEW_TMP_FILE(tmp_filename);\n  file.load(OPENMS_GET_TEST_DATA_PATH(\"MzMLFile_1.mzML\"),e);\n  file.store(tmp_filename,e);\n  TEST_EQUAL(file.isValid(tmp_filename),true);\n\n  //indexed file\n  TEST_EQUAL(file.isValid(OPENMS_GET_TEST_DATA_PATH(\"MzMLFile_4_indexed.mzML\")),true)\n}\nEND_SECTION\n",
+ "source_test_evidence_strength": "Literal source assertions: C++-written empty valid, C++-written loaded valid, original indexed fixture valid. Native writer test is independent, not a preserved C++ output.",
+ "original_resources": [
+  {
+   "path": "resources/schemas/mzML_1_10.xsd",
+   "bytes": 55272,
+   "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db",
+   "source_path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "resources/schemas/mzML_idx_1_10.xsd",
+   "bytes": 58735,
+   "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0",
+   "source_path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "bytes": 37187,
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+   "source_path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/mzml_validator/MzMLFile_4_indexed.mzML",
+   "bytes": 27526,
+   "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc",
+   "source_path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
+   "unchanged": true
+  }
+ ],
+ "projections": [
+  {
+   "issue": "CPP-054",
+   "base": "tests/data/mzml_validator/MzMLFile_4_indexed.mzML",
+   "original_sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc",
+   "original_occurrences": 1,
+   "replacements": 1,
+   "old_ascii": "idRef=\"index=19\"",
+   "new_ascii": "idRef=\"does_not_exist\"",
+   "transformed_sha256": "956e8d42cbf98e053b3e99b5b68f772b163529c90f853ca2a0a04ba10d18e580",
+   "expected_engine_valid": true,
+   "expected_diagnostics": 0,
+   "meaning": "Schema defect preserved; not an index-integrity assertion."
+  },
+  {
+   "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
+   "replacement_ascii": "<fileDescription xmlns:xml='urn:illegal'>",
+   "transformed_sha256": "d24fb518613a9db96cfc65f44447fdf848dc33af6ea5290f6a8e221213eb6441",
+   "before_fix_observed_engine_valid": true,
+   "before_fix_observed_diagnostics": 0,
+   "final_expected": "Native namespace preflight Error::Parse before engine",
+   "evidence": "docs/mzml_schema/namespace-before-fix.log"
+  },
+  {
+   "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
+   "replacement_ascii": "<fileDescription xmlns:p='foo bar'>",
+   "transformed_sha256": "497e882325f54b8c34be4b77818ae91f4589d8a4e1ab6d3950aad46229f8fd1d",
+   "before_fix_observed_engine_valid": true,
+   "before_fix_observed_diagnostics": 0,
+   "final_expected": "Native namespace preflight Error::Parse before engine",
+   "evidence": "docs/mzml_schema/namespace-uri-before-fix.log"
+  },
+  {
+   "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
+   "replacement_ascii": "<fileDescription xmlns:p='urn:a&#xA;b'>",
+   "transformed_sha256": "414b79a9788cdd0ab6df59e2b8e570616e8af06aa8f96d2988257abceb41d684",
+   "before_fix_observed_engine_valid": true,
+   "before_fix_observed_diagnostics": 0,
+   "final_expected": "Native namespace preflight Error::Parse before engine",
+   "evidence": "docs/mzml_schema/namespace-uri-before-fix.log"
+  },
+  {
+   "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
+   "replacement_ascii": "<fileDescription xmlns:p='urn:a%zz'>",
+   "transformed_sha256": "21c430b5c1a98dccf72044551d16fb12153e1eadc9b582fcaea4c897654dd2bf",
+   "before_fix_observed_engine_valid": true,
+   "before_fix_observed_diagnostics": 0,
+   "final_expected": "Native namespace preflight Error::Parse before engine",
+   "evidence": "docs/mzml_schema/namespace-uri-before-fix.log"
+  },
+  {
+   "base": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "recipe": "Replace first <fileDescription> start tag with replacement_ascii.",
+   "replacement_ascii": "<fileDescription xmlns:p='urn:a&lt;b'>",
+   "transformed_sha256": "83837039fd87f284eb685cc8345e0ffff1971d67beba9fa1d5be3045a734ed4b",
+   "before_fix_observed_engine_valid": true,
+   "before_fix_observed_diagnostics": 0,
+   "final_expected": "Native namespace preflight Error::Parse before engine",
+   "evidence": "docs/mzml_schema/namespace-uri-before-fix.log"
+  }
+ ],
+ "source_issue_links": [
+  "CPP-052",
+  "CPP-054"
+ ],
+ "dependency": {
+  "registry": "https://static.crates.io/crates/libxml/libxml-0.3.14.crate",
+  "version": "0.3.14",
+  "upstream_commit": "95f02f36449d32d4b578cdf769370fe580098346",
+  "archive_sha256": "d3e969617eea4e728856e3629229ed5ee92aa0b0a8cc2b7b42171b8a9ba4916e",
+  "source_unmodified": true,
+  "license": "MIT",
+  "audited_files": [
+   {
+    "path": "Cargo.toml",
+    "bytes": 2926,
+    "sha256": "bb17d4ed23949bd0e46dfc78008f6f6babb685c39ee49300107ddbd902f0b605"
+   },
+   {
+    "path": "Cargo.toml.orig",
+    "bytes": 1992,
+    "sha256": "51f6fcd9262a891c77898a2f41e2ae3040cd746331dbb211fa2fa7c3712fc4d2"
+   },
+   {
+    "path": "build.rs",
+    "bytes": 6303,
+    "sha256": "5a16c77568b84720b8d1537d16ac87aba8dc4da42ad7eb26dd092dda245b28f0"
+   },
+   {
+    "path": "LICENSE",
+    "bytes": 1124,
+    "sha256": "7b1ecc3b341c6515618d01ed9d5d8f428fc44f97f40a8ee3f7c4c02e4a0b9b06"
+   },
+   {
+    "path": "src/parser.rs",
+    "bytes": 12182,
+    "sha256": "03cc365ac932562aaeeec3e603b7d315fee3d71152589589bdd889c976dc7888"
+   },
+   {
+    "path": "src/error.rs",
+    "bytes": 3861,
+    "sha256": "0a701ede3d7b2ff40e846f2df0aca20550292635c85fa07d53ffab2ae585a5dd"
+   },
+   {
+    "path": "src/io.rs",
+    "bytes": 9878,
+    "sha256": "f2165b9b6af0e674614faf3f011d36708801c84293b40e742bc2fc71f6641d48"
+   },
+   {
+    "path": "src/schemas/parser.rs",
+    "bytes": 2962,
+    "sha256": "d934fdc52a64831ab4afea23a1423a14c3de035d9d4ea7eb4608da4c1f3d5678"
+   },
+   {
+    "path": "src/schemas/schema.rs",
+    "bytes": 1398,
+    "sha256": "c20b3384019610ae02c5ef3608cd8c84d953f7fae23c65aa51831eba650ef605"
+   },
+   {
+    "path": "src/schemas/validation.rs",
+    "bytes": 3880,
+    "sha256": "398b5a209d10bf98ccefb57e105385c64522a8507661688c0084e5ffc50c36fa"
+   },
+   {
+    "path": "src/schemas/common.rs",
+    "bytes": 858,
+    "sha256": "270e98b492f8afb90958963af04bedc256f5762170cc48161afc4afaeba30924"
+   }
+  ]
+ },
+ "standalone_spike": {
+  "path": "/tmp/openms-rs-mzml-xsd-spike",
+  "immutable_manifest_sha256": "0ee5e4bc26e20577be8600f242a43eaa76e545eba409c909a765371bad141a2c",
+  "immutable_executed_evidence_sha256": "979ab532cbc9c9c68dc25b0d9173016a318dd4636adb5644ca411300a4aa9826",
+  "actual_tests": "13 per Rust version, plus24 CLI cases total; frozen before production integration"
+ },
+ "primary_references": [
+  "https://www.w3.org/TR/REC-xml-names/",
+  "https://www.rfc-editor.org/rfc/rfc3986",
+  "https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md"
+ ],
+ "platform_scope": "Actual local macOS arm64 libxml2 2.9.13; Linux/MSVC feature CI prepared but not executed locally.",
+ "resource_boundary": "One cumulative native meter; diagnostic count/text checked after the binding accumulates its own vector. No hard C heap, time or callback-allocation claim.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "platform_scope": "Actual local macOS arm64 libxml2 2.9.13; Linux/MSVC feature CI prepared but not executed locally.",
-  "resource_boundary": "One cumulative native meter; diagnostic count/text checked after the binding accumulates its own vector. No hard C heap, time or callback-allocation claim."
+  "source_changes": []
+ }
 }

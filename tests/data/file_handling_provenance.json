@@ -1,49 +1,49 @@
 {
-  "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
-  "method": "FileTypes table transcribed from pinned C++; source test literals for registry/filter/path behavior plus independently checked native dispatch/atomic-output cases. No C++ execution claimed.",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/FileTypes.h",
-      "sha256": "57c6501b3cd5c2d6bcbcd55575e1f1c208c61f327f859a5fc2dcb30aa52a04c1"
-    },
-    {
-      "path": "src/openms/source/FORMAT/FileTypes.cpp",
-      "sha256": "6ef7ff6ff9ee67407c6c9e12a989fe8045e402bd2d4c8034cb163ec26b2848bf"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/FileNameUtils.h",
-      "sha256": "03a45edd288a3e5ef91423580043d882e6e02614e5e7f50798b2fc3ffbf5d771"
-    },
-    {
-      "path": "src/openms/source/FORMAT/FileNameUtils.cpp",
-      "sha256": "a3796bd2a77b24fb9e9748fe24a824231a31650258b065884e6b741742df004f"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/FileHandler.h",
-      "sha256": "aab489c2dcc5669cfec17357adaef9c2863dcb0927b27f2eff37c1817f89ee86"
-    },
-    {
-      "path": "src/openms/source/FORMAT/FileHandler.cpp",
-      "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/FileTypes_test.cpp",
-      "sha256": "0fb614dc7bef5938da0a023552835e830b2799dfed73b4645e261fc49579c5a8"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/FileNameUtils_test.cpp",
-      "sha256": "f9bbdcb04b7fccee816e57288367aac5889c78febc3588e4e828bd6fe6a98542"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/FileHandler_test.cpp",
-      "sha256": "c37bce50b91839fbc5cc19991985da0965726513e91bd0bbcab0600395157941"
-    }
-  ],
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
-    ],
-    "source_changes": []
+ "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+ "method": "FileTypes table transcribed from pinned C++; source test literals for registry/filter/path behavior plus independently checked native dispatch/atomic-output cases. No C++ execution claimed.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FileTypes.h",
+   "sha256": "57c6501b3cd5c2d6bcbcd55575e1f1c208c61f327f859a5fc2dcb30aa52a04c1"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileTypes.cpp",
+   "sha256": "6ef7ff6ff9ee67407c6c9e12a989fe8045e402bd2d4c8034cb163ec26b2848bf"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FileNameUtils.h",
+   "sha256": "03a45edd288a3e5ef91423580043d882e6e02614e5e7f50798b2fc3ffbf5d771"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileNameUtils.cpp",
+   "sha256": "a3796bd2a77b24fb9e9748fe24a824231a31650258b065884e6b741742df004f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FileHandler.h",
+   "sha256": "aab489c2dcc5669cfec17357adaef9c2863dcb0927b27f2eff37c1817f89ee86"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileHandler.cpp",
+   "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FileTypes_test.cpp",
+   "sha256": "0fb614dc7bef5938da0a023552835e830b2799dfed73b4645e261fc49579c5a8"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FileNameUtils_test.cpp",
+   "sha256": "f9bbdcb04b7fccee816e57288367aac5889c78febc3588e4e828bd6fe6a98542"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FileHandler_test.cpp",
+   "sha256": "c37bce50b91839fbc5cc19991985da0965726513e91bd0bbcab0600395157941"
   }
+ ],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+  ],
+  "source_changes": []
+ }
 }

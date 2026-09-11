@@ -1,47 +1,47 @@
 {
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "license": "BSD-3-Clause",
-  "source_files": [
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
-      "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h",
-      "sha256": "6bb33197a8512c79e281e5567d672ba9a1f3459168be970b768f80df13b52f9d"
-    },
-    {
-      "path": "src/openms/source/KERNEL/Peak1D.cpp",
-      "sha256": "405a476b9f29e93aa7e7ee53869f14e2f212d7a9627bdbfe4fa9c3fe43c79457"
-    },
-    {
-      "path": "src/openms/source/KERNEL/ChromatogramPeak.cpp",
-      "sha256": "d2151c82113255c8b5bf9faf25a9918d3a455e2b00a9e7de01d2d93ba14ab7d0"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
-      "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/Peak1D_test.cpp",
-      "sha256": "20d57744a7280691e5532030d2e3758e58dea2ca7f33ecc3e89c0743dc5332c5"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/ChromatogramPeak_test.cpp",
-      "sha256": "709a635d9ad7cc7177aa9304d268c3fdecbc04ea2070287a5b65cd06cab4463a"
-    }
-  ],
-  "native_test": "tests/kernel_value_traits.rs",
-  "source_test_anchors": {
-    "Peak1D_test.cpp": 343,
-    "ChromatogramPeak_test.cpp": 388
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+   "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
   },
-  "evidence": "Source literal hash-input values, equality and differing-value assertions; exact source output label layout; independent signed-zero and partial-equality checks. Numeric formatting is native Rust and hashes use the caller-supplied Hasher; no source digest golden or C++ execution.",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h",
+   "sha256": "6bb33197a8512c79e281e5567d672ba9a1f3459168be970b768f80df13b52f9d"
+  },
+  {
+   "path": "src/openms/source/KERNEL/Peak1D.cpp",
+   "sha256": "405a476b9f29e93aa7e7ee53869f14e2f212d7a9627bdbfe4fa9c3fe43c79457"
+  },
+  {
+   "path": "src/openms/source/KERNEL/ChromatogramPeak.cpp",
+   "sha256": "d2151c82113255c8b5bf9faf25a9918d3a455e2b00a9e7de01d2d93ba14ab7d0"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
+   "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Peak1D_test.cpp",
+   "sha256": "20d57744a7280691e5532030d2e3758e58dea2ca7f33ecc3e89c0743dc5332c5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ChromatogramPeak_test.cpp",
+   "sha256": "709a635d9ad7cc7177aa9304d268c3fdecbc04ea2070287a5b65cd06cab4463a"
   }
+ ],
+ "native_test": "tests/kernel_value_traits.rs",
+ "source_test_anchors": {
+  "Peak1D_test.cpp": 343,
+  "ChromatogramPeak_test.cpp": 388
+ },
+ "evidence": "Source literal hash-input values, equality and differing-value assertions; exact source output label layout; independent signed-zero and partial-equality checks. Numeric formatting is native Rust and hashes use the caller-supplied Hasher; no source digest golden or C++ execution.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

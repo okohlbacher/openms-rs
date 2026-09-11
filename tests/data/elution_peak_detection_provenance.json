@@ -1,118 +1,125 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "source_project": "OpenMS reduced Core SDK",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
-      "sha256": "1f683955133432ec26b997f111a18656f91876179c832be037cce1f7f2e3e686"
-    },
-    {
-      "path": "src/openms/source/FEATUREFINDER/ElutionPeakDetection.cpp",
-      "sha256": "903c60fe377543e06fa8c46dc7bc65bcd200f32762715495a1efd3c0a2d04077"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/ElutionPeakDetection_test.cpp",
-      "sha256": "27cc6a4a4bb856f2ac9fd918247101622fc148a7d4c44ea8b201f2d11fac1f95"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/ElutionPeakDetection_input1.mzML",
-      "sha256": "caa366027e6d190412fdb98334f36b0b4b92bad364b8b549726a6ba2f4f89a99"
-    },
-    {
-      "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
-      "sha256": "65964ce9690052ed33cd7e2769eae1cb6c099b5579ffdb8b219f44ced75525c8"
-    },
-    {
-      "path": "src/openms/source/PROCESSING/SMOOTHING/SavitzkyGolayFilter.cpp",
-      "sha256": "db318702abe049da5d85046bd7574b8689a7768972fe958846900d688402d668"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/SavitzkyGolayFilter_test.cpp",
-      "sha256": "c6caeb480127df0875dc9b4919b7cc550e4fe1831d0487f7ba94e54167fe3bb6"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
-      "sha256": "f29b0530d8a01411c58458e8aeb476963b4e204949c578a0fa57beedf8db7d82"
-    },
-    {
-      "path": "src/openms/source/KERNEL/MassTrace.cpp",
-      "sha256": "35370f232ab6adbcc0d5dde09ce0ffc6376b09722adc4e244a0ae655e63964e7"
-    }
-  ],
-  "fixtures": [
-    {
-      "path": "tests/data/elution_peak_detection_source.tsv",
-      "sha256": "0fa9a4f0159efb27893c7f412840325306163b970f939dda58ac2b7054c6224c"
-    },
-    {
-      "path": "tools/generate_elution_peak_detection_fixture.py",
-      "sha256": "9ff1ea01f33c756589dc8d3d4f9cc9e6b034ccd98b4853723e4a44cea7497ff4"
-    }
-  ],
-  "source_assertions": {
-    "input_spectra": 333,
-    "input_peaks": 333,
-    "detected_input_label": "T1",
-    "split_count": 3,
-    "active_labels": [
-      "T1.1",
-      "T1.2"
-    ],
-    "derived_label": "T1.3",
-    "extrema_counts": [
-      [
-        20,
-        10,
-        4,
-        2
-      ],
-      [
-        20,
-        70,
-        2,
-        1
-      ]
-    ],
-    "noise": 573.8585,
-    "mass_trace_snr": [
-      0.1907,
-      9.8855,
-      7.6432
-    ],
-    "apex_snr": [
-      2.0427,
-      37.7893,
-      52.9933
-    ],
-    "relative_tolerance": 0.01
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "source_project": "OpenMS reduced Core SDK",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
+   "sha256": "1f683955133432ec26b997f111a18656f91876179c832be037cce1f7f2e3e686"
   },
-  "independent_oracles": [
-    "closed-form RMSE/area/apex",
-    "4^5 integer signals at six neighborhoods",
-    "inclusive width rank enumeration",
-    "mutable cache publication and whole-batch rollback",
-    "f32 storage boundary and source existing SG oracle",
-    "cumulative byte/work boundaries"
-  ],
-  "native_adaptations": [
-    "typed six-field configuration",
-    "atomic all-input/output publication with previous output ownership return",
-    "deterministic serial input/segment order",
-    "checked finite arithmetic and window narrowing",
-    "existing QR smoother and inherited 1023 odd-frame bound",
-    "shared conservative resource precharges",
-    "progress end attempted on post-start failure"
-  ],
-  "validation": {
-    "current": "Rust 1.98.0 --all-features",
-    "minimum": "Rust 1.85.0 --no-default-features",
-    "cpp_execution": false,
-    "direct_tests": 14,
-    "adjacent_tests": 35,
-    "distinct_tests_per_toolchain": 49,
-    "strict_clippy": "library and direct test, both toolchains",
-    "formatting": "rustfmt --edition 2021 --check; passed",
-    "independent_review": "root complete scientific/resource review and chemistry bounded numerical/control-flow review; no findings"
+  {
+   "path": "src/openms/source/FEATUREFINDER/ElutionPeakDetection.cpp",
+   "sha256": "903c60fe377543e06fa8c46dc7bc65bcd200f32762715495a1efd3c0a2d04077"
   },
-  "license": "BSD-3-Clause"
+  {
+   "path": "src/tests/class_tests/openms/source/ElutionPeakDetection_test.cpp",
+   "sha256": "27cc6a4a4bb856f2ac9fd918247101622fc148a7d4c44ea8b201f2d11fac1f95"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ElutionPeakDetection_input1.mzML",
+   "sha256": "caa366027e6d190412fdb98334f36b0b4b92bad364b8b549726a6ba2f4f89a99"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
+   "sha256": "65964ce9690052ed33cd7e2769eae1cb6c099b5579ffdb8b219f44ced75525c8"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/SMOOTHING/SavitzkyGolayFilter.cpp",
+   "sha256": "db318702abe049da5d85046bd7574b8689a7768972fe958846900d688402d668"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SavitzkyGolayFilter_test.cpp",
+   "sha256": "c6caeb480127df0875dc9b4919b7cc550e4fe1831d0487f7ba94e54167fe3bb6"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
+   "sha256": "f29b0530d8a01411c58458e8aeb476963b4e204949c578a0fa57beedf8db7d82"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MassTrace.cpp",
+   "sha256": "35370f232ab6adbcc0d5dde09ce0ffc6376b09722adc4e244a0ae655e63964e7"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/elution_peak_detection_source.tsv",
+   "sha256": "0fa9a4f0159efb27893c7f412840325306163b970f939dda58ac2b7054c6224c"
+  },
+  {
+   "path": "tools/generate_elution_peak_detection_fixture.py",
+   "sha256": "9ff1ea01f33c756589dc8d3d4f9cc9e6b034ccd98b4853723e4a44cea7497ff4"
+  }
+ ],
+ "source_assertions": {
+  "input_spectra": 333,
+  "input_peaks": 333,
+  "detected_input_label": "T1",
+  "split_count": 3,
+  "active_labels": [
+   "T1.1",
+   "T1.2"
+  ],
+  "derived_label": "T1.3",
+  "extrema_counts": [
+   [
+    20,
+    10,
+    4,
+    2
+   ],
+   [
+    20,
+    70,
+    2,
+    1
+   ]
+  ],
+  "noise": 573.8585,
+  "mass_trace_snr": [
+   0.1907,
+   9.8855,
+   7.6432
+  ],
+  "apex_snr": [
+   2.0427,
+   37.7893,
+   52.9933
+  ],
+  "relative_tolerance": 0.01
+ },
+ "independent_oracles": [
+  "closed-form RMSE/area/apex",
+  "4^5 integer signals at six neighborhoods",
+  "inclusive width rank enumeration",
+  "mutable cache publication and whole-batch rollback",
+  "f32 storage boundary and source existing SG oracle",
+  "cumulative byte/work boundaries"
+ ],
+ "native_adaptations": [
+  "typed six-field configuration",
+  "atomic all-input/output publication with previous output ownership return",
+  "deterministic serial input/segment order",
+  "checked finite arithmetic and window narrowing",
+  "existing QR smoother and inherited 1023 odd-frame bound",
+  "shared conservative resource precharges",
+  "progress end attempted on post-start failure"
+ ],
+ "validation": {
+  "current": "Rust 1.98.0 --all-features",
+  "minimum": "Rust 1.85.0 --no-default-features",
+  "cpp_execution": false,
+  "direct_tests": 14,
+  "adjacent_tests": 35,
+  "distinct_tests_per_toolchain": 49,
+  "strict_clippy": "library and direct test, both toolchains",
+  "formatting": "rustfmt --edition 2021 --check; passed",
+  "independent_review": "root complete scientific/resource review and chemistry bounded numerical/control-flow review; no findings"
+ },
+ "license": "BSD-3-Clause",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
 }

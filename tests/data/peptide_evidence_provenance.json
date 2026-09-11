@@ -1,45 +1,52 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "native_base_revision": "13d5cf1c15090972d7ebddbcf8e26da71a6a5c51",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/METADATA/PeptideEvidence.h",
-      "sha256": "8f7d254f49d7ca63d505f85c5c8aa31235bb224036796baf395d39c8a6e0a55f",
-      "bytes": 4984
-    },
-    {
-      "path": "src/openms/source/METADATA/PeptideEvidence.cpp",
-      "sha256": "7c580274b885535f5237d74821cde3a03e71917a977ae632b753f3b7a4c3dddc",
-      "bytes": 2992
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/PeptideEvidence_test.cpp",
-      "sha256": "34bbc95dbcfd877d9d1aba66b2ccb3c470c753048fe01f41fd75d008637d1980",
-      "bytes": 2245
-    },
-    {
-      "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
-      "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b",
-      "bytes": 5004
-    }
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "native_base_revision": "13d5cf1c15090972d7ebddbcf8e26da71a6a5c51",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/METADATA/PeptideEvidence.h",
+   "sha256": "8f7d254f49d7ca63d505f85c5c8aa31235bb224036796baf395d39c8a6e0a55f",
+   "bytes": 4984
+  },
+  {
+   "path": "src/openms/source/METADATA/PeptideEvidence.cpp",
+   "sha256": "7c580274b885535f5237d74821cde3a03e71917a977ae632b753f3b7a4c3dddc",
+   "bytes": 2992
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeptideEvidence_test.cpp",
+   "sha256": "34bbc95dbcfd877d9d1aba66b2ccb3c470c753048fe01f41fd75d008637d1980",
+   "bytes": 2245
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
+   "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b",
+   "bytes": 5004
+  }
+ ],
+ "rust": [
+  "src/identification.rs"
+ ],
+ "tests": [
+  "tests/identification.rs"
+ ],
+ "documentation": "docs/PEPTIDE_EVIDENCE_SUPPORT.md",
+ "scope": "Complete typed value, default, copy/equality, source-order comparison, limit predicate and native hash-key operations. Hash uses Rust field semantics, not C++ numeric hash bytes.",
+ "evidence": "All source header/implementation operations reviewed. The source class test mostly contains TODO sections and provides no numerical or hash oracle; native tests exercise field/order/limit semantics, hashed deduplication and downstream identification operations. No C++ execution claimed.",
+ "native_boundaries": [
+  "None replaces source -1; usize coordinates replace signed Int and permit larger nonnegative values",
+  "typed validated ASCII residue/terminal markers replace arbitrary char bytes",
+  "CPP-045 corrected inclusive-interval validity retains existing native behavior",
+  "standard Rust Hash field selection and equality; no source numeric hash or cross-process stability claim"
+ ],
+ "cpp_issues": [
+  "CPP-045"
+ ],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "rust": [
-    "src/identification.rs"
-  ],
-  "tests": [
-    "tests/identification.rs"
-  ],
-  "documentation": "docs/PEPTIDE_EVIDENCE_SUPPORT.md",
-  "scope": "Complete typed value, default, copy/equality, source-order comparison, limit predicate and native hash-key operations. Hash uses Rust field semantics, not C++ numeric hash bytes.",
-  "evidence": "All source header/implementation operations reviewed. The source class test mostly contains TODO sections and provides no numerical or hash oracle; native tests exercise field/order/limit semantics, hashed deduplication and downstream identification operations. No C++ execution claimed.",
-  "native_boundaries": [
-    "None replaces source -1; usize coordinates replace signed Int and permit larger nonnegative values",
-    "typed validated ASCII residue/terminal markers replace arbitrary char bytes",
-    "CPP-045 corrected inclusive-interval validity retains existing native behavior",
-    "standard Rust Hash field selection and equality; no source numeric hash or cross-process stability claim"
-  ],
-  "cpp_issues": [
-    "CPP-045"
-  ]
+  "source_changes": []
+ }
 }

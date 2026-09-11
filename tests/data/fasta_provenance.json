@@ -1,66 +1,66 @@
 {
-  "upstream_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "upstream_commit": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "previous_commit": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
-  "source_files": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/FASTAFile.h",
-      "sha256": "18f2d87524e401f38beea74900596c70cdd157a8e964f44bfed69cb4064d49d0"
-    },
-    {
-      "path": "src/openms/source/FORMAT/FASTAFile.cpp",
-      "sha256": "a0e95ce52e3a461f889b9cfbb13250c8becfdb46ae72cfce60ed897919a3965f"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/FASTAFile_test.cpp",
-      "sha256": "a4587622e7c70c782e98557e68ec96c6c62e711bdf084c9b11da4b4fb8613be8"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/FASTAFile_test.fasta",
-      "sha256": "5e9ddcc9410d382d5151c8701a011a323c50b4877405e484b73e8e817021baad"
-    },
-    {
-      "path": "src/openms/source/FORMAT/FileHandler.cpp",
-      "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h",
-      "sha256": "e06ba1466a0ed9c2f509281b2938f60c62510c9ab3c98323e8f0b54885e8cf1f"
-    },
-    {
-      "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
-      "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf"
-    }
-  ],
-  "fixtures": [
-    {
-      "path": "tests/data/fasta_source_fields.tsv",
-      "sha256": "214238eb23c402c772a281c531a23e0650a5cff7e4cb29c9f593f2fb724305d1"
-    },
-    {
-      "path": "tests/data/fasta_source.fasta",
-      "sha256": "5e9ddcc9410d382d5151c8701a011a323c50b4877405e484b73e8e817021baad"
-    }
-  ],
-  "extraction": {
-    "input_records": 5,
-    "literal_assertions": 14,
-    "method": "Original FASTA fixture copied byte for byte. Field table concatenates only original C++ string literals in the five sequences_iterator record assertions, preserving description spaces and source starting line. Second record description has no source assertion. No C++ or native Rust outputs used as expected values.",
-    "unchanged_between_pins": [
-      "src/openms/include/OpenMS/FORMAT/FASTAFile.h",
-      "src/openms/source/FORMAT/FASTAFile.cpp",
-      "src/tests/class_tests/openms/source/FASTAFile_test.cpp",
-      "src/tests/class_tests/openms/data/FASTAFile_test.fasta"
-    ]
+ "upstream_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "upstream_commit": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "previous_commit": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FASTAFile.h",
+   "sha256": "18f2d87524e401f38beea74900596c70cdd157a8e964f44bfed69cb4064d49d0"
   },
-  "derived_cases": "Hand-traced parser branches: EOF flags, header/newline recognition, PEFF, exact delimiters, random seeks, 80-byte writes and callback lifecycle. Bounds, UTF-8 and atomic output-destination tests are native policy checks.",
-  "license": "OpenMS BSD-3-Clause; source notices retained in source checkout and crate LICENSE and LICENSES.md.",
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+  {
+   "path": "src/openms/source/FORMAT/FASTAFile.cpp",
+   "sha256": "a0e95ce52e3a461f889b9cfbb13250c8becfdb46ae72cfce60ed897919a3965f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FASTAFile_test.cpp",
+   "sha256": "a4587622e7c70c782e98557e68ec96c6c62e711bdf084c9b11da4b4fb8613be8"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/FASTAFile_test.fasta",
+   "sha256": "5e9ddcc9410d382d5151c8701a011a323c50b4877405e484b73e8e817021baad"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileHandler.cpp",
+   "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h",
+   "sha256": "e06ba1466a0ed9c2f509281b2938f60c62510c9ab3c98323e8f0b54885e8cf1f"
+  },
+  {
+   "path": "src/openms/source/CONCEPT/ProgressLogger.cpp",
+   "sha256": "cab7e28a3b62516ccb0d498cacf969a2c18975ece6c97da2aff51c5f25733baf"
   }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/fasta_source_fields.tsv",
+   "sha256": "214238eb23c402c772a281c531a23e0650a5cff7e4cb29c9f593f2fb724305d1"
+  },
+  {
+   "path": "tests/data/fasta_source.fasta",
+   "sha256": "5e9ddcc9410d382d5151c8701a011a323c50b4877405e484b73e8e817021baad"
+  }
+ ],
+ "extraction": {
+  "input_records": 5,
+  "literal_assertions": 14,
+  "method": "Original FASTA fixture copied byte for byte. Field table concatenates only original C++ string literals in the five sequences_iterator record assertions, preserving description spaces and source starting line. Second record description has no source assertion. No C++ or native Rust outputs used as expected values.",
+  "unchanged_between_pins": [
+   "src/openms/include/OpenMS/FORMAT/FASTAFile.h",
+   "src/openms/source/FORMAT/FASTAFile.cpp",
+   "src/tests/class_tests/openms/source/FASTAFile_test.cpp",
+   "src/tests/class_tests/openms/data/FASTAFile_test.fasta"
+  ]
+ },
+ "derived_cases": "Hand-traced parser branches: EOF flags, header/newline recognition, PEFF, exact delimiters, random seeks, 80-byte writes and callback lifecycle. Bounds, UTF-8 and atomic output-destination tests are native policy checks.",
+ "license": "OpenMS BSD-3-Clause; source notices retained in source checkout and crate LICENSE and LICENSES.md.",
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

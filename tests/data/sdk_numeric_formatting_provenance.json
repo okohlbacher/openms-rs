@@ -1,78 +1,111 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "previous_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "sources": [
-    {
-      "path": ".github/workflows/core-sdk.yml",
-      "sha256": "88e41e857175cf09ac5363c068784878ca4d025e7dd0edf10cf77d998c5f47e9"
-    },
-    {
-      "path": "README.md",
-      "sha256": "4ccaa837701d4588860768534fa3ef4840411f5edfa5e70c9afcf200b7af3028"
-    },
-    {
-      "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
-      "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a"
-    },
-    {
-      "path": "src/openms/CMakeLists.txt",
-      "sha256": "0a5f4d52b9add6a6f63209d182506fd3e9f41193041cfc5655d0dd25d216c6fb"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
-      "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
-    },
-    {
-      "path": "src/testframework/CMakeLists.txt",
-      "sha256": "fb923f567e73062026a6ed92e32a7570ac11adc89f268be9d698730c3cd07b5d"
-    },
-    {
-      "path": "src/testframework/include/OpenMS/CONCEPT/ClassTestUtils.h",
-      "sha256": "52b8a229ccd2bbbd23d79745b2d1c370d17ad151f4a067ed1e72aff0a030c671"
-    },
-    {
-      "path": "src/tests/class_tests/openms/CMakeLists.txt",
-      "sha256": "3c00c5d4a351e8d693c1b249ec2e36db3d967726df98b168dde7953b0b513a84"
-    },
-    {
-      "path": "tests/installed_sdk_acceptance/arrow.cpp",
-      "sha256": "0310aa1a72fc8da3d6bb876a842a42d3a93f823a1f6b146e1190140f4b56a3f9"
-    },
-    {
-      "path": "tests/installed_sdk_acceptance/run_acceptance.py",
-      "sha256": "5ff3d28f78224d5fa04bb50ab637b518914d0b5b243a15a10951bebc045357a0"
-    },
-    {
-      "path": "tests/runtime/CheckExecutablePath.cmake",
-      "sha256": "cfa5024fe6751aa5cd50a231758a0c4951b71c5d6563023761c654fbb468a111"
-    },
-    {
-      "path": "tools/ci/run.py",
-      "sha256": "eaf0de19b83e22d5b63f450bc02d0100e615b4176826946bc1bd0840a7a0cb3c"
-    },
-    {
-      "path": "tools/ci/test_run.py",
-      "sha256": "dcadab98c85a14056f6478afe309114b2ce459d4038e297b5f92c75281d1b3ea"
-    }
-  ],
-  "source_body_comparison": {
-    "previous_file": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
-    "previous_file_sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
-    "current_file": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
-    "normalization": "Extract the complete appendNumeric function body and strip leading/trailing indentation on each line; preserve all other bytes including comments.",
-    "normalized_body_sha256": "1228c1db508dc1c02942fad91bb8c0e7c5cb8b8abf8064fc15cdbc60da5773d5",
-    "result": "Exact equality"
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "previous_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "sources": [
+  {
+   "path": ".github/workflows/core-sdk.yml",
+   "sha256": "88e41e857175cf09ac5363c068784878ca4d025e7dd0edf10cf77d998c5f47e9"
   },
-  "scope": "The 54a232f-to-82ce5b3 update moves appendNumeric into the shared private NumericFormatting.h and qualifies the six callers. The complete function body is identical after indentation normalization; native f32/f64 formatting rules and parsing are unchanged. The earlier extended-long-double boundary remains outside the native API.",
-  "runtime_scope": "Only StringUtils.cpp in the comparable scientific roots changed. Shared private src/common header is tracked here, not counted as a new public SDK header. All other changed paths are test framework, build, acceptance and CI support.",
-  "rust_implementation": [
-    "src/param/value.rs",
-    "src/data_structures/list.rs"
+  {
+   "path": "README.md",
+   "sha256": "4ccaa837701d4588860768534fa3ef4840411f5edfa5e70c9afcf200b7af3028"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a"
+  },
+  {
+   "path": "src/openms/CMakeLists.txt",
+   "sha256": "0a5f4d52b9add6a6f63209d182506fd3e9f41193041cfc5655d0dd25d216c6fb"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+  },
+  {
+   "path": "src/testframework/CMakeLists.txt",
+   "sha256": "fb923f567e73062026a6ed92e32a7570ac11adc89f268be9d698730c3cd07b5d"
+  },
+  {
+   "path": "src/testframework/include/OpenMS/CONCEPT/ClassTestUtils.h",
+   "sha256": "52b8a229ccd2bbbd23d79745b2d1c370d17ad151f4a067ed1e72aff0a030c671"
+  },
+  {
+   "path": "src/tests/class_tests/openms/CMakeLists.txt",
+   "sha256": "3c00c5d4a351e8d693c1b249ec2e36db3d967726df98b168dde7953b0b513a84"
+  },
+  {
+   "path": "tests/installed_sdk_acceptance/arrow.cpp",
+   "sha256": "0310aa1a72fc8da3d6bb876a842a42d3a93f823a1f6b146e1190140f4b56a3f9"
+  },
+  {
+   "path": "tests/installed_sdk_acceptance/run_acceptance.py",
+   "sha256": "5ff3d28f78224d5fa04bb50ab637b518914d0b5b243a15a10951bebc045357a0"
+  },
+  {
+   "path": "tests/runtime/CheckExecutablePath.cmake",
+   "sha256": "cfa5024fe6751aa5cd50a231758a0c4951b71c5d6563023761c654fbb468a111"
+  },
+  {
+   "path": "tools/ci/run.py",
+   "sha256": "eaf0de19b83e22d5b63f450bc02d0100e615b4176826946bc1bd0840a7a0cb3c"
+  },
+  {
+   "path": "tools/ci/test_run.py",
+   "sha256": "dcadab98c85a14056f6478afe309114b2ce459d4038e297b5f92c75281d1b3ea"
+  }
+ ],
+ "source_body_comparison": {
+  "previous_file": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+  "previous_file_sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
+  "current_file": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+  "normalization": "Extract the complete appendNumeric function body and strip leading/trailing indentation on each line; preserve all other bytes including comments.",
+  "normalized_body_sha256": "1228c1db508dc1c02942fad91bb8c0e7c5cb8b8abf8064fc15cdbc60da5773d5",
+  "result": "Exact equality"
+ },
+ "scope": "The 54a232f-to-82ce5b3 update moves appendNumeric into the shared private NumericFormatting.h and qualifies the six callers. The complete function body is identical after indentation normalization; native f32/f64 formatting rules and parsing are unchanged. The earlier extended-long-double boundary remains outside the native API.",
+ "runtime_scope": "Only StringUtils.cpp in the comparable scientific roots changed. Shared private src/common header is tracked here, not counted as a new public SDK header. All other changed paths are test framework, build, acceptance and CI support.",
+ "rust_implementation": [
+  "src/param/value.rs",
+  "src/data_structures/list.rs"
+ ],
+ "existing_tests": [
+  "tests/param_value.rs",
+  "tests/list_utils.rs",
+  "tests/paramxml.rs"
+ ],
+ "cpp_execution": false,
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "existing_tests": [
-    "tests/param_value.rs",
-    "tests/list_utils.rs",
-    "tests/paramxml.rs"
-  ],
-  "cpp_execution": false
+  "source_changes": [
+   {
+    "path": ".github/workflows/core-sdk.yml",
+    "source_sha256": "88e41e857175cf09ac5363c068784878ca4d025e7dd0edf10cf77d998c5f47e9",
+    "target_sha256": "271177fb536ae8cd0c9e8a0cea461e3524ffa17c54d71fdaa91ff557764430ae",
+    "review": "Adds a Homebrew build/install job matrix. CI configuration only; no scientific source, formatter or test literal is touched."
+   },
+   {
+    "path": "README.md",
+    "source_sha256": "4ccaa837701d4588860768534fa3ef4840411f5edfa5e70c9afcf200b7af3028",
+    "target_sha256": "7566835e244a733664e7132a08c13c7681656f70e931db08368d7deba43901a1",
+    "review": "Documents the new Homebrew tap and raises the Windows Parquet acceptance repeat count from 50 to 1,000. Documentation only."
+   },
+   {
+    "path": "tests/installed_sdk_acceptance/arrow.cpp",
+    "source_sha256": "0310aa1a72fc8da3d6bb876a842a42d3a93f823a1f6b146e1190140f4b56a3f9",
+    "target_sha256": "d260153698ee9022bb79b164b0eb137c6eddab840f1df9a8efbb7b05d6ce7b00",
+    "review": "Removes the temporary per-stage stderr tracing from the installed-SDK Parquet probe. The probe's assertions are unchanged; it is an acceptance harness outside the scientific roots and outside the native port."
+   },
+   {
+    "path": "tests/installed_sdk_acceptance/run_acceptance.py",
+    "source_sha256": "5ff3d28f78224d5fa04bb50ab637b518914d0b5b243a15a10951bebc045357a0",
+    "target_sha256": "feaae1602936a5bf5006939704a7bc8f0ae9213b6fea2b76bd1015a1011b323d",
+    "review": "Raises the Windows Parquet repeat-until-fail bound from 50 to 1,000 and updates its comment. Acceptance harness only."
+   }
+  ]
+ },
+ "bc9cc12_scope": "The bc9cc12 update changes none of the numeric-formatting pins recorded here: StringUtils.cpp, NumericFormatting.h, ClassTestUtils.h and the build files are byte-identical. The four changed paths are Homebrew packaging, documentation and the installed-SDK Parquet acceptance harness, none of which affects native formatting or parsing."
 }

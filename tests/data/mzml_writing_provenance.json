@@ -1,171 +1,178 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_files": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
-      "bytes": 8512,
-      "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
-    },
-    {
-      "path": "src/openms/source/FORMAT/MzMLFile.cpp",
-      "bytes": 8851,
-      "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
-      "bytes": 10309,
-      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
-    },
-    {
-      "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
-      "bytes": 6740,
-      "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
-      "bytes": 20591,
-      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
-      "bytes": 281710,
-      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h",
-      "bytes": 6201,
-      "sha256": "c36f957c183551e34ada80ac5c595d4352fdc473e7820ef129189887004095b0"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
-      "bytes": 15402,
-      "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
-      "bytes": 8786,
-      "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65"
-    },
-    {
-      "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
-      "bytes": 11189,
-      "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
-      "bytes": 67280,
-      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/PeakFileOptions_test.cpp",
-      "bytes": 6863,
-      "sha256": "3f1a0bafb3e4ca87c6cd98edc602f60e865663ae1bd2b1bb6ac6ea33c7c13beb"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
-      "bytes": 58735,
-      "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
-      "bytes": 55272,
-      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp",
-      "bytes": 10642,
-      "sha256": "65f8b9f14e004892a3e8942e427579c9f8368ee559e47c50560aa8168d628e3b"
-    }
-  ],
-  "fixtures": [
-    {
-      "path": "tests/data/mzml_writing/precision.tsv",
-      "bytes": 637,
-      "sha256": "fdd48b3962608f47cf71ad9e0889c216814b0734518ea3dbe075a19291362269"
-    },
-    {
-      "path": "tests/data/mzml_writing/mzML_idx_1_10.xsd",
-      "bytes": 58735,
-      "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
-    },
-    {
-      "path": "tools/mzml_writing/precision_oracle.py",
-      "bytes": 1247,
-      "sha256": "b1359babbf8bedb54670c55611a979e4eb8adbcc8e93e20b0e4afbc144200029"
-    },
-    {
-      "path": "tools/mzml_writing/check_output.py",
-      "bytes": 1990,
-      "sha256": "52bf72859756020b6e453dc09b11fa8d6af3844121774577abd02241ffc3e603"
-    }
-  ],
-  "reused_fixtures": [
-    {
-      "path": "tests/data/mzml_isolation_target.mzML",
-      "bytes": 1710,
-      "sha256": "c238cda393ee4b9882ecdade2606f9b025dc7150cfdf1c0b511e17c193cc05f4"
-    }
-  ],
-  "evidence": {
-    "operation_scope": [
-      "four borrowed-PeakFileOptions stream/path writer entries",
-      "source-consumed precision, indexing, zlib, three Numpress and TPP settings for represented native model",
-      "selected-ion discriminator consumed across ordinary/legacy Numpress/source-option writers"
-    ],
-    "source_anchors": {
-      "primary_precision": "MzMLHandler.cpp5614-5658",
-      "numpress_type": "MzMLHandler.cpp5708-5845",
-      "TPP_selected_ion": "MzMLHandler.cpp4552-4594 and4736",
-      "index_wrapper": "MzMLHandler.cpp4848-4851",
-      "record_offsets": "MzMLHandler.cpp5245-5248 and5872-5875",
-      "checksum_footer": "MzMLHandlerHelper.cpp80-134",
-      "index_schema": "mzML_idx_1_10.xsd1138,1179-1189"
-    },
-    "original_literals": {
-      "linear": "QWR64UAAAADo//8/0P//f1kSgA==",
-      "pic": "ZGaMXCFQkQ==",
-      "slof": "QMVagAAAAAAZxX3ivPP8/w==",
-      "origin": "MSNumpressCoder_test.cpp202/241/281; input100,200,300.00005,400.00010. Stored native intensity/auxiliary inputs narrow to f32; the tested PIC/SLOF bytes remain identical."
-    },
-    "independent_oracles": {
-      "precision": "Python struct.pack little-endian f32/f64/base64, eight source-expression rows; no native output used to generate expected values",
-      "index_sha1": "Python hashlib over the actual raw byte prefix through opening checksum tag; raw tag offsets and ElementTree escaped-ID decoding checked as complete ordered bijection",
-      "block_boundaries": "Checksum prefix remainder55/56/63/0 modulo64; accepted partial writes1/7/63/64 and failing prefix writer",
-      "xsd": "Unchanged pinned indexed1.1 XSD, actual xmllint on current host; schema validation alone not checksum/offset proof",
-      "isolation": "Existing synthetic source-literal500/499.5 fixture plus250/999 spectrum/chromatogram. All four writer variants and both reader modes; fixture native IDs normalized to existing key=value writer contract."
-    },
-    "source_cpp_build_executed": false,
-    "cpp_issues": [
-      "CPP-049",
-      "CPP-050"
-    ],
-    "native_boundaries": [
-      "real SHA-1 instead of source placeholder",
-      "indexed empty rejected before external output/path lookup",
-      "offsets at actual UTF-8 element opening, not preceding newline",
-      "two borrowed markup passes over one prepared binary/header payload",
-      "f32 coordinate overflow/nonfinite errors before output",
-      "existing legacy defaults/fallback precision and ordinary bytes retained apart from selected-ion fix",
-      "unit-free numeric selected-ion metadata consumed without activation shadow; effective target preserved even when no offsets/explicit target, including represented zero",
-      "TPP intentionally suppresses isolation windows, does not suppress product windows",
-      "native one-selected-ion/zero-intensity shape retained",
-      "fixed header allowance separate from cumulative binary and markup/index allowances",
-      "source native-ID renewal not introduced; existing checked native ID policy retained",
-      "alternate primary detector roles, independent noise arrays, broader typed record metadata remain separate"
-    ],
-    "review": "Parent source/resource/test review closed after adding default-success control and unique IDs in cumulative-limit regression. Source_analysis independently reviewed checksum/schema/offset oracle; full bijection suggestion incorporated."
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
+   "bytes": 8512,
+   "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
   },
-  "dependency": {
-    "crate": "sha1",
-    "version": "0.10.7",
-    "default_features": false,
-    "features": [
-      "force-soft"
-    ],
-    "optional_feature": "mzml",
-    "license": "MIT OR Apache-2.0",
-    "source": "https://docs.rs/crate/sha1/0.10.7/source/",
-    "scope": "incremental format checksum only; no runtime parser/network/native crypto dependency"
+  {
+   "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+   "bytes": 8851,
+   "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+   "bytes": 10309,
+   "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
+   "bytes": 6740,
+   "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+   "bytes": 20591,
+   "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "bytes": 281710,
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h",
+   "bytes": 6201,
+   "sha256": "c36f957c183551e34ada80ac5c595d4352fdc473e7820ef129189887004095b0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+   "bytes": 15402,
+   "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
+   "bytes": 8786,
+   "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
+   "bytes": 11189,
+   "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+   "bytes": 67280,
+   "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakFileOptions_test.cpp",
+   "bytes": 6863,
+   "sha256": "3f1a0bafb3e4ca87c6cd98edc602f60e865663ae1bd2b1bb6ac6ea33c7c13beb"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
+   "bytes": 58735,
+   "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+   "bytes": 55272,
+   "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp",
+   "bytes": 10642,
+   "sha256": "65f8b9f14e004892a3e8942e427579c9f8368ee559e47c50560aa8168d628e3b"
   }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_writing/precision.tsv",
+   "bytes": 637,
+   "sha256": "fdd48b3962608f47cf71ad9e0889c216814b0734518ea3dbe075a19291362269"
+  },
+  {
+   "path": "tests/data/mzml_writing/mzML_idx_1_10.xsd",
+   "bytes": 58735,
+   "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
+  },
+  {
+   "path": "tools/mzml_writing/precision_oracle.py",
+   "bytes": 1247,
+   "sha256": "b1359babbf8bedb54670c55611a979e4eb8adbcc8e93e20b0e4afbc144200029"
+  },
+  {
+   "path": "tools/mzml_writing/check_output.py",
+   "bytes": 1990,
+   "sha256": "52bf72859756020b6e453dc09b11fa8d6af3844121774577abd02241ffc3e603"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/mzml_isolation_target.mzML",
+   "bytes": 1710,
+   "sha256": "c238cda393ee4b9882ecdade2606f9b025dc7150cfdf1c0b511e17c193cc05f4"
+  }
+ ],
+ "evidence": {
+  "operation_scope": [
+   "four borrowed-PeakFileOptions stream/path writer entries",
+   "source-consumed precision, indexing, zlib, three Numpress and TPP settings for represented native model",
+   "selected-ion discriminator consumed across ordinary/legacy Numpress/source-option writers"
+  ],
+  "source_anchors": {
+   "primary_precision": "MzMLHandler.cpp5614-5658",
+   "numpress_type": "MzMLHandler.cpp5708-5845",
+   "TPP_selected_ion": "MzMLHandler.cpp4552-4594 and4736",
+   "index_wrapper": "MzMLHandler.cpp4848-4851",
+   "record_offsets": "MzMLHandler.cpp5245-5248 and5872-5875",
+   "checksum_footer": "MzMLHandlerHelper.cpp80-134",
+   "index_schema": "mzML_idx_1_10.xsd1138,1179-1189"
+  },
+  "original_literals": {
+   "linear": "QWR64UAAAADo//8/0P//f1kSgA==",
+   "pic": "ZGaMXCFQkQ==",
+   "slof": "QMVagAAAAAAZxX3ivPP8/w==",
+   "origin": "MSNumpressCoder_test.cpp202/241/281; input100,200,300.00005,400.00010. Stored native intensity/auxiliary inputs narrow to f32; the tested PIC/SLOF bytes remain identical."
+  },
+  "independent_oracles": {
+   "precision": "Python struct.pack little-endian f32/f64/base64, eight source-expression rows; no native output used to generate expected values",
+   "index_sha1": "Python hashlib over the actual raw byte prefix through opening checksum tag; raw tag offsets and ElementTree escaped-ID decoding checked as complete ordered bijection",
+   "block_boundaries": "Checksum prefix remainder55/56/63/0 modulo64; accepted partial writes1/7/63/64 and failing prefix writer",
+   "xsd": "Unchanged pinned indexed1.1 XSD, actual xmllint on current host; schema validation alone not checksum/offset proof",
+   "isolation": "Existing synthetic source-literal500/499.5 fixture plus250/999 spectrum/chromatogram. All four writer variants and both reader modes; fixture native IDs normalized to existing key=value writer contract."
+  },
+  "source_cpp_build_executed": false,
+  "cpp_issues": [
+   "CPP-049",
+   "CPP-050"
+  ],
+  "native_boundaries": [
+   "real SHA-1 instead of source placeholder",
+   "indexed empty rejected before external output/path lookup",
+   "offsets at actual UTF-8 element opening, not preceding newline",
+   "two borrowed markup passes over one prepared binary/header payload",
+   "f32 coordinate overflow/nonfinite errors before output",
+   "existing legacy defaults/fallback precision and ordinary bytes retained apart from selected-ion fix",
+   "unit-free numeric selected-ion metadata consumed without activation shadow; effective target preserved even when no offsets/explicit target, including represented zero",
+   "TPP intentionally suppresses isolation windows, does not suppress product windows",
+   "native one-selected-ion/zero-intensity shape retained",
+   "fixed header allowance separate from cumulative binary and markup/index allowances",
+   "source native-ID renewal not introduced; existing checked native ID policy retained",
+   "alternate primary detector roles, independent noise arrays, broader typed record metadata remain separate"
+  ],
+  "review": "Parent source/resource/test review closed after adding default-success control and unique IDs in cumulative-limit regression. Source_analysis independently reviewed checksum/schema/offset oracle; full bijection suggestion incorporated."
+ },
+ "dependency": {
+  "crate": "sha1",
+  "version": "0.10.7",
+  "default_features": false,
+  "features": [
+   "force-soft"
+  ],
+  "optional_feature": "mzml",
+  "license": "MIT OR Apache-2.0",
+  "source": "https://docs.rs/crate/sha1/0.10.7/source/",
+  "scope": "incremental format checksum only; no runtime parser/network/native crypto dependency"
+ },
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
 }

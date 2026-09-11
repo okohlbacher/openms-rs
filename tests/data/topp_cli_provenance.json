@@ -1,5 +1,10 @@
 {
- "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
+ },
+ "scope": "Sources and fixtures come from the OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages, which are versioned independently of the Core SDK. They are deliberately not resolved against the Core SDK checkout.",
  "method": "TOPPBase, ParameterInformation and DTAExtractor transcribed from the pinned C++ cli and topp packages. The four DTA fixtures are the retained outputs of the C++ TOPP test suite; the three upstream TOPP_DTAExtractor_* invocations are reproduced against them byte for byte. This is executed differential evidence for the whole command line to output chain, though the C++ binary itself was not run here: the comparison is against its committed outputs.",
  "evidence_tier": "executed differential (tier 1), against retained C++ tool output",
  "sources": [
@@ -74,12 +79,5 @@
   "tests/topp_dta_extractor.rs"
  ],
  "support": "docs/TOPP_CLI_SUPPORT.md",
- "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 366-376",
- "target_verification": {
-  "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "source_revisions": [
-   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
-  ],
-  "source_changes": []
- }
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 366-376"
 }

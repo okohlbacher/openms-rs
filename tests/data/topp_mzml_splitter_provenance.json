@@ -1,5 +1,10 @@
 {
- "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
+ },
+ "scope": "Sources and fixtures come from the OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages, which are versioned independently of the Core SDK. They are deliberately not resolved against the Core SDK checkout.",
  "method": "MzMLSplitter transcribed from the pinned C++ topp package. The retained C++ outputs are compared canonically -- record counts, native identifiers, MS levels, retention times and peak values -- not byte for byte, because the upstream test itself uses FuzzyDiff and the two mzML writers differ in serialisation detail.",
  "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output",
  "sources": [
@@ -44,12 +49,5 @@
   "tests/topp_mzml_splitter.rs"
  ],
  "support": "docs/TOPP_CLI_SUPPORT.md",
- "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 4260-4270",
- "target_verification": {
-  "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "source_revisions": [
-   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
-  ],
-  "source_changes": []
- }
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 4260-4270"
 }

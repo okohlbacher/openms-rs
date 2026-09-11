@@ -1,83 +1,83 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h",
-      "sha256": "110fc8aee41a93ef5cb8cd9c01061e5a6ae785f0da5c9aefc6c330f88d8ce3f9"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h",
-      "sha256": "07611ae1c701fb703a80cea3646fd7a60ee27c870e2cf356af1c5f6949851d08"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h",
-      "sha256": "8853b917e699c02430bfd67d9073773ebed0288da342b5c1d99c22fdfca18c5b"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h",
-      "sha256": "c942eae4768d8b04712df31fea8d7f1d649abbcb3ba7cefba56b7c72f8b896b4"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.cpp",
-      "sha256": "a8954d6a4229546ad04a51fe3880f61138de9318d2165b8fe5dc766497ec9d32"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.cpp",
-      "sha256": "8cd779aaa70010a3d16a102ee59c4a3e38d3bed8f1025f52f8b6fb970ae23ac5"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MassDecomposer_test.cpp",
-      "sha256": "3311cad8026dc9b759cdc0837e06a5f51d3a4d43140e876cfcc4dd13f40f4dd9"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/IntegerMassDecomposer_test.cpp",
-      "sha256": "d4b2a8c9f7801977e25439d5e6771d3cc58526b29fc3e29de7f4176e31f233d1"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/RealMassDecomposer_test.cpp",
-      "sha256": "5c3b1eae6531e3cb5f278d7149a26f8f9c9ac4892fceb337f304c77711c082d9"
-    }
-  ],
-  "fixtures": [],
-  "fixture_policy": "No copied numeric fixture: source numerical class-test sections are TODO/NOT_TESTABLE. Native test constants retain constructor setup; expected numeric results are explicitly independent Cartesian/dyadic enumeration or source-recurrence deductions.",
-  "native_tests": [
-    "tests/ims_mass_decomposers.rs",
-    "src/chemistry/ims_mass_decomposer.rs private tests"
-  ],
-  "source_literals": {
-    "constructor": "Natural19WithoutI, map-sorted residue symbols, precision0.01, divideByGCD before Integer/Real construction"
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h",
+   "sha256": "110fc8aee41a93ef5cb8cd9c01061e5a6ae785f0da5c9aefc6c330f88d8ce3f9"
   },
-  "derived_cases": {
-    "independent_oracles": "Small-alphabet exhaustive Cartesian count vectors; dyadic real parent masses plus explicit integer interval; no production solver reused to derive expected values.",
-    "source_order": "[6,9,20] mass60 -> [10,0,0],[7,2,0],[4,4,0],[1,6,0],[0,0,3]",
-    "source_witness": "[4,5,6] mass10 -> [1,0,1], although enumeration starts [0,2,0]",
-    "finite_sentinel": "[6,9,2] mass13 existsfalse but enumeration[0,1,2]; [6,9,2,2] omits [0,1,2,0] from three mathematical solutions.",
-    "real_count": "[2,3],precision1,target0.5,error0.5 enumerationzero-vector vs count0",
-    "nonprogressing_witness": "[10,6,15] final row [0,21,12,33,24,15,6,27,18,39], witness[3]=(2,0); mass33+10k exists/all succeed but source single loop cannot progress. Native single returns checked error."
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h",
+   "sha256": "07611ae1c701fb703a80cea3646fd7a60ee27c870e2cf356af1c5f6949851d08"
   },
-  "native_policies": [
-    "u64 masses, u32 multiplicities/integer count, u64 real count; no arbitrary C++ template-width parity",
-    "Source supplied order, finite infinity sentinel, witness tie/counter semantics and real exclusive endpoints preserved",
-    "Exact singleton operations replace absent source table; empty/zero weights checked",
-    "Unsigned arithmetic/narrowing, invalid constraint indices and nonprogressing witnesses checked",
-    "Finite signed real inputs accepted when scaled endpoints and parent masses are representable",
-    "Counting visits same traversal without temporary result materialization; shared budgets include rejected candidates"
-  ],
-  "limits": {
-    "dimensions": 128,
-    "table_cells": 4000000,
-    "work": 50000000,
-    "logical_allocation_bytes": 67108864,
-    "materialized_outputs": 100000
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h",
+   "sha256": "8853b917e699c02430bfd67d9073773ebed0288da342b5c1d99c22fdfca18c5b"
   },
-  "support_document": "docs/IMS_DECOMPOSER_SUPPORT.md",
-  "validation_policy": "Native current/minimum compiler tests and strict Clippy; no C++ execution for this increment.",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h",
+   "sha256": "c942eae4768d8b04712df31fea8d7f1d649abbcb3ba7cefba56b7c72f8b896b4"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.cpp",
+   "sha256": "a8954d6a4229546ad04a51fe3880f61138de9318d2165b8fe5dc766497ec9d32"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.cpp",
+   "sha256": "8cd779aaa70010a3d16a102ee59c4a3e38d3bed8f1025f52f8b6fb970ae23ac5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MassDecomposer_test.cpp",
+   "sha256": "3311cad8026dc9b759cdc0837e06a5f51d3a4d43140e876cfcc4dd13f40f4dd9"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IntegerMassDecomposer_test.cpp",
+   "sha256": "d4b2a8c9f7801977e25439d5e6771d3cc58526b29fc3e29de7f4176e31f233d1"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RealMassDecomposer_test.cpp",
+   "sha256": "5c3b1eae6531e3cb5f278d7149a26f8f9c9ac4892fceb337f304c77711c082d9"
   }
+ ],
+ "fixtures": [],
+ "fixture_policy": "No copied numeric fixture: source numerical class-test sections are TODO/NOT_TESTABLE. Native test constants retain constructor setup; expected numeric results are explicitly independent Cartesian/dyadic enumeration or source-recurrence deductions.",
+ "native_tests": [
+  "tests/ims_mass_decomposers.rs",
+  "src/chemistry/ims_mass_decomposer.rs private tests"
+ ],
+ "source_literals": {
+  "constructor": "Natural19WithoutI, map-sorted residue symbols, precision0.01, divideByGCD before Integer/Real construction"
+ },
+ "derived_cases": {
+  "independent_oracles": "Small-alphabet exhaustive Cartesian count vectors; dyadic real parent masses plus explicit integer interval; no production solver reused to derive expected values.",
+  "source_order": "[6,9,20] mass60 -> [10,0,0],[7,2,0],[4,4,0],[1,6,0],[0,0,3]",
+  "source_witness": "[4,5,6] mass10 -> [1,0,1], although enumeration starts [0,2,0]",
+  "finite_sentinel": "[6,9,2] mass13 existsfalse but enumeration[0,1,2]; [6,9,2,2] omits [0,1,2,0] from three mathematical solutions.",
+  "real_count": "[2,3],precision1,target0.5,error0.5 enumerationzero-vector vs count0",
+  "nonprogressing_witness": "[10,6,15] final row [0,21,12,33,24,15,6,27,18,39], witness[3]=(2,0); mass33+10k exists/all succeed but source single loop cannot progress. Native single returns checked error."
+ },
+ "native_policies": [
+  "u64 masses, u32 multiplicities/integer count, u64 real count; no arbitrary C++ template-width parity",
+  "Source supplied order, finite infinity sentinel, witness tie/counter semantics and real exclusive endpoints preserved",
+  "Exact singleton operations replace absent source table; empty/zero weights checked",
+  "Unsigned arithmetic/narrowing, invalid constraint indices and nonprogressing witnesses checked",
+  "Finite signed real inputs accepted when scaled endpoints and parent masses are representable",
+  "Counting visits same traversal without temporary result materialization; shared budgets include rejected candidates"
+ ],
+ "limits": {
+  "dimensions": 128,
+  "table_cells": 4000000,
+  "work": 50000000,
+  "logical_allocation_bytes": 67108864,
+  "materialized_outputs": 100000
+ },
+ "support_document": "docs/IMS_DECOMPOSER_SUPPORT.md",
+ "validation_policy": "Native current/minimum compiler tests and strict Clippy; no C++ execution for this increment.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

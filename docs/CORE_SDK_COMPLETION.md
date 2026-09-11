@@ -1,6 +1,6 @@
 # Core SDK completion ledger
 
-Target: `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`. This ledger covers all **786 registered public headers** and direct includes from **146 TOPP source files**.
+Target: `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. This ledger covers all **786 registered public headers** and direct includes from **146 TOPP source files**.
 
 This is a work inventory, not a completion percentage. Matching declarations and source references remain unverified until each API and its behavior are reviewed. No TOPP workflow is yet certified as port-ready. Physical unregistered headers and product backends are tracked separately by the SDK source inventory.
 

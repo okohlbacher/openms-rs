@@ -1,45 +1,52 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/METADATA/IdentifierMSRunMapper.h",
-      "sha256": "d75a8076e9abe280755742eaa7f1114580ce520dd16e6e83bb6f11dede677a20"
-    },
-    {
-      "path": "src/openms/source/METADATA/IdentifierMSRunMapper.cpp",
-      "sha256": "95a3228c79015a5e923a401096bfbaf2e25ac1cfa5783163f6d315d5ad2a2a19"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/IdentifierMSRunMapper_test.cpp",
-      "sha256": "929b007aef263a27bc112f2855550a78f528ecd854b2113a84fa7e8aff51699a"
-    },
-    {
-      "path": "src/openms/source/METADATA/ProteinIdentification.cpp",
-      "sha256": "c4b8be0c5a733e6a1cb36c6fb3ab9b181688f6a487cd505b785b0051f83d9585"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DataValue.h",
-      "sha256": "1ea32c73e80d7607aa699a26a22be0ed2eca2d9d0b3249b4850b466384f2a74f"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
-      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
-    }
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/METADATA/IdentifierMSRunMapper.h",
+   "sha256": "d75a8076e9abe280755742eaa7f1114580ce520dd16e6e83bb6f11dede677a20"
+  },
+  {
+   "path": "src/openms/source/METADATA/IdentifierMSRunMapper.cpp",
+   "sha256": "95a3228c79015a5e923a401096bfbaf2e25ac1cfa5783163f6d315d5ad2a2a19"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IdentifierMSRunMapper_test.cpp",
+   "sha256": "929b007aef263a27bc112f2855550a78f528ecd854b2113a84fa7e8aff51699a"
+  },
+  {
+   "path": "src/openms/source/METADATA/ProteinIdentification.cpp",
+   "sha256": "c4b8be0c5a733e6a1cb36c6fb3ab9b181688f6a487cd505b785b0051f83d9585"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DataValue.h",
+   "sha256": "1ea32c73e80d7607aa699a26a22be0ed2eca2d9d0b3249b4850b466384f2a74f"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+   "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
+  }
+ ],
+ "native_implementation": [
+  "src/identification/run_mapping.rs"
+ ],
+ "native_tests": [
+  "tests/run_mapping.rs"
+ ],
+ "support_document": "docs/RUN_MAPPING_SUPPORT.md",
+ "scope": "Complete public IdentifierMSRunMapper operation group, including duplicate-error published state, merged-file selection and legacy fallback.",
+ "native_boundaries": [
+  "Borrowed slices/strings/identifier iteration, Cow for lenient numeric/list fallback, Option and Result instead of source output parameters/exceptions",
+  "Dedicated native primary path fields replace source metadata-backed storage; no filesystem resolution",
+  "Conservative construction descriptor/allocation preflight with atomic resource errors; duplicate path errors preserve the source full-forward/reverse-prefix state",
+  "Bounded diagnostic text differs from source exceptions; no TOPP workflow certification"
+ ],
+ "cpp_execution": false,
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "native_implementation": [
-    "src/identification/run_mapping.rs"
-  ],
-  "native_tests": [
-    "tests/run_mapping.rs"
-  ],
-  "support_document": "docs/RUN_MAPPING_SUPPORT.md",
-  "scope": "Complete public IdentifierMSRunMapper operation group, including duplicate-error published state, merged-file selection and legacy fallback.",
-  "native_boundaries": [
-    "Borrowed slices/strings/identifier iteration, Cow for lenient numeric/list fallback, Option and Result instead of source output parameters/exceptions",
-    "Dedicated native primary path fields replace source metadata-backed storage; no filesystem resolution",
-    "Conservative construction descriptor/allocation preflight with atomic resource errors; duplicate path errors preserve the source full-forward/reverse-prefix state",
-    "Bounded diagnostic text differs from source exceptions; no TOPP workflow certification"
-  ],
-  "cpp_execution": false
+  "source_changes": []
+ }
 }

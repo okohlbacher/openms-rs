@@ -1,78 +1,78 @@
 {
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h",
-      "sha256": "fb1e68573925873a3c8d71b6c7522fc6794e5381e1c19cbdd5143e873a51fcd4"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.cpp",
-      "sha256": "94e63e8a7adf9df17689edaf7a27cb09f17acab43a6a0d2dbd224e68f9dfe158"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MassDecomposition_test.cpp",
-      "sha256": "0c12f211fc74fb352d6bcd9e0638d7f08344049ea94a4f7cfdc40b2fbdcc461f"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
-      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
-      "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
-      "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
-    }
-  ],
-  "native_files": [
-    "src/chemistry/mass_decomposition.rs",
-    "tests/mass_decomposition.rs",
-    "docs/MASS_DECOMPOSITION_SUPPORT.md"
-  ],
-  "scope": "Complete public MassDecomposition value API; not the distinct mass-decomposition solvers.",
-  "source_literals": {
-    "file": "src/tests/class_tests/openms/source/MassDecomposition_test.cpp",
-    "coverage": "All distinct literal results in every active constructor/operator/accessor/predicate test section; repeated copy/assignment assertions share native cases."
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h",
+   "sha256": "fb1e68573925873a3c8d71b6c7522fc6794e5381e1c19cbdd5143e873a51fcd4"
   },
-  "source_quirks": [
-    "First-parenthesis suffix truncation, and outer trim only in that branch. Literal-space split; count conversion signed i32.",
-    "Duplicate symbols overwrite counts but cached maximum never decreases.",
-    "Map-only ordering versus map-and-maximum string equality.",
-    "Addition ignores the right cached maximum and preserves the left cached maximum.",
-    "Zero keys remain significant for compatible; tags compare counts without order.",
-    "Compact formatter performs final ASCII whitespace trim even on control-byte symbols.",
-    "operator+ new-key branch compares against original-left maximum, permitting a later key to lower result cache; += compares running maximum instead. A1 + B10 C5 caches5, but += caches10."
-  ],
-  "native_corrections": [
-    "Nonnegative checked counts instead of source signed-i32 to unsigned-Size negative conversion.",
-    "Checked usize additions rather than wrapping; in-place addition is atomic.",
-    "ASCII symbols and UTF-8 strings rather than platform signed-char ordering over arbitrary bytes.",
-    "Explicit source comparison separate from full-value Eq/Hash; no inconsistent Ord.",
-    "No stderr print for incompatible composition."
-  ],
-  "limits": {
-    "input_and_tag_bytes": 1048576,
-    "expanded_output_bytes": 16777216,
-    "work_per_parse_or_tag": 50000000,
-    "maximum_symbol_keys": 128
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.cpp",
+   "sha256": "94e63e8a7adf9df17689edaf7a27cb09f17acab43a6a0d2dbd224e68f9dfe158"
   },
-  "validation": "Source-only inspection; native targeted tests on Rust1.98 and1.85, no C++ execution or runtime differential claim.",
-  "license": "OpenMS source-derived behavior/tests retain BSD-3-Clause attribution.",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": [
-      {
-        "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
-        "source_sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
-        "target_sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
-        "review": "The 54a232f-to-82ce5b3 update moves appendNumeric into the shared private NumericFormatting.h and qualifies the six callers. The complete function body is identical after indentation normalization; native f32/f64 formatting rules and parsing are unchanged. The earlier extended-long-double boundary remains outside the native API."
-      }
-    ]
+  {
+   "path": "src/tests/class_tests/openms/source/MassDecomposition_test.cpp",
+   "sha256": "0c12f211fc74fb352d6bcd9e0638d7f08344049ea94a4f7cfdc40b2fbdcc461f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+   "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
   }
+ ],
+ "native_files": [
+  "src/chemistry/mass_decomposition.rs",
+  "tests/mass_decomposition.rs",
+  "docs/MASS_DECOMPOSITION_SUPPORT.md"
+ ],
+ "scope": "Complete public MassDecomposition value API; not the distinct mass-decomposition solvers.",
+ "source_literals": {
+  "file": "src/tests/class_tests/openms/source/MassDecomposition_test.cpp",
+  "coverage": "All distinct literal results in every active constructor/operator/accessor/predicate test section; repeated copy/assignment assertions share native cases."
+ },
+ "source_quirks": [
+  "First-parenthesis suffix truncation, and outer trim only in that branch. Literal-space split; count conversion signed i32.",
+  "Duplicate symbols overwrite counts but cached maximum never decreases.",
+  "Map-only ordering versus map-and-maximum string equality.",
+  "Addition ignores the right cached maximum and preserves the left cached maximum.",
+  "Zero keys remain significant for compatible; tags compare counts without order.",
+  "Compact formatter performs final ASCII whitespace trim even on control-byte symbols.",
+  "operator+ new-key branch compares against original-left maximum, permitting a later key to lower result cache; += compares running maximum instead. A1 + B10 C5 caches5, but += caches10."
+ ],
+ "native_corrections": [
+  "Nonnegative checked counts instead of source signed-i32 to unsigned-Size negative conversion.",
+  "Checked usize additions rather than wrapping; in-place addition is atomic.",
+  "ASCII symbols and UTF-8 strings rather than platform signed-char ordering over arbitrary bytes.",
+  "Explicit source comparison separate from full-value Eq/Hash; no inconsistent Ord.",
+  "No stderr print for incompatible composition."
+ ],
+ "limits": {
+  "input_and_tag_bytes": 1048576,
+  "expanded_output_bytes": 16777216,
+  "work_per_parse_or_tag": 50000000,
+  "maximum_symbol_keys": 128
+ },
+ "validation": "Source-only inspection; native targeted tests on Rust1.98 and1.85, no C++ execution or runtime differential claim.",
+ "license": "OpenMS source-derived behavior/tests retain BSD-3-Clause attribution.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": [
+   {
+    "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+    "source_sha256": "04716995b66e19af9fbc7957929993ac39e27f3293174475ec7dc3ce4ad0d9bc",
+    "target_sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+    "review": "The 54a232f-to-82ce5b3 update moves appendNumeric into the shared private NumericFormatting.h and qualifies the six callers. The complete function body is identical after indentation normalization; native f32/f64 formatting rules and parsing are unchanged. The earlier extended-long-double boundary remains outside the native API."
+   }
+  ]
+ }
 }

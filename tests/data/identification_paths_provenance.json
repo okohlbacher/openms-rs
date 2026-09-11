@@ -1,58 +1,58 @@
 {
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/IdXMLFile.h",
-      "sha256": "4cae9d1eeb4ec0b738ec8aa62311cabfc46541a9e1c4d2bcdf808b1da802a98b"
-    },
-    {
-      "path": "src/openms/source/FORMAT/IdXMLFile.cpp",
-      "sha256": "b35a05d23918caf56ff752b9b32b36a84a132cbe0d08713be3b41cee7adfdaab"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/FileHandler.h",
-      "sha256": "aab489c2dcc5669cfec17357adaef9c2863dcb0927b27f2eff37c1817f89ee86"
-    },
-    {
-      "path": "src/openms/source/FORMAT/FileHandler.cpp",
-      "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
-    },
-    {
-      "path": "src/openms/source/FORMAT/XMLFile.cpp",
-      "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/IdXMLFile_test.cpp",
-      "sha256": "875f620797e10a990df1c3c13e9a825c53bbf819c746c5f9b23e3783072f0e14"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/FileHandler_test.cpp",
-      "sha256": "c37bce50b91839fbc5cc19991985da0965726513e91bd0bbcab0600395157941"
-    }
-  ],
-  "scope": "Identification path transport and idXML FileHandler dispatch; existing record adapter retained. Other identification formats and inherited schema/logging APIs remain.",
-  "native_files": [
-    "src/format/idxml.rs",
-    "src/format/file_handler.rs",
-    "src/format/path_io.rs",
-    "tests/identification_paths.rs",
-    "docs/IDENTIFICATION_PATH_SUPPORT.md"
-  ],
-  "source_rules": [
-    "XMLFile parse_ detects input compression by magic; IdXMLFile store uses a plain ofstream regardless of suffix.",
-    "FileHandler load checks detected type against allowed types; store falls back to a single allowed type only for unknown filename type."
-  ],
-  "native_boundaries": [
-    "Owned result/atomic replacement and file publication.",
-    "Only idXML identification adapter; gzip/bzip2 feature-gated; ZIP unavailable.",
-    "FileHandler native return preserves document identifier rather than discarding it through vector-only API."
-  ],
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/IdXMLFile.h",
+   "sha256": "4cae9d1eeb4ec0b738ec8aa62311cabfc46541a9e1c4d2bcdf808b1da802a98b"
+  },
+  {
+   "path": "src/openms/source/FORMAT/IdXMLFile.cpp",
+   "sha256": "b35a05d23918caf56ff752b9b32b36a84a132cbe0d08713be3b41cee7adfdaab"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FileHandler.h",
+   "sha256": "aab489c2dcc5669cfec17357adaef9c2863dcb0927b27f2eff37c1817f89ee86"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileHandler.cpp",
+   "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XMLFile.cpp",
+   "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IdXMLFile_test.cpp",
+   "sha256": "875f620797e10a990df1c3c13e9a825c53bbf819c746c5f9b23e3783072f0e14"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FileHandler_test.cpp",
+   "sha256": "c37bce50b91839fbc5cc19991985da0965726513e91bd0bbcab0600395157941"
   }
+ ],
+ "scope": "Identification path transport and idXML FileHandler dispatch; existing record adapter retained. Other identification formats and inherited schema/logging APIs remain.",
+ "native_files": [
+  "src/format/idxml.rs",
+  "src/format/file_handler.rs",
+  "src/format/path_io.rs",
+  "tests/identification_paths.rs",
+  "docs/IDENTIFICATION_PATH_SUPPORT.md"
+ ],
+ "source_rules": [
+  "XMLFile parse_ detects input compression by magic; IdXMLFile store uses a plain ofstream regardless of suffix.",
+  "FileHandler load checks detected type against allowed types; store falls back to a single allowed type only for unknown filename type."
+ ],
+ "native_boundaries": [
+  "Owned result/atomic replacement and file publication.",
+  "Only idXML identification adapter; gzip/bzip2 feature-gated; ZIP unavailable.",
+  "FileHandler native return preserves document identifier rather than discarding it through vector-only API."
+ ],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

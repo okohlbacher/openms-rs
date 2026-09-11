@@ -1,8 +1,11 @@
 # Current reduced Core SDK target
 
 The Rust port now targets OpenMS Core SDK **4.0.0** at
-[`82ce5b373c97f934ffd9b1ffd80215ca66473d0b`](https://github.com/okohlbacher/OpenMS4-core/tree/82ce5b373c97f934ffd9b1ffd80215ca66473d0b),
+[`bc9cc12514c768385ce121d6ca4bb710fe1983c4`](https://github.com/okohlbacher/OpenMS4-core/tree/bc9cc12514c768385ce121d6ca4bb710fe1983c4),
 fetched from the repository's default `codex/package-split` branch on 2026-09-11.
+The immediately preceding target `82ce5b373c97f934ffd9b1ffd80215ca66473d0b` is reviewed in
+[CORE_SDK_BC9CC12_REVIEW.md](CORE_SDK_BC9CC12_REVIEW.md); that refresh changed
+only the Parquet reader, which the port does not implement.
 The original reference archive at `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`
 is retained for the existing scientific fixtures. The package's upstream
 extraction revision `ca32296038839459d8c9b075b759e285913d6294` identifies a
@@ -122,7 +125,7 @@ revision, full scientific file set and all recorded source/registration/referenc
 hashes:
 
 ```bash
-python3 tools/check_core_sdk.py --source .reference/openms4-core-82ce5b3
+python3 tools/check_core_sdk.py --source .reference/openms4-core-bc9cc12
 ```
 
 The old archive is not a Git checkout. The check explicitly verifies the supplied

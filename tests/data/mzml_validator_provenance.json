@@ -1,290 +1,297 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "native_baseline": "69717811f3d3c0fdd58d4969603316f293d495de",
-  "source_files": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/MzMLValidator.h",
-      "bytes": 2808,
-      "sha256": "7da5dad2c7c950883db37db044af658fed0e29012af4a2a7205847b64f5c708f"
-    },
-    {
-      "path": "src/openms/source/FORMAT/VALIDATORS/MzMLValidator.cpp",
-      "bytes": 5009,
-      "sha256": "4e7ef71c2fb4c486308b4b0bbf8d79fea3f1ba310d860a7f13be13535425f776"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MzMLValidator_test.cpp",
-      "bytes": 1338,
-      "sha256": "64824e2fac71f7a44ea9fc9b2776a1326405550696613cf92f18277136fc41a5"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
-      "bytes": 8512,
-      "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
-    },
-    {
-      "path": "src/openms/source/FORMAT/MzMLFile.cpp",
-      "bytes": 8851,
-      "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
-      "bytes": 67280,
-      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
-      "bytes": 6477,
-      "sha256": "539f5dd9331d6f343257477a871ffdd5a157374a92dc12da4d65c75c058cf858"
-    },
-    {
-      "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",
-      "bytes": 22673,
-      "sha256": "99d9ee2fc48a95880b935b5ffc4a35433cad25850d4e6cebc7e319358daeac59"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/SemanticValidator_test.cpp",
-      "bytes": 5111,
-      "sha256": "1a5a998e7be016af8329cdac534e2f96cc494403d5a1a23ac1d014aba676b3c9"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h",
-      "bytes": 9584,
-      "sha256": "51c903feea91b532f401c4f63cf9f34aa83c9673d076c843ee63aac2f07a9eba"
-    },
-    {
-      "path": "src/openms/source/FORMAT/ControlledVocabulary.cpp",
-      "bytes": 24452,
-      "sha256": "1b145685423fd481149b624a22b2740df25a4278e0704b5e0b3588e6a8a7cbc2"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/CVMappingFile.h",
-      "bytes": 2584,
-      "sha256": "25d60db0934103cd118ea65ea245eba15a9b9610b1eeb273d1c45bbb5b23d7e6"
-    },
-    {
-      "path": "src/openms/source/FORMAT/CVMappingFile.cpp",
-      "bytes": 5951,
-      "sha256": "0103b8b63064aa1b1eff33b319592230424b512fb6a0b5ef4d58f80d39351020"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
-      "bytes": 24538,
-      "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
-      "bytes": 17089,
-      "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/XMLFile.h",
-      "bytes": 7029,
-      "sha256": "dbdf6d6a9f9b0de336bcc90d507dcdda86dace44fa583308f5ec39d908a2edf4"
-    },
-    {
-      "path": "src/openms/source/FORMAT/XMLFile.cpp",
-      "bytes": 12312,
-      "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
-    },
-    {
-      "path": "share/OpenMS/MAPPING/ms-mapping.xml",
-      "bytes": 21470,
-      "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff"
-    },
-    {
-      "path": "LICENSE.md",
-      "bytes": 1609,
-      "sha256": "1ea84de2119824afbd561fde5d4f2f541cbaae7187666d9e7b8dcf147ce99182"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
-      "bytes": 37187,
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/MzMLFile_3_invalid.mzML",
-      "bytes": 22820,
-      "sha256": "3ee7f12e2d111d4c2db39c79ce16244b45d43249ff2de902de249ae7e1e3b013"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
-      "bytes": 27526,
-      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc"
-    }
-  ],
-  "fixtures": [
-    {
-      "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
-      "bytes": 37187,
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
-      "source_path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "tests/data/mzml_validator/MzMLFile_3_invalid.mzML",
-      "bytes": 22820,
-      "sha256": "3ee7f12e2d111d4c2db39c79ce16244b45d43249ff2de902de249ae7e1e3b013",
-      "source_path": "src/tests/class_tests/openms/data/MzMLFile_3_invalid.mzML",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "tests/data/mzml_validator/MzMLFile_4_indexed.mzML",
-      "bytes": 27526,
-      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc",
-      "source_path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
-      "original_bytes_unchanged": true
-    }
-  ],
-  "resources": [
-    {
-      "path": "resources/cv/ms-mapping.xml",
-      "bytes": 21470,
-      "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff",
-      "source_path": "share/OpenMS/MAPPING/ms-mapping.xml",
-      "original_bytes_unchanged": true
-    }
-  ],
-  "reused_provider_resources": [
-    {
-      "path": "resources/cv/psi-ms.obo",
-      "source_path": "share/OpenMS/CV/psi-ms.obo",
-      "bytes": 985486,
-      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3",
-      "load_name": "MS",
-      "decoding": "UTF-8",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "resources/cv/quality.obo",
-      "source_path": "share/OpenMS/CV/quality.obo",
-      "bytes": 305675,
-      "sha256": "9c759c87833b7c966dab66bfb31bf94d7196546eb2aef84776397a0e64d245e3",
-      "load_name": "PATO",
-      "decoding": "UTF-8",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "resources/cv/unit.obo",
-      "source_path": "share/OpenMS/CV/unit.obo",
-      "bytes": 89140,
-      "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df",
-      "load_name": "UO",
-      "decoding": "UTF-8",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "resources/cv/brenda.obo",
-      "source_path": "share/OpenMS/CV/brenda.obo",
-      "bytes": 932031,
-      "sha256": "4466c14e537ec6ae2b79d7cb22ea16ef0e79f9317d65d1f281c0003e9dbb846a",
-      "load_name": "BTO",
-      "decoding": "explicit Windows-1252, opaque NULs retained",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "resources/cv/goslim_goa.obo",
-      "source_path": "share/OpenMS/CV/goslim_goa.obo",
-      "bytes": 28100,
-      "sha256": "542711370e7406b3461902b2e0214a054237e51c8d1f2dd01f07059001cb50f8",
-      "load_name": "GO",
-      "decoding": "UTF-8",
-      "original_bytes_unchanged": true
-    }
-  ],
-  "provider_provenance": "tests/data/controlled_vocabulary_provenance.json",
-  "provider_notices": "resources/cv/NOTICE.md",
-  "resource_attribution": "The mapping is the unchanged OpenMS-distributed PSI mzML mapping, retaining its original model/version/URLs. It has no embedded separate license statement. OpenMS BSD-3-Clause license evidence is pinned separately; ontology resources retain their independent notices and historical-license caveats. No network resource refresh.",
-  "tools": [
-    {
-      "path": "tools/generate_mzml_validator_reference.py",
-      "bytes": 2798,
-      "sha256": "d2a9f54f18d3cc2d3a8d275b6870bac36f58f6e3f6ba203c5cb1f991b84ea930"
-    }
-  ],
-  "projections": [
-    {
-      "path": "tests/data/mzml_validator_source.json",
-      "bytes": 4757,
-      "sha256": "b6f527c61a80e35496f0c24b9470cffd03b18e812d0f084d43e161ab4acc1916"
-    }
-  ],
-  "evidence": {
-    "source_class_test": "MzMLValidator_test.cpp covers construction/destruction only; MzMLFile_test.cpp lines1203–1256 contains five semantic scenarios and15 exact assertions.",
-    "source_fixture_counts": [
-      {
-        "input": "MzMLFile_1.mzML",
-        "errors": 0,
-        "warnings": 0
-      },
-      {
-        "input": "MzMLFile_4_indexed.mzML",
-        "errors": 0,
-        "warnings": 0
-      },
-      {
-        "input": "MzMLFile_3_invalid.mzML",
-        "errors": 8,
-        "warnings": 1
-      }
-    ],
-    "unavailable_source_writer_outputs": [
-      {
-        "input": "source store of empty experiment",
-        "valid": true,
-        "errors": 0,
-        "warnings": 0,
-        "fixture_available": false
-      },
-      {
-        "input": "source store of loaded MzMLFile_1.mzML",
-        "valid": true,
-        "errors": 0,
-        "warnings": 2,
-        "fixture_available": false
-      }
-    ],
-    "independent_native_tests": "Exact diagnostic/order, groups, special-tag collisions, indexed/literal namespace paths, GO/BTO, binary pairs, options, state isolation, compressed/lexical inputs, repeated-reference work, processed-term/diagnostic limits, raw byte hashes, and separately labelled native writer validity.",
-    "cpp_execution": false,
-    "xsd_engine_execution": false,
-    "rust_generated_source_oracle": false
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "native_baseline": "69717811f3d3c0fdd58d4969603316f293d495de",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/MzMLValidator.h",
+   "bytes": 2808,
+   "sha256": "7da5dad2c7c950883db37db044af658fed0e29012af4a2a7205847b64f5c708f"
   },
-  "cpp_issues": [
-    {
-      "id": "CPP-051",
-      "policy": "Correct successful-call parameter-group contamination with operation-local state; preserve duplicate/forward/missing-group behavior within a document."
-    },
-    {
-      "id": "CPP-039",
-      "policy": "Reuse native corrected supplied-unit ancestry comparison."
-    },
-    {
-      "id": "CPP-040",
-      "policy": "Reuse operation-local parse/rule state after failed calls."
-    },
-    {
-      "id": "CPP-044",
-      "policy": "Reuse stable checked missing-path locate_term error before and after validation."
-    },
-    {
-      "id": "CPP-046",
-      "policy": "Retain source timestamp parsing for XSD_DATE; do not claim strict XSD date lexical conformance."
-    }
-  ],
-  "feature": "mzml-validation = [mzml, semantic-validation]; optional, outside defaults; no new dependencies",
-  "bounds": "One configurable per-document meter across lexical parsing, mapping paths, stored groups, every reference expansion, descendant traversal, counts and diagnostics; separate immutable provider/mapping construction limits.",
-  "validation": {
-    "current": "Rust1.98.0 all-features",
-    "minimum": "Rust1.85.0 no-default-features +mzml-validation",
-    "integration_tests_per_toolchain": 44,
-    "private_semantic_tests_per_toolchain": 4,
-    "strict_scoped_clippy": "passed both",
-    "source_projection_check": "passed",
-    "original_byte_equality": "passed"
+  {
+   "path": "src/openms/source/FORMAT/VALIDATORS/MzMLValidator.cpp",
+   "bytes": 5009,
+   "sha256": "4e7ef71c2fb4c486308b4b0bbf8d79fea3f1ba310d860a7f13be13535425f776"
   },
-  "limitations": [
-    "Semantic validation only, not XSD, indexed integrity, binary decoding or whole mzML I/O completion.",
-    "Historical pinned ontologies/mapping are deliberately used, not current network vocabularies.",
-    "No arbitrary semantic plugin framework or new lexical parser."
-  ]
+  {
+   "path": "src/tests/class_tests/openms/source/MzMLValidator_test.cpp",
+   "bytes": 1338,
+   "sha256": "64824e2fac71f7a44ea9fc9b2776a1326405550696613cf92f18277136fc41a5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
+   "bytes": 8512,
+   "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+   "bytes": 8851,
+   "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+   "bytes": 67280,
+   "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
+   "bytes": 6477,
+   "sha256": "539f5dd9331d6f343257477a871ffdd5a157374a92dc12da4d65c75c058cf858"
+  },
+  {
+   "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",
+   "bytes": 22673,
+   "sha256": "99d9ee2fc48a95880b935b5ffc4a35433cad25850d4e6cebc7e319358daeac59"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SemanticValidator_test.cpp",
+   "bytes": 5111,
+   "sha256": "1a5a998e7be016af8329cdac534e2f96cc494403d5a1a23ac1d014aba676b3c9"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h",
+   "bytes": 9584,
+   "sha256": "51c903feea91b532f401c4f63cf9f34aa83c9673d076c843ee63aac2f07a9eba"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ControlledVocabulary.cpp",
+   "bytes": 24452,
+   "sha256": "1b145685423fd481149b624a22b2740df25a4278e0704b5e0b3588e6a8a7cbc2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/CVMappingFile.h",
+   "bytes": 2584,
+   "sha256": "25d60db0934103cd118ea65ea245eba15a9b9610b1eeb273d1c45bbb5b23d7e6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/CVMappingFile.cpp",
+   "bytes": 5951,
+   "sha256": "0103b8b63064aa1b1eff33b319592230424b512fb6a0b5ef4d58f80d39351020"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "bytes": 24538,
+   "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "bytes": 17089,
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/XMLFile.h",
+   "bytes": 7029,
+   "sha256": "dbdf6d6a9f9b0de336bcc90d507dcdda86dace44fa583308f5ec39d908a2edf4"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XMLFile.cpp",
+   "bytes": 12312,
+   "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
+  },
+  {
+   "path": "share/OpenMS/MAPPING/ms-mapping.xml",
+   "bytes": 21470,
+   "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff"
+  },
+  {
+   "path": "LICENSE.md",
+   "bytes": 1609,
+   "sha256": "1ea84de2119824afbd561fde5d4f2f541cbaae7187666d9e7b8dcf147ce99182"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+   "bytes": 37187,
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_3_invalid.mzML",
+   "bytes": 22820,
+   "sha256": "3ee7f12e2d111d4c2db39c79ce16244b45d43249ff2de902de249ae7e1e3b013"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
+   "bytes": 27526,
+   "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "bytes": 37187,
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+   "source_path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "tests/data/mzml_validator/MzMLFile_3_invalid.mzML",
+   "bytes": 22820,
+   "sha256": "3ee7f12e2d111d4c2db39c79ce16244b45d43249ff2de902de249ae7e1e3b013",
+   "source_path": "src/tests/class_tests/openms/data/MzMLFile_3_invalid.mzML",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "tests/data/mzml_validator/MzMLFile_4_indexed.mzML",
+   "bytes": 27526,
+   "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc",
+   "source_path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
+   "original_bytes_unchanged": true
+  }
+ ],
+ "resources": [
+  {
+   "path": "resources/cv/ms-mapping.xml",
+   "bytes": 21470,
+   "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff",
+   "source_path": "share/OpenMS/MAPPING/ms-mapping.xml",
+   "original_bytes_unchanged": true
+  }
+ ],
+ "reused_provider_resources": [
+  {
+   "path": "resources/cv/psi-ms.obo",
+   "source_path": "share/OpenMS/CV/psi-ms.obo",
+   "bytes": 985486,
+   "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3",
+   "load_name": "MS",
+   "decoding": "UTF-8",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "resources/cv/quality.obo",
+   "source_path": "share/OpenMS/CV/quality.obo",
+   "bytes": 305675,
+   "sha256": "9c759c87833b7c966dab66bfb31bf94d7196546eb2aef84776397a0e64d245e3",
+   "load_name": "PATO",
+   "decoding": "UTF-8",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "resources/cv/unit.obo",
+   "source_path": "share/OpenMS/CV/unit.obo",
+   "bytes": 89140,
+   "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df",
+   "load_name": "UO",
+   "decoding": "UTF-8",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "resources/cv/brenda.obo",
+   "source_path": "share/OpenMS/CV/brenda.obo",
+   "bytes": 932031,
+   "sha256": "4466c14e537ec6ae2b79d7cb22ea16ef0e79f9317d65d1f281c0003e9dbb846a",
+   "load_name": "BTO",
+   "decoding": "explicit Windows-1252, opaque NULs retained",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "resources/cv/goslim_goa.obo",
+   "source_path": "share/OpenMS/CV/goslim_goa.obo",
+   "bytes": 28100,
+   "sha256": "542711370e7406b3461902b2e0214a054237e51c8d1f2dd01f07059001cb50f8",
+   "load_name": "GO",
+   "decoding": "UTF-8",
+   "original_bytes_unchanged": true
+  }
+ ],
+ "provider_provenance": "tests/data/controlled_vocabulary_provenance.json",
+ "provider_notices": "resources/cv/NOTICE.md",
+ "resource_attribution": "The mapping is the unchanged OpenMS-distributed PSI mzML mapping, retaining its original model/version/URLs. It has no embedded separate license statement. OpenMS BSD-3-Clause license evidence is pinned separately; ontology resources retain their independent notices and historical-license caveats. No network resource refresh.",
+ "tools": [
+  {
+   "path": "tools/generate_mzml_validator_reference.py",
+   "bytes": 2798,
+   "sha256": "d2a9f54f18d3cc2d3a8d275b6870bac36f58f6e3f6ba203c5cb1f991b84ea930"
+  }
+ ],
+ "projections": [
+  {
+   "path": "tests/data/mzml_validator_source.json",
+   "bytes": 4757,
+   "sha256": "b6f527c61a80e35496f0c24b9470cffd03b18e812d0f084d43e161ab4acc1916"
+  }
+ ],
+ "evidence": {
+  "source_class_test": "MzMLValidator_test.cpp covers construction/destruction only; MzMLFile_test.cpp lines1203–1256 contains five semantic scenarios and15 exact assertions.",
+  "source_fixture_counts": [
+   {
+    "input": "MzMLFile_1.mzML",
+    "errors": 0,
+    "warnings": 0
+   },
+   {
+    "input": "MzMLFile_4_indexed.mzML",
+    "errors": 0,
+    "warnings": 0
+   },
+   {
+    "input": "MzMLFile_3_invalid.mzML",
+    "errors": 8,
+    "warnings": 1
+   }
+  ],
+  "unavailable_source_writer_outputs": [
+   {
+    "input": "source store of empty experiment",
+    "valid": true,
+    "errors": 0,
+    "warnings": 0,
+    "fixture_available": false
+   },
+   {
+    "input": "source store of loaded MzMLFile_1.mzML",
+    "valid": true,
+    "errors": 0,
+    "warnings": 2,
+    "fixture_available": false
+   }
+  ],
+  "independent_native_tests": "Exact diagnostic/order, groups, special-tag collisions, indexed/literal namespace paths, GO/BTO, binary pairs, options, state isolation, compressed/lexical inputs, repeated-reference work, processed-term/diagnostic limits, raw byte hashes, and separately labelled native writer validity.",
+  "cpp_execution": false,
+  "xsd_engine_execution": false,
+  "rust_generated_source_oracle": false
+ },
+ "cpp_issues": [
+  {
+   "id": "CPP-051",
+   "policy": "Correct successful-call parameter-group contamination with operation-local state; preserve duplicate/forward/missing-group behavior within a document."
+  },
+  {
+   "id": "CPP-039",
+   "policy": "Reuse native corrected supplied-unit ancestry comparison."
+  },
+  {
+   "id": "CPP-040",
+   "policy": "Reuse operation-local parse/rule state after failed calls."
+  },
+  {
+   "id": "CPP-044",
+   "policy": "Reuse stable checked missing-path locate_term error before and after validation."
+  },
+  {
+   "id": "CPP-046",
+   "policy": "Retain source timestamp parsing for XSD_DATE; do not claim strict XSD date lexical conformance."
+  }
+ ],
+ "feature": "mzml-validation = [mzml, semantic-validation]; optional, outside defaults; no new dependencies",
+ "bounds": "One configurable per-document meter across lexical parsing, mapping paths, stored groups, every reference expansion, descendant traversal, counts and diagnostics; separate immutable provider/mapping construction limits.",
+ "validation": {
+  "current": "Rust1.98.0 all-features",
+  "minimum": "Rust1.85.0 no-default-features +mzml-validation",
+  "integration_tests_per_toolchain": 44,
+  "private_semantic_tests_per_toolchain": 4,
+  "strict_scoped_clippy": "passed both",
+  "source_projection_check": "passed",
+  "original_byte_equality": "passed"
+ },
+ "limitations": [
+  "Semantic validation only, not XSD, indexed integrity, binary decoding or whole mzML I/O completion.",
+  "Historical pinned ontologies/mapping are deliberately used, not current network vocabularies.",
+  "No arbitrary semantic plugin framework or new lexical parser."
+ ],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
 }

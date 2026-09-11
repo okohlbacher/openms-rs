@@ -1,114 +1,121 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
-      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
-      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/ProFormaDataJson.h",
-      "sha256": "f904d6d4c5e96791ce0f0c4c1baffc453f6bc380109982edfa6821fac1c3260e"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
-      "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/ProFormaParser_positive_tests.txt",
-      "sha256": "fb7d9c4c44d333c2855f973df4b079cdb827a6408951c74ce5a2583ff4cd52f9"
-    },
-    {
-      "path": "src/openms/extern/nlohmann_json/include/nlohmann/detail/conversions/from_json.hpp",
-      "sha256": "8cad2ff4a90591110a5cc6134eef25e5a16c33f97b531e1576ed551319d16896"
-    },
-    {
-      "path": "src/openms/extern/nlohmann_json/include/nlohmann/detail/input/lexer.hpp",
-      "sha256": "723a7ae568a1460da5235cd1f844db6b12b0f684b5284d5a4c7db4dbe165c980"
-    },
-    {
-      "path": "src/openms/extern/nlohmann_json/include/nlohmann/detail/iterators/iter_impl.hpp",
-      "sha256": "68d4b911bfdef6dfb0d14f3c6c58cc7bb1a15f7464dd784ebeb8f753991074b2"
-    },
-    {
-      "path": "src/openms/extern/nlohmann_json/include/nlohmann/detail/output/serializer.hpp",
-      "sha256": "ede7f1d89e8ba0b2744b5cadd60e99f2e6012abccf1c04aab7356c94a2448fcb"
-    }
-  ],
-  "fixtures": [],
-  "reused_fixtures": [
-    {
-      "path": "tests/data/proforma_parser_positive.txt",
-      "sha256": "fb7d9c4c44d333c2855f973df4b079cdb827a6408951c74ce5a2583ff4cd52f9"
-    }
-  ],
-  "fixture_policy": "No new copied source fixture. Source class tests1306\u20131332 provide two JSON round-trip examples; all176 previously packaged positive grammar ASTs are independently round-tripped throughJSON. Exact tagged JSON objects, optional/default/iteration/numeric/resource examples are derived from the actual schema and library source, not executed C++ output. Earlier text parser and writer probe manifests retain separate evidence.",
-  "implemented_scope": "All four public ProForma JSON wrappers for Peptidoform and PeptidoformIon, with every reachable private-schema variant. No generic serde AST derive or extra private-ADL public API.",
-  "source_ranges": {
-    "ProForma.h": "755-796",
-    "ProForma.cpp": "703-747",
-    "ProFormaDataJson.h": "1-961, all reachable top-level codecs; CrossLinkGroup private ADL is not reachable from either public wrapper",
-    "ProFormaParser_test.cpp": "1306-1332",
-    "nlohmann/detail/conversions/from_json.hpp": "51-90 number/bool rules and341-377 genericint rules",
-    "nlohmann/detail/input/lexer.hpp": "1248-1286 integer parsing; leadingBOM branch",
-    "nlohmann/detail/output/serializer.hpp": "802-815 nonfinite null branch"
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+   "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
   },
-  "feature": {
-    "name": "proforma-json",
-    "enables": [
-      "dep:serde_json"
-    ],
-    "default_enabled_by_this_increment": false,
-    "dependency": "serde_json =1.0.150, existing float_roundtrip enabled; no dependency or lock change",
-    "independent_of": "rna-json"
+  {
+   "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+   "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
   },
-  "native_tests": [
-    "tests/proforma_json.rs",
-    "src/chemistry/proforma_json.rs::tests"
-  ],
-  "case_counts": {
-    "public_json_tests": 12,
-    "private_budget_tests": 4,
-    "source_class_json_examples": 2,
-    "source_positive_ast_roundtrips": 176
+  {
+   "path": "src/openms/source/CHEMISTRY/ProFormaDataJson.h",
+   "sha256": "f904d6d4c5e96791ce0f0c4c1baffc453f6bc380109982edfa6821fac1c3260e"
   },
-  "remaining_scope": [
-    "Modification resolution and AASequence conversion with policies/issues.",
-    "Mass/mz and try/issue/can variants.",
-    "Ordinary and XLMS spectrum operations."
-  ],
-  "preserved_source_quirks": [
-    "All chain charges and ion name transported in JSON, unlike text omission paths.",
-    "resolved_mod is ignored on write and reset None on every read.",
-    "Missing global_mods defaults empty; other five chain vectors and ion chains required. Optional nulls reset None; omitted is_chimeric and position flags false, explicit null booleans error.",
-    "Modifications, glycan components and global locations use generic iteration: lexical object values, null empty, scalar one. Typed vectors require arrays.",
-    "Unknown keys ignored, duplicate keys last wins, case-sensitive variant and enum strings.",
-    "i32 fields accept boolean1/0 and truncate floats; double fields reject bool; bool fields reject numeric inputs.",
-    "LeadingUTF8BOM accepted; bare integer-0 normalized to0 while decimal/exponent negativezero and quotedtext are retained.",
-    "No text parsing, chemistry lookup, cross-link validation or inferred resolved records during JSON decode."
-  ],
-  "native_differences": [
-    "Explicit finite-write requirement instead of nlohmann nonfinite-to-null serialization.",
-    "Integer overflow checked rather than implementation-dependent narrowing or undefined float casts.",
-    "Individual source byte-char fields accept ASCII includingNUL/punctuation; all other String fields preserveUnicode.",
-    "Generic crate parse/value errors instead of C++ exception ABI/nlohmann error codes and exact messages.",
-    "Semantic compact JSON equivalence with finite float-roundtrip rather than universal exact floating numeric spellings.",
-    "Bounded preflight plus shared read/build/output ledgers; whole result only on success."
-  ],
-  "limits": {
-    "max_input_output_bytes": 4194304,
-    "max_structural_collection_items": 1000000,
-    "max_shared_work": 50000000,
-    "max_cumulative_logical_capacity_bytes": 268435456,
-    "max_container_depth": 64,
-    "writer_map_entry_allowance": "1024 + 32 * sizeof((String,serde_json::Value)) per insertedfield, plus owned key/value strings",
-    "input_preflight": "Raw structural tokens including duplicates/unknowns, depth and conservative input-size*log(itemcount) sorted-map work before serdeDOM allocation. Byte total is requested/logical storage with headroom, not exact physical memory. Standard serde/map allocation remains ordinary Rust allocation inside bounds."
+  {
+   "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
+   "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696"
   },
-  "source_review": "Root read all reachable source ADL and full native code. Fixed exponent-minus-zero token-start boundary and sparse one-field writer map allowance; dedicated regressions retained. Review closed with no remaining finding.",
-  "support_document": "docs/PROFORMA_JSON_SUPPORT.md",
-  "licensing": "OpenMS source-derived module retains BSD-3-Clause copyright/SPDX. nlohmann MIT-licensed headers were read for conversion semantics only, not changed or compiled. Existing serde_json MIT/Apache-2.0 dependency reused. Source fixture already packaged by prior parser group."
+  {
+   "path": "src/tests/class_tests/openms/data/ProFormaParser_positive_tests.txt",
+   "sha256": "fb7d9c4c44d333c2855f973df4b079cdb827a6408951c74ce5a2583ff4cd52f9"
+  },
+  {
+   "path": "src/openms/extern/nlohmann_json/include/nlohmann/detail/conversions/from_json.hpp",
+   "sha256": "8cad2ff4a90591110a5cc6134eef25e5a16c33f97b531e1576ed551319d16896"
+  },
+  {
+   "path": "src/openms/extern/nlohmann_json/include/nlohmann/detail/input/lexer.hpp",
+   "sha256": "723a7ae568a1460da5235cd1f844db6b12b0f684b5284d5a4c7db4dbe165c980"
+  },
+  {
+   "path": "src/openms/extern/nlohmann_json/include/nlohmann/detail/iterators/iter_impl.hpp",
+   "sha256": "68d4b911bfdef6dfb0d14f3c6c58cc7bb1a15f7464dd784ebeb8f753991074b2"
+  },
+  {
+   "path": "src/openms/extern/nlohmann_json/include/nlohmann/detail/output/serializer.hpp",
+   "sha256": "ede7f1d89e8ba0b2744b5cadd60e99f2e6012abccf1c04aab7356c94a2448fcb"
+  }
+ ],
+ "fixtures": [],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/proforma_parser_positive.txt",
+   "sha256": "fb7d9c4c44d333c2855f973df4b079cdb827a6408951c74ce5a2583ff4cd52f9"
+  }
+ ],
+ "fixture_policy": "No new copied source fixture. Source class tests1306–1332 provide two JSON round-trip examples; all176 previously packaged positive grammar ASTs are independently round-tripped throughJSON. Exact tagged JSON objects, optional/default/iteration/numeric/resource examples are derived from the actual schema and library source, not executed C++ output. Earlier text parser and writer probe manifests retain separate evidence.",
+ "implemented_scope": "All four public ProForma JSON wrappers for Peptidoform and PeptidoformIon, with every reachable private-schema variant. No generic serde AST derive or extra private-ADL public API.",
+ "source_ranges": {
+  "ProForma.h": "755-796",
+  "ProForma.cpp": "703-747",
+  "ProFormaDataJson.h": "1-961, all reachable top-level codecs; CrossLinkGroup private ADL is not reachable from either public wrapper",
+  "ProFormaParser_test.cpp": "1306-1332",
+  "nlohmann/detail/conversions/from_json.hpp": "51-90 number/bool rules and341-377 genericint rules",
+  "nlohmann/detail/input/lexer.hpp": "1248-1286 integer parsing; leadingBOM branch",
+  "nlohmann/detail/output/serializer.hpp": "802-815 nonfinite null branch"
+ },
+ "feature": {
+  "name": "proforma-json",
+  "enables": [
+   "dep:serde_json"
+  ],
+  "default_enabled_by_this_increment": false,
+  "dependency": "serde_json =1.0.150, existing float_roundtrip enabled; no dependency or lock change",
+  "independent_of": "rna-json"
+ },
+ "native_tests": [
+  "tests/proforma_json.rs",
+  "src/chemistry/proforma_json.rs::tests"
+ ],
+ "case_counts": {
+  "public_json_tests": 12,
+  "private_budget_tests": 4,
+  "source_class_json_examples": 2,
+  "source_positive_ast_roundtrips": 176
+ },
+ "remaining_scope": [
+  "Modification resolution and AASequence conversion with policies/issues.",
+  "Mass/mz and try/issue/can variants.",
+  "Ordinary and XLMS spectrum operations."
+ ],
+ "preserved_source_quirks": [
+  "All chain charges and ion name transported in JSON, unlike text omission paths.",
+  "resolved_mod is ignored on write and reset None on every read.",
+  "Missing global_mods defaults empty; other five chain vectors and ion chains required. Optional nulls reset None; omitted is_chimeric and position flags false, explicit null booleans error.",
+  "Modifications, glycan components and global locations use generic iteration: lexical object values, null empty, scalar one. Typed vectors require arrays.",
+  "Unknown keys ignored, duplicate keys last wins, case-sensitive variant and enum strings.",
+  "i32 fields accept boolean1/0 and truncate floats; double fields reject bool; bool fields reject numeric inputs.",
+  "LeadingUTF8BOM accepted; bare integer-0 normalized to0 while decimal/exponent negativezero and quotedtext are retained.",
+  "No text parsing, chemistry lookup, cross-link validation or inferred resolved records during JSON decode."
+ ],
+ "native_differences": [
+  "Explicit finite-write requirement instead of nlohmann nonfinite-to-null serialization.",
+  "Integer overflow checked rather than implementation-dependent narrowing or undefined float casts.",
+  "Individual source byte-char fields accept ASCII includingNUL/punctuation; all other String fields preserveUnicode.",
+  "Generic crate parse/value errors instead of C++ exception ABI/nlohmann error codes and exact messages.",
+  "Semantic compact JSON equivalence with finite float-roundtrip rather than universal exact floating numeric spellings.",
+  "Bounded preflight plus shared read/build/output ledgers; whole result only on success."
+ ],
+ "limits": {
+  "max_input_output_bytes": 4194304,
+  "max_structural_collection_items": 1000000,
+  "max_shared_work": 50000000,
+  "max_cumulative_logical_capacity_bytes": 268435456,
+  "max_container_depth": 64,
+  "writer_map_entry_allowance": "1024 + 32 * sizeof((String,serde_json::Value)) per insertedfield, plus owned key/value strings",
+  "input_preflight": "Raw structural tokens including duplicates/unknowns, depth and conservative input-size*log(itemcount) sorted-map work before serdeDOM allocation. Byte total is requested/logical storage with headroom, not exact physical memory. Standard serde/map allocation remains ordinary Rust allocation inside bounds."
+ },
+ "source_review": "Root read all reachable source ADL and full native code. Fixed exponent-minus-zero token-start boundary and sparse one-field writer map allowance; dedicated regressions retained. Review closed with no remaining finding.",
+ "support_document": "docs/PROFORMA_JSON_SUPPORT.md",
+ "licensing": "OpenMS source-derived module retains BSD-3-Clause copyright/SPDX. nlohmann MIT-licensed headers were read for conversion semantics only, not changed or compiled. Existing serde_json MIT/Apache-2.0 dependency reused. Source fixture already packaged by prior parser group.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
 }

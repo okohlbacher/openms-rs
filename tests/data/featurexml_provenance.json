@@ -1,87 +1,87 @@
 {
-  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
-  "source_root": ".reference/openms4-core-current",
-  "license": "BSD-3-Clause",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/FeatureXMLFile.h",
-      "sha256": "d75295765c70bcbcb3654fe984051a7ddfe9bd5b69f19210629747ffc9bf7b61"
-    },
-    {
-      "path": "src/openms/source/FORMAT/FeatureXMLFile.cpp",
-      "sha256": "d8438be53a31a416e5630e375c2fc950fec129d9c75ba039a672265989072645"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h",
-      "sha256": "35369ecae3055c8a677158b0ce05ede91070fd67b541d055673dcb1d5630257f"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/FeatureXMLHandler.cpp",
-      "sha256": "1430b1286eeaf0f8c40f8ddd882d6f680e3932149ed743fb6e0f7dbc909e58fc"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h",
-      "sha256": "113c4b4e1b035022776dbc837dd080840dd4313e408da7a7c36588f49bb4762f"
-    },
-    {
-      "path": "src/openms/source/FORMAT/OPTIONS/FeatureFileOptions.cpp",
-      "sha256": "85ac8de36c0d005d8f62011b5be129f441d95e62aebf4cff70cd2bf2ded6e920"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/Feature.h",
-      "sha256": "5522050f5322ef2c84073724cc9a84ed45924d19dbc4118e656d5b6fa6145634"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/FeatureMap.h",
-      "sha256": "fb4c1f8e507b4416f6c03689b77f812535d6744d0ca0d7394acf625ef2f3ef43"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/BaseFeature.h",
-      "sha256": "ac85e85810f04ed1c38f6709e1d9a390ec14b880e6896ec4e41c67a140ba8fb9"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
-      "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/FeatureXMLFile_test.cpp",
-      "sha256": "19e15403bab12ed58f36c2e36db437438aba06a5cdb354502a7b10ecdfc7b6b2"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/FeatureFileOptions_test.cpp",
-      "sha256": "f4a45ef4e93cd5030f44de426bfafe068c4154878de68e79bb59038b5db40a4d"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd",
-      "sha256": "9c66e9abeead72ad60296ff442a8029fd04ec76c3ab80c2c0ff46063743b99a3"
-    }
-  ],
-  "fixtures": [
-    {
-      "source": "src/tests/class_tests/openms/data/FeatureXMLFile_1.featureXML",
-      "sha256": "f3e6a6c6fb14a22a457b94fd8465c1e3847f094555bd7798f11b446e5823993a",
-      "extraction": "Verbatim, byte-identical source fixture; no C++ execution.",
-      "path": "tests/data/featurexml_source_1.featureXML"
-    },
-    {
-      "source": "src/tests/class_tests/openms/data/FeatureXMLFile_2_options.featureXML",
-      "sha256": "797bbaa8cd8f05d782563e94308db98c26250b437fb2a343144969a96b672193",
-      "extraction": "Verbatim, byte-identical source fixture; no C++ execution.",
-      "path": "tests/data/featurexml_source_options.featureXML"
-    },
-    {
-      "source": "src/tests/class_tests/openms/data/FeatureXMLFile_3_old.featureXML",
-      "sha256": "fad32145209a6c575a9ad082a6404b3e1d98d0a1e7a0b53aeca84d6f2b78bcbe",
-      "extraction": "Verbatim, byte-identical source fixture; no C++ execution.",
-      "path": "tests/data/featurexml_source_old.featureXML"
-    }
-  ],
-  "verification": "Native Rust tests use upstream literal field/count assertions plus independent synthetic boundaries. No upstream build or executable oracle.",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
-    ],
-    "source_changes": []
+ "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+ "source_root": ".reference/openms4-core-current",
+ "license": "BSD-3-Clause",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FeatureXMLFile.h",
+   "sha256": "d75295765c70bcbcb3654fe984051a7ddfe9bd5b69f19210629747ffc9bf7b61"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FeatureXMLFile.cpp",
+   "sha256": "d8438be53a31a416e5630e375c2fc950fec129d9c75ba039a672265989072645"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h",
+   "sha256": "35369ecae3055c8a677158b0ce05ede91070fd67b541d055673dcb1d5630257f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/FeatureXMLHandler.cpp",
+   "sha256": "1430b1286eeaf0f8c40f8ddd882d6f680e3932149ed743fb6e0f7dbc909e58fc"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h",
+   "sha256": "113c4b4e1b035022776dbc837dd080840dd4313e408da7a7c36588f49bb4762f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/OPTIONS/FeatureFileOptions.cpp",
+   "sha256": "85ac8de36c0d005d8f62011b5be129f441d95e62aebf4cff70cd2bf2ded6e920"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/Feature.h",
+   "sha256": "5522050f5322ef2c84073724cc9a84ed45924d19dbc4118e656d5b6fa6145634"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/FeatureMap.h",
+   "sha256": "fb4c1f8e507b4416f6c03689b77f812535d6744d0ca0d7394acf625ef2f3ef43"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/BaseFeature.h",
+   "sha256": "ac85e85810f04ed1c38f6709e1d9a390ec14b880e6896ec4e41c67a140ba8fb9"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+   "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureXMLFile_test.cpp",
+   "sha256": "19e15403bab12ed58f36c2e36db437438aba06a5cdb354502a7b10ecdfc7b6b2"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureFileOptions_test.cpp",
+   "sha256": "f4a45ef4e93cd5030f44de426bfafe068c4154878de68e79bb59038b5db40a4d"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd",
+   "sha256": "9c66e9abeead72ad60296ff442a8029fd04ec76c3ab80c2c0ff46063743b99a3"
   }
+ ],
+ "fixtures": [
+  {
+   "source": "src/tests/class_tests/openms/data/FeatureXMLFile_1.featureXML",
+   "sha256": "f3e6a6c6fb14a22a457b94fd8465c1e3847f094555bd7798f11b446e5823993a",
+   "extraction": "Verbatim, byte-identical source fixture; no C++ execution.",
+   "path": "tests/data/featurexml_source_1.featureXML"
+  },
+  {
+   "source": "src/tests/class_tests/openms/data/FeatureXMLFile_2_options.featureXML",
+   "sha256": "797bbaa8cd8f05d782563e94308db98c26250b437fb2a343144969a96b672193",
+   "extraction": "Verbatim, byte-identical source fixture; no C++ execution.",
+   "path": "tests/data/featurexml_source_options.featureXML"
+  },
+  {
+   "source": "src/tests/class_tests/openms/data/FeatureXMLFile_3_old.featureXML",
+   "sha256": "fad32145209a6c575a9ad082a6404b3e1d98d0a1e7a0b53aeca84d6f2b78bcbe",
+   "extraction": "Verbatim, byte-identical source fixture; no C++ execution.",
+   "path": "tests/data/featurexml_source_old.featureXML"
+  }
+ ],
+ "verification": "Native Rust tests use upstream literal field/count assertions plus independent synthetic boundaries. No upstream build or executable oracle.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+  ],
+  "source_changes": []
+ }
 }

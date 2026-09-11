@@ -1,139 +1,139 @@
 {
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h",
-      "sha256": "c942eae4768d8b04712df31fea8d7f1d649abbcb3ba7cefba56b7c72f8b896b4"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.cpp",
-      "sha256": "8cd779aaa70010a3d16a102ee59c4a3e38d3bed8f1025f52f8b6fb970ae23ac5"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/Weights_test.cpp",
-      "sha256": "74cda08b5878f0ccd229a0af0e89b9aa28795f8228959187382ce814ecd313c5"
-    },
-    {
-      "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
-      "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e"
-    }
-  ],
-  "native_files": [
-    "src/chemistry/ims_weights.rs",
-    "tests/ims_weights.rs",
-    "docs/IMS_WEIGHTS_SUPPORT.md"
-  ],
-  "scope": "Complete standalone source Weights public operation surface through owned native IMSWeights; no standalone IMSAlphabet or decomposer completeness claim.",
-  "source_literals": {
-    "masses": [
-      71.0456,
-      180.0312,
-      1.0186,
-      4284.36894,
-      255.0
-    ],
-    "weights": [
-      {
-        "precision": 0.01,
-        "values": [
-          7105,
-          18003,
-          102,
-          428437,
-          25500
-        ]
-      },
-      {
-        "precision": 0.1,
-        "values": [
-          710,
-          1800,
-          10,
-          42844,
-          2550
-        ]
-      },
-      {
-        "precision": 1.0,
-        "values": [
-          71,
-          180,
-          1,
-          4284,
-          255
-        ]
-      },
-      {
-        "precision": 0.0001,
-        "values": [
-          710456,
-          1800312,
-          10186,
-          42843689,
-          2550000
-        ]
-      }
-    ],
-    "rounding_errors": [
-      {
-        "precision": 0.01,
-        "min": -6.6655113114361e-06,
-        "max": 0.00137443549970554
-      },
-      {
-        "precision": 10,
-        "min": -1.0,
-        "max": 0.0196078431372549
-      }
-    ],
-    "gcd_example": {
-      "masses": [
-        3,
-        5,
-        8
-      ],
-      "precision": 0.1,
-      "reduced_weights": [
-        3,
-        5,
-        8
-      ],
-      "reduced_precision": 1.0
-    },
-    "coverage": "Every distinct active class-test literal; copy/assignment/access aliases share native cases."
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h",
+   "sha256": "c942eae4768d8b04712df31fea8d7f1d649abbcb3ba7cefba56b7c72f8b896b4"
   },
-  "source_quirks": [
-    "Exactly two coprime weights return true from divideByGCD; >=3 coprime return false.",
-    "NaN zero-mass rounding-error terms are ignored by literal comparisons; opposite-sign overflowing errors do not affect a finite requested bound.",
-    "Signed finite masses/precision whose rounded value is unsigned-representable remain valid.",
-    "Parent-mass sum and mass/weight swap preserve stored ordering."
-  ],
-  "native_corrections": [
-    "Default precision is None rather than uninitialized.",
-    "u64 is fixed across platforms; source unsigned-long width varies.",
-    "Checked float-to-u64 conversion, index errors, all-zero GCD rejection and finite returned numeric values.",
-    "Precision/GCD updates are atomic; ordinary Clone maps source owned copy.",
-    "Fallible complete text generation replaces ostream insertion/flush behavior."
-  ],
-  "independent_tests": {
-    "rational_rounding_cases": 2800,
-    "description": "For quarter masses n/4 and positive integer precision p, exact integer oracle (n+2p)/(4p), n=0..399,p=1..7; other tests cover source-order binary64 sums, adjacent half/full-u64 boundaries, signed/zero inputs and resources."
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.cpp",
+   "sha256": "8cd779aaa70010a3d16a102ee59c4a3e38d3bed8f1025f52f8b6fb970ae23ac5"
   },
-  "limits": {
-    "elements": 1000000,
-    "work": 50000000,
-    "formatted_output_bytes": 8388608,
-    "vector_payload_bytes_per_value": 16000000
+  {
+   "path": "src/tests/class_tests/openms/source/Weights_test.cpp",
+   "sha256": "74cda08b5878f0ccd229a0af0e89b9aa28795f8228959187382ce814ecd313c5"
   },
-  "validation": "Eight integration tests plus one private cumulative-work atomicity test pass Rust1.98 all-features and Rust1.85 no-default, locked/offline -j2; strict focused Clippy passes both profiles. No C++ build or runtime parity claim.",
-  "license": "Source-derived behavior/code/tests retain BSD-3-Clause attribution.",
-  "review": "Independent source-only review by source_analysis confirmed literal rounding, signed/zero/empty behavior, full-u64 bounds, pair-coprime return quirk and atomic GCD preflight; no implementation finding.",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e"
   }
+ ],
+ "native_files": [
+  "src/chemistry/ims_weights.rs",
+  "tests/ims_weights.rs",
+  "docs/IMS_WEIGHTS_SUPPORT.md"
+ ],
+ "scope": "Complete standalone source Weights public operation surface through owned native IMSWeights; no standalone IMSAlphabet or decomposer completeness claim.",
+ "source_literals": {
+  "masses": [
+   71.0456,
+   180.0312,
+   1.0186,
+   4284.36894,
+   255.0
+  ],
+  "weights": [
+   {
+    "precision": 0.01,
+    "values": [
+     7105,
+     18003,
+     102,
+     428437,
+     25500
+    ]
+   },
+   {
+    "precision": 0.1,
+    "values": [
+     710,
+     1800,
+     10,
+     42844,
+     2550
+    ]
+   },
+   {
+    "precision": 1.0,
+    "values": [
+     71,
+     180,
+     1,
+     4284,
+     255
+    ]
+   },
+   {
+    "precision": 0.0001,
+    "values": [
+     710456,
+     1800312,
+     10186,
+     42843689,
+     2550000
+    ]
+   }
+  ],
+  "rounding_errors": [
+   {
+    "precision": 0.01,
+    "min": -6.6655113114361e-06,
+    "max": 0.00137443549970554
+   },
+   {
+    "precision": 10,
+    "min": -1.0,
+    "max": 0.0196078431372549
+   }
+  ],
+  "gcd_example": {
+   "masses": [
+    3,
+    5,
+    8
+   ],
+   "precision": 0.1,
+   "reduced_weights": [
+    3,
+    5,
+    8
+   ],
+   "reduced_precision": 1.0
+  },
+  "coverage": "Every distinct active class-test literal; copy/assignment/access aliases share native cases."
+ },
+ "source_quirks": [
+  "Exactly two coprime weights return true from divideByGCD; >=3 coprime return false.",
+  "NaN zero-mass rounding-error terms are ignored by literal comparisons; opposite-sign overflowing errors do not affect a finite requested bound.",
+  "Signed finite masses/precision whose rounded value is unsigned-representable remain valid.",
+  "Parent-mass sum and mass/weight swap preserve stored ordering."
+ ],
+ "native_corrections": [
+  "Default precision is None rather than uninitialized.",
+  "u64 is fixed across platforms; source unsigned-long width varies.",
+  "Checked float-to-u64 conversion, index errors, all-zero GCD rejection and finite returned numeric values.",
+  "Precision/GCD updates are atomic; ordinary Clone maps source owned copy.",
+  "Fallible complete text generation replaces ostream insertion/flush behavior."
+ ],
+ "independent_tests": {
+  "rational_rounding_cases": 2800,
+  "description": "For quarter masses n/4 and positive integer precision p, exact integer oracle (n+2p)/(4p), n=0..399,p=1..7; other tests cover source-order binary64 sums, adjacent half/full-u64 boundaries, signed/zero inputs and resources."
+ },
+ "limits": {
+  "elements": 1000000,
+  "work": 50000000,
+  "formatted_output_bytes": 8388608,
+  "vector_payload_bytes_per_value": 16000000
+ },
+ "validation": "Eight integration tests plus one private cumulative-work atomicity test pass Rust1.98 all-features and Rust1.85 no-default, locked/offline -j2; strict focused Clippy passes both profiles. No C++ build or runtime parity claim.",
+ "license": "Source-derived behavior/code/tests retain BSD-3-Clause attribution.",
+ "review": "Independent source-only review by source_analysis confirmed literal rounding, signed/zero/empty behavior, full-u64 bounds, pair-coprime return quirk and atomic GCD preflight; no implementation finding.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

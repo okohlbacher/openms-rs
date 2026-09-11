@@ -1,64 +1,71 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "license": "BSD-3-Clause",
-  "source_files": [
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
-      "sha256": "f29b0530d8a01411c58458e8aeb476963b4e204949c578a0fa57beedf8db7d82"
-    },
-    {
-      "path": "src/openms/source/KERNEL/MassTrace.cpp",
-      "sha256": "35370f232ab6adbcc0d5dde09ce0ffc6376b09722adc4e244a0ae655e63964e7"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MassTrace_test.cpp",
-      "sha256": "e0397339cecae95155167221b4c1bc36d2e7c5f8999374fc4d324cff1ffbbc31"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/Peak2D.h",
-      "sha256": "4400b8a5bc5c1b213d612e470bba5637ad925978c8b82fde1f789a87e9b04841"
-    },
-    {
-      "path": "src/openms/source/KERNEL/Peak2D.cpp",
-      "sha256": "3b8100df6421f080405c57fff9bd7cf91bd7b6fbf0519c98a5de73dbe419111d"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConvexHull2D.h",
-      "sha256": "eecde18cc716756736ff8917084ca052e31a392a6dd6c65ce2237c3714d652a8"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
-      "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
-    }
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
+   "sha256": "f29b0530d8a01411c58458e8aeb476963b4e204949c578a0fa57beedf8db7d82"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MassTrace.cpp",
+   "sha256": "35370f232ab6adbcc0d5dde09ce0ffc6376b09722adc4e244a0ae655e63964e7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MassTrace_test.cpp",
+   "sha256": "e0397339cecae95155167221b4c1bc36d2e7c5f8999374fc4d324cff1ffbbc31"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/Peak2D.h",
+   "sha256": "4400b8a5bc5c1b213d612e470bba5637ad925978c8b82fde1f789a87e9b04841"
+  },
+  {
+   "path": "src/openms/source/KERNEL/Peak2D.cpp",
+   "sha256": "3b8100df6421f080405c57fff9bd7cf91bd7b6fbf0519c98a5de73dbe419111d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConvexHull2D.h",
+   "sha256": "eecde18cc716756736ff8917084ca052e31a392a6dd6c65ce2237c3714d652a8"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+   "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
+  }
+ ],
+ "native_implementation": [
+  "src/kernel/mass_trace.rs"
+ ],
+ "native_tests": [
+  "tests/mass_trace.rs"
+ ],
+ "support": "docs/MASS_TRACE_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/KERNEL/MassTrace.cpp",
+   "line": 61,
+   "operation": "mixed smoothed/raw trapezoids and positive-smoothed gate"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MassTrace.cpp",
+   "line": 148,
+   "operation": "sorted FWHM and source cache/interpolation rules"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MassTrace.cpp",
+   "line": 424,
+   "operation": "right-rectangle weighted RT"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MassTrace.cpp",
+   "line": 665,
+   "operation": "cached-center weighted SD via exp/log"
+  }
+ ],
+ "evidence": "Literal source inputs with f32 narrowing; explicit area/FWHM tolerances, independently sorted/summed/weighted source values, and 100 small-grid direct numerical comparisons. Source approximate expected constants are documented separately. No C++ build or execution.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "native_implementation": [
-    "src/kernel/mass_trace.rs"
-  ],
-  "native_tests": [
-    "tests/mass_trace.rs"
-  ],
-  "support": "docs/MASS_TRACE_SUPPORT.md",
-  "source_anchors": [
-    {
-      "path": "src/openms/source/KERNEL/MassTrace.cpp",
-      "line": 61,
-      "operation": "mixed smoothed/raw trapezoids and positive-smoothed gate"
-    },
-    {
-      "path": "src/openms/source/KERNEL/MassTrace.cpp",
-      "line": 148,
-      "operation": "sorted FWHM and source cache/interpolation rules"
-    },
-    {
-      "path": "src/openms/source/KERNEL/MassTrace.cpp",
-      "line": 424,
-      "operation": "right-rectangle weighted RT"
-    },
-    {
-      "path": "src/openms/source/KERNEL/MassTrace.cpp",
-      "line": 665,
-      "operation": "cached-center weighted SD via exp/log"
-    }
-  ],
-  "evidence": "Literal source inputs with f32 narrowing; explicit area/FWHM tolerances, independently sorted/summed/weighted source values, and 100 small-grid direct numerical comparisons. Source approximate expected constants are documented separately. No C++ build or execution."
+  "source_changes": []
+ }
 }

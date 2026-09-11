@@ -82,5 +82,12 @@
    "origin_key": "fixtures"
   }
  ],
- "external_reference_note": "C++ probe sources live outside this repository under ../oracle/ so that no C++ is committed here. Their sha256 values were verified unchanged at the move and remain the evidence chain for the executed cases recorded in this manifest. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate."
+ "external_reference_note": "C++ probe sources live outside this repository under ../oracle/ so that no C++ is committed here. Their sha256 values were verified unchanged at the move and remain the evidence chain for the executed cases recorded in this manifest. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
 }

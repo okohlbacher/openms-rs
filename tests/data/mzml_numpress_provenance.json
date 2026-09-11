@@ -1,114 +1,114 @@
 {
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "source_files": [
-    {
-      "path": "src/tests/class_tests/openms/data/MSChromatogramParquetConsumer_1_output.chrom.mzML",
-      "sha256": "e6c2409729250c7bd537804d0737bd205f36d0523ce3a904eb2344694f1689e7"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h",
-      "sha256": "c36f957c183551e34ada80ac5c595d4352fdc473e7820ef129189887004095b0"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
-      "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
-      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
-      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
-    },
-    {
-      "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
-      "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
-      "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65"
-    },
-    {
-      "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
-      "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348"
-    },
-    {
-      "path": "src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp",
-      "sha256": "c459046d039bfcdb90d8ba8eade83a6750c416bee5e4d110baa73ffd557a4538"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp",
-      "sha256": "65f8b9f14e004892a3e8942e427579c9f8368ee559e47c50560aa8168d628e3b"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
-      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
-    },
-    {
-      "path": "share/OpenMS/CV/psi-ms.obo",
-      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
-    }
-  ],
-  "extraction": {
-    "chromatograms": 18,
-    "binary_arrays": 36,
-    "points": 342,
-    "original": "Exact source bytes retained. Projection retains original binary array element/attribute/text content and chromatogram IDs/counts, reserializing XML with UTF-8 declaration (original declares ISO-8859-1), replacing document envelope and omitting unrelated metadata/index.",
-    "values": "Independent Python stdlib base64/zlib, signed-nibble linear recurrence and math.exp SLOF decode, then IEEE binary32 intensity storage. Derived values are not source class-test literals or executed C++ results. RT exact; SLOF tolerate host libm last-bit differences.",
-    "literal_cases": "Reuses the three unchanged MSNumpressCoder class-test base64 strings at lines 202/241/281 and existing raw/zlib projection fixtures by hash.",
-    "native_boundaries": [
-      "strict duplicate/conflicting compression CVs",
-      "strict decoded point count",
-      "effective f64 Numpress type repairs",
-      "integer/string unsupported except source PIC integer repair",
-      "canonical float32-only writer fallback",
-      "empty compressed payload rejected",
-      "excluded records fully validated; retained-point filtering before f32 storage"
-    ]
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "source_files": [
+  {
+   "path": "src/tests/class_tests/openms/data/MSChromatogramParquetConsumer_1_output.chrom.mzML",
+   "sha256": "e6c2409729250c7bd537804d0737bd205f36d0523ce3a904eb2344694f1689e7"
   },
-  "fixtures": [
-    {
-      "path": "tests/data/mzml_numpress_source_original.mzML",
-      "sha256": "e6c2409729250c7bd537804d0737bd205f36d0523ce3a904eb2344694f1689e7"
-    },
-    {
-      "path": "tests/data/mzml_numpress_source_projection.mzML",
-      "sha256": "9f82badc63bbba51f6734b527d0a35e8472d2e46792fa1f857170ec1839fa1b6"
-    },
-    {
-      "path": "tests/data/mzml_numpress_source_values.tsv",
-      "sha256": "e9585d6e9febcdbe18bbcad02ae3cda1d326dcd3bd6e7cebad4a2c08d4694ea6"
-    },
-    {
-      "path": "tests/data/numpress_source_bytes.tsv",
-      "sha256": "c128382b91a9e5732dc050034a05a8c1ba652f27b52db48a87dca66f090b3b06"
-    },
-    {
-      "path": "tests/data/numpress_coder_transport.tsv",
-      "sha256": "846ad2329193d9e9653533f4ee5e4a3487d6619c4f4aee4e47b273ab03172388"
-    },
-    {
-      "path": "tests/data/mzml_1_10.xsd",
-      "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad"
-    },
-    {
-      "path": "tools/generate_mzml_numpress_reference.py",
-      "sha256": "38ee93d4daedcca609eb06d73143507b01a07585f6ec53a7ef42c0ccc7dd3b8c"
-    }
-  ],
-  "source_semantics": {
-    "compression_CVs": "MzMLHandlerHelper.cpp:36-77,329-363",
-    "precision_repairs": "MzMLHandlerHelper.cpp:154-183",
-    "primary_writer_fallback": "MzMLHandler.cpp:5714-5750",
-    "auxiliary_writer_fallback": "MzMLHandler.cpp:5798-5828",
-    "source_type_selection_interaction": "MzMLHandler.cpp:5621-5660; fixed native ordinary precision intentionally retained"
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h",
+   "sha256": "c36f957c183551e34ada80ac5c595d4352fdc473e7820ef129189887004095b0"
   },
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+   "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+   "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
+   "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
+   "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
+   "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp",
+   "sha256": "c459046d039bfcdb90d8ba8eade83a6750c416bee5e4d110baa73ffd557a4538"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp",
+   "sha256": "65f8b9f14e004892a3e8942e427579c9f8368ee559e47c50560aa8168d628e3b"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+   "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+  },
+  {
+   "path": "share/OpenMS/CV/psi-ms.obo",
+   "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
   }
+ ],
+ "extraction": {
+  "chromatograms": 18,
+  "binary_arrays": 36,
+  "points": 342,
+  "original": "Exact source bytes retained. Projection retains original binary array element/attribute/text content and chromatogram IDs/counts, reserializing XML with UTF-8 declaration (original declares ISO-8859-1), replacing document envelope and omitting unrelated metadata/index.",
+  "values": "Independent Python stdlib base64/zlib, signed-nibble linear recurrence and math.exp SLOF decode, then IEEE binary32 intensity storage. Derived values are not source class-test literals or executed C++ results. RT exact; SLOF tolerate host libm last-bit differences.",
+  "literal_cases": "Reuses the three unchanged MSNumpressCoder class-test base64 strings at lines 202/241/281 and existing raw/zlib projection fixtures by hash.",
+  "native_boundaries": [
+   "strict duplicate/conflicting compression CVs",
+   "strict decoded point count",
+   "effective f64 Numpress type repairs",
+   "integer/string unsupported except source PIC integer repair",
+   "canonical float32-only writer fallback",
+   "empty compressed payload rejected",
+   "excluded records fully validated; retained-point filtering before f32 storage"
+  ]
+ },
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_numpress_source_original.mzML",
+   "sha256": "e6c2409729250c7bd537804d0737bd205f36d0523ce3a904eb2344694f1689e7"
+  },
+  {
+   "path": "tests/data/mzml_numpress_source_projection.mzML",
+   "sha256": "9f82badc63bbba51f6734b527d0a35e8472d2e46792fa1f857170ec1839fa1b6"
+  },
+  {
+   "path": "tests/data/mzml_numpress_source_values.tsv",
+   "sha256": "e9585d6e9febcdbe18bbcad02ae3cda1d326dcd3bd6e7cebad4a2c08d4694ea6"
+  },
+  {
+   "path": "tests/data/numpress_source_bytes.tsv",
+   "sha256": "c128382b91a9e5732dc050034a05a8c1ba652f27b52db48a87dca66f090b3b06"
+  },
+  {
+   "path": "tests/data/numpress_coder_transport.tsv",
+   "sha256": "846ad2329193d9e9653533f4ee5e4a3487d6619c4f4aee4e47b273ab03172388"
+  },
+  {
+   "path": "tests/data/mzml_1_10.xsd",
+   "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad"
+  },
+  {
+   "path": "tools/generate_mzml_numpress_reference.py",
+   "sha256": "38ee93d4daedcca609eb06d73143507b01a07585f6ec53a7ef42c0ccc7dd3b8c"
+  }
+ ],
+ "source_semantics": {
+  "compression_CVs": "MzMLHandlerHelper.cpp:36-77,329-363",
+  "precision_repairs": "MzMLHandlerHelper.cpp:154-183",
+  "primary_writer_fallback": "MzMLHandler.cpp:5714-5750",
+  "auxiliary_writer_fallback": "MzMLHandler.cpp:5798-5828",
+  "source_type_selection_interaction": "MzMLHandler.cpp:5621-5660; fixed native ordinary precision intentionally retained"
+ },
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

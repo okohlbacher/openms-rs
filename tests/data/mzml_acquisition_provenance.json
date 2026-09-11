@@ -1,232 +1,239 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "source_files": [
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
-      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
-      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
-      "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
-      "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
-    },
-    {
-      "path": "src/openms/source/FORMAT/ControlledVocabulary.cpp",
-      "sha256": "1b145685423fd481149b624a22b2740df25a4278e0704b5e0b3588e6a8a7cbc2"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h",
-      "sha256": "51c903feea91b532f401c4f63cf9f34aa83c9673d076c843ee63aac2f07a9eba"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/Acquisition.h",
-      "sha256": "b6b28e54f195b0b3741fd6a02a05033a3959bc734e1b6461130b084085cefc4a"
-    },
-    {
-      "path": "src/openms/source/METADATA/Acquisition.cpp",
-      "sha256": "ac1b423cca190dfcdf8ec8df31c70449c4c88c5887831dfc54e0037fee881cf6"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/AcquisitionInfo.h",
-      "sha256": "37bf43638163b6c90862222bfccd984cfe3b10a4507a81b8871069494c96bac1"
-    },
-    {
-      "path": "src/openms/source/METADATA/AcquisitionInfo.cpp",
-      "sha256": "d9c2a1339224a402cadc4b0f6f0e8eef270ab3cb88d9d5b75ccf125c3b17e231"
-    },
-    {
-      "path": "src/openms/source/SYSTEM/File.cpp",
-      "sha256": "1670f67c6c86a1026d12f2ceb78fcaf06d23b4181e81b8b76aaf91506d54b2e6"
-    },
-    {
-      "path": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
-      "sha256": "bb67911e8e75e1a97243e859296b5b18d3e46f90e0db2fa138b36d3343356040"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
-      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
-    },
-    {
-      "path": "share/OpenMS/MAPPING/ms-mapping.xml",
-      "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff"
-    },
-    {
-      "path": "share/OpenMS/CV/psi-ms.obo",
-      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
-    },
-    {
-      "path": "share/OpenMS/CV/unit.obo",
-      "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
-      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
-    }
-  ],
-  "fixture_files": [
-    {
-      "path": "tests/data/mzml_load_source_original.mzML",
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
-    },
-    {
-      "path": "tests/data/mzml_acquisition_source_projection.mzML",
-      "sha256": "a18522f81fe11ba90ec1049755c001ad1c4721e4ece28b503cdb879230f87802"
-    },
-    {
-      "path": "tests/data/mzml_1_10.xsd",
-      "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad"
-    },
-    {
-      "path": "tools/generate_mzml_acquisition_reference.py",
-      "sha256": "044fc6da2b92b9ed0f0728eb364c1c15384390b715309c817ba8b68e7137f240"
-    }
-  ],
-  "literal_source_assertions": {
-    "MzMLFile_test.cpp:373-378,430-432,523-526,569-571": "Four spectra: median/no-combination/median/no-combination and ordered IDs4711,4712/0/4711,4712/0; source file ac.dta at file:///F:/data/Exp02.",
-    "MzMLFile_test.cpp:631-634": "acquisition_list, acquisition1, acquisition2 metadata names.",
-    "MzMLFile_test.cpp:1030-1032": "Source empty-spectrum test explicitly adds no-combination and a default acquisition before writing.",
-    "MzMLFile_test.cpp:1406-1418": "Arbitrary scalar acquisition metadata and nondefault instrument_configuration_ref source support; native writer checks latter because headers are unrepresented."
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "source_files": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
   },
-  "source_semantics": {
-    "MzMLHandler.cpp:1062-1116": "Source-file lexical split/substitutions/root cleanup; optional filesystem resolution is excluded natively.",
-    "MzMLHandler.cpp:1128-1155": "Every scan materializes Acquisition; source-file scalar projection; externalSpectrumID; nondefault instrument ref; ignored spectrumRef.",
-    "MzMLHandler.cpp:2259-2268,2271-2427": "Combination descendants and source special scan fields versus acquisition CV fallback.",
-    "MzMLHandler.cpp:3496-3503,3638-3743": "Scan/list scalar user metadata and writer CV-name lookup/userParam fallback.",
-    "MzMLHandler.cpp:3746-3763": "Exact case-sensitive child name equality.",
-    "MzMLHandler.cpp:5379-5500": "max(1,acquisitions), no-combination fallback, first-scan RT/windows, every-scan zoom.",
-    "XMLHandler.cpp:162-304": "CV-directed scalar conversion and MS/UO units.",
-    "ControlledVocabulary.cpp:398-442": "xsd:float/double map to source decimal; integer variants map to signed source cast.",
-    "ms-mapping.xml:118-125": "Four combination descendants and28 scan attribute/direction/law descendants; nine are acquisition fallback."
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+   "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
   },
-  "projection": {
-    "counts": {
-      "spectra": 4,
-      "scans": 6,
-      "source_files": 5,
-      "products": 2
-    },
-    "original": "tests/data/mzml_load_source_original.mzML",
-    "changes": [
-      "Keep source parameter groups, record mode/representation/MS level/polarity, scanList combination/user metadata, ordered scans/identifiers/source-file references/user metadata, represented scan CVs/windows and Product lists.",
-      "Retain minimal sourceFile id/name/location only; omit unrelated header/precursor/binary data and set each defaultArrayLength to0.",
-      "Repair Product list declared count1 to2 actual products; source class asserts both; all scalar literals unchanged.",
-      "ElementTree reserializes whitespace/attribute quoting/UTF8 declaration. No production algorithm output generated."
-    ]
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
   },
-  "native_adaptations": [
-    "Canonical default collapses only all-default singleton scan/list with absent/no-combination; Source mode retains every actual scan.",
-    "Empty method writes no-combination and an informative empty vector gains a source dummy scan; explicit default singleton can normalize to native empty.",
-    "Duplicate metadata/combination/IDs/count mismatches/unresolved references/malformed finite scalar conversions are checked errors instead of source overwrite/warning/unchecked behavior.",
-    "Partial CV registry: four methods and nine typed acquisition fallback terms only; existing out-of-scope CV behavior unchanged.",
-    "Nondefault instrument-reference metadata cannot be written without retained instrument definitions; no private marker/header invention.",
-    "Relative source locations remain relative; no filesystem-dependent absolute resolution.",
-    "Spectrum-only acquisition transport; chromatogram acquisitions and unrepresented record fields remain explicit writer errors.",
-    "Scan zoom CV precedes acquisition userParams to satisfy XSD ParamGroupType; source writer places zoom after metadata and can violate this ordering. Dual-writer XSD regression combines scan metadata, zoom and windows."
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ControlledVocabulary.cpp",
+   "sha256": "1b145685423fd481149b624a22b2740df25a4278e0704b5e0b3588e6a8a7cbc2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h",
+   "sha256": "51c903feea91b532f401c4f63cf9f34aa83c9673d076c843ee63aac2f07a9eba"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/Acquisition.h",
+   "sha256": "b6b28e54f195b0b3741fd6a02a05033a3959bc734e1b6461130b084085cefc4a"
+  },
+  {
+   "path": "src/openms/source/METADATA/Acquisition.cpp",
+   "sha256": "ac1b423cca190dfcdf8ec8df31c70449c4c88c5887831dfc54e0037fee881cf6"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/AcquisitionInfo.h",
+   "sha256": "37bf43638163b6c90862222bfccd984cfe3b10a4507a81b8871069494c96bac1"
+  },
+  {
+   "path": "src/openms/source/METADATA/AcquisitionInfo.cpp",
+   "sha256": "d9c2a1339224a402cadc4b0f6f0e8eef270ab3cb88d9d5b75ccf125c3b17e231"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "sha256": "1670f67c6c86a1026d12f2ceb78fcaf06d23b4181e81b8b76aaf91506d54b2e6"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
+   "sha256": "bb67911e8e75e1a97243e859296b5b18d3e46f90e0db2fa138b36d3343356040"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+   "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+  },
+  {
+   "path": "share/OpenMS/MAPPING/ms-mapping.xml",
+   "sha256": "8407daa22c49e61fb4d6c5a965899a158bba96cb8f4783dd5fbfe3b097dc18ff"
+  },
+  {
+   "path": "share/OpenMS/CV/psi-ms.obo",
+   "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+  },
+  {
+   "path": "share/OpenMS/CV/unit.obo",
+   "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+   "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+  }
+ ],
+ "fixture_files": [
+  {
+   "path": "tests/data/mzml_load_source_original.mzML",
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+  },
+  {
+   "path": "tests/data/mzml_acquisition_source_projection.mzML",
+   "sha256": "a18522f81fe11ba90ec1049755c001ad1c4721e4ece28b503cdb879230f87802"
+  },
+  {
+   "path": "tests/data/mzml_1_10.xsd",
+   "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad"
+  },
+  {
+   "path": "tools/generate_mzml_acquisition_reference.py",
+   "sha256": "044fc6da2b92b9ed0f0728eb364c1c15384390b715309c817ba8b68e7137f240"
+  }
+ ],
+ "literal_source_assertions": {
+  "MzMLFile_test.cpp:373-378,430-432,523-526,569-571": "Four spectra: median/no-combination/median/no-combination and ordered IDs4711,4712/0/4711,4712/0; source file ac.dta at file:///F:/data/Exp02.",
+  "MzMLFile_test.cpp:631-634": "acquisition_list, acquisition1, acquisition2 metadata names.",
+  "MzMLFile_test.cpp:1030-1032": "Source empty-spectrum test explicitly adds no-combination and a default acquisition before writing.",
+  "MzMLFile_test.cpp:1406-1418": "Arbitrary scalar acquisition metadata and nondefault instrument_configuration_ref source support; native writer checks latter because headers are unrepresented."
+ },
+ "source_semantics": {
+  "MzMLHandler.cpp:1062-1116": "Source-file lexical split/substitutions/root cleanup; optional filesystem resolution is excluded natively.",
+  "MzMLHandler.cpp:1128-1155": "Every scan materializes Acquisition; source-file scalar projection; externalSpectrumID; nondefault instrument ref; ignored spectrumRef.",
+  "MzMLHandler.cpp:2259-2268,2271-2427": "Combination descendants and source special scan fields versus acquisition CV fallback.",
+  "MzMLHandler.cpp:3496-3503,3638-3743": "Scan/list scalar user metadata and writer CV-name lookup/userParam fallback.",
+  "MzMLHandler.cpp:3746-3763": "Exact case-sensitive child name equality.",
+  "MzMLHandler.cpp:5379-5500": "max(1,acquisitions), no-combination fallback, first-scan RT/windows, every-scan zoom.",
+  "XMLHandler.cpp:162-304": "CV-directed scalar conversion and MS/UO units.",
+  "ControlledVocabulary.cpp:398-442": "xsd:float/double map to source decimal; integer variants map to signed source cast.",
+  "ms-mapping.xml:118-125": "Four combination descendants and28 scan attribute/direction/law descendants; nine are acquisition fallback."
+ },
+ "projection": {
+  "counts": {
+   "spectra": 4,
+   "scans": 6,
+   "source_files": 5,
+   "products": 2
+  },
+  "original": "tests/data/mzml_load_source_original.mzML",
+  "changes": [
+   "Keep source parameter groups, record mode/representation/MS level/polarity, scanList combination/user metadata, ordered scans/identifiers/source-file references/user metadata, represented scan CVs/windows and Product lists.",
+   "Retain minimal sourceFile id/name/location only; omit unrelated header/precursor/binary data and set each defaultArrayLength to0.",
+   "Repair Product list declared count1 to2 actual products; source class asserts both; all scalar literals unchanged.",
+   "ElementTree reserializes whitespace/attribute quoting/UTF8 declaration. No production algorithm output generated."
+  ]
+ },
+ "native_adaptations": [
+  "Canonical default collapses only all-default singleton scan/list with absent/no-combination; Source mode retains every actual scan.",
+  "Empty method writes no-combination and an informative empty vector gains a source dummy scan; explicit default singleton can normalize to native empty.",
+  "Duplicate metadata/combination/IDs/count mismatches/unresolved references/malformed finite scalar conversions are checked errors instead of source overwrite/warning/unchecked behavior.",
+  "Partial CV registry: four methods and nine typed acquisition fallback terms only; existing out-of-scope CV behavior unchanged.",
+  "Nondefault instrument-reference metadata cannot be written without retained instrument definitions; no private marker/header invention.",
+  "Relative source locations remain relative; no filesystem-dependent absolute resolution.",
+  "Spectrum-only acquisition transport; chromatogram acquisitions and unrepresented record fields remain explicit writer errors.",
+  "Scan zoom CV precedes acquisition userParams to satisfy XSD ParamGroupType; source writer places zoom after metadata and can violate this ordering. Dual-writer XSD regression combines scan metadata, zoom and windows."
+ ],
+ "validation": "Ten new tests and adjacent mzML suites; cross-version results/logs in handoff. Independent xmllint XSD validation when installed.",
+ "execution": "No C++ build or execution. Source assertions and explicitly derived branches, not native-generated expected values.",
+ "license": "OpenMS-derived implementation/tests retain BSD-3-Clause attribution. No new dependency or complete ontology redistribution.",
+ "combination_cv_table": [
+  {
+   "accession": "MS:1000571",
+   "name": "sum of spectra",
+   "source_value_type": null,
+   "source_line": 4111
+  },
+  {
+   "accession": "MS:1000573",
+   "name": "median of spectra",
+   "source_value_type": null,
+   "source_line": 4124
+  },
+  {
+   "accession": "MS:1000575",
+   "name": "mean of spectra",
+   "source_value_type": null,
+   "source_line": 4136
+  },
+  {
+   "accession": "MS:1000795",
+   "name": "no combination",
+   "source_value_type": null,
+   "source_line": 5648
+  }
+ ],
+ "acquisition_cv_table": [
+  {
+   "accession": "MS:1000927",
+   "name": "ion injection time",
+   "source_value_type": "xsd:float",
+   "source_line": 6575,
+   "native_scalar_kind": "xsd:double"
+  },
+  {
+   "accession": "MS:1002082",
+   "name": "first column elution time",
+   "source_value_type": "xsd:float",
+   "source_line": 13703,
+   "native_scalar_kind": "xsd:double"
+  },
+  {
+   "accession": "MS:1002083",
+   "name": "second column elution time",
+   "source_value_type": "xsd:float",
+   "source_line": 13712,
+   "native_scalar_kind": "xsd:double"
+  },
+  {
+   "accession": "MS:1002527",
+   "name": "instrument specific scan attribute",
+   "source_value_type": null,
+   "source_line": 16654,
+   "native_scalar_kind": "xsd:string"
+  },
+  {
+   "accession": "MS:1002528",
+   "name": "synchronous prefilter selection",
+   "source_value_type": null,
+   "source_line": 16660,
+   "native_scalar_kind": "xsd:string"
+  },
+  {
+   "accession": "MS:1002892",
+   "name": "ion mobility attribute",
+   "source_value_type": null,
+   "source_line": 19021,
+   "native_scalar_kind": "xsd:string"
+  },
+  {
+   "accession": "MS:1003057",
+   "name": "scan number",
+   "source_value_type": "xsd:integer",
+   "source_line": 20116,
+   "native_scalar_kind": "xsd:int"
+  },
+  {
+   "accession": "MS:1003371",
+   "name": "SelexION compensation voltage",
+   "source_value_type": "xsd:float",
+   "source_line": 22256,
+   "native_scalar_kind": "xsd:double"
+  },
+  {
+   "accession": "MS:1003394",
+   "name": "SelexION separation voltage",
+   "source_value_type": "xsd:float",
+   "source_line": 22417,
+   "native_scalar_kind": "xsd:double"
+  }
+ ],
+ "independent_table_audit": "All four descendant method names and all nine implemented scalar kinds independently checked against pinned ontology; full scan-rule descendant count28 confirmed. No native output used.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "validation": "Ten new tests and adjacent mzML suites; cross-version results/logs in handoff. Independent xmllint XSD validation when installed.",
-  "execution": "No C++ build or execution. Source assertions and explicitly derived branches, not native-generated expected values.",
-  "license": "OpenMS-derived implementation/tests retain BSD-3-Clause attribution. No new dependency or complete ontology redistribution.",
-  "combination_cv_table": [
-    {
-      "accession": "MS:1000571",
-      "name": "sum of spectra",
-      "source_value_type": null,
-      "source_line": 4111
-    },
-    {
-      "accession": "MS:1000573",
-      "name": "median of spectra",
-      "source_value_type": null,
-      "source_line": 4124
-    },
-    {
-      "accession": "MS:1000575",
-      "name": "mean of spectra",
-      "source_value_type": null,
-      "source_line": 4136
-    },
-    {
-      "accession": "MS:1000795",
-      "name": "no combination",
-      "source_value_type": null,
-      "source_line": 5648
-    }
-  ],
-  "acquisition_cv_table": [
-    {
-      "accession": "MS:1000927",
-      "name": "ion injection time",
-      "source_value_type": "xsd:float",
-      "source_line": 6575,
-      "native_scalar_kind": "xsd:double"
-    },
-    {
-      "accession": "MS:1002082",
-      "name": "first column elution time",
-      "source_value_type": "xsd:float",
-      "source_line": 13703,
-      "native_scalar_kind": "xsd:double"
-    },
-    {
-      "accession": "MS:1002083",
-      "name": "second column elution time",
-      "source_value_type": "xsd:float",
-      "source_line": 13712,
-      "native_scalar_kind": "xsd:double"
-    },
-    {
-      "accession": "MS:1002527",
-      "name": "instrument specific scan attribute",
-      "source_value_type": null,
-      "source_line": 16654,
-      "native_scalar_kind": "xsd:string"
-    },
-    {
-      "accession": "MS:1002528",
-      "name": "synchronous prefilter selection",
-      "source_value_type": null,
-      "source_line": 16660,
-      "native_scalar_kind": "xsd:string"
-    },
-    {
-      "accession": "MS:1002892",
-      "name": "ion mobility attribute",
-      "source_value_type": null,
-      "source_line": 19021,
-      "native_scalar_kind": "xsd:string"
-    },
-    {
-      "accession": "MS:1003057",
-      "name": "scan number",
-      "source_value_type": "xsd:integer",
-      "source_line": 20116,
-      "native_scalar_kind": "xsd:int"
-    },
-    {
-      "accession": "MS:1003371",
-      "name": "SelexION compensation voltage",
-      "source_value_type": "xsd:float",
-      "source_line": 22256,
-      "native_scalar_kind": "xsd:double"
-    },
-    {
-      "accession": "MS:1003394",
-      "name": "SelexION separation voltage",
-      "source_value_type": "xsd:float",
-      "source_line": 22417,
-      "native_scalar_kind": "xsd:double"
-    }
-  ],
-  "independent_table_audit": "All four descendant method names and all nine implemented scalar kinds independently checked against pinned ontology; full scan-rule descendant count28 confirmed. No native output used."
+  "source_changes": []
+ }
 }

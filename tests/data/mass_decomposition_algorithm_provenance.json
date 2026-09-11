@@ -1,257 +1,257 @@
 {
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h",
-      "sha256": "7027a6aa6f0e1b473e88c2f1d2e9b8a4775c5fc8d21320f2703bb29e2c390f83"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.cpp",
-      "sha256": "96d376f1d31bcfcf1886a96a3cd196de5a5cb9883d5bfe0421e68db9993be679"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MassDecompositionAlgorithm_test.cpp",
-      "sha256": "4944c53823f1b7d4c397d339e91a3436864a2bf479a492754ceef136a9343610"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h",
-      "sha256": "07611ae1c701fb703a80cea3646fd7a60ee27c870e2cf356af1c5f6949851d08"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h",
-      "sha256": "8853b917e699c02430bfd67d9073773ebed0288da342b5c1d99c22fdfca18c5b"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.cpp",
-      "sha256": "a8954d6a4229546ad04a51fe3880f61138de9318d2165b8fe5dc766497ec9d32"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h",
-      "sha256": "c942eae4768d8b04712df31fea8d7f1d649abbcb3ba7cefba56b7c72f8b896b4"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.cpp",
-      "sha256": "8cd779aaa70010a3d16a102ee59c4a3e38d3bed8f1025f52f8b6fb970ae23ac5"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/Weights_test.cpp",
-      "sha256": "74cda08b5878f0ccd229a0af0e89b9aa28795f8228959187382ce814ecd313c5"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h",
-      "sha256": "3354579d9deb2a235066d6a8328b4edfe667a8e5642ba072975cb07e59bb044b"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.cpp",
-      "sha256": "8eb67cf25640ecec27136adb90b30c84d68a0ece8f88e701b28017d66e0fb836"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h",
-      "sha256": "81c56b6b658d8ccbd762b42307220da5bf60ad85c46670563446d5674691fe2a"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h",
-      "sha256": "e433c363301b7b91111b023892a7d55af80965a553ccb08db90beabb270fc427"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
-      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
-      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/ModificationDefinition.cpp",
-      "sha256": "1493dad1a926a083eeb987c937b31cac1132228f72346021f8a0158ac3588bbd"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/ModificationDefinitionsSet.cpp",
-      "sha256": "53694e5c407461ed34d3edfee40482e0271f68f67d3b8e98dab4b5a66a5bad1a"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
-      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
-      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693"
-    },
-    {
-      "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
-      "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e"
-    }
-  ],
-  "native_files": [
-    "src/chemistry/mass_decomposition_algorithm.rs",
-    "tests/mass_decomposition_algorithm.rs",
-    "docs/MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md"
-  ],
-  "scope": "Complete MassDecompositionAlgorithm scientific operation and all five settings through typed native configuration. Private IMS dependency algorithms only; standalone public IMS utility APIs and inherited C++ ABI are not claimed.",
-  "source_literals": [
-    {
-      "path": "src/tests/class_tests/openms/source/MassDecompositionAlgorithm_test.cpp",
-      "line": 52,
-      "sequence": "DFPIANGER",
-      "fragment": "Internal",
-      "charge": 0,
-      "tolerance": 0.0001,
-      "count": 842
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MassDecompositionAlgorithm_test.cpp",
-      "line": 58,
-      "sequence": "DFPIANGER",
-      "fragment": "Internal",
-      "charge": 0,
-      "tolerance": 0.001,
-      "count": 911
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/Weights_test.cpp",
-      "line": 244,
-      "masses": [
-        3,
-        5,
-        8
-      ],
-      "precision": 0.1,
-      "gcd_scaled_weights": [
-        3,
-        5,
-        8
-      ],
-      "gcd_scaled_precision": 1.0
-    }
-  ],
-  "derived_tests": {
-    "integer_oracle": "Independent exhaustive multiplicity products, seven small alphabets, all masses0..120 (847 cases); compared to private residue-table solver.",
-    "source_order_case": {
-      "weights": [
-        6,
-        9,
-        20
-      ],
-      "mass": 60,
-      "counts": [
-        [
-          10,
-          0,
-          0
-        ],
-        [
-          7,
-          2,
-          0
-        ],
-        [
-          4,
-          4,
-          0
-        ],
-        [
-          1,
-          6,
-          0
-        ],
-        [
-          0,
-          0,
-          3
-        ]
-      ]
-    },
-    "other": "Native checked resource/atomicity, all eight residue sets, caller registry values/lifetimes, fixed/variable mass conventions, ignored labels and exact real-grid endpoints.",
-    "finite_source_sentinel": {
-      "weights": [
-        6,
-        9,
-        2,
-        2
-      ],
-      "mass": 13,
-      "mathematical_counts": [
-        [
-          0,
-          1,
-          0,
-          2
-        ],
-        [
-          0,
-          1,
-          1,
-          1
-        ],
-        [
-          0,
-          1,
-          2,
-          0
-        ]
-      ],
-      "source_private_solver_output": [
-        [
-          0,
-          1,
-          1,
-          1
-        ],
-        [
-          0,
-          1,
-          0,
-          2
-        ]
-      ],
-      "reason": "finite sentinel first*last=12 blocks prefix residue minimum13",
-      "source_table_rows": [
-        [
-          0,
-          12,
-          12,
-          9,
-          12,
-          12
-        ],
-        [
-          0,
-          12,
-          2,
-          9,
-          4,
-          11
-        ]
-      ]
-    }
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h",
+   "sha256": "7027a6aa6f0e1b473e88c2f1d2e9b8a4775c5fc8d21320f2703bb29e2c390f83"
   },
-  "limits": {
-    "work": 50000000,
-    "table_cells": 4000000,
-    "output_count": 100000,
-    "allocation_and_output_bytes": 67108864,
-    "input_names": 10000,
-    "query_name_bytes": 1048576,
-    "registry_records": 200000,
-    "variable_definitions": 26,
-    "exact_integer_max": 9007199254740991,
-    "accepted_component_max": 2147483647,
-    "byte_accounting": "Conservative logical payload/cumulative allocation estimates, including nonempty count-map overhead256 plus64 per key; not a physical allocator/RSS ceiling."
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.cpp",
+   "sha256": "96d376f1d31bcfcf1886a96a3cd196de5a5cb9883d5bfe0421e68db9993be679"
   },
-  "native_differences": [
-    "Checked positive final masses and weights, finite arithmetic, float-to-integer bounds and allocation/work/output caps instead of undefined or unbounded cases.",
-    "Atomic configuration and append; emitted filter order unchanged despite avoiding intermediate candidate vectors.",
-    "First-provider ambiguous lookup replaces source allocation-pointer selection; definition full-ID ordering/deduplication is source behavior.",
-    "Warnings returned as diagnostics; numeric masses owned independently of the registry."
-  ],
-  "validation": "Seven native integration tests plus four private solver tests passed Rust1.98 all-features and Rust1.85 no-default; strict focused Clippy passed both profiles. Existing ten MassDecomposition value tests passed current. Independent read-only source review confirmed the four-weight finite-sentinel discrepancy; no C++ execution.",
-  "license": "Source-derived code and assertions retain BSD-3-Clause attribution.",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+  {
+   "path": "src/tests/class_tests/openms/source/MassDecompositionAlgorithm_test.cpp",
+   "sha256": "4944c53823f1b7d4c397d339e91a3436864a2bf479a492754ceef136a9343610"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h",
+   "sha256": "07611ae1c701fb703a80cea3646fd7a60ee27c870e2cf356af1c5f6949851d08"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h",
+   "sha256": "8853b917e699c02430bfd67d9073773ebed0288da342b5c1d99c22fdfca18c5b"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.cpp",
+   "sha256": "a8954d6a4229546ad04a51fe3880f61138de9318d2165b8fe5dc766497ec9d32"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h",
+   "sha256": "c942eae4768d8b04712df31fea8d7f1d649abbcb3ba7cefba56b7c72f8b896b4"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.cpp",
+   "sha256": "8cd779aaa70010a3d16a102ee59c4a3e38d3bed8f1025f52f8b6fb970ae23ac5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Weights_test.cpp",
+   "sha256": "74cda08b5878f0ccd229a0af0e89b9aa28795f8228959187382ce814ecd313c5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h",
+   "sha256": "3354579d9deb2a235066d6a8328b4edfe667a8e5642ba072975cb07e59bb044b"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.cpp",
+   "sha256": "8eb67cf25640ecec27136adb90b30c84d68a0ece8f88e701b28017d66e0fb836"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h",
+   "sha256": "81c56b6b658d8ccbd762b42307220da5bf60ad85c46670563446d5674691fe2a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h",
+   "sha256": "e433c363301b7b91111b023892a7d55af80965a553ccb08db90beabb270fc427"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+   "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+   "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ModificationDefinition.cpp",
+   "sha256": "1493dad1a926a083eeb987c937b31cac1132228f72346021f8a0158ac3588bbd"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ModificationDefinitionsSet.cpp",
+   "sha256": "53694e5c407461ed34d3edfee40482e0271f68f67d3b8e98dab4b5a66a5bad1a"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+   "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+   "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e"
   }
+ ],
+ "native_files": [
+  "src/chemistry/mass_decomposition_algorithm.rs",
+  "tests/mass_decomposition_algorithm.rs",
+  "docs/MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md"
+ ],
+ "scope": "Complete MassDecompositionAlgorithm scientific operation and all five settings through typed native configuration. Private IMS dependency algorithms only; standalone public IMS utility APIs and inherited C++ ABI are not claimed.",
+ "source_literals": [
+  {
+   "path": "src/tests/class_tests/openms/source/MassDecompositionAlgorithm_test.cpp",
+   "line": 52,
+   "sequence": "DFPIANGER",
+   "fragment": "Internal",
+   "charge": 0,
+   "tolerance": 0.0001,
+   "count": 842
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MassDecompositionAlgorithm_test.cpp",
+   "line": 58,
+   "sequence": "DFPIANGER",
+   "fragment": "Internal",
+   "charge": 0,
+   "tolerance": 0.001,
+   "count": 911
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Weights_test.cpp",
+   "line": 244,
+   "masses": [
+    3,
+    5,
+    8
+   ],
+   "precision": 0.1,
+   "gcd_scaled_weights": [
+    3,
+    5,
+    8
+   ],
+   "gcd_scaled_precision": 1.0
+  }
+ ],
+ "derived_tests": {
+  "integer_oracle": "Independent exhaustive multiplicity products, seven small alphabets, all masses0..120 (847 cases); compared to private residue-table solver.",
+  "source_order_case": {
+   "weights": [
+    6,
+    9,
+    20
+   ],
+   "mass": 60,
+   "counts": [
+    [
+     10,
+     0,
+     0
+    ],
+    [
+     7,
+     2,
+     0
+    ],
+    [
+     4,
+     4,
+     0
+    ],
+    [
+     1,
+     6,
+     0
+    ],
+    [
+     0,
+     0,
+     3
+    ]
+   ]
+  },
+  "other": "Native checked resource/atomicity, all eight residue sets, caller registry values/lifetimes, fixed/variable mass conventions, ignored labels and exact real-grid endpoints.",
+  "finite_source_sentinel": {
+   "weights": [
+    6,
+    9,
+    2,
+    2
+   ],
+   "mass": 13,
+   "mathematical_counts": [
+    [
+     0,
+     1,
+     0,
+     2
+    ],
+    [
+     0,
+     1,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     2,
+     0
+    ]
+   ],
+   "source_private_solver_output": [
+    [
+     0,
+     1,
+     1,
+     1
+    ],
+    [
+     0,
+     1,
+     0,
+     2
+    ]
+   ],
+   "reason": "finite sentinel first*last=12 blocks prefix residue minimum13",
+   "source_table_rows": [
+    [
+     0,
+     12,
+     12,
+     9,
+     12,
+     12
+    ],
+    [
+     0,
+     12,
+     2,
+     9,
+     4,
+     11
+    ]
+   ]
+  }
+ },
+ "limits": {
+  "work": 50000000,
+  "table_cells": 4000000,
+  "output_count": 100000,
+  "allocation_and_output_bytes": 67108864,
+  "input_names": 10000,
+  "query_name_bytes": 1048576,
+  "registry_records": 200000,
+  "variable_definitions": 26,
+  "exact_integer_max": 9007199254740991,
+  "accepted_component_max": 2147483647,
+  "byte_accounting": "Conservative logical payload/cumulative allocation estimates, including nonempty count-map overhead256 plus64 per key; not a physical allocator/RSS ceiling."
+ },
+ "native_differences": [
+  "Checked positive final masses and weights, finite arithmetic, float-to-integer bounds and allocation/work/output caps instead of undefined or unbounded cases.",
+  "Atomic configuration and append; emitted filter order unchanged despite avoiding intermediate candidate vectors.",
+  "First-provider ambiguous lookup replaces source allocation-pointer selection; definition full-ID ordering/deduplication is source behavior.",
+  "Warnings returned as diagnostics; numeric masses owned independently of the registry."
+ ],
+ "validation": "Seven native integration tests plus four private solver tests passed Rust1.98 all-features and Rust1.85 no-default; strict focused Clippy passed both profiles. Existing ten MassDecomposition value tests passed current. Independent read-only source review confirmed the four-weight finite-sentinel discrepancy; no C++ execution.",
+ "license": "Source-derived code and assertions retain BSD-3-Clause attribution.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

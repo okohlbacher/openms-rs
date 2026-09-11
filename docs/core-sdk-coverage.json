@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "target_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "target_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "methodology": "Every registered public SDK header is accounted for. Direct include dependencies and candidate Rust declarations guide review; neither source hashes nor names demonstrate method coverage. Transitive dependencies, conditional configurations, runtime data and tool workflows need separate validation. External/product-owned headers are not added to Core scope.",
   "counts": {
     "registered_public_headers": 786,
@@ -7567,7 +7567,7 @@
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/ParquetFile.h",
-      "sha256": "e5ab238afd889d6fb3fcd4dea8443dae64079a33a7fe52632e6ccc3461162e51",
+      "sha256": "62b512df003c0c4ef0f6e8729d15674fd44ceeb37849bfe6816b7ad4c2802df3",
       "domain": "FORMAT",
       "status": "unmapped",
       "review": null,

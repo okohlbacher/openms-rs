@@ -1,47 +1,54 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h",
-      "sha256": "07611ae1c701fb703a80cea3646fd7a60ee27c870e2cf356af1c5f6949851d08"
-    }
-  ],
-  "source_ranges": {
-    "table_recurrence": "193-388",
-    "zero_counter_write": "355-367",
-    "single_result_loop": "420-430"
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h",
+   "sha256": "07611ae1c701fb703a80cea3646fd7a60ee27c870e2cf356af1c5f6949851d08"
+  }
+ ],
+ "source_ranges": {
+  "table_recurrence": "193-388",
+  "zero_counter_write": "355-367",
+  "single_result_loop": "420-430"
+ },
+ "fixture_policy": "Independently executed Python translation of pinned C++ table loops, plus separate exhaustive integer-composition arithmetic. No Rust-produced expected data, C++ probe, or full SDK execution.",
+ "cases": [
+  {
+   "weights": [
+    10,
+    6,
+    15
+   ],
+   "mass": 33
   },
-  "fixture_policy": "Independently executed Python translation of pinned C++ table loops, plus separate exhaustive integer-composition arithmetic. No Rust-produced expected data, C++ probe, or full SDK execution.",
-  "cases": [
-    {
-      "weights": [
-        10,
-        6,
-        15
-      ],
-      "mass": 33
-    },
-    {
-      "weights": [
-        10,
-        16,
-        25
-      ],
-      "mass": 73
-    }
+  {
+   "weights": [
+    10,
+    16,
+    25
+   ],
+   "mass": 73
+  }
+ ],
+ "generator": {
+  "path": "tools/probes/ims_witness_source_oracle.py",
+  "sha256": "df7c9d9dc746d83ef39e494e3c664ef5aa0190a56fd8eaa619a15c5d244a7551"
+ },
+ "check_command": "python3 tools/probes/ims_witness_source_oracle.py --check",
+ "expected_nonprogress": "For sorted [10,16,25] at 73: final row[3]=73; witness[3]=(index 2,count 0); exist=true; getDecomposition repeats m=73,r=3,i=2,j=0 unchanged. Unique exact composition [0,3,1].",
+ "licensing": "Source-derived recurrence retains OpenMS BSD-3-Clause notice.",
+ "fixtures": [
+  {
+   "path": "tests/data/ims_witness_source_oracle.json",
+   "sha256": "056f593f2a9f46374da1f27fd7796c4993e0d21c2f808ac1234537b68b42c4da"
+  }
+ ],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "generator": {
-    "path": "tools/probes/ims_witness_source_oracle.py",
-    "sha256": "df7c9d9dc746d83ef39e494e3c664ef5aa0190a56fd8eaa619a15c5d244a7551"
-  },
-  "check_command": "python3 tools/probes/ims_witness_source_oracle.py --check",
-  "expected_nonprogress": "For sorted [10,16,25] at 73: final row[3]=73; witness[3]=(index 2,count 0); exist=true; getDecomposition repeats m=73,r=3,i=2,j=0 unchanged. Unique exact composition [0,3,1].",
-  "licensing": "Source-derived recurrence retains OpenMS BSD-3-Clause notice.",
-  "fixtures": [
-    {
-      "path": "tests/data/ims_witness_source_oracle.json",
-      "sha256": "056f593f2a9f46374da1f27fd7796c4993e0d21c2f808ac1234537b68b42c4da"
-    }
-  ]
+  "source_changes": []
+ }
 }

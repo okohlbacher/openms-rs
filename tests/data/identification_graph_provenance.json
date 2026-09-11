@@ -1,271 +1,271 @@
 {
-  "repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
-  "maintainer": "OpenMS Rust contributors",
-  "source_code_license": "BSD-3-Clause",
-  "artifact_scope": "Independent retained identification sequence/provenance graph and RNase graph-overload references; no C++ execution or native-generated expected values. Further observation/compound/match/group/converter layers remain outside this increment.",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/IdentificationData.h",
-      "sha256": "3502df51b84731ecb8a0a5343d1ecda4249bb8e2376faa20779bcef730b28dff",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/IdentificationData.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/MetaData.h",
-      "sha256": "99d6dc4ad8ea3c35bee54674f4a4323f7df57ba25306228dca3545566eefc769",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/MetaData.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/InputFile.h",
-      "sha256": "b0188cf22641f0673ad5d3c77773c4900f352b627199ca74e6a13520b995f2d5",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/InputFile.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/ScoreType.h",
-      "sha256": "ca1553161e085688e44e5cff711f339fe13a2c63f44f0ffb751416e5706d49eb",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ScoreType.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/ProcessingSoftware.h",
-      "sha256": "6d9fac94136538d54f8539d91decb978c68abeb0f5ed26534f776dd79dae216f",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ProcessingSoftware.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/ProcessingStep.h",
-      "sha256": "669e29aeb43f2125c4cf5a87b6e9de957dcdfca7c35e373c9778a8bbd9250edb",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ProcessingStep.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/DBSearchParam.h",
-      "sha256": "434ac92cdc4a50c8ba66463abe253ae729054c380e61b7dbd3bbff0752d29aed",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/DBSearchParam.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/AppliedProcessingStep.h",
-      "sha256": "b4261f5cc3614afe1f4c7795f4cb68fd98a7964831e19bf92409474d18ee9695",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/AppliedProcessingStep.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/ScoredProcessingResult.h",
-      "sha256": "13b523fb4bee6edce0c4512dcffbcea13745ffbc267de7eff929af4439ae00e1",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ScoredProcessingResult.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/ParentSequence.h",
-      "sha256": "cb6af76c64fde6e6899aa95c5e8f5fee3eaef7a1e4ab84a29b686420d24e7143",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ParentSequence.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/ParentMatch.h",
-      "sha256": "2e30bdf8f3e0204fe190d9f5348b60cd7626f767e9e67005e035dda20ba09d40",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ParentMatch.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ID/IdentifiedSequence.h",
-      "sha256": "16167da9c7a9140e4af97b2a6add3c906c014a7a2438af3f2059835138752fed",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/IdentifiedSequence.h"
-    },
-    {
-      "path": "src/openms/source/METADATA/ID/IdentificationData.cpp",
-      "sha256": "434895912eccdc747a5bb3092d9785f09419b39fb28c118a0012efaaf6377ed0",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/METADATA/ID/IdentificationData.cpp"
-    },
-    {
-      "path": "src/openms/source/METADATA/Software.cpp",
-      "sha256": "5f28a7ed32798212cee7673145253dc89ba73a4c2a1269219ad3da85dce98367",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/METADATA/Software.cpp"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/Software.h",
-      "sha256": "66462b0ea38a7e1b3899ca8e9b427b53f36552a7aa01adbfc3bed5d0baa13370",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/Software.h"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/RNaseDigestion.h",
-      "sha256": "080f4f853a5836d0bf2ba769d8124f259bf752c804cc80ee4e21d1346a4b8fad",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/CHEMISTRY/RNaseDigestion.h"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/RNaseDigestion.cpp",
-      "sha256": "ef0fadffcf635052cfc6af03046c56e6fef1fcec4fd0530613a72cb16f2a9f1f",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/CHEMISTRY/RNaseDigestion.cpp"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
-      "sha256": "5311c9503245ee6742c49d7d3d9f86bbf5be77fd7b7f78bc981cd0b148d6843d",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/IdentificationData_test.cpp"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/RNaseDigestion_test.cpp",
-      "sha256": "65bab419c3e5c11245b90e90324b04cd6dd61117b8aeb9854e06da4df0a20906",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/RNaseDigestion_test.cpp"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/NASequence.h",
-      "sha256": "e06f3bd0db9e816529009793112edb3a056a0295d3b5cc616ae79cf40185e11d",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/CHEMISTRY/NASequence.h"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/NASequence.cpp",
-      "sha256": "21a2a34389026ac9696d809d5e79f6141668f2b65c7d00081920775f5f929423",
-      "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/CHEMISTRY/NASequence.cpp"
-    }
-  ],
-  "literal_cases": [
-    {
-      "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
-      "lines": "70-183",
-      "values": [
-        "test.mzML",
-        "Tool",
-        "1.0",
-        "test-db.fasta",
-        "test_score",
-        1,
-        2
-      ],
-      "meaning": "deduplicated files/software/search parameters/processing steps/score type; mass tolerance literals 1 and 2"
-    },
-    {
-      "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
-      "lines": "210-230",
-      "values": [
-        "protein_1",
-        "TESTPEPTIDEAAA",
-        "rna_1",
-        2
-      ],
-      "meaning": "parent accession validation and duplicate registration"
-    },
-    {
-      "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
-      "lines": "263-332",
-      "values": [
-        "TEST",
-        "PEPTIDE",
-        "ACGU",
-        "UGCA",
-        4,
-        10,
-        2
-      ],
-      "meaning": "parentless and parent-linked sequence nodes; wrong-parent molecule type rejects even empty match set"
-    },
-    {
-      "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
-      "lines": "456-466",
-      "values": [
-        "EDIT",
-        1
-      ],
-      "meaning": "current processing step automatically attached"
-    },
-    {
-      "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
-      "lines": "499-510",
-      "values": [
-        "0.5",
-        "TESTPEP",
-        0,
-        6,
-        "11.0/14.0"
-      ],
-      "meaning": "inclusive interval union protein coverage"
-    },
-    {
-      "source": "src/tests/class_tests/openms/source/RNaseDigestion_test.cpp",
-      "lines": "163-198",
-      "values": [
-        "pAUGUCGCAG",
-        3,
-        "ACUGACUGG",
-        2,
-        1,
-        2,
-        0,
-        4
-      ],
-      "meaning": "first RNA yields 3 oligos; min length 2 repeated RNA yields 1 oligo with 2 matches starting 0 and 4"
-    }
-  ],
-  "derived_cases": [
-    {
-      "input": "pAUGUCGCAG",
-      "enzyme": "RNase_T1",
-      "products": [
-        {
-          "sequence": "pAUGp",
-          "start": 0,
-          "end_inclusive": 2,
-          "left": "[",
-          "right": "U"
-        },
-        {
-          "sequence": "UCGp",
-          "start": 3,
-          "end_inclusive": 5,
-          "left": "G",
-          "right": "C"
-        },
-        {
-          "sequence": "CAG",
-          "start": 6,
-          "end_inclusive": 8,
-          "left": "G",
-          "right": "]"
-        }
-      ],
-      "derivation": "source RNase cutting/gain/neighbor code and inclusive end conversion; strings/flanks are derived assertions, not printed upstream goldens"
-    },
-    {
-      "input": "ACUGACUGG",
-      "minimum_length": 2,
-      "sequence": "ACUGp",
-      "matches": [
-        {
-          "start": 0,
-          "end_inclusive": 3,
-          "left": "[",
-          "right": "A"
-        },
-        {
-          "start": 4,
-          "end_inclusive": 7,
-          "left": "G",
-          "right": "G"
-        }
-      ],
-      "derivation": "literal source count/starts plus derived chemical product, inclusive ends and raw-code flanks"
-    }
-  ],
-  "boundaries": [
-    "Graph owner-scoped IDs replace pointer/iterator identity and ordering with deterministic native IDs.",
-    "Scored history is insertion order, not timestamp or most recent overwrite; duplicate software priority entries remain observable.",
-    "Unknown/reversed/out-of-range match positions may be represented, then skipped by checked coverage.",
-    "Same display text does not conflate chemically distinct native sequence records.",
-    "Operations fail atomically on invalid references, conflicts, finite-value violations or limits; source partial mutation on throw is not reproduced.",
-    "The source coverage empty-parent break is retained under deterministic native ID order.",
-    "Historical source 7c files for this scope are byte-identical to the latest 6bfc files; manifest URLs identify the actual updated baseline."
-  ],
-  "reference_tests": {
-    "path": "tests/identification_graph_reference.rs",
-    "tests": 9,
-    "validation": "Nine focused tests passed current Rust/all-features and Rust 1.85/no-default-features; current strict Clippy and formatting passed. Final post-fix compiler/feature matrix is recorded by root."
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
+ "maintainer": "OpenMS Rust contributors",
+ "source_code_license": "BSD-3-Clause",
+ "artifact_scope": "Independent retained identification sequence/provenance graph and RNase graph-overload references; no C++ execution or native-generated expected values. Further observation/compound/match/group/converter layers remain outside this increment.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/IdentificationData.h",
+   "sha256": "3502df51b84731ecb8a0a5343d1ecda4249bb8e2376faa20779bcef730b28dff",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/IdentificationData.h"
   },
-  "independent_review_findings": [
-    {
-      "area": "shared NASequence parent parsing",
-      "finding": "Payload was deducted after residue-vector allocation, allowing a low remaining byte allowance to fail only after allocation.",
-      "resolution": "Shared parser precharges container/context/terminal/residue payloads and conservative vector slots before growth; validation traversal is charged. Public ordinary parser behavior is unchanged.",
-      "production_owner": "root",
-      "verification": "Read-only review of corrected code; root private zero-byte/cumulative-budget regressions and authoritative final matrix."
-    }
-  ],
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
-    ],
-    "source_changes": []
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/MetaData.h",
+   "sha256": "99d6dc4ad8ea3c35bee54674f4a4323f7df57ba25306228dca3545566eefc769",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/MetaData.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/InputFile.h",
+   "sha256": "b0188cf22641f0673ad5d3c77773c4900f352b627199ca74e6a13520b995f2d5",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/InputFile.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/ScoreType.h",
+   "sha256": "ca1553161e085688e44e5cff711f339fe13a2c63f44f0ffb751416e5706d49eb",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ScoreType.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/ProcessingSoftware.h",
+   "sha256": "6d9fac94136538d54f8539d91decb978c68abeb0f5ed26534f776dd79dae216f",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ProcessingSoftware.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/ProcessingStep.h",
+   "sha256": "669e29aeb43f2125c4cf5a87b6e9de957dcdfca7c35e373c9778a8bbd9250edb",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ProcessingStep.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/DBSearchParam.h",
+   "sha256": "434ac92cdc4a50c8ba66463abe253ae729054c380e61b7dbd3bbff0752d29aed",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/DBSearchParam.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/AppliedProcessingStep.h",
+   "sha256": "b4261f5cc3614afe1f4c7795f4cb68fd98a7964831e19bf92409474d18ee9695",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/AppliedProcessingStep.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/ScoredProcessingResult.h",
+   "sha256": "13b523fb4bee6edce0c4512dcffbcea13745ffbc267de7eff929af4439ae00e1",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ScoredProcessingResult.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/ParentSequence.h",
+   "sha256": "cb6af76c64fde6e6899aa95c5e8f5fee3eaef7a1e4ab84a29b686420d24e7143",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ParentSequence.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/ParentMatch.h",
+   "sha256": "2e30bdf8f3e0204fe190d9f5348b60cd7626f767e9e67005e035dda20ba09d40",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/ParentMatch.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ID/IdentifiedSequence.h",
+   "sha256": "16167da9c7a9140e4af97b2a6add3c906c014a7a2438af3f2059835138752fed",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/ID/IdentifiedSequence.h"
+  },
+  {
+   "path": "src/openms/source/METADATA/ID/IdentificationData.cpp",
+   "sha256": "434895912eccdc747a5bb3092d9785f09419b39fb28c118a0012efaaf6377ed0",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/METADATA/ID/IdentificationData.cpp"
+  },
+  {
+   "path": "src/openms/source/METADATA/Software.cpp",
+   "sha256": "5f28a7ed32798212cee7673145253dc89ba73a4c2a1269219ad3da85dce98367",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/METADATA/Software.cpp"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/Software.h",
+   "sha256": "66462b0ea38a7e1b3899ca8e9b427b53f36552a7aa01adbfc3bed5d0baa13370",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/METADATA/Software.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/RNaseDigestion.h",
+   "sha256": "080f4f853a5836d0bf2ba769d8124f259bf752c804cc80ee4e21d1346a4b8fad",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/CHEMISTRY/RNaseDigestion.h"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/RNaseDigestion.cpp",
+   "sha256": "ef0fadffcf635052cfc6af03046c56e6fef1fcec4fd0530613a72cb16f2a9f1f",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/CHEMISTRY/RNaseDigestion.cpp"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+   "sha256": "5311c9503245ee6742c49d7d3d9f86bbf5be77fd7b7f78bc981cd0b148d6843d",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/IdentificationData_test.cpp"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RNaseDigestion_test.cpp",
+   "sha256": "65bab419c3e5c11245b90e90324b04cd6dd61117b8aeb9854e06da4df0a20906",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/RNaseDigestion_test.cpp"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/NASequence.h",
+   "sha256": "e06f3bd0db9e816529009793112edb3a056a0295d3b5cc616ae79cf40185e11d",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/CHEMISTRY/NASequence.h"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/NASequence.cpp",
+   "sha256": "21a2a34389026ac9696d809d5e79f6141668f2b65c7d00081920775f5f929423",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/CHEMISTRY/NASequence.cpp"
   }
+ ],
+ "literal_cases": [
+  {
+   "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+   "lines": "70-183",
+   "values": [
+    "test.mzML",
+    "Tool",
+    "1.0",
+    "test-db.fasta",
+    "test_score",
+    1,
+    2
+   ],
+   "meaning": "deduplicated files/software/search parameters/processing steps/score type; mass tolerance literals 1 and 2"
+  },
+  {
+   "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+   "lines": "210-230",
+   "values": [
+    "protein_1",
+    "TESTPEPTIDEAAA",
+    "rna_1",
+    2
+   ],
+   "meaning": "parent accession validation and duplicate registration"
+  },
+  {
+   "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+   "lines": "263-332",
+   "values": [
+    "TEST",
+    "PEPTIDE",
+    "ACGU",
+    "UGCA",
+    4,
+    10,
+    2
+   ],
+   "meaning": "parentless and parent-linked sequence nodes; wrong-parent molecule type rejects even empty match set"
+  },
+  {
+   "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+   "lines": "456-466",
+   "values": [
+    "EDIT",
+    1
+   ],
+   "meaning": "current processing step automatically attached"
+  },
+  {
+   "source": "src/tests/class_tests/openms/source/IdentificationData_test.cpp",
+   "lines": "499-510",
+   "values": [
+    "0.5",
+    "TESTPEP",
+    0,
+    6,
+    "11.0/14.0"
+   ],
+   "meaning": "inclusive interval union protein coverage"
+  },
+  {
+   "source": "src/tests/class_tests/openms/source/RNaseDigestion_test.cpp",
+   "lines": "163-198",
+   "values": [
+    "pAUGUCGCAG",
+    3,
+    "ACUGACUGG",
+    2,
+    1,
+    2,
+    0,
+    4
+   ],
+   "meaning": "first RNA yields 3 oligos; min length 2 repeated RNA yields 1 oligo with 2 matches starting 0 and 4"
+  }
+ ],
+ "derived_cases": [
+  {
+   "input": "pAUGUCGCAG",
+   "enzyme": "RNase_T1",
+   "products": [
+    {
+     "sequence": "pAUGp",
+     "start": 0,
+     "end_inclusive": 2,
+     "left": "[",
+     "right": "U"
+    },
+    {
+     "sequence": "UCGp",
+     "start": 3,
+     "end_inclusive": 5,
+     "left": "G",
+     "right": "C"
+    },
+    {
+     "sequence": "CAG",
+     "start": 6,
+     "end_inclusive": 8,
+     "left": "G",
+     "right": "]"
+    }
+   ],
+   "derivation": "source RNase cutting/gain/neighbor code and inclusive end conversion; strings/flanks are derived assertions, not printed upstream goldens"
+  },
+  {
+   "input": "ACUGACUGG",
+   "minimum_length": 2,
+   "sequence": "ACUGp",
+   "matches": [
+    {
+     "start": 0,
+     "end_inclusive": 3,
+     "left": "[",
+     "right": "A"
+    },
+    {
+     "start": 4,
+     "end_inclusive": 7,
+     "left": "G",
+     "right": "G"
+    }
+   ],
+   "derivation": "literal source count/starts plus derived chemical product, inclusive ends and raw-code flanks"
+  }
+ ],
+ "boundaries": [
+  "Graph owner-scoped IDs replace pointer/iterator identity and ordering with deterministic native IDs.",
+  "Scored history is insertion order, not timestamp or most recent overwrite; duplicate software priority entries remain observable.",
+  "Unknown/reversed/out-of-range match positions may be represented, then skipped by checked coverage.",
+  "Same display text does not conflate chemically distinct native sequence records.",
+  "Operations fail atomically on invalid references, conflicts, finite-value violations or limits; source partial mutation on throw is not reproduced.",
+  "The source coverage empty-parent break is retained under deterministic native ID order.",
+  "Historical source 7c files for this scope are byte-identical to the latest 6bfc files; manifest URLs identify the actual updated baseline."
+ ],
+ "reference_tests": {
+  "path": "tests/identification_graph_reference.rs",
+  "tests": 9,
+  "validation": "Nine focused tests passed current Rust/all-features and Rust 1.85/no-default-features; current strict Clippy and formatting passed. Final post-fix compiler/feature matrix is recorded by root."
+ },
+ "independent_review_findings": [
+  {
+   "area": "shared NASequence parent parsing",
+   "finding": "Payload was deducted after residue-vector allocation, allowing a low remaining byte allowance to fail only after allocation.",
+   "resolution": "Shared parser precharges container/context/terminal/residue payloads and conservative vector slots before growth; validation traversal is charged. Public ordinary parser behavior is unchanged.",
+   "production_owner": "root",
+   "verification": "Read-only review of corrected code; root private zero-byte/cumulative-budget regressions and authoritative final matrix."
+  }
+ ],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+  ],
+  "source_changes": []
+ }
 }

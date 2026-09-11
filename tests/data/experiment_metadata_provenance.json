@@ -1,62 +1,69 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ContactPerson.h",
-      "sha256": "8dcfa5411fbaf5825d7b1edba68525eabed6e5db1a04c62e63f1e0dfd4f858da"
-    },
-    {
-      "path": "src/openms/source/METADATA/ContactPerson.cpp",
-      "sha256": "fa4dcab624af9e1a4e4bff7e2dab4b0cc263d6773a1ac76cfa996b44cf31d01a"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/ContactPerson_test.cpp",
-      "sha256": "3e830663d37431e26857acb0fe71588f452b4ce80e9e1280af78984bfc9e7200"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/HPLC.h",
-      "sha256": "691460080d51458c44134e9b94b3f9626ec0dab0a1cfeee4de2538be60b6dce0"
-    },
-    {
-      "path": "src/openms/source/METADATA/HPLC.cpp",
-      "sha256": "91b2061b98a350dbe4f6b7020e27d3c627f4a5762dc41d5b14887aca10f6d652"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/HPLC_test.cpp",
-      "sha256": "61b3d84ebbc030b8af2bcd2f33576103c841f1f03c536421969e371ed932d769"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/Gradient.h",
-      "sha256": "1b7597ef63c5efeb80ee1db1a3f5290326d430ef64dad54b344401e718ddd41a"
-    },
-    {
-      "path": "src/openms/source/METADATA/Gradient.cpp",
-      "sha256": "d249f0e12f172ce3df1f96d93bade4c41bbc539c232aede9cb7e5ee53b1da700"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/Gradient_test.cpp",
-      "sha256": "af906f88c957b1afaf03275a40d170c4a13d73bcd44d7dd2d5c01733fb28e6f8"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
-      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
-    }
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ContactPerson.h",
+   "sha256": "8dcfa5411fbaf5825d7b1edba68525eabed6e5db1a04c62e63f1e0dfd4f858da"
+  },
+  {
+   "path": "src/openms/source/METADATA/ContactPerson.cpp",
+   "sha256": "fa4dcab624af9e1a4e4bff7e2dab4b0cc263d6773a1ac76cfa996b44cf31d01a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ContactPerson_test.cpp",
+   "sha256": "3e830663d37431e26857acb0fe71588f452b4ce80e9e1280af78984bfc9e7200"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/HPLC.h",
+   "sha256": "691460080d51458c44134e9b94b3f9626ec0dab0a1cfeee4de2538be60b6dce0"
+  },
+  {
+   "path": "src/openms/source/METADATA/HPLC.cpp",
+   "sha256": "91b2061b98a350dbe4f6b7020e27d3c627f4a5762dc41d5b14887aca10f6d652"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/HPLC_test.cpp",
+   "sha256": "61b3d84ebbc030b8af2bcd2f33576103c841f1f03c536421969e371ed932d769"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/Gradient.h",
+   "sha256": "1b7597ef63c5efeb80ee1db1a3f5290326d430ef64dad54b344401e718ddd41a"
+  },
+  {
+   "path": "src/openms/source/METADATA/Gradient.cpp",
+   "sha256": "d249f0e12f172ce3df1f96d93bade4c41bbc539c232aede9cb7e5ee53b1da700"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Gradient_test.cpp",
+   "sha256": "af906f88c957b1afaf03275a40d170c4a13d73bcd44d7dd2d5c01733fb28e6f8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  }
+ ],
+ "native_implementation": [
+  "src/metadata/experiment_support.rs"
+ ],
+ "native_tests": [
+  "tests/experiment_metadata.rs"
+ ],
+ "support_document": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+ "scope": "Complete class-specific ContactPerson/HPLC/Gradient operations with owned native fields and metadata.",
+ "native_boundaries": [
+  "Typed owned fields replace accessors; copied typed MetaInfo uses the existing native representation",
+  "Literal contact split rules, including unchanged first name without a delimiter",
+  "Source stale percentage storage after clear-axis operations preserved; undefined indexing becomes checked errors",
+  "Bounded gradient allocation and contact-name parsing with atomic observable values; private reservation capacity may change on failure",
+  "Unsigned public HPLC pressure/flux storage avoids source signed private conversion"
+ ],
+ "cpp_execution": false,
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "native_implementation": [
-    "src/metadata/experiment_support.rs"
-  ],
-  "native_tests": [
-    "tests/experiment_metadata.rs"
-  ],
-  "support_document": "docs/EXPERIMENT_METADATA_SUPPORT.md",
-  "scope": "Complete class-specific ContactPerson/HPLC/Gradient operations with owned native fields and metadata.",
-  "native_boundaries": [
-    "Typed owned fields replace accessors; copied typed MetaInfo uses the existing native representation",
-    "Literal contact split rules, including unchanged first name without a delimiter",
-    "Source stale percentage storage after clear-axis operations preserved; undefined indexing becomes checked errors",
-    "Bounded gradient allocation and contact-name parsing with atomic observable values; private reservation capacity may change on failure",
-    "Unsigned public HPLC pressure/flux storage avoids source signed private conversion"
-  ],
-  "cpp_execution": false
+  "source_changes": []
+ }
 }

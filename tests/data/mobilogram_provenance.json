@@ -1,70 +1,70 @@
 {
-  "license": "BSD-3-Clause",
-  "method": "Read-only C++ source inspection; literal source class-test peak records and expected assertions; independent derived IEEE/boundary tests. No C++ execution.",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/MobilityPeak1D.h",
-      "sha256": "69c322d522a00fda4e9d64ffe48fc46998e6fe2849611605971906b988668061"
-    },
-    {
-      "path": "src/openms/source/KERNEL/MobilityPeak1D.cpp",
-      "sha256": "365e64930a11ac2ec3a1717c59332f4807469813e0aaa795b124dcebb0ee5b85"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MobilityPeak1D_test.cpp",
-      "sha256": "6c3f14258e42f782c33ad022b7ec95054ef4b1ea3185829016dfc65e85ac7258"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/Mobilogram.h",
-      "sha256": "bae1a28822f00108e4677bfae44bd97e49b2da054864f7802843d1608f6ead14"
-    },
-    {
-      "path": "src/openms/source/KERNEL/Mobilogram.cpp",
-      "sha256": "62bf89e3796337ec479eb2924ce883c39b7fecd1abe707cfa99a8a4f0fe6b84f"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/Mobilogram_test.cpp",
-      "sha256": "fc54775dffca1010534a187c61c60c509963820dce2f3b3c3bf6c19045a9afa2"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
-      "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
-    },
-    {
-      "path": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
-      "sha256": "78234161bbea0fc48d21c1898451d75d98f1829ce313b9e7295ca96f3ac2fbc4"
-    },
-    {
-      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
-      "sha256": "beadab7ea4eb41079d1a5642f73ba92b46ea3351a2cb53e2ac48382c17161631"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/DataArrays.h",
-      "sha256": "e4718313fffb638e5defd1498188505d2dba40c635762738154fa086760167cc"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/MetaInfoDescription.h",
-      "sha256": "b8831aa51cbf4036b2ec9a90af97f0089aa6afc613dbcfa80acfe4676f2ac3d6"
-    },
-    {
-      "path": "src/openms/source/METADATA/MetaInfoDescription.cpp",
-      "sha256": "cf03920cce1c782f97c738b1317442a568e85c9c17939116d54853b36663b719"
-    },
-    {
-      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
-      "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/DataProcessing.h",
-      "sha256": "7fcc9f2913cf1356a486675a4ba9afff617037d85d40cf6a508e9b99e36438ce"
-    }
-  ],
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+ "license": "BSD-3-Clause",
+ "method": "Read-only C++ source inspection; literal source class-test peak records and expected assertions; independent derived IEEE/boundary tests. No C++ execution.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/MobilityPeak1D.h",
+   "sha256": "69c322d522a00fda4e9d64ffe48fc46998e6fe2849611605971906b988668061"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MobilityPeak1D.cpp",
+   "sha256": "365e64930a11ac2ec3a1717c59332f4807469813e0aaa795b124dcebb0ee5b85"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MobilityPeak1D_test.cpp",
+   "sha256": "6c3f14258e42f782c33ad022b7ec95054ef4b1ea3185829016dfc65e85ac7258"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/Mobilogram.h",
+   "sha256": "bae1a28822f00108e4677bfae44bd97e49b2da054864f7802843d1608f6ead14"
+  },
+  {
+   "path": "src/openms/source/KERNEL/Mobilogram.cpp",
+   "sha256": "62bf89e3796337ec479eb2924ce883c39b7fecd1abe707cfa99a8a4f0fe6b84f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Mobilogram_test.cpp",
+   "sha256": "fc54775dffca1010534a187c61c60c509963820dce2f3b3c3bf6c19045a9afa2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+   "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
+   "sha256": "78234161bbea0fc48d21c1898451d75d98f1829ce313b9e7295ca96f3ac2fbc4"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+   "sha256": "beadab7ea4eb41079d1a5642f73ba92b46ea3351a2cb53e2ac48382c17161631"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/DataArrays.h",
+   "sha256": "e4718313fffb638e5defd1498188505d2dba40c635762738154fa086760167cc"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/MetaInfoDescription.h",
+   "sha256": "b8831aa51cbf4036b2ec9a90af97f0089aa6afc613dbcfa80acfe4676f2ac3d6"
+  },
+  {
+   "path": "src/openms/source/METADATA/MetaInfoDescription.cpp",
+   "sha256": "cf03920cce1c782f97c738b1317442a568e85c9c17939116d54853b36663b719"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+   "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/DataProcessing.h",
+   "sha256": "7fcc9f2913cf1356a486675a4ba9afff617037d85d40cf6a508e9b99e36438ce"
   }
+ ],
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

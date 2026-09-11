@@ -1,285 +1,292 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "rust_base_revision": "3b776acb70f40a624d8e70cb0bdf175c8b15d6fe",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h",
-      "sha256": "51c903feea91b532f401c4f63cf9f34aa83c9673d076c843ee63aac2f07a9eba"
-    },
-    {
-      "path": "src/openms/source/FORMAT/ControlledVocabulary.cpp",
-      "sha256": "1b145685423fd481149b624a22b2740df25a4278e0704b5e0b3588e6a8a7cbc2"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/ControlledVocabulary_test.cpp",
-      "sha256": "ed21a7b3f74f8822901c09d2c99ee7233c9906b7850f5e0f644a271a2b3745c4"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/ControlledVocabulary.obo",
-      "sha256": "de2084bff5c52be8f5f60bc023ff142ff04b4a1234aec29781b3b2287164823f"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
-      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
-      "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
-      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
-      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
-      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
-    },
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
-      "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
-      "sha256": "539f5dd9331d6f343257477a871ffdd5a157374a92dc12da4d65c75c058cf858"
-    },
-    {
-      "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",
-      "sha256": "99d9ee2fc48a95880b935b5ffc4a35433cad25850d4e6cebc7e319358daeac59"
-    },
-    {
-      "path": "LICENSE",
-      "sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677"
-    },
-    {
-      "path": "share/OpenMS/CV/psi-ms.obo",
-      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
-    },
-    {
-      "path": "share/OpenMS/CV/quality.obo",
-      "sha256": "9c759c87833b7c966dab66bfb31bf94d7196546eb2aef84776397a0e64d245e3"
-    },
-    {
-      "path": "share/OpenMS/CV/unit.obo",
-      "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
-    },
-    {
-      "path": "share/OpenMS/CV/brenda.obo",
-      "sha256": "4466c14e537ec6ae2b79d7cb22ea16ef0e79f9317d65d1f281c0003e9dbb846a"
-    },
-    {
-      "path": "share/OpenMS/CV/goslim_goa.obo",
-      "sha256": "542711370e7406b3461902b2e0214a054237e51c8d1f2dd01f07059001cb50f8"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h",
-      "sha256": "ae4767948b7c5b40bd7398e210a8fbabe008021210192d1c64f3d59d83c79212"
-    }
-  ],
-  "native_implementation": [
-    "src/format/controlled_vocabulary.rs",
-    "src/format/controlled_vocabulary/obo.rs"
-  ],
-  "native_tests": [
-    "tests/controlled_vocabulary.rs"
-  ],
-  "support_document": "docs/CONTROLLED_VOCABULARY_SUPPORT.md",
-  "fixtures": [
-    {
-      "path": "tests/data/controlled_vocabulary_source.obo",
-      "bytes": 1100,
-      "sha256": "de2084bff5c52be8f5f60bc023ff142ff04b4a1234aec29781b3b2287164823f",
-      "kind": "exact original class-test input, including original CRLF"
-    },
-    {
-      "path": "tests/data/controlled_vocabulary_projection.tsv",
-      "bytes": 3473801,
-      "sha256": "4e78d2bfcf2b1e476943a4d800d850728a9bae6d80658230f7b3b26bee3e6fb6",
-      "kind": "independent source-loop projection of all9254 final definition records; UTF8 hex and counted lists"
-    },
-    {
-      "path": "tests/data/controlled_vocabulary_aliases.tsv",
-      "bytes": 2638978,
-      "sha256": "d25df16aa8c13423176598c0a778dc869abe917ed45a4b4017424fa6c426a365",
-      "kind": "independent source-loop projection of all16852 final name aliases"
-    },
-    {
-      "path": "tests/data/controlled_vocabulary_projection.json",
-      "bytes": 2512,
-      "sha256": "7442b447584fdb64051734a0baff1dec53187c692c51f1d6ba32ec84be297e9d",
-      "kind": "independent source provider counts and raw byte hash values"
-    }
-  ],
-  "resources": [
-    {
-      "path": "resources/cv/psi-ms.obo",
-      "source_path": "share/OpenMS/CV/psi-ms.obo",
-      "bytes": 985486,
-      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3",
-      "load_name": "MS",
-      "decoding": "UTF-8",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "resources/cv/quality.obo",
-      "source_path": "share/OpenMS/CV/quality.obo",
-      "bytes": 305675,
-      "sha256": "9c759c87833b7c966dab66bfb31bf94d7196546eb2aef84776397a0e64d245e3",
-      "load_name": "PATO",
-      "decoding": "UTF-8",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "resources/cv/unit.obo",
-      "source_path": "share/OpenMS/CV/unit.obo",
-      "bytes": 89140,
-      "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df",
-      "load_name": "UO",
-      "decoding": "UTF-8",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "resources/cv/brenda.obo",
-      "source_path": "share/OpenMS/CV/brenda.obo",
-      "bytes": 932031,
-      "sha256": "4466c14e537ec6ae2b79d7cb22ea16ef0e79f9317d65d1f281c0003e9dbb846a",
-      "load_name": "BTO",
-      "decoding": "explicit Windows-1252, opaque NULs retained",
-      "original_bytes_unchanged": true
-    },
-    {
-      "path": "resources/cv/goslim_goa.obo",
-      "source_path": "share/OpenMS/CV/goslim_goa.obo",
-      "bytes": 28100,
-      "sha256": "542711370e7406b3461902b2e0214a054237e51c8d1f2dd01f07059001cb50f8",
-      "load_name": "GO",
-      "decoding": "UTF-8",
-      "original_bytes_unchanged": true
-    }
-  ],
-  "tools": [
-    {
-      "path": "tools/generate_controlled_vocabulary_reference.py",
-      "sha256": "f6c564fc5cf5e1f08d05cba1023f78c8dffb6a64df226a95b094cb6e65f5050c"
-    }
-  ],
-  "evidence": {
-    "source_literals": "ControlledVocabulary_test.cpp six-term fixture, type-name strings, nine ancestry booleans and unknown-child error, descendants/extension sets, real PSI-MS score directions, both exact XML12.5 literals, complete term copy assertions",
-    "independent_projection": "Independent Python transcription of pinned OBO/index loops, not Rust-produced expected values.",
-    "cpp_execution": "None; all upstream defect findings are direct source deductions, not executed differential results",
-    "source_provider_counts": [
-      {
-        "load_name": "MS",
-        "definitions": 3569,
-        "terms": 3569,
-        "placeholders": 0,
-        "names": 3569,
-        "label": "MS",
-        "version": "4.1.155",
-        "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
-      },
-      {
-        "load_name": "PATO",
-        "definitions": 1976,
-        "terms": 5545,
-        "placeholders": 0,
-        "names": 9073,
-        "label": "quality",
-        "version": "4.1.155",
-        "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
-      },
-      {
-        "load_name": "UO",
-        "definitions": 285,
-        "terms": 5780,
-        "placeholders": 0,
-        "names": 10384,
-        "label": "unit.ontology",
-        "version": "4.1.155",
-        "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
-      },
-      {
-        "load_name": "BTO",
-        "definitions": 3402,
-        "terms": 9182,
-        "placeholders": 0,
-        "names": 14021,
-        "label": "BrendaTissue563",
-        "version": "4.1.155",
-        "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
-      },
-      {
-        "load_name": "GO",
-        "definitions": 72,
-        "terms": 9254,
-        "placeholders": 0,
-        "names": 16852,
-        "label": "gene_ontology",
-        "version": "4.1.155",
-        "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
-      }
-    ],
-    "opaque_bto_damage": {
-      "invalid_utf8_byte_count": 335,
-      "nul_offsets": [
-        655277,
-        655278,
-        655280,
-        655281,
-        655282,
-        655284,
-        655290,
-        655292
-      ],
-      "term": "BTO:0002243",
-      "field": "description"
-    },
-    "source_behavior_preserved": [
-      "successful cumulative loading",
-      "stale child/name aliases",
-      "ordered placeholder insertion",
-      "exact name-before-description lookup",
-      "repeated diamond callback visits",
-      "lowercase-brenda-only relationship interpretation",
-      "unparsed fields and raw OBO escape spelling"
-    ],
-    "native_corrections": [
-      "atomic checked failure",
-      "iterative active-cycle rejection",
-      "actual typed value unit identity",
-      "all consumed XML attributes escaped and XML1.0 checked",
-      "xref_analog binary prefix length29",
-      "chosen output stream for all lines",
-      "stable explicit64-bit FNV",
-      "explicit UTF8/Windows1252 boundary with checked invalid-byte errors"
-    ],
-    "resource_limits": {
-      "max_input_bytes": 16777216,
-      "max_line_bytes": 1048576,
-      "max_terms": 100000,
-      "max_entries_per_load": 1000000,
-      "max_work": 1000000000,
-      "max_bytes": 268435456,
-      "max_output_bytes": 16777216,
-      "measured_full_shared_work_64_bit": 910737238,
-      "measured_full_shared_logical_bytes_64_bit": 200662366
-    }
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "rust_base_revision": "3b776acb70f40a624d8e70cb0bdf175c8b15d6fe",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h",
+   "sha256": "51c903feea91b532f401c4f63cf9f34aa83c9673d076c843ee63aac2f07a9eba"
   },
-  "resource_notices": "resources/cv/NOTICE.md",
-  "license_evidence_checked_on": "2026-09-11",
-  "license_boundary": "Original PSI-MS header is CC BY4.0. Current owner/catalog terms and historical PATO/UO discrepancies are separately recorded in NOTICE; code BSD does not relabel all data. No raw resource edits or inferred repairs.",
-  "cpp_issue_ledger": {
-    "path": "OpenMS_CPP_ISSUES.md",
-    "issues": {
-      "CPP-021": "Actual typed value unit identity instead of first allowed unit / empty-set dereference",
-      "CPP-022": "Correct legacy xref_analog binary type prefix length",
-      "CPP-023": "Use selected stream for parent lines",
-      "CPP-024": "Validate and escape all consumed XML attribute values"
-    },
-    "evidence": "Direct source deductions; no executed ControlledVocabulary C++ differential claim."
+  {
+   "path": "src/openms/source/FORMAT/ControlledVocabulary.cpp",
+   "sha256": "1b145685423fd481149b624a22b2740df25a4278e0704b5e0b3588e6a8a7cbc2"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ControlledVocabulary_test.cpp",
+   "sha256": "ed21a7b3f74f8822901c09d2c99ee7233c9906b7850f5e0f644a271a2b3745c4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ControlledVocabulary.obo",
+   "sha256": "de2084bff5c52be8f5f60bc023ff142ff04b4a1234aec29781b3b2287164823f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+   "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+   "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
+   "sha256": "539f5dd9331d6f343257477a871ffdd5a157374a92dc12da4d65c75c058cf858"
+  },
+  {
+   "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",
+   "sha256": "99d9ee2fc48a95880b935b5ffc4a35433cad25850d4e6cebc7e319358daeac59"
+  },
+  {
+   "path": "LICENSE",
+   "sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677"
+  },
+  {
+   "path": "share/OpenMS/CV/psi-ms.obo",
+   "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+  },
+  {
+   "path": "share/OpenMS/CV/quality.obo",
+   "sha256": "9c759c87833b7c966dab66bfb31bf94d7196546eb2aef84776397a0e64d245e3"
+  },
+  {
+   "path": "share/OpenMS/CV/unit.obo",
+   "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
+  },
+  {
+   "path": "share/OpenMS/CV/brenda.obo",
+   "sha256": "4466c14e537ec6ae2b79d7cb22ea16ef0e79f9317d65d1f281c0003e9dbb846a"
+  },
+  {
+   "path": "share/OpenMS/CV/goslim_goa.obo",
+   "sha256": "542711370e7406b3461902b2e0214a054237e51c8d1f2dd01f07059001cb50f8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+   "sha256": "ae4767948b7c5b40bd7398e210a8fbabe008021210192d1c64f3d59d83c79212"
   }
+ ],
+ "native_implementation": [
+  "src/format/controlled_vocabulary.rs",
+  "src/format/controlled_vocabulary/obo.rs"
+ ],
+ "native_tests": [
+  "tests/controlled_vocabulary.rs"
+ ],
+ "support_document": "docs/CONTROLLED_VOCABULARY_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/controlled_vocabulary_source.obo",
+   "bytes": 1100,
+   "sha256": "de2084bff5c52be8f5f60bc023ff142ff04b4a1234aec29781b3b2287164823f",
+   "kind": "exact original class-test input, including original CRLF"
+  },
+  {
+   "path": "tests/data/controlled_vocabulary_projection.tsv",
+   "bytes": 3473801,
+   "sha256": "4e78d2bfcf2b1e476943a4d800d850728a9bae6d80658230f7b3b26bee3e6fb6",
+   "kind": "independent source-loop projection of all9254 final definition records; UTF8 hex and counted lists"
+  },
+  {
+   "path": "tests/data/controlled_vocabulary_aliases.tsv",
+   "bytes": 2638978,
+   "sha256": "d25df16aa8c13423176598c0a778dc869abe917ed45a4b4017424fa6c426a365",
+   "kind": "independent source-loop projection of all16852 final name aliases"
+  },
+  {
+   "path": "tests/data/controlled_vocabulary_projection.json",
+   "bytes": 2512,
+   "sha256": "7442b447584fdb64051734a0baff1dec53187c692c51f1d6ba32ec84be297e9d",
+   "kind": "independent source provider counts and raw byte hash values"
+  }
+ ],
+ "resources": [
+  {
+   "path": "resources/cv/psi-ms.obo",
+   "source_path": "share/OpenMS/CV/psi-ms.obo",
+   "bytes": 985486,
+   "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3",
+   "load_name": "MS",
+   "decoding": "UTF-8",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "resources/cv/quality.obo",
+   "source_path": "share/OpenMS/CV/quality.obo",
+   "bytes": 305675,
+   "sha256": "9c759c87833b7c966dab66bfb31bf94d7196546eb2aef84776397a0e64d245e3",
+   "load_name": "PATO",
+   "decoding": "UTF-8",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "resources/cv/unit.obo",
+   "source_path": "share/OpenMS/CV/unit.obo",
+   "bytes": 89140,
+   "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df",
+   "load_name": "UO",
+   "decoding": "UTF-8",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "resources/cv/brenda.obo",
+   "source_path": "share/OpenMS/CV/brenda.obo",
+   "bytes": 932031,
+   "sha256": "4466c14e537ec6ae2b79d7cb22ea16ef0e79f9317d65d1f281c0003e9dbb846a",
+   "load_name": "BTO",
+   "decoding": "explicit Windows-1252, opaque NULs retained",
+   "original_bytes_unchanged": true
+  },
+  {
+   "path": "resources/cv/goslim_goa.obo",
+   "source_path": "share/OpenMS/CV/goslim_goa.obo",
+   "bytes": 28100,
+   "sha256": "542711370e7406b3461902b2e0214a054237e51c8d1f2dd01f07059001cb50f8",
+   "load_name": "GO",
+   "decoding": "UTF-8",
+   "original_bytes_unchanged": true
+  }
+ ],
+ "tools": [
+  {
+   "path": "tools/generate_controlled_vocabulary_reference.py",
+   "sha256": "f6c564fc5cf5e1f08d05cba1023f78c8dffb6a64df226a95b094cb6e65f5050c"
+  }
+ ],
+ "evidence": {
+  "source_literals": "ControlledVocabulary_test.cpp six-term fixture, type-name strings, nine ancestry booleans and unknown-child error, descendants/extension sets, real PSI-MS score directions, both exact XML12.5 literals, complete term copy assertions",
+  "independent_projection": "Independent Python transcription of pinned OBO/index loops, not Rust-produced expected values.",
+  "cpp_execution": "None; all upstream defect findings are direct source deductions, not executed differential results",
+  "source_provider_counts": [
+   {
+    "load_name": "MS",
+    "definitions": 3569,
+    "terms": 3569,
+    "placeholders": 0,
+    "names": 3569,
+    "label": "MS",
+    "version": "4.1.155",
+    "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+   },
+   {
+    "load_name": "PATO",
+    "definitions": 1976,
+    "terms": 5545,
+    "placeholders": 0,
+    "names": 9073,
+    "label": "quality",
+    "version": "4.1.155",
+    "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+   },
+   {
+    "load_name": "UO",
+    "definitions": 285,
+    "terms": 5780,
+    "placeholders": 0,
+    "names": 10384,
+    "label": "unit.ontology",
+    "version": "4.1.155",
+    "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+   },
+   {
+    "load_name": "BTO",
+    "definitions": 3402,
+    "terms": 9182,
+    "placeholders": 0,
+    "names": 14021,
+    "label": "BrendaTissue563",
+    "version": "4.1.155",
+    "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+   },
+   {
+    "load_name": "GO",
+    "definitions": 72,
+    "terms": 9254,
+    "placeholders": 0,
+    "names": 16852,
+    "label": "gene_ontology",
+    "version": "4.1.155",
+    "url": "http://purl.obolibrary.org/obo/ms/psi-ms.obo"
+   }
+  ],
+  "opaque_bto_damage": {
+   "invalid_utf8_byte_count": 335,
+   "nul_offsets": [
+    655277,
+    655278,
+    655280,
+    655281,
+    655282,
+    655284,
+    655290,
+    655292
+   ],
+   "term": "BTO:0002243",
+   "field": "description"
+  },
+  "source_behavior_preserved": [
+   "successful cumulative loading",
+   "stale child/name aliases",
+   "ordered placeholder insertion",
+   "exact name-before-description lookup",
+   "repeated diamond callback visits",
+   "lowercase-brenda-only relationship interpretation",
+   "unparsed fields and raw OBO escape spelling"
+  ],
+  "native_corrections": [
+   "atomic checked failure",
+   "iterative active-cycle rejection",
+   "actual typed value unit identity",
+   "all consumed XML attributes escaped and XML1.0 checked",
+   "xref_analog binary prefix length29",
+   "chosen output stream for all lines",
+   "stable explicit64-bit FNV",
+   "explicit UTF8/Windows1252 boundary with checked invalid-byte errors"
+  ],
+  "resource_limits": {
+   "max_input_bytes": 16777216,
+   "max_line_bytes": 1048576,
+   "max_terms": 100000,
+   "max_entries_per_load": 1000000,
+   "max_work": 1000000000,
+   "max_bytes": 268435456,
+   "max_output_bytes": 16777216,
+   "measured_full_shared_work_64_bit": 910737238,
+   "measured_full_shared_logical_bytes_64_bit": 200662366
+  }
+ },
+ "resource_notices": "resources/cv/NOTICE.md",
+ "license_evidence_checked_on": "2026-09-11",
+ "license_boundary": "Original PSI-MS header is CC BY4.0. Current owner/catalog terms and historical PATO/UO discrepancies are separately recorded in NOTICE; code BSD does not relabel all data. No raw resource edits or inferred repairs.",
+ "cpp_issue_ledger": {
+  "path": "OpenMS_CPP_ISSUES.md",
+  "issues": {
+   "CPP-021": "Actual typed value unit identity instead of first allowed unit / empty-set dereference",
+   "CPP-022": "Correct legacy xref_analog binary type prefix length",
+   "CPP-023": "Use selected stream for parent lines",
+   "CPP-024": "Validate and escape all consumed XML attribute values"
+  },
+  "evidence": "Direct source deductions; no executed ControlledVocabulary C++ differential claim."
+ },
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
 }

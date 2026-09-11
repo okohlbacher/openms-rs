@@ -1,33 +1,33 @@
 {
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/PeakIndex.h",
-      "sha256": "c3111e567cf887d977eb0aeb3ea8ff400c76a725705ad8137c88ebbf00203d39"
-    },
-    {
-      "path": "src/openms/source/KERNEL/PeakIndex.cpp",
-      "sha256": "fbaa5dd023cf079201ebc4d9f4765a600df79eccdbb3360eef474be7731d62af"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/PeakIndex_test.cpp",
-      "sha256": "e215a478770b69f3a41a108a61d029008dd549f9152a5465288e0411779330dd"
-    }
-  ],
-  "native_files": [
-    "src/kernel/peak_index.rs",
-    "tests/peak_index.rs",
-    "docs/PEAK_INDEX_SUPPORT.md"
-  ],
-  "scope": "Complete PeakIndex value/constructor/validity/clear/borrowed feature,spectrum,peak access surface. Public usize fields retain source sentinel states; immutable generic slices replace template feature maps.",
-  "native_boundaries": "Getters enforce bounds in every build and return Result; source preconditions depend on debug mode. Standard Hash is an added native convenience.",
-  "evidence": "Source class-test literal constructors17/5, feature m/z1..5 and1.1..5.1, scanRT1..3/peak map0..3 plus36 independent index combinations and pointer-identity checks. No C++ runtime execution.",
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/PeakIndex.h",
+   "sha256": "c3111e567cf887d977eb0aeb3ea8ff400c76a725705ad8137c88ebbf00203d39"
+  },
+  {
+   "path": "src/openms/source/KERNEL/PeakIndex.cpp",
+   "sha256": "fbaa5dd023cf079201ebc4d9f4765a600df79eccdbb3360eef474be7731d62af"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakIndex_test.cpp",
+   "sha256": "e215a478770b69f3a41a108a61d029008dd549f9152a5465288e0411779330dd"
   }
+ ],
+ "native_files": [
+  "src/kernel/peak_index.rs",
+  "tests/peak_index.rs",
+  "docs/PEAK_INDEX_SUPPORT.md"
+ ],
+ "scope": "Complete PeakIndex value/constructor/validity/clear/borrowed feature,spectrum,peak access surface. Public usize fields retain source sentinel states; immutable generic slices replace template feature maps.",
+ "native_boundaries": "Getters enforce bounds in every build and return Result; source preconditions depend on debug mode. Standard Hash is an added native convenience.",
+ "evidence": "Source class-test literal constructors17/5, feature m/z1..5 and1.1..5.1, scanRT1..3/peak map0..3 plus36 independent index combinations and pointer-identity checks. No C++ runtime execution.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }

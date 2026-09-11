@@ -405,17 +405,17 @@
  "target_sdk": {
   "version": "4.0.0",
   "repository": "https://github.com/okohlbacher/OpenMS4-core.git",
-  "commit": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "commit": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "branch": "codex/package-split",
-  "verified_date": "2026-09-10",
+  "verified_date": "2026-09-11",
   "inventory_and_delta": "docs/core-sdk-update.json",
   "analysis": "docs/CORE_SDK_UPDATE.md",
   "carried_forward_reference_paths": 220,
   "historical_reference_policy": "Historical fixture revisions and hashes remain unchanged. Carried references use target hashes; changed source bytes record original hashes and explicit behavior reviews. Current-source manifests separately record target_verification. External Boost headers are outside this SDK comparison.",
-  "previous_target_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"
+  "previous_target_review": "docs/CORE_SDK_BC9CC12_REVIEW.md"
  },
  "identification_graph": {
-  "target_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "target_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "module": "src/identification/graph.rs",
   "records_module": "src/identification/graph/records.rs",
   "support": "docs/IDENTIFICATION_GRAPH_SUPPORT.md",
@@ -552,9 +552,7 @@
   "tests/data/mzml_normalization_provenance.json",
   "tests/data/mzml_schema_provenance.json",
   "tests/data/mzml_typed_transport_provenance.json",
-  "tests/data/experimental_design_provenance.json",
-  "tests/data/topp_cli_provenance.json",
-  "tests/data/topp_mzml_splitter_provenance.json"
+  "tests/data/experimental_design_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -589,5 +587,9 @@
  },
  "experimental_design_fixture_provenance": "tests/data/experimental_design_provenance.json",
  "topp_cli_provenance": "tests/data/topp_cli_provenance.json",
- "topp_mzml_splitter_provenance": "tests/data/topp_mzml_splitter_provenance.json"
+ "topp_mzml_splitter_provenance": "tests/data/topp_mzml_splitter_provenance.json",
+ "topp_package_reference_manifests": [
+  "tests/data/topp_cli_provenance.json",
+  "tests/data/topp_mzml_splitter_provenance.json"
+ ]
 }

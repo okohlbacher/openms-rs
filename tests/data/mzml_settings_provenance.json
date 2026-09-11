@@ -1,139 +1,146 @@
 {
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "previous_source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "source_comparison": "All 18 recorded files are byte-identical to the previous 54a pin; historical manifests and original bytes are retained.",
-  "source_files": [
-    {
-      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
-      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
-      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
-    },
-    {
-      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
-      "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/InstrumentSettings.h",
-      "sha256": "6c7e3122bfe3f6fddc39102ce91c5a87053946d642353d0f6388ab7501a836ed"
-    },
-    {
-      "path": "src/openms/source/METADATA/InstrumentSettings.cpp",
-      "sha256": "f412905ada7edc511bb89f974be4a694163e3a247db483999a9cf28757c64632"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ScanWindow.h",
-      "sha256": "a142aa7a879f07542f3770db6f6c6def230b395992195011b0b6e7ce9f9125e7"
-    },
-    {
-      "path": "src/openms/source/METADATA/ScanWindow.cpp",
-      "sha256": "1ced9d43dc642f297db8735688b83e50afef4f753156c8811ef21e3301557fac"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/Product.h",
-      "sha256": "47a07370bf43179bb194af9f8a1e1620e1d097e400701cdc532eea53dc926758"
-    },
-    {
-      "path": "src/openms/source/METADATA/Product.cpp",
-      "sha256": "74cf66fde1ac87c7fb9126df01590a04f2db52705c88b33c10d27335f5f2205c"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ChromatogramSettings.h",
-      "sha256": "f1bc2c181cf2e2227973c7f9b1ac1c7bb2a63ecfb1fafa4c69a201be63a04025"
-    },
-    {
-      "path": "src/openms/source/METADATA/ChromatogramSettings.cpp",
-      "sha256": "2af3b20decd7a06a4546b60056f4a86f7ea42ef81df73534c646743080db849f"
-    },
-    {
-      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h",
-      "sha256": "8c91556e0b00cd2041cc71a57c75fa85f36b406694b0ad9b9e69f1374fb46d6e"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
-      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/ChromatogramTools_test.cpp",
-      "sha256": "68c45cc3ca459e32fa638315021ad6ea48d376d75649ba186c3865b9ab4cdec5"
-    },
-    {
-      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
-    },
-    {
-      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
-      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
-    },
-    {
-      "path": "share/OpenMS/CV/psi-ms.obo",
-      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
-    },
-    {
-      "path": "share/OpenMS/CV/unit.obo",
-      "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
-    }
-  ],
-  "fixture_files": [
-    {
-      "path": "tests/data/mzml_settings_source_projection.mzML",
-      "sha256": "83b218b0463977b7dea21534a56737056e29e44b7625d598cf46cfcac4cfc33a"
-    },
-    {
-      "path": "tests/data/mzml_load_source_original.mzML",
-      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
-    },
-    {
-      "path": "tests/data/mzml_1_10.xsd",
-      "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad"
-    },
-    {
-      "path": "tools/generate_mzml_settings_reference.py",
-      "sha256": "1a92e95cec376a3633fe258dd27b5b2c81038abb451f8d562b68838f01d8a19a"
-    }
-  ],
-  "source_literal_assertions": {
-    "src/tests/class_tests/openms/source/MzMLFile_test.cpp:364-568": "Four source spectra: MS1/MSn scan mode; positive polarity; fourth zoom; ordered windows400..1800,100..500,600..1000,1100..1500,400..1800,110..905. Product tuples(18.88,1,2)/(19.99,3,4).",
-    "src/tests/class_tests/openms/source/MzMLFile_test.cpp:653-656": "Product metadata isolationwindow3/isolationwindow4 and scan-window name scanwindow1.",
-    "src/tests/class_tests/openms/source/MzMLFile_test.cpp:1440-1447": "PDA source window220..500 with UO:0000018 nanometer. Native test is window-only; no claim for source MSlevel0/wavelength/absorption arrays."
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "previous_source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "source_comparison": "All 18 recorded files are byte-identical to the previous 54a pin; historical manifests and original bytes are retained.",
+ "source_files": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
   },
-  "source_semantics": {
-    "MzMLHandler.cpp:1577-1633": "Fourteen scan-mode CV mappings.",
-    "MzMLHandler.cpp:1669-1675,1739-1768,2417-2419": "Deprecated spectrum zoom, polarity, ordered bounds and nondefault unit_accession metadata, current scan zoom.",
-    "MzMLHandler.cpp:3357-3405": "Nine chromatogram types and MS:1001474 SRM alias; unrepresented non-mass signal accessions are explicit native errors.",
-    "MzMLHandler.cpp:5303-5362": "Source writer forces Unknown mode to mass spectrum; native retains existing Unknown roundtrip by omitting record mode CV.",
-    "MzMLHandler.cpp:5445-5497,5518-5523": "Scan windows/zoom and spectrum Product list writer locations.",
-    "MzMLHandler.cpp:5880-5940": "Chromatogram type and singular Product output; no chromatogram InstrumentSettings slot.",
-    "mzML_1_10.xsd:192,641-680,754-766,882-920": "Optional unitName, scan window placement, Product and chromatogram grammar.",
-    "MzMLHandler.cpp:4869-4935": "Header summarizes spectrum mode presence in source order; Unknown or empty spectrum map emits Mass fallback, including chrom-only files."
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+   "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
   },
-  "projection": {
-    "spectra": 4,
-    "scan_windows": 6,
-    "products": 2,
-    "peak_count": 0,
-    "original_reused_by_hash": "tests/data/mzml_load_source_original.mzML",
-    "changes": [
-      "Keep source parameter-group definitions, mode/representation/MSlevel/polarity terms, scan RT/zoom/windows+metadata, Product lists+metadata.",
-      "Remove unrelated unsupported header/acquisition/precursor/binary fields; set each defaultArrayLength to0.",
-      "Repair source Product list count1 to actual2; source lines417-434 contain two and class asserts two. All Product decimal strings preserved.",
-      "ElementTree reserializes XML whitespace/attribute quoting, UTF8 declaration and namespace spelling. No numerical algorithm outputs are generated."
-    ]
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
   },
-  "native_boundaries": [
-    "Duplicate mode/polarity/type/bounds, malformed lists and mixed endpoint units are checked errors instead of source overwrite or unchecked access. Repeated zoom is idempotent.",
-    "Finite ordered window endpoints and source zero defaults; unsupported explicit-default unit metadata and control-key userParam rejected to avoid identity loss.",
-    "MS/UO numeric unit accession retained without ontology lookup; optional unitName omitted for opaque units.",
-    "Scalar window/Product metadata reuses source-XSD conversion; Empty/list metadata and arbitrary Product CV entries rejected before output.",
-    "Negative-zero Product offsets explicitly emitted; source omits all zero offsets.",
-    "Chromatogram Unknown and nondefault InstrumentSettings rejected, along with SourceFile/AcquisitionInfo/DataProcessing and spectrum InstrumentSettings metadata.",
-    "New descriptors and reference expansion share input parameter budgets; supported output settings use cumulative50M/256MiB fixed preflight.",
-    "Excluded records retain full validation; no full MzMLFile or detector-data transport claim."
+  {
+   "path": "src/openms/include/OpenMS/METADATA/InstrumentSettings.h",
+   "sha256": "6c7e3122bfe3f6fddc39102ce91c5a87053946d642353d0f6388ab7501a836ed"
+  },
+  {
+   "path": "src/openms/source/METADATA/InstrumentSettings.cpp",
+   "sha256": "f412905ada7edc511bb89f974be4a694163e3a247db483999a9cf28757c64632"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ScanWindow.h",
+   "sha256": "a142aa7a879f07542f3770db6f6c6def230b395992195011b0b6e7ce9f9125e7"
+  },
+  {
+   "path": "src/openms/source/METADATA/ScanWindow.cpp",
+   "sha256": "1ced9d43dc642f297db8735688b83e50afef4f753156c8811ef21e3301557fac"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/Product.h",
+   "sha256": "47a07370bf43179bb194af9f8a1e1620e1d097e400701cdc532eea53dc926758"
+  },
+  {
+   "path": "src/openms/source/METADATA/Product.cpp",
+   "sha256": "74cf66fde1ac87c7fb9126df01590a04f2db52705c88b33c10d27335f5f2205c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ChromatogramSettings.h",
+   "sha256": "f1bc2c181cf2e2227973c7f9b1ac1c7bb2a63ecfb1fafa4c69a201be63a04025"
+  },
+  {
+   "path": "src/openms/source/METADATA/ChromatogramSettings.cpp",
+   "sha256": "2af3b20decd7a06a4546b60056f4a86f7ea42ef81df73534c646743080db849f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h",
+   "sha256": "8c91556e0b00cd2041cc71a57c75fa85f36b406694b0ad9b9e69f1374fb46d6e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+   "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ChromatogramTools_test.cpp",
+   "sha256": "68c45cc3ca459e32fa638315021ad6ea48d376d75649ba186c3865b9ab4cdec5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+   "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+  },
+  {
+   "path": "share/OpenMS/CV/psi-ms.obo",
+   "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+  },
+  {
+   "path": "share/OpenMS/CV/unit.obo",
+   "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
+  }
+ ],
+ "fixture_files": [
+  {
+   "path": "tests/data/mzml_settings_source_projection.mzML",
+   "sha256": "83b218b0463977b7dea21534a56737056e29e44b7625d598cf46cfcac4cfc33a"
+  },
+  {
+   "path": "tests/data/mzml_load_source_original.mzML",
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+  },
+  {
+   "path": "tests/data/mzml_1_10.xsd",
+   "sha256": "3fffeabe4f5909575acfe3563d664660a806fefc501b5dfc91ccb1117fc440ad"
+  },
+  {
+   "path": "tools/generate_mzml_settings_reference.py",
+   "sha256": "1a92e95cec376a3633fe258dd27b5b2c81038abb451f8d562b68838f01d8a19a"
+  }
+ ],
+ "source_literal_assertions": {
+  "src/tests/class_tests/openms/source/MzMLFile_test.cpp:364-568": "Four source spectra: MS1/MSn scan mode; positive polarity; fourth zoom; ordered windows400..1800,100..500,600..1000,1100..1500,400..1800,110..905. Product tuples(18.88,1,2)/(19.99,3,4).",
+  "src/tests/class_tests/openms/source/MzMLFile_test.cpp:653-656": "Product metadata isolationwindow3/isolationwindow4 and scan-window name scanwindow1.",
+  "src/tests/class_tests/openms/source/MzMLFile_test.cpp:1440-1447": "PDA source window220..500 with UO:0000018 nanometer. Native test is window-only; no claim for source MSlevel0/wavelength/absorption arrays."
+ },
+ "source_semantics": {
+  "MzMLHandler.cpp:1577-1633": "Fourteen scan-mode CV mappings.",
+  "MzMLHandler.cpp:1669-1675,1739-1768,2417-2419": "Deprecated spectrum zoom, polarity, ordered bounds and nondefault unit_accession metadata, current scan zoom.",
+  "MzMLHandler.cpp:3357-3405": "Nine chromatogram types and MS:1001474 SRM alias; unrepresented non-mass signal accessions are explicit native errors.",
+  "MzMLHandler.cpp:5303-5362": "Source writer forces Unknown mode to mass spectrum; native retains existing Unknown roundtrip by omitting record mode CV.",
+  "MzMLHandler.cpp:5445-5497,5518-5523": "Scan windows/zoom and spectrum Product list writer locations.",
+  "MzMLHandler.cpp:5880-5940": "Chromatogram type and singular Product output; no chromatogram InstrumentSettings slot.",
+  "mzML_1_10.xsd:192,641-680,754-766,882-920": "Optional unitName, scan window placement, Product and chromatogram grammar.",
+  "MzMLHandler.cpp:4869-4935": "Header summarizes spectrum mode presence in source order; Unknown or empty spectrum map emits Mass fallback, including chrom-only files."
+ },
+ "projection": {
+  "spectra": 4,
+  "scan_windows": 6,
+  "products": 2,
+  "peak_count": 0,
+  "original_reused_by_hash": "tests/data/mzml_load_source_original.mzML",
+  "changes": [
+   "Keep source parameter-group definitions, mode/representation/MSlevel/polarity terms, scan RT/zoom/windows+metadata, Product lists+metadata.",
+   "Remove unrelated unsupported header/acquisition/precursor/binary fields; set each defaultArrayLength to0.",
+   "Repair source Product list count1 to actual2; source lines417-434 contain two and class asserts two. All Product decimal strings preserved.",
+   "ElementTree reserializes XML whitespace/attribute quoting, UTF8 declaration and namespace spelling. No numerical algorithm outputs are generated."
+  ]
+ },
+ "native_boundaries": [
+  "Duplicate mode/polarity/type/bounds, malformed lists and mixed endpoint units are checked errors instead of source overwrite or unchecked access. Repeated zoom is idempotent.",
+  "Finite ordered window endpoints and source zero defaults; unsupported explicit-default unit metadata and control-key userParam rejected to avoid identity loss.",
+  "MS/UO numeric unit accession retained without ontology lookup; optional unitName omitted for opaque units.",
+  "Scalar window/Product metadata reuses source-XSD conversion; Empty/list metadata and arbitrary Product CV entries rejected before output.",
+  "Negative-zero Product offsets explicitly emitted; source omits all zero offsets.",
+  "Chromatogram Unknown and nondefault InstrumentSettings rejected, along with SourceFile/AcquisitionInfo/DataProcessing and spectrum InstrumentSettings metadata.",
+  "New descriptors and reference expansion share input parameter budgets; supported output settings use cumulative50M/256MiB fixed preflight.",
+  "Excluded records retain full validation; no full MzMLFile or detector-data transport claim."
+ ],
+ "derived_tests": "Native full-object roundtrip, exact PIC+zlib converter route, independent enum/CV table mapping, malformed/resource and signed-zero cases. No expected numerical values derived by production.",
+ "validation": "Eight new settings tests plus adjacent guards/Product/mzML/loading/groups/Numpress/paths/dispatch suites, independent xmllint XSD when installed; exact compiler results recorded in handoff.",
+ "execution": "No C++ build or execution for this increment.",
+ "license": "OpenMS source-derived code/tests retain BSD-3-Clause attribution; no new dependency or redistributed ontology file.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "derived_tests": "Native full-object roundtrip, exact PIC+zlib converter route, independent enum/CV table mapping, malformed/resource and signed-zero cases. No expected numerical values derived by production.",
-  "validation": "Eight new settings tests plus adjacent guards/Product/mzML/loading/groups/Numpress/paths/dispatch suites, independent xmllint XSD when installed; exact compiler results recorded in handoff.",
-  "execution": "No C++ build or execution for this increment.",
-  "license": "OpenMS source-derived code/tests retain BSD-3-Clause attribution; no new dependency or redistributed ontology file."
+  "source_changes": []
+ }
 }

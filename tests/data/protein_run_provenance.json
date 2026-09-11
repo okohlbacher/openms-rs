@@ -1,57 +1,64 @@
 {
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/METADATA/ProteinIdentification.h",
-      "sha256": "539ca870452824774023ee96112f279d319a00053fa8ddc9c9ae8faa942f86be"
-    },
-    {
-      "path": "src/openms/source/METADATA/ProteinIdentification.cpp",
-      "sha256": "c4b8be0c5a733e6a1cb36c6fb3ab9b181688f6a487cd505b785b0051f83d9585"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/ProteinIdentification_test.cpp",
-      "sha256": "68550dba9b2e7fa052cfd4ec3da9ee7ea4c4e5d0fbae2753f0375caff2053a13"
-    },
-    {
-      "path": "src/openms/include/OpenMS/METADATA/MetaInfo.h",
-      "sha256": "104d2bc63224fa0d92d83c4600ed594dcd7f9da01b028cabae05a39559050a3c"
-    },
-    {
-      "path": "src/openms/source/METADATA/MetaInfo.cpp",
-      "sha256": "bafa2699024ef964a166234e0706bc0b29d5314abd45ff516046dd568ba42e18"
-    },
-    {
-      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
-      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
-      "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp",
-      "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b"
-    },
-    {
-      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
-      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
-    }
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ProteinIdentification.h",
+   "sha256": "539ca870452824774023ee96112f279d319a00053fa8ddc9c9ae8faa942f86be"
+  },
+  {
+   "path": "src/openms/source/METADATA/ProteinIdentification.cpp",
+   "sha256": "c4b8be0c5a733e6a1cb36c6fb3ab9b181688f6a487cd505b785b0051f83d9585"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ProteinIdentification_test.cpp",
+   "sha256": "68550dba9b2e7fa052cfd4ec3da9ee7ea4c4e5d0fbae2753f0375caff2053a13"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/MetaInfo.h",
+   "sha256": "104d2bc63224fa0d92d83c4600ed594dcd7f9da01b028cabae05a39559050a3c"
+  },
+  {
+   "path": "src/openms/source/METADATA/MetaInfo.cpp",
+   "sha256": "bafa2699024ef964a166234e0706bc0b29d5314abd45ff516046dd568ba42e18"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp",
+   "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+   "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
+  }
+ ],
+ "native_implementation": [
+  "src/identification/protein_run.rs"
+ ],
+ "native_tests": [
+  "tests/protein_run.rs"
+ ],
+ "support_document": "docs/PROTEIN_RUN_SUPPORT.md",
+ "scope": "Inference metadata, original engine recovery, mergeability,12 ordered export fields, singleton groups, metadata-only copying. Header remains partial.",
+ "native_boundaries": [
+  "Borrowed Result string queries; native lexical metadata keys differ from source numeric registry-ID traversal",
+  "Finite newly consumed singleton scores and bounded owned output with atomic errors",
+  "Dedicated native primary/raw path fields copied with other metadata",
+  "Source filesystem-aware primary-path selection and remaining header/inherited APIs not certified"
+ ],
+ "cpp_execution": false,
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
   ],
-  "native_implementation": [
-    "src/identification/protein_run.rs"
-  ],
-  "native_tests": [
-    "tests/protein_run.rs"
-  ],
-  "support_document": "docs/PROTEIN_RUN_SUPPORT.md",
-  "scope": "Inference metadata, original engine recovery, mergeability,12 ordered export fields, singleton groups, metadata-only copying. Header remains partial.",
-  "native_boundaries": [
-    "Borrowed Result string queries; native lexical metadata keys differ from source numeric registry-ID traversal",
-    "Finite newly consumed singleton scores and bounded owned output with atomic errors",
-    "Dedicated native primary/raw path fields copied with other metadata",
-    "Source filesystem-aware primary-path selection and remaining header/inherited APIs not certified"
-  ],
-  "cpp_execution": false
+  "source_changes": []
+ }
 }

@@ -1,120 +1,120 @@
 {
-  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
-  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "sources": [
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h",
-      "sha256": "3354579d9deb2a235066d6a8328b4edfe667a8e5642ba072975cb07e59bb044b"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h",
-      "sha256": "b6f4754533c4c68077c213ec190a773a60222e79b959892af6dc9d48df5ebbf5"
-    },
-    {
-      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h",
-      "sha256": "de39c72e6f3500001f12a1104dddf826e3a8513d775d856de96ab897a4c9a4db"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.cpp",
-      "sha256": "8eb67cf25640ecec27136adb90b30c84d68a0ece8f88e701b28017d66e0fb836"
-    },
-    {
-      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.cpp",
-      "sha256": "aab984dc775a5a7eacf1a3dbfe2ba2dd5ee28b88e4522baad0b0c9d3616de45a"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/IMSAlphabet_test.cpp",
-      "sha256": "36b8156606650e7426c8fb18b18ac29cc2f0100df56ef9d00e3b03d9d1334211"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/IMSAlphabetParser_test.cpp",
-      "sha256": "e70b802f2cac6f13ecae2371948c2e1cb3b72acee938177f05a44addf6015118"
-    },
-    {
-      "path": "src/tests/class_tests/openms/source/IMSAlphabetTextParser_test.cpp",
-      "sha256": "1b0534e150093165b9999925b7ac52a7ca2f5b621e905df1eb9c4fbfedbda0e6"
-    }
-  ],
-  "native_files": [
-    "src/chemistry/ims_alphabet.rs",
-    "src/chemistry/ims_alphabet_parser.rs",
-    "tests/ims_alphabet.rs",
-    "docs/IMS_ALPHABET_SUPPORT.md"
-  ],
-  "dependency_files": [
-    "src/chemistry/ims_isotope_distribution.rs",
-    "src/chemistry/ims_element.rs"
-  ],
-  "scope": "Complete native alphabet/default parser scientific operation mapping, including replaceable f64-map parser trait, owned elements, load and verbose stream output; C++ ABI/arbitrary template instantiations and another decomposer engine are not claimed.",
-  "fixture_policy": "Source literals are embedded directly in tests/ims_alphabet.rs; no copied data fixture files. Isotope/element files are frozen stage dependencies and excluded from extraction.",
-  "source_literals": {
-    "basic_names": [
-      "hydrogen",
-      "oxygen",
-      "nitrogen"
-    ],
-    "basic_masses": [
-      1.0,
-      16.0,
-      14.0
-    ],
-    "carbon_mass": 12.0,
-    "replacement_hydrogen_mass": 2.0,
-    "parser_pairs": [
-      [
-        "A",
-        71.03711
-      ],
-      [
-        "R",
-        156.10111
-      ]
-    ],
-    "custom_parser_pairs": [
-      [
-        "hydrogen",
-        1.0
-      ],
-      [
-        "oxygen",
-        16.0
-      ]
-    ]
+ "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h",
+   "sha256": "3354579d9deb2a235066d6a8328b4edfe667a8e5642ba072975cb07e59bb044b"
   },
-  "native_policies": [
-    "Stable ties replace unspecified source std::sort order.",
-    "Parser numbers use portable decimal/scientific prefix grammar, explicit hex rejection and ignored trailing text; no cross-library/locale num_get byte-equivalence claim.",
-    "Malformed/nonfinite/overflow/UTF8 and index errors are checked and atomic for native state.",
-    "Default parser comment precheck recognizes only SPACE/TAB; token extraction recognizes classic SPACE/TAB/LF/CR/VT/FF.",
-    "First parser-map duplicate and first alphabet duplicate lookup/replacement/erase are retained.",
-    "Custom parser side effects and computational policy belong to its implementation; returned map is revalidated before alphabet commit.",
-    "Verbose stream output is not a flat loadable codec; source has no flat store method."
-  ],
-  "limits": {
-    "elements_or_map_entries": 100000,
-    "label_bytes": 1048576,
-    "line_bytes_including_lf": 1048576,
-    "input_bytes": 67108864,
-    "logical_allocation_bytes": 67108864,
-    "retained_alphabet_payload_bytes": 67108864,
-    "work_units": 50000000,
-    "text_bytes": 8388608
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h",
+   "sha256": "b6f4754533c4c68077c213ec190a773a60222e79b959892af6dc9d48df5ebbf5"
   },
-  "validation": {
-    "native_tests": 12,
-    "cxx_execution": false,
-    "native_compilers": [
-      "Rust 1.98.0, all-features, locked/offline, -j2",
-      "Rust 1.85.0, no-default-features, locked/offline, -j2"
-    ],
-    "strict_clippy": "Both compiler/feature combinations passed scoped -D warnings",
-    "independent_review": "Parent full source/API/resource review closed with no actionable findings; eight source hashes and two documentation links audited."
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h",
+   "sha256": "de39c72e6f3500001f12a1104dddf826e3a8513d775d856de96ab897a4c9a4db"
   },
-  "target_verification": {
-    "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "source_revisions": [
-      "54a232fe2cae9c590d5c997fa49d20e7769860fb"
-    ],
-    "source_changes": []
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.cpp",
+   "sha256": "8eb67cf25640ecec27136adb90b30c84d68a0ece8f88e701b28017d66e0fb836"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.cpp",
+   "sha256": "aab984dc775a5a7eacf1a3dbfe2ba2dd5ee28b88e4522baad0b0c9d3616de45a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IMSAlphabet_test.cpp",
+   "sha256": "36b8156606650e7426c8fb18b18ac29cc2f0100df56ef9d00e3b03d9d1334211"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IMSAlphabetParser_test.cpp",
+   "sha256": "e70b802f2cac6f13ecae2371948c2e1cb3b72acee938177f05a44addf6015118"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IMSAlphabetTextParser_test.cpp",
+   "sha256": "1b0534e150093165b9999925b7ac52a7ca2f5b621e905df1eb9c4fbfedbda0e6"
   }
+ ],
+ "native_files": [
+  "src/chemistry/ims_alphabet.rs",
+  "src/chemistry/ims_alphabet_parser.rs",
+  "tests/ims_alphabet.rs",
+  "docs/IMS_ALPHABET_SUPPORT.md"
+ ],
+ "dependency_files": [
+  "src/chemistry/ims_isotope_distribution.rs",
+  "src/chemistry/ims_element.rs"
+ ],
+ "scope": "Complete native alphabet/default parser scientific operation mapping, including replaceable f64-map parser trait, owned elements, load and verbose stream output; C++ ABI/arbitrary template instantiations and another decomposer engine are not claimed.",
+ "fixture_policy": "Source literals are embedded directly in tests/ims_alphabet.rs; no copied data fixture files. Isotope/element files are frozen stage dependencies and excluded from extraction.",
+ "source_literals": {
+  "basic_names": [
+   "hydrogen",
+   "oxygen",
+   "nitrogen"
+  ],
+  "basic_masses": [
+   1.0,
+   16.0,
+   14.0
+  ],
+  "carbon_mass": 12.0,
+  "replacement_hydrogen_mass": 2.0,
+  "parser_pairs": [
+   [
+    "A",
+    71.03711
+   ],
+   [
+    "R",
+    156.10111
+   ]
+  ],
+  "custom_parser_pairs": [
+   [
+    "hydrogen",
+    1.0
+   ],
+   [
+    "oxygen",
+    16.0
+   ]
+  ]
+ },
+ "native_policies": [
+  "Stable ties replace unspecified source std::sort order.",
+  "Parser numbers use portable decimal/scientific prefix grammar, explicit hex rejection and ignored trailing text; no cross-library/locale num_get byte-equivalence claim.",
+  "Malformed/nonfinite/overflow/UTF8 and index errors are checked and atomic for native state.",
+  "Default parser comment precheck recognizes only SPACE/TAB; token extraction recognizes classic SPACE/TAB/LF/CR/VT/FF.",
+  "First parser-map duplicate and first alphabet duplicate lookup/replacement/erase are retained.",
+  "Custom parser side effects and computational policy belong to its implementation; returned map is revalidated before alphabet commit.",
+  "Verbose stream output is not a flat loadable codec; source has no flat store method."
+ ],
+ "limits": {
+  "elements_or_map_entries": 100000,
+  "label_bytes": 1048576,
+  "line_bytes_including_lf": 1048576,
+  "input_bytes": 67108864,
+  "logical_allocation_bytes": 67108864,
+  "retained_alphabet_payload_bytes": 67108864,
+  "work_units": 50000000,
+  "text_bytes": 8388608
+ },
+ "validation": {
+  "native_tests": 12,
+  "cxx_execution": false,
+  "native_compilers": [
+   "Rust 1.98.0, all-features, locked/offline, -j2",
+   "Rust 1.85.0, no-default-features, locked/offline, -j2"
+  ],
+  "strict_clippy": "Both compiler/feature combinations passed scoped -D warnings",
+  "independent_review": "Parent full source/API/resource review closed with no actionable findings; eight source hashes and two documentation links audited."
+ },
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "54a232fe2cae9c590d5c997fa49d20e7769860fb"
+  ],
+  "source_changes": []
+ }
 }
