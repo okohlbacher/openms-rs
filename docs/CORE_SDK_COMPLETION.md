@@ -6,11 +6,11 @@ This is a work inventory, not a completion percentage. Matching declarations and
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 10 |
+| complete | 12 |
 | evidence_requires_review | 167 |
 | native_equivalent | 62 |
 | partial | 21 |
-| unmapped | 526 |
+| unmapped | 524 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -40,7 +40,6 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/FORMAT/ConsensusXMLFile.h` | 9 | partial |
 | `OpenMS/FORMAT/IdXMLFile.h` | 9 | partial |
 | `OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h` | 8 | unmapped |
-| `OpenMS/FORMAT/ExperimentalDesignFile.h` | 8 | unmapped |
 | `OpenMS/MATH/StatisticFunctions.h` | 8 | evidence_requires_review |
 | `OpenMS/ANALYSIS/ID/PeptideIndexing.h` | 7 | evidence_requires_review |
 | `OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h` | 7 | unmapped |
@@ -49,10 +48,11 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/FORMAT/PepXMLFile.h` | 7 | unmapped |
 | `OpenMS/FORMAT/SVOutStream.h` | 7 | unmapped |
 | `OpenMS/IONMOBILITY/IMTypes.h` | 7 | evidence_requires_review |
-| `OpenMS/METADATA/ExperimentalDesign.h` | 7 | unmapped |
 | `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 6 | unmapped |
 | `OpenMS/CHEMISTRY/ProteaseDigestion.h` | 6 | evidence_requires_review |
 | `OpenMS/CONCEPT/VersionInfo.h` | 6 | unmapped |
+| `OpenMS/FORMAT/OMSFile.h` | 6 | unmapped |
+| `OpenMS/FORMAT/QcMLFile.h` | 6 | unmapped |
 
 ## Completion requirements
 

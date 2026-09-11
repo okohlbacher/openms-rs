@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 10,
+      "complete": 12,
       "evidence_requires_review": 167,
       "native_equivalent": 62,
       "partial": 21,
-      "unmapped": 526
+      "unmapped": 524
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -6006,10 +6006,22 @@
       "header": "src/openms/include/OpenMS/FORMAT/ExperimentalDesignFile.h",
       "sha256": "2555f2bb7ac0c7ccdf522a7b0df6d73c4c13e5388d8daf33e80568136f777161",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/format/experimental_design_file.rs"
+        ],
+        "tests": [
+          "tests/experimental_design.rs"
+        ],
+        "documentation": "docs/EXPERIMENTAL_DESIGN_SUPPORT.md",
+        "scope": "Both load overloads, the source one-table/two-table detector, both parsers with their header required/optional/unknown rules, appended Label and Sample columns, fraction-group sample naming, the multiplex Sample requirement, duplicate sample rejection and relative spectra-path resolution with the optional existence requirement. Cell-count checks precede every indexed access (CPP-059) and negative indices are rejected (CPP-060)."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/experimental_design_provenance.json"
+      ],
       "direct_topp_consumers": [
         "Epifany",
         "FeatureLinkerBase",
@@ -9638,10 +9650,25 @@
       "header": "src/openms/include/OpenMS/METADATA/ExperimentalDesign.h",
       "sha256": "e9047b640fca9a92fb245af4d80032ace0522e3e4731b85a9133558eebdc6f56",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/metadata/experimental_design.rs",
+          "src/kernel/features.rs"
+        ],
+        "tests": [
+          "tests/experimental_design.rs"
+        ],
+        "documentation": "docs/EXPERIMENTAL_DESIGN_SUPPORT.md",
+        "scope": "Both public classes and every public operation: record fields and defaults, construction sorting and the four consistency rules, all five path/label mappings, both sample-grouping rules and their condition/prefractionation indices, the five counts, basename filtering with sample-section rebuild, and the consensus/feature/identification constructors plus column-header annotation. Includes ColumnHeader::getLabelAsUInt. Ragged rows and negative indices are rejected instead of read or wrapped (CPP-059, CPP-060); source log diagnostics are returned rather than written to a global stream."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experimental_design.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experimental_design_provenance.json"
+      ],
       "direct_topp_consumers": [
         "Epifany",
         "FeatureLinkerBase",
@@ -12581,10 +12608,8 @@
         "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
         "OpenMS/ANALYSIS/ID/PeptideProteinResolution.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/METADATA/ExperimentalDesign.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/SYSTEM/File.h",
@@ -12900,11 +12925,9 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/ConversionHelper.h",
-        "OpenMS/METADATA/ExperimentalDesign.h"
+        "OpenMS/KERNEL/ConversionHelper.h"
       ],
       "workflow_validated": false
     },
@@ -13721,7 +13744,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/MzTabFile.h",
@@ -13964,13 +13986,11 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MSstatsFile.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/METADATA/ExperimentalDesign.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "workflow_validated": false
@@ -14026,12 +14046,10 @@
         "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/OMSFile.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/METADATA/ExperimentalDesign.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
@@ -15479,7 +15497,6 @@
         "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
@@ -15487,7 +15504,6 @@
         "OpenMS/FORMAT/QPXFile.h",
         "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/METADATA/ExperimentalDesign.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/SYSTEM/File.h"
@@ -15575,7 +15591,6 @@
         "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
         "OpenMS/FORMAT/BrukerTimsFile.h",
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MSstatsFile.h",
@@ -15587,7 +15602,6 @@
         "OpenMS/KERNEL/ConversionHelper.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/StatisticFunctions.h",
-        "OpenMS/METADATA/ExperimentalDesign.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/METADATA/SpectrumMetaDataLookup.h",
         "OpenMS/ML/SVM/SimpleSVM.h",
@@ -16319,12 +16333,10 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/METADATA/ExperimentalDesign.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "workflow_validated": false

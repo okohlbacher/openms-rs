@@ -1,580 +1,582 @@
 {
-  "repository": "https://github.com/okohlbacher/OpenMS4-core.git",
-  "commit": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
-  "verified_date": "2026-09-10",
-  "verification": "Remote HEAD obtained with git ls-remote; analysis uses an immutable git archive under .reference/openms4-core at the pinned commit",
-  "rust_package": "openms",
-  "port_version": "0.1.0",
-  "scope": "Ongoing native Rust core port: spectra, feature/consensus geometry, typed metadata and acquisition records, peptide/protein identification records and filters, score switching, HyperScore/Morpheus, target/decoy FDR and q-values, idXML interchange, peptide-to-protein indexing, basic protein inference/grouping, identification conflict resolution and origin splitting, unresolved residues and owned numeric mass tags, modification/enzyme chemistry, shared caller-owned modification records, bounded OBO loading and PSI-MOD aliases, XLMOD monolink/crosslink lookup, absolute-formula replacement, fixed/variable modified-peptide generation, named/anonymous modification definitions/compatibility/inference and delta/absolute mass matching, charge/pI with four pKa scales, seven hydrophobicity scales with profiles/moments, ten AAindex scales and stable gas-phase basicity, coarse and materialized fine isotopes, ordered raw configurations with custom binary64 populations, precursor purity/SPS/fuzzy scoring and parent-aware acquisition metadata, spectrum annotation and ion naming, fragment-match statistics with shared calculation budgets, theoretical spectra with internal fragments, immonium ions, activation presets and compact mass ladders, smoothing, HiRes/iterative centroiding, sliding/jumping window filtering, median and iterative-mean noise estimation, legacy/corrected chromatogram picking, sampled integration/baselines/shape metrics with optional EMG reconstruction, native EMG parameter estimation and truncated-side fitting, simple and Poisson/KL deisotoping, spectrum comparison, retention-time models and container transforms, and documented I/O subsets including named mzML annotation arrays, native decoy reversal and seeded shuffling with source cache/digestion rules, molecular adduct parsing and electron-aware mass conversion, m/z-derived sequence tags with modification-aware residue dictionaries and source traversal rules, and RNA nucleoside records/providers with the complete pinned registry, owned nucleic-acid sequences, sulfur-aware slicing and all finite source fragment formula/mass variants, modified-RNA fixed/variable enumeration, RNase digestion with all fourteen registered enzymes and composed native code predicates, and nine-series signed-charge RNA theoretical spectra with single/multiple precursor conventions; native featureXML/consensusXML map interchange, typed feature metadata, portable named modification definitions and filesystem/resource discovery helpers; owned log streams and source-style progress reporting, public map-based modification collection, and compressed INI input; complete FASTA stream/file lifecycle, experiment window aggregation and extracted-ion chromatograms with mzML product transport, and bounded indexed-mzML offset discovery/parsing; complete peak-file option state, equality-compatible metadata/Product hashing and MassDecomposition count values; native idXML path loading/publication and identification FileHandler dispatch; bounded native mass decomposition algorithm with source integer residue tables; source scientific mzML loading filters, aligned canonical/auxiliary arrays and 26 pinned canonical binary roles; IMS isotope distributions, elements and alphabets with replaceable text parsers; scalar area traversal, checked peak indices and source-grouped filtered peak export; all four raw MSNumpress codecs; native MSNumpressCoder estimation, accuracy rejection diagnostics, float promotion and bounded base64/zlib transport; owned unique IDs/UUIDs, plain/mobility/rich 2D values and unfiltered experiment conversions; public integer/real IMS decomposition; six mzML Numpress CV transports and preflighted configurable writer fallback; exact overlapping unmodified protein/peptide SequenceCoverage percentage; native spectrum/chromatogram acquisition records and ChromatogramTools conversions, bounded propagation through processing and explicit XML loss guards",
-  "cpp_runtime_differential_tests": true,
-  "source_inventory": "docs/source-inventory.json",
-  "license": "Implementation and OpenMS custom data: BSD-3-Clause; UniMod-derived modification data: Design Science License; XLMOD data/reference projection: CC-BY-3.0 (see LICENSES.md); private decoy/unique-ID RNG: BSD-3-Clause AND BSL-1.0; MODOMICS RNA inputs and transformed records retain separate data notices, with general redistribution terms unresolved for release (see LICENSES.md); optional serde_json: MIT OR Apache-2.0; optional bzip2 and libbz2-rs-sys: MIT OR Apache-2.0; raw Numpress: original Johan Teleman/Lund University BSD-3-Clause notice retained in source and LICENSES.md",
-  "source_files": {
-    "LICENSE": {
-      "sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677"
-    },
-    "AUTHORS": {
-      "sha256": "5ad36e089f96eb38034e7d5927653832769d6595c4d2bb2fc792ad5723f7bf5c"
-    },
-    "src/openms/source/CHEMISTRY/ElementDB.cpp": {
-      "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58"
-    },
-    "src/openms/source/CHEMISTRY/ResidueDB.cpp": {
-      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f"
-    },
-    "share/OpenMS/CHEMISTRY/Enzymes.xml": {
-      "sha256": "2f160f3ec32db6257cb4eee43fd594b48cb36398a17b7af21bbba76bc8b16995"
-    },
-    "src/openms/include/OpenMS/CONCEPT/Constants.h": {
-      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
-    },
-    "src/openms/source/CHEMISTRY/AASequence.cpp": {
-      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693"
-    },
-    "src/openms/source/CHEMISTRY/Residue.cpp": {
-      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83"
-    },
-    "src/openms/source/CHEMISTRY/ResidueModification.cpp": {
-      "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9"
-    },
-    "src/tests/class_tests/openms/source/AASequence_test.cpp": {
-      "sha256": "d40acc86f1b46211db7b66c613c0b0156ee1c0917021f6c0941c50c9494cb95e"
-    },
-    "src/openms/source/METADATA/Precursor.cpp": {
-      "sha256": "009d54ab86dd4dd85d11f61a227bc54c9aef9f061dd97f3aee78568b12350ec1"
-    },
-    "src/openms/include/OpenMS/METADATA/Precursor.h": {
-      "sha256": "69762329c0545457affd9bd8c83b4344bcbf494d3a33d34e403cd4b318ffb8f1"
-    },
-    "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp": {
-      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/Tagger.h": {
-      "sha256": "3301abb060ca0716588e2847288ac68e6040814a27a32e40eb698f0cdb198d14"
-    },
-    "src/openms/source/CHEMISTRY/Tagger.cpp": {
-      "sha256": "02cce0b7cef9196ba0939049d52c3d60788f8b0ee10596bcf24a6a76db0206f1"
-    },
-    "src/tests/class_tests/openms/source/Tagger_test.cpp": {
-      "sha256": "23d2fb46963bba93e5f3bc50dcaf7bf12758bf812caf3f99793fc23f5de19f5d"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/Residue.h": {
-      "sha256": "8abda7e4cc2e2d9c19841c5c9e4c527f16e930e5c51e2490bbd6f4b2ac3ccc0e"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/ResidueDB.h": {
-      "sha256": "83316197a37a4fe36f885a0a1036757167c6e36711741e59e0964ef9bd929a3e"
-    },
-    "src/openms/source/CHEMISTRY/ModificationsDB.cpp": {
-      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/ModificationsDB.h": {
-      "sha256": "c815a5a5f47f0b5d495cdca2ef6b1fa9bd5115c43a4eb3c50e4f94d48bcd39a6"
-    },
-    "src/openms/include/OpenMS/MATH/MathFunctions.h": {
-      "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e"
-    },
-    "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp": {
-      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h": {
-      "sha256": "c0f8fc0213c7a9103f3e3ebeb305d498a79666afdb189b2b3b36c7d129cc81c9"
-    },
-    "src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp": {
-      "sha256": "763d7e37041d3bed8f0b9fb122e43b5d6890fc699753e0f877ee3c50f2698325"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/Ribonucleotide.h": {
-      "sha256": "73490e6d33be78469261a2dff83b6014c55f69f53d7c1ee5a3b84a8f3bb75c18"
-    },
-    "src/openms/source/CHEMISTRY/Ribonucleotide.cpp": {
-      "sha256": "a40433bc08f7394327fa724aa6d48283fc1bd8a9c9f8096be6f4ea1c785826bb"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDB.h": {
-      "sha256": "3c777c503413784b1f08989a1e74519d49638921d7f9247bdc173bcaa8b527f8"
-    },
-    "src/openms/source/CHEMISTRY/RibonucleotideDB.cpp": {
-      "sha256": "298aee9bb6a6e4017df06f9376f21096a4b4f445d9eb40be03f099e758d41665"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideTSVDataProvider.h": {
-      "sha256": "9c49b197247849413f6384760a62d2df507c449f369bf6981f5d79e2a5127900"
-    },
-    "src/openms/source/CHEMISTRY/RibonucleotideTSVDataProvider.cpp": {
-      "sha256": "8449ee241f9d6efbe86d50f3fe807ea0c88446e6c9eb7af4543a8aaf6ab168cc"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/ModomicsJSONDataProvider.h": {
-      "sha256": "05300aee7d5841870d00ee716cb8d6f13400dd0e9aa8c9a29f4ef9f60654c873"
-    },
-    "src/openms/source/CHEMISTRY/ModomicsJSONDataProvider.cpp": {
-      "sha256": "27daa6869843cc462e54a2b1f8720ad8b9620d5c2182efc44c8c107db5557868"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/NASequence.h": {
-      "sha256": "e06f3bd0db9e816529009793112edb3a056a0295d3b5cc616ae79cf40185e11d"
-    },
-    "src/openms/source/CHEMISTRY/NASequence.cpp": {
-      "sha256": "21a2a34389026ac9696d809d5e79f6141668f2b65c7d00081920775f5f929423"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDataProvider.h": {
-      "sha256": "723d7d61422f7a9b6cc44c629b8af76ee17a7d4668a521452c02e3607de677a2"
-    },
-    "src/tests/class_tests/openms/source/Ribonucleotide_test.cpp": {
-      "sha256": "8cb8c031d2e6a07217233ecf59c608895f6e5be0ba5ab15bdb94a77602d2e4f4"
-    },
-    "src/tests/class_tests/openms/source/RibonucleotideDB_test.cpp": {
-      "sha256": "884360043a29c1d82d40932734e54c7b3b0468f1aa2b35c647452c9097168feb"
-    },
-    "src/tests/class_tests/openms/source/RibonucleotideDataProvider_test.cpp": {
-      "sha256": "d6e194ed990a8ab57389229afb82ab03f88fb99646d366903ab53e53d04ec323"
-    },
-    "src/tests/class_tests/openms/source/NASequence_test.cpp": {
-      "sha256": "3ad636f5a02e3734ae1c51e2aabddc6f7643e1fd8d9ae1a909283dba30f47931"
-    },
-    "share/OpenMS/CHEMISTRY/Modomics.json": {
-      "sha256": "2c98d258f2b88c126e88a06e080a0652053b77bc9d434ab8727c984dfa8436fc"
-    },
-    "share/OpenMS/CHEMISTRY/Custom_RNA_modifications.tsv": {
-      "sha256": "155d7ff5c70c9c01ffd0d5a32fe7c4e200adc10ae5ed6d516b07ec8242faa23d"
-    },
-    "share/OpenMS/CHEMISTRY/Modomics.tsv": {
-      "sha256": "ed458688c4cfdf1ea6eb4c618613befee411019f3b7665838685ae3dea411e76"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h": {
-      "sha256": "9c2a81ef15a7beb3e52c3ba9e1db9b98ae68f27aa3eb5f62cd3a5562f978927d"
-    },
-    "src/tests/class_tests/openms/source/NucleicAcidSpectrumGenerator_test.cpp": {
-      "sha256": "481fa0557b9ac892030acb91411a8dda223ea28eb93ec6855f7c20a2b01ea200"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h": {
-      "sha256": "64bc6d66df30683afd6a9d0ada5a807be22a01ed437659fb4c6326ce6b02bb35"
-    },
-    "src/openms/source/CHEMISTRY/NucleicAcidSpectrumGenerator.cpp": {
-      "sha256": "0ec036f987d0b3cd5dc20575993eb28dab657373a358c2463fec60f1d10bd225"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/RNaseDigestion.h": {
-      "sha256": "080f4f853a5836d0bf2ba769d8124f259bf752c804cc80ee4e21d1346a4b8fad"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeRNA.h": {
-      "sha256": "bc19b7c721c12a27432bbaa150a4f59c8dd9170511a48f99eedbc5072d7a4a80"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/RNaseDB.h": {
-      "sha256": "1aed0e9ec784848b1a57b7da95d0ff76c32a41a32e91dfb4e6219b3a201dd38d"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h": {
-      "sha256": "aa00b90682191e324522b3ffd26db3bf7d904597dc0e350d921e1f749fcd69b1"
-    },
-    "src/openms/source/CHEMISTRY/RNaseDigestion.cpp": {
-      "sha256": "ef0fadffcf635052cfc6af03046c56e6fef1fcec4fd0530613a72cb16f2a9f1f"
-    },
-    "src/openms/source/CHEMISTRY/DigestionEnzymeRNA.cpp": {
-      "sha256": "8fc3167698c1830647cfe91d39ed5789b5ca2029a9d3e0fcc780aa3a39984be7"
-    },
-    "src/openms/source/CHEMISTRY/RNaseDB.cpp": {
-      "sha256": "8f7be48072f137dc641e50748128787c67f40d8cd6c0c474f491b50a9fa3602c"
-    },
-    "src/openms/source/CHEMISTRY/ModifiedNASequenceGenerator.cpp": {
-      "sha256": "a838584c26985f75c50b1b1922d24cc8ade0379cde17f4473d44954acc10ed7e"
-    },
-    "src/tests/class_tests/openms/source/RNaseDigestion_test.cpp": {
-      "sha256": "65bab419c3e5c11245b90e90324b04cd6dd61117b8aeb9854e06da4df0a20906"
-    },
-    "src/tests/class_tests/openms/source/DigestionEnzymeRNA_test.cpp": {
-      "sha256": "2680172abb199f70a5b2a97f50de05a6653b8991ee26a9dbdd94172173e3573c"
-    },
-    "src/tests/class_tests/openms/source/RNaseDB_test.cpp": {
-      "sha256": "a56a26e79f48854290335e9472f35ba7b0227e1e4668b9402bbef31f66624ea0"
-    },
-    "src/tests/class_tests/openms/source/ModifiedNASequenceGenerator_test.cpp": {
-      "sha256": "fc9fd9eaf392d09f721c0f65ad0633bcb3a80ec25dcf2d3157738ec8b80b4ef6"
-    },
-    "share/OpenMS/CHEMISTRY/Enzymes_RNA.xml": {
-      "sha256": "4c90a3630a1553ef7c75bae00f2731e2f5bb690f3ee9434d54cc3315a95fe899"
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeDB.h": {
-      "sha256": "2b89aa4a51ddc169321fd1b24d5cd7a73c3ba0c9db11d8f548a89845e26b471f"
-    },
-    "src/openms/include/OpenMS/KERNEL/Peak1D.h": {
-      "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
-    },
-    "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
-      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
-    },
-    "src/openms/source/KERNEL/MSSpectrum.cpp": {
-      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
-    }
+ "repository": "https://github.com/okohlbacher/OpenMS4-core.git",
+ "commit": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+ "verified_date": "2026-09-10",
+ "verification": "Remote HEAD obtained with git ls-remote; analysis uses an immutable git archive under .reference/openms4-core at the pinned commit",
+ "rust_package": "openms",
+ "port_version": "0.1.0",
+ "scope": "Ongoing native Rust core port: spectra, feature/consensus geometry, typed metadata and acquisition records, peptide/protein identification records and filters, score switching, HyperScore/Morpheus, target/decoy FDR and q-values, idXML interchange, peptide-to-protein indexing, basic protein inference/grouping, identification conflict resolution and origin splitting, unresolved residues and owned numeric mass tags, modification/enzyme chemistry, shared caller-owned modification records, bounded OBO loading and PSI-MOD aliases, XLMOD monolink/crosslink lookup, absolute-formula replacement, fixed/variable modified-peptide generation, named/anonymous modification definitions/compatibility/inference and delta/absolute mass matching, charge/pI with four pKa scales, seven hydrophobicity scales with profiles/moments, ten AAindex scales and stable gas-phase basicity, coarse and materialized fine isotopes, ordered raw configurations with custom binary64 populations, precursor purity/SPS/fuzzy scoring and parent-aware acquisition metadata, spectrum annotation and ion naming, fragment-match statistics with shared calculation budgets, theoretical spectra with internal fragments, immonium ions, activation presets and compact mass ladders, smoothing, HiRes/iterative centroiding, sliding/jumping window filtering, median and iterative-mean noise estimation, legacy/corrected chromatogram picking, sampled integration/baselines/shape metrics with optional EMG reconstruction, native EMG parameter estimation and truncated-side fitting, simple and Poisson/KL deisotoping, spectrum comparison, retention-time models and container transforms, and documented I/O subsets including named mzML annotation arrays, native decoy reversal and seeded shuffling with source cache/digestion rules, molecular adduct parsing and electron-aware mass conversion, m/z-derived sequence tags with modification-aware residue dictionaries and source traversal rules, and RNA nucleoside records/providers with the complete pinned registry, owned nucleic-acid sequences, sulfur-aware slicing and all finite source fragment formula/mass variants, modified-RNA fixed/variable enumeration, RNase digestion with all fourteen registered enzymes and composed native code predicates, and nine-series signed-charge RNA theoretical spectra with single/multiple precursor conventions; native featureXML/consensusXML map interchange, typed feature metadata, portable named modification definitions and filesystem/resource discovery helpers; owned log streams and source-style progress reporting, public map-based modification collection, and compressed INI input; complete FASTA stream/file lifecycle, experiment window aggregation and extracted-ion chromatograms with mzML product transport, and bounded indexed-mzML offset discovery/parsing; complete peak-file option state, equality-compatible metadata/Product hashing and MassDecomposition count values; native idXML path loading/publication and identification FileHandler dispatch; bounded native mass decomposition algorithm with source integer residue tables; source scientific mzML loading filters, aligned canonical/auxiliary arrays and 26 pinned canonical binary roles; IMS isotope distributions, elements and alphabets with replaceable text parsers; scalar area traversal, checked peak indices and source-grouped filtered peak export; all four raw MSNumpress codecs; native MSNumpressCoder estimation, accuracy rejection diagnostics, float promotion and bounded base64/zlib transport; owned unique IDs/UUIDs, plain/mobility/rich 2D values and unfiltered experiment conversions; public integer/real IMS decomposition; six mzML Numpress CV transports and preflighted configurable writer fallback; exact overlapping unmodified protein/peptide SequenceCoverage percentage; native spectrum/chromatogram acquisition records and ChromatogramTools conversions, bounded propagation through processing and explicit XML loss guards",
+ "cpp_runtime_differential_tests": true,
+ "source_inventory": "docs/source-inventory.json",
+ "license": "Implementation and OpenMS custom data: BSD-3-Clause; UniMod-derived modification data: Design Science License; XLMOD data/reference projection: CC-BY-3.0 (see LICENSES.md); private decoy/unique-ID RNG: BSD-3-Clause AND BSL-1.0; MODOMICS RNA inputs and transformed records retain separate data notices, with general redistribution terms unresolved for release (see LICENSES.md); optional serde_json: MIT OR Apache-2.0; optional bzip2 and libbz2-rs-sys: MIT OR Apache-2.0; raw Numpress: original Johan Teleman/Lund University BSD-3-Clause notice retained in source and LICENSES.md",
+ "source_files": {
+  "LICENSE": {
+   "sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677"
   },
-  "modification_data_provenance": "resources/modifications/provenance.json",
-  "enzyme_data_provenance": "resources/enzymes/README.md",
-  "transformation_fixture_provenance": "tests/data/transformations_provenance.json",
-  "fdr_fixture_provenance": "tests/data/fdr_provenance.json",
-  "idxml_fixture_provenance": "tests/data/idxml_provenance.json",
-  "protein_inference_fixture_provenance": "tests/data/protein_inference_provenance.json",
-  "peptide_indexing_matcher_provenance": "tests/data/peptide_indexing_matcher_reference_provenance.json",
-  "sequence_support": "docs/SEQUENCE_SUPPORT.md",
-  "sequence_workflow_reference": "tests/sequence_workflow.rs",
-  "averagine_deisotoping_fixture_provenance": "tests/data/averagine_deisotoping_provenance.json",
-  "chromatogram_processing_fixture_provenance": "tests/data/chromatogram_processing_provenance.json",
-  "mzml_provenance": "tests/data/mzml_provenance.json",
-  "emg_support": "docs/EMG_SUPPORT.md",
-  "emg_fixture_provenance": "tests/data/emg_provenance.json",
-  "external_math_dependency": {
-    "package": "libm",
-    "version": "0.2.16",
-    "purpose": "Complementary error function in literal EMG expressions",
-    "license": "MIT",
-    "cargo_checksum": "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981",
-    "vendored": false
+  "AUTHORS": {
+   "sha256": "5ad36e089f96eb38034e7d5927653832769d6595c4d2bb2fc792ad5723f7bf5c"
   },
-  "iterative_picking_fixture_provenance": "tests/data/iterative_provenance.json",
-  "window_mower_fixture_provenance": "tests/data/window_mower_provenance.json",
-  "mean_noise_fixture_provenance": "tests/data/mean_noise_provenance.json",
-  "modification_generation_fixture_provenance": "tests/data/modification_generation_provenance.json",
-  "registry_fixture_provenance": "tests/data/registry_provenance.json",
-  "xlmod_data_provenance": "resources/modifications/xlmod_provenance.json",
-  "historical_psi_mod_bundled": false,
-  "theoretical_extension_reference_provenance": "tests/data/theoretical_extension_provenance.json",
-  "precursor_purity_fixture_provenance": "tests/data/precursor_purity_provenance.json",
-  "fine_isotope_fixture_provenance": "tests/data/fine_isotope_provenance.json",
-  "fine_isotope_stream_provenance": "tests/data/fine_isotope_stream_provenance.json",
-  "peptide_properties_provenance": "tests/data/peptide_properties_provenance.json",
-  "spectrum_annotation_provenance": "tests/data/spectrum_annotation_provenance.json",
-  "decoy_provenance": "tests/data/decoy_provenance.json",
-  "adduct_provenance": "tests/data/adduct_provenance.json",
-  "tagger_provenance": "tests/data/tagger_provenance.json",
-  "tagger_support": "docs/TAGGER_SUPPORT.md",
-  "rna_fixture_provenance": "tests/data/rna_provenance.json",
-  "rna_data_provenance": "resources/rna/provenance.json",
-  "rna_support": "docs/RNA_SUPPORT.md",
-  "rna_reference_review": "docs/RNA_REFERENCE_REVIEW.md",
-  "rna_foundation": {
-    "implemented": [
-      "Ribonucleotide complete independent fields and value identity",
-      "RibonucleotideDB ordered owned records, exact and longest-prefix lookup, deferred ambiguity resolution",
-      "In-memory and TSV providers, plus optional MODOMICS JSON provider",
-      "NASequence parsing and registry-checked display, owned records and end modifications, sulfur-aware slicing",
-      "All 20 finite NAFragmentType variants, including ten source legacy formula fallbacks, monoisotopic/average ion masses and signed charges"
-    ],
-    "default_provider_order": [
-      "resources/rna/Modomics.json",
-      "resources/rna/Custom_RNA_modifications.tsv"
-    ],
-    "registry_iteration_entries": 378,
-    "registry_unique_codes": 375,
-    "json_entries": 333,
-    "custom_tsv_entries": 45,
-    "embedded_projection": "resources/rna/ribonucleotides.rs",
-    "embedded_registry_available_without_json_feature": true,
-    "legacy_tsv": "resources/rna/Modomics.tsv",
-    "legacy_tsv_is_default_provider": false,
-    "numerical_boundary": "Independent declared mass literals retain binary64 values. Formula-derived fallback masses use deterministic native element order; source EmpiricalFormula uses an Element pointer map, so bitwise C++ summation-order parity is not claimed.",
-    "remaining": [
-      "RNA enzyme XML input/provider API",
-      "Arbitrary Boost regex syntax beyond the registered RNA expressions and literal-search subset"
-    ]
+  "src/openms/source/CHEMISTRY/ElementDB.cpp": {
+   "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58"
   },
-  "rna_data_license_boundary": {
-    "notice": "resources/rna/README.md",
-    "component_licenses": "LICENSES.md",
-    "legacy_source_notice": "Data used with permission.",
-    "json_explicit_license_notice_found": false,
-    "general_redistribution_terms_established": false,
-    "usage_context": "Complete pinned snapshot and projection retained for local, unpublished source analysis and scientific validation.",
-    "release_boundary": "The software BSD license does not relicense MODOMICS. No permissive dataset license or permission for new publication is inferred from research accessibility, requested scientific citation, or article publication terms.",
-    "primary_reference_review": "Recorded in resources/rna/provenance.json and resources/rna/README.md; dated 2026-09-10."
+  "src/openms/source/CHEMISTRY/ResidueDB.cpp": {
+   "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f"
   },
-  "optional_json_dependency": {
-    "package": "serde_json",
-    "version": "1.0.150",
-    "purpose": "Bounded MODOMICS JSON reader with lexical object-key iteration and correctly rounded binary64 parsing",
-    "cargo_feature": "rna-json",
-    "included_in_default_features": true,
-    "dependency_features": [
-      "float_roundtrip"
-    ],
-    "license": "MIT OR Apache-2.0",
-    "cargo_checksum": "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9",
-    "vendored": false,
-    "not_required_for": "Embedded RNA registry, in-memory records and TSV loading"
+  "share/OpenMS/CHEMISTRY/Enzymes.xml": {
+   "sha256": "2f160f3ec32db6257cb4eee43fd594b48cb36398a17b7af21bbba76bc8b16995"
   },
-  "rna_processing_fixture_provenance": "tests/data/rna_processing_provenance.json",
-  "rna_processing_reference_review": "docs/RNA_PROCESSING_REFERENCE_REVIEW.md",
-  "rna_enzyme_data_provenance": "resources/enzymes/rna_provenance.json",
-  "rna_processing": {
-    "rnase": {
-      "module": "src/chemistry/rnase.rs",
-      "support": "docs/RNASE_SUPPORT.md",
-      "implemented": [
-        "Owned DigestionEnzymeRNA records and RNaseDB with source alias/index replacement behavior",
-        "All fourteen source RNA enzyme definitions, registered per-code predicates and comma-composed/literal searches",
-        "RNaseDigestion sequence digestion, half-open positions and atomic output replacement",
-        "Registry-aware and default IdentificationData batch digestion: inclusive parent matches, raw-code flanks, chemical product merging and current processing history"
-      ],
-      "default_enzyme": "RNase_T1",
-      "default_difference": "Native default is fully configured RNase_T1; the C++ inherited default leaves RNA-specific gains uninitialized until setEnzyme.",
-      "source_conventions": "Raw record-code matching, start-first then missed-cleavage order, original outer termini and source internal-gain rewriting/overwriting; main regex is compiled against the same native subset even though RNA digestion does not use it.",
-      "limits": {
-        "residues": 1000000,
-        "products": 100000,
-        "work": 50000000,
-        "output_bytes": 268435456,
-        "registry_records": 100000,
-        "registry_bytes": 134217728,
-        "registry_work": 50000000,
-        "text_bytes_per_field": 65536,
-        "patterns_per_side_or_synonyms_per_record": 1024
-      },
-      "limit_policy": "Public digestion max fields can lower hard ceilings. Work includes tree-key comparison bounds, predicates, planning, validation and copies; output payload is measured by fragment residues plus conservative ends/context. Cut/prefix scratch is additionally bounded by the hard residue ceiling.",
-      "remaining": [
-        "XML input/provider API",
-        "Arbitrary Boost regex syntax"
-      ],
-      "graph_bounds": "One atomic transaction; input traversal, parsing, residue/product counts and retained payload share cumulative allowances across every parent. Parsing payload is charged before vector reservation. Graph staging and registration share separate GraphLimits."
-    },
-    "modifications": {
-      "module": "src/chemistry/modified_na_sequence_generator.rs",
-      "support": "docs/RNA_MODIFICATION_SUPPORT.md",
-      "implemented": [
-        "Atomic fixed replacement",
-        "Variable variant return and atomic append with exact source subset/alternative order"
-      ],
-      "candidate_identity": "Caller slice order; repeated Arc allocation identities collapse, while separate equal-value allocations and same-code different chemistry remain distinct alternatives and may produce duplicate values.",
-      "source_conventions": "First fixed terminal candidate and last fixed matching residue candidate win. Maximum one ignores candidate term specificity and replaces ordinary residues; the general path includes empty terminal slots independently of origin. Empty-sequence behavior is retained.",
-      "default_limits": {
-        "residues": 10000,
-        "supplied_candidates_and_compatible_entries": 1024,
-        "work": 10000000,
-        "outputs": 100000,
-        "output_bytes": 256000000
-      },
-      "planning_scratch_bytes": 67108864,
-      "limit_policy": "Configured output count/logical payload includes existing append entries even on no-op calls; checked weighted-subset preflight precedes combinatorial cloning, and staging preserves atomicity. No output deduplication or truncation."
-    },
-    "spectra": {
-      "module": "src/chemistry/nucleic_acid_spectrum_generator.rs",
-      "support": "docs/RNA_SPECTRUM_SUPPORT.md",
-      "implemented": [
-        "All nine source ion series and configured intensities",
-        "Atomic single-spectrum append with signed charge range",
-        "Cumulative multiple-spectrum generation with source precursor/charge distinctions",
-        "IonNames and signed Charges annotation arrays with stable aligned sorting"
-      ],
-      "default_series": [
-        "b",
-        "y"
-      ],
-      "default_intensities": 1.0,
-      "default_metadata_precursors_and_first_prefix": false,
-      "source_conventions": "Declared nucleoside masses, sulfur linkage corrections and a-B ambiguity behavior are preserved; source single/multiple charge progression and final-only precursor quirks remain distinct.",
-      "limits": {
-        "residues": 1000000,
-        "combined_retained_peaks": 100000,
-        "requested_spectrum_keys": 4096,
-        "auxiliary_arrays": 1024,
-        "work": 50000000,
-        "cumulative_allocation_bytes": 268435456,
-        "label_bytes": 16777216
-      },
-      "shared_formula_budget": "Formula-based precursor fallback consumes the same remaining work and byte counters through NASequence::mono_mass_with_budget; consumed counters are retained on success and error.",
-      "metadata_policy": "Unrelated destination metadata is retained in place. Peak/array staging, shape/value checks and explicit unsupported-array errors prevent partial append or silent annotation loss."
-    },
-    "independent_reference_counts": {
-      "source_hashes": 28,
-      "new_fixture_files": 7,
-      "new_fixture_rows": 6256,
-      "reused_registry_rows": 378,
-      "enzyme_records": 14,
-      "code_predicate_rows": 6048,
-      "digestion_cases": 12,
-      "digestion_outputs": 38,
-      "ion_mass_literals": 132,
-      "ion_mass_literals_asserted_by_source": 126,
-      "modification_count_cases": [
-        7,
-        6,
-        27,
-        432
-      ]
-    },
-    "cpp_built": false,
-    "cpp_runtime_differential_tests": false
+  "src/openms/include/OpenMS/CONCEPT/Constants.h": {
+   "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
   },
-  "target_sdk": {
-    "version": "4.0.0",
-    "repository": "https://github.com/okohlbacher/OpenMS4-core.git",
-    "commit": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "branch": "codex/package-split",
-    "verified_date": "2026-09-10",
-    "inventory_and_delta": "docs/core-sdk-update.json",
-    "analysis": "docs/CORE_SDK_UPDATE.md",
-    "carried_forward_reference_paths": 220,
-    "historical_reference_policy": "Historical fixture revisions and hashes remain unchanged. Carried references use target hashes; changed source bytes record original hashes and explicit behavior reviews. Current-source manifests separately record target_verification. External Boost headers are outside this SDK comparison.",
-    "previous_target_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"
+  "src/openms/source/CHEMISTRY/AASequence.cpp": {
+   "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693"
   },
-  "identification_graph": {
-    "target_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-    "module": "src/identification/graph.rs",
-    "records_module": "src/identification/graph/records.rs",
-    "support": "docs/IDENTIFICATION_GRAPH_SUPPORT.md",
-    "records_support": "docs/IDENTIFICATION_GRAPH_RECORDS.md",
-    "reference_provenance": "tests/data/identification_graph_provenance.json",
-    "reference_review": "docs/IDENTIFICATION_GRAPH_REFERENCE_REVIEW.md",
-    "example": "examples/identify_rna.rs",
-    "implemented": [
-      "Input/score/software/search/step records and source keys",
-      "Applied processing scores, history and parent-match value semantics",
-      "Owned parent, peptide and oligo registration with stable graph-specific typed IDs",
-      "Checked graph merge and copy with reference translation",
-      "Source inclusive coverage and registry-aware RNA/peptide parent parsing",
-      "Both RNase IdentificationData digestion operations with whole-call rollback",
-      "Typed peptide fragment formula dispatch",
-      "Observation, compound, adduct, molecule and observation-match records, queries and translated graph ownership",
-      "Parent and observation-match groups with translated graph ownership",
-      "Legacy sequence import and parent-evidence export",
-      "Referential cleanup with all five source options and conditional predicate filtering; sparse stable IDs"
-    ],
-    "native_boundaries": [
-      "Deterministic owned IDs replace pointer ordering; foreign/stale IDs rejected",
-      "ParentMatch unknown positions use None rather than an unsigned sentinel",
-      "Unset processing timestamps use None rather than implicit system time",
-      "Atomic failure preserves existing records; resource ceilings bound cumulative work and logical payload"
-    ],
-    "remaining": [
-      "Graph persistence",
-      "Remaining legacy IdentificationDataConverter APIs"
-    ],
-    "cleanup_provenance": "tests/data/identification_cleanup_provenance.json"
+  "src/openms/source/CHEMISTRY/Residue.cpp": {
+   "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83"
   },
-  "file_handling": {
-    "reference_provenance": "tests/data/file_handling_provenance.json",
-    "support": "docs/FILE_HANDLING_SUPPORT.md",
-    "text_peak_lists_provenance": "tests/data/text_peak_lists_provenance.json",
-    "mzml_parameter_groups_provenance": "tests/data/mzml_param_groups_provenance.json",
-    "map_xml_support": [
-      "docs/FEATUREXML_SUPPORT.md",
-      "docs/CONSENSUSXML_SUPPORT.md"
-    ],
-    "transport": "Plain, gzip and bzip2 streams with magic-based input detection and atomic path output; file-compression is optional."
+  "src/openms/source/CHEMISTRY/ResidueModification.cpp": {
+   "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9"
   },
-  "current_sdk_reference_manifests": [
-    "tests/data/identification_converter_provenance.json",
-    "tests/data/identification_groups_provenance.json",
-    "tests/data/identification_cleanup_provenance.json",
-    "tests/data/file_handling_provenance.json",
-    "tests/data/text_peak_lists_provenance.json",
-    "tests/data/mzml_param_groups_provenance.json",
-    "tests/data/native_equivalents_provenance.json",
-    "tests/data/text_csv_provenance.json",
-    "tests/data/param_provenance.json",
-    "tests/data/param_value_provenance.json",
-    "tests/data/paramxml_provenance.json",
-    "tests/data/list_utils_provenance.json",
-    "tests/data/default_param_handler_provenance.json",
-    "tests/data/featurexml_provenance.json",
-    "tests/data/consensusxml_provenance.json",
-    "tests/data/modification_definition_io_provenance.json",
-    "tests/data/system_file_provenance.json",
-    "tests/data/log_stream_provenance.json",
-    "tests/data/progress_logger_provenance.json",
-    "tests/data/fasta_provenance.json",
-    "tests/data/experiment_aggregation_provenance.json",
-    "tests/data/mzml_product_provenance.json",
-    "tests/data/indexed_mzml_provenance.json",
-    "tests/data/kernel_value_traits_provenance.json",
-    "tests/data/peak_file_options_provenance.json",
-    "tests/data/metadata_hash_provenance.json",
-    "tests/data/mass_decomposition_provenance.json",
-    "tests/data/identification_paths_provenance.json",
-    "tests/data/experiment_summary_provenance.json",
-    "tests/data/mass_decomposition_algorithm_provenance.json",
-    "tests/data/mzml_load_provenance.json",
-    "tests/data/mobilogram_provenance.json",
-    "tests/data/data_array_xml_provenance.json",
-    "tests/data/ims_weights_provenance.json",
-    "tests/data/mzml_paths_provenance.json",
-    "tests/data/ims_isotopes_provenance.json",
-    "tests/data/ims_alphabet_provenance.json",
-    "tests/data/area_iteration_provenance.json",
-    "tests/data/peak_data_provenance.json",
-    "tests/data/peak_index_provenance.json",
-    "tests/data/numpress_provenance.json",
-    "tests/data/numpress_coder_provenance.json",
-    "tests/data/unique_id_provenance.json",
-    "tests/data/peak2d_provenance.json",
-    "tests/data/ims_decomposers_provenance.json",
-    "tests/data/mzml_numpress_provenance.json",
-    "tests/data/sequence_coverage_provenance.json",
-    "tests/data/chromatogram_tools_provenance.json",
-    "tests/data/mzml_acquisition_guards_provenance.json",
-    "tests/data/sdk_numeric_formatting_provenance.json",
-    "tests/data/constants_provenance.json",
-    "tests/data/mass_trace_provenance.json",
-    "tests/data/mzml_settings_provenance.json",
-    "tests/data/monosaccharide_provenance.json",
-    "tests/data/mass_trace_detection_provenance.json",
-    "tests/data/proforma_provenance.json",
-    "tests/data/proforma_writer_probe_provenance.json",
-    "tests/data/protein_run_provenance.json",
-    "tests/data/mzml_acquisition_provenance.json",
-    "tests/data/run_mapping_provenance.json",
-    "tests/data/elution_peak_detection_provenance.json",
-    "tests/data/proforma_parser_provenance.json",
-    "tests/data/proforma_parser_probe_provenance.json",
-    "tests/data/experiment_metadata_provenance.json",
-    "tests/data/feature_hypothesis_provenance.json",
-    "tests/data/proforma_json_provenance.json",
-    "tests/data/mzml_counts_provenance.json",
-    "tests/data/document_identifier_provenance.json",
-    "tests/data/experiment_values_provenance.json",
-    "tests/data/feature_finding_metabo_provenance.json",
-    "tests/data/metabo_predictor_provenance.json",
-    "tests/data/proforma_resolution_provenance.json",
-    "tests/data/datetime_provenance.json",
-    "tests/data/experimental_settings_provenance.json",
-    "tests/data/ims_witness_source_oracle_provenance.json",
-    "tests/data/proforma_mass_provenance.json",
-    "tests/data/controlled_vocabulary_provenance.json",
-    "tests/data/proforma_conversion_provenance.json",
-    "tests/data/cv_mapping_provenance.json",
-    "tests/data/peptide_evidence_provenance.json",
-    "tests/data/mzml_header_provenance.json",
-    "tests/data/semantic_validator_provenance.json",
-    "tests/data/xlms_provenance.json",
-    "tests/data/mzml_consumer_provenance.json",
-    "tests/data/proforma_spectra_provenance.json",
-    "tests/data/mzml_centroid_provenance.json",
-    "tests/data/mzml_isolation_provenance.json",
-    "tests/data/mzml_validator_provenance.json",
-    "tests/data/mzml_writing_provenance.json",
-    "tests/data/mzml_normalization_provenance.json",
-    "tests/data/mzml_schema_provenance.json",
-    "tests/data/mzml_typed_transport_provenance.json"
-  ],
-  "full_cpp_sdk_built": false,
-  "cpp_reference_probe_built": true,
-  "cpp_reference_evidence": {
-    "manifest": "tests/data/numpress_provenance.json",
-    "scope": "The primary entry describes the unmodified pinned MSNumpress raw C++ probe. Additional executed probes have independent source/adaptation/fixture evidence in the manifests below. The full C++ SDK was not built.",
-    "cases": 295,
-    "decoder_cases": 287,
-    "skipped_undefined_empty_safe_decodes": 8,
-    "additional_manifests": [
-      {
-        "manifest": "tests/data/proforma_writer_probe_provenance.json",
-        "scope": "160 actual C++ writer comparisons from extracted pinned source blocks; see adapters and limitations in manifest."
-      },
-      {
-        "manifest": "tests/data/proforma_parser_probe_provenance.json",
-        "scope": "476 actual C++ parser/output/error comparisons from extracted pinned source blocks; see adapters and limitations in manifest."
-      },
-      {
-        "manifest": "tests/data/metabo_predictor_provenance.json",
-        "scope": "488 actual predictions from separately compiled unmodified external LIBSVM, not full OpenMS feature finding."
-      },
-      {
-        "manifest": "tests/data/datetime_provenance.json",
-        "scope": "301 ordinary unmodified DateTime.cpp probe rows with narrow dependency adapters; 266 exact native matches and 35 independently corrected calendar rows. Three separate UBSan overflow executions and host libc diagnostic are distinct evidence."
-      },
-      {
-        "manifest": "tests/data/proforma_conversion_provenance.json",
-        "scope": "1,078 actual C++ massDeltaText_ helper formatter cases; complete C++ conversion algorithms were not executed."
-      }
-    ]
+  "src/tests/class_tests/openms/source/AASequence_test.cpp": {
+   "sha256": "d40acc86f1b46211db7b66c613c0b0156ee1c0917021f6c0941c50c9494cb95e"
+  },
+  "src/openms/source/METADATA/Precursor.cpp": {
+   "sha256": "009d54ab86dd4dd85d11f61a227bc54c9aef9f061dd97f3aee78568b12350ec1"
+  },
+  "src/openms/include/OpenMS/METADATA/Precursor.h": {
+   "sha256": "69762329c0545457affd9bd8c83b4344bcbf494d3a33d34e403cd4b318ffb8f1"
+  },
+  "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp": {
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/Tagger.h": {
+   "sha256": "3301abb060ca0716588e2847288ac68e6040814a27a32e40eb698f0cdb198d14"
+  },
+  "src/openms/source/CHEMISTRY/Tagger.cpp": {
+   "sha256": "02cce0b7cef9196ba0939049d52c3d60788f8b0ee10596bcf24a6a76db0206f1"
+  },
+  "src/tests/class_tests/openms/source/Tagger_test.cpp": {
+   "sha256": "23d2fb46963bba93e5f3bc50dcaf7bf12758bf812caf3f99793fc23f5de19f5d"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/Residue.h": {
+   "sha256": "8abda7e4cc2e2d9c19841c5c9e4c527f16e930e5c51e2490bbd6f4b2ac3ccc0e"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/ResidueDB.h": {
+   "sha256": "83316197a37a4fe36f885a0a1036757167c6e36711741e59e0964ef9bd929a3e"
+  },
+  "src/openms/source/CHEMISTRY/ModificationsDB.cpp": {
+   "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/ModificationsDB.h": {
+   "sha256": "c815a5a5f47f0b5d495cdca2ef6b1fa9bd5115c43a4eb3c50e4f94d48bcd39a6"
+  },
+  "src/openms/include/OpenMS/MATH/MathFunctions.h": {
+   "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e"
+  },
+  "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp": {
+   "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h": {
+   "sha256": "c0f8fc0213c7a9103f3e3ebeb305d498a79666afdb189b2b3b36c7d129cc81c9"
+  },
+  "src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp": {
+   "sha256": "763d7e37041d3bed8f0b9fb122e43b5d6890fc699753e0f877ee3c50f2698325"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/Ribonucleotide.h": {
+   "sha256": "73490e6d33be78469261a2dff83b6014c55f69f53d7c1ee5a3b84a8f3bb75c18"
+  },
+  "src/openms/source/CHEMISTRY/Ribonucleotide.cpp": {
+   "sha256": "a40433bc08f7394327fa724aa6d48283fc1bd8a9c9f8096be6f4ea1c785826bb"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDB.h": {
+   "sha256": "3c777c503413784b1f08989a1e74519d49638921d7f9247bdc173bcaa8b527f8"
+  },
+  "src/openms/source/CHEMISTRY/RibonucleotideDB.cpp": {
+   "sha256": "298aee9bb6a6e4017df06f9376f21096a4b4f445d9eb40be03f099e758d41665"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideTSVDataProvider.h": {
+   "sha256": "9c49b197247849413f6384760a62d2df507c449f369bf6981f5d79e2a5127900"
+  },
+  "src/openms/source/CHEMISTRY/RibonucleotideTSVDataProvider.cpp": {
+   "sha256": "8449ee241f9d6efbe86d50f3fe807ea0c88446e6c9eb7af4543a8aaf6ab168cc"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/ModomicsJSONDataProvider.h": {
+   "sha256": "05300aee7d5841870d00ee716cb8d6f13400dd0e9aa8c9a29f4ef9f60654c873"
+  },
+  "src/openms/source/CHEMISTRY/ModomicsJSONDataProvider.cpp": {
+   "sha256": "27daa6869843cc462e54a2b1f8720ad8b9620d5c2182efc44c8c107db5557868"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/NASequence.h": {
+   "sha256": "e06f3bd0db9e816529009793112edb3a056a0295d3b5cc616ae79cf40185e11d"
+  },
+  "src/openms/source/CHEMISTRY/NASequence.cpp": {
+   "sha256": "21a2a34389026ac9696d809d5e79f6141668f2b65c7d00081920775f5f929423"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDataProvider.h": {
+   "sha256": "723d7d61422f7a9b6cc44c629b8af76ee17a7d4668a521452c02e3607de677a2"
+  },
+  "src/tests/class_tests/openms/source/Ribonucleotide_test.cpp": {
+   "sha256": "8cb8c031d2e6a07217233ecf59c608895f6e5be0ba5ab15bdb94a77602d2e4f4"
+  },
+  "src/tests/class_tests/openms/source/RibonucleotideDB_test.cpp": {
+   "sha256": "884360043a29c1d82d40932734e54c7b3b0468f1aa2b35c647452c9097168feb"
+  },
+  "src/tests/class_tests/openms/source/RibonucleotideDataProvider_test.cpp": {
+   "sha256": "d6e194ed990a8ab57389229afb82ab03f88fb99646d366903ab53e53d04ec323"
+  },
+  "src/tests/class_tests/openms/source/NASequence_test.cpp": {
+   "sha256": "3ad636f5a02e3734ae1c51e2aabddc6f7643e1fd8d9ae1a909283dba30f47931"
+  },
+  "share/OpenMS/CHEMISTRY/Modomics.json": {
+   "sha256": "2c98d258f2b88c126e88a06e080a0652053b77bc9d434ab8727c984dfa8436fc"
+  },
+  "share/OpenMS/CHEMISTRY/Custom_RNA_modifications.tsv": {
+   "sha256": "155d7ff5c70c9c01ffd0d5a32fe7c4e200adc10ae5ed6d516b07ec8242faa23d"
+  },
+  "share/OpenMS/CHEMISTRY/Modomics.tsv": {
+   "sha256": "ed458688c4cfdf1ea6eb4c618613befee411019f3b7665838685ae3dea411e76"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h": {
+   "sha256": "9c2a81ef15a7beb3e52c3ba9e1db9b98ae68f27aa3eb5f62cd3a5562f978927d"
+  },
+  "src/tests/class_tests/openms/source/NucleicAcidSpectrumGenerator_test.cpp": {
+   "sha256": "481fa0557b9ac892030acb91411a8dda223ea28eb93ec6855f7c20a2b01ea200"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h": {
+   "sha256": "64bc6d66df30683afd6a9d0ada5a807be22a01ed437659fb4c6326ce6b02bb35"
+  },
+  "src/openms/source/CHEMISTRY/NucleicAcidSpectrumGenerator.cpp": {
+   "sha256": "0ec036f987d0b3cd5dc20575993eb28dab657373a358c2463fec60f1d10bd225"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/RNaseDigestion.h": {
+   "sha256": "080f4f853a5836d0bf2ba769d8124f259bf752c804cc80ee4e21d1346a4b8fad"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeRNA.h": {
+   "sha256": "bc19b7c721c12a27432bbaa150a4f59c8dd9170511a48f99eedbc5072d7a4a80"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/RNaseDB.h": {
+   "sha256": "1aed0e9ec784848b1a57b7da95d0ff76c32a41a32e91dfb4e6219b3a201dd38d"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h": {
+   "sha256": "aa00b90682191e324522b3ffd26db3bf7d904597dc0e350d921e1f749fcd69b1"
+  },
+  "src/openms/source/CHEMISTRY/RNaseDigestion.cpp": {
+   "sha256": "ef0fadffcf635052cfc6af03046c56e6fef1fcec4fd0530613a72cb16f2a9f1f"
+  },
+  "src/openms/source/CHEMISTRY/DigestionEnzymeRNA.cpp": {
+   "sha256": "8fc3167698c1830647cfe91d39ed5789b5ca2029a9d3e0fcc780aa3a39984be7"
+  },
+  "src/openms/source/CHEMISTRY/RNaseDB.cpp": {
+   "sha256": "8f7be48072f137dc641e50748128787c67f40d8cd6c0c474f491b50a9fa3602c"
+  },
+  "src/openms/source/CHEMISTRY/ModifiedNASequenceGenerator.cpp": {
+   "sha256": "a838584c26985f75c50b1b1922d24cc8ade0379cde17f4473d44954acc10ed7e"
+  },
+  "src/tests/class_tests/openms/source/RNaseDigestion_test.cpp": {
+   "sha256": "65bab419c3e5c11245b90e90324b04cd6dd61117b8aeb9854e06da4df0a20906"
+  },
+  "src/tests/class_tests/openms/source/DigestionEnzymeRNA_test.cpp": {
+   "sha256": "2680172abb199f70a5b2a97f50de05a6653b8991ee26a9dbdd94172173e3573c"
+  },
+  "src/tests/class_tests/openms/source/RNaseDB_test.cpp": {
+   "sha256": "a56a26e79f48854290335e9472f35ba7b0227e1e4668b9402bbef31f66624ea0"
+  },
+  "src/tests/class_tests/openms/source/ModifiedNASequenceGenerator_test.cpp": {
+   "sha256": "fc9fd9eaf392d09f721c0f65ad0633bcb3a80ec25dcf2d3157738ec8b80b4ef6"
+  },
+  "share/OpenMS/CHEMISTRY/Enzymes_RNA.xml": {
+   "sha256": "4c90a3630a1553ef7c75bae00f2731e2f5bb690f3ee9434d54cc3315a95fe899"
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeDB.h": {
+   "sha256": "2b89aa4a51ddc169321fd1b24d5cd7a73c3ba0c9db11d8f548a89845e26b471f"
+  },
+  "src/openms/include/OpenMS/KERNEL/Peak1D.h": {
+   "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
+  },
+  "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
+   "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+  },
+  "src/openms/source/KERNEL/MSSpectrum.cpp": {
+   "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
   }
+ },
+ "modification_data_provenance": "resources/modifications/provenance.json",
+ "enzyme_data_provenance": "resources/enzymes/README.md",
+ "transformation_fixture_provenance": "tests/data/transformations_provenance.json",
+ "fdr_fixture_provenance": "tests/data/fdr_provenance.json",
+ "idxml_fixture_provenance": "tests/data/idxml_provenance.json",
+ "protein_inference_fixture_provenance": "tests/data/protein_inference_provenance.json",
+ "peptide_indexing_matcher_provenance": "tests/data/peptide_indexing_matcher_reference_provenance.json",
+ "sequence_support": "docs/SEQUENCE_SUPPORT.md",
+ "sequence_workflow_reference": "tests/sequence_workflow.rs",
+ "averagine_deisotoping_fixture_provenance": "tests/data/averagine_deisotoping_provenance.json",
+ "chromatogram_processing_fixture_provenance": "tests/data/chromatogram_processing_provenance.json",
+ "mzml_provenance": "tests/data/mzml_provenance.json",
+ "emg_support": "docs/EMG_SUPPORT.md",
+ "emg_fixture_provenance": "tests/data/emg_provenance.json",
+ "external_math_dependency": {
+  "package": "libm",
+  "version": "0.2.16",
+  "purpose": "Complementary error function in literal EMG expressions",
+  "license": "MIT",
+  "cargo_checksum": "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981",
+  "vendored": false
+ },
+ "iterative_picking_fixture_provenance": "tests/data/iterative_provenance.json",
+ "window_mower_fixture_provenance": "tests/data/window_mower_provenance.json",
+ "mean_noise_fixture_provenance": "tests/data/mean_noise_provenance.json",
+ "modification_generation_fixture_provenance": "tests/data/modification_generation_provenance.json",
+ "registry_fixture_provenance": "tests/data/registry_provenance.json",
+ "xlmod_data_provenance": "resources/modifications/xlmod_provenance.json",
+ "historical_psi_mod_bundled": false,
+ "theoretical_extension_reference_provenance": "tests/data/theoretical_extension_provenance.json",
+ "precursor_purity_fixture_provenance": "tests/data/precursor_purity_provenance.json",
+ "fine_isotope_fixture_provenance": "tests/data/fine_isotope_provenance.json",
+ "fine_isotope_stream_provenance": "tests/data/fine_isotope_stream_provenance.json",
+ "peptide_properties_provenance": "tests/data/peptide_properties_provenance.json",
+ "spectrum_annotation_provenance": "tests/data/spectrum_annotation_provenance.json",
+ "decoy_provenance": "tests/data/decoy_provenance.json",
+ "adduct_provenance": "tests/data/adduct_provenance.json",
+ "tagger_provenance": "tests/data/tagger_provenance.json",
+ "tagger_support": "docs/TAGGER_SUPPORT.md",
+ "rna_fixture_provenance": "tests/data/rna_provenance.json",
+ "rna_data_provenance": "resources/rna/provenance.json",
+ "rna_support": "docs/RNA_SUPPORT.md",
+ "rna_reference_review": "docs/RNA_REFERENCE_REVIEW.md",
+ "rna_foundation": {
+  "implemented": [
+   "Ribonucleotide complete independent fields and value identity",
+   "RibonucleotideDB ordered owned records, exact and longest-prefix lookup, deferred ambiguity resolution",
+   "In-memory and TSV providers, plus optional MODOMICS JSON provider",
+   "NASequence parsing and registry-checked display, owned records and end modifications, sulfur-aware slicing",
+   "All 20 finite NAFragmentType variants, including ten source legacy formula fallbacks, monoisotopic/average ion masses and signed charges"
+  ],
+  "default_provider_order": [
+   "resources/rna/Modomics.json",
+   "resources/rna/Custom_RNA_modifications.tsv"
+  ],
+  "registry_iteration_entries": 378,
+  "registry_unique_codes": 375,
+  "json_entries": 333,
+  "custom_tsv_entries": 45,
+  "embedded_projection": "resources/rna/ribonucleotides.rs",
+  "embedded_registry_available_without_json_feature": true,
+  "legacy_tsv": "resources/rna/Modomics.tsv",
+  "legacy_tsv_is_default_provider": false,
+  "numerical_boundary": "Independent declared mass literals retain binary64 values. Formula-derived fallback masses use deterministic native element order; source EmpiricalFormula uses an Element pointer map, so bitwise C++ summation-order parity is not claimed.",
+  "remaining": [
+   "RNA enzyme XML input/provider API",
+   "Arbitrary Boost regex syntax beyond the registered RNA expressions and literal-search subset"
+  ]
+ },
+ "rna_data_license_boundary": {
+  "notice": "resources/rna/README.md",
+  "component_licenses": "LICENSES.md",
+  "legacy_source_notice": "Data used with permission.",
+  "json_explicit_license_notice_found": false,
+  "general_redistribution_terms_established": false,
+  "usage_context": "Complete pinned snapshot and projection retained for local, unpublished source analysis and scientific validation.",
+  "release_boundary": "The software BSD license does not relicense MODOMICS. No permissive dataset license or permission for new publication is inferred from research accessibility, requested scientific citation, or article publication terms.",
+  "primary_reference_review": "Recorded in resources/rna/provenance.json and resources/rna/README.md; dated 2026-09-10."
+ },
+ "optional_json_dependency": {
+  "package": "serde_json",
+  "version": "1.0.150",
+  "purpose": "Bounded MODOMICS JSON reader with lexical object-key iteration and correctly rounded binary64 parsing",
+  "cargo_feature": "rna-json",
+  "included_in_default_features": true,
+  "dependency_features": [
+   "float_roundtrip"
+  ],
+  "license": "MIT OR Apache-2.0",
+  "cargo_checksum": "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9",
+  "vendored": false,
+  "not_required_for": "Embedded RNA registry, in-memory records and TSV loading"
+ },
+ "rna_processing_fixture_provenance": "tests/data/rna_processing_provenance.json",
+ "rna_processing_reference_review": "docs/RNA_PROCESSING_REFERENCE_REVIEW.md",
+ "rna_enzyme_data_provenance": "resources/enzymes/rna_provenance.json",
+ "rna_processing": {
+  "rnase": {
+   "module": "src/chemistry/rnase.rs",
+   "support": "docs/RNASE_SUPPORT.md",
+   "implemented": [
+    "Owned DigestionEnzymeRNA records and RNaseDB with source alias/index replacement behavior",
+    "All fourteen source RNA enzyme definitions, registered per-code predicates and comma-composed/literal searches",
+    "RNaseDigestion sequence digestion, half-open positions and atomic output replacement",
+    "Registry-aware and default IdentificationData batch digestion: inclusive parent matches, raw-code flanks, chemical product merging and current processing history"
+   ],
+   "default_enzyme": "RNase_T1",
+   "default_difference": "Native default is fully configured RNase_T1; the C++ inherited default leaves RNA-specific gains uninitialized until setEnzyme.",
+   "source_conventions": "Raw record-code matching, start-first then missed-cleavage order, original outer termini and source internal-gain rewriting/overwriting; main regex is compiled against the same native subset even though RNA digestion does not use it.",
+   "limits": {
+    "residues": 1000000,
+    "products": 100000,
+    "work": 50000000,
+    "output_bytes": 268435456,
+    "registry_records": 100000,
+    "registry_bytes": 134217728,
+    "registry_work": 50000000,
+    "text_bytes_per_field": 65536,
+    "patterns_per_side_or_synonyms_per_record": 1024
+   },
+   "limit_policy": "Public digestion max fields can lower hard ceilings. Work includes tree-key comparison bounds, predicates, planning, validation and copies; output payload is measured by fragment residues plus conservative ends/context. Cut/prefix scratch is additionally bounded by the hard residue ceiling.",
+   "remaining": [
+    "XML input/provider API",
+    "Arbitrary Boost regex syntax"
+   ],
+   "graph_bounds": "One atomic transaction; input traversal, parsing, residue/product counts and retained payload share cumulative allowances across every parent. Parsing payload is charged before vector reservation. Graph staging and registration share separate GraphLimits."
+  },
+  "modifications": {
+   "module": "src/chemistry/modified_na_sequence_generator.rs",
+   "support": "docs/RNA_MODIFICATION_SUPPORT.md",
+   "implemented": [
+    "Atomic fixed replacement",
+    "Variable variant return and atomic append with exact source subset/alternative order"
+   ],
+   "candidate_identity": "Caller slice order; repeated Arc allocation identities collapse, while separate equal-value allocations and same-code different chemistry remain distinct alternatives and may produce duplicate values.",
+   "source_conventions": "First fixed terminal candidate and last fixed matching residue candidate win. Maximum one ignores candidate term specificity and replaces ordinary residues; the general path includes empty terminal slots independently of origin. Empty-sequence behavior is retained.",
+   "default_limits": {
+    "residues": 10000,
+    "supplied_candidates_and_compatible_entries": 1024,
+    "work": 10000000,
+    "outputs": 100000,
+    "output_bytes": 256000000
+   },
+   "planning_scratch_bytes": 67108864,
+   "limit_policy": "Configured output count/logical payload includes existing append entries even on no-op calls; checked weighted-subset preflight precedes combinatorial cloning, and staging preserves atomicity. No output deduplication or truncation."
+  },
+  "spectra": {
+   "module": "src/chemistry/nucleic_acid_spectrum_generator.rs",
+   "support": "docs/RNA_SPECTRUM_SUPPORT.md",
+   "implemented": [
+    "All nine source ion series and configured intensities",
+    "Atomic single-spectrum append with signed charge range",
+    "Cumulative multiple-spectrum generation with source precursor/charge distinctions",
+    "IonNames and signed Charges annotation arrays with stable aligned sorting"
+   ],
+   "default_series": [
+    "b",
+    "y"
+   ],
+   "default_intensities": 1.0,
+   "default_metadata_precursors_and_first_prefix": false,
+   "source_conventions": "Declared nucleoside masses, sulfur linkage corrections and a-B ambiguity behavior are preserved; source single/multiple charge progression and final-only precursor quirks remain distinct.",
+   "limits": {
+    "residues": 1000000,
+    "combined_retained_peaks": 100000,
+    "requested_spectrum_keys": 4096,
+    "auxiliary_arrays": 1024,
+    "work": 50000000,
+    "cumulative_allocation_bytes": 268435456,
+    "label_bytes": 16777216
+   },
+   "shared_formula_budget": "Formula-based precursor fallback consumes the same remaining work and byte counters through NASequence::mono_mass_with_budget; consumed counters are retained on success and error.",
+   "metadata_policy": "Unrelated destination metadata is retained in place. Peak/array staging, shape/value checks and explicit unsupported-array errors prevent partial append or silent annotation loss."
+  },
+  "independent_reference_counts": {
+   "source_hashes": 28,
+   "new_fixture_files": 7,
+   "new_fixture_rows": 6256,
+   "reused_registry_rows": 378,
+   "enzyme_records": 14,
+   "code_predicate_rows": 6048,
+   "digestion_cases": 12,
+   "digestion_outputs": 38,
+   "ion_mass_literals": 132,
+   "ion_mass_literals_asserted_by_source": 126,
+   "modification_count_cases": [
+    7,
+    6,
+    27,
+    432
+   ]
+  },
+  "cpp_built": false,
+  "cpp_runtime_differential_tests": false
+ },
+ "target_sdk": {
+  "version": "4.0.0",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core.git",
+  "commit": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "branch": "codex/package-split",
+  "verified_date": "2026-09-10",
+  "inventory_and_delta": "docs/core-sdk-update.json",
+  "analysis": "docs/CORE_SDK_UPDATE.md",
+  "carried_forward_reference_paths": 220,
+  "historical_reference_policy": "Historical fixture revisions and hashes remain unchanged. Carried references use target hashes; changed source bytes record original hashes and explicit behavior reviews. Current-source manifests separately record target_verification. External Boost headers are outside this SDK comparison.",
+  "previous_target_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"
+ },
+ "identification_graph": {
+  "target_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "module": "src/identification/graph.rs",
+  "records_module": "src/identification/graph/records.rs",
+  "support": "docs/IDENTIFICATION_GRAPH_SUPPORT.md",
+  "records_support": "docs/IDENTIFICATION_GRAPH_RECORDS.md",
+  "reference_provenance": "tests/data/identification_graph_provenance.json",
+  "reference_review": "docs/IDENTIFICATION_GRAPH_REFERENCE_REVIEW.md",
+  "example": "examples/identify_rna.rs",
+  "implemented": [
+   "Input/score/software/search/step records and source keys",
+   "Applied processing scores, history and parent-match value semantics",
+   "Owned parent, peptide and oligo registration with stable graph-specific typed IDs",
+   "Checked graph merge and copy with reference translation",
+   "Source inclusive coverage and registry-aware RNA/peptide parent parsing",
+   "Both RNase IdentificationData digestion operations with whole-call rollback",
+   "Typed peptide fragment formula dispatch",
+   "Observation, compound, adduct, molecule and observation-match records, queries and translated graph ownership",
+   "Parent and observation-match groups with translated graph ownership",
+   "Legacy sequence import and parent-evidence export",
+   "Referential cleanup with all five source options and conditional predicate filtering; sparse stable IDs"
+  ],
+  "native_boundaries": [
+   "Deterministic owned IDs replace pointer ordering; foreign/stale IDs rejected",
+   "ParentMatch unknown positions use None rather than an unsigned sentinel",
+   "Unset processing timestamps use None rather than implicit system time",
+   "Atomic failure preserves existing records; resource ceilings bound cumulative work and logical payload"
+  ],
+  "remaining": [
+   "Graph persistence",
+   "Remaining legacy IdentificationDataConverter APIs"
+  ],
+  "cleanup_provenance": "tests/data/identification_cleanup_provenance.json"
+ },
+ "file_handling": {
+  "reference_provenance": "tests/data/file_handling_provenance.json",
+  "support": "docs/FILE_HANDLING_SUPPORT.md",
+  "text_peak_lists_provenance": "tests/data/text_peak_lists_provenance.json",
+  "mzml_parameter_groups_provenance": "tests/data/mzml_param_groups_provenance.json",
+  "map_xml_support": [
+   "docs/FEATUREXML_SUPPORT.md",
+   "docs/CONSENSUSXML_SUPPORT.md"
+  ],
+  "transport": "Plain, gzip and bzip2 streams with magic-based input detection and atomic path output; file-compression is optional."
+ },
+ "current_sdk_reference_manifests": [
+  "tests/data/identification_converter_provenance.json",
+  "tests/data/identification_groups_provenance.json",
+  "tests/data/identification_cleanup_provenance.json",
+  "tests/data/file_handling_provenance.json",
+  "tests/data/text_peak_lists_provenance.json",
+  "tests/data/mzml_param_groups_provenance.json",
+  "tests/data/native_equivalents_provenance.json",
+  "tests/data/text_csv_provenance.json",
+  "tests/data/param_provenance.json",
+  "tests/data/param_value_provenance.json",
+  "tests/data/paramxml_provenance.json",
+  "tests/data/list_utils_provenance.json",
+  "tests/data/default_param_handler_provenance.json",
+  "tests/data/featurexml_provenance.json",
+  "tests/data/consensusxml_provenance.json",
+  "tests/data/modification_definition_io_provenance.json",
+  "tests/data/system_file_provenance.json",
+  "tests/data/log_stream_provenance.json",
+  "tests/data/progress_logger_provenance.json",
+  "tests/data/fasta_provenance.json",
+  "tests/data/experiment_aggregation_provenance.json",
+  "tests/data/mzml_product_provenance.json",
+  "tests/data/indexed_mzml_provenance.json",
+  "tests/data/kernel_value_traits_provenance.json",
+  "tests/data/peak_file_options_provenance.json",
+  "tests/data/metadata_hash_provenance.json",
+  "tests/data/mass_decomposition_provenance.json",
+  "tests/data/identification_paths_provenance.json",
+  "tests/data/experiment_summary_provenance.json",
+  "tests/data/mass_decomposition_algorithm_provenance.json",
+  "tests/data/mzml_load_provenance.json",
+  "tests/data/mobilogram_provenance.json",
+  "tests/data/data_array_xml_provenance.json",
+  "tests/data/ims_weights_provenance.json",
+  "tests/data/mzml_paths_provenance.json",
+  "tests/data/ims_isotopes_provenance.json",
+  "tests/data/ims_alphabet_provenance.json",
+  "tests/data/area_iteration_provenance.json",
+  "tests/data/peak_data_provenance.json",
+  "tests/data/peak_index_provenance.json",
+  "tests/data/numpress_provenance.json",
+  "tests/data/numpress_coder_provenance.json",
+  "tests/data/unique_id_provenance.json",
+  "tests/data/peak2d_provenance.json",
+  "tests/data/ims_decomposers_provenance.json",
+  "tests/data/mzml_numpress_provenance.json",
+  "tests/data/sequence_coverage_provenance.json",
+  "tests/data/chromatogram_tools_provenance.json",
+  "tests/data/mzml_acquisition_guards_provenance.json",
+  "tests/data/sdk_numeric_formatting_provenance.json",
+  "tests/data/constants_provenance.json",
+  "tests/data/mass_trace_provenance.json",
+  "tests/data/mzml_settings_provenance.json",
+  "tests/data/monosaccharide_provenance.json",
+  "tests/data/mass_trace_detection_provenance.json",
+  "tests/data/proforma_provenance.json",
+  "tests/data/proforma_writer_probe_provenance.json",
+  "tests/data/protein_run_provenance.json",
+  "tests/data/mzml_acquisition_provenance.json",
+  "tests/data/run_mapping_provenance.json",
+  "tests/data/elution_peak_detection_provenance.json",
+  "tests/data/proforma_parser_provenance.json",
+  "tests/data/proforma_parser_probe_provenance.json",
+  "tests/data/experiment_metadata_provenance.json",
+  "tests/data/feature_hypothesis_provenance.json",
+  "tests/data/proforma_json_provenance.json",
+  "tests/data/mzml_counts_provenance.json",
+  "tests/data/document_identifier_provenance.json",
+  "tests/data/experiment_values_provenance.json",
+  "tests/data/feature_finding_metabo_provenance.json",
+  "tests/data/metabo_predictor_provenance.json",
+  "tests/data/proforma_resolution_provenance.json",
+  "tests/data/datetime_provenance.json",
+  "tests/data/experimental_settings_provenance.json",
+  "tests/data/ims_witness_source_oracle_provenance.json",
+  "tests/data/proforma_mass_provenance.json",
+  "tests/data/controlled_vocabulary_provenance.json",
+  "tests/data/proforma_conversion_provenance.json",
+  "tests/data/cv_mapping_provenance.json",
+  "tests/data/peptide_evidence_provenance.json",
+  "tests/data/mzml_header_provenance.json",
+  "tests/data/semantic_validator_provenance.json",
+  "tests/data/xlms_provenance.json",
+  "tests/data/mzml_consumer_provenance.json",
+  "tests/data/proforma_spectra_provenance.json",
+  "tests/data/mzml_centroid_provenance.json",
+  "tests/data/mzml_isolation_provenance.json",
+  "tests/data/mzml_validator_provenance.json",
+  "tests/data/mzml_writing_provenance.json",
+  "tests/data/mzml_normalization_provenance.json",
+  "tests/data/mzml_schema_provenance.json",
+  "tests/data/mzml_typed_transport_provenance.json",
+  "tests/data/experimental_design_provenance.json"
+ ],
+ "full_cpp_sdk_built": false,
+ "cpp_reference_probe_built": true,
+ "cpp_reference_evidence": {
+  "manifest": "tests/data/numpress_provenance.json",
+  "scope": "The primary entry describes the unmodified pinned MSNumpress raw C++ probe. Additional executed probes have independent source/adaptation/fixture evidence in the manifests below. The full C++ SDK was not built.",
+  "cases": 295,
+  "decoder_cases": 287,
+  "skipped_undefined_empty_safe_decodes": 8,
+  "additional_manifests": [
+   {
+    "manifest": "tests/data/proforma_writer_probe_provenance.json",
+    "scope": "160 actual C++ writer comparisons from extracted pinned source blocks; see adapters and limitations in manifest."
+   },
+   {
+    "manifest": "tests/data/proforma_parser_probe_provenance.json",
+    "scope": "476 actual C++ parser/output/error comparisons from extracted pinned source blocks; see adapters and limitations in manifest."
+   },
+   {
+    "manifest": "tests/data/metabo_predictor_provenance.json",
+    "scope": "488 actual predictions from separately compiled unmodified external LIBSVM, not full OpenMS feature finding."
+   },
+   {
+    "manifest": "tests/data/datetime_provenance.json",
+    "scope": "301 ordinary unmodified DateTime.cpp probe rows with narrow dependency adapters; 266 exact native matches and 35 independently corrected calendar rows. Three separate UBSan overflow executions and host libc diagnostic are distinct evidence."
+   },
+   {
+    "manifest": "tests/data/proforma_conversion_provenance.json",
+    "scope": "1,078 actual C++ massDeltaText_ helper formatter cases; complete C++ conversion algorithms were not executed."
+   }
+  ]
+ },
+ "experimental_design_fixture_provenance": "tests/data/experimental_design_provenance.json"
 }

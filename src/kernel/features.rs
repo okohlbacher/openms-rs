@@ -597,6 +597,23 @@ pub struct ColumnHeader {
     pub metadata: MetaInfo,
 }
 
+impl ColumnHeader {
+    /// Source 1-based channel position: the annotated `channel_id` plus one, or
+    /// 1 when absent. A labeled map without a channel id falls back to a single
+    /// channel, as in the source; the `label` string is not parsed.
+    pub fn label_as_uint(&self, _experiment_type: &str) -> Result<u32> {
+        match self.metadata.get("channel_id") {
+            Some(value) => u32::try_from(value.as_i64()?)
+                .ok()
+                .and_then(|id| id.checked_add(1))
+                .ok_or_else(|| {
+                    Error::InvalidValue("consensus channel id must be a nonnegative index".into())
+                }),
+            None => Ok(1),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ConsensusMap {
     pub features: Vec<ConsensusFeature>,

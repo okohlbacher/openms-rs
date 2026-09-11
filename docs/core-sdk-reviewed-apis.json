@@ -1,1208 +1,1231 @@
 {
-  "target_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
-  "headers": {
-    "src/openms/include/OpenMS/FORMAT/FileTypes.h": {
-      "status": "complete",
-      "rust": [
-        "src/format/file_types.rs"
-      ],
-      "tests": [
-        "tests/file_types.rs"
-      ],
-      "documentation": "docs/FILE_HANDLING_SUPPORT.md",
-      "scope": "All 73 source formats, names, descriptions, properties, CV names, directory kinds and FileTypeList filter generation/lookup. Rust enum excludes invalid numeric sentinel values. Source properties are distinct from Rust adapter support."
-    },
-    "src/openms/include/OpenMS/FORMAT/FileNameUtils.h": {
-      "status": "complete",
-      "rust": [
-        "src/format/file_types.rs"
-      ],
-      "tests": [
-        "tests/file_types.rs"
-      ],
-      "documentation": "docs/FILE_HANDLING_SUPPORT.md",
-      "scope": "All four lexical filename helpers, source alias/compression rules and source stripExtension quirks. Iterative compression peeling and checked underflow replace unsafe source behavior."
-    },
-    "src/openms/include/OpenMS/FORMAT/FileHandler.h": {
-      "status": "partial",
-      "rust": [
-        "src/format/file_handler.rs",
-        "src/format/path_io.rs"
-      ],
-      "tests": [
-        "tests/file_handler.rs",
-        "tests/identification_paths.rs"
-      ],
-      "documentation": "docs/FILE_HANDLING_SUPPORT.md",
-      "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; featureXML/consensusXML map dispatch; plain/gzip/bzip2 transport, allowed-input checks, bounded content recognition and atomic path output. Native idXML identification dispatch with source input/output allowlists. Other identification/transition formats, ZIP input, SHA1 and full source-file bookkeeping remain."
-    },
-    "src/openms/include/OpenMS/KERNEL/StandardTypes.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel.rs",
-        "src/lib.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs"
-      ],
-      "documentation": "docs/NATIVE_EQUIVALENTS.md",
-      "scope": "All three aliases map directly to existing MSSpectrum, MSExperiment and MSChromatogram. No alias wrapper is needed. This closes only the alias header; it does not certify full underlying class or forward-declared Mobilogram behavior."
-    },
-    "src/openms/include/OpenMS/METADATA/PeptideIdentificationList.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/identification.rs",
-        "src/kernel.rs",
-        "src/analysis/id_filter.rs",
-        "src/analysis/protein_inference.rs"
-      ],
-      "tests": [
-        "tests/identification.rs",
-        "tests/id_filter.rs",
-        "tests/protein_inference.rs",
-        "tests/identification_pipeline.rs"
-      ],
-      "documentation": "docs/NATIVE_EQUIVALENTS.md",
-      "scope": "Vec<PeptideIdentification> supplies all container data operations, constructors and assignment. Rust ownership, checked access and std::mem replace C++ moved-from-object/iterator observability; no C++ ABI or exact allocator capacity parity. Underlying PeptideIdentification and downstream algorithm completeness remain separate reviews."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/ExposedVector.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel.rs",
-        "src/analysis/id_filter.rs",
-        "src/analysis/protein_inference.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs",
-        "tests/id_filter.rs",
-        "tests/protein_inference.rs"
-      ],
-      "documentation": "docs/NATIVE_EQUIVALENTS.md",
-      "scope": "Every public delegated vector operation maps to Vec<T>, slices/iterators, trait-based comparison and std::mem operations; exact method-by-method mapping in documentation. Uses native allocation/byte limits instead of allocator-specific max_size, safe access instead of undefined indexing, and Rust ownership instead of template inheritance/moved-from inspection. This is a native container equivalent, not generic C++ ABI emulation."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/TypeAliases.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel.rs",
-        "src/metadata/value.rs"
-      ],
-      "tests": [
-        "tests/metadata.rs",
-        "tests/precursor_workflow.rs"
-      ],
-      "documentation": "docs/NATIVE_EQUIVALENTS.md",
-      "scope": "All three aliases map to Vec<i32>, Vec<f64> and Vec<String>; arbitrary C++ byte strings can use Vec<Vec<u8>> without lossy UTF-8 conversion. Alias mapping does not imply ListUtils/StringUtils or all metadata API completion."
-    },
-    "src/openms/include/OpenMS/CONCEPT/Types.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel.rs",
-        "src/metadata/value.rs",
-        "src/metadata/acquisition.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs",
-        "tests/metadata.rs"
-      ],
-      "documentation": "docs/NATIVE_EQUIVALENTS.md",
-      "scope": "Fixed-width/native-size primitives and all15 ASCII names have native mappings. Whole time_t ABI and writtenDigits helper are not ported: includes generic fallback6, explicit long-to-int precision quirks and platform-specific long-double specialization. f32/f64 DIGITS alone cannot certify the whole header."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/ConstRefVector.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel.rs",
-        "src/analysis/id_filter.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs",
-        "tests/id_filter.rs"
-      ],
-      "documentation": "docs/NATIVE_EQUIVALENTS.md",
-      "scope": "Native borrowed/indirect views represent its primary use, but custom base-container/type-aware equality, size-only ordering, cached capacity, swap retaining identity/cache, null slots and custom iterator state are not represented. Do not classify the full header as Vec<&T> equivalence."
-    },
-    "src/openms/include/OpenMS/FORMAT/TextFile.h": {
-      "status": "complete",
-      "rust": [
-        "src/format/text.rs"
-      ],
-      "tests": [
-        "tests/text_file.rs"
-      ],
-      "documentation": "docs/TEXT_CSV_SUPPORT.md",
-      "scope": "Complete source operations with literal text/CSV semantics, source construction/load differences and native checked UTF-8/resource/I/O adaptations. No RFC CSV parsing promise."
-    },
-    "src/openms/include/OpenMS/FORMAT/CsvFile.h": {
-      "status": "complete",
-      "rust": [
-        "src/format/csv.rs"
-      ],
-      "tests": [
-        "tests/csv_file.rs"
-      ],
-      "documentation": "docs/TEXT_CSV_SUPPORT.md",
-      "scope": "Complete source operations with literal text/CSV semantics, source construction/load differences and native checked UTF-8/resource/I/O adaptations. No RFC CSV parsing promise."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/Param.h": {
-      "status": "complete",
-      "rust": [
-        "src/param.rs",
-        "src/param/tree.rs",
-        "src/param/operations.rs",
-        "src/param/iteration.rs"
-      ],
-      "tests": [
-        "tests/param.rs"
-      ],
-      "documentation": "docs/PARAM_SUPPORT.md",
-      "scope": "All public entry/node/tree, iterator, restrictions, defaults, update/copy/merge and CLI operations. Native full-value equality plus explicit checked source_equal; diagnostics replace logging and safe bounded errors replace undefined state."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/ParamValue.h": {
-      "status": "complete",
-      "rust": [
-        "src/param/value.rs"
-      ],
-      "tests": [
-        "tests/param_value.rs"
-      ],
-      "documentation": "docs/PARAM_VALUE_SUPPORT.md",
-      "scope": "All seven value alternatives, native constructors/conversions/ownership, source text/default-stream formatting, comparisons and explicit 64-bit little-endian source hashing with checked numerical adaptations."
-    },
-    "src/openms/include/OpenMS/FORMAT/ParamXMLFile.h": {
-      "status": "partial",
-      "rust": [
-        "src/format/paramxml.rs"
-      ],
-      "tests": [
-        "tests/paramxml.rs"
-      ],
-      "documentation": "docs/PARAMXML_SUPPORT.md",
-      "scope": "Source plain/gzip/bzip2 load and atomic load-into, plain file/stdout store and stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. ZIP input remains unsupported. Native encoding/precision/loss validation adaptations documented; inherited XMLFile schema APIs remain separate."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/ListUtils.h": {
-      "status": "complete",
-      "rust": [
-        "src/data_structures/list.rs"
-      ],
-      "tests": [
-        "tests/list_utils.rs"
-      ],
-      "documentation": "docs/LIST_UTILS_SUPPORT.md",
-      "scope": "Full defined generic conversion/formatting, membership/index, tolerance and string-case utilities through native functions and traits; checked UTF-8 and numeric/range boundaries."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/StringListUtils.h": {
-      "status": "complete",
-      "rust": [
-        "src/data_structures/string_list.rs"
-      ],
-      "tests": [
-        "tests/string_list_utils.rs"
-      ],
-      "documentation": "docs/LIST_UTILS_SUPPORT.md",
-      "scope": "Full prefix/suffix search with trim/ranges and ASCII case conversion; native slices and checked ranges replace C++ iterator overloads."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/DefaultParamHandler.h": {
-      "status": "complete",
-      "rust": [
-        "src/param/handler.rs"
-      ],
-      "tests": [
-        "tests/default_param_handler.rs"
-      ],
-      "documentation": "docs/DEFAULT_PARAM_HANDLER_SUPPORT.md",
-      "scope": "Current/default parameters, descriptions, subsections, flags, source equality, both initialization/replacement lifecycles and leaf-name metadata export. Pure return-value callbacks replace derived updateMembers; transaction errors prevent typed-state desynchronization."
-    },
-    "src/openms/include/OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/featurexml.rs"
-      ],
-      "tests": [
-        "tests/featurexml.rs"
-      ],
-      "documentation": "docs/FEATUREXML_SUPPORT.md",
-      "scope": "Every passive field, constructor default, get/set and has-range operation maps to the owned public options record with Option ranges. Reader semantics independently tested, including half-open filters, metadata-only early stop and the source size_only no-op."
-    },
-    "src/openms/include/OpenMS/FORMAT/FeatureXMLFile.h": {
-      "status": "partial",
-      "rust": [
-        "src/format/featurexml.rs",
-        "src/format/map_xml.rs",
-        "src/format/identification_xml.rs"
-      ],
-      "tests": [
-        "tests/featurexml.rs"
-      ],
-      "documentation": "docs/FEATUREXML_SUPPORT.md",
-      "scope": "Native load/store, count-only load and owned options, recursive geometry, typed metadata, identification runs/evidence and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Generic inherited XMLFile schema and ProgressLogger APIs remain separate; documented checked representation boundaries and corrected subordinate metadata ownership apply."
-    },
-    "src/openms/include/OpenMS/FORMAT/ConsensusXMLFile.h": {
-      "status": "partial",
-      "rust": [
-        "src/format/consensusxml.rs",
-        "src/format/consensusxml/groups.rs",
-        "src/format/map_xml.rs"
-      ],
-      "tests": [
-        "tests/consensusxml.rs"
-      ],
-      "documentation": "docs/CONSENSUSXML_SUPPORT.md",
-      "scope": "Native load/store and the three range options consumed by the source handler, centroid/handle geometry, typed metadata, protein group quantities, identification references and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Full passive PeakFileOptions and generic inherited XMLFile/ProgressLogger APIs remain separate. Quantity ownership failures default to a checked error with explicit source-compatible discard mode."
-    },
-    "src/openms/include/OpenMS/FORMAT/ModificationDefinitionIO.h": {
-      "status": "complete",
-      "rust": [
-        "src/format/modification_definitions.rs",
-        "src/chemistry/modification_records.rs"
-      ],
-      "tests": [
-        "tests/modification_definition_io.rs",
-        "tests/idxml_definitions.rs"
-      ],
-      "documentation": "docs/MODIFICATION_DEFINITION_IO_SUPPORT.md",
-      "scope": "All nine public declarations: definition selection, per-run collection from slices/iterators and both feature-map overloads including recursive subordinates, deterministic codec/union, run encoding and registration. Owned registries, checked conflicts/portable representation, recovery diagnostics and cumulative budgets replace raw-pointer/global-mutation semantics. Full ResidueModification and ProForma parsing remain separate."
-    },
-    "src/openms/include/OpenMS/SYSTEM/File.h": {
-      "status": "partial",
-      "rust": [
-        "src/system/file.rs"
-      ],
-      "tests": [
-        "tests/system_file.rs"
-      ],
-      "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
-      "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
-    },
-    "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/concept/progress_logger.rs"
-      ],
-      "tests": [
-        "tests/progress_logger.rs"
-      ],
-      "documentation": "docs/PROGRESS_LOGGER_SUPPORT.md",
-      "scope": "All modes, copy/replacement/options and four backend operations, nested whole-second throttling, independent next counter and command timing/rates. Owned per-logger GUI factories, shared atomic nesting and mutable Rust calls replace global/raw-pointer/const mutation. Real total process CPU on Unix/Windows and monotonic elapsed wall timing; source undefined timing/range cases are checked errors. Default GUI is a no-op as in core; product GUI is outside this header."
-    },
-    "src/openms/include/OpenMS/CONCEPT/LogStream.h": {
-      "status": "partial",
-      "rust": [
-        "src/concept/log_stream.rs"
-      ],
-      "tests": [
-        "tests/log_stream.rs"
-      ],
-      "documentation": "docs/LOG_STREAM_SUPPORT.md",
-      "scope": "Native owned streams/sinks/notifications/guards, source 32K buffering, partial flush, two-entry duplicate cache, all prefix tokens and nine ANSI styles, five global/TLS routes and location macros. Pointer/streambuf ownership maps to safe Write/callbacks. Automatic Windows console VT mode and process-exit flushing of directly buffered global streams remain absent; general Colorizer is a separate header. Explicit global finish and source-style macro flushing are available."
-    },
-    "src/openms/include/OpenMS/FORMAT/FASTAFile.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/fasta.rs"
-      ],
-      "tests": [
-        "tests/fasta.rs",
-        "tests/formats.rs"
-      ],
-      "documentation": "docs/FASTA_SUPPORT.md",
-      "scope": "All entry, aggregate, streaming, seek, output-lifecycle and inherited progress operations; original PEFF prologue/modified-sequence/description/80-byte writer rules. Owned records, bounded cumulative input/work, UTF-8 field representation, checked header output and atomic owned read results are explicit native differences. Plain source path transport; no PEFF semantic interpretation."
-    },
-    "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/indexed_mzml.rs"
-      ],
-      "tests": [
-        "tests/indexed_mzml.rs"
-      ],
-      "documentation": "docs/INDEXED_MZML_SUPPORT.md",
-      "scope": "Both public decoder operations: configurable bounded footer probe and owned spectrum/chromatogram offset vectors. Source scanner, order/duplicate/replacement behavior retained; checked 63-bit offsets, small-file reads and bounded UTF-8 XML correct unchecked/undefined source behavior. Compact XML preserves the first offset rather than reproducing the DOM sibling bug. Index payload decoding, checksums and writing are separate classes."
-    },
-    "src/openms/include/OpenMS/KERNEL/MSExperiment.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel.rs",
-        "src/kernel/experiment_aggregation.rs",
-        "src/kernel/experiment_summary.rs",
-        "src/kernel/area_iteration.rs",
-        "src/kernel/peak_data.rs",
-        "src/kernel/peak_index.rs",
-        "src/kernel/experiment_2d.rs",
-        "src/metadata/experimental_settings.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs",
-        "tests/experiment_aggregation.rs",
-        "tests/experiment_summary.rs",
-        "tests/area_iteration.rs",
-        "tests/peak_data.rs",
-        "tests/peak_index.rs",
-        "tests/experiment_2d.rs",
-        "tests/experimental_settings.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-      "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate."
-    },
-    "src/openms/include/OpenMS/FORMAT/MzMLFile.h": {
-      "status": "partial",
-      "rust": [
-        "src/format/mzml.rs",
-        "src/format/mzml_precursor.rs",
-        "src/format/indexed_mzml.rs",
-        "src/format/mzml_load.rs",
-        "src/format/mzml_paths.rs",
-        "src/format/mzml_numpress.rs",
-        "src/format/mzml_settings.rs",
-        "src/format/mzml_acquisition.rs",
-        "src/format/mzml_counts.rs",
-        "src/format/mzml_header.rs",
-        "src/format/mzml_header/read.rs",
-        "src/format/mzml_header/write.rs",
-        "src/format/mzml_consumer.rs",
-        "src/interfaces.rs",
-        "src/format/mzml_centroid.rs",
-        "src/kernel/spectrum_type.rs",
-        "src/format/mzml_validator.rs",
-        "src/format/mzml_write_options.rs",
-        "src/format/mzml_record.rs",
-        "src/format/mzml_schema.rs"
-      ],
-      "tests": [
-        "tests/mzml.rs",
-        "tests/mzml_product.rs",
-        "tests/indexed_mzml.rs",
-        "tests/mzml_load_options.rs",
-        "tests/mzml_paths.rs",
-        "tests/data_array_xml.rs",
-        "tests/mzml_numpress.rs",
-        "tests/mzml_settings.rs",
-        "tests/mzml_acquisition_guards.rs",
-        "tests/mzml_acquisition.rs",
-        "tests/mzml_counts.rs",
-        "tests/experimental_settings.rs",
-        "tests/mzml_header.rs",
-        "tests/mzml_consumer.rs",
-        "tests/interfaces.rs",
-        "tests/mzml_centroid.rs",
-        "tests/spectrum_type.rs",
-        "tests/mzml_isolation.rs",
-        "tests/mzml_validator.rs",
-        "tests/mzml_write_options.rs",
-        "tests/mzml_normalization.rs",
-        "tests/mzml_typed_transport.rs",
-        "tests/record_metadata.rs",
-        "tests/mzml_schema.rs",
-        "tests/mzml_schema_offline.rs"
-      ],
-      "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array scalar metadata and units, all source record CV routes, optical/pressure/flow primary roles and independent f64 noise grids are transported with source merge order and checked ownership. Generic lists/Empty, ambiguous primaries and independent primary-array history remain checked errors; CPP-053/058 are corrected. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. Complete centroid inspection/SpecInfo uses one consumer pass, a global recognized quota with Unknown bookkeeping, exact history/type/estimator precedence and cumulative query/map limits. Local fill_data override and pre-input zero-quota errors correct CPP-018/048. Isolation-target loading now preserves immediate sticky target filtering and differing first-selected-ion Float metadata across stream/path/consumer/count APIs; source count RT-event order remains distinct. Default selected-ion multiple/duplicate boundaries remain explicit. Every writer now consumes differing selected-ion metadata and preserves its separate effective isolation target; TPP intentionally suppresses precursor windows. Optional complete MzMLValidator specialization and file semantic convenience use shared bounded CV/XML logic and exact mapping; CPP-051 cross-document group state is corrected. Complete represented writer PeakFileOptions execution adds primary precision, all three Numpress configurations, zlib, TPP and indexed UTF-8 output with actual SHA-1 and byte offsets. One prepared payload supports two precharged markup passes and atomic path publication; ignored read options are not cloned. CPP-049/050 are corrected. skip_xml_checks executes only source four-character binary whitespace-normalization bypass, preserving checked XML/Base64/length/resource behavior and all no-decode modes; CPP-055 malformed-source behavior is rejected. Optional mzML-schema provides original fixed ordinary/indexed XSD validation through unmodified libxml0.3.14 with owned diagnostics, checked root/namespaces and UTF-16 input. Native limits do not bound opaque C allocations/time. CPP-052 schema selection is corrected; original CPP-054 schema defect remains explicit with separate integrity checks. MzMLFile remains partial: spectrum mobility/IMPeakType, remaining precursor activation metadata/unit routes and adapter progress hooks remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
-    },
-    "src/openms/include/OpenMS/METADATA/Product.h": {
-      "status": "partial",
-      "rust": [
-        "src/metadata/acquisition.rs",
-        "src/kernel.rs",
-        "src/metadata/value.rs"
-      ],
-      "tests": [
-        "tests/metadata.rs",
-        "tests/experiment_aggregation.rs",
-        "tests/mzml_product.rs",
-        "tests/metadata_hash.rs"
-      ],
-      "documentation": "docs/METADATA_HASH_SUPPORT.md",
-      "scope": "All own Product operations now have native equivalents, including equality-compatible Hash with signed-zero normalization, scalar mutation and cloning. Attached CV/ordinary metadata use native owned string-keyed records; inherited full source state remains limited by CVTerm/DataValue independent units and numeric registry identity. mzML transports represented fields and rejects arbitrary CV/list/Empty metadata before output. Full inherited source-model equivalence remains under review."
-    },
-    "src/openms/include/OpenMS/KERNEL/Peak1D.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs",
-        "tests/kernel_value_traits.rs"
-      ],
-      "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
-      "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
-    },
-    "src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs",
-        "tests/kernel_value_traits.rs"
-      ],
-      "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
-      "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
-    },
-    "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/peak_options.rs"
-      ],
-      "tests": [
-        "tests/peak_file_options.rs"
-      ],
-      "documentation": "docs/PEAK_FILE_OPTIONS_SUPPORT.md",
-      "scope": "Complete source value/options API: all scalar defaults, four range activation rules, signed ordered MS levels, filter predicate, three Numpress configurations and warning identity. Native owned state and checked vector cap. This does not execute filters, codecs or output choices in format adapters."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/mass_decomposition.rs"
-      ],
-      "tests": [
-        "tests/mass_decomposition.rs"
-      ],
-      "documentation": "docs/MASS_DECOMPOSITION_SUPPORT.md",
-      "scope": "Complete source symbol-count value API, including literal-space parsing, duplicate historical maxima, distinct addition cache semantics, formatting, source map ordering, text equality, tag containment and compatibility. Owned ASCII keys, checked nonnegative counts/overflow and bounded output replace unsafe source states. Separate mass decomposition algorithms and solvers are not covered."
-    },
-    "src/openms/include/OpenMS/FORMAT/IdXMLFile.h": {
-      "status": "partial",
-      "rust": [
-        "src/format/idxml.rs",
-        "src/format/identification_xml.rs",
-        "src/format/modification_definitions.rs",
-        "src/format/path_io.rs"
-      ],
-      "tests": [
-        "tests/idxml.rs",
-        "tests/idxml_definitions.rs",
-        "tests/identification_paths.rs"
-      ],
-      "documentation": "docs/IDENTIFICATION_PATH_SUPPORT.md",
-      "scope": "Native idXML document read/write and direct path load/store, document identifier, registry/options overloads, bounded plain/gzip/bzip2 input and source plain output regardless of suffix. Checked output extension and atomic file/destination replacement. Existing metadata/sequence encoding boundaries, source hit-order/rank differences, ZIP and inherited logger/schema/CV APIs remain."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/mass_decomposition_algorithm.rs",
-        "src/chemistry/mass_decomposition.rs"
-      ],
-      "tests": [
-        "tests/mass_decomposition_algorithm.rs"
-      ],
-      "documentation": "docs/MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md",
-      "scope": "Complete scientific getDecompositions operation and five settings through owned typed configuration, atomic reconfiguration and append. Native private integer residue tables, GCD/rounding and real-mass filtering retain source order, exclusive upper bound and documented finite infinity-sentinel limitation. Checked numeric/resource boundaries replace unsafe states. Inherited C++ DefaultParamHandler APIs and standalone public IMS utility classes are separate."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_weights.rs"
-      ],
-      "tests": [
-        "tests/ims_weights.rs"
-      ],
-      "documentation": "docs/IMS_WEIGHTS_SUPPORT.md",
-      "scope": "Complete standalone mass/weight scaling, access, copy, pair swap, parent mass, literal GCD return/scaling, rounding errors and text surface. Native fixed u64, explicit unset default precision, finite representable signed/zero behavior and checked atomic boundaries; standalone other IMS APIs remain separately tracked."
-    },
-    "src/openms/include/OpenMS/KERNEL/MobilityPeak1D.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel/mobilogram.rs"
-      ],
-      "tests": [
-        "tests/mobilogram.rs"
-      ],
-      "documentation": "docs/MOBILOGRAM_SUPPORT.md",
-      "scope": "All value fields, construction/copy/equality, scalar comparisons, display and signed-zero-normalized native hash. Public fields/standard traits replace mechanical source accessors and comparator overloads; no cross-language hash or stream-state identity."
-    },
-    "src/openms/include/OpenMS/KERNEL/Mobilogram.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel/mobilogram.rs",
-        "src/kernel/data_array.rs"
-      ],
-      "tests": [
-        "tests/mobilogram.rs",
-        "tests/data_array_descriptions.rs"
-      ],
-      "documentation": "docs/MOBILOGRAM_SUPPORT.md",
-      "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain."
-    },
-    "src/openms/include/OpenMS/METADATA/DataArrays.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel.rs",
-        "src/kernel/data_array.rs"
-      ],
-      "tests": [
-        "tests/data_array_descriptions.rs",
-        "tests/data_array_xml.rs"
-      ],
-      "documentation": "docs/MOBILOGRAM_SUPPORT.md",
-      "scope": "Generic array names, owned metadata and shared processing descriptions are represented and preserved during existing processing; XML projections reject unsupported descriptions. Independent standalone MetaInfoDescription API, source ordering/comparison operators and format transport remain under review."
-    },
-    "src/openms/include/OpenMS/METADATA/MetaInfoDescription.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel.rs",
-        "src/kernel/data_array.rs"
-      ],
-      "tests": [
-        "tests/data_array_descriptions.rs",
-        "tests/data_array_xml.rs"
-      ],
-      "documentation": "docs/MOBILOGRAM_SUPPORT.md",
-      "scope": "Generic array names, owned metadata and shared processing descriptions are represented and preserved during existing processing; XML projections reject unsupported descriptions. Independent standalone MetaInfoDescription API, source ordering/comparison operators and format transport remain under review."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_isotope_distribution.rs"
-      ],
-      "tests": [
-        "tests/ims_isotopes.rs"
-      ],
-      "documentation": "docs/IMS_ISOTOPE_SUPPORT.md",
-      "scope": "Complete native numerical/value operation mapping: nominal bins, stored tails, normalization, binary convolution/powers, explicit mutable-RHS padding and verbose output. Per-call options replace shared global SIZE/error state; checked overflow, bounded work and atomic native mutation replace undefined behavior. No C++ ABI or other isotope engine completeness claim."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_element.rs"
-      ],
-      "tests": [
-        "tests/ims_element.rs"
-      ],
-      "documentation": "docs/IMS_ISOTOPE_SUPPORT.md",
-      "scope": "Complete own element value operations: independent name/sequence, nominal and stored isotope masses, average/ion mass, equality and source-style verbose output. Per-call isotope options and checked bounds replace source globals/undefined access."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_alphabet.rs"
-      ],
-      "tests": [
-        "tests/ims_alphabet.rs"
-      ],
-      "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
-      "scope": "Complete native alphabet operation mapping, duplicate-first lookup/replacement/erase, stable name/mass sorting, isotope mass lists, default/custom-parser file replacement and verbose stream output. Rust ownership replaces aliases and virtual ABI; stable ties and checked atomic failures are explicit native corrections. No flat store method is invented."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_alphabet.rs",
-        "src/chemistry/ims_alphabet_parser.rs"
-      ],
-      "tests": [
-        "tests/ims_alphabet.rs"
-      ],
-      "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
-      "scope": "Native f64-map parser trait and concrete default plain-file/text parser, mutable map access and replaceable parse/load operations. First duplicate wins, exact source comment whitespace; portable decimal/scientific prefixes and strict malformed/UTF8 rejection replace implementation-dependent unchecked C++ stream extraction. Arbitrary C++ numeric/container template instantiations are not an ABI promise."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_alphabet.rs",
-        "src/chemistry/ims_alphabet_parser.rs"
-      ],
-      "tests": [
-        "tests/ims_alphabet.rs"
-      ],
-      "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
-      "scope": "Native f64-map parser trait and concrete default plain-file/text parser, mutable map access and replaceable parse/load operations. First duplicate wins, exact source comment whitespace; portable decimal/scientific prefixes and strict malformed/UTF8 rejection replace implementation-dependent unchecked C++ stream extraction. Arbitrary C++ numeric/container template instantiations are not an ABI promise."
-    },
-    "src/openms/include/OpenMS/KERNEL/PeakIndex.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel/peak_index.rs"
-      ],
-      "tests": [
-        "tests/peak_index.rs"
-      ],
-      "documentation": "docs/PEAK_INDEX_SUPPORT.md",
-      "scope": "Complete own value/lookup surface: sentinel constructors, clear/validity, independent spectrum/peak indices, borrowed feature-slice/spectrum/peak lookup. Rust checked errors replace source precondition/undefined indexing and concrete generic slices replace feature-container templates."
-    },
-    "src/openms/include/OpenMS/KERNEL/AreaIterator.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel/area_iteration.rs"
-      ],
-      "tests": [
-        "tests/area_iteration.rs"
-      ],
-      "documentation": "docs/AREA_ITERATION_SUPPORT.md",
-      "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain."
-    },
-    "src/openms/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/numpress.rs"
-      ],
-      "tests": [
-        "tests/numpress.rs"
-      ],
-      "documentation": "docs/MSNUMPRESS_SUPPORT.md",
-      "scope": "All raw linear, PIC, SLOF and Safe encode/decode functions and three fixed-point helpers. Owned bounded buffers and checked casts/streams replace unsafe source behavior; empty Safe decoding is an explicit native extension. Validated against 295 executed raw C++ cases (287 decoder cases). Wrapper/base64/zlib and mzML transport are separately tracked."
-    },
-    "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/numpress_coder.rs",
-        "src/format/peak_options.rs"
-      ],
-      "tests": [
-        "tests/numpress_coder.rs",
-        "tests/peak_file_options.rs"
-      ],
-      "documentation": "docs/MSNUMPRESS_CODER_SUPPORT.md",
-      "scope": "Complete source wrapper operations and existing configuration/name mapping: raw/base64/zlib encode/decode, exact f32 promotion, estimation and maximal-factor fallback, reverse-order tolerance checks, PIC absolute-error policy and source raw/text skip destination distinctions. Native checked atomic errors and explicit diagnostics replace stderr; strict long-form Base64/single-zlib-frame validation is a documented correction. Safe remains raw-only. Reviewed mzML transport now reuses crate-private codec counters and helpers; full MzMLFile remains incomplete."
-    },
-    "src/openms/include/OpenMS/CONCEPT/UniqueIdGenerator.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/concept/unique_id.rs",
-        "src/chemistry/decoy_random.rs"
-      ],
-      "tests": [
-        "tests/unique_id.rs",
-        "tests/decoy_generator.rs"
-      ],
-      "documentation": "docs/UNIQUE_ID_SUPPORT.md",
-      "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
-    },
-    "src/openms/include/OpenMS/CONCEPT/UniqueIdInterface.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/concept/unique_id.rs",
-        "src/chemistry/decoy_random.rs"
-      ],
-      "tests": [
-        "tests/unique_id.rs",
-        "tests/decoy_generator.rs"
-      ],
-      "documentation": "docs/UNIQUE_ID_SUPPORT.md",
-      "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
-    },
-    "src/openms/include/OpenMS/KERNEL/Peak2D.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel/peak2d.rs"
-      ],
-      "tests": [
-        "tests/peak2d.rs"
-      ],
-      "documentation": "docs/PEAK2D_SUPPORT.md",
-      "scope": "Complete own two-coordinate value operation mapping, all dimension strings, standard scalar/array comparisons, exact PartialEq, signed-zero-normalized Hash and source labels with Rust numeric Display. Owned arrays replace DPosition ABI; checked dimension access replaces undefined source indexing. Mobility attachment, range algebra and experiment overloads remain separate."
-    },
-    "src/openms/include/OpenMS/KERNEL/MobilityPeak2D.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel/peak2d.rs"
-      ],
-      "tests": [
-        "tests/peak2d.rs"
-      ],
-      "documentation": "docs/PEAK2D_SUPPORT.md",
-      "scope": "Complete own two-coordinate value operation mapping, all dimension strings, standard scalar/array comparisons, exact PartialEq, signed-zero-normalized Hash and source labels with Rust numeric Display. Owned arrays replace DPosition ABI; checked dimension access replaces undefined source indexing. Mobility attachment, range algebra and experiment overloads remain separate."
-    },
-    "src/openms/include/OpenMS/KERNEL/RichPeak2D.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel/peak2d.rs",
-        "src/concept/unique_id.rs"
-      ],
-      "tests": [
-        "tests/peak2d.rs",
-        "tests/unique_id.rs"
-      ],
-      "documentation": "docs/PEAK2D_SUPPORT.md",
-      "scope": "Complete direct point/value/conversion surface with owned metadata and ID, Deref and HasUniqueId. Plain assignment returns previous ownership and clears metadata/ID. Full inherited C++ metadata registry/equality conventions and global-service ABI remain native boundaries requiring separate class coverage."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_mass_decomposer.rs"
-      ],
-      "tests": [
-        "tests/ims_mass_decomposers.rs"
-      ],
-      "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
-      "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_mass_decomposer.rs"
-      ],
-      "tests": [
-        "tests/ims_mass_decomposers.rs"
-      ],
-      "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
-      "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/ims_mass_decomposer.rs"
-      ],
-      "tests": [
-        "tests/ims_mass_decomposers.rs"
-      ],
-      "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
-      "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/SequenceCoverage.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/sequence_coverage.rs"
-      ],
-      "tests": [
-        "tests/sequence_coverage.rs"
-      ],
-      "documentation": "docs/SEQUENCE_COVERAGE_SUPPORT.md",
-      "scope": "Complete single static scientific operation: borrowed unmodified residue bytes, every exact overlapping occurrence, union of duplicate/overlapping coverage, source empty shortcuts and count*100.0/length order. Native input sizes and conservative worst-case comparison precharges bound work; annotation chemistry is neither traversed nor copied. All four source test sections plus an independent per-position oracle and checked resource boundaries."
-    },
-    "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel/chromatogram_tools.rs",
-        "src/kernel/acquisition_fields.rs"
-      ],
-      "tests": [
-        "tests/chromatogram_tools.rs"
-      ],
-      "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-      "scope": "Both complete concrete MSExperiment conversions: one MS2 record per chromatogram point, exact SRM/XIC grouping and source first-record metadata selection, native-ID/scan-mode construction, source-only SRM removal and skipped count diagnostics. Owned reports return all removed records; shared checked work/allocation and finite consumed scalars replace undefined maps or partial mutation. Arbitrary C++ experiment template ABI is not emulated."
-    },
-    "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel.rs",
-        "src/kernel/acquisition_fields.rs",
-        "src/kernel/spectrum_type.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs",
-        "tests/chromatogram_tools.rs",
-        "tests/processing_acquisition.rs",
-        "tests/mzml_acquisition_guards.rs",
-        "tests/spectrum_type.rs",
-        "tests/record_metadata.rs"
-      ],
-      "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-      "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
-    },
-    "src/openms/include/OpenMS/KERNEL/MSChromatogram.h": {
-      "status": "partial",
-      "rust": [
-        "src/kernel.rs",
-        "src/kernel/acquisition_fields.rs"
-      ],
-      "tests": [
-        "tests/kernel.rs",
-        "tests/chromatogram_tools.rs",
-        "tests/processing_acquisition.rs",
-        "tests/mzml_acquisition_guards.rs",
-        "tests/record_metadata.rs"
-      ],
-      "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-      "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
-    },
-    "src/openms/include/OpenMS/CONCEPT/Constants.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/concept/constants.rs",
-        "src/chemistry/mod.rs"
-      ],
-      "tests": [
-        "tests/constants.rs"
-      ],
-      "documentation": "docs/CONSTANTS_SUPPORT.md",
-      "scope": "All 38 numeric declarations and 91 UserParam strings; aliases, original expressions and historical physical values preserved. Writable source EPSILON maps to atomic bit-preserving epsilon()/set_epsilon(); default exposed separately. Exact f64 bits and strings verified against actually compiled unchanged C++ header with unused config include shim. Underlying algorithm tolerance behavior remains independently reviewed."
-    },
-    "src/openms/include/OpenMS/KERNEL/MassTrace.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/kernel/mass_trace.rs"
-      ],
-      "tests": [
-        "tests/mass_trace.rs"
-      ],
-      "documentation": "docs/MASS_TRACE_SUPPORT.md",
-      "scope": "Complete public value/container surface and all eight centroid updates, raw/smoothed areas, quantification, FWHM/interpolation/cache, hull, IM presence and width metadata. Owned Vec and borrowed fixed-length slices replace C++ list/vector constructors and iterators. Source mixed smoothed/raw area, endpoint-apex cached width, right-rectangle RT and exp/log SD expressions retained. Finite consumed-input/result, atomic-error and configurable work/allocation boundaries are explicit."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/MonosaccharideDB.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/monosaccharide_db.rs"
-      ],
-      "tests": [
-        "tests/monosaccharide_db.rs"
-      ],
-      "documentation": "docs/MONOSACCHARIDE_SUPPORT.md",
-      "scope": "Complete immutable builtin lookup surface and all five owned record fields:24 primary records,12 synonyms,36 keys. Exact stored mass/formula, lexical source order, aliases and primary overwrite precedence retained. Native Option/Result and borrowed records/symbols replace pointers/exceptions/copied strings. Approved embedded dataset replaces private installed-file/environment discovery; runtime override/provider and ProForma parser remain outside this API."
-    },
-    "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/analysis/mass_trace_detection.rs"
-      ],
-      "tests": [
-        "tests/mass_trace_detection.rs"
-      ],
-      "documentation": "docs/MASS_TRACE_DETECTION_SUPPORT.md",
-      "scope": "All11 typed source options, both source run overloads, availability queries and explicit progress reporting. Retains filtering, apex ties, double-apex incremental means, IM/nearest/visited selection, both termination criteria and accepted summaries. Owned atomic results/cursor and successful flag reset, scalar area iterator, finite consumed arithmetic and cumulative work/allocation limits are explicit native adaptations. No ElutionPeakDetection or complete metabolite workflow certification."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/ProForma.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/proforma.rs",
-        "src/chemistry/proforma_parser.rs",
-        "src/chemistry/proforma_json.rs",
-        "src/chemistry/proforma_resolution.rs",
-        "src/chemistry/modifications.rs",
-        "src/chemistry/proforma_mass.rs",
-        "src/chemistry/proforma_conversion.rs",
-        "src/chemistry/proforma_spectra.rs",
-        "src/chemistry/theoretical_proforma_budget.rs",
-        "src/chemistry/theoretical_xlms.rs"
-      ],
-      "tests": [
-        "tests/proforma.rs",
-        "tests/proforma_writer_probe.rs",
-        "tests/proforma_parser.rs",
-        "tests/proforma_parser_probe.rs",
-        "tests/proforma_json.rs",
-        "tests/proforma_resolution.rs",
-        "tests/proforma_mass.rs",
-        "tests/proforma_conversion.rs",
-        "tests/proforma_spectra.rs",
-        "tests/theoretical_xlms.rs"
-      ],
-      "documentation": "docs/PROFORMA_SUPPORT.md",
-      "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution, all mass/mz/can/issues/optional operations, and complete AASequence conversion/policies/diagnostics in both directions. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. Conversion preserves source defects explicitly; 1078 executed source formatter cases cover reverse mass text. All six ordinary/XLMS spectrum operations and five source configuration fields are now implemented through the real native generators. Exact repeated advisory/resolution passes, first-link original-AST timing, strict mass threshold, warning order and duplicate-preserving sort are retained. Finite CPP-038/047 behavior is preserved with independent chemical/flattened-position expectations. One bounded atomic registry transaction covers all passes and both generator sides; standalone backends retain their own domains. Complete pinned public-header native equivalent, not complete ProForma-standard conformance or a C++ ABI. Source class assertions and native backend-composition tests are distinct from executed C++ spectrum oracles, which are not claimed."
-    },
-    "src/openms/include/OpenMS/METADATA/ProteinIdentification.h": {
-      "status": "partial",
-      "rust": [
-        "src/identification.rs",
-        "src/identification/protein_run.rs"
-      ],
-      "tests": [
-        "tests/identification.rs",
-        "tests/protein_run.rs"
-      ],
-      "documentation": "docs/PROTEIN_RUN_SUPPORT.md",
-      "scope": "Existing owned records, sorting, coverage/modifications and search settings plus inference metadata, original-engine recovery, mergeability,12-field settings export, singleton group completion and metadata-only copying. Native lexical metadata ordering may select a different original engine from source numeric registry-ID order. Typed fields and conservative atomic owned-output limits; filesystem-aware path selection, additional specificity states and full inherited/header review remain open."
-    },
-    "src/openms/include/OpenMS/METADATA/IdentifierMSRunMapper.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/identification/run_mapping.rs"
-      ],
-      "tests": [
-        "tests/run_mapping.rs"
-      ],
-      "documentation": "docs/RUN_MAPPING_SUPPORT.md",
-      "scope": "All public mapping, lookup, copy and merge-index validation operations; source duplicate failure state preserved. Native borrowed/Option/Cow/Result APIs, dedicated primary path fields and bounded construction are documented adaptations."
-    },
-    "src/openms/include/OpenMS/FEATUREFINDER/ElutionPeakDetection.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/analysis/elution_peak_detection.rs"
-      ],
-      "tests": [
-        "tests/elution_peak_detection.rs"
-      ],
-      "documentation": "docs/ELUTION_PEAK_DETECTION_SUPPORT.md",
-      "scope": "Complete class-specific six options, single/batch elution splitting, width filtering, smoothing, extrema and three noise/SNR helpers. Typed native options/limits/logger, deterministic serial order, existing QR projection and frame cap, checked finite boundaries and atomic scientific publication are documented adaptations."
-    },
-    "src/openms/include/OpenMS/METADATA/ContactPerson.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experiment_support.rs"
-      ],
-      "tests": [
-        "tests/experiment_metadata.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
-      "scope": "Complete ContactPerson class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
-    },
-    "src/openms/include/OpenMS/METADATA/HPLC.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experiment_support.rs"
-      ],
-      "tests": [
-        "tests/experiment_metadata.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
-      "scope": "Complete HPLC class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
-    },
-    "src/openms/include/OpenMS/METADATA/Gradient.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experiment_support.rs"
-      ],
-      "tests": [
-        "tests/experiment_metadata.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
-      "scope": "Complete Gradient class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
-    },
-    "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/analysis/feature_finding_metabo.rs",
-        "src/analysis/feature_finding_metabo/predictor.rs",
-        "src/analysis/feature_hypothesis.rs",
-        "src/chemistry/metabo_elements.rs"
-      ],
-      "tests": [
-        "tests/feature_finding_metabo.rs",
-        "tests/feature_hypothesis.rs",
-        "src/analysis/feature_finding_metabo/predictor_tests.rs"
-      ],
-      "documentation": "docs/FEATURE_FINDING_METABO_SUPPORT.md",
-      "scope": "Complete class-specific public feature-finding operation, all19 typed options, grouped chromatograms, both fixed isotope models and FeatureHypothesis subgroup. Source83/81/80 counts and all81 golden feature values/hulls match;488 actual LIBSVM reference rows validate predictors. Native ownership, stable serial ties, bounded atomic publication and inherited f64 coarse-isotope precision are documented. General SimpleSVM and inherited generic Param wrappers remain separate, and no complete TOPP workflow is certified."
-    },
-    "src/openms/include/OpenMS/METADATA/DocumentIdentifier.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/document_identifier.rs",
-        "src/format/file_handler.rs"
-      ],
-      "tests": [
-        "tests/document_identifier.rs",
-        "tests/file_handler.rs"
-      ],
-      "documentation": "docs/DOCUMENT_IDENTIFIER_SUPPORT.md",
-      "scope": "All own identity/provenance value operations, identifier-only equality, exact absolute/relative path policy, clone/assignment/swap and independent content type selection. Native UTF-8/path/resource/atomic checks and shared bounded detector/optional compression are documented adaptations; exact full FileHandler heuristic parity and aggregate migration remain separate."
-    },
-    "src/openms/include/OpenMS/METADATA/Sample.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experiment_values.rs"
-      ],
-      "tests": [
-        "tests/experiment_values.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
-      "scope": "Complete Sample owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
-    },
-    "src/openms/include/OpenMS/METADATA/IonSource.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experiment_values.rs"
-      ],
-      "tests": [
-        "tests/experiment_values.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
-      "scope": "Complete IonSource owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
-    },
-    "src/openms/include/OpenMS/METADATA/MassAnalyzer.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experiment_values.rs"
-      ],
-      "tests": [
-        "tests/experiment_values.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
-      "scope": "Complete MassAnalyzer owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
-    },
-    "src/openms/include/OpenMS/METADATA/IonDetector.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experiment_values.rs"
-      ],
-      "tests": [
-        "tests/experiment_values.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
-      "scope": "Complete IonDetector owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
-    },
-    "src/openms/include/OpenMS/METADATA/Instrument.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experiment_values.rs"
-      ],
-      "tests": [
-        "tests/experiment_values.rs"
-      ],
-      "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
-      "scope": "Complete Instrument owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/DateTime.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/data_structures/datetime.rs"
-      ],
-      "tests": [
-        "tests/datetime.rs"
-      ],
-      "documentation": "docs/DATETIME_SUPPORT.md",
-      "scope": "Complete class-specific value, parser/formatter, partial/full setters, getters, clocks, comparison/hash and calendar arithmetic. Native signed getters, checked integer/year bounds and deterministic Gregorian normalization replace source host conversion failure.301 executed exact-source cases:266 exact matches and35 explicitly corrected calendar rows;19 source literals, seven formats and independent edge regressions. ExperimentalSettings/header transport remain separate."
-    },
-    "src/openms/include/OpenMS/METADATA/ExperimentalSettings.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/metadata/experimental_settings.rs",
-        "src/kernel.rs",
-        "src/processing.rs"
-      ],
-      "tests": [
-        "tests/experimental_settings.rs",
-        "tests/processing_acquisition.rs"
-      ],
-      "documentation": "docs/EXPERIMENTAL_SETTINGS_SUPPORT.md",
-      "scope": "Complete owned aggregate: document identity/provenance, recursive Sample, source files, contacts, default/additional instruments, HPLC/Gradient, DateTime, comment, fraction and typed run MetaInfo. Fields, Clone, PartialEq, moves and Display replace source accessors/value operations. Checked copies preflight all owned payload with a hard 64 sample-depth cap. MSExperiment owns this single settings record; processing, clearing and replacement preserve source ownership semantics. This closes the value API, not full mzML header or consumer transport."
-    },
-    "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/controlled_vocabulary.rs",
-        "src/format/controlled_vocabulary/obo.rs"
-      ],
-      "tests": [
-        "tests/controlled_vocabulary.rs"
-      ],
-      "documentation": "docs/CONTROLLED_VOCABULARY_SUPPORT.md",
-      "scope": "Complete owned term definition and all class-specific lookup, cumulative OBO loading, ordered graph traversal, typed/string XML, score direction, stream output, FNV and five-provider singleton operations. All 9254 final definitions and 16852 aliases checked against independent source-loop projection. Exact raw resources retained; explicit BTO decoding and data-license boundaries documented. Transactional/cycle/resource checks, actual typed units, full attribute escaping and legacy binary-prefix/stream corrections replace source defects. Mapping rules, general semantic validation and header consumers remain separate."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/CVReference.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/data_structures/cv_mapping.rs"
-      ],
-      "tests": [
-        "tests/cv_mapping_values.rs",
-        "tests/cv_mapping_file.rs"
-      ],
-      "documentation": "docs/CV_MAPPING_SUPPORT.md",
-      "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/CVMappingTerm.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/data_structures/cv_mapping.rs"
-      ],
-      "tests": [
-        "tests/cv_mapping_values.rs",
-        "tests/cv_mapping_file.rs"
-      ],
-      "documentation": "docs/CV_MAPPING_SUPPORT.md",
-      "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/CVMappingRule.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/data_structures/cv_mapping.rs"
-      ],
-      "tests": [
-        "tests/cv_mapping_values.rs",
-        "tests/cv_mapping_file.rs"
-      ],
-      "documentation": "docs/CV_MAPPING_SUPPORT.md",
-      "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
-    },
-    "src/openms/include/OpenMS/DATASTRUCTURES/CVMappings.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/data_structures/cv_mapping.rs"
-      ],
-      "tests": [
-        "tests/cv_mapping_values.rs",
-        "tests/cv_mapping_file.rs"
-      ],
-      "documentation": "docs/CV_MAPPING_SUPPORT.md",
-      "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
-    },
-    "src/openms/include/OpenMS/FORMAT/CVMappingFile.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/cv_mapping.rs",
-        "src/data_structures/cv_mapping.rs"
-      ],
-      "tests": [
-        "tests/cv_mapping_file.rs",
-        "tests/cv_mapping_values.rs"
-      ],
-      "documentation": "docs/CV_MAPPING_SUPPORT.md",
-      "scope": "Complete class-specific load/namespace option group with atomic owned/path/BufRead operations. Six unchanged source fixtures and independent 683-record full-field projection. Local parser state and corrected namespace stripping avoid documented defects; exact qname/boolean/enum-fallback and append conventions retained. Explicit bounded encoding/DTD/ZIP boundaries; inherited general XMLFile, semantic/XSD validation and XPath evaluation remain separate."
-    },
-    "src/openms/include/OpenMS/METADATA/PeptideEvidence.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/identification.rs"
-      ],
-      "tests": [
-        "tests/identification.rs"
-      ],
-      "documentation": "docs/PEPTIDE_EVIDENCE_SUPPORT.md",
-      "scope": "Complete owned typed record, constructor/accessors/defaults, copy/equality, source-order comparison, corrected inclusive-limit predicate and native Hash-key operations. None/usize/typed flanks replace raw negative positions/char bytes; larger usize coordinates are permitted. All five fields contribute to native equality/hash; no C++ numeric hash parity. Source class tests mostly TODO, native behavioral/collection/downstream evidence explicitly distinguished."
-    },
-    "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/semantic_validator.rs",
-        "src/format/cv_xml.rs"
-      ],
-      "tests": [
-        "tests/semantic_validator.rs",
-        "tests/cv_mapping_file.rs",
-        "tests/cv_mapping_values.rs",
-        "tests/controlled_vocabulary.rs"
-      ],
-      "documentation": "docs/SEMANTIC_VALIDATOR_SUPPORT.md",
-      "scope": "Complete class-specific general CV/mapping validation, ParsedCVTerm value, configurable qnames/attributes/switches, borrowed providers, owned error/warning report and selection-only locate_term. Source order/count collisions, MUST/MAY/SHOULD logic and value conversions retained, including documented non-XSD date behavior CPP-046. Unit descendant target, failed-parse state and history-dependent absent-path lookup corrected (CPP-039/040/044). Exact historical 738-term CV, valid/corrupt XML and all nine diagnostic literals; independent branch/resource/transport tests. Shared private XML extraction preserves CVMapping behavior; optional semantic-validation feature. Inherited XMLFile, C++ subclass extension points, derived format validators and full XSD lexical/schema validation are separate."
-    },
-    "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/chemistry/theoretical_xlms.rs",
-        "src/chemistry/theoretical_xlms_helpers.rs"
-      ],
-      "tests": [
-        "tests/theoretical_xlms.rs",
-        "tests/protein_cross_link.rs",
-        "tests/sequence_fragment_mass.rs"
-      ],
-      "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
-      "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers are implemented separately; other XLMS algorithms remain outstanding."
-    },
-    "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h": {
-      "status": "partial",
-      "rust": [
-        "src/chemistry/protein_cross_link.rs"
-      ],
-      "tests": [
-        "tests/protein_cross_link.rs",
-        "tests/theoretical_xlms.rs"
-      ],
-      "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
-      "scope": "Complete ProteinProteinCrossLink value and reaction enum only. Arc allocation identity supplies source pointer equality/hash with owned lifetimes; finite private linker mass and normalized signed-zero hash. Defaults, position/terminal/name/correction fields and cross/loop/mono selection retained. Other OPXL records and comparators remain unimplemented; no whole-header completion or C++ hash-byte equivalence claimed."
-    },
-    "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/interfaces.rs"
-      ],
-      "tests": [
-        "tests/interfaces.rs",
-        "tests/mzml_consumer.rs"
-      ],
-      "documentation": "docs/MZML_CONSUMER_SUPPORT.md",
-      "scope": "Complete four required callback operations as an unconditional object-safe trait. Exclusive mutable borrowed records and immutable settings, checked Result and explicit ControlFlow soft stop replace C++ pointer aliases/exceptions/destructor; no silent callback defaults. Format-independent no-default build verified. Source stop-before-current-retention, setup and transform integration tested; other concrete consumers remain separate."
-    },
-    "src/openms/include/OpenMS/FORMAT/VALIDATORS/MzMLValidator.h": {
-      "status": "native_equivalent",
-      "rust": [
-        "src/format/mzml_validator.rs",
-        "src/format/semantic_validator.rs"
-      ],
-      "tests": [
-        "tests/mzml_validator.rs",
-        "tests/semantic_validator.rs",
-        "tests/cv_mapping_file.rs"
-      ],
-      "documentation": "docs/MZML_VALIDATOR_SUPPORT.md",
-      "scope": "Complete class-specific specialization plus inherited options/locate behavior and MzMLFile semantic convenience. Borrowed providers, full owned report, default units, exact literal indexed paths, definition-time diagnostics, duplicate/forward/missing/nested groups, GO/BTO exemptions and repeated binary-role/type checks. Per-document XML/group/rule state corrects CPP-051 successful-call contamination, retaining inherited documented corrections and CPP-046 scalar syntax. One cumulative meter covers all repeated references and diagnostics; exact pinned mapping/provider initialization has separate fixed bounds. Three unchanged original inputs retain source0/0,0/0,8/1 diagnostics; two unavailable source-written inputs are not assigned native golden outputs. Optional mzml-validation feature, no new dependency; no XSD, index integrity or C++ execution claim."
-    }
+ "target_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "headers": {
+  "src/openms/include/OpenMS/FORMAT/FileTypes.h": {
+   "status": "complete",
+   "rust": [
+    "src/format/file_types.rs"
+   ],
+   "tests": [
+    "tests/file_types.rs"
+   ],
+   "documentation": "docs/FILE_HANDLING_SUPPORT.md",
+   "scope": "All 73 source formats, names, descriptions, properties, CV names, directory kinds and FileTypeList filter generation/lookup. Rust enum excludes invalid numeric sentinel values. Source properties are distinct from Rust adapter support."
   },
-  "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"
+  "src/openms/include/OpenMS/FORMAT/FileNameUtils.h": {
+   "status": "complete",
+   "rust": [
+    "src/format/file_types.rs"
+   ],
+   "tests": [
+    "tests/file_types.rs"
+   ],
+   "documentation": "docs/FILE_HANDLING_SUPPORT.md",
+   "scope": "All four lexical filename helpers, source alias/compression rules and source stripExtension quirks. Iterative compression peeling and checked underflow replace unsafe source behavior."
+  },
+  "src/openms/include/OpenMS/FORMAT/FileHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/file_handler.rs",
+    "src/format/path_io.rs"
+   ],
+   "tests": [
+    "tests/file_handler.rs",
+    "tests/identification_paths.rs"
+   ],
+   "documentation": "docs/FILE_HANDLING_SUPPORT.md",
+   "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; featureXML/consensusXML map dispatch; plain/gzip/bzip2 transport, allowed-input checks, bounded content recognition and atomic path output. Native idXML identification dispatch with source input/output allowlists. Other identification/transition formats, ZIP input, SHA1 and full source-file bookkeeping remain."
+  },
+  "src/openms/include/OpenMS/KERNEL/StandardTypes.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel.rs",
+    "src/lib.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs"
+   ],
+   "documentation": "docs/NATIVE_EQUIVALENTS.md",
+   "scope": "All three aliases map directly to existing MSSpectrum, MSExperiment and MSChromatogram. No alias wrapper is needed. This closes only the alias header; it does not certify full underlying class or forward-declared Mobilogram behavior."
+  },
+  "src/openms/include/OpenMS/METADATA/PeptideIdentificationList.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/identification.rs",
+    "src/kernel.rs",
+    "src/analysis/id_filter.rs",
+    "src/analysis/protein_inference.rs"
+   ],
+   "tests": [
+    "tests/identification.rs",
+    "tests/id_filter.rs",
+    "tests/protein_inference.rs",
+    "tests/identification_pipeline.rs"
+   ],
+   "documentation": "docs/NATIVE_EQUIVALENTS.md",
+   "scope": "Vec<PeptideIdentification> supplies all container data operations, constructors and assignment. Rust ownership, checked access and std::mem replace C++ moved-from-object/iterator observability; no C++ ABI or exact allocator capacity parity. Underlying PeptideIdentification and downstream algorithm completeness remain separate reviews."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/ExposedVector.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel.rs",
+    "src/analysis/id_filter.rs",
+    "src/analysis/protein_inference.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs",
+    "tests/id_filter.rs",
+    "tests/protein_inference.rs"
+   ],
+   "documentation": "docs/NATIVE_EQUIVALENTS.md",
+   "scope": "Every public delegated vector operation maps to Vec<T>, slices/iterators, trait-based comparison and std::mem operations; exact method-by-method mapping in documentation. Uses native allocation/byte limits instead of allocator-specific max_size, safe access instead of undefined indexing, and Rust ownership instead of template inheritance/moved-from inspection. This is a native container equivalent, not generic C++ ABI emulation."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/TypeAliases.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel.rs",
+    "src/metadata/value.rs"
+   ],
+   "tests": [
+    "tests/metadata.rs",
+    "tests/precursor_workflow.rs"
+   ],
+   "documentation": "docs/NATIVE_EQUIVALENTS.md",
+   "scope": "All three aliases map to Vec<i32>, Vec<f64> and Vec<String>; arbitrary C++ byte strings can use Vec<Vec<u8>> without lossy UTF-8 conversion. Alias mapping does not imply ListUtils/StringUtils or all metadata API completion."
+  },
+  "src/openms/include/OpenMS/CONCEPT/Types.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel.rs",
+    "src/metadata/value.rs",
+    "src/metadata/acquisition.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs",
+    "tests/metadata.rs"
+   ],
+   "documentation": "docs/NATIVE_EQUIVALENTS.md",
+   "scope": "Fixed-width/native-size primitives and all15 ASCII names have native mappings. Whole time_t ABI and writtenDigits helper are not ported: includes generic fallback6, explicit long-to-int precision quirks and platform-specific long-double specialization. f32/f64 DIGITS alone cannot certify the whole header."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/ConstRefVector.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel.rs",
+    "src/analysis/id_filter.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs",
+    "tests/id_filter.rs"
+   ],
+   "documentation": "docs/NATIVE_EQUIVALENTS.md",
+   "scope": "Native borrowed/indirect views represent its primary use, but custom base-container/type-aware equality, size-only ordering, cached capacity, swap retaining identity/cache, null slots and custom iterator state are not represented. Do not classify the full header as Vec<&T> equivalence."
+  },
+  "src/openms/include/OpenMS/FORMAT/TextFile.h": {
+   "status": "complete",
+   "rust": [
+    "src/format/text.rs"
+   ],
+   "tests": [
+    "tests/text_file.rs"
+   ],
+   "documentation": "docs/TEXT_CSV_SUPPORT.md",
+   "scope": "Complete source operations with literal text/CSV semantics, source construction/load differences and native checked UTF-8/resource/I/O adaptations. No RFC CSV parsing promise."
+  },
+  "src/openms/include/OpenMS/FORMAT/CsvFile.h": {
+   "status": "complete",
+   "rust": [
+    "src/format/csv.rs"
+   ],
+   "tests": [
+    "tests/csv_file.rs"
+   ],
+   "documentation": "docs/TEXT_CSV_SUPPORT.md",
+   "scope": "Complete source operations with literal text/CSV semantics, source construction/load differences and native checked UTF-8/resource/I/O adaptations. No RFC CSV parsing promise."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/Param.h": {
+   "status": "complete",
+   "rust": [
+    "src/param.rs",
+    "src/param/tree.rs",
+    "src/param/operations.rs",
+    "src/param/iteration.rs"
+   ],
+   "tests": [
+    "tests/param.rs"
+   ],
+   "documentation": "docs/PARAM_SUPPORT.md",
+   "scope": "All public entry/node/tree, iterator, restrictions, defaults, update/copy/merge and CLI operations. Native full-value equality plus explicit checked source_equal; diagnostics replace logging and safe bounded errors replace undefined state."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/ParamValue.h": {
+   "status": "complete",
+   "rust": [
+    "src/param/value.rs"
+   ],
+   "tests": [
+    "tests/param_value.rs"
+   ],
+   "documentation": "docs/PARAM_VALUE_SUPPORT.md",
+   "scope": "All seven value alternatives, native constructors/conversions/ownership, source text/default-stream formatting, comparisons and explicit 64-bit little-endian source hashing with checked numerical adaptations."
+  },
+  "src/openms/include/OpenMS/FORMAT/ParamXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/paramxml.rs"
+   ],
+   "tests": [
+    "tests/paramxml.rs"
+   ],
+   "documentation": "docs/PARAMXML_SUPPORT.md",
+   "scope": "Source plain/gzip/bzip2 load and atomic load-into, plain file/stdout store and stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. ZIP input remains unsupported. Native encoding/precision/loss validation adaptations documented; inherited XMLFile schema APIs remain separate."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/ListUtils.h": {
+   "status": "complete",
+   "rust": [
+    "src/data_structures/list.rs"
+   ],
+   "tests": [
+    "tests/list_utils.rs"
+   ],
+   "documentation": "docs/LIST_UTILS_SUPPORT.md",
+   "scope": "Full defined generic conversion/formatting, membership/index, tolerance and string-case utilities through native functions and traits; checked UTF-8 and numeric/range boundaries."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/StringListUtils.h": {
+   "status": "complete",
+   "rust": [
+    "src/data_structures/string_list.rs"
+   ],
+   "tests": [
+    "tests/string_list_utils.rs"
+   ],
+   "documentation": "docs/LIST_UTILS_SUPPORT.md",
+   "scope": "Full prefix/suffix search with trim/ranges and ASCII case conversion; native slices and checked ranges replace C++ iterator overloads."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/DefaultParamHandler.h": {
+   "status": "complete",
+   "rust": [
+    "src/param/handler.rs"
+   ],
+   "tests": [
+    "tests/default_param_handler.rs"
+   ],
+   "documentation": "docs/DEFAULT_PARAM_HANDLER_SUPPORT.md",
+   "scope": "Current/default parameters, descriptions, subsections, flags, source equality, both initialization/replacement lifecycles and leaf-name metadata export. Pure return-value callbacks replace derived updateMembers; transaction errors prevent typed-state desynchronization."
+  },
+  "src/openms/include/OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/featurexml.rs"
+   ],
+   "tests": [
+    "tests/featurexml.rs"
+   ],
+   "documentation": "docs/FEATUREXML_SUPPORT.md",
+   "scope": "Every passive field, constructor default, get/set and has-range operation maps to the owned public options record with Option ranges. Reader semantics independently tested, including half-open filters, metadata-only early stop and the source size_only no-op."
+  },
+  "src/openms/include/OpenMS/FORMAT/FeatureXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/featurexml.rs",
+    "src/format/map_xml.rs",
+    "src/format/identification_xml.rs"
+   ],
+   "tests": [
+    "tests/featurexml.rs"
+   ],
+   "documentation": "docs/FEATUREXML_SUPPORT.md",
+   "scope": "Native load/store, count-only load and owned options, recursive geometry, typed metadata, identification runs/evidence and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Generic inherited XMLFile schema and ProgressLogger APIs remain separate; documented checked representation boundaries and corrected subordinate metadata ownership apply."
+  },
+  "src/openms/include/OpenMS/FORMAT/ConsensusXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/consensusxml.rs",
+    "src/format/consensusxml/groups.rs",
+    "src/format/map_xml.rs"
+   ],
+   "tests": [
+    "tests/consensusxml.rs"
+   ],
+   "documentation": "docs/CONSENSUSXML_SUPPORT.md",
+   "scope": "Native load/store and the three range options consumed by the source handler, centroid/handle geometry, typed metadata, protein group quantities, identification references and portable chemistry; plain/gzip/bzip2 input. Source ZIP input remains unsupported. Full passive PeakFileOptions and generic inherited XMLFile/ProgressLogger APIs remain separate. Quantity ownership failures default to a checked error with explicit source-compatible discard mode."
+  },
+  "src/openms/include/OpenMS/FORMAT/ModificationDefinitionIO.h": {
+   "status": "complete",
+   "rust": [
+    "src/format/modification_definitions.rs",
+    "src/chemistry/modification_records.rs"
+   ],
+   "tests": [
+    "tests/modification_definition_io.rs",
+    "tests/idxml_definitions.rs"
+   ],
+   "documentation": "docs/MODIFICATION_DEFINITION_IO_SUPPORT.md",
+   "scope": "All nine public declarations: definition selection, per-run collection from slices/iterators and both feature-map overloads including recursive subordinates, deterministic codec/union, run encoding and registration. Owned registries, checked conflicts/portable representation, recovery diagnostics and cumulative budgets replace raw-pointer/global-mutation semantics. Full ResidueModification and ProForma parsing remain separate."
+  },
+  "src/openms/include/OpenMS/SYSTEM/File.h": {
+   "status": "partial",
+   "rust": [
+    "src/system/file.rs"
+   ],
+   "tests": [
+    "tests/system_file.rs"
+   ],
+   "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
+   "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
+  },
+  "src/openms/include/OpenMS/CONCEPT/ProgressLogger.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/concept/progress_logger.rs"
+   ],
+   "tests": [
+    "tests/progress_logger.rs"
+   ],
+   "documentation": "docs/PROGRESS_LOGGER_SUPPORT.md",
+   "scope": "All modes, copy/replacement/options and four backend operations, nested whole-second throttling, independent next counter and command timing/rates. Owned per-logger GUI factories, shared atomic nesting and mutable Rust calls replace global/raw-pointer/const mutation. Real total process CPU on Unix/Windows and monotonic elapsed wall timing; source undefined timing/range cases are checked errors. Default GUI is a no-op as in core; product GUI is outside this header."
+  },
+  "src/openms/include/OpenMS/CONCEPT/LogStream.h": {
+   "status": "partial",
+   "rust": [
+    "src/concept/log_stream.rs"
+   ],
+   "tests": [
+    "tests/log_stream.rs"
+   ],
+   "documentation": "docs/LOG_STREAM_SUPPORT.md",
+   "scope": "Native owned streams/sinks/notifications/guards, source 32K buffering, partial flush, two-entry duplicate cache, all prefix tokens and nine ANSI styles, five global/TLS routes and location macros. Pointer/streambuf ownership maps to safe Write/callbacks. Automatic Windows console VT mode and process-exit flushing of directly buffered global streams remain absent; general Colorizer is a separate header. Explicit global finish and source-style macro flushing are available."
+  },
+  "src/openms/include/OpenMS/FORMAT/FASTAFile.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/fasta.rs"
+   ],
+   "tests": [
+    "tests/fasta.rs",
+    "tests/formats.rs"
+   ],
+   "documentation": "docs/FASTA_SUPPORT.md",
+   "scope": "All entry, aggregate, streaming, seek, output-lifecycle and inherited progress operations; original PEFF prologue/modified-sequence/description/80-byte writer rules. Owned records, bounded cumulative input/work, UTF-8 field representation, checked header output and atomic owned read results are explicit native differences. Plain source path transport; no PEFF semantic interpretation."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/indexed_mzml.rs"
+   ],
+   "tests": [
+    "tests/indexed_mzml.rs"
+   ],
+   "documentation": "docs/INDEXED_MZML_SUPPORT.md",
+   "scope": "Both public decoder operations: configurable bounded footer probe and owned spectrum/chromatogram offset vectors. Source scanner, order/duplicate/replacement behavior retained; checked 63-bit offsets, small-file reads and bounded UTF-8 XML correct unchecked/undefined source behavior. Compact XML preserves the first offset rather than reproducing the DOM sibling bug. Index payload decoding, checksums and writing are separate classes."
+  },
+  "src/openms/include/OpenMS/KERNEL/MSExperiment.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/experiment_aggregation.rs",
+    "src/kernel/experiment_summary.rs",
+    "src/kernel/area_iteration.rs",
+    "src/kernel/peak_data.rs",
+    "src/kernel/peak_index.rs",
+    "src/kernel/experiment_2d.rs",
+    "src/metadata/experimental_settings.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs",
+    "tests/experiment_aggregation.rs",
+    "tests/experiment_summary.rs",
+    "tests/area_iteration.rs",
+    "tests/peak_data.rs",
+    "tests/peak_index.rs",
+    "tests/experiment_2d.rs",
+    "tests/experimental_settings.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
+   "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzml.rs",
+    "src/format/mzml_precursor.rs",
+    "src/format/indexed_mzml.rs",
+    "src/format/mzml_load.rs",
+    "src/format/mzml_paths.rs",
+    "src/format/mzml_numpress.rs",
+    "src/format/mzml_settings.rs",
+    "src/format/mzml_acquisition.rs",
+    "src/format/mzml_counts.rs",
+    "src/format/mzml_header.rs",
+    "src/format/mzml_header/read.rs",
+    "src/format/mzml_header/write.rs",
+    "src/format/mzml_consumer.rs",
+    "src/interfaces.rs",
+    "src/format/mzml_centroid.rs",
+    "src/kernel/spectrum_type.rs",
+    "src/format/mzml_validator.rs",
+    "src/format/mzml_write_options.rs",
+    "src/format/mzml_record.rs",
+    "src/format/mzml_schema.rs"
+   ],
+   "tests": [
+    "tests/mzml.rs",
+    "tests/mzml_product.rs",
+    "tests/indexed_mzml.rs",
+    "tests/mzml_load_options.rs",
+    "tests/mzml_paths.rs",
+    "tests/data_array_xml.rs",
+    "tests/mzml_numpress.rs",
+    "tests/mzml_settings.rs",
+    "tests/mzml_acquisition_guards.rs",
+    "tests/mzml_acquisition.rs",
+    "tests/mzml_counts.rs",
+    "tests/experimental_settings.rs",
+    "tests/mzml_header.rs",
+    "tests/mzml_consumer.rs",
+    "tests/interfaces.rs",
+    "tests/mzml_centroid.rs",
+    "tests/spectrum_type.rs",
+    "tests/mzml_isolation.rs",
+    "tests/mzml_validator.rs",
+    "tests/mzml_write_options.rs",
+    "tests/mzml_normalization.rs",
+    "tests/mzml_typed_transport.rs",
+    "tests/record_metadata.rs",
+    "tests/mzml_schema.rs",
+    "tests/mzml_schema_offline.rs"
+   ],
+   "documentation": "docs/MZML_SUPPORT.md",
+   "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array scalar metadata and units, all source record CV routes, optical/pressure/flow primary roles and independent f64 noise grids are transported with source merge order and checked ownership. Generic lists/Empty, ambiguous primaries and independent primary-array history remain checked errors; CPP-053/058 are corrected. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. Complete centroid inspection/SpecInfo uses one consumer pass, a global recognized quota with Unknown bookkeeping, exact history/type/estimator precedence and cumulative query/map limits. Local fill_data override and pre-input zero-quota errors correct CPP-018/048. Isolation-target loading now preserves immediate sticky target filtering and differing first-selected-ion Float metadata across stream/path/consumer/count APIs; source count RT-event order remains distinct. Default selected-ion multiple/duplicate boundaries remain explicit. Every writer now consumes differing selected-ion metadata and preserves its separate effective isolation target; TPP intentionally suppresses precursor windows. Optional complete MzMLValidator specialization and file semantic convenience use shared bounded CV/XML logic and exact mapping; CPP-051 cross-document group state is corrected. Complete represented writer PeakFileOptions execution adds primary precision, all three Numpress configurations, zlib, TPP and indexed UTF-8 output with actual SHA-1 and byte offsets. One prepared payload supports two precharged markup passes and atomic path publication; ignored read options are not cloned. CPP-049/050 are corrected. skip_xml_checks executes only source four-character binary whitespace-normalization bypass, preserving checked XML/Base64/length/resource behavior and all no-decode modes; CPP-055 malformed-source behavior is rejected. Optional mzML-schema provides original fixed ordinary/indexed XSD validation through unmodified libxml0.3.14 with owned diagnostics, checked root/namespaces and UTF-16 input. Native limits do not bound opaque C allocations/time. CPP-052 schema selection is corrected; original CPP-054 schema defect remains explicit with separate integrity checks. MzMLFile remains partial: spectrum mobility/IMPeakType, remaining precursor activation metadata/unit routes and adapter progress hooks remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
+  },
+  "src/openms/include/OpenMS/METADATA/Product.h": {
+   "status": "partial",
+   "rust": [
+    "src/metadata/acquisition.rs",
+    "src/kernel.rs",
+    "src/metadata/value.rs"
+   ],
+   "tests": [
+    "tests/metadata.rs",
+    "tests/experiment_aggregation.rs",
+    "tests/mzml_product.rs",
+    "tests/metadata_hash.rs"
+   ],
+   "documentation": "docs/METADATA_HASH_SUPPORT.md",
+   "scope": "All own Product operations now have native equivalents, including equality-compatible Hash with signed-zero normalization, scalar mutation and cloning. Attached CV/ordinary metadata use native owned string-keyed records; inherited full source state remains limited by CVTerm/DataValue independent units and numeric registry identity. mzML transports represented fields and rejects arbitrary CV/list/Empty metadata before output. Full inherited source-model equivalence remains under review."
+  },
+  "src/openms/include/OpenMS/KERNEL/Peak1D.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs",
+    "tests/kernel_value_traits.rs"
+   ],
+   "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
+   "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
+  },
+  "src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs",
+    "tests/kernel_value_traits.rs"
+   ],
+   "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
+   "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
+  },
+  "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/peak_options.rs"
+   ],
+   "tests": [
+    "tests/peak_file_options.rs"
+   ],
+   "documentation": "docs/PEAK_FILE_OPTIONS_SUPPORT.md",
+   "scope": "Complete source value/options API: all scalar defaults, four range activation rules, signed ordered MS levels, filter predicate, three Numpress configurations and warning identity. Native owned state and checked vector cap. This does not execute filters, codecs or output choices in format adapters."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/mass_decomposition.rs"
+   ],
+   "tests": [
+    "tests/mass_decomposition.rs"
+   ],
+   "documentation": "docs/MASS_DECOMPOSITION_SUPPORT.md",
+   "scope": "Complete source symbol-count value API, including literal-space parsing, duplicate historical maxima, distinct addition cache semantics, formatting, source map ordering, text equality, tag containment and compatibility. Owned ASCII keys, checked nonnegative counts/overflow and bounded output replace unsafe source states. Separate mass decomposition algorithms and solvers are not covered."
+  },
+  "src/openms/include/OpenMS/FORMAT/IdXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/idxml.rs",
+    "src/format/identification_xml.rs",
+    "src/format/modification_definitions.rs",
+    "src/format/path_io.rs"
+   ],
+   "tests": [
+    "tests/idxml.rs",
+    "tests/idxml_definitions.rs",
+    "tests/identification_paths.rs"
+   ],
+   "documentation": "docs/IDENTIFICATION_PATH_SUPPORT.md",
+   "scope": "Native idXML document read/write and direct path load/store, document identifier, registry/options overloads, bounded plain/gzip/bzip2 input and source plain output regardless of suffix. Checked output extension and atomic file/destination replacement. Existing metadata/sequence encoding boundaries, source hit-order/rank differences, ZIP and inherited logger/schema/CV APIs remain."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/mass_decomposition_algorithm.rs",
+    "src/chemistry/mass_decomposition.rs"
+   ],
+   "tests": [
+    "tests/mass_decomposition_algorithm.rs"
+   ],
+   "documentation": "docs/MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md",
+   "scope": "Complete scientific getDecompositions operation and five settings through owned typed configuration, atomic reconfiguration and append. Native private integer residue tables, GCD/rounding and real-mass filtering retain source order, exclusive upper bound and documented finite infinity-sentinel limitation. Checked numeric/resource boundaries replace unsafe states. Inherited C++ DefaultParamHandler APIs and standalone public IMS utility classes are separate."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_weights.rs"
+   ],
+   "tests": [
+    "tests/ims_weights.rs"
+   ],
+   "documentation": "docs/IMS_WEIGHTS_SUPPORT.md",
+   "scope": "Complete standalone mass/weight scaling, access, copy, pair swap, parent mass, literal GCD return/scaling, rounding errors and text surface. Native fixed u64, explicit unset default precision, finite representable signed/zero behavior and checked atomic boundaries; standalone other IMS APIs remain separately tracked."
+  },
+  "src/openms/include/OpenMS/KERNEL/MobilityPeak1D.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel/mobilogram.rs"
+   ],
+   "tests": [
+    "tests/mobilogram.rs"
+   ],
+   "documentation": "docs/MOBILOGRAM_SUPPORT.md",
+   "scope": "All value fields, construction/copy/equality, scalar comparisons, display and signed-zero-normalized native hash. Public fields/standard traits replace mechanical source accessors and comparator overloads; no cross-language hash or stream-state identity."
+  },
+  "src/openms/include/OpenMS/KERNEL/Mobilogram.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel/mobilogram.rs",
+    "src/kernel/data_array.rs"
+   ],
+   "tests": [
+    "tests/mobilogram.rs",
+    "tests/data_array_descriptions.rs"
+   ],
+   "documentation": "docs/MOBILOGRAM_SUPPORT.md",
+   "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain."
+  },
+  "src/openms/include/OpenMS/METADATA/DataArrays.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/data_array.rs"
+   ],
+   "tests": [
+    "tests/data_array_descriptions.rs",
+    "tests/data_array_xml.rs"
+   ],
+   "documentation": "docs/MOBILOGRAM_SUPPORT.md",
+   "scope": "Generic array names, owned metadata and shared processing descriptions are represented and preserved during existing processing; XML projections reject unsupported descriptions. Independent standalone MetaInfoDescription API, source ordering/comparison operators and format transport remain under review."
+  },
+  "src/openms/include/OpenMS/METADATA/MetaInfoDescription.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/data_array.rs"
+   ],
+   "tests": [
+    "tests/data_array_descriptions.rs",
+    "tests/data_array_xml.rs"
+   ],
+   "documentation": "docs/MOBILOGRAM_SUPPORT.md",
+   "scope": "Generic array names, owned metadata and shared processing descriptions are represented and preserved during existing processing; XML projections reject unsupported descriptions. Independent standalone MetaInfoDescription API, source ordering/comparison operators and format transport remain under review."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_isotope_distribution.rs"
+   ],
+   "tests": [
+    "tests/ims_isotopes.rs"
+   ],
+   "documentation": "docs/IMS_ISOTOPE_SUPPORT.md",
+   "scope": "Complete native numerical/value operation mapping: nominal bins, stored tails, normalization, binary convolution/powers, explicit mutable-RHS padding and verbose output. Per-call options replace shared global SIZE/error state; checked overflow, bounded work and atomic native mutation replace undefined behavior. No C++ ABI or other isotope engine completeness claim."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_element.rs"
+   ],
+   "tests": [
+    "tests/ims_element.rs"
+   ],
+   "documentation": "docs/IMS_ISOTOPE_SUPPORT.md",
+   "scope": "Complete own element value operations: independent name/sequence, nominal and stored isotope masses, average/ion mass, equality and source-style verbose output. Per-call isotope options and checked bounds replace source globals/undefined access."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_alphabet.rs"
+   ],
+   "tests": [
+    "tests/ims_alphabet.rs"
+   ],
+   "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
+   "scope": "Complete native alphabet operation mapping, duplicate-first lookup/replacement/erase, stable name/mass sorting, isotope mass lists, default/custom-parser file replacement and verbose stream output. Rust ownership replaces aliases and virtual ABI; stable ties and checked atomic failures are explicit native corrections. No flat store method is invented."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_alphabet.rs",
+    "src/chemistry/ims_alphabet_parser.rs"
+   ],
+   "tests": [
+    "tests/ims_alphabet.rs"
+   ],
+   "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
+   "scope": "Native f64-map parser trait and concrete default plain-file/text parser, mutable map access and replaceable parse/load operations. First duplicate wins, exact source comment whitespace; portable decimal/scientific prefixes and strict malformed/UTF8 rejection replace implementation-dependent unchecked C++ stream extraction. Arbitrary C++ numeric/container template instantiations are not an ABI promise."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_alphabet.rs",
+    "src/chemistry/ims_alphabet_parser.rs"
+   ],
+   "tests": [
+    "tests/ims_alphabet.rs"
+   ],
+   "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
+   "scope": "Native f64-map parser trait and concrete default plain-file/text parser, mutable map access and replaceable parse/load operations. First duplicate wins, exact source comment whitespace; portable decimal/scientific prefixes and strict malformed/UTF8 rejection replace implementation-dependent unchecked C++ stream extraction. Arbitrary C++ numeric/container template instantiations are not an ABI promise."
+  },
+  "src/openms/include/OpenMS/KERNEL/PeakIndex.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel/peak_index.rs"
+   ],
+   "tests": [
+    "tests/peak_index.rs"
+   ],
+   "documentation": "docs/PEAK_INDEX_SUPPORT.md",
+   "scope": "Complete own value/lookup surface: sentinel constructors, clear/validity, independent spectrum/peak indices, borrowed feature-slice/spectrum/peak lookup. Rust checked errors replace source precondition/undefined indexing and concrete generic slices replace feature-container templates."
+  },
+  "src/openms/include/OpenMS/KERNEL/AreaIterator.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel/area_iteration.rs"
+   ],
+   "tests": [
+    "tests/area_iteration.rs"
+   ],
+   "documentation": "docs/AREA_ITERATION_SUPPORT.md",
+   "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain."
+  },
+  "src/openms/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/numpress.rs"
+   ],
+   "tests": [
+    "tests/numpress.rs"
+   ],
+   "documentation": "docs/MSNUMPRESS_SUPPORT.md",
+   "scope": "All raw linear, PIC, SLOF and Safe encode/decode functions and three fixed-point helpers. Owned bounded buffers and checked casts/streams replace unsafe source behavior; empty Safe decoding is an explicit native extension. Validated against 295 executed raw C++ cases (287 decoder cases). Wrapper/base64/zlib and mzML transport are separately tracked."
+  },
+  "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/numpress_coder.rs",
+    "src/format/peak_options.rs"
+   ],
+   "tests": [
+    "tests/numpress_coder.rs",
+    "tests/peak_file_options.rs"
+   ],
+   "documentation": "docs/MSNUMPRESS_CODER_SUPPORT.md",
+   "scope": "Complete source wrapper operations and existing configuration/name mapping: raw/base64/zlib encode/decode, exact f32 promotion, estimation and maximal-factor fallback, reverse-order tolerance checks, PIC absolute-error policy and source raw/text skip destination distinctions. Native checked atomic errors and explicit diagnostics replace stderr; strict long-form Base64/single-zlib-frame validation is a documented correction. Safe remains raw-only. Reviewed mzML transport now reuses crate-private codec counters and helpers; full MzMLFile remains incomplete."
+  },
+  "src/openms/include/OpenMS/CONCEPT/UniqueIdGenerator.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/concept/unique_id.rs",
+    "src/chemistry/decoy_random.rs"
+   ],
+   "tests": [
+    "tests/unique_id.rs",
+    "tests/decoy_generator.rs"
+   ],
+   "documentation": "docs/UNIQUE_ID_SUPPORT.md",
+   "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
+  },
+  "src/openms/include/OpenMS/CONCEPT/UniqueIdInterface.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/concept/unique_id.rs",
+    "src/chemistry/decoy_random.rs"
+   ],
+   "tests": [
+    "tests/unique_id.rs",
+    "tests/decoy_generator.rs"
+   ],
+   "documentation": "docs/UNIQUE_ID_SUPPORT.md",
+   "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
+  },
+  "src/openms/include/OpenMS/KERNEL/Peak2D.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel/peak2d.rs"
+   ],
+   "tests": [
+    "tests/peak2d.rs"
+   ],
+   "documentation": "docs/PEAK2D_SUPPORT.md",
+   "scope": "Complete own two-coordinate value operation mapping, all dimension strings, standard scalar/array comparisons, exact PartialEq, signed-zero-normalized Hash and source labels with Rust numeric Display. Owned arrays replace DPosition ABI; checked dimension access replaces undefined source indexing. Mobility attachment, range algebra and experiment overloads remain separate."
+  },
+  "src/openms/include/OpenMS/KERNEL/MobilityPeak2D.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel/peak2d.rs"
+   ],
+   "tests": [
+    "tests/peak2d.rs"
+   ],
+   "documentation": "docs/PEAK2D_SUPPORT.md",
+   "scope": "Complete own two-coordinate value operation mapping, all dimension strings, standard scalar/array comparisons, exact PartialEq, signed-zero-normalized Hash and source labels with Rust numeric Display. Owned arrays replace DPosition ABI; checked dimension access replaces undefined source indexing. Mobility attachment, range algebra and experiment overloads remain separate."
+  },
+  "src/openms/include/OpenMS/KERNEL/RichPeak2D.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel/peak2d.rs",
+    "src/concept/unique_id.rs"
+   ],
+   "tests": [
+    "tests/peak2d.rs",
+    "tests/unique_id.rs"
+   ],
+   "documentation": "docs/PEAK2D_SUPPORT.md",
+   "scope": "Complete direct point/value/conversion surface with owned metadata and ID, Deref and HasUniqueId. Plain assignment returns previous ownership and clears metadata/ID. Full inherited C++ metadata registry/equality conventions and global-service ABI remain native boundaries requiring separate class coverage."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_mass_decomposer.rs"
+   ],
+   "tests": [
+    "tests/ims_mass_decomposers.rs"
+   ],
+   "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
+   "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_mass_decomposer.rs"
+   ],
+   "tests": [
+    "tests/ims_mass_decomposers.rs"
+   ],
+   "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
+   "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/ims_mass_decomposer.rs"
+   ],
+   "tests": [
+    "tests/ims_mass_decomposers.rs"
+   ],
+   "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
+   "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/SequenceCoverage.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/sequence_coverage.rs"
+   ],
+   "tests": [
+    "tests/sequence_coverage.rs"
+   ],
+   "documentation": "docs/SEQUENCE_COVERAGE_SUPPORT.md",
+   "scope": "Complete single static scientific operation: borrowed unmodified residue bytes, every exact overlapping occurrence, union of duplicate/overlapping coverage, source empty shortcuts and count*100.0/length order. Native input sizes and conservative worst-case comparison precharges bound work; annotation chemistry is neither traversed nor copied. All four source test sections plus an independent per-position oracle and checked resource boundaries."
+  },
+  "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel/chromatogram_tools.rs",
+    "src/kernel/acquisition_fields.rs"
+   ],
+   "tests": [
+    "tests/chromatogram_tools.rs"
+   ],
+   "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
+   "scope": "Both complete concrete MSExperiment conversions: one MS2 record per chromatogram point, exact SRM/XIC grouping and source first-record metadata selection, native-ID/scan-mode construction, source-only SRM removal and skipped count diagnostics. Owned reports return all removed records; shared checked work/allocation and finite consumed scalars replace undefined maps or partial mutation. Arbitrary C++ experiment template ABI is not emulated."
+  },
+  "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/acquisition_fields.rs",
+    "src/kernel/spectrum_type.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs",
+    "tests/chromatogram_tools.rs",
+    "tests/processing_acquisition.rs",
+    "tests/mzml_acquisition_guards.rs",
+    "tests/spectrum_type.rs",
+    "tests/record_metadata.rs"
+   ],
+   "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
+   "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
+  },
+  "src/openms/include/OpenMS/KERNEL/MSChromatogram.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/acquisition_fields.rs"
+   ],
+   "tests": [
+    "tests/kernel.rs",
+    "tests/chromatogram_tools.rs",
+    "tests/processing_acquisition.rs",
+    "tests/mzml_acquisition_guards.rs",
+    "tests/record_metadata.rs"
+   ],
+   "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
+   "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
+  },
+  "src/openms/include/OpenMS/CONCEPT/Constants.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/concept/constants.rs",
+    "src/chemistry/mod.rs"
+   ],
+   "tests": [
+    "tests/constants.rs"
+   ],
+   "documentation": "docs/CONSTANTS_SUPPORT.md",
+   "scope": "All 38 numeric declarations and 91 UserParam strings; aliases, original expressions and historical physical values preserved. Writable source EPSILON maps to atomic bit-preserving epsilon()/set_epsilon(); default exposed separately. Exact f64 bits and strings verified against actually compiled unchanged C++ header with unused config include shim. Underlying algorithm tolerance behavior remains independently reviewed."
+  },
+  "src/openms/include/OpenMS/KERNEL/MassTrace.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel/mass_trace.rs"
+   ],
+   "tests": [
+    "tests/mass_trace.rs"
+   ],
+   "documentation": "docs/MASS_TRACE_SUPPORT.md",
+   "scope": "Complete public value/container surface and all eight centroid updates, raw/smoothed areas, quantification, FWHM/interpolation/cache, hull, IM presence and width metadata. Owned Vec and borrowed fixed-length slices replace C++ list/vector constructors and iterators. Source mixed smoothed/raw area, endpoint-apex cached width, right-rectangle RT and exp/log SD expressions retained. Finite consumed-input/result, atomic-error and configurable work/allocation boundaries are explicit."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/MonosaccharideDB.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/monosaccharide_db.rs"
+   ],
+   "tests": [
+    "tests/monosaccharide_db.rs"
+   ],
+   "documentation": "docs/MONOSACCHARIDE_SUPPORT.md",
+   "scope": "Complete immutable builtin lookup surface and all five owned record fields:24 primary records,12 synonyms,36 keys. Exact stored mass/formula, lexical source order, aliases and primary overwrite precedence retained. Native Option/Result and borrowed records/symbols replace pointers/exceptions/copied strings. Approved embedded dataset replaces private installed-file/environment discovery; runtime override/provider and ProForma parser remain outside this API."
+  },
+  "src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/analysis/mass_trace_detection.rs"
+   ],
+   "tests": [
+    "tests/mass_trace_detection.rs"
+   ],
+   "documentation": "docs/MASS_TRACE_DETECTION_SUPPORT.md",
+   "scope": "All11 typed source options, both source run overloads, availability queries and explicit progress reporting. Retains filtering, apex ties, double-apex incremental means, IM/nearest/visited selection, both termination criteria and accepted summaries. Owned atomic results/cursor and successful flag reset, scalar area iterator, finite consumed arithmetic and cumulative work/allocation limits are explicit native adaptations. No ElutionPeakDetection or complete metabolite workflow certification."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/ProForma.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/proforma.rs",
+    "src/chemistry/proforma_parser.rs",
+    "src/chemistry/proforma_json.rs",
+    "src/chemistry/proforma_resolution.rs",
+    "src/chemistry/modifications.rs",
+    "src/chemistry/proforma_mass.rs",
+    "src/chemistry/proforma_conversion.rs",
+    "src/chemistry/proforma_spectra.rs",
+    "src/chemistry/theoretical_proforma_budget.rs",
+    "src/chemistry/theoretical_xlms.rs"
+   ],
+   "tests": [
+    "tests/proforma.rs",
+    "tests/proforma_writer_probe.rs",
+    "tests/proforma_parser.rs",
+    "tests/proforma_parser_probe.rs",
+    "tests/proforma_json.rs",
+    "tests/proforma_resolution.rs",
+    "tests/proforma_mass.rs",
+    "tests/proforma_conversion.rs",
+    "tests/proforma_spectra.rs",
+    "tests/theoretical_xlms.rs"
+   ],
+   "documentation": "docs/PROFORMA_SUPPORT.md",
+   "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution, all mass/mz/can/issues/optional operations, and complete AASequence conversion/policies/diagnostics in both directions. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. Conversion preserves source defects explicitly; 1078 executed source formatter cases cover reverse mass text. All six ordinary/XLMS spectrum operations and five source configuration fields are now implemented through the real native generators. Exact repeated advisory/resolution passes, first-link original-AST timing, strict mass threshold, warning order and duplicate-preserving sort are retained. Finite CPP-038/047 behavior is preserved with independent chemical/flattened-position expectations. One bounded atomic registry transaction covers all passes and both generator sides; standalone backends retain their own domains. Complete pinned public-header native equivalent, not complete ProForma-standard conformance or a C++ ABI. Source class assertions and native backend-composition tests are distinct from executed C++ spectrum oracles, which are not claimed."
+  },
+  "src/openms/include/OpenMS/METADATA/ProteinIdentification.h": {
+   "status": "partial",
+   "rust": [
+    "src/identification.rs",
+    "src/identification/protein_run.rs"
+   ],
+   "tests": [
+    "tests/identification.rs",
+    "tests/protein_run.rs"
+   ],
+   "documentation": "docs/PROTEIN_RUN_SUPPORT.md",
+   "scope": "Existing owned records, sorting, coverage/modifications and search settings plus inference metadata, original-engine recovery, mergeability,12-field settings export, singleton group completion and metadata-only copying. Native lexical metadata ordering may select a different original engine from source numeric registry-ID order. Typed fields and conservative atomic owned-output limits; filesystem-aware path selection, additional specificity states and full inherited/header review remain open."
+  },
+  "src/openms/include/OpenMS/METADATA/IdentifierMSRunMapper.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/identification/run_mapping.rs"
+   ],
+   "tests": [
+    "tests/run_mapping.rs"
+   ],
+   "documentation": "docs/RUN_MAPPING_SUPPORT.md",
+   "scope": "All public mapping, lookup, copy and merge-index validation operations; source duplicate failure state preserved. Native borrowed/Option/Cow/Result APIs, dedicated primary path fields and bounded construction are documented adaptations."
+  },
+  "src/openms/include/OpenMS/FEATUREFINDER/ElutionPeakDetection.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/analysis/elution_peak_detection.rs"
+   ],
+   "tests": [
+    "tests/elution_peak_detection.rs"
+   ],
+   "documentation": "docs/ELUTION_PEAK_DETECTION_SUPPORT.md",
+   "scope": "Complete class-specific six options, single/batch elution splitting, width filtering, smoothing, extrema and three noise/SNR helpers. Typed native options/limits/logger, deterministic serial order, existing QR projection and frame cap, checked finite boundaries and atomic scientific publication are documented adaptations."
+  },
+  "src/openms/include/OpenMS/METADATA/ContactPerson.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experiment_support.rs"
+   ],
+   "tests": [
+    "tests/experiment_metadata.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+   "scope": "Complete ContactPerson class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+  },
+  "src/openms/include/OpenMS/METADATA/HPLC.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experiment_support.rs"
+   ],
+   "tests": [
+    "tests/experiment_metadata.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+   "scope": "Complete HPLC class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+  },
+  "src/openms/include/OpenMS/METADATA/Gradient.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experiment_support.rs"
+   ],
+   "tests": [
+    "tests/experiment_metadata.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+   "scope": "Complete Gradient class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+  },
+  "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/analysis/feature_finding_metabo.rs",
+    "src/analysis/feature_finding_metabo/predictor.rs",
+    "src/analysis/feature_hypothesis.rs",
+    "src/chemistry/metabo_elements.rs"
+   ],
+   "tests": [
+    "tests/feature_finding_metabo.rs",
+    "tests/feature_hypothesis.rs",
+    "src/analysis/feature_finding_metabo/predictor_tests.rs"
+   ],
+   "documentation": "docs/FEATURE_FINDING_METABO_SUPPORT.md",
+   "scope": "Complete class-specific public feature-finding operation, all19 typed options, grouped chromatograms, both fixed isotope models and FeatureHypothesis subgroup. Source83/81/80 counts and all81 golden feature values/hulls match;488 actual LIBSVM reference rows validate predictors. Native ownership, stable serial ties, bounded atomic publication and inherited f64 coarse-isotope precision are documented. General SimpleSVM and inherited generic Param wrappers remain separate, and no complete TOPP workflow is certified."
+  },
+  "src/openms/include/OpenMS/METADATA/DocumentIdentifier.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/document_identifier.rs",
+    "src/format/file_handler.rs"
+   ],
+   "tests": [
+    "tests/document_identifier.rs",
+    "tests/file_handler.rs"
+   ],
+   "documentation": "docs/DOCUMENT_IDENTIFIER_SUPPORT.md",
+   "scope": "All own identity/provenance value operations, identifier-only equality, exact absolute/relative path policy, clone/assignment/swap and independent content type selection. Native UTF-8/path/resource/atomic checks and shared bounded detector/optional compression are documented adaptations; exact full FileHandler heuristic parity and aggregate migration remain separate."
+  },
+  "src/openms/include/OpenMS/METADATA/Sample.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experiment_values.rs"
+   ],
+   "tests": [
+    "tests/experiment_values.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+   "scope": "Complete Sample owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+  },
+  "src/openms/include/OpenMS/METADATA/IonSource.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experiment_values.rs"
+   ],
+   "tests": [
+    "tests/experiment_values.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+   "scope": "Complete IonSource owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+  },
+  "src/openms/include/OpenMS/METADATA/MassAnalyzer.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experiment_values.rs"
+   ],
+   "tests": [
+    "tests/experiment_values.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+   "scope": "Complete MassAnalyzer owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+  },
+  "src/openms/include/OpenMS/METADATA/IonDetector.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experiment_values.rs"
+   ],
+   "tests": [
+    "tests/experiment_values.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+   "scope": "Complete IonDetector owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+  },
+  "src/openms/include/OpenMS/METADATA/Instrument.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experiment_values.rs"
+   ],
+   "tests": [
+    "tests/experiment_values.rs"
+   ],
+   "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
+   "scope": "Complete Instrument owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/DateTime.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/data_structures/datetime.rs"
+   ],
+   "tests": [
+    "tests/datetime.rs"
+   ],
+   "documentation": "docs/DATETIME_SUPPORT.md",
+   "scope": "Complete class-specific value, parser/formatter, partial/full setters, getters, clocks, comparison/hash and calendar arithmetic. Native signed getters, checked integer/year bounds and deterministic Gregorian normalization replace source host conversion failure.301 executed exact-source cases:266 exact matches and35 explicitly corrected calendar rows;19 source literals, seven formats and independent edge regressions. ExperimentalSettings/header transport remain separate."
+  },
+  "src/openms/include/OpenMS/METADATA/ExperimentalSettings.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/metadata/experimental_settings.rs",
+    "src/kernel.rs",
+    "src/processing.rs"
+   ],
+   "tests": [
+    "tests/experimental_settings.rs",
+    "tests/processing_acquisition.rs"
+   ],
+   "documentation": "docs/EXPERIMENTAL_SETTINGS_SUPPORT.md",
+   "scope": "Complete owned aggregate: document identity/provenance, recursive Sample, source files, contacts, default/additional instruments, HPLC/Gradient, DateTime, comment, fraction and typed run MetaInfo. Fields, Clone, PartialEq, moves and Display replace source accessors/value operations. Checked copies preflight all owned payload with a hard 64 sample-depth cap. MSExperiment owns this single settings record; processing, clearing and replacement preserve source ownership semantics. This closes the value API, not full mzML header or consumer transport."
+  },
+  "src/openms/include/OpenMS/FORMAT/ControlledVocabulary.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/controlled_vocabulary.rs",
+    "src/format/controlled_vocabulary/obo.rs"
+   ],
+   "tests": [
+    "tests/controlled_vocabulary.rs"
+   ],
+   "documentation": "docs/CONTROLLED_VOCABULARY_SUPPORT.md",
+   "scope": "Complete owned term definition and all class-specific lookup, cumulative OBO loading, ordered graph traversal, typed/string XML, score direction, stream output, FNV and five-provider singleton operations. All 9254 final definitions and 16852 aliases checked against independent source-loop projection. Exact raw resources retained; explicit BTO decoding and data-license boundaries documented. Transactional/cycle/resource checks, actual typed units, full attribute escaping and legacy binary-prefix/stream corrections replace source defects. Mapping rules, general semantic validation and header consumers remain separate."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/CVReference.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/data_structures/cv_mapping.rs"
+   ],
+   "tests": [
+    "tests/cv_mapping_values.rs",
+    "tests/cv_mapping_file.rs"
+   ],
+   "documentation": "docs/CV_MAPPING_SUPPORT.md",
+   "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/CVMappingTerm.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/data_structures/cv_mapping.rs"
+   ],
+   "tests": [
+    "tests/cv_mapping_values.rs",
+    "tests/cv_mapping_file.rs"
+   ],
+   "documentation": "docs/CV_MAPPING_SUPPORT.md",
+   "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/CVMappingRule.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/data_structures/cv_mapping.rs"
+   ],
+   "tests": [
+    "tests/cv_mapping_values.rs",
+    "tests/cv_mapping_file.rs"
+   ],
+   "documentation": "docs/CV_MAPPING_SUPPORT.md",
+   "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+  },
+  "src/openms/include/OpenMS/DATASTRUCTURES/CVMappings.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/data_structures/cv_mapping.rs"
+   ],
+   "tests": [
+    "tests/cv_mapping_values.rs",
+    "tests/cv_mapping_file.rs"
+   ],
+   "documentation": "docs/CV_MAPPING_SUPPORT.md",
+   "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
+  },
+  "src/openms/include/OpenMS/FORMAT/CVMappingFile.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/cv_mapping.rs",
+    "src/data_structures/cv_mapping.rs"
+   ],
+   "tests": [
+    "tests/cv_mapping_file.rs",
+    "tests/cv_mapping_values.rs"
+   ],
+   "documentation": "docs/CV_MAPPING_SUPPORT.md",
+   "scope": "Complete class-specific load/namespace option group with atomic owned/path/BufRead operations. Six unchanged source fixtures and independent 683-record full-field projection. Local parser state and corrected namespace stripping avoid documented defects; exact qname/boolean/enum-fallback and append conventions retained. Explicit bounded encoding/DTD/ZIP boundaries; inherited general XMLFile, semantic/XSD validation and XPath evaluation remain separate."
+  },
+  "src/openms/include/OpenMS/METADATA/PeptideEvidence.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/identification.rs"
+   ],
+   "tests": [
+    "tests/identification.rs"
+   ],
+   "documentation": "docs/PEPTIDE_EVIDENCE_SUPPORT.md",
+   "scope": "Complete owned typed record, constructor/accessors/defaults, copy/equality, source-order comparison, corrected inclusive-limit predicate and native Hash-key operations. None/usize/typed flanks replace raw negative positions/char bytes; larger usize coordinates are permitted. All five fields contribute to native equality/hash; no C++ numeric hash parity. Source class tests mostly TODO, native behavioral/collection/downstream evidence explicitly distinguished."
+  },
+  "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/semantic_validator.rs",
+    "src/format/cv_xml.rs"
+   ],
+   "tests": [
+    "tests/semantic_validator.rs",
+    "tests/cv_mapping_file.rs",
+    "tests/cv_mapping_values.rs",
+    "tests/controlled_vocabulary.rs"
+   ],
+   "documentation": "docs/SEMANTIC_VALIDATOR_SUPPORT.md",
+   "scope": "Complete class-specific general CV/mapping validation, ParsedCVTerm value, configurable qnames/attributes/switches, borrowed providers, owned error/warning report and selection-only locate_term. Source order/count collisions, MUST/MAY/SHOULD logic and value conversions retained, including documented non-XSD date behavior CPP-046. Unit descendant target, failed-parse state and history-dependent absent-path lookup corrected (CPP-039/040/044). Exact historical 738-term CV, valid/corrupt XML and all nine diagnostic literals; independent branch/resource/transport tests. Shared private XML extraction preserves CVMapping behavior; optional semantic-validation feature. Inherited XMLFile, C++ subclass extension points, derived format validators and full XSD lexical/schema validation are separate."
+  },
+  "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/chemistry/theoretical_xlms.rs",
+    "src/chemistry/theoretical_xlms_helpers.rs"
+   ],
+   "tests": [
+    "tests/theoretical_xlms.rs",
+    "tests/protein_cross_link.rs",
+    "tests/sequence_fragment_mass.rs"
+   ],
+   "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
+   "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers are implemented separately; other XLMS algorithms remain outstanding."
+  },
+  "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h": {
+   "status": "partial",
+   "rust": [
+    "src/chemistry/protein_cross_link.rs"
+   ],
+   "tests": [
+    "tests/protein_cross_link.rs",
+    "tests/theoretical_xlms.rs"
+   ],
+   "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
+   "scope": "Complete ProteinProteinCrossLink value and reaction enum only. Arc allocation identity supplies source pointer equality/hash with owned lifetimes; finite private linker mass and normalized signed-zero hash. Defaults, position/terminal/name/correction fields and cross/loop/mono selection retained. Other OPXL records and comparators remain unimplemented; no whole-header completion or C++ hash-byte equivalence claimed."
+  },
+  "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/interfaces.rs"
+   ],
+   "tests": [
+    "tests/interfaces.rs",
+    "tests/mzml_consumer.rs"
+   ],
+   "documentation": "docs/MZML_CONSUMER_SUPPORT.md",
+   "scope": "Complete four required callback operations as an unconditional object-safe trait. Exclusive mutable borrowed records and immutable settings, checked Result and explicit ControlFlow soft stop replace C++ pointer aliases/exceptions/destructor; no silent callback defaults. Format-independent no-default build verified. Source stop-before-current-retention, setup and transform integration tested; other concrete consumers remain separate."
+  },
+  "src/openms/include/OpenMS/FORMAT/VALIDATORS/MzMLValidator.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/mzml_validator.rs",
+    "src/format/semantic_validator.rs"
+   ],
+   "tests": [
+    "tests/mzml_validator.rs",
+    "tests/semantic_validator.rs",
+    "tests/cv_mapping_file.rs"
+   ],
+   "documentation": "docs/MZML_VALIDATOR_SUPPORT.md",
+   "scope": "Complete class-specific specialization plus inherited options/locate behavior and MzMLFile semantic convenience. Borrowed providers, full owned report, default units, exact literal indexed paths, definition-time diagnostics, duplicate/forward/missing/nested groups, GO/BTO exemptions and repeated binary-role/type checks. Per-document XML/group/rule state corrects CPP-051 successful-call contamination, retaining inherited documented corrections and CPP-046 scalar syntax. One cumulative meter covers all repeated references and diagnostics; exact pinned mapping/provider initialization has separate fixed bounds. Three unchanged original inputs retain source0/0,0/0,8/1 diagnostics; two unavailable source-written inputs are not assigned native golden outputs. Optional mzml-validation feature, no new dependency; no XSD, index integrity or C++ execution claim."
+  },
+  "src/openms/include/OpenMS/METADATA/ExperimentalDesign.h": {
+   "status": "complete",
+   "rust": [
+    "src/metadata/experimental_design.rs",
+    "src/kernel/features.rs"
+   ],
+   "tests": [
+    "tests/experimental_design.rs"
+   ],
+   "documentation": "docs/EXPERIMENTAL_DESIGN_SUPPORT.md",
+   "scope": "Both public classes and every public operation: record fields and defaults, construction sorting and the four consistency rules, all five path/label mappings, both sample-grouping rules and their condition/prefractionation indices, the five counts, basename filtering with sample-section rebuild, and the consensus/feature/identification constructors plus column-header annotation. Includes ColumnHeader::getLabelAsUInt. Ragged rows and negative indices are rejected instead of read or wrapped (CPP-059, CPP-060); source log diagnostics are returned rather than written to a global stream."
+  },
+  "src/openms/include/OpenMS/FORMAT/ExperimentalDesignFile.h": {
+   "status": "complete",
+   "rust": [
+    "src/format/experimental_design_file.rs"
+   ],
+   "tests": [
+    "tests/experimental_design.rs"
+   ],
+   "documentation": "docs/EXPERIMENTAL_DESIGN_SUPPORT.md",
+   "scope": "Both load overloads, the source one-table/two-table detector, both parsers with their header required/optional/unknown rules, appended Label and Sample columns, fraction-group sample naming, the multiplex Sample requirement, duplicate sample rejection and relative spectra-path resolution with the optional existence requirement. Cell-count checks precede every indexed access (CPP-059) and negative indices are rejected (CPP-060)."
+  }
+ },
+ "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"
 }

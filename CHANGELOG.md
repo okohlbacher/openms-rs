@@ -2,6 +2,7 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add the complete experimental design: both public classes, all five path/label mappings, both sample-grouping rules, the consensus/feature/identification constructors, column-header annotation and the tab-separated reader in both source table layouts. Ragged rows and negative indices are rejected rather than read out of bounds or wrapped.
 - Transport ordered mzML spectrum acquisitions with explicit read normalization, source combination/CV metadata, bounded header references and schema-valid parameter order.
 - Add native MassTraceDetection with all source settings, mobility-aware extension, both termination criteria, area input and cumulative bounded atomic results.
 - Add the complete ProForma annotation AST and both text writers; compare 160 numerical/formatting cases with compiled exact-source writer extraction. Parser and scientific backends remain open.

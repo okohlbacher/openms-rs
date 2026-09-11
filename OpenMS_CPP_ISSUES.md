@@ -1526,3 +1526,78 @@ inactive storage. The typed mzML elution-time fallback accepts Integer/Float
 variants and rejects String/list/Empty values before publishing a record. Direct
 tests cover consumed nonnumeric values, explicit scan RT precedence and the
 source ordering before primary-array metadata merges. No upstream fix is claimed.
+
+## CPP-059 — Short experimental-design rows are read past the end of the row vector
+
+**Affected files:** [`src/openms/source/FORMAT/ExperimentalDesignFile.cpp`, lines 226–237](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/ExperimentalDesignFile.cpp#L226), one-table content rows; the same file, lines 411–419, two-table sample rows; [`src/openms/source/METADATA/ExperimentalDesign.cpp`, lines 940–962](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/METADATA/ExperimentalDesign.cpp#L940), both `SampleSection::getFactorValue` overloads.
+
+**Issue and reproduction:** Load a one-table design whose header declares five
+columns and whose first data row has three cells, for example
+`Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample` followed by
+`1\t1\ta.mzML`. `parseOneTableFile_` reads
+`cells[fs_column_header_to_index["Label"]]`, `["Fraction"]` and
+`["Fraction_Group"]` with `std::vector::operator[]` before it reaches the
+`parseErrorIf_(n_col != cells.size(), ...)` guard, so an out-of-range index is
+dereferenced rather than reported. The check is present but runs three reads too
+late.
+
+The two-table sample section has no such check at all. `SAMPLE_HEADER` assigns
+`n_col = sample_columnname_to_columnindex_.size()` and `SAMPLE_CONTENT` never
+compares it, so a sample row shorter than its header reads
+`cells[sample_columnname_to_columnindex_["Sample"]]` out of range and then stores
+the short row in `content_`. Every later `getFactorValue` compounds it: both
+overloads bound-check the row with `content_.at()` and then index the row with
+`sample_row[col_index]` unchecked, so a stored short row is read out of range on
+each access. All three sites are undefined behavior, not a diagnosable parse
+error. The two-table sample section is the common shape, because the file section
+is checked and the sample section is not.
+
+**Evidence:** Direct review of both parser state machines, the placement of the
+one guard relative to the reads it protects, the absent sample-row guard, and
+both `getFactorValue` overloads. No C++ execution or sanitizer result is claimed.
+
+**Proposed fix:** Move the `n_col != cells.size()` check in
+`parseOneTableFile_` above the first cell read, add the same check to the
+`SAMPLE_CONTENT` branch of `parseTwoTableFile_`, and replace
+`sample_row[col_index]` with `sample_row.at(col_index)` in both `getFactorValue`
+overloads so a section constructed directly through the public
+`SampleSection(content, ...)` constructor cannot get past it either. Test a short
+data row and a short sample row in both layouts, and a directly constructed
+section whose content rows are shorter than its column map.
+
+**Rust handling:** `format::experimental_design_file` checks cell counts before
+any indexed access in both layouts, and `SampleSection::from_table` rejects a row
+shorter than its column map when the section is built. `factor_value` and
+`factor_value_by_row` return a typed error instead of indexing. Tests cover a
+short one-table data row, a short two-table sample row and a directly built
+short-row section. No upstream fix is claimed.
+
+## CPP-060 — Negative design indices wrap to large unsigned values
+
+**Affected files:** [`src/openms/source/FORMAT/ExperimentalDesignFile.cpp`, lines 226–256](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/ExperimentalDesignFile.cpp#L226), one-table `Label`/`Fraction`/`Fraction_Group`; the same file, lines 386–392, the two-table equivalents.
+
+**Issue and reproduction:** Load a design containing `Fraction` `-1`. Both
+parsers read the cell with `StringUtils::toInt32`, which accepts the negative
+value, and assign it to the `unsigned` members of `MSFileSectionEntry`, so the
+row is stored with fraction 4294967295. Nothing downstream rejects it:
+`getNumberOfFractions` counts it as a distinct fraction, `isFractionated`
+reports the design as fractionated, and `getPathLabelToFractionMapping` publishes
+it. A negative `Label` is worse, because the one-table guard
+`parseErrorIf_(!has_sample && (label > 1), ...)` tests the signed value: `-1` is
+not greater than 1, so a design without a `Sample` column passes the multiplex
+check and then stores label 4294967295. A negative `Fraction_Group` is the only
+one caught, and only indirectly, by the `isValid_` consecutive-from-1 rule.
+
+**Evidence:** Direct review of the conversion and assignment in both parsers, the
+member types in `ExperimentalDesign.h` lines 468–482, and the guard that tests
+the signed value before the assignment. No C++ execution is claimed.
+
+**Proposed fix:** Reject a negative value in the parsers, before the assignment
+and before the `label > 1` guard, with the existing `parseErrorIf_` diagnostic;
+or read the three columns as unsigned. Test `-1` in each of the three columns in
+both layouts, including a one-table design with no `Sample` column.
+
+**Rust handling:** The parser converts each index through `i32` and then a
+checked `u32` conversion, so a negative `Fraction`, `Fraction_Group` or `Label`
+is a typed parse error naming the column and line. Tests cover a negative
+fraction. No upstream fix is claimed.

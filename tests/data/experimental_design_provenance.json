@@ -1,0 +1,78 @@
+{
+ "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "method": "Source header/implementation and class test transcribed from the pinned C++; the nine design fixtures are retained byte-for-byte. Expected values are the literal C++ test assertions plus independently derived cases for the mappings and error paths. No C++ execution claimed.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ExperimentalDesign.h",
+   "sha256": "e9047b640fca9a92fb245af4d80032ace0522e3e4731b85a9133558eebdc6f56"
+  },
+  {
+   "path": "src/openms/source/METADATA/ExperimentalDesign.cpp",
+   "sha256": "996c94e65d8d48666408b49e9d799baddde4349ce2ac1a7a6d85225288667517"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ExperimentalDesignFile.h",
+   "sha256": "2555f2bb7ac0c7ccdf522a7b0df6d73c4c13e5388d8daf33e80568136f777161"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ExperimentalDesignFile.cpp",
+   "sha256": "5d6af6e0b575123b2dee6eaebd9bc6bfd7f460561102d703e6d912f70b29ef7a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ExperimentalDesign_test.cpp",
+   "sha256": "208d18879e078fb6207c50755b386ea5b7e318c8275d369109474789a246edc4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_input_1.tsv",
+   "sha256": "c05e7fbce3e3324983516fa67f8a073f34bb0cb44dbf38ed5941105cdbdda2cd",
+   "retained_as": "tests/data/experimental_design_input_1.tsv"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_input_2.tsv",
+   "sha256": "f47ba2394e235dc6bc92428677896d6c777c5b54f41addcc3dbfe250336a5174",
+   "retained_as": "tests/data/experimental_design_input_2.tsv"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_input_1_single_table.tsv",
+   "sha256": "029c2337c654289cb409faa95fa9664957027bb5c348806e1f78a50ddbfcd605",
+   "retained_as": "tests/data/experimental_design_input_1_single_table.tsv"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_input_2_single_table.tsv",
+   "sha256": "f47ba2394e235dc6bc92428677896d6c777c5b54f41addcc3dbfe250336a5174",
+   "retained_as": "tests/data/experimental_design_input_2_single_table.tsv"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_input_3_single_table.tsv",
+   "sha256": "fa39fd05f61c5623c88e226cab44fa54f0493873b1f7c42ffe6e2be9ce5b820f",
+   "retained_as": "tests/data/experimental_design_input_3_single_table.tsv"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_input_2_wrong.tsv",
+   "sha256": "7c2705fee9df1d8bb6df41de8116151a7c36515382597bc43225205ebcad5ea1",
+   "retained_as": "tests/data/experimental_design_input_2_wrong.tsv"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_input_2_wrong_2.tsv",
+   "sha256": "0adcec21a10acf9ad7e7d7a3890ebdc471b7f068c0dde99d7a274feefa7b6798",
+   "retained_as": "tests/data/experimental_design_input_2_wrong_2.tsv"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_input_2_wrong_3.tsv",
+   "sha256": "ad3f5f84506644b3babf416ddb8ac33144606d8747e2be0a5ccdaed714648563",
+   "retained_as": "tests/data/experimental_design_input_2_wrong_3.tsv"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ExperimentalDesign_BSA_design_onetable_nonconsec.tsv",
+   "sha256": "187591a6f188fef06eeb3e525de8dddd86a7415e1549ac3047bad6e1ba413295",
+   "retained_as": "tests/data/experimental_design_BSA_design_onetable_nonconsec.tsv"
+  }
+ ],
+ "target_verification": {
+  "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
+}

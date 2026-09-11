@@ -15,6 +15,9 @@ pub use document_identifier::*;
 pub use experiment_support::*;
 pub use value::*;
 
+mod experimental_design;
+pub use experimental_design::*;
+
 mod experiment_values;
 pub use experiment_values::*;
 

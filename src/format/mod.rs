@@ -29,6 +29,7 @@ pub mod paramxml;
 
 pub mod dta;
 pub mod dta2d;
+pub mod experimental_design_file;
 pub mod fasta;
 pub mod file_handler;
 pub mod file_types;
