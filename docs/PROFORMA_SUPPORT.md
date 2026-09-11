@@ -4,16 +4,16 @@
 source text-serialization overloads from OpenMS4-core
 `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`. Both source text grammars and
 structured errors are also available; see [text parser support](PROFORMA_PARSER_SUPPORT.md).
-The overall `ProForma` public header remains partially implemented.
+All public operation groups of the pinned `ProForma` header now have native equivalents,
+with the documented source behavior and checked resource/numerical boundaries.
 
 The optional [JSON transport](PROFORMA_JSON_SUPPORT.md) provides both top-level
 read/write operations with the source tagged schema. The
 [modification resolver](PROFORMA_RESOLUTION_SUPPORT.md) fills chemistry handles
 against a caller-owned registry. [Mass/mz operations](PROFORMA_MASS_SUPPORT.md)
 include predicates, diagnostics and optional results. [AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md)
-provides both directions, all policies and diagnostics. There is no spectrum
-generation API in this module yet. No placeholder
-functions stand in for those operations. Existing
+provides both directions, all policies and diagnostics. [Spectrum generation](PROFORMA_SPECTRA_SUPPORT.md)
+implements the six ordinary/crosslink operations using the existing native generators. Existing
 [AASequence](SEQUENCE_SUPPORT.md), [modification records](MODIFICATION_SUPPORT.md),
 and [MonosaccharideDB](MONOSACCHARIDE_SUPPORT.md) remain separately usable.
 
@@ -143,19 +143,19 @@ undefined behavior. The absolute value of `i32::MIN` is printed through an
 unsigned magnitude, a defined native extension over source `abs(INT_MIN)`.
 All failures leave input ownership/state unchanged and return no partial string.
 
-## Remaining source operation groups
+## Source compatibility boundaries
 
-The remaining groups are ordinary and cross-linked spectrum generation. The latter needs a native
-`TheoreticalSpectrumGeneratorXLMS` backend, which is not supplied by the ordinary
-[theoretical spectrum generator](THEORETICAL_SPECTRA.md).
+[Ordinary and crosslink spectrum generation](PROFORMA_SPECTRA_SUPPORT.md) completes
+the pinned public operation groups. It composes the separate ordinary and XLMS
+backends and retains their explicit numerical domains and known source defects.
 
 Source itself has notable boundaries: parsing does not consult MonosaccharideDB,
 glycan tags remain unresolved for source mass calculation, isotope-global entries
 are ignored by that mass calculation, and adduct formula masses do not contribute
 to source m/z. A future native standards extension must be distinguished from
 those source behaviors. The full dependency analysis is retained in the parent
-implementation handoff; this group does not claim complete ProForma standard or
-complete header coverage.
+implementation handoff. Native header coverage does not imply complete ProForma
+standard conformance or scientific correction of preserved source defects.
 
 ## Evidence
 

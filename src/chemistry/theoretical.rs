@@ -24,6 +24,8 @@ mod helpers;
 mod internal;
 #[path = "theoretical_presets.rs"]
 mod presets;
+#[path = "theoretical_proforma_budget.rs"]
+mod proforma_budget;
 
 pub const MAX_THEORETICAL_PEAKS: usize = 100_000;
 pub const MAX_THEORETICAL_RESIDUES: usize = 4096;

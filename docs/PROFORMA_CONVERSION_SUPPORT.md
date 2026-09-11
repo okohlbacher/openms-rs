@@ -1,8 +1,8 @@
 # ProForma / AASequence conversion
 
 `Peptidoform` provides the complete pinned source AASequence conversion group.
-The overall [ProForma header](PROFORMA_SUPPORT.md) remains partial: ordinary and
-crosslinked spectrum generation are separate operations.
+The [ProForma header](PROFORMA_SUPPORT.md) now has native equivalents for every
+public operation group, including separate [spectrum generation](PROFORMA_SPECTRA_SUPPORT.md).
 
 | Operation | Native result |
 |---|---|

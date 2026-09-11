@@ -156,10 +156,9 @@ preflight. The [manifest](../tests/data/proforma_json_provenance.json) distingui
 source literals from derived assertions and records exact source/fixture hashes.
 This group claims no executed C++ JSON differential run or full SDK build.
 
-The [overall ProForma support](PROFORMA_SUPPORT.md) remains partial.
+The [overall ProForma support](PROFORMA_SUPPORT.md) covers the pinned public operation groups.
 [Chemistry resolution](PROFORMA_RESOLUTION_SUPPORT.md) is a separate explicit
 operation; decoded handles initially remain unset. [Mass/mz operations](PROFORMA_MASS_SUPPORT.md)
 and [AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md) can resolve decoded
-annotations using a supplied registry. Ordinary/XLMS spectrum generation remains
-a separate group. No placeholder
-API is supplied for them.
+annotations using a supplied registry. [Ordinary/XLMS spectrum generation](PROFORMA_SPECTRA_SUPPORT.md)
+is also available through a separate explicit operation.

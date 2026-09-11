@@ -827,7 +827,7 @@
       "scope": "All11 typed source options, both source run overloads, availability queries and explicit progress reporting. Retains filtering, apex ties, double-apex incremental means, IM/nearest/visited selection, both termination criteria and accepted summaries. Owned atomic results/cursor and successful flag reset, scalar area iterator, finite consumed arithmetic and cumulative work/allocation limits are explicit native adaptations. No ElutionPeakDetection or complete metabolite workflow certification."
     },
     "src/openms/include/OpenMS/CHEMISTRY/ProForma.h": {
-      "status": "partial",
+      "status": "native_equivalent",
       "rust": [
         "src/chemistry/proforma.rs",
         "src/chemistry/proforma_parser.rs",
@@ -835,7 +835,10 @@
         "src/chemistry/proforma_resolution.rs",
         "src/chemistry/modifications.rs",
         "src/chemistry/proforma_mass.rs",
-        "src/chemistry/proforma_conversion.rs"
+        "src/chemistry/proforma_conversion.rs",
+        "src/chemistry/proforma_spectra.rs",
+        "src/chemistry/theoretical_proforma_budget.rs",
+        "src/chemistry/theoretical_xlms.rs"
       ],
       "tests": [
         "tests/proforma.rs",
@@ -845,10 +848,12 @@
         "tests/proforma_json.rs",
         "tests/proforma_resolution.rs",
         "tests/proforma_mass.rs",
-        "tests/proforma_conversion.rs"
+        "tests/proforma_conversion.rs",
+        "tests/proforma_spectra.rs",
+        "tests/theoretical_xlms.rs"
       ],
       "documentation": "docs/PROFORMA_SUPPORT.md",
-      "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution, all mass/mz/can/issues/optional operations, and complete AASequence conversion/policies/diagnostics in both directions. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. Conversion preserves source defects explicitly; 1078 executed source formatter cases cover reverse mass text. Ordinary/XLMS spectrum methods remain outstanding."
+      "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution, all mass/mz/can/issues/optional operations, and complete AASequence conversion/policies/diagnostics in both directions. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. Conversion preserves source defects explicitly; 1078 executed source formatter cases cover reverse mass text. All six ordinary/XLMS spectrum operations and five source configuration fields are now implemented through the real native generators. Exact repeated advisory/resolution passes, first-link original-AST timing, strict mass threshold, warning order and duplicate-preserving sort are retained. Finite CPP-038/047 behavior is preserved with independent chemical/flattened-position expectations. One bounded atomic registry transaction covers all passes and both generator sides; standalone backends retain their own domains. Complete pinned public-header native equivalent, not complete ProForma-standard conformance or a C++ ABI. Source class assertions and native backend-composition tests are distinct from executed C++ spectrum oracles, which are not claimed."
     },
     "src/openms/include/OpenMS/METADATA/ProteinIdentification.h": {
       "status": "partial",
@@ -1138,7 +1143,7 @@
         "tests/sequence_fragment_mass.rs"
       ],
       "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
-      "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers and other XLMS algorithms remain separate."
+      "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers are implemented separately; other XLMS algorithms remain outstanding."
     },
     "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h": {
       "status": "partial",

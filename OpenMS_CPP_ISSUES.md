@@ -64,6 +64,8 @@ are not classified as confirmed defects here.
 | CPP-048 | Zero centroid-inspection limit underflows and depends on spectrum type | Source-reviewed; unsigned counter trigger | Open |
 | CPP-049 | Indexed mzML output always writes a placeholder file checksum | Source-reviewed; literal footer and schema contract | Open |
 | CPP-050 | Empty indexed mzML declares zero indices but emits a dummy entry | Source-reviewed; empty-offset-list branch | Open |
+| CPP-051 | mzML validation reuses parameter groups from earlier documents | Source-reviewed; successful repeated-call trigger | Open |
+| CPP-052 | Four-line schema detection rejects indexed mzML with a longer XML prolog | Source-reviewed; independently executed XSD checks | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -943,10 +945,11 @@ then pass its mass once through `cross_linker_mass`. Resolve and validate both
 endpoints before extracting that mass. Test the same linker represented on one
 or both endpoints and check precursor and linked-fragment mass conservation.
 
-**Rust handling:** ProForma's XLMS spectrum group is not yet implemented. The
-existing conversion and mass APIs preserve their separately documented source
-behavior. This finding is a required compatibility decision and regression case
-for the upcoming spectrum wrapper; no native or upstream spectrum fix is claimed.
+**Rust handling:** The [native ProForma spectrum wrapper](docs/PROFORMA_SPECTRA_SUPPORT.md)
+preserves this finite source behavior. Independent tests distinguish one-endpoint
+2D and two-endpoint 3D contributions from the chemically expected single linker.
+The standalone XLMS backend adds its supplied linker only once. No native or
+upstream scientific correction is claimed.
 
 ## CPP-039 — SemanticValidator compares descendant units with the measured term
 
@@ -1181,10 +1184,10 @@ regions. Define link selection inside those sections consistently as well, or
 reject unsupported section shapes before generation. Test a range and an
 ambiguous region preceding each chain's endpoint, independently of linker mass.
 
-**Rust handling:** The pending ProForma spectrum-wrapper group will preserve
-this finite source behavior with an explicit regression and a separate correct
-flattened-position expectation, consistent with its source compatibility policy.
-No upstream fix has been applied.
+**Rust handling:** The [native ProForma spectrum wrapper](docs/PROFORMA_SPECTRA_SUPPORT.md)
+preserves this finite source behavior with explicit range/ambiguity regressions
+and separate correct flattened-position expectations. Checked backend bounds
+still apply. No upstream fix has been applied.
 
 ## CPP-048 — Zero centroid-inspection limit depends on the first spectrum type
 
@@ -1273,3 +1276,61 @@ and mixed experiments with independent count and byte-target checks.
 indexed writer will reject an empty experiment before external output; callers
 can explicitly request ordinary mzML for an empty experiment. No native or
 upstream fix is claimed at this checkpoint.
+
+## CPP-051 — mzML semantic validation reuses parameter groups from earlier documents
+
+**Affected files:** [`src/openms/source/FORMAT/VALIDATORS/MzMLValidator.cpp`, lines 47–84](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/MzMLValidator.cpp#L47), group definition/reference callbacks; `src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, lines 86–108, inherited `validate` initialization.
+
+**Issue and reproduction:** Reuse one `MzMLValidator` for two documents. The
+first defines a referenceable parameter group `g` containing an allowed term
+required by a mapping rule. The second references `g` without defining it.
+The inherited `validate` clears diagnostics but does not clear `param_groups_`.
+The reused validator therefore applies the earlier document's term, potentially
+accepting a document that a fresh validator reports as missing a required term.
+This contamination occurs after successful validation, independently of the
+exception-state problem in CPP-040. Repeated definitions can also accumulate
+terms from previous documents.
+
+**Evidence:** Direct review of the persistent member, definition and reference
+callbacks, and inherited initialization. There is no per-document group reset.
+The two-document scenario is derived from that control flow; no executed C++
+reproduction or full SDK build is claimed.
+
+**Proposed fix:** Keep parameter groups, the current group ID and binary-array
+state local to each validation operation, or clear them before parsing with
+exception-safe cleanup. Preserve repeated-group behavior within a document.
+Test reuse after successful and failed parses against a fresh validator,
+including missing references and repeated IDs.
+
+**Rust handling:** The mzML-specific validator is under development with
+operation-local group and binary state. Its integration will include a
+two-document regression. No completed native or upstream fix is claimed yet.
+
+## CPP-052 — mzML schema selection depends on the first four physical lines
+
+**Affected files:** [`src/openms/source/FORMAT/MzMLFile.cpp`, lines 58–80](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/MzMLFile.cpp#L58), `isValid`; `src/openms/source/FORMAT/TextFile.cpp`, lines 24–81, and `src/openms/include/OpenMS/FORMAT/TextFile.h`, line 54, four-line loading with empty/comment skipping disabled.
+
+**Issue and reproduction:** Insert three XML comment lines after the XML
+declaration of an indexed mzML document. Its `indexedmzML` root now starts on
+line five. `isValid` concatenates only the first four trimmed lines and searches
+for the literal `<indexedmzML`, so it selects the ordinary mzML schema. That
+schema has no declaration for the indexed root. Schema choice therefore
+depends on an otherwise legal XML prolog rather than the document element.
+
+**Evidence:** [Recorded probe](docs/mzml-schema-selection-probe.json) retains
+source hashes, the exact transformation and actual `xmllint` results. Both the
+original `MzMLFile_4_indexed.mzML` and the transformed document pass the pinned
+indexed XSD. The transformed document fails the ordinary XSD. The four-line
+predicate is false by direct source review and independent byte inspection;
+the C++ method was not executed. The inserted comments leave index offsets and
+checksum untouched, so this probe asserts XSD validity only, not indexed-file
+integrity. No full SDK build is claimed.
+
+**Proposed fix:** Select the schema from the parsed document element's expanded
+name, allowing legal prolog whitespace, comments and namespace prefixes. Keep
+XML parsing bounded, then validate against the matching schema. Test a root
+beyond line four and equivalent prefixed/default-namespace forms.
+
+**Rust handling:** Runtime XSD validation remains outstanding. Its native schema
+selection will use the document element rather than a fixed line prefix. No
+implemented native or upstream fix is claimed at this checkpoint.

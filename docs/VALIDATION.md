@@ -1,5 +1,41 @@
 # Validation of the ongoing Rust port
 
+## ProForma spectrum generation (2026-09-11)
+
+[Recorded checks](proforma-spectra-validation.json) cover all six
+[ProForma spectrum operations](PROFORMA_SPECTRA_SUPPORT.md), completing the pinned
+ProForma public header's native operation groups. Source compatibility and
+checked boundaries remain explicit; this is not full notation-standard certification.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 2,068 tests passed |
+| Doctests, Rust 1.98 | Four passed |
+| Rust 1.85/no-default library and adjacent chemistry suites | 274 passed |
+| Strict Clippy on both compilers; release library, Rustdoc, Rustfmt | Passed |
+| Source audit, ProForma fixture regeneration and completion checks | Passed |
+
+All 12 integrated checks passed on their first run. Selected counts overlap;
+this group adds 21 tests. Twelve frozen extraction files remain exact; the
+thirteenth has only a root module-documentation correction. All 30 source hashes
+and both fixture/generator hashes were independently verified. The fixture
+retains ten full source sections and 18 literal assertions, including six
+generation calls; it does not invent numerical spectrum oracles. Separate tests
+exercise real-backend composition, repeated resolution/warning order, shared
+resource limits and atomic registry publication. CPP-038/047 finite source
+behavior is retained beside independent chemical/position expectations.
+No C++ spectrum execution or full SDK build is claimed.
+
+The [published general-validator checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34585986090)
+passed all CI jobs. The source issue log contains 52 entries, including a
+cross-document mzML parameter-group state leak and four-line XSD schema-selection
+defect. The latter has independent pinned-schema validation evidence in
+[mzml-schema-selection-probe.json](mzml-schema-selection-probe.json). The ledger now
+records 71 complete/native-equivalent headers and 715 requiring implementation
+or review, with zero certified TOPP workflows. Source verification covers 1,933
+distinct current files, 220 historical references, 21 graph references and 877
+added references. Remaining SDK work is tracked in the completion ledger.
+
 ## Streaming mzML consumers (2026-09-11)
 
 [Recorded checks](consumer-validation.json) cover the complete unconditional

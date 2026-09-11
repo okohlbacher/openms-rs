@@ -3,9 +3,8 @@
 `chemistry::proforma` implements both complete text grammars and the structured
 parse-error interface from OpenMS4-core `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`.
 Parsing creates the [owned annotation AST](PROFORMA_SUPPORT.md). This adds text
-parsing to the existing writers; the complete ProForma header still has separate
-chemistry resolution, sequence conversion, mass and spectrum operations
-that are not implemented here. [JSON transport](PROFORMA_JSON_SUPPORT.md) is
+parsing to the existing writers; chemistry resolution, sequence conversion, mass
+and [spectrum generation](PROFORMA_SPECTRA_SUPPORT.md) are available as separate operations. [JSON transport](PROFORMA_JSON_SUPPORT.md) is
 available separately with the `proforma-json` feature.
 
 ## Using the two grammars
@@ -171,7 +170,8 @@ probe remains separate evidence in [the AST/writer support document](PROFORMA_SU
 [Modification resolution](PROFORMA_RESOLUTION_SUPPORT.md) is available as a
 separate explicit operation, as are [mass/mz calculations](PROFORMA_MASS_SUPPORT.md)
 with issue/can/try variants and [AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md).
-Ordinary/XLMS spectra remain unimplemented; no parser success claims those capabilities.
+[Ordinary/XLMS spectra](PROFORMA_SPECTRA_SUPPORT.md) use separate representability
+checks; parser success alone does not establish generation availability.
 
 ## Executed C++ text comparisons
 

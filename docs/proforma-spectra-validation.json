@@ -1,0 +1,409 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "eeedbd1583b7d9be4a3a6cb676e0ad42a6192771",
+  "scope": [
+    "All six ProForma spectrum operations and five source options",
+    "Complete pinned ProForma public-header native equivalence",
+    "Shared bounded resolver/generator transaction; real ordinary and XLMS backends",
+    "CPP038/047 finite source outputs preserved with independent expectations; new source issues CPP051/052"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "--no-fail-fast",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 456.62,
+      "log_sha256": "dfa145f29ac009e7db56702adaad04d62c6103258268efed1003d7b444977276",
+      "log_bytes": 213804,
+      "tests_passed": 2068
+    },
+    {
+      "name": "docs_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.47,
+      "log_sha256": "4c47767d5f6463fa75a5303997092668d07dff5e172a8a194340c2a9f2a8eb42",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 50.11,
+      "log_sha256": "03966229fe16db14089a845b0f2674d7e95accb9645594ceb0785865348680f4",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 37.78,
+      "log_sha256": "0192aad9a61eefaf138dd709a0248622d8762136fb6cfefcddb12ea5836a4f53",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.09,
+      "log_sha256": "d977d6bfb6f3c7721bdd5ca9f0829b135f0f90d90e501f1a0dedc019da366f51",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.98,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.25,
+      "log_sha256": "bbc5866a53f7690840dd1294b54e61b307fd9843c7fe6459e8fbe80fc32c6ccb",
+      "log_bytes": 233
+    },
+    {
+      "name": "proforma_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/generate_proforma_spectra_reference.py",
+        ".reference/openms4-core-82ce5b3",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "c2717eb0cbf93ab7fc3ebe60debd6895a61f45d3783ec4348a6181858bbefabd",
+      "log_bytes": 162
+    },
+    {
+      "name": "completion_ledger",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.08,
+      "log_sha256": "7dbb3fe8f04019bbc13943addb71709e5937dd1b5496a1a329c6027c71d1022a",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.11,
+      "log_sha256": "b38122eb00786a1dde791468e577d2a36fbd71bde53d316bdbbeaf12a03db7c1",
+      "log_bytes": 100
+    },
+    {
+      "name": "proforma_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "proforma_spectra",
+        "--test",
+        "proforma_conversion",
+        "--test",
+        "proforma_mass",
+        "--test",
+        "proforma_resolution",
+        "--test",
+        "protein_cross_link",
+        "--test",
+        "theoretical",
+        "--test",
+        "theoretical_extension_reference",
+        "--test",
+        "theoretical_fine_reference",
+        "--test",
+        "theoretical_internal",
+        "--test",
+        "theoretical_mass_only",
+        "--test",
+        "theoretical_presets",
+        "--test",
+        "theoretical_xlms",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_writer_probe",
+        "--test",
+        "proforma_parser",
+        "--test",
+        "proforma_parser_probe",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 20.49,
+      "log_sha256": "8605f9dc5bbfdf82702c65223a34d8073ec6bac1af86188c0037c88390479369",
+      "log_bytes": 28876,
+      "tests_passed": 274
+    },
+    {
+      "name": "strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 15.45,
+      "log_sha256": "71fe695502d4fabe27fd2eec2517ebf06f9c975b9c406895eff20b88dae10439",
+      "log_bytes": 162
+    }
+  ],
+  "integration_files": [
+    {
+      "path": "src/chemistry/proforma_spectra.rs",
+      "sha256": "0cd9e2d6f1c6befaa5daef77efde66847438734fc88ed7796a19a985e9028881",
+      "bytes": 17606,
+      "kind": "new",
+      "integrated_sha256": "0cd9e2d6f1c6befaa5daef77efde66847438734fc88ed7796a19a985e9028881",
+      "root_amendment": null
+    },
+    {
+      "path": "src/chemistry/theoretical_proforma_budget.rs",
+      "sha256": "60e34413d646e51606e67e8174575b709a6c33d7f7b32cf865143bd620a2afc5",
+      "bytes": 11040,
+      "kind": "new",
+      "integrated_sha256": "60e34413d646e51606e67e8174575b709a6c33d7f7b32cf865143bd620a2afc5",
+      "root_amendment": null
+    },
+    {
+      "path": "tests/proforma_spectra.rs",
+      "sha256": "61713945eaadb46a1521bb8159c68a03816c585a5da15ae1d9f76fcf0823a252",
+      "bytes": 21214,
+      "kind": "new",
+      "integrated_sha256": "61713945eaadb46a1521bb8159c68a03816c585a5da15ae1d9f76fcf0823a252",
+      "root_amendment": null
+    },
+    {
+      "path": "docs/PROFORMA_SPECTRA_SUPPORT.md",
+      "sha256": "78078de91badf204c9c95769b705eae683d530825baebaf736bf0b8cd5baff93",
+      "bytes": 10169,
+      "kind": "new",
+      "integrated_sha256": "78078de91badf204c9c95769b705eae683d530825baebaf736bf0b8cd5baff93",
+      "root_amendment": null
+    },
+    {
+      "path": "tests/data/proforma_spectra_provenance.json",
+      "sha256": "9b5435d0784ad9a6a883f631a45a5a911701f27ab3344ff54dfbde878db734b3",
+      "bytes": 9577,
+      "kind": "new",
+      "integrated_sha256": "9b5435d0784ad9a6a883f631a45a5a911701f27ab3344ff54dfbde878db734b3",
+      "root_amendment": null
+    },
+    {
+      "path": "tests/data/proforma_spectra_source.json",
+      "sha256": "c64567d0a0735ac44010613014d126fba41d582b3b4c70be30d98290c8936928",
+      "bytes": 20117,
+      "kind": "new",
+      "integrated_sha256": "c64567d0a0735ac44010613014d126fba41d582b3b4c70be30d98290c8936928",
+      "root_amendment": null
+    },
+    {
+      "path": "tools/generate_proforma_spectra_reference.py",
+      "sha256": "28d3b17c1e5d95f656ff61957b82b07fc1eb827dc86c8c0d298fef47e1a21609",
+      "bytes": 5735,
+      "kind": "new",
+      "integrated_sha256": "28d3b17c1e5d95f656ff61957b82b07fc1eb827dc86c8c0d298fef47e1a21609",
+      "root_amendment": null
+    },
+    {
+      "path": "src/chemistry/proforma.rs",
+      "sha256": "f306f72a5b6af58d3923ea75fcaebc1e6f8fe3cb67410f924291370b0b83c6ca",
+      "bytes": 21894,
+      "kind": "modified",
+      "previous_sha256": "71dc498d1a9fba91e4523e7377f882f58aec27e98018d5da289b1767922b57da",
+      "integrated_sha256": "f2d18c474b6a3eebe7ad67bbc46ffe0d843ed6ddc49fff6c668c1fc4f5089424",
+      "root_amendment": "module documentation only"
+    },
+    {
+      "path": "src/chemistry/proforma_conversion.rs",
+      "sha256": "ef794740aff7e4abe2aefeaea896bc5f2079db55c9679ec6eb6a228063247a5b",
+      "bytes": 32772,
+      "kind": "modified",
+      "previous_sha256": "a1c16d6c5c59ca3004fe16fdcdb20584061de110f3d77ca346410dd4d2c5114c",
+      "integrated_sha256": "ef794740aff7e4abe2aefeaea896bc5f2079db55c9679ec6eb6a228063247a5b",
+      "root_amendment": null
+    },
+    {
+      "path": "src/chemistry/proforma_resolution.rs",
+      "sha256": "4dfebf10a2ea82d4989c64b0954e79c66f1694686603e93640d32ceb480c9e52",
+      "bytes": 29170,
+      "kind": "modified",
+      "previous_sha256": "0e2a98686b05b3873bee0359cb7d6861417735f0fe6318a2b9b97b8e995bdf12",
+      "integrated_sha256": "4dfebf10a2ea82d4989c64b0954e79c66f1694686603e93640d32ceb480c9e52",
+      "root_amendment": null
+    },
+    {
+      "path": "src/chemistry/proforma_mass.rs",
+      "sha256": "b8ab13074e94c195a87901cfa0c707242453f7506cf97c0b2f15086e3775048d",
+      "bytes": 37628,
+      "kind": "modified",
+      "previous_sha256": "50885dff109ba024b5d4d82158f9bcc2f5c75f4a3317cc62e4ea4d65cbdf19a0",
+      "integrated_sha256": "b8ab13074e94c195a87901cfa0c707242453f7506cf97c0b2f15086e3775048d",
+      "root_amendment": null
+    },
+    {
+      "path": "src/chemistry/theoretical.rs",
+      "sha256": "790f1578c9bcc3febf5e78e688288d171e9faedc798b240ad84f1895893ad1be",
+      "bytes": 35273,
+      "kind": "modified",
+      "previous_sha256": "1c5c2c56820525eb39e22356bfff390b4fd8559ea9e81f1f5d46228c98174c75",
+      "integrated_sha256": "790f1578c9bcc3febf5e78e688288d171e9faedc798b240ad84f1895893ad1be",
+      "root_amendment": null
+    },
+    {
+      "path": "src/chemistry/theoretical_xlms.rs",
+      "sha256": "5f725f6a8051546021131b46c29deae55e803e0231c462ddfc386f8c01de6592",
+      "bytes": 27181,
+      "kind": "modified",
+      "previous_sha256": "7d0f9f0b0907b324f3c3f8afb89bc24dd19e5196e5505f8923ad5d722e142a1b",
+      "integrated_sha256": "5f725f6a8051546021131b46c29deae55e803e0231c462ddfc386f8c01de6592",
+      "root_amendment": null
+    }
+  ],
+  "first_run_integrated_checks": "All 12 integrated checks passed on their first run. Stage test setup/lint corrections are separate.",
+  "stage_validation_history": "Initial test compilation corrected unsupported SequenceElement::default fixtures; first run 13/15 corrected empty-string parsing versus an empty AST and explicit backend annotation options. Added warning-order test. Mechanical Clippy reference/initializer fixes. No scientific discrepancy or C++ execution claimed.",
+  "independent_reference_checks": {
+    "unchanged_extraction_files": 12,
+    "root_documentation_only_amendments": 1,
+    "source_hashes": 30,
+    "issue_052_source_hashes": 6,
+    "issue_052_schema_checks": [
+      0,
+      0,
+      3
+    ],
+    "fixture_and_generator_hashes": 2,
+    "projected_source_sections": 10,
+    "literal_source_assertions": 18,
+    "generation_calls": 6,
+    "parse_inputs": 15,
+    "explicit_resolution_calls": 11,
+    "cpp_execution": false,
+    "reference_scope": "Source spectrum assertions are nonempty/minimum/comparative only; backend comparisons verify composition. Linker chemistry checks instead use independent free-residue formulas/proton/water constants. No executed C++ spectrum oracle."
+  },
+  "source_audit": {
+    "distinct_current_files": 1933,
+    "historical_reference_paths": 220,
+    "graph_references": 21,
+    "added_source_references": 877
+  },
+  "completion": {
+    "complete": 10,
+    "native_equivalent": 61,
+    "partial": 21,
+    "evidence_requires_review": 165,
+    "unmapped": 529,
+    "registered_headers": 786,
+    "topp_sources": 146,
+    "certified_topp_workflows": 0
+  },
+  "cpp_issue_entries": 52,
+  "published_semantic_ci": {
+    "revision": "69717811f3d3c0fdd58d4969603316f293d495de",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34585986090",
+    "conclusion": "success"
+  },
+  "remaining": "Centroid inspection, format-specific semantic/schema validation, remaining mzML source read/write options, typed transport, indexed output and the broader SDK remain incomplete; zero certified TOPP workflows."
+}

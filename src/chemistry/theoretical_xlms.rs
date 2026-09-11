@@ -112,6 +112,12 @@ struct Work {
     bytes: usize,
 }
 impl Work {
+    fn new(settings: &TheoreticalSpectrumGeneratorXLMS) -> Self {
+        Self {
+            remaining: settings.limits.max_work,
+            bytes: settings.limits.max_bytes,
+        }
+    }
     fn charge(&mut self, work: usize, bytes: usize) -> Result<()> {
         self.remaining = self.remaining.checked_sub(work).ok_or_else(resource)?;
         self.bytes = self.bytes.checked_sub(bytes).ok_or_else(resource)?;
@@ -181,12 +187,16 @@ struct Emitter<'a> {
     options: &'a XLMSOptions,
     rows: Vec<Row>,
     limit: usize,
-    work: Work,
+    work: &'a mut Work,
     water: f64,
     ammonia: f64,
 }
 impl<'a> Emitter<'a> {
-    fn new(settings: &'a TheoreticalSpectrumGeneratorXLMS, old: usize) -> Result<Self> {
+    fn new(
+        settings: &'a TheoreticalSpectrumGeneratorXLMS,
+        old: usize,
+        work: &'a mut Work,
+    ) -> Result<Self> {
         let o = &settings.options;
         for value in [
             o.a_intensity,
@@ -202,10 +212,6 @@ impl<'a> Emitter<'a> {
         ] {
             finite(value)?;
         }
-        let mut work = Work {
-            remaining: settings.limits.max_work,
-            bytes: settings.limits.max_bytes,
-        };
         work.charge(2048, 2048)?;
         Ok(Self {
             options: o,
@@ -546,8 +552,9 @@ impl TheoreticalSpectrumGeneratorXLMS {
         charge: i32,
         link_pos_2: usize,
     ) -> Result<()> {
-        let mut e = Emitter::new(self, spectrum.len())?;
-        let p = PreparedPeptide::new(peptide, self, &mut e.work)?;
+        let mut work = Work::new(self);
+        let mut e = Emitter::new(self, spectrum.len(), &mut work)?;
+        let p = PreparedPeptide::new(peptide, self, e.work)?;
         let second = if link_pos_2 == 0 {
             link_pos
         } else {
@@ -580,8 +587,9 @@ impl TheoreticalSpectrumGeneratorXLMS {
         link_pos_2: usize,
     ) -> Result<()> {
         finite(precursor_mass)?;
-        let mut e = Emitter::new(self, spectrum.len())?;
-        let p = PreparedPeptide::new(peptide, self, &mut e.work)?;
+        let mut work = Work::new(self);
+        let mut e = Emitter::new(self, spectrum.len(), &mut work)?;
+        let p = PreparedPeptide::new(peptide, self, e.work)?;
         let second = if link_pos_2 == 0 {
             link_pos
         } else {
@@ -612,17 +620,56 @@ impl TheoreticalSpectrumGeneratorXLMS {
         min_charge: i32,
         max_charge: i32,
     ) -> Result<()> {
+        self.crosslink_with_work(
+            spectrum,
+            crosslink,
+            frag_alpha,
+            min_charge,
+            max_charge,
+            &mut Work::new(self),
+        )
+    }
+    /// Composition-only adapter; both remaining counters propagate on errors.
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn crosslink_with_budget(
+        &self,
+        spectrum: &mut MSSpectrum,
+        crosslink: &ProteinProteinCrossLink,
+        frag_alpha: bool,
+        min_charge: i32,
+        max_charge: i32,
+        remaining_work: &mut usize,
+        remaining_bytes: &mut usize,
+    ) -> Result<()> {
+        let initial_work = (*remaining_work).min(self.limits.max_work);
+        let initial_bytes = (*remaining_bytes).min(self.limits.max_bytes);
+        let mut work = Work {
+            remaining: initial_work,
+            bytes: initial_bytes,
+        };
+        let result = self.crosslink_with_work(
+            spectrum, crosslink, frag_alpha, min_charge, max_charge, &mut work,
+        );
+        *remaining_work -= initial_work - work.remaining;
+        *remaining_bytes -= initial_bytes - work.bytes;
+        result
+    }
+    fn crosslink_with_work(
+        &self,
+        spectrum: &mut MSSpectrum,
+        crosslink: &ProteinProteinCrossLink,
+        frag_alpha: bool,
+        min_charge: i32,
+        max_charge: i32,
+        work: &mut Work,
+    ) -> Result<()> {
         let Some(alpha) = &crosslink.alpha else {
             return Ok(());
         };
-        let mut e = Emitter::new(self, spectrum.len())?;
-        let alpha = PreparedPeptide::new(alpha, self, &mut e.work)?;
+        let mut e = Emitter::new(self, spectrum.len(), work)?;
+        let alpha = PreparedPeptide::new(alpha, self, e.work)?;
         let empty = AASequence::default();
-        let beta = PreparedPeptide::new(
-            crosslink.beta.as_deref().unwrap_or(&empty),
-            self,
-            &mut e.work,
-        )?;
+        let beta = PreparedPeptide::new(crosslink.beta.as_deref().unwrap_or(&empty), self, e.work)?;
         let series = self.options.add_a_ions
             || self.options.add_b_ions
             || self.options.add_c_ions
@@ -723,8 +770,9 @@ mod tests {
         g.options.add_y_ions = false;
         g.options.add_precursor_peaks = false;
         g.options.add_k_linked_ions = false;
-        let mut e = Emitter::new(&g, 0).unwrap();
-        let p = PreparedPeptide::new(&AASequence::parse("AAAA").unwrap(), &g, &mut e.work).unwrap();
+        let mut allowance = Work::new(&g);
+        let mut e = Emitter::new(&g, 0, &mut allowance).unwrap();
+        let p = PreparedPeptide::new(&AASequence::parse("AAAA").unwrap(), &g, e.work).unwrap();
         e.work.remaining = (p.masses.len() + 1) * 16;
         assert!(
             e.generate(
@@ -747,10 +795,49 @@ mod tests {
         let g = TheoreticalSpectrumGeneratorXLMS::default();
         let mut target = MSSpectrum::from_peaks(vec![Peak1D::new(100., 3.)]);
         let before = target.clone();
-        let mut e = Emitter::new(&g, target.len()).unwrap();
+        let mut allowance = Work::new(&g);
+        let mut e = Emitter::new(&g, target.len(), &mut allowance).unwrap();
         e.push(20., 1., 1, || "test".into()).unwrap();
         e.work.bytes = 1;
         assert!(publish(&mut target, e).is_err());
         assert_eq!(target, before);
+    }
+    #[test]
+    fn second_side_failure_preserves_first_side_and_shared_counters() {
+        use std::sync::Arc;
+        let mut link = ProteinProteinCrossLink::default();
+        link.alpha = Some(Arc::new(AASequence::parse("AMAA").unwrap()));
+        link.beta = Some(Arc::new(AASequence::parse("AAMA").unwrap()));
+        link.cross_link_position = (1, 2);
+        let g = TheoreticalSpectrumGeneratorXLMS::default();
+        let mut work = 50_000_000;
+        let mut bytes = 64 * 1024 * 1024;
+        let mut first = MSSpectrum::default();
+        g.crosslink_with_budget(&mut first, &link, true, 1, 2, &mut work, &mut bytes)
+            .unwrap();
+        let work_after_first = work;
+        let bytes_after_first = bytes;
+        let mut complete = first.clone();
+        g.crosslink_with_budget(&mut complete, &link, false, 1, 2, &mut work, &mut bytes)
+            .unwrap();
+        assert!(complete.len() > first.len());
+        let used = [work_after_first - work, bytes_after_first - bytes];
+        for index in 0..2 {
+            let mut target = first.clone();
+            let mut work = work_after_first;
+            let mut bytes = bytes_after_first;
+            if index == 0 {
+                work = used[0] - 1
+            } else {
+                bytes = used[1] - 1
+            }
+            let before = (work, bytes);
+            assert!(
+                g.crosslink_with_budget(&mut target, &link, false, 1, 2, &mut work, &mut bytes)
+                    .is_err()
+            );
+            assert_eq!(target, first);
+            assert!(work < before.0 && bytes < before.1);
+        }
     }
 }

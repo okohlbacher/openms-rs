@@ -798,10 +798,25 @@ fn copy_element(element: &SequenceElement, budget: &mut Budget) -> Result<()> {
     copy_modifications(&element.modifications, budget)
 }
 pub(super) fn clone_chain(chain: &Peptidoform, budget: &mut Budget) -> Result<Peptidoform> {
+    clone_chain_impl(chain, budget, true)
+}
+pub(super) fn clone_chain_for_sequence(
+    chain: &Peptidoform,
+    budget: &mut Budget,
+) -> Result<Peptidoform> {
+    clone_chain_impl(chain, budget, false)
+}
+fn clone_chain_impl(
+    chain: &Peptidoform,
+    budget: &mut Budget,
+    context: bool,
+) -> Result<Peptidoform> {
     budget.consume(size_of::<Peptidoform>())?;
     budget.allocate(size_of::<Peptidoform>())?;
-    if let Some(name) = &chain.name {
-        copy_text(name, budget)?;
+    if context {
+        if let Some(name) = &chain.name {
+            copy_text(name, budget)?;
+        }
     }
     copy_vector(&chain.global_mods, budget)?;
     for entry in &chain.global_mods {
@@ -845,13 +860,26 @@ pub(super) fn clone_chain(chain: &Peptidoform, budget: &mut Budget) -> Result<Pe
             }
         }
     }
-    if let Some(ChargeState::Adducts(adducts)) = &chain.charge {
-        copy_vector(adducts, budget)?;
-        for adduct in adducts {
-            copy_text(&adduct.formula, budget)?;
+    if context {
+        if let Some(ChargeState::Adducts(adducts)) = &chain.charge {
+            copy_vector(adducts, budget)?;
+            for adduct in adducts {
+                copy_text(&adduct.formula, budget)?;
+            }
         }
+        Ok(chain.clone())
+    } else {
+        Ok(Peptidoform {
+            name: None,
+            charge: None,
+            global_mods: chain.global_mods.clone(),
+            unlocalised_mods: chain.unlocalised_mods.clone(),
+            labile_mods: chain.labile_mods.clone(),
+            n_term_mods: chain.n_term_mods.clone(),
+            sequence: chain.sequence.clone(),
+            c_term_mods: chain.c_term_mods.clone(),
+        })
     }
-    Ok(chain.clone())
 }
 
 #[cfg(test)]
@@ -1005,5 +1033,34 @@ mod tests {
         assert!(ion.try_mono_mass(&mut db()).unwrap().value.is_none());
         assert!(ion.try_mz(&mut db()).unwrap().value.is_none());
         assert!(ion.mass_calculation_issues(&mut db()).is_err());
+    }
+    #[test]
+    fn sequence_clone_omits_only_unconsumed_context_payload() {
+        let small = Peptidoform::parse("AMA").unwrap();
+        let mut large = small.clone();
+        large.name = Some("n".repeat(MAX_PROFORMA_MASS_TEXT_BYTES + 1));
+        large.charge = Some(ChargeState::Adducts(vec![AdductIon {
+            formula: "a".repeat(MAX_PROFORMA_MASS_TEXT_BYTES + 1),
+            charge: i32::MIN,
+            occurrence: Some(i32::MIN),
+        }]));
+        let mut a = Budget::default();
+        let expected = clone_chain_for_sequence(&small, &mut a).unwrap();
+        let mut b = Budget::default();
+        assert_eq!(clone_chain_for_sequence(&large, &mut b).unwrap(), expected);
+        assert_eq!((a.work, a.bytes, a.items), (b.work, b.bytes, b.items));
+        assert!(clone_chain(&large, &mut Budget::default()).is_err());
+        if let SequenceSection::Element(e) = &mut large.sequence[1] {
+            e.modifications.push(Modification {
+                alternatives: vec![(
+                    ModificationTag::InfoTag(InfoTag {
+                        text: "x".repeat(MAX_PROFORMA_MASS_TEXT_BYTES + 1),
+                    }),
+                    None,
+                )],
+                ..Default::default()
+            });
+        }
+        assert!(clone_chain_for_sequence(&large, &mut Budget::default()).is_err());
     }
 }

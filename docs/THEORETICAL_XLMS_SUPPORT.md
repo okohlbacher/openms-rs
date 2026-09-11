@@ -5,8 +5,8 @@ OpenMS4-core `TheoreticalSpectrumGeneratorXLMS` at
 `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`: all three generation overloads,
 `LossIndex`, the 25 settings, construction and copying. It also implements the
 complete `ProteinProteinCrossLink` record and its reaction type from
-`OPXLDataStructs`. The rest of OPXLDataStructs and the ProForma spectrum wrappers
-remain separate work. This is a native implementation; no C++ ABI or inherited
+`OPXLDataStructs`. [ProForma spectrum wrappers](PROFORMA_SPECTRA_SUPPORT.md) are
+also implemented. The rest of OPXLDataStructs remains separate work. This is a native implementation; no C++ ABI or inherited
 `DefaultParamHandler` facade is supplied.
 
 Authoritative source: [generator header](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h),
@@ -120,7 +120,7 @@ expectation:
 
 These are source inspection plus independent scalar algebra, not executed C++
 spectrum comparisons. The central [C++ issue log](../OpenMS_CPP_ISSUES.md)
-records both defects. CPP-038 concerns the separate, unported ProForma wrapper;
+records both defects. CPP-038 concerns the separate [ProForma wrapper](PROFORMA_SPECTRA_SUPPORT.md);
 this backend adds the supplied linker once and makes no compensation for that
 wrapper's peptide modification behavior.
 

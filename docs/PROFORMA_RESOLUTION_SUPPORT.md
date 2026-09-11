@@ -21,7 +21,7 @@ This operation fills handles; it does not rewrite annotation text, combine
 brackets, convert to AASequence, calculate masses, validate cross-links or
 generate spectra. [Mass/mz operations](PROFORMA_MASS_SUPPORT.md) use resolution
 through their own atomic transaction, as does [AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md).
-Spectra remain a separate [ProForma group](PROFORMA_SUPPORT.md).
+[Spectrum generation](PROFORMA_SPECTRA_SUPPORT.md) also uses an explicit atomic transaction.
 
 ## Traversal and alternatives
 
@@ -135,5 +135,5 @@ the exact source hashes and relevant ranges. Primary implementations are
 and [`ModificationsDB.cpp`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ModificationsDB.cpp#L137).
 The [source class tests](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/tests/class_tests/openms/source/ProFormaParser_test.cpp#L1415)
 include resolution-only portions of conversion examples; this group does not
-claim to execute unimplemented conversion APIs or an upstream C++ resolver.
+claim to execute the separate conversion APIs or an upstream C++ resolver.
 Historical text/JSON/probe manifests are preserved.

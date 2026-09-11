@@ -6,8 +6,8 @@
 //!
 //! This module implements the annotation AST, both text grammars, structured
 //! errors, text writers and AASequence conversion from the pinned source.
-//! Spectrum generation is not yet available. Resolution, conversion and mass/mz use
-//! an explicitly supplied mutable registry. JSON
+//! Ordinary and crosslink spectrum generation compose the native generators.
+//! Resolution, conversion, mass/mz and spectra use an explicitly supplied mutable registry. JSON
 //! transport is available with the `proforma-json` feature.
 //! Serialization preserves source omissions and does not validate ProForma
 //! grammar. See `docs/PROFORMA_SUPPORT.md`, `docs/PROFORMA_PARSER_SUPPORT.md`
@@ -660,3 +660,7 @@ pub use conversion::{
     MAX_PROFORMA_CONVERSION_ITEMS, MAX_PROFORMA_CONVERSION_TEXT_BYTES,
     MAX_PROFORMA_CONVERSION_WORK,
 };
+
+#[path = "proforma_spectra.rs"]
+mod spectra;
+pub use spectra::SpectrumGenerationOptions;

@@ -153,6 +153,10 @@ impl<'a> Resolver<'a> {
     pub(super) fn warning_count(&self) -> usize {
         self.warnings.len()
     }
+    /// Transfer emitted diagnostics between source passes without reordering them.
+    pub(super) fn take_warnings(&mut self) -> Vec<ResolutionWarning> {
+        std::mem::take(&mut self.warnings)
+    }
     pub(super) fn finish(self) -> (Option<ModificationsDB>, Vec<ResolutionWarning>) {
         (self.staged, self.warnings)
     }

@@ -1,9 +1,9 @@
 # Porting status: ongoing native Rust port
 
 Metabolite feature finding, complete experiment settings, DateTime and ProForma
-annotation parsing, writing, resolution, [mass calculation](PROFORMA_MASS_SUPPORT.md)
-and [AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md)
-are native. The [completion ledger](CORE_SDK_COMPLETION.md) records reviewed
+annotation parsing, writing, resolution, [mass calculation](PROFORMA_MASS_SUPPORT.md),
+[AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md) and
+[spectrum generation](PROFORMA_SPECTRA_SUPPORT.md) are native. The [completion ledger](CORE_SDK_COMPLETION.md) records reviewed
 operation groups and remaining work. Full SDK/TOPP certification remains open.
 
 The target is a feature-complete reduced Core SDK suitable for porting TOPP tools, with an idiomatic Rust API. Spectra, chemistry and common processing were the starting priorities. This document describes the implemented surface rather than claiming parity for every method of a similarly named C++ class. The [completion ledger](CORE_SDK_COMPLETION.md) tracks all registered public headers and direct TOPP dependencies.
@@ -20,7 +20,7 @@ hulls. [SDK constants](CONSTANTS_SUPPORT.md) expose every numeric entry and meta
 key with exact source values. The [monosaccharide database](MONOSACCHARIDE_SUPPORT.md)
 provides the complete built-in source lookup surface. Mass-trace detection is
 now available. ProForma sequence parsing and mass calculation are implemented;
-[AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md) is now implemented; ordinary/XLMS spectrum generation remains.
+[AASequence conversion](PROFORMA_CONVERSION_SUPPORT.md) and [ordinary/XLMS spectrum generation](PROFORMA_SPECTRA_SUPPORT.md) are implemented.
 
 ## Mobility containers, array descriptions and path operations
 
@@ -80,7 +80,7 @@ providers. General CV mapping and source-supported header transport are implemen
 | CHEMISTRY/AASequence, ResidueDB | `AASequence` | 20 standard residues plus U/O/J/B/Z/X, named/numeric residue and terminal annotations, checked formula/masses, subsequences and m/z; [details](SEQUENCE_SUPPORT.md) |
 | CHEMISTRY/AASequence fragment convenience | `AASequence::fragment_ions` | b/y series only, charges 1..=maximum; modified residue/terminal masses included; no intensities, losses or isotope peaks in this convenience API |
 | CHEMISTRY/TheoreticalSpectrumGenerator | `TheoreticalSpectrumGenerator` | a/b/c/x/y/z and z variants, internal fragments, immonium peaks, activation presets, compact mass helper, losses/precursors/coarse and fine envelopes and aligned names/charges; checked generation/append; [details](THEORETICAL_SPECTRA.md) |
-| CHEMISTRY/TheoreticalSpectrumGeneratorXLMS | `TheoreticalSpectrumGeneratorXLMS`, `ProteinProteinCrossLink` | Complete class-specific linear/single/pair append operations, all source options and atomic aligned annotations; [source behavior and limits](THEORETICAL_XLMS_SUPPORT.md). Other OPXL records and ProForma wrappers remain. |
+| CHEMISTRY/TheoreticalSpectrumGeneratorXLMS | `TheoreticalSpectrumGeneratorXLMS`, `ProteinProteinCrossLink` | Complete class-specific linear/single/pair append operations, all source options and atomic aligned annotations; [source behavior and limits](THEORETICAL_XLMS_SUPPORT.md). ProForma wrappers are implemented separately; other OPXL records remain. |
 | CHEMISTRY/ModificationsDB | `ModificationsDB`, `ResidueModification` | 3,035 UniMod/custom and 92 XLMOD monolink specificity records, shared owned handles, bounded OBO loading, aliases, caller records and mass lookup; [details](MODIFICATION_SUPPORT.md) |
 | CHEMISTRY/CrossLinksDB | `CrossLinksDB` | Separate 56-record pinned XLMOD crosslink view, caller-owned bounded loading and shared registry searches; [details](CROSS_LINKS_SUPPORT.md) |
 | CHEMISTRY/ModifiedPeptideGenerator | `ModifiedPeptideGenerator` | Fixed placement and bounded variable combinations, source reverse-site and terminal-path conventions, deterministic alternative order and atomic append; [details](MODIFIED_PEPTIDES_SUPPORT.md) |
@@ -192,7 +192,7 @@ Modified-peptide generation preserves the source’s distinct terminal handling 
 
 ## Remaining scope
 
-The full-library port remains in progress. The historical PSI-MOD dataset is not bundled in the default registry; the OBO reader supports caller-supplied PSI-MOD records and aliases. Other unimplemented areas include the remaining OpenMS metadata families; `IdentificationData` persistence and remaining legacy converter APIs; ProForma ordinary/XLMS spectrum generation; IsoSpec layered traversal and backend performance hints; RNA enzyme XML/arbitrary regex support; other centroiding families; calibration; feature finding/grouping and broader feature/consensus processing; landmark discovery and alignment/scoring beyond the documented models and spectrum comparisons; database search; probabilistic protein inference; the complete IDBoostGraph API; optimized peptide-indexing throughput and additional identification scorers/FDR overloads; broader quantification and OpenSWATH workflows; imaging; QC; ML/solvers; mzIdentML/pepXML and other formats; Arrow/Parquet; and vendor raw readers.
+The full-library port remains in progress. The historical PSI-MOD dataset is not bundled in the default registry; the OBO reader supports caller-supplied PSI-MOD records and aliases. Other unimplemented areas include the remaining OpenMS metadata families; `IdentificationData` persistence and remaining legacy converter APIs; IsoSpec layered traversal and backend performance hints; RNA enzyme XML/arbitrary regex support; other centroiding families; calibration; feature finding/grouping and broader feature/consensus processing; landmark discovery and alignment/scoring beyond the documented models and spectrum comparisons; database search; probabilistic protein inference; the complete IDBoostGraph API; optimized peptide-indexing throughput and additional identification scorers/FDR overloads; broader quantification and OpenSWATH workflows; imaging; QC; ML/solvers; mzIdentML/pepXML and other formats; Arrow/Parquet; and vendor raw readers.
 
 These are real unimplemented areas, not hidden C++ fallbacks. The [repository analysis](REPOSITORY_ANALYSIS.md) gives a dependency-ordered roadmap and acceptance criteria. Full compatibility requires independent C++ differential runs and representative workflow benchmarks in addition to source-derived Rust tests.
 

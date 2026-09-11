@@ -1,0 +1,80 @@
+{
+  "date": "2026-09-11",
+  "issue": "CPP-052",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source_files": [
+    {
+      "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+      "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
+    },
+    {
+      "path": "src/openms/source/FORMAT/TextFile.cpp",
+      "sha256": "d5daf2c586ec4aa45a4e285628323f7e6f6429abc8740f4f460787d0f05eaa52"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/TextFile.h",
+      "sha256": "0a594d6adae4d65807a9345e3169365391d20700e889191dd9cb39db39aa0c63"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
+      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+      "sha256": "8be24aab80f1f43a610d84745534e25abcd8734738c2699b0f67b4c242c154db"
+    },
+    {
+      "path": "share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
+      "sha256": "b99b668f2d9faabbf62ab8cde1f778d126bf0213d083472590670ee64318f5b0"
+    }
+  ],
+  "transformation": "Insert three ASCII XML comment lines immediately after the existing XML declaration, placing indexedmzML on line five. All other bytes remain unchanged.",
+  "transformed_sha256": "a59272770ca1e32f0a087d46e636cec007436b3367369075638c7e081b942e02",
+  "first_four_trimmed_lines_contain_source_needle": false,
+  "xml_validation_runs": [
+    {
+      "name": "original_indexed",
+      "command": [
+        "xmllint",
+        "--noout",
+        "--nonet",
+        "--schema",
+        ".reference/openms4-core-82ce5b3/share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
+        ".reference/openms4-core-82ce5b3/src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ".reference/openms4-core-82ce5b3/src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML validates\n"
+    },
+    {
+      "name": "delayed_root_indexed",
+      "command": [
+        "xmllint",
+        "--noout",
+        "--nonet",
+        "--schema",
+        ".reference/openms4-core-82ce5b3/share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd",
+        "/tmp/openms-mzml-schema-selection-delayed-root.mzML"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "/tmp/openms-mzml-schema-selection-delayed-root.mzML validates\n"
+    },
+    {
+      "name": "delayed_root_ordinary",
+      "command": [
+        "xmllint",
+        "--noout",
+        "--nonet",
+        "--schema",
+        ".reference/openms4-core-82ce5b3/share/OpenMS/SCHEMAS/mzML_1_10.xsd",
+        "/tmp/openms-mzml-schema-selection-delayed-root.mzML"
+      ],
+      "exit_code": 3,
+      "stdout": "",
+      "stderr": "/tmp/openms-mzml-schema-selection-delayed-root.mzML:5: element indexedmzML: Schemas validity error : Element '{http://psi.hupo.org/ms/mzml}indexedmzML': No matching global declaration available for the validation root.\n/tmp/openms-mzml-schema-selection-delayed-root.mzML fails to validate\n"
+    }
+  ],
+  "xmllint_version": "xmllint: using libxml version 20913\n   compiled with: Threads Tree Output Push Reader Patterns Writer SAXv1 FTP HTTP DTDValid HTML Legacy C14N Catalog XPath XPointer XInclude ICU ISO8859X Unicode Regexps Automata Schemas Schematron Modules Debug Zlib \n",
+  "evidence_limit": "Source selector reviewed, not executed as C++. xmllint executes the actual pinned XSDs. Added comments intentionally leave source index offsets/checksum unchanged; XSD validity is asserted, not indexed-file integrity or a full C++ SDK build."
+}

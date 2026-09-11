@@ -536,7 +536,8 @@
     "tests/data/mzml_header_provenance.json",
     "tests/data/semantic_validator_provenance.json",
     "tests/data/xlms_provenance.json",
-    "tests/data/mzml_consumer_provenance.json"
+    "tests/data/mzml_consumer_provenance.json",
+    "tests/data/proforma_spectra_provenance.json"
   ],
   "full_cpp_sdk_built": false,
   "cpp_reference_probe_built": true,

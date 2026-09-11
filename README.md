@@ -78,7 +78,7 @@ The [chromatogram picker](docs/CHROMATOGRAM_PICKING_SUPPORT.md) preserves source
 
 The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds and reports exact input regions alongside the source’s rounded centroid and boundary arrays. [Window filtering](docs/WINDOW_MOWER_SUPPORT.md) supports sliding and jumping windows; the [iterative mean noise estimator](docs/MEAN_NOISE_SUPPORT.md) preserves the source’s three-pass clipping conventions.
 
-IsoSpec layered traversal; ProForma ordinary/XLMS spectrum generation; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
+IsoSpec layered traversal; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
 
 The [mobility containers](docs/MOBILOGRAM_SUPPORT.md) provide checked mobilogram
 search, sorting, selection and summaries. Generic `DataArray` values now retain
@@ -208,7 +208,7 @@ reproductions, evidence level and proposed upstream fixes.
 fills shared chemistry handles using a caller-owned registry with atomic failure
 handling. [Mass and m/z operations](docs/PROFORMA_MASS_SUPPORT.md) include
 issue reports, availability checks and optional results. [Sequence conversion](docs/PROFORMA_CONVERSION_SUPPORT.md) is available;
-ProForma spectrum generation remains separate work.
+[ProForma spectrum generation](docs/PROFORMA_SPECTRA_SUPPORT.md) now covers ordinary and crosslinked peptides.
 
 [DateTime support](docs/DATETIME_SUPPORT.md) includes source-compatible parsing,
 all seven formats, local/UTC clocks and checked Gregorian arithmetic.
@@ -234,8 +234,8 @@ documented source value conventions and does not perform full XSD validation.
 
 [Crosslink spectrum generation](docs/THEORETICAL_XLMS_SUPPORT.md) now provides
 all three source XLMS append operations and their full options. The owned
-crosslink record preserves sequence identity. ProForma spectrum wrappers and
-other XLMS analysis classes remain separate work.
+crosslink record preserves sequence identity. ProForma spectrum wrappers compose
+these backends; other XLMS analysis classes remain separate work.
 
 [Streaming mzML consumers](docs/MZML_CONSUMER_SUPPORT.md) support setup counts,
 batched callbacks, early stopping and optional retention of modified records.

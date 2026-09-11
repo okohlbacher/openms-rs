@@ -97,7 +97,7 @@ fn copy_text(text: &str, budget: &mut Budget) -> Result<String> {
     budget.allocate(text.len())?;
     Ok(text.to_owned())
 }
-fn finish<T>(
+pub(super) fn finish<T>(
     value: T,
     resolver: Resolver<'_>,
     extra: Vec<ConversionWarning>,
@@ -115,15 +115,35 @@ fn conversion_issues(
     registry: &mut ModificationsDB,
     budget: &mut Budget,
 ) -> Result<ConversionEvaluation<Vec<ConversionIssue>>> {
-    let mut resolved = super::mass::clone_chain(input, budget)?;
     let mut resolver = Resolver::new(registry, budget);
-    resolver.resolve_chain(&mut resolved)?;
-    let issues = collect_issues(&resolved, resolver.budget)?;
+    let issues = issues_with_session(input, &mut resolver, true)?;
     let (result, staged) = finish(issues, resolver, Vec::new())?;
     if let Some(next) = staged {
         *registry = next;
     }
     Ok(result)
+}
+
+pub(super) fn issues_with_session(
+    input: &Peptidoform,
+    resolver: &mut Resolver<'_>,
+    context: bool,
+) -> Result<Vec<ConversionIssue>> {
+    let mut resolved = clone_for_session(input, resolver.budget, context)?;
+    resolver.resolve_chain(&mut resolved)?;
+    collect_issues(&resolved, resolver.budget)
+}
+
+fn clone_for_session(
+    input: &Peptidoform,
+    budget: &mut Budget,
+    context: bool,
+) -> Result<Peptidoform> {
+    if context {
+        super::mass::clone_chain(input, budget)
+    } else {
+        super::mass::clone_chain_for_sequence(input, budget)
+    }
 }
 
 fn chemistry(tag: &ModificationTag) -> bool {
@@ -322,8 +342,22 @@ fn convert(
     registry: &mut ModificationsDB,
     budget: &mut Budget,
 ) -> Result<ConversionEvaluation<AASequence>> {
-    let mut pf = super::mass::clone_chain(input, budget)?;
     let mut resolver = Resolver::new(registry, budget);
+    let (sequence, warnings) = convert_with_session(input, policy, &mut resolver, true)?;
+    let (result, staged) = finish(sequence, resolver, warnings)?;
+    if let Some(next) = staged {
+        *registry = next;
+    }
+    Ok(result)
+}
+
+pub(super) fn convert_with_session(
+    input: &Peptidoform,
+    policy: ConversionPolicy,
+    resolver: &mut Resolver<'_>,
+    context: bool,
+) -> Result<(AASequence, Vec<ConversionWarning>)> {
+    let mut pf = clone_for_session(input, resolver.budget, context)?;
     resolver.resolve_chain(&mut pf)?;
     let issues = collect_issues(&pf, resolver.budget)?;
     if policy == ConversionPolicy::FailOnLoss && !issues.is_empty() {
@@ -402,7 +436,7 @@ fn convert(
                 let record = match resolved.len() {
                     0 => None,
                     1 => resolved.pop(),
-                    _ => combine(&resolved, element.amino_acid, &mut resolver, &mut warnings)?,
+                    _ => combine(&resolved, element.amino_acid, resolver, &mut warnings)?,
                 };
                 if let Some(record) = record {
                     // Source checks this index at each actual attachment, before
@@ -449,11 +483,7 @@ fn convert(
         resolver.budget,
     )?;
     let result = base.with_resolved_modifications(&assignments, n, c)?;
-    let (result, staged) = finish(result, resolver, warnings)?;
-    if let Some(next) = staged {
-        *registry = next;
-    }
-    Ok(result)
+    Ok((result, warnings))
 }
 
 fn base_formula(residue: char) -> Option<EmpiricalFormula> {

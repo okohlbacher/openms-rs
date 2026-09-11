@@ -1,0 +1,211 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "bce228ae73bdd7da10c752c5c9e98a4765c88d65",
+  "native_base_note": "Isolated working snapshot plus exact frozen XLMS prerequisites. Extraction excludes those unchanged prerequisite files and unrelated working changes.",
+  "scope": "All six class-specific ProForma theoretical spectrum overloads; private session, sequence-copy and shared generation-budget adapters only.",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+      "role": "six remaining public operations1047\u20131142",
+      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+      "role": "full wrapper/helpers; resolver/conversion/mass dependencies",
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
+      "role": "ten spectrum sections2998\u20133134",
+      "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
+      "role": "ordinary backend public contract",
+      "sha256": "c0f8fc0213c7a9103f3e3ebeb305d498a79666afdb189b2b3b36c7d129cc81c9"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp",
+      "role": "ordinary defaults and selected code paths",
+      "sha256": "763d7e37041d3bed8f0b9fb122e43b5d6890fc699753e0f877ee3c50f2698325"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TheoreticalSpectrumGenerator_test.cpp",
+      "role": "existing independent/source numerical and annotation evidence",
+      "sha256": "8fc12ab3cea2f804e1374fdc43368ad82588f465e01423753d03babb4c4a77e1"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h",
+      "role": "linked backend public contract",
+      "sha256": "4d4c95c2ee66e6d51d9f799fe220c5cd62fb20928210a25d210b76f7d62f0921"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp",
+      "role": "crosslink-record overload/defaults and mass accumulation",
+      "sha256": "270de96ff3f41a748f44ec44ea3002579289d2e7d534ee4e6b3cfa82bb3fdb1e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TheoreticalSpectrumGeneratorXLMS_test.cpp",
+      "role": "linked numerical/source test prerequisite",
+      "sha256": "44b65c0954621f0d3d1f68b9efe716076172c194c0aead818214ba1a1ea31417"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h",
+      "role": "ProteinProteinCrossLink record fields/defaults",
+      "sha256": "60d78d3462191f893dbb92620791eb4a55177936f62578a24fbc414a6efb64bf"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/XLMS/OPXLDataStructs.cpp",
+      "role": "record hash",
+      "sha256": "f3bea4259c24b6906985ccbf2492e6ec52c3f24810ead3cc670173086e9da1d4"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OPXLDataStructs_test.cpp",
+      "role": "record test prerequisite",
+      "sha256": "5d2b56bead5a0fdabc7b513e7dc127470bfae812c369dddaa9ae858f0b7ccc25"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/AASequence.h",
+      "role": "sequence contract",
+      "sha256": "87e8f36d7f547258b2dbd472271d589e6fbad6ae7a0129bceecc780b0724dd4d"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+      "role": "resolved modification attachment/full and span masses",
+      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/Residue.h",
+      "role": "residue types",
+      "sha256": "8abda7e4cc2e2d9c19841c5c9e4c527f16e930e5c51e2490bbd6f4b2ac3ccc0e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/Residue.cpp",
+      "role": "modification formula/mass precedence and loss declarations",
+      "sha256": "88524929645ad4ff2e1a9ce0ece281942da37f0e70986e72b4b8e1a73cacad83"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueModification.h",
+      "role": "resolved chemistry fields",
+      "sha256": "c9e87e432f3399782dc5148af1465d021a578468076b4e386a544bfd5359bf0e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+      "role": "resolved chemistry defaults",
+      "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ModificationsDB.h",
+      "role": "lookup and interning dependency",
+      "sha256": "c815a5a5f47f0b5d495cdca2ef6b1fa9bd5115c43a4eb3c50e4f94d48bcd39a6"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+      "role": "lookup and interning dependency",
+      "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueDB.h",
+      "role": "ordinary residue lookup dependency",
+      "sha256": "83316197a37a4fe36f885a0a1036757167c6e36711741e59e0964ef9bd929a3e"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ResidueDB.cpp",
+      "role": "ordinary residue data dependency",
+      "sha256": "e3fa85271263d2396f4ad647cc0fe634572e4a93437a0de2ef69ce8c8ef3675f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h",
+      "role": "formula arithmetic dependency",
+      "sha256": "9c2a81ef15a7beb3e52c3ba9e1db9b98ae68f27aa3eb5f62cd3a5562f978927d"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+      "role": "formula arithmetic dependency",
+      "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/DataArrays.h",
+      "role": "aligned annotation types",
+      "sha256": "e4718313fffb638e5defd1498188505d2dba40c635762738154fa086760167cc"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "role": "spectrum sorting/output contract",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "role": "spectrum sorting/output behavior",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "role": "numeric append overload confirmation859\u2013885",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+      "role": "mass constant dependency",
+      "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/Constants.cpp",
+      "role": "mass constant dependency",
+      "sha256": "f6a058dd93283c9a8d573a3e7a1b82363c573a89702186f7be1dcb813f9f45b0"
+    }
+  ],
+  "source_sections": {
+    "ProForma.h": {
+      "start": 1047,
+      "end": 1142
+    },
+    "ProForma.cpp": [
+      {
+        "start": 2016,
+        "end": 2091
+      },
+      {
+        "start": 2745,
+        "end": 2855
+      }
+    ],
+    "ProFormaParser_test.cpp": {
+      "start": 2998,
+      "end": 3135
+    }
+  },
+  "fixtures": [
+    {
+      "path": "tests/data/proforma_spectra_source.json",
+      "sha256": "c64567d0a0735ac44010613014d126fba41d582b3b4c70be30d98290c8936928"
+    }
+  ],
+  "generator": {
+    "path": "tools/generate_proforma_spectra_reference.py",
+    "sha256": "28d3b17c1e5d95f656ff61957b82b07fc1eb827dc86c8c0d298fef47e1a21609"
+  },
+  "fixture_policy": "10 literal complete source sections, 18 assertions, 6 generation calls, 15 parse inputs, 11 explicit resolutions. Source only: no generated numerical peak output. Direct tests retain source assertion strength and separately compare independent chemical expectations to preserved source defects.",
+  "source_cpp_execution": false,
+  "native_checks": "Focused Rust tests use both 1.98.0/all-features and 1.85.0/no-default. Counts and exact commands are recorded in the additive handoff; source fixture extraction is independently checked against the pinned bytes.",
+  "preserved_source_issues": [
+    "CPP-038",
+    "CPP-047"
+  ],
+  "inherited_source_issues": [
+    "CPP-029",
+    "CPP-030",
+    "CPP-031",
+    "CPP-037"
+  ],
+  "checked_native_boundaries": [
+    "One caller-owned registry transaction across all repeated resolution/conversion passes, both generator calls, final sorting and warning publication; immutable AST.",
+    "Provider-order ambiguity replacement and all existing conversion/AASequence chemistry boundaries remain documented by their original groups.",
+    "Ordinary charge domain 1..=255; XLMS signed finite charge behavior preserved, consumed zero division/nonfinite outputs are checked errors.",
+    "50M shared work units, 256MiB cumulative logical allocation estimates, 1M items, 4MiB consumed text fields; ordinary estimates deliberately overcharge shorter fragments and filtered candidates.",
+    "Existing backend per-call category/residue/output limits still apply. No physical RSS ceiling or full SDK ABI/exception/logger compatibility claim.",
+    "Source-ignored name/charge/adduct fields are omitted from sequence-only clones; meaningful annotations retain complete preflight."
+  ],
+  "support_document": "docs/PROFORMA_SPECTRA_SUPPORT.md"
+}

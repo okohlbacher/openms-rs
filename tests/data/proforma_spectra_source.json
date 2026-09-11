@@ -1,0 +1,493 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source_file": {
+    "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
+    "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696",
+    "line_start": 2998,
+    "line_end": 3135,
+    "projected_block_sha256": "9206fed4ac6f3caad3def4c980b29b636696ba4c4415d5f4b684706a3f7589b0"
+  },
+  "source_license": "BSD-3-Clause",
+  "source_copyright": "Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin",
+  "projection_tool": "tools/generate_proforma_spectra_reference.py",
+  "evidence_kind": "Literal source test projection; no OpenMS or native spectrum execution.",
+  "assertion_strength": "Predicate/issue booleans and six coarse spectrum size assertions only: nonempty, at least ten peaks, or precursor-option count not smaller. No exact spectrum masses, annotations or total counts are supplied by these tests.",
+  "resolution_note": "Explicit source resolveModifications calls are retained per section. Unknown-modification and chimeric negative cases test predicates/issues, not generateSpectrum exceptions.",
+  "section_count": 10,
+  "assertion_count": 18,
+  "generation_call_count": 6,
+  "sections": [
+    {
+      "title": "ProForma::canGenerateSpectrum - Peptidoform",
+      "line_start": 2998,
+      "inputs": [
+        {
+          "line": 3001,
+          "type": "Peptidoform",
+          "variable": "pf",
+          "parse_method": "parse",
+          "literal": "PEPTIDE",
+          "source": "Peptidoform pf = ProForma::parse(\"PEPTIDE\");"
+        },
+        {
+          "line": 3006,
+          "type": "Peptidoform",
+          "variable": "pf_unresolved",
+          "parse_method": "parse",
+          "literal": "PEM[UnknownMod999]PTIDE",
+          "source": "Peptidoform pf_unresolved = ProForma::parse(\"PEM[UnknownMod999]PTIDE\");"
+        }
+      ],
+      "resolution_calls": [
+        {
+          "line": 3002,
+          "source": "ProForma::resolveModifications(pf);"
+        }
+      ],
+      "generation_calls": [],
+      "assertions": [
+        {
+          "line": 3003,
+          "expression": "ProForma::canGenerateSpectrum(pf)",
+          "expected": true,
+          "source": "TEST_EQUAL(ProForma::canGenerateSpectrum(pf), true)"
+        },
+        {
+          "line": 3007,
+          "expression": "ProForma::canGenerateSpectrum(pf_unresolved)",
+          "expected": false,
+          "source": "TEST_EQUAL(ProForma::canGenerateSpectrum(pf_unresolved), false)"
+        }
+      ],
+      "line_end": 3009,
+      "source_text": "START_SECTION(ProForma::canGenerateSpectrum - Peptidoform)\n{\n  // Test canGenerateSpectrum for resolved peptide\n  Peptidoform pf = ProForma::parse(\"PEPTIDE\");\n  ProForma::resolveModifications(pf);\n  TEST_EQUAL(ProForma::canGenerateSpectrum(pf), true)\n\n  // Unresolved modification should fail\n  Peptidoform pf_unresolved = ProForma::parse(\"PEM[UnknownMod999]PTIDE\");\n  TEST_EQUAL(ProForma::canGenerateSpectrum(pf_unresolved), false)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::canGenerateSpectrum - PeptidoformIon",
+      "line_start": 3011,
+      "inputs": [
+        {
+          "line": 3014,
+          "type": "PeptidoformIon",
+          "variable": "pfi",
+          "parse_method": "parseIon",
+          "literal": "PEPTIDE/2",
+          "source": "PeptidoformIon pfi = ProForma::parseIon(\"PEPTIDE/2\");"
+        },
+        {
+          "line": 3019,
+          "type": "PeptidoformIon",
+          "variable": "pfi_xl",
+          "parse_method": "parseIon",
+          "literal": "PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER",
+          "source": "PeptidoformIon pfi_xl = ProForma::parseIon(\"PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER\");"
+        },
+        {
+          "line": 3025,
+          "type": "PeptidoformIon",
+          "variable": "pfi_chimeric",
+          "parse_method": "parseIon",
+          "literal": "PEPTIDE//ANOTHER",
+          "source": "PeptidoformIon pfi_chimeric = ProForma::parseIon(\"PEPTIDE//ANOTHER\");"
+        }
+      ],
+      "resolution_calls": [
+        {
+          "line": 3015,
+          "source": "ProForma::resolveModifications(pfi.chains[0]);"
+        },
+        {
+          "line": 3020,
+          "source": "ProForma::resolveModifications(pfi_xl.chains[0]);"
+        },
+        {
+          "line": 3021,
+          "source": "ProForma::resolveModifications(pfi_xl.chains[1]);"
+        }
+      ],
+      "generation_calls": [],
+      "assertions": [
+        {
+          "line": 3016,
+          "expression": "ProForma::canGenerateSpectrum(pfi)",
+          "expected": true,
+          "source": "TEST_EQUAL(ProForma::canGenerateSpectrum(pfi), true)"
+        },
+        {
+          "line": 3022,
+          "expression": "ProForma::canGenerateSpectrum(pfi_xl)",
+          "expected": true,
+          "source": "TEST_EQUAL(ProForma::canGenerateSpectrum(pfi_xl), true)"
+        },
+        {
+          "line": 3026,
+          "expression": "ProForma::canGenerateSpectrum(pfi_chimeric)",
+          "expected": false,
+          "source": "TEST_EQUAL(ProForma::canGenerateSpectrum(pfi_chimeric), false)"
+        }
+      ],
+      "line_end": 3028,
+      "source_text": "START_SECTION(ProForma::canGenerateSpectrum - PeptidoformIon)\n{\n  // Single chain should work\n  PeptidoformIon pfi = ProForma::parseIon(\"PEPTIDE/2\");\n  ProForma::resolveModifications(pfi.chains[0]);\n  TEST_EQUAL(ProForma::canGenerateSpectrum(pfi), true)\n\n  // Cross-linked should work\n  PeptidoformIon pfi_xl = ProForma::parseIon(\"PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER\");\n  ProForma::resolveModifications(pfi_xl.chains[0]);\n  ProForma::resolveModifications(pfi_xl.chains[1]);\n  TEST_EQUAL(ProForma::canGenerateSpectrum(pfi_xl), true)\n\n  // Chimeric (no cross-link) should fail\n  PeptidoformIon pfi_chimeric = ProForma::parseIon(\"PEPTIDE//ANOTHER\");\n  TEST_EQUAL(ProForma::canGenerateSpectrum(pfi_chimeric), false)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::getSpectrumGenerationIssues - Peptidoform",
+      "line_start": 3030,
+      "inputs": [
+        {
+          "line": 3033,
+          "type": "Peptidoform",
+          "variable": "pf",
+          "parse_method": "parse",
+          "literal": "PEPTIDE",
+          "source": "Peptidoform pf = ProForma::parse(\"PEPTIDE\");"
+        },
+        {
+          "line": 3039,
+          "type": "Peptidoform",
+          "variable": "pf_unresolved",
+          "parse_method": "parse",
+          "literal": "PEM[UnknownMod999]PTIDE",
+          "source": "Peptidoform pf_unresolved = ProForma::parse(\"PEM[UnknownMod999]PTIDE\");"
+        }
+      ],
+      "resolution_calls": [
+        {
+          "line": 3034,
+          "source": "ProForma::resolveModifications(pf);"
+        }
+      ],
+      "generation_calls": [],
+      "assertions": [
+        {
+          "line": 3036,
+          "expression": "issues.empty()",
+          "expected": true,
+          "source": "TEST_EQUAL(issues.empty(), true)"
+        },
+        {
+          "line": 3041,
+          "expression": "issues_unresolved.empty()",
+          "expected": false,
+          "source": "TEST_EQUAL(issues_unresolved.empty(), false)"
+        }
+      ],
+      "line_end": 3043,
+      "source_text": "START_SECTION(ProForma::getSpectrumGenerationIssues - Peptidoform)\n{\n  // Resolved peptide should have no issues\n  Peptidoform pf = ProForma::parse(\"PEPTIDE\");\n  ProForma::resolveModifications(pf);\n  auto issues = ProForma::getSpectrumGenerationIssues(pf);\n  TEST_EQUAL(issues.empty(), true)\n\n  // Unresolved modification should have issues\n  Peptidoform pf_unresolved = ProForma::parse(\"PEM[UnknownMod999]PTIDE\");\n  auto issues_unresolved = ProForma::getSpectrumGenerationIssues(pf_unresolved);\n  TEST_EQUAL(issues_unresolved.empty(), false)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::getSpectrumGenerationIssues - PeptidoformIon",
+      "line_start": 3045,
+      "inputs": [
+        {
+          "line": 3048,
+          "type": "PeptidoformIon",
+          "variable": "pfi_chimeric",
+          "parse_method": "parseIon",
+          "literal": "PEPTIDE//ANOTHER",
+          "source": "PeptidoformIon pfi_chimeric = ProForma::parseIon(\"PEPTIDE//ANOTHER\");"
+        }
+      ],
+      "resolution_calls": [],
+      "generation_calls": [],
+      "assertions": [
+        {
+          "line": 3050,
+          "expression": "issues.empty()",
+          "expected": false,
+          "source": "TEST_EQUAL(issues.empty(), false)"
+        }
+      ],
+      "line_end": 3052,
+      "source_text": "START_SECTION(ProForma::getSpectrumGenerationIssues - PeptidoformIon)\n{\n  // Chimeric should have issues\n  PeptidoformIon pfi_chimeric = ProForma::parseIon(\"PEPTIDE//ANOTHER\");\n  auto issues = ProForma::getSpectrumGenerationIssues(pfi_chimeric);\n  TEST_EQUAL(issues.empty(), false)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::generateSpectrum - basic peptide",
+      "line_start": 3054,
+      "inputs": [
+        {
+          "line": 3057,
+          "type": "Peptidoform",
+          "variable": "pf",
+          "parse_method": "parse",
+          "literal": "PEPTIDE",
+          "source": "Peptidoform pf = ProForma::parse(\"PEPTIDE\");"
+        }
+      ],
+      "resolution_calls": [
+        {
+          "line": 3058,
+          "source": "ProForma::resolveModifications(pf);"
+        }
+      ],
+      "generation_calls": [
+        {
+          "line": 3060,
+          "result": "spec",
+          "input": "pf",
+          "min_charge": 1,
+          "max_charge": 1,
+          "ion_types": "by",
+          "add_losses": false,
+          "add_metainfo": true,
+          "source": "MSSpectrum spec = ProForma::generateSpectrum(pf, 1, 1, \"by\", false, true);"
+        }
+      ],
+      "assertions": [
+        {
+          "line": 3062,
+          "expression": "spec.size() > 0",
+          "expected": true,
+          "source": "TEST_EQUAL(spec.size() > 0, true)"
+        },
+        {
+          "line": 3064,
+          "expression": "spec.size() >= 10",
+          "expected": true,
+          "source": "TEST_EQUAL(spec.size() >= 10, true)"
+        }
+      ],
+      "line_end": 3066,
+      "source_text": "START_SECTION(ProForma::generateSpectrum - basic peptide)\n{\n  // Test spectrum generation for a simple peptide\n  Peptidoform pf = ProForma::parse(\"PEPTIDE\");\n  ProForma::resolveModifications(pf);\n\n  MSSpectrum spec = ProForma::generateSpectrum(pf, 1, 1, \"by\", false, true);\n  // Should have fragments\n  TEST_EQUAL(spec.size() > 0, true)\n  // Should have b and y ions at minimum\n  TEST_EQUAL(spec.size() >= 10, true)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::generateSpectrum - with modifications",
+      "line_start": 3068,
+      "inputs": [
+        {
+          "line": 3071,
+          "type": "Peptidoform",
+          "variable": "pf",
+          "parse_method": "parse",
+          "literal": "PEM[UNIMOD:35]PTIDE",
+          "source": "Peptidoform pf = ProForma::parse(\"PEM[UNIMOD:35]PTIDE\");"
+        }
+      ],
+      "resolution_calls": [
+        {
+          "line": 3072,
+          "source": "ProForma::resolveModifications(pf);"
+        }
+      ],
+      "generation_calls": [
+        {
+          "line": 3074,
+          "result": "spec",
+          "input": "pf",
+          "min_charge": 1,
+          "max_charge": 2,
+          "ion_types": "by",
+          "add_losses": true,
+          "add_metainfo": true,
+          "source": "MSSpectrum spec = ProForma::generateSpectrum(pf, 1, 2, \"by\", true, true);"
+        }
+      ],
+      "assertions": [
+        {
+          "line": 3075,
+          "expression": "spec.size() > 0",
+          "expected": true,
+          "source": "TEST_EQUAL(spec.size() > 0, true)"
+        }
+      ],
+      "line_end": 3077,
+      "source_text": "START_SECTION(ProForma::generateSpectrum - with modifications)\n{\n  // Test spectrum generation for modified peptide\n  Peptidoform pf = ProForma::parse(\"PEM[UNIMOD:35]PTIDE\");\n  ProForma::resolveModifications(pf);\n\n  MSSpectrum spec = ProForma::generateSpectrum(pf, 1, 2, \"by\", true, true);\n  TEST_EQUAL(spec.size() > 0, true)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::generateSpectrum - ion types",
+      "line_start": 3079,
+      "inputs": [
+        {
+          "line": 3082,
+          "type": "Peptidoform",
+          "variable": "pf",
+          "parse_method": "parse",
+          "literal": "PEPTIDE",
+          "source": "Peptidoform pf = ProForma::parse(\"PEPTIDE\");"
+        }
+      ],
+      "resolution_calls": [
+        {
+          "line": 3083,
+          "source": "ProForma::resolveModifications(pf);"
+        }
+      ],
+      "generation_calls": [
+        {
+          "line": 3086,
+          "result": "spec_by",
+          "input": "pf",
+          "min_charge": 1,
+          "max_charge": 1,
+          "ion_types": "by",
+          "add_losses": false,
+          "add_metainfo": true,
+          "source": "MSSpectrum spec_by = ProForma::generateSpectrum(pf, 1, 1, \"by\", false, true);"
+        },
+        {
+          "line": 3088,
+          "result": "spec_byM",
+          "input": "pf",
+          "min_charge": 1,
+          "max_charge": 1,
+          "ion_types": "byM",
+          "add_losses": false,
+          "add_metainfo": true,
+          "source": "MSSpectrum spec_byM = ProForma::generateSpectrum(pf, 1, 1, \"byM\", false, true);"
+        }
+      ],
+      "assertions": [
+        {
+          "line": 3090,
+          "expression": "spec_byM.size() >= spec_by.size()",
+          "expected": true,
+          "source": "TEST_EQUAL(spec_byM.size() >= spec_by.size(), true)"
+        }
+      ],
+      "line_end": 3092,
+      "source_text": "START_SECTION(ProForma::generateSpectrum - ion types)\n{\n  // Test different ion types\n  Peptidoform pf = ProForma::parse(\"PEPTIDE\");\n  ProForma::resolveModifications(pf);\n\n  // Default by ions\n  MSSpectrum spec_by = ProForma::generateSpectrum(pf, 1, 1, \"by\", false, true);\n  // With precursor\n  MSSpectrum spec_byM = ProForma::generateSpectrum(pf, 1, 1, \"byM\", false, true);\n  // Precursor adds peaks\n  TEST_EQUAL(spec_byM.size() >= spec_by.size(), true)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::generateSpectrum - PeptidoformIon single chain",
+      "line_start": 3094,
+      "inputs": [
+        {
+          "line": 3097,
+          "type": "PeptidoformIon",
+          "variable": "pfi",
+          "parse_method": "parseIon",
+          "literal": "PEPTIDE/2",
+          "source": "PeptidoformIon pfi = ProForma::parseIon(\"PEPTIDE/2\");"
+        }
+      ],
+      "resolution_calls": [
+        {
+          "line": 3098,
+          "source": "ProForma::resolveModifications(pfi.chains[0]);"
+        }
+      ],
+      "generation_calls": [
+        {
+          "line": 3100,
+          "result": "spec",
+          "input": "pfi",
+          "min_charge": 1,
+          "max_charge": 2,
+          "ion_types": "by",
+          "add_losses": false,
+          "add_metainfo": true,
+          "source": "MSSpectrum spec = ProForma::generateSpectrum(pfi, 1, 2, \"by\", false, true);"
+        }
+      ],
+      "assertions": [
+        {
+          "line": 3101,
+          "expression": "spec.size() > 0",
+          "expected": true,
+          "source": "TEST_EQUAL(spec.size() > 0, true)"
+        }
+      ],
+      "line_end": 3103,
+      "source_text": "START_SECTION(ProForma::generateSpectrum - PeptidoformIon single chain)\n{\n  // Test spectrum generation for PeptidoformIon with single chain\n  PeptidoformIon pfi = ProForma::parseIon(\"PEPTIDE/2\");\n  ProForma::resolveModifications(pfi.chains[0]);\n\n  MSSpectrum spec = ProForma::generateSpectrum(pfi, 1, 2, \"by\", false, true);\n  TEST_EQUAL(spec.size() > 0, true)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::generateSpectrum - cross-linked peptides",
+      "line_start": 3105,
+      "inputs": [
+        {
+          "line": 3109,
+          "type": "PeptidoformIon",
+          "variable": "pfi",
+          "parse_method": "parseIon",
+          "literal": "PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER",
+          "source": "PeptidoformIon pfi = ProForma::parseIon(\"PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER\");"
+        }
+      ],
+      "resolution_calls": [
+        {
+          "line": 3110,
+          "source": "ProForma::resolveModifications(pfi.chains[0]);"
+        },
+        {
+          "line": 3111,
+          "source": "ProForma::resolveModifications(pfi.chains[1]);"
+        }
+      ],
+      "generation_calls": [
+        {
+          "line": 3113,
+          "result": "spec",
+          "input": "pfi",
+          "min_charge": 1,
+          "max_charge": 2,
+          "ion_types": "aby",
+          "add_losses": false,
+          "add_metainfo": true,
+          "source": "MSSpectrum spec = ProForma::generateSpectrum(pfi, 1, 2, \"aby\", false, true);"
+        }
+      ],
+      "assertions": [
+        {
+          "line": 3115,
+          "expression": "spec.size() > 0",
+          "expected": true,
+          "source": "TEST_EQUAL(spec.size() > 0, true)"
+        }
+      ],
+      "line_end": 3117,
+      "source_text": "START_SECTION(ProForma::generateSpectrum - cross-linked peptides)\n{\n  // Test spectrum generation for cross-linked peptides\n  // DSS cross-linker at +138.068 Da\n  PeptidoformIon pfi = ProForma::parseIon(\"PEPK[+138.068#XL1]IDE//ANOK[#XL1]THER\");\n  ProForma::resolveModifications(pfi.chains[0]);\n  ProForma::resolveModifications(pfi.chains[1]);\n\n  MSSpectrum spec = ProForma::generateSpectrum(pfi, 1, 2, \"aby\", false, true);\n  // Should succeed for properly formed cross-link\n  TEST_EQUAL(spec.size() > 0, true)\n}\nEND_SECTION\n"
+    },
+    {
+      "title": "ProForma::generateSpectrum - fails for unsupported cases",
+      "line_start": 3119,
+      "inputs": [
+        {
+          "line": 3124,
+          "type": "Peptidoform",
+          "variable": "pf",
+          "parse_method": "parse",
+          "literal": "PEM[UnknownMod999]PTIDE",
+          "source": "Peptidoform pf = ProForma::parse(\"PEM[UnknownMod999]PTIDE\");"
+        },
+        {
+          "line": 3130,
+          "type": "PeptidoformIon",
+          "variable": "pfi",
+          "parse_method": "parseIon",
+          "literal": "PEPTIDE//ANOTHER",
+          "source": "PeptidoformIon pfi = ProForma::parseIon(\"PEPTIDE//ANOTHER\");"
+        }
+      ],
+      "resolution_calls": [],
+      "generation_calls": [],
+      "assertions": [
+        {
+          "line": 3125,
+          "expression": "ProForma::canGenerateSpectrum(pf)",
+          "expected": false,
+          "source": "TEST_EQUAL(ProForma::canGenerateSpectrum(pf), false)"
+        },
+        {
+          "line": 3127,
+          "expression": "issues.empty()",
+          "expected": false,
+          "source": "TEST_EQUAL(issues.empty(), false)"
+        },
+        {
+          "line": 3131,
+          "expression": "ProForma::canGenerateSpectrum(pfi)",
+          "expected": false,
+          "source": "TEST_EQUAL(ProForma::canGenerateSpectrum(pfi), false)"
+        },
+        {
+          "line": 3133,
+          "expression": "issues2.empty()",
+          "expected": false,
+          "source": "TEST_EQUAL(issues2.empty(), false)"
+        }
+      ],
+      "line_end": 3135,
+      "source_text": "START_SECTION(ProForma::generateSpectrum - fails for unsupported cases)\n{\n  // Test that unresolved modifications cannot generate spectrum\n  // (We use canGenerateSpectrum check rather than calling generateSpectrum\n  // to avoid ModificationsDB error messages that fail the test framework)\n  Peptidoform pf = ProForma::parse(\"PEM[UnknownMod999]PTIDE\");\n  TEST_EQUAL(ProForma::canGenerateSpectrum(pf), false)\n  auto issues = ProForma::getSpectrumGenerationIssues(pf);\n  TEST_EQUAL(issues.empty(), false)\n\n  // Chimeric (multiple chains without cross-link) cannot generate spectrum\n  PeptidoformIon pfi = ProForma::parseIon(\"PEPTIDE//ANOTHER\");\n  TEST_EQUAL(ProForma::canGenerateSpectrum(pfi), false)\n  auto issues2 = ProForma::getSpectrumGenerationIssues(pfi);\n  TEST_EQUAL(issues2.empty(), false)\n}\nEND_SECTION\n"
+    }
+  ]
+}

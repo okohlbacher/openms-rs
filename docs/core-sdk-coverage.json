@@ -7,8 +7,8 @@
     "by_status": {
       "complete": 10,
       "evidence_requires_review": 165,
-      "native_equivalent": 60,
-      "partial": 22,
+      "native_equivalent": 61,
+      "partial": 21,
       "unmapped": 529
     },
     "topp_sources": 146,
@@ -2274,6 +2274,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -2374,6 +2375,7 @@
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/proforma_conversion_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/registry_provenance.json",
         "tests/data/sequence_coverage_provenance.json",
         "tests/data/theoretical_extension_provenance.json",
@@ -2562,6 +2564,7 @@
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/rna_provenance.json",
         "tests/data/tagger_provenance.json",
@@ -3038,6 +3041,7 @@
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/registry_provenance.json",
         "tests/data/tagger_provenance.json"
       ],
@@ -3192,9 +3196,9 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
       "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56",
       "domain": "CHEMISTRY",
-      "status": "partial",
+      "status": "native_equivalent",
       "review": {
-        "status": "partial",
+        "status": "native_equivalent",
         "rust": [
           "src/chemistry/proforma.rs",
           "src/chemistry/proforma_parser.rs",
@@ -3202,7 +3206,10 @@
           "src/chemistry/proforma_resolution.rs",
           "src/chemistry/modifications.rs",
           "src/chemistry/proforma_mass.rs",
-          "src/chemistry/proforma_conversion.rs"
+          "src/chemistry/proforma_conversion.rs",
+          "src/chemistry/proforma_spectra.rs",
+          "src/chemistry/theoretical_proforma_budget.rs",
+          "src/chemistry/theoretical_xlms.rs"
         ],
         "tests": [
           "tests/proforma.rs",
@@ -3212,10 +3219,12 @@
           "tests/proforma_json.rs",
           "tests/proforma_resolution.rs",
           "tests/proforma_mass.rs",
-          "tests/proforma_conversion.rs"
+          "tests/proforma_conversion.rs",
+          "tests/proforma_spectra.rs",
+          "tests/theoretical_xlms.rs"
         ],
         "documentation": "docs/PROFORMA_SUPPORT.md",
-        "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution, all mass/mz/can/issues/optional operations, and complete AASequence conversion/policies/diagnostics in both directions. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. Conversion preserves source defects explicitly; 1078 executed source formatter cases cover reverse mass text. Ordinary/XLMS spectrum methods remain outstanding."
+        "scope": "Complete AST, source text grammars/writers/structured errors, optional tagged JSON wrappers, modification resolution, all mass/mz/can/issues/optional operations, and complete AASequence conversion/policies/diagnostics in both directions. Caller-owned registry, owned warnings/issues and a shared atomic interning transaction replace global mutation. Actual source pass order, range/ambiguity omissions and crosslink first-label behavior remain explicitly documented and tested. Conversion preserves source defects explicitly; 1078 executed source formatter cases cover reverse mass text. All six ordinary/XLMS spectrum operations and five source configuration fields are now implemented through the real native generators. Exact repeated advisory/resolution passes, first-link original-AST timing, strict mass threshold, warning order and duplicate-preserving sort are retained. Finite CPP-038/047 behavior is preserved with independent chemical/flattened-position expectations. One bounded atomic registry transaction covers all passes and both generator sides; standalone backends retain their own domains. Complete pinned public-header native equivalent, not complete ProForma-standard conformance or a C++ ABI. Source class assertions and native backend-composition tests are distinct from executed C++ spectrum oracles, which are not claimed."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -3226,6 +3235,7 @@
         "tests/data/proforma_parser_provenance.json",
         "tests/data/proforma_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/proforma_writer_probe_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -3329,6 +3339,7 @@
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/registry_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/tagger_provenance.json",
@@ -3351,6 +3362,7 @@
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/tagger_provenance.json",
         "tests/data/theoretical_extension_provenance.json",
@@ -3380,6 +3392,7 @@
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/registry_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -3527,6 +3540,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/fine_isotope_provenance.json",
         "tests/data/precursor_purity_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/tagger_provenance.json",
         "tests/data/theoretical_extension_provenance.json"
@@ -3552,12 +3566,13 @@
           "tests/sequence_fragment_mass.rs"
         ],
         "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
-        "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers and other XLMS algorithms remain separate."
+        "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers are implemented separately; other XLMS algorithms remain outstanding."
       },
       "candidate_rust_files": [
         "src/chemistry/theoretical_xlms.rs"
       ],
       "reference_manifests": [
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -3779,6 +3794,7 @@
         "tests/data/precursor_purity_provenance.json",
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/rna_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
@@ -4878,6 +4894,7 @@
         "tests/data/mzml_counts_provenance.json",
         "tests/data/param_value_provenance.json",
         "tests/data/proforma_parser_probe_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/protein_run_provenance.json",
         "tests/data/sdk_numeric_formatting_provenance.json",
         "tests/data/semantic_validator_provenance.json",
@@ -8764,6 +8781,7 @@
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
+        "tests/data/proforma_spectra_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/text_peak_lists_provenance.json",
@@ -9475,7 +9493,8 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mobilogram_provenance.json"
+        "tests/data/mobilogram_provenance.json",
+        "tests/data/proforma_spectra_provenance.json"
       ],
       "direct_topp_consumers": []
     },
