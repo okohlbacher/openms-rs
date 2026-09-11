@@ -7,9 +7,9 @@
     "by_status": {
       "complete": 10,
       "evidence_requires_review": 166,
-      "native_equivalent": 30,
+      "native_equivalent": 31,
       "partial": 17,
-      "unmapped": 563
+      "unmapped": 562
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2361,6 +2361,7 @@
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/registry_provenance.json",
+        "tests/data/sequence_coverage_provenance.json",
         "tests/data/theoretical_extension_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -3363,10 +3364,24 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/SequenceCoverage.h",
       "sha256": "e6e0ad5b9dc06660712f8c74b0ca13f5c977bb4ea826eddeede9044a5339cc1f",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/sequence_coverage.rs"
+        ],
+        "tests": [
+          "tests/sequence_coverage.rs"
+        ],
+        "documentation": "docs/SEQUENCE_COVERAGE_SUPPORT.md",
+        "scope": "Complete single static scientific operation: borrowed unmodified residue bytes, every exact overlapping occurrence, union of duplicate/overlapping coverage, source empty shortcuts and count*100.0/length order. Native input sizes and conservative worst-case comparison precharges bound work; annotation chemistry is neither traversed nor copied. All four source test sections plus an independent per-position oracle and checked resource boundaries."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/sequence_coverage.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/sequence_coverage_provenance.json"
+      ],
       "direct_topp_consumers": [
         "SequenceCoverageCalculator"
       ]
@@ -15251,7 +15266,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CHEMISTRY/SequenceCoverage.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/ProteinIdentification.h"

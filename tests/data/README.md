@@ -253,3 +253,10 @@ chromatogram file, a clearly labeled metadata-envelope projection preserving all
 36 encoded arrays, and 342 independently decoded points. Source class-test payloads
 and zlib projections are reused by hash. [Support notes](../../docs/MZML_NUMPRESS_SUPPORT.md)
 distinguish these checks from the earlier executed raw-codec C++ references.
+
+## Sequence coverage
+
+The [SequenceCoverage manifest](sequence_coverage_provenance.json) pins the complete
+source operation and four class-test cases. Independent positional enumeration
+checks overlap, repetition, annotation independence and literal unknown residues;
+no new C++ execution is used.

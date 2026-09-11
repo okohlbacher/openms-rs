@@ -8,7 +8,7 @@ The target is a feature-complete native Core SDK that TOPP tools can be ported a
 
 Native [IMS isotope/element operations](docs/IMS_ISOTOPE_SUPPORT.md) and [alphabets/parsers](docs/IMS_ALPHABET_SUPPORT.md), [area traversal](docs/AREA_ITERATION_SUPPORT.md), [peak indices](docs/PEAK_INDEX_SUPPORT.md), [filtered bulk peak export](docs/PEAK_DATA_SUPPORT.md), and [raw Numpress codecs](docs/MSNUMPRESS_SUPPORT.md) with the [base64/zlib wrapper](docs/MSNUMPRESS_CODER_SUPPORT.md) are available. Raw Numpress has 295 executed C++ reference cases; [mzML Numpress transport](docs/MZML_NUMPRESS_SUPPORT.md) now supports automatic reading and configured writing with ordinary fallback.
 
-Native [unique IDs and UUIDs](docs/UNIQUE_ID_SUPPORT.md), [2D peak values](docs/PEAK2D_SUPPORT.md), [plain/rich experiment conversion](docs/EXPERIMENT_2D_SUPPORT.md) and [public IMS integer/real decomposers](docs/IMS_DECOMPOSER_SUPPORT.md) are available.
+Native [unique IDs and UUIDs](docs/UNIQUE_ID_SUPPORT.md), [2D peak values](docs/PEAK2D_SUPPORT.md), [plain/rich experiment conversion](docs/EXPERIMENT_2D_SUPPORT.md) and [public IMS integer/real decomposers](docs/IMS_DECOMPOSER_SUPPORT.md) and [sequence coverage](docs/SEQUENCE_COVERAGE_SUPPORT.md) are available.
 
 ## What works
 

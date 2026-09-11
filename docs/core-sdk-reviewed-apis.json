@@ -709,6 +709,17 @@
       ],
       "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
       "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
+    },
+    "src/openms/include/OpenMS/CHEMISTRY/SequenceCoverage.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/chemistry/sequence_coverage.rs"
+      ],
+      "tests": [
+        "tests/sequence_coverage.rs"
+      ],
+      "documentation": "docs/SEQUENCE_COVERAGE_SUPPORT.md",
+      "scope": "Complete single static scientific operation: borrowed unmodified residue bytes, every exact overlapping occurrence, union of duplicate/overlapping coverage, source empty shortcuts and count*100.0/length order. Native input sizes and conservative worst-case comparison precharges bound work; annotation chemistry is neither traversed nor copied. All four source test sections plus an independent per-position oracle and checked resource boundaries."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_54A232F_REVIEW.md"

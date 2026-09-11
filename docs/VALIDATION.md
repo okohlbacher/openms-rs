@@ -1,5 +1,21 @@
 # Validation of the ongoing Rust port
 
+## Standalone sequence coverage (2026-09-11)
+
+[SequenceCoverage](SEQUENCE_COVERAGE_SUPPORT.md) is integrated. Seven new tests
+cover the complete source operation, independent positional enumeration and
+bounded failures. [Recorded checks](sequence-coverage-validation.json) include
+82 unit/selected tests on Rust 1.98/all features and 78 on Rust 1.85/no defaults,
+strict scoped Clippy on both, and the release library build. Formatting, source
+and ledger checks also pass; 1,860 distinct current source files were verified.
+
+This standalone addition leaves prior operations unchanged. Its focused totals
+overlap existing tests and supplement the preceding full 1,595-test/three-doctest
+checkpoint. No new C++ execution or full combined suite is claimed here. The
+ledger now has 41 complete/native-equivalent headers; 745 require implementation
+or review, and no TOPP workflow is certified.
+
+
 ## Unique IDs, 2D conversion, IMS solvers and mzML Numpress (2026-09-11)
 
 The four operation groups are integrated. [Recorded checks](transport-values-validation.json)

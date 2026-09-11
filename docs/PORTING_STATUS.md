@@ -231,3 +231,10 @@ MT19937-64 stream and a reusable native value trait. [Plain, mobility and rich 2
 peaks](PEAK2D_SUPPORT.md) preserve source numeric values and dimension labels; rich
 values own metadata and implement the shared ID trait. Full inherited metadata
 and generic range/container behavior remain separately tracked.
+
+## Sequence coverage
+
+[SequenceCoverage](SEQUENCE_COVERAGE_SUPPORT.md) computes the union of every exact
+unmodified peptide occurrence, including overlaps and repeats, as a protein
+coverage percentage. Modifications do not alter symbol matching; this utility
+does not use identification scores, digestion rules or peptide evidence positions.

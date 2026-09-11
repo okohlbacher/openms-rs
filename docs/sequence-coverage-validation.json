@@ -1,0 +1,122 @@
+{
+  "target_sdk_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "scope": "Additive standalone SequenceCoverage module; existing sequence, identification and kernel operations unchanged.",
+  "checks": [
+    {
+      "name": "current_tests",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "--test",
+        "sequence_coverage",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 5.53,
+      "log_sha256": "ac16f4659482cb94bd93ddb8755282834855ea15b8bd51890345308c38a0cebb",
+      "log_bytes": 9499,
+      "tests_passed": 82
+    },
+    {
+      "name": "current_strict",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "--test",
+        "sequence_coverage",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.34,
+      "log_sha256": "8c6ec20da6b4de79f4a40ea50a7bdd3bbb24c82848d6c665a467ac921a46c3de",
+      "log_bytes": 161
+    },
+    {
+      "name": "current_release",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 33.73,
+      "log_sha256": "cade3be219e26afacdbdcc7a600f02ca55d192240eba08b7bc96fbe135e625d0",
+      "log_bytes": 152
+    },
+    {
+      "name": "minimum_tests",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "sequence_coverage",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 5.78,
+      "log_sha256": "6e6687dbb1e79b5758cfe32ea6a91348810100ba097d04a183eca8c0b13f23de",
+      "log_bytes": 9077,
+      "tests_passed": 78
+    },
+    {
+      "name": "minimum_strict",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "sequence_coverage",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.22,
+      "log_sha256": "9a7a582a13a945247036d8f9ff591992603b68fb232d0c5a67347006ed163f03",
+      "log_bytes": 161
+    }
+  ],
+  "new_tests": 7,
+  "full_suite_baseline": {
+    "commit": "5a90169",
+    "tests": 1595,
+    "doctests": 3,
+    "note": "Passed before this additive module. Focused totals overlap existing unit tests and do not replace a full combined suite."
+  },
+  "source_files_verified": 1860,
+  "complete_or_native_equivalent_headers": 41,
+  "headers_requiring_implementation_or_review": 745,
+  "validated_topp_workflows": 0,
+  "additional_checks": "Rustfmt, source hashes, source-review regressions and generated ledger/regressions passed.",
+  "cpp_execution": false,
+  "review": "Root independently reviewed complete source and Rust operation, all four upstream test sections, exhaustive positional oracle and conservative comparison/marking budgets."
+}

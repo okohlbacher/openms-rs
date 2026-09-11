@@ -51,6 +51,8 @@ pub mod nucleic_acid_spectrum_generator;
 pub mod ribonucleotide;
 pub mod ribonucleotide_db;
 pub mod rnase;
+pub mod sequence_coverage;
+pub use sequence_coverage::SequenceCoverage;
 pub mod spectrum_annotator;
 pub mod tagger;
 pub use aa_index::{AAIndex, AAIndexScale};

@@ -2,6 +2,8 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add exact overlapping unmodified peptide-to-protein sequence coverage with source percentage arithmetic and bounded native work.
+
 - Add all six mzML Numpress read transports and configurable writing with bounded preparation, source precision repairs and ordinary fallback.
 - Add owned unique ID/UUID generation and a reusable ID value interface using the existing source-compatible random engine.
 - Add plain/mobility/rich 2D peaks and checked unfiltered experiment import/export with source metadata conversion and RT grouping.

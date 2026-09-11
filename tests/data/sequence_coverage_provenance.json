@@ -1,0 +1,76 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/SequenceCoverage.h",
+      "sha256": "e6e0ad5b9dc06660712f8c74b0ca13f5c977bb4ea826eddeede9044a5339cc1f"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/SequenceCoverage.cpp",
+      "sha256": "59f53fad58e76c94532b9d74d16954cc73739b108e1b8239bb62b91ff7a971c1"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SequenceCoverage_test.cpp",
+      "sha256": "10ba3ae7c5fd8c24bcda33f1c75c4ffe4134a5eab68b148978042cbbe29b579d"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+      "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693"
+    }
+  ],
+  "fixtures": [],
+  "fixture_policy": "All four small source literal cases are retained inline in tests/sequence_coverage.rs; no copied external fixture is needed. Independent expected values use a per-position interval oracle, not the production flag-marking algorithm.",
+  "source_literals": [
+    {
+      "protein": "ACDEFGHIK",
+      "peptides": [
+        "ACD",
+        "FGH"
+      ],
+      "coverage": 66.6667,
+      "comparison": "source TEST_REAL_SIMILAR; native also verifies exact covered*100/length arithmetic"
+    },
+    {
+      "protein": "ACDEFG",
+      "peptides": [],
+      "coverage": 0
+    },
+    {
+      "protein": "",
+      "peptides": [
+        "ACD"
+      ],
+      "coverage": 0
+    },
+    {
+      "protein": "ABCDE",
+      "peptides": [
+        "ABC",
+        "BCD"
+      ],
+      "coverage": 80
+    }
+  ],
+  "native_api": "SequenceCoverage::get_coverage(&AASequence,&[AASequence])->Result<f64>",
+  "native_tests": [
+    "tests/sequence_coverage.rs",
+    "src/chemistry/sequence_coverage.rs private tests"
+  ],
+  "native_policies": [
+    "Borrow unmodified bytes; never traverse annotation chemistry",
+    "Exact case-sensitive overlapping occurrences, union coverage and source multiplication/division order",
+    "Early empty protein/list returns zero before unused input limits",
+    "Conservative full-window byte-comparison precharge, actual matched-span marking charges",
+    "Atomic checked size/work/allocation failure; local flags never published on failure"
+  ],
+  "limits": {
+    "protein_residues": 1000000,
+    "peptides": 1000000,
+    "total_peptide_residues": 1000000,
+    "work_units": 50000000,
+    "maximum_requested_flag_bytes": 1000000
+  },
+  "support_document": "docs/SEQUENCE_COVERAGE_SUPPORT.md",
+  "validation_policy": "Focused native current/minimum compiler tests and strict lint; no C++ execution."
+}
