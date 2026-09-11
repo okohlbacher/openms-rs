@@ -22,6 +22,8 @@ pub mod file_handler;
 pub mod file_types;
 pub mod mgf;
 pub mod ms2;
+pub mod peak_options;
+pub use peak_options::PeakFileOptions;
 pub(crate) mod path_io;
 
 pub use file_handler::FileHandler;

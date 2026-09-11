@@ -342,21 +342,23 @@
         "tests/indexed_mzml.rs"
       ],
       "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product targets/isolation/scalar metadata and hasIndex probe. Complete PeakFileOptions, loadSize/transform/centroid summary, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
+      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product targets/isolation/scalar metadata and hasIndex probe. PeakFileOptions execution, loadSize/transform/centroid summary, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
     },
     "src/openms/include/OpenMS/METADATA/Product.h": {
       "status": "partial",
       "rust": [
         "src/metadata/acquisition.rs",
-        "src/kernel.rs"
+        "src/kernel.rs",
+        "src/metadata/value.rs"
       ],
       "tests": [
         "tests/metadata.rs",
         "tests/experiment_aggregation.rs",
-        "tests/mzml_product.rs"
+        "tests/mzml_product.rs",
+        "tests/metadata_hash.rs"
       ],
-      "documentation": "docs/MZML_PRODUCT_SUPPORT.md",
-      "scope": "All three scalar fields, cloning/equality and inherited CV/ordinary metadata represented, now attached to chromatograms. Public Product hash operation remains; native string metadata keys differ from source numeric registry keys. mzML transports representable fields and rejects arbitrary CV/list/Empty metadata before output."
+      "documentation": "docs/METADATA_HASH_SUPPORT.md",
+      "scope": "All own Product operations now have native equivalents, including equality-compatible Hash with signed-zero normalization, scalar mutation and cloning. Attached CV/ordinary metadata use native owned string-keyed records; inherited full source state remains limited by CVTerm/DataValue independent units and numeric registry identity. mzML transports represented fields and rejects arbitrary CV/list/Empty metadata before output. Full inherited source-model equivalence remains under review."
     },
     "src/openms/include/OpenMS/KERNEL/Peak1D.h": {
       "status": "native_equivalent",
@@ -381,6 +383,28 @@
       ],
       "documentation": "docs/KERNEL_VALUE_TRAITS_SUPPORT.md",
       "scope": "Construction/default/copy/equality, public scalar coordinate/intensity fields, comparator behavior, Display label layout and signed-zero-normalized standard Hash. Rust numeric formatting and caller-selected Hasher replace C++ stream formatting and implementation-dependent std::hash values. PartialEq remains nonreflexive for NaN; no Eq or direct HashMap-key guarantee."
+    },
+    "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/format/peak_options.rs"
+      ],
+      "tests": [
+        "tests/peak_file_options.rs"
+      ],
+      "documentation": "docs/PEAK_FILE_OPTIONS_SUPPORT.md",
+      "scope": "Complete source value/options API: all scalar defaults, four range activation rules, signed ordered MS levels, filter predicate, three Numpress configurations and warning identity. Native owned state and checked vector cap. This does not execute filters, codecs or output choices in format adapters."
+    },
+    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/chemistry/mass_decomposition.rs"
+      ],
+      "tests": [
+        "tests/mass_decomposition.rs"
+      ],
+      "documentation": "docs/MASS_DECOMPOSITION_SUPPORT.md",
+      "scope": "Complete source symbol-count value API, including literal-space parsing, duplicate historical maxima, distinct addition cache semantics, formatting, source map ordering, text equality, tag containment and compatibility. Owned ASCII keys, checked nonnegative counts/overflow and bounded output replace unsafe source states. Separate mass decomposition algorithms and solvers are not covered."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_54A232F_REVIEW.md"

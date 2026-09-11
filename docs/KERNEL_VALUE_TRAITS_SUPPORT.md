@@ -48,5 +48,6 @@ exercise defaults, copies, aligned sorting and selection using the same values.
 pins the inspected headers, source stream implementations and class tests. No
 C++ execution or reference digest golden was used.
 
-`METADATA/Product.h` remains partial: attaching and transporting its existing
-data does not implement its separate public hash operation.
+Product now has a reviewed [native hash implementation](METADATA_HASH_SUPPORT.md).
+Its full inherited source-model equivalence remains limited by the native
+CVTerm/DataValue unit representation and metadata registry identity.

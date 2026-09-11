@@ -1,0 +1,60 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/METADATA/Product.h",
+      "sha256": "47a07370bf43179bb194af9f8a1e1620e1d097e400701cdc532eea53dc926758"
+    },
+    {
+      "path": "src/openms/source/METADATA/Product.cpp",
+      "sha256": "74cf66fde1ac87c7fb9126df01590a04f2db52705c88b33c10d27335f5f2205c"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/CVTerm.h",
+      "sha256": "e7f6fa76fc355cb66caa600e562339a98dd9aa018c0ed2add62c6c9c9c409435"
+    },
+    {
+      "path": "src/openms/source/METADATA/CVTerm.cpp",
+      "sha256": "63b99060f543aa90c6ac4f60a25900711b974d38fb01ff1d7728dbf73dfd4649"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/CVTermList.h",
+      "sha256": "f97de80088b0e8d38eb9626b364fdc97e510fe7c4292a2c92397de54dcc668d2"
+    },
+    {
+      "path": "src/openms/source/METADATA/CVTermList.cpp",
+      "sha256": "c064f61d73b4ae0792156a6730d599198630a64b82043686dd889c4f06b67fba"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/MetaInfoInterface.h",
+      "sha256": "5581d2dbbddd09739123a3a5731197f81ed4e7dd5e0565f6f2dcce9ff21aefa6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/MetaInfo.h",
+      "sha256": "104d2bc63224fa0d92d83c4600ed594dcd7f9da01b028cabae05a39559050a3c"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DataValue.h",
+      "sha256": "1ea32c73e80d7607aa699a26a22be0ed2eca2d9d0b3249b4850b466384f2a74f"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
+      "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Product_test.cpp",
+      "sha256": "bb4e49975aeb8fd9e54bced3bd9140a87fdec4a95bd4448576fe99d7dc4e433a"
+    }
+  ],
+  "native_test": "tests/metadata_hash.rs",
+  "source_test_anchor": {
+    "path": "src/tests/class_tests/openms/source/Product_test.cpp",
+    "line": 150
+  },
+  "evidence": "Source Product equal/differing-value hash shape; independently constructed type/unit/zero/list/map/field-coverage cases. Native std::hash contract only, with exact native equality and normalized signed zero. No source digest, registry ID emulation or C++ execution."
+}

@@ -1,5 +1,32 @@
 # Validation of the ongoing Rust port
 
+## Peak-file, metadata and composition values (2026-09-11)
+
+PeakFileOptions, equality-compatible metadata/Product hashing, and the complete
+MassDecomposition count-container API are integrated. [Recorded checks](value-apis-validation.json)
+include commands, outcomes and log hashes.
+
+| Check | Result |
+| --- | --- |
+| Combined new/adjacent suites, Rust 1.98, all features | 58 tests passed |
+| Same applicable suites, Rust 1.85 without default features | 49 tests passed |
+| Strict Clippy, all targets | Passed on Rust 1.98 with all features and Rust 1.85 without defaults |
+| Doctests, optimized library, Rustfmt | Passed; three doctests |
+| Source audit and completion ledger | Passed |
+
+These selected runs supplement the preceding full 1,356-test suite; their counts
+overlap and are not an additive full-suite total. Independent reviews covered
+source option activation/defaults and the distinct `+` versus `+=` cached-maximum
+semantics in MassDecomposition. Native hash tests record every equality-significant
+field and signed-zero normalization without assuming cross-language digest values.
+
+PeakFileOptions is currently a value API; adapter execution is separate work.
+MassDecomposition stores counts; the solver is separate work. Product's own hash
+operation is now present, while inherited CVTerm/DataValue independent-unit states
+and numeric registry semantics remain under review. The inventory records 22
+reviewed complete/native-equivalent headers and 764 still requiring work or review.
+No C++ differential execution or certified TOPP workflow is claimed.
+
 ## SDK update and extraction operations (2026-09-11)
 
 The port now targets Core SDK 4.0.0 at `54a232f`. This increment completes the

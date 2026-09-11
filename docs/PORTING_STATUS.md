@@ -72,6 +72,9 @@ The current target is SDK 4.0.0 at `54a232f`; the [SDK update](CORE_SDK_UPDATE.m
 | FORMAT/ModificationDefinitionIO | `format::modification_definitions` | Source escaped definition records, provenance-aware collection and owned local registration; [details](MODIFICATION_DEFINITION_IO_SUPPORT.md) |
 | SYSTEM/File | `system::file` | Native filesystem, resource/configuration discovery and owned temporary resources, with explicit platform differences; [details](SYSTEM_FILE_SUPPORT.md) |
 | FORMAT/MS2File, DTA2DFile | `format::ms2`, `format::dta2d` | Source text parsing, DTA2D ranges/storage/TIC and checked native MS2 writer; [details](TEXT_PEAK_LIST_SUPPORT.md) |
+| FORMAT/OPTIONS/PeakFileOptions | `format::PeakFileOptions` | Complete source option state and Numpress configuration values; adapter execution remains separate; [details](PEAK_FILE_OPTIONS_SUPPORT.md) |
+| CHEMISTRY/MASSDECOMPOSITION/MassDecomposition | `chemistry::MassDecomposition` | Complete count-container API and source cache quirks; separate solver remains; [details](MASS_DECOMPOSITION_SUPPORT.md) |
+| METADATA/Product hashing | `metadata::Product` and typed metadata | Equality-compatible hashes with signed-zero normalization; inherited source unit-state limits remain; [details](METADATA_HASH_SUPPORT.md) |
 | FORMAT/FASTAFile | `format::fasta` | Complete file/stream reader/writer lifecycle, source lexical rules, bounded seek/progress and PEFF prologue skipping; [details](FASTA_SUPPORT.md) |
 | FORMAT/MascotGenericFile | `format::mgf` | Buffered collection or streaming spectra; basic fields and unique extra key/value metadata; no Mascot submission |
 | FORMAT/IdXMLFile | `format::idxml` | Optional bounded native identification read/write, typed UserParam metadata and run/evidence references; [detailed support](IDXML_SUPPORT.md) |
@@ -138,7 +141,7 @@ Text formats:
 - DTA rejects multiple precursors. DTA and MGF reject nondefault precursor acquisition metadata before output. DTA/MS2 names are not encoded by the format.
 - MGF retains unique extra fields as string metadata and applies global fields. Repeated fields (including repeated SEQ), multiple charge hypotheses, RT ranges, annotations after peak pairs, invalid MS levels and nonfinite values are rejected. Metadata keys are canonicalized to uppercase on read.
 - MGF represents one precursor per spectrum, regenerates `index=N` native IDs on read, and does not store auxiliary arrays or full acquisition metadata. Chromatograms are rejected on write.
-- FASTA accepts ASCII letters, `*`, `-` and `.` in sequences and strips ASCII whitespace; alphabet validation happens in chemistry. Semicolon comment lines are skipped. Empty/malformed entries are errors. Header descriptions are not interpreted as structured PEFF metadata.
+- FASTA preserves UTF-8 sequence bytes after removing space, tab, CR and LF, including source annotations, digits and semicolons; alphabet validation happens in chemistry. Source header spacing and PEFF prologue handling are retained. Empty/malformed entries are errors. Header descriptions are not interpreted as structured PEFF metadata; see [FASTA support](FASTA_SUPPORT.md).
 
 Iterative processing preserves strict-next-sample seed association, binary32 centroid storage, original seed priority and the source’s asymmetric recenter search. Window selection retains duplicate-position/equality semantics and last-window quota rules. Mean-noise clipping retains the original window denominator through all three passes; its legacy percentile mode is explicitly checked and is not a corrected statistical percentile. Native resource limits, deterministic tie policies and atomic failures are described in the linked support documents.
 

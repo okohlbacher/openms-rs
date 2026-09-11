@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 163,
-      "native_equivalent": 10,
+      "evidence_requires_review": 165,
+      "native_equivalent": 12,
       "partial": 11,
-      "unmapped": 592
+      "unmapped": 588
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2772,10 +2772,24 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h",
       "sha256": "fb1e68573925873a3c8d71b6c7522fc6794e5381e1c19cbdd5143e873a51fcd4",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/mass_decomposition.rs"
+        ],
+        "tests": [
+          "tests/mass_decomposition.rs"
+        ],
+        "documentation": "docs/MASS_DECOMPOSITION_SUPPORT.md",
+        "scope": "Complete source symbol-count value API, including literal-space parsing, duplicate historical maxima, distinct addition cache semantics, formatting, source map ordering, text equality, tag containment and compatibility. Owned ASCII keys, checked nonnegative counts/overflow and bounded output replace unsafe source states. Separate mass decomposition algorithms and solvers are not covered."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/mass_decomposition.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mass_decomposition_provenance.json"
+      ],
       "direct_topp_consumers": [
         "MetaProSIP"
       ]
@@ -3560,6 +3574,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/kernel_value_traits_provenance.json",
+        "tests/data/metadata_hash_provenance.json",
         "tests/data/param_value_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -3801,6 +3816,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/mass_decomposition_provenance.json",
         "tests/data/native_equivalents_provenance.json",
         "tests/data/param_value_provenance.json"
       ],
@@ -4010,20 +4026,24 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
       "sha256": "787ed51ddf700a472a09dcaed4eb738c50ab8353e0b212f0a6a8a3171615b495",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/peak_file_options_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
       "sha256": "3e459554651865c58b174d0d80f89ca877aee6fb62bfc570c66fa48cf5434e40",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/peak_file_options_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FeatureFinderMultiplex"
       ]
@@ -4037,6 +4057,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/featurexml_provenance.json",
+        "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -4051,6 +4072,7 @@
       "reference_manifests": [
         "tests/data/default_param_handler_provenance.json",
         "tests/data/list_utils_provenance.json",
+        "tests/data/metadata_hash_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4433,6 +4455,7 @@
       "reference_manifests": [
         "tests/data/adduct_provenance.json",
         "tests/data/list_utils_provenance.json",
+        "tests/data/mass_decomposition_provenance.json",
         "tests/data/param_value_provenance.json",
         "tests/data/text_csv_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
@@ -6380,10 +6403,12 @@
       "header": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
       "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/peak_file_options_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileFilter"
       ]
@@ -6531,7 +6556,7 @@
           "tests/indexed_mzml.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product targets/isolation/scalar metadata and hasIndex probe. Complete PeakFileOptions, loadSize/transform/centroid summary, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
+        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product targets/isolation/scalar metadata and hasIndex probe. PeakFileOptions execution, loadSize/transform/centroid summary, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -6722,11 +6747,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
       "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f",
       "domain": "FORMAT",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/peak_options.rs"
+        ],
+        "tests": [
+          "tests/peak_file_options.rs"
+        ],
+        "documentation": "docs/PEAK_FILE_OPTIONS_SUPPORT.md",
+        "scope": "Complete source value/options API: all scalar defaults, four range activation rules, signed ordered MS levels, filter predicate, three Numpress configurations and warning identity. Native owned state and checked vector cap. This does not execute filters, codecs or output choices in format adapters."
+      },
+      "candidate_rust_files": [
+        "src/format/peak_options.rs"
+      ],
       "reference_manifests": [
         "tests/data/consensusxml_provenance.json",
+        "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8470,7 +8508,9 @@
       "candidate_rust_files": [
         "src/metadata/value.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/metadata_hash_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8482,7 +8522,9 @@
       "candidate_rust_files": [
         "src/metadata/value.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/metadata_hash_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8951,7 +8993,9 @@
       "candidate_rust_files": [
         "src/metadata/value.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/metadata_hash_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8972,6 +9016,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/metadata_hash_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -9162,21 +9207,24 @@
         "status": "partial",
         "rust": [
           "src/metadata/acquisition.rs",
-          "src/kernel.rs"
+          "src/kernel.rs",
+          "src/metadata/value.rs"
         ],
         "tests": [
           "tests/metadata.rs",
           "tests/experiment_aggregation.rs",
-          "tests/mzml_product.rs"
+          "tests/mzml_product.rs",
+          "tests/metadata_hash.rs"
         ],
-        "documentation": "docs/MZML_PRODUCT_SUPPORT.md",
-        "scope": "All three scalar fields, cloning/equality and inherited CV/ordinary metadata represented, now attached to chromatograms. Public Product hash operation remains; native string metadata keys differ from source numeric registry keys. mzML transports representable fields and rejects arbitrary CV/list/Empty metadata before output."
+        "documentation": "docs/METADATA_HASH_SUPPORT.md",
+        "scope": "All own Product operations now have native equivalents, including equality-compatible Hash with signed-zero normalization, scalar mutation and cloning. Attached CV/ordinary metadata use native owned string-keyed records; inherited full source state remains limited by CVTerm/DataValue independent units and numeric registry identity. mzML transports represented fields and rejects arbitrary CV/list/Empty metadata before output. Full inherited source-model equivalence remains under review."
       },
       "candidate_rust_files": [
         "src/metadata/acquisition.rs"
       ],
       "reference_manifests": [
         "tests/data/experiment_aggregation_provenance.json",
+        "tests/data/metadata_hash_provenance.json",
         "tests/data/mzml_product_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -12988,7 +13036,6 @@
         "OpenMS/CHEMISTRY/Element.h",
         "OpenMS/CHEMISTRY/ElementDB.h",
         "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
-        "OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h",
         "OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h",
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/COMPARISON/SpectrumAlignment.h",
@@ -14987,7 +15034,6 @@
         "OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
         "OpenMS/FORMAT/IndexedMzMLFileLoader.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
         "OpenMS/INTERFACES/IMSDataConsumer.h",
         "OpenMS/KERNEL/OnDiscMSExperiment.h",
         "OpenMS/SYSTEM/SysInfo.h"

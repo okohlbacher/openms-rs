@@ -1,0 +1,124 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
+    },
+    {
+      "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
+      "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/PeakFileOptions_test.cpp",
+      "sha256": "3f1a0bafb3e4ca87c6cd98edc602f60e865663ae1bd2b1bb6ac6ea33c7c13beb"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+      "sha256": "787ed51ddf700a472a09dcaed4eb738c50ab8353e0b212f0a6a8a3171615b495"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
+      "sha256": "3e459554651865c58b174d0d80f89ca877aee6fb62bfc570c66fa48cf5434e40"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
+      "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
+      "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp",
+      "sha256": "65f8b9f14e004892a3e8942e427579c9f8368ee559e47c50560aa8168d628e3b"
+    }
+  ],
+  "scope": "Complete PeakFileOptions value/state API plus required NumpressCompression/NumpressConfig values; excludes every Numpress codec operation and all format execution/wiring.",
+  "tests": "tests/peak_file_options.rs",
+  "source_literals": {
+    "peak_options_class_test": {
+      "path": "src/tests/class_tests/openms/source/PeakFileOptions_test.cpp",
+      "rt_range": [
+        2,
+        4
+      ],
+      "mz_range": [
+        3,
+        5
+      ],
+      "intensity_range": [
+        3,
+        5
+      ],
+      "precursor_range": [
+        400,
+        1200
+      ],
+      "ms_levels": [
+        1,
+        3,
+        5
+      ],
+      "pool_size": 250,
+      "has_filters_rt_range": [
+        10,
+        100
+      ],
+      "has_filters_ms_level": 2
+    },
+    "header_defaults": {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "line": 223,
+      "boolean_fields": 15,
+      "range_values": 4,
+      "numpress_configurations": 3,
+      "maximal_data_pool_size_literal": "100"
+    },
+    "numpress_defaults": {
+      "path": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
+      "line": 107,
+      "fixed_point_literal": "0.0",
+      "error_tolerance_literal": ".0001",
+      "compression": "NONE",
+      "estimate_fixed_point": true,
+      "linear_fp_mass_acc_literal": "-1"
+    },
+    "compression_names": {
+      "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
+      "line": 20,
+      "values": [
+        "none",
+        "linear",
+        "pic",
+        "slof"
+      ]
+    },
+    "mass_time_warning": {
+      "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
+      "line": 254,
+      "literal": "Warning, compression of m/z or time dimension with pic or slof algorithms can lead to data loss"
+    }
+  },
+  "independent_derivations": [
+    "DIntervalBase default is DPosition maxPositive/minNegative, i.e. finite f64::MAX/f64::MIN. DRange header incorrectly describes zero defaults.",
+    "DIntervalBase::isEmpty compares the exact sentinel, so equal endpoints do not disable RT.",
+    "Other range setters force their independent enabled state; hasFilters is RT OR MS levels OR precursor-m/z only.",
+    "MS-level copy/membership preserves signed values, duplicates, and caller order.",
+    "Numpress setters store every scalar verbatim and getters copy config values; only mass/time PIC and SLOF issue a warning."
+  ],
+  "native_boundaries": [
+    "Scientific option fields do not implement or silently enable any reader/writer behavior.",
+    "NumericRange is reused as endpoint storage, not its usual inclusive-bound interpretation; DRange point-constructor normalization is not performed by the option setter.",
+    "MS-level storage has a fixed 1,000,000-element preallocation bound with atomic setter failure.",
+    "Mass/time warning is returned as optional exact text for caller-controlled logging instead of unconditional stderr.",
+    "No C++ sentinel enum variant is exposed as a valid compression mode."
+  ],
+  "method": "Source-only extraction and independently specified state tests. No C++ build/execution and no production outputs used to manufacture expected values.",
+  "license": "OpenMS source BSD-3-Clause; no new redistributed algorithm dependency or data resource."
+}

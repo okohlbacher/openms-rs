@@ -2,6 +2,8 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add complete native peak-file option state, metadata/Product hash traits, and source-compatible MassDecomposition count records with checked arithmetic.
+
 - Update the SDK target to `54a232f`, retaining historical fixture pins and explicit changed-source compatibility reviews.
 - Complete native FASTA parsing/file/stream/seek/progress lifecycle, including source modified sequences and PEFF prologue handling.
 - Add bounded experiment aggregation and XIC extraction with all four source reducers and product m/z metadata.

@@ -1,0 +1,190 @@
+{
+  "target_sdk_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "platform": "macOS ARM64",
+  "current_rust": "1.98.0",
+  "minimum_rust": "1.85.0",
+  "checks": [
+    {
+      "name": "combined_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--test",
+        "peak_file_options",
+        "--test",
+        "metadata_hash",
+        "--test",
+        "metadata",
+        "--test",
+        "mass_decomposition",
+        "--test",
+        "mzml_product",
+        "--test",
+        "kernel_value_traits",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 69.21,
+      "log_sha256": "e7641e9e99b8a3d910e33fc37cad6b35dbe0e1ec9896e631f85ad0c53f193791",
+      "log_bytes": 5398,
+      "tests_passed": 58
+    },
+    {
+      "name": "combined_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--test",
+        "peak_file_options",
+        "--test",
+        "metadata_hash",
+        "--test",
+        "metadata",
+        "--test",
+        "mass_decomposition",
+        "--test",
+        "kernel_value_traits",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 24.99,
+      "log_sha256": "9adb76d36bd1d76dff9632985a638bb11fa4d1dec32081426b8cd8523a2e9af3",
+      "log_bytes": 4512,
+      "tests_passed": 49
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 72.78,
+      "log_sha256": "75e2eaccad7071ed4d5da0124f92248568f3345340cc09be055b28e4573ec2e6",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 83.4,
+      "log_sha256": "8fb8412016233ec8b062040b22787f67ba0e0d46b888bbbf153b0c5e8cac9d23",
+      "log_bytes": 162
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.3,
+      "log_sha256": "92ce718e875e67cd87c64a1c44a582162204b05cd010d0b4380d0d6b8677a4c2",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 27.54,
+      "log_sha256": "5455fb2cca4272d4499750c8a66857494f28b188e5536d4b653e34c93794d1ef",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.63,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-54a232f"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.31,
+      "log_sha256": "35dae935d0855dca0a303de8b88fc41c279753c0a0ee41401170cb4ee219d252",
+      "log_bytes": 233
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "947551b749fa726b05c6b61786daeb2df6dda03001eead50299260ce7cbf041a",
+      "log_bytes": 208
+    }
+  ],
+  "scope": "Complete peak-file option values, native metadata/Product hashing and MassDecomposition count values. Selected tests supplement the preceding full1356-test extraction suite; counts overlap.",
+  "preceding_full_suite": "docs/extraction-validation.json",
+  "completion": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "evidence_requires_review": 165,
+      "native_equivalent": 12,
+      "partial": 11,
+      "unmapped": 588
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "cpp_built": false,
+  "cpp_runtime_differential_tests": false,
+  "validated_topp_workflows": 0
+}

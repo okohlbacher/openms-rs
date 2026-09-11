@@ -6,6 +6,7 @@ use super::{CVTermList, MetaInfo, MetaMergePolicy, merge_meta, validate_meta};
 use crate::kernel::{NumericRange, Precursor, SpectrumType};
 use crate::{Error, Result};
 use std::collections::BTreeSet;
+use std::hash::{Hash, Hasher};
 use std::{fmt, str::FromStr};
 
 macro_rules! named_enum {
@@ -248,6 +249,14 @@ pub struct Product {
     pub isolation_window_lower_offset: f64,
     pub isolation_window_upper_offset: f64,
     pub cv_terms: CVTermList,
+}
+impl Hash for Product {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        super::value::hash_float(self.mz, state);
+        super::value::hash_float(self.isolation_window_lower_offset, state);
+        super::value::hash_float(self.isolation_window_upper_offset, state);
+        self.cv_terms.hash(state);
+    }
 }
 impl Product {
     pub fn validate(&self) -> Result<()> {

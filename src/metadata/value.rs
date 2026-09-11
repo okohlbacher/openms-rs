@@ -5,9 +5,10 @@
 use crate::{Error, Result};
 use std::collections::BTreeMap;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 
 /// Full controlled-vocabulary unit identity. No ontology lookup is performed.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Unit {
     accession: String,
     name: String,
@@ -75,9 +76,35 @@ pub enum MetaValueData {
     FloatList(Vec<f64>),
 }
 
+impl Hash for MetaValueData {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        std::mem::discriminant(self).hash(state);
+        match self {
+            Self::Empty => {}
+            Self::String(value) => value.hash(state),
+            Self::Integer(value) => value.hash(state),
+            Self::Float(value) => hash_float(*value, state),
+            Self::StringList(values) => values.hash(state),
+            Self::IntegerList(values) => values.hash(state),
+            Self::FloatList(values) => {
+                values.len().hash(state);
+                for &value in values {
+                    hash_float(value, state);
+                }
+            }
+        }
+    }
+}
+
+// Equality identifies both signs of zero. Other IEEE representations, including
+// NaN payloads in unvalidated public records, are forwarded without alteration.
+pub(super) fn hash_float<H: Hasher>(value: f64, state: &mut H) {
+    (if value == 0.0 { 0 } else { value.to_bits() }).hash(state);
+}
+
 /// Typed owned value and optional unit. Equality is exact and includes units;
 /// unlike C++ DataValue scalar epsilon equality it is transitive.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct MetaValue {
     data: MetaValueData,
     unit: Option<Unit>,
@@ -336,7 +363,7 @@ pub fn meta_to_strings_lossy(values: &MetaInfo) -> BTreeMap<String, String> {
 }
 
 /// Controlled vocabulary term. A value's optional unit is the term's unit.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct CVTerm {
     pub accession: String,
     pub name: String,
@@ -374,7 +401,7 @@ impl CVTerm {
 }
 
 /// Accession-indexed terms. Duplicates within each accession are retained in order.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct CVTermList {
     terms: BTreeMap<String, Vec<CVTerm>>,
     pub metadata: MetaInfo,
