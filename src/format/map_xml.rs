@@ -388,7 +388,22 @@ pub(crate) fn write_processing(value: &DataProcessing) -> Result<Node> {
         .completion_time
         .ok_or_else(|| bad("dataProcessing requires completion_time"))?;
     let mut node = Node::new("dataProcessing");
-    node.attr("completion_time", timestamp.to_string().replace(' ', "T"));
+    if !timestamp.is_valid() || !(1..=9999).contains(&timestamp.date_components().2) {
+        return Err(bad(
+            "dataProcessing timestamp is invalid or outside supported XML years",
+        ));
+    }
+    let text = timestamp.format(if timestamp.millisecond() == 0 {
+        "yyyy-MM-ddThh:mm:ss"
+    } else {
+        "yyyy-MM-ddThh:mm:ss.zzz"
+    })?;
+    if crate::data_structures::DateTime::parse(&text)? != timestamp {
+        return Err(bad(
+            "dataProcessing timestamp has inconsistent partial fields",
+        ));
+    }
+    node.attr("completion_time", text);
     let mut software = Node::new("software");
     software.attr("name", &value.software.name);
     software.attr("version", &value.software.version);

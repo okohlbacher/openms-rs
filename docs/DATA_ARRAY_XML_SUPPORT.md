@@ -1,11 +1,30 @@
-# Array description metadata at XML boundaries
+# Data-array description transport and guards
 
-Native `DataArray<T>` now retains its source `MetaInfoDescription` metadata and shared `DataProcessing` descriptions separately from its name and values. The current XML adapters do not yet encode those two description fields. Their writers therefore reject any nonempty description metadata or processing vector before emitting bytes or flushing output.
+Native `DataArray<T>` retains `MetaInfoDescription` metadata and shared
+`DataProcessing` descriptions separately from its name and values.
+[mzML header/reference transport](MZML_HEADER_SUPPORT.md) now preserves auxiliary
+scalar metadata, represented units and processing references for float, integer
+and string arrays. Empty arrays and default processing objects remain meaningful
+and round-trip through explicit descriptions. Scientific filtering and sorting
+keep descriptions attached to the selected arrays.
 
-The check applies to float, integer and string arrays on spectra/chromatograms in mzML and to both protein-group families in the shared identification XML preflight. Empty arrays, all-zero source count arrays, and empty `DataProcessing` objects held in a nonempty processing vector still carry description state and are rejected. This prevents the consensus quantity projection's empty/zero-array omission rules from losing newly represented descriptions. Shared preflight occurs before dialect metadata is cloned or XML nodes are built. No description payload is traversed or cloned to decide rejection: `has_description_metadata` checks only container emptiness, after the existing shared array-slot precharge.
+Primary arrays have no independent native description owner. String metadata
+without units merges into the record's string metadata in source order;
+non-string/unit-bearing primary metadata and independent processing histories
+remain checked errors. Nonscalar or unrepresentable auxiliary metadata also
+fails before output.
 
-The mzML scientific loading increment's canonical-array naming, aligned selection and unsupported array-description input behavior are unchanged. These guards do not claim new XML support for array userParams, units or processing references. Existing name/value-only array round trips remain supported. idXML retains its prior quantity-array limitation as well. FeatureXML rejects all structured protein groups in an earlier preflight, so that stronger existing guard prevents array description loss before shared identification measurement.
+Identification and map XML retain separate limits. Both protein-group families
+in the shared identification XML preflight reject description metadata or
+processing vectors, including empty/zero arrays and default pointed-to records.
+This prevents quantity projection from silently dropping descriptions. The
+check uses container lengths after shared array-slot precharge; no description
+payload is cloned to decide rejection. FeatureXML's earlier structured-group
+guard and idXML's quantity-array limit remain in force.
 
-[The four transport regressions](../tests/data_array_xml.rs) exercise 24 mzML combinations and 12 consensus combinations, plus all three array types in idXML and FeatureXML. They check metadata and shared processing handles, empty and zero arrays, no output/flush, and unchanged input. This is a native safety regression for the new fields, not a new source numerical oracle. Source `MetaInfoDescription` and XML quantity conventions are covered by the broader Mobilogram/DataArray and XML provenance manifests.
-
-[Source provenance](../tests/data/data_array_xml_provenance.json) records the pinned description and dialect implementations.
+[Transport regressions](../tests/data_array_xml.rs) cover mzML round trips for all
+three auxiliary types, and unchanged-output failures in consensusXML, idXML and
+FeatureXML. [Header regressions](../tests/mzml_header.rs) additionally cover
+reference identity, scalar units, primary metadata order and both mzML writers.
+Source `MetaInfoDescription` and XML quantity conventions remain pinned in the
+broader Mobilogram/DataArray and XML provenance manifests.

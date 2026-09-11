@@ -33,9 +33,10 @@ Binary-array zlib compression in `WriteOptions` is independent of outer filename
 compression. The writer's existing representation checks remain in force.
 
 This completes the file/owned-replacement entry points for the represented mzML
-subset. It does not add source DocumentIdentifier loaded-path/file-type state,
-full experimental metadata, XML schema/CV validation, `loadSize`, consumers,
-transform passes, centroid inference or indexed output. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
+subset. Subsequent increments add DocumentIdentifier loaded-path/file-type state,
+[count-only operations](MZML_COUNTS_SUPPORT.md) and [source-supported headers and
+metadata-only reading](MZML_HEADER_SUPPORT.md). XML schema/CV validation, consumers,
+transform passes, centroid inference and indexed output remain separate work. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
 also works through these path entry points; configured Numpress writing currently
 uses its separate stream operation.
 `Read`/`Write` stream APIs already cover the native equivalent of buffer I/O.

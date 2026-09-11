@@ -1,0 +1,746 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "13d5cf1c15090972d7ebddbcf8e26da71a6a5c51",
+  "scope": [
+    "Complete source-supported mzML header/reference transport and metadata-only loading",
+    "DataProcessing DateTime migration preserving seconds/milliseconds across mzML and map XML",
+    "Complete native PeptideEvidence value/hash group",
+    "Original C++ issue log expanded to 46 evidence-qualified entries"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 101,
+      "elapsed_seconds": 245.28,
+      "log_sha256": "9f5aef453c9665425ea087efecb73e18a5c5645b58a2784ee9f243b801e6d198",
+      "log_bytes": 132955,
+      "tests_passed": 1290
+    },
+    {
+      "name": "all_targets_current",
+      "attempt": 2,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 101,
+      "elapsed_seconds": 51.25,
+      "log_sha256": "d330c24e9cd9b43baff63029bb85d972396dbb025beecd33005a6a4b9276e11e",
+      "log_bytes": 155460,
+      "tests_passed": 1516
+    },
+    {
+      "name": "all_targets_current",
+      "attempt": 3,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "--no-fail-fast",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 81.26,
+      "log_sha256": "9af152f55fa02bd1acd7ce53c16a6d361b351acebef2b4aa415bce81e813706c",
+      "log_bytes": 205415,
+      "tests_passed": 1979
+    },
+    {
+      "name": "docs_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.93,
+      "log_sha256": "60adccf2eae5c503cba0e990d3d47b9f6514d704113221baed44bb08d65e3888",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 45.27,
+      "log_sha256": "892e278dfb50a04619f826053f0c619cc474f653feec27e7cd381360e7ded77e",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 46.55,
+      "log_sha256": "9f7882da80ebb62bbd702e9b39e554f7a31f484848fa10e70ddb98397d801983",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 4.33,
+      "log_sha256": "b23655139834cc4a31ebb47f40d66bff09e6912da9dbe75b4032ce30b8f2ee2a",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.69,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.73,
+      "log_sha256": "a772fab54dd190ce6aabb15396a4626c58cef9d92e6d48b4f6f60b3669ff1388",
+      "log_bytes": 233
+    },
+    {
+      "name": "source_review_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.13,
+      "log_sha256": "c3ae141d92b6bd37603e20ddc38078058543444f71489af0edd3d4cb48e48981",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.23,
+      "log_sha256": "f74de9c45f7d8d2fa03a87b751cb99b5540feef11cc53ce5e3fe46a0ea85c448",
+      "log_bytes": 100
+    },
+    {
+      "name": "header_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,featurexml,consensusxml",
+        "--lib",
+        "--test",
+        "mzml_header",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_acquisition",
+        "--test",
+        "mzml_settings",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_paths",
+        "--test",
+        "featurexml",
+        "--test",
+        "consensusxml",
+        "--test",
+        "data_array_xml",
+        "--test",
+        "mzml_acquisition_guards",
+        "--test",
+        "experimental_settings",
+        "--test",
+        "identification",
+        "--test",
+        "metadata_hash",
+        "--test",
+        "data_array_descriptions",
+        "-j2"
+      ],
+      "exit_code": 101,
+      "elapsed_seconds": 36.86,
+      "log_sha256": "7fa0041f1e2f282be1cc9138748ba30f212c225bd7fd5572a1b5ad993dc879cb",
+      "log_bytes": 32611,
+      "tests_passed": 309
+    },
+    {
+      "name": "header_minimum",
+      "attempt": 2,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,featurexml,consensusxml",
+        "--lib",
+        "--test",
+        "mzml_header",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_acquisition",
+        "--test",
+        "mzml_settings",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_paths",
+        "--test",
+        "featurexml",
+        "--test",
+        "consensusxml",
+        "--test",
+        "data_array_xml",
+        "--test",
+        "mzml_acquisition_guards",
+        "--test",
+        "experimental_settings",
+        "--test",
+        "identification",
+        "--test",
+        "metadata_hash",
+        "--test",
+        "data_array_descriptions",
+        "-j2"
+      ],
+      "exit_code": 101,
+      "elapsed_seconds": 6.88,
+      "log_sha256": "23f986c3478e1ced870f95b9f9b44c42e8f49c95e7f9047adab9c69b04198f7c",
+      "log_bytes": 32570,
+      "tests_passed": 309
+    },
+    {
+      "name": "header_minimum",
+      "attempt": 3,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,featurexml,consensusxml",
+        "--lib",
+        "--test",
+        "mzml_header",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_acquisition",
+        "--test",
+        "mzml_settings",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_paths",
+        "--test",
+        "featurexml",
+        "--test",
+        "consensusxml",
+        "--test",
+        "data_array_xml",
+        "--test",
+        "mzml_acquisition_guards",
+        "--test",
+        "experimental_settings",
+        "--test",
+        "identification",
+        "--test",
+        "metadata_hash",
+        "--test",
+        "data_array_descriptions",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.7,
+      "log_sha256": "be3afa50745c2b5b551f51976dc00a4f80b4ae358c09458d909695af979fdc13",
+      "log_bytes": 32901,
+      "tests_passed": 321
+    },
+    {
+      "name": "header_strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,featurexml,consensusxml",
+        "--lib",
+        "--test",
+        "mzml_header",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_acquisition",
+        "--test",
+        "mzml_settings",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_paths",
+        "--test",
+        "featurexml",
+        "--test",
+        "consensusxml",
+        "--test",
+        "data_array_xml",
+        "--test",
+        "mzml_acquisition_guards",
+        "--test",
+        "experimental_settings",
+        "--test",
+        "identification",
+        "--test",
+        "metadata_hash",
+        "--test",
+        "data_array_descriptions",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.86,
+      "log_sha256": "48a81fb7fac1830958022a2d93928d34fff307a91a7b217f4f193b5130ed5cce",
+      "log_bytes": 161
+    },
+    {
+      "name": "native_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "identification",
+        "--test",
+        "metadata",
+        "--test",
+        "metadata_hash",
+        "--test",
+        "data_array_descriptions",
+        "--test",
+        "experimental_settings",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 21.22,
+      "log_sha256": "075f1df4ba935db4ba5ee9dfc9a2d6f592b624eaf1960de26aa66c32e626b3f3",
+      "log_bytes": 18406,
+      "tests_passed": 171
+    },
+    {
+      "name": "strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 14.16,
+      "log_sha256": "995168aaa71960376918fd95166e699dc5a175b75ab9f448ecc0a457222c8570",
+      "log_bytes": 162
+    },
+    {
+      "name": "final_adjacent_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--test",
+        "precursor_workflow",
+        "--test",
+        "mzml_paths",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "tests_passed": 14,
+      "log_sha256": "830c4e885637e057f26c988d03cf7f042d84d59af210cbc720fa16e93883f4c0",
+      "log_bytes": 1801
+    }
+  ],
+  "reviewed_header_files": [
+    {
+      "path": "src/format/mzml.rs",
+      "sha256": "bcf2175e89edae45d48bf68c7aa07a1c0b70d025331125d32ee3da6e184c3af1",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "056d65f463e472a38e4170c2da13db49326c9148d677fb8d79a416dab84d91fc"
+    },
+    {
+      "path": "src/format/mzml_acquisition.rs",
+      "sha256": "300b7f1529ed72835972f06319509fa07ff4ad4e95a8f23caf199f4dce5a2b67",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "08bb5ea4ec75c48465639f400e50422cb9d97b8488805e020423c6e752239a78"
+    },
+    {
+      "path": "src/format/mzml_settings.rs",
+      "sha256": "c081ed400668150be66af2aa7fb37d874e2a9d37ba95040b4de4235ac9e10f40",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "77a878ab455a00ef07cc294dcab9f50502e24a39f6af90d1621e34b10844ecff"
+    },
+    {
+      "path": "src/format/mzml_numpress.rs",
+      "sha256": "b0f0f394482efc25b460af7ef22c1a53a03109b2787cd1e32514cede66cddfeb",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "021c50af17c6ab62ce5c443b9b0d4fb036159110e3f992f8d00232d876a6f8a7"
+    },
+    {
+      "path": "src/format/mzml_load.rs",
+      "sha256": "0378fb4cf0104a5f2b977b994b60397bdfeac0907c0bae56cd9ddaa2d3564190",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "75ff1034fcf864ad332d6953f8ecdee0bc491bc6513dbc92f74736764e9c4288"
+    },
+    {
+      "path": "src/format/mzml_precursor.rs",
+      "sha256": "42cd1e6511c3b84d3a6324a45698157d548a6a08d08e59bafb8a5d0cc7f55e3f",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "0fe4f53a447798b6b499a9417915404e80e1cb3054a2a0d017a5c20039e0539a"
+    },
+    {
+      "path": "src/format/map_xml.rs",
+      "sha256": "ca751144bc6294dbe3d8ddf3585d6fee0cdd7a0d2dfa02ad9f3523b8b890a4e2",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "d1c765f692988a654315830278b8fd14f75580b2c8120148bc6b4f9cf9ebfd63"
+    },
+    {
+      "path": "src/metadata/acquisition.rs",
+      "sha256": "1af64042eb7acfe1364ad41a24a442aa29b861e857b54b8fb431e5e8e26824cd",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "efb64d11f1a2f47b11d85c25c62b54f88800fa0655204e5e78b2e78328266811"
+    },
+    {
+      "path": "src/kernel/data_array.rs",
+      "sha256": "b299af146ddf1384579ebe34bf94987d5a2a8f924fb20e8c9997088625b2a2ba",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "8596e4d6c13e05fbafe3653af5db4a2850960d5b66024ae4cf7553d603178cd3"
+    },
+    {
+      "path": "tests/data_array_xml.rs",
+      "sha256": "24db166d55b2d515fb2ea3fda910c1fe39c5ba62d16c85e86be4c04a702a9462",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "17491686b6d3d2846a81d036b0994edc1559e2fc5c507fff9cb628789fa1d9ea"
+    },
+    {
+      "path": "tests/experimental_settings.rs",
+      "sha256": "6c283ba116a8529ae9a046cb4c31022e0aa251a925decc39973780ddcbd716b7",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "79118771af10e2e7d610932c9c3e9a9fbfc7bfc24fd26b574ff712698e9d8c08"
+    },
+    {
+      "path": "tests/mzml_acquisition_guards.rs",
+      "sha256": "b6252be0e2be32383d2f98b6230b40ff55b22664371bc73931d8d47a4f81cc6e",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "fc7b5df9ab0a60dc6258d52ecd9d23f52e96c916f60f2422a0ab4a773eff48c5"
+    },
+    {
+      "path": "tests/mzml_acquisition.rs",
+      "sha256": "1cff2abe6deb44c9ba8e96005809429eebe3e20bca6ad928237d0e55383653a2",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "57815aa42cb2c556daadaf6ecf5c04d7249fb75c718388bcba8c9969db12c207"
+    },
+    {
+      "path": "tests/mzml_load_options.rs",
+      "sha256": "00390ad43761ca10b26e6d122e90af1956b70499fdc8ccc7dc3741033d822f33",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "c17db5c3742cb1eae07c4999a3d01be8bef8dcafbe02b148a5a5369e9da8aac4"
+    },
+    {
+      "path": "tests/mzml_numpress.rs",
+      "sha256": "5158edbaa8799ad299f28ead5b08eac641af5453fbd9bbf9f5a5148d3b3bb9d8",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "85ebc3de41fec851b816cea251286cc690505c13814c90f672c39c1abe7264d9"
+    },
+    {
+      "path": "tests/mzml_param_groups.rs",
+      "sha256": "de4e929ed26b26fe181bf3e0e6ce5023982927064b517035de0a2fe830755c31",
+      "integration": "Apply owned delta against native baseline; preserve any subsequent root edits",
+      "baseline_sha256": "b1a7454dd4165e4c44417b0a294f33596dbf77022e4b7d03fb700179279d2e64"
+    },
+    {
+      "path": "src/format/mzml_header.rs",
+      "sha256": "044af7644da03e44d7f9abcc41b96055a01e146f5a2272ed4008b9d63608b309",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "src/format/mzml_header/instrument.rs",
+      "sha256": "58cb5848a6255995ec2d65458d49bb9cc872897dc5235ab3dc4516fddfdf461b",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "src/format/mzml_header/instrument_terms.rs",
+      "sha256": "07507a7ff3719397c3fb5a904cf73bd21101f84e40e9bef34bc85943fa47b9f1",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "src/format/mzml_header/mapping.rs",
+      "sha256": "c38f6e15ec63191bc045fecc8e95985926426237898fe0b8443d5df54cf7cf02",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "src/format/mzml_header/read.rs",
+      "sha256": "56f61684255f6a2fa5f38f2661fa527036c4ef78698863c5f48b5f912dffaf20",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "src/format/mzml_header/write.rs",
+      "sha256": "449800c99de43efae5de0fbfda8921718985173b60e7f7d019139e811bdf66e7",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "src/format/mzml_header/xml.rs",
+      "sha256": "312de8f09f306240a7effda8eba3b38f59bc23c509a3388d5f45671581861aa8",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tests/mzml_header.rs",
+      "sha256": "77a90afbd5b3812835921d5844f01dc6e094a1b5b8413a501e0bb889e1102982",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "docs/MZML_HEADER_SUPPORT.md",
+      "sha256": "2a3c44709a8c57b74cd62f80c76de18f00298257ca443b4ec23528517cfdfc8f",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tests/data/mzml_header_provenance.json",
+      "sha256": "326f03d52bb61fc8139c71d0367cfea4c4a6b178ba337c6fd844b2bd2a0a7891",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tests/data/mzml_header/MzMLFile_1.original.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tests/data/mzml_header/header.mzML",
+      "sha256": "e387f23ceda9bf151637a9fccab98c761a427d4acd3a0471b38c9f81637339ae",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tests/data/mzml_header/header_projection.json",
+      "sha256": "e28ac3aed55977377c213cf38aad50856c5f42349a8a49f2ca4a2f8ba861c7ef",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tests/data/mzml_header/instrument_enum_pairs.json",
+      "sha256": "0b6249dfc006ca02c63216cdd0dc2c63b83b3f49ac01a5c97f0cd41f77ccc364",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tests/data/mzml_header/instrument_enum_pairs.tsv",
+      "sha256": "7cd838629ea6d442b781ce1b8dd0a31455ea4e9e3d89ef63cc8aa2d1a1c703fe",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tests/data/mzml_header/mapping_rules.json",
+      "sha256": "e8b06072292d0c51a91b1810ea6ebd403e7f2db3d74bf8bb83ead1270aacdecb",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tools/mzml_header/header_fixture.py",
+      "sha256": "f9e513e04b8ba9b992c72ed529c906146c7808da73ffd717d52030209bb0a99c",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tools/mzml_header/mapping_projection.py",
+      "sha256": "60ff96311545e97e9607066144972ab08720fc68e7db73adea7a04f901d62d90",
+      "integration": "Copy complete new file"
+    },
+    {
+      "path": "tools/mzml_header/source_projection.py",
+      "sha256": "d2cb4985c0f658485ec87a0652ee0422dc81a441353f8a4d22db6e8e31426a6c",
+      "integration": "Copy complete new file"
+    }
+  ],
+  "independent_reference_checks": {
+    "header_source_fixture_generator_reused_hashes": 30,
+    "regenerated_fixtures": 6,
+    "regenerated_formatted_mapping_table": "src/format/mzml_header/mapping.rs",
+    "instrument_reader_writer_pairs": 116,
+    "header_extraction_files_byte_identical_after_integration": 35,
+    "schema": "Both rich-header writer outputs validated by actual xmllint/libxml2 2.9.13 against retained mzML XSD; includes chromatogram and XML punctuation.",
+    "cpp_execution": "No new C++ execution. Source review, literal tests, independent Python projections and XML schema validation are distinguished."
+  },
+  "resolved_integration_test_failures": [
+    "Old path test expected metadata_only Unsupported; updated to positive complete-document/settings test, missing-file I/O and remaining fill_data=false preflight. Initial positive test incorrectly used a historical scientific projection lacking required defaultDataProcessingRef; corrected fixture selection.",
+    "Old precursor workflow expected scalar metadata rejection. Updated to assert scalar round-trip and retain nonscalar list rejection. No production implementation changed to accommodate either stale assertion."
+  ],
+  "source_audit": {
+    "distinct_current_files": 1926,
+    "historical_reference_paths": 220,
+    "graph_references": 21,
+    "added_source_references": 799
+  },
+  "completion": {
+    "complete": 10,
+    "native_equivalent": 57,
+    "partial": 21,
+    "evidence_requires_review": 165,
+    "unmapped": 533,
+    "registered_headers": 786,
+    "topp_sources": 146,
+    "certified_topp_workflows": 0
+  },
+  "published_parent_ci": {
+    "revision": "13d5cf1c15090972d7ebddbcf8e26da71a6a5c51",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34582838457",
+    "conclusion": "success",
+    "jobs": [
+      "Linux",
+      "macOS",
+      "Windows",
+      "minimum-rust",
+      "quality"
+    ]
+  },
+  "remaining": "MzMLFile consumer/transform and other operations, ProForma spectrum groups and the broader core remain incomplete. SemanticValidator is staged separately, not part of this validation."
+}

@@ -78,7 +78,7 @@ impl Meter<'_> {
             // BTree nodes can be sparsely occupied. Cover their root, spare
             // element slots and child pointers, not just logical element bytes.
             self.charge(count, 512)?;
-            self.slots::<(T, [usize; 4])>(count.checked_mul(3).ok_or_else(limit)?)?;
+            self.slots::<(T, [usize; 4])>(count.checked_mul(3).ok_or_else(limit)?.max(11))?;
         }
         Ok(())
     }
@@ -124,5 +124,33 @@ impl Meter<'_> {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod sparse_tree_tests {
+    use super::*;
+    #[test]
+    fn singleton_tree_charges_the_full_large_inline_root_before_allocation() {
+        type Large = (String, crate::metadata::Instrument);
+        let required = 512 + 11 * size_of::<(Large, [usize; 4])>();
+        let mut work = usize::MAX;
+        let mut bytes = required - 1;
+        assert!(
+            Meter {
+                work: &mut work,
+                bytes: &mut bytes
+            }
+            .tree::<Large>(1)
+            .is_err()
+        );
+        let mut bytes = required;
+        Meter {
+            work: &mut work,
+            bytes: &mut bytes,
+        }
+        .tree::<Large>(1)
+        .unwrap();
+        assert_eq!(bytes, 0);
     }
 }

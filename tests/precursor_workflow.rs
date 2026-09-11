@@ -256,6 +256,18 @@ fn mzml_writer_rejects_unrepresented_precursor_fields_and_missing_reference_atom
         .cv_terms
         .metadata
         .insert("extra".into(), MetaValue::from("value"));
+    // The header codec now carries scalar precursor metadata. List values
+    // still have no reversible mzML scalar representation.
+    let mut output = Vec::new();
+    mzml::write(&mut output, &v).unwrap();
+    assert_eq!(
+        mzml::read(output.as_slice()).unwrap().spectra[1].precursors[0],
+        v.spectra[1].precursors[0]
+    );
+    v.spectra[1].precursors[0]
+        .cv_terms
+        .metadata
+        .insert("extra".into(), MetaValue::from(vec!["value".to_owned()]));
     cases.push(v);
     for bad in cases {
         let mut output = vec![42];

@@ -1,0 +1,1750 @@
+{
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+  "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a",
+  "oracle": "Parsed independently from literal C++ reader setters and writer branches; both maps must match. No Rust production is invoked.",
+  "reader": [
+    {
+      "accession": "MS:1000246",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "DELAYED_EXTRACTION",
+      "setter": "IonOptics",
+      "line": 2570
+    },
+    {
+      "accession": "MS:1000221",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "MAGNETIC_DEFLECTION",
+      "setter": "IonOptics",
+      "line": 2574
+    },
+    {
+      "accession": "MS:1000275",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "COLLISION_QUADRUPOLE",
+      "setter": "IonOptics",
+      "line": 2578
+    },
+    {
+      "accession": "MS:1000281",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "SELECTED_ION_FLOW_TUBE",
+      "setter": "IonOptics",
+      "line": 2582
+    },
+    {
+      "accession": "MS:1000286",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "TIME_LAG_FOCUSING",
+      "setter": "IonOptics",
+      "line": 2586
+    },
+    {
+      "accession": "MS:1000300",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "REFLECTRON",
+      "setter": "IonOptics",
+      "line": 2590
+    },
+    {
+      "accession": "MS:1000307",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "EINZEL_LENS",
+      "setter": "IonOptics",
+      "line": 2594
+    },
+    {
+      "accession": "MS:1000309",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "FIRST_STABILITY_REGION",
+      "setter": "IonOptics",
+      "line": 2598
+    },
+    {
+      "accession": "MS:1000310",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "FRINGING_FIELD",
+      "setter": "IonOptics",
+      "line": 2602
+    },
+    {
+      "accession": "MS:1000311",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "KINETIC_ENERGY_ANALYZER",
+      "setter": "IonOptics",
+      "line": 2606
+    },
+    {
+      "accession": "MS:1000320",
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "STATIC_FIELD",
+      "setter": "IonOptics",
+      "line": 2610
+    },
+    {
+      "accession": "MS:1000055",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "CONTINUOUSFLOWFASTATOMBOMBARDMENT",
+      "setter": "InletType",
+      "line": 2641
+    },
+    {
+      "accession": "MS:1000056",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "DIRECT",
+      "setter": "InletType",
+      "line": 2645
+    },
+    {
+      "accession": "MS:1000057",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "ELECTROSPRAYINLET",
+      "setter": "InletType",
+      "line": 2649
+    },
+    {
+      "accession": "MS:1000058",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "FLOWINJECTIONANALYSIS",
+      "setter": "InletType",
+      "line": 2653
+    },
+    {
+      "accession": "MS:1000059",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "INDUCTIVELYCOUPLEDPLASMA",
+      "setter": "InletType",
+      "line": 2657
+    },
+    {
+      "accession": "MS:1000060",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "INFUSION",
+      "setter": "InletType",
+      "line": 2661
+    },
+    {
+      "accession": "MS:1000061",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "JETSEPARATOR",
+      "setter": "InletType",
+      "line": 2665
+    },
+    {
+      "accession": "MS:1000062",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "MEMBRANESEPARATOR",
+      "setter": "InletType",
+      "line": 2669
+    },
+    {
+      "accession": "MS:1000063",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "MOVINGBELT",
+      "setter": "InletType",
+      "line": 2673
+    },
+    {
+      "accession": "MS:1000064",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "MOVINGWIRE",
+      "setter": "InletType",
+      "line": 2677
+    },
+    {
+      "accession": "MS:1000065",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "OPENSPLIT",
+      "setter": "InletType",
+      "line": 2681
+    },
+    {
+      "accession": "MS:1000066",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "PARTICLEBEAM",
+      "setter": "InletType",
+      "line": 2685
+    },
+    {
+      "accession": "MS:1000067",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "RESERVOIR",
+      "setter": "InletType",
+      "line": 2689
+    },
+    {
+      "accession": "MS:1000068",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "SEPTUM",
+      "setter": "InletType",
+      "line": 2693
+    },
+    {
+      "accession": "MS:1000069",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "THERMOSPRAYINLET",
+      "setter": "InletType",
+      "line": 2697
+    },
+    {
+      "accession": "MS:1000248",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "BATCH",
+      "setter": "InletType",
+      "line": 2701
+    },
+    {
+      "accession": "MS:1000249",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "CHROMATOGRAPHY",
+      "setter": "InletType",
+      "line": 2705
+    },
+    {
+      "accession": "MS:1000396",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "MEMBRANE",
+      "setter": "InletType",
+      "line": 2709
+    },
+    {
+      "accession": "MS:1000485",
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "NANOSPRAY",
+      "setter": "InletType",
+      "line": 2713
+    },
+    {
+      "accession": "MS:1000071",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "CI",
+      "setter": "IonizationMethod",
+      "line": 2718
+    },
+    {
+      "accession": "MS:1000073",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "ESI",
+      "setter": "IonizationMethod",
+      "line": 2722
+    },
+    {
+      "accession": "MS:1000074",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FAB",
+      "setter": "IonizationMethod",
+      "line": 2726
+    },
+    {
+      "accession": "MS:1000227",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "MPI",
+      "setter": "IonizationMethod",
+      "line": 2730
+    },
+    {
+      "accession": "MS:1000240",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "API",
+      "setter": "IonizationMethod",
+      "line": 2734
+    },
+    {
+      "accession": "MS:1000247",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "DI",
+      "setter": "IonizationMethod",
+      "line": 2738
+    },
+    {
+      "accession": "MS:1000255",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FA",
+      "setter": "IonizationMethod",
+      "line": 2742
+    },
+    {
+      "accession": "MS:1000258",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FII",
+      "setter": "IonizationMethod",
+      "line": 2746
+    },
+    {
+      "accession": "MS:1000259",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "GD_MS",
+      "setter": "IonizationMethod",
+      "line": 2750
+    },
+    {
+      "accession": "MS:1000271",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "NICI",
+      "setter": "IonizationMethod",
+      "line": 2754
+    },
+    {
+      "accession": "MS:1000272",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "NRMS",
+      "setter": "IonizationMethod",
+      "line": 2758
+    },
+    {
+      "accession": "MS:1000273",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "PI",
+      "setter": "IonizationMethod",
+      "line": 2762
+    },
+    {
+      "accession": "MS:1000274",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "PYMS",
+      "setter": "IonizationMethod",
+      "line": 2766
+    },
+    {
+      "accession": "MS:1000276",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "REMPI",
+      "setter": "IonizationMethod",
+      "line": 2770
+    },
+    {
+      "accession": "MS:1000380",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "AI",
+      "setter": "IonizationMethod",
+      "line": 2774
+    },
+    {
+      "accession": "MS:1000381",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "ASI",
+      "setter": "IonizationMethod",
+      "line": 2778
+    },
+    {
+      "accession": "MS:1000383",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "AD",
+      "setter": "IonizationMethod",
+      "line": 2782
+    },
+    {
+      "accession": "MS:1000384",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "AUI",
+      "setter": "IonizationMethod",
+      "line": 2786
+    },
+    {
+      "accession": "MS:1000385",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "CEI",
+      "setter": "IonizationMethod",
+      "line": 2790
+    },
+    {
+      "accession": "MS:1000386",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "CHEMI",
+      "setter": "IonizationMethod",
+      "line": 2794
+    },
+    {
+      "accession": "MS:1000388",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "DISSI",
+      "setter": "IonizationMethod",
+      "line": 2798
+    },
+    {
+      "accession": "MS:1000389",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "EI",
+      "setter": "IonizationMethod",
+      "line": 2802
+    },
+    {
+      "accession": "MS:1000395",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "LSI",
+      "setter": "IonizationMethod",
+      "line": 2806
+    },
+    {
+      "accession": "MS:1000399",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "PEI",
+      "setter": "IonizationMethod",
+      "line": 2810
+    },
+    {
+      "accession": "MS:1000400",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "PD",
+      "setter": "IonizationMethod",
+      "line": 2814
+    },
+    {
+      "accession": "MS:1000402",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SI",
+      "setter": "IonizationMethod",
+      "line": 2818
+    },
+    {
+      "accession": "MS:1000403",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SOI",
+      "setter": "IonizationMethod",
+      "line": 2822
+    },
+    {
+      "accession": "MS:1000404",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SPI",
+      "setter": "IonizationMethod",
+      "line": 2826
+    },
+    {
+      "accession": "MS:1000406",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SUI",
+      "setter": "IonizationMethod",
+      "line": 2830
+    },
+    {
+      "accession": "MS:1000407",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "TI",
+      "setter": "IonizationMethod",
+      "line": 2834
+    },
+    {
+      "accession": "MS:1000408",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "VI",
+      "setter": "IonizationMethod",
+      "line": 2838
+    },
+    {
+      "accession": "MS:1000446",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FIB",
+      "setter": "IonizationMethod",
+      "line": 2842
+    },
+    {
+      "accession": "MS:1000070",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "APCI",
+      "setter": "IonizationMethod",
+      "line": 2846
+    },
+    {
+      "accession": "MS:1000239",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "AP_MALDI",
+      "setter": "IonizationMethod",
+      "line": 2850
+    },
+    {
+      "accession": "MS:1000382",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "APPI",
+      "setter": "IonizationMethod",
+      "line": 2854
+    },
+    {
+      "accession": "MS:1000075",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "MALDI",
+      "setter": "IonizationMethod",
+      "line": 2858
+    },
+    {
+      "accession": "MS:1000257",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FD",
+      "setter": "IonizationMethod",
+      "line": 2862
+    },
+    {
+      "accession": "MS:1000387",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SILI",
+      "setter": "IonizationMethod",
+      "line": 2866
+    },
+    {
+      "accession": "MS:1000393",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "LD",
+      "setter": "IonizationMethod",
+      "line": 2870
+    },
+    {
+      "accession": "MS:1000405",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SALDI",
+      "setter": "IonizationMethod",
+      "line": 2874
+    },
+    {
+      "accession": "MS:1000397",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "MESI",
+      "setter": "IonizationMethod",
+      "line": 2878
+    },
+    {
+      "accession": "MS:1000398",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "NESI",
+      "setter": "IonizationMethod",
+      "line": 2882
+    },
+    {
+      "accession": "MS:1000278",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SELDI",
+      "setter": "IonizationMethod",
+      "line": 2886
+    },
+    {
+      "accession": "MS:1000279",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SEND",
+      "setter": "IonizationMethod",
+      "line": 2890
+    },
+    {
+      "accession": "MS:1000008",
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "IONMETHODNULL",
+      "setter": "IonizationMethod",
+      "line": 2894
+    },
+    {
+      "accession": "MS:1000079",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "FOURIERTRANSFORM",
+      "setter": "Type",
+      "line": 3023
+    },
+    {
+      "accession": "MS:1000080",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "SECTOR",
+      "setter": "Type",
+      "line": 3027
+    },
+    {
+      "accession": "MS:1000081",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "QUADRUPOLE",
+      "setter": "Type",
+      "line": 3031
+    },
+    {
+      "accession": "MS:1000084",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "TOF",
+      "setter": "Type",
+      "line": 3035
+    },
+    {
+      "accession": "MS:1000254",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "ESA",
+      "setter": "Type",
+      "line": 3039
+    },
+    {
+      "accession": "MS:1000264",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "IT",
+      "setter": "Type",
+      "line": 3043
+    },
+    {
+      "accession": "MS:1000284",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "SWIFT",
+      "setter": "Type",
+      "line": 3047
+    },
+    {
+      "accession": "MS:1000288",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "CYCLOTRON",
+      "setter": "Type",
+      "line": 3051
+    },
+    {
+      "accession": "MS:1000484",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "ORBITRAP",
+      "setter": "Type",
+      "line": 3055
+    },
+    {
+      "accession": "MS:1000078",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "AXIALEJECTIONLINEARIONTRAP",
+      "setter": "Type",
+      "line": 3059
+    },
+    {
+      "accession": "MS:1000082",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "PAULIONTRAP",
+      "setter": "Type",
+      "line": 3063
+    },
+    {
+      "accession": "MS:1000083",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "RADIALEJECTIONLINEARIONTRAP",
+      "setter": "Type",
+      "line": 3067
+    },
+    {
+      "accession": "MS:1000291",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "LIT",
+      "setter": "Type",
+      "line": 3071
+    },
+    {
+      "accession": "MS:1000443",
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "ANALYZERNULL",
+      "setter": "Type",
+      "line": 3079
+    },
+    {
+      "accession": "MS:1000105",
+      "owner": "MassAnalyzer",
+      "enum": "ReflectronState",
+      "member": "OFF",
+      "setter": "ReflectronState",
+      "line": 3100
+    },
+    {
+      "accession": "MS:1000106",
+      "owner": "MassAnalyzer",
+      "enum": "ReflectronState",
+      "member": "ON",
+      "setter": "ReflectronState",
+      "line": 3104
+    },
+    {
+      "accession": "MS:1000107",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "CHANNELTRON",
+      "setter": "Type",
+      "line": 3114
+    },
+    {
+      "accession": "MS:1000110",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "DALYDETECTOR",
+      "setter": "Type",
+      "line": 3118
+    },
+    {
+      "accession": "MS:1000112",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "FARADAYCUP",
+      "setter": "Type",
+      "line": 3122
+    },
+    {
+      "accession": "MS:1000114",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "MICROCHANNELPLATEDETECTOR",
+      "setter": "Type",
+      "line": 3126
+    },
+    {
+      "accession": "MS:1000115",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "MULTICOLLECTOR",
+      "setter": "Type",
+      "line": 3130
+    },
+    {
+      "accession": "MS:1000116",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "PHOTOMULTIPLIER",
+      "setter": "Type",
+      "line": 3134
+    },
+    {
+      "accession": "MS:1000253",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "ELECTRONMULTIPLIER",
+      "setter": "Type",
+      "line": 3138
+    },
+    {
+      "accession": "MS:1000345",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "ARRAYDETECTOR",
+      "setter": "Type",
+      "line": 3142
+    },
+    {
+      "accession": "MS:1000346",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "CONVERSIONDYNODE",
+      "setter": "Type",
+      "line": 3146
+    },
+    {
+      "accession": "MS:1000347",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "DYNODE",
+      "setter": "Type",
+      "line": 3150
+    },
+    {
+      "accession": "MS:1000348",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "FOCALPLANECOLLECTOR",
+      "setter": "Type",
+      "line": 3154
+    },
+    {
+      "accession": "MS:1000349",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "IONTOPHOTONDETECTOR",
+      "setter": "Type",
+      "line": 3158
+    },
+    {
+      "accession": "MS:1000350",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "POINTCOLLECTOR",
+      "setter": "Type",
+      "line": 3162
+    },
+    {
+      "accession": "MS:1000351",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "POSTACCELERATIONDETECTOR",
+      "setter": "Type",
+      "line": 3166
+    },
+    {
+      "accession": "MS:1000621",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "PHOTODIODEARRAYDETECTOR",
+      "setter": "Type",
+      "line": 3170
+    },
+    {
+      "accession": "MS:1000624",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "INDUCTIVEDETECTOR",
+      "setter": "Type",
+      "line": 3174
+    },
+    {
+      "accession": "MS:1000108",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "CONVERSIONDYNODEELECTRONMULTIPLIER",
+      "setter": "Type",
+      "line": 3178
+    },
+    {
+      "accession": "MS:1000109",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "CONVERSIONDYNODEPHOTOMULTIPLIER",
+      "setter": "Type",
+      "line": 3182
+    },
+    {
+      "accession": "MS:1000111",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "ELECTRONMULTIPLIERTUBE",
+      "setter": "Type",
+      "line": 3186
+    },
+    {
+      "accession": "MS:1000113",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "FOCALPLANEARRAY",
+      "setter": "Type",
+      "line": 3190
+    },
+    {
+      "accession": "MS:1000026",
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "TYPENULL",
+      "setter": "Type",
+      "line": 3194
+    },
+    {
+      "accession": "MS:1000117",
+      "owner": "IonDetector",
+      "enum": "AcquisitionMode",
+      "member": "ADC",
+      "setter": "AcquisitionMode",
+      "line": 3208
+    },
+    {
+      "accession": "MS:1000118",
+      "owner": "IonDetector",
+      "enum": "AcquisitionMode",
+      "member": "PULSECOUNTING",
+      "setter": "AcquisitionMode",
+      "line": 3212
+    },
+    {
+      "accession": "MS:1000119",
+      "owner": "IonDetector",
+      "enum": "AcquisitionMode",
+      "member": "TDC",
+      "setter": "AcquisitionMode",
+      "line": 3216
+    },
+    {
+      "accession": "MS:1000120",
+      "owner": "IonDetector",
+      "enum": "AcquisitionMode",
+      "member": "TRANSIENTRECORDER",
+      "setter": "AcquisitionMode",
+      "line": 3220
+    }
+  ],
+  "writer": [
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "MAGNETIC_DEFLECTION",
+      "accession": "MS:1000221",
+      "line": 3977
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "DELAYED_EXTRACTION",
+      "accession": "MS:1000246",
+      "line": 3981
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "COLLISION_QUADRUPOLE",
+      "accession": "MS:1000275",
+      "line": 3985
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "SELECTED_ION_FLOW_TUBE",
+      "accession": "MS:1000281",
+      "line": 3989
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "TIME_LAG_FOCUSING",
+      "accession": "MS:1000286",
+      "line": 3993
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "REFLECTRON",
+      "accession": "MS:1000300",
+      "line": 3997
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "EINZEL_LENS",
+      "accession": "MS:1000307",
+      "line": 4001
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "FIRST_STABILITY_REGION",
+      "accession": "MS:1000309",
+      "line": 4005
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "FRINGING_FIELD",
+      "accession": "MS:1000310",
+      "line": 4009
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "KINETIC_ENERGY_ANALYZER",
+      "accession": "MS:1000311",
+      "line": 4013
+    },
+    {
+      "owner": "Instrument",
+      "enum": "IonOpticsType",
+      "member": "STATIC_FIELD",
+      "accession": "MS:1000320",
+      "line": 4017
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "CONTINUOUSFLOWFASTATOMBOMBARDMENT",
+      "accession": "MS:1000055",
+      "line": 4035
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "DIRECT",
+      "accession": "MS:1000056",
+      "line": 4039
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "ELECTROSPRAYINLET",
+      "accession": "MS:1000057",
+      "line": 4043
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "FLOWINJECTIONANALYSIS",
+      "accession": "MS:1000058",
+      "line": 4047
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "INDUCTIVELYCOUPLEDPLASMA",
+      "accession": "MS:1000059",
+      "line": 4051
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "INFUSION",
+      "accession": "MS:1000060",
+      "line": 4055
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "JETSEPARATOR",
+      "accession": "MS:1000061",
+      "line": 4059
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "MEMBRANESEPARATOR",
+      "accession": "MS:1000062",
+      "line": 4063
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "MOVINGBELT",
+      "accession": "MS:1000063",
+      "line": 4067
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "MOVINGWIRE",
+      "accession": "MS:1000064",
+      "line": 4071
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "OPENSPLIT",
+      "accession": "MS:1000065",
+      "line": 4075
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "PARTICLEBEAM",
+      "accession": "MS:1000066",
+      "line": 4079
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "RESERVOIR",
+      "accession": "MS:1000067",
+      "line": 4083
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "SEPTUM",
+      "accession": "MS:1000068",
+      "line": 4087
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "THERMOSPRAYINLET",
+      "accession": "MS:1000069",
+      "line": 4091
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "BATCH",
+      "accession": "MS:1000248",
+      "line": 4095
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "CHROMATOGRAPHY",
+      "accession": "MS:1000249",
+      "line": 4099
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "MEMBRANE",
+      "accession": "MS:1000396",
+      "line": 4103
+    },
+    {
+      "owner": "IonSource",
+      "enum": "InletType",
+      "member": "NANOSPRAY",
+      "accession": "MS:1000485",
+      "line": 4107
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "APCI",
+      "accession": "MS:1000070",
+      "line": 4116
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "CI",
+      "accession": "MS:1000071",
+      "line": 4120
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "ESI",
+      "accession": "MS:1000073",
+      "line": 4124
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FAB",
+      "accession": "MS:1000074",
+      "line": 4128
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "MALDI",
+      "accession": "MS:1000075",
+      "line": 4132
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "MPI",
+      "accession": "MS:1000227",
+      "line": 4136
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "AP_MALDI",
+      "accession": "MS:1000239",
+      "line": 4140
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "API",
+      "accession": "MS:1000240",
+      "line": 4144
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "DI",
+      "accession": "MS:1000247",
+      "line": 4148
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FA",
+      "accession": "MS:1000255",
+      "line": 4152
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FD",
+      "accession": "MS:1000257",
+      "line": 4156
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FII",
+      "accession": "MS:1000258",
+      "line": 4160
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "GD_MS",
+      "accession": "MS:1000259",
+      "line": 4164
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "NICI",
+      "accession": "MS:1000271",
+      "line": 4168
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "NRMS",
+      "accession": "MS:1000272",
+      "line": 4172
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "PI",
+      "accession": "MS:1000273",
+      "line": 4176
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "PYMS",
+      "accession": "MS:1000274",
+      "line": 4180
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "REMPI",
+      "accession": "MS:1000276",
+      "line": 4184
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SELDI",
+      "accession": "MS:1000278",
+      "line": 4188
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SEND",
+      "accession": "MS:1000279",
+      "line": 4192
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "AI",
+      "accession": "MS:1000380",
+      "line": 4196
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "ASI",
+      "accession": "MS:1000381",
+      "line": 4200
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "APPI",
+      "accession": "MS:1000382",
+      "line": 4204
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "AD",
+      "accession": "MS:1000383",
+      "line": 4208
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "AUI",
+      "accession": "MS:1000384",
+      "line": 4212
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "CEI",
+      "accession": "MS:1000385",
+      "line": 4216
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "CHEMI",
+      "accession": "MS:1000386",
+      "line": 4220
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SILI",
+      "accession": "MS:1000387",
+      "line": 4224
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "DISSI",
+      "accession": "MS:1000388",
+      "line": 4228
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "EI",
+      "accession": "MS:1000389",
+      "line": 4232
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "LD",
+      "accession": "MS:1000393",
+      "line": 4236
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "LSI",
+      "accession": "MS:1000395",
+      "line": 4240
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "MESI",
+      "accession": "MS:1000397",
+      "line": 4244
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "NESI",
+      "accession": "MS:1000398",
+      "line": 4248
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "PEI",
+      "accession": "MS:1000399",
+      "line": 4252
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "PD",
+      "accession": "MS:1000400",
+      "line": 4256
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SI",
+      "accession": "MS:1000402",
+      "line": 4260
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SOI",
+      "accession": "MS:1000403",
+      "line": 4264
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SPI",
+      "accession": "MS:1000404",
+      "line": 4268
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SALDI",
+      "accession": "MS:1000405",
+      "line": 4272
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "SUI",
+      "accession": "MS:1000406",
+      "line": 4276
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "TI",
+      "accession": "MS:1000407",
+      "line": 4280
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "VI",
+      "accession": "MS:1000408",
+      "line": 4284
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "FIB",
+      "accession": "MS:1000446",
+      "line": 4288
+    },
+    {
+      "owner": "IonSource",
+      "enum": "IonizationMethod",
+      "member": "IONMETHODNULL",
+      "accession": "MS:1000008",
+      "line": 4292
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "ReflectronState",
+      "member": "ON",
+      "accession": "MS:1000106",
+      "line": 4322
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "ReflectronState",
+      "member": "OFF",
+      "accession": "MS:1000105",
+      "line": 4327
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "FOURIERTRANSFORM",
+      "accession": "MS:1000079",
+      "line": 4336
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "SECTOR",
+      "accession": "MS:1000080",
+      "line": 4340
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "QUADRUPOLE",
+      "accession": "MS:1000081",
+      "line": 4344
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "TOF",
+      "accession": "MS:1000084",
+      "line": 4348
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "ESA",
+      "accession": "MS:1000254",
+      "line": 4352
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "IT",
+      "accession": "MS:1000264",
+      "line": 4356
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "SWIFT",
+      "accession": "MS:1000284",
+      "line": 4360
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "CYCLOTRON",
+      "accession": "MS:1000288",
+      "line": 4364
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "ORBITRAP",
+      "accession": "MS:1000484",
+      "line": 4368
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "AXIALEJECTIONLINEARIONTRAP",
+      "accession": "MS:1000078",
+      "line": 4372
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "PAULIONTRAP",
+      "accession": "MS:1000082",
+      "line": 4376
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "RADIALEJECTIONLINEARIONTRAP",
+      "accession": "MS:1000083",
+      "line": 4380
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "LIT",
+      "accession": "MS:1000291",
+      "line": 4384
+    },
+    {
+      "owner": "MassAnalyzer",
+      "enum": "AnalyzerType",
+      "member": "ANALYZERNULL",
+      "accession": "MS:1000443",
+      "line": 4388
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "AcquisitionMode",
+      "member": "ADC",
+      "accession": "MS:1000117",
+      "line": 4415
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "AcquisitionMode",
+      "member": "PULSECOUNTING",
+      "accession": "MS:1000118",
+      "line": 4419
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "AcquisitionMode",
+      "member": "TDC",
+      "accession": "MS:1000119",
+      "line": 4423
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "AcquisitionMode",
+      "member": "TRANSIENTRECORDER",
+      "accession": "MS:1000120",
+      "line": 4427
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "CHANNELTRON",
+      "accession": "MS:1000107",
+      "line": 4432
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "DALYDETECTOR",
+      "accession": "MS:1000110",
+      "line": 4436
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "FARADAYCUP",
+      "accession": "MS:1000112",
+      "line": 4440
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "MICROCHANNELPLATEDETECTOR",
+      "accession": "MS:1000114",
+      "line": 4444
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "MULTICOLLECTOR",
+      "accession": "MS:1000115",
+      "line": 4448
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "PHOTOMULTIPLIER",
+      "accession": "MS:1000116",
+      "line": 4452
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "ELECTRONMULTIPLIER",
+      "accession": "MS:1000253",
+      "line": 4456
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "ARRAYDETECTOR",
+      "accession": "MS:1000345",
+      "line": 4460
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "CONVERSIONDYNODE",
+      "accession": "MS:1000346",
+      "line": 4464
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "DYNODE",
+      "accession": "MS:1000347",
+      "line": 4468
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "FOCALPLANECOLLECTOR",
+      "accession": "MS:1000348",
+      "line": 4472
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "IONTOPHOTONDETECTOR",
+      "accession": "MS:1000349",
+      "line": 4476
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "POINTCOLLECTOR",
+      "accession": "MS:1000350",
+      "line": 4480
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "POSTACCELERATIONDETECTOR",
+      "accession": "MS:1000351",
+      "line": 4484
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "PHOTODIODEARRAYDETECTOR",
+      "accession": "MS:1000621",
+      "line": 4488
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "INDUCTIVEDETECTOR",
+      "accession": "MS:1000624",
+      "line": 4492
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "CONVERSIONDYNODEELECTRONMULTIPLIER",
+      "accession": "MS:1000108",
+      "line": 4496
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "CONVERSIONDYNODEPHOTOMULTIPLIER",
+      "accession": "MS:1000109",
+      "line": 4500
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "ELECTRONMULTIPLIERTUBE",
+      "accession": "MS:1000111",
+      "line": 4504
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "FOCALPLANEARRAY",
+      "accession": "MS:1000113",
+      "line": 4508
+    },
+    {
+      "owner": "IonDetector",
+      "enum": "Type",
+      "member": "TYPENULL",
+      "accession": "MS:1000026",
+      "line": 4512
+    }
+  ]
+}

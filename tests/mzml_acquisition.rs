@@ -241,7 +241,7 @@ fn source_writer_normalization_and_first_scan_placement() {
     assert_eq!(source.acquisitions.len(), 1);
 }
 #[test]
-fn header_reference_resolution_and_unrepresentable_writer_are_checked() {
+fn header_reference_resolution_and_additional_instrument_writer_are_checked() {
     let h = r#"<fileDescription><sourceFileList count="1"><sourceFile id="f" name="raw &amp; file" location="file:///data"/></sourceFileList></fileDescription><instrumentConfigurationList count="2"><instrumentConfiguration id="a"/><instrumentConfiguration id="b"/></instrumentConfigurationList>"#;
     let xml = document(
         h,
@@ -266,15 +266,12 @@ fn header_reference_resolution_and_unrepresentable_writer_are_checked() {
         "b"
     );
     for compressed in [false, true] {
-        let mut out = b"unchanged".to_vec();
-        let error = if compressed {
-            mzml::write_with_numpress(&mut out, &e, &Default::default()).map(|_| ())
-        } else {
-            mzml::write(&mut out, &e)
-        }
-        .unwrap_err();
-        assert!(error.to_string().contains("instrument_configuration_ref"));
-        assert_eq!(out, b"unchanged");
+        let bytes = encode(&e, compressed);
+        let loaded = read(
+            std::str::from_utf8(&bytes).unwrap(),
+            AcquisitionMode::Canonical,
+        );
+        assert_eq!(loaded, e);
     }
     for broken in [
         xml.replace("sourceFileRef=\"f\"", "sourceFileRef=\"missing\""),

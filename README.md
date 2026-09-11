@@ -207,8 +207,8 @@ reproductions, evidence level and proposed upstream fixes.
 [ProForma modification resolution](docs/PROFORMA_RESOLUTION_SUPPORT.md) now
 fills shared chemistry handles using a caller-owned registry with atomic failure
 handling. [Mass and m/z operations](docs/PROFORMA_MASS_SUPPORT.md) include
-issue reports, availability checks and optional results. Sequence conversion
-and spectrum generation remain separate work.
+issue reports, availability checks and optional results. [Sequence conversion](docs/PROFORMA_CONVERSION_SUPPORT.md) is available;
+ProForma spectrum generation remains separate work.
 
 [DateTime support](docs/DATETIME_SUPPORT.md) includes source-compatible parsing,
 all seven formats, local/UTC clocks and checked Gregorian arithmetic.
@@ -216,8 +216,11 @@ all seven formats, local/UTC clocks and checked Gregorian arithmetic.
 [Experiment settings](docs/EXPERIMENTAL_SETTINGS_SUPPORT.md) now own sample,
 instrument, chromatography, date, provenance and typed run metadata. Callers
 using `MSExperiment::metadata` must migrate to `experiment.settings.metadata`.
-Processing preserves the complete settings; full mzML header transport is
-still being implemented.
+Processing preserves the complete settings. [mzML header transport](docs/MZML_HEADER_SUPPORT.md)
+now preserves source-supported contacts, instruments, software, source files and
+processing histories. `DataProcessing.completion_time` now uses `DateTime` to
+retain milliseconds. [PeptideEvidence](docs/PEPTIDE_EVIDENCE_SUPPORT.md) also
+supports complete native value and hash-key operations.
 
 [Controlled vocabularies](docs/CONTROLLED_VOCABULARY_SUPPORT.md) now provide
 complete term records, cumulative OBO loading, hierarchy queries, typed XML

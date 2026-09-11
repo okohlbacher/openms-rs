@@ -18,7 +18,9 @@ Ok(())
 }
 ```
 
-The API accepts `BufRead`/`Write`; file handling and outer gzip decoding are the caller's responsibility. `read` processes XML events, then returns an owned `MSExperiment` containing all records. It is not a lazy spectrum iterator or an on-disk random-access reader.
+The stream API accepts `BufRead`/`Write`; [path APIs](MZML_PATH_SUPPORT.md) additionally provide bounded gzip/bzip2 transport and atomic output. `read` processes XML events, then returns an owned `MSExperiment` containing all records. It is not a lazy spectrum iterator or an on-disk random-access reader.
+
+[Experimental headers and references](MZML_HEADER_SUPPORT.md) also provide metadata-only reading, source-supported instrument/sample/software payloads and processing histories. `DataProcessing.completion_time` now uses `DateTime`, preserving milliseconds. Streaming consumers and the complete MzMLFile surface remain outstanding.
 
 ## Supported data
 
@@ -68,7 +70,7 @@ Duplicate Product/isolation containers, quantities or metadata keys are errors. 
 
 XML nesting is limited to 128 levels. Base64 expansion has a corresponding bound. Zlib decoding uses bounded 8 KiB chunks with overrun detection and requires a complete stream with matching checksum and full input consumption; trailing or concatenated compressed data is rejected. Numeric bytes must match the declared count times precision exactly. Variable-size string data is checked against per-array and cumulative byte budgets, then against the exact declared element count. Adjust limits deliberately for larger experiments; the returned experiment still needs memory for all peaks, string objects and retained metadata.
 
-The reader supports [referenceable parameter groups](MZML_PARAM_GROUPS_SUPPORT.md) through the same handlers as inline parameters, including grouped CV and user parameters. Missing references and malformed groups are errors. The reader supports [Numpress binary transport](MZML_NUMPRESS_SUPPORT.md), including source float64 precision repair. Outside those documented repairs, it rejects integer/string primary peak arrays, unimplemented semantic auxiliary CV types, other binary CV terms or codecs, other time units, nonfinite values, unsupported XML encodings, DTDs, CDATA, and entity references in element text. Auxiliary units and binary-array userParams have no native storage and are rejected, including unit attributes attached to precision or compression terms. Standard XML escaping and numeric character references in attribute values are supported. Multiple selected ions within one precursor and duplicate userParam keys cannot be represented and are rejected. Conflicting or duplicate supported scientific CV values, duplicate records, missing arrays, incorrect array lengths, and relevant record/array/precursor/selected-ion/scan list counts are also errors.
+The reader supports [referenceable parameter groups](MZML_PARAM_GROUPS_SUPPORT.md) through the same handlers as inline parameters, including grouped CV and user parameters. Missing references and malformed groups are errors. The reader supports [Numpress binary transport](MZML_NUMPRESS_SUPPORT.md), including source float64 precision repair. Outside those documented repairs, it rejects integer/string primary peak arrays, unimplemented semantic auxiliary CV types, other binary CV terms or codecs, other time units, nonfinite values, unsupported XML encodings, DTDs, CDATA, and entity references in element text. Auxiliary scalar metadata, represented units and processing references are retained by the [header codec](MZML_HEADER_SUPPORT.md). Unit attributes attached to precision/compression terms remain invalid. Standard XML escaping and numeric character references in attribute values are supported. Multiple selected ions within one precursor and duplicate userParam keys cannot be represented and are rejected. Conflicting or duplicate supported scientific CV values, duplicate records, missing arrays, incorrect array lengths, and relevant record/array/precursor/selected-ion/scan list counts are also errors.
 
 Validation checks XML well-formedness and the scientific structures used by this subset. It does **not** run XSD or PSI controlled-vocabulary semantic validation while reading. Header inventories, arbitrary CV placement, all schema ordering constraints, and index/checksum validity are not verified. Parse errors use line zero when an exact XML line number is unavailable.
 
@@ -76,7 +78,7 @@ The writer rejects nonfinite data, duplicate IDs, invalid XML characters, reserv
 
 ## Metadata preservation boundary
 
-This adapter is **not a lossless mzML archival converter**. Source files, full instrument inventories, original data-processing history, arbitrary controlled-vocabulary lists, units/typed semantics on userParams outside Product, scan windows and spectrum acquisitions, and acquisition fields outside the documented precursor/record settings subsets are not retained by this adapter. Multiple selected ions within one precursor remain unsupported. The only automatic name mapping is the reserved Rust name userParam; other title conventions are not inferred.
+This adapter is **not a lossless mzML archival converter**. The [header/reference group](MZML_HEADER_SUPPORT.md) retains source-supported source files, instruments, processing histories and scalar metadata/units. Arbitrary controlled-vocabulary lists, unsupported sample/HPLC/instrument fields, non-string primary-array metadata, independent primary history and acquisition fields outside the documented subset remain checked boundaries. Multiple selected ions within one precursor remain unsupported. The only automatic name mapping is the reserved Rust name userParam; other title conventions are not inferred.
 
 Run/spectrum/chromatogram metadata maps are string-valued; Product, scan-window and spectrum-acquisition metadata use the typed exceptions documented in their support pages. The `openms-rust:name` key is reserved and rejected in user maps; it is used only for the spectrum/chromatogram `name` fields. Unknown acquisition metadata outside the supported model is ignored during reading. Unsupported binary arrays are rejected, rather than discarded.
 
@@ -105,9 +107,9 @@ accession/name identities subject to documented native representation limits.
 Existing plain read entry points retain their order and validation behavior.
 
 Direct [mzML filesystem operations](MZML_PATH_SUPPORT.md) accept scientific load
-settings and provide atomic replacement/output. Array description metadata and
-shared processing handles are retained natively but rejected by current XML
-writers; [details](DATA_ARRAY_XML_SUPPORT.md).
+settings and provide atomic replacement/output. Auxiliary scalar descriptions and
+shared processing handles now round-trip through mzML; identification/map XML
+retain separate [description guards](DATA_ARRAY_XML_SUPPORT.md).
 
 ## Attached acquisition state
 
@@ -121,10 +123,11 @@ combination methods, scalar list/scan metadata and the documented header-referen
 subset. Canonical/Source read modes control implicit default-scan normalization.
 
 [Writer loss guards](MZML_ACQUISITION_GUARDS.md) remain for chromatogram AcquisitionInfo,
-record SourceFile and DataProcessing, spectrum InstrumentSettings metadata, and nondefault
-chromatogram InstrumentSettings. Unknown chromatogram type is also rejected to
-avoid silently rereading it as Mass. Binary-array processing descriptions remain
-separately guarded.
+nondefault chromatogram SourceFile, spectrum InstrumentSettings metadata, and
+nondefault chromatogram InstrumentSettings. Unknown chromatogram type is also
+rejected to avoid silently rereading it as Mass. Source-supported processing
+histories and auxiliary descriptions are transported; independent primary-array
+history remains guarded.
 
 ISO-8859-1 declarations are accepted only while every consumed XML event remains
 ASCII. Non-ASCII Latin-1 bytes require transcoding and return `Unsupported`,

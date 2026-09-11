@@ -5,7 +5,7 @@ field and class-specific operation of `METADATA/ExperimentalSettings` at reduced
 SDK `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`. Public owned fields replace source
 getters/setters, ordinary Clone and moves replace copy/assignment, and Display
 emits the exact two diagnostic marker lines. This is an owned value group;
-complete mzML header transport and streaming consumers are separate work.
+[source-supported mzML header transport](MZML_HEADER_SUPPORT.md) is implemented; streaming consumers remain separate work.
 
 `ExperimentalSettings` owns the document identifier/provenance, Sample and nested
 subsamples, source files, ordered contacts, default instrument, additional
@@ -79,22 +79,14 @@ sample trees; checked operations reject excess depth before recursive cloning.
 
 ## Current transport boundary
 
-mzML run userParams now use the existing typed scalar codec, preserving string,
-integer, float, and supported MS/UO unit values. Spectrum/chromatogram userParams
-retain their existing textual contract. Numeric input follows the existing
-source XSD scalar parsing rules; unrecognized XSD kinds remain text. Empty and
-list MetaValues return Unsupported before writing until the complete source
-header metadata codec is implemented. Reserved record-name keys remain errors.
-
-Both ordinary and Numpress mzML writers reject nondefault unrepresented header
-settings before output. The predicate inspects only fixed scalar fields and
-container lengths. It distinguishes stored negative zero, partial DateTime,
-stale Gradient rows and nonempty default-valued lists. It does not traverse
-caller-controlled trees to compare them with Default. Persistent document
-identifier is included in the loss guard; loaded path/type are local provenance
-and are excluded. A normal loaded experiment can therefore be written again.
-Run scalar metadata validation/rendering has a conservative shared work/byte
-precharge, independent of binary-array encoding budgets.
+[mzML header transport](MZML_HEADER_SUPPORT.md) now carries the source-supported
+sample, contacts, source files, software, default/additional instruments and
+processing histories, with scalar metadata and MS/UO units. Run user parameters
+retain typed values; spectrum/chromatogram metadata remains string-valued.
+Unrepresented fields, Empty/list metadata and invalid partial DateTime values
+remain checked errors before output. Both ordinary and Numpress writers use
+one bounded header preflight. DataProcessing completion timestamps use DateTime
+and preserve seconds/milliseconds; graph processing-step timestamps are unchanged.
 
 Successful `mzml::load*` and FileHandler path loads populate document loaded
 path and content-detected type using the shared DocumentIdentifier operations.
@@ -107,6 +99,5 @@ DTA/MS2/DTA2D and MGF experiment writers reject unrepresented persistent setting
 and run metadata before emitting bytes. This closes the former MGF run-metadata
 loss path. DTA2D `write_tic`/`store_tic` remain explicitly lossy signal-only
 projections: unconsumed settings are preserved in the caller and ignored by the
-projection. Full header read/write mappings, arbitrary list/Empty mzML metadata,
-additional instrument references and consumer setup remain explicit gaps; this
-aggregate does not imply their implementation.
+projection. Arbitrary list/Empty mzML metadata, source-unsupported header fields
+and consumer setup remain explicit gaps.

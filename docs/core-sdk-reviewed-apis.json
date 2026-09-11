@@ -353,7 +353,10 @@
         "src/format/mzml_numpress.rs",
         "src/format/mzml_settings.rs",
         "src/format/mzml_acquisition.rs",
-        "src/format/mzml_counts.rs"
+        "src/format/mzml_counts.rs",
+        "src/format/mzml_header.rs",
+        "src/format/mzml_header/read.rs",
+        "src/format/mzml_header/write.rs"
       ],
       "tests": [
         "tests/mzml.rs",
@@ -367,10 +370,11 @@
         "tests/mzml_acquisition_guards.rs",
         "tests/mzml_acquisition.rs",
         "tests/mzml_counts.rs",
-        "tests/experimental_settings.rs"
+        "tests/experimental_settings.rs",
+        "tests/mzml_header.rs"
       ],
       "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded path/type bookkeeping is represented; ZIP remains absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. Ordered spectrum AcquisitionInfo, all4 combination methods, scalar list/scan metadata and9 typed acquisition CV fallbacks are transported; Canonical/Source read modes distinguish implicit default singleton normalization. Minimal source/instrument reference lookup validates IDs and preserves source lexical repairs without filesystem probing. Zoom precedes acquisition user parameters to repair source schema order. Chromatogram AcquisitionInfo, record SourceFile/DataProcessing and unrepresented instrument metadata remain guarded. Complete loadSize group now supplies four reader/path count APIs: source declared-list early return and filtered RT-event counts, bounded plain/gzip/bzip2 transport and explicit skip-chromatogram/binary-decoding corrections. Owned ExperimentalSettings, typed scalar run metadata/units and loaded path/type are represented. Both writers reject unrepresented persistent header payload before output. Full header and consumer transforms remain open."
+      "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Peptide identifications, primary-array typed metadata/independent history, nondefault chromatogram SourceFile and other source/schema-unrepresented state remain checked errors. MzMLFile remains partial: consumer/transform and centroid APIs, fill_data=false, isolation-target loading, general schema/semantic validation, indexed writing and complete writer PeakFileOptions execution remain. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
     },
     "src/openms/include/OpenMS/METADATA/Product.h": {
       "status": "partial",
@@ -1091,6 +1095,17 @@
       ],
       "documentation": "docs/CV_MAPPING_SUPPORT.md",
       "scope": "Complete class-specific load/namespace option group with atomic owned/path/BufRead operations. Six unchanged source fixtures and independent 683-record full-field projection. Local parser state and corrected namespace stripping avoid documented defects; exact qname/boolean/enum-fallback and append conventions retained. Explicit bounded encoding/DTD/ZIP boundaries; inherited general XMLFile, semantic/XSD validation and XPath evaluation remain separate."
+    },
+    "src/openms/include/OpenMS/METADATA/PeptideEvidence.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/identification.rs"
+      ],
+      "tests": [
+        "tests/identification.rs"
+      ],
+      "documentation": "docs/PEPTIDE_EVIDENCE_SUPPORT.md",
+      "scope": "Complete owned typed record, constructor/accessors/defaults, copy/equality, source-order comparison, corrected inclusive-limit predicate and native Hash-key operations. None/usize/typed flanks replace raw negative positions/char bytes; larger usize coordinates are permitted. All five fields contribute to native equality/hash; no C++ numeric hash parity. Source class tests mostly TODO, native behavioral/collection/downstream evidence explicitly distinguished."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

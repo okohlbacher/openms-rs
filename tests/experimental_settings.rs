@@ -333,9 +333,6 @@ fn typed_run_metadata_and_units_roundtrip_with_both_mzml_writers() {
 fn unrepresented_headers_empty_and_list_metadata_fail_before_output() {
     use openms::format::mzml;
     let mut cases = vec![complete()];
-    let mut negative_zero = ExperimentalSettings::new();
-    negative_zero.sample.mass = -0.;
-    cases.push(negative_zero);
     let mut stale = ExperimentalSettings::new();
     stale.hplc.gradient.add_eluent("A").unwrap();
     stale.hplc.gradient.clear_eluents();
@@ -364,7 +361,7 @@ fn unrepresented_headers_empty_and_list_metadata_fail_before_output() {
         }
     }
     let mut e = experiment(ExperimentalSettings::new());
-    e.settings.sample.mass = -0.;
+    e.settings.comment = "unrepresented".into();
     e.spectra[0].peaks[0].intensity = f32::NAN;
     for compressed in [false, true] {
         let mut output = Vec::new();

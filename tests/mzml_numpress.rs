@@ -495,7 +495,7 @@ fn writer_resource_failures_are_cumulative_and_precede_output() {
         .push(DataArray::new("late metadata", vec![1.; 4]));
     e.spectra[0].float_data_arrays[0]
         .metadata
-        .insert("unrepresented".into(), "value".into());
+        .insert("unrepresented".into(), vec!["value".to_string()].into());
     assert!(mzml::write_with_numpress(&mut bytes, &e, &options).is_err());
     assert_eq!(bytes, b"unchanged");
 }

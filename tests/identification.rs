@@ -54,6 +54,7 @@ fn evidence_uses_inclusive_zero_based_positions_and_source_marker_order() {
     let mut reversed = evidence("P1", 0, 2);
     reversed.start = Some(3);
     assert!(reversed.validate().is_err());
+    assert!(!reversed.has_valid_limits());
     assert!(FlankingResidue::from_code('a').is_err());
     let mut values: Vec<_> = [']', 'X', '[', 'A']
         .into_iter()
@@ -74,6 +75,16 @@ fn evidence_uses_inclusive_zero_based_positions_and_source_marker_order() {
     let mut missing = evidence("P1", 0, 4);
     missing.start = None;
     assert!(missing < values[0]);
+    // Peptide-to-protein matching can deduplicate the same evidence in hashed
+    // and ordered containers, without merging distinct coordinates or flanks.
+    let mut keyed = std::collections::HashSet::new();
+    for item in &values {
+        assert!(keyed.insert(item.clone()));
+        assert!(!keyed.insert(item.clone()));
+    }
+    assert!(keyed.insert(missing.clone()));
+    assert_eq!(keyed.len(), values.len() + 1);
+    assert!(keyed.contains(&missing));
 }
 
 #[test]

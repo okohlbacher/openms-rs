@@ -476,7 +476,9 @@ impl fmt::Display for CompletionTime {
 pub struct DataProcessing {
     pub software: Software,
     pub actions: BTreeSet<ProcessingAction>,
-    pub completion_time: Option<CompletionTime>,
+    /// Complete source date-time, including stored milliseconds. None replaces
+    /// the source unset sentinel; formats reject invalid/partial Some values.
+    pub completion_time: Option<crate::data_structures::DateTime>,
     pub metadata: MetaInfo,
 }
 impl DataProcessing {

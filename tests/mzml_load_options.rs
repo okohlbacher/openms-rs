@@ -441,12 +441,11 @@ impl BufRead for NoRead {
 }
 #[test]
 fn unsupported_requested_behavior_is_rejected_before_input_and_write_flags_are_ignored() {
-    for choice in 0..4 {
+    for choice in 0..3 {
         let mut o = LoadOptions::default();
         match choice {
-            0 => o.scientific.metadata_only = true,
-            1 => o.scientific.fill_data = false,
-            2 => o.scientific.skip_xml_checks = true,
+            0 => o.scientific.fill_data = false,
+            1 => o.scientific.skip_xml_checks = true,
             _ => o.scientific.precursor_mz_selected_ion = false,
         }
         assert!(matches!(
@@ -644,7 +643,7 @@ fn auxiliary_double_values_are_narrowed_only_after_aligned_peak_selection() {
 }
 
 #[test]
-fn new_loader_rejects_unrepresented_array_processing_references_even_if_excluded() {
+fn new_loader_rejects_unresolved_array_processing_references_even_if_excluded() {
     let xml = document(&[record("spectrum", 0, &[], &[], "", &[])], &[]).replacen(
         "<binaryDataArray encodedLength",
         "<binaryDataArray dataProcessingRef=\"processing\" encodedLength",
@@ -655,6 +654,6 @@ fn new_loader_rejects_unrepresented_array_processing_references_even_if_excluded
         ..Default::default()
     };
     assert!(
-        matches!(read(&xml,&o),Err(Error::Unsupported(s)) if s.contains("processing references"))
+        matches!(read(&xml,&o),Err(Error::Parse{message:s,..}) if s.contains("unresolved dataProcessingRef"))
     );
 }

@@ -130,7 +130,6 @@ pub(super) fn validate_write(p: &Precursor) -> Result<()> {
     if p.drift_window_lower_offset != 0.0
         || p.drift_window_upper_offset != 0.0
         || !p.cv_terms.is_empty()
-        || !p.cv_terms.metadata.is_empty()
     {
         return Err(Error::Unsupported(
             "mzML writer cannot store precursor drift-window offsets or arbitrary CV metadata"
@@ -144,15 +143,31 @@ pub(super) fn validate_write(p: &Precursor) -> Result<()> {
             "precursor mobility requires both a value and an explicit unit".into(),
         ));
     }
+    super::validate_scalar_metadata(&p.cv_terms.metadata)?;
+    if let Some(value) = p.cv_terms.metadata.get("external_spectrum_id") {
+        if value.unit().is_some() {
+            return Err(invalid("external_spectrum_id cannot have a unit"));
+        }
+        value.as_str()?;
+    }
+    if p.cv_terms
+        .metadata
+        .contains_key("activation information unavailable")
+    {
+        return Err(invalid("reserved precursor fallback metadata name"));
+    }
     Ok(())
 }
 
 pub(super) fn write_start(w: &mut impl Write, p: &Precursor) -> Result<()> {
+    write!(w, "<precursor")?;
     if let Some(reference) = &p.spectrum_reference {
-        writeln!(w, "<precursor spectrumRef=\"{}\">", escape(reference))?;
-    } else {
-        writeln!(w, "<precursor>")?;
+        write!(w, " spectrumRef=\"{}\"", escape(reference))?;
     }
+    if let Some(value) = p.cv_terms.metadata.get("external_spectrum_id") {
+        write!(w, " externalSpectrumID=\"{}\"", escape(value.as_str()?))?;
+    }
+    writeln!(w, ">")?;
     if p.isolation_target_mz.is_some()
         || p.isolation_window_lower_offset != 0.0
         || p.isolation_window_upper_offset != 0.0
@@ -243,6 +258,7 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
             "<userParam name=\"activation information unavailable\"/>"
         )?;
     }
+    super::write_scalar_metadata(w, &p.cv_terms.metadata, Some("external_spectrum_id"))?;
     writeln!(w, "</activation></precursor>")?;
     Ok(())
 }

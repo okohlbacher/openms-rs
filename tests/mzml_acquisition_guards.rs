@@ -9,7 +9,7 @@ use openms::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D,
 };
 use openms::metadata::{
-    Acquisition, ChecksumType, ChromatogramType, DataProcessing, Product, ScanMode, ScanWindow,
+    Acquisition, ChromatogramType, DataProcessing, Product, ScanMode, ScanWindow,
 };
 use std::{io::Cursor, sync::Arc};
 
@@ -96,36 +96,21 @@ fn default_source_settings_and_existing_precursor_product_transport_remain_suppo
         } else {
             e.chromatograms[0].source_file.size_mb = -0.0;
         }
-        rejected(&e, owner);
+        rejected(&e, "source-file");
     }
 }
 #[test]
 fn unrepresented_spectrum_acquisition_categories_reject_before_output() {
-    for case in [4, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18] {
+    let mut e = base();
+    e.spectra[0]
+        .instrument_settings
+        .metadata
+        .insert("empty".into(), "".into());
+    rejected(&e, "spectrum");
+    for arbitrary_cv in [false, true] {
         let mut e = base();
-        let s = &mut e.spectra[0];
-        match case {
-            4 => {
-                s.instrument_settings
-                    .metadata
-                    .insert("empty".into(), "".into());
-            }
-            8 => s.source_file.name = "source".into(),
-            9 => s.source_file.path = "/data".into(),
-            10 => s.source_file.size_mb = 1.,
-            11 => s.source_file.file_type = "raw".into(),
-            12 => s.source_file.checksum = "literal".into(),
-            13 => s.source_file.checksum_type = ChecksumType::Md5,
-            14 => s.source_file.native_id_type = "scan".into(),
-            15 => s.source_file.native_id_type_accession = "MS:1000776".into(),
-            16 => {
-                s.source_file
-                    .cv_terms
-                    .metadata
-                    .insert("empty".into(), "".into());
-            }
-            17 => s.data_processing.push(Arc::new(DataProcessing::default())),
-            _ => s
+        if arbitrary_cv {
+            e.spectra[0]
                 .source_file
                 .cv_terms
                 .add(openms::metadata::CVTerm::new(
@@ -133,22 +118,22 @@ fn unrepresented_spectrum_acquisition_categories_reject_before_output() {
                     "Thermo RAW format",
                     "MS",
                 ))
-                .unwrap(),
+                .unwrap();
+        } else {
+            e.spectra[0].source_file.size_mb = 1.;
         }
-        assert!(s.has_acquisition_settings(), "case {case}");
-        rejected(&e, "spectrum");
+        rejected(&e, "source-file");
     }
 }
+
 #[test]
 fn chromatogram_settings_and_unknown_type_remain_rejected() {
-    for case in 0..6 {
+    for case in [0, 1, 4, 5] {
         let mut e = base();
         let c = &mut e.chromatograms[0];
         match case {
             0 => c.instrument_settings.scan_mode = ScanMode::MassSpectrum,
             1 => c.acquisition_info.acquisitions.push(Acquisition::default()),
-            2 => c.source_file.name = "source".into(),
-            3 => c.data_processing.push(Arc::new(DataProcessing::default())),
             4 => {
                 c.instrument_settings
                     .metadata
@@ -191,6 +176,10 @@ fn guards_precede_deep_acquisition_validation_and_preserve_owned_shared_handles(
     e.spectra[0].data_processing.push(Arc::clone(&shared));
     e.spectra[0]
         .instrument_settings
+        .metadata
+        .insert("unsupported".into(), "x".into());
+    e.spectra[0]
+        .instrument_settings
         .scan_windows
         .push(ScanWindow {
             begin: f64::NAN,
@@ -203,16 +192,16 @@ fn guards_precede_deep_acquisition_validation_and_preserve_owned_shared_handles(
     let mut e = base();
     e.chromatograms[0].source_file.size_mb = f32::NAN;
     assert!(e.validate().is_err());
-    rejected(&e, "chromatogram");
+    rejected(&e, "source-file");
 }
 #[test]
-fn array_description_rejection_precedes_deep_validation_in_both_writers() {
+fn unrepresentable_array_description_types_fail_before_output() {
     for owner in 0..2 {
         let mut e = base();
         let mut array = DataArray::new("described", vec![1.]);
         array
             .metadata
-            .insert("large text".into(), "x".repeat(4096).into());
+            .insert("list".into(), vec!["x".to_string()].into());
         // A nonempty processing vector remains meaningful even when its record
         // is otherwise default; descriptions cannot disappear through XML.
         array
@@ -223,13 +212,13 @@ fn array_description_rejection_precedes_deep_validation_in_both_writers() {
         } else {
             e.chromatograms[0].float_data_arrays.push(array);
         }
-        rejected(&e, "array description");
+        rejected(&e, "Empty/list metadata");
     }
 }
 #[test]
 fn path_and_dispatch_failures_preserve_existing_files() {
     let mut e = base();
-    e.spectra[0].source_file.name = "unrepresented.raw".into();
+    e.spectra[0].source_file.size_mb = 1.;
     for suffix in ["mzML", "mzML.gz", "mzML.bz2"] {
         let path = std::env::temp_dir().join(format!(
             "openms-acquisition-guard-{}.{}",

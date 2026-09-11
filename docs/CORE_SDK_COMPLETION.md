@@ -7,8 +7,8 @@ This is a work inventory, not a completion percentage. Matching declarations and
 | Review state | Headers |
 | --- | ---: |
 | complete | 10 |
-| evidence_requires_review | 166 |
-| native_equivalent | 56 |
+| evidence_requires_review | 165 |
+| native_equivalent | 57 |
 | partial | 21 |
 | unmapped | 533 |
 

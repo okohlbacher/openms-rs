@@ -3,7 +3,7 @@
 // $Maintainer: OpenMS Rust contributors $
 //! Source scan-list combination and ordered acquisition metadata transport.
 use super::*;
-use crate::metadata::{Acquisition, AcquisitionInfo};
+use crate::metadata::AcquisitionInfo;
 
 /// Whether to retain the source reader's implicit dummy scan.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -37,121 +37,6 @@ const SCAN_VALUES: [(&str, &str); 9] = [
     ("MS:1003371", "xsd:double"), // SelexION compensation voltage
     ("MS:1003394", "xsd:double"), // SelexION separation voltage
 ];
-
-#[derive(Default)]
-pub(super) struct Headers {
-    source_files: BTreeMap<String, (String, String)>,
-    instruments: BTreeSet<String>,
-    default_instrument: Option<String>,
-}
-impl Headers {
-    pub fn source_file(
-        &mut self,
-        attrs: &BTreeMap<String, String>,
-        budget: &mut ParameterBudget,
-    ) -> Result<()> {
-        let id = parameter_id(required(attrs, "id")?)?;
-        if self.source_files.contains_key(id) {
-            return Err(invalid("duplicate sourceFile ID"));
-        }
-        let original_name = required(attrs, "name")?;
-        let original_path = required(attrs, "location")?;
-        // Source repairs malformed lexical locations before later references.
-        // Bound all simultaneous normalization strings before allocation.
-        budget.spend(
-            original_name
-                .len()
-                .checked_add(original_path.len())
-                .and_then(|n| n.checked_mul(4))
-                .and_then(|n| n.checked_add(1024))
-                .ok_or_else(|| invalid("source-file normalization size overflow"))?,
-        )?;
-        let (name, path) = if original_path.is_empty() && !original_name.is_empty() {
-            let directory = crate::system::file::path(original_name);
-            (
-                crate::system::file::basename(original_name),
-                if directory == "." {
-                    "file://./"
-                } else {
-                    directory
-                },
-            )
-        } else {
-            (original_name, original_path)
-        };
-        let mut path = path.to_owned();
-        if path.starts_with("File://") {
-            path = path.replace("File://", "file://");
-        }
-        if path.starts_with("FILE://") {
-            path = path.replace("FILE://", "file://");
-        }
-        if path.starts_with("file:///.") {
-            path = path.replace("file:///.", "file://./");
-        }
-        // No filesystem probes: relative locations remain relative on all hosts.
-        if path == "file:///" {
-            path = "file://".into();
-        }
-        self.source_files.insert(id.into(), (name.into(), path));
-        Ok(())
-    }
-    pub fn instrument(&mut self, attrs: &BTreeMap<String, String>) -> Result<()> {
-        let id = parameter_id(required(attrs, "id")?)?;
-        if !self.instruments.insert(id.into()) {
-            return Err(invalid("duplicate instrumentConfiguration ID"));
-        }
-        Ok(())
-    }
-    pub fn run(&mut self, attrs: &BTreeMap<String, String>) -> Result<()> {
-        if let Some(id) = attrs.get("defaultInstrumentConfigurationRef") {
-            let id = parameter_id(id)?;
-            if !self.instruments.contains(id) {
-                return Err(invalid(
-                    "unresolved default instrument configuration reference",
-                ));
-            }
-            self.default_instrument = Some(id.into());
-        }
-        Ok(())
-    }
-    pub fn scan(
-        &self,
-        attrs: &BTreeMap<String, String>,
-        budget: &mut ParameterBudget,
-    ) -> Result<Acquisition> {
-        let mut scan = Acquisition::default();
-        if let Some(id) = attrs.get("sourceFileRef") {
-            let (name, path) = self
-                .source_files
-                .get(parameter_id(id)?)
-                .ok_or_else(|| invalid("unresolved scan sourceFileRef"))?;
-            // A short ID can reference large strings many times. Charge each
-            // resolved copy before constructing its metadata values/map nodes.
-            budget.attribute("source_file_name".len(), name.len())?;
-            budget.attribute("source_file_path".len(), path.len())?;
-            scan.metadata
-                .insert("source_file_name".into(), name.clone().into());
-            scan.metadata
-                .insert("source_file_path".into(), path.clone().into());
-        }
-        if let Some(id) = attrs.get("externalSpectrumID") {
-            scan.identifier = id.clone();
-        }
-        if let Some(id) = attrs.get("instrumentConfigurationRef") {
-            let id = parameter_id(id)?;
-            if !self.instruments.contains(id) {
-                return Err(invalid("unresolved scan instrumentConfigurationRef"));
-            }
-            if self.default_instrument.as_deref() != Some(id) {
-                scan.metadata
-                    .insert("instrument_configuration_ref".into(), id.into());
-            }
-        }
-        // Source ignores spectrumRef; it is not an acquisition identifier.
-        Ok(scan)
-    }
-}
 
 pub(super) fn read_cv(
     record: &mut Record,
@@ -233,9 +118,6 @@ pub(super) fn validate(info: &AcquisitionInfo) -> Result<()> {
     validate_scalar_metadata(&info.metadata)?;
     for scan in &info.acquisitions {
         xml_string(&scan.identifier)?;
-        if scan.metadata.contains_key("instrument_configuration_ref") {
-            return Err(Error::Unsupported("mzML acquisition instrument_configuration_ref needs a retained instrument definition".into()));
-        }
         validate_scalar_metadata(&scan.metadata)?;
     }
     Ok(())

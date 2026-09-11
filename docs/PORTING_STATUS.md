@@ -38,13 +38,13 @@ utility, including source GCD and floating-rounding behavior. The
 [mzML filesystem API](MZML_PATH_SUPPORT.md) applies scientific load settings,
 magic-based compression detection and atomic replacement/publication.
 Standalone IMS isotope, alphabet and decomposition APIs are also implemented;
-full mzML metadata and consumers remain separately tracked. Loaded-file
+[source-supported mzML headers](MZML_HEADER_SUPPORT.md) are transported; consumers remain outstanding. Loaded-file
 bookkeeping is retained in the experiment settings.
 
 [ControlledVocabulary](CONTROLLED_VOCABULARY_SUPPORT.md) supplies complete
 term definitions, OBO loading, graph queries, XML values and all five original
-providers. General mapping/semantic validation and header transport remain
-separate consumer groups.
+providers. General CV mapping and source-supported header transport are implemented;
+semantic validation and streaming consumers remain separate groups.
 
 ## Capability mapping
 
@@ -224,7 +224,7 @@ existence, single/all compositions, counts and constrained real-mass queries.
 
 [Explicit scientific loading](MZML_LOAD_OPTIONS_SUPPORT.md) now consumes the
 supported PeakFileOptions filters/sorting and preserves aligned arrays with
-26 canonical binary roles. Full metadata/consumer paths remain open; [Numpress transport](MZML_NUMPRESS_SUPPORT.md) is implemented.
+26 canonical binary roles. Source-supported headers and metadata-only reading are implemented; consumer paths remain open; [Numpress transport](MZML_NUMPRESS_SUPPORT.md) is implemented.
 
 
 ## IMS foundations, peak traversal and raw compression (2026-09-11)

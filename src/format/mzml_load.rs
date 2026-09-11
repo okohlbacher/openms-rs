@@ -31,9 +31,7 @@ impl Default for LoadOptions {
 }
 impl LoadOptions {
     pub(super) fn validate(&self) -> Result<()> {
-        let unsupported = if self.scientific.metadata_only {
-            Some("metadata-only early termination")
-        } else if !self.scientific.fill_data {
+        let unsupported = if !self.scientific.fill_data && !self.scientific.metadata_only {
             Some("loading metadata without binary data")
         } else if self.scientific.skip_xml_checks {
             Some("disabling XML checks")

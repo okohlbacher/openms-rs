@@ -13,6 +13,8 @@ pub use counts::{
     MAX_COUNT_EVENT_BYTES, MAX_COUNT_WORK, MAX_COUNT_XML_DEPTH, MzMLCounts, load_size,
     load_size_with_options, read_size, read_size_with_options,
 };
+#[path = "mzml_header.rs"]
+mod header;
 #[path = "mzml_load.rs"]
 mod load;
 use crate::kernel::{
@@ -210,6 +212,8 @@ enum Values {
 }
 #[derive(Default)]
 struct Binary {
+    metadata: crate::metadata::MetaInfo,
+    data_processing: Vec<std::sync::Arc<crate::metadata::DataProcessing>>,
     kind: Option<Kind>,
     encoding: Option<Encoding>,
     compressed: Option<bool>,
@@ -637,6 +641,8 @@ struct Record {
     precursor_filter: Option<crate::kernel::NumericRange>,
     precursor_outside: bool,
     raw_float_arrays: Vec<DataArray<f64>>,
+    primary_metadata: [crate::metadata::MetaInfo; 2],
+    intensity_first: bool,
 }
 impl Record {
     fn metadata(&mut self) -> &mut BTreeMap<String, String> {
@@ -800,14 +806,16 @@ impl Record {
             &mut self.chromatogram.as_mut().unwrap().float_data_arrays
         };
         for array in self.raw_float_arrays {
-            floats.push(DataArray::new(
-                array.name,
-                array
+            floats.push(DataArray {
+                name: array.name,
+                data: array
                     .data
                     .into_iter()
                     .map(intensity)
                     .collect::<Result<_>>()?,
-            ));
+                metadata: array.metadata,
+                data_processing: array.data_processing,
+            });
         }
         if let Some(mut spectrum) = self.spectrum {
             spectrum.peaks = positions
@@ -875,12 +883,20 @@ fn apply_parameter(
                     .cv(attrs)?;
             } else if let Some(r) = record {
                 r.cv(parent, attrs)?;
+            } else if parent == "run" && required(attrs, "accession")? == "MS:1000858" {
+                experiment.settings.fraction_identifier =
+                    attrs.get("value").cloned().unwrap_or_default();
             }
         }
         "userParam" if parent == "binaryDataArray" => {
-            return Err(Error::Unsupported(
-                "metadata on binary arrays is not represented".into(),
-            ));
+            let name = required(attrs, "name")?;
+            let value = product_user_value(attrs)?;
+            let b = binary
+                .as_mut()
+                .ok_or_else(|| invalid("array userParam outside array"))?;
+            if b.metadata.insert(name.into(), value).is_some() {
+                return Err(invalid("duplicate array metadata key"));
+            }
         }
         "userParam" if record.as_ref().is_some_and(|r| r.product_active) => {
             if parent != "isolationWindow" {
@@ -926,6 +942,24 @@ fn apply_parameter(
                 .ok_or_else(|| invalid("userParam outside scan window"))?;
             if window.metadata.insert(name.into(), value).is_some() {
                 return Err(invalid("duplicate scan window userParam name"));
+            }
+        }
+        "userParam"
+            if matches!(parent, "activation" | "isolationWindow" | "selectedIon")
+                && record.as_ref().is_some_and(|r| r.precursor.is_some()) =>
+        {
+            let name = required(attrs, "name")?;
+            // The source writer's schema fallback carries no scientific data.
+            if parent == "activation"
+                && name == "activation information unavailable"
+                && attrs.len() == 1
+            {
+                return Ok(());
+            }
+            let value = product_user_value(attrs)?;
+            let p = record.as_mut().unwrap().precursor.as_mut().unwrap();
+            if p.cv_terms.metadata.insert(name.into(), value).is_some() {
+                return Err(invalid("duplicate precursor metadata key"));
             }
         }
         "userParam" if parent == "run" => {
@@ -1100,7 +1134,7 @@ pub fn read(reader: impl BufRead) -> Result<MSExperiment> {
 /// Read the documented mzML subset, rejecting unsupported binary encodings.
 /// Errors have line zero when the XML parser cannot supply a line number.
 pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<MSExperiment> {
-    read_impl(reader, options, None)
+    read_impl(reader, options, None, false)
 }
 
 /// Execute supported scientific loading choices without changing legacy reads.
@@ -1111,17 +1145,41 @@ pub fn read_with_load_options(
     load: &LoadOptions,
     limits: &ReadOptions,
 ) -> Result<MSExperiment> {
-    read_impl(reader, limits, Some(load))
+    read_impl(reader, limits, Some(load), load.scientific.metadata_only)
+}
+
+/// Read complete experimental settings and stop at the first record-list
+/// opening tag, before parsing its count or consuming any binary payload.
+/// The required default processing reference must resolve. With no record list,
+/// the bounded header-only document is read through its ordinary closing tags.
+pub fn read_metadata(reader: impl BufRead) -> Result<crate::metadata::ExperimentalSettings> {
+    read_metadata_with_options(reader, &ReadOptions::default())
+}
+pub fn read_metadata_with_options(
+    reader: impl BufRead,
+    options: &ReadOptions,
+) -> Result<crate::metadata::ExperimentalSettings> {
+    Ok(read_impl(reader, options, None, true)?.settings)
 }
 
 fn read_impl(
     reader: impl BufRead,
     options: &ReadOptions,
     load: Option<&LoadOptions>,
+    metadata_only: bool,
 ) -> Result<MSExperiment> {
-    let mut selection = load.map(load::State::new).transpose()?;
-    let mut acquisition_headers = acquisition_metadata::Headers::default();
-    let mut acquisition_header_lists = BTreeSet::new();
+    if let Some(load) = load {
+        load.validate()?;
+    }
+    let mut selection = if metadata_only {
+        None
+    } else {
+        load.map(load::State::new).transpose()?
+    };
+    let mut header_draft = header::Draft::default();
+    let mut header_registry = header::Registry::default();
+    let mut header_work = header::Work::default();
+    let mut default_processing = Vec::new();
     let mut actual_spectra = 0usize;
     let mut actual_chromatograms = 0usize;
     let limit = options
@@ -1157,9 +1215,6 @@ fn read_impl(
     let mut groups = BTreeMap::<String, Vec<Parameter>>::new();
     let mut group: Option<(String, Vec<Parameter>)> = None;
     let mut group_list_seen = false;
-    // fileDescription precedes the group list in the schema. Its parameter
-    // contexts carry no represented metadata, so defer these references until run.
-    let mut pending_header_refs = Vec::<(String, String)>::new();
     let mut parameter_budget = ParameterBudget {
         remaining: options.max_total_params,
         bytes: options.max_param_bytes,
@@ -1192,17 +1247,18 @@ fn read_impl(
                 let tag = std::str::from_utf8(element.local_name().as_ref())
                     .map_err(|e| invalid(e.to_string()))?
                     .to_owned();
-                let is_parameter = matches!(
-                    tag.as_str(),
-                    "cvParam"
-                        | "userParam"
-                        | "referenceableParamGroup"
-                        | "referenceableParamGroupRef"
-                        | "scan"
-                        | "sourceFile"
-                        | "instrumentConfiguration"
-                        | "run"
-                );
+                let is_parameter = !seen_run
+                    || matches!(
+                        tag.as_str(),
+                        "cvParam"
+                            | "userParam"
+                            | "referenceableParamGroup"
+                            | "referenceableParamGroupRef"
+                            | "scan"
+                            | "sourceFile"
+                            | "instrumentConfiguration"
+                            | "run"
+                    );
                 let attrs = attributes(
                     &element,
                     decoder,
@@ -1258,52 +1314,21 @@ fn read_impl(
                 {
                     return Err(invalid("invalid scan window/product list child"));
                 }
+                if header_draft.captures(&tag, parent) {
+                    if seen_run {
+                        return Err(invalid("header element after run start"));
+                    }
+                    header_draft.start(&tag, attrs, &mut header_work)?;
+                    stack.push(tag);
+                    buffer.clear();
+                    continue;
+                }
                 if let Some((depth, child, _, actual)) = counted_lists.last_mut() {
                     if *depth == stack.len() && *child == tag {
                         *actual += 1;
                     }
                 }
                 match tag.as_str() {
-                    "sourceFileList" | "instrumentConfigurationList" => {
-                        let expected_parent = if tag == "sourceFileList" {
-                            "fileDescription"
-                        } else {
-                            "mzML"
-                        };
-                        if parent != expected_parent
-                            || seen_run
-                            || !acquisition_header_lists.insert(tag.clone())
-                        {
-                            return Err(invalid("misplaced/duplicate acquisition header list"));
-                        }
-                        let count = number::<usize>(
-                            required(&attrs, "count")?,
-                            "acquisition header count",
-                        )?;
-                        if count > parameter_budget.remaining {
-                            return Err(invalid(
-                                "acquisition header count exceeds parameter limit",
-                            ));
-                        }
-                        let child = if tag == "sourceFileList" {
-                            "sourceFile"
-                        } else {
-                            "instrumentConfiguration"
-                        };
-                        counted_lists.push((stack.len() + 1, child, count, 0));
-                    }
-                    "sourceFile" => {
-                        if parent != "sourceFileList" || seen_run {
-                            return Err(invalid("misplaced sourceFile"));
-                        }
-                        acquisition_headers.source_file(&attrs, &mut parameter_budget)?;
-                    }
-                    "instrumentConfiguration" => {
-                        if parent != "instrumentConfigurationList" || seen_run {
-                            return Err(invalid("misplaced instrumentConfiguration"));
-                        }
-                        acquisition_headers.instrument(&attrs)?;
-                    }
                     "indexedmzML" if !parent.is_empty() => {
                         return Err(invalid("nested indexedmzML wrapper"));
                     }
@@ -1391,7 +1416,11 @@ fn read_impl(
                             .unwrap()
                             .acquisition_info
                             .acquisitions
-                            .push(acquisition_headers.scan(&attrs, &mut parameter_budget)?);
+                            .push(header_registry.scan(
+                                &attrs,
+                                &mut parameter_budget,
+                                &mut header_work,
+                            )?);
                         r.scan_active = true;
                         r.scan_window_list_seen = false;
                     }
@@ -1470,27 +1499,53 @@ fn read_impl(
                         if !required(&attrs, "version")?.starts_with("1.1.") {
                             return Err(Error::Unsupported("only mzML 1.1 is supported".into()));
                         }
+                        if let Some(accession) = attrs.get("accession") {
+                            experiment.settings.document.identifier =
+                                header_work.copy(accession)?;
+                        }
+                        if let Some(id) = attrs.get("id") {
+                            header_work
+                                .meter()
+                                .tree::<(String, crate::metadata::MetaValue)>(1)?;
+                            experiment
+                                .settings
+                                .metadata
+                                .insert("mzml_id".into(), header_work.copy(id)?.into());
+                        }
                         seen_mzml = true;
+                    }
+                    "fileDescription"
+                    | "sourceFileList"
+                    | "sourceFile"
+                    | "contact"
+                    | "fileContent"
+                    | "sampleList"
+                    | "sample"
+                    | "softwareList"
+                    | "software"
+                    | "instrumentConfigurationList"
+                    | "instrumentConfiguration"
+                    | "componentList"
+                    | "source"
+                    | "analyzer"
+                    | "detector"
+                    | "softwareRef"
+                    | "dataProcessingList"
+                    | "dataProcessing"
+                    | "processingMethod" => {
+                        return Err(invalid("misplaced mzML header element"));
                     }
                     "run" => {
                         if parent != "mzML" || seen_run {
                             return Err(invalid("expected exactly one mzML run"));
                         }
-                        for (id, context) in pending_header_refs.drain(..) {
-                            let parameters = groups
-                                .get(&id)
-                                .ok_or_else(|| invalid(format!("unknown parameter group {id}")))?;
-                            apply_group(
-                                parameters,
-                                &context,
-                                &mut parameter_budget,
-                                &mut record,
-                                &mut binary,
-                                &mut experiment,
-                                selection.as_mut(),
-                            )?;
-                        }
-                        acquisition_headers.run(&attrs)?;
+                        header_registry = std::mem::take(&mut header_draft).finish(
+                            &attrs,
+                            &groups,
+                            &mut parameter_budget,
+                            &mut header_work,
+                            &mut experiment.settings,
+                        )?;
                         seen_run = true;
                     }
                     "referenceableParamGroupList" => {
@@ -1540,8 +1595,6 @@ fn read_impl(
                                 &mut experiment,
                                 selection.as_mut(),
                             )?;
-                        } else if !seen_run && !group_list_seen {
-                            pending_header_refs.push((id.to_owned(), parent.to_owned()));
                         } else {
                             return Err(invalid(format!("unknown parameter group {id}")));
                         }
@@ -1549,6 +1602,11 @@ fn read_impl(
                     "spectrumList" | "chromatogramList" => {
                         if parent != "run" {
                             return Err(invalid("record list outside run"));
+                        }
+                        if metadata_only {
+                            let id = required(&attrs, "defaultDataProcessingRef")?;
+                            header_registry.processing(id, &mut header_work)?;
+                            return Ok(experiment);
                         }
                         let slot = if tag == "spectrumList" {
                             &mut spectrum_count
@@ -1559,6 +1617,11 @@ fn read_impl(
                             return Err(invalid("duplicate record list"));
                         }
                         *slot = Some(number::<usize>(required(&attrs, "count")?, "record count")?);
+                        default_processing = attrs
+                            .get("defaultDataProcessingRef")
+                            .map(|id| header_registry.processing(id, &mut header_work))
+                            .transpose()?
+                            .unwrap_or_default();
                     }
                     "spectrum" | "chromatogram" => {
                         let expected_parent = if tag == "spectrum" {
@@ -1631,7 +1694,36 @@ fn read_impl(
                             }),
                             precursor_outside: false,
                             raw_float_arrays: Vec::new(),
+                            primary_metadata: Default::default(),
+                            intensity_first: false,
                         });
+                        let processing = if let Some(id) = attrs.get("dataProcessingRef") {
+                            header_registry.processing(id, &mut header_work)?
+                        } else {
+                            header_work.slots::<std::sync::Arc<crate::metadata::DataProcessing>>(
+                                default_processing.len(),
+                            )?;
+                            default_processing.clone()
+                        };
+                        if tag == "chromatogram" && attrs.contains_key("sourceFileRef") {
+                            return Err(Error::Unsupported(
+                                "chromatogram sourceFileRef is not permitted by mzML".into(),
+                            ));
+                        }
+                        let source = attrs
+                            .get("sourceFileRef")
+                            .map(|id| header_registry.source(id, &mut header_work))
+                            .transpose()?
+                            .unwrap_or_default();
+                        let r = record.as_mut().unwrap();
+                        if let Some(s) = &mut r.spectrum {
+                            s.data_processing = processing;
+                            s.source_file = source;
+                        } else {
+                            let c = r.chromatogram.as_mut().unwrap();
+                            c.data_processing = processing;
+                            c.source_file = source;
+                        }
                         array_count = None;
                         arrays_seen = 0;
                     }
@@ -1648,11 +1740,6 @@ fn read_impl(
                         )?);
                     }
                     "binaryDataArray" => {
-                        if selection.is_some() && attrs.contains_key("dataProcessingRef") {
-                            return Err(Error::Unsupported(
-                                "binary-array processing references are not represented".into(),
-                            ));
-                        }
                         if parent != "binaryDataArrayList" || binary.is_some() {
                             return Err(invalid("misplaced binary array"));
                         }
@@ -1668,6 +1755,11 @@ fn read_impl(
                         }
                         binary = Some(Binary {
                             encoded_length,
+                            data_processing: attrs
+                                .get("dataProcessingRef")
+                                .map(|id| header_registry.processing(id, &mut header_work))
+                                .transpose()?
+                                .unwrap_or_default(),
                             array_length: attrs
                                 .get("arrayLength")
                                 .map(|n| number(n, "arrayLength"))
@@ -1706,8 +1798,26 @@ fn read_impl(
                         if r.precursor.replace(Precursor::default()).is_some() {
                             return Err(invalid("nested precursor"));
                         }
-                        r.precursor.as_mut().unwrap().spectrum_reference =
-                            attrs.get("spectrumRef").cloned();
+                        let p = r.precursor.as_mut().unwrap();
+                        p.spectrum_reference = attrs
+                            .get("spectrumRef")
+                            .map(|s| header_work.copy(s))
+                            .transpose()?;
+                        p.cv_terms.metadata = header_registry.source_metadata(
+                            &attrs,
+                            &mut parameter_budget,
+                            &mut header_work,
+                        )?;
+                        if let Some(id) = attrs.get("externalSpectrumID") {
+                            header_work
+                                .meter()
+                                .tree::<(String, crate::metadata::MetaValue)>(1)?;
+                            header_work.charge(20, 20)?;
+                            p.cv_terms.metadata.insert(
+                                "external_spectrum_id".into(),
+                                header_work.copy(id)?.into(),
+                            );
+                        }
                         r.selected_ion = false;
                         r.selected_mz = false;
                         r.selected_list_seen = false;
@@ -1785,6 +1895,10 @@ fn read_impl(
                 let tag = stack
                     .pop()
                     .ok_or_else(|| invalid("unmatched closing tag"))?;
+                if header_draft.end(&tag)? {
+                    buffer.clear();
+                    continue;
+                }
                 match tag.as_str() {
                     "referenceableParamGroup" => {
                         let (id, parameters) = group
@@ -1796,16 +1910,18 @@ fn read_impl(
                         let r = record
                             .as_mut()
                             .ok_or_else(|| invalid("array outside record"))?;
-                        let (kind, values) = binary
+                        let mut b = binary
                             .take()
-                            .ok_or_else(|| invalid("missing binary array state"))?
-                            .decode(
-                                r.count,
-                                options,
-                                &mut remaining_array_bytes,
-                                &mut remaining_array_elements,
-                                &mut numpress_work,
-                            )?;
+                            .ok_or_else(|| invalid("missing binary array state"))?;
+                        let metadata = std::mem::take(&mut b.metadata);
+                        let data_processing = std::mem::take(&mut b.data_processing);
+                        let (kind, values) = b.decode(
+                            r.count,
+                            options,
+                            &mut remaining_array_bytes,
+                            &mut remaining_array_elements,
+                            &mut numpress_work,
+                        )?;
                         if let Kind::Auxiliary(name) = kind {
                             if !r.array_names.insert(name.clone()) {
                                 return Err(invalid("duplicate auxiliary array name"));
@@ -1828,25 +1944,51 @@ fn read_impl(
                             match values {
                                 Values::Floats(values) => {
                                     if selection.is_some() {
-                                        r.raw_float_arrays.push(DataArray::new(name, values));
-                                    } else {
-                                        floats.push(DataArray::new(
+                                        r.raw_float_arrays.push(DataArray {
                                             name,
-                                            values
+                                            data: values,
+                                            metadata,
+                                            data_processing,
+                                        });
+                                    } else {
+                                        floats.push(DataArray {
+                                            name,
+                                            data: values
                                                 .into_iter()
                                                 .map(intensity)
                                                 .collect::<Result<_>>()?,
-                                        ));
+                                            metadata,
+                                            data_processing,
+                                        });
                                     }
                                 }
-                                Values::Integers(values) => {
-                                    integers.push(DataArray::new(name, values))
-                                }
-                                Values::Strings(values) => {
-                                    strings.push(DataArray::new(name, values))
-                                }
+                                Values::Integers(values) => integers.push(DataArray {
+                                    name,
+                                    data: values,
+                                    metadata,
+                                    data_processing,
+                                }),
+                                Values::Strings(values) => strings.push(DataArray {
+                                    name,
+                                    data: values,
+                                    metadata,
+                                    data_processing,
+                                }),
                             }
                         } else {
+                            if !data_processing.is_empty() {
+                                return Err(Error::Unsupported(
+                                    "primary-array processing has no independent native owner"
+                                        .into(),
+                                ));
+                            }
+                            // Source spectra merge m/z metadata before intensity, regardless
+                            // of XML order; chromatograms merge in encounter order.
+                            let index = usize::from(matches!(kind, Kind::Intensity));
+                            if r.coordinates.is_none() && r.intensities.is_none() {
+                                r.intensity_first = index == 1;
+                            }
+                            r.primary_metadata[index] = metadata;
                             let Values::Floats(values) = values else {
                                 return Err(invalid("non-floating primary binary array"));
                             };
@@ -1936,6 +2078,27 @@ fn read_impl(
                                 options.acquisition_mode,
                             );
                         }
+                        let order = if record.chromatogram.is_some() && record.intensity_first {
+                            [1, 0]
+                        } else {
+                            [0, 1]
+                        };
+                        for index in order {
+                            let metadata = std::mem::take(&mut record.primary_metadata[index]);
+                            header_work
+                                .meter()
+                                .tree::<(String, String)>(metadata.len())?;
+                            for (name, value) in metadata {
+                                if value.unit().is_some() {
+                                    return Err(Error::Unsupported(
+                                        "primary-array units require typed record metadata".into(),
+                                    ));
+                                }
+                                let text = value.as_str().map_err(|_| Error::Unsupported("non-string primary-array metadata requires typed record metadata".into()))?;
+                                header_work.charge(name.len().saturating_mul(64), 0)?;
+                                record.metadata().insert(name, header_work.copy(text)?);
+                            }
+                        }
                         record.finish(&mut experiment, selection.as_mut())?;
                     }
                     _ => {}
@@ -1957,6 +2120,8 @@ fn read_impl(
                         }
                         b.encoded.push(char::from(byte));
                     }
+                } else if !seen_run && !text.trim().is_empty() {
+                    return Err(invalid("non-whitespace text in mzML header"));
                 } else if stack.last().is_some_and(|tag| {
                     matches!(
                         tag.as_str(),
@@ -2263,6 +2428,8 @@ fn write_precursor(w: &mut impl Write, precursor: &Precursor) -> Result<()> {
     )?;
     precursor_metadata::write_end(w, precursor)
 }
+// Keep the established scalar codec arguments plus its precomputed header.
+#[allow(clippy::too_many_arguments)]
 fn write_array(
     w: &mut impl Write,
     bytes: impl FnOnce() -> Vec<u8>,
@@ -2271,6 +2438,7 @@ fn write_array(
     array_length: Option<usize>,
     options: &WriteOptions,
     prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
+    header: Option<&header::ArrayHeader>,
 ) -> Result<()> {
     let (encoded, encoding, mode) = if let Some(arrays) = prepared {
         let array = arrays.next().expect("preflight array order matches writer");
@@ -2290,6 +2458,9 @@ fn write_array(
     write!(w, "<binaryDataArray encodedLength=\"{}\"", encoded.len())?;
     if let Some(length) = array_length {
         write!(w, " arrayLength=\"{length}\"")?;
+    }
+    if let Some(header) = header {
+        w.write_all(header.attrs.as_bytes())?;
     }
     writeln!(w, ">")?;
     let (accession, name) = match encoding {
@@ -2327,6 +2498,9 @@ fn write_array(
             }
         }
     }
+    if let Some(header) = header {
+        w.write_all(header.params.as_bytes())?;
+    }
     writeln!(w, "<binary>{encoded}</binary></binaryDataArray>")?;
     Ok(())
 }
@@ -2338,6 +2512,7 @@ fn write_auxiliary_arrays(
     strings: &[DataArray<String>],
     options: &WriteOptions,
     prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
+    headers: &mut std::slice::Iter<'_, header::ArrayHeader>,
 ) -> Result<()> {
     for array in floats {
         write_array(
@@ -2348,6 +2523,7 @@ fn write_auxiliary_arrays(
             Some(array.data.len()),
             options,
             prepared,
+            headers.next(),
         )?;
     }
     for array in integers {
@@ -2372,6 +2548,7 @@ fn write_auxiliary_arrays(
             Some(array.data.len()),
             options,
             prepared,
+            headers.next(),
         )?;
     }
     for array in strings {
@@ -2389,6 +2566,7 @@ fn write_auxiliary_arrays(
             Some(array.data.len()),
             options,
             prepared,
+            headers.next(),
         )?;
     }
     Ok(())
@@ -2399,17 +2577,16 @@ fn check_array_descriptions(
     integers: &[DataArray<i32>],
     strings: &[DataArray<String>],
 ) -> Result<()> {
-    if floats.iter().any(DataArray::has_description_metadata)
-        || integers.iter().any(DataArray::has_description_metadata)
-        || strings.iter().any(DataArray::has_description_metadata)
+    for meta in floats
+        .iter()
+        .map(|a| &a.metadata)
+        .chain(integers.iter().map(|a| &a.metadata))
+        .chain(strings.iter().map(|a| &a.metadata))
     {
-        return Err(Error::Unsupported(
-            "mzML array description metadata or processing is not represented".into(),
-        ));
+        validate_scalar_metadata(meta)?;
     }
     Ok(())
 }
-
 fn check_auxiliary_arrays(
     floats: &[DataArray<f32>],
     integers: &[DataArray<i32>],
@@ -2467,16 +2644,12 @@ pub fn write_with_options(
     experiment: &MSExperiment,
     options: &WriteOptions,
 ) -> Result<()> {
+    let header = header::prepare(experiment)?;
     validate_write(experiment)?;
-    write_impl(&mut w, experiment, options, &mut None)
+    write_impl(&mut w, experiment, options, &mut None, &header)
 }
 fn experiment_header_guard(experiment: &MSExperiment) -> Result<()> {
-    if experiment.settings.has_nondefault_header() {
-        return Err(Error::Unsupported(
-            "mzML experiment header settings are not yet represented".into(),
-        ));
-    }
-    Ok(())
+    header::guard(experiment)
 }
 fn validate_write(experiment: &MSExperiment) -> Result<()> {
     experiment_header_guard(experiment)?;
@@ -2637,42 +2810,14 @@ fn write_impl(
     experiment: &MSExperiment,
     options: &WriteOptions,
     prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
+    header: &header::Plan,
 ) -> Result<()> {
-    writeln!(
-        w,
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.1.0\">"
-    )?;
-    writeln!(
-        w,
-        "<cvList count=\"2\"><cv id=\"MS\" fullName=\"PSI-MS\" URI=\"https://purl.obolibrary.org/obo/ms.obo\"/><cv id=\"UO\" fullName=\"Unit Ontology\" URI=\"https://purl.obolibrary.org/obo/uo.obo\"/></cvList>\n<fileDescription><fileContent>"
-    )?;
-    settings_metadata::write_file_content(&mut w, experiment)?;
-    writeln!(
-        w,
-        "</fileContent></fileDescription>\n<softwareList count=\"1\"><software id=\"openms_rust\" version=\"{}\">",
-        env!("CARGO_PKG_VERSION")
-    )?;
-    cv(
-        &mut w,
-        "MS:1000799",
-        "custom unreleased software tool",
-        "OpenMS Rust",
-        "",
-    )?;
-    writeln!(
-        w,
-        "</software></softwareList>\n<instrumentConfigurationList count=\"1\"><instrumentConfiguration id=\"unknown_instrument\"><userParam name=\"original instrument information unavailable\"/></instrumentConfiguration></instrumentConfigurationList>\n<dataProcessingList count=\"1\"><dataProcessing id=\"conversion\"><processingMethod order=\"0\" softwareRef=\"openms_rust\">"
-    )?;
-    cv(&mut w, "MS:1000544", "Conversion to mzML", "", "")?;
-    writeln!(
-        w,
-        "</processingMethod></dataProcessing></dataProcessingList>\n<run id=\"run\" defaultInstrumentConfigurationRef=\"unknown_instrument\">"
-    )?;
-    write_scalar_metadata(&mut w, &experiment.settings.metadata, None)?;
+    w.write_all(header.prefix.as_bytes())?;
+    let mut array_headers = header.arrays.iter();
     if !experiment.spectra.is_empty() {
         writeln!(
             w,
-            "<spectrumList count=\"{}\" defaultDataProcessingRef=\"conversion\">",
+            "<spectrumList count=\"{}\" defaultDataProcessingRef=\"dp_00000000000000000000\">",
             experiment.spectra.len()
         )?;
         for (i, spectrum) in experiment.spectra.iter().enumerate() {
@@ -2683,9 +2828,10 @@ fn write_impl(
             };
             writeln!(
                 w,
-                "<spectrum id=\"{}\" index=\"{i}\" defaultArrayLength=\"{}\">",
+                "<spectrum id=\"{}\" index=\"{i}\" defaultArrayLength=\"{}\"{}>",
                 escape(&id),
-                spectrum.len()
+                spectrum.len(),
+                header.spectra[i]
             )?;
             cv(
                 &mut w,
@@ -2737,6 +2883,7 @@ fn write_impl(
                 None,
                 options,
                 prepared,
+                None,
             )?;
             write_array(
                 &mut w,
@@ -2752,6 +2899,7 @@ fn write_impl(
                 None,
                 options,
                 prepared,
+                None,
             )?;
             write_auxiliary_arrays(
                 &mut w,
@@ -2760,6 +2908,7 @@ fn write_impl(
                 &spectrum.string_data_arrays,
                 options,
                 prepared,
+                &mut array_headers,
             )?;
             writeln!(w, "</binaryDataArrayList></spectrum>")?;
         }
@@ -2768,7 +2917,7 @@ fn write_impl(
     if !experiment.chromatograms.is_empty() {
         writeln!(
             w,
-            "<chromatogramList count=\"{}\" defaultDataProcessingRef=\"conversion\">",
+            "<chromatogramList count=\"{}\" defaultDataProcessingRef=\"dp_00000000000000000000\">",
             experiment.chromatograms.len()
         )?;
         for (i, chromatogram) in experiment.chromatograms.iter().enumerate() {
@@ -2779,9 +2928,10 @@ fn write_impl(
             };
             writeln!(
                 w,
-                "<chromatogram id=\"{}\" index=\"{i}\" defaultArrayLength=\"{}\">",
+                "<chromatogram id=\"{}\" index=\"{i}\" defaultArrayLength=\"{}\"{}>",
                 escape(&id),
-                chromatogram.len()
+                chromatogram.len(),
+                header.chromatograms[i]
             )?;
             settings_metadata::write_chromatogram(&mut w, chromatogram)?;
             user_params(&mut w, &chromatogram.metadata, &chromatogram.name)?;
@@ -2810,6 +2960,7 @@ fn write_impl(
                 None,
                 options,
                 prepared,
+                None,
             )?;
             write_array(
                 &mut w,
@@ -2825,6 +2976,7 @@ fn write_impl(
                 None,
                 options,
                 prepared,
+                None,
             )?;
             write_auxiliary_arrays(
                 &mut w,
@@ -2833,6 +2985,7 @@ fn write_impl(
                 &chromatogram.string_data_arrays,
                 options,
                 prepared,
+                &mut array_headers,
             )?;
             writeln!(w, "</binaryDataArrayList></chromatogram>")?;
         }

@@ -10,18 +10,18 @@ Before general validation or output, the shared ordinary/Numpress writer checks
 unsupported state using scalar fields and container lengths:
 
 - Nonempty **chromatogram** AcquisitionInfo entries, combination method or metadata.
-- Any SourceFile strings, noncanonical file size, checksum type, CV terms or
-  metadata. Only positive zero is the canonical default size; negative zero
-  would otherwise silently lose its sign.
-- Any DataProcessing handles, including a default pointed-to record.
+- Nondefault chromatogram SourceFile (mzML has no corresponding reference attribute).
+- Source-file size and arbitrary CV payload unsupported by the source writer.
 - Spectrum InstrumentSettings metadata, and all nondefault chromatogram
   InstrumentSettings (the standard/source chromatogram grammar lacks that slot).
 - Unknown chromatogram type, whose omission would reread as Mass.
-- Auxiliary array description metadata or processing handles.
+- Source-unsupported header values and nonscalar/unrepresentable metadata;
+  represented source files, processing handles and auxiliary descriptions now
+  use the [header/reference codec](MZML_HEADER_SUPPORT.md).
 
 Empty metadata values count if the map has a key. An empty AcquisitionInfo vector
-can still carry unsupported method/metadata on chromatograms. Checks do not allocate defaults,
-clone handles, compare nested values or traverse shared processing payload.
+can still carry unsupported method/metadata on chromatograms. Cheap guards do not allocate defaults or traverse nested payload. The separate
+header preflight validates and meters supported shared processing payload.
 Supported spectrum settings, acquisition records and Product lists then receive a bounded cumulative
 preflight and ordinary value validation before XML begins. Unknown combination
 methods, unrepresentable instrument-reference metadata and nonscalar acquisition
@@ -29,8 +29,8 @@ values fail during that bounded preflight.
 
 Existing precursor isolation/activation/mobility, singular chromatogram Product,
 record names/metadata, aligned arrays and binary precision remain on their
-established paths. SourceFile and processing attachments remain at defaults in the supported reader
-subset; spectrum AcquisitionInfo now follows its explicit Canonical/Source mode. Precursor-specific acquisition data
+established paths. SourceFile and processing attachments now resolve through the header registry;
+spectrum AcquisitionInfo follows its explicit Canonical/Source mode. Precursor-specific acquisition data
 does not populate those separate attachments.
 
 `mzml::write`, `write_with_options`, `write_with_numpress`, mzML path stores and

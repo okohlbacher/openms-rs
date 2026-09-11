@@ -37,7 +37,7 @@ fn text_value(metadata: &MetaInfo, key: &str) -> String {
 }
 
 /// Flanking amino acid or one of OpenMS's X/[ /] markers.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum FlankingResidue {
     #[default]
     Unknown,
@@ -96,7 +96,7 @@ impl FlankingResidue {
 }
 
 /// One mapping of a peptide to a protein accession. End is inclusive.
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PeptideEvidence {
     pub protein_accession: String,
     pub start: Option<usize>,

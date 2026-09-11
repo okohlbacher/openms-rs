@@ -1,0 +1,23 @@
+{
+  "source_commit": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source_sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+  "projection_sha256": "e387f23ceda9bf151637a9fccab98c761a427d4acd3a0471b38c9f81637339ae",
+  "removed": "spectrumList and all following record payloads; source run/header parameters unchanged",
+  "declared_count_repairs": [
+    {
+      "element": "sampleList",
+      "old": 1,
+      "new": 2
+    },
+    {
+      "element": "softwareList",
+      "old": 3,
+      "new": 4
+    },
+    {
+      "element": "dataProcessingList",
+      "old": 3,
+      "new": 4
+    }
+  ]
+}

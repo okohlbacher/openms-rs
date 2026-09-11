@@ -52,6 +52,14 @@ are not classified as confirmed defects here.
 | CPP-036 | XML compression sniffing reads uninitialized bytes from short files | Source-reviewed | Open |
 | CPP-037 | ProForma modification combination loses charged-formula mass | Source-reviewed; public AST trigger | Open |
 | CPP-038 | ProForma crosslink spectra count resolved linker mass twice | Source-reviewed; public AST trigger | Open |
+| CPP-039 | SemanticValidator rejects allowed descendant units | Source-reviewed; custom vocabulary trigger | Open |
+| CPP-040 | Failed semantic validation leaves stale XML paths and rule counts | Source-reviewed; repeated-call trigger | Open |
+| CPP-041 | mzML header strings are inserted into attributes without escaping | Source-reviewed; ordinary text trigger | Open |
+| CPP-042 | XLMS linear suffix losses divide the mass by charge twice | Source-reviewed; charge-two trigger | Open |
+| CPP-043 | XLMS precursor isotope companions omit precursor charge division | Source-reviewed; charge-two trigger | Open |
+| CPP-044 | Missing-path CV lookup changes behavior after validation | Source-reviewed; call-order trigger | Open |
+| CPP-045 | PeptideEvidence rejects valid first-residue limits and accepts invalid ranges | Source-reviewed; zero-based range trigger | Open |
+| CPP-046 | Semantic date validation applies date-time syntax to xsd:date | Source-reviewed; XSD lexical contract | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -488,9 +496,7 @@ does not claim C++ execution or that the XSD itself enforces count equality.
 or build one emission list and use its length. Cover empty and nonempty histories,
 multiple arrays and the empty-experiment fallback.
 
-**Rust handling:** Full processing-history header transport is being planned.
-The current fixed minimal processing list is separate; complete transport must
-derive counts from the emitted records.
+**Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) derives declaration counts from its emitted processing registry, including auxiliary histories and the mandatory empty-history placeholder. Native round trips and independent XSD checks cover both writers.
 
 ## CPP-020 — Formula interning can separate mass validation from calculation
 
@@ -625,8 +631,7 @@ mapping scope. No C++ runtime or validator execution is claimed.
 Test empty-action methods before, between and after methods with actions,
 checking each emitted method against the required semantic rule.
 
-**Rust handling:** The complete header writer will track emitted actions per
-method and derive each fallback independently.
+**Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) tracks actions per method and emits an independently reversible fallback for each empty action set. Multi-method round trips cover the correction.
 
 ## CPP-026 — Processing step order is always written as zero
 
@@ -649,9 +654,7 @@ reader's handling of external documents with nontrivial ordering keys; define
 duplicate-order handling explicitly. Test multi-step output and ordered external
 input using the attribute's documented contract.
 
-**Rust handling:** The complete header writer will emit distinct sequential
-indices. Source encounter-order reading remains an explicit compatibility
-decision until external ordering behavior is separately reviewed.
+**Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) emits distinct sequential indices. Reading retains source XML encounter order explicitly; tests cover both conventions.
 
 ## CPP-027 — mzML writing discards processing completion seconds
 
@@ -671,9 +674,7 @@ does not expose the loss.
 stored fractional precision. Add a seconds-bearing round trip, with separate
 fractional-second coverage where supported.
 
-**Rust handling:** The complete header writer under development will retain
-the represented completion timestamp's precision and test the seconds-bearing
-case. The published minimal writer still rejects such unsupported headers.
+**Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) retains seconds and milliseconds through DataProcessing DateTime. Native regressions cover mzML (both writers), FeatureXML and ConsensusXML timestamps.
 
 ## CPP-028 — Recognized software metadata can throw during mzML writing
 
@@ -694,9 +695,7 @@ map lookup and pinned mapping path. No C++ execution is claimed.
 software term and a recognized term disallowed at that path, verifying CV
 promotion or user-parameter fallback respectively without an exception.
 
-**Rust handling:** The complete header writer under development uses the
-pinned software mapping path and checked lookup. Header regressions will
-cover recognized names and path-specific fallback.
+**Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) uses the pinned software mapping path and checked lookup. Regressions cover recognized names and path-specific user-parameter fallback.
 
 ## CPP-029 — Annotation-only brackets pass conversion checks but fail conversion
 
@@ -945,6 +944,185 @@ existing conversion and mass APIs preserve their separately documented source
 behavior. This finding is a required compatibility decision and regression case
 for the upcoming spectrum wrapper; no native or upstream spectrum fix is claimed.
 
+## CPP-039 — SemanticValidator compares descendant units with the measured term
+
+**Affected file:** [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, lines 326–348](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L326), descendant-unit fallback in `handleTerm_`.
+
+**Issue and reproduction:** Enable unit checking and define a measurement term
+whose allowed-unit set contains U_PARENT. Supply known unit U_CHILD, a descendant
+of U_PARENT, on that measurement term. Keep the measurement outside the unit
+hierarchy. Exact membership fails as intended, but the fallback callback compares
+each descendant with `parsed_term.accession` (the measurement) instead of
+`parsed_term.unit_accession` (U_CHILD). The valid descendant unit is rejected as
+not allowed. The inverse confusion can also accept the wrong unit if a malformed
+vocabulary places the measured term under an allowed unit.
+
+**Evidence:** Direct review of the membership check, callback capture/comparison
+and error branch. No C++ validation execution is claimed. This concerns the
+optional unit check, disabled by default, and is distinct from CV XML writer
+unit selection in CPP-021.
+
+**Proposed fix:** Compare the descendant accession with
+`parsed_term.unit_accession`. Test an exact allowed unit, an allowed child and
+an unrelated known unit using a small independent vocabulary.
+
+**Rust handling:** The general SemanticValidator is not yet ported. Its native
+implementation must make this correction explicit and retain a descendant-unit
+regression; the existing vocabulary traversal and mapping loader do not perform
+this semantic validation.
+
+## CPP-040 — Failed semantic validation contaminates later document paths
+
+**Affected files:** [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, lines 96–102 and 111–121](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L96), per-call initialization and start callbacks; end callbacks at 141–224; inherited cleanup in [`src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp`, lines 37–39](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp#L37).
+
+**Issue and reproduction:** Configure a MUST rule at `/r/cvParam/@accession`,
+then reuse one validator. First validate
+`<r><cvParam accession="MS:1"/></r>`. The missing required name throws after both
+tag names have been pushed. Catch the exception and validate `<r/>`.
+Initialization clears only errors and warnings, while the open-tag stack retains
+`r/cvParam`. The second document is checked beneath that stale prefix, so the
+required `/r/cvParam/@accession` rule is missed and validation can return true.
+A fresh validator correctly rejects the same second document for its missing
+required term. Fulfilled-rule counters can likewise survive failed parsing.
+
+**Evidence:** Direct review of callback order, limited initialization, successful
+end-only stack/counter cleanup, and the empty inherited reset. No executed C++
+reproduction is claimed. CPP-033 documents the analogous failure in the separate
+mapping-file reader; this entry concerns semantic validation results.
+
+**Proposed fix:** Use local per-document stack, fulfilled counts and diagnostics,
+or clear all of them on entry and every exceptional exit. Publish results only
+for the current document. Test failed parsing before and after fulfilled terms,
+followed by valid and semantically invalid documents on the same validator.
+
+**Rust handling:** The general validator remains unimplemented. The planned
+native API will use local validation state so failure cannot change a later
+result. Existing CV mapping load transactions are a separate implemented group.
+
+## CPP-041 — The mzML header writer does not escape several string attributes
+
+**Affected file:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, line 3765](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L3765), software version; checksum output at 3797/3801 and fraction identifier at 5226.
+
+**Issue and reproduction:** Set a software version to `v"&1` or an experiment's
+fraction identifier to `fraction "A&B"`, then write mzML. These ordinary string
+fields are inserted directly inside double-quoted XML attributes. Quotes close
+the attribute early and bare ampersands start invalid entity references, so the
+result cannot be parsed as XML. The same unescaped interpolation is used for
+caller-supplied checksum strings, although arbitrary text there may separately
+be an invalid checksum.
+
+**Evidence:** Direct review of the insertion expressions and comparison with
+adjacent source name/path strings that use `writeXMLAttribute_`. No C++ execution
+is claimed. This is distinct from the ControlledVocabulary rendering defect in
+CPP-024: these output sites bypass that renderer.
+
+**Proposed fix:** Apply `writeXMLAttribute_` to every externally supplied string
+attribute, including version, fraction identifier and checksum text. Test quote,
+ampersand, less-than and Unicode values through XML writing and reading; enforce
+any checksum content restrictions separately from XML escaping.
+
+**Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) uses the checked XML attribute encoder. Version and fraction quote/ampersand values round-trip through both writers and XSD validation. Invalid digest strings retain the separate checksum content guard. No upstream patch is claimed.
+
+## CPP-042 — XLMS linear suffix losses divide the mass by charge twice
+
+**Affected file:** [`src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp`, lines 302–311](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp#L302), linear suffix generation; loss helper at 560–599.
+
+**Issue and reproduction:** Generate linear y ions for peptide KS with link
+position 0, maximum charge 2 and neutral losses enabled. The suffix S permits
+water loss. The suffix loop first computes m/z as `pos = mono_weight / charge`,
+then passes `pos` to a helper whose argument is a charged mass. That helper
+subtracts the neutral loss and divides by charge again. For charged mass M,
+loss L and charge z, the emitted loss m/z is `(M/z - L)/z` instead of `(M-L)/z`.
+The error affects linear x/y/z loss peaks at charges above one; the intact peak
+and the prefix path do not share this extra division.
+
+**Evidence:** Direct review of the caller argument and both water/ammonia helper
+branches, with independent algebra. No C++ spectrum execution is claimed.
+
+**Proposed fix:** Pass `mono_weight` rather than `pos` to
+`addLinearIonLosses_` in the suffix branch. Test charge-one and charge-two suffix
+losses alongside prefixes, asserting the intact-to-loss spacing is L/z.
+
+**Rust handling:** The XLMS generator is being ported separately from the
+ordinary generator. Its initial compatibility implementation will retain finite
+source results with an explicit regression and warning in the support document;
+a scientific correction must be documented separately. No completed native or
+upstream fix is claimed.
+
+## CPP-043 — XLMS precursor isotope companions omit charge normalization
+
+**Affected file:** [`src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp`, lines 609–624](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp#L609), intact precursor and isotope companion; corresponding water/ammonia paths at 639–654 and 668–683.
+
+**Issue and reproduction:** Enable precursor peaks and isotopes with
+`max_isotope >= 2`, then generate a precursor of charge 2 through either XLMS
+crosslink overload. The monoisotopic peak uses `mono_pos / charge`, where
+`mono_pos` is neutral mass plus the proton contribution. Its isotope companion
+uses `mono_pos + C13C12_MASSDIFF_U / charge`. Thus the charged mass has not been
+divided for the companion. It appears near twice the precursor m/z at charge 2
+instead of being separated by the isotope spacing divided by charge. The same
+error affects isotope companions of the precursor water/ammonia losses.
+
+**Evidence:** Direct review of all three pairs of assignments. The variable's
+charged-mass meaning follows its immediately preceding initialization. No C++
+spectrum execution is claimed.
+
+**Proposed fix:** Use `(mono_pos + C13C12_MASSDIFF_U) / charge` in all three
+companion branches, or derive each from its already normalized monoisotopic m/z.
+Test the companion spacing at charges 1, 2 and 3 for intact and both loss peaks.
+
+**Rust handling:** The pending XLMS port will document and explicitly test these
+finite source values. A corrected scientific mode or compatibility change is
+separate work; no native or upstream correction is claimed yet.
+
+## CPP-044 — Unmapped CV lookup depends on earlier validation calls
+
+**Affected file:** [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, line 147](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L147), insertion of empty rule lists during closing callbacks; analogous insertion at 279; const lookup at 538.
+
+**Issue and reproduction:** Construct a validator with no mapping for
+`/r/cvParam/@accession`. Calling `locateTerm` for this path throws
+`std::out_of_range` because it uses `rules_.at(path)`. Validate `<r/>`, then call
+the same query with the same term. Closing r inserted an empty rule list through
+`rules_[path]`, so the second query returns false. Neither the mapping nor the
+vocabulary changed, but an unrelated validation call changed the query's missing-
+path behavior. Validation also retains these unused path entries across files.
+
+**Evidence:** Direct review of mutable callback lookups and the const public
+predicate. No C++ execution is claimed. This is independent of failed-parser
+state contamination in CPP-040 and of the incorrect software path in CPP-028.
+
+**Proposed fix:** Avoid inserting rules while performing lookups, and define one
+missing-path contract for `locateTerm`. Returning false is natural for its
+allowed-term predicate; a documented checked exception can also be consistent.
+Test the same unmapped query before and after validation of different documents.
+
+**Rust handling:** The planned validator uses a per-operation index from the
+actual mappings. Its missing-path predicate will consistently return a checked
+error, preserving the source cold-lookup result without validation-history
+changes. This deliberate API difference will be documented and tested.
+
+## CPP-045 — PeptideEvidence misclassifies valid and invalid position limits
+
+**Affected file:** [`src/openms/source/METADATA/PeptideEvidence.cpp`, lines 79–84](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/METADATA/PeptideEvidence.cpp#L79), `hasValidLimits`; zero-based inclusive endpoint contract in the corresponding header.
+
+**Issue and reproduction:** Evidence with start 0 and end 0 describes a legitimate
+one-residue peptide at the protein's N terminus. `hasValidLimits()` nevertheless
+returns false because it rejects any end equal to `N_TERMINAL_POSITION` (0).
+Conversely, start 5/end 2 returns true, as do negative coordinates other than
+the exact unknown sentinel -1. These do not describe a valid inclusive interval.
+
+**Evidence:** Direct source review of the constants and three-condition predicate.
+The existing native identification documentation and test already cover the
+first-residue correction. No C++ execution is claimed.
+
+**Proposed fix:** Accept exactly known nonnegative endpoints with `start <= end`.
+Keep unknown positions distinct from an actual zero coordinate. Test 0..=0,
+a normal interval, unknown endpoints, reversed limits and other negative values.
+
+**Rust handling:** The existing `Option<usize>` model distinguishes missing from
+zero and excludes negative coordinates. `has_valid_limits()` accepts ordered
+known intervals, including 0..=0; `validate()` rejects reversed endpoints. These
+corrections are retained and explicitly exercised by the identification tests.
+
 ## Maintaining this log
 
 Add an entry whenever porting or testing identifies a new original C++ defect.
@@ -955,3 +1133,32 @@ status only after verifying the upstream fix. Retain resolved entries with the
 fixing commit. Link durable probe data once it lands; temporary investigation
 paths are not sufficient long-term evidence. Do not promote a suspicion to an
 executed or confirmed finding without verification.
+
+## CPP-046 — Semantic date validation applies date-time syntax to xsd:date
+
+**Affected files:** [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, lines 502–516](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L502), XSD_DATE value branch; [`src/openms/source/DATASTRUCTURES/DateTime.cpp`, lines 188–335](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/DATASTRUCTURES/DateTime.cpp#L188), general date-time parser.
+
+**Issue and reproduction:** Define an allowed CV term with `xref: value-type:xsd\:date`
+and validate its value `2001-02-03`. The validator calls `DateTime::set`, whose
+plain ISO branch requires six date/time fields. It rejects this valid date and
+reports a wrong xsd:date value. Conversely, `2001-02-03T04:05:06` passes although
+it is a date-time value. [The W3C xsd:date lexical contract](https://www.w3.org/TR/xmlschema11-2/#date)
+consists of year, month and day, followed by an optional timezone, without a time.
+The legacy parser's acceptance of a trailing `Z` does not repair the ordinary
+no-timezone case.
+
+**Evidence:** Pinned-source inspection of the validator and every DateTime parse
+branch, compared with the primary XSD specification. Native SemanticValidator
+regressions preserve both the date-only rejection and timestamp acceptance.
+No complete C++ SemanticValidator execution is claimed.
+
+**Proposed fix:** Validate this branch with a dedicated xsd:date lexical/calendar
+check, including optional timezone bounds and the applicable year rules. Keep
+xsd:dateTime separate if the vocabulary declares it. Cover date-only, zoned dates,
+invalid calendar dates and timestamp rejection; changing the general DateTime
+parser alone would still accept invalid date-time lexemes here.
+
+**Rust handling:** The pending native SemanticValidator retains the source value
+conversion for compatibility and documents this defect. Its source-compatible
+value checks do not claim complete XSD lexical conformance. No upstream patch
+has been applied.

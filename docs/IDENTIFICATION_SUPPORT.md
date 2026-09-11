@@ -6,7 +6,7 @@
 
 | Source model | Rust coverage |
 | --- | --- |
-| `PeptideEvidence` | Protein accession, optional zero-based inclusive endpoints, typed flanking residue/terminal markers, validation and ordering |
+| `PeptideEvidence` | Protein accession, optional zero-based inclusive endpoints, typed flanking residue/terminal markers, validation, ordering and native hashing; [complete evidence API](PEPTIDE_EVIDENCE_SUPPORT.md) |
 | `PeptideHit` | Modified `AASequence`, score, rank, charge, evidence, peak annotations, analysis results, typed metadata, sequence/charge identity and target/decoy category |
 | `PeptideIdentification` | Run identifier, candidate hits, score direction/type/threshold, optional RT/m/z, stable sorting, best-hit and accession lookup, spectrum reference and experiment label |
 | `ProteinHit` | Score/rank, accession, raw protein sequence, optional coverage percentage, observed modifications, typed metadata, description and target/decoy category |

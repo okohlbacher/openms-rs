@@ -1,5 +1,43 @@
 # Validation of the ongoing Rust port
 
+## mzML headers and peptide-evidence keys (2026-09-11)
+
+[Recorded checks](header-evidence-validation.json) cover the complete
+[source-supported header/reference group](MZML_HEADER_SUPPORT.md), metadata-only
+reading and [PeptideEvidence value/key operations](PEPTIDE_EVIDENCE_SUPPORT.md).
+DataProcessing timestamps now use DateTime across mzML, FeatureXML and ConsensusXML.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,979 tests passed |
+| Doctests, Rust 1.98 | Four passed |
+| Rust 1.85/header and adjacent selection | 321 passed |
+| Rust 1.85/native selection | 171 passed |
+| Final Rust 1.85/path and precursor workflows | 14 passed |
+| Strict Clippy, release library, Rustdoc and Rustfmt | Passed |
+| Source audit, reference regeneration and completion checks | Passed |
+
+Selected totals overlap. The full suite adds 26 tests. Two old rejection tests
+needed capability updates: metadata-only paths and scalar precursor metadata
+now succeed. Their replacement assertions verify the new results and retain
+unsupported-value/error checks. An initial positive path test used a historical
+projection lacking a required processing reference; the final test uses a complete
+writer-produced document. All failures and successful reruns are retained in the
+record, without claiming first-run success.
+
+All 35 reviewed header files remain byte-identical after integration. Six
+fixtures and the formatted mapping table regenerate from the pinned C++ source;
+116 reader/writer instrument pairs agree. Both rich-header writer outputs pass
+actual independent XSD validation. No new C++ execution is claimed.
+
+The [published parent checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34582838457)
+passed all five cross-platform/minimum/quality jobs. The C++ issue log now has
+46 entries. The completion ledger records 67 complete/native-equivalent headers,
+719 requiring implementation or review, and zero certified TOPP workflows.
+Source verification covers 1,926 distinct current files, 220 historical references,
+21 graph references and 799 added references. Consumers, ProForma spectra and
+separately staged semantic validation remain outside this checkpoint.
+
 ## ProForma conversion and CV mappings (2026-09-11)
 
 [Recorded checks](conversion-mapping-validation.json) cover complete ProForma

@@ -139,6 +139,25 @@ fn source_projection_filters_through_paths_and_atomic_replacement() {
     );
     assert_eq!(destination, before);
     options.scientific.metadata_only = true;
+    // The historical scientific projection omits the required default processing
+    // reference. Use a complete document for the newly supported header-only path.
+    let header_path = directory.path("headers.mzML");
+    mzml::store(&header_path, &signal()).unwrap();
+    let full = mzml::load(&header_path).unwrap();
+    let metadata =
+        mzml::load_with_options(&header_path, &options, &ReadOptions::default()).unwrap();
+    assert!(metadata.spectra.is_empty() && metadata.chromatograms.is_empty());
+    assert_eq!(metadata.settings, full.settings);
+    assert!(matches!(
+        mzml::load_with_options(
+            directory.path("missing.mzML"),
+            &options,
+            &ReadOptions::default()
+        ),
+        Err(openms::Error::Io(_))
+    ));
+    options.scientific.metadata_only = false;
+    options.scientific.fill_data = false;
     assert!(matches!(
         mzml::load_with_options(
             directory.path("missing.mzML"),

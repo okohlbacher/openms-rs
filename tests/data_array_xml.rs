@@ -47,7 +47,7 @@ fn unsupported<T>(result: openms::Result<T>, output: &NoOutput) {
 
 #[cfg(feature = "mzml")]
 #[test]
-fn mzml_rejects_all_description_kinds_on_spectra_and_chromatograms_before_output() {
+fn mzml_preserves_all_description_kinds_on_spectra_and_chromatograms() {
     use openms::{ChromatogramPeak, MSChromatogram, MSExperiment, MSSpectrum, Peak1D};
     for chromatogram in [false, true] {
         for processing in [false, true] {
@@ -97,8 +97,41 @@ fn mzml_rejects_all_description_kinds_on_spectra_and_chromatograms_before_output
                         }
                     }
                     let before = exp.clone();
-                    let mut output = NoOutput::default();
-                    unsupported(openms::format::mzml::write(&mut output, &exp), &output);
+                    let mut output = Vec::new();
+                    openms::format::mzml::write(&mut output, &exp).unwrap();
+                    let read = openms::format::mzml::read(std::io::Cursor::new(output)).unwrap();
+                    let (actual, expected) = if chromatogram {
+                        let a = &read.chromatograms[0];
+                        let b = &exp.chromatograms[0];
+                        (
+                            (
+                                &a.float_data_arrays,
+                                &a.integer_data_arrays,
+                                &a.string_data_arrays,
+                            ),
+                            (
+                                &b.float_data_arrays,
+                                &b.integer_data_arrays,
+                                &b.string_data_arrays,
+                            ),
+                        )
+                    } else {
+                        let a = &read.spectra[0];
+                        let b = &exp.spectra[0];
+                        (
+                            (
+                                &a.float_data_arrays,
+                                &a.integer_data_arrays,
+                                &a.string_data_arrays,
+                            ),
+                            (
+                                &b.float_data_arrays,
+                                &b.integer_data_arrays,
+                                &b.string_data_arrays,
+                            ),
+                        )
+                    };
+                    assert_eq!(actual, expected);
                     assert_eq!(exp, before);
                 }
             }

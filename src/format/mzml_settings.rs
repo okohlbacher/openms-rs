@@ -5,7 +5,7 @@
 //! Record-local mzML acquisition settings, without an instrument registry.
 
 use super::*;
-use crate::metadata::{ChromatogramType, InstrumentSettings, Polarity, ScanMode, SourceFile};
+use crate::metadata::{ChromatogramType, InstrumentSettings, Polarity, ScanMode};
 
 const SCAN_MODES: &[(ScanMode, &str, &str)] = &[
     (ScanMode::MassSpectrum, "MS:1000294", "mass spectrum"),
@@ -250,19 +250,6 @@ fn unit_identity(accession: &str) -> Result<(&str, Option<&'static str>)> {
     ))
 }
 
-fn common_unrepresented(source: &SourceFile, processing: usize) -> bool {
-    !source.name.is_empty()
-        || !source.path.is_empty()
-        || source.size_mb.to_bits() != 0
-        || !source.file_type.is_empty()
-        || !source.checksum.is_empty()
-        || source.checksum_type != crate::metadata::ChecksumType::Unknown
-        || !source.native_id_type.is_empty()
-        || !source.native_id_type_accession.is_empty()
-        || !source.cv_terms.terms().is_empty()
-        || !source.cv_terms.metadata.is_empty()
-        || processing != 0
-}
 fn instrument_unrepresented(settings: &InstrumentSettings) -> bool {
     settings.scan_mode != ScanMode::Unknown
         || settings.polarity != Polarity::Unknown
@@ -271,16 +258,13 @@ fn instrument_unrepresented(settings: &InstrumentSettings) -> bool {
         || !settings.metadata.is_empty()
 }
 pub(super) fn spectrum_guard(s: &MSSpectrum) -> Result<()> {
-    if common_unrepresented(&s.source_file, s.data_processing.len())
-        || !s.instrument_settings.metadata.is_empty()
-    {
+    if !s.instrument_settings.metadata.is_empty() {
         return Err(Error::Unsupported("mzML spectrum SourceFile, DataProcessing or InstrumentSettings metadata are not represented".into()));
     }
     Ok(())
 }
 pub(super) fn chromatogram_guard(c: &MSChromatogram) -> Result<()> {
-    if common_unrepresented(&c.source_file, c.data_processing.len())
-        || !c.acquisition_info.acquisitions.is_empty()
+    if !c.acquisition_info.acquisitions.is_empty()
         || !c.acquisition_info.metadata.is_empty()
         || !c.acquisition_info.method_of_combination.is_empty()
         || instrument_unrepresented(&c.instrument_settings)
@@ -389,6 +373,13 @@ pub(super) fn write_scan(w: &mut impl Write, spectrum: &MSSpectrum) -> Result<()
             if !scan.identifier.is_empty() {
                 write!(w, " externalSpectrumID=\"{}\"", escape(&scan.identifier))?;
             }
+            if let Some(id) = scan.metadata.get("instrument_configuration_ref") {
+                write!(
+                    w,
+                    " instrumentConfigurationRef=\"{}\"",
+                    escape(id.as_str()?)
+                )?;
+            }
         }
         writeln!(w, ">")?;
         if index == 0 && spectrum.rt != -1.0 {
@@ -406,7 +397,7 @@ pub(super) fn write_scan(w: &mut impl Write, spectrum: &MSSpectrum) -> Result<()
             cv(w, "MS:1000497", "zoom scan", "", "")?;
         }
         if let Some(scan) = info.acquisitions.get(index) {
-            write_scalar_metadata(w, &scan.metadata, None)?;
+            write_scalar_metadata(w, &scan.metadata, Some("instrument_configuration_ref"))?;
         }
         if index == 0 && !settings.scan_windows.is_empty() {
             writeln!(

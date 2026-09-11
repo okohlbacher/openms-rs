@@ -91,6 +91,7 @@ pub fn write_with_numpress(
     }
     // The existing whole-document preflight checks unsupported metadata and all
     // native values before any output, including description metadata on arrays.
+    let header = header::prepare(experiment)?;
     validate_write(experiment)?;
     let mut prepared = Preparation {
         work,
@@ -141,6 +142,7 @@ pub fn write_with_numpress(
         experiment,
         &options.binary,
         &mut Some(prepared.arrays.into_iter()),
+        &header,
     )?;
     Ok(prepared.report)
 }
@@ -171,16 +173,8 @@ fn preflight_values(
             work.spend(mul(value.len(), 2)?)?;
         }
     }
-    // Array descriptions are unsupported. Reject with an O(1) check before the
-    // general validator can traverse their metadata/processing payload.
-    if floats.iter().any(DataArray::has_description_metadata)
-        || integers.iter().any(DataArray::has_description_metadata)
-        || strings.iter().any(DataArray::has_description_metadata)
-    {
-        return Err(Error::Unsupported(
-            "mzML array description metadata or processing is not represented".into(),
-        ));
-    }
+    // Header descriptions are measured by the shared header emission plan
+    // before the whole experiment validator; numeric limits remain independent.
     // Name validation and ordered duplicate-name comparisons are binary-array
     // work too. The logarithmic factor bounds the existing BTreeSet traversal.
     let factor = mul(8, add(arrays.max(1).ilog2() as usize, 2)?)?;

@@ -84,7 +84,21 @@ fn factored_independent_fixture_preserves_every_supported_parameter() {
 #[test]
 fn source_spectrum_projection_keeps_original_ieee_arrays_and_reference() {
     let xml = include_str!("data/mzml_param_groups_source.mzML");
-    let exp = read(xml).unwrap();
+    // This historical binary projection retained three stale source header
+    // counts. Repair only those declarations now that headers are interpreted.
+    let repaired = xml
+        .replacen("<sampleList count=\"1\">", "<sampleList count=\"2\">", 1)
+        .replacen(
+            "<softwareList count=\"3\">",
+            "<softwareList count=\"4\">",
+            1,
+        )
+        .replacen(
+            "<dataProcessingList count=\"3\">",
+            "<dataProcessingList count=\"4\">",
+            1,
+        );
+    let exp = read(&repaired).unwrap();
     assert_eq!(exp.spectra.len(), 1);
     let s = &exp.spectra[0];
     assert_eq!(s.native_id, "index=0");
@@ -100,7 +114,7 @@ fn source_spectrum_projection_keeps_original_ieee_arrays_and_reference() {
 
 #[test]
 fn all_schema_parameter_contexts_resolve_and_unknown_references_fail() {
-    let cv = "<cvParam accession=\"MS:1000000\"/><userParam name=\"ignored\" value=\"header\"/>";
+    let cv = "<cvParam accession=\"MS:1000127\"/><userParam name=\"ignored\" value=\"header\"/>";
     for context in [
         "fileContent",
         "sourceFile",
@@ -115,8 +129,8 @@ fn all_schema_parameter_contexts_resolve_and_unknown_references_fail() {
         "scanSettings",
         "target",
     ] {
-        // The reader does not validate the full header inventories, but every
-        // legal ParamGroupType context must resolve references, even if ignored.
+        // Place each ParamGroupType in its actual header owner now that the
+        // source header inventory is interpreted, including ignored values.
         let header = match context {
             "sourceFile" => format!(
                 "<fileDescription><sourceFileList count=\"1\"><sourceFile id=\"f\" name=\"file\" location=\"/\">{}</sourceFile></sourceFileList></fileDescription>",
@@ -124,6 +138,26 @@ fn all_schema_parameter_contexts_resolve_and_unknown_references_fail() {
             ),
             "instrumentConfiguration" => format!(
                 "<instrumentConfigurationList count=\"1\"><instrumentConfiguration id=\"i\">{}</instrumentConfiguration></instrumentConfigurationList>",
+                reference()
+            ),
+            "fileContent" | "contact" => format!(
+                "<fileDescription><{context}>{}</{context}></fileDescription>",
+                reference()
+            ),
+            "sample" => format!(
+                "<sampleList count=\"1\"><sample id=\"sa\">{}</sample></sampleList>",
+                reference()
+            ),
+            "source" | "analyzer" | "detector" => format!(
+                "<instrumentConfigurationList count=\"1\"><instrumentConfiguration id=\"ic\"><componentList count=\"1\"><{context} order=\"1\">{}</{context}></componentList></instrumentConfiguration></instrumentConfigurationList>",
+                reference()
+            ),
+            "software" => format!(
+                "<softwareList count=\"1\"><software id=\"sw\" version=\"1\">{}</software></softwareList>",
+                reference()
+            ),
+            "processingMethod" => format!(
+                "<softwareList count=\"1\"><software id=\"sw\" version=\"1\"/></softwareList><dataProcessingList count=\"1\"><dataProcessing id=\"dp\"><processingMethod order=\"0\" softwareRef=\"sw\">{}</processingMethod></dataProcessing></dataProcessingList>",
                 reference()
             ),
             _ => format!("<{context}>{}</{context}>", reference()),
@@ -345,11 +379,11 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
     let xml = doc(&group("<userParam name=\"k\" value=\"v\"/>"), reference());
     let read_limit =
         |xml: &str, options: ReadOptions| mzml::read_with_options(Cursor::new(xml), &options);
-    // One group, one definition, one reference, one application, and run descriptor.
+    // Root and group-list descriptors, one group/definition/reference/application, and run.
     read_limit(
         &xml,
         ReadOptions {
-            max_total_params: 5,
+            max_total_params: 7,
             ..Default::default()
         },
     )
@@ -358,7 +392,7 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
         read_limit(
             &xml,
             ReadOptions {
-                max_total_params: 4,
+                max_total_params: 6,
                 ..Default::default()
             }
         )
@@ -388,7 +422,7 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
     read_limit(
         &empty,
         ReadOptions {
-            max_total_params: 102,
+            max_total_params: 104,
             ..Default::default()
         },
     )
@@ -397,7 +431,7 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
         read_limit(
             &empty,
             ReadOptions {
-                max_total_params: 101,
+                max_total_params: 103,
                 ..Default::default()
             }
         )
