@@ -1,0 +1,741 @@
+{
+ "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
+ "total": {
+  "items": 3123,
+  "documented": 1322
+ },
+ "modules": {
+  "src/analysis/alignment_transformer.rs": {
+   "items": 7,
+   "documented": 5
+  },
+  "src/analysis/elution_peak_detection.rs": {
+   "items": 17,
+   "documented": 9
+  },
+  "src/analysis/emg.rs": {
+   "items": 12,
+   "documented": 8
+  },
+  "src/analysis/false_discovery_rate.rs": {
+   "items": 23,
+   "documented": 16
+  },
+  "src/analysis/feature_finding_metabo.rs": {
+   "items": 15,
+   "documented": 5
+  },
+  "src/analysis/feature_hypothesis.rs": {
+   "items": 32,
+   "documented": 11
+  },
+  "src/analysis/id_conflict_resolver.rs": {
+   "items": 6,
+   "documented": 5
+  },
+  "src/analysis/id_filter.rs": {
+   "items": 30,
+   "documented": 26
+  },
+  "src/analysis/id_ripper.rs": {
+   "items": 8,
+   "documented": 2
+  },
+  "src/analysis/mass_trace_detection.rs": {
+   "items": 12,
+   "documented": 7
+  },
+  "src/analysis/mod.rs": {
+   "items": 17,
+   "documented": 0
+  },
+  "src/analysis/peak_integrator.rs": {
+   "items": 14,
+   "documented": 6
+  },
+  "src/analysis/peptide_indexing.rs": {
+   "items": 12,
+   "documented": 5
+  },
+  "src/analysis/precursor_purity.rs": {
+   "items": 8,
+   "documented": 3
+  },
+  "src/analysis/precursor_purity_batch.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/analysis/precursor_purity_fuzzy.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/analysis/protein_inference.rs": {
+   "items": 8,
+   "documented": 6
+  },
+  "src/analysis/psm_scoring.rs": {
+   "items": 10,
+   "documented": 4
+  },
+  "src/analysis/scores.rs": {
+   "items": 21,
+   "documented": 8
+  },
+  "src/analysis/transformations/lowess.rs": {
+   "items": 7,
+   "documented": 1
+  },
+  "src/analysis/transformations.rs": {
+   "items": 47,
+   "documented": 11
+  },
+  "src/chemistry/aa_index.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/chemistry/adduct_info.rs": {
+   "items": 14,
+   "documented": 7
+  },
+  "src/chemistry/cross_links.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/chemistry/decoy_generator.rs": {
+   "items": 15,
+   "documented": 7
+  },
+  "src/chemistry/digestion/enzymes.rs": {
+   "items": 2,
+   "documented": 1
+  },
+  "src/chemistry/digestion.rs": {
+   "items": 52,
+   "documented": 14
+  },
+  "src/chemistry/fine_isotopes.rs": {
+   "items": 17,
+   "documented": 11
+  },
+  "src/chemistry/hydrophobicity.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/chemistry/ims_alphabet.rs": {
+   "items": 26,
+   "documented": 11
+  },
+  "src/chemistry/ims_alphabet_parser.rs": {
+   "items": 7,
+   "documented": 2
+  },
+  "src/chemistry/ims_element.rs": {
+   "items": 16,
+   "documented": 6
+  },
+  "src/chemistry/ims_isotope_distribution.rs": {
+   "items": 24,
+   "documented": 16
+  },
+  "src/chemistry/ims_mass_decomposer.rs": {
+   "items": 18,
+   "documented": 9
+  },
+  "src/chemistry/ims_weights.rs": {
+   "items": 21,
+   "documented": 8
+  },
+  "src/chemistry/ion_naming.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/chemistry/isoelectric_point.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/chemistry/isotopes.rs": {
+   "items": 53,
+   "documented": 26
+  },
+  "src/chemistry/mass_decomposition.rs": {
+   "items": 16,
+   "documented": 11
+  },
+  "src/chemistry/mass_decomposition_algorithm.rs": {
+   "items": 19,
+   "documented": 5
+  },
+  "src/chemistry/mod.rs": {
+   "items": 59,
+   "documented": 17
+  },
+  "src/chemistry/modification_definitions.rs": {
+   "items": 31,
+   "documented": 14
+  },
+  "src/chemistry/modification_records.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/chemistry/modifications.rs": {
+   "items": 53,
+   "documented": 21
+  },
+  "src/chemistry/modified_na_sequence_generator.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/chemistry/modified_peptides.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/chemistry/monosaccharide_db.rs": {
+   "items": 9,
+   "documented": 7
+  },
+  "src/chemistry/na_sequence.rs": {
+   "items": 30,
+   "documented": 12
+  },
+  "src/chemistry/nucleic_acid_spectrum_generator.rs": {
+   "items": 12,
+   "documented": 6
+  },
+  "src/chemistry/obo.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/chemistry/proforma.rs": {
+   "items": 37,
+   "documented": 8
+  },
+  "src/chemistry/proforma_conversion.rs": {
+   "items": 11,
+   "documented": 5
+  },
+  "src/chemistry/proforma_json.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/chemistry/proforma_mass.rs": {
+   "items": 18,
+   "documented": 3
+  },
+  "src/chemistry/proforma_parser.rs": {
+   "items": 22,
+   "documented": 11
+  },
+  "src/chemistry/proforma_resolution.rs": {
+   "items": 6,
+   "documented": 2
+  },
+  "src/chemistry/proforma_spectra.rs": {
+   "items": 7,
+   "documented": 0
+  },
+  "src/chemistry/protein_cross_link.rs": {
+   "items": 7,
+   "documented": 1
+  },
+  "src/chemistry/ribonucleotide.rs": {
+   "items": 16,
+   "documented": 4
+  },
+  "src/chemistry/ribonucleotide_db.rs": {
+   "items": 15,
+   "documented": 3
+  },
+  "src/chemistry/ribonucleotide_providers.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/chemistry/rnase.rs": {
+   "items": 38,
+   "documented": 10
+  },
+  "src/chemistry/sequence.rs": {
+   "items": 56,
+   "documented": 23
+  },
+  "src/chemistry/sequence_coverage.rs": {
+   "items": 5,
+   "documented": 2
+  },
+  "src/chemistry/spectrum_annotator.rs": {
+   "items": 11,
+   "documented": 7
+  },
+  "src/chemistry/tagger.rs": {
+   "items": 16,
+   "documented": 9
+  },
+  "src/chemistry/theoretical.rs": {
+   "items": 11,
+   "documented": 6
+  },
+  "src/chemistry/theoretical_helpers.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/chemistry/theoretical_presets.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/chemistry/theoretical_xlms.rs": {
+   "items": 8,
+   "documented": 5
+  },
+  "src/chemistry/theoretical_xlms_helpers.rs": {
+   "items": 4,
+   "documented": 0
+  },
+  "src/cli/context.rs": {
+   "items": 16,
+   "documented": 7
+  },
+  "src/cli/parameter.rs": {
+   "items": 14,
+   "documented": 12
+  },
+  "src/cli/spec.rs": {
+   "items": 29,
+   "documented": 7
+  },
+  "src/cli/tools/dta_extractor.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/cli/tools/mzml_splitter.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/cli/usage.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/cli.rs": {
+   "items": 5,
+   "documented": 4
+  },
+  "src/comparison.rs": {
+   "items": 26,
+   "documented": 17
+  },
+  "src/concept/constants.rs": {
+   "items": 132,
+   "documented": 4
+  },
+  "src/concept/log_stream.rs": {
+   "items": 41,
+   "documented": 17
+  },
+  "src/concept/mod.rs": {
+   "items": 4,
+   "documented": 0
+  },
+  "src/concept/progress_logger.rs": {
+   "items": 26,
+   "documented": 11
+  },
+  "src/concept/unique_id.rs": {
+   "items": 11,
+   "documented": 5
+  },
+  "src/data_structures/cv_mapping.rs": {
+   "items": 11,
+   "documented": 7
+  },
+  "src/data_structures/datetime.rs": {
+   "items": 27,
+   "documented": 9
+  },
+  "src/data_structures/list.rs": {
+   "items": 15,
+   "documented": 6
+  },
+  "src/data_structures/mod.rs": {
+   "items": 4,
+   "documented": 0
+  },
+  "src/data_structures/string_list.rs": {
+   "items": 6,
+   "documented": 1
+  },
+  "src/error.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/format/consensusxml.rs": {
+   "items": 16,
+   "documented": 0
+  },
+  "src/format/controlled_vocabulary.rs": {
+   "items": 41,
+   "documented": 10
+  },
+  "src/format/csv.rs": {
+   "items": 18,
+   "documented": 7
+  },
+  "src/format/cv_mapping.rs": {
+   "items": 6,
+   "documented": 2
+  },
+  "src/format/cv_xml.rs": {
+   "items": 8,
+   "documented": 0
+  },
+  "src/format/dta.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/format/dta2d.rs": {
+   "items": 16,
+   "documented": 2
+  },
+  "src/format/experimental_design_file.rs": {
+   "items": 4,
+   "documented": 3
+  },
+  "src/format/fasta.rs": {
+   "items": 39,
+   "documented": 13
+  },
+  "src/format/featurexml.rs": {
+   "items": 19,
+   "documented": 3
+  },
+  "src/format/file_handler.rs": {
+   "items": 22,
+   "documented": 11
+  },
+  "src/format/file_types.rs": {
+   "items": 20,
+   "documented": 17
+  },
+  "src/format/identification_xml.rs": {
+   "items": 2,
+   "documented": 0
+  },
+  "src/format/idxml.rs": {
+   "items": 14,
+   "documented": 10
+  },
+  "src/format/indexed_mzml.rs": {
+   "items": 8,
+   "documented": 7
+  },
+  "src/format/map_xml.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/format/mgf.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/format/mod.rs": {
+   "items": 24,
+   "documented": 0
+  },
+  "src/format/modification_definitions.rs": {
+   "items": 23,
+   "documented": 6
+  },
+  "src/format/ms2.rs": {
+   "items": 15,
+   "documented": 3
+  },
+  "src/format/mzml.rs": {
+   "items": 9,
+   "documented": 8
+  },
+  "src/format/mzml_acquisition.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/format/mzml_centroid.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/format/mzml_consumer.rs": {
+   "items": 8,
+   "documented": 4
+  },
+  "src/format/mzml_counts.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/format/mzml_header/read.rs": {
+   "items": 4,
+   "documented": 0
+  },
+  "src/format/mzml_header/xml.rs": {
+   "items": 14,
+   "documented": 1
+  },
+  "src/format/mzml_header.rs": {
+   "items": 8,
+   "documented": 0
+  },
+  "src/format/mzml_load.rs": {
+   "items": 3,
+   "documented": 2
+  },
+  "src/format/mzml_numpress.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/format/mzml_paths.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/format/mzml_schema.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/format/mzml_validator.rs": {
+   "items": 7,
+   "documented": 4
+  },
+  "src/format/mzml_write_options.rs": {
+   "items": 6,
+   "documented": 4
+  },
+  "src/format/numpress.rs": {
+   "items": 23,
+   "documented": 8
+  },
+  "src/format/numpress_coder.rs": {
+   "items": 15,
+   "documented": 7
+  },
+  "src/format/paramxml.rs": {
+   "items": 12,
+   "documented": 6
+  },
+  "src/format/peak_options.rs": {
+   "items": 36,
+   "documented": 14
+  },
+  "src/format/semantic_validator.rs": {
+   "items": 11,
+   "documented": 5
+  },
+  "src/format/text.rs": {
+   "items": 21,
+   "documented": 5
+  },
+  "src/identification/graph/cleanup.rs": {
+   "items": 7,
+   "documented": 5
+  },
+  "src/identification/graph/converter.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/identification/graph/groups.rs": {
+   "items": 9,
+   "documented": 6
+  },
+  "src/identification/graph/matches.rs": {
+   "items": 10,
+   "documented": 5
+  },
+  "src/identification/graph/records.rs": {
+   "items": 51,
+   "documented": 11
+  },
+  "src/identification/graph.rs": {
+   "items": 59,
+   "documented": 21
+  },
+  "src/identification/protein_run.rs": {
+   "items": 11,
+   "documented": 7
+  },
+  "src/identification/run_mapping.rs": {
+   "items": 16,
+   "documented": 9
+  },
+  "src/identification.rs": {
+   "items": 61,
+   "documented": 14
+  },
+  "src/interfaces.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/kernel/acquisition_fields.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/kernel/area_iteration.rs": {
+   "items": 17,
+   "documented": 13
+  },
+  "src/kernel/chromatogram_tools.rs": {
+   "items": 5,
+   "documented": 3
+  },
+  "src/kernel/data_array.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/kernel/experiment_2d.rs": {
+   "items": 9,
+   "documented": 3
+  },
+  "src/kernel/experiment_aggregation.rs": {
+   "items": 13,
+   "documented": 12
+  },
+  "src/kernel/experiment_summary.rs": {
+   "items": 17,
+   "documented": 9
+  },
+  "src/kernel/features.rs": {
+   "items": 67,
+   "documented": 29
+  },
+  "src/kernel/geometry.rs": {
+   "items": 26,
+   "documented": 12
+  },
+  "src/kernel/mass_trace.rs": {
+   "items": 55,
+   "documented": 55
+  },
+  "src/kernel/mobilogram.rs": {
+   "items": 49,
+   "documented": 13
+  },
+  "src/kernel/peak2d.rs": {
+   "items": 27,
+   "documented": 4
+  },
+  "src/kernel/peak_data.rs": {
+   "items": 11,
+   "documented": 2
+  },
+  "src/kernel/peak_index.rs": {
+   "items": 8,
+   "documented": 7
+  },
+  "src/kernel/spectrum_type.rs": {
+   "items": 3,
+   "documented": 2
+  },
+  "src/kernel.rs": {
+   "items": 59,
+   "documented": 42
+  },
+  "src/lib.rs": {
+   "items": 17,
+   "documented": 4
+  },
+  "src/metadata/acquisition.rs": {
+   "items": 36,
+   "documented": 6
+  },
+  "src/metadata/document_identifier.rs": {
+   "items": 4,
+   "documented": 3
+  },
+  "src/metadata/experiment_support.rs": {
+   "items": 18,
+   "documented": 10
+  },
+  "src/metadata/experiment_values.rs": {
+   "items": 8,
+   "documented": 7
+  },
+  "src/metadata/experimental_design.rs": {
+   "items": 50,
+   "documented": 35
+  },
+  "src/metadata/experimental_settings.rs": {
+   "items": 10,
+   "documented": 6
+  },
+  "src/metadata/value.rs": {
+   "items": 49,
+   "documented": 18
+  },
+  "src/param/handler.rs": {
+   "items": 20,
+   "documented": 8
+  },
+  "src/param/iteration.rs": {
+   "items": 9,
+   "documented": 4
+  },
+  "src/param/operations.rs": {
+   "items": 16,
+   "documented": 5
+  },
+  "src/param/tree.rs": {
+   "items": 10,
+   "documented": 0
+  },
+  "src/param/value.rs": {
+   "items": 24,
+   "documented": 13
+  },
+  "src/param.rs": {
+   "items": 44,
+   "documented": 5
+  },
+  "src/processing/baseline.rs": {
+   "items": 7,
+   "documented": 4
+  },
+  "src/processing/chromatogram.rs": {
+   "items": 7,
+   "documented": 4
+  },
+  "src/processing/deisotoping.rs": {
+   "items": 7,
+   "documented": 6
+  },
+  "src/processing/iterative.rs": {
+   "items": 6,
+   "documented": 4
+  },
+  "src/processing/mean_noise.rs": {
+   "items": 7,
+   "documented": 2
+  },
+  "src/processing/peak_picking/noise.rs": {
+   "items": 4,
+   "documented": 3
+  },
+  "src/processing/peak_picking/spline.rs": {
+   "items": 7,
+   "documented": 4
+  },
+  "src/processing/peak_picking.rs": {
+   "items": 13,
+   "documented": 6
+  },
+  "src/processing/smoothing.rs": {
+   "items": 14,
+   "documented": 9
+  },
+  "src/processing/window_mower.rs": {
+   "items": 6,
+   "documented": 5
+  },
+  "src/processing.rs": {
+   "items": 21,
+   "documented": 13
+  },
+  "src/system/file.rs": {
+   "items": 68,
+   "documented": 14
+  },
+  "src/system/mod.rs": {
+   "items": 1,
+   "documented": 0
+  }
+ }
+}

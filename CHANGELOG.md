@@ -2,6 +2,7 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add a rustdoc coverage ratchet (`tools/check_doc_coverage.py`, CI-enforced) and backport the full MassTrace documentation: `src/kernel/mass_trace.rs` goes from 9% to 100% documented. Tool bodies move into `src/cli/tools/` so the shipped binary and its differential test share one definition.
 - Advance the Core SDK target to `bc9cc12`. Only the Parquet reader changed, which the port does not implement; registered public headers stay at 786 and no pinned reference bytes moved. Adds `tools/core_sdk_retarget.py`, which refuses to run when a build-registration input changes.
 - Add the TOPP command-line framework (the native `OpenMS4-cli` TOPPBase) and the first TOPP tool, DTAExtractor. Its three upstream tests are reproduced byte-for-byte against the retained C++ outputs, making it the first validated TOPP workflow. Header list `count` attributes are now advisory on mzML reading, and `dta::WriteOptions::source()` selects the source writer conventions.
 - Add the complete experimental design: both public classes, all five path/label mappings, both sample-grouping rules, the consensus/feature/identification constructors, column-header annotation and the tab-separated reader in both source table layouts. Ragged rows and negative indices are rejected rather than read out of bounds or wrapped.

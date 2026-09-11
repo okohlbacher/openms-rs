@@ -9,6 +9,7 @@
 mod context;
 mod parameter;
 mod spec;
+pub mod tools;
 mod usage;
 
 pub use context::{ToolContext, parse_range};

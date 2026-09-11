@@ -48,6 +48,7 @@ jobs:
       - run: python3 tools/semantic_validator/projection.py --check
       - run: python3 tools/generate_metabo_isotope_models.py --check
       - run: python3 tools/probes/ims_witness_source_oracle.py --check
+      - run: python3 tools/check_doc_coverage.py
       - run: python3 tools/check_core_sdk.py
       - run: python3 tools/test_core_sdk.py
       - run: python3 tools/core_sdk_coverage.py

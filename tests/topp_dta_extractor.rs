@@ -6,95 +6,10 @@
 //! tool, so agreement here is executed differential evidence for the whole
 //! chain: command line, parameter validation, mzML reading and DTA writing.
 
-use openms::cli::{ExitCode, Tool, ToolContext, ToolSpec, parse_range, run_with};
-use openms::format::dta;
-use openms::kernel::MSSpectrum;
-use openms::{Error, Result};
+use openms::cli::tools::DTAExtractor;
+use openms::cli::{ExitCode, run_with};
 use std::fs;
-use std::io::BufWriter;
 use std::path::{Path, PathBuf};
-
-// The tool body is duplicated from src/bin/DTAExtractor.rs because a binary
-// target cannot be imported by an integration test. Keep the two in step.
-struct DTAExtractor;
-
-impl Tool for DTAExtractor {
-    const NAME: &'static str = "DTAExtractor";
-    const DESCRIPTION: &'static str =
-        "Extracts spectra of an MS run file to several files in DTA format.";
-
-    fn register(spec: &mut ToolSpec) -> Result<()> {
-        spec.register_input_file("in", "<file>", "", "input file ", true, false, &[])?;
-        spec.set_valid_formats("in", &["mzML"])?;
-        spec.register_string_option(
-            "out",
-            "<file>",
-            "",
-            "base name of DTA output files (RT, m/z and extension are appended)",
-            true,
-            false,
-        )?;
-        spec.register_string_option("mz", "[min]:[max]", ":", "m/z range", false, false)?;
-        spec.register_string_option(
-            "rt",
-            "[min]:[max]",
-            ":",
-            "retention time range",
-            false,
-            false,
-        )?;
-        spec.register_string_option("level", "i[,j]...", "1,2,3", "MS levels", false, false)?;
-        Ok(())
-    }
-
-    fn run(ctx: &ToolContext) -> Result<ExitCode> {
-        let out = ctx.string("out")?.to_owned();
-        let (mut rt_low, mut rt_high) = (-f64::MAX, f64::MAX);
-        let (mut mz_low, mut mz_high) = (-f64::MAX, f64::MAX);
-        parse_range(ctx.string("rt")?, &mut rt_low, &mut rt_high)?;
-        parse_range(ctx.string("mz")?, &mut mz_low, &mut mz_high)?;
-        let levels: Vec<u32> = ctx
-            .string("level")?
-            .split(',')
-            .map(|p| {
-                p.trim()
-                    .parse::<u32>()
-                    .map_err(|_| Error::InvalidValue(format!("invalid MS level '{p}'")))
-            })
-            .collect::<Result<_>>()?;
-        let experiment = openms::format::file_handler::FileHandler::load_experiment(
-            ctx.string("in")?,
-            &[openms::format::file_types::FileType::MzMl],
-        )?;
-        for spectrum in &experiment.spectra {
-            if !levels.contains(&spectrum.ms_level) || spectrum.rt < rt_low || spectrum.rt > rt_high
-            {
-                continue;
-            }
-            let name = if spectrum.ms_level > 1 {
-                let mz = spectrum.precursors.first().map_or(0.0, |p| p.mz);
-                if mz < mz_low || mz > mz_high {
-                    continue;
-                }
-                format!("{out}_RT{}_MZ{}.dta", number(spectrum.rt)?, number(mz)?)
-            } else {
-                format!("{out}_RT{}.dta", number(spectrum.rt)?)
-            };
-            write_dta(&name, spectrum)?;
-        }
-        Ok(ExitCode::ExecutionOk)
-    }
-}
-
-fn number(value: f64) -> Result<String> {
-    use openms::data_structures::list::ListFormat;
-    Ok(value.to_list_text()?.into_owned())
-}
-
-fn write_dta(path: &str, spectrum: &MSSpectrum) -> Result<()> {
-    let file = fs::File::create(path)?;
-    dta::write_with_options(BufWriter::new(file), spectrum, &dta::WriteOptions::source())
-}
 
 fn fixture(name: &str) -> PathBuf {
     Path::new("tests/data").join(name)
