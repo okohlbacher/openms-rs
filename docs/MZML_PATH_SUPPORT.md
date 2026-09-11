@@ -35,8 +35,9 @@ compression. The writer's existing representation checks remain in force.
 This completes the file/owned-replacement entry points for the represented mzML
 subset. Subsequent increments add DocumentIdentifier loaded-path/file-type state,
 [count-only operations](MZML_COUNTS_SUPPORT.md) and [source-supported headers and
-metadata-only reading](MZML_HEADER_SUPPORT.md). XML schema/CV validation, consumers,
-transform passes, centroid inference and indexed output remain separate work. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
+metadata-only reading](MZML_HEADER_SUPPORT.md). [Consumers and transform passes](MZML_CONSUMER_SUPPORT.md), including disabled
+record population, are implemented. Format-specific XML schema/CV validation,
+centroid inference and indexed output remain separate work. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
 also works through these path entry points; configured Numpress writing currently
 uses its separate stream operation.
 `Read`/`Write` stream APIs already cover the native equivalent of buffer I/O.

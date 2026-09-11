@@ -73,9 +73,11 @@ The new entry point keeps the existing fixed ordinary precision choices; it does
 not implement general `PeakFileOptions` writer migration. In particular, it does
 not copy the source writer's cross-setting interaction in which enabling
 mass/time Numpress may also select f64 ordinary intensity fallback. Independent
-sampled noise grids, additional primary detector roles, array metadata/processing,
-indexed writing, consumer streaming, metadata-only reads and other previously
-unrepresented model fields remain separate work. No new path writer overload is
+sampled noise grids, additional primary detector roles, indexed writing and other
+unrepresented model fields remain separate work. [Header/array descriptions and
+metadata-only headers](MZML_HEADER_SUPPORT.md), plus [consumer streaming and
+disabled record population](MZML_CONSUMER_SUPPORT.md), are now implemented.
+No new path writer overload is
 introduced. The `numpress` feature is already enabled by `mzml`; no new dependency
 or feature is required by this increment.
 

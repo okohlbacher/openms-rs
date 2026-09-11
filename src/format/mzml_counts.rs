@@ -320,6 +320,7 @@ struct State<'a> {
     scientific: &'a PeakFileOptions,
     limits: &'a ReadOptions,
     raw: bool,
+    metadata_only: bool,
     declared: [i32; 2],
     counts: MzMLCounts,
     records: usize,
@@ -342,6 +343,7 @@ impl<'a> State<'a> {
             scientific,
             limits,
             raw: !scientific.has_filters(),
+            metadata_only: scientific.metadata_only,
             declared: [-1, -1],
             counts: MzMLCounts::default(),
             records: 0,
@@ -435,7 +437,7 @@ impl<'a> State<'a> {
                 }
                 self.seen_lists[i] = true;
                 required(&attrs, "defaultDataProcessingRef")?;
-                if self.scientific.metadata_only {
+                if self.metadata_only {
                     return Ok(true);
                 }
                 self.declared[i] = integer(required(&attrs, "count")?)?;
@@ -691,12 +693,154 @@ fn apply_cv(
     Ok(())
 }
 
+// The transform setup pass uses the same counting lexer/state and the ordinary
+// header decoder. It does not construct records or decode the skipped arrays.
+#[derive(Default)]
+struct Setup {
+    experiment: crate::MSExperiment,
+    draft: super::header::Draft,
+    registry: super::header::Registry,
+    work: super::header::Work,
+}
+impl Setup {
+    fn start(
+        &mut self,
+        tag: &str,
+        attrs: BTreeMap<String, String>,
+        stack: &[String],
+        state: &mut State<'_>,
+    ) -> Result<Option<BTreeMap<String, String>>> {
+        if state.skipped() {
+            return Ok(Some(attrs));
+        }
+        let parent = stack.last().map_or("", String::as_str);
+        if self.draft.captures(tag, parent) {
+            if state.seen_run {
+                return Err(invalid("header element after run start"));
+            }
+            self.draft.start(tag, attrs, &mut self.work)?;
+            return Ok(None);
+        }
+        match tag {
+            "mzML" => {
+                if let Some(accession) = attrs.get("accession") {
+                    self.experiment.settings.document.identifier = self.work.copy(accession)?;
+                }
+                if let Some(id) = attrs.get("id") {
+                    self.work
+                        .meter()
+                        .tree::<(String, crate::metadata::MetaValue)>(1)?;
+                    self.experiment
+                        .settings
+                        .metadata
+                        .insert("mzml_id".into(), self.work.copy(id)?.into());
+                }
+            }
+            "run" => {
+                if parent != "mzML" || state.seen_run {
+                    return Err(invalid("misplaced or duplicate mzML run"));
+                }
+                self.registry = std::mem::take(&mut self.draft).finish(
+                    &attrs,
+                    &state.groups,
+                    &mut state.budget,
+                    &mut self.work,
+                    &mut self.experiment.settings,
+                )?;
+            }
+            "spectrumList" | "chromatogramList" => {
+                self.registry.processing(
+                    required(&attrs, "defaultDataProcessingRef")?,
+                    &mut self.work,
+                )?;
+            }
+            "cvParam" | "userParam" if parent == "run" => {
+                super::apply_parameter(
+                    tag,
+                    &attrs,
+                    parent,
+                    &mut None,
+                    &mut None,
+                    &mut self.experiment,
+                    None,
+                )?;
+                return Ok(None);
+            }
+            "referenceableParamGroupRef" if parent == "run" => {
+                let id = parameter_id(required(&attrs, "ref")?)?;
+                spend(&mut state.work, id.len() + 1)?;
+                let parameters = state
+                    .groups
+                    .get(id)
+                    .ok_or_else(|| invalid("unknown parameter group reference"))?;
+                super::apply_group(
+                    parameters,
+                    parent,
+                    &mut state.budget,
+                    &mut None,
+                    &mut None,
+                    &mut self.experiment,
+                    None,
+                )?;
+                return Ok(None);
+            }
+            "fileDescription"
+            | "sourceFileList"
+            | "sourceFile"
+            | "contact"
+            | "fileContent"
+            | "sampleList"
+            | "sample"
+            | "softwareList"
+            | "software"
+            | "instrumentConfigurationList"
+            | "instrumentConfiguration"
+            | "componentList"
+            | "source"
+            | "analyzer"
+            | "detector"
+            | "softwareRef"
+            | "dataProcessingList"
+            | "dataProcessing"
+            | "processingMethod" => {
+                return Err(invalid("misplaced mzML header element"));
+            }
+            _ => {}
+        }
+        Ok(Some(attrs))
+    }
+}
+pub(super) fn setup(
+    input: impl BufRead,
+    scientific: &PeakFileOptions,
+    limits: &ReadOptions,
+    metadata_only: bool,
+) -> Result<(crate::metadata::ExperimentalSettings, MzMLCounts)> {
+    let mut setup = Setup::default();
+    let counts = parse_impl(input, scientific, limits, Some(&mut setup), metadata_only)?;
+    Ok((setup.experiment.settings, counts))
+}
+
 fn parse(
     input: impl BufRead,
     scientific: &PeakFileOptions,
     limits: &ReadOptions,
 ) -> Result<MzMLCounts> {
+    parse_impl(input, scientific, limits, None, scientific.metadata_only)
+}
+
+fn parse_impl(
+    input: impl BufRead,
+    scientific: &PeakFileOptions,
+    limits: &ReadOptions,
+    mut setup: Option<&mut Setup>,
+    metadata_only: bool,
+) -> Result<MzMLCounts> {
     let mut state = State::new(scientific, limits);
+    if setup.is_some() {
+        state.raw = true;
+    }
+    state.metadata_only = metadata_only;
     // quick-xml only strips a BOM present in one fill_buf result. Replay a
     // bounded prefix so a BOM split across even one-byte readers is recognized.
     let mut input = input;
@@ -735,6 +879,7 @@ fn parse(
     let mut can_discard = true;
     loop {
         let whitespace = stack.is_empty()
+            || (setup.is_some() && !state.seen_run)
             || (!state.skipped()
                 && stack.last().is_some_and(|s| {
                     matches!(
@@ -789,11 +934,21 @@ fn parse(
                     seen_root = true;
                 }
                 let attrs = checked_attributes(&element, decoder, &mut state.budget)?;
-                if state.start(tag, attrs, &stack)? {
-                    return Ok(state.result());
+                let attrs = if let Some(setup) = setup.as_deref_mut() {
+                    setup.start(tag, attrs, &stack, &mut state)?
+                } else {
+                    Some(attrs)
+                };
+                if let Some(attrs) = attrs {
+                    if state.start(tag, attrs, &stack)? {
+                        return Ok(state.result());
+                    }
                 }
                 stack.push(tag.to_owned());
                 if empty {
+                    if let Some(setup) = setup.as_deref_mut() {
+                        setup.draft.end(tag)?;
+                    }
                     state.end(tag, stack.len())?;
                     stack.pop();
                 }
@@ -805,6 +960,9 @@ fn parse(
                 let tag = std::str::from_utf8(element.local_name().as_ref())
                     .map_err(|e| invalid(e.to_string()))?
                     .to_owned();
+                if let Some(setup) = setup.as_deref_mut() {
+                    setup.draft.end(&tag)?;
+                }
                 state.end(&tag, stack.len())?;
                 if stack.pop().as_deref() != Some(tag.as_str()) {
                     return Err(invalid("mismatched XML end element"));

@@ -20,7 +20,7 @@ Ok(())
 
 The stream API accepts `BufRead`/`Write`; [path APIs](MZML_PATH_SUPPORT.md) additionally provide bounded gzip/bzip2 transport and atomic output. `read` processes XML events, then returns an owned `MSExperiment` containing all records. It is not a lazy spectrum iterator or an on-disk random-access reader.
 
-[Experimental headers and references](MZML_HEADER_SUPPORT.md) also provide metadata-only reading, source-supported instrument/sample/software payloads and processing histories. `DataProcessing.completion_time` now uses `DateTime`, preserving milliseconds. Streaming consumers and the complete MzMLFile surface remain outstanding.
+[Experimental headers and references](MZML_HEADER_SUPPORT.md) also provide metadata-only reading, source-supported instrument/sample/software payloads and processing histories. `DataProcessing.completion_time` now uses `DateTime`, preserving milliseconds. [Streaming consumers and transforms](MZML_CONSUMER_SUPPORT.md) support callbacks and optional retention. The complete MzMLFile surface remains outstanding.
 
 ## Supported data
 

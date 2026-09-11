@@ -142,8 +142,9 @@ adapter behavior; this state API does not expand those format promises.
 
 The explicit mzML loading entry point now applies supported scientific options
 alongside independent resource limits, including aligned selection/sorting,
-selected-ion filtering and skip-chromatogram behavior. Metadata-only, fill-data,
-consumer append/counting, isolation-target precursor selection and other format
+selected-ion filtering and skip-chromatogram behavior. Metadata-only headers,
+disabled data population and [consumer append/counting](MZML_CONSUMER_SUPPORT.md)
+are implemented. Isolation-target precursor selection and other format
 adapters remain separate work. Encoding options require actual selected
 precision, zlib, index and compatibility implementations. Numpress has a separate
 configured writer; this value type is not a general writer configuration adapter.

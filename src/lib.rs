@@ -30,6 +30,7 @@ pub mod concept;
 pub mod error;
 pub mod format;
 pub mod identification;
+pub mod interfaces;
 pub mod kernel;
 pub mod metadata;
 pub mod processing;

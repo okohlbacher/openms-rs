@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 164,
-      "native_equivalent": 59,
+      "evidence_requires_review": 165,
+      "native_equivalent": 60,
       "partial": 22,
-      "unmapped": 531
+      "unmapped": 529
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -5851,10 +5851,12 @@
       "header": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
       "sha256": "edeca114b4ecfbc861a759822fb1b0cc61149ed48c240e19d524077b9e4e5991",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzml_consumer_provenance.json"
+      ],
       "direct_topp_consumers": [
         "NovorAdapter",
         "OpenSwathFileSplitter",
@@ -6571,6 +6573,7 @@
         "tests/data/experimental_settings_provenance.json",
         "tests/data/mzml_acquisition_guards_provenance.json",
         "tests/data/mzml_acquisition_provenance.json",
+        "tests/data/mzml_consumer_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_header_provenance.json",
         "tests/data/mzml_load_provenance.json",
@@ -7143,7 +7146,9 @@
           "src/format/mzml_counts.rs",
           "src/format/mzml_header.rs",
           "src/format/mzml_header/read.rs",
-          "src/format/mzml_header/write.rs"
+          "src/format/mzml_header/write.rs",
+          "src/format/mzml_consumer.rs",
+          "src/interfaces.rs"
         ],
         "tests": [
           "tests/mzml.rs",
@@ -7158,15 +7163,18 @@
           "tests/mzml_acquisition.rs",
           "tests/mzml_counts.rs",
           "tests/experimental_settings.rs",
-          "tests/mzml_header.rs"
+          "tests/mzml_header.rs",
+          "tests/mzml_consumer.rs",
+          "tests/interfaces.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Peptide identifications, primary-array typed metadata/independent history, nondefault chromatogram SourceFile and other source/schema-unrepresented state remain checked errors. MzMLFile remains partial: consumer/transform and centroid APIs, fill_data=false, isolation-target loading, general schema/semantic validation, indexed writing and complete writer PeakFileOptions execution remain. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
+        "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array metadata, independently sampled noise grids and alternate primary roles require further native transport; independent primary-array history remains a checked error. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. MzMLFile remains partial: centroid APIs, isolation-target loading, format-specific semantic/schema validation, indexed writing and complete writer PeakFileOptions execution remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/experimental_settings_provenance.json",
         "tests/data/indexed_mzml_provenance.json",
+        "tests/data/mzml_consumer_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_header_provenance.json",
         "tests/data/mzml_paths_provenance.json"
@@ -7373,6 +7381,7 @@
       ],
       "reference_manifests": [
         "tests/data/consensusxml_provenance.json",
+        "tests/data/mzml_consumer_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_load_provenance.json",
         "tests/data/mzml_numpress_provenance.json",
@@ -8164,10 +8173,23 @@
       "header": "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h",
       "sha256": "513bd99bffa60b542ab3ae892eafead238c4714c1ca748f08bcaa7569b54ea9a",
       "domain": "INTERFACES",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/interfaces.rs"
+        ],
+        "tests": [
+          "tests/interfaces.rs",
+          "tests/mzml_consumer.rs"
+        ],
+        "documentation": "docs/MZML_CONSUMER_SUPPORT.md",
+        "scope": "Complete four required callback operations as an unconditional object-safe trait. Exclusive mutable borrowed records and immutable settings, checked Result and explicit ControlFlow soft stop replace C++ pointer aliases/exceptions/destructor; no silent callback defaults. Format-independent no-default build verified. Source stop-before-current-retention, setup and transform integration tested; other concrete consumers remain separate."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzml_consumer_provenance.json"
+      ],
       "direct_topp_consumers": [
         "PeakPickerIM",
         "TICCalculator"
@@ -15143,7 +15165,6 @@
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/INTERFACES/IMSDataConsumer.h",
         "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h"
@@ -16104,7 +16125,6 @@
         "OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
         "OpenMS/FORMAT/IndexedMzMLFileLoader.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/INTERFACES/IMSDataConsumer.h",
         "OpenMS/KERNEL/OnDiscMSExperiment.h",
         "OpenMS/SYSTEM/SysInfo.h"
       ],

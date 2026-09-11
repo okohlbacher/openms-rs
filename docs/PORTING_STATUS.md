@@ -44,7 +44,7 @@ bookkeeping is retained in the experiment settings.
 [ControlledVocabulary](CONTROLLED_VOCABULARY_SUPPORT.md) supplies complete
 term definitions, OBO loading, graph queries, XML values and all five original
 providers. General CV mapping and source-supported header transport are implemented;
-[general semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) is implemented; streaming consumers remain a separate group.
+[general semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) and [streaming consumers/transforms](MZML_CONSUMER_SUPPORT.md) are implemented. Centroid inspection and remaining mzML format-specific validation/writer options remain separate groups.
 
 ## Capability mapping
 

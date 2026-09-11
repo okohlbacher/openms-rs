@@ -1,5 +1,38 @@
 # Validation of the ongoing Rust port
 
+## Streaming mzML consumers (2026-09-11)
+
+[Recorded checks](consumer-validation.json) cover the complete unconditional
+MSDataConsumer interface, both source [transform operation groups](MZML_CONSUMER_SUPPORT.md)
+and disabled scientific data population with `fill_data=false`.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 2,047 tests passed |
+| Doctests, Rust 1.98 | Four passed |
+| Rust 1.85/mzML-only library and adjacent selection | 236 passed |
+| Rust 1.85/unconditional interface without format features | One passed |
+| Strict Clippy, release library, Rustdoc and Rustfmt | Passed |
+| Source audit, consumer fixture regeneration and completion checks | Passed |
+
+All 14 integrated checks passed on their first run. Selected counts overlap;
+the full suite adds 24 tests. All 15 frozen extraction files remain exact.
+Independent regeneration reproduces both fixture files after five documented
+source child-count repairs, retaining original scientific data. Both transform
+modes reproduce the source test's four spectra, 40 peaks and TIC 350. Source
+control-flow review and independent tests cover setup order, separate pools,
+mutation/stop/error boundaries, descriptor validation and atomic destination
+publication. No C++ consumer execution or full SDK build is claimed.
+
+The [published header checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34584903921)
+passed cross-platform, minimum-Rust and quality CI. The C++ issue log contains 50
+entries, including the indexed writer's placeholder checksum and empty dummy index. The ledger records
+70 complete/native-equivalent headers, 716 requiring implementation or review,
+and zero certified TOPP workflows. Source verification covers 1,933 distinct
+current files, 220 historical references, 21 graph references and 847 added
+references. Remaining mzML source options/validation, centroid inspection,
+indexed output, ProForma wrappers and broader SDK work are tracked separately.
+
 ## Crosslink spectrum generation (2026-09-11)
 
 [Recorded checks](xlms-validation.json) cover the complete class-specific

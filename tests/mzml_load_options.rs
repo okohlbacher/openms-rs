@@ -441,11 +441,10 @@ impl BufRead for NoRead {
 }
 #[test]
 fn unsupported_requested_behavior_is_rejected_before_input_and_write_flags_are_ignored() {
-    for choice in 0..3 {
+    for choice in 0..2 {
         let mut o = LoadOptions::default();
         match choice {
-            0 => o.scientific.fill_data = false,
-            1 => o.scientific.skip_xml_checks = true,
+            0 => o.scientific.skip_xml_checks = true,
             _ => o.scientific.precursor_mz_selected_ion = false,
         }
         assert!(matches!(

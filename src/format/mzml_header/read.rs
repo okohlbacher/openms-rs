@@ -89,6 +89,23 @@ pub(super) fn parse(
     work: &mut Work,
     settings: &mut ExperimentalSettings,
 ) -> Result<Registry> {
+    // Ordinary readers start empty. A retaining transform starts from exact
+    // cloned lengths, so its first append can move twice the old descriptor
+    // count. Per-new-value charges cover subsequent geometric growth.
+    work.slots::<ContactPerson>(
+        settings
+            .contacts
+            .len()
+            .checked_mul(2)
+            .ok_or_else(resource)?,
+    )?;
+    work.slots::<SourceFile>(
+        settings
+            .source_files
+            .len()
+            .checked_mul(2)
+            .ok_or_else(resource)?,
+    )?;
     let mut cx = Context {
         groups,
         parameters,
@@ -297,6 +314,14 @@ pub(super) fn parse(
     // Source appends deduplicated values in lexical source ID order. Hashing is
     // only an accelerator; equality still decides, including metadata/units.
     let mut fingerprints: BTreeMap<u64, Vec<usize>> = BTreeMap::new();
+    cx.work.charge(settings.source_files.len(), 0)?;
+    for (index, value) in settings.source_files.iter().enumerate() {
+        crate::kernel::acquisition_fields::source(&mut cx.work.meter(), value)?;
+        let hash = source_hash(value);
+        cx.work.meter().tree::<(u64, Vec<usize>)>(1)?;
+        cx.work.slots::<usize>(4)?;
+        fingerprints.entry(hash).or_default().push(index);
+    }
     for value in result.source_files.values() {
         crate::kernel::acquisition_fields::source(&mut cx.work.meter(), value)?;
         let hash = source_hash(value);
@@ -823,6 +848,36 @@ mod tests {
                 "{list}: {error}"
             );
         }
+    }
+    #[test]
+    fn seeded_append_charges_existing_vector_growth_before_header_processing() {
+        let mut settings = ExperimentalSettings {
+            contacts: vec![ContactPerson::default(); 5],
+            source_files: vec![SourceFile::default(); 7],
+            ..Default::default()
+        };
+        let before = settings.clone();
+        let required = 10 * size_of::<ContactPerson>() + 14 * size_of::<SourceFile>();
+        let mut work = Work {
+            remaining: usize::MAX,
+            bytes: required - 1,
+        };
+        let mut parameters = ParameterBudget {
+            remaining: usize::MAX,
+            bytes: usize::MAX,
+        };
+        assert!(
+            parse(
+                Vec::new(),
+                &BTreeMap::new(),
+                &BTreeMap::new(),
+                &mut parameters,
+                &mut work,
+                &mut settings
+            )
+            .is_err()
+        );
+        assert_eq!(settings, before);
     }
     #[test]
     fn repeated_source_copies_share_the_same_remaining_allowance() {

@@ -1,0 +1,424 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "native_base_revision": "cb89f038d9d1d4ec605154ade26766191dc8f1ca",
+  "scope": [
+    "Complete four-callback unconditional MSDataConsumer interface",
+    "Both source MzMLFile transform overloads with path/factory APIs and source setup/pool semantics",
+    "fill_data=false scientific reader/path loading with descriptor checks",
+    "Original C++ issue log expanded to 50 evidence-qualified entries"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "--no-fail-fast",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 435.08,
+      "log_sha256": "02e8432e0096d450faf134956e30122272a465b3598ace5865442b0411769f81",
+      "log_bytes": 211812,
+      "tests_passed": 2047
+    },
+    {
+      "name": "docs_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.45,
+      "log_sha256": "23929defb16c36a0509f21f94d053aea4ce9257e902a769bc60b41ad53f83bbc",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 50.17,
+      "log_sha256": "2fe6d7d0731e8dd4f1758c67cefd516d6beab49d04b80be5bf47618ebc5c3f33",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 40.17,
+      "log_sha256": "401345323e05c0006f4b7780f65c11164c5c1e48a83a803e18ce6f5e9bbce5f2",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.09,
+      "log_sha256": "d977d6bfb6f3c7721bdd5ca9f0829b135f0f90d90e501f1a0dedc019da366f51",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.99,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.23,
+      "log_sha256": "29ed998af3588bcc148699b113fffe9e27db596e510e49e49d67abdfa7d6ef3b",
+      "log_bytes": 233
+    },
+    {
+      "name": "consumer_projection",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "-c",
+        "from pathlib import Path; import subprocess; subprocess.run(['python3','tools/mzml_consumer/source_fixture.py','.reference/openms4-core-82ce5b3','/tmp/openms-rs-integrated-consumer-reference'],check=True); assert all((Path('tests/data/mzml_consumer')/name).read_bytes()==(Path('/tmp/openms-rs-integrated-consumer-reference')/name).read_bytes() for name in ['source.mzML','projection.json']); print('Both consumer source projections regenerate exactly')"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.06,
+      "log_sha256": "9b0981bdec26b083ba109fa06a6a59698997686bf57fc25cf2a353ac39bb05cf",
+      "log_bytes": 308
+    },
+    {
+      "name": "completion_ledger",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.09,
+      "log_sha256": "0f0dd2a6c1620eb0e38b27bb01952acd2446751452828ea3bcf38a2ddb2c7046",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "attempt": 1,
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "121a8c46dc569fa3abc871d569cfafceb86973dc072049bcc17035cad2deb335",
+      "log_bytes": 100
+    },
+    {
+      "name": "mzml_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--lib",
+        "--test",
+        "interfaces",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_consumer",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_header",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_paths",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 24.6,
+      "log_sha256": "617250006c7fbeab53955965419a2ece9897d47fdd4b45b97cbc15955bfbce45",
+      "log_bytes": 24411,
+      "tests_passed": 236
+    },
+    {
+      "name": "strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 11.08,
+      "log_sha256": "c3dac9123f3070dcd1a52049c0618e5d1d73b89587cd3a5963cd7a6b81431bd6",
+      "log_bytes": 162
+    },
+    {
+      "name": "mzml_strict_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--lib",
+        "--test",
+        "interfaces",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_consumer",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_header",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_numpress",
+        "--test",
+        "mzml_paths",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.88,
+      "log_sha256": "8747e97e36fa026f45173a309c42842245dd3667ad47f98990f3c0ba8c1cae7e",
+      "log_bytes": 161
+    },
+    {
+      "name": "interface_minimum",
+      "attempt": 1,
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--test",
+        "interfaces",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.65,
+      "log_sha256": "7c205ae58a0d626f193b05b4fc68610e959dab31ca105823010e6b54312b0339",
+      "log_bytes": 469,
+      "tests_passed": 1
+    }
+  ],
+  "integration_files": [
+    {
+      "path": "src/interfaces.rs",
+      "sha256": "e46e305072fb708f24b25e9265029886c509648b8fc563df6578d2eb50b40720",
+      "bytes": 1175
+    },
+    {
+      "path": "src/format/mzml_consumer.rs",
+      "sha256": "fd015bad6523996a50934487f94b89211e4c14e9ab212e24552304bcbf675995",
+      "bytes": 12190
+    },
+    {
+      "path": "src/format/mzml.rs",
+      "sha256": "d27781b13c7a7f9366796b748f4edc50c358891a80a2d112fb9184c5f923b875",
+      "bytes": 127450,
+      "baseline_sha256": "bcf2175e89edae45d48bf68c7aa07a1c0b70d025331125d32ee3da6e184c3af1"
+    },
+    {
+      "path": "src/format/mzml_counts.rs",
+      "sha256": "defc8bb7bb6f515e8d30986f6202b2ad241b27ff678ad34e0a0c90c5f8f00846",
+      "bytes": 40367,
+      "baseline_sha256": "79c5c93c13f621a269d9e4323d542abb3915837d0c5051f01ac5389095f7d6be"
+    },
+    {
+      "path": "src/format/mzml_load.rs",
+      "sha256": "edff5e87ecd56803f551e85b619fd932e9c356ca68f0c06cdb852c6e20a27f72",
+      "bytes": 8573,
+      "baseline_sha256": "0378fb4cf0104a5f2b977b994b60397bdfeac0907c0bae56cd9ddaa2d3564190"
+    },
+    {
+      "path": "src/format/mzml_header/read.rs",
+      "sha256": "3a81a6c8e059be86bb7c6d9a929154a4d51952e4510649bc32e7b0b0ffb88f5d",
+      "bytes": 37630,
+      "baseline_sha256": "56f61684255f6a2fa5f38f2661fa527036c4ef78698863c5f48b5f912dffaf20"
+    },
+    {
+      "path": "tests/interfaces.rs",
+      "sha256": "54bf642e46fdbf90e564447ec1100e1d4492e2c98cc27a4f6200214d5bb672b2",
+      "bytes": 1610
+    },
+    {
+      "path": "tests/mzml_consumer.rs",
+      "sha256": "19b0343138c2e98aebee297e881e6682eb2877318a4283c2ca8ce3668cd8c6ec",
+      "bytes": 31187
+    },
+    {
+      "path": "tests/mzml_load_options.rs",
+      "sha256": "b1b56a1874e03b15b67f55cf0d9825876e29bf4e2453098b600c6572a2dde990",
+      "bytes": 21575,
+      "baseline_sha256": "00390ad43761ca10b26e6d122e90af1956b70499fdc8ccc7dc3741033d822f33"
+    },
+    {
+      "path": "tests/mzml_paths.rs",
+      "sha256": "620f2c3ee669651b03f28c373758d1fbebcd480912a6fbc5cc9033f91a051e6b",
+      "bytes": 8369,
+      "baseline_sha256": "31343bfd3d336b81c99f69ccf1d7b065bac48eeeb4df4538590e416cccdee61c"
+    },
+    {
+      "path": "docs/MZML_CONSUMER_SUPPORT.md",
+      "sha256": "3c8fb4d69620357f7ce1192125b719306bc7e7da815362a2c825cc89cdae7852",
+      "bytes": 8592
+    },
+    {
+      "path": "tests/data/mzml_consumer/source.mzML",
+      "sha256": "f08ea23f9bdda33c564fe60db5195228dcc8077f7cc15083156dff408363bcf5",
+      "bytes": 37187
+    },
+    {
+      "path": "tests/data/mzml_consumer/projection.json",
+      "sha256": "154d6be56daa69172b180e980339e6e491715d1c9087817f69c3e090fbdc3c42",
+      "bytes": 779
+    },
+    {
+      "path": "tests/data/mzml_consumer_provenance.json",
+      "sha256": "18eb71553e29d6f1b839948658a51bf5b67d9dee38426a0dcca1f0b1adc21471",
+      "bytes": 4251
+    },
+    {
+      "path": "tools/mzml_consumer/source_fixture.py",
+      "sha256": "85fd86dd79394112bb5409f0ba8cc8541505a084eeea54577874bc7c62c65cfa",
+      "bytes": 1536
+    }
+  ],
+  "first_run_integrated_checks": "All 14 integrated checks passed on their first run. Stage development and fixed review findings are separate.",
+  "review_fixes_before_integration": [
+    "Share descriptor-only validation and record identity checks between populated and unpopulated readers",
+    "Precharge old contacts/source-file descriptor vector growth before seeded append",
+    "Document source-file dedup under the per-pass header allowance, separate from administrative limits"
+  ],
+  "independent_reference_checks": {
+    "exact_integration_files": 15,
+    "source_hashes": 12,
+    "fixture_generator_reused_hashes": 5,
+    "byte_identical_regenerated_files": 2,
+    "declared_child_count_repairs": 5,
+    "source_transform_spectra": 4,
+    "source_transform_peaks": 40,
+    "source_transform_tic": 350,
+    "original_chromatogram_lengths": [
+      15,
+      10
+    ],
+    "cpp_execution": "No C++ consumer execution or full SDK build. Source fixture bytes and literal source assertions, source pool/control-flow review and independent native integration tests are distinct evidence."
+  },
+  "source_audit": {
+    "distinct_current_files": 1933,
+    "historical_reference_paths": 220,
+    "graph_references": 21,
+    "added_source_references": 847
+  },
+  "completion": {
+    "complete": 10,
+    "native_equivalent": 60,
+    "partial": 22,
+    "evidence_requires_review": 165,
+    "unmapped": 529,
+    "registered_headers": 786,
+    "topp_sources": 146,
+    "certified_topp_workflows": 0
+  },
+  "cpp_issue_entries": 50,
+  "published_header_ci": {
+    "revision": "bce228ae73bdd7da10c752c5c9e98a4765c88d65",
+    "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34584903921",
+    "conclusion": "success"
+  },
+  "remaining": "Centroid inspection, indexed writing/source writer options, isolation-target/primary-role/noise reader groups, mzML format-specific semantic/schema validation, ProForma spectrum wrappers and the broader SDK remain incomplete. Zero certified TOPP workflows."
+}

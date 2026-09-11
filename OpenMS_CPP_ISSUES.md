@@ -62,6 +62,8 @@ are not classified as confirmed defects here.
 | CPP-046 | Semantic date validation applies date-time syntax to xsd:date | Source-reviewed; XSD lexical contract | Open |
 | CPP-047 | ProForma XLMS link positions ignore preceding flattened ranges | Source-reviewed; explicit AST trigger | Open |
 | CPP-048 | Zero centroid-inspection limit underflows and depends on spectrum type | Source-reviewed; unsigned counter trigger | Open |
+| CPP-049 | Indexed mzML output always writes a placeholder file checksum | Source-reviewed; literal footer and schema contract | Open |
+| CPP-050 | Empty indexed mzML declares zero indices but emits a dummy entry | Source-reviewed; empty-offset-list branch | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -1213,3 +1215,61 @@ then positive limits with unknown spectra interleaved between recognized ones.
 a zero limit with `InvalidValue` before opening input and retain the source
 count/stop order for positive limits. No native implementation or upstream fix
 is claimed at this checkpoint.
+
+## CPP-049 — Indexed mzML output writes a constant placeholder checksum
+
+**Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp`, lines 127–134](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp#L127), indexed footer output; checksum contract in `share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd`, lines 1185–1189.
+
+**Issue and reproduction:** Write an indexed mzML document through the source
+writer. The footer unconditionally assigns `sha1_checksum = "0"` and emits
+`<fileChecksum>0</fileChecksum>`. It never calculates the digest of the preceding
+file bytes. Consequently every indexed output has the same placeholder,
+irrespective of its spectrum data, metadata or byte offsets. The pinned format
+schema documents a SHA-1 checksum covering the file start through the end of
+the opening `fileChecksum` tag. Its `xs:string` type does not enforce this
+semantic checksum requirement, so schema validation alone cannot detect the
+placeholder.
+
+**Evidence:** Direct review of the literal assignment, adjacent TODO specifying
+the digest boundary, and the retained schema annotation. No C++ writer execution
+or comparison against an executed digest is claimed.
+
+**Proposed fix:** Update an incremental SHA-1 state with the exact serialized
+bytes, including the complete opening checksum tag. Emit the resulting digest
+without feeding the digest text into its own calculation. Test a minimal file
+and varied spectrum/header data against an independent digest over the emitted
+prefix; include byte-offset and line-ending cases.
+
+**Rust handling:** Indexed writing remains outstanding. Its planned native
+implementation will calculate the actual checksum and verify it independently;
+it will not preserve this placeholder. No native or upstream fix is claimed.
+
+## CPP-050 — Empty indexed mzML declares zero indices but emits a dummy index
+
+**Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp`, lines 80–123](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp#L80), `writeFooter_`; index-count and offset contracts in `share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd`, lines 1119–1154.
+
+**Issue and reproduction:** Request indexed output with no spectra or
+chromatograms. Both offset vectors are empty, so `indexlists` is zero and the
+writer emits `<indexList count="0">`. It then emits one `index` named `dummy`
+containing an offset of -1 and an `idRef` of `dummy`. The declared count disagrees
+with its actual child count, and the fabricated offset cannot address a real
+indexed record. This is separate from the constant checksum in CPP-049.
+
+**Evidence:** Direct review of the empty-vector count expression and the
+`indexlists == 0` branch. The pinned schema describes `count` as the number of
+indices and offsets as pointers to identified elements; its index and offset
+elements each require at least one occurrence. The count relation is not an XSD
+constraint, so no actual schema-validation failure is asserted here. No C++
+writer execution is claimed.
+
+**Proposed fix:** Define a consistent empty-output policy before writing. When
+the selected indexed schema cannot represent zero indexed records, reject that
+combination with a clear error or explicitly select ordinary mzML. Do not
+silently emit a nonexistent index target. Derive every declared index count
+from the indices actually written. Test empty, spectrum-only, chromatogram-only
+and mixed experiments with independent count and byte-target checks.
+
+**Rust handling:** Indexed writing remains outstanding. The planned native
+indexed writer will reject an empty experiment before external output; callers
+can explicitly request ordinary mzML for an empty experiment. No native or
+upstream fix is claimed at this checkpoint.

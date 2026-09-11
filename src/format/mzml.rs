@@ -13,8 +13,15 @@ pub use counts::{
     MAX_COUNT_EVENT_BYTES, MAX_COUNT_WORK, MAX_COUNT_XML_DEPTH, MzMLCounts, load_size,
     load_size_with_options, read_size, read_size_with_options,
 };
+#[path = "mzml_consumer.rs"]
+mod consumer;
 #[path = "mzml_header.rs"]
 mod header;
+pub use crate::interfaces::MSDataConsumer;
+pub use consumer::{
+    TransformOptions, TransformReport, transform, transform_from, transform_from_into,
+    transform_into, transform_into_with_options, transform_with_options,
+};
 #[path = "mzml_load.rs"]
 mod load;
 use crate::kernel::{
@@ -391,19 +398,14 @@ impl Binary {
         }
         Ok(())
     }
-    fn decode(
-        self,
-        default_count: usize,
-        options: &ReadOptions,
-        remaining_bytes: &mut usize,
-        remaining_elements: &mut usize,
-        numpress_work: &mut coder::Work,
-    ) -> Result<(Kind, Values)> {
+    // No payload access or allocation: shared by decoding and fill_data=false.
+    fn descriptor(&self, default_count: usize) -> Result<(Encoding, bool, usize)> {
         if !self.has_binary {
             return Err(invalid("missing binary element"));
         }
         let kind = self
             .kind
+            .as_ref()
             .ok_or_else(|| invalid("missing binary array type"))?;
         let encoding = match (self.numpress, self.encoding) {
             (Some(_), None | Some(Encoding::Float32 | Encoding::Float64))
@@ -422,7 +424,7 @@ impl Binary {
             .compressed
             .or(self.numpress.map(|_| false))
             .ok_or_else(|| invalid("missing binary compression term"))?;
-        if let Kind::Auxiliary(name) = &kind {
+        if let Kind::Auxiliary(name) = kind {
             check_canonical_encoding(name, encoding)?;
         }
         let auxiliary = matches!(kind, Kind::Auxiliary(_));
@@ -437,6 +439,18 @@ impl Binary {
                 "nonempty arrayLength differs from defaultArrayLength",
             ));
         }
+        Ok((encoding, compressed, count))
+    }
+    fn decode(
+        self,
+        default_count: usize,
+        options: &ReadOptions,
+        remaining_bytes: &mut usize,
+        remaining_elements: &mut usize,
+        numpress_work: &mut coder::Work,
+    ) -> Result<(Kind, Values)> {
+        let (encoding, compressed, count) = self.descriptor(default_count)?;
+        let kind = self.kind.unwrap(); // validated above
         *remaining_elements = remaining_elements
             .checked_sub(count)
             .ok_or_else(|| invalid("total binary element limit exceeded"))?;
@@ -615,6 +629,7 @@ struct Record {
     chromatogram: Option<MSChromatogram>,
     count: usize,
     array_names: BTreeSet<String>,
+    primary_seen: [bool; 2],
     coordinates: Option<Vec<f64>>,
     intensities: Option<Vec<f64>>,
     precursor: Option<Precursor>,
@@ -645,6 +660,25 @@ struct Record {
     intensity_first: bool,
 }
 impl Record {
+    fn check_array_kind(&mut self, kind: &Kind) -> Result<()> {
+        let index = match kind {
+            Kind::Auxiliary(name) => {
+                if !self.array_names.insert(name.clone()) {
+                    return Err(invalid("duplicate auxiliary array name"));
+                }
+                return Ok(());
+            }
+            Kind::Intensity => 1,
+            Kind::Mz if self.spectrum.is_some() => 0,
+            Kind::Time if self.chromatogram.is_some() => 0,
+            _ => return Err(invalid("coordinate array has wrong type for record")),
+        };
+        if std::mem::replace(&mut self.primary_seen[index], true) {
+            return Err(invalid("duplicate coordinate/intensity array"));
+        }
+        Ok(())
+    }
+
     fn metadata(&mut self) -> &mut BTreeMap<String, String> {
         if let Some(s) = &mut self.spectrum {
             &mut s.metadata
@@ -786,15 +820,18 @@ impl Record {
     }
     fn finish(
         mut self,
-        experiment: &mut MSExperiment,
         selection: Option<&mut load::State<'_>>,
-    ) -> Result<()> {
-        let (mut positions, mut intensities) =
+        fill_data: bool,
+    ) -> Result<Option<consumer::Completed>> {
+        let (mut positions, mut intensities) = if !fill_data {
+            (Vec::new(), Vec::new())
+        } else {
             match (self.coordinates.take(), self.intensities.take()) {
                 (Some(p), Some(i)) => (p, i),
                 (None, None) if self.count == 0 => (Vec::new(), Vec::new()),
                 _ => return Err(invalid("missing coordinate or intensity array")),
-            };
+            }
+        };
         let keep = if let Some(selection) = selection {
             selection.apply(&mut self, &mut positions, &mut intensities)?
         } else {
@@ -824,9 +861,7 @@ impl Record {
                 .map(|(mz, i)| Ok(Peak1D::new(mz, intensity(i)?)))
                 .collect::<Result<_>>()?;
             spectrum.validate()?;
-            if keep {
-                experiment.spectra.push(spectrum);
-            }
+            Ok(keep.then_some(consumer::Completed::Spectrum(spectrum)))
         } else {
             let mut chromatogram = self.chromatogram.unwrap();
             chromatogram.peaks = positions
@@ -835,11 +870,8 @@ impl Record {
                 .map(|(rt, i)| Ok(ChromatogramPeak::new(rt, intensity(i)?)))
                 .collect::<Result<_>>()?;
             chromatogram.validate()?;
-            if keep {
-                experiment.chromatograms.push(chromatogram);
-            }
+            Ok(keep.then_some(consumer::Completed::Chromatogram(chromatogram)))
         }
-        Ok(())
     }
 }
 
@@ -1168,6 +1200,25 @@ fn read_impl(
     load: Option<&LoadOptions>,
     metadata_only: bool,
 ) -> Result<MSExperiment> {
+    read_engine(
+        reader,
+        options,
+        load,
+        metadata_only,
+        MSExperiment::new(),
+        None,
+    )
+}
+
+fn read_engine(
+    reader: impl BufRead,
+    options: &ReadOptions,
+    load: Option<&LoadOptions>,
+    metadata_only: bool,
+    mut experiment: MSExperiment,
+    mut consumer: Option<&mut consumer::Sink<'_>>,
+) -> Result<MSExperiment> {
+    let fill_data = load.is_none_or(|o| o.scientific.fill_data);
     if let Some(load) = load {
         load.validate()?;
     }
@@ -1191,7 +1242,6 @@ fn read_impl(
     reader.config_mut().enable_all_checks(true);
     let mut buffer = Vec::new();
     let mut stack = Vec::<String>::new();
-    let mut experiment = MSExperiment::new();
     let mut record: Option<Record> = None;
     let mut binary: Option<Binary> = None;
     let mut seen_root = false;
@@ -1640,10 +1690,12 @@ fn read_impl(
                             required(&attrs, "defaultArrayLength")?,
                             "defaultArrayLength",
                         )?;
-                        total_peaks = total_peaks
-                            .checked_add(count)
-                            .filter(|&n| n <= options.max_total_peaks)
-                            .ok_or_else(|| invalid("peak count exceeds configured limit"))?;
+                        if fill_data {
+                            total_peaks = total_peaks
+                                .checked_add(count)
+                                .filter(|&n| n <= options.max_total_peaks)
+                                .ok_or_else(|| invalid("peak count exceeds configured limit"))?;
+                        }
                         let id = required(&attrs, "id")?.to_owned();
                         if id.is_empty() || !ids.insert((tag.clone(), id.clone())) {
                             return Err(invalid("empty or duplicate record id"));
@@ -1664,6 +1716,7 @@ fn read_impl(
                             }),
                             count,
                             array_names: BTreeSet::new(),
+                            primary_seen: [false; 2],
                             coordinates: None,
                             intensities: None,
                             precursor: None,
@@ -1750,7 +1803,7 @@ fn read_impl(
                             .saturating_add(2)
                             .saturating_div(3)
                             .saturating_mul(4);
-                        if encoded_length > max_encoded {
+                        if fill_data && encoded_length > max_encoded {
                             return Err(invalid("encodedLength exceeds configured byte limit"));
                         }
                         binary = Some(Binary {
@@ -1913,6 +1966,15 @@ fn read_impl(
                         let mut b = binary
                             .take()
                             .ok_or_else(|| invalid("missing binary array state"))?;
+                        if !fill_data {
+                            b.descriptor(r.count)?;
+                            r.check_array_kind(b.kind.as_ref().unwrap())?;
+                            // Source creates no primary/auxiliary data or descriptions
+                            // when data population is disabled. XML descriptors were
+                            // parsed, but their encoded payload is never decoded.
+                            buffer.clear();
+                            continue;
+                        }
                         let metadata = std::mem::take(&mut b.metadata);
                         let data_processing = std::mem::take(&mut b.data_processing);
                         let (kind, values) = b.decode(
@@ -1922,10 +1984,8 @@ fn read_impl(
                             &mut remaining_array_elements,
                             &mut numpress_work,
                         )?;
+                        r.check_array_kind(&kind)?;
                         if let Kind::Auxiliary(name) = kind {
-                            if !r.array_names.insert(name.clone()) {
-                                return Err(invalid("duplicate auxiliary array name"));
-                            }
                             let (floats, integers, strings) =
                                 if let Some(spectrum) = &mut r.spectrum {
                                     (
@@ -2099,7 +2159,27 @@ fn read_impl(
                                 record.metadata().insert(name, header_work.copy(text)?);
                             }
                         }
-                        record.finish(&mut experiment, selection.as_mut())?;
+                        if let Some(completed) = record.finish(selection.as_mut(), fill_data)? {
+                            if let Some(sink) = consumer.as_deref_mut() {
+                                if !sink.accept(completed)? {
+                                    return Ok(experiment);
+                                }
+                            } else {
+                                match completed {
+                                    consumer::Completed::Spectrum(s) => experiment.spectra.push(s),
+                                    consumer::Completed::Chromatogram(c) => {
+                                        experiment.chromatograms.push(c)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    "mzML" => {
+                        if let Some(sink) = consumer.as_deref_mut() {
+                            if !sink.finish()? {
+                                return Ok(experiment);
+                            }
+                        }
                     }
                     _ => {}
                 }
@@ -2112,6 +2192,12 @@ fn read_impl(
                         .as_mut()
                         .ok_or_else(|| invalid("text outside binary array"))?;
                     for byte in text.bytes().filter(|b| !b.is_ascii_whitespace()) {
+                        if !byte.is_ascii() {
+                            return Err(invalid("non-ASCII base64 text"));
+                        }
+                        if !fill_data {
+                            continue;
+                        }
                         if b.encoded.len() >= b.encoded_length {
                             return Err(invalid("binary text exceeds encodedLength"));
                         }

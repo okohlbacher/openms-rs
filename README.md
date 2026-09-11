@@ -236,3 +236,8 @@ documented source value conventions and does not perform full XSD validation.
 all three source XLMS append operations and their full options. The owned
 crosslink record preserves sequence identity. ProForma spectrum wrappers and
 other XLMS analysis classes remain separate work.
+
+[Streaming mzML consumers](docs/MZML_CONSUMER_SUPPORT.md) support setup counts,
+batched callbacks, early stopping and optional retention of modified records.
+The consumer trait is available without XML features. Metadata-only record
+loading now supports `fill_data=false` while retaining descriptor checks.

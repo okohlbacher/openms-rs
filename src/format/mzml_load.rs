@@ -31,9 +31,7 @@ impl Default for LoadOptions {
 }
 impl LoadOptions {
     pub(super) fn validate(&self) -> Result<()> {
-        let unsupported = if !self.scientific.fill_data && !self.scientific.metadata_only {
-            Some("loading metadata without binary data")
-        } else if self.scientific.skip_xml_checks {
+        let unsupported = if self.scientific.skip_xml_checks {
             Some("disabling XML checks")
         } else if !self.scientific.precursor_mz_selected_ion {
             Some("isolation-target precursor selection")

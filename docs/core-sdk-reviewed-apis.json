@@ -356,7 +356,9 @@
         "src/format/mzml_counts.rs",
         "src/format/mzml_header.rs",
         "src/format/mzml_header/read.rs",
-        "src/format/mzml_header/write.rs"
+        "src/format/mzml_header/write.rs",
+        "src/format/mzml_consumer.rs",
+        "src/interfaces.rs"
       ],
       "tests": [
         "tests/mzml.rs",
@@ -371,10 +373,12 @@
         "tests/mzml_acquisition.rs",
         "tests/mzml_counts.rs",
         "tests/experimental_settings.rs",
-        "tests/mzml_header.rs"
+        "tests/mzml_header.rs",
+        "tests/mzml_consumer.rs",
+        "tests/interfaces.rs"
       ],
       "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Peptide identifications, primary-array typed metadata/independent history, nondefault chromatogram SourceFile and other source/schema-unrepresented state remain checked errors. MzMLFile remains partial: consumer/transform and centroid APIs, fill_data=false, isolation-target loading, general schema/semantic validation, indexed writing and complete writer PeakFileOptions execution remain. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
+      "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array metadata, independently sampled noise grids and alternate primary roles require further native transport; independent primary-array history remains a checked error. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. MzMLFile remains partial: centroid APIs, isolation-target loading, format-specific semantic/schema validation, indexed writing and complete writer PeakFileOptions execution remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
     },
     "src/openms/include/OpenMS/METADATA/Product.h": {
       "status": "partial",
@@ -1147,6 +1151,18 @@
       ],
       "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
       "scope": "Complete ProteinProteinCrossLink value and reaction enum only. Arc allocation identity supplies source pointer equality/hash with owned lifetimes; finite private linker mass and normalized signed-zero hash. Defaults, position/terminal/name/correction fields and cross/loop/mono selection retained. Other OPXL records and comparators remain unimplemented; no whole-header completion or C++ hash-byte equivalence claimed."
+    },
+    "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/interfaces.rs"
+      ],
+      "tests": [
+        "tests/interfaces.rs",
+        "tests/mzml_consumer.rs"
+      ],
+      "documentation": "docs/MZML_CONSUMER_SUPPORT.md",
+      "scope": "Complete four required callback operations as an unconditional object-safe trait. Exclusive mutable borrowed records and immutable settings, checked Result and explicit ControlFlow soft stop replace C++ pointer aliases/exceptions/destructor; no silent callback defaults. Format-independent no-default build verified. Source stop-before-current-retention, setup and transform integration tested; other concrete consumers remain separate."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

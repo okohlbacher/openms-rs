@@ -164,7 +164,7 @@ fn source_projection_filters_through_paths_and_atomic_replacement() {
             &options,
             &ReadOptions::default()
         ),
-        Err(openms::Error::Unsupported(_))
+        Err(openms::Error::Io(_))
     ));
 }
 
