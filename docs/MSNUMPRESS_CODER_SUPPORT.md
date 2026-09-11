@@ -3,9 +3,9 @@
 `format::numpress_coder::MSNumpressCoder` implements the public wrapper operations
 at OpenMS4-core revision `54a232fe2cae9c590d5c997fa49d20e7769860fb`, using the
 [raw Numpress codecs](MSNUMPRESS_SUPPORT.md) and the existing
-`peak_options::{NumpressConfig, NumpressCompression}` types. This increment does
-not change mzML parsing/writing, `WriteOptions`, Numpress CV handling or the
-other peak-file adapters.
+`peak_options::{NumpressConfig, NumpressCompression}` types. [mzML Numpress transport](MZML_NUMPRESS_SUPPORT.md)
+reuses these codecs and shared limits; the original `WriteOptions` and other
+peak-file adapters retain their interfaces.
 
 The independent `numpress` Cargo feature enables the wrapper using the already
 available optional `base64` and `flate2` dependencies. `mzml` enables `numpress`;

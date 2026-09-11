@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 169,
-      "native_equivalent": 23,
-      "partial": 16,
-      "unmapped": 568
+      "evidence_requires_review": 166,
+      "native_equivalent": 30,
+      "partial": 17,
+      "unmapped": 563
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2808,10 +2808,21 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h",
       "sha256": "07611ae1c701fb703a80cea3646fd7a60ee27c870e2cf356af1c5f6949851d08",
       "domain": "CHEMISTRY",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/ims_mass_decomposer.rs"
+        ],
+        "tests": [
+          "tests/ims_mass_decomposers.rs"
+        ],
+        "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
+        "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/ims_decomposers_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -2820,20 +2831,43 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h",
       "sha256": "110fc8aee41a93ef5cb8cd9c01061e5a6ae785f0da5c9aefc6c330f88d8ce3f9",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/ims_mass_decomposer.rs"
+        ],
+        "tests": [
+          "tests/ims_mass_decomposers.rs"
+        ],
+        "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
+        "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/ims_decomposers_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h",
       "sha256": "8853b917e699c02430bfd67d9073773ebed0288da342b5c1d99c22fdfca18c5b",
       "domain": "CHEMISTRY",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/ims_mass_decomposer.rs"
+        ],
+        "tests": [
+          "tests/ims_mass_decomposers.rs"
+        ],
+        "documentation": "docs/IMS_DECOMPOSER_SUPPORT.md",
+        "scope": "Complete own public decomposition operation mapping through an object-safe trait and owned u64/u32 integer/real solvers. Source ERT/witness construction, enumeration order, finite sentinel quirks, exclusive real endpoint, constraint bounds and count differences retained. Singleton division is a checked extension; source zero-witness nontermination becomes an error. Independent brute-force/dyadic oracles and checked cumulative work/allocation/count boundaries; no arbitrary C++ template-width ABI claim."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/ims_decomposers_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -2856,6 +2890,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/ims_decomposers_provenance.json",
         "tests/data/ims_weights_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json"
       ],
@@ -3943,10 +3978,26 @@
       "header": "src/openms/include/OpenMS/CONCEPT/UniqueIdGenerator.h",
       "sha256": "f5374afcc2b33c467242a8aebdc9875fb87ab7edd35729df2fddc38c9ca29873",
       "domain": "CONCEPT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/concept/unique_id.rs",
+          "src/chemistry/decoy_random.rs"
+        ],
+        "tests": [
+          "tests/unique_id.rs",
+          "tests/decoy_generator.rs"
+        ],
+        "documentation": "docs/UNIQUE_ID_SUPPORT.md",
+        "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
+      },
+      "candidate_rust_files": [
+        "src/concept/unique_id.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/unique_id_provenance.json"
+      ],
       "direct_topp_consumers": [
         "QCEmbedder",
         "QCImporter"
@@ -3966,11 +4017,25 @@
       "header": "src/openms/include/OpenMS/CONCEPT/UniqueIdInterface.h",
       "sha256": "5fc3df97e46ca21770f0a37fa7b40579445fcdfa72778dfe56a8dc41e7bf22a4",
       "domain": "CONCEPT",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/concept/unique_id.rs",
+          "src/chemistry/decoy_random.rs"
+        ],
+        "tests": [
+          "tests/unique_id.rs",
+          "tests/decoy_generator.rs"
+        ],
+        "documentation": "docs/UNIQUE_ID_SUPPORT.md",
+        "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/consensusxml_provenance.json"
+        "tests/data/consensusxml_provenance.json",
+        "tests/data/peak2d_provenance.json",
+        "tests/data/unique_id_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -4157,6 +4222,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/peak2d_provenance.json",
         "tests/data/peak_file_options_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4189,6 +4255,7 @@
         "tests/data/default_param_handler_provenance.json",
         "tests/data/list_utils_provenance.json",
         "tests/data/metadata_hash_provenance.json",
+        "tests/data/peak2d_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -6172,6 +6239,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/data_array_xml_provenance.json",
         "tests/data/mzml_load_provenance.json",
+        "tests/data/mzml_numpress_provenance.json",
         "tests/data/mzml_param_groups_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_provenance.json"
@@ -6187,6 +6255,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/mzml_load_provenance.json",
+        "tests/data/mzml_numpress_provenance.json",
         "tests/data/mzml_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -6549,6 +6618,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/mzml_numpress_provenance.json",
         "tests/data/numpress_coder_provenance.json",
         "tests/data/numpress_provenance.json"
       ],
@@ -6570,12 +6640,13 @@
           "tests/peak_file_options.rs"
         ],
         "documentation": "docs/MSNUMPRESS_CODER_SUPPORT.md",
-        "scope": "Complete source wrapper operations and existing configuration/name mapping: raw/base64/zlib encode/decode, exact f32 promotion, estimation and maximal-factor fallback, reverse-order tolerance checks, PIC absolute-error policy and source raw/text skip destination distinctions. Native checked atomic errors and explicit diagnostics replace stderr; strict long-form Base64/single-zlib-frame validation is a documented correction. Safe remains raw-only. mzML integration is a separate incomplete API."
+        "scope": "Complete source wrapper operations and existing configuration/name mapping: raw/base64/zlib encode/decode, exact f32 promotion, estimation and maximal-factor fallback, reverse-order tolerance checks, PIC absolute-error policy and source raw/text skip destination distinctions. Native checked atomic errors and explicit diagnostics replace stderr; strict long-form Base64/single-zlib-frame validation is a documented correction. Safe remains raw-only. Reviewed mzML transport now reuses crate-private codec counters and helpers; full MzMLFile remains incomplete."
       },
       "candidate_rust_files": [
         "src/format/numpress_coder.rs"
       ],
       "reference_manifests": [
+        "tests/data/mzml_numpress_provenance.json",
         "tests/data/numpress_coder_provenance.json",
         "tests/data/numpress_provenance.json",
         "tests/data/peak_file_options_provenance.json"
@@ -6721,7 +6792,8 @@
           "src/format/mzml_precursor.rs",
           "src/format/indexed_mzml.rs",
           "src/format/mzml_load.rs",
-          "src/format/mzml_paths.rs"
+          "src/format/mzml_paths.rs",
+          "src/format/mzml_numpress.rs"
         ],
         "tests": [
           "tests/mzml.rs",
@@ -6729,10 +6801,11 @@
           "tests/indexed_mzml.rs",
           "tests/mzml_load_options.rs",
           "tests/mzml_paths.rs",
-          "tests/data_array_xml.rs"
+          "tests/data_array_xml.rs",
+          "tests/mzml_numpress.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent."
+        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition/spectrum-product transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -6942,6 +7015,7 @@
       "reference_manifests": [
         "tests/data/consensusxml_provenance.json",
         "tests/data/mzml_load_provenance.json",
+        "tests/data/mzml_numpress_provenance.json",
         "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -8112,7 +8186,8 @@
           "src/kernel/experiment_summary.rs",
           "src/kernel/area_iteration.rs",
           "src/kernel/peak_data.rs",
-          "src/kernel/peak_index.rs"
+          "src/kernel/peak_index.rs",
+          "src/kernel/experiment_2d.rs"
         ],
         "tests": [
           "tests/kernel.rs",
@@ -8120,10 +8195,11 @@
           "tests/experiment_summary.rs",
           "tests/area_iteration.rs",
           "tests/peak_data.rs",
-          "tests/peak_index.rs"
+          "tests/peak_index.rs",
+          "tests/experiment_2d.rs"
         ],
         "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata and remaining specialized operations still require implementation/review. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Unfiltered 2D templates, scan-mobility/range overloads and the full container surface remain separately tracked."
+        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
@@ -8133,6 +8209,7 @@
         "tests/data/experiment_aggregation_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/mzml_product_provenance.json",
+        "tests/data/peak2d_provenance.json",
         "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
@@ -8278,10 +8355,24 @@
       "header": "src/openms/include/OpenMS/KERNEL/MobilityPeak2D.h",
       "sha256": "c5f9f0b7555e0f9df776aad64050f78d6caf8f9da209b5b2763840d4f336e0e2",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/peak2d.rs"
+        ],
+        "tests": [
+          "tests/peak2d.rs"
+        ],
+        "documentation": "docs/PEAK2D_SUPPORT.md",
+        "scope": "Complete own two-coordinate value operation mapping, all dimension strings, standard scalar/array comparisons, exact PartialEq, signed-zero-normalized Hash and source labels with Rust numeric Display. Owned arrays replace DPosition ABI; checked dimension access replaces undefined source indexing. Mobility attachment, range algebra and experiment overloads remain separate."
+      },
+      "candidate_rust_files": [
+        "src/kernel/peak2d.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/peak2d_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8371,10 +8462,24 @@
       "header": "src/openms/include/OpenMS/KERNEL/Peak2D.h",
       "sha256": "4400b8a5bc5c1b213d612e470bba5637ad925978c8b82fde1f789a87e9b04841",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/peak2d.rs"
+        ],
+        "tests": [
+          "tests/peak2d.rs"
+        ],
+        "documentation": "docs/PEAK2D_SUPPORT.md",
+        "scope": "Complete own two-coordinate value operation mapping, all dimension strings, standard scalar/array comparisons, exact PartialEq, signed-zero-normalized Hash and source labels with Rust numeric Display. Owned arrays replace DPosition ABI; checked dimension access replaces undefined source indexing. Mobility attachment, range algebra and experiment overloads remain separate."
+      },
+      "candidate_rust_files": [
+        "src/kernel/peak2d.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/peak2d_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8437,10 +8542,26 @@
       "header": "src/openms/include/OpenMS/KERNEL/RichPeak2D.h",
       "sha256": "66cdccdcc7ccec237b5ddb4dcd164defa5d8179b218a55b7f32ab1c568f417a9",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/kernel/peak2d.rs",
+          "src/concept/unique_id.rs"
+        ],
+        "tests": [
+          "tests/peak2d.rs",
+          "tests/unique_id.rs"
+        ],
+        "documentation": "docs/PEAK2D_SUPPORT.md",
+        "scope": "Complete direct point/value/conversion surface with owned metadata and ID, Deref and HasUniqueId. Plain assignment returns previous ownership and clears metadata/ID. Full inherited C++ metadata registry/equality conventions and global-service ABI remain native boundaries requiring separate class coverage."
+      },
+      "candidate_rust_files": [
+        "src/kernel/peak2d.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/peak2d_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -14733,7 +14854,6 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/UniqueIdGenerator.h",
         "OpenMS/FORMAT/Base64.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/QcMLFile.h",
@@ -14797,7 +14917,6 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/CONCEPT/UniqueIdGenerator.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/QcMLFile.h",
         "OpenMS/SYSTEM/File.h"

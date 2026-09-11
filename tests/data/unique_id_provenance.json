@@ -1,0 +1,167 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/UniqueIdGenerator.h",
+      "sha256": "f5374afcc2b33c467242a8aebdc9875fb87ab7edd35729df2fddc38c9ca29873"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/UniqueIdGenerator.cpp",
+      "sha256": "3f6f053b31d26a1f7b85f3c1a648fb1e192bc7eca210e95523fff8952113502d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/UniqueIdInterface.h",
+      "sha256": "5fc3df97e46ca21770f0a37fa7b40579445fcdfa72778dfe56a8dc41e7bf22a4"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/UniqueIdInterface.cpp",
+      "sha256": "8b8986e908bd6c6523ad8c87874e3f3a55f5835aea2bbf947c42b9530224b365"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/UniqueIdGenerator_test.cpp",
+      "sha256": "0fe1f0a9440a660cb799a17ea131e7a87b65a7b1e526d1b0097fa2cce552a453"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/UniqueIdInterface_test.cpp",
+      "sha256": "b231ff18ed62f0582de856dd2e3b4933d0fa12da128d42b59a8d7f5f48754d5b"
+    }
+  ],
+  "native_files": [
+    "src/concept/unique_id.rs",
+    "tests/unique_id.rs",
+    "docs/UNIQUE_ID_SUPPORT.md"
+  ],
+  "native_prerequisites": [
+    "src/chemistry/decoy_generator.rs",
+    "src/chemistry/decoy_random.rs"
+  ],
+  "prerequisite_change": "Five crate-private visibility changes only; existing MT19937-64 arithmetic, normalization and shuffle semantics are unchanged. Original Boost terms remain applicable to the shared private engine.",
+  "scope": "Complete own ID generator and ID value/interface operations using caller-owned generator state and a trait over u64 fields. No process-global singleton, C++ ABI or automatic trait coverage of every SDK subclass is claimed.",
+  "source_literals": {
+    "seed": 546666321,
+    "words": [
+      4039984684862977299,
+      11561668883169444769,
+      8153960635892418594,
+      12940485248168291983,
+      11522917731873626020,
+      4387255872055054320
+    ],
+    "text_cases": "All source UniqueIdInterface_test.cpp valid/invalid string examples embedded directly in tests/unique_id.rs."
+  },
+  "independent_evidence": {
+    "uuid_reference": "Python stdlib struct.pack with both endian orders applied to the source word literals, UUID version/variant masks and uuid.UUID formatting.",
+    "byte_order_examples": [
+      "13b54687-aae8-4038-a183-00c8974c73a0",
+      "3810e8aa-8746-4513-a073-4c97c80083a1"
+    ],
+    "large_draws": 100000,
+    "uuid_samples": 1000,
+    "threaded_draws": 1000
+  },
+  "native_boundaries": [
+    "Caller-owned generator and explicit shared Mutex replace source singleton/global synchronization.",
+    "Default microsecond and PID seeding; raw source words including zero are retained.",
+    "Source native-endian UUID word layout is retained; integer streams are architecture independent.",
+    "ASCII suffix parsing retains invalid-to-zero and defined unsigned wrapping; input beyond 1 MiB fails atomically.",
+    "Clone copies generator state as an explicit native ownership facility."
+  ],
+  "cpp_runtime_execution_for_this_increment": false,
+  "validation": {
+    "checks": [
+      {
+        "name": "1.98.0_test",
+        "command": [
+          "cargo",
+          "+1.98.0",
+          "test",
+          "--locked",
+          "--offline",
+          "--all-features",
+          "--lib",
+          "--test",
+          "unique_id",
+          "--test",
+          "decoy_generator",
+          "-j2"
+        ],
+        "exit_code": 0,
+        "seconds": 25.45,
+        "log_sha256": "484350406e373c8029098f07da03dd8da8956a94b25a58d780e95fcd2c1b99da",
+        "tests_passed": 84
+      },
+      {
+        "name": "1.98.0_clippy",
+        "command": [
+          "cargo",
+          "+1.98.0",
+          "clippy",
+          "--locked",
+          "--offline",
+          "--all-features",
+          "--lib",
+          "--test",
+          "unique_id",
+          "--test",
+          "decoy_generator",
+          "-j2",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 7.66,
+        "log_sha256": "05d19b1d3992ec9a593003e49f3894ff6fd7e26fedbd262d8fe1f9b36558f467",
+        "tests_passed": 0
+      },
+      {
+        "name": "1.85.0_test",
+        "command": [
+          "cargo",
+          "+1.85.0",
+          "test",
+          "--locked",
+          "--offline",
+          "--no-default-features",
+          "--lib",
+          "--test",
+          "unique_id",
+          "--test",
+          "decoy_generator",
+          "-j2"
+        ],
+        "exit_code": 0,
+        "seconds": 34.82,
+        "log_sha256": "dc830f9c2c30d6b21d41dff64278a451a8399c658cb8bfb5827fd362a70bdf1a",
+        "tests_passed": 81
+      },
+      {
+        "name": "1.85.0_clippy",
+        "command": [
+          "cargo",
+          "+1.85.0",
+          "clippy",
+          "--locked",
+          "--offline",
+          "--no-default-features",
+          "--lib",
+          "--test",
+          "unique_id",
+          "--test",
+          "decoy_generator",
+          "-j2",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 10.11,
+        "log_sha256": "bf8cb43212535ba7bd3ebc190f2d7f5b6e734fd93ab513bf0e6366e098fa433a",
+        "tests_passed": 0
+      }
+    ],
+    "independent_source_review": "Kernel agent read both pinned source classes and the new interface/generator; no actionable finding.",
+    "test_counts": "Six new tests; overlapping existing decoy/private/unit suite gives84 current and81 minimum tests."
+  }
+}

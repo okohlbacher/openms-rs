@@ -17,6 +17,10 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 
 mod area_iteration;
+mod experiment_2d;
+mod peak2d;
+pub use experiment_2d::Data2DLimits;
+pub use peak2d::{MobilityPeak2D, Peak2D, RichPeak2D};
 mod peak_data;
 mod peak_index;
 pub use area_iteration::{

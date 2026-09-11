@@ -35,7 +35,9 @@ compression. The writer's existing representation checks remain in force.
 This completes the file/owned-replacement entry points for the represented mzML
 subset. It does not add source DocumentIdentifier loaded-path/file-type state,
 full experimental metadata, XML schema/CV validation, `loadSize`, consumers,
-transform passes, centroid inference, indexed output, or Numpress codecs.
+transform passes, centroid inference or indexed output. [Numpress reading](MZML_NUMPRESS_SUPPORT.md)
+also works through these path entry points; configured Numpress writing currently
+uses its separate stream operation.
 `Read`/`Write` stream APIs already cover the native equivalent of buffer I/O.
 See [scientific loading](MZML_LOAD_OPTIONS_SUPPORT.md) and
 [mzML representation support](MZML_SUPPORT.md) for the remaining limits.

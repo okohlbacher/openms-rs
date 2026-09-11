@@ -17,7 +17,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 #[path = "decoy_random.rs"]
 mod decoy_random;
-use decoy_random::DecoyRandom;
+pub(crate) use decoy_random::DecoyRandom;
 
 pub const MAX_DECOY_INPUT_RESIDUES: usize = 1_000_000;
 pub const MAX_DECOY_OUTPUT_RESIDUES: usize = 1_000_000;

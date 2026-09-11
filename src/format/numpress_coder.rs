@@ -131,39 +131,9 @@ impl MSNumpressCoder {
         decode_raw(input, config.compression, &mut Work::new(self.limits))
     }
     pub fn decode(&self, input: &str, zlib: bool, config: &NumpressConfig) -> Result<Vec<f64>> {
-        let mut work = Work::new(self.limits);
-        work.text(input.len())?;
-        // Source Base64::decodeSingleString returns without decoding short text,
-        // even for zlib=true or nonalphabet bytes. The local raw result is empty.
-        if input.len() < 4 {
-            return Ok(Vec::new());
-        }
-        if input.len() % 4 != 0 {
-            return Err(invalid("invalid base64 length"));
-        }
-        let padding = if input.ends_with("==") {
-            2
-        } else {
-            usize::from(input.ends_with('='))
-        };
-        let count = mul(input.len() / 4, 3)?
-            .checked_sub(padding)
-            .ok_or_else(|| invalid("invalid base64 padding"))?;
-        work.binary(count)?;
-        work.spend(input.len())?;
-        let mut binary = work.vector(count)?;
-        binary.resize(count, 0);
-        let length = STANDARD
-            .decode_slice(input.as_bytes(), &mut binary)
-            .map_err(|_| invalid("invalid base64 alphabet, length or padding"))?;
-        binary.truncate(length);
-        let raw = if zlib {
-            zlib_decode(&binary, &mut work)?
-        } else {
-            binary
-        };
-        decode_raw(&raw, config.compression, &mut work)
+        decode_text(input, zlib, config, &mut Work::new(self.limits))
     }
+
     /// Native atomic output replacement; source decode clears output first.
     pub fn decode_into(
         &self,
@@ -175,6 +145,45 @@ impl MSNumpressCoder {
         *output = self.decode(input, zlib, config)?;
         Ok(())
     }
+}
+
+pub(crate) fn decode_text(
+    input: &str,
+    zlib: bool,
+    config: &NumpressConfig,
+    work: &mut Work,
+) -> Result<Vec<f64>> {
+    work.text(input.len())?;
+    // Source Base64::decodeSingleString returns without decoding short text,
+    // even for zlib=true or nonalphabet bytes. The local raw result is empty.
+    if input.len() < 4 {
+        return Ok(Vec::new());
+    }
+    if input.len() % 4 != 0 {
+        return Err(invalid("invalid base64 length"));
+    }
+    let padding = if input.ends_with("==") {
+        2
+    } else {
+        usize::from(input.ends_with('='))
+    };
+    let count = mul(input.len() / 4, 3)?
+        .checked_sub(padding)
+        .ok_or_else(|| invalid("invalid base64 padding"))?;
+    work.binary(count)?;
+    work.spend(input.len())?;
+    let mut binary = work.vector(count)?;
+    binary.resize(count, 0);
+    let length = STANDARD
+        .decode_slice(input.as_bytes(), &mut binary)
+        .map_err(|_| invalid("invalid base64 alphabet, length or padding"))?;
+    binary.truncate(length);
+    let raw = if zlib {
+        zlib_decode(&binary, work)?
+    } else {
+        binary
+    };
+    decode_raw(&raw, config.compression, work)
 }
 
 fn report(status: NumpressEncodeStatus) -> NumpressEncodeReport<Vec<u8>> {
@@ -313,7 +322,7 @@ fn accuracy_failure(
     }
     None
 }
-fn encode_text(
+pub(crate) fn encode_text(
     input: &[f64],
     zlib: bool,
     config: &NumpressConfig,
@@ -321,21 +330,7 @@ fn encode_text(
 ) -> Result<NumpressEncodeReport<String>> {
     let raw = encode_raw(input, config, work)?;
     let output = if raw.is_encoded() {
-        let binary = if zlib {
-            zlib_encode(&raw.output, work)?
-        } else {
-            raw.output
-        };
-        let length = mul(binary.len().div_ceil(3), 4)?;
-        work.text(length)?;
-        work.spend(add(binary.len(), length)?)?;
-        let mut output = work.vector(length)?;
-        output.resize(length, 0);
-        let written = STANDARD
-            .encode_slice(&binary, &mut output)
-            .map_err(|_| invalid("base64 output bound"))?;
-        output.truncate(written);
-        String::from_utf8(output).map_err(|_| invalid("base64 emitted invalid UTF-8"))?
+        encode_binary(raw.output, zlib, work)?
     } else {
         String::new()
     };
@@ -346,6 +341,25 @@ fn encode_text(
         used_maximal_fixed_point_fallback: raw.used_maximal_fixed_point_fallback,
     })
 }
+pub(crate) fn encode_binary(input: Vec<u8>, zlib: bool, work: &mut Work) -> Result<String> {
+    work.binary(input.len())?;
+    let binary = if zlib {
+        zlib_encode(&input, work)?
+    } else {
+        input
+    };
+    let length = mul(binary.len().div_ceil(3), 4)?;
+    work.text(length)?;
+    work.spend(add(binary.len(), length)?)?;
+    let mut output = work.vector(length)?;
+    output.resize(length, 0);
+    let written = STANDARD
+        .encode_slice(&binary, &mut output)
+        .map_err(|_| invalid("base64 output bound"))?;
+    output.truncate(written);
+    String::from_utf8(output).map_err(|_| invalid("base64 emitted invalid UTF-8"))
+}
+
 fn raw_decode(data: &[u8], mode: NumpressCompression, limits: &NumpressLimits) -> Result<Vec<f64>> {
     match mode {
         NumpressCompression::None => Ok(Vec::new()),
@@ -435,46 +449,46 @@ fn zlib_decode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
     }
 }
 
-struct Work {
-    limits: NumpressCoderLimits,
+pub(crate) struct Work {
+    pub(crate) limits: NumpressCoderLimits,
     work: usize,
     bytes: usize,
 }
 impl Work {
-    fn new(limits: NumpressCoderLimits) -> Self {
+    pub(crate) fn new(limits: NumpressCoderLimits) -> Self {
         Self {
             work: limits.raw.max_work,
             bytes: limits.max_total_bytes,
             limits,
         }
     }
-    fn spend(&mut self, n: usize) -> Result<()> {
+    pub(crate) fn spend(&mut self, n: usize) -> Result<()> {
         self.work = self
             .work
             .checked_sub(n)
             .ok_or_else(|| invalid("cumulative work limit exceeded"))?;
         Ok(())
     }
-    fn allocate(&mut self, n: usize) -> Result<()> {
+    pub(crate) fn allocate(&mut self, n: usize) -> Result<()> {
         self.bytes = self
             .bytes
             .checked_sub(n)
             .ok_or_else(|| invalid("cumulative allocation limit exceeded"))?;
         Ok(())
     }
-    fn value_count(&self, n: usize) -> Result<()> {
+    pub(crate) fn value_count(&self, n: usize) -> Result<()> {
         if n > self.limits.raw.max_values {
             return Err(invalid("value count limit exceeded"));
         }
         Ok(())
     }
-    fn binary(&self, n: usize) -> Result<()> {
+    pub(crate) fn binary(&self, n: usize) -> Result<()> {
         if n > self.limits.raw.max_encoded_bytes {
             return Err(invalid("binary byte limit exceeded"));
         }
         Ok(())
     }
-    fn text(&self, n: usize) -> Result<()> {
+    pub(crate) fn text(&self, n: usize) -> Result<()> {
         if n > self.limits.max_text_bytes {
             return Err(invalid("base64 text limit exceeded"));
         }
@@ -489,7 +503,7 @@ impl Work {
             ..self.limits.raw
         })
     }
-    fn vector<T>(&mut self, n: usize) -> Result<Vec<T>> {
+    pub(crate) fn vector<T>(&mut self, n: usize) -> Result<Vec<T>> {
         self.allocate(mul(n, std::mem::size_of::<T>())?)?;
         let mut value = Vec::new();
         value

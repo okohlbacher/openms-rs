@@ -6,7 +6,8 @@ The non-mobility `MSExperiment::get2DPeakData` and
 [`peak_data.rs`](../src/kernel/peak_data.rs), reexported through `openms::kernel`.
 This group does not include the mobility overloads or the separate unfiltered
 `get2DData`/`set2DData` template group (including metadata arrays and mass-trace
-expansion). It does not complete the MSExperiment header.
+expansion). [Concrete plain/rich 2D conversion](EXPERIMENT_2D_SUPPORT.md) is
+implemented separately. Neither group completes the MSExperiment header.
 
 ## API
 

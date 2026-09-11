@@ -1,7 +1,7 @@
 # Licenses for OpenMS for Rust
 
 The OpenMS-derived implementation is BSD-3-Clause, as reproduced below.
-The private decoy random helper additionally retains the Boost Software License
+The private random helper shared by decoy generation and unique IDs additionally retains the Boost Software License
 1.0 and its original author notices; its component terms are reproduced below.
 The embedded OpenMS Rust Modification Table includes transformed UniMod
 data under the Design Science License. The original source XML, transformation
@@ -251,11 +251,12 @@ POSSIBILITY OF SUCH DAMAGE.
 END OF TERMS AND CONDITIONS
 
 
-## Private decoy random helper: Boost Software License 1.0
+## Private decoy and unique-ID random helper: Boost Software License 1.0
 
 The native MT19937-64 and bounded-integer mapping in
 `src/chemistry/decoy_random.rs` are derived from the inspected Boost 1.90
 `random/mersenne_twister.hpp` and `random/uniform_int_distribution.hpp`.
+Unique ID generation reuses its raw engine without changing the recurrence.
 The derived helper retains their component license and author notices:
 
 Copyright Jens Maurer 2000-2001

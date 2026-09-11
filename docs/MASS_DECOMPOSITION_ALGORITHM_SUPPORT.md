@@ -186,5 +186,7 @@ mass from 0 through 120, including equal weights and nontrivial GCDs.
 The standalone public APIs of `IMSAlphabet`, `IMSElement`, `Weights`,
 `IntegerMassDecomposer`, and `RealMassDecomposer` are not claimed as ported by this
 module. In particular, the separate IMS constraint/count/single-witness overloads
-are outside `MassDecompositionAlgorithm`'s public scientific operation. No C++
-execution or differential-runtime validation was performed.
+are outside `MassDecompositionAlgorithm`'s public scientific operation. They are
+now implemented in the separate [public IMS solver module](IMS_DECOMPOSER_SUPPORT.md).
+No C++ execution or differential-runtime validation was performed for this
+peptide solver.

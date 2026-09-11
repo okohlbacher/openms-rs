@@ -1,5 +1,37 @@
 # Validation of the ongoing Rust port
 
+## Unique IDs, 2D conversion, IMS solvers and mzML Numpress (2026-09-11)
+
+The four operation groups are integrated. [Recorded checks](transport-values-validation.json)
+include exact commands, outcomes, log hashes and separate staged validation scope.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,595 tests passed |
+| Doctests | Three passed |
+| Native/decoy tests, Rust 1.85/no defaults | 108 passed |
+| mzML Numpress and adjacent staged tests, both Rust versions | 69 passed per configuration |
+| Strict Clippy, all targets | Passed on Rust 1.98/all features and Rust 1.85/no defaults |
+| Scoped mzML-only strict Clippy, Rust 1.85 | Passed |
+| Release library, Rustdoc, Rustfmt | Passed; documentation warnings denied |
+| Source audit and ledger/regression checks | Passed; 1,859 distinct current files verified |
+
+This group adds 48 tests. Selected totals overlap the full suite. Independent
+schema tests validate both Numpress writer variants, and 36 unchanged upstream
+binary payloads decode to 342 independently checked points. No new C++ execution
+or full SDK build is claimed; the earlier raw-codec probes remain separate evidence.
+
+Reviews covered ID word consumption and native-endian UUID layout, 2D grouping
+and direct integer metadata conversion, source decomposition table/order quirks,
+and mzML codec/type/fallback behavior. A source zero-witness loop now returns an
+error; binary validation work is bounded before mzML scalar traversal. Ordinary
+fallback retains its existing numeric precision and optional zlib setting.
+
+The ledger records 40 complete/native-equivalent headers and 746 requiring
+implementation or review. Full SDK parity and TOPP readiness remain open;
+no TOPP workflow is certified.
+
+
 ## IMS foundations, peak traversal and Numpress (2026-09-11)
 
 The isotope/element/alphabet, area/peak-export/index, raw Numpress and configurable

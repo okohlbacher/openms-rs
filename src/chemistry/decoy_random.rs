@@ -20,13 +20,13 @@ const UPPER: u64 = !LOWER;
 const MATRIX: u64 = 0xb502_6f5a_a966_19e9;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) struct DecoyRandom {
+pub(crate) struct DecoyRandom {
     state: [u64; WORDS],
     index: usize,
 }
 
 impl DecoyRandom {
-    pub(super) fn seeded(seed: u64) -> Self {
+    pub(crate) fn seeded(seed: u64) -> Self {
         let mut random = Self {
             state: [0; WORDS],
             index: WORDS,
@@ -35,7 +35,7 @@ impl DecoyRandom {
         random
     }
 
-    pub(super) fn reseed(&mut self, seed: u64) {
+    pub(crate) fn reseed(&mut self, seed: u64) {
         self.state[0] = seed;
         for i in 1..WORDS {
             let previous = self.state[i - 1];
@@ -80,7 +80,7 @@ impl DecoyRandom {
         }
     }
 
-    fn next_u64(&mut self) -> u64 {
+    pub(crate) fn next_u64(&mut self) -> u64 {
         if self.index == WORDS {
             self.twist();
         }

@@ -2,6 +2,11 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add all six mzML Numpress read transports and configurable writing with bounded preparation, source precision repairs and ordinary fallback.
+- Add owned unique ID/UUID generation and a reusable ID value interface using the existing source-compatible random engine.
+- Add plain/mobility/rich 2D peaks and checked unfiltered experiment import/export with source metadata conversion and RT grouping.
+- Add public IMS integer/real decomposer APIs with source table/order/endpoint semantics, constrained queries and checked nontermination/resource boundaries.
+
 - Add native IMS isotope distributions, elements, alphabets and replaceable text parsers with explicit source arithmetic and bounded operations.
 - Add checked peak indices, borrowed scalar area traversal and filtered bulk exports preserving source append and RT grouping behavior.
 - Add the independent Numpress wrapper feature for base64/zlib transport, source estimation/accuracy checks and explicit rejection/fallback reports.

@@ -33,6 +33,8 @@ pub mod ims_isotope_distribution;
 pub use ims_alphabet::{IMSAlphabet, IMSAlphabetParser, IMSAlphabetTextParser};
 pub use ims_element::IMSElement;
 pub use ims_isotope_distribution::{IMSIsotopeDistribution, IMSIsotopeOptions, IMSIsotopePeak};
+pub mod ims_mass_decomposer;
+pub use ims_mass_decomposer::{IMSIntegerMassDecomposer, IMSMassDecomposer, IMSRealMassDecomposer};
 pub mod ims_weights;
 pub mod ion_naming;
 pub use ims_weights::IMSWeights;

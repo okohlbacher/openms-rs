@@ -119,8 +119,9 @@ All getters return copies. The mass/time setter retains PIC/SLOF configurations
 and returns `Some(NUMPRESS_MASS_TIME_WARNING)` containing the exact source warning
 text; other modes return none. This replaces unconditional source stderr output
 with explicit caller-controlled routing. Intensity and float-array setters return
-no warning. None of the MSNumpressCoder encode/decode operations is implemented
-or implied by this configuration support.
+no warning. The [MSNumpressCoder operations](MSNUMPRESS_CODER_SUPPORT.md) and
+[mzML Numpress transport](MZML_NUMPRESS_SUPPORT.md) consume these configuration
+values through their explicit encoder APIs.
 
 ## Reference coverage and remaining integration
 
@@ -144,8 +145,9 @@ alongside independent resource limits, including aligned selection/sorting,
 selected-ion filtering and skip-chromatogram behavior. Metadata-only, fill-data,
 consumer append/counting, isolation-target precursor selection and other format
 adapters remain separate work. Encoding options require actual selected
-precision, zlib, index and compatibility implementations; unavailable Numpress
-and format choices must error before output. `skip_xml_checks` must never disable
+precision, zlib, index and compatibility implementations. Numpress has a separate
+configured writer; this value type is not a general writer configuration adapter.
+Unavailable format choices must error before output. `skip_xml_checks` must never disable
 native resource limits. Repeated MS-level membership work is charged across all
 records in the implemented reader, and its batch-size option does not allocate
 an unbounded pool.

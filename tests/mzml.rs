@@ -289,7 +289,6 @@ fn rejects_nonfinite_and_overflowing_peak_values() {
 fn rejects_unsupported_encodings_and_array_types() {
     let xml = encoded_xml(&sample(), false);
     for changed in [
-        xml.replacen("MS:1000576", "MS:1002312", 1),
         xml.replacen("MS:1000523", "MS:1000522", 1),
         xml.replacen("MS:1000514", "MS:1000516", 1),
         xml.replace("encoding=\"UTF-8\"", "encoding=\"UTF-16\""),
@@ -297,6 +296,8 @@ fn rejects_unsupported_encodings_and_array_types() {
     ] {
         assert!(matches!(parse(&changed), Err(Error::Unsupported(_))));
     }
+    // Numpress is now supported, but relabeling ordinary bytes is malformed.
+    assert!(parse(&xml.replacen("MS:1000576", "MS:1002312", 1)).is_err());
     let dtd = xml.replace("<mzML ", "<!DOCTYPE mzML [<!ENTITY x 'test'>]><mzML ");
     assert!(matches!(parse(&dtd), Err(Error::Unsupported(_))));
 }

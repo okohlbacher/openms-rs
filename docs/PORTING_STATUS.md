@@ -19,8 +19,8 @@ loss at transports that cannot encode them.
 utility, including source GCD and floating-rounding behavior. The
 [mzML filesystem API](MZML_PATH_SUPPORT.md) applies scientific load settings,
 magic-based compression detection and atomic replacement/publication.
-Standalone IMS isotope/alphabet/decomposer APIs and full mzML metadata, codecs,
-consumers and loaded-file bookkeeping remain separately tracked.
+Standalone IMS isotope, alphabet and decomposition APIs are also implemented;
+full mzML metadata, consumers and loaded-file bookkeeping remain separately tracked.
 
 ## Capability mapping
 
@@ -193,13 +193,14 @@ peak counts, level/zero-intensity queries and spectrum-only array clearing.
 
 The [native mass decomposition algorithm](MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md)
 supports all five source settings, atomic configuration/append and bounded
-source-ordered composition enumeration. Public IMS utility APIs remain separate.
+source-ordered composition enumeration. [Public IMS integer/real solvers](IMS_DECOMPOSER_SUPPORT.md) now provide
+existence, single/all compositions, counts and constrained real-mass queries.
 
 ## Scientific mzML loading
 
 [Explicit scientific loading](MZML_LOAD_OPTIONS_SUPPORT.md) now consumes the
 supported PeakFileOptions filters/sorting and preserves aligned arrays with
-26 canonical binary roles. Full metadata/consumer/codec paths remain open.
+26 canonical binary roles. Full metadata/consumer paths remain open; [Numpress transport](MZML_NUMPRESS_SUPPORT.md) is implemented.
 
 
 ## IMS foundations, peak traversal and raw compression (2026-09-11)
@@ -212,10 +213,21 @@ container ownership, checked failures and portable parsing are documented.
 [Area traversal](AREA_ITERATION_SUPPORT.md), [peak indices](PEAK_INDEX_SUPPORT.md)
 and [filtered bulk peak exports](PEAK_DATA_SUPPORT.md) provide borrowed selection
 and native numeric output. Source MS-level narrowing and f64/f32 RT grouping are
-retained. Scan-mobility overloads and unfiltered import/export remain separate.
+retained. [Unfiltered plain/rich 2D import/export](EXPERIMENT_2D_SUPPORT.md) is now available.
+Scan-mobility overloads and Feature mass-trace specialization remain separate.
 
 [Raw Numpress](MSNUMPRESS_SUPPORT.md) implements linear, PIC, SLOF and Safe codecs
 and fixed-point helpers. Its 295 executed C++ reference cases are narrow codec
 evidence, not a full SDK comparison. The [base64/zlib wrapper](MSNUMPRESS_CODER_SUPPORT.md) also provides source
-estimation, verification and fallback diagnostics. mzML wiring remains following
-work; normal builds require no C++ compiler.
+estimation, verification and fallback diagnostics. [mzML Numpress transport](MZML_NUMPRESS_SUPPORT.md)
+accepts all six source CV modes and provides preflighted writing with ordinary
+fallback. Full metadata and PeakFileOptions writer execution remain open; normal
+builds require no C++ compiler.
+
+## Unique IDs and two-dimensional values
+
+[Unique IDs and UUID generation](UNIQUE_ID_SUPPORT.md) use an owned source-compatible
+MT19937-64 stream and a reusable native value trait. [Plain, mobility and rich 2D
+peaks](PEAK2D_SUPPORT.md) preserve source numeric values and dimension labels; rich
+values own metadata and implement the shared ID trait. Full inherited metadata
+and generic range/container behavior remain separately tracked.

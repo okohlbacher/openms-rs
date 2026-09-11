@@ -1,0 +1,167 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Peak2D.h",
+      "sha256": "4400b8a5bc5c1b213d612e470bba5637ad925978c8b82fde1f789a87e9b04841"
+    },
+    {
+      "path": "src/openms/source/KERNEL/Peak2D.cpp",
+      "sha256": "3b8100df6421f080405c57fff9bd7cf91bd7b6fbf0519c98a5de73dbe419111d"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Peak2D_test.cpp",
+      "sha256": "edffff335e736d502f25aaeb1dc7703cb3a9ce8d1a5002a6811d7242f665c956"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MobilityPeak2D.h",
+      "sha256": "c5f9f0b7555e0f9df776aad64050f78d6caf8f9da209b5b2763840d4f336e0e2"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MobilityPeak2D.cpp",
+      "sha256": "6e9f854b79ea511f83155e09be1ff79f0466e233cfb4cff6e44a744be3e69a63"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MobilityPeak2D_test.cpp",
+      "sha256": "080368fe6dde3101843a5d7b8789629d7ad33f416582fc618ac52b6192ec93df"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RichPeak2D.h",
+      "sha256": "66cdccdcc7ccec237b5ddb4dcd164defa5d8179b218a55b7f32ab1c568f417a9"
+    },
+    {
+      "path": "src/openms/source/KERNEL/RichPeak2D.cpp",
+      "sha256": "fbaa5dd023cf079201ebc4d9f4765a600df79eccdbb3360eef474be7731d62af"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/RichPeak2D_test.cpp",
+      "sha256": "4a88424fa3fb0661707e451deb8186df77a5bb8a6100bcb5921ff629d0ad38f2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "sha256": "842bf219137c3f9078765dea7b39eb0a821771872888d58645551358149df888"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
+      "sha256": "3e459554651865c58b174d0d80f89ca877aee6fb62bfc570c66fa48cf5434e40"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+      "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/UniqueIdInterface.h",
+      "sha256": "5fc3df97e46ca21770f0a37fa7b40579445fcdfa72778dfe56a8dc41e7bf22a4"
+    },
+    {
+      "path": "src/openms/source/CONCEPT/UniqueIdInterface.cpp",
+      "sha256": "8b8986e908bd6c6523ad8c87874e3f3a55f5835aea2bbf947c42b9530224b365"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/peak2d.rs",
+    "src/kernel/experiment_2d.rs"
+  ],
+  "native_tests": [
+    "tests/peak2d.rs",
+    "tests/experiment_2d.rs"
+  ],
+  "support": [
+    "docs/PEAK2D_SUPPORT.md",
+    "docs/EXPERIMENT_2D_SUPPORT.md"
+  ],
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Peak2D.h",
+      "line": 38,
+      "operation": "Complete direct value, scalar/position access, dimension metadata, comparisons and Hash surface"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MobilityPeak2D.h",
+      "line": 38,
+      "operation": "Separate ion-mobility/MZ value and literal unknown unit"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RichPeak2D.h",
+      "line": 37,
+      "operation": "Owned rich value, plain conversion, metadata/ID equality and plain assignment"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "line": 171,
+      "operation": "get2DData: append MS1 peaks in storage order without filtering or coordinate narrowing"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "line": 222,
+      "operation": "Rich metadata import with per-name arrays and missing-value quiet NaNs"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "line": 266,
+      "operation": "Plain import nondecreasing-RT requirement, exact adjacent grouping"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "line": 1336,
+      "operation": "ContainerAdd plain branch; mass-trace specialization explicitly excluded"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 1275,
+      "operation": "clear(true) resets spectra, chromatograms and experimental settings"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 1335,
+      "operation": "createSpec_ creates MS1 spectra and optional named float arrays"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+      "line": 480,
+      "operation": "Float conversion casts integer directly, rejects Empty; nonnumeric inactive-union read is not a defined conversion"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 206,
+      "operation": "Source MS1 export sequence and plain/rich import literals"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Peak2D_test.cpp",
+      "line": 102,
+      "operation": "Position21.21/22.22 and intensity123.456 plus subsequent dimension/comparison tests"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MobilityPeak2D_test.cpp",
+      "line": 102,
+      "operation": "Corresponding mobility constructor/dimension/comparison literal cases"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/RichPeak2D_test.cpp",
+      "line": 37,
+      "operation": "Copy/conversion/assignment and cluster_id4711/owned-string metadata cases"
+    }
+  ],
+  "prerequisites": [
+    "Native MetaInfo/MetaValue Hash and exact equality",
+    "Native HasUniqueId/UniqueIdGenerator group (separate implementation/provenance)"
+  ],
+  "evidence": "Source constructor, dimension/comparator, rich metadata and MS1 import/export literals; independent 100-grid plain roundtrip and storage-order export enumeration; direct integer-to-f32 double-rounding oracle; signed-zero hashing/grouping; missing NaN sentinels; clear(true) state replacement and old buffer ownership; atomic late errors/resource limits. No C++ compilation or execution.",
+  "boundaries": [
+    "Native array-backed mutable positions and std scalar/array comparators, checked invalid dimension indices",
+    "Native exact float/metadata equality, signed-zero normalized std Hash and Rust numeric Display; no ABI/digest emulation",
+    "Concrete plain/rich import only; Feature mass-trace and arbitrary template instantiations remain gaps",
+    "Returned old experiment/rich ownership avoids unbounded unrelated graph clone/destruction during checked replacement",
+    "Finite consumed-coordinate/present numeric conversion checks preserve source missing-metadata NaNs",
+    "Rich unique-ID behavior uses the separate caller-owned native generator; global singleton and inherited metadata registry services not emulated"
+  ]
+}

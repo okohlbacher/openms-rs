@@ -16,6 +16,11 @@ use crate::kernel::{
 use crate::metadata::{MetaValue, MetaValueData, Product, Unit};
 use crate::{Error, Result};
 pub use load::LoadOptions;
+#[path = "mzml_numpress.rs"]
+mod numpress_transport;
+use super::numpress_coder::{self as coder, NumpressCompression, NumpressConfig};
+pub use numpress_transport::{NumpressWriteOptions, NumpressWriteReport, write_with_numpress};
+
 #[path = "mzml_paths.rs"]
 mod paths;
 pub use paths::{
@@ -193,6 +198,7 @@ struct Binary {
     kind: Option<Kind>,
     encoding: Option<Encoding>,
     compressed: Option<bool>,
+    numpress: Option<NumpressCompression>,
     encoded: String,
     encoded_length: usize,
     array_length: Option<usize>,
@@ -346,8 +352,19 @@ impl Binary {
                     return Err(invalid("multiple binary precisions"));
                 }
             } else if matches!(accession, "MS:1000574" | "MS:1000576") {
-                if self.compressed.replace(accession == "MS:1000574").is_some() {
-                    return Err(invalid("multiple binary compression terms"));
+                if self.compressed.replace(accession == "MS:1000574").is_some()
+                    || (accession == "MS:1000576" && self.numpress.is_some())
+                {
+                    return Err(invalid("conflicting or duplicate binary compression terms"));
+                }
+            } else if let Some((mode, zlib)) = numpress_transport::compression(accession) {
+                if self.numpress.replace(mode).is_some()
+                    || self.compressed == Some(false)
+                    || (zlib && self.compressed.replace(true).is_some())
+                {
+                    return Err(invalid(
+                        "conflicting or duplicate Numpress compression terms",
+                    ));
                 }
             } else {
                 return Err(Error::Unsupported(format!("binary array CV {accession}")));
@@ -361,6 +378,7 @@ impl Binary {
         options: &ReadOptions,
         remaining_bytes: &mut usize,
         remaining_elements: &mut usize,
+        numpress_work: &mut coder::Work,
     ) -> Result<(Kind, Values)> {
         if !self.has_binary {
             return Err(invalid("missing binary element"));
@@ -368,11 +386,22 @@ impl Binary {
         let kind = self
             .kind
             .ok_or_else(|| invalid("missing binary array type"))?;
-        let encoding = self
-            .encoding
-            .ok_or_else(|| invalid("missing binary precision"))?;
+        let encoding = match (self.numpress, self.encoding) {
+            (Some(_), None | Some(Encoding::Float32 | Encoding::Float64))
+            | (Some(NumpressCompression::Pic), Some(Encoding::Int32 | Encoding::Int64)) => {
+                Encoding::Float64
+            }
+            (Some(_), _) => {
+                return Err(invalid(
+                    "Numpress requires floating data (or PIC integer repair)",
+                ));
+            }
+            (None, Some(encoding)) => encoding,
+            (None, None) => return Err(invalid("missing binary precision")),
+        };
         let compressed = self
             .compressed
+            .or(self.numpress.map(|_| false))
             .ok_or_else(|| invalid("missing binary compression term"))?;
         if let Kind::Auxiliary(name) = &kind {
             check_canonical_encoding(name, encoding)?;
@@ -410,6 +439,38 @@ impl Binary {
             return Err(invalid(
                 "encodedLength does not match base64 character count",
             ));
+        }
+        if let Some(mode) = self.numpress {
+            // Unlike the standalone wrapper's source short-text no-op, mzML
+            // requires a valid base64 payload and its exact declared point count.
+            if (compressed && self.encoded.is_empty())
+                || (!self.encoded.is_empty() && self.encoded.len() < 4)
+            {
+                return Err(invalid("truncated Numpress base64"));
+            }
+            numpress_work.limits.raw.max_values = count;
+            let config = NumpressConfig {
+                compression: mode,
+                ..NumpressConfig::default()
+            };
+            let mut values = coder::decode_text(&self.encoded, compressed, &config, numpress_work)?;
+            if values.len() != count {
+                return Err(invalid("Numpress point count differs from declared length"));
+            }
+            let expected = expected.expect("Numpress effective type is f64");
+            *remaining_bytes = remaining_bytes
+                .checked_sub(expected)
+                .ok_or_else(|| invalid("total binary byte limit exceeded"))?;
+            numpress_work.spend(count)?;
+            for value in &mut values {
+                if kind == Kind::Time {
+                    *value *= self.time_scale;
+                }
+                if !value.is_finite() {
+                    return Err(invalid("nonfinite Numpress value"));
+                }
+            }
+            return Ok((kind, Values::Floats(values)));
         }
         let bytes = STANDARD
             .decode(self.encoded.as_bytes())
@@ -1021,6 +1082,10 @@ fn read_impl(
     let mut array_count = None;
     let mut arrays_seen = 0usize;
     let mut total_arrays = 0usize;
+    let mut numpress_limits = coder::NumpressCoderLimits::default();
+    numpress_limits.raw.max_encoded_bytes = options.max_array_bytes;
+    numpress_limits.max_text_bytes = usize::try_from(options.max_xml_bytes).unwrap_or(usize::MAX);
+    let mut numpress_work = coder::Work::new(numpress_limits);
     let mut remaining_array_bytes = options.max_total_array_bytes;
     let mut remaining_array_elements = options.max_total_array_elements;
     let mut ids = BTreeSet::new();
@@ -1532,6 +1597,7 @@ fn read_impl(
                                 options,
                                 &mut remaining_array_bytes,
                                 &mut remaining_array_elements,
+                                &mut numpress_work,
                             )?;
                         if let Kind::Auxiliary(name) = kind {
                             if !r.array_names.insert(name.clone()) {
@@ -1939,20 +2005,28 @@ fn write_precursor(w: &mut impl Write, precursor: &Precursor) -> Result<()> {
 }
 fn write_array(
     w: &mut impl Write,
-    bytes: Vec<u8>,
+    bytes: impl FnOnce() -> Vec<u8>,
     kind: Kind,
     encoding: Encoding,
     array_length: Option<usize>,
     options: &WriteOptions,
+    prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
 ) -> Result<()> {
-    let bytes = if options.zlib_compression {
-        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
-        encoder.write_all(&bytes)?;
-        encoder.finish()?
+    let (encoded, encoding, mode) = if let Some(arrays) = prepared {
+        let array = arrays.next().expect("preflight array order matches writer");
+        (array.encoded, array.encoding, array.mode)
     } else {
-        bytes
+        let bytes = bytes();
+        let bytes = if options.zlib_compression {
+            let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
+            encoder.write_all(&bytes)?;
+            encoder.finish()?
+        } else {
+            bytes
+        };
+        let encoded = STANDARD.encode(bytes);
+        (encoded, encoding, NumpressCompression::None)
     };
-    let encoded = STANDARD.encode(bytes);
     write!(w, "<binaryDataArray encodedLength=\"{}\"", encoded.len())?;
     if let Some(length) = array_length {
         write!(w, " arrayLength=\"{length}\"")?;
@@ -1966,7 +2040,11 @@ fn write_array(
         Encoding::Ascii => ("MS:1001479", "null-terminated ASCII string"),
     };
     cv(w, accession, name, "", "")?;
-    if options.zlib_compression {
+    if let Some((accession, name)) =
+        numpress_transport::compression_term(mode, options.zlib_compression)
+    {
+        cv(w, accession, name, "", "")?;
+    } else if options.zlib_compression {
         cv(w, "MS:1000574", "zlib compression", "", "")?;
     } else {
         cv(w, "MS:1000576", "no compression", "", "")?;
@@ -1999,28 +2077,32 @@ fn write_auxiliary_arrays(
     integers: &[DataArray<i32>],
     strings: &[DataArray<String>],
     options: &WriteOptions,
+    prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
 ) -> Result<()> {
     for array in floats {
         write_array(
             w,
-            array.data.iter().flat_map(|v| v.to_le_bytes()).collect(),
+            || array.data.iter().flat_map(|v| v.to_le_bytes()).collect(),
             Kind::Auxiliary(array.name.clone()),
             Encoding::Float32,
             Some(array.data.len()),
             options,
+            prepared,
         )?;
     }
     for array in integers {
         // Source ordinary annotations use i64; canonical charge requires i32.
         let encoding = integer_array_encoding(&array.name);
-        let bytes = if matches!(encoding, Encoding::Int32) {
-            array.data.iter().flat_map(|v| v.to_le_bytes()).collect()
-        } else {
-            array
-                .data
-                .iter()
-                .flat_map(|&v| i64::from(v).to_le_bytes())
-                .collect()
+        let bytes = || {
+            if matches!(encoding, Encoding::Int32) {
+                array.data.iter().flat_map(|v| v.to_le_bytes()).collect()
+            } else {
+                array
+                    .data
+                    .iter()
+                    .flat_map(|&v| i64::from(v).to_le_bytes())
+                    .collect()
+            }
         };
         write_array(
             w,
@@ -2029,20 +2111,24 @@ fn write_auxiliary_arrays(
             encoding,
             Some(array.data.len()),
             options,
+            prepared,
         )?;
     }
     for array in strings {
         write_array(
             w,
-            array
-                .data
-                .iter()
-                .flat_map(|v| v.bytes().chain(std::iter::once(0)))
-                .collect(),
+            || {
+                array
+                    .data
+                    .iter()
+                    .flat_map(|v| v.bytes().chain(std::iter::once(0)))
+                    .collect()
+            },
             Kind::Auxiliary(array.name.clone()),
             Encoding::Ascii,
             Some(array.data.len()),
             options,
+            prepared,
         )?;
     }
     Ok(())
@@ -2112,6 +2198,10 @@ pub fn write_with_options(
     experiment: &MSExperiment,
     options: &WriteOptions,
 ) -> Result<()> {
+    validate_write(experiment)?;
+    write_impl(&mut w, experiment, options, &mut None)
+}
+fn validate_write(experiment: &MSExperiment) -> Result<()> {
     experiment.validate()?;
     let check_metadata = |metadata: &BTreeMap<String, String>, name: &str| -> Result<()> {
         xml_string(name)?;
@@ -2203,6 +2293,14 @@ pub fn write_with_options(
             ));
         }
     }
+    Ok(())
+}
+fn write_impl(
+    mut w: impl Write,
+    experiment: &MSExperiment,
+    options: &WriteOptions,
+    prepared: &mut Option<std::vec::IntoIter<numpress_transport::PreparedArray>>,
+) -> Result<()> {
     writeln!(
         w,
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.1.0\">"
@@ -2294,27 +2392,33 @@ pub fn write_with_options(
             )?;
             write_array(
                 &mut w,
-                spectrum
-                    .peaks
-                    .iter()
-                    .flat_map(|p| p.mz.to_le_bytes())
-                    .collect(),
+                || {
+                    spectrum
+                        .peaks
+                        .iter()
+                        .flat_map(|p| p.mz.to_le_bytes())
+                        .collect()
+                },
                 Kind::Mz,
                 Encoding::Float64,
                 None,
                 options,
+                prepared,
             )?;
             write_array(
                 &mut w,
-                spectrum
-                    .peaks
-                    .iter()
-                    .flat_map(|p| p.intensity.to_le_bytes())
-                    .collect(),
+                || {
+                    spectrum
+                        .peaks
+                        .iter()
+                        .flat_map(|p| p.intensity.to_le_bytes())
+                        .collect()
+                },
                 Kind::Intensity,
                 Encoding::Float32,
                 None,
                 options,
+                prepared,
             )?;
             write_auxiliary_arrays(
                 &mut w,
@@ -2322,6 +2426,7 @@ pub fn write_with_options(
                 &spectrum.integer_data_arrays,
                 &spectrum.string_data_arrays,
                 options,
+                prepared,
             )?;
             writeln!(w, "</binaryDataArrayList></spectrum>")?;
         }
@@ -2359,27 +2464,33 @@ pub fn write_with_options(
             )?;
             write_array(
                 &mut w,
-                chromatogram
-                    .peaks
-                    .iter()
-                    .flat_map(|p| p.rt.to_le_bytes())
-                    .collect(),
+                || {
+                    chromatogram
+                        .peaks
+                        .iter()
+                        .flat_map(|p| p.rt.to_le_bytes())
+                        .collect()
+                },
                 Kind::Time,
                 Encoding::Float64,
                 None,
                 options,
+                prepared,
             )?;
             write_array(
                 &mut w,
-                chromatogram
-                    .peaks
-                    .iter()
-                    .flat_map(|p| p.intensity.to_le_bytes())
-                    .collect(),
+                || {
+                    chromatogram
+                        .peaks
+                        .iter()
+                        .flat_map(|p| p.intensity.to_le_bytes())
+                        .collect()
+                },
                 Kind::Intensity,
                 Encoding::Float32,
                 None,
                 options,
+                prepared,
             )?;
             write_auxiliary_arrays(
                 &mut w,
@@ -2387,6 +2498,7 @@ pub fn write_with_options(
                 &chromatogram.integer_data_arrays,
                 &chromatogram.string_data_arrays,
                 options,
+                prepared,
             )?;
             writeln!(w, "</binaryDataArrayList></chromatogram>")?;
         }

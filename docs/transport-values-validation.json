@@ -1,0 +1,261 @@
+{
+  "target_sdk_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "platform": "macOS ARM64",
+  "current_rust": "1.98.0",
+  "minimum_rust": "1.85.0",
+  "scope": "Owned unique IDs/UUIDs, plain/mobility/rich 2D values and MS1 conversion, public integer/real IMS decomposers, automatic mzML Numpress reading and preflighted configured writing.",
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 273.62,
+      "log_sha256": "2b85dbb2b4732baf937b01ed4d0ba7f494ca477b683fe178aa0125ed7a95f655",
+      "log_bytes": 166828,
+      "tests_passed": 1595
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.05,
+      "log_sha256": "8a4b66d01e7ed8d932536558c5af7daa85d176e7d43b9d386bcd94a95bdced09",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 10.23,
+      "log_sha256": "864051e4d6e879dff9d7cf5c49016df95b96bf886bad62b985e8826250c58196",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 31.44,
+      "log_sha256": "ef62b86049bc4fa3f31b2b1746f48173ef6ba2c41d120fb5c97ea9a633686636",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.44,
+      "log_sha256": "7ab75ef38b5167cc155635afec81e7cd96b9bbeaaabed3febd2440c75027ef0c",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.77,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-54a232f"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.34,
+      "log_sha256": "f47439aeb1aa8baf9cb933ffa4ef021e8e0c31e5b5879b673e75bb182ca47893",
+      "log_bytes": 233
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.08,
+      "log_sha256": "fdc8e90a5381b2d9ff496e9ebb7ad0ece459a0fe65bb237841ce1c867f6c9256",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.11,
+      "log_sha256": "ff0d9d76afc3dbb79c6b38117df28de76fbde4ee2cb805be51be5cfb3e97579d",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "unique_id",
+        "--test",
+        "peak2d",
+        "--test",
+        "experiment_2d",
+        "--test",
+        "ims_mass_decomposers",
+        "--test",
+        "decoy_generator",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 36.96,
+      "log_sha256": "7d4e4be25cc25872cf74e2eb432fafa7cde16e82a400bd0a93704e228ac2ff54",
+      "log_bytes": 12446,
+      "tests_passed": 108
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 31.3,
+      "log_sha256": "cd3bcfaa81b176be085f2f643a1bdc6187604321f4df759bddb8a0b907d59cdc",
+      "log_bytes": 380
+    }
+  ],
+  "staged_checks": [
+    {
+      "name": "mzml_current",
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-numpress-target cargo +1.98.0 test --locked --offline --all-features --test mzml_numpress --test numpress_coder --test mzml --test mzml_load_options --test mzml_param_groups -j2 && CARGO_TARGET_DIR=/tmp/openms-rs-mzml-numpress-target cargo +1.98.0 test --locked --offline --all-features --lib decoder_counters_span_arrays_and_fail_before_resetting -j2",
+      "exit_code": 0,
+      "log_sha256": "fe28dca61734bb99ce84522ec3d12bff0fbe7d5feb9ce8ad21b2007f4c245dd2",
+      "log_bytes": 6741,
+      "scope": "Frozen eleven-file mzML Numpress stage; production bytes verified at integration, not a full combined repository feature run.",
+      "tests_passed": 69
+    },
+    {
+      "name": "mzml_minimum",
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-numpress-msrv-target cargo +1.85.0 test --locked --offline --no-default-features --features mzml --test mzml_numpress --test numpress_coder --test mzml --test mzml_load_options --test mzml_param_groups -j2 && CARGO_TARGET_DIR=/tmp/openms-rs-mzml-numpress-msrv-target cargo +1.85.0 test --locked --offline --no-default-features --features mzml --lib decoder_counters_span_arrays_and_fail_before_resetting -j2",
+      "exit_code": 0,
+      "log_sha256": "e2c4dfbe46bb69e1c524b1e0f5fc2d8e066a852f57959cc7b6b1bc5ccf634254",
+      "log_bytes": 6771,
+      "scope": "Frozen eleven-file mzML Numpress stage; production bytes verified at integration, not a full combined repository feature run.",
+      "tests_passed": 69
+    },
+    {
+      "name": "mzml_strict_current",
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-numpress-target cargo +1.98.0 clippy --locked --offline --all-features --lib --test mzml_numpress --test numpress_coder --test mzml --test mzml_load_options --test mzml_param_groups -j2 -- -D warnings",
+      "exit_code": 0,
+      "log_sha256": "8c233a54790c4800d3dd585436af679aa838da259bfdb129412e2d51cdb75cdc",
+      "log_bytes": 72,
+      "scope": "Frozen eleven-file mzML Numpress stage; production bytes verified at integration, not a full combined repository feature run."
+    },
+    {
+      "name": "mzml_strict_minimum",
+      "command": "CARGO_TARGET_DIR=/tmp/openms-rs-mzml-numpress-msrv-target cargo +1.85.0 clippy --locked --offline --no-default-features --features mzml --lib --test mzml_numpress --test numpress_coder --test mzml --test mzml_load_options --test mzml_param_groups -j2 -- -D warnings",
+      "exit_code": 0,
+      "log_sha256": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd",
+      "log_bytes": 72,
+      "scope": "Frozen eleven-file mzML Numpress stage; production bytes verified at integration, not a full combined repository feature run."
+    }
+  ],
+  "full_suite_tests": 1595,
+  "new_tests": 48,
+  "doctests": 3,
+  "documentation_links_verified": 322,
+  "distinct_current_source_files_verified": 1859,
+  "complete_or_native_equivalent_headers": 40,
+  "headers_requiring_implementation_or_review": 746,
+  "validated_topp_workflows": 0,
+  "full_cpp_sdk_built": false,
+  "new_cpp_execution": false,
+  "reference_evidence": "mzML original/projection contains36 unchanged source encoded arrays from18 chromatograms and342 independently decoded points. Earlier raw-codec295 C++ probes remain separate evidence. UID/2D/IMS tests use source literals and independent numerical oracles.",
+  "review": "Independent source and resource reviews closed. Source integer zero-witness nontermination becomes a checked error. Numpress validation now precharges binary sizes/work before scalar traversal.",
+  "limitations": "Full SDK and TOPP workflows remain incomplete. Full metadata and generic mobility/container operations, complete PeakFileOptions writer execution and Numpress path output are separate work. Selected staged/minimum test totals overlap and must not be added to the full-suite total."
+}

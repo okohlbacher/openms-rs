@@ -238,3 +238,18 @@ macro default is asserted. The source multi-spectrum test's prepared Param is
 never applied, so its effective default settings are recorded separately from
 a new all-series/annotation comparison. See the
 [independent review](../../docs/RNA_PROCESSING_REFERENCE_REVIEW.md).
+
+## Unique IDs, 2D values and public IMS decomposers
+
+The [unique-ID manifest](unique_id_provenance.json), [2D peak/conversion manifest](peak2d_provenance.json)
+and [IMS decomposer manifest](ims_decomposers_provenance.json) pin exact source files
+and distinguish source literals, independent numerical oracles and native checked
+boundaries. These additions do not execute the C++ SDK.
+
+## mzML Numpress transport
+
+The [transport manifest](mzml_numpress_provenance.json) records the unchanged upstream
+chromatogram file, a clearly labeled metadata-envelope projection preserving all
+36 encoded arrays, and 342 independently decoded points. Source class-test payloads
+and zlib projections are reused by hash. [Support notes](../../docs/MZML_NUMPRESS_SUPPORT.md)
+distinguish these checks from the earlier executed raw-codec C++ references.
