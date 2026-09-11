@@ -19,6 +19,12 @@ pub struct MzRtRegion {
 }
 
 impl MzRtRegion {
+    /// An extraction window over m/z and retention time.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when a bound is not finite or a minimum
+    /// exceeds its maximum.
     pub fn new(min_mz: f64, max_mz: f64, min_rt: f64, max_rt: f64) -> Result<Self> {
         let region = Self {
             mz: NumericRange {

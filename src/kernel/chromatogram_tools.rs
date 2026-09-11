@@ -15,6 +15,10 @@ use std::{
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// Per-call ceilings for a spectrum/chromatogram conversion.
+///
+/// Native bounds with no source counterpart, checked before any output is
+/// produced.
 pub struct ChromatogramConversionLimits {
     pub max_input_records: usize,
     /// Final destination length, including its retained prefix.
@@ -35,6 +39,11 @@ impl Default for ChromatogramConversionLimits {
     }
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+/// Conversion between chromatograms and spectra.
+///
+/// Ports `OpenMS/KERNEL/ChromatogramTools.h`. The source class is a stateless
+/// collection of template functions; this is a unit struct with associated
+/// functions for the same reason.
 pub struct ChromatogramTools {
     pub limits: ChromatogramConversionLimits,
 }

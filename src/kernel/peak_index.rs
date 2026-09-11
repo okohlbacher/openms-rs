@@ -42,6 +42,7 @@ impl PeakIndex {
         self.peak != usize::MAX
     }
 
+    /// Reset to the source's invalid, unassigned state.
     pub fn clear(&mut self) {
         *self = Self::default();
     }

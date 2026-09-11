@@ -35,6 +35,7 @@ impl MSSpectrum {
     pub fn get_type(&self, query_data: bool) -> Result<SpectrumType> {
         self.get_type_with_limits(query_data, SpectrumTypeQueryLimits::default())
     }
+    /// As [`Self::get_type`], with explicit resource ceilings.
     pub fn get_type_with_limits(
         &self,
         query_data: bool,

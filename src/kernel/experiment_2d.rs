@@ -31,17 +31,33 @@ impl Default for Data2DLimits {
     }
 }
 impl MSExperiment {
+    /// Every peak of the run as two-dimensional retention time / m/z points.
+    ///
+    /// Ports `MSExperiment::get2DData`. Unlike the filtered bulk exports in
+    /// `peak_data`, this converts the whole run.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite coordinate or an exceeded
+    /// ceiling.
     pub fn get_2d_data(&self) -> Result<Vec<Peak2D>> {
         self.get_2d_data_with_limits(Data2DLimits::default())
     }
+    /// As [`Self::get_2d_data`], with explicit resource ceilings.
     pub fn get_2d_data_with_limits(&self, limits: Data2DLimits) -> Result<Vec<Peak2D>> {
         let mut result = Vec::new();
         self.append_2d_data_with_limits(&mut result, limits)?;
         Ok(result)
     }
+    /// Append every peak of the run to an existing vector, keeping its contents.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::get_2d_data`]; the ceilings count what is already there.
     pub fn append_2d_data(&self, output: &mut Vec<Peak2D>) -> Result<()> {
         self.append_2d_data_with_limits(output, Data2DLimits::default())
     }
+    /// As [`Self::append_2d_data`], with explicit resource ceilings.
     pub fn append_2d_data_with_limits(
         &self,
         output: &mut Vec<Peak2D>,
@@ -83,6 +99,7 @@ impl MSExperiment {
     pub fn set_2d_data(&mut self, input: &[Peak2D]) -> Result<MSExperiment> {
         self.set_2d_data_with_limits(input, Data2DLimits::default())
     }
+    /// As [`Self::set_2d_data`], with explicit resource ceilings.
     pub fn set_2d_data_with_limits(
         &mut self,
         input: &[Peak2D],
@@ -101,6 +118,7 @@ impl MSExperiment {
     ) -> Result<MSExperiment> {
         self.set_2d_data_rich_with_limits(input, names, Data2DLimits::default())
     }
+    /// As [`Self::set_2d_data_rich`], with explicit resource ceilings.
     pub fn set_2d_data_rich_with_limits(
         &mut self,
         input: &[RichPeak2D],

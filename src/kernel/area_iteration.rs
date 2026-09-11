@@ -261,9 +261,18 @@ impl ExactSizeIterator for AreaIterMut<'_> {}
 impl FusedIterator for AreaIterMut<'_> {}
 
 impl MSExperiment {
+    /// Borrowed traversal of every peak inside an area.
+    ///
+    /// Ports `MSExperiment::areaBegin`/`areaEnd`, whose iterator pair becomes one
+    /// Rust iterator.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for invalid bounds or an exceeded ceiling.
     pub fn area_iter(&self, options: AreaOptions) -> Result<AreaIter<'_>> {
         self.area_iter_with_limits(options, AreaLimits::default())
     }
+    /// As [`Self::area_iter`], with explicit resource ceilings.
     pub fn area_iter_with_limits(
         &self,
         options: AreaOptions,
@@ -308,9 +317,15 @@ impl MSExperiment {
             remaining: plan.count,
         })
     }
+    /// Mutable traversal of every peak inside an area.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::area_iter`].
     pub fn area_iter_mut(&mut self, options: AreaOptions) -> Result<AreaIterMut<'_>> {
         self.area_iter_mut_with_limits(options, AreaLimits::default())
     }
+    /// As [`Self::area_iter_mut`], with explicit resource ceilings.
     pub fn area_iter_mut_with_limits(
         &mut self,
         options: AreaOptions,

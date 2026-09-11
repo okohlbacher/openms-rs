@@ -15,10 +15,16 @@ pub struct Point2D {
 }
 
 impl Point2D {
+    /// A point at the given retention time and m/z.
     pub const fn new(rt: f64, mz: f64) -> Self {
         Self { rt, mz }
     }
 
+    /// Check that both coordinates are finite.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when either coordinate is not finite.
     pub fn validate(self) -> Result<()> {
         if !self.rt.is_finite() || !self.mz.is_finite() {
             return Err(Error::InvalidValue(
@@ -37,6 +43,12 @@ pub struct BoundingBox2D {
 }
 
 impl BoundingBox2D {
+    /// A bounding box spanning `min` to `max`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when a coordinate is not finite or a
+    /// minimum exceeds its maximum.
     pub fn new(min: Point2D, max: Point2D) -> Result<Self> {
         min.validate()?;
         max.validate()?;
@@ -57,19 +69,28 @@ impl BoundingBox2D {
         })
     }
 
+    /// The retention time extent.
     pub const fn rt_range(self) -> NumericRange {
         self.rt
     }
+    /// The mass-to-charge extent.
     pub const fn mz_range(self) -> NumericRange {
         self.mz
     }
+    /// The lower corner.
     pub const fn min(self) -> Point2D {
         Point2D::new(self.rt.min, self.mz.min)
     }
+    /// The upper corner.
     pub const fn max(self) -> Point2D {
         Point2D::new(self.rt.max, self.mz.max)
     }
 
+    /// Whether `point` lies inside the box, borders included.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when a coordinate is not finite.
     pub fn encloses(self, point: Point2D) -> Result<bool> {
         point.validate()?;
         Ok(self.rt.min <= point.rt
@@ -114,6 +135,7 @@ pub struct ConvexHull2D {
 }
 
 impl ConvexHull2D {
+    /// An empty hull with no scans.
     pub fn new() -> Self {
         Self::default()
     }
@@ -125,9 +147,11 @@ impl ConvexHull2D {
         Ok(hull)
     }
 
+    /// Whether the hull holds no points.
     pub fn is_empty(&self) -> bool {
         self.scans.is_empty() && self.outline.is_empty()
     }
+    /// The number of scans whose envelopes the hull records.
     pub fn scan_count(&self) -> usize {
         self.scans.len()
     }
@@ -140,6 +164,7 @@ impl ConvexHull2D {
             self.scans.len().saturating_mul(2)
         }
     }
+    /// Remove every point and scan.
     pub fn clear(&mut self) {
         self.scans.clear();
         self.outline.clear();
@@ -235,6 +260,7 @@ impl ConvexHull2D {
         Ok(())
     }
 
+    /// The enclosing bounding box, or `None` when the hull is empty.
     pub fn bounding_box(&self) -> Option<BoundingBox2D> {
         let mut bounds = None;
         let mut add = |point| {
@@ -312,6 +338,7 @@ impl ConvexHull2D {
         }
     }
 
+    /// A hull covering exactly the given bounding box.
     pub fn from_bounding_box(bounds: BoundingBox2D) -> Self {
         let mut scans = vec![Scan {
             rt: bounds.rt.min,

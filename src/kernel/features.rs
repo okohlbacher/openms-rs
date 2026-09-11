@@ -29,6 +29,7 @@ pub struct BaseFeature {
 }
 
 impl BaseFeature {
+    /// A base feature at the given retention time, m/z and intensity.
     pub fn new(rt: f64, mz: f64, intensity: f32) -> Self {
         Self {
             rt,
@@ -38,6 +39,12 @@ impl BaseFeature {
         }
     }
 
+    /// Check the numeric fields and any attached identifications.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite coordinate, a negative
+    /// quality, or an invalid attached record.
     pub fn validate(&self) -> Result<()> {
         validate_values(self.rt, self.mz, self.intensity, self.width)?;
         finite(f64::from(self.quality), "feature quality")?;
@@ -62,6 +69,7 @@ impl BaseFeature {
         Ok(())
     }
 
+    /// The feature position as a retention time / m/z point.
     pub const fn position(&self) -> Point2D {
         Point2D::new(self.rt, self.mz)
     }
@@ -102,6 +110,7 @@ impl Feature {
     /// Checked operations reject deeper subordinate trees before recursive cloning.
     pub const MAX_SUBORDINATE_DEPTH: usize = 128;
 
+    /// A feature at the given retention time, m/z and intensity, with no hulls.
     pub fn new(rt: f64, mz: f64, intensity: f32) -> Self {
         BaseFeature::new(rt, mz, intensity).into()
     }
@@ -134,6 +143,8 @@ impl Feature {
             .map_or_else(ConvexHull2D::new, ConvexHull2D::from_bounding_box)
     }
 
+    /// The bounding box enclosing every convex hull, or `None` when the feature
+    /// carries none.
     pub fn hull_bounding_box(&self) -> Option<BoundingBox2D> {
         self.convex_hulls
             .iter()
@@ -168,6 +179,9 @@ pub struct FeatureHandle {
 }
 
 impl FeatureHandle {
+    /// A handle referencing `feature` in the map identified by `map_index`.
+    ///
+    /// Position and intensity are copied from the referenced feature, as in source.
     pub fn new(map_index: u64, feature: &BaseFeature) -> Self {
         Self {
             map_index,
@@ -180,9 +194,15 @@ impl FeatureHandle {
         }
     }
 
+    /// The `(map index, unique id)` pair that identifies the referenced feature.
     pub const fn key(&self) -> (u64, u64) {
         (self.map_index, self.unique_id)
     }
+    /// Check the numeric fields.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite coordinate.
     pub fn validate(&self) -> Result<()> {
         validate_values(self.rt, self.mz, self.intensity, self.width)
     }
@@ -233,10 +253,16 @@ impl From<BaseFeature> for ConsensusFeature {
 }
 
 impl ConsensusFeature {
+    /// An empty consensus feature.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// A consensus feature holding one handle to `feature` in `map_index`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the handle is not valid.
     pub fn from_feature(map_index: u64, feature: &BaseFeature) -> Result<Self> {
         feature.validate()?;
         let mut result = Self::from(feature.clone());
@@ -244,12 +270,15 @@ impl ConsensusFeature {
         Ok(result)
     }
 
+    /// The handles this consensus feature groups.
     pub fn handles(&self) -> &[FeatureHandle] {
         &self.handles
     }
+    /// The number of grouped handles.
     pub fn len(&self) -> usize {
         self.handles.len()
     }
+    /// Whether the consensus feature groups no handles.
     pub fn is_empty(&self) -> bool {
         self.handles.is_empty()
     }
@@ -258,6 +287,12 @@ impl ConsensusFeature {
         self.handles.clear();
     }
 
+    /// Check the numeric fields, the grouped handles and any attached records.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite value, a duplicate
+    /// `(map index, unique id)` handle, or an invalid attached record.
     pub fn validate(&self) -> Result<()> {
         self.base.validate()?;
         for handle in &self.handles {
@@ -487,22 +522,32 @@ impl Default for FeatureMap {
 }
 
 impl FeatureMap {
+    /// An empty feature map.
     pub fn new() -> Self {
         Self::default()
     }
+    /// A feature map over the given features.
     pub fn from_features(features: Vec<Feature>) -> Self {
         Self {
             features,
             ..Self::default()
         }
     }
+    /// The number of features.
     pub fn len(&self) -> usize {
         self.features.len()
     }
+    /// Whether the map holds no features.
     pub fn is_empty(&self) -> bool {
         self.features.is_empty()
     }
 
+    /// Check every feature, the assigned unique IDs and the attached records.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on an invalid feature, a duplicate unique
+    /// ID, or an invalid attached identification or processing record.
     pub fn validate(&self) -> Result<()> {
         for feature in &self.features {
             feature.validate()?;
@@ -553,18 +598,44 @@ impl FeatureMap {
         select(&mut self.features, indices)
     }
 
+    /// Sort the features by retention time, then m/z.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite coordinate; the map is left
+    /// unchanged.
     pub fn sort_by_position(&mut self) -> Result<()> {
         self.sort_by(|a, b| cmp_position(&a.base, &b.base))
     }
+    /// Sort the features by retention time.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_rt(&mut self) -> Result<()> {
         self.sort_by(|a, b| a.rt.partial_cmp(&b.rt).unwrap())
     }
+    /// Sort the features by m/z.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_mz(&mut self) -> Result<()> {
         self.sort_by(|a, b| a.mz.partial_cmp(&b.mz).unwrap())
     }
+    /// Sort the features by intensity, descending when `reverse` is set.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_intensity(&mut self, reverse: bool) -> Result<()> {
         self.sort_by(|a, b| ordered(a.intensity, b.intensity, reverse))
     }
+    /// Sort the features by quality, descending when `reverse` is set.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_quality(&mut self, reverse: bool) -> Result<()> {
         self.sort_by(|a, b| ordered(a.quality, b.quality, reverse))
     }
@@ -578,6 +649,9 @@ impl FeatureMap {
         Ok(())
     }
 
+    /// Remove every feature, and the metadata too when `clear_metadata` is set.
+    ///
+    /// Source defaults this to true; the native call is explicit.
     pub fn clear(&mut self, clear_metadata: bool) {
         if clear_metadata {
             *self = Self::default();
@@ -615,6 +689,11 @@ impl ColumnHeader {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+/// A container for consensus elements.
+///
+/// Holds two-dimensional [`ConsensusFeature`] elements, each grouping the
+/// handles of the features that were linked across several runs. The column
+/// headers describe the source map behind each handle's map index.
 pub struct ConsensusMap {
     pub features: Vec<ConsensusFeature>,
     pub protein_identifications: Vec<ProteinIdentification>,
@@ -648,18 +727,22 @@ impl Default for ConsensusMap {
 }
 
 impl ConsensusMap {
+    /// An empty consensus map.
     pub fn new() -> Self {
         Self::default()
     }
+    /// A consensus map over the given consensus features.
     pub fn from_features(features: Vec<ConsensusFeature>) -> Self {
         Self {
             features,
             ..Self::default()
         }
     }
+    /// The number of consensus features.
     pub fn len(&self) -> usize {
         self.features.len()
     }
+    /// Whether the map holds no consensus features.
     pub fn is_empty(&self) -> bool {
         self.features.is_empty()
     }
@@ -720,6 +803,11 @@ impl ConsensusMap {
         Ok(())
     }
 
+    /// Index of the consensus feature with this unique ID, or `None`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when unique IDs are not unique.
     pub fn unique_id_to_index(&self, unique_id: u64) -> Result<Option<usize>> {
         lookup_id(
             self.features.iter().map(|feature| feature.unique_id),
@@ -740,22 +828,54 @@ impl ConsensusMap {
         Ok(ranges)
     }
 
+    /// Keep only the given consensus features, in the caller's order.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a repeated or out-of-range index; the
+    /// map is left unchanged.
     pub fn select(&mut self, indices: &[usize]) -> Result<()> {
         self.validate()?;
         select(&mut self.features, indices)
     }
+    /// Sort the consensus features by retention time, then m/z.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite coordinate; the map is left
+    /// unchanged.
     pub fn sort_by_position(&mut self) -> Result<()> {
         self.sort_by(|a, b| cmp_position(&a.base, &b.base))
     }
+    /// Sort the consensus features by retention time.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_rt(&mut self) -> Result<()> {
         self.sort_by(|a, b| a.rt.partial_cmp(&b.rt).unwrap())
     }
+    /// Sort the consensus features by m/z.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_mz(&mut self) -> Result<()> {
         self.sort_by(|a, b| a.mz.partial_cmp(&b.mz).unwrap())
     }
+    /// Sort the consensus features by intensity, descending when `reverse` is set.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_intensity(&mut self, reverse: bool) -> Result<()> {
         self.sort_by(|a, b| ordered(a.intensity, b.intensity, reverse))
     }
+    /// Sort the consensus features by quality, descending when `reverse` is set.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_quality(&mut self, reverse: bool) -> Result<()> {
         self.sort_by(|a, b| ordered(a.quality, b.quality, reverse))
     }
@@ -782,6 +902,10 @@ impl ConsensusMap {
         Ok(())
     }
 
+    /// Remove every consensus feature, and the metadata too when `clear_metadata`
+    /// is set.
+    ///
+    /// Source defaults this to true; the native call is explicit.
     pub fn clear(&mut self, clear_metadata: bool) {
         if clear_metadata {
             *self = Self::default();

@@ -44,6 +44,7 @@ impl MSExperiment {
         self.calculate_tic_binned_with_limits(rt_bin_size, ms_level, SummaryLimits::default())
     }
 
+    /// As [`Self::calculate_tic_binned`], with explicit resource ceilings.
     pub fn calculate_tic_binned_with_limits(
         &self,
         rt_bin_size: f32,
@@ -84,6 +85,7 @@ impl MSExperiment {
     pub fn chromatogram_ranges(&self) -> Result<ExperimentRanges> {
         self.chromatogram_ranges_with_limits(SummaryLimits::default())
     }
+    /// As [`Self::chromatogram_ranges`], with explicit resource ceilings.
     pub fn chromatogram_ranges_with_limits(
         &self,
         limits: SummaryLimits,
@@ -97,6 +99,7 @@ impl MSExperiment {
     pub fn combined_ranges(&self) -> Result<ExperimentRanges> {
         self.combined_ranges_with_limits(SummaryLimits::default())
     }
+    /// As [`Self::combined_ranges`], with explicit resource ceilings.
     pub fn combined_ranges_with_limits(&self, limits: SummaryLimits) -> Result<ExperimentRanges> {
         let mut work = Work::new(limits);
         let mut result = ExperimentRanges::default();
@@ -156,6 +159,7 @@ impl MSExperiment {
     pub fn total_peak_count(&self) -> Result<u64> {
         self.total_peak_count_with_limits(SummaryLimits::default())
     }
+    /// As [`Self::total_peak_count`], with explicit resource ceilings.
     pub fn total_peak_count_with_limits(&self, limits: SummaryLimits) -> Result<u64> {
         let mut work = Work::new(limits);
         work.consume(self.spectra.len())?;
@@ -174,6 +178,7 @@ impl MSExperiment {
     pub fn contains_scan_of_level(&self, ms_level: usize) -> Result<bool> {
         self.contains_scan_of_level_with_limits(ms_level, SummaryLimits::default())
     }
+    /// As [`Self::contains_scan_of_level`], with explicit resource ceilings.
     pub fn contains_scan_of_level_with_limits(
         &self,
         ms_level: usize,
@@ -194,6 +199,7 @@ impl MSExperiment {
     pub fn has_zero_intensities(&self, ms_level: usize) -> Result<bool> {
         self.has_zero_intensities_with_limits(ms_level, SummaryLimits::default())
     }
+    /// As [`Self::has_zero_intensities`], with explicit resource ceilings.
     pub fn has_zero_intensities_with_limits(
         &self,
         ms_level: usize,
@@ -224,6 +230,7 @@ impl MSExperiment {
     pub fn sort_chromatograms(&mut self, sort_rt: bool) -> Result<()> {
         self.sort_chromatograms_with_limits(sort_rt, SummaryLimits::default())
     }
+    /// As [`Self::sort_chromatograms`], with explicit resource ceilings.
     pub fn sort_chromatograms_with_limits(
         &mut self,
         sort_rt: bool,
@@ -312,6 +319,7 @@ impl MSExperiment {
     pub fn clear_meta_data_arrays(&mut self) -> Result<bool> {
         self.clear_meta_data_arrays_with_limits(SummaryLimits::default())
     }
+    /// As [`Self::clear_meta_data_arrays`], with explicit resource ceilings.
     pub fn clear_meta_data_arrays_with_limits(&mut self, limits: SummaryLimits) -> Result<bool> {
         let mut work = Work::new(limits);
         work.consume(self.spectra.len())?;

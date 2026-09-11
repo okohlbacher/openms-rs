@@ -43,7 +43,10 @@ pub(crate) mod spectrum_type;
 pub use experiment_summary::SummaryLimits;
 pub use mobilogram::{MobilityPeak1D, Mobilogram, MobilogramLimits, MobilogramRanges};
 pub use spectrum_type::SpectrumTypeQueryLimits;
+/// Feature, consensus and map containers: `BaseFeature`, `Feature`,
+/// `FeatureHandle`, `ConsensusFeature`, `FeatureMap` and `ConsensusMap`.
 pub mod features;
+/// Points, bounding boxes and convex hulls shared by the feature containers.
 pub mod geometry;
 pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};
 pub use features::{
@@ -60,6 +63,7 @@ pub struct Peak1D {
 }
 
 impl Peak1D {
+    /// A peak at the given m/z and intensity.
     pub const fn new(mz: f64, intensity: f32) -> Self {
         Self { mz, intensity }
     }
@@ -73,6 +77,7 @@ pub struct ChromatogramPeak {
 }
 
 impl ChromatogramPeak {
+    /// A point at the given retention time and intensity.
     pub const fn new(rt: f64, intensity: f32) -> Self {
         Self { rt, intensity }
     }
@@ -142,6 +147,7 @@ pub struct Precursor {
 }
 
 impl Precursor {
+    /// A precursor selecting the given m/z at the given charge; zero is unknown.
     pub fn new(mz: f64, charge: i32) -> Self {
         Self {
             mz,
@@ -170,6 +176,7 @@ pub struct DataArray<T> {
 }
 
 impl<T> DataArray<T> {
+    /// A named annotation array over `data`, with no description or history.
     pub fn new(name: impl Into<String>, data: Vec<T>) -> Self {
         Self {
             name: name.into(),
@@ -389,6 +396,7 @@ pub(crate) fn nearest<T>(
 macro_rules! peak_container {
     ($container:ty, $peak:ty, $position:ident) => {
         impl $container {
+            /// An empty spectrum.
             pub fn new() -> Self {
                 Self::default()
             }
@@ -401,9 +409,11 @@ macro_rules! peak_container {
                 }
             }
 
+            /// The number of peaks.
             pub fn len(&self) -> usize {
                 self.peaks.len()
             }
+            /// Whether the spectrum holds no peaks.
             pub fn is_empty(&self) -> bool {
                 self.peaks.is_empty()
             }
@@ -691,6 +701,12 @@ fn validate_window(center: f64, left: f64, right: f64) -> Result<()> {
 }
 
 impl MSChromatogram {
+    /// Check the peak values, the aligned array lengths and the attached records.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite value, an annotation array
+    /// whose length differs from the peak count, or an invalid attached record.
     pub fn validate(&self) -> Result<()> {
         for peak in &self.peaks {
             finite(peak.rt, "chromatogram retention time")?;
@@ -704,6 +720,11 @@ impl MSChromatogram {
         self.validate_acquisition_settings()
     }
 
+    /// The current retention time and intensity bounds, computed on demand.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite value.
     pub fn ranges(&self) -> Result<ChromatogramRanges> {
         self.validate()?;
         Ok(ChromatogramRanges {
@@ -744,6 +765,7 @@ pub struct MSExperiment {
 }
 
 impl MSExperiment {
+    /// An empty experiment.
     pub fn new() -> Self {
         Self::default()
     }
@@ -751,6 +773,7 @@ impl MSExperiment {
     pub fn len(&self) -> usize {
         self.spectra.len()
     }
+    /// Whether the experiment holds no spectra.
     pub fn is_empty(&self) -> bool {
         self.spectra.is_empty()
     }
@@ -784,6 +807,11 @@ impl MSExperiment {
         Ok(candidates().next().map(|(i, _)| i))
     }
 
+    /// Check every spectrum and chromatogram and the attached records.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on an invalid record or attachment.
     pub fn validate(&self) -> Result<()> {
         self.settings.validate()?;
         for spectrum in &self.spectra {
@@ -817,12 +845,24 @@ impl MSExperiment {
         Ok(())
     }
 
+    /// Index of the first spectrum whose retention time is not less than `rt`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the spectra are not sorted by
+    /// retention time, which the source documents as a precondition without
+    /// checking it.
     pub fn rt_begin(&self, rt: f64) -> Result<usize> {
         finite(rt, "query retention time")?;
         check_sorted(&self.spectra, |spectrum| spectrum.rt)?;
         Ok(self.spectra.partition_point(|spectrum| spectrum.rt < rt))
     }
 
+    /// Index of the first spectrum whose retention time is greater than `rt`.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::rt_begin`].
     pub fn rt_end(&self, rt: f64) -> Result<usize> {
         finite(rt, "query retention time")?;
         check_sorted(&self.spectra, |spectrum| spectrum.rt)?;
@@ -920,6 +960,10 @@ impl MSExperiment {
         })
     }
 
+    /// Remove every spectrum and chromatogram, and the metadata too when
+    /// `clear_metadata` is set.
+    ///
+    /// Source defaults this to true; the native call is explicit.
     pub fn clear(&mut self, clear_metadata: bool) {
         self.spectra.clear();
         self.chromatograms.clear();
