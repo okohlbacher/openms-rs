@@ -1,9 +1,41 @@
 # Validation of the ongoing Rust port
 
+## Experiment metadata, feature hypotheses, ProForma JSON and mzML counts (2026-09-11)
+
+All four groups are integrated against SDK `82ce5b3`. [Recorded checks](annotation-counts-validation.json)
+retain exact commands, outcomes, log hashes, source scope and review fixes.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,803 tests passed |
+| Doctests, both compiler versions | Four passed per compiler |
+| Native unit/adjacent tests, Rust 1.85/no defaults | 217 passed |
+| Rust 1.85/JSON and RNA selection | 122 passed |
+| Rust 1.85/mzML count and adjacent selection | 55 passed |
+| Strict Clippy | All targets on current/all-features and minimum/no-defaults; minimum JSON/mzML targets also passed |
+| Release library, Rustdoc and Rustfmt | Passed; documentation warnings denied |
+| Source audit, projection, ledger and regression checks | Passed |
+
+The batch adds 57 tests and one lifetime doctest. Selected totals overlap the full
+suite. Source metadata quirks, ordered borrowing, all reachable JSON schema branches,
+and the five source count pairs are covered, with independent resource and boundary
+regressions. Reviews corrected retained allocation accounting, JSON exponent handling
+and sparse map allowances, as well as XML declaration/attribute validation and tiny
+input-chunk handling. The original scientific fixtures remain unchanged.
+
+Source verification covers 1,894 distinct current files, 220 historical references,
+21 graph references and 601 added references. The ledger records 51 complete or
+native-equivalent headers, with 735 requiring implementation or review and zero
+certified TOPP workflows. FeatureFindingMetabo orchestration, ProForma scientific
+backends and full experiment/header/consumer support remain separate work. No new
+C++ execution is claimed for this batch. The [elution and mapping checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34572998432)
+passed all GitHub CI jobs.
+
+
 ## ProForma text parsing and structured errors (2026-09-11)
 
 The complete source single-chain and ion grammars, all error codes and diagnostic
-operations are integrated against SDK 82ce 5b 3.
+operations are integrated against SDK 82ce5b3.
 [Recorded checks](proforma-parser-validation.json) retain commands, outcomes,
 log hashes, staged tests and the C++ extraction boundary.
 
@@ -19,14 +51,14 @@ log hashes, staged tests and the C++ extraction boundary.
 The 16 new tests include all 198 upstream grammar cases, 62 source component calls,
 structured diagnostics and cumulative resource failures. A separately compiled
 [exact-source probe](../tests/data/proforma_parser_probe_provenance.json) runs 238
-inputs through both C++ grammars. All 476 comparisons match:382 accepted cases
+inputs through both C++ grammars. All 476 comparisons match: 382 accepted cases
 match both text modes, and 94 errors match code, byte position and original message.
 The probe includes unchanged AST/tokenizer/parser/writer and prefix-helper blocks;
 a capture-only exception adapter replaces SDK exception infrastructure. It does
 not execute source exception formatting or a full C++ SDK. Frozen outputs add
 no C++ dependency to native builds or CI.
 
-Source verification covers 1,886 distinct current files,220 historical references,
+Source verification covers 1,886 distinct current files, 220 historical references,
 21 graph references and 556 added references. ProForma remains a partial SDK header:
 JSON, resolution/conversion, mass/mz and spectrum methods are outstanding in this
 checkpoint. The ledger remains at 48 complete/native-equivalent headers and 738

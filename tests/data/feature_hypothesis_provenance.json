@@ -1,0 +1,97 @@
+{
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source_project": "OpenMS reduced Core SDK",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
+      "sha256": "7a7f8c784de5f6b9dca82c204cedda780ccebf0adce1d3dedc44a8967179e689"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/FeatureFindingMetabo.cpp",
+      "sha256": "1d0b69f96c544c59978ecaa5d7191138098de028f736b21228f71a287392d287"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FeatureFindingMetabo_test.cpp",
+      "sha256": "ce5d55806acd8997dadd566cce3f017976182c8d744fe7ce8121a25b7faad287"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
+      "sha256": "f29b0530d8a01411c58458e8aeb476963b4e204949c578a0fa57beedf8db7d82"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MassTrace.cpp",
+      "sha256": "35370f232ab6adbcc0d5dde09ce0ffc6376b09722adc4e244a0ae655e63964e7"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MassTrace_test.cpp",
+      "sha256": "e0397339cecae95155167221b4c1bc36d2e7c5f8999374fc4d324cff1ffbbc31"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+      "sha256": "3f9f2f06c2e259dd719b328b160874c846ae24c73294c61b36f1573f46984117"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+      "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConvexHull2D.h",
+      "sha256": "eecde18cc716756736ff8917084ca052e31a392a6dd6c65ce2237c3714d652a8"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+      "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/Precursor.h",
+      "sha256": "69762329c0545457affd9bd8c83b4344bcbf494d3a33d34e403cd4b318ffb8f1"
+    },
+    {
+      "path": "src/openms/source/METADATA/Precursor.cpp",
+      "sha256": "009d54ab86dd4dd85d11f61a227bc54c9aef9f061dd97f3aee78568b12350ec1"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/feature_hypothesis_source.tsv",
+      "sha256": "0a818adbbb5d1d104b988d454a25211594f3242bc2c2f874888453e111df0eff"
+    }
+  ],
+  "source_scope": "Complete FeatureHypothesis public subgroup plus two predicates and the header Range value; FeatureFindingMetabo main algorithm remains separate.",
+  "fixture_origin": "Literal seven fillPeak calls in MassTrace_test.cpp. TSV stores original double inputs; tests apply the source f32 field narrowing. No direct FeatureHypothesis test sections exist in FeatureFindingMetabo_test.cpp.",
+  "reference_expectations": {
+    "raw_peak_max": 33329536.0,
+    "fwhm": 2.15250939241199,
+    "centroid_mz": 230.10188267861923,
+    "centroid_rt": 155.214671250425,
+    "fwhm_area": 69863097.2125001,
+    "fwhm_area_absolute_tolerance": 1e-06
+  },
+  "independent_oracles": [
+    "duplicate borrowing and label concatenation",
+    "quantification area/median/apex separation",
+    "cached first-member centroids vs changed raw positions",
+    "signed isotope distances",
+    "raw scan-envelope hull vertices",
+    "sorted raw chromatograms and default fields",
+    "cumulative membership/work/byte limits and failure atomicity"
+  ],
+  "native_adaptations": [
+    "borrowed lifetimes replace raw pointers",
+    "stable equal-RT output order",
+    "i64 charge storage with checked i32 precursor narrowing",
+    "source nonfinite score storage retained without Eq/Ord",
+    "checked consumed nonfinite values/arithmetic",
+    "empty chromatogram hypothesis checked error",
+    "bounded allocation and cumulative calls"
+  ],
+  "validation": {
+    "direct_tests": 12,
+    "adjacent_mass_trace_tests": 12,
+    "toolchains": [
+      "Rust 1.98.0 all-features",
+      "Rust 1.85.0 no-default-features"
+    ],
+    "no_cpp_execution": true
+  }
+}

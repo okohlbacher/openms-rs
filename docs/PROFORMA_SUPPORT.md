@@ -6,7 +6,9 @@ source text-serialization overloads from OpenMS4-core
 structured errors are also available; see [text parser support](PROFORMA_PARSER_SUPPORT.md).
 The overall `ProForma` public header remains partially implemented.
 
-There is no JSON codec, modification resolver, AASequence conversion,
+The optional [JSON transport](PROFORMA_JSON_SUPPORT.md) provides both top-level
+read/write operations with the source tagged schema. There is no modification
+resolver, AASequence conversion,
 mass calculation, or spectrum generation API in this module yet. No placeholder
 functions stand in for those operations. Existing
 [AASequence](SEQUENCE_SUPPORT.md), [modification records](MODIFICATION_SUPPORT.md),
@@ -140,8 +142,7 @@ All failures leave input ownership/state unchanged and return no partial string.
 
 ## Remaining source operation groups
 
-The remaining groups are the complete private tagged JSON schema; modification
-resolution and AASequence conversion
+The remaining groups are modification resolution and AASequence conversion
 with all policies/diagnostics; mass/m/z and all try/issue/can variants; ordinary
 and cross-linked spectrum generation. The latter needs a native
 `TheoreticalSpectrumGeneratorXLMS` backend, which is not supplied by the ordinary

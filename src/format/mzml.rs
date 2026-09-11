@@ -7,6 +7,12 @@
 //! This is an event parser, but the returned experiment is held in memory.
 
 pub use super::indexed_mzml::has_index;
+#[path = "mzml_counts.rs"]
+mod counts;
+pub use counts::{
+    MAX_COUNT_EVENT_BYTES, MAX_COUNT_WORK, MAX_COUNT_XML_DEPTH, MzMLCounts, load_size,
+    load_size_with_options, read_size, read_size_with_options,
+};
 #[path = "mzml_load.rs"]
 mod load;
 use crate::kernel::{

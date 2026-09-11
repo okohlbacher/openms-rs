@@ -4,8 +4,9 @@
 parse-error interface from OpenMS4-core `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`.
 Parsing creates the [owned annotation AST](PROFORMA_SUPPORT.md). This adds text
 parsing to the existing writers; the complete ProForma header still has separate
-JSON, chemistry resolution, sequence conversion, mass and spectrum operations
-that are not implemented here.
+chemistry resolution, sequence conversion, mass and spectrum operations
+that are not implemented here. [JSON transport](PROFORMA_JSON_SUPPORT.md) is
+available separately with the `proforma-json` feature.
 
 ## Using the two grammars
 
@@ -167,7 +168,7 @@ source and copied-fixture hashes, case counts and native differences. These are
 native source-derived tests; this parser group does not claim an executed C++
 parser differential run or a complete SDK build. The earlier writer extraction
 probe remains separate evidence in [the AST/writer support document](PROFORMA_SUPPORT.md).
-JSON, resolution/conversion policies, mass/m/z and ordinary/XLMS spectra remain
+Resolution/conversion policies, mass/m/z and ordinary/XLMS spectra remain
 separate unimplemented groups; no parser success claims those capabilities.
 
 ## Executed C++ text comparisons

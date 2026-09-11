@@ -7,9 +7,9 @@
     "by_status": {
       "complete": 10,
       "evidence_requires_review": 164,
-      "native_equivalent": 38,
-      "partial": 21,
-      "unmapped": 553
+      "native_equivalent": 41,
+      "partial": 22,
+      "unmapped": 549
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -3168,19 +3168,22 @@
         "status": "partial",
         "rust": [
           "src/chemistry/proforma.rs",
-          "src/chemistry/proforma_parser.rs"
+          "src/chemistry/proforma_parser.rs",
+          "src/chemistry/proforma_json.rs"
         ],
         "tests": [
           "tests/proforma.rs",
           "tests/proforma_writer_probe.rs",
           "tests/proforma_parser.rs",
-          "tests/proforma_parser_probe.rs"
+          "tests/proforma_parser_probe.rs",
+          "tests/proforma_json.rs"
         ],
         "documentation": "docs/PROFORMA_SUPPORT.md",
-        "scope": "Complete owned annotation AST and both lossless/canonical text writers, preserving source ordering, stream precision state and source omissions.160 compiled exact-source writer-extraction cases match native outputs. Structured parser errors, text parsing, JSON, modification resolution, AASequence conversion, masses/mz and ordinary/XLMS spectra remain unimplemented. Complete single-chain and ion text grammars and structured errors added;476 executed C++ parser/writer outcome comparisons. JSON, resolution/conversion, mass/mz and spectrum backends remain open."
+        "scope": "Complete owned annotation AST, both text grammars/writers and structured diagnostics; 160 executed exact-source writer cases and 476 parser/writer outcome comparisons. Optional proforma-json supplies all four public JSON wrappers and every reachable tagged schema, with source defaults/numeric conversion and explicit finite/ASCII/bounded native differences. Modification resolution, AASequence conversion, mass/mz and ordinary/XLMS spectrum groups remain open."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/proforma_json_provenance.json",
         "tests/data/proforma_parser_probe_provenance.json",
         "tests/data/proforma_parser_provenance.json",
         "tests/data/proforma_provenance.json",
@@ -4250,6 +4253,7 @@
         "src/kernel/geometry.rs"
       ],
       "reference_manifests": [
+        "tests/data/feature_hypothesis_provenance.json",
         "tests/data/mass_trace_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -4302,6 +4306,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/featurexml_provenance.json",
+        "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_load_provenance.json",
         "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
@@ -4705,8 +4710,10 @@
       "reference_manifests": [
         "tests/data/adduct_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
+        "tests/data/experiment_metadata_provenance.json",
         "tests/data/list_utils_provenance.json",
         "tests/data/mass_decomposition_provenance.json",
+        "tests/data/mzml_counts_provenance.json",
         "tests/data/param_value_provenance.json",
         "tests/data/proforma_parser_probe_provenance.json",
         "tests/data/protein_run_provenance.json",
@@ -5011,10 +5018,22 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
       "sha256": "7a7f8c784de5f6b9dca82c204cedda780ccebf0adce1d3dedc44a8967179e689",
       "domain": "FEATUREFINDER",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/analysis/feature_hypothesis.rs"
+        ],
+        "tests": [
+          "tests/feature_hypothesis.rs"
+        ],
+        "documentation": "docs/FEATURE_HYPOTHESIS_SUPPORT.md",
+        "scope": "Complete FeatureHypothesis public subgroup, comparison predicates and isotope mass-window record. Ordered borrowed traces, summaries, hulls and chromatograms retain source behavior with checked lifetimes, arithmetic and cumulative operation limits. Main FeatureFindingMetabo orchestration and isotope models remain under implementation; no end-to-end feature-finding or TOPP certification."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/feature_hypothesis_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FeatureFinderMetabo",
         "ProteomicsLFQ"
@@ -6342,6 +6361,7 @@
         "tests/data/data_array_xml_provenance.json",
         "tests/data/mzml_acquisition_guards_provenance.json",
         "tests/data/mzml_acquisition_provenance.json",
+        "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_load_provenance.json",
         "tests/data/mzml_numpress_provenance.json",
         "tests/data/mzml_param_groups_provenance.json",
@@ -6511,6 +6531,7 @@
         "tests/data/idxml_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/mzml_acquisition_provenance.json",
+        "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_settings_provenance.json",
         "tests/data/paramxml_provenance.json"
@@ -6902,7 +6923,8 @@
           "src/format/mzml_paths.rs",
           "src/format/mzml_numpress.rs",
           "src/format/mzml_settings.rs",
-          "src/format/mzml_acquisition.rs"
+          "src/format/mzml_acquisition.rs",
+          "src/format/mzml_counts.rs"
         ],
         "tests": [
           "tests/mzml.rs",
@@ -6914,14 +6936,16 @@
           "tests/mzml_numpress.rs",
           "tests/mzml_settings.rs",
           "tests/mzml_acquisition_guards.rs",
-          "tests/mzml_acquisition.rs"
+          "tests/mzml_acquisition.rs",
+          "tests/mzml_counts.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. Ordered spectrum AcquisitionInfo, all4 combination methods, scalar list/scan metadata and9 typed acquisition CV fallbacks are transported; Canonical/Source read modes distinguish implicit default singleton normalization. Minimal source/instrument reference lookup validates IDs and preserves source lexical repairs without filesystem probing. Zoom precedes acquisition user parameters to repair source schema order. Chromatogram AcquisitionInfo, record SourceFile/DataProcessing and unrepresented instrument metadata remain guarded."
+        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. Ordered spectrum AcquisitionInfo, all4 combination methods, scalar list/scan metadata and9 typed acquisition CV fallbacks are transported; Canonical/Source read modes distinguish implicit default singleton normalization. Minimal source/instrument reference lookup validates IDs and preserves source lexical repairs without filesystem probing. Zoom precedes acquisition user parameters to repair source schema order. Chromatogram AcquisitionInfo, record SourceFile/DataProcessing and unrepresented instrument metadata remain guarded. Complete loadSize group now supplies four reader/path count APIs: source declared-list early return and filtered RT-event counts, bounded plain/gzip/bzip2 transport and explicit skip-chromatogram/binary-decoding corrections. ExperimentalSettings/header and consumer transforms remain open."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/indexed_mzml_provenance.json",
+        "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_paths_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -7126,6 +7150,7 @@
       ],
       "reference_manifests": [
         "tests/data/consensusxml_provenance.json",
+        "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_load_provenance.json",
         "tests/data/mzml_numpress_provenance.json",
         "tests/data/peak_file_options_provenance.json",
@@ -7752,6 +7777,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/identification_paths_provenance.json",
+        "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_paths_provenance.json",
         "tests/data/paramxml_provenance.json"
       ],
@@ -8314,7 +8340,8 @@
       "reference_manifests": [
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/experiment_aggregation_provenance.json",
-        "tests/data/experiment_summary_provenance.json"
+        "tests/data/experiment_summary_provenance.json",
+        "tests/data/feature_hypothesis_provenance.json"
       ],
       "direct_topp_consumers": [
         "EICExtractor"
@@ -8497,6 +8524,7 @@
       ],
       "reference_manifests": [
         "tests/data/elution_peak_detection_provenance.json",
+        "tests/data/feature_hypothesis_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/mass_trace_provenance.json"
       ],
@@ -9133,10 +9161,24 @@
       "header": "src/openms/include/OpenMS/METADATA/ContactPerson.h",
       "sha256": "8dcfa5411fbaf5825d7b1edba68525eabed6e5db1a04c62e63f1e0dfd4f858da",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/experiment_support.rs"
+        ],
+        "tests": [
+          "tests/experiment_metadata.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+        "scope": "Complete ContactPerson class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experiment_support.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experiment_metadata_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -9233,20 +9275,48 @@
       "header": "src/openms/include/OpenMS/METADATA/Gradient.h",
       "sha256": "1b7597ef63c5efeb80ee1db1a3f5290326d430ef64dad54b344401e718ddd41a",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/experiment_support.rs"
+        ],
+        "tests": [
+          "tests/experiment_metadata.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+        "scope": "Complete Gradient class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experiment_support.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experiment_metadata_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/METADATA/HPLC.h",
       "sha256": "691460080d51458c44134e9b94b3f9626ec0dab0a1cfeee4de2538be60b6dce0",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/metadata/experiment_support.rs"
+        ],
+        "tests": [
+          "tests/experiment_metadata.rs"
+        ],
+        "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+        "scope": "Complete HPLC class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+      },
+      "candidate_rust_files": [
+        "src/metadata/experiment_support.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/experiment_metadata_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -9826,7 +9896,8 @@
         "src/kernel.rs"
       ],
       "reference_manifests": [
-        "SOURCE_PROVENANCE.json"
+        "SOURCE_PROVENANCE.json",
+        "tests/data/feature_hypothesis_provenance.json"
       ],
       "direct_topp_consumers": []
     },

@@ -350,7 +350,8 @@
         "src/format/mzml_paths.rs",
         "src/format/mzml_numpress.rs",
         "src/format/mzml_settings.rs",
-        "src/format/mzml_acquisition.rs"
+        "src/format/mzml_acquisition.rs",
+        "src/format/mzml_counts.rs"
       ],
       "tests": [
         "tests/mzml.rs",
@@ -362,10 +363,11 @@
         "tests/mzml_numpress.rs",
         "tests/mzml_settings.rs",
         "tests/mzml_acquisition_guards.rs",
-        "tests/mzml_acquisition.rs"
+        "tests/mzml_acquisition.rs",
+        "tests/mzml_counts.rs"
       ],
       "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. Ordered spectrum AcquisitionInfo, all4 combination methods, scalar list/scan metadata and9 typed acquisition CV fallbacks are transported; Canonical/Source read modes distinguish implicit default singleton normalization. Minimal source/instrument reference lookup validates IDs and preserves source lexical repairs without filesystem probing. Zoom precedes acquisition user parameters to repair source schema order. Chromatogram AcquisitionInfo, record SourceFile/DataProcessing and unrepresented instrument metadata remain guarded."
+      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, indexed writing and full experimental/acquisition transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent. Automatic reading supports all six Numpress CV terms, standalone codec plus zlib, source precision repair and shared codec bounds. Separate configured writer pre-encodes every array before output, with ordinary fallback, canonical-role preservation and cumulative work/storage checks. Full PeakFileOptions writer execution remains separate. Record settings transport now includes all14 scan modes, polarity/zoom, ordered scan windows and Product lists, nine chromatogram types plus source SRM alias, and source fileContent summaries. Inline/grouped new fields share bounded validation; typed scalar/window units reuse the Product codec. Ordered spectrum AcquisitionInfo, all4 combination methods, scalar list/scan metadata and9 typed acquisition CV fallbacks are transported; Canonical/Source read modes distinguish implicit default singleton normalization. Minimal source/instrument reference lookup validates IDs and preserves source lexical repairs without filesystem probing. Zoom precedes acquisition user parameters to repair source schema order. Chromatogram AcquisitionInfo, record SourceFile/DataProcessing and unrepresented instrument metadata remain guarded. Complete loadSize group now supplies four reader/path count APIs: source declared-list early return and filtered RT-event counts, bounded plain/gzip/bzip2 transport and explicit skip-chromatogram/binary-decoding corrections. ExperimentalSettings/header and consumer transforms remain open."
     },
     "src/openms/include/OpenMS/METADATA/Product.h": {
       "status": "partial",
@@ -817,16 +819,18 @@
       "status": "partial",
       "rust": [
         "src/chemistry/proforma.rs",
-        "src/chemistry/proforma_parser.rs"
+        "src/chemistry/proforma_parser.rs",
+        "src/chemistry/proforma_json.rs"
       ],
       "tests": [
         "tests/proforma.rs",
         "tests/proforma_writer_probe.rs",
         "tests/proforma_parser.rs",
-        "tests/proforma_parser_probe.rs"
+        "tests/proforma_parser_probe.rs",
+        "tests/proforma_json.rs"
       ],
       "documentation": "docs/PROFORMA_SUPPORT.md",
-      "scope": "Complete owned annotation AST and both lossless/canonical text writers, preserving source ordering, stream precision state and source omissions.160 compiled exact-source writer-extraction cases match native outputs. Structured parser errors, text parsing, JSON, modification resolution, AASequence conversion, masses/mz and ordinary/XLMS spectra remain unimplemented. Complete single-chain and ion text grammars and structured errors added;476 executed C++ parser/writer outcome comparisons. JSON, resolution/conversion, mass/mz and spectrum backends remain open."
+      "scope": "Complete owned annotation AST, both text grammars/writers and structured diagnostics; 160 executed exact-source writer cases and 476 parser/writer outcome comparisons. Optional proforma-json supplies all four public JSON wrappers and every reachable tagged schema, with source defaults/numeric conversion and explicit finite/ASCII/bounded native differences. Modification resolution, AASequence conversion, mass/mz and ordinary/XLMS spectrum groups remain open."
     },
     "src/openms/include/OpenMS/METADATA/ProteinIdentification.h": {
       "status": "partial",
@@ -862,6 +866,50 @@
       ],
       "documentation": "docs/ELUTION_PEAK_DETECTION_SUPPORT.md",
       "scope": "Complete class-specific six options, single/batch elution splitting, width filtering, smoothing, extrema and three noise/SNR helpers. Typed native options/limits/logger, deterministic serial order, existing QR projection and frame cap, checked finite boundaries and atomic scientific publication are documented adaptations."
+    },
+    "src/openms/include/OpenMS/METADATA/ContactPerson.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/experiment_support.rs"
+      ],
+      "tests": [
+        "tests/experiment_metadata.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+      "scope": "Complete ContactPerson class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+    },
+    "src/openms/include/OpenMS/METADATA/HPLC.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/experiment_support.rs"
+      ],
+      "tests": [
+        "tests/experiment_metadata.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+      "scope": "Complete HPLC class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+    },
+    "src/openms/include/OpenMS/METADATA/Gradient.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/metadata/experiment_support.rs"
+      ],
+      "tests": [
+        "tests/experiment_metadata.rs"
+      ],
+      "documentation": "docs/EXPERIMENT_METADATA_SUPPORT.md",
+      "scope": "Complete Gradient class-specific operations. Owned native fields/Clone/equality, literal name splitting, source stale gradient storage and explicit repair, bounded allocation and checked undefined-index behavior as documented. ExperimentalSettings aggregate/transport remains separate."
+    },
+    "src/openms/include/OpenMS/FEATUREFINDER/FeatureFindingMetabo.h": {
+      "status": "partial",
+      "rust": [
+        "src/analysis/feature_hypothesis.rs"
+      ],
+      "tests": [
+        "tests/feature_hypothesis.rs"
+      ],
+      "documentation": "docs/FEATURE_HYPOTHESIS_SUPPORT.md",
+      "scope": "Complete FeatureHypothesis public subgroup, comparison predicates and isotope mass-window record. Ordered borrowed traces, summaries, hulls and chromatograms retain source behavior with checked lifetimes, arithmetic and cumulative operation limits. Main FeatureFindingMetabo orchestration and isotope models remain under implementation; no end-to-end feature-finding or TOPP certification."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

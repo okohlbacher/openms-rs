@@ -1,0 +1,383 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "scope": [
+    "ContactPerson, HPLC and Gradient value/operation groups",
+    "Complete FeatureHypothesis subgroup, comparisons and isotope mass window",
+    "All four ProForma JSON wrappers and reachable tagged schema",
+    "mzML loadSize declared and filtered counting"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 218.59,
+      "log_sha256": "1403528398a1d6c3954fc3b71b9e2b5e3a964942325a7d022d0311ad9788a7e6",
+      "log_bytes": 188031,
+      "tests_passed": 1803
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.39,
+      "log_sha256": "787c24420c0f90c9855b12f6fdf846afcb8311fc0c08c51da96641c4fa7bc208",
+      "log_bytes": 705,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 23.15,
+      "log_sha256": "34beadf4ac57ac309331a18ec09838d089cee34a8c1e435150638d8de31aa798",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 32.96,
+      "log_sha256": "e46d1b1dee4a2cd16ff5de1661b55a1f4e93fe0031b7c6bf100e4e4034519b1f",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.8,
+      "log_sha256": "bbe5e3a038feb947c6123fb1e92e99caae99dd8328ec482b249ee9def5daf392",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.84,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.35,
+      "log_sha256": "ea44b520bf0d26b9740ee9172c958193411d4946222d21d4f2a73527dc99aca5",
+      "log_bytes": 233
+    },
+    {
+      "name": "monosaccharide_projection",
+      "command": [
+        "python3",
+        "tools/generate_monosaccharides.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9",
+      "log_bytes": 48
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.08,
+      "log_sha256": "fb470e931dc028ebde6043971e126c0c0ebb74323160371cccc816946392cdcc",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.11,
+      "log_sha256": "6c6e85bc8f2cebb86c2395ab2385844c501d4b0d4b69a48a9082d6ecce781600",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "mass_trace_detection",
+        "--test",
+        "elution_peak_detection",
+        "--test",
+        "run_mapping",
+        "--test",
+        "mass_trace",
+        "--test",
+        "area_iteration",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_writer_probe",
+        "--test",
+        "proforma_parser",
+        "--test",
+        "proforma_parser_probe",
+        "--test",
+        "protein_run",
+        "--test",
+        "identification",
+        "--test",
+        "experiment_metadata",
+        "--test",
+        "feature_hypothesis",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 13.71,
+      "log_sha256": "3588677a5b81c831286d013e95be3cc93ca035acf9d8040da24a343064b58459",
+      "log_bytes": 22638,
+      "tests_passed": 217
+    },
+    {
+      "name": "json_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "proforma-json,rna-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "ribonucleotides",
+        "--test",
+        "rna_reference",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 17.03,
+      "log_sha256": "72a918c14f7068045e98c0fc45b710ee1d9bcf396f87528f3e859ed29b047797",
+      "log_bytes": 13413,
+      "tests_passed": 122
+    },
+    {
+      "name": "counts_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--test",
+        "mzml_counts",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_acquisition",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 16.78,
+      "log_sha256": "667a48f0c60fcfd3b75ea72435b0ccd46db1b5315f682865fc734827babd6d37",
+      "log_bytes": 5716,
+      "tests_passed": 55
+    },
+    {
+      "name": "docs_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.05,
+      "log_sha256": "36274c47e8f856df794938be7f817af28415084a74b969c4944f9ab1d6683d73",
+      "log_bytes": 526,
+      "tests_passed": 4
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.57,
+      "log_sha256": "047791d193f5b7b078a3e2e696a07e8717680d2fe264dd30243dfc909c75105d",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_json_counts_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,proforma-json,rna-json",
+        "--lib",
+        "--test",
+        "proforma_json",
+        "--test",
+        "mzml_counts",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.42,
+      "log_sha256": "a4bb9d131e96a7b51fcfaf5de7a75d32c776b79f6a9b15952591c0de62bb3e4f",
+      "log_bytes": 602
+    }
+  ],
+  "new_tests": 57,
+  "staged_validation": {
+    "experiment_metadata": "Nine direct public tests and one retained-capacity private regression on both compiler versions; strict final lint in shared matrix.",
+    "feature_hypothesis": "12 direct +12 adjacent MassTrace +1 compile-fail lifetime doctest on each compiler, strict scoped lint.",
+    "proforma_json": "59 focused tests per compiler including12 public +4 private JSON tests,22 adjacent text tests and21 RNA regressions; feature-off build and strict scoped lint.",
+    "mzml_counts": "87 tests per compiler including19 count tests and68 adjacent mzML tests; strict scoped lint."
+  },
+  "reviews": [
+    "Independent source/API reviews for all four groups; no remaining reported findings.",
+    "Gradient uses geometric reservation and includes retained capacities in its allocation allowance; regression verifies rejection without value mutation.",
+    "JSON fixes preserve exponent signs when normalizing bare integer -0 and account for sparse map nodes before insertion; regressions cover both.",
+    "mzML count fixes preserve byte-split BOMs, ordered declarations, attribute lexical constraints and ASCII-only ISO-8859-1 input; source and independent boundary fixtures pass."
+  ],
+  "source_audit": {
+    "distinct_current_files": 1894,
+    "historical_references": 220,
+    "graph_references": 21,
+    "added_references": 601
+  },
+  "coverage": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "native_equivalent": 41,
+      "partial": 22,
+      "evidence_requires_review": 164,
+      "unmapped": 549
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "production_sha256": {
+    "src/metadata/experiment_support.rs": "3c93e68c159ae0adbfb988cf54e60aed27b39f5d8d539a8f68252438ce164040",
+    "src/analysis/feature_hypothesis.rs": "2242275372a685c7c3a5c1f8940c6991581a109160fe8585b59ccf033bd61a05",
+    "src/chemistry/proforma_json.rs": "748dcb24c8216c601af1eda40729f245f32f6df7e2964b506177a804b68022c5",
+    "src/format/mzml_counts.rs": "79c5c93c13f621a269d9e4323d542abb3915837d0c5051f01ac5389095f7d6be"
+  },
+  "limitations": [
+    "No new C++ execution is claimed for these four groups; prior executed parser/writer probes remain separate evidence.",
+    "Main FeatureFindingMetabo, ProForma scientific backends, complete ExperimentalSettings/header transport and mzML consumers remain outside this checkpoint.",
+    "ProForma JSON is independently optional; default features and dependency versions/lock remain unchanged.",
+    "SDK completeness and TOPP workflow certification remain outstanding."
+  ]
+}

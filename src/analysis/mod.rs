@@ -21,3 +21,5 @@ pub mod transformations;
 pub mod mass_trace_detection;
 
 pub mod elution_peak_detection;
+
+pub mod feature_hypothesis;

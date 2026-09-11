@@ -1,0 +1,6 @@
+case	spectra	chromatograms	source_lines
+default	4	2	243-244
+MS2	1	2	248-249
+MS2+MS1	4	2	253-254
+RT_5_to_5.25	2	2	259-260
+RT_5_to_5.25_MS1	1	2	264-265

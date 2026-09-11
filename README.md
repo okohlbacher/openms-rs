@@ -35,6 +35,15 @@ source grammars, with 476 executed C++ parser/output/error comparisons.
 export, singleton groups and metadata-only copying.
 [Run mapping](docs/RUN_MAPPING_SUPPORT.md) resolves identification results to
 ordered source-file paths, including merged runs and legacy path metadata.
+[Feature hypotheses](docs/FEATURE_HYPOTHESIS_SUPPORT.md) supply borrowed isotope groups,
+trace summaries, hulls and chromatogram exports. Optional [ProForma JSON](docs/PROFORMA_JSON_SUPPORT.md)
+preserves the complete annotation schema.
+
+[mzML count-only reading](docs/MZML_COUNTS_SUPPORT.md) supplies declared and filtered
+record counts without decoding peak arrays.
+
+[Contact and chromatography metadata](docs/EXPERIMENT_METADATA_SUPPORT.md) provide
+complete ContactPerson, HPLC and Gradient records and operations.
 
 | Area | Implemented |
 | --- | --- |
@@ -67,7 +76,7 @@ The [chromatogram picker](docs/CHROMATOGRAM_PICKING_SUPPORT.md) preserves source
 
 The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds and reports exact input regions alongside the source’s rounded centroid and boundary arrays. [Window filtering](docs/WINDOW_MOWER_SUPPORT.md) supports sliding and jumping windows; the [iterative mean noise estimator](docs/MEAN_NOISE_SUPPORT.md) preserves the source’s three-pass clipping conventions.
 
-IsoSpec layered traversal; ProForma JSON and scientific backends; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
+IsoSpec layered traversal; ProForma scientific backends; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
 
 The [mobility containers](docs/MOBILOGRAM_SUPPORT.md) provide checked mobilogram
 search, sorting, selection and summaries. Generic `DataArray` values now retain
@@ -91,6 +100,8 @@ The `mzml`, `idxml`, `paramxml`, `featurexml`, `consensusxml` and `rna-json` fea
 ```toml
 openms = { path = "/absolute/path/to/OpenMS4-R", default-features = false }
 ```
+
+Enable ProForma JSON independently with `default-features = false, features = ["proforma-json"]`.
 
 Enable featureXML or consensusXML independently with `default-features = false, features = ["featurexml"]` or `["consensusxml"]`. Enable only parameter XML with `default-features = false, features = ["paramxml"]`. Enable only idXML with `default-features = false, features = ["idxml"]` to use identification XML without the mzML codecs.
 
