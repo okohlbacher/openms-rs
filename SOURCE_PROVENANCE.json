@@ -513,7 +513,9 @@
     "tests/data/protein_run_provenance.json",
     "tests/data/mzml_acquisition_provenance.json",
     "tests/data/run_mapping_provenance.json",
-    "tests/data/elution_peak_detection_provenance.json"
+    "tests/data/elution_peak_detection_provenance.json",
+    "tests/data/proforma_parser_provenance.json",
+    "tests/data/proforma_parser_probe_provenance.json"
   ],
   "full_cpp_sdk_built": false,
   "cpp_reference_probe_built": true,

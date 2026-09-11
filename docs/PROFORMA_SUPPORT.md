@@ -2,10 +2,11 @@
 
 `chemistry::proforma` provides the complete owned annotation data model and both
 source text-serialization overloads from OpenMS4-core
-`82ce5b373c97f934ffd9b1ffd80215ca66473d0b`. It is an **AST and writer port**;
-the overall `ProForma` public header remains partially implemented.
+`82ce5b373c97f934ffd9b1ffd80215ca66473d0b`. Both source text grammars and
+structured errors are also available; see [text parser support](PROFORMA_PARSER_SUPPORT.md).
+The overall `ProForma` public header remains partially implemented.
 
-There is no text parser, JSON codec, modification resolver, AASequence conversion,
+There is no JSON codec, modification resolver, AASequence conversion,
 mass calculation, or spectrum generation API in this module yet. No placeholder
 functions stand in for those operations. Existing
 [AASequence](SEQUENCE_SUPPORT.md), [modification records](MODIFICATION_SUPPORT.md),
@@ -139,8 +140,8 @@ All failures leave input ownership/state unchanged and return no partial string.
 
 ## Remaining source operation groups
 
-The next groups are structured parse errors and both grammars; the complete
-private tagged JSON schema; modification resolution and AASequence conversion
+The remaining groups are the complete private tagged JSON schema; modification
+resolution and AASequence conversion
 with all policies/diagnostics; mass/m/z and all try/issue/can variants; ordinary
 and cross-linked spectrum generation. The latter needs a native
 `TheoreticalSpectrumGeneratorXLMS` backend, which is not supplied by the ordinary
@@ -165,8 +166,9 @@ variant, formatting state/rounding, all hints, charge extrema, owned custom
 chemistry, Unicode and resource/error boundaries.
 
 [The provenance manifest](../tests/data/proforma_provenance.json) records source
-hashes and distinguishes writer evidence from the unexecuted parser grammar
-fixtures. This annotation test suite does not execute the parser grammar fixtures.
+hashes for the original writer-only increment. Its historical grammar-fixture
+status is preserved; the later [parser manifest](../tests/data/proforma_parser_provenance.json)
+records the now-executed 176 positive and 22 negative grammar cases.
 
 A separate [compiled source-writer probe](../tests/data/proforma_writer_probe_provenance.json)
 extracts the exact public annotation declarations and complete private C++ writer
@@ -178,3 +180,8 @@ twenty exact f64 bit patterns, both modes and four formatting/chain scenarios.
 The cases include signed zeros, subnormals, extreme finite values and transitions
 between default, fixed-four and fixed-two precision. This is an extraction probe,
 not a full SDK build or complete parser-fixture parity.
+
+The [text parser extraction probe](../tests/data/proforma_parser_probe_provenance.json)
+adds 476 executed C++ outcome comparisons, including both text modes on accepted
+inputs and code/position/message on rejected inputs. Its exception adapter and
+scope are documented in [parser support](PROFORMA_PARSER_SUPPORT.md).

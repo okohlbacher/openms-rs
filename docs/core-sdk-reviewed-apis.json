@@ -816,14 +816,17 @@
     "src/openms/include/OpenMS/CHEMISTRY/ProForma.h": {
       "status": "partial",
       "rust": [
-        "src/chemistry/proforma.rs"
+        "src/chemistry/proforma.rs",
+        "src/chemistry/proforma_parser.rs"
       ],
       "tests": [
         "tests/proforma.rs",
-        "tests/proforma_writer_probe.rs"
+        "tests/proforma_writer_probe.rs",
+        "tests/proforma_parser.rs",
+        "tests/proforma_parser_probe.rs"
       ],
       "documentation": "docs/PROFORMA_SUPPORT.md",
-      "scope": "Complete owned annotation AST and both lossless/canonical text writers, preserving source ordering, stream precision state and source omissions.160 compiled exact-source writer-extraction cases match native outputs. Structured parser errors, text parsing, JSON, modification resolution, AASequence conversion, masses/mz and ordinary/XLMS spectra remain unimplemented."
+      "scope": "Complete owned annotation AST and both lossless/canonical text writers, preserving source ordering, stream precision state and source omissions.160 compiled exact-source writer-extraction cases match native outputs. Structured parser errors, text parsing, JSON, modification resolution, AASequence conversion, masses/mz and ordinary/XLMS spectra remain unimplemented. Complete single-chain and ion text grammars and structured errors added;476 executed C++ parser/writer outcome comparisons. JSON, resolution/conversion, mass/mz and spectrum backends remain open."
     },
     "src/openms/include/OpenMS/METADATA/ProteinIdentification.h": {
       "status": "partial",

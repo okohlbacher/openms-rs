@@ -1,0 +1,276 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "scope": [
+    "Complete ProForma single-chain/ion text parsing and structured errors",
+    "Executed exact-block C++ tokenizer/parser/writer comparison fixture"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 187.16,
+      "log_sha256": "fe986134a645cb227c2aa7d91a31909316ea7f7324a3017fb4c151cd4f2ba3ae",
+      "log_bytes": 182673,
+      "tests_passed": 1746
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.27,
+      "log_sha256": "3a2ef702b229ec0d9e5cebc386054aec63213d29da9bc345d3c2336ecb73dec1",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 19.7,
+      "log_sha256": "ed215a8f166e382fdd189155eab404f5229a1519f3d64f2b033d5b1804d43a2e",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 32.12,
+      "log_sha256": "09845ab41b84ae33a83cef019a217d89cae911a900cc869a6291f42edae98e0a",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.57,
+      "log_sha256": "8a86eb1423c526ae880b29bcdbba3155c447a7d679a76ea2cc43bbf4a9bab23f",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.77,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.37,
+      "log_sha256": "826a6b83fac2f17e93358749258082fbfd5aacaae473adc3e8455df124d5f7ff",
+      "log_bytes": 233
+    },
+    {
+      "name": "monosaccharide_projection",
+      "command": [
+        "python3",
+        "tools/generate_monosaccharides.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9",
+      "log_bytes": 48
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "cff256a8879326f216e7a88cf7ff903eca42b2caf963db1b41780fc95496eac2",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.09,
+      "log_sha256": "8fb7c0050b03ef803e8819d7a13002f014f5486222a6e1735d7415084264e70e",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "mass_trace_detection",
+        "--test",
+        "elution_peak_detection",
+        "--test",
+        "run_mapping",
+        "--test",
+        "mass_trace",
+        "--test",
+        "area_iteration",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_writer_probe",
+        "--test",
+        "proforma_parser",
+        "--test",
+        "proforma_parser_probe",
+        "--test",
+        "protein_run",
+        "--test",
+        "identification",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.53,
+      "log_sha256": "9c5926d048316dfaaad9b90f72f5c7d6e3cf3bc99a601965cfdc542821a04ec2",
+      "log_bytes": 20469,
+      "tests_passed": 195
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.22,
+      "log_sha256": "74f8713f2c4bd11bcbc503c09d7e30ad50ab09fb645e89b718fa66630fea23a8",
+      "log_bytes": 162
+    }
+  ],
+  "new_tests": 16,
+  "staged_validation": {
+    "current": "26 passing tests including15 new parser tests and11 existing writer tests",
+    "minimum": "Same26 passing tests with no default features; strict library/direct Clippy passed both compilers"
+  },
+  "cpp_probe": {
+    "cases": 476,
+    "inputs": 238,
+    "accepted": 382,
+    "rejected": 94,
+    "compiler": "Apple clang21.0.0 (clang-2100.1.1.101), arm64-apple-darwin25.5.0",
+    "provenance": "tests/data/proforma_parser_probe_provenance.json",
+    "adapter": "Only exception transport is replaced; records unmodified parser code/position/message, without executing original exception formatting or global-handler state.",
+    "full_sdk_build": false
+  },
+  "review": "Root independently read the complete source tokenizer, parser and error formatter against native production. No actionable finding; all numeric/Unicode/resource differences remain documented.",
+  "source_audit": {
+    "distinct_current_files": 1886,
+    "historical_references": 220,
+    "graph_references": 21,
+    "added_references": 556
+  },
+  "coverage": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "evidence_requires_review": 164,
+      "native_equivalent": 38,
+      "partial": 21,
+      "unmapped": 553
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "limitations": [
+    "JSON, resolution/conversion, mass/mz and spectrum methods remain separate unimplemented groups in this checkpoint.",
+    "Exact parser comparisons cover finite238-input fixture, not all-input equivalence or a full C++ SDK build.",
+    "Full Core SDK and TOPP parity remain incomplete."
+  ]
+}

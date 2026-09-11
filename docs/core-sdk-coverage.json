@@ -3167,17 +3167,22 @@
       "review": {
         "status": "partial",
         "rust": [
-          "src/chemistry/proforma.rs"
+          "src/chemistry/proforma.rs",
+          "src/chemistry/proforma_parser.rs"
         ],
         "tests": [
           "tests/proforma.rs",
-          "tests/proforma_writer_probe.rs"
+          "tests/proforma_writer_probe.rs",
+          "tests/proforma_parser.rs",
+          "tests/proforma_parser_probe.rs"
         ],
         "documentation": "docs/PROFORMA_SUPPORT.md",
-        "scope": "Complete owned annotation AST and both lossless/canonical text writers, preserving source ordering, stream precision state and source omissions.160 compiled exact-source writer-extraction cases match native outputs. Structured parser errors, text parsing, JSON, modification resolution, AASequence conversion, masses/mz and ordinary/XLMS spectra remain unimplemented."
+        "scope": "Complete owned annotation AST and both lossless/canonical text writers, preserving source ordering, stream precision state and source omissions.160 compiled exact-source writer-extraction cases match native outputs. Structured parser errors, text parsing, JSON, modification resolution, AASequence conversion, masses/mz and ordinary/XLMS spectra remain unimplemented. Complete single-chain and ion text grammars and structured errors added;476 executed C++ parser/writer outcome comparisons. JSON, resolution/conversion, mass/mz and spectrum backends remain open."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/proforma_parser_probe_provenance.json",
+        "tests/data/proforma_parser_provenance.json",
         "tests/data/proforma_provenance.json",
         "tests/data/proforma_writer_probe_provenance.json"
       ],
@@ -4703,6 +4708,7 @@
         "tests/data/list_utils_provenance.json",
         "tests/data/mass_decomposition_provenance.json",
         "tests/data/param_value_provenance.json",
+        "tests/data/proforma_parser_probe_provenance.json",
         "tests/data/protein_run_provenance.json",
         "tests/data/sdk_numeric_formatting_provenance.json",
         "tests/data/text_csv_provenance.json",

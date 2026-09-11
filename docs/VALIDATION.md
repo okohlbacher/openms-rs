@@ -1,5 +1,40 @@
 # Validation of the ongoing Rust port
 
+## ProForma text parsing and structured errors (2026-09-11)
+
+The complete source single-chain and ion grammars, all error codes and diagnostic
+operations are integrated against SDK 82ce 5b 3.
+[Recorded checks](proforma-parser-validation.json) retain commands, outcomes,
+log hashes, staged tests and the C++ extraction boundary.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,746 tests passed |
+| Doctests | Three passed |
+| Native unit and adjacent tests, Rust 1.85/no defaults | 195 passed |
+| Strict Clippy, all targets | Both compiler/feature configurations passed |
+| Release library, Rustdoc and Rustfmt | Passed; documentation warnings denied |
+| Source audit, projection, ledger and regression checks | Passed |
+
+The 16 new tests include all 198 upstream grammar cases, 62 source component calls,
+structured diagnostics and cumulative resource failures. A separately compiled
+[exact-source probe](../tests/data/proforma_parser_probe_provenance.json) runs 238
+inputs through both C++ grammars. All 476 comparisons match:382 accepted cases
+match both text modes, and 94 errors match code, byte position and original message.
+The probe includes unchanged AST/tokenizer/parser/writer and prefix-helper blocks;
+a capture-only exception adapter replaces SDK exception infrastructure. It does
+not execute source exception formatting or a full C++ SDK. Frozen outputs add
+no C++ dependency to native builds or CI.
+
+Source verification covers 1,886 distinct current files,220 historical references,
+21 graph references and 556 added references. ProForma remains a partial SDK header:
+JSON, resolution/conversion, mass/mz and spectrum methods are outstanding in this
+checkpoint. The ledger remains at 48 complete/native-equivalent headers and 738
+requiring implementation or review, with zero certified TOPP workflows.
+The [earlier detection/acquisition checkpoint](https://github.com/okohlbacher/openms-rs/actions/runs/34571964157)
+passed every CI job, including Linux, macOS, Windows and minimum Rust.
+
+
 ## Elution-peak detection and identification run mapping (2026-09-11)
 
 Both operation groups are integrated against SDK 82ce5b3.

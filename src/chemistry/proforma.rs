@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Owned ProForma annotation data and source text serialization.
+//! Owned ProForma annotation data, text parsing and source text serialization.
 //!
-//! This module implements the AST and both text writers from the pinned source.
-//! It does not yet parse text/JSON, resolve modifications, convert sequences or
-//! calculate masses/spectra. Serialization preserves source omissions and does
-//! not validate ProForma grammar. See `docs/PROFORMA_SUPPORT.md`.
+//! This module implements the annotation AST, both text grammars, structured
+//! errors and both text writers from the pinned source. It does not yet read
+//! JSON, resolve modifications, convert sequences or calculate masses/spectra.
+//! Serialization preserves source omissions and does not validate ProForma
+//! grammar. See `docs/PROFORMA_SUPPORT.md` and `docs/PROFORMA_PARSER_SUPPORT.md`.
 
 use super::ResidueModification;
 use crate::{Error, Result};
@@ -617,3 +618,11 @@ impl Writer {
         }
     }
 }
+
+#[path = "proforma_parser.rs"]
+mod parser;
+pub use parser::{
+    ErrorCode, MAX_PROFORMA_DIAGNOSTIC_BYTES, MAX_PROFORMA_PARSE_BYTES, MAX_PROFORMA_PARSE_DEPTH,
+    MAX_PROFORMA_PARSE_INPUT_BYTES, MAX_PROFORMA_PARSE_NODES, MAX_PROFORMA_PARSE_WORK, ParseError,
+    ParseFailure,
+};

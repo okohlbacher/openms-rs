@@ -1,0 +1,117 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ProFormaParser_test.cpp",
+      "sha256": "53b3b52b9490df9554f2373f229136a1fe1d66935fdcf2ac494f52ab33fc2696"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/ProFormaParser_positive_tests.txt",
+      "sha256": "fb7d9c4c44d333c2855f973df4b079cdb827a6408951c74ce5a2583ff4cd52f9"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/ProFormaParser_negative_tests.txt",
+      "sha256": "4dc0154caadc344747b3758273d1225d4c8c120d50f6f13f55ccaa7571b52077"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/proforma_parser_positive.txt",
+      "sha256": "fb7d9c4c44d333c2855f973df4b079cdb827a6408951c74ce5a2583ff4cd52f9",
+      "source_path": "src/tests/class_tests/openms/data/ProFormaParser_positive_tests.txt",
+      "case_count": 176
+    },
+    {
+      "path": "tests/data/proforma_parser_negative.txt",
+      "sha256": "4dc0154caadc344747b3758273d1225d4c8c120d50f6f13f55ccaa7571b52077",
+      "source_path": "src/tests/class_tests/openms/data/ProFormaParser_negative_tests.txt",
+      "case_count": 22
+    }
+  ],
+  "fixture_policy": "The two unchanged source text files retain their HUPO-PSI/ProForma origin, sync date and commit comments. Native tests execute all 176 positive lines using the source ion-dispatch heuristic and all 22 negative lines using source single-chain parse. All 62 inline source component calls are also preserved. No executed C++ parser differential test or full SDK build is claimed. The separate historical writer manifest/probe is unchanged.",
+  "upstream_grammar_origin": {
+    "repository": "https://github.com/HUPO-PSI/ProForma",
+    "path": "grammar/test.toml",
+    "recorded_commit": "1859bf10",
+    "recorded_commit_date": "2025-07-11",
+    "source_sync_date": "2026-01-13"
+  },
+  "implemented_scope": [
+    "Complete source single-chain text grammar on Peptidoform::parse.",
+    "Complete source ion/chimeric text grammar on PeptidoformIon::parse.",
+    "All 15 ErrorCode values and strings, owned ParseError context/getters/setter/formatting, separate checked resource failures."
+  ],
+  "remaining_scope": [
+    "Complete tagged JSON schema and codecs.",
+    "Modification resolution and AASequence conversion with policies/issues.",
+    "Mass/mz and try/issue/can variants.",
+    "Ordinary and XLMS spectrum operations."
+  ],
+  "source_ranges": {
+    "src/openms/source/CHEMISTRY/ProForma.cpp": {
+      "tokenizer": "40-260",
+      "structured_errors": "624-697",
+      "parser": "789-1554",
+      "public_parse_wrappers": "1562-1571"
+    },
+    "src/tests/class_tests/openms/source/ProFormaParser_test.cpp": {
+      "literal_parser_assertions": "117-1140",
+      "diagnostics": "1206-1299",
+      "grammar_file_dispatch": "2203-2322",
+      "component_calls": "2407-2528"
+    }
+  },
+  "native_tests": [
+    "tests/proforma_parser.rs",
+    "src/chemistry/proforma_parser.rs::tests"
+  ],
+  "case_counts": {
+    "positive_file": 176,
+    "negative_file_single_chain_only": 22,
+    "component_single_chain_success": 42,
+    "component_ion_success": 14,
+    "component_single_chain_failure": 3,
+    "component_ion_failure": 3,
+    "public_tests": 11,
+    "private_budget_tests": 4
+  },
+  "native_differences": [
+    "Owned Rust values and byte-window diagnostics replace source references/exceptions; no ABI or global exception handler emulation.",
+    "Input/work/nodes/cumulative capacity/nesting limits return Resource and publish no partial AST.",
+    "i32 integer/sign overflow and nonfinite numeric results are checked.",
+    "Finite representable f64 subnormals retained; nonzero decimal rounding to zero rejected, unlike platform-dependent std::stod ERANGE behavior.",
+    "Locale-independent ASCII token and residue classification plus decimal conversion.",
+    "Invalid UTF-8 is rejected only when an individually published source token field cannot be represented as String; intact Unicode assembled fields are retained.",
+    "Standalone diagnostic position is clamped to input byte length and combined message/expected/found is bounded; mutation is atomic."
+  ],
+  "preserved_source_quirks": [
+    "No whitespace skipping, biochemical residue lookup, formula/glycan resolution or cross-link partner validation.",
+    "Repeated chain names join with space/slash/space; ion name unused.",
+    "Mixed separators and contextual chain versus ion charge placement.",
+    "Integer decimal-prefix conversion and separate-sign double negatives.",
+    "Empty ambiguous sections (but not empty modified ranges), empty/trailing-comma global locations, separate unlocalised entries.",
+    "Actual unexpected-character diagnostics retained instead of illustrative header codes; expected/found remain empty during parsing.",
+    "Adduct writer aggregate-charge suffix is not consumed by parsing.",
+    "Numeric CV accession token spelling is retained without integral conversion."
+  ],
+  "limits": {
+    "input_bytes": 4194304,
+    "appended_collection_items": 1000000,
+    "shared_work": 50000000,
+    "cumulative_requested_capacity_bytes": 268435456,
+    "nesting_depth": 256,
+    "combined_diagnostic_text_bytes": 65536,
+    "policy": "Shared ledger across chains, lookahead scans and diagnostics. Cumulative requested buffer capacity is a logical conservative estimate, not exact allocator memory. Source limits did not exist."
+  },
+  "support_document": "docs/PROFORMA_PARSER_SUPPORT.md",
+  "licensing": "Source-derived code retains OpenMS copyright/BSD-3-Clause notices; copied grammar fixtures retain original source origin comments. Historical writer provenance is preserved."
+}

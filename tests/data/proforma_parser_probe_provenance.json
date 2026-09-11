@@ -1,0 +1,82 @@
+{
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/ProForma.h",
+      "sha256": "678120cda2531cb3e34f076bad78209a035b1e64422df00fe286f1b52b250b56"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/ProForma.cpp",
+      "sha256": "9d625b063aa8c52c3be022d95343eb7d0f037fbad7ce045a3c94b0b9552a891c"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+    }
+  ],
+  "blocks": {
+    "ast": "44ddf5bdbe0d1edeb8ba032d3ee9ffa5e1e79cc0d5fa833bb8026c528c12a206",
+    "tokenizer": "074034e93033c976fa66136730d9ca1e925c8098c8dc3910e161b83f303f1cee",
+    "writer": "d05c98e0643eb025950dbf9c5f6b636d5d5ce2f4d3b0c5d975a4d9af9b870296",
+    "parser": "7ce7931ada33916f3e229c12006c534e59fc47e5d82746888e423399639979e9",
+    "prefix_helper": "d6067ca87075e66378910b862c7ceaa29317d60936576432c277ba06dfaf2e39"
+  },
+  "translation_unit_sha256": "cc0cb2c2285de3adbe95ba84d290219ea272324e649db6adb9bb4f33d991b7a1",
+  "method": "Exact contiguous AST, tokenizer, parser, writer and StringUtils::hasPrefix blocks; standard includes/macros/enclosures plus capture-only ParseError adapter and test harness. No full SDK, exception formatting, JSON, resolution or scientific backend execution.",
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "cpp_execution": true,
+  "compiler": [
+    "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "Target: arm64-apple-darwin25.5.0"
+  ],
+  "compile_command": [
+    "clang++",
+    "-std=c++17",
+    "-O2",
+    "/tmp/openms-proforma-parser-probe.cpp",
+    "-o",
+    "/tmp/openms-proforma-parser-probe"
+  ],
+  "native_test": "tests/proforma_parser_probe.rs",
+  "cases": 476,
+  "accepted_cases": 382,
+  "error_cases": 94,
+  "input_policy": "First198 inputs are all noncomment/nonempty positive then negative upstream grammar lines unchanged, followed by40 independent named/Unicode/charge/numeric/CV/annotation branch cases (including empty input). Every input goes through both source grammars; expected results come only from the executed C++ probe.",
+  "assertions": [
+    "Both successful lossless and canonical source writer bytes",
+    "Rejected syntax error code, byte position and original message transported unchanged from parser throw site"
+  ],
+  "limitations": [
+    "Capture-only exception adapter replaces SDK exception infrastructure; no original exception formatting/global-handler behavior is executed.",
+    "This probes exact tokenizer/parser/AST/writer blocks and exact hasPrefix helper, not a full C++ SDK or chemistry resolution/mass/spectra/JSON backends.",
+    "Documented native Unicode field/decimal-underflow/overflow/resource boundaries remain separate; this finite fixture does not establish all-input parity."
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/proforma_parser_probe.cpp",
+      "sha256": "12ea86425373cae0d4bd4c27149b6927595e5ba938e4b93012fc634fac8c13e3"
+    },
+    {
+      "path": "tests/data/proforma_parser_probe_inputs.txt",
+      "sha256": "81ec632d41c6b4cf44bf2281722da78521d393f8e01a40ec52c673070648711f"
+    },
+    {
+      "path": "tests/data/proforma_parser_reference.tsv",
+      "sha256": "6ebde403bacecb61d770507ca927a22ed973576e94a1aa2568f5cff799b0361b"
+    },
+    {
+      "path": "tools/generate_proforma_parser_probe.py",
+      "sha256": "ff105395cc9f86caabb3ad2c767e28809806425015c2fceb3dbd718bd498e193"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/proforma_parser_positive.txt",
+      "sha256": "fb7d9c4c44d333c2855f973df4b079cdb827a6408951c74ce5a2583ff4cd52f9"
+    },
+    {
+      "path": "tests/data/proforma_parser_negative.txt",
+      "sha256": "4dc0154caadc344747b3758273d1225d4c8c120d50f6f13f55ccaa7571b52077"
+    }
+  ]
+}
