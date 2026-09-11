@@ -330,7 +330,7 @@
         "tests/experiment_summary.rs"
       ],
       "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-      "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata, binned TIC and remaining specialized operations still require implementation/review. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain."
+      "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata and remaining specialized operations still require implementation/review. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain."
     },
     "src/openms/include/OpenMS/FORMAT/MzMLFile.h": {
       "status": "partial",
@@ -338,16 +338,19 @@
         "src/format/mzml.rs",
         "src/format/mzml_precursor.rs",
         "src/format/indexed_mzml.rs",
-        "src/format/mzml_load.rs"
+        "src/format/mzml_load.rs",
+        "src/format/mzml_paths.rs"
       ],
       "tests": [
         "tests/mzml.rs",
         "tests/mzml_product.rs",
         "tests/indexed_mzml.rs",
-        "tests/mzml_load_options.rs"
+        "tests/mzml_load_options.rs",
+        "tests/mzml_paths.rs",
+        "tests/data_array_xml.rs"
       ],
       "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
+      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain. Native filesystem load/store and atomic owned replacement now expose scientific settings, decoded limits and gzip/bzip2 magic input; loaded-file bookkeeping and ZIP remain absent."
     },
     "src/openms/include/OpenMS/METADATA/Product.h": {
       "status": "partial",
@@ -438,6 +441,67 @@
       ],
       "documentation": "docs/MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md",
       "scope": "Complete scientific getDecompositions operation and five settings through owned typed configuration, atomic reconfiguration and append. Native private integer residue tables, GCD/rounding and real-mass filtering retain source order, exclusive upper bound and documented finite infinity-sentinel limitation. Checked numeric/resource boundaries replace unsafe states. Inherited C++ DefaultParamHandler APIs and standalone public IMS utility classes are separate."
+    },
+    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/chemistry/ims_weights.rs"
+      ],
+      "tests": [
+        "tests/ims_weights.rs"
+      ],
+      "documentation": "docs/IMS_WEIGHTS_SUPPORT.md",
+      "scope": "Complete standalone mass/weight scaling, access, copy, pair swap, parent mass, literal GCD return/scaling, rounding errors and text surface. Native fixed u64, explicit unset default precision, finite representable signed/zero behavior and checked atomic boundaries; standalone other IMS APIs remain separately tracked."
+    },
+    "src/openms/include/OpenMS/KERNEL/MobilityPeak1D.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/kernel/mobilogram.rs"
+      ],
+      "tests": [
+        "tests/mobilogram.rs"
+      ],
+      "documentation": "docs/MOBILOGRAM_SUPPORT.md",
+      "scope": "All value fields, construction/copy/equality, scalar comparisons, display and signed-zero-normalized native hash. Public fields/standard traits replace mechanical source accessors and comparator overloads; no cross-language hash or stream-state identity."
+    },
+    "src/openms/include/OpenMS/KERNEL/Mobilogram.h": {
+      "status": "partial",
+      "rust": [
+        "src/kernel/mobilogram.rs",
+        "src/kernel/data_array.rs"
+      ],
+      "tests": [
+        "tests/mobilogram.rs",
+        "tests/data_array_descriptions.rs"
+      ],
+      "documentation": "docs/MOBILOGRAM_SUPPORT.md",
+      "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain."
+    },
+    "src/openms/include/OpenMS/METADATA/DataArrays.h": {
+      "status": "partial",
+      "rust": [
+        "src/kernel.rs",
+        "src/kernel/data_array.rs"
+      ],
+      "tests": [
+        "tests/data_array_descriptions.rs",
+        "tests/data_array_xml.rs"
+      ],
+      "documentation": "docs/MOBILOGRAM_SUPPORT.md",
+      "scope": "Generic array names, owned metadata and shared processing descriptions are represented and preserved during existing processing; XML projections reject unsupported descriptions. Independent standalone MetaInfoDescription API, source ordering/comparison operators and format transport remain under review."
+    },
+    "src/openms/include/OpenMS/METADATA/MetaInfoDescription.h": {
+      "status": "partial",
+      "rust": [
+        "src/kernel.rs",
+        "src/kernel/data_array.rs"
+      ],
+      "tests": [
+        "tests/data_array_descriptions.rs",
+        "tests/data_array_xml.rs"
+      ],
+      "documentation": "docs/MOBILOGRAM_SUPPORT.md",
+      "scope": "Generic array names, owned metadata and shared processing descriptions are represented and preserved during existing processing; XML projections reject unsupported descriptions. Independent standalone MetaInfoDescription API, source ordering/comparison operators and format transport remain under review."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_54A232F_REVIEW.md"

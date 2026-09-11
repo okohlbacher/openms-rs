@@ -1,0 +1,304 @@
+{
+  "target_sdk_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "platform": "macOS ARM64",
+  "current_rust": "1.98.0",
+  "minimum_rust": "1.85.0",
+  "scope": "Mobilogram and mobility peak values, generic DataArray metadata/processing descriptions and preservation/serialization guards, standalone IMSWeights, and native mzML filesystem APIs.",
+  "checks": [
+    {
+      "name": "full_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 764.28,
+      "log_sha256": "240bd005035e785801344db93a394f24af5c2dc0f74019b7f290398f49afd83a",
+      "log_bytes": 147854,
+      "tests_passed": 1466
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 71.09,
+      "log_sha256": "29c7dbe93cf1e7a0ba590173badde2cbe2861f38ad4aaa92aeeedf0c00cf94e5",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 162.12,
+      "log_sha256": "297555686c63db8556076b0bfeb8dc4105b94603d4e6aa8cead642fb7381f1d5",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 148.32,
+      "log_sha256": "bad6b188fa64a04aceef5dffd5be5c2b9e215ae11556b62790a636c1996587d4",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 29.21,
+      "log_sha256": "c8f03bf87be323c7561f4be0b7e40d0a461abe9fa2164faf127e5044869f9fe4",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.7,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-54a232f"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.33,
+      "log_sha256": "51d5bd895d29d513dc6407c2207f50f0f7e37cc23a8ccf875c0b35a4b7397f6b",
+      "log_bytes": 233
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "8ea5b6d83e475b0efe3459ab5253c277eb44e87c623f244dadb85cd52fb1a9ba",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "b0efba1f37a079d5e5943aa8ae5e5d29bd83526fefeacd379e84a0f79c8cbce5",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "mobilogram",
+        "--test",
+        "data_array_descriptions",
+        "--test",
+        "ims_weights",
+        "--test",
+        "experiment_summary",
+        "--test",
+        "deisotoping",
+        "--test",
+        "peak_picking",
+        "--test",
+        "spectrum_annotator",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 16.43,
+      "log_sha256": "c8550f6b4230f2f28b22b17bf4425f2241c38d2428a7afac504a02877396e8a3",
+      "log_bytes": 14546,
+      "tests_passed": 137
+    },
+    {
+      "name": "xml_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,idxml,featurexml,consensusxml",
+        "--test",
+        "data_array_xml",
+        "--test",
+        "mzml_paths",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "idxml",
+        "--test",
+        "featurexml",
+        "--test",
+        "consensusxml",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 17.96,
+      "log_sha256": "38ecb1ace886747512cde3683f545086f8458c41e8f4c0512f91c5fbc2020dcd",
+      "log_bytes": 6988,
+      "tests_passed": 72
+    },
+    {
+      "name": "xml_strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml,idxml,featurexml,consensusxml",
+        "--test",
+        "data_array_xml",
+        "--test",
+        "mzml_paths",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "idxml",
+        "--test",
+        "featurexml",
+        "--test",
+        "consensusxml",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 5.57,
+      "log_sha256": "c9e896b4eb3f641cab15b3c70b051525327ea1f6629f745c82bf1a6283d6ac68",
+      "log_bytes": 161
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 3.2,
+      "log_sha256": "88daeedb63016fcad3e1e0a8f3a4dff2302701de014230bb0d4b687c5d15054b",
+      "log_bytes": 320
+    }
+  ],
+  "test_count_policy": "The full current suite has 1466 tests plus 3 documentation examples. Focused minimum suites (137 native, 72 XML) overlap and are not added to that count.",
+  "preceding_published_ci": [
+    {
+      "commit": "6a823261b8eb5d11414676dd939c847397221c67",
+      "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34564499936",
+      "conclusion": "success",
+      "jobs": [
+        "quality",
+        "minimum-rust",
+        "test (ubuntu-latest)",
+        "test (macos-latest)",
+        "test (windows-latest)"
+      ]
+    }
+  ],
+  "full_cpp_sdk_built": false,
+  "cpp_runtime_differential_tests_for_this_increment": false,
+  "validated_topp_workflows": 0,
+  "completion": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "evidence_requires_review": 172,
+      "native_equivalent": 15,
+      "partial": 15,
+      "unmapped": 574
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  }
+}

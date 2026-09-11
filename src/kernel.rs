@@ -16,9 +16,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
+mod data_array;
 mod experiment_aggregation;
 mod experiment_summary;
+mod mobilogram;
 pub use experiment_summary::SummaryLimits;
+pub use mobilogram::{MobilityPeak1D, Mobilogram, MobilogramLimits, MobilogramRanges};
 pub mod features;
 pub mod geometry;
 pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};
@@ -139,6 +142,10 @@ impl Precursor {
 pub struct DataArray<T> {
     pub name: String,
     pub data: Vec<T>,
+    /// Source MetaInfoDescription payload, independent of the array name.
+    pub metadata: crate::metadata::MetaInfo,
+    /// Shared processing descriptions, matching the source shared handles.
+    pub data_processing: Vec<std::sync::Arc<crate::metadata::DataProcessing>>,
 }
 
 impl<T> DataArray<T> {
@@ -146,6 +153,8 @@ impl<T> DataArray<T> {
         Self {
             name: name.into(),
             data,
+            metadata: Default::default(),
+            data_processing: Vec::new(),
         }
     }
 }
@@ -368,6 +377,49 @@ macro_rules! peak_container {
                 array_sizes(&self.string_data_arrays, self.len())
             }
 
+            /// Charge complete array descriptions before copying or dropping
+            /// them; values are accounted separately by the consuming algorithm.
+            pub(crate) fn array_descriptions_with_budget(
+                &self,
+                work: &mut usize,
+                bytes: &mut usize,
+            ) -> Result<()> {
+                let count = self
+                    .float_data_arrays
+                    .len()
+                    .checked_add(self.integer_data_arrays.len())
+                    .and_then(|n| n.checked_add(self.string_data_arrays.len()))
+                    .ok_or_else(|| Error::InvalidValue("array count overflow".into()))?;
+                *work = work.checked_sub(count).ok_or_else(|| {
+                    Error::InvalidValue("data array description work limit exceeded".into())
+                })?;
+                for array in &self.float_data_arrays {
+                    array.description_with_budget(work, bytes)?;
+                }
+                for array in &self.integer_data_arrays {
+                    array.description_with_budget(work, bytes)?;
+                }
+                for array in &self.string_data_arrays {
+                    array.description_with_budget(work, bytes)?;
+                }
+                Ok(())
+            }
+
+            fn validate_array_descriptions(&self) -> Result<()> {
+                let (mut work, mut bytes) = (50_000_000, 256 * 1024 * 1024);
+                self.array_descriptions_with_budget(&mut work, &mut bytes)?;
+                for array in &self.float_data_arrays {
+                    array.validate_description()?;
+                }
+                for array in &self.integer_data_arrays {
+                    array.validate_description()?;
+                }
+                for array in &self.string_data_arrays {
+                    array.validate_description()?;
+                }
+                Ok(())
+            }
+
             /// True when finite coordinates are in nondecreasing order.
             pub fn is_sorted(&self) -> bool {
                 check_sorted(&self.peaks, |peak| peak.$position).is_ok()
@@ -489,7 +541,8 @@ impl MSSpectrum {
         for identification in &self.peptide_identifications {
             identification.validate()?;
         }
-        self.validate_data_arrays()
+        self.validate_data_arrays()?;
+        self.validate_array_descriptions()
     }
 
     /// Inclusive bounds, recomputed from current peaks.
@@ -585,7 +638,8 @@ impl MSChromatogram {
         }
         self.precursor.validate()?;
         self.product.validate()?;
-        self.validate_data_arrays()
+        self.validate_data_arrays()?;
+        self.validate_array_descriptions()
     }
 
     pub fn ranges(&self) -> Result<ChromatogramRanges> {

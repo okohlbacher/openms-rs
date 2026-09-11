@@ -1,0 +1,11 @@
+# Array description metadata at XML boundaries
+
+Native `DataArray<T>` now retains its source `MetaInfoDescription` metadata and shared `DataProcessing` descriptions separately from its name and values. The current XML adapters do not yet encode those two description fields. Their writers therefore reject any nonempty description metadata or processing vector before emitting bytes or flushing output.
+
+The check applies to float, integer and string arrays on spectra/chromatograms in mzML and to both protein-group families in the shared identification XML preflight. Empty arrays, all-zero source count arrays, and empty `DataProcessing` objects held in a nonempty processing vector still carry description state and are rejected. This prevents the consensus quantity projection's empty/zero-array omission rules from losing newly represented descriptions. Shared preflight occurs before dialect metadata is cloned or XML nodes are built. No description payload is traversed or cloned to decide rejection: `has_description_metadata` checks only container emptiness, after the existing shared array-slot precharge.
+
+The mzML scientific loading increment's canonical-array naming, aligned selection and unsupported array-description input behavior are unchanged. These guards do not claim new XML support for array userParams, units or processing references. Existing name/value-only array round trips remain supported. idXML retains its prior quantity-array limitation as well. FeatureXML rejects all structured protein groups in an earlier preflight, so that stronger existing guard prevents array description loss before shared identification measurement.
+
+[The four transport regressions](../tests/data_array_xml.rs) exercise 24 mzML combinations and 12 consensus combinations, plus all three array types in idXML and FeatureXML. They check metadata and shared processing handles, empty and zero arrays, no output/flush, and unchanged input. This is a native safety regression for the new fields, not a new source numerical oracle. Source `MetaInfoDescription` and XML quantity conventions are covered by the broader Mobilogram/DataArray and XML provenance manifests.
+
+[Source provenance](../tests/data/data_array_xml_provenance.json) records the pinned description and dialect implementations.

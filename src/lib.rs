@@ -35,7 +35,10 @@ pub mod metadata;
 pub mod processing;
 
 pub use error::{Error, Result};
-pub use kernel::{ChromatogramPeak, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor};
+pub use kernel::{
+    ChromatogramPeak, MSChromatogram, MSExperiment, MSSpectrum, MobilityPeak1D, Mobilogram,
+    MobilogramLimits, MobilogramRanges, Peak1D, Precursor,
+};
 
 /// Version of the upstream scientific SDK targeted by this native Rust port.
 /// This is distinct from the Rust crate version and does not imply full API parity.

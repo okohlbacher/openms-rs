@@ -10,7 +10,8 @@ use crate::{Error, Result};
 use std::{cmp::Ordering, mem::size_of};
 
 /// Shared limits for one summary, TIC generation, sorting or array-clearing call.
-/// Bytes bound cumulative temporary vector allocations, not the borrowed input.
+/// Bytes bound cumulative temporary vectors and array-description payload
+/// visited before destruction; ordinary borrowed peak inputs are not charged.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SummaryLimits {
     pub max_work: usize,
@@ -316,6 +317,7 @@ impl MSExperiment {
         work.consume(self.spectra.len())?;
         let mut present = false;
         for spectrum in &self.spectra {
+            spectrum.array_descriptions_with_budget(&mut work.remaining, &mut work.bytes)?;
             let arrays = add(
                 add(
                     spectrum.float_data_arrays.len(),

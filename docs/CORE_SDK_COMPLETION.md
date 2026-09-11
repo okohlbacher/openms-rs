@@ -8,9 +8,9 @@ This is a work inventory, not a completion percentage. Matching declarations and
 | --- | ---: |
 | complete | 10 |
 | evidence_requires_review | 172 |
-| native_equivalent | 13 |
-| partial | 12 |
-| unmapped | 579 |
+| native_equivalent | 15 |
+| partial | 15 |
+| unmapped | 574 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -49,7 +49,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/FORMAT/MzTab.h` | 7 | unmapped |
 | `OpenMS/FORMAT/PepXMLFile.h` | 7 | unmapped |
 | `OpenMS/FORMAT/SVOutStream.h` | 7 | unmapped |
-| `OpenMS/IONMOBILITY/IMTypes.h` | 7 | unmapped |
+| `OpenMS/IONMOBILITY/IMTypes.h` | 7 | evidence_requires_review |
 | `OpenMS/METADATA/ExperimentalDesign.h` | 7 | unmapped |
 | `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 6 | unmapped |
 | `OpenMS/CHEMISTRY/ProteaseDigestion.h` | 6 | evidence_requires_review |

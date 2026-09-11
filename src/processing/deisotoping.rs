@@ -231,18 +231,21 @@ impl Deisotoper {
             output.integer_data_arrays.push(DataArray {
                 name: "charge".into(),
                 data: charges,
+                ..DataArray::default()
             });
         }
         if self.annotate_isotope_peak_count {
             output.integer_data_arrays.push(DataArray {
                 name: "iso_peak_count".into(),
                 data: counts,
+                ..DataArray::default()
             });
         }
         if self.annotate_features {
             output.integer_data_arrays.push(DataArray {
                 name: "feature_number".into(),
                 data: features,
+                ..DataArray::default()
             });
         }
         output.select(&keep)?;
@@ -572,18 +575,21 @@ impl AveragineDeisotoper {
             output.integer_data_arrays.push(DataArray {
                 name: "charge".into(),
                 data: charges,
+                ..DataArray::default()
             });
         }
         if self.annotate_isotope_peak_count {
             output.integer_data_arrays.push(DataArray {
                 name: "iso_peak_count".into(),
                 data: counts,
+                ..DataArray::default()
             });
         }
         if self.annotate_features {
             output.integer_data_arrays.push(DataArray {
                 name: "feature_number".into(),
                 data: features,
+                ..DataArray::default()
             });
         }
         output.select(&keep)?;

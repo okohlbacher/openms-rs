@@ -1,0 +1,32 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/METADATA/MetaInfoDescription.h",
+      "sha256": "b8831aa51cbf4036b2ec9a90af97f0089aa6afc613dbcfa80acfe4676f2ac3d6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/DataProcessing.h",
+      "sha256": "7fcc9f2913cf1356a486675a4ba9afff617037d85d40cf6a508e9b99e36438ce"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/ConsensusXMLHandler.cpp",
+      "sha256": "644fc07a41fb609c1672c8eb0edac89c040a778f5c3ea68cc18a01c106771c7a"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/FeatureXMLHandler.cpp",
+      "sha256": "1430b1286eeaf0f8c40f8ddd882d6f680e3932149ed743fb6e0f7dbc909e58fc"
+    },
+    {
+      "path": "src/openms/source/FORMAT/IdXMLFile.cpp",
+      "sha256": "b35a05d23918caf56ff752b9b32b36a84a132cbe0d08713be3b41cee7adfdaab"
+    }
+  ],
+  "tests": "tests/data_array_xml.rs",
+  "basis": "Native transport-safety regressions for newly owned source MetaInfoDescription and shared DataProcessing fields; no new source numerical literals or C++ execution.",
+  "checked_boundary": "Current array XML codecs encode names/values, so nonempty description metadata and processing handles error before output. idXML/consensusXML group arrays are checked in shared preflight before cloning/quantity omission; FeatureXML rejects all structured groups in an earlier preflight."
+}

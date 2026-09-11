@@ -76,6 +76,7 @@ impl SpectrumAnnotator {
         let matched = match_spectrum(&spectrum.peaks, hit, generator, alignment, &mut work)?;
         let staged = matched.into_annotations(&mut work)?;
         let updates = tolerance_metadata(alignment)?;
+        spectrum.array_descriptions_with_budget(&mut work.remaining, &mut work.bytes)?;
         commit_spectrum(spectrum, staged, updates);
         Ok(())
     }
@@ -200,6 +201,7 @@ impl SpectrumAnnotator {
         }
         let updates = tolerance_metadata(alignment)?;
         let tolerance = MetaValue::try_from(raw_tolerance(alignment))?;
+        spectrum.array_descriptions_with_budget(&mut work.remaining, &mut work.bytes)?;
         // No fallible scientific operation remains once mutations start.
         for (hit, updates) in identification.hits.iter_mut().zip(hit_updates) {
             hit.metadata.extend(updates);

@@ -103,3 +103,8 @@ PeakFileOptions ranges, levels and selected-ion filters, aligned point selection
 and sorting. Canonical binary-array roles preserve all 26 pinned non-primary
 accession/name identities subject to documented native representation limits.
 Existing plain read entry points retain their order and validation behavior.
+
+Direct [mzML filesystem operations](MZML_PATH_SUPPORT.md) accept scientific load
+settings and provide atomic replacement/output. Array description metadata and
+shared processing handles are retained natively but rejected by current XML
+writers; [details](DATA_ARRAY_XML_SUPPORT.md).

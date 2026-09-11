@@ -4,6 +4,24 @@ The target is a feature-complete reduced Core SDK suitable for porting TOPP tool
 
 The current target is SDK 4.0.0 at `54a232f`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
 
+## Mobility containers, array descriptions and path operations
+
+[MobilityPeak1D/Mobilogram](MOBILOGRAM_SUPPORT.md) now represent the source
+value and scientific container operations, with current ranges and explicit
+source partial-swap/equality behavior. Inherited generic range algebra and
+mobility-bearing experiment operations remain. Generic arrays retain owned
+metadata and shared processing handles; the existing constructor is unchanged,
+and struct literals require defaults for the two new fields. Native processing
+preserves retained descriptions. [XML guards](DATA_ARRAY_XML_SUPPORT.md) prevent
+loss at transports that cannot encode them.
+
+[IMSWeights](IMS_WEIGHTS_SUPPORT.md) implements the complete standalone weight
+utility, including source GCD and floating-rounding behavior. The
+[mzML filesystem API](MZML_PATH_SUPPORT.md) applies scientific load settings,
+magic-based compression detection and atomic replacement/publication.
+Standalone IMS isotope/alphabet/decomposer APIs and full mzML metadata, codecs,
+consumers and loaded-file bookkeeping remain separately tracked.
+
 ## Capability mapping
 
 | C++ source area | Rust surface | Status and boundaries |
@@ -87,7 +105,7 @@ Native API:
 
 - Rust owns values; exceptions become errors, output arguments become return values, parameters become typed configuration, and names use snake_case. There is no C++ ABI or source compatibility.
 - Empty searches return `None`. Invalid indices, duplicate selection indices, inconsistent annotation arrays, nonfinite inputs and unsorted data for sorted-search APIs produce errors. Search validation is O(n), followed by binary lookup; repeated-query optimized sorted views are future work.
-- Peak-position and intensity sorts preserve equal-value input order. No cached range invalidation is required because ranges are recomputed. Feature and consensus containers include legacy peptide/protein identification records. The separate `IdentificationData` sequence/provenance graph has stable owned references and checked atomic updates; observations, compounds, observation matches/groups, parent groups, referential cleanup and the sequence/evidence conversion bridge are implemented. Graph persistence and full legacy conversion remain unported. General ion-mobility operations, on-disk experiments and RT-binned TIC also remain unported.
+- Peak-position and intensity sorts preserve equal-value input order. No cached range invalidation is required because ranges are recomputed. Feature and consensus containers include legacy peptide/protein identification records. The separate `IdentificationData` sequence/provenance graph has stable owned references and checked atomic updates; observations, compounds, observation matches/groups, parent groups, referential cleanup and the sequence/evidence conversion bridge are implemented. Graph persistence and full legacy conversion remain unported. General ion-mobility operations and on-disk experiments remain unported; RT-binned TIC is available through the experiment summary API.
 - Infallible low-level numerical summaries such as TIC assume valid peak data; call `validate` after direct public-field edits. TIC retains f32 behavior, including possible overflow for extreme inputs.
 - Hulls preserve the source's scan-interval semantics, including its exact-interior-scan containment fallback. Outline-only hulls cannot answer containment queries. Checked feature-map operations reject ambiguous assigned IDs and subordinate trees deeper than 128; see [feature support](FEATURE_SUPPORT.md).
 

@@ -1,0 +1,50 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
+      "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+      "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
+    },
+    {
+      "path": "src/openms/source/FORMAT/XMLFile.cpp",
+      "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
+    },
+    {
+      "path": "src/openms/source/FORMAT/FileHandler.cpp",
+      "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+    }
+  ],
+  "native_files": [
+    "src/format/mzml_paths.rs",
+    "tests/mzml_paths.rs",
+    "docs/MZML_PATH_SUPPORT.md"
+  ],
+  "scope": "File loading, explicit scientific/read options, atomic owned replacement and filesystem writing for the represented mzML subset. No source loaded-file bookkeeping, consumers, full metadata or schema validation claim.",
+  "native_boundaries": [
+    "Owned atomic replacement instead of source reset-before-parse.",
+    "Atomic temporary output instead of source direct truncating output.",
+    "Shared case-insensitive gzip/bzip2 suffix detection; ZIP input/output unsupported.",
+    "All existing XML/binary/selection budgets remain in force."
+  ],
+  "validation": "Native Rust tests and source inspection; no C++ runtime differential execution.",
+  "fixture_policy": "Reuses the explicitly projected source fixture and source_values oracle documented by tests/data/mzml_load_provenance.json. New compressed fixtures are generated in temporary directories.",
+  "reused_fixtures": [
+    {
+      "path": "tests/data/mzml_load_source_projection.mzML",
+      "sha256": "19354e629947e98e251641dda1ca810dd8d377cc7cd6444f50daabff4d3bc4a3"
+    },
+    {
+      "path": "tests/data/mzml_load_source_values.tsv",
+      "sha256": "3869ee85a0c2b14d7959c4bc03e5456d1d30127eb1e3bae206b14745392e8546"
+    }
+  ]
+}

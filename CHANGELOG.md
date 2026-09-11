@@ -2,6 +2,11 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add checked mobility peak/mobilogram values, searches, stable aligned sorting, selection and summaries.
+- Preserve generic array metadata and shared processing descriptions; reject lossy XML output. Existing DataArray struct literals require defaults for the new fields.
+- Complete the standalone IMSWeights scaling/GCD/rounding/parent-mass utility with checked native boundaries.
+- Add direct mzML file loading with scientific options, compressed input and atomic replacement/output.
+
 - Execute source mzML loading filters and aligned sorting before native float conversion; preserve 26 canonical auxiliary binary-array roles.
 
 - Port MassDecompositionAlgorithm with all source settings, private residue-table solver, literal count tests and independent integer-composition checks.

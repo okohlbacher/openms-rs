@@ -16,6 +16,11 @@ use crate::kernel::{
 use crate::metadata::{MetaValue, MetaValueData, Product, Unit};
 use crate::{Error, Result};
 pub use load::LoadOptions;
+#[path = "mzml_paths.rs"]
+mod paths;
+pub use paths::{
+    load, load_into, load_into_with_options, load_with_options, store, store_with_options,
+};
 #[path = "mzml_precursor.rs"]
 mod precursor_metadata;
 use base64::{Engine, engine::general_purpose::STANDARD};
@@ -2048,6 +2053,14 @@ fn check_auxiliary_arrays(
     integers: &[DataArray<i32>],
     strings: &[DataArray<String>],
 ) -> Result<()> {
+    if floats.iter().any(DataArray::has_description_metadata)
+        || integers.iter().any(DataArray::has_description_metadata)
+        || strings.iter().any(DataArray::has_description_metadata)
+    {
+        return Err(Error::Unsupported(
+            "mzML array description metadata or processing is not represented".into(),
+        ));
+    }
     for array in floats {
         check_canonical_encoding(&array.name, Encoding::Float32)?;
     }

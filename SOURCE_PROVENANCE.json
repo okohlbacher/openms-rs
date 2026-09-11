@@ -484,6 +484,10 @@
     "tests/data/identification_paths_provenance.json",
     "tests/data/experiment_summary_provenance.json",
     "tests/data/mass_decomposition_algorithm_provenance.json",
-    "tests/data/mzml_load_provenance.json"
+    "tests/data/mzml_load_provenance.json",
+    "tests/data/mobilogram_provenance.json",
+    "tests/data/data_array_xml_provenance.json",
+    "tests/data/ims_weights_provenance.json",
+    "tests/data/mzml_paths_provenance.json"
   ]
 }

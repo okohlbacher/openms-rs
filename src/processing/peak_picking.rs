@@ -413,10 +413,10 @@ impl PeakPickerHiRes {
         output.integer_data_arrays.clear();
         output.string_data_arrays.clear();
         if let Some(j) = mobility {
-            output.float_data_arrays.push(DataArray::new(
-                input.float_data_arrays[j].name.clone(),
-                picked.mobility,
-            ));
+            let mut array =
+                DataArray::new(input.float_data_arrays[j].name.clone(), picked.mobility);
+            input.float_data_arrays[j].copy_description_to(&mut array);
+            output.float_data_arrays.push(array);
         }
         if let Some(unit) = self.report_fwhm {
             output

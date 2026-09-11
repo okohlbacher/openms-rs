@@ -1,5 +1,32 @@
 # Validation of the ongoing Rust port
 
+## Mobility, array descriptions, weights and mzML paths (2026-09-11)
+
+Mobilogram operations, IMSWeights, generic array descriptions and mzML file APIs
+are integrated. [Recorded checks](mobility-validation.json) include commands,
+results and log hashes.
+
+| Check | Result |
+| --- | --- |
+| Rust 1.98, all features and all targets | 1,466 tests passed; examples compiled |
+| Rust 1.85, selected native and adjacent processing suites | 137 tests passed |
+| Rust 1.85, selected XML and path suites | 72 tests passed |
+| Strict Clippy, all targets | Passed on Rust 1.98/all features and Rust 1.85/no defaults |
+| Selected XML Clippy, Rust 1.85 | Passed |
+| Documentation examples, Rustdoc, release library, Rustfmt | Passed; three doctests and documentation warnings denied |
+| Source audit and review/ledger regressions | Passed; 1,842 distinct current files verified |
+
+Focused counts overlap the full suite. Independent source review covered mobility
+sorting/search and annotation alignment, weight quantization/GCD quirks, description
+preservation and XML rejection before publication, and compressed path I/O. Array
+struct literals now need the description fields or `..Default::default()`; existing
+constructors retain their use. Full array-description XML transport remains open.
+
+The preceding [scientific-operations commit](https://github.com/okohlbacher/openms-rs/actions/runs/34564499936)
+passed all CI jobs on Linux, macOS, Windows, minimum Rust and quality checks.
+The ledger records 25 complete/native-equivalent headers and 761 still requiring
+implementation or review. No TOPP workflow is certified.
+
 ## Scientific loading, decomposition and experiment operations (2026-09-11)
 
 The native mass-decomposition solver, mzML scientific filtering and canonical

@@ -1486,14 +1486,29 @@ pub(crate) fn measure_identifications(
                     .saturating_add(group.string_data_arrays.len()),
             )?;
             for array in &group.float_data_arrays {
+                if array.has_description_metadata() {
+                    return Err(unsupported(
+                        "protein-group array description metadata or processing is not represented",
+                    ));
+                }
                 meter.text(&array.name)?;
                 meter.slots(array.data.len())?;
             }
             for array in &group.integer_data_arrays {
+                if array.has_description_metadata() {
+                    return Err(unsupported(
+                        "protein-group array description metadata or processing is not represented",
+                    ));
+                }
                 meter.text(&array.name)?;
                 meter.slots(array.data.len())?;
             }
             for array in &group.string_data_arrays {
+                if array.has_description_metadata() {
+                    return Err(unsupported(
+                        "protein-group array description metadata or processing is not represented",
+                    ));
+                }
                 meter.text(&array.name)?;
                 meter.strings(&array.data)?;
             }

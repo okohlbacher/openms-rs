@@ -105,10 +105,12 @@ fn charge_conversion_sum_and_sort_keep_all_annotations_aligned() {
     input.float_data_arrays.push(DataArray {
         name: "error".into(),
         data: vec![1.0, 2.0, 3.0, 4.0],
+        ..DataArray::default()
     });
     input.string_data_arrays.push(DataArray {
         name: "identity".into(),
         data: vec!["mono".into(), "iso1".into(), "iso2".into(), "other".into()],
+        ..DataArray::default()
     });
     let result = Deisotoper {
         make_single_charged: true,
@@ -265,6 +267,7 @@ fn invalid_options_data_resource_and_annotation_collisions_are_atomic() {
     collision.integer_data_arrays.push(DataArray {
         name: "charge".into(),
         data: vec![],
+        ..DataArray::default()
     });
     assert!(options().deisotope(&collision).is_err());
     let mut unsorted = input.clone();

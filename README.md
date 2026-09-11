@@ -41,6 +41,14 @@ The [iterative picker](docs/ITERATIVE_PICKING_SUPPORT.md) refines HiRes seeds an
 
 IsoSpec layered traversal; ProForma; arbitrary RNA enzyme regexes and XML import; other peak-picker families; feature finding/grouping; database search; probabilistic protein-inference engines; broader quantification and OpenSWATH workflows; vendor RAW formats; and Arrow/Parquet remain unimplemented. Identification-graph groups, referential cleanup and the bounded legacy sequence/evidence conversion bridge are implemented; graph persistence and the remaining converter APIs are outstanding.
 
+The [mobility containers](docs/MOBILOGRAM_SUPPORT.md) provide checked mobilogram
+search, sorting, selection and summaries. Generic `DataArray` values now retain
+metadata and shared processing descriptions; existing struct literals need
+`..Default::default()` or `DataArray::new`. Unsupported XML projections reject
+these descriptions before output. [Integer mass weights](docs/IMS_WEIGHTS_SUPPORT.md)
+and [mzML file operations](docs/MZML_PATH_SUPPORT.md) expose the next native SDK
+utilities, including direct filtered loading and atomic compressed output.
+
 ## Use locally
 
 Rust 1.85 or newer is required. Add this local crate to a consuming project:
