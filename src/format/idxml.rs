@@ -16,6 +16,7 @@ use crate::identification::{
 use crate::metadata::MetaInfo;
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{BufRead, Write};
+use std::path::Path;
 
 /// Flat native records linked by run identifier, plus otherwise unused search
 /// parameter blocks. XML IDs are transport references and are regenerated.
@@ -565,4 +566,66 @@ pub fn write_with_registry(
     writer.write_all(&output.bytes)?;
     writer.flush()?;
     Ok(())
+}
+
+/// Load plain or magic-detected gzip/bzip2 idXML with default limits and registry.
+/// Compressed input requires `file-compression`; stream reads remain uncompressed.
+pub fn load(path: impl AsRef<Path>) -> Result<IdXmlDocument> {
+    load_with_options(path, &ReadOptions::default())
+}
+
+pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<IdXmlDocument> {
+    load_with_registry(path, options, ModificationsDB::global())
+}
+
+/// Return an owned document only after decompression, parsing and validation.
+pub fn load_with_registry(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+    registry: &ModificationsDB,
+) -> Result<IdXmlDocument> {
+    read_with_registry(super::path_io::open(path.as_ref())?, options, registry)
+}
+
+/// Replace a destination only after the complete load succeeds.
+pub fn load_into(path: impl AsRef<Path>, destination: &mut IdXmlDocument) -> Result<()> {
+    let document = load(path)?;
+    *destination = document;
+    Ok(())
+}
+
+/// Atomically publish plain idXML, regardless of the filename's compression suffix.
+/// This matches the source IdXMLFile writer; it does not use XMLFile::save_.
+pub fn store(path: impl AsRef<Path>, document: &IdXmlDocument) -> Result<()> {
+    store_with_options(path, document, &WriteOptions::default())
+}
+
+pub fn store_with_options(
+    path: impl AsRef<Path>,
+    document: &IdXmlDocument,
+    options: &WriteOptions,
+) -> Result<()> {
+    store_with_registry(path, document, options, ModificationsDB::global())
+}
+
+/// Validate chemistry against the supplied registry before publishing output.
+/// A failure preserves an existing destination and removes the temporary output.
+pub fn store_with_registry(
+    path: impl AsRef<Path>,
+    document: &IdXmlDocument,
+    options: &WriteOptions,
+    registry: &ModificationsDB,
+) -> Result<()> {
+    let path = path.as_ref();
+    let filename = path
+        .to_str()
+        .ok_or_else(|| crate::Error::InvalidValue("output filename must be UTF-8".into()))?;
+    if !super::file_types::has_valid_extension(filename, super::FileType::IdXml) {
+        return Err(crate::Error::InvalidValue(
+            "invalid idXML output extension".into(),
+        ));
+    }
+    super::path_io::write_plain(path, |writer| {
+        write_with_registry(writer, document, options, registry)
+    })
 }

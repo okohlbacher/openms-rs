@@ -51,6 +51,30 @@ impl MassDecomposition {
         Self::default()
     }
 
+    // The solver has already charged the small alphabet and owned map payload.
+    pub(super) fn from_counts(counts: impl Iterator<Item = (u8, u32)>) -> Result<Self> {
+        let mut result = Self::new();
+        for (symbol, count) in counts {
+            if !symbol.is_ascii() || count > i32::MAX as u32 {
+                return Err(invalid("solver count is outside source token range"));
+            }
+            if count != 0 {
+                result.counts.insert(symbol, count as usize);
+                result.maximum = result.maximum.max(count as usize);
+            }
+        }
+        Ok(result)
+    }
+
+    pub(super) fn payload_bytes(&self) -> usize {
+        std::mem::size_of::<Self>()
+            + if self.counts.is_empty() {
+                0
+            } else {
+                256 + self.counts.len() * 64
+            }
+    }
+
     /// Parse literal-space-separated byte-symbol/i32-count tokens. A suffix
     /// beginning at the first '(' is ignored, and only that case trims input.
     /// Duplicate symbols keep the last count but the greatest observed maximum.

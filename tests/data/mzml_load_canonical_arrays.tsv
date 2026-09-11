@@ -1,0 +1,27 @@
+accession	name	type_mask
+MS:1000516	charge array	1
+MS:1000517	signal to noise array	10
+MS:1000617	wavelength array	10
+MS:1000820	flow rate array	10
+MS:1000821	pressure array	10
+MS:1000822	temperature array	10
+MS:1002477	mean ion mobility drift time array	0
+MS:1002478	mean charge array	2
+MS:1002529	resolution array	10
+MS:1002530	baseline array	10
+MS:1002742	noise array	10
+MS:1002743	sampled noise m/z array	10
+MS:1002744	sampled noise intensity array	10
+MS:1002745	sampled noise baseline array	10
+MS:1002816	mean ion mobility array	0
+MS:1002893	ion mobility array	0
+MS:1003006	mean inverse reduced ion mobility array	0
+MS:1003007	raw ion mobility array	0
+MS:1003008	raw inverse reduced ion mobility array	0
+MS:1003143	mass array	10
+MS:1003153	raw ion mobility drift time array	0
+MS:1003154	deconvoluted ion mobility array	0
+MS:1003155	deconvoluted inverse reduced ion mobility array	0
+MS:1003156	deconvoluted ion mobility drift time array	0
+MS:1003157	scanning quadrupole position lower bound m/z array	0
+MS:1003158	scanning quadrupole position upper bound m/z array	0

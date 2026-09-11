@@ -7,10 +7,10 @@ This is a work inventory, not a completion percentage. Matching declarations and
 | Review state | Headers |
 | --- | ---: |
 | complete | 10 |
-| evidence_requires_review | 165 |
-| native_equivalent | 12 |
-| partial | 11 |
-| unmapped | 588 |
+| evidence_requires_review | 172 |
+| native_equivalent | 13 |
+| partial | 12 |
+| unmapped | 579 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -39,7 +39,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h` | 9 | evidence_requires_review |
 | `OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h` | 9 | unmapped |
 | `OpenMS/FORMAT/ConsensusXMLFile.h` | 9 | partial |
-| `OpenMS/FORMAT/IdXMLFile.h` | 9 | evidence_requires_review |
+| `OpenMS/FORMAT/IdXMLFile.h` | 9 | partial |
 | `OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h` | 8 | unmapped |
 | `OpenMS/FORMAT/ExperimentalDesignFile.h` | 8 | unmapped |
 | `OpenMS/MATH/StatisticFunctions.h` | 8 | evidence_requires_review |

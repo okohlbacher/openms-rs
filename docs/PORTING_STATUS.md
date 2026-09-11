@@ -73,7 +73,7 @@ The current target is SDK 4.0.0 at `54a232f`; the [SDK update](CORE_SDK_UPDATE.m
 | SYSTEM/File | `system::file` | Native filesystem, resource/configuration discovery and owned temporary resources, with explicit platform differences; [details](SYSTEM_FILE_SUPPORT.md) |
 | FORMAT/MS2File, DTA2DFile | `format::ms2`, `format::dta2d` | Source text parsing, DTA2D ranges/storage/TIC and checked native MS2 writer; [details](TEXT_PEAK_LIST_SUPPORT.md) |
 | FORMAT/OPTIONS/PeakFileOptions | `format::PeakFileOptions` | Complete source option state and Numpress configuration values; adapter execution remains separate; [details](PEAK_FILE_OPTIONS_SUPPORT.md) |
-| CHEMISTRY/MASSDECOMPOSITION/MassDecomposition | `chemistry::MassDecomposition` | Complete count-container API and source cache quirks; separate solver remains; [details](MASS_DECOMPOSITION_SUPPORT.md) |
+| CHEMISTRY/MASSDECOMPOSITION/MassDecomposition | `chemistry::MassDecomposition` | Complete count-container API and source cache quirks; [details](MASS_DECOMPOSITION_SUPPORT.md) |
 | METADATA/Product hashing | `metadata::Product` and typed metadata | Equality-compatible hashes with signed-zero normalization; inherited source unit-state limits remain; [details](METADATA_HASH_SUPPORT.md) |
 | FORMAT/FASTAFile | `format::fasta` | Complete file/stream reader/writer lifecycle, source lexical rules, bounded seek/progress and PEFF prologue skipping; [details](FASTA_SUPPORT.md) |
 | FORMAT/MascotGenericFile | `format::mgf` | Buffered collection or streaming spectra; basic fields and unique extra key/value metadata; no Mascot submission |
@@ -158,3 +158,27 @@ These are real unimplemented areas, not hidden C++ fallbacks. The [repository an
 - `concept::log_stream` supplies owned log routing, prefixes, duplicate suppression, callbacks and thread-local streams; see [logging support](LOG_STREAM_SUPPORT.md) for platform and shutdown boundaries.
 - `concept::progress_logger` supplies all core progress modes/backends and CPU/wall timing; see [progress support](PROGRESS_LOGGER_SUPPORT.md).
 - Public modification-definition collection now accepts complete feature/consensus maps, including nested subordinates. INI path input now recognizes gzip/bzip2; ZIP remains open.
+
+## Identification file paths
+
+Native [idXML path loading/publication and identification dispatch](IDENTIFICATION_PATH_SUPPORT.md)
+are available, including caller-owned chemistry, document IDs, source output
+extension checks and plain bytes regardless of compression suffix.
+
+## Experiment summaries
+
+[Checked experiment summaries](EXPERIMENT_SUMMARY_SUPPORT.md) add source TIC
+binning, chromatogram and combined ranges, aligned chromatogram sorting, total
+peak counts, level/zero-intensity queries and spectrum-only array clearing.
+
+## Mass decomposition
+
+The [native mass decomposition algorithm](MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md)
+supports all five source settings, atomic configuration/append and bounded
+source-ordered composition enumeration. Public IMS utility APIs remain separate.
+
+## Scientific mzML loading
+
+[Explicit scientific loading](MZML_LOAD_OPTIONS_SUPPORT.md) now consumes the
+supported PeakFileOptions filters/sorting and preserves aligned arrays with
+26 canonical binary roles. Full metadata/consumer/codec paths remain open.

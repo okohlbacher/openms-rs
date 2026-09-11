@@ -7,12 +7,15 @@
 //! This is an event parser, but the returned experiment is held in memory.
 
 pub use super::indexed_mzml::has_index;
+#[path = "mzml_load.rs"]
+mod load;
 use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor,
     SpectrumType,
 };
 use crate::metadata::{MetaValue, MetaValueData, Product, Unit};
 use crate::{Error, Result};
+pub use load::LoadOptions;
 #[path = "mzml_precursor.rs"]
 mod precursor_metadata;
 use base64::{Engine, engine::general_purpose::STANDARD};
@@ -37,7 +40,7 @@ pub struct ReadOptions {
     pub max_xml_bytes: u64,
     /// Maximum compressed or decoded bytes for each binary array.
     pub max_array_bytes: usize,
-    /// Maximum total spectrum and chromatogram peaks in the returned experiment.
+    /// Maximum raw declared spectrum/chromatogram points, including filtered records.
     pub max_total_peaks: usize,
     /// Maximum decoded bytes across all primary and auxiliary arrays.
     pub max_total_array_bytes: usize,
@@ -191,6 +194,86 @@ struct Binary {
     time_scale: f64,
     has_binary: bool,
 }
+// Canonical non-primary descendants of binary data array in pinned PSI-MS.
+// A zero type mask means this term declares no binary-data-type restriction.
+const CANONICAL_ARRAYS: &[(&str, &str, u8)] = &[
+    ("MS:1000516", "charge array", 1),
+    ("MS:1000517", "signal to noise array", 10),
+    ("MS:1000617", "wavelength array", 10),
+    ("MS:1000820", "flow rate array", 10),
+    ("MS:1000821", "pressure array", 10),
+    ("MS:1000822", "temperature array", 10),
+    ("MS:1002477", "mean ion mobility drift time array", 0),
+    ("MS:1002478", "mean charge array", 2),
+    ("MS:1002529", "resolution array", 10),
+    ("MS:1002530", "baseline array", 10),
+    ("MS:1002742", "noise array", 10),
+    ("MS:1002743", "sampled noise m/z array", 10),
+    ("MS:1002744", "sampled noise intensity array", 10),
+    ("MS:1002745", "sampled noise baseline array", 10),
+    ("MS:1002816", "mean ion mobility array", 0),
+    ("MS:1002893", "ion mobility array", 0),
+    ("MS:1003006", "mean inverse reduced ion mobility array", 0),
+    ("MS:1003007", "raw ion mobility array", 0),
+    ("MS:1003008", "raw inverse reduced ion mobility array", 0),
+    ("MS:1003143", "mass array", 10),
+    ("MS:1003153", "raw ion mobility drift time array", 0),
+    ("MS:1003154", "deconvoluted ion mobility array", 0),
+    (
+        "MS:1003155",
+        "deconvoluted inverse reduced ion mobility array",
+        0,
+    ),
+    (
+        "MS:1003156",
+        "deconvoluted ion mobility drift time array",
+        0,
+    ),
+    (
+        "MS:1003157",
+        "scanning quadrupole position lower bound m/z array",
+        0,
+    ),
+    (
+        "MS:1003158",
+        "scanning quadrupole position upper bound m/z array",
+        0,
+    ),
+];
+fn canonical_array_name(accession: &str) -> Option<&'static str> {
+    CANONICAL_ARRAYS
+        .iter()
+        .find(|t| t.0 == accession)
+        .map(|t| t.1)
+}
+fn canonical_array_accession(name: &str) -> Option<&'static str> {
+    CANONICAL_ARRAYS.iter().find(|t| t.1 == name).map(|t| t.0)
+}
+fn check_canonical_encoding(name: &str, encoding: Encoding) -> Result<()> {
+    if let Some((_, _, mask)) = CANONICAL_ARRAYS.iter().find(|t| t.1 == name) {
+        let bit = match encoding {
+            Encoding::Int32 => 1,
+            Encoding::Float32 => 2,
+            Encoding::Int64 => 4,
+            Encoding::Float64 => 8,
+            Encoding::Ascii => 16,
+        };
+        if *mask != 0 && mask & bit == 0 {
+            return Err(Error::Unsupported(
+                "canonical auxiliary array binary type".into(),
+            ));
+        }
+    }
+    Ok(())
+}
+fn integer_array_encoding(name: &str) -> Encoding {
+    if name == "charge array" {
+        Encoding::Int32
+    } else {
+        Encoding::Int64
+    }
+}
+
 impl Binary {
     fn cv(&mut self, attrs: &BTreeMap<String, String>) -> Result<()> {
         let accession = required(attrs, "accession")?;
@@ -203,6 +286,11 @@ impl Binary {
             }
             "MS:1000786" => {
                 let name = required(attrs, "value")?;
+                if canonical_array_accession(name).is_some() {
+                    return Err(Error::Unsupported(
+                        "nonstandard array name collides with a canonical array".into(),
+                    ));
+                }
                 if name.is_empty() {
                     return Err(invalid("auxiliary array name is empty"));
                 }
@@ -216,8 +304,17 @@ impl Binary {
                 }
                 Some(Kind::Auxiliary(name.to_owned()))
             }
-            _ => None,
+            _ => canonical_array_name(accession).map(|name| Kind::Auxiliary(name.into())),
         };
+        if matches!(kind, Some(Kind::Auxiliary(_)))
+            && ["unitAccession", "unitCvRef", "unitName"]
+                .iter()
+                .any(|key| attrs.contains_key(*key))
+        {
+            return Err(Error::Unsupported(
+                "units on auxiliary arrays are not represented".into(),
+            ));
+        }
         if let Some(kind) = kind {
             if self.kind.replace(kind).is_some() {
                 return Err(invalid("multiple binary array types"));
@@ -272,6 +369,9 @@ impl Binary {
         let compressed = self
             .compressed
             .ok_or_else(|| invalid("missing binary compression term"))?;
+        if let Kind::Auxiliary(name) = &kind {
+            check_canonical_encoding(name, encoding)?;
+        }
         let auxiliary = matches!(kind, Kind::Auxiliary(_));
         if !auxiliary && !matches!(encoding, Encoding::Float32 | Encoding::Float64) {
             return Err(Error::Unsupported(
@@ -447,6 +547,9 @@ struct Record {
     product_seen: bool,
     product_fields: BTreeSet<&'static str>,
     product_list_seen: bool,
+    precursor_filter: Option<crate::kernel::NumericRange>,
+    precursor_outside: bool,
+    raw_float_arrays: Vec<DataArray<f64>>,
 }
 impl Record {
     fn metadata(&mut self) -> &mut BTreeMap<String, String> {
@@ -551,6 +654,15 @@ impl Record {
                 self.rt_seen = true;
             }
             ("selectedIon", "MS:1000744" | "MS:1000040") => {
+                let mz = finite(value, "precursor m/z")?;
+                if self.spectrum.is_some()
+                    && self.precursor.as_ref().is_some_and(|p| p.mz != mz)
+                    && self
+                        .precursor_filter
+                        .is_some_and(|range| !load::contains(range, mz))
+                {
+                    self.precursor_outside = true;
+                }
                 self.precursor
                     .as_mut()
                     .ok_or_else(|| invalid("selected ion outside precursor"))?
@@ -573,12 +685,37 @@ impl Record {
         }
         Ok(())
     }
-    fn finish(mut self, experiment: &mut MSExperiment) -> Result<()> {
-        let (positions, intensities) = match (self.coordinates.take(), self.intensities.take()) {
-            (Some(p), Some(i)) => (p, i),
-            (None, None) if self.count == 0 => (Vec::new(), Vec::new()),
-            _ => return Err(invalid("missing coordinate or intensity array")),
+    fn finish(
+        mut self,
+        experiment: &mut MSExperiment,
+        selection: Option<&mut load::State<'_>>,
+    ) -> Result<()> {
+        let (mut positions, mut intensities) =
+            match (self.coordinates.take(), self.intensities.take()) {
+                (Some(p), Some(i)) => (p, i),
+                (None, None) if self.count == 0 => (Vec::new(), Vec::new()),
+                _ => return Err(invalid("missing coordinate or intensity array")),
+            };
+        let keep = if let Some(selection) = selection {
+            selection.apply(&mut self, &mut positions, &mut intensities)?
+        } else {
+            true
         };
+        let floats = if let Some(spectrum) = &mut self.spectrum {
+            &mut spectrum.float_data_arrays
+        } else {
+            &mut self.chromatogram.as_mut().unwrap().float_data_arrays
+        };
+        for array in self.raw_float_arrays {
+            floats.push(DataArray::new(
+                array.name,
+                array
+                    .data
+                    .into_iter()
+                    .map(intensity)
+                    .collect::<Result<_>>()?,
+            ));
+        }
         if let Some(mut spectrum) = self.spectrum {
             spectrum.peaks = positions
                 .into_iter()
@@ -586,7 +723,9 @@ impl Record {
                 .map(|(mz, i)| Ok(Peak1D::new(mz, intensity(i)?)))
                 .collect::<Result<_>>()?;
             spectrum.validate()?;
-            experiment.spectra.push(spectrum);
+            if keep {
+                experiment.spectra.push(spectrum);
+            }
         } else {
             let mut chromatogram = self.chromatogram.unwrap();
             chromatogram.peaks = positions
@@ -595,7 +734,9 @@ impl Record {
                 .map(|(rt, i)| Ok(ChromatogramPeak::new(rt, intensity(i)?)))
                 .collect::<Result<_>>()?;
             chromatogram.validate()?;
-            experiment.chromatograms.push(chromatogram);
+            if keep {
+                experiment.chromatograms.push(chromatogram);
+            }
         }
         Ok(())
     }
@@ -609,6 +750,7 @@ fn apply_parameter(
     record: &mut Option<Record>,
     binary: &mut Option<Binary>,
     experiment: &mut MSExperiment,
+    selection: Option<&mut load::State<'_>>,
 ) -> Result<()> {
     required(
         attrs,
@@ -618,6 +760,19 @@ fn apply_parameter(
             "name"
         },
     )?;
+    if tag == "cvParam"
+        && parent == "selectedIon"
+        && matches!(
+            attrs.get("accession").map(String::as_str),
+            Some("MS:1000744" | "MS:1000040")
+        )
+    {
+        if let Some(selection) = selection {
+            if selection.options.scientific.has_precursor_mz_range() {
+                selection.spend(1)?;
+            }
+        }
+    }
     match tag {
         "cvParam" => {
             if parent == "binaryDataArray" {
@@ -792,6 +947,7 @@ fn apply_group(
     record: &mut Option<Record>,
     binary: &mut Option<Binary>,
     experiment: &mut MSExperiment,
+    mut selection: Option<&mut load::State<'_>>,
 ) -> Result<()> {
     for parameter in parameters {
         budget.charge(&parameter.attrs)?;
@@ -802,6 +958,7 @@ fn apply_group(
             record,
             binary,
             experiment,
+            selection.as_deref_mut(),
         )?;
     }
     Ok(())
@@ -815,6 +972,28 @@ pub fn read(reader: impl BufRead) -> Result<MSExperiment> {
 /// Read the documented mzML subset, rejecting unsupported binary encodings.
 /// Errors have line zero when the XML parser cannot supply a line number.
 pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<MSExperiment> {
+    read_impl(reader, options, None)
+}
+
+/// Execute supported scientific loading choices without changing legacy reads.
+/// Unimplemented read behavior is rejected before input. Write-only settings do
+/// not affect loading. Excluded records remain fully decoded and validated.
+pub fn read_with_load_options(
+    reader: impl BufRead,
+    load: &LoadOptions,
+    limits: &ReadOptions,
+) -> Result<MSExperiment> {
+    read_impl(reader, limits, Some(load))
+}
+
+fn read_impl(
+    reader: impl BufRead,
+    options: &ReadOptions,
+    load: Option<&LoadOptions>,
+) -> Result<MSExperiment> {
+    let mut selection = load.map(load::State::new).transpose()?;
+    let mut actual_spectra = 0usize;
+    let mut actual_chromatograms = 0usize;
     let limit = options
         .max_xml_bytes
         .checked_add(1)
@@ -1038,6 +1217,7 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                                 &mut record,
                                 &mut binary,
                                 &mut experiment,
+                                selection.as_mut(),
                             )?;
                         }
                         seen_run = true;
@@ -1087,6 +1267,7 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                                 &mut record,
                                 &mut binary,
                                 &mut experiment,
+                                selection.as_mut(),
                             )?;
                         } else if !seen_run && !group_list_seen {
                             pending_header_refs.push((id.to_owned(), parent.to_owned()));
@@ -1133,6 +1314,11 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                         if id.is_empty() || !ids.insert((tag.clone(), id.clone())) {
                             return Err(invalid("empty or duplicate record id"));
                         }
+                        if tag == "spectrum" {
+                            actual_spectra += 1;
+                        } else {
+                            actual_chromatograms += 1;
+                        }
                         record = Some(Record {
                             spectrum: (tag == "spectrum").then(|| MSSpectrum {
                                 native_id: id.clone(),
@@ -1161,6 +1347,13 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                             product_seen: false,
                             product_fields: BTreeSet::new(),
                             product_list_seen: false,
+                            precursor_filter: load.and_then(|o| {
+                                o.scientific
+                                    .has_precursor_mz_range()
+                                    .then(|| o.scientific.precursor_mz_range())
+                            }),
+                            precursor_outside: false,
+                            raw_float_arrays: Vec::new(),
                         });
                         array_count = None;
                         arrays_seen = 0;
@@ -1178,6 +1371,11 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                         )?);
                     }
                     "binaryDataArray" => {
+                        if selection.is_some() && attrs.contains_key("dataProcessingRef") {
+                            return Err(Error::Unsupported(
+                                "binary-array processing references are not represented".into(),
+                            ));
+                        }
                         if parent != "binaryDataArrayList" || binary.is_some() {
                             return Err(invalid("misplaced binary array"));
                         }
@@ -1289,6 +1487,7 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                                 &mut record,
                                 &mut binary,
                                 &mut experiment,
+                                selection.as_mut(),
                             )?;
                         }
                     }
@@ -1349,10 +1548,19 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                                     )
                                 };
                             match values {
-                                Values::Floats(values) => floats.push(DataArray::new(
-                                    name,
-                                    values.into_iter().map(intensity).collect::<Result<_>>()?,
-                                )),
+                                Values::Floats(values) => {
+                                    if selection.is_some() {
+                                        r.raw_float_arrays.push(DataArray::new(name, values));
+                                    } else {
+                                        floats.push(DataArray::new(
+                                            name,
+                                            values
+                                                .into_iter()
+                                                .map(intensity)
+                                                .collect::<Result<_>>()?,
+                                        ));
+                                    }
+                                }
                                 Values::Integers(values) => {
                                     integers.push(DataArray::new(name, values))
                                 }
@@ -1414,7 +1622,7 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
                     "spectrum" | "chromatogram" => record
                         .take()
                         .ok_or_else(|| invalid("missing record state"))?
-                        .finish(&mut experiment)?,
+                        .finish(&mut experiment, selection.as_mut())?,
                     _ => {}
                 }
             }
@@ -1499,8 +1707,8 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
     if !seen_mzml || !seen_run || !stack.is_empty() || record.is_some() {
         return Err(invalid("incomplete mzML document"));
     }
-    if spectrum_count.is_some_and(|n| n != experiment.spectra.len())
-        || chromatogram_count.is_some_and(|n| n != experiment.chromatograms.len())
+    if spectrum_count.is_some_and(|n| n != actual_spectra)
+        || chromatogram_count.is_some_and(|n| n != actual_chromatograms)
     {
         return Err(invalid("declared record count mismatch"));
     }
@@ -1768,7 +1976,13 @@ fn write_array(
         )?,
         Kind::Time => cv(w, "MS:1000595", "time array", "", SECOND)?,
         Kind::Intensity => cv(w, "MS:1000515", "intensity array", "", "")?,
-        Kind::Auxiliary(name) => cv(w, "MS:1000786", "non-standard data array", &name, "")?,
+        Kind::Auxiliary(name) => {
+            if let Some(accession) = canonical_array_accession(&name) {
+                cv(w, accession, &name, "", "")?;
+            } else {
+                cv(w, "MS:1000786", "non-standard data array", &name, "")?;
+            }
+        }
     }
     writeln!(w, "<binary>{encoded}</binary></binaryDataArray>")?;
     Ok(())
@@ -1792,16 +2006,22 @@ fn write_auxiliary_arrays(
         )?;
     }
     for array in integers {
-        // OpenMS writes its integer annotations in signed 64-bit representation.
-        write_array(
-            w,
+        // Source ordinary annotations use i64; canonical charge requires i32.
+        let encoding = integer_array_encoding(&array.name);
+        let bytes = if matches!(encoding, Encoding::Int32) {
+            array.data.iter().flat_map(|v| v.to_le_bytes()).collect()
+        } else {
             array
                 .data
                 .iter()
                 .flat_map(|&v| i64::from(v).to_le_bytes())
-                .collect(),
+                .collect()
+        };
+        write_array(
+            w,
+            bytes,
             Kind::Auxiliary(array.name.clone()),
-            Encoding::Int64,
+            encoding,
             Some(array.data.len()),
             options,
         )?;
@@ -1828,6 +2048,15 @@ fn check_auxiliary_arrays(
     integers: &[DataArray<i32>],
     strings: &[DataArray<String>],
 ) -> Result<()> {
+    for array in floats {
+        check_canonical_encoding(&array.name, Encoding::Float32)?;
+    }
+    for array in integers {
+        check_canonical_encoding(&array.name, integer_array_encoding(&array.name))?;
+    }
+    for array in strings {
+        check_canonical_encoding(&array.name, Encoding::Ascii)?;
+    }
     let mut names = BTreeSet::new();
     for name in floats
         .iter()

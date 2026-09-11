@@ -99,3 +99,9 @@ registry)` verifies exact typed reconstruction against that registry before any
 writer call. Same-name records with different chemistry are errors. Writers collect named `Defined` modifications from search-space entries and all peptide attachments, then embed their portable records in each run's `modification_definitions` search metadata. Readers register these definitions in an owned copy of the supplied or global database before parsing peptide sequences. Portable custom records therefore round-trip through the default reader without an external registry. Input records and the immutable global database remain unchanged. Anonymous tags retain their normal bracket syntax.
 
 The complete source codec, checked omissions and collection/registration APIs are described in [MODIFICATION_DEFINITION_IO_SUPPORT.md](MODIFICATION_DEFINITION_IO_SUPPORT.md). The shared private XML helpers also serve featureXML and consensusXML, while their run/group dialects remain separate. Early map-header modes stop consuming the byte stream at the requested root-child opening tag, including for UTF-16 input; ordinary idXML reads validate the entire input.
+
+## File paths and dispatch
+
+[Native path APIs](IDENTIFICATION_PATH_SUPPORT.md) compose this adapter with
+bounded plain/gzip/bzip2 input and atomic plain output. FileHandler now dispatches
+identification documents to idXML with source extension/allowlist rules.

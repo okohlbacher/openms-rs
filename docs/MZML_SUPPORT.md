@@ -28,6 +28,7 @@ The API accepts `BufRead`/`Write`; file handling and outer gzip decoding are the
 | Indexed mzML | Sequentially reads inner mzML; separate [offset decoder and has_index](INDEXED_MZML_SUPPORT.md) inspect the index | No index generation |
 | Peak arrays | Little-endian IEEE f32 or f64 coordinate/intensity arrays, base64 with optional whitespace, uncompressed or zlib | f64 coordinates and f32 intensities; uncompressed by default, optional zlib |
 | Named auxiliary arrays | `MS:1000786` names with f32/f64, signed i32/i64, or NUL-terminated ASCII strings; uncompressed or zlib | Native f32, signed integer annotations encoded as i64, and NUL-terminated ASCII strings; explicit `arrayLength` |
+| Canonical auxiliary arrays | All 26 pinned non-primary roles with declared binary type checks; names are reserved for their canonical identities | Corresponding canonical accessions; charge arrays use signed i32, with documented type/unit limits |
 | Spectra | Native ID, MS level, profile/centroid flag, scan retention time, m/z and intensity | Same fields; unset retention time `-1` omitted |
 | Chromatograms | Native ID, time and intensity arrays, one precursor and one Product | Same fields |
 | Time units | Explicit seconds or minutes; minutes converted to seconds for scan time and chromatogram coordinates | Seconds |
@@ -35,7 +36,7 @@ The API accepts `BufRead`/`Write`; file handling and outer gzip decoding are the
 | User parameters | Direct `run`, `spectrum`, and `chromatogram` userParam names/values as strings; Product isolation-window scalar values and units | Stored maps written as string userParams; Product metadata retains String/i64/f64 types and MS/UO unit identities |
 | Container names | Reserved record userParam `openms-rust:name` | Same reserved userParam |
 
-Intensity values are converted to the kernel's `f32` type. A f64 intensity outside the finite f32 range is an error; ordinary f64-to-f32 rounding is expected. All decoded coordinates and intensities must be finite. Peak order is preserved. Missing MS level uses the kernel default of 1; missing spectrum representation remains `Unknown`.
+Intensity values are converted to the kernel's `f32` type. A f64 intensity outside the finite f32 range is an error; ordinary f64-to-f32 rounding is expected. All decoded coordinates and intensities must be finite. The ordinary read entry points preserve peak order; explicit [scientific loading](MZML_LOAD_OPTIONS_SUPPORT.md) filters before float conversion and sorts when requested. Missing MS level uses the kernel default of 1; missing spectrum representation remains `Unknown`.
 
 Auxiliary arrays preserve names and order within each native type on both spectra and chromatograms. Float values convert to finite f32; signed integer values must fit native i32, without rounding through floating point. A nonempty auxiliary array must have the record's peak count. Explicit `arrayLength="0"` preserves empty annotation placeholders independently of that count. Names must be nonempty and unique across all three auxiliary types.
 
@@ -94,3 +95,11 @@ Two earlier small fixtures are copied byte-for-byte from the pinned OpenMS sourc
 The pinned `mzML_1_10.xsd` has identical schema content after newline normalization: the stored fixture uses CRLF and the immutable source uses LF. Both byte hashes are recorded separately. `xmllint --nonet` validated writer output for both a populated compressed experiment and an empty experiment on the development host. The schema test runs when `xmllint` is available and explicitly reports when it is unavailable. This provides independent **structural** validation, not complete PSI semantic or cross-application compatibility certification. No C++ build or C++ runtime comparison was performed.
 
 Copied fixture/schema source paths and SHA-256 hashes are recorded in [mzml_provenance.json](../tests/data/mzml_provenance.json). Source revision: [OpenMS4-core `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`](https://github.com/okohlbacher/OpenMS4-core/tree/7c029e8cdba6abab503708ecdd56f6ab55e38ce4). The implementation was informed by the pinned [MzMLHandler](https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp), [mzML schema](https://github.com/okohlbacher/OpenMS4-core/blob/7c029e8cdba6abab503708ecdd56f6ab55e38ce4/share/OpenMS/SCHEMAS/mzML_1_10.xsd), and local quick-xml 0.39.4 APIs.
+
+## Scientific loading and canonical arrays
+
+[`read_with_load_options`](MZML_LOAD_OPTIONS_SUPPORT.md) executes the supported
+PeakFileOptions ranges, levels and selected-ion filters, aligned point selection
+and sorting. Canonical binary-array roles preserve all 26 pinned non-primary
+accession/name identities subject to documented native representation limits.
+Existing plain read entry points retain their order and validation behavior.

@@ -57,5 +57,6 @@ jobs:
       - run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
       - run: cargo test --locked --no-default-features --test log_stream --test progress_logger --test modification_definition_io
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
-      - run: cargo test --locked --no-default-features --test fasta --test formats --test experiment_aggregation --test kernel_value_traits --test peak_file_options --test metadata_hash --test mass_decomposition
-      - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml --test mzml_product
+      - run: cargo test --locked --no-default-features --test fasta --test formats --test experiment_aggregation --test experiment_summary --test kernel_value_traits --test peak_file_options --test metadata_hash --test mass_decomposition --test mass_decomposition_algorithm
+      - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml --test mzml_product --test mzml_load_options
+      - run: cargo test --locked --no-default-features --features idxml --test identification_paths

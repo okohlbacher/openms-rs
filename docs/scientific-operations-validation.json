@@ -1,0 +1,340 @@
+{
+  "target_sdk_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "platform": "macOS ARM64",
+  "current_rust": "1.98.0",
+  "minimum_rust": "1.85.0",
+  "scope": "Integrated mass-decomposition solver, scientific mzML loading/canonical arrays, experiment summaries and native idXML file/dispatch operations.",
+  "checks": [
+    {
+      "name": "full_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 595.75,
+      "log_sha256": "81128bdad61be36de8c345f189efaa460d061fd2e0589f5b5604614414ddfc10",
+      "log_bytes": 144354,
+      "tests_passed": 1432
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.53,
+      "log_sha256": "198504587cb59ccd0a1e2e662047ed495bcc7d2662d36fd9e003e16235dfdb9d",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 187.64,
+      "log_sha256": "e71afeb2dafe852dfd1e3543c4d516fd3f31b2fb6d9430460aeceee184005995",
+      "log_bytes": 162
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 136.83,
+      "log_sha256": "1ca9153cc5b96cfadb7cd857640ea804113b5fb90de3a7d591cd009ce973688f",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 29.57,
+      "log_sha256": "ccc06461757cc4f50b14316926a6d7ad5add8fa3f96f1c969306766061eab396",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.71,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-54a232f"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.34,
+      "log_sha256": "27b5c51bd1c68c93062b7374bc7494c78fc9850756eca4f2b7c134e47f3df494",
+      "log_bytes": 233
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07,
+      "log_sha256": "157111e61d7d4b2f4630d64e7a657dab7737fc7b0c065707099b8cf67048f06f",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.11,
+      "log_sha256": "db1ad4e64dae7c3f378521f0f10d6a00e3be172a91f4ddecdad706c3064aa004",
+      "log_bytes": 100
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      },
+      "exit_code": 0,
+      "log_sha256": "3fb1ca7454dd3f9869060cd47b6413198f2a67f13c5054737e23324b59d78788",
+      "log_bytes": 263
+    },
+    {
+      "name": "mzml_and_scientific_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--lib",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_product",
+        "--test",
+        "mass_decomposition",
+        "--test",
+        "mass_decomposition_algorithm",
+        "--test",
+        "experiment_summary",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 22.66,
+      "log_sha256": "4a4f8e9b570f72416985dbd039af02b8300ad354e066c8f4038d3e3da9f7046d",
+      "log_bytes": 15999,
+      "tests_passed": 147
+    },
+    {
+      "name": "mzml_strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--test",
+        "mzml_load_options",
+        "--test",
+        "mzml",
+        "--test",
+        "mzml_param_groups",
+        "--test",
+        "mzml_product",
+        "--test",
+        "mass_decomposition_algorithm",
+        "--test",
+        "experiment_summary",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 6.15,
+      "log_sha256": "a696c1f989c86a6a70e641c7f2d6cbd789d5eff17740a0131110d847e25da393",
+      "log_bytes": 702
+    }
+  ],
+  "earlier_targeted_checks": [
+    {
+      "name": "combined_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--test",
+        "identification_paths",
+        "--test",
+        "idxml",
+        "--test",
+        "idxml_definitions",
+        "--test",
+        "file_handler",
+        "--test",
+        "featurexml",
+        "--test",
+        "consensusxml",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "tests_passed": 130,
+      "log_sha256": "1e0189660f7a52392afe96b25056a5d0d09dae176b9066245fb1d125e597a5b5"
+    },
+    {
+      "name": "combined_minimum_idxml_only_and_experiment_summary",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "idxml",
+        "--test",
+        "identification_paths",
+        "--test",
+        "idxml",
+        "--test",
+        "idxml_definitions",
+        "--test",
+        "experiment_summary",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "tests_passed": 39,
+      "log_sha256": "25db975535efdddb5e226e2cf84e9e6038137ae9622657ab9e23900cf195a564"
+    }
+  ],
+  "test_count_policy": "The full current suite has 1432 tests. Selected minimum/current suites overlap and must not be added to that count.",
+  "preceding_published_ci": [
+    {
+      "commit": "fdfb99e361a7c0fbda2adc5b5d7bdd8fd0b26ff6",
+      "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34561162608",
+      "conclusion": "success",
+      "jobs": [
+        "quality",
+        "minimum-rust",
+        "test (ubuntu-latest)",
+        "test (macos-latest)",
+        "test (windows-latest)"
+      ]
+    },
+    {
+      "commit": "0ab1cc9cca535184d6330d0728c44b525982ea9e",
+      "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34561620258",
+      "conclusion": "success",
+      "jobs": [
+        "quality",
+        "minimum-rust",
+        "test (ubuntu-latest)",
+        "test (macos-latest)",
+        "test (windows-latest)"
+      ]
+    }
+  ],
+  "cpp_built": false,
+  "cpp_runtime_differential_tests": false,
+  "validated_topp_workflows": 0,
+  "completion": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "native_equivalent": 13,
+      "partial": 12,
+      "evidence_requires_review": 172,
+      "unmapped": 579
+    },
+    "needs_implementation_or_review": 763,
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  }
+}

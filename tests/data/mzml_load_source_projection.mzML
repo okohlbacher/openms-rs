@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
+  <run id="source-filter-projection">
+    <spectrumList count="4">
+      <spectrum id="index=0" index="0" defaultArrayLength="15">
+        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+        <scanList count="1">
+          <scan>
+            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          </scan>
+        </scanList>
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="160">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS" />
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+      <spectrum id="index=1" index="1" defaultArrayLength="10">
+        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+        <scanList count="1">
+          <scan>
+            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.2" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          </scan>
+        </scanList>
+        <binaryDataArrayList count="4">
+          <binaryDataArray encodedLength="108">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+            <binary>AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA=</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="108">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS" />
+            <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="108">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000517" name="signal to noise array" value="" />
+            <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="108">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="user-defined name" />
+            <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+      <spectrum id="index=2" index="2" defaultArrayLength="15">
+        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+        <scanList count="1">
+          <scan>
+            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.3" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          </scan>
+        </scanList>
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="160">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS" />
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+      <spectrum id="index=3" index="3" defaultArrayLength="0">
+        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
+        <scanList count="1">
+          <scan>
+            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.4" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+          </scan>
+        </scanList>
+      </spectrum>
+    </spectrumList>
+    <chromatogramList count="2">
+      <chromatogram id="tic native" index="0" defaultArrayLength="15">
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="160">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS" />
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </chromatogram>
+      <chromatogram id="sic native" index="1" defaultArrayLength="10">
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="108">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkA=</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="108">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value="" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value="" />
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS" />
+            <binary>AAAAAAAAJEAAAAAAAAAiQAAAAAAAACBAAAAAAAAAHEAAAAAAAAAYQAAAAAAAABRAAAAAAAAAEEAAAAAAAAAIQAAAAAAAAABAAAAAAAAA8D8=</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </chromatogram>
+    </chromatogramList>
+  </run>
+</mzML>

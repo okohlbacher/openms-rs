@@ -15,6 +15,83 @@ use std::path::Path;
 pub struct FileHandler;
 
 impl FileHandler {
+    /// Whether an identification adapter is compiled into this crate.
+    pub fn can_read_identifications(kind: FileType) -> bool {
+        kind == FileType::IdXml && cfg!(feature = "idxml")
+    }
+    pub fn can_write_identifications(kind: FileType) -> bool {
+        Self::can_read_identifications(kind)
+    }
+
+    /// Identification stream dispatch; remaining identification formats are errors.
+    #[cfg(feature = "idxml")]
+    pub fn read_identifications(
+        reader: impl BufRead,
+        kind: FileType,
+    ) -> Result<super::idxml::IdXmlDocument> {
+        if kind != FileType::IdXml {
+            return Err(Error::Unsupported(format!(
+                "native {} identification input",
+                kind.name()
+            )));
+        }
+        super::idxml::read(reader)
+    }
+
+    #[cfg(feature = "idxml")]
+    pub fn write_identifications(
+        writer: impl Write,
+        document: &super::idxml::IdXmlDocument,
+        kind: FileType,
+    ) -> Result<()> {
+        if kind != FileType::IdXml {
+            return Err(Error::Unsupported(format!(
+                "native {} identification output",
+                kind.name()
+            )));
+        }
+        super::idxml::write(writer, document)
+    }
+
+    /// Known extensions take precedence; unknown extensions use bounded content
+    /// recognition. An empty allowed list accepts every compiled adapter.
+    #[cfg(feature = "idxml")]
+    pub fn load_identifications(
+        path: impl AsRef<Path>,
+        allowed: &[FileType],
+    ) -> Result<super::idxml::IdXmlDocument> {
+        let reader = typed_input(path.as_ref(), allowed, FileType::IdXml)?;
+        Self::read_identifications(reader, FileType::IdXml)
+    }
+
+    /// Source identification output selection: a single allowed format supplies
+    /// an unknown suffix; known suffixes must belong to a nonempty allowed list.
+    /// IdXMLFile stores plain bytes even when a compression suffix is present.
+    #[cfg(feature = "idxml")]
+    pub fn store_identifications(
+        path: impl AsRef<Path>,
+        document: &super::idxml::IdXmlDocument,
+        allowed: &[FileType],
+    ) -> Result<()> {
+        let path = path.as_ref();
+        let mut kind = type_by_file_name(filename(path)?);
+        if kind == FileType::Unknown && allowed.len() == 1 {
+            kind = allowed[0];
+        }
+        if !allowed.is_empty() && !allowed.contains(&kind) {
+            return Err(Error::InvalidValue(format!(
+                "{} is not an allowed output format",
+                kind.name()
+            )));
+        }
+        if !Self::can_write_identifications(kind) {
+            return Err(Error::Unsupported(format!(
+                "native {} identification output",
+                kind.name()
+            )));
+        }
+        super::idxml::store(path, document)
+    }
     pub fn can_read_experiment(kind: FileType) -> bool {
         matches!(
             kind,
@@ -137,7 +214,7 @@ impl FileHandler {
         allowed: &[FileType],
     ) -> Result<crate::kernel::FeatureMap> {
         let path = path.as_ref();
-        let reader = map_input(path, allowed, FileType::FeatureXml)?;
+        let reader = typed_input(path, allowed, FileType::FeatureXml)?;
         let mut map = Self::read_feature_map(reader, FileType::FeatureXml)?;
         map.loaded_file_path = filename(path)?.into();
         map.loaded_file_type = FileType::FeatureXml;
@@ -187,7 +264,7 @@ impl FileHandler {
         allowed: &[FileType],
     ) -> Result<crate::kernel::ConsensusMap> {
         let path = path.as_ref();
-        let reader = map_input(path, allowed, FileType::ConsensusXml)?;
+        let reader = typed_input(path, allowed, FileType::ConsensusXml)?;
         let mut map = Self::read_consensus_map(reader, FileType::ConsensusXml)?;
         map.loaded_file_path = filename(path)?.into();
         map.loaded_file_type = FileType::ConsensusXml;
@@ -352,7 +429,7 @@ fn filename(path: &Path) -> Result<&str> {
     path.to_str()
         .ok_or_else(|| Error::InvalidValue("filename must be UTF-8".into()))
 }
-fn map_input(path: &Path, allowed: &[FileType], expected: FileType) -> Result<Box<dyn BufRead>> {
+fn typed_input(path: &Path, allowed: &[FileType], expected: FileType) -> Result<Box<dyn BufRead>> {
     let mut kind = type_by_file_name(filename(path)?);
     let mut reader = super::path_io::open(path)?;
     if kind == FileType::Unknown {
@@ -364,7 +441,7 @@ fn map_input(path: &Path, allowed: &[FileType], expected: FileType) -> Result<Bo
     check_allowed(kind, allowed)?;
     if kind != expected {
         return Err(Error::Unsupported(format!(
-            "expected {} map, found {}",
+            "expected {} input, found {}",
             expected.name(),
             kind.name()
         )));

@@ -17,6 +17,8 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 
 mod experiment_aggregation;
+mod experiment_summary;
+pub use experiment_summary::SummaryLimits;
 pub mod features;
 pub mod geometry;
 pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};
@@ -169,7 +171,7 @@ pub struct ChromatogramRanges {
     pub intensity: Option<NumericRange>,
 }
 
-/// Bounds of spectra and their peaks; stored chromatograms are not included.
+/// RT, m/z and intensity bounds. Each query documents which experiment data it includes.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct ExperimentRanges {
     pub rt: Option<NumericRange>,

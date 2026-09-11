@@ -1,5 +1,41 @@
 # Validation of the ongoing Rust port
 
+## Scientific loading, decomposition and experiment operations (2026-09-11)
+
+The native mass-decomposition solver, mzML scientific filtering and canonical
+array types, experiment summaries, and idXML filesystem/dispatch operations are
+integrated. [Recorded checks](scientific-operations-validation.json) include the
+commands, outcomes and log hashes.
+
+| Check | Result |
+| --- | --- |
+| Rust 1.98, all features and all targets | 1,432 tests passed; examples compiled |
+| Rust 1.85, mzML-only plus solver/summary/value/unit suites | 147 tests passed |
+| Rust 1.85, idXML-only paths/definitions plus summaries | 39 tests passed |
+| Strict Clippy, all targets | Passed on Rust 1.98 with all features and Rust 1.85 without defaults |
+| Focused mzML/solver/summary Clippy, Rust 1.85 | Passed |
+| Documentation examples, Rustdoc, optimized library, Rustfmt | Passed; three doctests and documentation warnings denied |
+| Source/fixture audit | 1,840 distinct current source/registration/reference files verified |
+| Source-review and completion-ledger regressions | Three source-review tests and two ledger tests passed |
+
+Selected test counts overlap; they are not added to the full-suite count.
+Independent source review covered decomposition order and finite residue-table
+limitations, mzML raw-precision filtering and aligned annotations, summary
+floating-point accumulation, and idXML plain-output/extension behavior. Native
+regressions cover bounded work, corrupt input and atomic failure. A preexisting
+Rust 1.85 test-expression lint was corrected without changing fixture bytes.
+
+The preceding published [extraction increment](https://github.com/okohlbacher/openms-rs/actions/runs/34561162608)
+and [value-API increment](https://github.com/okohlbacher/openms-rs/actions/runs/34561620258)
+passed every CI job: Linux, macOS, Windows, minimum Rust and quality checks.
+
+The completion ledger records 23 complete/native-equivalent headers and 763
+requiring implementation or review. The solver's scientific API is represented;
+standalone IMS utilities are separately tracked. Full mzML metadata, codecs,
+consumer/transform behavior and many other SDK APIs remain. No C++ runtime
+comparison or certified TOPP workflow is claimed.
+
+
 ## Peak-file, metadata and composition values (2026-09-11)
 
 PeakFileOptions, equality-compatible metadata/Product hashing, and the complete
@@ -20,8 +56,8 @@ source option activation/defaults and the distinct `+` versus `+=` cached-maximu
 semantics in MassDecomposition. Native hash tests record every equality-significant
 field and signed-zero normalization without assuming cross-language digest values.
 
-PeakFileOptions is currently a value API; adapter execution is separate work.
-MassDecomposition stores counts; the solver is separate work. Product's own hash
+At this checkpoint PeakFileOptions and MassDecomposition were value APIs. The
+following scientific-operations increment adds loading execution and the solver. Product's own hash
 operation is now present, while inherited CVTerm/DataValue independent-unit states
 and numeric registry semantics remain under review. The inventory records 22
 reviewed complete/native-equivalent headers and 764 still requiring work or review.

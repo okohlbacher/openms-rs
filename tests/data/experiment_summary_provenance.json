@@ -1,0 +1,75 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "sha256": "842bf219137c3f9078765dea7b39eb0a821771872888d58645551358149df888"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h",
+      "sha256": "e56ee678f5b984b0f4ed81a7e24521e7e5c3607a5a92e07472539f4a7743e536"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+      "sha256": "3f9f2f06c2e259dd719b328b160874c846ae24c73294c61b36f1573f46984117"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+      "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramRangeManager.h",
+      "sha256": "cd366a55182c0540dc7b570bf248da01945e37d1185e9fa77446098ca342284c"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ChromatogramRangeManager.cpp",
+      "sha256": "abe605cbc26fbc69c83d956030634affb4977e072814fc6fdf79e813ca526ef6"
+    }
+  ],
+  "native_tests": "tests/experiment_summary.rs",
+  "source_anchors": [
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 1556,
+      "operation": "calculateTIC literal 8/2/9,2-second and6-second grids,negative bin"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 1433,
+      "operation": "sortChromatograms Product100/80 and RT0.3/0.2/0.1"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 2647,
+      "operation": "spectrum/chromatogram/combined range examples"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 1288,
+      "operation": "exact-level contains and zero-intensity predicates"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 870,
+      "operation": "spectrum-only clearing of all metadata arrays"
+    }
+  ],
+  "evidence": "Source literals and independently evaluated source expressions. Native checked resources/atomicity and stable outer tie order are explicit. No source C++ build or execution. No mobility or full range-manager claim."
+}

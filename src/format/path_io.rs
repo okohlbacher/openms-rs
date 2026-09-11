@@ -51,7 +51,28 @@ pub(crate) fn store(path: &Path, bytes: &[u8]) -> Result<()> {
 
 /// Serialize into a sibling file and publish only after compression and flush succeed.
 pub(crate) fn write(path: &Path, save: impl FnOnce(&mut dyn Write) -> Result<()>) -> Result<()> {
-    let suffix = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+    write_as(path, save, true)
+}
+
+/// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2.
+#[cfg(feature = "idxml")]
+pub(crate) fn write_plain(
+    path: &Path,
+    save: impl FnOnce(&mut dyn Write) -> Result<()>,
+) -> Result<()> {
+    write_as(path, save, false)
+}
+
+fn write_as(
+    path: &Path,
+    save: impl FnOnce(&mut dyn Write) -> Result<()>,
+    compression_suffix: bool,
+) -> Result<()> {
+    let suffix = if compression_suffix {
+        path.extension().and_then(|s| s.to_str()).unwrap_or("")
+    } else {
+        ""
+    };
     if suffix.eq_ignore_ascii_case("zip") {
         return Err(Error::Unsupported("ZIP scientific output".into()));
     }

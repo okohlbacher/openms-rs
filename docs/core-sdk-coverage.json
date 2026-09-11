@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 165,
-      "native_equivalent": 12,
-      "partial": 11,
-      "unmapped": 588
+      "evidence_requires_review": 172,
+      "native_equivalent": 13,
+      "partial": 12,
+      "unmapped": 579
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2356,6 +2356,7 @@
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
@@ -2682,10 +2683,12 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h",
       "sha256": "3354579d9deb2a235066d6a8328b4edfe667a8e5642ba072975cb07e59bb044b",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -2712,30 +2715,36 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h",
       "sha256": "81c56b6b658d8ccbd762b42307220da5bf60ad85c46670563446d5674691fe2a",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h",
       "sha256": "e433c363301b7b91111b023892a7d55af80965a553ccb08db90beabb270fc427",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h",
       "sha256": "07611ae1c701fb703a80cea3646fd7a60ee27c870e2cf356af1c5f6949851d08",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -2752,20 +2761,24 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h",
       "sha256": "8853b917e699c02430bfd67d9073773ebed0288da342b5c1d99c22fdfca18c5b",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h",
       "sha256": "c942eae4768d8b04712df31fea8d7f1d649abbcb3ba7cefba56b7c72f8b896b4",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -2798,10 +2811,25 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h",
       "sha256": "7027a6aa6f0e1b473e88c2f1d2e9b8a4775c5fc8d21320f2703bb29e2c390f83",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/mass_decomposition_algorithm.rs",
+          "src/chemistry/mass_decomposition.rs"
+        ],
+        "tests": [
+          "tests/mass_decomposition_algorithm.rs"
+        ],
+        "documentation": "docs/MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md",
+        "scope": "Complete scientific getDecompositions operation and five settings through owned typed configuration, atomic reconfiguration and append. Native private integer residue tables, GCD/rounding and real-mass filtering retain source order, exclusive upper bound and documented finite infinity-sentinel limitation. Checked numeric/resource boundaries replace unsafe states. Inherited C++ DefaultParamHandler APIs and standalone public IMS utility classes are separate."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/mass_decomposition_algorithm.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json"
+      ],
       "direct_topp_consumers": [
         "MetaProSIP"
       ]
@@ -2826,6 +2854,7 @@
         "src/chemistry/modification_definitions.rs"
       ],
       "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/registry_provenance.json"
       ],
@@ -2841,6 +2870,7 @@
         "src/chemistry/modification_definitions.rs"
       ],
       "reference_manifests": [
+        "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/registry_provenance.json"
       ],
@@ -2859,6 +2889,7 @@
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/registry_provenance.json",
@@ -3100,6 +3131,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/registry_provenance.json",
@@ -3118,6 +3150,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/tagger_provenance.json",
@@ -4057,6 +4090,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/featurexml_provenance.json",
+        "tests/data/mzml_load_provenance.json",
         "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -5610,17 +5644,19 @@
           "src/format/path_io.rs"
         ],
         "tests": [
-          "tests/file_handler.rs"
+          "tests/file_handler.rs",
+          "tests/identification_paths.rs"
         ],
         "documentation": "docs/FILE_HANDLING_SUPPORT.md",
-        "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; featureXML/consensusXML map dispatch; plain/gzip/bzip2 transport, allowed-input checks, bounded content recognition and atomic path output. Identification/transition dispatch, other formats, ZIP input, SHA1 and full source-file bookkeeping remain."
+        "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; featureXML/consensusXML map dispatch; plain/gzip/bzip2 transport, allowed-input checks, bounded content recognition and atomic path output. Native idXML identification dispatch with source input/output allowlists. Other identification/transition formats, ZIP input, SHA1 and full source-file bookkeeping remain."
       },
       "candidate_rust_files": [
         "src/format/file_handler.rs"
       ],
       "reference_manifests": [
         "tests/data/fasta_provenance.json",
-        "tests/data/file_handling_provenance.json"
+        "tests/data/file_handling_provenance.json",
+        "tests/data/identification_paths_provenance.json"
       ],
       "direct_topp_consumers": [
         "AccurateMassSearch",
@@ -6048,6 +6084,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/mzml_load_provenance.json",
         "tests/data/mzml_param_groups_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_provenance.json"
@@ -6062,6 +6099,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/mzml_load_provenance.json",
         "tests/data/mzml_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -6254,10 +6292,26 @@
       "header": "src/openms/include/OpenMS/FORMAT/IdXMLFile.h",
       "sha256": "4cae9d1eeb4ec0b738ec8aa62311cabfc46541a9e1c4d2bcdf808b1da802a98b",
       "domain": "FORMAT",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/idxml.rs",
+          "src/format/identification_xml.rs",
+          "src/format/modification_definitions.rs",
+          "src/format/path_io.rs"
+        ],
+        "tests": [
+          "tests/idxml.rs",
+          "tests/idxml_definitions.rs",
+          "tests/identification_paths.rs"
+        ],
+        "documentation": "docs/IDENTIFICATION_PATH_SUPPORT.md",
+        "scope": "Native idXML document read/write and direct path load/store, document identifier, registry/options overloads, bounded plain/gzip/bzip2 input and source plain output regardless of suffix. Checked output extension and atomic file/destination replacement. Existing metadata/sequence encoding boundaries, source hit-order/rank differences, ZIP and inherited logger/schema/CV APIs remain."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/identification_paths_provenance.json",
         "tests/data/idxml_provenance.json",
         "tests/data/modification_definition_io_provenance.json"
       ],
@@ -6548,15 +6602,17 @@
         "rust": [
           "src/format/mzml.rs",
           "src/format/mzml_precursor.rs",
-          "src/format/indexed_mzml.rs"
+          "src/format/indexed_mzml.rs",
+          "src/format/mzml_load.rs"
         ],
         "tests": [
           "tests/mzml.rs",
           "tests/mzml_product.rs",
-          "tests/indexed_mzml.rs"
+          "tests/indexed_mzml.rs",
+          "tests/mzml_load_options.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product targets/isolation/scalar metadata and hasIndex probe. PeakFileOptions execution, loadSize/transform/centroid summary, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
+        "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -6764,6 +6820,7 @@
       ],
       "reference_manifests": [
         "tests/data/consensusxml_provenance.json",
+        "tests/data/mzml_load_provenance.json",
         "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -7387,6 +7444,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/identification_paths_provenance.json",
         "tests/data/paramxml_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -7671,10 +7729,12 @@
       "header": "src/openms/include/OpenMS/KERNEL/ChromatogramRangeManager.h",
       "sha256": "cd366a55182c0540dc7b570bf248da01945e37d1185e9fa77446098ca342284c",
       "domain": "KERNEL",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/experiment_summary_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -7893,7 +7953,8 @@
         "src/kernel.rs"
       ],
       "reference_manifests": [
-        "tests/data/experiment_aggregation_provenance.json"
+        "tests/data/experiment_aggregation_provenance.json",
+        "tests/data/experiment_summary_provenance.json"
       ],
       "direct_topp_consumers": [
         "EICExtractor"
@@ -7908,20 +7969,23 @@
         "status": "partial",
         "rust": [
           "src/kernel.rs",
-          "src/kernel/experiment_aggregation.rs"
+          "src/kernel/experiment_aggregation.rs",
+          "src/kernel/experiment_summary.rs"
         ],
         "tests": [
           "tests/kernel.rs",
-          "tests/experiment_aggregation.rs"
+          "tests/experiment_aggregation.rs",
+          "tests/experiment_summary.rs"
         ],
         "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata, binned TIC and remaining specialized operations still require implementation/review."
+        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata, binned TIC and remaining specialized operations still require implementation/review. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
       ],
       "reference_manifests": [
         "tests/data/experiment_aggregation_provenance.json",
+        "tests/data/experiment_summary_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
@@ -8010,6 +8074,7 @@
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/experiment_summary_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
@@ -8146,10 +8211,12 @@
       "header": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
       "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d",
       "domain": "KERNEL",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/experiment_summary_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8313,6 +8380,7 @@
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
         "tests/data/decoy_provenance.json",
+        "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/tagger_provenance.json"
       ],
@@ -10025,7 +10093,9 @@
       "candidate_rust_files": [
         "src/processing.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/experiment_summary_provenance.json"
+      ],
       "direct_topp_consumers": [
         "Resampler"
       ]
@@ -13036,7 +13106,6 @@
         "OpenMS/CHEMISTRY/Element.h",
         "OpenMS/CHEMISTRY/ElementDB.h",
         "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
-        "OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h",
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/COMPARISON/SpectrumAlignment.h",
         "OpenMS/CONCEPT/Constants.h",

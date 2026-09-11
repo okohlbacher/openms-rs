@@ -1,6 +1,6 @@
 # MassDecomposition values
 
-`chemistry::MassDecomposition` ports the public count-container API from `CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h`. It represents symbol frequencies; it does not find compositions with a requested mass. The separate decomposition algorithms and solvers are outside this class.
+`chemistry::MassDecomposition` ports the public count-container API from `CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h`. It represents symbol frequencies; it does not find compositions with a requested mass. The separate [native decomposition algorithm](MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md) performs mass searches; it remains a distinct class.
 
 ```rust
 use openms::chemistry::MassDecomposition;

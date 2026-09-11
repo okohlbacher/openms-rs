@@ -2,6 +2,14 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Execute source mzML loading filters and aligned sorting before native float conversion; preserve 26 canonical auxiliary binary-array roles.
+
+- Port MassDecompositionAlgorithm with all source settings, private residue-table solver, literal count tests and independent integer-composition checks.
+
+- Add checked source TIC binning, combined/chromatogram ranges, aligned sorting and experiment summary operations.
+
+- Add bounded idXML path loading, atomic plain-file publication and identification dispatch with source extension/allowlist rules.
+
 - Add complete native peak-file option state, metadata/Product hash traits, and source-compatible MassDecomposition count records with checked arithmetic.
 
 - Update the SDK target to `54a232f`, retaining historical fixture pins and explicit changed-source compatibility reviews.

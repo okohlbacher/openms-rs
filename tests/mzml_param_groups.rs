@@ -395,14 +395,16 @@ fn definition_and_reuse_storage_and_work_are_bounded() {
     );
     let data = "x".repeat(10_000);
     let definitions = group(&format!("<userParam name=\"payload\" value=\"{data}\"/>"));
-    let copies: String = (0..20)
-        .map(|i| {
-            format!(
-                "<spectrum id=\"s{i}\" defaultArrayLength=\"0\">{}</spectrum>",
-                reference()
-            )
-        })
-        .collect();
+    use std::fmt::Write as _;
+    let mut copies = String::new();
+    for i in 0..20 {
+        write!(
+            &mut copies,
+            "<spectrum id=\"s{i}\" defaultArrayLength=\"0\">{}</spectrum>",
+            reference()
+        )
+        .unwrap();
+    }
     let amplified = doc(
         &definitions,
         &format!("<spectrumList count=\"20\">{copies}</spectrumList>"),

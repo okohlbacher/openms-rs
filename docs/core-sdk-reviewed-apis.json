@@ -30,10 +30,11 @@
         "src/format/path_io.rs"
       ],
       "tests": [
-        "tests/file_handler.rs"
+        "tests/file_handler.rs",
+        "tests/identification_paths.rs"
       ],
       "documentation": "docs/FILE_HANDLING_SUPPORT.md",
-      "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; featureXML/consensusXML map dispatch; plain/gzip/bzip2 transport, allowed-input checks, bounded content recognition and atomic path output. Identification/transition dispatch, other formats, ZIP input, SHA1 and full source-file bookkeeping remain."
+      "scope": "Native experiment dispatch for DTA, MGF, DTA2D, MS2 and optional mzML; featureXML/consensusXML map dispatch; plain/gzip/bzip2 transport, allowed-input checks, bounded content recognition and atomic path output. Native idXML identification dispatch with source input/output allowlists. Other identification/transition formats, ZIP input, SHA1 and full source-file bookkeeping remain."
     },
     "src/openms/include/OpenMS/KERNEL/StandardTypes.h": {
       "status": "native_equivalent",
@@ -320,29 +321,33 @@
       "status": "partial",
       "rust": [
         "src/kernel.rs",
-        "src/kernel/experiment_aggregation.rs"
+        "src/kernel/experiment_aggregation.rs",
+        "src/kernel/experiment_summary.rs"
       ],
       "tests": [
         "tests/kernel.rs",
-        "tests/experiment_aggregation.rs"
+        "tests/experiment_aggregation.rs",
+        "tests/experiment_summary.rs"
       ],
       "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-      "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata, binned TIC and remaining specialized operations still require implementation/review."
+      "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata, binned TIC and remaining specialized operations still require implementation/review. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain."
     },
     "src/openms/include/OpenMS/FORMAT/MzMLFile.h": {
       "status": "partial",
       "rust": [
         "src/format/mzml.rs",
         "src/format/mzml_precursor.rs",
-        "src/format/indexed_mzml.rs"
+        "src/format/indexed_mzml.rs",
+        "src/format/mzml_load.rs"
       ],
       "tests": [
         "tests/mzml.rs",
         "tests/mzml_product.rs",
-        "tests/indexed_mzml.rs"
+        "tests/indexed_mzml.rs",
+        "tests/mzml_load_options.rs"
       ],
       "documentation": "docs/MZML_SUPPORT.md",
-      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product targets/isolation/scalar metadata and hasIndex probe. PeakFileOptions execution, loadSize/transform/centroid summary, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
+      "scope": "Bounded read/write and path dispatch, represented arrays/precursors, referenceable parameters, chromatogram Product transport and hasIndex probe. read_with_load_options executes source RT/MS-level/selected-ion/point filters with aligned sorting and deferred float narrowing;26 canonical auxiliary binary roles have reversible native names. Full metadata/header/loadSize/transform/consumer/isolation-target paths, binary-array processing metadata, schema/CV validation, Numpress, indexed writing and full experimental/acquisition/spectrum-product transport remain."
     },
     "src/openms/include/OpenMS/METADATA/Product.h": {
       "status": "partial",
@@ -405,6 +410,34 @@
       ],
       "documentation": "docs/MASS_DECOMPOSITION_SUPPORT.md",
       "scope": "Complete source symbol-count value API, including literal-space parsing, duplicate historical maxima, distinct addition cache semantics, formatting, source map ordering, text equality, tag containment and compatibility. Owned ASCII keys, checked nonnegative counts/overflow and bounded output replace unsafe source states. Separate mass decomposition algorithms and solvers are not covered."
+    },
+    "src/openms/include/OpenMS/FORMAT/IdXMLFile.h": {
+      "status": "partial",
+      "rust": [
+        "src/format/idxml.rs",
+        "src/format/identification_xml.rs",
+        "src/format/modification_definitions.rs",
+        "src/format/path_io.rs"
+      ],
+      "tests": [
+        "tests/idxml.rs",
+        "tests/idxml_definitions.rs",
+        "tests/identification_paths.rs"
+      ],
+      "documentation": "docs/IDENTIFICATION_PATH_SUPPORT.md",
+      "scope": "Native idXML document read/write and direct path load/store, document identifier, registry/options overloads, bounded plain/gzip/bzip2 input and source plain output regardless of suffix. Checked output extension and atomic file/destination replacement. Existing metadata/sequence encoding boundaries, source hit-order/rank differences, ZIP and inherited logger/schema/CV APIs remain."
+    },
+    "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/chemistry/mass_decomposition_algorithm.rs",
+        "src/chemistry/mass_decomposition.rs"
+      ],
+      "tests": [
+        "tests/mass_decomposition_algorithm.rs"
+      ],
+      "documentation": "docs/MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md",
+      "scope": "Complete scientific getDecompositions operation and five settings through owned typed configuration, atomic reconfiguration and append. Native private integer residue tables, GCD/rounding and real-mass filtering retain source order, exclusive upper bound and documented finite infinity-sentinel limitation. Checked numeric/resource boundaries replace unsafe states. Inherited C++ DefaultParamHandler APIs and standalone public IMS utility classes are separate."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_54A232F_REVIEW.md"

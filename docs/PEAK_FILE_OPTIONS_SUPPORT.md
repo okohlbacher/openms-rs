@@ -5,11 +5,12 @@ OpenMS4-core `54a232fe2cae9c590d5c997fa49d20e7769860fb`'s `PeakFileOptions`.
 The type, `NumpressCompression`, `NumpressConfig` and constants are available in
 `format::peak_options` without optional features or new dependencies.
 
-**This is a value API. Existing format readers and writers do not consume this
-new type yet.** Setting a filter, precision, Numpress mode or compatibility flag
-neither executes that operation nor silently alters existing `mzml::ReadOptions`
-or `WriteOptions`. Resource-limit options remain separate. Unsupported executing
-behavior must be rejected explicitly when adapters are wired in a later batch.
+**This is a value API.** The new [mzML scientific loading entry point](MZML_LOAD_OPTIONS_SUPPORT.md)
+executes its supported filtering/sorting choices explicitly. Existing plain
+`mzml::read`/`read_with_options` and writers retain their behavior. Merely setting
+a precision, Numpress mode or compatibility flag does not enable a codec or
+writer feature. Resource-limit options remain separate; unsupported loading
+behavior is rejected before input is consumed.
 
 ## Scalar state and defaults
 
@@ -138,14 +139,13 @@ from derived/native checks. The existing [mzML support](MZML_SUPPORT.md) and
 [DTA2D/MS2 support](TEXT_PEAK_LIST_SUPPORT.md) remain authoritative about current
 adapter behavior; this state API does not expand those format promises.
 
-The next adapter batch should pass scientific options alongside each adapter's
-existing resource limits. It must apply RT/MS-level/precursor filters at the
-correct source record stage, m/z/intensity filters with aligned auxiliary-array
-selection, and sorting with annotation alignment. Metadata-only, fill-data,
-consumer append, and skip-chromatogram behavior need separate streaming/counting
-contracts. Precursor selection must retain the distinction between selected-ion
-m/z and isolation target. Encoding options require actual selected precision,
-zlib, index and compatibility implementations; unavailable Numpress and format
-choices must error before output. `skip_xml_checks` must never disable native
-memory/work limits or unsafe-input guards. Repeated MS-level membership work must be charged across all records. Batch size
-must not become an unbounded allocation request. No such wiring is part of this staged change.
+The explicit mzML loading entry point now applies supported scientific options
+alongside independent resource limits, including aligned selection/sorting,
+selected-ion filtering and skip-chromatogram behavior. Metadata-only, fill-data,
+consumer append/counting, isolation-target precursor selection and other format
+adapters remain separate work. Encoding options require actual selected
+precision, zlib, index and compatibility implementations; unavailable Numpress
+and format choices must error before output. `skip_xml_checks` must never disable
+native resource limits. Repeated MS-level membership work is charged across all
+records in the implemented reader, and its batch-size option does not allocate
+an unbounded pool.

@@ -1,0 +1,87 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_files": [
+    {
+      "path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
+    },
+    {
+      "path": "src/openms/source/FORMAT/OPTIONS/PeakFileOptions.cpp",
+      "sha256": "1ebf8ea1e96d63537245efce79d24a16e81033e9281b58284ab9081524d24393"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060"
+    },
+    {
+      "path": "share/OpenMS/CV/psi-ms.obo",
+      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+      "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/mzml_load_source_projection.mzML",
+      "sha256": "19354e629947e98e251641dda1ca810dd8d377cc7cd6444f50daabff4d3bc4a3"
+    },
+    {
+      "path": "tests/data/mzml_load_source_values.tsv",
+      "sha256": "3869ee85a0c2b14d7959c4bc03e5456d1d30127eb1e3bae206b14745392e8546"
+    },
+    {
+      "path": "tests/data/mzml_load_projection.py",
+      "sha256": "1b3858598f8a5a5132fedb891fe614c5e6aabdd744278f00e14fbb4571d96d31"
+    },
+    {
+      "path": "tests/data/mzml_load_canonical_arrays.tsv",
+      "sha256": "d3ebbd4407d6c590864d9e31fac84b65ae7704632c9aa6b35a401038a81a7047"
+    },
+    {
+      "path": "tests/data/mzml_load_source_original.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+    }
+  ],
+  "canonical_auxiliary_terms": 26,
+  "primary_peak_rows": 65,
+  "source_literals": {
+    "ms_levels": "MzMLFile_test.cpp:895-904: [1] yields RT 5.1,5.3,5.4",
+    "rt": "911-918: [5.15,5.35) yields RT 5.2,5.3",
+    "mz": "923-940: [6.5,9.5) yields counts 3,1,3,0 and m/z [7,8,9],[8],[7,8,9],[]",
+    "intensity": "945-963: [6.5,9.5) yields counts 3,1,3,0 and values [9,8,7],[8],[9,8,7],[]"
+  },
+  "transformation": [
+    "Keep source record order, IDs, declared primary lengths, MS-level and first scan RT CVs.",
+    "Copy all original binary array payloads and CVs verbatim in value; remove unsupported array userParams and dataProcessingRef.",
+    "Strip unrelated original header, instrument, scan, precursor, product and record metadata; regenerate minimal run wrapper.",
+    "Correct original spectrum 1 binaryDataArrayList count from 2 to its actual 4. Native strict length/count policy otherwise unchanged.",
+    "Decode original uncompressed float arrays using Python struct/base64 only; primary values stored as binary64 bits. No C++ execution and no production-derived expected values."
+  ],
+  "native_boundaries": [
+    "Excluded records still decode and validate; filters do not waive syntax, finite-value, type, array or raw resource checks.",
+    "Only this explicit scientific projection is claimed readable; original rich MzMLFile_1 compatibility remains separate.",
+    "Stable equal-coordinate sorting and skip_spectra are native additions.",
+    "The 26 canonical non-primary names are reserved roles and serialize to their pinned CV accessions. Nonstandard input names equal to a reserved canonical name are rejected; aliases and case variants are not inferred.",
+    "Canonical declared binary type constraints are checked; charge-array output uses signed i32. Missing CV type restrictions remain permissive. Auxiliary units are unsupported.",
+    "Metadata-only, fill_data=false, skip_xml_checks and isolation-target precursor output are rejected."
+  ]
+}

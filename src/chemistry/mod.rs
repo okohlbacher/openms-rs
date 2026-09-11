@@ -30,7 +30,11 @@ pub mod hydrophobicity;
 pub mod ion_naming;
 pub mod isoelectric_point;
 pub mod mass_decomposition;
+pub mod mass_decomposition_algorithm;
 pub use mass_decomposition::MassDecomposition;
+pub use mass_decomposition_algorithm::{
+    DecompositionResidueSet, MassDecompositionAlgorithm, MassDecompositionOptions,
+};
 pub mod modified_na_sequence_generator;
 pub mod na_sequence;
 pub mod nucleic_acid_spectrum_generator;
