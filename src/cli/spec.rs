@@ -445,9 +445,9 @@ impl ToolSpec {
                 param.set_max_float(&key, v)?;
             }
         }
-        for (name, description) in &self.subsections {
-            param.set_section_description(&format!("{tool_name}:1:{name}"), description)?;
-        }
+        // Subsection descriptions are applied by the caller after the
+        // subsection's own defaults are inserted: a section description cannot
+        // be set on a section that holds no entries yet.
         Ok(param)
     }
 }

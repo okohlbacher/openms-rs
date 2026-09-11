@@ -2,6 +2,7 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add algorithm subsections to the TOPP framework (`Tool::subsection_defaults`, porting `getSubsectionDefaults_`) and two more tools: `MapNormalizer` and `SpectraFilterWindowMower`, both reproducing their upstream tests against retained C++ output.
 - Backport the OpenMS documentation across the whole kernel: all sixteen `src/kernel*` modules reach 100% rustdoc coverage, crate-wide 42% to 48%.
 - Add a rustdoc coverage ratchet (`tools/check_doc_coverage.py`, CI-enforced) and backport the full MassTrace documentation: `src/kernel/mass_trace.rs` goes from 9% to 100% documented. Tool bodies move into `src/cli/tools/` so the shipped binary and its differential test share one definition.
 - Advance the Core SDK target to `bc9cc12`. Only the Parquet reader changed, which the port does not implement; registered public headers stay at 786 and no pinned reference bytes moved. Adds `tools/core_sdk_retarget.py`, which refuses to run when a build-registration input changes.

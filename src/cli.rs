@@ -38,6 +38,17 @@ pub trait Tool {
 
     /// Run the tool, as `main_`.
     fn run(ctx: &ToolContext) -> Result<ExitCode>;
+
+    /// Defaults for a registered subsection, as `getSubsectionDefaults_`.
+    ///
+    /// A tool that wraps an algorithm registers a subsection with
+    /// [`ToolSpec::register_subsection`] and returns that algorithm's parameter
+    /// tree here. The values are merged under the tool's own defaults, so an
+    /// INI file or a command line can override them, and `-write_ini` emits
+    /// them. Returning `None` leaves the subsection empty.
+    fn subsection_defaults(_section: &str) -> Result<Option<Param>> {
+        Ok(None)
+    }
 }
 
 /// The parameters every TOPP tool registers, in source order.
@@ -107,6 +118,22 @@ pub fn tool_spec<T: Tool>() -> Result<ToolSpec> {
     T::register(&mut spec)?;
     register_common(&mut spec)?;
     Ok(spec)
+}
+
+/// The tool's own defaults with every registered subsection's algorithm
+/// defaults merged beneath it.
+fn defaults_with_subsections<T: Tool>(spec: &ToolSpec) -> Result<Param> {
+    let mut defaults = spec.to_param(T::NAME)?;
+    for (name, description) in spec.subsections() {
+        if let Some(values) = T::subsection_defaults(name)?
+            && !values.is_empty()
+        {
+            let prefix = format!("{}:1:{name}:", T::NAME);
+            defaults.insert(&prefix, &values)?;
+            defaults.set_section_description(prefix.trim_end_matches(':'), description)?;
+        }
+    }
+    Ok(defaults)
 }
 
 /// The command-line token maps the parameter parser needs.
@@ -194,7 +221,7 @@ fn prepare<T: Tool>(
     err: &mut dyn Write,
 ) -> Result<Prepared> {
     let prefix = format!("{}:1:", T::NAME);
-    let mut defaults = spec.to_param(T::NAME)?;
+    let mut defaults = defaults_with_subsections::<T>(spec)?;
 
     // 1. Command line. The parser yields strings; values are coerced below.
     let mut cmdline = Param::new();

@@ -590,6 +590,8 @@
  "topp_mzml_splitter_provenance": "tests/data/topp_mzml_splitter_provenance.json",
  "topp_package_reference_manifests": [
   "tests/data/topp_cli_provenance.json",
-  "tests/data/topp_mzml_splitter_provenance.json"
+  "tests/data/topp_mzml_splitter_provenance.json",
+  "tests/data/topp_map_normalizer_provenance.json",
+  "tests/data/topp_spectra_filter_window_mower_provenance.json"
  ]
 }

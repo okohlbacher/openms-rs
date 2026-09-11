@@ -1,0 +1,45 @@
+{
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
+ },
+ "scope": "Sources and fixtures come from the independently versioned OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages; they are deliberately not resolved against the Core SDK checkout.",
+ "method": "Tool transcribed from the pinned C++. The upstream invocation is reproduced against the retained C++ output and compared canonically: the upstream ${DIFF} runs with an index whitelist, so byte equality was never the contract.",
+ "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/topp/src/SpectraFilterWindowMower.cpp",
+   "sha256": "70391f052226f5b365f5d1680a1ab0a0005f1cbe2c4234e43c4994959e23c683"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/SpectraFilterWindowMower_1_input.mzML",
+   "sha256": "df641949fbb0a1370333a4d49a11317da9e4f9fa2e295acfda6b2dd4614d8afe",
+   "retained_as": "tests/data/window_mower_tool_input.mzML"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/SpectraFilterWindowMower_1_output.mzML",
+   "sha256": "77b164053be5fce69fccb28a3d4487e8dd14c53fe013fb598ea390290fbb3703",
+   "retained_as": "tests/data/window_mower_tool_output.mzML"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/window_mower_tool_input.mzML",
+   "sha256": "df641949fbb0a1370333a4d49a11317da9e4f9fa2e295acfda6b2dd4614d8afe"
+  },
+  {
+   "path": "tests/data/window_mower_tool_output.mzML",
+   "sha256": "77b164053be5fce69fccb28a3d4487e8dd14c53fe013fb598ea390290fbb3703"
+  }
+ ],
+ "native_implementation": [
+  "src/cli/tools/spectra_filter_window_mower.rs",
+  "src/bin/SpectraFilterWindowMower.rs"
+ ],
+ "native_tests": [
+  "tests/topp_spectra_filter_window_mower.rs"
+ ],
+ "support": "docs/TOPP_CLI_SUPPORT.md",
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 2782-2784"
+}

@@ -8,7 +8,11 @@
 //! one definition of its parameters and behaviour.
 
 mod dta_extractor;
+mod map_normalizer;
 mod mzml_splitter;
+mod spectra_filter_window_mower;
 
 pub use dta_extractor::DTAExtractor;
+pub use map_normalizer::MapNormalizer;
 pub use mzml_splitter::MzMLSplitter;
+pub use spectra_filter_window_mower::SpectraFilterWindowMower;

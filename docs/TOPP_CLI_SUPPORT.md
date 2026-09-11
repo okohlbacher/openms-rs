@@ -109,6 +109,29 @@ KB/MB/GB base 1024, the remainder spread over the parts still to come, zero
 padding to the width of the part count, and the refusal of `no_chrom` together
 with `no_spec`.
 
+## MapNormalizer and SpectraFilterWindowMower
+
+`MapNormalizer` scales MS1 peak intensities to a percentage of the run maximum;
+its upstream test reproduces the retained C++ output, and the most intense MS1
+peak lands on 100. Higher MS levels are untouched and the source's commented-out
+chromatogram branch is not ported.
+
+`SpectraFilterWindowMower` is the first tool with an **algorithm subsection**,
+the shape most remaining TOPP tools take. `Tool::subsection_defaults` ports
+`getSubsectionDefaults_`: the algorithm's parameter tree is merged beneath the
+tool's own defaults, so `-write_ini` emits it and an INI or command line can
+override it. Its upstream test matches the retained output, and three further
+tests cover the subsection itself — that the C++ `WindowMower` defaults
+(`windowsize` 50, `peakcount` 2, `movetype` slide) reach the INI, that changing
+`peakcount` changes the result, and that a value violating a registered
+restriction is **ignored in favour of the default** rather than rejected, which
+is what the source `Param::update` does.
+
+One ordering detail the subsection support forced: a section description cannot
+be set on a section that holds no entries, so `ToolSpec::to_param` no longer
+writes subsection descriptions and the caller applies them after inserting the
+algorithm defaults.
+
 The second DTA finding above is the first concrete instance of the port's "checked boundaries"
 convention blocking C++ parity. The resolution pattern — keep the guard as the
 library default, add an explicit source-behavior option, and have the tool opt

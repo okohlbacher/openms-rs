@@ -16,6 +16,16 @@ path = "src/bin/DTAExtractor.rs"
 required-features = ["mzml", "paramxml"]
 
 [[bin]]
+name = "MapNormalizer"
+path = "src/bin/MapNormalizer.rs"
+required-features = ["mzml", "paramxml"]
+
+[[bin]]
+name = "SpectraFilterWindowMower"
+path = "src/bin/SpectraFilterWindowMower.rs"
+required-features = ["mzml", "paramxml"]
+
+[[bin]]
 name = "MzMLSplitter"
 path = "src/bin/MzMLSplitter.rs"
 required-features = ["mzml", "paramxml"]
