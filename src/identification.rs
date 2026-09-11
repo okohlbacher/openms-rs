@@ -8,6 +8,8 @@
 
 pub mod graph;
 mod protein_run;
+mod run_mapping;
+pub use run_mapping::IdentifierMSRunMapper;
 
 use crate::chemistry::{AASequence, SequenceModification};
 use crate::comparison::Tolerance;

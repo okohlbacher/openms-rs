@@ -17,7 +17,9 @@ Native [spectrum–chromatogram conversion](docs/CHROMATOGRAM_TOOLS_SUPPORT.md) 
 [MassTrace](docs/MASS_TRACE_SUPPORT.md) provides owned trace peaks, cached centroids,
 raw/smoothed quantification, FWHM and hull calculations.
 [Mass-trace detection](docs/MASS_TRACE_DETECTION_SUPPORT.md) now supplies both source
-run operations, mobility-aware trace growth and all eleven settings. The complete
+run operations, mobility-aware trace growth and all eleven settings.
+[Elution-peak detection](docs/ELUTION_PEAK_DETECTION_SUPPORT.md) adds trace splitting,
+smoothing, extrema, width filtering and noise/SNR calculations. The complete
 [constants and metadata-key collection](docs/CONSTANTS_SUPPORT.md) is also available.
 [mzML record settings](docs/MZML_SETTINGS_SUPPORT.md) preserve spectrum scan modes,
 polarity, zoom, scan windows and Product lists, plus chromatogram types.
@@ -29,6 +31,8 @@ source collection of 24 records and 12 aliases.
 annotation variant, with 160 executed C++ writer comparisons.
 [Protein-run helpers](docs/PROTEIN_RUN_SUPPORT.md) cover inference metadata, settings
 export, singleton groups and metadata-only copying.
+[Run mapping](docs/RUN_MAPPING_SUPPORT.md) resolves identification results to
+ordered source-file paths, including merged runs and legacy path metadata.
 
 | Area | Implemented |
 | --- | --- |

@@ -59,7 +59,7 @@ jobs:
       - run: cargo test --locked --no-default-features --features numpress --test numpress_coder --test numpress
       - run: cargo test --locked --no-default-features --test chromatogram_tools --test processing_acquisition
       - run: cargo test --locked --no-default-features --test mass_trace --test constants --test monosaccharide_db
-      - run: cargo test --locked --no-default-features --test mass_trace_detection --test proforma --test proforma_writer_probe --test protein_run
+      - run: cargo test --locked --no-default-features --test mass_trace_detection --test elution_peak_detection --test proforma --test proforma_writer_probe --test protein_run --test run_mapping
       - run: cargo test --locked --no-default-features --test unique_id --test peak2d --test experiment_2d --test ims_mass_decomposers --test sequence_coverage
       - run: cargo test --locked --no-default-features --test ims_isotopes --test ims_element --test ims_alphabet --test area_iteration --test peak_data --test peak_index --test numpress
       - run: cargo test --locked --no-default-features --test log_stream --test progress_logger --test modification_definition_io

@@ -7,9 +7,9 @@
     "by_status": {
       "complete": 10,
       "evidence_requires_review": 164,
-      "native_equivalent": 36,
+      "native_equivalent": 38,
       "partial": 21,
-      "unmapped": 555
+      "unmapped": 553
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -4316,6 +4316,7 @@
         "tests/data/metadata_hash_provenance.json",
         "tests/data/peak2d_provenance.json",
         "tests/data/protein_run_provenance.json",
+        "tests/data/run_mapping_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4842,10 +4843,24 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
       "sha256": "1f683955133432ec26b997f111a18656f91876179c832be037cce1f7f2e3e686",
       "domain": "FEATUREFINDER",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/analysis/elution_peak_detection.rs"
+        ],
+        "tests": [
+          "tests/elution_peak_detection.rs"
+        ],
+        "documentation": "docs/ELUTION_PEAK_DETECTION_SUPPORT.md",
+        "scope": "Complete class-specific six options, single/batch elution splitting, width filtering, smoothing, extrema and three noise/SNR helpers. Typed native options/limits/logger, deterministic serial order, existing QR projection and frame cap, checked finite boundaries and atomic scientific publication are documented adaptations."
+      },
+      "candidate_rust_files": [
+        "src/analysis/elution_peak_detection.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/elution_peak_detection_provenance.json"
+      ],
       "direct_topp_consumers": [
         "DIAPseudoSpectra",
         "FeatureFinderMetabo",
@@ -8475,6 +8490,7 @@
         "src/kernel/mass_trace.rs"
       ],
       "reference_manifests": [
+        "tests/data/elution_peak_detection_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/mass_trace_provenance.json"
       ],
@@ -9500,10 +9516,24 @@
       "header": "src/openms/include/OpenMS/METADATA/IdentifierMSRunMapper.h",
       "sha256": "d75a8076e9abe280755742eaa7f1114580ce520dd16e6e83bb6f11dede677a20",
       "domain": "METADATA",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/identification/run_mapping.rs"
+        ],
+        "tests": [
+          "tests/run_mapping.rs"
+        ],
+        "documentation": "docs/RUN_MAPPING_SUPPORT.md",
+        "scope": "All public mapping, lookup, copy and merge-index validation operations; source duplicate failure state preserved. Native borrowed/Option/Cow/Result APIs, dedicated primary path fields and bounded construction are documented adaptations."
+      },
+      "candidate_rust_files": [
+        "src/identification/run_mapping.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/run_mapping_provenance.json"
+      ],
       "direct_topp_consumers": [
         "QualityControl"
       ]
@@ -9863,7 +9893,8 @@
       ],
       "reference_manifests": [
         "tests/data/protein_run_provenance.json",
-        "tests/data/registry_provenance.json"
+        "tests/data/registry_provenance.json",
+        "tests/data/run_mapping_provenance.json"
       ],
       "direct_topp_consumers": [
         "AssayGeneratorMetabo",
@@ -10765,7 +10796,8 @@
         "src/processing/smoothing.rs"
       ],
       "reference_manifests": [
-        "tests/data/chromatogram_processing_provenance.json"
+        "tests/data/chromatogram_processing_provenance.json",
+        "tests/data/elution_peak_detection_provenance.json"
       ],
       "direct_topp_consumers": [
         "NoiseFilterSGolay"
@@ -11690,7 +11722,6 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FORMAT/BrukerTimsFile.h",
         "OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -12143,7 +12174,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
@@ -13590,7 +13620,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
@@ -15207,7 +15236,6 @@
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/IdentifierMSRunMapper.h",
         "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/ProteinIdentification.h",

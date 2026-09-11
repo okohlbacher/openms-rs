@@ -1,0 +1,269 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "scope": [
+    "ElutionPeakDetection complete class-specific operations and six typed options",
+    "IdentifierMSRunMapper complete public operation group"
+  ],
+  "checks": [
+    {
+      "name": "all_targets_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 183.83,
+      "log_sha256": "c40360560f8b837f270477c44a413ba783f0f748871a88a7c3678e514c0dda8f",
+      "log_bytes": 180941,
+      "tests_passed": 1730
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.29,
+      "log_sha256": "916f21e2146a98ed7a44bffbfe1b9206835768cc988f40fe0b18e4a39b249819",
+      "log_bytes": 582,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 17.18,
+      "log_sha256": "3e8af09993c233be5dfaaf133156bad999a6c94387c57800d332323f93d9986a",
+      "log_bytes": 162
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 34.21,
+      "log_sha256": "607a2df9f66ffc4b18fa9641870ffa335ce41e0325293c8723f86eede43e1000",
+      "log_bytes": 152
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.65,
+      "log_sha256": "1e84227a3d04d955972de6f6fef7fad56f82f2d4a17ffa47d3e9c331c6a5317d",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.83,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-82ce5b3"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.37,
+      "log_sha256": "dfa7d320d22264ca28410850572ecfa4cf7cf97e8d5d1d0b7f2f19fead6ba12b",
+      "log_bytes": 233
+    },
+    {
+      "name": "monosaccharide_projection",
+      "command": [
+        "python3",
+        "tools/generate_monosaccharides.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.04,
+      "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9",
+      "log_bytes": 48
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.08,
+      "log_sha256": "cff256a8879326f216e7a88cf7ff903eca42b2caf963db1b41780fc95496eac2",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "f2f7f20b09268ff1a5a9edf399b32bb047568b9780fc65a6c38dee4a6be91892",
+      "log_bytes": 100
+    },
+    {
+      "name": "native_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "--test",
+        "mass_trace_detection",
+        "--test",
+        "elution_peak_detection",
+        "--test",
+        "run_mapping",
+        "--test",
+        "mass_trace",
+        "--test",
+        "area_iteration",
+        "--test",
+        "proforma",
+        "--test",
+        "proforma_writer_probe",
+        "--test",
+        "protein_run",
+        "--test",
+        "identification",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.58,
+      "log_sha256": "caf09aa4c2299dcd4d41ca66afd16198f5c477d76d7f2654cff342ea2cca4f13",
+      "log_bytes": 18741,
+      "tests_passed": 179
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.31,
+      "log_sha256": "60443f506d9d578c4f4c59a132f0138357312c23c0febebe0c98784125df3675",
+      "log_bytes": 162
+    }
+  ],
+  "new_tests": 24,
+  "staged_validation": {
+    "elution": "49 distinct passing direct/adjacent tests per compiler; strict library/direct Clippy. Root full scientific/resource review and independent numerical review closed clean.",
+    "run_mapping": "38 direct/adjacent tests per compiler; independent source review closed clean."
+  },
+  "integration_changes": [
+    "Applied repository Rust1.98/edition2024 formatting to frozen Elution source/tests after initial standalone edition2021 fmt mismatch; no behavioral changes. Retained passing full/native/strict/release checks; reran formatter and remaining audit checks."
+  ],
+  "final_implementation_sha256": {
+    "src/analysis/elution_peak_detection.rs": "9060168e70afa273cfb93cec8d5f88ad83dcb81709c4b948c27729e7c347c84b",
+    "src/identification/run_mapping.rs": "f20b9270e5c93d67b4fed2f55a5e6ef939f2762f8850a75fc1edf875ca3847c5"
+  },
+  "source_audit": {
+    "distinct_current_files": 1886,
+    "scientific_files": 1578,
+    "historical_references": 220,
+    "graph_references": 21,
+    "added_references": 548
+  },
+  "coverage": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "evidence_requires_review": 164,
+      "native_equivalent": 38,
+      "partial": 21,
+      "unmapped": 553
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  },
+  "cpp_execution": false,
+  "limitations": [
+    "This group uses source fixture literals, branch analysis and independent native oracles; no C++ execution claimed.",
+    "Full Core SDK remains incomplete and no TOPP workflow is certified."
+  ]
+}

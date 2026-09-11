@@ -837,6 +837,28 @@
       ],
       "documentation": "docs/PROTEIN_RUN_SUPPORT.md",
       "scope": "Existing owned records, sorting, coverage/modifications and search settings plus inference metadata, original-engine recovery, mergeability,12-field settings export, singleton group completion and metadata-only copying. Native lexical metadata ordering may select a different original engine from source numeric registry-ID order. Typed fields and conservative atomic owned-output limits; filesystem-aware path selection, additional specificity states and full inherited/header review remain open."
+    },
+    "src/openms/include/OpenMS/METADATA/IdentifierMSRunMapper.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/identification/run_mapping.rs"
+      ],
+      "tests": [
+        "tests/run_mapping.rs"
+      ],
+      "documentation": "docs/RUN_MAPPING_SUPPORT.md",
+      "scope": "All public mapping, lookup, copy and merge-index validation operations; source duplicate failure state preserved. Native borrowed/Option/Cow/Result APIs, dedicated primary path fields and bounded construction are documented adaptations."
+    },
+    "src/openms/include/OpenMS/FEATUREFINDER/ElutionPeakDetection.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/analysis/elution_peak_detection.rs"
+      ],
+      "tests": [
+        "tests/elution_peak_detection.rs"
+      ],
+      "documentation": "docs/ELUTION_PEAK_DETECTION_SUPPORT.md",
+      "scope": "Complete class-specific six options, single/batch elution splitting, width filtering, smoothing, extrema and three noise/SNR helpers. Typed native options/limits/logger, deterministic serial order, existing QR projection and frame cap, checked finite boundaries and atomic scientific publication are documented adaptations."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

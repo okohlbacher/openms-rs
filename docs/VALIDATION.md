@@ -1,5 +1,40 @@
 # Validation of the ongoing Rust port
 
+## Elution-peak detection and identification run mapping (2026-09-11)
+
+Both operation groups are integrated against SDK 82ce5b3.
+[Recorded checks](elution-mapping-validation.json) include commands, outcomes,
+log hashes, review scope and the resolved integration-formatting mismatch.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,730 tests passed |
+| Doctests | Three passed |
+| Native unit and adjacent tests, Rust 1.85/no defaults | 179 passed |
+| Strict Clippy, all targets | Both compiler/feature configurations passed |
+| Release library, Rustdoc and Rustfmt | Passed; documentation warnings denied |
+| Source audit, projection, ledger and regression checks | Passed |
+
+The 24 new tests cover all six elution options, source trace splitting and
+smoothing, extrema and width/noise calculations, as well as complete run/path
+mapping and merged-file selection. Elution also has 49 distinct passing staged
+checks per compiler, overlapping the full suite. Source numerical fixtures and
+independent small-case oracles remain unchanged. Both scientific results and
+input trace updates roll back on operation failure; external progress output
+has a separate documented scope.
+
+Run mapping preserves the source's deliberate duplicate-error state: complete
+forward mappings remain available while reverse mappings stop before the first
+collision. Resource failures preserve the prior mapping. Source and native
+implementations were independently reviewed. No C++ execution is claimed for
+these two groups.
+
+Source verification covers 1,886 distinct current files, 220 historical references,
+21 graph references and 548 added references. The ledger now records 48 complete
+or native-equivalent headers and 738 requiring implementation or review, with
+zero certified TOPP workflows.
+
+
 ## Detection, ProForma writing, protein runs and mzML acquisitions (2026-09-11)
 
 All four additions are integrated against SDK 82ce5b3. [Recorded checks](detection-acquisition-validation.json)

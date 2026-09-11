@@ -19,3 +19,5 @@ pub mod scores;
 pub mod transformations;
 
 pub mod mass_trace_detection;
+
+pub mod elution_peak_detection;
