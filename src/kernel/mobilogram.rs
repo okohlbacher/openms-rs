@@ -13,15 +13,20 @@ use std::{
     ops::Range,
 };
 
-/// A mobility coordinate in the container's unit and an f32 intensity.
-/// Scalar field comparisons implement the source's comparator overloads.
+/// A single ion mobility measurement and its intensity.
+///
+/// The mobility is expressed in the enclosing [`Mobilogram`]'s drift time unit;
+/// the peak itself carries no unit. Intensity is `f32` as in source. The scalar
+/// comparison helpers implement the source's comparator function objects.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct MobilityPeak1D {
     pub mobility: f64,
     pub intensity: f32,
 }
 impl MobilityPeak1D {
+    /// The number of dimensions.
     pub const DIMENSION: usize = 1;
+    /// A peak at the given mobility and intensity.
     pub const fn new(mobility: f64, intensity: f32) -> Self {
         Self {
             mobility,
@@ -58,15 +63,22 @@ impl Hash for MobilityPeak1D {
     }
 }
 
-/// Current peak bounds. Public edits cannot leave a stale cached range.
+/// Inclusive mobility and intensity bounds of a mobilogram's peaks.
+///
+/// Computed on demand rather than cached, so editing peaks through the public
+/// vector can never leave a stale range behind — the source's `RangeManager`
+/// caches and must be updated explicitly.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct MobilogramRanges {
     pub mobility: Option<NumericRange>,
     pub intensity: Option<NumericRange>,
 }
 
-/// One operation's input counts, actual visits/comparisons, and temporary bytes.
-/// Borrowed annotations are moved, never recursively cloned by sorting/selection.
+/// Per-call ceilings on input size, weighted work and temporary allocation.
+///
+/// Native bounds with no source counterpart, checked before any mutation.
+/// Sorting and selection move borrowed annotation payloads rather than cloning
+/// them recursively, so their cost is bounded by the peak count.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct MobilogramLimits {
     pub max_peaks: usize,
@@ -85,8 +97,16 @@ impl Default for MobilogramLimits {
     }
 }
 
-/// Source mobilogram fields. Ordinary Vec operations replace exported C++
-/// container methods. Full native equality includes parallel array descriptions.
+/// The representation of a one-dimensional ion mobilogram.
+///
+/// Holds peaks of type [`MobilityPeak1D`] together with a retention time, a
+/// drift time unit and the parallel float, string and integer annotation
+/// arrays. Ordinary `Vec` operations on the public peak vector replace the
+/// source's exported container methods.
+///
+/// Derived equality compares everything, including the parallel array
+/// descriptions; [`Self::source_equal`] reproduces the narrower source
+/// `operator==`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Mobilogram {
     pub peaks: Vec<MobilityPeak1D>,
@@ -114,39 +134,54 @@ impl From<Vec<MobilityPeak1D>> for Mobilogram {
     }
 }
 impl Mobilogram {
+    /// An empty mobilogram.
     pub fn new() -> Self {
         Self::default()
     }
+    /// A mobilogram over the given peaks, with no annotations.
     pub fn from_peaks(peaks: Vec<MobilityPeak1D>) -> Self {
         Self {
             peaks,
             ..Self::default()
         }
     }
+    /// The number of peaks.
     pub fn len(&self) -> usize {
         self.peaks.len()
     }
+    /// Whether the mobilogram holds no peaks.
     pub fn is_empty(&self) -> bool {
         self.peaks.is_empty()
     }
+    /// The ion mobility drift time unit, as the source string.
     pub fn drift_time_unit_as_str(&self) -> &'static str {
         self.drift_time_unit.name()
     }
 
-    /// Source equality deliberately ignores all arrays and cached ranges.
+    /// Source `operator==`, which compares peaks, retention time and drift
+    /// time unit only.
+    ///
+    /// It deliberately ignores every parallel annotation array and the cached
+    /// range, so two mobilograms can be source-equal while differing in their
+    /// annotations. Derived `PartialEq` compares everything.
     pub fn source_equal(&self, other: &Self) -> bool {
         self.peaks == other.peaks
             && self.rt == other.rt
             && self.drift_time_unit == other.drift_time_unit
     }
-    /// Exact source partial swap. Arrays stay with their original owner; this
-    /// can leave different-length arrays invalid. Use std::mem::swap for a full swap.
+    /// Source partial swap: exchange peaks and retention time only.
+    ///
+    /// The annotation arrays stay with their original owner, exactly as in
+    /// source, which can leave either mobilogram with arrays whose length no
+    /// longer matches its peaks — [`Self::validate`] then fails. Use
+    /// [`std::mem::swap`] for a full exchange.
     pub fn swap_peak_data(&mut self, other: &mut Self) {
         std::mem::swap(&mut self.peaks, &mut other.peaks);
         std::mem::swap(&mut self.rt, &mut other.rt);
         std::mem::swap(&mut self.drift_time_unit, &mut other.drift_time_unit);
     }
-    /// Clear peaks and all parallel arrays; retain RT and drift-time unit.
+    /// Remove all peaks and every parallel annotation array, retaining the
+    /// retention time and drift time unit.
     pub fn clear(&mut self) {
         self.peaks.clear();
         self.float_data_arrays.clear();
@@ -154,11 +189,20 @@ impl Mobilogram {
         self.string_data_arrays.clear();
     }
 
-    /// Validate numeric waveform values and array lengths; unrelated annotation
-    /// metadata are preserved without recursive validation.
+    /// Check that the peak values are finite and every parallel array matches
+    /// the peak count.
+    ///
+    /// Annotation metadata attached to the arrays is preserved and not
+    /// recursively validated.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite value, a length mismatch
+    /// or an exceeded ceiling.
     pub fn validate(&self) -> Result<()> {
         self.validate_with_limits(MobilogramLimits::default())
     }
+    /// As [`Self::validate`], with explicit resource ceilings.
     pub fn validate_with_limits(&self, limits: MobilogramLimits) -> Result<()> {
         let mut work = Work::new(self, limits)?;
         finite(self.rt, "mobilogram RT")?;
@@ -166,9 +210,16 @@ impl Mobilogram {
         work.arrays(self)?;
         Ok(())
     }
+    /// The current mobility and intensity bounds, computed on demand.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling.
     pub fn ranges(&self) -> Result<MobilogramRanges> {
         self.ranges_with_limits(MobilogramLimits::default())
     }
+    /// As [`Self::ranges`], with explicit resource ceilings.
     pub fn ranges_with_limits(&self, limits: MobilogramLimits) -> Result<MobilogramRanges> {
         let mut work = Work::new(self, limits)?;
         work.waveform(self, true, true)?;
@@ -180,9 +231,16 @@ impl Mobilogram {
         }
         Ok(result)
     }
+    /// Whether the peaks are in ascending mobility order.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling.
     pub fn is_sorted(&self) -> Result<bool> {
         self.is_sorted_with_limits(MobilogramLimits::default())
     }
+    /// As [`Self::is_sorted`], with explicit resource ceilings.
     pub fn is_sorted_with_limits(&self, limits: MobilogramLimits) -> Result<bool> {
         let mut work = Work::new(self, limits)?;
         work.waveform(self, true, false)?;
@@ -191,11 +249,15 @@ impl Mobilogram {
             &mut work,
         )
     }
-    /// The predicate receives the unmodified container and two original indices.
-    /// The caller supplies a strict weak ordering; its internal work is external.
+    /// Whether the peaks are ordered by a caller-supplied comparison.
+    ///
+    /// The predicate receives the unmodified container and two original
+    /// indices. The caller must supply a strict weak ordering; work done inside
+    /// the predicate is not metered against this mobilogram's ceilings.
     pub fn is_sorted_by(&self, less: impl FnMut(&Self, usize, usize) -> bool) -> Result<bool> {
         self.is_sorted_by_with_limits(less, MobilogramLimits::default())
     }
+    /// As [`Self::is_sorted_by`], with explicit resource ceilings.
     pub fn is_sorted_by_with_limits(
         &self,
         mut less: impl FnMut(&Self, usize, usize) -> bool,
@@ -218,9 +280,17 @@ impl Mobilogram {
         }
         Ok(true)
     }
+    /// Sort the peaks by ascending mobility, moving every parallel annotation
+    /// value with its peak.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling; the mobilogram is left unchanged.
     pub fn sort_by_position(&mut self) -> Result<()> {
         self.sort_by_position_with_limits(MobilogramLimits::default())
     }
+    /// As [`Self::sort_by_position`], with explicit resource ceilings.
     pub fn sort_by_position_with_limits(&mut self, limits: MobilogramLimits) -> Result<()> {
         let mut work = Work::new(self, limits)?;
         work.waveform(self, true, false)?;
@@ -232,9 +302,16 @@ impl Mobilogram {
         }
         self.sort_inner(less, &mut work)
     }
+    /// Sort the peaks by intensity, descending when `reverse` is set, moving
+    /// every parallel annotation value with its peak.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by_intensity(&mut self, reverse: bool) -> Result<()> {
         self.sort_by_intensity_with_limits(reverse, MobilogramLimits::default())
     }
+    /// As [`Self::sort_by_intensity`], with explicit resource ceilings.
     pub fn sort_by_intensity_with_limits(
         &mut self,
         reverse: bool,
@@ -254,9 +331,16 @@ impl Mobilogram {
         }
         self.sort_inner(less, &mut work)
     }
+    /// Sort the peaks by a caller-supplied comparison; see [`Self::is_sorted_by`]
+    /// for the predicate contract.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::sort_by_position`].
     pub fn sort_by(&mut self, less: impl FnMut(&Self, usize, usize) -> bool) -> Result<()> {
         self.sort_by_with_limits(less, MobilogramLimits::default())
     }
+    /// As [`Self::sort_by`], with explicit resource ceilings.
     pub fn sort_by_with_limits(
         &mut self,
         less: impl FnMut(&Self, usize, usize) -> bool,
@@ -300,11 +384,19 @@ impl Mobilogram {
         }
         self.select_inner(&order, work)
     }
-    /// Keep unique indices in caller order, moving parallel values and retaining
-    /// every annotation description. Invalid indices or limits leave self intact.
+    /// Keep only the given peaks, in the caller's order.
+    ///
+    /// Indices must be unique. Parallel annotation values move with their
+    /// peaks and every array description is retained.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a repeated or out-of-range index, or
+    /// an exceeded ceiling; the mobilogram is left unchanged.
     pub fn select(&mut self, indices: &[usize]) -> Result<()> {
         self.select_with_limits(indices, MobilogramLimits::default())
     }
+    /// As [`Self::select`], with explicit resource ceilings.
     pub fn select_with_limits(
         &mut self,
         indices: &[usize],
@@ -359,20 +451,54 @@ impl Mobilogram {
         Ok(())
     }
 
+    /// Index of the first peak whose mobility is not less than `mobility`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the peaks are not sorted by
+    /// mobility, [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling. Source documents sorted input as a precondition and does not
+    /// check it.
     pub fn mobility_begin(&self, mobility: f64) -> Result<usize> {
         self.mobility_begin_in(mobility, 0..self.len())
     }
+    /// Index of the first peak whose mobility is greater than `mobility`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the peaks are not sorted by
+    /// mobility, [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling. Source documents sorted input as a precondition and does not
+    /// check it.
     pub fn mobility_end(&self, mobility: f64) -> Result<usize> {
         self.mobility_end_in(mobility, 0..self.len())
     }
+    /// As [`Self::mobility_begin`], restricted to `range`. The returned index
+    /// addresses the mobilogram, not the subrange.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the peaks are not sorted by
+    /// mobility, [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling. Source documents sorted input as a precondition and does not
+    /// check it.
     pub fn mobility_begin_in(&self, mobility: f64, range: Range<usize>) -> Result<usize> {
         self.bound_with_limits(mobility, range, false, MobilogramLimits::default())
     }
+    /// As [`Self::mobility_end`], restricted to `range`. The returned index
+    /// addresses the mobilogram, not the subrange.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the peaks are not sorted by
+    /// mobility, [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling. Source documents sorted input as a precondition and does not
+    /// check it.
     pub fn mobility_end_in(&self, mobility: f64, range: Range<usize>) -> Result<usize> {
         self.bound_with_limits(mobility, range, true, MobilogramLimits::default())
     }
-    /// lower_bound, or upper_bound when upper=true, within the supplied subrange.
-    /// Returned indices address this mobilogram, not the subrange.
+    /// Lower bound, or upper bound when `upper` is set, within a subrange and
+    /// with explicit ceilings. Returned indices address this mobilogram.
     pub fn bound_with_limits(
         &self,
         mobility: f64,
@@ -393,10 +519,20 @@ impl Mobilogram {
                 }
             }))
     }
+    /// Index of the peak nearest to `mobility`, by binary search.
+    ///
+    /// An empty mobilogram yields `Ok(None)` rather than the source exception.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the peaks are not sorted by
+    /// mobility, [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling. Source documents sorted input as a precondition and does not
+    /// check it.
     pub fn find_nearest(&self, mobility: f64) -> Result<Option<usize>> {
         self.find_nearest_with_limits(mobility, MobilogramLimits::default())
     }
-    /// Empty input returns None, replacing the source no-tolerance exception.
+    /// As [`Self::find_nearest`], with explicit resource ceilings.
     pub fn find_nearest_with_limits(
         &self,
         mobility: f64,
@@ -410,6 +546,17 @@ impl Mobilogram {
         work.consume(usize::BITS as usize)?;
         Ok(super::nearest(&self.peaks, mobility, |p| p.mobility))
     }
+    /// Index of the peak nearest to `mobility` within `tolerance` on either
+    /// side, or `None` when none is in range.
+    ///
+    /// Peaks exactly on the border count as inside, as in source.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the peaks are not sorted by
+    /// mobility, [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling. Source documents sorted input as a precondition and does not
+    /// check it.
     pub fn find_nearest_with_tolerance(
         &self,
         mobility: f64,
@@ -421,6 +568,7 @@ impl Mobilogram {
             MobilogramLimits::default(),
         )
     }
+    /// As [`Self::find_nearest_with_tolerance`], with explicit ceilings.
     pub fn find_nearest_with_tolerance_and_limits(
         &self,
         mobility: f64,
@@ -435,6 +583,15 @@ impl Mobilogram {
                 && self.peaks[i].mobility <= mobility + tolerance
         }))
     }
+    /// Index of the peak nearest to `mobility` within an asymmetric window, or
+    /// `None` when none is in range.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the peaks are not sorted by
+    /// mobility, [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling. Source documents sorted input as a precondition and does not
+    /// check it.
     pub fn find_nearest_in_window(
         &self,
         mobility: f64,
@@ -443,7 +600,10 @@ impl Mobilogram {
     ) -> Result<Option<usize>> {
         self.find_nearest_in_window_with_limits(mobility, left, right, MobilogramLimits::default())
     }
-    /// Source one-sided checks are retained even for finite negative tolerances.
+    /// As [`Self::find_nearest_in_window`], with explicit ceilings.
+    ///
+    /// The source's one-sided comparisons are retained even for finite negative
+    /// tolerances, which can select an empty window rather than failing.
     pub fn find_nearest_in_window_with_limits(
         &self,
         mobility: f64,
@@ -469,6 +629,15 @@ impl Mobilogram {
                 .filter(|&j| self.peaks[j].mobility >= mobility - left))
         }
     }
+    /// Index of the most intense peak within an asymmetric window around
+    /// `mobility`, or `None` when the window holds no peak.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when the peaks are not sorted by
+    /// mobility, [`Error::InvalidValue`] on a nonfinite value or an exceeded
+    /// ceiling. Source documents sorted input as a precondition and does not
+    /// check it.
     pub fn find_highest_in_window(
         &self,
         mobility: f64,
@@ -477,6 +646,7 @@ impl Mobilogram {
     ) -> Result<Option<usize>> {
         self.find_highest_in_window_with_limits(mobility, left, right, MobilogramLimits::default())
     }
+    /// As [`Self::find_highest_in_window`], with explicit ceilings.
     pub fn find_highest_in_window_with_limits(
         &self,
         mobility: f64,
@@ -499,15 +669,26 @@ impl Mobilogram {
         let end = self.peaks.partition_point(|p| p.mobility <= high);
         self.base_inner(begin..end, &mut work)
     }
+    /// Index of the most intense peak, or `None` when the mobilogram is empty.
+    ///
+    /// Ties select the first such peak.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] on a nonfinite intensity or an exceeded
+    /// ceiling.
     pub fn base_peak_index(&self) -> Result<Option<usize>> {
         self.base_peak_index_with_limits(MobilogramLimits::default())
     }
+    /// As [`Self::base_peak_index`], with explicit resource ceilings.
     pub fn base_peak_index_with_limits(&self, limits: MobilogramLimits) -> Result<Option<usize>> {
         self.base_inner(0..self.len(), &mut Work::new(self, limits)?)
     }
+    /// The most intense peak, or `None` when the mobilogram is empty.
     pub fn base_peak(&self) -> Result<Option<&MobilityPeak1D>> {
         Ok(self.base_peak_index()?.map(|i| &self.peaks[i]))
     }
+    /// Mutable access to the most intense peak, or `None` when empty.
     pub fn base_peak_mut(&mut self) -> Result<Option<&mut MobilityPeak1D>> {
         Ok(self.base_peak_index()?.map(|i| &mut self.peaks[i]))
     }
@@ -522,9 +703,18 @@ impl Mobilogram {
         }
         Ok(best)
     }
+    /// The total ion current: the sum of all peak intensities.
+    ///
+    /// Accumulated in `f32`, as in source, so the result depends on peak order.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the running sum leaves the finite
+    /// range, or on an exceeded ceiling.
     pub fn calculate_tic(&self) -> Result<f32> {
         self.calculate_tic_with_limits(MobilogramLimits::default())
     }
+    /// As [`Self::calculate_tic`], with explicit resource ceilings.
     pub fn calculate_tic_with_limits(&self, limits: MobilogramLimits) -> Result<f32> {
         let mut work = Work::new(self, limits)?;
         work.consume(self.len())?;

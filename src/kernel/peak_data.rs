@@ -9,30 +9,59 @@ use super::{AreaBounds, AreaIter, AreaOptions, MSExperiment};
 use crate::{Error, Result};
 use std::mem::size_of;
 
+/// Bulk peak export as three parallel `f32` columns, one entry per peak.
+///
+/// Ports `MSExperiment::get2DPeakData`. Every peak of every selected spectrum
+/// contributes one entry to each column, so the three vectors always share a
+/// length and index together. Coordinates narrow to `f32` as in source.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct FlatPeakData {
+    /// Retention time of the spectrum each peak came from.
     pub rt: Vec<f32>,
+    /// Mass-to-charge of each peak.
     pub mz: Vec<f32>,
+    /// Intensity of each peak.
     pub intensity: Vec<f32>,
 }
 
-/// Parallel source output vectors. Rows may merge spectra with exactly equal
-/// f32-representable RT, or split a spectrum whose RT is not exactly f32.
+/// Bulk peak export grouped into one row per retention time.
+///
+/// Ports `MSExperiment::get2DPeakDataPerSpectrum`. The three vectors index
+/// together, one entry per row.
+///
+/// Rows are **not** spectra. Source groups by comparing the `f64` retention
+/// time against its `f32` narrowing per peak, so two spectra whose retention
+/// times narrow to the same `f32` merge into one row, and a spectrum whose
+/// retention time is not exactly representable in `f32` can split across rows.
+/// This port preserves that grouping rather than spectrum identity.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SpectrumPeakData {
+    /// Retention time of each row.
     pub rt: Vec<f32>,
+    /// Mass-to-charge values of each row's peaks.
     pub mz: Vec<Vec<f32>>,
+    /// Intensities of each row's peaks.
     pub intensity: Vec<Vec<f32>>,
 }
 
-/// Cumulative bounds for area validation, prior output, new output and scratch.
+/// Cumulative ceilings for one export call.
+///
+/// Native bounds with no source counterpart. They cover area validation, any
+/// output already present when appending, the newly produced output and the
+/// scratch used to build it, and are checked before anything is written.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PeakDataLimits {
+    /// Maximum spectra visited.
     pub max_spectra: usize,
+    /// Maximum peaks visited.
     pub max_peaks: usize,
+    /// Maximum points written, counting output already present when appending.
     pub max_output_points: usize,
+    /// Maximum rows written, counting output already present when appending.
     pub max_output_rows: usize,
+    /// Maximum weighted visits and comparisons.
     pub max_work: usize,
+    /// Conservative ceiling on logical payload; an estimate, not measured.
     pub max_bytes: usize,
 }
 impl Default for PeakDataLimits {
@@ -49,9 +78,16 @@ impl Default for PeakDataLimits {
 }
 
 impl MSExperiment {
+    /// Every peak inside `bounds` at `ms_level`, as three parallel columns.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for invalid bounds or a nonfinite
+    /// coordinate, or when [`PeakDataLimits`] is exceeded.
     pub fn get_2d_peak_data(&self, bounds: AreaBounds, ms_level: usize) -> Result<FlatPeakData> {
         self.get_2d_peak_data_with_limits(bounds, ms_level, PeakDataLimits::default())
     }
+    /// As [`Self::get_2d_peak_data`], with explicit resource ceilings.
     pub fn get_2d_peak_data_with_limits(
         &self,
         bounds: AreaBounds,
@@ -62,6 +98,11 @@ impl MSExperiment {
         self.append_2d_peak_data_with_limits(bounds, ms_level, &mut result, limits)?;
         Ok(result)
     }
+    /// Append the selected peaks to existing columns, keeping their contents.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::get_2d_peak_data`]; the ceilings count what is already there.
     pub fn append_2d_peak_data(
         &self,
         bounds: AreaBounds,
@@ -70,6 +111,7 @@ impl MSExperiment {
     ) -> Result<()> {
         self.append_2d_peak_data_with_limits(bounds, ms_level, output, PeakDataLimits::default())
     }
+    /// As [`Self::append_2d_peak_data`], with explicit resource ceilings.
     pub fn append_2d_peak_data_with_limits(
         &self,
         bounds: AreaBounds,
@@ -103,6 +145,12 @@ impl MSExperiment {
         Ok(())
     }
 
+    /// Every peak inside `bounds` at `ms_level`, grouped into rows by
+    /// `f32`-narrowed retention time; see [`SpectrumPeakData`] on grouping.
+    ///
+    /// # Errors
+    ///
+    /// As [`MSExperiment::get_2d_peak_data`].
     pub fn get_2d_peak_data_per_spectrum(
         &self,
         bounds: AreaBounds,
@@ -110,6 +158,7 @@ impl MSExperiment {
     ) -> Result<SpectrumPeakData> {
         self.get_2d_peak_data_per_spectrum_with_limits(bounds, ms_level, PeakDataLimits::default())
     }
+    /// As [`Self::get_2d_peak_data_per_spectrum`], with explicit ceilings.
     pub fn get_2d_peak_data_per_spectrum_with_limits(
         &self,
         bounds: AreaBounds,
@@ -120,6 +169,11 @@ impl MSExperiment {
         self.append_2d_peak_data_per_spectrum_with_limits(bounds, ms_level, &mut result, limits)?;
         Ok(result)
     }
+    /// Append the selected rows to existing row vectors, keeping their contents.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::get_2d_peak_data_per_spectrum`].
     pub fn append_2d_peak_data_per_spectrum(
         &self,
         bounds: AreaBounds,
@@ -133,6 +187,7 @@ impl MSExperiment {
             PeakDataLimits::default(),
         )
     }
+    /// As [`Self::append_2d_peak_data_per_spectrum`], with explicit ceilings.
     pub fn append_2d_peak_data_per_spectrum_with_limits(
         &self,
         bounds: AreaBounds,

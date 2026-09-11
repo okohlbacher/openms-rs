@@ -11,14 +11,22 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-/// Raw RT/m/z point. Public array storage is the safe mutable DPosition<2>
-/// equivalent; coordinates are f64 and intensity is f32.
+/// A two-dimensional raw data point or peak, over retention time and m/z.
+///
+/// Intended for continuous data as well as peak data. To annotate a single peak
+/// with metadata, use [`RichPeak2D`] instead.
+///
+/// The public `position` array is the safe mutable equivalent of the source
+/// `DPosition<2>`: coordinates are `f64` and intensity is `f32`, as in source.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Peak2D {
     pub position: [f64; 2],
     pub intensity: f32,
 }
-/// Raw mobility/m/z point. The value does not carry a mobility unit or scan RT.
+/// A two-dimensional raw data point or peak, over ion mobility and m/z.
+///
+/// The value carries neither a mobility unit nor the scan retention time; both
+/// belong to the enclosing record, as in source.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct MobilityPeak2D {
     pub position: [f64; 2],
@@ -30,66 +38,107 @@ macro_rules! point_surface {
      $name:literal, $short_unit:literal, $full_unit:literal,
      $short_name:ident, $full_name:ident, $short_unit_fn:ident, $full_unit_fn:ident) => {
         impl $ty {
+            /// Dimension index of the first coordinate.
             pub const $dimension: usize = 0;
+            /// Dimension index of the mass-to-charge coordinate.
             pub const MZ: usize = 1;
+            /// The number of dimensions.
             pub const DIMENSION: usize = 2;
+            /// A point at the given coordinates and intensity.
             pub const fn new(first: f64, mz: f64, intensity: f32) -> Self {
                 Self {
                     position: [first, mz],
                     intensity,
                 }
             }
+            /// A point from a position array ordered as the dimension indices.
             pub const fn from_position(position: [f64; 2], intensity: f32) -> Self {
                 Self {
                     position,
                     intensity,
                 }
             }
+            /// The first coordinate.
             pub const fn $get(&self) -> f64 {
                 self.position[0]
             }
+            /// Set the first coordinate.
             pub fn $set(&mut self, value: f64) {
                 self.position[0] = value;
             }
+            /// The mass-to-charge coordinate.
             pub const fn mz(&self) -> f64 {
                 self.position[1]
             }
+            /// Set the mass-to-charge coordinate.
             pub fn set_mz(&mut self, value: f64) {
                 self.position[1] = value;
             }
+            /// The abbreviated name of a dimension.
+            ///
+            /// # Errors
+            ///
+            /// Returns [`Error::InvalidValue`] when `dimension` is not a valid
+            /// index. Source indexes a fixed array without checking.
             pub fn short_dimension_name(dimension: usize) -> Result<&'static str> {
                 dimension_value([$label, "MZ"], dimension)
             }
+            /// The self-explanatory name of a dimension.
+            ///
+            /// # Errors
+            ///
+            /// Returns [`Error::InvalidValue`] when `dimension` is not a valid
+            /// index. Source indexes a fixed array without checking.
             pub fn full_dimension_name(dimension: usize) -> Result<&'static str> {
                 dimension_value([$name, "mass-to-charge"], dimension)
             }
+            /// The abbreviated unit of measurement of a dimension.
+            ///
+            /// # Errors
+            ///
+            /// Returns [`Error::InvalidValue`] when `dimension` is not a valid
+            /// index. Source indexes a fixed array without checking.
             pub fn short_dimension_unit(dimension: usize) -> Result<&'static str> {
                 dimension_value([$short_unit, "Th"], dimension)
             }
+            /// The self-explanatory unit of measurement of a dimension.
+            ///
+            /// # Errors
+            ///
+            /// Returns [`Error::InvalidValue`] when `dimension` is not a valid
+            /// index. Source indexes a fixed array without checking.
             pub fn full_dimension_unit(dimension: usize) -> Result<&'static str> {
                 dimension_value([$full_unit, "Thomson"], dimension)
             }
+            /// The abbreviated name of the first dimension.
             pub const fn $short_name() -> &'static str {
                 $label
             }
+            /// The abbreviated name of the m/z dimension.
             pub const fn short_dimension_name_mz() -> &'static str {
                 "MZ"
             }
+            /// The self-explanatory name of the first dimension.
             pub const fn $full_name() -> &'static str {
                 $name
             }
+            /// The self-explanatory name of the m/z dimension.
             pub const fn full_dimension_name_mz() -> &'static str {
                 "mass-to-charge"
             }
+            /// The abbreviated unit of the first dimension.
             pub const fn $short_unit_fn() -> &'static str {
                 $short_unit
             }
+            /// The abbreviated unit of the m/z dimension.
             pub const fn short_dimension_unit_mz() -> &'static str {
                 "Th"
             }
+            /// The self-explanatory unit of the first dimension.
             pub const fn $full_unit_fn() -> &'static str {
                 $full_unit
             }
+            /// The self-explanatory unit of the m/z dimension.
             pub const fn full_dimension_unit_mz() -> &'static str {
                 "Thomson"
             }
@@ -161,8 +210,13 @@ fn dimension_value(values: [&'static str; 2], dimension: usize) -> Result<&'stat
         .ok_or_else(|| Error::InvalidValue("2D peak dimension must be 0 or 1".into()))
 }
 
-/// Annotated RT/m/z point. Own value equality includes metadata and unique ID;
-/// metadata follows the existing native exact-value/unit contract.
+/// A two-dimensional raw data point or peak with meta information.
+///
+/// Intended for continuous data as well as peak data. When single peaks need no
+/// metadata, use [`Peak2D`] instead.
+///
+/// Value equality includes the metadata and the unique ID, and the metadata
+/// follows the crate's exact-value and unit contract.
 #[derive(Clone, Debug, Default, PartialEq, Hash)]
 pub struct RichPeak2D {
     pub peak: Peak2D,
@@ -171,14 +225,20 @@ pub struct RichPeak2D {
     pub unique_id: u64,
 }
 impl RichPeak2D {
+    /// An annotated point at the given retention time, m/z and intensity.
     pub fn new(rt: f64, mz: f64, intensity: f32) -> Self {
         Peak2D::new(rt, mz, intensity).into()
     }
+    /// An annotated point from a `[rt, mz]` position array.
     pub fn from_position(position: [f64; 2], intensity: f32) -> Self {
         Peak2D::from_position(position, intensity).into()
     }
-    /// Assign from a plain point, clearing current metadata and ID. Return old
-    /// ownership so this constant-time operation does not destroy its payload.
+    /// Replace the coordinates from a plain point, clearing the metadata and
+    /// unique ID, and return the previous value.
+    ///
+    /// Source assignment from a `Peak2D` discards the annotations in place;
+    /// returning the old value hands that payload back to the caller instead of
+    /// destroying it, which keeps the operation constant time.
     pub fn replace_from_peak(&mut self, peak: Peak2D) -> Self {
         std::mem::replace(self, peak.into())
     }
