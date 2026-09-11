@@ -15,6 +15,11 @@ name = "DTAExtractor"
 path = "src/bin/DTAExtractor.rs"
 required-features = ["mzml", "paramxml"]
 
+[[bin]]
+name = "MzMLSplitter"
+path = "src/bin/MzMLSplitter.rs"
+required-features = ["mzml", "paramxml"]
+
 [features]
 default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "cv-mapping"]
 mzml = ["dep:quick-xml", "dep:sha1", "file-compression", "numpress"]

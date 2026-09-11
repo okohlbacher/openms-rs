@@ -1,0 +1,55 @@
+{
+ "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+ "method": "MzMLSplitter transcribed from the pinned C++ topp package. The retained C++ outputs are compared canonically -- record counts, native identifiers, MS levels, retention times and peak values -- not byte for byte, because the upstream test itself uses FuzzyDiff and the two mzML writers differ in serialisation detail.",
+ "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/topp/src/MzMLSplitter.cpp",
+   "sha256": "63c9599132be0479ebd48ca9f50046a0c73981b969e68413bde3e763d258d55d"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/FileFilter_1_input.mzML",
+   "sha256": "befa3b5dc2ea543812bb6447eaee89fd77a6653d9c0a7d9dc25fc2f0421e486c",
+   "retained_as": "tests/data/mzml_splitter_input.mzML"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/MzMLSplitter_output_part1.mzML",
+   "sha256": "b199ad0975ead0a1dc2fd54ac28cc06c9419fe649d80f7fe37d4e71f9db91478",
+   "retained_as": "tests/data/mzml_splitter_output_part1.mzML"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/MzMLSplitter_output_part2.mzML",
+   "sha256": "18ca579d907180da694d3da062b38675110dd627921ad7d9d56636cf304b764b",
+   "retained_as": "tests/data/mzml_splitter_output_part2.mzML"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_splitter_input.mzML",
+   "sha256": "befa3b5dc2ea543812bb6447eaee89fd77a6653d9c0a7d9dc25fc2f0421e486c"
+  },
+  {
+   "path": "tests/data/mzml_splitter_output_part1.mzML",
+   "sha256": "b199ad0975ead0a1dc2fd54ac28cc06c9419fe649d80f7fe37d4e71f9db91478"
+  },
+  {
+   "path": "tests/data/mzml_splitter_output_part2.mzML",
+   "sha256": "18ca579d907180da694d3da062b38675110dd627921ad7d9d56636cf304b764b"
+  }
+ ],
+ "native_implementation": [
+  "src/bin/MzMLSplitter.rs"
+ ],
+ "native_tests": [
+  "tests/topp_mzml_splitter.rs"
+ ],
+ "support": "docs/TOPP_CLI_SUPPORT.md",
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 4260-4270",
+ "target_verification": {
+  "revision": "82ce5b373c97f934ffd9b1ffd80215ca66473d0b",
+  "source_revisions": [
+   "82ce5b373c97f934ffd9b1ffd80215ca66473d0b"
+  ],
+  "source_changes": []
+ }
+}

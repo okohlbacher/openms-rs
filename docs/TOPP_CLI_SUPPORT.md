@@ -96,7 +96,20 @@ Two source behaviors had to be matched to get there, and both were real gaps:
    (`(mz - 1.0) * charge + 1.0`), not the exact one. `dta::WriteOptions::source()`
    selects that behavior; the checked default is unchanged for library callers.
 
-The second is the first concrete instance of the port's "checked boundaries"
+## MzMLSplitter
+
+`src/bin/MzMLSplitter.rs` is the second tool, and the first whose output is
+compared **canonically rather than byte for byte**. Both upstream
+`TOPP_MzMLSplitter_*` invocations agree with the retained C++ parts on record
+counts, native identifiers, MS levels, retention times and peak values. The two
+mzML writers differ in serialisation detail, and the upstream test itself uses
+FuzzyDiff rather than a byte comparison, so byte equality is not the contract.
+Source conventions preserved: the part count derived from a file size in
+KB/MB/GB base 1024, the remainder spread over the parts still to come, zero
+padding to the width of the part count, and the refusal of `no_chrom` together
+with `no_spec`.
+
+The second DTA finding above is the first concrete instance of the port's "checked boundaries"
 convention blocking C++ parity. The resolution pattern — keep the guard as the
 library default, add an explicit source-behavior option, and have the tool opt
 in — is the one to apply as further tools meet their own guards.
