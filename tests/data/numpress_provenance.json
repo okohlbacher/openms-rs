@@ -1,0 +1,105 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h",
+      "sha256": "d2001437121ad2f05540ea7553a357a9411f7f8eb4d62c600f2efadeb96608bd"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp",
+      "sha256": "c459046d039bfcdb90d8ba8eade83a6750c416bee5e4d110baa73ffd557a4538"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSNumpress_test.cpp",
+      "sha256": "616866754e7f63b4cd4d6f860fe9d2e74799e5696cf215367e6e28f083e3c215"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
+      "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
+      "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp",
+      "sha256": "65f8b9f14e004892a3e8942e427579c9f8368ee559e47c50560aa8168d628e3b"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/numpress_source_bytes.tsv",
+      "sha256": "c128382b91a9e5732dc050034a05a8c1ba652f27b52db48a87dca66f090b3b06"
+    },
+    {
+      "path": "tests/data/numpress_cpp_differential.tsv",
+      "sha256": "f21d07bbd87acbe57725c8f60d6e050d5bfb655bf8f620fa55e96f7b656b5bf8"
+    },
+    {
+      "path": "tests/data/numpress_probe/probe.cpp",
+      "sha256": "c527c49789990e77a01701724a214bd92fd90428a79de9994d36f57f4ba7d627"
+    },
+    {
+      "path": "tools/generate_numpress_reference.py",
+      "sha256": "41a2557611d0ce711ee7fb919138d87949d256bb9e6e17b4cf68c9e4282769ca"
+    }
+  ],
+  "native_files": [
+    "src/format/numpress.rs",
+    "tests/numpress.rs",
+    "docs/MSNUMPRESS_SUPPORT.md"
+  ],
+  "scope": "Complete raw linear/PIC/SLOF/Safe encode/decode and three optimal-factor helpers; no MSNumpressCoder, base64/zlib or mzML transport integration.",
+  "literal_source_evidence": {
+    "raw_class_test": "Constructor placeholder only; no numerical golden.",
+    "wrapper_class_test": "Three base64 byte literals at lines202/241/281, projected with Python stdlib base64, and 100-value series length/accuracy assertions.",
+    "header_errata": [
+      "PIC advertised UINT_MAX range exceeds default compiled INT_MAX guard.",
+      "Header 2047 nibble example is incorrect; correct independent bytes are5ff7."
+    ]
+  },
+  "executed_differential": {
+    "cases": 295,
+    "cpp_decode_cases": 287,
+    "empty_safe_decode_driver_extension_cases": 8,
+    "codec_counts": {
+      "linear": 76,
+      "pic": 73,
+      "slof": 73,
+      "safe": 73
+    },
+    "seed": 311804,
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.5.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "command": "clang++ -std=c++17 -O0 -I/tmp/openms4-core-54a232f/src/openms/include tests/data/numpress_probe/probe.cpp /tmp/openms4-core-54a232f/src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp -o /tmp/openms-numpress-source-probe",
+    "binary_sha256": "2babb65b431462241acff649269a62bd70c67354c15f3296cefad9420a7c8e58",
+    "source_modified": false,
+    "external_libraries": [],
+    "warning": "Original source line347: LLONG_MAX converts to binary64 2^63 in comparison. Native checks the exclusive boundary before conversion.",
+    "regenerate": "python3 tools/generate_numpress_reference.py /tmp/openms4-core-54a232f /tmp/openms-numpress-source-probe",
+    "python": "3.14.6",
+    "encoded_bytes": "Exact comparison for every case.",
+    "decoded_values": "Exact bits except SLOF within2e-14*max(abs(expected),1) for host libm.",
+    "optimal_helpers": "Exact bits for finite source results; native errors for selected nonfinite source results."
+  },
+  "native_boundaries": [
+    "Finite consumed input/result checks; unused empty header bits retained.",
+    "Checked floating casts, signed i64 predictions and i32 residual range.",
+    "Source initial linear low32 truncation retained, including negative and high initial integers.",
+    "Source PIC INT_MAX and SLOF USHRT_MAX pre-rounding guards retained.",
+    "Negative-zero SLOF factor preserves finite-1 decoded result for positive words.",
+    "Odd SLOF, short linear and incomplete nibble payloads reject; empty Safe decoder is defined as empty.",
+    "Source Safe name does not imply arbitrary bit-exact float roundtrips.",
+    "Owned results only; exact decoded-count validation before allocation; configurable checked resource caps."
+  ],
+  "license": "Johan Teleman 2013 BSD-3-Clause; full original copyright/conditions/disclaimer retained in src/format/numpress.rs.",
+  "validation": {
+    "native_tests": 13,
+    "rust_1_98_all_features": "pass",
+    "rust_1_85_no_default_features": "pass",
+    "strict_clippy_both": "pass",
+    "rustfmt": "pass",
+    "reference_hashes": "six source plus four fixture/script hashes verified",
+    "independent_review": "Chemistry agent inspected all raw arithmetic, nibble/truncation and exact-output preflight; no actionable finding."
+  }
+}

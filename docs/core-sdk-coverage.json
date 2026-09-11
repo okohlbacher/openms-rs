@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 172,
-      "native_equivalent": 15,
-      "partial": 15,
-      "unmapped": 574
+      "evidence_requires_review": 169,
+      "native_equivalent": 23,
+      "partial": 16,
+      "unmapped": 568
     },
     "topp_sources": 146,
     "validated_topp_workflows": 0
@@ -2683,10 +2683,23 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h",
       "sha256": "3354579d9deb2a235066d6a8328b4edfe667a8e5642ba072975cb07e59bb044b",
       "domain": "CHEMISTRY",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/ims_alphabet.rs"
+        ],
+        "tests": [
+          "tests/ims_alphabet.rs"
+        ],
+        "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
+        "scope": "Complete native alphabet operation mapping, duplicate-first lookup/replacement/erase, stable name/mass sorting, isotope mass lists, default/custom-parser file replacement and verbose stream output. Rust ownership replaces aliases and virtual ABI; stable ties and checked atomic failures are explicit native corrections. No flat store method is invented."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/ims_alphabet.rs"
+      ],
       "reference_manifests": [
+        "tests/data/ims_alphabet_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -2695,30 +2708,73 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h",
       "sha256": "b6f4754533c4c68077c213ec190a773a60222e79b959892af6dc9d48df5ebbf5",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/ims_alphabet.rs",
+          "src/chemistry/ims_alphabet_parser.rs"
+        ],
+        "tests": [
+          "tests/ims_alphabet.rs"
+        ],
+        "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
+        "scope": "Native f64-map parser trait and concrete default plain-file/text parser, mutable map access and replaceable parse/load operations. First duplicate wins, exact source comment whitespace; portable decimal/scientific prefixes and strict malformed/UTF8 rejection replace implementation-dependent unchecked C++ stream extraction. Arbitrary C++ numeric/container template instantiations are not an ABI promise."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/ims_alphabet_parser.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/ims_alphabet_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetTextParser.h",
       "sha256": "de39c72e6f3500001f12a1104dddf826e3a8513d775d856de96ab897a4c9a4db",
       "domain": "CHEMISTRY",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/ims_alphabet.rs",
+          "src/chemistry/ims_alphabet_parser.rs"
+        ],
+        "tests": [
+          "tests/ims_alphabet.rs"
+        ],
+        "documentation": "docs/IMS_ALPHABET_SUPPORT.md",
+        "scope": "Native f64-map parser trait and concrete default plain-file/text parser, mutable map access and replaceable parse/load operations. First duplicate wins, exact source comment whitespace; portable decimal/scientific prefixes and strict malformed/UTF8 rejection replace implementation-dependent unchecked C++ stream extraction. Arbitrary C++ numeric/container template instantiations are not an ABI promise."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/ims_alphabet_parser.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/ims_alphabet_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h",
       "sha256": "81c56b6b658d8ccbd762b42307220da5bf60ad85c46670563446d5674691fe2a",
       "domain": "CHEMISTRY",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/ims_element.rs"
+        ],
+        "tests": [
+          "tests/ims_element.rs"
+        ],
+        "documentation": "docs/IMS_ISOTOPE_SUPPORT.md",
+        "scope": "Complete own element value operations: independent name/sequence, nominal and stored isotope masses, average/ion mass, equality and source-style verbose output. Per-call isotope options and checked bounds replace source globals/undefined access."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/ims_element.rs"
+      ],
       "reference_manifests": [
+        "tests/data/ims_isotopes_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -2727,10 +2783,23 @@
       "header": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h",
       "sha256": "e433c363301b7b91111b023892a7d55af80965a553ccb08db90beabb270fc427",
       "domain": "CHEMISTRY",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/chemistry/ims_isotope_distribution.rs"
+        ],
+        "tests": [
+          "tests/ims_isotopes.rs"
+        ],
+        "documentation": "docs/IMS_ISOTOPE_SUPPORT.md",
+        "scope": "Complete native numerical/value operation mapping: nominal bins, stored tails, normalization, binary convolution/powers, explicit mutable-RHS padding and verbose output. Per-call options replace shared global SIZE/error state; checked overflow, bounded work and atomic native mutation replace undefined behavior. No C++ ABI or other isotope engine completeness claim."
+      },
+      "candidate_rust_files": [
+        "src/chemistry/ims_isotope_distribution.rs"
+      ],
       "reference_manifests": [
+        "tests/data/ims_isotopes_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -3860,9 +3929,11 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/area_iteration_provenance.json",
         "tests/data/mass_decomposition_provenance.json",
         "tests/data/native_equivalents_provenance.json",
-        "tests/data/param_value_provenance.json"
+        "tests/data/param_value_provenance.json",
+        "tests/data/peak_data_provenance.json"
       ],
       "direct_topp_consumers": [
         "OpenSwathFeatureXMLToTSV"
@@ -5123,7 +5194,8 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mzml_provenance.json"
+        "tests/data/mzml_provenance.json",
+        "tests/data/numpress_coder_provenance.json"
       ],
       "direct_topp_consumers": [
         "QCEmbedder"
@@ -6463,20 +6535,49 @@
       "header": "src/openms/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h",
       "sha256": "d2001437121ad2f05540ea7553a357a9411f7f8eb4d62c600f2efadeb96608bd",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/numpress.rs"
+        ],
+        "tests": [
+          "tests/numpress.rs"
+        ],
+        "documentation": "docs/MSNUMPRESS_SUPPORT.md",
+        "scope": "All raw linear, PIC, SLOF and Safe encode/decode functions and three fixed-point helpers. Owned bounded buffers and checked casts/streams replace unsafe source behavior; empty Safe decoding is an explicit native extension. Validated against 295 executed raw C++ cases (287 decoder cases). Wrapper/base64/zlib and mzML transport are separately tracked."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/numpress_coder_provenance.json",
+        "tests/data/numpress_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
       "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65",
       "domain": "FORMAT",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/numpress_coder.rs",
+          "src/format/peak_options.rs"
+        ],
+        "tests": [
+          "tests/numpress_coder.rs",
+          "tests/peak_file_options.rs"
+        ],
+        "documentation": "docs/MSNUMPRESS_CODER_SUPPORT.md",
+        "scope": "Complete source wrapper operations and existing configuration/name mapping: raw/base64/zlib encode/decode, exact f32 promotion, estimation and maximal-factor fallback, reverse-order tolerance checks, PIC absolute-error policy and source raw/text skip destination distinctions. Native checked atomic errors and explicit diagnostics replace stderr; strict long-form Base64/single-zlib-frame validation is a documented correction. Safe remains raw-only. mzML integration is a separate incomplete API."
+      },
+      "candidate_rust_files": [
+        "src/format/numpress_coder.rs"
+      ],
       "reference_manifests": [
+        "tests/data/numpress_coder_provenance.json",
+        "tests/data/numpress_provenance.json",
         "tests/data/peak_file_options_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -7544,10 +7645,12 @@
       "header": "src/openms/include/OpenMS/FORMAT/ZlibCompression.h",
       "sha256": "6092b3e699de1f0a89ba08513008f71a13e8f4a781ef17ed8f1a367243446883",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/numpress_coder_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -7687,10 +7790,23 @@
       "header": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
       "sha256": "ee0c62b7a97bacb035bc1a4084f753dbf37619e1410bdc7f5a8008af8bb00cb3",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/kernel/area_iteration.rs"
+        ],
+        "tests": [
+          "tests/area_iteration.rs"
+        ],
+        "documentation": "docs/AREA_ITERATION_SUPPORT.md",
+        "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/area_iteration_provenance.json",
+        "tests/data/peak_data_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -7993,23 +8109,31 @@
         "rust": [
           "src/kernel.rs",
           "src/kernel/experiment_aggregation.rs",
-          "src/kernel/experiment_summary.rs"
+          "src/kernel/experiment_summary.rs",
+          "src/kernel/area_iteration.rs",
+          "src/kernel/peak_data.rs",
+          "src/kernel/peak_index.rs"
         ],
         "tests": [
           "tests/kernel.rs",
           "tests/experiment_aggregation.rs",
-          "tests/experiment_summary.rs"
+          "tests/experiment_summary.rs",
+          "tests/area_iteration.rs",
+          "tests/peak_data.rs",
+          "tests/peak_index.rs"
         ],
         "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata and remaining specialized operations still require implementation/review. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain."
+        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Area traversal/exports/rasterization, ion mobility, full acquisition metadata and remaining specialized operations still require implementation/review. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Unfiltered 2D templates, scan-mobility/range overloads and the full container surface remain separately tracked."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
       ],
       "reference_manifests": [
+        "tests/data/area_iteration_provenance.json",
         "tests/data/experiment_aggregation_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/mzml_product_provenance.json",
+        "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -8097,7 +8221,9 @@
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/area_iteration_provenance.json",
         "tests/data/experiment_summary_provenance.json",
+        "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
@@ -8233,6 +8359,7 @@
         "tests/data/fine_isotope_provenance.json",
         "tests/data/fine_isotope_stream_provenance.json",
         "tests/data/kernel_value_traits_provenance.json",
+        "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/rna_processing_provenance.json"
       ],
@@ -8254,10 +8381,25 @@
       "header": "src/openms/include/OpenMS/KERNEL/PeakIndex.h",
       "sha256": "c3111e567cf887d977eb0aeb3ea8ff400c76a725705ad8137c88ebbf00203d39",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/peak_index.rs"
+        ],
+        "tests": [
+          "tests/peak_index.rs"
+        ],
+        "documentation": "docs/PEAK_INDEX_SUPPORT.md",
+        "scope": "Complete own value/lookup surface: sentinel constructors, clear/validity, independent spectrum/peak indices, borrowed feature-slice/spectrum/peak lookup. Rust checked errors replace source precondition/undefined indexing and concrete generic slices replace feature-container templates."
+      },
+      "candidate_rust_files": [
+        "src/kernel/peak_index.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/area_iteration_provenance.json",
+        "tests/data/peak_index_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8268,8 +8410,10 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/area_iteration_provenance.json",
         "tests/data/experiment_summary_provenance.json",
-        "tests/data/mobilogram_provenance.json"
+        "tests/data/mobilogram_provenance.json",
+        "tests/data/peak_data_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -11978,7 +12122,6 @@
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
-        "OpenMS/FORMAT/MSNumpressCoder.h",
         "OpenMS/KERNEL/ChromatogramTools.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",

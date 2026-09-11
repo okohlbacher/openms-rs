@@ -16,6 +16,14 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
+mod area_iteration;
+mod peak_data;
+mod peak_index;
+pub use area_iteration::{
+    AreaBounds, AreaIter, AreaIterMut, AreaLimits, AreaOptions, AreaPeak, AreaPeakMut,
+};
+pub use peak_data::{FlatPeakData, PeakDataLimits, SpectrumPeakData};
+pub use peak_index::PeakIndex;
 mod data_array;
 mod experiment_aggregation;
 mod experiment_summary;

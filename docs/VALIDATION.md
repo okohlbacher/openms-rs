@@ -1,5 +1,42 @@
 # Validation of the ongoing Rust port
 
+## IMS foundations, peak traversal and Numpress (2026-09-11)
+
+The isotope/element/alphabet, area/peak-export/index, raw Numpress and configurable
+base64/zlib wrapper APIs are integrated. [Recorded checks](foundation-validation.json)
+include commands, outcomes, log hashes and the scope of C++ reference execution.
+
+| Check | Result |
+| --- | --- |
+| New/adjacent native suites, Rust 1.98/all features | 167 tests passed |
+| Corresponding native suites, Rust 1.85/no defaults | 164 tests passed |
+| Wrapper/raw/options/mzML, Rust 1.98/all features | 121 tests passed |
+| Wrapper/raw/options, Rust 1.85/Numpress only | 104 tests passed |
+| Strict Clippy, all targets | Passed on Rust 1.98/all features and Rust 1.85/no defaults |
+| Numpress-only strict Clippy, Rust 1.85 | Passed |
+| Doctests, Rustdoc, release library, Rustfmt | Passed; three doctests and documentation warnings denied |
+| Source audit and review/ledger regressions | Passed; 1,850 distinct current files verified |
+
+This additive group introduces 81 integration tests. Selected totals overlap;
+they supplement the preceding full 1,466-test suite rather than establish an
+additive total. The [preceding commit](https://github.com/okohlbacher/openms-rs/actions/runs/34565942433)
+passed every Linux, macOS, Windows, minimum-Rust and quality CI job. A missing
+cached dependency interrupted the first documentation attempt; an isolated build
+completed it and all remaining checks without production changes.
+
+Raw Numpress tests compare 295 cases against an actually compiled, unmodified
+pinned C++ implementation. Of those, 287 execute its decoder; eight empty Safe
+cases avoid undefined source decoding. Encoded bytes and fixed-point helpers are
+exact; SLOF decoding permits a documented host-math tolerance. Wrapper transport
+fixtures are independently derived Python projections, not C++ wrapper runs.
+The full C++ SDK has not been built or differentially validated.
+
+Source reviews covered isotope convolution order, portable parser boundaries,
+borrowed mutable traversal, source RT grouping, and compression rejection/fallback
+semantics. The ledger records 33 complete/native-equivalent headers, with 753
+requiring implementation or review. mzML Numpress wiring and full TOPP readiness
+remain open; no TOPP workflow is certified.
+
 ## Mobility, array descriptions, weights and mzML paths (2026-09-11)
 
 Mobilogram operations, IMSWeights, generic array descriptions and mzML file APIs

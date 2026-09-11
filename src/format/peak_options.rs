@@ -58,7 +58,7 @@ impl FromStr for NumpressCompression {
 }
 
 /// Complete source Numpress configuration. Scalar values are stored verbatim,
-/// including nonfinite values; a future executing codec must validate its inputs.
+/// including nonfinite values; executing codecs validate the values they consume.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct NumpressConfig {
     pub fixed_point: f64,

@@ -200,3 +200,22 @@ source-ordered composition enumeration. Public IMS utility APIs remain separate.
 [Explicit scientific loading](MZML_LOAD_OPTIONS_SUPPORT.md) now consumes the
 supported PeakFileOptions filters/sorting and preserves aligned arrays with
 26 canonical binary roles. Full metadata/consumer/codec paths remain open.
+
+
+## IMS foundations, peak traversal and raw compression (2026-09-11)
+
+Native [IMS isotope distributions and elements](IMS_ISOTOPE_SUPPORT.md) and
+[alphabets with replaceable text parsers](IMS_ALPHABET_SUPPORT.md) now cover their
+reviewed public operation sets. Per-call configuration replaces isotope globals;
+container ownership, checked failures and portable parsing are documented.
+
+[Area traversal](AREA_ITERATION_SUPPORT.md), [peak indices](PEAK_INDEX_SUPPORT.md)
+and [filtered bulk peak exports](PEAK_DATA_SUPPORT.md) provide borrowed selection
+and native numeric output. Source MS-level narrowing and f64/f32 RT grouping are
+retained. Scan-mobility overloads and unfiltered import/export remain separate.
+
+[Raw Numpress](MSNUMPRESS_SUPPORT.md) implements linear, PIC, SLOF and Safe codecs
+and fixed-point helpers. Its 295 executed C++ reference cases are narrow codec
+evidence, not a full SDK comparison. The [base64/zlib wrapper](MSNUMPRESS_CODER_SUPPORT.md) also provides source
+estimation, verification and fallback diagnostics. mzML wiring remains following
+work; normal builds require no C++ compiler.

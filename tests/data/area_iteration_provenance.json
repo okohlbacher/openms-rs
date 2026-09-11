@@ -1,0 +1,106 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "sha256": "ee0c62b7a97bacb035bc1a4084f753dbf37619e1410bdc7f5a8008af8bb00cb3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AreaIterator_test.cpp",
+      "sha256": "d69e7034b39401fdfb70cb768b33eff37e408bf9de95be6d8dd42848a320e6b9"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "sha256": "842bf219137c3f9078765dea7b39eb0a821771872888d58645551358149df888"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/PeakIndex.h",
+      "sha256": "c3111e567cf887d977eb0aeb3ea8ff400c76a725705ad8137c88ebbf00203d39"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+      "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
+    }
+  ],
+  "native_tests": "tests/area_iteration.rs",
+  "support": "docs/AREA_ITERATION_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "line": 60,
+      "operation": "uint8 constructor into int8 field; unsigned spectrum comparison at line295"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "line": 190,
+      "operation": "current-peak address/end equality and forward cursor semantics"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "line": 287,
+      "operation": "nextScan skips wrong MS level, then lower/upper m/z bounds; mobility explicitly deferred"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 533,
+      "operation": "scalar RT/mz closed bounds, full isSorted(true), source compatibility constructors"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 597,
+      "operation": "RT lower and upper bounds"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 829,
+      "operation": "whole experiment RT and per-scan m/z ordering precondition"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AreaIterator_test.cpp",
+      "line": 35,
+      "operation": "five-scan literal fixture; scalar expected quadrants at194 through296"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AreaIterator_test.cpp",
+      "line": 321,
+      "operation": "original spectrum/peak indices"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 611,
+      "operation": "three-scan source fixture and scalar const traversal"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 688,
+      "operation": "mutable m/z4711 edit with preselected scan endpoint"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 718,
+      "operation": "mutable and const MZBegin/MZEnd lower/upper bounds"
+    }
+  ],
+  "evidence": "Source literals and control-flow-derived cases; 800 independent deterministic brute-enumeration queries. No C++ build/execution. Scalar RT/mz operation group only: scan-mobility Range overload, getDriftTime and generic RangeManager remain partial. Checked ordering/resources and safe borrowed mutable ownership are explicit native boundaries."
+}

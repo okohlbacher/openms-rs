@@ -8,6 +8,9 @@
 //! writing them does not preserve auxiliary arrays or arbitrary instrument data.
 
 pub mod csv;
+pub mod numpress;
+#[cfg(feature = "numpress")]
+pub mod numpress_coder;
 pub mod text;
 pub use csv::CsvFile;
 pub use text::TextFile;

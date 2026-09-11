@@ -1,0 +1,151 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h",
+      "sha256": "e433c363301b7b91111b023892a7d55af80965a553ccb08db90beabb270fc427"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.cpp",
+      "sha256": "8bb68571184fef1754a33857292ea2f560b8a54aa56338ce6760a927036d378a"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IMSIsotopeDistribution_test.cpp",
+      "sha256": "0a75fcb5371db097a0586d72664320e1f9bef105cad3f54bfb05a005f90cc889"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h",
+      "sha256": "81c56b6b658d8ccbd762b42307220da5bf60ad85c46670563446d5674691fe2a"
+    },
+    {
+      "path": "src/openms/source/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.cpp",
+      "sha256": "dd295e8a7f21af9fb11f11b904889802ec3eef5e314e93a413d448246cbe8708"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IMSElement_test.cpp",
+      "sha256": "2d95e4e6f9e7e089f4077fc5032d4ccf4fc539611a77a6e573a7f24a03f4d70a"
+    }
+  ],
+  "native_files": [
+    "src/chemistry/ims_isotope_distribution.rs",
+    "src/chemistry/ims_element.rs",
+    "tests/ims_isotopes.rs",
+    "tests/ims_element.rs",
+    "docs/IMS_ISOTOPE_SUPPORT.md"
+  ],
+  "scope": "Complete public scientific operation surfaces of IMSIsotopeDistribution and IMSElement with explicit per-call settings and native checked/owned behavior; no IMSAlphabet or C++ ABI/inheritance claim.",
+  "source_literals": {
+    "distribution_class_test": "Only construction/destruction; all numerical sections are TODO. No source convolution numerical goldens claimed.",
+    "element": {
+      "nominal_mass": 1,
+      "peaks": [
+        [
+          0.0078250319,
+          0.999885
+        ],
+        [
+          0.01410178,
+          0.000115
+        ],
+        [
+          0.01604927,
+          0.0
+        ]
+      ],
+      "hydrogen_absolute_masses": [
+        1.0078250319,
+        2.01410178,
+        3.01604927
+      ],
+      "oxygen_single_mass": 15.9994,
+      "oxygen_nominal_mass": 16,
+      "electron_mass": 0.00054858,
+      "replacement_tail": [
+        0.03604927,
+        0.0
+      ]
+    }
+  },
+  "independently_derived": {
+    "dyadic_fold": {
+      "left_nominal": 10,
+      "left": [
+        [
+          0.125,
+          0.5
+        ],
+        [
+          0.25,
+          0.5
+        ]
+      ],
+      "right_nominal": 20,
+      "right": [
+        [
+          0.5,
+          0.25
+        ],
+        [
+          0.75,
+          0.75
+        ]
+      ],
+      "size3_defects": [
+        0.625,
+        0.84375,
+        1.0
+      ],
+      "size3_abundances": [
+        0.125,
+        0.5,
+        0.375
+      ],
+      "size2_abundances": [
+        0.2,
+        0.8
+      ]
+    },
+    "cartesian_species_cases": 9,
+    "binomial_powers": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "method": "Direct Cartesian species accumulation and closed-form binomial coefficients use small dyadic literals, separately from production destination-bin convolution."
+  },
+  "source_conventions": [
+    "Both source global statics default to zero; native options passed per call.",
+    "Raw mass/abundance access and average/normalization ignore SIZE; vectors/stream clamp to SIZE.",
+    "Empty right returns unchanged left; empty left copies right before accessing settings.",
+    "Power zero and one are no-ops; higher powers retain source binary folding order and empty/SIZE0 quirks.",
+    "Nominal u32 wrapping is defined source behavior, replaced by checked atomic overflow error.",
+    "Normalization preserves finite signed-zero results after finite-input sum overflow to positive infinity.",
+    "Zero-abundance convolution bins discard their numerator, including nonfinite intermediates.",
+    "Ordinary native convolution preserves borrowed RHS; explicitly named mutable-RHS variant preserves source padding side effect."
+  ],
+  "limits": {
+    "stored_peaks": 1000000,
+    "requested_size": 1000000,
+    "work_units": 50000000,
+    "logical_allocation_bytes": 67108864,
+    "text_bytes": 8388608,
+    "label_bytes_each": 1048576,
+    "convolution_pair_work": 8,
+    "formatting_work_and_logical_bytes_per_bin": 1024
+  },
+  "validation": {
+    "native_distribution_tests": 13,
+    "native_element_tests": 5,
+    "cxx_execution": false,
+    "reference_review": "Independent read-only source/numeric/resource review by source_analysis; formatter precharge issue resolved before final validation."
+  }
+}

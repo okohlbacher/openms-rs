@@ -12,7 +12,8 @@ path = "src/lib.rs"
 
 [features]
 default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml"]
-mzml = ["dep:quick-xml", "dep:base64", "file-compression"]
+mzml = ["dep:quick-xml", "file-compression", "numpress"]
+numpress = ["dep:base64", "dep:flate2"]
 idxml = ["dep:quick-xml"]
 rna-json = ["dep:serde_json"]
 paramxml = ["dep:quick-xml", "file-compression"]

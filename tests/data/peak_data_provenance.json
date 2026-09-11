@@ -1,0 +1,80 @@
+{
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "sha256": "842bf219137c3f9078765dea7b39eb0a821771872888d58645551358149df888"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "sha256": "ee0c62b7a97bacb035bc1a4084f753dbf37619e1410bdc7f5a8008af8bb00cb3"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+      "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+      "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
+    }
+  ],
+  "native_tests": [
+    "tests/peak_data.rs",
+    "tests/area_iteration.rs"
+  ],
+  "native_implementation": [
+    "src/kernel/peak_data.rs",
+    "src/kernel/area_iteration.rs"
+  ],
+  "support": "docs/PEAK_DATA_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 143,
+      "operation": "get2DPeakDataPerSpectrum append and per-peak raw-f64 versus remembered-f32 comparison, initial RT -1"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 208,
+      "operation": "get2DPeakData flattened append with f32 RT/mz conversion"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 560,
+      "operation": "areaBeginConst scalar closed selection and level narrowing"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 1796,
+      "operation": "five source per-spectrum queries over RT1/2/3 and m/z100/200/150/250/175"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 2071,
+      "operation": "four flat source queries over RT1/2 and m/z100/200/150/250"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "line": 171,
+      "operation": "separate get2DData template group inspected but explicitly deferred with set2DData metadata/mass-trace overloads"
+    }
+  ],
+  "evidence": "Source literal queries plus 640 independent linear-enumeration comparisons. No C++ compilation or execution. Non-mobility filtered exports only; preserves source row-grouping and RT -1 existing-row quirks. Undefined empty-row back(), nonfinite output, malformed used parallel prefixes, arithmetic/resource failures become checked atomic errors."
+}

@@ -6,6 +6,8 @@ The target is a feature-complete native Core SDK that TOPP tools can be ported a
 
 **This port is in progress and does not yet replace the full OpenMS library.** The current reduced SDK contains 807 physical include-directory headers and about 468,000 lines of first-party runtime code. The [SDK update](docs/CORE_SDK_UPDATE.md) records the current target, `54a232f`, and the product backends removed from its scope. This crate has its own Rust API, no C++ bindings, and no C++ build dependency. Native [FASTA lifecycle](docs/FASTA_SUPPORT.md), [aggregation/XICs](docs/EXPERIMENT_AGGREGATION_SUPPORT.md), [TIC and experiment summaries](docs/EXPERIMENT_SUMMARY_SUPPORT.md), [mzML Product transport](docs/MZML_PRODUCT_SUPPORT.md) and [indexed-mzML offsets](docs/INDEXED_MZML_SUPPORT.md) are now available. Native [peak-file option values](docs/PEAK_FILE_OPTIONS_SUPPORT.md), [metadata hashing](docs/METADATA_HASH_SUPPORT.md) and [mass-decomposition records](docs/MASS_DECOMPOSITION_SUPPORT.md) and the [native solver](docs/MASS_DECOMPOSITION_ALGORITHM_SUPPORT.md) are also available. The [repository analysis](docs/REPOSITORY_ANALYSIS.md) explains the source architecture, dependencies, and path toward broader coverage.
 
+Native [IMS isotope/element operations](docs/IMS_ISOTOPE_SUPPORT.md) and [alphabets/parsers](docs/IMS_ALPHABET_SUPPORT.md), [area traversal](docs/AREA_ITERATION_SUPPORT.md), [peak indices](docs/PEAK_INDEX_SUPPORT.md), [filtered bulk peak export](docs/PEAK_DATA_SUPPORT.md), and [raw Numpress codecs](docs/MSNUMPRESS_SUPPORT.md) with the [base64/zlib wrapper](docs/MSNUMPRESS_CODER_SUPPORT.md) are available. Numpress has 295 executed C++ reference cases; mzML Numpress transport remains separate.
+
 ## What works
 
 | Area | Implemented |
@@ -58,7 +60,7 @@ Rust 1.85 or newer is required. Add this local crate to a consuming project:
 openms = { path = "/absolute/path/to/OpenMS4-R" }
 ```
 
-The `mzml`, `idxml`, `paramxml`, `featurexml`, `consensusxml` and `rna-json` features are enabled by default. The XML features use Rust XML parsing; mzML also uses base64. The `file-compression` feature supplies gzip and bzip2 using Rust backends and is enabled by mzML, parameter XML, featureXML and consensusXML. `rna-json` adds serde_json for caller-supplied MODOMICS JSON. The embedded RNA registry and TSV reader remain available without that feature. Runtime reporting uses `chrono` for local timestamps and `cpu-time` for process CPU timing on Unix/Windows. The scientific core uses the small pure Rust `libm` library for EMG's complementary error function. Disable default features to use the scientific core, identification analysis and text readers without the XML, JSON and compression dependencies:
+The `mzml`, `idxml`, `paramxml`, `featurexml`, `consensusxml` and `rna-json` features are enabled by default. The XML features use Rust XML parsing. The independent `numpress` feature adds the base64/zlib wrapper and is enabled by mzML; raw Numpress remains available without features. The `file-compression` feature supplies gzip and bzip2 using Rust backends and is enabled by mzML, parameter XML, featureXML and consensusXML. `rna-json` adds serde_json for caller-supplied MODOMICS JSON. The embedded RNA registry and TSV reader remain available without that feature. Runtime reporting uses `chrono` for local timestamps and `cpu-time` for process CPU timing on Unix/Windows. The scientific core uses the small pure Rust `libm` library for EMG's complementary error function. Disable default features to use the scientific core, identification analysis and text readers without the XML, JSON and compression dependencies:
 
 ```toml
 openms = { path = "/absolute/path/to/OpenMS4-R", default-features = false }
@@ -130,7 +132,7 @@ cargo fmt --all -- --check
 cargo doc --locked --all-features --no-deps
 ```
 
-Append `--offline` when dependencies are already cached. The lockfile fixes the tested dependency versions. Tests use upstream assertions and fixtures, numerical invariants, round trips, malformed-input cases, and complete small workflows. **The C++ library was not built or executed for this port**, so source-derived tests are not a live cross-language equivalence result. Cross-platform CI is provided; only the platforms actually listed in [validation notes](docs/VALIDATION.md) have been run locally.
+Append `--offline` when dependencies are already cached. The lockfile fixes the tested dependency versions. Tests use upstream assertions and fixtures, numerical invariants, round trips, malformed-input cases, and complete small workflows. The unmodified pinned raw Numpress C++ implementation was compiled for 295 differential cases; 287 also executed its decoder. The full C++ SDK was not built, and other source-derived tests are not live cross-language equivalence results. Cross-platform CI is provided; only the platforms actually listed in [validation notes](docs/VALIDATION.md) have been run locally.
 
 ## Design
 

@@ -1,0 +1,382 @@
+{
+  "target_sdk_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "platform": "macOS ARM64",
+  "current_rust": "1.98.0",
+  "minimum_rust": "1.85.0",
+  "scope": "IMS distributions/elements/alphabets, scalar area traversal, filtered bulk peak data, peak indices, raw Numpress and the configurable base64/zlib wrapper.",
+  "checks": [
+    {
+      "name": "wrapper_and_mzml_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "--test",
+        "numpress_coder",
+        "--test",
+        "numpress",
+        "--test",
+        "peak_file_options",
+        "--test",
+        "mzml",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 239.63,
+      "log_sha256": "8adafbfcc2639219c13de4453c8265c6cd3abd1d2239458f6273bfacb30e1250",
+      "log_bytes": 12636,
+      "tests_passed": 121
+    },
+    {
+      "name": "docs_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--doc",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 33.01,
+      "log_sha256": "46d8e631c3f37a926744f736cca1599db94a22f48c3392a8d88545ec43ee5c67",
+      "log_bytes": 1359,
+      "tests_passed": 3
+    },
+    {
+      "name": "strict_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "clippy",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 17.47,
+      "log_sha256": "5ddb9f0948ef78c975c07b531a0d42fe628312b620cf7ceeb25641bb07b9a68d",
+      "log_bytes": 821
+    },
+    {
+      "name": "strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--no-default-features",
+        "--all-targets",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 25.67,
+      "log_sha256": "2818e052cd4198d5d653c992ab1b6bb05e539e9090c9774f1937c953ea043687",
+      "log_bytes": 408
+    },
+    {
+      "name": "release_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "build",
+        "--locked",
+        "--all-features",
+        "--release",
+        "--lib",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 54.48,
+      "log_sha256": "046205f4bfaec1d8d7a1fae5ad93e137e44704deb214f7465cc45d7da8e5dda3",
+      "log_bytes": 839
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "doc",
+        "--locked",
+        "--all-features",
+        "--no-deps",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.58,
+      "log_sha256": "8a86eb1423c526ae880b29bcdbba3155c447a7d679a76ea2cc43bbf4a9bab23f",
+      "log_bytes": 240,
+      "environment": {
+        "RUSTDOCFLAGS": "-D warnings"
+      }
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.35,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0
+    },
+    {
+      "name": "source_audit",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py",
+        "--source",
+        ".reference/openms4-core-54a232f"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.6,
+      "log_sha256": "e83e6283f37fee3e6d5bed589d373ebb930b4307c6bf6673885e42c2d84f6344",
+      "log_bytes": 233
+    },
+    {
+      "name": "source_review_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.1,
+      "log_sha256": "921b60a7fd52e978fbb551cacd29df2d6708879400278e1fcc70fceeb0c6f8e0",
+      "log_bytes": 101
+    },
+    {
+      "name": "completion_ledger",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.12,
+      "log_sha256": "1c13fc3faeeb28b88283c8e000ba168d107c9d7c6669a3561a50b58dff4c4b10",
+      "log_bytes": 208
+    },
+    {
+      "name": "ledger_regressions",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.19,
+      "log_sha256": "f3874f1bc83a634fd04abbf35e717328a24a73dc1cffe20a6972ccd456a246ac",
+      "log_bytes": 100
+    },
+    {
+      "name": "wrapper_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "numpress",
+        "--lib",
+        "--test",
+        "numpress_coder",
+        "--test",
+        "numpress",
+        "--test",
+        "peak_file_options",
+        "-j2"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 63.3,
+      "log_sha256": "16244685ecc6d839d05f54244b15a14bcde2daca0c61ae154a8d901f2bf1a5c2",
+      "log_bytes": 11337,
+      "tests_passed": 104
+    },
+    {
+      "name": "wrapper_strict_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--features",
+        "numpress",
+        "--lib",
+        "--test",
+        "numpress_coder",
+        "--test",
+        "numpress",
+        "--test",
+        "peak_file_options",
+        "-j2",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.18,
+      "log_sha256": "5d5900b685ca3cf2a634a7cffe3a8858a88422047f661b85b4eec8d3c4228236",
+      "log_bytes": 161
+    },
+    {
+      "name": "focused_current",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--all-features",
+        "--lib",
+        "-j2",
+        "--test",
+        "ims_isotopes",
+        "--test",
+        "ims_element",
+        "--test",
+        "ims_alphabet",
+        "--test",
+        "area_iteration",
+        "--test",
+        "peak_data",
+        "--test",
+        "peak_index",
+        "--test",
+        "numpress",
+        "--test",
+        "ims_weights",
+        "--test",
+        "experiment_summary",
+        "--test",
+        "mass_decomposition_algorithm"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 58.48,
+      "log_sha256": "b72f743e9790c2d1d46770a6aa64e837c6908173d2f0df66fd7d7a60c2f6fea8",
+      "log_bytes": 17112,
+      "tests_passed": 167
+    },
+    {
+      "name": "focused_minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "--lib",
+        "-j2",
+        "--test",
+        "ims_isotopes",
+        "--test",
+        "ims_element",
+        "--test",
+        "ims_alphabet",
+        "--test",
+        "area_iteration",
+        "--test",
+        "peak_data",
+        "--test",
+        "peak_index",
+        "--test",
+        "numpress",
+        "--test",
+        "ims_weights",
+        "--test",
+        "experiment_summary",
+        "--test",
+        "mass_decomposition_algorithm"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 16.09,
+      "log_sha256": "d0d75d5feb0582d01d60bea68948476c3f6038bd749a360cdf1922c7f53fa60e",
+      "log_bytes": 17166,
+      "tests_passed": 164
+    }
+  ],
+  "test_count_policy": "81 new integration tests in this additive group. Selected current suites167 and121 and minimum suites164 and104 overlap each other; they are not an additive full-suite total. The preceding committed full suite passed1466 tests plus3 docs.",
+  "preceding_full_suite": {
+    "commit": "d7fd4ed4aeddb094d02a680cab14c8ec2951cd62",
+    "tests_passed": 1466,
+    "docs_passed": 3,
+    "evidence": "docs/mobility-validation.json"
+  },
+  "build_cache_recovery": {
+    "initial_failed_check": [
+      {
+        "name": "docs_current",
+        "command": [
+          "cargo",
+          "+1.98.0",
+          "test",
+          "--locked",
+          "--all-features",
+          "--doc",
+          "-j2"
+        ],
+        "exit_code": 101,
+        "elapsed_seconds": 43.92,
+        "log_sha256": "1f1864a2b59f4429b50cd324c5d05abd7389012fa4d87569faa085980ecbcd5e",
+        "log_bytes": 1126
+      }
+    ],
+    "reason": "An existing build-directory dependency rmeta file disappeared before chrono could consume it. Documentation and all subsequent checks were rerun successfully in an isolated build directory, without production changes.",
+    "isolated_directory": "/tmp/openms-rs-foundation-validation-target"
+  },
+  "preceding_published_ci": [
+    {
+      "commit": "d7fd4ed4aeddb094d02a680cab14c8ec2951cd62",
+      "url": "https://github.com/okohlbacher/openms-rs/actions/runs/34565942433",
+      "conclusion": "success",
+      "jobs": [
+        "quality",
+        "minimum-rust",
+        "test (ubuntu-latest)",
+        "test (macos-latest)",
+        "test (windows-latest)"
+      ]
+    }
+  ],
+  "full_cpp_sdk_built": false,
+  "cpp_reference_probe_built": true,
+  "cpp_runtime_differential_tests": {
+    "scope": "Raw Numpress only; unmodified pinned source implementation",
+    "manifest": "tests/data/numpress_provenance.json",
+    "cases": 295,
+    "decoder_cases": 287,
+    "undefined_empty_safe_decoder_cases_skipped": 8
+  },
+  "validated_topp_workflows": 0,
+  "completion": {
+    "registered_public_headers": 786,
+    "by_status": {
+      "complete": 10,
+      "evidence_requires_review": 169,
+      "native_equivalent": 23,
+      "partial": 16,
+      "unmapped": 568
+    },
+    "topp_sources": 146,
+    "validated_topp_workflows": 0
+  }
+}

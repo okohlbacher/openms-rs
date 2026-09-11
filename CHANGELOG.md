@@ -2,6 +2,10 @@
 
 ## 0.1.0 — Ongoing native Rust SDK port
 
+- Add native IMS isotope distributions, elements, alphabets and replaceable text parsers with explicit source arithmetic and bounded operations.
+- Add checked peak indices, borrowed scalar area traversal and filtered bulk exports preserving source append and RT grouping behavior.
+- Add the independent Numpress wrapper feature for base64/zlib transport, source estimation/accuracy checks and explicit rejection/fallback reports.
+- Add all four raw Numpress codecs and fixed-point helpers, with 295 executed C++ reference cases and retained original component license notices.
 - Add checked mobility peak/mobilogram values, searches, stable aligned sorting, selection and summaries.
 - Preserve generic array metadata and shared processing descriptions; reject lossy XML output. Existing DataArray struct literals require defaults for the new fields.
 - Complete the standalone IMSWeights scaling/GCD/rounding/parent-mass utility with checked native boundaries.

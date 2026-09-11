@@ -1,0 +1,134 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "54a232fe2cae9c590d5c997fa49d20e7769860fb",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h",
+      "sha256": "0c7e544ebce162ab18e2e4cbf81e7fc9b3a326f769508644f1d9c64f54335c65"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
+      "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp",
+      "sha256": "65f8b9f14e004892a3e8942e427579c9f8368ee559e47c50560aa8168d628e3b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h",
+      "sha256": "d2001437121ad2f05540ea7553a357a9411f7f8eb4d62c600f2efadeb96608bd"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp",
+      "sha256": "c459046d039bfcdb90d8ba8eade83a6750c416bee5e4d110baa73ffd557a4538"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/Base64.h",
+      "sha256": "d125c893282cf9822635e4e2e676163b20e7e70f28d9966567ca8232b4f84cc4"
+    },
+    {
+      "path": "src/openms/source/FORMAT/Base64.cpp",
+      "sha256": "e72ee0f62de04a2a30ece314bfa8db2587950700d0868a34cffe2dc5fd87069e"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/ZlibCompression.h",
+      "sha256": "6092b3e699de1f0a89ba08513008f71a13e8f4a781ef17ed8f1a367243446883"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ZlibCompression.cpp",
+      "sha256": "ade3c2bc6144f0be65ef85771d5b83b37fed0f0a1720e82ce81e8e258ddd7125"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/numpress_source_bytes.tsv",
+      "sha256": "c128382b91a9e5732dc050034a05a8c1ba652f27b52db48a87dca66f090b3b06"
+    },
+    {
+      "path": "tests/data/numpress_coder_transport.tsv",
+      "sha256": "846ad2329193d9e9653533f4ee5e4a3487d6619c4f4aee4e47b273ab03172388"
+    },
+    {
+      "path": "tools/generate_numpress_coder_reference.py",
+      "sha256": "2745cd0164ebe8de385ccb3015df39dedf8924872d0234a4330d0e3251ccbc2b"
+    }
+  ],
+  "native_files": [
+    "src/format/numpress_coder.rs",
+    "tests/numpress_coder.rs",
+    "docs/MSNUMPRESS_CODER_SUPPORT.md"
+  ],
+  "scope": "Complete public MSNumpressCoder scientific/transport operations using existing config and raw codecs, owned results, explicit skipped/rejected encoding diagnostics. No mzML adapter wiring.",
+  "feature": {
+    "name": "numpress",
+    "dependencies": [
+      "existing optional base64",
+      "existing optional flate2"
+    ],
+    "enabled_by": "mzml",
+    "raw_module": "unconditional",
+    "new_dependencies": [],
+    "lockfile_changed": false
+  },
+  "literal_evidence": {
+    "source_base64_strings": 3,
+    "source_input": [
+      100.0,
+      200.0,
+      300.00005,
+      400.0001
+    ],
+    "source_lines": [
+      202,
+      241,
+      281
+    ],
+    "large_series": "Source setup_test_vec2 100-value formula and base64 length/absolute/relative assertions; no new numeric production-derived oracle."
+  },
+  "derived_transport": {
+    "cases": 3,
+    "method": "Python stdlib zlib.compress of independently projected source raw byte literals, then base64.b64encode. Tests decode this independent fixture; no compressed-writer byte equality claimed.",
+    "python": "3.14.6",
+    "zlib_runtime": "1.2.12",
+    "regeneration": "python3 tools/generate_numpress_coder_reference.py"
+  },
+  "source_policies": [
+    "Empty input precedes NONE; raw skip/rejection preserves destination, base64 wrapper completed skip/rejection clears it.",
+    "Linear desired-accuracy negative factor falls back to maximal factor; zero factor does not.",
+    "Verification only for tolerance>0; nonpositive and NaN disable, positive infinity enables without a finite error cap.",
+    "Reverse-index checking; PIC absolute error>=1; others finite then zero-special-case abs or abs(1-original/decoded)>tolerance.",
+    "f32 promotion is exact and happens before raw encoder even for NONE.",
+    "Raw decode empty/NONE returns empty; transport decode runs before NONE; base64 input shorter than4bytes returns empty."
+  ],
+  "native_boundaries": [
+    "Typed encoding reports replace stderr; no fallback to ordinary IEEE binary encoding.",
+    "Raw finite/cast/resource rules retained. Raw returned errors become explicit codec rejections as source catchall; wrapper budget and transport failures areErr.",
+    "Budget/transport errors preserve caller outputs; decoder errors are atomic rather than clear-before-read.",
+    "Strict standard base64 alphabet, length, padding and pad bits beyond preserved short-input shortcut.",
+    "Strict single zlib frame CRC/structure/progress with trailing or concatenated input rejected.",
+    "Per-operation shared work/allocation includes promotion, estimation/fallback, codec, verification, base64 and zlib; raw local bounds do not reset it.",
+    "Wrapper standalone decoding conservatively precharges decoded upper-bound allocation before raw exact-count validation."
+  ],
+  "limits": {
+    "max_values": 10000000,
+    "max_binary_bytes": 134217728,
+    "max_work": 500000000,
+    "max_text_bytes": 201326592,
+    "max_total_logical_bytes": 536870912,
+    "zlib_chunk_bytes": 16384,
+    "zlib_state_logical_allowance": 1048576
+  },
+  "validation": {
+    "wrapper_tests": 14,
+    "raw_regression_tests": 13,
+    "rust_1_98_all_features": "passed",
+    "independent_review": "Chemistry agent reviewed complete wrapper arithmetic, tolerance, destination behavior, transport and shared precharges; no actionable findings.",
+    "cpp_wrapper_executed": false,
+    "prior_raw_cpp_evidence": "Only prior raw stage uses executed unmodified C++ probe; not claimed for this wrapper.",
+    "rust_1_85_numpress_only": "passed",
+    "strict_clippy_both": "passed",
+    "rustfmt": "passed",
+    "hashes_and_links": "nine source plus three fixture/script hashes and local links verified",
+    "raw_stage_and_lockfile": "unchanged"
+  }
+}
