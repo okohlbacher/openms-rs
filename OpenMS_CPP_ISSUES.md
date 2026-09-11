@@ -60,6 +60,7 @@ are not classified as confirmed defects here.
 | CPP-044 | Missing-path CV lookup changes behavior after validation | Source-reviewed; call-order trigger | Open |
 | CPP-045 | PeptideEvidence rejects valid first-residue limits and accepts invalid ranges | Source-reviewed; zero-based range trigger | Open |
 | CPP-046 | Semantic date validation applies date-time syntax to xsd:date | Source-reviewed; XSD lexical contract | Open |
+| CPP-047 | ProForma XLMS link positions ignore preceding flattened ranges | Source-reviewed; explicit AST trigger | Open |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -966,10 +967,7 @@ unit selection in CPP-021.
 `parsed_term.unit_accession`. Test an exact allowed unit, an allowed child and
 an unrelated known unit using a small independent vocabulary.
 
-**Rust handling:** The general SemanticValidator is not yet ported. Its native
-implementation must make this correction explicit and retain a descendant-unit
-regression; the existing vocabulary traversal and mapping loader do not perform
-this semantic validation.
+**Rust handling:** The [native SemanticValidator](docs/SEMANTIC_VALIDATOR_SUPPORT.md) compares descendants with the supplied unit accession. Dedicated exact/descendant/unrelated-unit cases cover the correction. Source-name checking remains separate.
 
 ## CPP-040 — Failed semantic validation contaminates later document paths
 
@@ -995,9 +993,7 @@ or clear all of them on entry and every exceptional exit. Publish results only
 for the current document. Test failed parsing before and after fulfilled terms,
 followed by valid and semantically invalid documents on the same validator.
 
-**Rust handling:** The general validator remains unimplemented. The planned
-native API will use local validation state so failure cannot change a later
-result. Existing CV mapping load transactions are a separate implemented group.
+**Rust handling:** The [native SemanticValidator](docs/SEMANTIC_VALIDATOR_SUPPORT.md) keeps its XML stack, rule counters and report local to each operation. Tests reuse one validator after missing-attribute and malformed-tail failures, verifying no contamination or partial public report.
 
 ## CPP-041 — The mzML header writer does not escape several string attributes
 
@@ -1095,10 +1091,7 @@ missing-path contract for `locateTerm`. Returning false is natural for its
 allowed-term predicate; a documented checked exception can also be consistent.
 Test the same unmapped query before and after validation of different documents.
 
-**Rust handling:** The planned validator uses a per-operation index from the
-actual mappings. Its missing-path predicate will consistently return a checked
-error, preserving the source cold-lookup result without validation-history
-changes. This deliberate API difference will be documented and tested.
+**Rust handling:** The [native validator](docs/SEMANTIC_VALIDATOR_SUPPORT.md) builds a fresh bounded mapping index per call. An absent locate_term path consistently returns a checked error before or after unrelated validation. This deliberately removes incidental source cache state.
 
 ## CPP-045 — PeptideEvidence misclassifies valid and invalid position limits
 
@@ -1158,7 +1151,34 @@ xsd:dateTime separate if the vocabulary declares it. Cover date-only, zoned date
 invalid calendar dates and timestamp rejection; changing the general DateTime
 parser alone would still accept invalid date-time lexemes here.
 
-**Rust handling:** The pending native SemanticValidator retains the source value
-conversion for compatibility and documents this defect. Its source-compatible
-value checks do not claim complete XSD lexical conformance. No upstream patch
-has been applied.
+**Rust handling:** The [native SemanticValidator](docs/SEMANTIC_VALIDATOR_SUPPORT.md) retains the source value conversion for compatibility, with explicit date-only rejection and timestamp-acceptance tests. Its value checks do not claim complete XSD lexical conformance. No upstream patch has been applied.
+
+## CPP-047 — ProForma XLMS link positions ignore preceding flattened sections
+
+**Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2017–2041](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2017), `findCrossLink`; flattened sequence construction at 2280–2288; two-chain spectrum construction at 2820–2835.
+
+**Issue and reproduction:** Construct an alpha Peptidoform whose first section
+is an unmodified ModifiedRange containing A and G, followed by a SequenceElement
+M with the first alternative carrying crosslink label XL1. Give beta an M with
+the matching label followed by A, with `is_chimeric=false`. Label-only endpoints
+and zero linker mass isolate this from CPP-038. The two-chain spectrum check
+accepts the matching labels. BEST_EFFORT conversion emits alpha sequence AGM,
+but `findCrossLink` increments its position only for top-level SequenceElement
+sections and reports alpha position 0, rather than the M position 2. XLMS then
+uses incorrect fragment boundaries and K-linked eligibility. A preceding
+nonempty AmbiguousRegion has the analogous one-residue discrepancy.
+
+**Evidence:** Direct source review of the position counter, two-chain issue
+checks, BEST_EFFORT flattening and crosslink construction. This is an explicit
+public AST trigger, not a claimed parsed-text or executed C++ spectrum result.
+
+**Proposed fix:** Share flattened output-position accounting between conversion
+and link extraction: advance by range length and by one for nonempty ambiguous
+regions. Define link selection inside those sections consistently as well, or
+reject unsupported section shapes before generation. Test a range and an
+ambiguous region preceding each chain's endpoint, independently of linker mass.
+
+**Rust handling:** The pending ProForma spectrum-wrapper group will preserve
+this finite source behavior with an explicit regression and a separate correct
+flattened-position expectation, consistent with its source compatibility policy.
+No upstream fix has been applied.

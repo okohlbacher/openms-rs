@@ -6,8 +6,8 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 10,
-      "evidence_requires_review": 165,
-      "native_equivalent": 57,
+      "evidence_requires_review": 164,
+      "native_equivalent": 58,
       "partial": 21,
       "unmapped": 533
     },
@@ -4204,7 +4204,8 @@
         "src/data_structures/cv_mapping.rs"
       ],
       "reference_manifests": [
-        "tests/data/cv_mapping_provenance.json"
+        "tests/data/cv_mapping_provenance.json",
+        "tests/data/semantic_validator_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -4229,7 +4230,8 @@
         "src/data_structures/cv_mapping.rs"
       ],
       "reference_manifests": [
-        "tests/data/cv_mapping_provenance.json"
+        "tests/data/cv_mapping_provenance.json",
+        "tests/data/semantic_validator_provenance.json"
       ],
       "direct_topp_consumers": [
         "CVInspector"
@@ -4256,7 +4258,8 @@
         "src/data_structures/cv_mapping.rs"
       ],
       "reference_manifests": [
-        "tests/data/cv_mapping_provenance.json"
+        "tests/data/cv_mapping_provenance.json",
+        "tests/data/semantic_validator_provenance.json"
       ],
       "direct_topp_consumers": [
         "CVInspector",
@@ -4471,6 +4474,7 @@
         "tests/data/datetime_provenance.json",
         "tests/data/experimental_settings_provenance.json",
         "tests/data/mzml_header_provenance.json",
+        "tests/data/semantic_validator_provenance.json",
         "tests/data/system_file_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -4842,6 +4846,7 @@
         "tests/data/proforma_parser_probe_provenance.json",
         "tests/data/protein_run_provenance.json",
         "tests/data/sdk_numeric_formatting_provenance.json",
+        "tests/data/semantic_validator_provenance.json",
         "tests/data/text_csv_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -5577,7 +5582,8 @@
         "src/format/cv_mapping.rs"
       ],
       "reference_manifests": [
-        "tests/data/cv_mapping_provenance.json"
+        "tests/data/cv_mapping_provenance.json",
+        "tests/data/semantic_validator_provenance.json"
       ],
       "direct_topp_consumers": [
         "CVInspector",
@@ -5690,7 +5696,8 @@
       "reference_manifests": [
         "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
-        "tests/data/mzml_acquisition_provenance.json"
+        "tests/data/mzml_acquisition_provenance.json",
+        "tests/data/semantic_validator_provenance.json"
       ],
       "direct_topp_consumers": [
         "CVInspector",
@@ -6708,7 +6715,8 @@
         "tests/data/mzml_header_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_settings_provenance.json",
-        "tests/data/paramxml_provenance.json"
+        "tests/data/paramxml_provenance.json",
+        "tests/data/semantic_validator_provenance.json"
       ],
       "direct_topp_consumers": [
         "XFDR"
@@ -7887,12 +7895,29 @@
       "header": "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
       "sha256": "539f5dd9331d6f343257477a871ffdd5a157374a92dc12da4d65c75c058cf858",
       "domain": "FORMAT",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/semantic_validator.rs",
+          "src/format/cv_xml.rs"
+        ],
+        "tests": [
+          "tests/semantic_validator.rs",
+          "tests/cv_mapping_file.rs",
+          "tests/cv_mapping_values.rs",
+          "tests/controlled_vocabulary.rs"
+        ],
+        "documentation": "docs/SEMANTIC_VALIDATOR_SUPPORT.md",
+        "scope": "Complete class-specific general CV/mapping validation, ParsedCVTerm value, configurable qnames/attributes/switches, borrowed providers, owned error/warning report and selection-only locate_term. Source order/count collisions, MUST/MAY/SHOULD logic and value conversions retained, including documented non-XSD date behavior CPP-046. Unit descendant target, failed-parse state and history-dependent absent-path lookup corrected (CPP-039/040/044). Exact historical 738-term CV, valid/corrupt XML and all nine diagnostic literals; independent branch/resource/transport tests. Shared private XML extraction preserves CVMapping behavior; optional semantic-validation feature. Inherited XMLFile, C++ subclass extension points, derived format validators and full XSD lexical/schema validation are separate."
+      },
+      "candidate_rust_files": [
+        "src/format/semantic_validator.rs"
+      ],
       "reference_manifests": [
         "tests/data/controlled_vocabulary_provenance.json",
-        "tests/data/mzml_header_provenance.json"
+        "tests/data/mzml_header_provenance.json",
+        "tests/data/semantic_validator_provenance.json"
       ],
       "direct_topp_consumers": [
         "SemanticValidator"
@@ -7964,7 +7989,8 @@
         "tests/data/identification_paths_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_paths_provenance.json",
-        "tests/data/paramxml_provenance.json"
+        "tests/data/paramxml_provenance.json",
+        "tests/data/semantic_validator_provenance.json"
       ],
       "direct_topp_consumers": [
         "XFDR"
@@ -15823,7 +15849,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/VALIDATORS/SemanticValidator.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "workflow_validated": false

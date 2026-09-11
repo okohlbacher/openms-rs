@@ -339,6 +339,34 @@ impl ControlledVocabulary {
         let (mut work, mut bytes) = (self.limits.max_work, self.limits.max_bytes);
         self.get_term_by_name_with_budget(name, description, &mut work, &mut bytes)
     }
+    #[cfg(feature = "semantic-validation")]
+    pub(crate) fn find_term_with_budget(
+        &self,
+        id: &str,
+        work: &mut usize,
+        bytes: &mut usize,
+    ) -> Result<Option<&CVTermDefinition>> {
+        Meter { work, bytes }.lookup(self.terms.len(), self.max_id_bytes, id.len())?;
+        Ok(self.terms.get(id))
+    }
+    #[cfg(feature = "semantic-validation")]
+    pub(crate) fn has_descendant_with_budget(
+        &self,
+        parent: &str,
+        child: &str,
+        work: &mut usize,
+        bytes: &mut usize,
+    ) -> Result<bool> {
+        self.walk(
+            parent,
+            false,
+            &mut |id, m| {
+                m.spend(add(id.len().min(child.len()), 1)?)?;
+                Ok(id == child)
+            },
+            &mut Meter { work, bytes },
+        )
+    }
     pub(crate) fn get_term_with_budget(
         &self,
         id: &str,

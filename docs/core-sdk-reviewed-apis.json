@@ -1106,6 +1106,21 @@
       ],
       "documentation": "docs/PEPTIDE_EVIDENCE_SUPPORT.md",
       "scope": "Complete owned typed record, constructor/accessors/defaults, copy/equality, source-order comparison, corrected inclusive-limit predicate and native Hash-key operations. None/usize/typed flanks replace raw negative positions/char bytes; larger usize coordinates are permitted. All five fields contribute to native equality/hash; no C++ numeric hash parity. Source class tests mostly TODO, native behavioral/collection/downstream evidence explicitly distinguished."
+    },
+    "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h": {
+      "status": "native_equivalent",
+      "rust": [
+        "src/format/semantic_validator.rs",
+        "src/format/cv_xml.rs"
+      ],
+      "tests": [
+        "tests/semantic_validator.rs",
+        "tests/cv_mapping_file.rs",
+        "tests/cv_mapping_values.rs",
+        "tests/controlled_vocabulary.rs"
+      ],
+      "documentation": "docs/SEMANTIC_VALIDATOR_SUPPORT.md",
+      "scope": "Complete class-specific general CV/mapping validation, ParsedCVTerm value, configurable qnames/attributes/switches, borrowed providers, owned error/warning report and selection-only locate_term. Source order/count collisions, MUST/MAY/SHOULD logic and value conversions retained, including documented non-XSD date behavior CPP-046. Unit descendant target, failed-parse state and history-dependent absent-path lookup corrected (CPP-039/040/044). Exact historical 738-term CV, valid/corrupt XML and all nine diagnostic literals; independent branch/resource/transport tests. Shared private XML extraction preserves CVMapping behavior; optional semantic-validation feature. Inherited XMLFile, C++ subclass extension points, derived format validators and full XSD lexical/schema validation are separate."
     }
   },
   "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"

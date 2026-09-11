@@ -11,9 +11,13 @@ pub mod controlled_vocabulary;
 pub mod csv;
 #[cfg(feature = "cv-mapping")]
 pub mod cv_mapping;
+#[cfg(feature = "cv-mapping")]
+mod cv_xml;
 pub mod numpress;
 #[cfg(feature = "numpress")]
 pub mod numpress_coder;
+#[cfg(feature = "semantic-validation")]
+pub mod semantic_validator;
 pub mod text;
 pub use csv::CsvFile;
 pub use text::TextFile;

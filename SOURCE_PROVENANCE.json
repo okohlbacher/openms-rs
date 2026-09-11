@@ -533,7 +533,8 @@
     "tests/data/proforma_conversion_provenance.json",
     "tests/data/cv_mapping_provenance.json",
     "tests/data/peptide_evidence_provenance.json",
-    "tests/data/mzml_header_provenance.json"
+    "tests/data/mzml_header_provenance.json",
+    "tests/data/semantic_validator_provenance.json"
   ],
   "full_cpp_sdk_built": false,
   "cpp_reference_probe_built": true,

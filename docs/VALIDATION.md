@@ -1,5 +1,39 @@
 # Validation of the ongoing Rust port
 
+## General semantic validation (2026-09-11)
+
+[Recorded checks](semantic-validation.json) cover the complete class-specific
+[SemanticValidator group](SEMANTIC_VALIDATOR_SUPPORT.md) and the shared XML reader
+used by CV mappings. Enable the optional `semantic-validation` feature.
+
+| Check | Result |
+| --- | --- |
+| Full suite, Rust 1.98/all features/all targets | 1,998 tests passed |
+| Doctests, Rust 1.98 | Four passed |
+| Rust 1.85/semantic feature and adjacent selection | 163 passed |
+| Rust 1.85/CV mapping feature and library selection | 127 passed |
+| Strict Clippy, release library, Rustdoc and Rustfmt | Passed |
+| Source audit, fixture projections and completion checks | Passed |
+
+All 16 integrated checks passed on their first run. Selected counts overlap;
+the full suite adds 19 tests. All 14 reviewed extraction files remain
+byte-identical after integration. The historical valid fixture produces no
+diagnostics; the corrupt fixture reproduces all five error and four warning
+messages in source order using its original 738-term vocabulary. Four raw
+fixtures retain their source bytes. No C++ execution or full SDK build is claimed.
+
+The native validator corrects descendant-unit lookup, failed-parse state leakage
+and history-dependent missing-path lookup (CPP-039/040/044). It retains the source
+date conversion behavior (CPP-046); complete XSD conformance and derived format
+validators are separate work. The C++ issue log contains 47 entries, including
+the newly recorded ProForma flattened-range position defect.
+
+The ledger records 68 complete/native-equivalent headers and 718 requiring
+implementation or review, with zero certified TOPP workflows. Source verification
+covers 1,930 distinct current files, 220 historical references, 21 graph
+references and 824 added references. Streaming consumers and the separately
+reviewed XLMS/ProForma spectrum work are outside this checkpoint.
+
 ## mzML headers and peptide-evidence keys (2026-09-11)
 
 [Recorded checks](header-evidence-validation.json) cover the complete

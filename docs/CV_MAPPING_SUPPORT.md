@@ -140,3 +140,8 @@ exercise each relevant trigger and destination rollback. The small value/model
 group introduces no ontology resource licensing changes; source/fixtures remain
 under the pinned repository's BSD-3-Clause attribution, recorded with exact
 source hashes in the provenance manifest.
+
+[General SemanticValidator](SEMANTIC_VALIDATOR_SUPPORT.md) is now available through
+the optional `semantic-validation` feature. The mapping loader and validator
+share a private bounded XML event reader; all mapping-loader semantics and
+fixtures remain unchanged. Full XSD and derived format validators remain separate.

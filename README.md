@@ -97,13 +97,13 @@ Rust 1.85 or newer is required. Add this local crate to a consuming project:
 openms = { path = "/absolute/path/to/OpenMS4-R" }
 ```
 
-The `mzml`, `idxml`, `paramxml`, `featurexml`, `consensusxml` and `rna-json` features are enabled by default. The XML features use Rust XML parsing. The independent `numpress` feature adds the base64/zlib wrapper and is enabled by mzML; raw Numpress remains available without features. The `file-compression` feature supplies gzip and bzip2 using Rust backends and is enabled by mzML, parameter XML, featureXML and consensusXML. `rna-json` adds serde_json for caller-supplied MODOMICS JSON. The embedded RNA registry and TSV reader remain available without that feature. Runtime reporting uses `chrono` for local timestamps and `cpu-time` for process CPU timing on Unix/Windows. The scientific core uses the small pure Rust `libm` library for EMG's complementary error function. Disable default features to use the scientific core, identification analysis and text readers without the XML, JSON and compression dependencies:
+The `mzml`, `idxml`, `paramxml`, `featurexml`, `consensusxml`, `cv-mapping` and `rna-json` features are enabled by default. The XML features use Rust XML parsing. The independent `numpress` feature adds the base64/zlib wrapper and is enabled by mzML; raw Numpress remains available without features. The `file-compression` feature supplies gzip and bzip2 using Rust backends and is enabled by mzML, parameter XML, featureXML and consensusXML. `rna-json` adds serde_json for caller-supplied MODOMICS JSON. The embedded RNA registry and TSV reader remain available without that feature. Runtime reporting uses `chrono` for local timestamps and `cpu-time` for process CPU timing on Unix/Windows. The scientific core uses the small pure Rust `libm` library for EMG's complementary error function. Disable default features to use the scientific core, identification analysis and text readers without the XML, JSON and compression dependencies:
 
 ```toml
 openms = { path = "/absolute/path/to/OpenMS4-R", default-features = false }
 ```
 
-[ProForma AASequence conversion](docs/PROFORMA_CONVERSION_SUPPORT.md) supports both directions, all policies and diagnostics with an explicit registry. [CV mapping records and XML loading](docs/CV_MAPPING_SUPPORT.md) are available; `cv-mapping` is included by default and can be enabled independently. General semantic validation remains separate.
+[ProForma AASequence conversion](docs/PROFORMA_CONVERSION_SUPPORT.md) supports both directions, all policies and diagnostics with an explicit registry. [CV mapping records and XML loading](docs/CV_MAPPING_SUPPORT.md) are available; `cv-mapping` is included by default and can be enabled independently. General CV/mapping validation uses the optional `semantic-validation` feature.
 
 Enable ProForma JSON independently with `default-features = false, features = ["proforma-json"]`.
 
@@ -226,3 +226,8 @@ supports complete native value and hash-key operations.
 complete term records, cumulative OBO loading, hierarchy queries, typed XML
 values and all five pinned source providers. All 9,254 terms and 16,852 name
 aliases are checked against an independent source projection.
+
+[General semantic CV validation](docs/SEMANTIC_VALIDATOR_SUPPORT.md) is available
+with `features = ["semantic-validation"]`. It checks mapping rules, term names,
+values and optional units, returning ordered errors and warnings. It preserves
+documented source value conventions and does not perform full XSD validation.

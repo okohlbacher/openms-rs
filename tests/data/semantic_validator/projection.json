@@ -1,0 +1,76 @@
+{
+  "fixtures": [
+    {
+      "path": "tests/data/semantic_validator/SemanticValidator_valid.xml",
+      "bytes": 21806,
+      "elements": 266,
+      "cv_params": 111
+    },
+    {
+      "path": "tests/data/semantic_validator/SemanticValidator_corrupt.xml",
+      "bytes": 22213,
+      "elements": 271,
+      "cv_params": 119
+    },
+    {
+      "path": "tests/data/semantic_validator/SemanticValidator_cv.obo",
+      "bytes": 169777,
+      "term_stanzas": 738
+    },
+    {
+      "path": "tests/data/cv_mapping/SemanticValidator_mapping.xml",
+      "bytes": 21682,
+      "elements": 103,
+      "cv_params": 0
+    }
+  ],
+  "literal_errors": [
+    {
+      "index": 0,
+      "value": "Violated mapping rule 'R3' at element '/mzML/fileDescription/sourceFileList/sourceFile', 2 term(s) should be present, 1 found!",
+      "source_line": 84
+    },
+    {
+      "index": 1,
+      "value": "Name of CV term not correct: 'MS:1000554 - LCQ Deca2 - invalid repeat' should be 'LCQ Deca'",
+      "source_line": 85
+    },
+    {
+      "index": 2,
+      "value": "CV term used in invalid element: 'MS:1000030 - vendor' at element '/mzML/instrumentConfigurationList/instrumentConfiguration'",
+      "source_line": 86
+    },
+    {
+      "index": 3,
+      "value": "Violated mapping rule 'R6a' number of term repeats at element '/mzML/instrumentConfigurationList/instrumentConfiguration'",
+      "source_line": 87
+    },
+    {
+      "index": 4,
+      "value": "Violated mapping rule 'R17a' at element '/mzML/run/spectrumList/spectrum/spectrumDescription', 1 term(s) should be present, 0 found!",
+      "source_line": 88
+    }
+  ],
+  "literal_warnings": [
+    {
+      "index": 0,
+      "value": "Unknown CV term: 'MS:1111569 - SHA-1' at element '/mzML/fileDescription/sourceFileList/sourceFile'",
+      "source_line": 90
+    },
+    {
+      "index": 1,
+      "value": "Obsolete CV term: 'MS:1000030 - vendor' at element '/mzML/instrumentConfigurationList/instrumentConfiguration'",
+      "source_line": 91
+    },
+    {
+      "index": 2,
+      "value": "No mapping rule found for element '/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target'",
+      "source_line": 92
+    },
+    {
+      "index": 3,
+      "value": "No mapping rule found for element '/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target'",
+      "source_line": 93
+    }
+  ]
+}
