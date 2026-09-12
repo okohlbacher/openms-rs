@@ -2,9 +2,19 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Borrowed peak-area traversal, with inclusive scalar RT/m/z boundaries.
-//! Spectrum-level mobility filtering requires a separate scan mobility model.
+//! Borrowed peak-area traversal, with inclusive RT, m/z and scan-mobility
+//! boundaries.
+//!
+//! Ports `KERNEL/AreaIterator.h` and the `areaBegin`/`areaBeginConst`/`areaEnd`
+//! family of `KERNEL/MSExperiment.h`. The source's iterator pair becomes one
+//! Rust iterator; the source's `AreaIterator::Param` named-parameter builder
+//! becomes [`AreaOptions`](crate::kernel::AreaOptions). Scan mobility is
+//! filtered on the spectrum's *scalar* drift time, exactly as the source's
+//! `nextScan_` does, so a per-peak ion-mobility array never takes part in the
+//! selection. `docs/AREA_ITERATION_SUPPORT.md` lists every source member and
+//! its counterpart.
 
+use super::ranges::{MSDim, RangeManager};
 use super::{MSExperiment, MSSpectrum, MzRtRegion, NumericRange, Peak1D, finite};
 use crate::{Error, Result};
 use std::{
@@ -14,11 +24,18 @@ use std::{
     sync::Arc,
 };
 
-/// Inclusive area dimensions. None means unrestricted, including finite extrema.
-/// This does not represent source RangeManager mobility or intensity dimensions.
+/// Inclusive RT and m/z area dimensions. `None` means unrestricted, including
+/// the finite extrema.
+///
+/// Scan mobility is not one of these: it filters whole scans rather than peaks
+/// and lives in [`AreaOptions::mobility`]. The source's `RangeManager`
+/// intensity dimension has no counterpart at all, because the source's area
+/// iterator never filters on intensity.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct AreaBounds {
+    /// Inclusive retention-time boundary of the area, in seconds.
     pub rt: Option<NumericRange>,
+    /// Inclusive m/z boundary applied inside every selected scan, in Th.
     pub mz: Option<NumericRange>,
 }
 impl AreaBounds {
@@ -65,8 +82,22 @@ impl From<MzRtRegion> for AreaBounds {
 /// Owned area settings. Exact level matching is used; zero is never a wildcard.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct AreaOptions {
+    /// Inclusive RT and m/z boundaries.
     pub bounds: AreaBounds,
+    /// Only scans of exactly this MS level are visited.
     pub ms_level: u32,
+    /// Inclusive scan-mobility boundary on the spectrum's scalar drift time,
+    /// or `None` for no mobility restriction.
+    ///
+    /// Source `AreaIterator::Param::lowIM`/`highIM` (`AreaIterator.h:88-100`),
+    /// which the iterator turns into `RangeMobility{low_im_, high_im_}` and
+    /// tests per scan with `containsMobility(getDriftTime())`
+    /// (`AreaIterator.h:277-282`). The source defaults the pair to
+    /// `lowest()`/`max()`, a range that contains every finite drift time, so
+    /// `None` here selects the same scans. A restricted range makes the RT
+    /// window span several ion-mobility frames and keep only the frames whose
+    /// drift time falls inside it.
+    pub mobility: Option<NumericRange>,
 }
 impl Default for AreaOptions {
     fn default() -> Self {
@@ -76,14 +107,108 @@ impl Default for AreaOptions {
 impl AreaOptions {
     /// Idiomatic native constructor: match the complete supplied u32 MS level.
     pub const fn new(bounds: AreaBounds, ms_level: u32) -> Self {
-        Self { bounds, ms_level }
+        Self {
+            bounds,
+            ms_level,
+            mobility: None,
+        }
     }
     /// Reproduce source areaBegin's UInt -> uint8_t -> int8_t -> UInt conversion.
     /// For example 256 becomes 0, while 255 becomes u32::MAX. Ordinary new()
     /// intentionally does not narrow native requests.
     pub const fn source_compatible(bounds: AreaBounds, requested_ms_level: u32) -> Self {
-        Self::new(bounds, (requested_ms_level as u8 as i8) as u32)
+        Self::new(bounds, source_level(requested_ms_level))
     }
+    /// The same options restricted to an inclusive scan-mobility range.
+    ///
+    /// Chains the source's `Param::lowIM(min_im).highIM(max_im)` pair. Only the
+    /// spectrum's scalar drift time is compared; a spectrum whose peaks carry an
+    /// ion-mobility float data array but whose scalar drift time is unset still
+    /// presents the source sentinel `-1`, and any range above `-1` therefore
+    /// excludes it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when either bound is not finite or
+    /// `min_im` exceeds `max_im`. The source stores whatever it is given and
+    /// lets `RangeBase::contains` decide, under which a reversed pair silently
+    /// selects nothing and a NaN bound excludes every scan.
+    pub fn with_mobility(mut self, min_im: f64, max_im: f64) -> Result<Self> {
+        self.mobility = Some(NumericRange {
+            min: min_im,
+            max: max_im,
+        });
+        self.validate()?;
+        Ok(self)
+    }
+    /// Area settings taken from a [`RangeManager`], as source
+    /// `areaBegin(const RangeManagerType&, UInt)` does.
+    ///
+    /// The RT, m/z and mobility dimensions each restrict the area; an **empty**
+    /// dimension does not, because the source reads it with
+    /// `getNonEmptyRange()`, which answers `(lowest, max)` for an empty range
+    /// (`RangeManager.h:278-284`). A dimension the manager does not carry at all
+    /// is treated the same way — the source's manager is a fixed
+    /// `RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>` and
+    /// cannot express a missing dimension, and "missing" and "empty" have the
+    /// same effect. An intensity dimension is ignored: the source's area
+    /// iterator has no intensity filter.
+    ///
+    /// `ms_level` is matched exactly. Use
+    /// [`MSExperiment::area_begin_from_ranges`] for the source's byte-narrowing
+    /// wrapper.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when a non-empty dimension holds a
+    /// non-finite bound.
+    pub fn from_range_manager(range: &RangeManager, ms_level: u32) -> Result<Self> {
+        let result = Self {
+            bounds: AreaBounds {
+                rt: dimension(range, MSDim::Rt)?,
+                mz: dimension(range, MSDim::Mz)?,
+            },
+            ms_level,
+            mobility: dimension(range, MSDim::Mobility)?,
+        };
+        result.validate()?;
+        Ok(result)
+    }
+    fn validate(&self) -> Result<()> {
+        self.bounds.validate()?;
+        if let Some(range) = self.mobility {
+            finite(range.min, "area mobility boundary")?;
+            finite(range.max, "area mobility boundary")?;
+            if range.min > range.max {
+                return Err(invalid("area minimum exceeds maximum"));
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Source narrowing of a requested MS level: `UInt` into the `uint8_t`
+/// parameter of `AreaIterator::Param`, stored in its `int8_t ms_level_` field
+/// and compared against the spectrum's unsigned level
+/// (`AreaIterator.h:57`, `AreaIterator.h:124`, `AreaIterator.h:281`).
+const fn source_level(requested: u32) -> u32 {
+    (requested as u8 as i8) as u32
+}
+
+/// One dimension of a [`RangeManager`] as an optional inclusive area boundary.
+/// A dimension that is absent or empty does not restrict the area.
+fn dimension(range: &RangeManager, dim: MSDim) -> Result<Option<NumericRange>> {
+    if !range.has_dim(dim) {
+        return Ok(None);
+    }
+    let base = range.range_for_dim(dim)?;
+    if base.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(NumericRange {
+        min: base.min()?,
+        max: base.max()?,
+    }))
 }
 
 /// Limits shared by validation, interval construction and reserved traversal.
@@ -110,20 +235,42 @@ impl Default for AreaLimits {
 /// One immutable area point; indices address the original experiment.
 #[derive(Clone, Copy, Debug)]
 pub struct AreaPeak<'a> {
+    /// Index of the scan this peak belongs to, in the original experiment.
     pub spectrum_index: usize,
+    /// Index of the peak inside that scan, in the original experiment.
     pub peak_index: usize,
+    /// The scan itself (source `AreaIterator::getSpectrum`).
     pub spectrum: &'a MSSpectrum,
+    /// The peak itself (source `AreaIterator::operator*`/`operator->`).
     pub peak: &'a Peak1D,
+}
+impl AreaPeak<'_> {
+    /// Scan-wide ion mobility drift time, with the source sentinel `-1` when it
+    /// is unset (source `AreaIterator::getDriftTime`, `AreaIterator.h:248-251`).
+    ///
+    /// Use [`MSSpectrum::drift_time_if_set`](crate::kernel::MSSpectrum::drift_time_if_set)
+    /// through [`Self::spectrum`] to get `None` instead of the sentinel.
+    pub fn drift_time(&self) -> f64 {
+        self.spectrum.drift_time
+    }
 }
 
 /// One exclusive area point. RT/MS-level snapshots identify its scan without
 /// aliasing an immutable whole-spectrum reference with its mutable peak.
 #[derive(Debug)]
 pub struct AreaPeakMut<'a> {
+    /// Index of the scan this peak belongs to, in the original experiment.
     pub spectrum_index: usize,
+    /// Index of the peak inside that scan, in the original experiment.
     pub peak_index: usize,
+    /// Retention time of that scan (source `AreaIterator::getRT`).
     pub rt: f64,
+    /// MS level of that scan.
     pub ms_level: u32,
+    /// Scan-wide ion mobility drift time of that scan, with the source
+    /// sentinel `-1` when unset (source `AreaIterator::getDriftTime`).
+    pub drift_time: f64,
+    /// The peak itself, exclusively borrowed.
     pub peak: &'a mut Peak1D,
 }
 
@@ -203,6 +350,7 @@ struct MutableScan<'a> {
     spectrum_index: usize,
     rt: f64,
     ms_level: u32,
+    drift_time: f64,
     next_peak: usize,
     peaks: slice::IterMut<'a, Peak1D>,
 }
@@ -233,6 +381,7 @@ impl<'a> Iterator for AreaIterMut<'a> {
                         peak_index,
                         rt: scan.rt,
                         ms_level: scan.ms_level,
+                        drift_time: scan.drift_time,
                         peak,
                     });
                 }
@@ -245,6 +394,7 @@ impl<'a> Iterator for AreaIterMut<'a> {
                         spectrum_index: index,
                         rt: spectrum.rt,
                         ms_level: spectrum.ms_level,
+                        drift_time: spectrum.drift_time,
                         next_peak: window.begin,
                         peaks: spectrum.peaks[window.begin..window.end].iter_mut(),
                     });
@@ -367,6 +517,45 @@ impl MSExperiment {
             ms_level,
         ))
     }
+    /// Borrowed traversal of an area given by a [`RangeManager`].
+    ///
+    /// Ports `areaBeginConst(const RangeManagerType& range, UInt ms_level)`
+    /// (`MSExperiment.cpp:573-583`), including the source's MS-level byte
+    /// narrowing. Empty and absent dimensions do not restrict the area; see
+    /// [`AreaOptions::from_range_manager`].
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::area_iter`], plus [`Error::InvalidValue`] for a non-finite
+    /// bound in a non-empty dimension.
+    pub fn area_begin_from_ranges(
+        &self,
+        range: &RangeManager,
+        ms_level: u32,
+    ) -> Result<AreaIter<'_>> {
+        self.area_iter(AreaOptions::from_range_manager(
+            range,
+            source_level(ms_level),
+        )?)
+    }
+    /// Exclusive traversal of an area given by a [`RangeManager`].
+    ///
+    /// Ports `areaBegin(const RangeManagerType& range, UInt ms_level)`
+    /// (`MSExperiment.cpp:544-554`).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::area_begin_from_ranges`].
+    pub fn area_begin_mut_from_ranges(
+        &mut self,
+        range: &RangeManager,
+        ms_level: u32,
+    ) -> Result<AreaIterMut<'_>> {
+        self.area_iter_mut(AreaOptions::from_range_manager(
+            range,
+            source_level(ms_level),
+        )?)
+    }
 }
 
 fn plan(experiment: &MSExperiment, options: AreaOptions, limits: AreaLimits) -> Result<Plan> {
@@ -389,7 +578,7 @@ fn plan_with_work(
     max_peaks: usize,
     work: &mut Work,
 ) -> Result<Plan> {
-    options.bounds.validate()?;
+    options.validate()?;
     if experiment.spectra.len() > max_spectra {
         return Err(limit());
     }
@@ -442,10 +631,26 @@ fn plan_with_work(
             .map_err(|_| limit())?;
     }
     work.consume(candidate_count)?;
+    if options.mobility.is_some() {
+        // One drift-time test per candidate scan, charged separately from the
+        // level test above so a mobility-filtered call cannot exceed its budget.
+        work.consume(candidate_count)?;
+    }
     let mut count = 0usize;
     for (index, spectrum) in experiment.spectra[begin..end].iter().enumerate() {
         if spectrum.ms_level != options.ms_level {
             continue;
+        }
+        if let Some(mobility) = options.mobility {
+            // Source nextScan_ skips a scan whose scalar drift time is outside
+            // the mobility range (AreaIterator.h:281). A non-finite drift time
+            // is refused rather than silently excluded, because RangeBase's
+            // `min <= v & v <= max` answers false for NaN and the caller would
+            // never learn that the scan was dropped.
+            finite(spectrum.drift_time, "area spectrum drift time")?;
+            if spectrum.drift_time < mobility.min || spectrum.drift_time > mobility.max {
+                continue;
+            }
         }
         let (first, last) = if let Some(mz) = options.bounds.mz {
             (

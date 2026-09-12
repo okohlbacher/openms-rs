@@ -4,14 +4,23 @@ The native scalar area traversal follows Core SDK
 `54a232fe2cae9c590d5c997fa49d20e7769860fb`. It is implemented in
 [`area_iteration.rs`](../src/kernel/area_iteration.rs) and reexported from
 `openms::kernel`. This group covers the scalar RT/m/z `areaBegin` and
-`areaBeginConst` paths. It does **not** complete `AreaIterator.h` or
-`MSExperiment.h`: the scan-mobility `RangeManager` overload, `lowIM`/`highIM`,
-and `getDriftTime` remain unmapped pending the spectrum mobility model and its
-transport. The standalone Mobilogram type is not that spectrum model.
-Even the source scalar overload internally applies a full finite mobility
-range; the native scalar mapping assumes the currently represented default
-scan mobility. It does not reproduce exclusion of source scans carrying a
-nonfinite drift time, a value the current native spectrum model cannot store.
+`areaBeginConst` paths.
+
+**Update (kernel WP7, Core SDK `bc9cc12`).** The three residuals this document
+recorded — the scan-mobility `RangeManager` overload, `Param::lowIM`/`highIM`
+and `AreaIterator::getDriftTime` — are now implemented in the same module. The
+mobility filter reads the spectrum's *scalar* drift time, exactly as the
+source's `nextScan_` does, so the standalone `Mobilogram` type is still not
+involved and a per-peak ion-mobility array still takes no part in the
+selection. A source scan with a non-finite drift time, which
+`RangeBase::contains` silently excludes, is now refused with
+`Error::InvalidValue` when a mobility bound is given, and ignored when none is;
+the sentence below that said such a value cannot be stored no longer holds,
+because `MSSpectrum::drift_time` is a public `f64` field. The rows for the new
+members are in the table below, and
+[`EXPERIMENT_MOBILITY_SUPPORT.md`](EXPERIMENT_MOBILITY_SUPPORT.md) carries the
+member-by-member audit of both headers together with the new tests in
+[`tests/experiment_mobility.rs`](../tests/experiment_mobility.rs).
 
 ## API mapping
 
@@ -25,6 +34,13 @@ nonfinite drift time, a value the current native spectrum model cannot store.
 | `AreaBounds { rt, mz }` | Optional closed dimensions; `None` includes all finite coordinates in that dimension |
 | `AreaOptions::new(bounds, level)` | Exact u32 level; default level is one |
 | `AreaOptions::source_compatible(bounds, level)` | Explicitly reproduces the source unsigned-byte/signed-byte MS-level conversion |
+| `AreaOptions::mobility` field | `Param`'s `low_im_`/`high_im_` pair; `None` is the source default full range |
+| `AreaOptions::with_mobility(min_im, max_im)` | Chains `Param::lowIM(min_im).highIM(max_im)`, with checked finite ordered bounds |
+| `AreaOptions::from_range_manager(range, level)` | Reads RT, m/z and mobility from a `RangeManager` as `getNonEmptyRange()` does; an empty or absent dimension does not restrict, and intensity is ignored |
+| `MSExperiment::area_begin_from_ranges(range, level)` | `areaBeginConst(const RangeManagerType&, UInt)`, with source MS-level narrowing |
+| `MSExperiment::area_begin_mut_from_ranges(range, level)` | `areaBegin(const RangeManagerType&, UInt)`, same narrowing |
+| `AreaPeak::drift_time()` | `AreaIterator::getDriftTime`, returning the scalar drift time with the source `-1` sentinel |
+| `AreaPeakMut::drift_time` field | The same value snapshotted per scan, since the mutable item exposes no whole-spectrum reference |
 | `AreaIter::peek()` / iterator items | Checked dereference, scan reference, RT and original spectrum/peak indices |
 | `AreaIter::default()` / exhausted `next()` | Source end sentinels map to an empty iterator and `None` |
 | `Clone`, `PartialEq`, `Eq` on `AreaIter` | Independent cursors sharing an immutable interval plan; current-peak address equality, with all exhausted iterators equal |
@@ -135,6 +151,12 @@ All ten tests and focused strict Clippy pass on Rust 1.98 with all features and
 Rust 1.85 without default features; Rust 2024 formatting checks pass.
 
 [`area_iteration_provenance.json`](../tests/data/area_iteration_provenance.json)
-records source hashes and exact test/implementation anchors. No C++ build or
-reference execution, new dependency, spectrum field or generic RangeManager
-implementation is included.
+records source hashes and exact test/implementation anchors for the scalar
+group. No C++ build or reference execution and no new dependency is included.
+
+The mobility extension is evidenced separately in
+[`experiment_mobility_provenance.json`](../tests/data/experiment_mobility_provenance.json)
+and tested in [`tests/experiment_mobility.rs`](../tests/experiment_mobility.rs),
+which ports the source `getDriftTime` and `getRT` sections, the ion-mobility and
+MS-level cases of the overall test, and both `RangeManager` sections of
+`MSExperiment_test.cpp`.
