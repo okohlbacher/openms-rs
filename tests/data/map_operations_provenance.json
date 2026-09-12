@@ -1,0 +1,190 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/FeatureMap.h",
+      "sha256": "fb4c1f8e507b4416f6c03689b77f812535d6744d0ca0d7394acf625ef2f3ef43"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+      "sha256": "210ebf2fbe17259af5034b78855d0f57e16becf525aae370217a044f0c926a27"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FeatureMap_test.cpp",
+      "sha256": "965cacda46320c3e235756d8351ba9f5fa2139b6d158b11eee2d64c33cd60ca1"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConsensusMap.h",
+      "sha256": "0659b12b4f03f3201da7be40a30d563a42671a0b0054ad2280061fa7ce6978e5"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "sha256": "bc5fa8b64feb192eda86f1dd6606aba6108e97fc5cdcc7b600574189bc166449"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ConsensusMap_test.cpp",
+      "sha256": "6922c5575ea9e6c6676ca2cfce39e39a99affe36c9782431eba6f4da9734c2f6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/UniqueIdIndexer.h",
+      "sha256": "c3481f999bfa5dde7b28ef959967eb7c0a5e5f6e6a758cf5e607857a200543e6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/ExposedVector.h",
+      "sha256": "2ba0662fe817fe9a1cc734da68cd823d033b45025a3f32b4cfdf343b6dcf048f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/Utils/MapUtilities.h",
+      "sha256": "c3c46515ae9f0c049369714224290c5f0d7858f9e33b9ed767ffd14f62b25d32"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/DataProcessingUtils.h",
+      "sha256": "20f0ec11fc7df93f863241b0009b68e69dcf66b8adf60c270b8090ea6a981037"
+    },
+    {
+      "path": "src/openms/source/METADATA/DataProcessingUtils.cpp",
+      "sha256": "0712f5c77188ff174b5a451784dc5f208d549437851bf925bdf3c98f93a689fe"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "sha256": "b0166d47181ce74ced4937a112da94788cbc51eb57f88a426a1e62578458151d"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/map_operations.rs",
+    "src/kernel/features.rs",
+    "src/kernel.rs"
+  ],
+  "native_tests": [
+    "tests/map_operations.rs",
+    "tests/features.rs",
+    "tests/feature_identification.rs"
+  ],
+  "support": "docs/MAP_OPERATIONS_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/FeatureMap.h",
+      "line": 294,
+      "operation": "FeatureMap owns an IdentificationData id_data_ member; this port attaches identification records by reference instead, so Clone and PartialEq survive"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConsensusMap.h",
+      "line": 376,
+      "operation": "ConsensusMap owns the same IdentificationData member, with the same divergence"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+      "line": 148,
+      "operation": "FeatureMap::operator== compares data_, MetaInfoInterface, RangeManagerType, DocumentIdentifier, UniqueIdInterface and the three record vectors; DocumentIdentifier::operator== itself compares only the identifier, so the loaded file path and type do not take part"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+      "line": 173,
+      "operation": "operator+= resets ranges, document identifier and unique ID, concatenates the records, then resolves conflicting unique IDs through UniqueIdIndexer"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+      "line": 323,
+      "operation": "FeatureMap::swap swaps features, ranges, document identifier, unique ID and index, records and id_data_, but NOT the inherited MetaInfoInterface; meta values stay with their map"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+      "line": 452,
+      "operation": "getPrimaryMSRunPath assigns into the caller's list only when spectra_data exists and appends UNKNOWN only when the resulting list is empty, so a non-empty output argument is kept and the placeholder suppressed"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureMap.cpp",
+      "line": 466,
+      "operation": "clear(false) clears data_ only, leaving the cached ranges populated, which is why the source's operator== distinguishes a cleared map from a default one"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 85,
+      "operation": "appendRows zips the merged column-header map against rhs's header map positionally, renaming and summing sizes for the shorter prefix rather than matching by column index"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 100,
+      "operation": "appendRows sorts and deduplicates the fixed and variable modification lists of every protein identification in the merged map, including the pre-existing ones"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 168,
+      "operation": "appendColumns shifts rhs's column indices by the header COUNT of the left map, not by its largest index, so sparse keys can still collide and std::map::insert keeps the existing header"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 393,
+      "operation": "ConsensusMap::swap swaps every member except the inherited MetaInfoInterface, the same asymmetry as FeatureMap::swap"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 508,
+      "operation": "setPrimaryMSRunPath writes paths into column_description_[i] by position; std::map::operator[] default-inserts, so a map whose headers are keyed otherwise gains columns instead of being renamed"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 518,
+      "operation": "the path-count check applies only when column_description_ is non-empty, so an empty map silently accepts any number of paths"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 702,
+      "operation": "split sizes its result by column_description_.size() but indexes it with the map index, reading out of bounds when the headers are not keyed 0..n-1"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 741,
+      "operation": "the isobaric branch dereferences new_feats.begin() without checking that the consensus feature has any handle"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 751,
+      "operation": "new_feats[pep_id.getMetaValue(\"map_index\")] default-inserts a BaseFeature, so an identification whose map index has no handle still creates a feature there"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusMap.cpp",
+      "line": 789,
+      "operation": "the isobaric branch copies every ProteinIdentification into the first feature map, which the source comment itself marks as wrong"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "line": 40,
+      "operation": "BaseFeature(const FeatureHandle&) slices the handle to its Peak2D base, so split carries position, intensity, charge and width but not the handle's unique ID"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/UniqueIdIndexer.h",
+      "line": 86,
+      "operation": "updateUniqueIdToIndex throws Exception::Postcondition only when the number of DISTINCT valid IDs differs from the number of valid IDs, so a container of unassigned elements is accepted"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/UniqueIdIndexer.h",
+      "line": 138,
+      "operation": "resolveUniqueIdConflicts assigns an ID to every unassigned element without counting it, and loops without bound while the drawn ID is already taken"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 922,
+      "operation": "getPrimaryMSRunPath strips a file:/// prefix only to choose the path separator and then joins using the unstripped path"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/Utils/MapUtilities.h",
+      "line": 27,
+      "operation": "applyFunctionOnPeptideHits / applyFunctionOnPeptideIDs, inherited by both maps from a header outside this work package; plain Rust iteration over the public record vectors is the counterpart"
+    }
+  ],
+  "evidence_tier": 3,
+  "evidence": "Tier 3 (source review): every literal in tests/map_operations.rs is transcribed from the two pinned class tests; no C++ was built or executed, and no retained C++ output exists for these headers. Class-test section accounting: FeatureMap_test.cpp 32 sections, 32 ported, 0 mapped-with-evidence, 0 unaccounted; ConsensusMap_test.cpp 39 sections, 39 ported, 0 mapped-with-evidence, 0 unaccounted. The eight NOT_TESTABLE sections of ConsensusMap_test.cpp are ported as real tests rather than mapped. Two sections diverge from the transcribed expectation and say so at the assertion: the final case of FeatureMap_test.cpp operator==/operator!= and of ConsensusMap_test.cpp operator==/operator!= expects a map cleared with clear(false) to differ from a default map, because the source's operator== compares the RangeManager cache that clear(false) leaves populated; this port computes ranges on demand, has no such cache, and the two maps compare equal. Everything the port checks that the source does not - the container ceilings, the bounded unique-ID redraw, the checked map-index range in split, the atomic reference translation and the rejected non-integer map_index - is tier 4 (Rust-only invariants), derived from the anchored source lines above.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}
