@@ -206,13 +206,24 @@
    "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
    "line": 219,
    "operation": "toBracketString writes an N-terminal annotation as n[...] and a C-terminal one as c[...], with a '+' prefix only when the relative mass is positive; a modified X residue falls back to its absolute internal mass with no sign"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 290,
+   "operation": "load splits the Proteins field on ';', the spelling Sage writes, while store joins the accessions with '\\t' at line 549; with the rectangular row check at line 239 this means OpenMS cannot read back the .pin it writes for a PSM with more than one protein evidence (OPENMS-PERCIN-007)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 298,
+   "operation": "rank is read with toInt32 over the whole int range and PeptideHit is then constructed from rank - 1, which is a signed overflow for INT_MIN and UINT_MAX after the conversion for rank 0"
   }
  ],
- "evidence": "Tier 3 source review. The expectations in tests/percolator_infile.rs are transcribed class-test literals from PercolatorInfile_test.cpp: the exact ordered feature sets for charges 2-4 and 3-3, the assembled header beginning with SpecId and ending with Peptide, Proteins, and the written row's SpecId 'scan=529', ScanNr '529', Label '1', peplen '7', charge2 '1', charge3 '0', enzN '1', enzC '1', Peptide 'K.SAMPLER.S' and Proteins 'PROT1'; plus, for the reader, 9 identifications, 2 filenames, the spectrum references '30381' and 'spectrum=2041', and the DECOY_ reannotation of the eighth entry. Transcribed literals are tier-3 evidence: they detect transcription drift but cannot falsify a misread algorithm. No C++ was built or executed and no C++ output was retained, so nothing here is tier 1 or 2. The per-enzyme specificity table, the scan-number pattern table, the isotope-error shift, the bracket rendering, the Sage annotation path, the non-ASCII inputs and the resource ceilings are independently derived (tier 4) from the implementation, since the class test reaches none of them.",
+ "evidence": "Tier 3 source review. The expectations in tests/percolator_infile.rs are transcribed class-test literals from PercolatorInfile_test.cpp: the exact ordered feature sets for charges 2-4 and 3-3, the assembled header beginning with SpecId and ending with Peptide, Proteins, and the written row's SpecId 'scan=529', ScanNr '529', Label '1', peplen '7', charge2 '1', charge3 '0', enzN '1', enzC '1', Peptide 'K.SAMPLER.S' and Proteins 'PROT1'; plus, for the reader, 9 identifications, 2 filenames, the spectrum references '30381' and 'spectrum=2041', and the DECOY_ reannotation of the eighth entry. Transcribed literals are tier-3 evidence: they detect transcription drift but cannot falsify a misread algorithm. No C++ was built or executed and no C++ output was retained, so nothing here is tier 1 or 2. The per-enzyme specificity table, the scan-number pattern table, the isotope-error shift, the bracket rendering, the Sage annotation path, the non-ASCII inputs, the resource ceilings, the multi-accession trailing protein list, the separator refusals, the ScanNr -1 sentinel and the out-of-range rank column are independently derived (tier 4) from the implementation, since the class test reaches none of them: its one stored PSM has a single accession, a matching 'scan=' identifier and no rank column.",
  "gaps": [
   "The source's SageAnnotation path also reads a 'peptide' column that it never uses, and it re-reads spectrum_q twice per row (once to filter, once to stamp). Both are reproduced in behaviour, not in shape.",
   "load's decoy_prefix reannotation compares the prefix with StringUtils::hasPrefix on each accession. This port uses str::starts_with, which is byte-identical for the ASCII prefixes adapters pass; a non-ASCII prefix behaves the same because both compare bytes.",
   "toBracketString is a member of AASequence.h, which this package does not own. bracket_sequence reimplements only the (integer_mass=false, mass_delta=true) form the .pin writer needs, and returns Error::Unsupported for a modified X residue whose absolute internal mass the crate cannot resolve. The fixed_modifications filter argument is not reproduced, because PercolatorInfile never passes it.",
-  "The source parallelises nothing here, so there is no OpenMP gap to record for this header."
+  "The source parallelises nothing here, so there is no OpenMP gap to record for this header.",
+  "store writes Percolator's tab-separated trailing protein list and load requires a rectangular table, so a multi-accession .pin is not a C++ round trip either (OPENMS-PERCIN-007). This port reproduces both halves: prepare_pin accepts a tab only in a trailing Proteins column, and read/load keep the source's field-count check, which now names that case in the parse error."
  ]
 }

@@ -60,9 +60,18 @@ Every public and protected member of the header.
   every identification, so a list mixing `scan=` and `index=` identifiers
   yields no scan number for the minority shape. Preserved, and called out at
   the item.
+- **An unextractable scan number is stamped as `ScanNr = -1`.** The source
+  calls `extractScanNumber(..., no_error = true)`
+  (`PercolatorInfile.cpp:420`, `SpectrumNativeIDParser.cpp:80`), which returns
+  `-1` instead of throwing, and stamps that value. So the minority shape above
+  gets `-1` and its row is still written. Preserved and tested
+  (`an_unmatched_scan_identifier_stamps_the_sources_minus_one`). Until this
+  fix the port returned `Error::MissingInformation` there, which refused input
+  the source writes a row for, while this document claimed the source's
+  behaviour was preserved.
 - **The last match wins**, and a digit run that does not fit `i32` yields no
   scan number — the source catches its own `ConversionError` and falls through
-  to `-1`.
+  to the same `-1`.
 - **An existing `CalcMass` is reused**, not recomputed.
 - **Isotope-error correction.** An `IsotopeError` meta value (the legacy MS-GF+
   adapter's spelling before OpenMS 2.6) or the current `isotope_error` shifts
@@ -81,9 +90,15 @@ Every public and protected member of the header.
   and only maps them to Percolator's `-` at line 534, for the `Peptide` column.
   A protein-terminal PSM is therefore reported as non-enzymatic. Preserved; see
   the C++ finding below.
-- **`Proteins` joins the accessions with tabs**, so a hit with several
-  evidences occupies several trailing columns. That is what Percolator's
-  trailing protein list is.
+- **`Proteins` joins the accessions with tabs**
+  (`PercolatorInfile.cpp:549`), so a hit with several evidences renders one
+  field per accession past the declared column count. That is what
+  Percolator's trailing protein list is, and it is why the writer's separator
+  guard accepts a tab in a trailing `Proteins` column — see the native
+  difference below. Until this fix the guard rejected the value stamping had
+  just produced and aborted the whole file, which made the writer unusable on
+  shared-peptide data; `a_two_accession_psm_writes_percolators_trailing_protein_list`
+  now covers it.
 - **A short hit is dropped, not padded.** `preparePin_` writes a row only when
   every declared feature has a meta value, and otherwise counts the hit and
   records which names were missing.
@@ -135,11 +150,26 @@ Every public and protected member of the header.
   iterates an `unordered_map` and breaks at the first column equal to `"1"`, so
   a malformed row with two columns set picks an unspecified charge; ascending
   order makes the same row deterministic.
-- **A `rank` column of zero is refused.** The source computes `rank - 1` into
-  an `int`, giving `-1`; the crate's rank is a `u32`.
-- **A non-finite numeric field is refused.**
-- **A feature name or value containing a tab, CR or LF is refused.** The source
-  writes it through unescaped, corrupting the row.
+- **A `rank` column below one is refused.** The source computes `rank - 1` into
+  an `int`, giving `-1` for zero and a signed overflow for `i32::MIN`; the
+  crate's rank is a `u32`, and the decrement is `checked_sub` before it is
+  narrowed, so the whole `i32` range the column accepts is an
+  `Error::Parse` naming the line rather than a debug panic or a release wrap to
+  `i32::MAX`. Covered by
+  `an_extreme_rank_column_is_an_error_not_an_overflow`, through both `read` and
+  `load`.
+- **A non-finite numeric field is refused**, on reading and on stamping. The
+  source's `PeptideIdentification` defaults both `mz_` and `rt_` to NaN and
+  writes whatever it holds, so an identification with neither would give
+  `ExpMass`, `mass`, `dm` and `retentiontime` columns reading `nan`; this port
+  returns `Error::MissingInformation` naming the coordinate.
+- **A feature name or value containing a CR or LF is refused**, and so is a tab
+  in every column but a trailing `Proteins`. The source writes all of them
+  through unescaped: a line break ends the row early and a tab shifts every
+  column after it. The trailing `Proteins` column is the one place a tab is
+  meaningful, because Percolator reads that column as a tab-separated protein
+  list; `Proteins` declared anywhere but last is therefore still refused when
+  the hit has more than one accession.
 - **The Sage sibling paths are derived by stripping suffixes.** The source
   computes them with `StringUtils::substr(pin_file, 0, pin_file.size() - 3)`
   and `pin_file.size() - 16` — unchecked byte-offset arithmetic on the path
@@ -203,9 +233,13 @@ eighth entry. Transcribed literals detect transcription drift but cannot
 falsify a misread algorithm. No C++ was built or executed and no C++ output was
 retained, so nothing here is tier 1 or 2. The per-enzyme specificity table, the
 scan-number pattern table, the isotope-error shift, the bracket rendering, the
-Sage annotation path, the non-ASCII inputs and the resource ceilings are
-independently derived (tier 4) from the implementation, since the class test
-reaches none of them.
+Sage annotation path, the non-ASCII inputs, the resource ceilings, the
+multi-accession trailing protein list, the separator refusals, the `ScanNr`
+`-1` sentinel and the out-of-range `rank` column are independently derived
+(tier 4) from the implementation, since the class test reaches none of them:
+its one stored PSM has a single accession, a matching `scan=` identifier and no
+`rank` column at all, which is why the writer's own guard could reject its own
+output and the `rank` decrement could overflow without any test noticing.
 
 ### Section accounting
 
@@ -218,6 +252,22 @@ All five `START_SECTION`s of `PercolatorInfile_test.cpp` are ported.
 | `load(pin_file, higher_score_better, score_name, decoy_prefix)` | 5 | `loading_a_sage_pin_file_groups_rows_and_reannotates_decoys` | `pids[6].getSpectrumReference() == "spectrum=2041"` |
 | `static StringList getStandardFeatureSet(int, int)` | 10 (two inside `for` loops over the expected lists) | `the_standard_feature_set_is_the_exact_ordered_column_contract` | the charge 2–4 set is `SpecId, Label, ScanNr, ExpMass, CalcMass, mass, peplen, charge2, charge3, charge4, enzN, enzC, enzInt, dm, absdm` |
 | `static void store(...)` | 31 | `storing_writes_the_column_contract_and_the_computed_features` | the written row's `Peptide` is `K.SAMPLER.S` |
+
+### Known gaps
+
+- **A `.pin` file this module writes for a multi-accession PSM cannot be read
+  back by this module.** The writer emits Percolator's tab-separated trailing
+  protein list, so such a row holds more fields than the header; `read` and
+  `load` require a rectangular table, because the source does
+  (`PercolatorInfile.cpp:239`) — and the source's own `load` splits `Proteins`
+  on `;`, which is Sage's spelling, not the `\t` its `store` writes. So
+  `store` → `load` is not a round trip in C++ either. This port reproduces
+  both halves rather than inventing a reader the source does not have; the
+  parse error now names the trailing-protein-list case, and
+  `a_surplus_field_is_a_parse_error_that_names_the_protein_list` pins it.
+  Recorded as OPENMS-PERCIN-007. Relaxing the column-count check would let a
+  genuinely misaligned row through silently, so it is left to the integrator
+  together with the upstream fix.
 
 ### C++ findings
 
@@ -272,3 +322,16 @@ IDs are noted so the Rust test comments can cite them.
   the hash order, so the same file can read differently across builds.
   Proposed fix: iterate in ascending charge order. Rust handling: ascending
   charge order.
+- **OPENMS-PERCIN-007 — `store` and `load` disagree about the `Proteins`
+  column.** `PercolatorInfile.cpp:549` writes the accessions of one PSM joined
+  with `\t`, which is Percolator's trailing protein list and therefore makes a
+  data row wider than the header. `load` then rejects exactly that row:
+  `:239` throws `Exception::ParseError` when the field count differs from the
+  header, and `:290` splits the `Proteins` field on `;` rather than `\t`. So
+  OpenMS cannot read back the `.pin` files it writes for shared peptides — the
+  normal case — and a Sage `.pin` (semicolon-separated, rectangular) is the
+  only shape `load` accepts. Proposed fix: treat the final `Proteins` column as
+  a variable-length tab-separated list on reading, and accept `;` inside it for
+  Sage. Rust handling: the writer emits the source's tab-joined list, the
+  reader keeps the source's rectangular requirement and now names this case in
+  the parse error, and the gap is recorded above.

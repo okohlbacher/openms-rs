@@ -668,16 +668,22 @@ fn terminal_flanking_markers_become_dashes() {
     assert_eq!(other[0].hits[0].metadata["enzC"].as_i64().unwrap(), 0);
 }
 
-/// Several protein accessions are joined with tabs inside the `Proteins`
-/// field, which is how Percolator reads a trailing protein list.
-#[test]
-fn several_accessions_are_tab_separated_in_the_proteins_field() {
+/// The PSM of the `store` section with a second protein evidence, the normal
+/// shape of shared-peptide data.
+fn two_accession_psm() -> Vec<PeptideIdentification> {
     let mut identifications = sampler_psm();
     identifications[0].hits[0].evidences.push(PeptideEvidence {
         protein_accession: "PROT2".into(),
         ..Default::default()
     });
-    let mut stamped = identifications;
+    identifications
+}
+
+/// Several protein accessions are joined with tabs inside the `Proteins`
+/// field, which is how Percolator reads a trailing protein list.
+#[test]
+fn several_accessions_are_tab_separated_in_the_proteins_field() {
+    let mut stamped = two_accession_psm();
     pin::stamp_pin_features(
         &mut stamped,
         &PinOptions {
@@ -691,6 +697,188 @@ fn several_accessions_are_tab_separated_in_the_proteins_field() {
         stamped[0].hits[0].metadata["Proteins"].to_string(),
         "PROT1\tPROT2"
     );
+}
+
+/// A PSM with two protein evidences — shared-peptide data, so the common case
+/// — must survive the writer, whose own separator guard used to reject the
+/// tab-joined `Proteins` value stamping had just produced and abort the file.
+///
+/// `PercolatorInfile.cpp:549` joins the accessions with tabs, so the trailing
+/// protein list occupies one field per accession past the declared column
+/// count. That is the shape Percolator parses, and the writer now emits it.
+#[test]
+fn a_two_accession_psm_writes_percolators_trailing_protein_list() {
+    let mut feature_set = standard_feature_set(2, 3).unwrap();
+    feature_set.push("Peptide".into());
+    feature_set.push("Proteins".into());
+    let options = PinOptions {
+        min_charge: 2,
+        max_charge: 3,
+        ..Default::default()
+    };
+
+    let report = pin::prepare_pin(&two_accession_psm(), &feature_set, &options).unwrap();
+    assert_eq!(report.lines.len(), 2, "the PSM must not be dropped");
+    assert_eq!(report.hits_missing_features, 0);
+
+    let header: Vec<&str> = report.lines[0].split('\t').collect();
+    let row: Vec<&str> = report.lines[1].split('\t').collect();
+    // One field per accession past the header: Percolator's trailing list.
+    assert_eq!(header.len(), feature_set.len());
+    assert_eq!(row.len(), header.len() + 1);
+    let proteins = column(&header, "Proteins");
+    assert_eq!(row[proteins], "PROT1");
+    assert_eq!(&row[proteins..], &["PROT1", "PROT2"][..]);
+    // Everything before the list is still aligned with its column.
+    assert_eq!(row[column(&header, "Peptide")], "K.SAMPLER.S");
+    assert_eq!(row[column(&header, "ScanNr")], "529");
+
+    // The stream writer produces the same bytes.
+    let mut bytes = Vec::new();
+    pin::write(&mut bytes, &two_accession_psm(), &feature_set, &options).unwrap();
+    let written = String::from_utf8(bytes).unwrap();
+    assert_eq!(written.lines().collect::<Vec<_>>(), report.lines);
+}
+
+/// A tab in any other column would shift every column after it, so it stays
+/// refused — as does a CR or LF anywhere, including in the protein list.
+#[test]
+fn a_tab_outside_the_trailing_protein_column_is_still_refused() {
+    let options = PinOptions {
+        min_charge: 2,
+        max_charge: 3,
+        ..Default::default()
+    };
+    // `Proteins` declared before another column is no longer the trailing
+    // list, so its tabs would corrupt the row.
+    let mut feature_set = standard_feature_set(2, 3).unwrap();
+    feature_set.push("Proteins".into());
+    feature_set.push("Peptide".into());
+    let error = pin::prepare_pin(&two_accession_psm(), &feature_set, &options).unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+
+    // A tab inside an ordinary feature value.
+    let mut identifications = sampler_psm();
+    identifications[0].hits[0].metadata.insert(
+        "extra".into(),
+        openms::metadata::MetaValue::from("a\tb".to_owned()),
+    );
+    let mut feature_set = standard_feature_set(2, 3).unwrap();
+    feature_set.push("extra".into());
+    feature_set.push("Peptide".into());
+    feature_set.push("Proteins".into());
+    let error = pin::prepare_pin(&identifications, &feature_set, &options).unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+
+    // A line break in the protein list ends the row early, so it is refused
+    // even in the trailing column.
+    let mut identifications = sampler_psm();
+    identifications[0].hits[0].evidences.push(PeptideEvidence {
+        protein_accession: "PROT2\nPROT3".into(),
+        ..Default::default()
+    });
+    let mut feature_set = standard_feature_set(2, 3).unwrap();
+    feature_set.push("Peptide".into());
+    feature_set.push("Proteins".into());
+    let error = pin::prepare_pin(&identifications, &feature_set, &options).unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+}
+
+/// The reader requires a rectangular table, which is what the source requires
+/// (`PercolatorInfile.cpp:239`), so the trailing protein list the writer emits
+/// is a parse error rather than silently misaligned columns. The asymmetry
+/// between `store` and `load` is the source's; see
+/// `docs/PERCOLATOR_INFILE_SUPPORT.md`.
+#[test]
+fn a_surplus_field_is_a_parse_error_that_names_the_protein_list() {
+    let text = "SpecId\tLabel\tScanNr\tExpMass\tCalcMass\tFileName\tretentiontime\tscore\tPeptide\tProteins\n\
+                a\t1\t7\t1.0\t1.0\tf.mzML\t1.0\t0.5\tPEPTIDE\tP1\tP2\n";
+    let error = pin::read(
+        text.as_bytes(),
+        &ReadOptions {
+            score_name: "score".into(),
+            ..Default::default()
+        },
+    )
+    .unwrap_err();
+    match error {
+        Error::Parse { line, ref message } => {
+            assert_eq!(line, 2);
+            assert!(message.contains("multi-accession"), "{message}");
+        }
+        other => panic!("unexpected error: {other:?}"),
+    }
+}
+
+/// The `rank` column carries the whole `i32` range, so `rank - 1` is checked:
+/// `i32::MIN` used to panic with a subtract-with-overflow in a debug build and
+/// wrap to `i32::MAX` in a release one.
+#[test]
+fn an_extreme_rank_column_is_an_error_not_an_overflow() {
+    let pin = |rank: &str| {
+        format!(
+            "SpecId\tLabel\tScanNr\tExpMass\tCalcMass\tFileName\tretentiontime\tscore\trank\tPeptide\tProteins\n\
+             a\t1\t7\t1.0\t1.0\tf.mzML\t1.0\t0.5\t{rank}\tPEPTIDE\tP1\n"
+        )
+    };
+    let options = ReadOptions {
+        score_name: "score".into(),
+        ..Default::default()
+    };
+    for rank in ["-2147483648", "-1", "0"] {
+        let error = pin::read(pin(rank).as_bytes(), &options).unwrap_err();
+        assert!(
+            matches!(error, Error::Parse { line: 2, .. }),
+            "rank {rank}: {error:?}"
+        );
+    }
+    // The same row with a valid rank reads, and the hit's rank is rank - 1.
+    let document = pin::read(pin("2").as_bytes(), &options).unwrap();
+    assert_eq!(document.peptide_identifications[0].hits[0].rank, 1);
+
+    // Reached from the path reader too, which is the other entry point.
+    let directory = std::env::temp_dir().join(format!("openms-pin-rank-{}", std::process::id()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let path = directory.join("rank.pin");
+    std::fs::write(&path, pin("-2147483648")).unwrap();
+    let error = pin::load(&path, &options).unwrap_err();
+    std::fs::remove_dir_all(&directory).unwrap();
+    assert!(matches!(error, Error::Parse { line: 2, .. }), "{error:?}");
+}
+
+/// An identification whose scan identifier does not match the pattern derived
+/// from the first one gets `ScanNr` `-1`, which is what
+/// `extractScanNumber(..., no_error = true)` returns and what the source
+/// stamps. Aborting the whole call there would reject input the source writes
+/// a row for.
+#[test]
+fn an_unmatched_scan_identifier_stamps_the_sources_minus_one() {
+    let mut identifications = sampler_psm();
+    let mut other = identifications[0].clone();
+    // The pattern comes from the first identification, so a 'scan=' file sets
+    // it and this 'index=' identifier matches nothing.
+    other.set_spectrum_reference("index=17");
+    identifications.push(other);
+
+    let mut feature_set = standard_feature_set(2, 3).unwrap();
+    feature_set.push("Peptide".into());
+    feature_set.push("Proteins".into());
+    let options = PinOptions {
+        min_charge: 2,
+        max_charge: 3,
+        ..Default::default()
+    };
+    let mut stamped = identifications.clone();
+    pin::stamp_pin_features(&mut stamped, &options).unwrap();
+    assert_eq!(stamped[0].hits[0].metadata["ScanNr"].as_i64().unwrap(), 529);
+    assert_eq!(stamped[1].hits[0].metadata["ScanNr"].as_i64().unwrap(), -1);
+
+    // Both rows are written; neither identification is dropped.
+    let report = pin::prepare_pin(&identifications, &feature_set, &options).unwrap();
+    assert_eq!(report.lines.len(), 3);
+    let header: Vec<&str> = report.lines[0].split('\t').collect();
+    let scan = column(&header, "ScanNr");
+    assert_eq!(report.lines[2].split('\t').collect::<Vec<_>>()[scan], "-1");
 }
 
 /// The hit ceiling is checked before anything is mutated, so a refused call

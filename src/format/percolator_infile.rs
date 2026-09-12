@@ -42,6 +42,13 @@ pub const MASS_COLUMNS: [&str; 4] = ["ExpMass", "CalcMass", "mass", "peplen"];
 pub const ENZYME_COLUMNS: [&str; 5] = ["enzN", "enzC", "enzInt", "dm", "absdm"];
 /// The two columns Percolator requires last, in order.
 pub const TRAILING_COLUMNS: [&str; 2] = ["Peptide", "Proteins"];
+/// The last column, whose value is itself Percolator's tab-separated list of
+/// the protein accessions a PSM maps to.
+const PROTEINS_COLUMN: &str = TRAILING_COLUMNS[1];
+/// `ScanNr` value stamped when no scan number can be extracted from the scan
+/// identifier: what `SpectrumNativeIDParser::extractScanNumber` returns with
+/// its `no_error` flag set, which is how the source calls it.
+const NO_SCAN_NUMBER: i32 = -1;
 /// Largest number of one-hot `charge<c>` columns a feature set may declare.
 pub const MAX_CHARGE_COLUMNS: usize = 1024;
 /// Largest number of peptide hits one stamping or writing call may process.
@@ -452,15 +459,24 @@ fn count_hits(identifications: &[PeptideIdentification], options: &PinOptions) -
 ///
 /// The scan-number pattern is derived from the **first** identification's scan
 /// identifier and then applied to all of them, which is what the source does;
-/// an identification whose identifier has a different shape therefore yields no
-/// scan number. See the support document.
+/// an identification whose identifier has a different shape therefore gets the
+/// `ScanNr` `-1`, the sentinel `extractScanNumber` returns when its `no_error`
+/// flag is set — and the source sets it. See the support document.
+///
+/// The `Proteins` value joins the hit's accessions with tabs, because that is
+/// Percolator's trailing protein list; [`prepare_pin`] writes it into the last
+/// column unescaped, as the source does.
 ///
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] when the hit count or payload ceiling in
-/// `options` is reached, when a coordinate is not finite, or when a charge is
-/// zero and an isotope-error correction would divide by it;
-/// [`Error::Unsupported`] when a sequence has no computable mass or an
+/// `options` is reached, when a coordinate is not finite, when a charge is
+/// zero and an isotope-error correction would divide by it, or when a kept
+/// hit's sequence is empty, whose first and last residue the source reads past
+/// the end of; [`Error::MissingInformation`] when an identification carries no
+/// m/z or no retention time — the source's defaults for both are NaN, which it
+/// would write into the `ExpMass`, `mass`, `dm` and `retentiontime` columns as
+/// `nan`; [`Error::Unsupported`] when a sequence has no computable mass or an
 /// annotation no delta mass. On any error the identifications are unchanged,
 /// because the computation runs on a temporary that is committed last.
 pub fn stamp_pin_features(
@@ -546,9 +562,12 @@ fn stamped_copy(
 
             let charge = hit.charge;
             let unmodified = hit.sequence.as_str().to_owned();
-            let scan = scan_number.ok_or_else(|| {
-                missing("percolator ScanNr cannot be extracted from the scan identifier")
-            })?;
+            // The source calls extractScanNumber with no_error = true, which
+            // returns -1 when the pattern matches nothing, and stamps that -1.
+            // An identification whose identifier has a different shape from
+            // the first one's therefore gets ScanNr -1 rather than aborting
+            // the whole call.
+            let scan = scan_number.unwrap_or(NO_SCAN_NUMBER);
 
             stamp(
                 hit,
@@ -764,6 +783,13 @@ pub struct PreparedPin {
     pub warnings: Vec<String>,
 }
 
+/// Whether `position` is the `Proteins` column at the end of `feature_set`,
+/// the one column whose value is itself a tab-separated list.
+fn is_trailing_protein_column(feature_set: &[String], position: usize) -> bool {
+    position.saturating_add(1) == feature_set.len()
+        && feature_set.get(position).map(String::as_str) == Some(PROTEINS_COLUMN)
+}
+
 /// Build the `.pin` text: the tab-joined header, then the stamped features of
 /// each kept hit in the declared column order.
 ///
@@ -777,11 +803,20 @@ pub struct PreparedPin {
 /// feature by `1` or `0`, because the source's `DataValue` has no boolean
 /// alternative and promotes it to an int.
 ///
+/// The final `Proteins` column is Percolator's trailing protein list, which is
+/// tab-separated *inside* that one column: a hit with several protein
+/// evidences therefore renders a row with one field per accession beyond the
+/// declared column count. That is what
+/// [`stamp_pin_features`] writes and what the source writes
+/// (`PercolatorInfile.cpp:549`), so a tab is accepted there and nowhere else.
+///
 /// # Errors
 ///
 /// As [`stamp_pin_features`], plus [`Error::InvalidValue`] when a feature name
-/// or an accession contains a tab or newline, which would corrupt the row. The
-/// source writes such a value through unescaped.
+/// or a rendered value contains a CR or LF, which would end the row early, and
+/// when a rendered value contains a tab in any column but a trailing
+/// `Proteins`, which would silently shift every column after it. The source
+/// writes all of those through unescaped.
 pub fn prepare_pin(
     identifications: &[PeptideIdentification],
     feature_set: &[String],
@@ -815,7 +850,7 @@ pub fn prepare_pin(
                 continue;
             }
             let mut fields = Vec::with_capacity(feature_set.len());
-            for name in feature_set {
+            for (position, name) in feature_set.iter().enumerate() {
                 let Some(value) = hit.metadata.get(name) else {
                     continue;
                 };
@@ -823,7 +858,15 @@ pub fn prepare_pin(
                     MetaValueData::Float(number) => text(*number),
                     other => other_meta_text(other),
                 };
-                if rendered.contains(['\t', '\n', '\r']) {
+                // A CR or LF ends the row early whatever the column is.
+                if rendered.contains(['\n', '\r']) {
+                    return Err(invalid("percolator feature value contains a line break"));
+                }
+                // Percolator's trailing protein list is tab-separated inside
+                // the last column, which is why stamp_pin_features joins the
+                // accessions with tabs. Everywhere else a tab would shift the
+                // columns that follow it.
+                if rendered.contains('\t') && !is_trailing_protein_column(feature_set, position) {
                     return Err(invalid("percolator feature value contains a separator"));
                 }
                 fields.push(rendered);
@@ -1058,6 +1101,14 @@ fn charge_columns(header: &Header) -> Vec<(usize, i32)> {
 /// `ExpMass - CalcMass`. A `ln(-poisson)` value of `inf` is replaced by `3.5`,
 /// a workaround the source carries for Sage.
 ///
+/// The `Proteins` column is split on `;`, which is how Sage writes a protein
+/// list, and a row must hold exactly as many fields as the header — both
+/// straight from the source. Neither accepts the tab-separated trailing
+/// protein list that [`prepare_pin`] and the source's own `store` write for a
+/// hit with several protein evidences: such a row is
+/// [`Error::Parse`] here and `Exception::ParseError` there. The asymmetry is
+/// the source's and is recorded in the support document.
+///
 /// # Errors
 ///
 /// Returns [`Error::Parse`] when a row does not declare the same number of
@@ -1259,10 +1310,21 @@ fn read_csv(
         }
         let fields = csv.row(row)?.1;
         if fields.len() != header.names.len() {
+            // A surplus field is what a tab-separated trailing protein list
+            // looks like to a reader that expects a rectangular table, which
+            // is what the source expects; the hint names that case rather than
+            // leaving the caller to guess.
+            let hint = if fields.len() > header.names.len()
+                && header.names.last().map(String::as_str) == Some(PROTEINS_COLUMN)
+            {
+                "; a multi-accession Proteins column produces exactly this"
+            } else {
+                ""
+            };
             return Err(parse(
                 line,
                 format!(
-                    "line {row} does not have the same number of columns as the pin_header ({} vs {})",
+                    "line {row} does not have the same number of columns as the pin_header ({} vs {}){hint}",
                     fields.len(),
                     header.names.len()
                 ),
@@ -1333,8 +1395,13 @@ fn read_csv(
             Some(at) => row_i32(&fields, at, line, "rank")?,
             None => 1,
         };
-        let rank = u32::try_from(rank - 1)
-            .map_err(|_| parse(line, "percolator rank must be one or greater"))?;
+        // The column carries the whole i32 range, so the decrement is checked
+        // before it is narrowed: i32::MIN would otherwise overflow the
+        // subtraction (a debug panic, and i32::MAX after a release wrap).
+        let rank = rank
+            .checked_sub(1)
+            .and_then(|rank| u32::try_from(rank).ok())
+            .ok_or_else(|| parse(line, "percolator rank must be one or greater"))?;
 
         let mut charge = 0;
         for (at, value) in &charges {
