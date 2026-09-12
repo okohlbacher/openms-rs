@@ -52,6 +52,8 @@ pub mod features;
 pub mod gap_closures;
 /// Points, bounding boxes and convex hulls shared by the feature containers.
 pub mod geometry;
+/// SRM/MRM peak groups and transition groups (`MRMFeature.h`, `MRMTransitionGroup.h`).
+pub mod mrm;
 /// Range and property predicates over spectra and peaks (`RangeUtils.h`).
 pub mod range_utils;
 /// RT, m/z, intensity and mobility range algebra and on-demand container ranges.

@@ -1,0 +1,187 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMFeature.h",
+      "sha256": "10b2e1aae67ed62251c4ab90aeb8aca18774d26851d496b78b655ab594d626f6"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "sha256": "f340c4aa3312a6d4205ae5f2f1ab64ec786194ccbcb6ca2884a2ed0688358df3"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeature_test.cpp",
+      "sha256": "bdcd59bf0db72b6fd5d379f20cdf44e5257e41ad6b526de58f03f46d2f880dd4"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "sha256": "2071e91158f31b488a4c6cc502cc0da9ebdf02792185092e6508399aba18202c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMTransitionGroup_test.cpp",
+      "sha256": "346616bcd5ca5b8afe16a0a925f7b0ac0c1b8749815d7354c50e3e9f0f967c40"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h",
+      "sha256": "236daeac3894e6283a375d2982d0cc6884677cc48a195f244f8defb1f87015cf"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h",
+      "sha256": "3ed8343884751a4b3c350604c1bb2a0f36dbd3e0db5f63e8b48246dde0217166"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Macros.h",
+      "sha256": "90d8f9cd59f9248df8df8b60d2c2f71e415f0688a31b6fd7f5d3fd9b9590ed82"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/mrm.rs",
+    "src/kernel.rs"
+  ],
+  "native_tests": [
+    "tests/mrm.rs"
+  ],
+  "support": "docs/MRM_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "line": 65,
+      "operation": "addScore writes setMetaValue, not into pg_scores_; a repeated name overwrites"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "line": 70,
+      "operation": "addFeature pushes then assigns feature_map_[key]; a repeated key strands the previously keyed feature in the list"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "line": 82,
+      "operation": "non-const getFeature uses feature_map_[key], default-inserting 0 for an unknown key and returning the first feature"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "line": 87,
+      "operation": "const getFeature uses map::at and vector::at; an unknown key throws std::out_of_range"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "line": 97,
+      "operation": "getFeatureIDs appends to the caller's vector in std::map (lexicographic) key order, never clearing it"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "line": 135,
+      "operation": "IDScoresAsMetaValue prefix id_decoy_ / id_target_ and 43 setMetaValue writes"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "line": 152,
+      "operation": "second identical write of id + transition_names, already written at line 142; 43 writes cover 42 distinct keys"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MRMFeature.cpp",
+      "line": 20,
+      "operation": "copy constructor copies pg_scores_ in the member list and then calls setScores again; operator= at line 32 does the same"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h",
+      "line": 79,
+      "operation": "ms1_xcorr_coelution_score, ms1_xcorr_shape_score, ms1_mi_score, im_delta and im_ms1_delta default to -1, the rest to 0"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Macros.h",
+      "line": 91,
+      "operation": "OPENMS_PRECONDITION expands to nothing unless OPENMS_ASSERTIONS is defined"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 99,
+      "operation": "size() returns chromatograms_.size() only, not the transition or feature count"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 121,
+      "operation": "getTransitionsMuteable hands out the std::vector itself, so a caller can invalidate every stored index"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 133,
+      "operation": "addTransition emplaces into transition_map_ first and throws Exception::InvalidValue on a repeated key"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 149,
+      "operation": "getTransition guards key and index with OPENMS_PRECONDITION only, then indexes transition_map_[key]"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 231,
+      "operation": "addPrecursorChromatogram keeps its own key map, independent of the fragment-ion map"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 291,
+      "operation": "isInternallyConsistent states three OPENMS_PRECONDITIONs and returns true; in a release build the body is return true"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 300,
+      "operation": "chromatogramIdsMatch walks the fragment map then the precursor map, comparing each key against the stored nativeID"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 319,
+      "operation": "getLibraryIntensity appends to the caller's vector and then clamps the whole vector, pre-existing entries included"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 335,
+      "operation": "subset selects transitions by their own getNativeID and guards the transition and chromatogram transfers independently"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 355,
+      "operation": "subset carries every precursor chromatogram, re-keyed by its own getNativeID rather than by its stored key"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 361,
+      "operation": "subset rebuilds each MRMFeature from intensity, RT and MetaInfoInterface only; quality, m/z, charge, hulls and scores are dropped"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 387,
+      "operation": "subsetDependent indexes chromatogram_map_.at() with no hasChromatogram guard and copies every MRMFeature whole"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 417,
+      "operation": "getBestFeature compares getOverallQuality with strict >, so the first of several maxima wins; the empty precondition is compiled out"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
+      "line": 438,
+      "operation": "isMappingConsistent_ requires equal map sizes and every chromatogram key to name a transition"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h",
+      "line": 201,
+      "operation": "isDetectingTransition / isIdentifyingTransition / isQuantifyingTransition, the flags the Transition trait carries; the class itself is not ported"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMTransitionGroup_test.cpp",
+      "line": 328,
+      "operation": "the subsetDependent section calls subset, so subsetDependent has no upstream coverage"
+    }
+  ],
+  "evidence_tier": 3,
+  "evidence": "Tier 3 (source review): every literal in tests/mrm.rs is transcribed from the two pinned class tests; no C++ was built or executed, and no retained C++ output exists for these headers. Class-test section accounting: MRMFeature_test.cpp 16 sections, 16 ported, 0 mapped-with-evidence, 0 unaccounted; MRMTransitionGroup_test.cpp 28 sections, 28 ported, 0 mapped-with-evidence, 0 unaccounted. The four NOT_TESTABLE sections of MRMFeature_test.cpp and the five of MRMTransitionGroup_test.cpp are ported as real tests rather than mapped. The C++ subsetDependent section calls subset; it is ported against subset, exactly as written, and subset_dependent is covered separately by native tests. The transition type is native (SimpleTransition), because ReactionMonitoringTransition is not ported; the class tests' setLibraryIntensity and setNativeID calls map onto its fields one for one. Everything the port checks that the source does not — duplicate-key rejection, the unknown-key error paths the source leaves to OPENMS_PRECONDITION, the ceilings, and isInternallyConsistent actually returning false — is tier 4 (Rust-only invariants), derived from the anchored source lines above.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}
