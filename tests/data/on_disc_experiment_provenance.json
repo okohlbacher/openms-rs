@@ -1,0 +1,286 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "sha256": "345f204d382aac62551e93c4392a4400d093276b5b6a8200600d9ac4be8fca46"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "sha256": "392346db930157903bf75d2dda12fad394e45425a5190337d0b9c3b235dce032"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OnDiscMSExperiment_test.cpp",
+      "sha256": "e54c71c25cd667731b8bb411d8c8a6445635ffe7a7372d73bba0321680057e2c"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h",
+      "sha256": "10e0d9ddc06913956ccc99366abdbef2d2cf61dc29fb1f8e5afc24a5a23fff17"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+      "sha256": "727096f0ed488a732fc03ab64daa0ef1ee1d23e66717c06731c955fa37355fed"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSpectrumDecoder.cpp",
+      "sha256": "7e931ee1fbee8b23cd810bb7f4c4bff08d7da5b4e0756796ebd2248aea632158"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/IndexedMzMLFileLoader.h",
+      "sha256": "4442f4d76e212447d4a02f14e870786cc27d307f6dae197a31b2a02e2a649061"
+    },
+    {
+      "path": "src/openms/source/FORMAT/IndexedMzMLFileLoader.cpp",
+      "sha256": "f4b394e9ed0a8c3f9b823e048766b7113ec910dda7477c5d938025c4d48f98f8"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+      "sha256": "3f9f2f06c2e259dd719b328b160874c846ae24c73294c61b36f1573f46984117"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/SpectrumSettings.h",
+      "sha256": "adf1f2f327a7bc9149a61a90adf5db16970446fcf69f3397421a4bb0c38eddc6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ChromatogramSettings.h",
+      "sha256": "f1bc2c181cf2e2227973c7f9b1ac1c7bb2a63ecfb1fafa4c69a201be63a04025"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/indexed_mzml/IndexedmzMLFile_1.mzML",
+      "bytes": 668131,
+      "sha256": "0b5506dacd470abe850de55f21fdd40c7684592405ffdf65eca4cdfe54a0d9fc",
+      "source_path": "src/tests/class_tests/openms/data/IndexedmzMLFile_1.mzML",
+      "unchanged": true,
+      "role": "The fixture every non-failure section of OnDiscMSExperiment_test.cpp opens: 2 spectra, 1 chromatogram, instrument 'LTQ FT' with 1 mass analyzer. Committed by tests/data/indexed_mzml_provenance.json."
+    },
+    {
+      "path": "tests/data/mzml_validator/MzMLFile_4_indexed.mzML",
+      "bytes": 27526,
+      "sha256": "51425c17fe6bdfa0dff926b6f0e8fc65c48752dbe9fdd9acf05616eaf0d8d4cc",
+      "source_path": "src/tests/class_tests/openms/data/MzMLFile_4_indexed.mzML",
+      "unchanged": true,
+      "role": "The indexed fixture of the precursor-m/z filter section: 4 spectra, index 1 is MS2 with precursor m/z 5.55. Committed by tests/data/mzml_schema_provenance.json."
+    },
+    {
+      "path": "tests/data/mzml_upstream_minimal.mzML",
+      "bytes": 1055,
+      "sha256": "01fdbc15e97c6ff2fb565fc5beea8e8e6d01474a2333da79b72f2440345ae6d3",
+      "source_path": "src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML",
+      "unchanged": true,
+      "role": "Substitute for the class test's non-indexed MzMLFile_1.mzML, which this crate's mzML reader rejects with 'binary array count mismatch' for an unrelated reason. Both are plain mzML without an indexListOffset footer, which is the only property the failure sections use: the source records parsing_success_ == false and still loads the metadata. Committed by tests/data/mzml_provenance.json."
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/on_disc_experiment.rs",
+    "src/kernel.rs"
+  ],
+  "native_tests": [
+    "tests/on_disc_experiment.rs"
+  ],
+  "support": "docs/ON_DISC_EXPERIMENT_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 41,
+      "operation": "@note: unlike in-memory loading, a spectrum failing the RT or MS-level filter is returned with metadata and no peaks, so every index still maps to the file"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 61,
+      "operation": "@note: not thread-safe because one file pointer is moved per access; the class documentation recommends #pragma omp parallel for firstprivate(ondisc_map)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 97,
+      "operation": "copy constructor copies filename_, indexed_mzml_file_ (whose own copy reopens the stream and loses its native-id maps), meta_ms_experiment_ and options_, but not the facade's own two native-id caches"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 114,
+      "operation": "operator== falls back to comparing the two meta_ms_experiment_ pointers when either is null, so a skipMetaData experiment never equals one that loaded its metadata"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 138,
+      "operation": "isSortedByRT returns false without metadata and otherwise meta_ms_experiment_->isSorted(false), i.e. RT order only"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 146,
+      "operation": "size() is getNrSpectra() and empty() is getNrSpectra() == 0; chromatograms never affect either"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 170,
+      "operation": "getExperimentalSettings static_pointer_casts meta_ms_experiment_, so it returns a null pointer after openFile(..., true); the header documents no such case"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 175,
+      "operation": "getMetaData hands out a mutable shared_ptr<PeakMap> to the metadata the facade is using"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 198,
+      "operation": "getSpectrumById and getChromatogramById return OpenMS::Interfaces pointers straight from the handler, bypassing both the metadata and options_"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 246,
+      "operation": "assignment operator is declared private and never defined, because the handler's file streams cannot be copied"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+      "line": 270,
+      "operation": "typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 18,
+      "operation": "openFile assigns filename_ first, then opens the index, then loads the metadata, and returns the handler's parsing success; a throwing metadata load leaves the object naming the new file"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 20,
+      "operation": "an empty filename or skipMetaData skips loadMetaData_ entirely"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 29,
+      "operation": "setSkipXMLChecks forwards to the handler only; it is never written into options_, and openFile does not reset it"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 60,
+      "operation": "loadMetaData_ always loads ALL metadata unfiltered with setFillData(false), to keep index correspondence with the handler"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 68,
+      "operation": "getMetaChromatogramById_ rebuilds chromatograms_native_ids_ only when it is empty, and openFile never clears it"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 78,
+      "operation": "Exception::IllegalArgument \"Could not find chromatogram with id '<id>'.\" for an identifier the metadata does not carry"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 84,
+      "operation": "getChromatogramByNativeId and getSpectrumByNativeId (line 116) consult no option at all; with metadata they merge the handler's peaks into the metadata record"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 141,
+      "operation": "getSpectrum: RT range checked against DRange::encloses before any peak I/O, returning the metadata-only spectrum"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 148,
+      "operation": "MS-level filter checked before peak I/O, with the UInt level narrowed to Int by containsMSLevel"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 156,
+      "operation": "precursor m/z filter uses only getPrecursors()[0] and is skipped entirely for a spectrum with no precursor"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 167,
+      "operation": "getMSSpectrumById(int, MSSpectrum&) merges the decoded peak arrays into the metadata spectrum, preserving its other fields"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 172,
+      "operation": "without metadata the full spectrum is loaded and the RT, MS-level and precursor filters are silently not applied"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 179,
+      "operation": "the m/z and intensity filter path assigns only the SpectrumSettings base into a fresh MSSpectrum, so retention time, MS level, drift time, name and the float/integer/string data arrays are lost"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 197,
+      "operation": "getChromatogram applies no before-I/O filter: the record is always read, and the RT range then selects points rather than dropping the chromatogram"
+    },
+    {
+      "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+      "line": 214,
+      "operation": "the chromatogram filter path assigns only the ChromatogramSettings base, so name and the three data arrays are lost"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "line": 152,
+      "operation": "encloses(position) returns false for position < min and for position >= max, i.e. the interval is half-open"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "line": 743,
+      "operation": "retention_time_, drift_time_, drift_time_unit_, ms_level_, name_ and the three data arrays are MSSpectrum members, not SpectrumSettings members"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+      "line": 495,
+      "operation": "name_ and the three data arrays are MSChromatogram members, not ChromatogramSettings members"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSpectrumDecoder.cpp",
+      "line": 595,
+      "operation": "domParseSpectrum(const std::string&, MSSpectrum&) appends the decoded peaks and auxiliary arrays to the caller's spectrum and overwrites only its native id"
+    },
+    {
+      "path": "src/openms/source/FORMAT/IndexedMzMLFileLoader.cpp",
+      "line": 47,
+      "operation": "store dereferences exp.getExperimentalSettings() with no null check, so storing an experiment opened with skipMetaData dereferences a null shared_ptr"
+    },
+    {
+      "path": "src/openms/source/FORMAT/IndexedMzMLFileLoader.cpp",
+      "line": 50,
+      "operation": "store walks getNrSpectra() through getSpectrum and getNrChromatograms() through getChromatogram; this loop is the materialisation load_experiment reproduces"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OnDiscMSExperiment_test.cpp",
+      "line": 53,
+      "operation": "the OnDiscMSExperiment(const std::string&) section is commented out because no such constructor exists; its assertion is tmp.size() == 2"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OnDiscMSExperiment_test.cpp",
+      "line": 476,
+      "operation": "TEST_REAL_SIMILAR(precursor_mz, 5.55) for spectrum index 1 of MzMLFile_4_indexed.mzML"
+    }
+  ],
+  "evidence_tier": 3,
+  "evidence": "Tier 3 (source review). Every expected value in tests/on_disc_experiment.rs is a literal transcribed from OnDiscMSExperiment_test.cpp and its unmodified fixtures - 2 spectra, 1 chromatogram, 19914 and 19800 peaks, 48 chromatogram points, instrument 'LTQ FT' with 1 mass analyzer, native ids 'controllerType=0 controllerNumber=1 scan=1' and '...scan=2' and 'TIC', m/z window 400-600, intensity window 1000-1000000, and from MzMLFile_4_indexed.mzML the MS2 at index 1 with precursor m/z 5.55 - or a value read from the same fixture through this crate's own metadata load (scan start times 0.2961 s and 0.4738 s, peak counts 15 and 10). No C++ was built or executed and no retained C++ output was used, so nothing here is tier 1 or tier 2. Tier 4 (independently derived) covers what the source does not check or does not have: the resource ceilings, the atomicity of a failed open_file, the half-open DRange endpoints exercised at a spectrum's own RT, load_experiment, try_clone resolving native identifiers where a source copy cannot, and the documented fact that the by-native-id fetches ignore the options. Class-test section accounting: 29 START_SECTION occurrences, of which 28 are live and 1 (line 53) is commented out upstream; 29 ported, 0 mapped-with-evidence, 0 unaccounted. The two Interfaces pointer sections are ported onto the single peak vector that replaces their two arrays, because the crate has no OpenSWATH Interfaces layer.",
+  "gaps": [
+    "No tier 1 differential: reaching it would need an oracle driver over OnDiscMSExperiment in ../oracle/drivers/, printing full-precision peak arrays and the filtered variants for each record of IndexedmzMLFile_1.mzML. Not built here.",
+    "The class test's non-indexed MzMLFile_1.mzML is replaced by the already-committed upstream MzMLFile_2_minimal.mzML, because this crate's mzML reader rejects MzMLFile_1.mzML with 'binary array count mismatch'. Only the absence of an index footer is load-bearing for those sections, but the substitute's metadata is empty where MzMLFile_1.mzML's is not, so the failed-open experiment's metadata content is not exercised.",
+    "The source parallelises nothing in this class, but its own class documentation recommends copying it per OpenMP thread. This port is serial; every fetch takes &mut self and a second reader is a second open or try_clone. The performance gap is stated, not closed.",
+    "setSkipXMLChecks is ported: it maps to the handler's options_mut().skip_xml_checks, which reaches the Base64 whitespace strip at src/format/mzml.rs:2386. The fixture's arrays carry no whitespace, so the test can assert that the flag is carried and the decode still succeeds, not that a whitespace-bearing array decodes differently.",
+    "The Interfaces::Spectrum / Interfaces::Chromatogram pointer overloads are not ported; the crate has no OpenSWATH Interfaces layer (INTERFACES/DataStructures.h is unmapped in docs/core-sdk-coverage.json).",
+    "IndexedMzMLFileLoader itself is not ported; only the materialisation loop of its store is, as load_experiment."
+  ],
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}

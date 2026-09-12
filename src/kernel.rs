@@ -62,6 +62,9 @@ pub mod geometry;
 pub mod map_operations;
 /// SRM/MRM peak groups and transition groups (`MRMFeature.h`, `MRMTransitionGroup.h`).
 pub mod mrm;
+/// Random access to an indexed mzML file without loading it (`OnDiscMSExperiment.h`).
+#[cfg(feature = "mzml")]
+pub mod on_disc_experiment;
 /// Range and property predicates over spectra and peaks (`RangeUtils.h`).
 pub mod range_utils;
 /// RT, m/z, intensity and mobility range algebra and on-demand container ranges.
