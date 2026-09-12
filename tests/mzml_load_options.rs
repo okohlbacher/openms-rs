@@ -395,9 +395,21 @@ fn whole_record_skips_keep_raw_count_checks_and_validate_excluded_payload() {
         ..Default::default()
     };
     assert!(mzml::read_with_load_options(Cursor::new(SOURCE), &o, &limits).is_err());
-    assert!(
+    // The declared record count is advisory even when every record is skipped:
+    // MzMLHandler.cpp:965-979 spends it on a progress range and
+    // `reserveSpaceSpectra` and never compares it. The raw peak, binary and
+    // parameter ceilings above are what still bound a skipped record.
+    assert_eq!(
         read(
             &SOURCE.replacen("spectrumList count=\"4\"", "spectrumList count=\"3\"", 1),
+            &o
+        )
+        .unwrap(),
+        exp
+    );
+    assert!(
+        read(
+            &SOURCE.replacen("spectrumList count=\"4\"", "spectrumList count=\"\"", 1),
             &o
         )
         .is_err()

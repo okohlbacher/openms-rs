@@ -189,12 +189,6 @@ fn rejects_malformed_structure_and_lengths() {
         source.clone() + &source,
         "unwanted text".to_owned() + &source,
         source.replacen("defaultArrayLength=\"2\"", "defaultArrayLength=\"3\"", 1),
-        source.replacen("spectrumList count=\"1\"", "spectrumList count=\"2\"", 1),
-        source.replacen(
-            "binaryDataArrayList count=\"2\"",
-            "binaryDataArrayList count=\"3\"",
-            1,
-        ),
         source.replacen("MS:1000514", "MS:1000595", 1),
         source.replacen("encodedLength=\"24\"", "encodedLength=\"23\"", 1),
         source.replacen("<binary>", "<binary>!", 1),
@@ -213,6 +207,42 @@ fn rejects_malformed_structure_and_lengths() {
         + "</binaryDataArrayList>".len();
     let missing = format!("{}{}", &source[..start], &source[end..]);
     assert!(parse(&missing).is_err());
+    // A declared record or binary-array count disagreeing with the actual
+    // children is advisory on reading. MzMLHandler.cpp reads `count` only for a
+    // progress range and `reserveSpaceSpectra` (:965-979), the chromatogram
+    // equivalent (:996-1013), `bin_data_.reserve(...)` (:1015-1017) and the
+    // selectedIon warning (:1374); it is compared against nothing. The upstream
+    // class-test fixture `MzMLFile_1.mzML` declares
+    // `<binaryDataArrayList count="2">` with four arrays and C++ loads it.
+    let expected = parse(&source).unwrap();
+    for xml in [
+        source.replacen("spectrumList count=\"1\"", "spectrumList count=\"2\"", 1),
+        source.replacen(
+            "chromatogramList count=\"1\"",
+            "chromatogramList count=\"9\"",
+            1,
+        ),
+        source.replacen(
+            "binaryDataArrayList count=\"2\"",
+            "binaryDataArrayList count=\"3\"",
+            1,
+        ),
+    ] {
+        assert_eq!(parse(&xml).unwrap(), expected);
+    }
+    // The attribute itself stays required and numeric at both sites.
+    for xml in [
+        source.replacen("spectrumList count=\"1\"", "spectrumList", 1),
+        source.replacen("spectrumList count=\"1\"", "spectrumList count=\"many\"", 1),
+        source.replacen("binaryDataArrayList count=\"2\"", "binaryDataArrayList", 1),
+        source.replacen(
+            "binaryDataArrayList count=\"2\"",
+            "binaryDataArrayList count=\"-1\"",
+            1,
+        ),
+    ] {
+        assert!(parse(&xml).is_err());
+    }
 }
 
 fn mutate_first_payload(xml: &str, mutation: impl FnOnce(&mut Vec<u8>)) -> String {
@@ -406,8 +436,14 @@ fn validates_writer_output_against_pinned_schema_when_xmllint_is_available() {
 }
 
 #[test]
-fn rejects_duplicate_or_inconsistent_precursor_and_scan_lists() {
+fn rejects_duplicate_or_misplaced_precursor_and_scan_lists_despite_advisory_counts() {
     let xml = encoded_xml(&sample(), false);
+    let expected = parse(&xml).unwrap();
+    // `precursorList` and `scanWindowList` have no open-tag handler in
+    // MzMLHandler.cpp, `scanList` is only read as a parent tag (:2259, :3496),
+    // and `selectedIonList` only warns when its count exceeds one (:1371-1375).
+    // None of them compares the declared count with the children, so a
+    // disagreement is advisory on reading.
     for changed in [
         xml.replacen("precursorList count=\"1\"", "precursorList count=\"2\"", 1),
         xml.replacen(
@@ -416,6 +452,19 @@ fn rejects_duplicate_or_inconsistent_precursor_and_scan_lists() {
             1,
         ),
         xml.replacen("scanList count=\"1\"", "scanList count=\"2\"", 1),
+    ] {
+        assert_eq!(parse(&changed).unwrap(), expected);
+    }
+    // Each count stays required and numeric, and duplicate or misplaced lists
+    // remain structural errors.
+    for changed in [
+        xml.replacen("precursorList count=\"1\"", "precursorList", 1),
+        xml.replacen(
+            "selectedIonList count=\"1\"",
+            "selectedIonList count=\"\"",
+            1,
+        ),
+        xml.replacen("scanList count=\"1\"", "scanList count=\"two\"", 1),
         xml.replacen("</scanList>", "</scanList><scanList count=\"0\"/>", 1),
         xml.replacen(
             "</precursorList>",
