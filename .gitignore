@@ -1,3 +1,6 @@
 /target/
 /.reference/
 __pycache__/
+
+# Transient git worktrees used by parallel port agents
+.claude/worktrees/

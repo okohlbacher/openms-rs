@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 16,
-      "evidence_requires_review": 159,
-      "native_equivalent": 70,
-      "partial": 20,
-      "unmapped": 521
+      "complete": 20,
+      "evidence_requires_review": 162,
+      "native_equivalent": 73,
+      "partial": 19,
+      "unmapped": 512
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -1030,10 +1030,12 @@
       "header": "src/openms/include/OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h",
       "sha256": "3ed8343884751a4b3c350604c1bb2a0f36dbd3e0db5f63e8b48246dde0217166",
       "domain": "ANALYSIS",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mrm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -1609,10 +1611,14 @@
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h",
       "sha256": "236daeac3894e6283a375d2982d0cc6884677cc48a195f244f8defb1f87015cf",
       "domain": "ANALYSIS",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "candidate_rust_files": [
+        "src/kernel/mrm.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mrm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -4021,10 +4027,12 @@
       "header": "src/openms/include/OpenMS/CONCEPT/Macros.h",
       "sha256": "90d8f9cd59f9248df8df8b60d2c2f71e415f0688a31b6fd7f5d3fd9b9590ed82",
       "domain": "CONCEPT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mrm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -6587,6 +6595,7 @@
         "src/format/indexed_mzml.rs"
       ],
       "reference_manifests": [
+        "tests/data/indexed_mzml_handler_provenance.json",
         "tests/data/indexed_mzml_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json"
       ],
@@ -6599,10 +6608,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h",
       "sha256": "10e0d9ddc06913956ccc99366abdbef2d2cf61dc29fb1f8e5afc24a5a23fff17",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/indexed_mzml_handler.rs"
+        ],
+        "tests": [
+          "tests/indexed_mzml_handler.rs"
+        ],
+        "documentation": "docs/INDEXED_MZML_HANDLER_SUPPORT.md",
+        "scope": "Complete record-retrieval capability of the handler: index parse, counts, fetch by index and native id, raw record XML, PeakFileOptions filtering, and checked byte ranges. Records decode through the whole-file mzML reader, so all metadata survives. Not ported: the two Interfaces::Spectrum/Chromatogram pointer overloads, setSkipXMLChecks, the parsing-success flag and the copy constructor. Evidence is tier 3."
+      },
+      "candidate_rust_files": [
+        "src/format/indexed_mzml_handler.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/indexed_mzml_handler_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileInfo"
       ]
@@ -6688,10 +6711,12 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h",
       "sha256": "ca4dd1842161e6423e8c8024d8b4c8195c8f061a63bd24dc87a450f260c67dbd",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/indexed_mzml_handler_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8373,7 +8398,8 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/mass_trace_detection_provenance.json",
-        "tests/data/ranges_provenance.json"
+        "tests/data/ranges_provenance.json",
+        "tests/data/spectrum_mobility_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -8381,10 +8407,12 @@
       "header": "src/openms/include/OpenMS/IONMOBILITY/IMDataConverter.h",
       "sha256": "512ec00e1cad39ba0c12963e2e544455f0f3b4cdf5aa1b6d735dfdd74c832bc9",
       "domain": "IONMOBILITY",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/spectrum_mobility_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FeatureFinderCentroided",
         "FeatureFinderMetabo",
@@ -8400,7 +8428,8 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mobilogram_provenance.json"
+        "tests/data/mobilogram_provenance.json",
+        "tests/data/spectrum_mobility_provenance.json"
       ],
       "direct_topp_consumers": [
         "DIAPseudoSpectra",
@@ -8440,12 +8469,25 @@
       "header": "src/openms/include/OpenMS/KERNEL/BaseFeature.h",
       "sha256": "ac85e85810f04ed1c38f6709e1d9a390ec14b880e6896ec4e41c67a140ba8fb9",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/feature_identification.rs",
+          "src/kernel/features.rs"
+        ],
+        "tests": [
+          "tests/feature_identification.rs",
+          "tests/features.rs"
+        ],
+        "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
+        "scope": "Complete public surface. New: AnnotationState with the source names, checked peptide-identification sorting, the map-index copy, primary ID, observation-match set and atomic reference translation. The three converting constructors (Peak2D, RichPeak2D, FeatureHandle) are public-field construction rather than functions, and QualityLess is field ordering used by FeatureMap::sort_by_quality."
+      },
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
       "reference_manifests": [
+        "tests/data/feature_identification_provenance.json",
         "tests/data/featurexml_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -8563,12 +8605,26 @@
       "header": "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h",
       "sha256": "96d3732735a4f72d250cde236e8c75e65c5381f40cea3111e8513311da37177c",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/kernel/feature_identification.rs",
+          "src/kernel/features.rs"
+        ],
+        "tests": [
+          "tests/feature_identification.rs",
+          "tests/features.rs"
+        ],
+        "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
+        "scope": "All members covered except two: Ratio::description_ has no Rust field and operator<< has no Display. New and checked: add_ratio, set_ratios, ratios. Handles, the insert overloads, ranges and the three consensus computations existed. Handles are a sorted unique slice, so there is no mutable iterator; set_handles replaces one."
+      },
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/feature_identification_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8677,12 +8733,25 @@
       "header": "src/openms/include/OpenMS/KERNEL/Feature.h",
       "sha256": "5522050f5322ef2c84073724cc9a84ed45924d19dbc4118e656d5b6fa6145634",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/feature_identification.rs",
+          "src/kernel/features.rs"
+        ],
+        "tests": [
+          "tests/feature_identification.rs",
+          "tests/features.rs"
+        ],
+        "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
+        "scope": "Complete public surface. applyMemberFunction becomes for_each_unique_id and count_unique_ids over the subordinate tree; updateAllIDReferences verifies the whole tree before applying. Dimension qualities are named fields instead of indices, so the index precondition has no counterpart, and the mutable overall-hull cache is not ported because the hull is recomputed on demand."
+      },
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
       "reference_manifests": [
+        "tests/data/feature_identification_provenance.json",
         "tests/data/featurexml_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8762,20 +8831,48 @@
       "header": "src/openms/include/OpenMS/KERNEL/MRMFeature.h",
       "sha256": "10b2e1aae67ed62251c4ab90aeb8aca18774d26851d496b78b655ab594d626f6",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/kernel/mrm.rs"
+        ],
+        "tests": [
+          "tests/mrm.rs"
+        ],
+        "documentation": "docs/MRM_SUPPORT.md",
+        "scope": "All 23 public members; 22 ported, the FeatureListType alias not. Inherited Feature base via Deref, both OpenSwath score structs and all 42 IDScoresAsMetaValue keys. Unknown keys and duplicate feature keys are checked errors, not the source's map default-insert and silent orphaning. Evidence is tier 3 transcribed class-test literals; no C++ executed."
+      },
+      "candidate_rust_files": [
+        "src/kernel/mrm.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mrm_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h",
       "sha256": "2071e91158f31b488a4c6cc502cc0da9ebdf02792185092e6508399aba18202c",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/kernel/mrm.rs"
+        ],
+        "tests": [
+          "tests/mrm.rs"
+        ],
+        "documentation": "docs/MRM_SUPPORT.md",
+        "scope": "All 37 public members; 34 ported, the three typedefs not. Transition, chromatogram and precursor-chromatogram quartets, both subsets, getBestFeature and the consistency checks. Generic over a native Transition trait because ReactionMonitoringTransition is unported, and over NativeIdentified for chromatograms. isInternallyConsistent now returns false where the source's release build returns true."
+      },
+      "candidate_rust_files": [
+        "src/kernel/mrm.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mrm_provenance.json"
+      ],
       "direct_topp_consumers": [
         "MRMTransitionGroupPicker"
       ]
@@ -8784,27 +8881,31 @@
       "header": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
       "sha256": "3f9f2f06c2e259dd719b328b160874c846ae24c73294c61b36f1573f46984117",
       "domain": "KERNEL",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/kernel.rs",
-          "src/kernel/acquisition_fields.rs"
+          "src/kernel/acquisition_fields.rs",
+          "src/kernel/chromatogram_merge.rs",
+          "src/kernel/ranges.rs"
         ],
         "tests": [
-          "tests/kernel.rs",
+          "tests/chromatogram_merge.rs",
           "tests/chromatogram_tools.rs",
-          "tests/processing_acquisition.rs",
+          "tests/kernel.rs",
           "tests/mzml_acquisition_guards.rs",
+          "tests/processing_acquisition.rs",
           "tests/record_metadata.rs"
         ],
         "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
+        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md. Every declared member is ported or declined with a stated reason in the API table, and all 43 class-test sections are ported. selectUnchecked is deliberately absent; the inherited ChromatogramSettings comment has no native field; cached updateRanges is replaced by on-demand range_manager(). mergePeaks data-array handling is an explicit option defaulting to refusal. See docs/CHROMATOGRAM_MERGE_SUPPORT.md."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
       ],
       "reference_manifests": [
+        "tests/data/chromatogram_merge_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/experiment_aggregation_provenance.json",
         "tests/data/experiment_summary_provenance.json",
@@ -8944,18 +9045,20 @@
         "rust": [
           "src/kernel.rs",
           "src/kernel/acquisition_fields.rs",
+          "src/kernel/spectrum_mobility.rs",
           "src/kernel/spectrum_type.rs"
         ],
         "tests": [
-          "tests/kernel.rs",
           "tests/chromatogram_tools.rs",
-          "tests/processing_acquisition.rs",
+          "tests/kernel.rs",
           "tests/mzml_acquisition_guards.rs",
-          "tests/spectrum_type.rs",
-          "tests/record_metadata.rs"
+          "tests/processing_acquisition.rs",
+          "tests/record_metadata.rs",
+          "tests/spectrum_mobility.rs",
+          "tests/spectrum_type.rs"
         ],
         "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
+        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md. Adds the complete ion-mobility surface: drift time over the -1 sentinel, unit-as-string, name-based IM array detection with the nine pinned PSI-MS children and three UserParam prefixes, getIMData/maybeGetIMData, sortByIonMobility, isSortedByIM, sortByPositionPresorted with Chunk/Chunks, and rasterizeIMFrame. Not covered: setIMFormat/getIMFormat/getIMPeakType/setIMPeakType, which need MSSpectrum fields this package may not add. See docs/SPECTRUM_MOBILITY_SUPPORT.md."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
@@ -8974,6 +9077,7 @@
         "tests/data/ranges_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
+        "tests/data/spectrum_mobility_provenance.json",
         "tests/data/text_peak_lists_provenance.json",
         "tests/data/xlms_provenance.json"
       ],
@@ -9068,24 +9172,27 @@
       "header": "src/openms/include/OpenMS/KERNEL/Mobilogram.h",
       "sha256": "bae1a28822f00108e4677bfae44bd97e49b2da054864f7802843d1608f6ead14",
       "domain": "KERNEL",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
+          "src/kernel/data_array.rs",
           "src/kernel/mobilogram.rs",
-          "src/kernel/data_array.rs"
+          "src/kernel/ranges.rs"
         ],
         "tests": [
-          "tests/mobilogram.rs",
-          "tests/data_array_descriptions.rs"
+          "tests/chromatogram_merge.rs",
+          "tests/data_array_descriptions.rs",
+          "tests/mobilogram.rs"
         ],
         "documentation": "docs/MOBILOGRAM_SUPPORT.md",
-        "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain."
+        "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain. Every declared member is in the API table and all 48 class-test sections are ported. The inherited RangeManagerContainer surface maps onto the on-demand Mobilogram::range_manager(); the source's cached updateRanges and its cache-mutating members have no counterpart, a ratified divergence. selectUnchecked is deliberately absent."
       },
       "candidate_rust_files": [
         "src/kernel/mobilogram.rs"
       ],
       "reference_manifests": [
+        "tests/data/chromatogram_merge_provenance.json",
         "tests/data/mobilogram_provenance.json",
         "tests/data/ranges_provenance.json"
       ],
@@ -9105,10 +9212,12 @@
       "header": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
       "sha256": "345f204d382aac62551e93c4392a4400d093276b5b6a8200600d9ac4be8fca46",
       "domain": "KERNEL",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/indexed_mzml_handler_provenance.json"
+      ],
       "direct_topp_consumers": [
         "TICCalculator"
       ]
@@ -9686,6 +9795,7 @@
         "src/metadata/acquisition.rs"
       ],
       "reference_manifests": [
+        "tests/data/chromatogram_merge_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/mzml_acquisition_guards_provenance.json",
         "tests/data/mzml_settings_provenance.json"
@@ -9946,6 +10056,7 @@
         "src/identification/graph.rs"
       ],
       "reference_manifests": [
+        "tests/data/feature_identification_provenance.json",
         "tests/data/identification_cleanup_provenance.json",
         "tests/data/identification_converter_provenance.json",
         "tests/data/identification_graph_provenance.json",
@@ -12716,7 +12827,6 @@
         "OpenMS/FORMAT/EDTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/MSChromatogram.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
         "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
@@ -13274,7 +13384,6 @@
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzDataFile.h",
         "OpenMS/FORMAT/MzIdentMLFile.h",
@@ -13286,7 +13395,6 @@
         "OpenMS/FORMAT/TransformationXMLFile.h",
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/Feature.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MathFunctions.h",
@@ -13994,7 +14102,6 @@
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/Feature.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/MATH/StatisticFunctions.h"
       ],
@@ -14030,7 +14137,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/FeatureMap.h",
-        "OpenMS/KERNEL/MRMTransitionGroup.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
         "OpenMS/SYSTEM/File.h"
@@ -14428,7 +14534,6 @@
         "OpenMS/FEATUREFINDER/GaussModel.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/SVOutStream.h",
-        "OpenMS/KERNEL/Feature.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MISC/CubicSpline2d.h",
@@ -15142,7 +15247,6 @@
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
         "OpenMS/CONCEPT/Types.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/Feature.h",
         "OpenMS/KERNEL/FeatureMap.h"
       ],
       "workflow_validated": false
@@ -15247,7 +15351,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/Feature.h",
         "OpenMS/KERNEL/FeatureMap.h"
       ],
       "workflow_validated": false

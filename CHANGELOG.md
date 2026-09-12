@@ -2,6 +2,48 @@
 
 ## Unreleased
 
+- Kernel wave 2.
+- Ion mobility on `MSSpectrum`: drift-time accessors over the `-1` sentinel, ion-mobility
+  data-array detection and retrieval (`contains_im_data`, `im_data`, `maybe_im_data`),
+  `sort_by_ion_mobility`, `is_sorted_by_im`, the chunked `sort_by_position_presorted` with
+  `Chunk`/`Chunks`, and `rasterize_im_frame` with bounded pixel and item ceilings
+  (`src/kernel/spectrum_mobility.rs`).
+- Kernel `MSChromatogram.h` and `Mobilogram.h` closed. `kernel::chromatogram_merge` ports
+  `mergePeaks` and its `setSumSimilarUnion` helper, exposing the `round(rt * 1000.0)`
+  merge bucket as `merge_rt_key`; adds `rt_begin_in`/`rt_end_in` for the eight subrange
+  search overloads, `sort_by` for the predicate sort, `source_equal`,
+  `chromatogram_mz_less` and `Display`. Unsorted input is checked instead of undefined, a
+  non-finite summed intensity is an error, and `MergedDataArrays` turns the source's
+  silently misaligned annotation arrays into an explicit refuse/drop/replicate choice. All
+  43 `MSChromatogram_test` and 48 `Mobilogram_test` sections are ported;
+  `docs/MOBILOGRAM_SUPPORT.md` gains the complete member table and the inherited
+  `RangeManager` mapping onto the on-demand `range_manager()`. Six further C++ defects
+  recorded.
+- Kernel WP8: the identification surface of `BaseFeature.h`, `Feature.h` and
+  `ConsensusFeature.h` — annotation state with the source names, checked peptide-
+  identification sorting, the `map_index` copy, primary IDs, observation-match sets,
+  atomic reference translation, the `applyMemberFunction` subordinate traversal and
+  consensus ratios. Identification data attaches by reference, so the graph or its
+  `ReferenceTranslator` is a parameter instead of a `FeatureMap` member, a documented
+  divergence from `FeatureMap.h:294` that keeps `Clone` and `PartialEq` on both map types.
+  All 92 class-test sections of the three headers are ported; eight further C++ defects
+  recorded.
+- `kernel::mrm` ports `MRMFeature.h` and `MRMTransitionGroup.h`: the SRM/MRM peak group
+  with its per-transition and precursor feature lists, the OpenSWATH score records, and
+  the transition group with its three parallel key maps, both subset operations and the
+  consistency checks. The group is generic over a native `Transition` trait because
+  `ReactionMonitoringTransition` is not ported, and `is_internally_consistent` now
+  actually returns `false`, where the source's release build returns `true`
+  unconditionally because its three checks are `OPENMS_PRECONDITION`s.
+- `format::indexed_mzml_handler` ports `IndexedMzMLHandler.h` and the record-decoding half
+  of `MzMLSpectrumDecoder.h`: random access to one spectrum or chromatogram at its index
+  offset. The record's byte range is trimmed at its own closing tag and wrapped in the
+  file's cached header, so the existing mzML reader decodes it and the record keeps RT, MS
+  level, precursors and auxiliary arrays, where the source decodes only `binaryDataArray`
+  payloads and the `id`. `PeakFileOptions` filtering runs through the existing load path.
+  A malformed index is rejected against explicit ceilings and the file length before any
+  allocation; the source hands `endidx - startidx` straight to `new char[]` and never
+  inspects the read result. Six further C++ defects recorded.
 - Adopt `cargo-nextest` as the development test runner. Profiling showed 82% of the
   sweep was test execution, not compilation: `cargo test` runs each of the 225 test
   binaries in turn, nextest runs all tests in one pool. Full sweep 42 s on a 384-core

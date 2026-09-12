@@ -636,6 +636,17 @@
    "documentation": "docs/INDEXED_MZML_SUPPORT.md",
    "scope": "Both public decoder operations: configurable bounded footer probe and owned spectrum/chromatogram offset vectors. Source scanner, order/duplicate/replacement behavior retained; checked 63-bit offsets, small-file reads and bounded UTF-8 XML correct unchecked/undefined source behavior. Compact XML preserves the first offset rather than reproducing the DOM sibling bug. Index payload decoding, checksums and writing are separate classes."
   },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/indexed_mzml_handler.rs"
+   ],
+   "tests": [
+    "tests/indexed_mzml_handler.rs"
+   ],
+   "documentation": "docs/INDEXED_MZML_HANDLER_SUPPORT.md",
+   "scope": "Complete record-retrieval capability of the handler: index parse, counts, fetch by index and native id, raw record XML, PeakFileOptions filtering, and checked byte ranges. Records decode through the whole-file mzML reader, so all metadata survives. Not ported: the two Interfaces::Spectrum/Chromatogram pointer overloads, setSkipXMLChecks, the parsing-success flag and the copy constructor. Evidence is tier 3."
+  },
   "src/openms/include/OpenMS/FORMAT/IdXMLFile.h": {
    "status": "partial",
    "rust": [
@@ -839,6 +850,19 @@
    "documentation": "docs/AREA_ITERATION_SUPPORT.md",
    "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain."
   },
+  "src/openms/include/OpenMS/KERNEL/BaseFeature.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel/feature_identification.rs",
+    "src/kernel/features.rs"
+   ],
+   "tests": [
+    "tests/feature_identification.rs",
+    "tests/features.rs"
+   ],
+   "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
+   "scope": "Complete public surface. New: AnnotationState with the source names, checked peptide-identification sorting, the map-index copy, primary ID, observation-match set and atomic reference translation. The three converting constructors (Peak2D, RichPeak2D, FeatureHandle) are public-field construction rather than functions, and QualityLess is field ordering used by FeatureMap::sort_by_quality."
+  },
   "src/openms/include/OpenMS/KERNEL/BinnedSpectrum.h": {
    "status": "complete",
    "rust": [
@@ -887,6 +911,19 @@
    "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
    "scope": "Both complete concrete MSExperiment conversions: one MS2 record per chromatogram point, exact SRM/XIC grouping and source first-record metadata selection, native-ID/scan-mode construction, source-only SRM removal and skipped count diagnostics. Owned reports return all removed records; shared checked work/allocation and finite consumed scalars replace undefined maps or partial mutation. Arbitrary C++ experiment template ABI is not emulated."
   },
+  "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel/feature_identification.rs",
+    "src/kernel/features.rs"
+   ],
+   "tests": [
+    "tests/feature_identification.rs",
+    "tests/features.rs"
+   ],
+   "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
+   "scope": "All members covered except two: Ratio::description_ has no Rust field and operator<< has no Display. New and checked: add_ratio, set_ratios, ratios. Handles, the insert overloads, ranges and the three consensus computations existed. Handles are a sorted unique slice, so there is no mutable iterator; set_handles replaces one."
+  },
   "src/openms/include/OpenMS/KERNEL/DPeak.h": {
    "status": "native_equivalent",
    "rust": [
@@ -898,6 +935,19 @@
    ],
    "documentation": "docs/NATIVE_EQUIVALENTS.md",
    "scope": "Compile-time selector with two specialisations: DPeak<1>::Type is Peak1D and DPeak<2>::Type is Peak2D. The empty primary template and the namespace-scope default objects have no API and are not represented. No runtime behaviour differs."
+  },
+  "src/openms/include/OpenMS/KERNEL/Feature.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel/feature_identification.rs",
+    "src/kernel/features.rs"
+   ],
+   "tests": [
+    "tests/feature_identification.rs",
+    "tests/features.rs"
+   ],
+   "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
+   "scope": "Complete public surface. applyMemberFunction becomes for_each_unique_id and count_unique_ids over the subordinate tree; updateAllIDReferences verifies the whole tree before applying. Dimension qualities are named fields instead of indices, so the index precondition has no counterpart, and the mutable overall-hull cache is not ported because the hull is recomputed on demand."
   },
   "src/openms/include/OpenMS/KERNEL/FeatureHandle.h": {
    "status": "complete",
@@ -913,21 +963,46 @@
    "documentation": "docs/FEATURE_SUPPORT.md",
    "scope": "Every public member reviewed; gap closures add the Peak2D and element-index constructor, Display, Hash with signed-zero normalisation and HasUniqueId. IndexLess is key-tuple ordering; asMutable and FeatureHandleMutable_ are replaced by &mut and set_handles. validate rejects the negative width the source stores."
   },
-  "src/openms/include/OpenMS/KERNEL/MSChromatogram.h": {
-   "status": "partial",
+  "src/openms/include/OpenMS/KERNEL/MRMFeature.h": {
+   "status": "complete",
    "rust": [
-    "src/kernel.rs",
-    "src/kernel/acquisition_fields.rs"
+    "src/kernel/mrm.rs"
    ],
    "tests": [
-    "tests/kernel.rs",
+    "tests/mrm.rs"
+   ],
+   "documentation": "docs/MRM_SUPPORT.md",
+   "scope": "All 23 public members; 22 ported, the FeatureListType alias not. Inherited Feature base via Deref, both OpenSwath score structs and all 42 IDScoresAsMetaValue keys. Unknown keys and duplicate feature keys are checked errors, not the source's map default-insert and silent orphaning. Evidence is tier 3 transcribed class-test literals; no C++ executed."
+  },
+  "src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h": {
+   "status": "complete",
+   "rust": [
+    "src/kernel/mrm.rs"
+   ],
+   "tests": [
+    "tests/mrm.rs"
+   ],
+   "documentation": "docs/MRM_SUPPORT.md",
+   "scope": "All 37 public members; 34 ported, the three typedefs not. Transition, chromatogram and precursor-chromatogram quartets, both subsets, getBestFeature and the consistency checks. Generic over a native Transition trait because ReactionMonitoringTransition is unported, and over NativeIdentified for chromatograms. isInternallyConsistent now returns false where the source's release build returns true."
+  },
+  "src/openms/include/OpenMS/KERNEL/MSChromatogram.h": {
+   "status": "complete",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/acquisition_fields.rs",
+    "src/kernel/chromatogram_merge.rs",
+    "src/kernel/ranges.rs"
+   ],
+   "tests": [
+    "tests/chromatogram_merge.rs",
     "tests/chromatogram_tools.rs",
-    "tests/processing_acquisition.rs",
+    "tests/kernel.rs",
     "tests/mzml_acquisition_guards.rs",
+    "tests/processing_acquisition.rs",
     "tests/record_metadata.rs"
    ],
    "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-   "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
+   "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md. Every declared member is ported or declined with a stated reason in the API table, and all 43 class-test sections are ported. selectUnchecked is deliberately absent; the inherited ChromatogramSettings comment has no native field; cached updateRanges is replaced by on-demand range_manager(). mergePeaks data-array handling is an explicit option defaulting to refusal. See docs/CHROMATOGRAM_MERGE_SUPPORT.md."
   },
   "src/openms/include/OpenMS/KERNEL/MSExperiment.h": {
    "status": "partial",
@@ -959,18 +1034,20 @@
    "rust": [
     "src/kernel.rs",
     "src/kernel/acquisition_fields.rs",
+    "src/kernel/spectrum_mobility.rs",
     "src/kernel/spectrum_type.rs"
    ],
    "tests": [
-    "tests/kernel.rs",
     "tests/chromatogram_tools.rs",
-    "tests/processing_acquisition.rs",
+    "tests/kernel.rs",
     "tests/mzml_acquisition_guards.rs",
-    "tests/spectrum_type.rs",
-    "tests/record_metadata.rs"
+    "tests/processing_acquisition.rs",
+    "tests/record_metadata.rs",
+    "tests/spectrum_mobility.rs",
+    "tests/spectrum_type.rs"
    ],
    "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-   "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md."
+   "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md. Adds the complete ion-mobility surface: drift time over the -1 sentinel, unit-as-string, name-based IM array detection with the nine pinned PSI-MS children and three UserParam prefixes, getIMData/maybeGetIMData, sortByIonMobility, isSortedByIM, sortByPositionPresorted with Chunk/Chunks, and rasterizeIMFrame. Not covered: setIMFormat/getIMFormat/getIMPeakType/setIMPeakType, which need MSSpectrum fields this package may not add. See docs/SPECTRUM_MOBILITY_SUPPORT.md."
   },
   "src/openms/include/OpenMS/KERNEL/MassTrace.h": {
    "status": "native_equivalent",
@@ -1006,17 +1083,19 @@
    "scope": "Complete own two-coordinate value operation mapping, all dimension strings, standard scalar/array comparisons, exact PartialEq, signed-zero-normalized Hash and source labels with Rust numeric Display. Owned arrays replace DPosition ABI; checked dimension access replaces undefined source indexing. Mobility attachment, range algebra and experiment overloads remain separate."
   },
   "src/openms/include/OpenMS/KERNEL/Mobilogram.h": {
-   "status": "partial",
+   "status": "complete",
    "rust": [
+    "src/kernel/data_array.rs",
     "src/kernel/mobilogram.rs",
-    "src/kernel/data_array.rs"
+    "src/kernel/ranges.rs"
    ],
    "tests": [
-    "tests/mobilogram.rs",
-    "tests/data_array_descriptions.rs"
+    "tests/chromatogram_merge.rs",
+    "tests/data_array_descriptions.rs",
+    "tests/mobilogram.rs"
    ],
    "documentation": "docs/MOBILOGRAM_SUPPORT.md",
-   "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain."
+   "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain. Every declared member is in the API table and all 48 class-test sections are ported. The inherited RangeManagerContainer surface maps onto the on-demand Mobilogram::range_manager(); the source's cached updateRanges and its cache-mutating members have no counterpart, a ratified divergence. selectUnchecked is deliberately absent."
   },
   "src/openms/include/OpenMS/KERNEL/Peak1D.h": {
    "status": "native_equivalent",

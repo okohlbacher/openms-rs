@@ -1781,3 +1781,423 @@ fraction. No upstream fix is claimed.
 **Proposed fix:** Set both operands in the ordering test, cover `Chromatogram`, and correct the section title.
 
 **Rust handling:** The Rust tests set both operands, cover all three aliases and name every parameter.
+
+## CPP-076 — rasterizeIMFrame clears the caller's image before the check that can throw
+
+**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:889-907 (total_pixels, std::fill, empty early return, then the IM/peak size Precondition)
+
+**Issue and reproduction:** The output buffer is zero-filled at line 892, before the ion-mobility array's length is compared against the peak count at line 900. A spectrum whose IM array length differs from its peak count therefore throws Exception::Precondition *after* the caller's pre-allocated image has been wiped. A caller that catches the exception and keeps rendering shows a blank frame rather than the previous one. Trigger: any non-empty spectrum whose IM float array has a different number of entries than the peak list — reachable after a partial mzML load or after peaks are appended without extending the array.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Move the `im_data.size() != this->size()` check above the `std::fill`, next to the other precondition checks, so every throw happens before the buffer is touched.
+
+**Rust handling:** `MSSpectrum::rasterize_im_frame` validates the grid, the IM array's presence and its length, and every peak and mobility value, before allocating the output `Vec<f32>`. A rejected call allocates nothing and mutates nothing. Asserted by `rasterize_im_frame_rejects_invalid_grids_and_arrays` in tests/spectrum_mobility.rs.
+
+## CPP-077 — rasterizeIMFrame multiplies the bin counts without an overflow check
+
+**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:889 (`const Size total_pixels = im_bins * mz_bins;`), :892 (std::fill), :946 (pixel_idx)
+
+**Issue and reproduction:** `im_bins * mz_bins` is unchecked `size_t` arithmetic. With bin counts whose product overflows, `total_pixels` wraps to a small value, `std::fill` clears only that prefix, and the per-peak write at line 946 computes `mz_bin * im_bins + im_bin` from the *unwrapped* bin counts and writes far outside whatever the caller allocated — a heap buffer overflow. Trigger: `spec.rasterizeIMFrame(buf, 1ull << 33, 1ull << 33, …)` on a 64-bit build, or any pair whose product exceeds SIZE_MAX; the bin counts come straight from a viewer's zoom level or a Python caller.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Check the product before using it, e.g. `if (mz_bins > std::numeric_limits<Size>::max() / im_bins) throw Exception::InvalidValue(...)`, and document a maximum raster size.
+
+**Rust handling:** `ImFrameRaster::pixels` uses `checked_mul` and returns `Error::InvalidValue` on overflow; `ImFrameRaster::validate` additionally caps the product at `MSSpectrum::MAX_RASTER_PIXELS` (16 777 216, i.e. 64 MiB of f32). Both are asserted in `rasterize_im_frame_rejects_invalid_grids_and_arrays`.
+
+## CPP-078 — rasterizeIMFrame casts a non-finite coordinate to Int64
+
+**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:925-941 (range filter and `static_cast<Int64>`)
+
+**Issue and reproduction:** The range filter at line 928 uses `mz < min_mz || mz > max_mz || im < min_im || im > max_im`. Every one of those comparisons is false for NaN, so a NaN m/z or a NaN ion-mobility value is *not* skipped and reaches `static_cast<Int64>((mz - min_mz) * mz_scale)` at line 935. Converting a NaN to an integer type is undefined behaviour in C++; in practice it produces an unspecified value, and the only guard afterwards is the upper clamp, so a negative result indexes before the buffer. Trigger: any spectrum carrying a NaN m/z or a NaN entry in its ion-mobility array, which an mzML with a corrupt binary array or a preceding arithmetic step can produce.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Reject or skip non-finite values explicitly — `if (!std::isfinite(mz) || !std::isfinite(im)) continue;` before the range filter — and clamp the computed bin from below as well as above.
+
+**Rust handling:** `rasterize_im_frame` checks every peak m/z, peak intensity and mobility value with the crate's `finite` helper before allocating, returning `Error::InvalidValue`. Rust's float-to-integer `as` cast is saturating rather than undefined, so even without the check nothing could index out of bounds. Asserted by the `nan_mobility` and `nan_mz` cases in `rasterize_im_frame_rejects_invalid_grids_and_arrays`.
+
+## CPP-079 — sortByPositionPresorted handles an incomplete chunk list differently in its two branches
+
+**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:397-441 (the no-data-array stable_sort at 405-408 versus the chunk-driven path at 409-440)
+
+**Issue and reproduction:** When the spectrum has no float, string or integer data arrays the function ignores `chunks` entirely and stable-sorts the whole peak list. When it has any data array it sorts only inside the given chunks and merges only `[chunks.front().start, chunks.back().end)`, then applies the resulting permutation with selectUnchecked — so any peak outside that span keeps its position and stays unsorted. The same chunk list therefore produces a fully sorted spectrum or a partially sorted one depending on whether a data array happens to be attached. The early return at line 401 (`chunks.size() == 1 && chunks[0].is_sorted`) compounds it: a single sorted chunk covering only part of the spectrum leaves the rest unsorted in both branches. Trigger: call `sortByPositionPresorted` with a chunk list built before the last batch of peaks was appended, once with and once without a data array attached.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Validate the chunk list up front — first chunk starts at 0, each chunk starts where the previous ended, none ends before it starts, and the last ends at size() — and throw Exception::Precondition otherwise; then use one code path so the branch cannot change the result.
+
+**Rust handling:** `MSSpectrum::sort_by_position_presorted` performs exactly that validation and returns `Error::InvalidValue` for a gap, an overlap, a reversed run or a list that stops short of the peak count. With the tiling guaranteed, the two source branches produce the same permutation, so the port keeps only the chunk-aware one. Asserted by `presorted_sort_matches_plain_sort_and_rejects_bad_chunks`.
+
+## CPP-080 — sortByPositionPresorted trusts is_sorted and feeds std::inplace_merge an unsorted range
+
+**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:415-438 (per-chunk stable_sort for !is_sorted, then the recursive inplace_merge)
+
+**Issue and reproduction:** Chunks whose `is_sorted` flag is true are never sorted and never checked. `std::inplace_merge` requires both input ranges to be sorted by the comparator; passing an unsorted range is a precondition violation whose result is unspecified, and the function returns a spectrum silently in the wrong order — with the data arrays permuted to match, so the corruption is invisible to `checkDataArraySizes_` and to any later consistency check. Trigger: any caller that mis-tracks its runs, e.g. `MSSpectrum::Chunks` used across an intervening sort or insertion; `isSorted()` afterwards is the only way to notice.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Verify the claim before merging — `OPENMS_PRECONDITION(std::is_sorted(...))` at minimum, or an unconditional `std::is_sorted` check per chunk, which costs one linear scan against the merge's own O(n log k).
+
+**Rust handling:** `sort_by_position_presorted` verifies every run marked `is_sorted` and returns `Error::UnsortedData` when the claim is false, before anything is mutated. Asserted by `presorted_sort_matches_plain_sort_and_rejects_bad_chunks`.
+
+## CPP-081 — Chunks::add can record a chunk whose start exceeds its end
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/MSSpectrum.h:80-83 (`Chunks::add`), used at src/openms/source/KERNEL/MSSpectrum.cpp:415-419 and 433
+
+**Issue and reproduction:** `add` records `{previous_end, spec_.size(), is_sorted}` from a `const MSSpectrum&` captured at construction. Nothing requires the spectrum to have grown: if peaks were removed (pop_back, erase, clear, select with a subset) between two `add` calls, `spec_.size()` is below the previous chunk's end and the new chunk has `start > end`. Both `Size` members are unsigned, so the inversion is not detectable by sign. `sortByPositionPresorted` then forms `select_indices.begin() + chunk.start` and `select_indices.begin() + chunk.end` and passes that inverted pair to `std::stable_sort` and `std::inplace_merge`, which is undefined behaviour; `chunk.start` can also exceed the vector's size outright, so the iterator is past the end. Trigger: `Chunks c(spec); …; c.add(true); spec.pop_back(); c.add(true); spec.sortByPositionPresorted(c.getChunks());`.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Throw Exception::Precondition in `add` when `spec_.size() < chunks_.back().end`, and validate `start <= end <= size()` for every chunk at the top of `sortByPositionPresorted`.
+
+**Rust handling:** `Chunks::add` takes the spectrum as an argument (Rust cannot hold a shared reference across the mutation the source performs) and returns `Error::InvalidValue` when the spectrum has shrunk below the previous run's end. `sort_by_position_presorted` independently rejects `end < start`. Asserted by `presorted_sort_matches_plain_sort_and_rejects_bad_chunks`.
+
+## CPP-082 — An empty ion-mobility array makes isSortedByIM report true and sortByIonMobility a silent no-op
+
+**Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:383-395 (sortByIonMobility), :506-512 (isSortedByIM), :20-37 (checkDataArraySizes_, which permits an empty array)
+
+**Issue and reproduction:** `containsIMData()` inspects only array *names*, so a float array named e.g. 'mean ion mobility array' with zero entries marks the spectrum as an IM frame. `isSortedByIM` then runs `std::is_sorted` over that empty range, which is vacuously true, and reports the spectrum sorted by ion mobility although no peak carries a mobility value. `sortByIonMobility` takes the same short-circuit and returns without touching anything. Neither relates the array to the peak count — `checkDataArraySizes_` deliberately exempts empty arrays, and in `sortByIonMobility` it only runs inside `sort()`, which the short-circuit skips. Trigger: build a spectrum with peaks and add an empty, correctly named ion-mobility float array (what an mzML reader produces when the binary array is absent or fails to decode); `isSortedByIM()` returns true.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Require the ion-mobility array to hold one value per peak in both functions — reuse `checkDataArraySizes_`-style logic on the IM array specifically, and throw Exception::Precondition when the sizes disagree — rather than short-circuiting on an empty range.
+
+**Rust handling:** `MSSpectrum::is_sorted_by_im` and `sort_by_ion_mobility` both go through a private `checked_im_values`, which returns `Error::InvalidValue` when the ion-mobility array's length differs from the peak count, and additionally reject non-finite values (`std::is_sorted` with `<` also reports a NaN-containing array as sorted). Asserted by `ion_mobility_sorting_rejects_unusable_arrays`.
+
+## CPP-083 — mergePeaks leaves the inherited range cache too narrow, undocumented
+
+**Affected files:** src/openms/source/KERNEL/MSChromatogram.cpp, lines 548-565; contrast src/openms/include/OpenMS/KERNEL/MSChromatogram.h, lines 439-441
+
+**Issue and reproduction:** mergePeaks replaces the peak vector without calling updateRanges() and without clearing the inherited RangeManager, so a chromatogram whose ranges were current afterwards reports a range that no longer contains its own points. select() documents the opposite, benign direction ('selecting a subset can leave them too wide -- call updateRanges()'); mergePeaks documents nothing. Trigger: a.updateRanges(); a.mergePeaks(b); a.getMaxRT() still returns a's pre-merge maximum although a now holds b's later points, and getMaxIntensity() misses every summed point. Any consumer that trusts getRange() after a merge, for example a plotting axis or a range-based filter, silently drops data.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Call updateRanges() at the end of mergePeaks, or clearRanges() so the stale values cannot be read as current, and add an @note matching the one on select().
+
+**Rust handling:** There is no cache: MSChromatogram::range_manager() recomputes from the current points on every call, so the state cannot exist. Recorded under 'Native differences' in docs/CHROMATOGRAM_MERGE_SUPPORT.md and asserted by tests/chromatogram_merge.rs::source_update_ranges.
+
+## CPP-084 — mergePeaks leaves the destination's data arrays mis-sized, so a later sort or select throws
+
+**Affected files:** src/openms/source/KERNEL/MSChromatogram.cpp, lines 548-553; header @note at src/openms/include/OpenMS/KERNEL/MSChromatogram.h, line 472; checkDataArraySizes_ at MSChromatogram.cpp, lines 355-373
+
+**Issue and reproduction:** mergePeaks assigns a new peak vector and never touches float_data_arrays_, string_data_arrays_ or integer_data_arrays_, which keep their pre-merge length. The header @note says peak-level metadata 'is not guaranteed to be correct after merging', which understates the consequence: the chromatogram now fails its own checkDataArraySizes_, so the next sortByPosition(), sortByIntensity(), sort(lambda) or select() throws Exception::Precondition. Trigger: a chromatogram with one 2-entry integer data array for 2 peaks, merged with a 1-peak chromatogram at a distinct RT; a.size() becomes 3 while the array stays at 2, and a.sortByPosition() then throws.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Clear the three data arrays inside mergePeaks, as clear() already does for the same reason, and change the @note to say the arrays are dropped. Alternatively add a parameter selecting drop-or-keep, and state in the @note that keeping them leaves the chromatogram in a state its own sort and select reject.
+
+**Rust handling:** MergedDataArrays makes the choice explicit: Reject (the default) refuses a merge when either side carries a non-empty array, Drop removes them so the result validates, and Source reproduces the untouched arrays. tests/chromatogram_merge.rs::merge_annotation_array_policies asserts that the Source variant then fails validate() and sort_by_position().
+
+## CPP-085 — setSumSimilarUnion has external linkage at global namespace scope
+
+**Affected files:** src/openms/source/KERNEL/MSChromatogram.cpp, lines 474-515
+
+**Issue and reproduction:** The merge helper is defined at global scope (outside namespace OpenMS, after a file-level `using namespace OpenMS;`) with no `static` and no anonymous namespace, so it has external linkage under the plain name ::setSumSimilarUnion. It is used only by MSChromatogram::mergePeaks in the same translation unit. Any other translation unit in the program that defines a global setSumSimilarUnion with a different body but the same signature is an ODR violation the linker will not diagnose, and the symbol is needlessly exported from libOpenMS. Trigger: link a second object file defining `OpenMS::MSChromatogram::Iterator setSumSimilarUnion(...)` at global scope; which definition mergePeaks calls is unspecified.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Mark it `static`, or move it into an anonymous namespace inside namespace OpenMS, or make it a private static member of MSChromatogram.
+
+**Rust handling:** The equivalent union is written inline in MSChromatogram::merge_peaks_with_options in src/kernel/chromatogram_merge.rs; Rust has no global namespace and no ODR hazard.
+
+## CPP-086 — mergePeaks takes a non-const reference to a chromatogram it only reads
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/MSChromatogram.h, line 479; src/openms/source/KERNEL/MSChromatogram.cpp, lines 548-564
+
+**Issue and reproduction:** The signature is `void mergePeaks(MSChromatogram& other, bool add_meta = false)` and the @param tag marks `other` as [in,out], but the body only calls other.begin(), other.end() and other.getMZ() and never writes to it. A caller holding a `const MSChromatogram&` — for example one iterating an MSExperiment by const reference — cannot call mergePeaks without copying the whole chromatogram. Trigger: `void f(const MSExperiment& e, MSChromatogram& a) { a.mergePeaks(e.getChromatograms()[0]); }` does not compile.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Change the parameter to `const MSChromatogram& other` and the @param tag to [in]. The body needs no change beyond using const iterators.
+
+**Rust handling:** merge_peaks takes `&MSChromatogram`. A documented side effect is that the aliased call `a.merge_peaks(&a, ..)`, which the source permits, is a compile error here.
+
+## CPP-087 — The chromatogram stream operator prints an always-empty settings block
+
+**Affected files:** src/openms/source/METADATA/ChromatogramSettings.cpp, lines 149-154, reached from src/openms/source/KERNEL/MSChromatogram.cpp, line 24
+
+**Issue and reproduction:** `std::ostream& operator<<(std::ostream& os, const ChromatogramSettings& /*spec*/)` takes its argument unnamed and writes only '-- CHROMATOGRAMSETTINGS BEGIN --' and '-- CHROMATOGRAMSETTINGS END --'. MSChromatogram's operator<< streams the settings between its own banners, so every chromatogram dump advertises a settings section that has never contained a single setting: not the native id, the chromatogram type, the precursor, the product or any meta value. Trigger: build a chromatogram with a product m/z and a native id, stream it, and observe the two delimiters with nothing between them. A developer reading the dump concludes the record carries no settings.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Print the members the way the class test and MSSpectrum's settings dump lead a reader to expect (native id, chromatogram type, precursor, product, meta values), or delete the two delimiter lines so the empty section is not advertised.
+
+**Rust handling:** Display for MSChromatogram reproduces the layout exactly, delimiters included, because the class test matches on the surrounding text; the reason is documented at the impl and in docs/CHROMATOGRAM_MERGE_SUPPORT.md, and tests/chromatogram_merge.rs::source_stream_layout pins the full string.
+
+## CPP-088 — updateRanges warns that ranges were already up to date on its very first call
+
+**Affected files:** src/openms/source/KERNEL/MSChromatogram.cpp, lines 517-546 (the OPENMS_ASSERTIONS blocks at 519-524 and 533-545)
+
+**Issue and reproduction:** The debug-build check reads the old extrema as 0 whenever a dimension isEmpty(), computes the new extrema the same way, and logs 'Update ranges was called but ranges were already up-to-date' when the four values match. On a chromatogram that has never had updateRanges() called, both the before and after values are 0 whenever the result is also empty or all-zero, so the warning fires on a first, entirely necessary call. Trigger, in a build with OPENMS_ASSERTIONS: `MSChromatogram c; c.updateRanges();` warns, and so does a chromatogram holding a single peak at RT 0 with intensity 0.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Compare emptiness as well as the numeric extrema — for example skip the warning when any dimension was empty beforehand — so the check cannot confuse 'no range yet' with 'range unchanged'.
+
+**Rust handling:** Not applicable: range_manager() has no cache, so there is no redundant-refresh condition to warn about. The source warning is recorded as neutralised in docs/CHROMATOGRAM_MERGE_SUPPORT.md.
+
+## CPP-089 — BaseFeature::sortPeptideIdentifications comparator is not a strict weak ordering
+
+**Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:125-143 (the lambda; the empty branch is 128-131)
+
+**Issue and reproduction:** The comparator returns true whenever its left argument is empty, regardless of the right one. For two empty PeptideIdentifications both comp(a,b) and comp(b,a) are true, so asymmetry — and therefore the strict weak ordering std::sort requires — is violated, which is undefined behaviour; libstdc++'s unguarded insertion sort relies on the ordering being sane and can walk past the end of the range. Trigger: a BaseFeature whose peptides_ holds two or more identifications without hits (exactly what the class test's own `ids.resize(n)` produces, and what featureXML yields for a PeptideIdentification element with no hits) and then sortPeptideIdentifications().
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Make emptiness a proper key: `if (p1.empty()) return !p2.empty();` keeping the existing `if (p2.empty()) return false;`.
+
+**Rust handling:** sort_peptide_identifications orders on an explicit total key (hits present before hits absent, then best score) with a stable slice::sort_by, so several empty identifications are fine and keep their relative order. Asserted in tests/feature_identification.rs::sort_peptide_identifications_is_checked_and_atomic.
+
+## CPP-090 — The same comparator mutates its arguments, so hits are sorted only where the sort happens to compare
+
+**Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:126-127
+
+**Issue and reproduction:** The lambda takes `PeptideIdentification&` (non-const) and calls `p1.sort(); p2.sort();` inside the comparison. std::sort's comparator must not modify the objects it compares. The observable consequence is that hits are sorted only for elements the sort actually visits: a feature with exactly one attached identification is never compared, so sortPeptideIdentifications() leaves its hits unsorted while claiming to have sorted, and with more elements which hit ends up first can depend on the introsort's internal comparison sequence.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Sort every element's hits in a separate pass first, then call std::sort with a `const PeptideIdentification&` comparator.
+
+**Rust handling:** All hits are sorted in a dedicated pass before the identifications are ordered. Asserted in bf_sort_peptide_identifications (hits [0.9, 0.5] inside the moved identification) and stated at the item's rustdoc.
+
+## CPP-091 — Mixed isHigherScoreBetter flags make the sort comparator asymmetric
+
+**Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:136-142
+
+**Issue and reproduction:** The score direction is read from the left operand only. If identification A has isHigherScoreBetter() true and B false, comp(A,B) and comp(B,A) can both be true, again violating the strict weak ordering and giving undefined behaviour. The header comment says the identifications are assumed to share a score type, but nothing checks it, and nothing prevents a caller from attaching identifications from two search engines to one feature.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Read the flag once (from the first non-empty element) and use it for every comparison, or reject/assert mixed score types explicitly.
+
+**Rust handling:** sort_peptide_identifications returns Error::InvalidValue when the non-empty identifications disagree on higher_score_better, leaving the feature untouched. Asserted in sort_peptide_identifications_is_checked_and_atomic.
+
+## CPP-092 — updateIDReferences / updateAllIDReferences lose identification matches on a throwing translation
+
+**Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:247-259 and src/openms/source/KERNEL/Feature.cpp:209-216
+
+**Issue and reproduction:** updateIDReferences swaps id_matches_ into a local set first, emptying the member, then translates and reinserts one reference at a time. RefTranslator::translate throws Exception::MissingInformation for an unmapped reference when allow_missing is false (IdentificationData.cpp:1392-1399). If it throws on the k-th reference the feature keeps only the k-1 already translated ones and has silently dropped the remainder; primary_id_ may already have been overwritten too. Feature::updateAllIDReferences compounds this by updating each feature as it descends, so a failure deep in the subordinate tree leaves the tree half translated. A caller that catches the exception and continues — e.g. a map merge — then holds a feature whose annotations are partly gone with no indication.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Translate into a local set and a local optional primary ID and only assign/swap after the loop completes; in Feature::updateAllIDReferences, translate every subordinate's references into locals (or verify them all) before assigning anything.
+
+**Rust handling:** BaseFeature::update_id_references builds both the translated primary ID and the translated match set into temporaries and commits only after every translation succeeded. Feature::update_all_id_references adds a read-only verification pass over the whole subordinate tree before the apply pass. Asserted in update_id_references_translates_atomically and update_all_id_references_covers_subordinates_or_changes_nothing.
+
+## CPP-093 — ConsensusFeature::Ratio default constructor leaves ratio_value_ indeterminate
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/ConsensusFeature.h:92-111
+
+**Issue and reproduction:** Ratio() is user-provided with an empty body and no member has a default member initialiser, so `double ratio_value_` is default-initialised, i.e. holds an indeterminate value. `ConsensusFeature::Ratio r; use(r.ratio_value_);` — or `ratios_.resize(n)` followed by reading the new elements — is undefined behaviour and in practice reads whatever was in that memory. The struct also carries a virtual destructor with no virtual functions while being stored by value in std::vector<Ratio>, which costs a vtable pointer per ratio and invites slicing.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** `double ratio_value_ = 0.0;` and `Ratio() = default;`; drop `virtual` from the destructor, since nothing derives from Ratio.
+
+**Rust handling:** Ratio derives Default, so ratio_value is a defined 0.0 and there is no vtable; add_ratio and set_ratios additionally reject a non-finite value. Asserted in ratios_are_checked_and_replaced_atomically.
+
+## CPP-094 — ConsensusFeature::setRatios takes a non-const lvalue reference for a copy-in setter
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/ConsensusFeature.h:265 and src/openms/source/KERNEL/ConsensusFeature.cpp:321-324
+
+**Issue and reproduction:** The body is a plain copy (`ratios_ = rs;`) but the parameter is `std::vector<Ratio>&`. A temporary or a const vector therefore does not bind: `cf.setRatios(buildRatios());` and `void f(const std::vector<Ratio>& r) { cf.setRatios(r); }` both fail to compile, forcing callers to materialise a non-const named vector and implying, wrongly, that the setter may modify the argument.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** `void setRatios(const std::vector<Ratio>& rs);`, optionally with a `std::vector<Ratio>&&` overload.
+
+**Rust handling:** set_ratios takes Vec<Ratio> by value, so a temporary is the natural call; it validates every ratio before replacing the stored list.
+
+## CPP-095 — getAnnotationState reports MULTIPLE_SAME when only one identification actually has hits
+
+**Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:154-177
+
+**Issue and reproduction:** The `peptides_.size() == 1` shortcut requires non-empty hits, but the fallback loop skips identifications without hits and then maps `seqs.size() == 1` to FEATURE_ID_MULTIPLE_SAME. A feature carrying one annotated identification plus one empty one therefore reports 'multiple IDs (identical)' although exactly one ID exists, which is inconsistent with the shortcut immediately above it. Trigger: `ids.resize(2); ids[0].setHits(std::vector<PeptideHit>(1, hit));` then getAnnotationState(). Consumers that render the state string or branch on SINGLE see the wrong category.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Count the identifications that contributed a sequence and return FEATURE_ID_SINGLE when that count is one, independent of how many empty identifications are attached.
+
+**Rust handling:** Preserved deliberately, because tools may depend on the existing state, and documented at BaseFeature::annotation_state and in docs/FEATURE_IDENTIFICATION_SUPPORT.md. Asserted in annotation_state_counts_only_identifications_that_have_hits.
+
+## CPP-096 — Feature::getConvexHull() is a const method that lazily mutates the object and hands out a mutable reference
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/Feature.h:99 and 175-179; src/openms/source/KERNEL/Feature.cpp:93-137
+
+**Issue and reproduction:** getConvexHull() is declared const but recomputes and writes the mutable members convex_hull_ and convex_hulls_modified_, and returns a non-const ConvexHull2D&. Two consequences: (1) two threads calling it concurrently on the same Feature race on those members with no synchronisation, and the codebase parallelises feature loops with OpenMP (36 source files carry #pragma omp), so a const-looking read is not safe to share; (2) any caller holding a `const Feature&` can mutate the cached hull — `f.getConvexHull().clear();` compiles — leaving the object in a state that disagrees with convex_hulls_ until something sets the flag again.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Return `const ConvexHull2D&`, and either compute the overall hull eagerly in setConvexHulls/getConvexHulls or guard the lazy computation (std::call_once or a mutex) if the laziness must stay.
+
+**Rust handling:** Feature::convex_hull() computes and returns an owned ConvexHull2D with no cache and no mutable-through-shared path, so neither the race nor the const mutation is expressible; convex_hulls_modified_ and convex_hull_ are recorded as not ported in the API mapping table. Covered by f_get_convex_hull and f_encloses.
+
+## CPP-097 — MRMFeature lookup by unknown key mutates the map and returns the first feature
+
+**Affected files:** src/openms/source/KERNEL/MRMFeature.cpp lines 82-85 (getFeature) and 125-128 (getPrecursorFeature), non-const overloads
+
+**Issue and reproduction:** Both non-const accessors read `features_.at(feature_map_[key])`. `std::map::operator[]` default-inserts `key -> 0` when the key is absent, so a read accessor silently mutates the map and then returns feature 0 — an unrelated feature — or throws std::out_of_range when the list happens to be empty. Trigger: `MRMFeature f; Feature a; f.addFeature(a, "chromatogram1"); f.getFeature("typo");` returns the feature stored under "chromatogram1", and a subsequent getFeatureIDs() now reports two ids, one of which was never added. The const overloads use .at() and throw, so the same call is an error or a wrong answer depending only on the constness of the receiver.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Look the key up with find() and throw Exception::ElementNotFound (or return a pointer/optional) in both overloads, matching the const behaviour. If a mutable reference really is needed for a missing key, require an explicit insert call.
+
+**Rust handling:** `MRMFeature::feature` / `feature_mut` / `precursor_feature` / `precursor_feature_mut` return `Error::MissingInformation` for an unknown key and never mutate. Covered by tests/mrm.rs::unknown_keys_are_missing_information.
+
+## CPP-098 — MRMFeature::addFeature strands a feature when a key repeats, while the sibling class throws
+
+**Affected files:** src/openms/source/KERNEL/MRMFeature.cpp lines 70-80 (addFeature) and 105-115 (addPrecursorFeature)
+
+**Issue and reproduction:** Both push onto the vector first and then assign `feature_map_[key] = Int(size) - 1`. A repeated key re-points the map at the new element and leaves the previously keyed feature in the list with no key referring to it: the data is still present, counted by getFeatures().size(), but unreachable by any lookup and invisible to getFeatureIDs(). Trigger: `f.addFeature(a, "x"); f.addFeature(b, "x");` gives getFeatures().size() == 2 and getFeatureIDs() one entry. The sibling class in the same data model, MRMTransitionGroup::addTransition (MRMTransitionGroup.h:133), emplaces first and throws Exception::InvalidValue on exactly this condition, so the two halves disagree on whether a duplicate key is an error.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Use map::emplace and throw Exception::InvalidValue as addTransition does, or replace the feature in place at the existing index instead of appending.
+
+**Rust handling:** `add_feature` / `add_precursor_feature` return `Error::InvalidValue` on a repeated key and store nothing; `add_feature_with(..., DuplicateKeyPolicy::SourceOverwrite)` reproduces the source's append-and-orphan exactly. Covered by tests/mrm.rs::duplicate_feature_keys_reject_by_default.
+
+## CPP-099 — MRMTransitionGroup::isInternallyConsistent cannot report an inconsistent group in a release build
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h lines 291-297, with src/openms/include/OpenMS/CONCEPT/Macros.h line 91
+
+**Issue and reproduction:** The function's three checks — equal transition/chromatogram counts, equal map sizes, and isMappingConsistent_() — are all OPENMS_PRECONDITION, which expands to nothing unless OPENMS_ASSERTIONS is defined. In an ordinary release build the body reduces to `return true;`, so the function declared `bool isInternallyConsistent() const` can never return false, and isMappingConsistent_() is never called. In an assertions build a violation throws Exception::Precondition instead of returning false, so there is no build in which the boolean result is meaningful. Trigger: a group with one addTransition and no addChromatogram returns true from any release build.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Evaluate the three conditions and return their conjunction — the declared return type already promises that — and keep the OPENMS_PRECONDITIONs alongside for the assertions build if the fail-fast behaviour is wanted there.
+
+**Rust handling:** `is_internally_consistent` evaluates the three conditions and returns the answer; one pass over the chromatogram key map. Covered by tests/mrm.rs::internal_consistency_detects_every_source_condition and the ported class-test section group_is_internally_consistent.
+
+## CPP-100 — IDScoresAsMetaValue writes the transition_names meta value twice
+
+**Affected files:** src/openms/source/KERNEL/MRMFeature.cpp lines 142 and 152
+
+**Issue and reproduction:** The function makes 43 setMetaValue calls covering only 42 distinct keys: `setMetaValue(id + "transition_names", idscores.ind_transition_names)` appears at line 142 and again, identically, at line 152. The second write is dead work (the value is the same), but its position — immediately before the block of `ind_*` keys starting at line 153 — suggests a copy/paste where a different OpenSwath_Ind_Scores member was intended, so a score may be silently absent from the output. Trigger: call IDScoresAsMetaValue and count the resulting meta values: 42, not 43.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Delete line 152, or establish which member the second write was meant to publish and write that instead. A static list of the 42 key suffixes would make the block auditable.
+
+**Rust handling:** `id_scores_as_meta_value` writes each of the 42 distinct keys once; the suffixes are exposed as `OpenSwathIndScores::KEY_SUFFIXES` and the count is asserted. Covered by tests/mrm.rs::id_scores_as_meta_value_writes_the_whole_block.
+
+## CPP-101 — getLibraryIntensity clamps entries the caller already had in the output vector
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h lines 319-333
+
+**Issue and reproduction:** The function appends the transitions' library intensities to the caller's vector and then runs its negative-to-zero clamp over `result.size()` — the whole vector, not just the appended range. Any negative value the caller had put in the vector before the call is silently overwritten with zero. Trigger: `std::vector<double> r; r.push_back(-5.0); group.getLibraryIntensity(r);` leaves r[0] == 0.0 even for an empty group. The class test always passes a fresh vector, so this never shows up upstream.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Record the starting size before appending and clamp from that index, or build into a local vector and insert it at the end.
+
+**Rust handling:** `library_intensity` returns a fresh `Vec<f64>` and clamps only its own entries; the difference is documented at the item and in docs/MRM_SUPPORT.md. Covered by the ported class-test section group_get_library_intensity.
+
+## CPP-102 — subset re-keys precursor chromatograms by nativeID and throws on a group the class's own test builds
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h lines 355-359, with src/tests/class_tests/openms/source/MRMTransitionGroup_test.cpp lines 200-213
+
+**Issue and reproduction:** subset copies every precursor chromatogram with `addPrecursorChromatogram(pc, pc.getNativeID())`, discarding the key it was actually stored under. Two precursor chromatograms whose nativeIDs coincide — which includes the very common case of both being empty, because nothing requires a chromatogram to carry a nativeID — then collide in the new group and addPrecursorChromatogram throws Exception::InvalidValue. Trigger: the class test's own getPrecursorChromatogram section stores chrom1 (nativeID never set, so empty) under "dummy1" and again under "dummy2"; calling subset() on that group throws, although the group is perfectly valid and hasPrecursorChromatogram("dummy1"/"dummy2") both answer true.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Carry the precursor chromatograms under their original keys by iterating precursor_chromatogram_map_ rather than the vector, which also makes the subset a faithful copy instead of a re-keying.
+
+**Rust handling:** `subset` reproduces the source re-keying exactly and returns `Error::InvalidValue` on the collision instead of throwing; the quirk is documented at the item, in the preserved-conventions list, and pinned as a source anchor. Covered by tests/mrm.rs::subset_rebuilds_features_and_rekeys_precursors, which asserts the precursor lands under its nativeID and not under its stored key.
+
+## CPP-103 — subsetDependent indexes chromatogram_map_.at() without the guard subset uses
+
+**Affected files:** src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h line 397, compared with lines 348-351 in subset
+
+**Issue and reproduction:** subset guards the chromatogram transfer with `if (this->hasChromatogram(tr.getNativeID()))`; subsetDependent calls `chromatograms_[chromatogram_map_.at(tr_it->getNativeID())]` unconditionally. A selected transition with no chromatogram under its native ID therefore raises an uncaught std::out_of_range, which escapes as a bare STL exception rather than an OpenMS Exception, so the TOPP top-level handler reports it without file, line or function context. Trigger: a group with addTransition(t, "t1") where t.getNativeID() == "t1" and no addChromatogram, then subsetDependent({"t1"}). This is never exercised upstream (see the next issue).
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Apply the same hasChromatogram guard as subset, or throw Exception::ElementNotFound with the offending native ID so the failure is diagnosable.
+
+**Rust handling:** `subset_dependent` returns `Error::MissingInformation` naming the key, and builds into a temporary so the receiver is untouched. Covered by tests/mrm.rs::subset_dependent_keeps_whole_features_and_drops_precursors.
+
+## CPP-104 — The subsetDependent class-test section tests subset, leaving subsetDependent with no coverage
+
+**Affected files:** src/tests/class_tests/openms/source/MRMTransitionGroup_test.cpp lines 328-352
+
+**Issue and reproduction:** START_SECTION(MRMTransitionGroup subsetDependent(std::vector<std::string> tr_ids)) builds its fixture and then calls `mrmtrgroupsub = mrmtrgroup.subset(transition_ids);` — subset, not subsetDependent. The section duplicates the preceding subset section with a two-element id list and asserts nothing that subsetDependent does differently, so the two behaviours that distinguish it (copying each MRMFeature whole rather than rebuilding it, and dropping the precursor chromatograms) and its unguarded chromatogram_map_.at() are all untested. The upstream suite reports the section as passing.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Call subsetDependent in that section, and add a case with a selected transition that has no chromatogram plus a case asserting that a copied MRMFeature still carries the sub-features of transitions outside tr_ids.
+
+**Rust handling:** The section is ported exactly as written (against subset, so its transcribed literals stay meaningful) as tests/mrm.rs::group_subset_dependent_section, and subset_dependent itself is covered separately by tests/mrm.rs::subset_dependent_keeps_whole_features_and_drops_precursors, which asserts the whole-feature copy, the dropped precursors and the missing-chromatogram error.
+
+## CPP-105 — IndexedMzMLHandler copy constructor silently drops both native-id maps
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:76-88 (member list at IndexedMzMLHandler.h:57-64); consumer at src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h:97-103
+
+**Issue and reproduction:** The copy constructor's initialiser list copies filename_, spectra_offsets_, chromatograms_offsets_, index_offset_, spectra_before_chroms_, a freshly reopened filestream_, parsing_success_ and skip_xml_checks_, but omits spectra_native_ids_ and chromatograms_native_ids_, which are therefore default-constructed empty. Every getMSSpectrumByNativeId / getMSChromatogramByNativeId call on a copied handler throws Exception::IllegalArgument for every identifier, while getNrSpectra and index-based access still work, so the failure looks like a missing spectrum rather than a broken copy. The class is meant to be copied: the comment at line 82 says reopening rather than copying the stream 'is critical for parallel access to the same file', OnDiscMSExperiment's copy constructor copies indexed_mzml_file_ by value, and OnDiscMSExperiment.h:65-67 recommends '#pragma omp parallel for firstprivate(ondisc_map)'. Trigger: copy a handler (or an OnDiscMSExperiment) opened on any indexed mzML and call getSpectrumByNativeId with an id the original resolves.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Add spectra_native_ids_(source.spectra_native_ids_) and chromatograms_native_ids_(source.chromatograms_native_ids_) to the initialiser list, in declaration order. A class test that copies the handler and repeats the by-native-id assertions would have caught it: the existing copy-constructor section only compares arrays fetched by index.
+
+**Rust handling:** Not reproduced. There is no copy constructor; an independent reader is an independent IndexedMzMLHandler::open, and the ordered identifier maps are ordinary owned state built in open_with_limits. tests/indexed_mzml_handler.rs::a_second_handler_on_one_file_reads_the_same_data asserts that the second handler resolves both native identifiers, which is exactly the assertion the source would fail.
+
+## CPP-106 — IndexedMzMLHandler::openFile accumulates index state instead of replacing it
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:20-62 (parseFooter_) and :92-101 (openFile)
+
+**Issue and reproduction:** parseFooter_ push_backs into spectra_offsets_ and chromatograms_offsets_ and emplaces into both native-id maps without clearing any of them, and openFile does not clear them either — it only closes and reopens the stream. Opening a second valid indexed mzML on the same object leaves getNrSpectra() reporting the sum of both files, with the first file's offsets now interpreted against the second file's stream, so getMSSpectrumById returns garbage or throws from the decoder for the stale entries. spectra_before_chroms_ is likewise recomputed from a mixed vector. The class test does call openFile repeatedly (IndexedMzMLFile_test.cpp:100-106), but its first call throws FileNotFound out of findIndexListOffset and its second returns early because findIndexListOffset yields -1, so nothing is appended and the defect stays hidden. Trigger: handler.openFile(a); handler.openFile(b); with two valid indexed mzML files.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Clear spectra_offsets_, chromatograms_offsets_, spectra_native_ids_ and chromatograms_native_ids_ at the top of parseFooter_ (or in openFile before calling it), and reset index_offset_ and spectra_before_chroms_ on the early-return path too.
+
+**Rust handling:** Not reproduced. There is no reopen: IndexedMzMLHandler::open always constructs a fresh handler, so no container can carry state across files. tests/indexed_mzml_handler.rs::opening_replaces_rather_than_accumulates asserts that a second open of the same two-spectrum fixture still reports exactly 2 spectra and no third offset.
+
+## CPP-107 — Record read length is unchecked in both directions and the read result is never inspected
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:139-168 (getChromatogramById_helper_) and :199-228 (getSpectrumById_helper_)
+
+**Issue and reproduction:** Both helpers compute std::streampos readl = endidx - startidx from two values that come straight out of the file's own footer index, then call new char[readl + std::streampos(1)]. Nothing checks that endidx >= startidx, that either offset lies inside the file, or that the difference is a plausible record size. A decreasing pair makes the length negative, so the new-expression throws std::bad_array_new_length — not an OpenMS exception, so it escapes every Exception:: handler a caller installed. An oversized pair is an unbounded allocation driven by untrusted input. Worse, filestream_.seekg/read are issued without checking gcount() or the stream state: when the range runs past the end of the file the read stops early, the tail of the buffer keeps the indeterminate values left by new char[], only buffer[readl] is set to '\0', and std::string text(buffer) then scans that indeterminate memory. Trigger: any indexed mzML whose <indexList> offsets are corrupt, truncated or hostile — precisely the untrusted input this class exists to read.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Validate the pair before allocating: require startidx <= endidx, clamp endidx to the file size obtained once at openFile, and reject a span above an explicit ceiling with Exception::ParseError. Replace new char[] / delete[] with std::vector<char> (value-initialised, exception-safe) and check filestream_.gcount() == readl after the read, throwing ParseError otherwise.
+
+**Rust handling:** Reproduced as checked errors. record_range rejects a decreasing pair (Error::Parse 'index offsets do not increase across the record'), an end past the file length (Error::Parse 'record byte range extends past the end of the file') and a span above RecordReadLimits::max_record_bytes (Error::InvalidValue), all before any allocation; read_range then uses try_reserve_exact and verifies the byte count actually read. open_with_limits additionally rejects an indexListOffset or index entry beyond the file. Covered by decreasing_index_offsets_are_rejected_before_allocating, offsets_past_the_end_of_the_file_are_rejected and an_oversized_record_range_is_refused_before_reading, which also asserts the handler is unchanged after the refusal.
+
+## CPP-108 — Chromatogram out-of-range message reports the spectrum count
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:132-137 (and the same off-by-one wording at :192-197)
+
+**Issue and reproduction:** getChromatogramById_helper_ checks chromToGet >= (int)getNrChromatograms() but its Exception::IllegalArgument message reads 'id needs to be smaller than the number of spectra' and interpolates getNrSpectra() as 'maximal allowed'. On the class test's own fixture (2 spectra, 1 chromatogram) asking for chromatogram 1 is rejected with 'maximal allowed is 2', which is both the wrong noun and a larger number than the check accepts — actively misleading while debugging an index. Separately, both helpers say 'maximal allowed is N' where the largest accepted index is N-1.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Use 'number of chromatograms' and getNrChromatograms() in the chromatogram helper, and report getNrX() - 1 (or reword to 'must be less than N') in both.
+
+**Rust handling:** Not reproduced. out_of_range formats '<kind> index {index} is not below the indexed count {count}' from the same RecordKind and the same vector the bound was taken from, so the noun and the number cannot disagree, and 'not below' states the relation rather than an off-by-one maximum.
+
+## CPP-109 — Record XML parse errors are discarded, and the handler always feeds the parser ill-formed input for the last record
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/MzMLSpectrumDecoder.cpp:536-556 (domParseString_); ranges produced at src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:142-155 and :202-215
+
+**Issue and reproduction:** domParseString_ constructs a XercesDOMParser and calls parse() without ever calling setErrorHandler, so well-formedness errors go to the default handler and are silently dropped; only a null document element is caught. This is not a latent risk but a permanent condition: the handler's byte range for the last record of each kind deliberately runs to the start of the other list or to <indexList>, so the text handed to the parser ends with '</spectrum></spectrumList><chromatogramList ...>' or '</chromatogram></chromatogramList></run></mzML>'. Every such fetch parses input with content after the root element. The same silence means a genuinely truncated, mis-indexed or corrupt record yields an empty MSSpectrum with no peaks and no error, indistinguishable from a legitimately empty scan. Trigger: getMSSpectrumById for the last spectrum of any indexed mzML, and any file whose index offsets do not land exactly on a record.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Install an error handler that throws Exception::ParseError for errors and fatal errors, and trim the byte range in the two helpers at the record's own closing tag before handing it over, so the parser never sees trailing content.
+
+**Rust handling:** Reproduced as a loud failure. record_xml requires the range to start with the expected element and trims it at the matching closing tag, then the assembled single-record document goes through src/format/mzml.rs, whose errors are returned rather than discarded; an unterminated record is Error::Parse 'record is not closed inside its byte range'. Covered by the_last_record_is_trimmed_at_its_own_closing_tag (asserting the trimmed spectrum contains no '</spectrumList>' and the trimmed chromatogram no '</run>') and an_offset_that_is_not_a_record_start_is_rejected.
+
+## CPP-110 — getMSChromatogramById(int) recomputes ranges twice
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:278-284, with the inner call at :297-302
+
+**Issue and reproduction:** The value-returning overload calls getMSChromatogramById(id, c), which already ends with c.updateRanges() at line 301, and then calls c.updateRanges() again on the result. updateRanges is a full pass over every point of the chromatogram, so every by-index chromatogram fetch pays for it twice. The spectrum counterpart at :246-251 does not do this, so the two families are also inconsistent. Minor: wasted work only, no wrong answer.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Delete the second c.updateRanges() at line 282, matching getMSSpectrumById.
+
+**Rust handling:** Does not arise. src/kernel.rs computes ranges on demand rather than caching them behind an updateRanges() call, so there is no range refresh to perform once, twice or not at all.

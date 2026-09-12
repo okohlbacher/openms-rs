@@ -68,7 +68,7 @@ Every public member of the header appears here.
 | `const MSChromatogram getMSChromatogramById(int)` | `chromatogram(index) -> Result<Option<MSChromatogram>>` | |
 | `void getMSChromatogramById(int, MSChromatogram&)` | `chromatogram(index)` | As the spectrum out-parameter overload. |
 | `void getMSChromatogramByNativeId(const std::string&, MSChromatogram&)` | `chromatogram_by_native_id(&str)` | |
-| `void setSkipXMLChecks(bool)` | not ported | The crate's mzML reader has no unchecked fast path; `PeakFileOptions::skip_xml_checks` is carried as a value but changes nothing here. |
+| `void setSkipXMLChecks(bool)` | `options_mut().skip_xml_checks` | Reaches the decoder: `PeakFileOptions` is passed into `mzml::read_with_load_options`, which suppresses the four-character Base64 whitespace strip (`src/format/mzml.rs:1335`, `:2386`). That is the whole effect in the source too — `skip_xml_checks_` is forwarded to `MzMLHandlerHelper::decodeBase64Arrays`, never to XML syntax checking. |
 | `filename_` (private) | `path()` | |
 | `spectra_offsets_`, `chromatograms_offsets_` (private) | `offset(kind, index)` | |
 | `spectra_native_ids_`, `chromatograms_native_ids_` (private) | `index_of(kind, native_id)`, `native_id(kind, index)` | `BTreeMap`, so lookups are ordered and reproducible; the source uses `unordered_map`. |
@@ -76,7 +76,7 @@ Every public member of the header appears here.
 | `spectra_before_chroms_` (private) | `spectra_before_chromatograms()` | |
 | `filestream_` (private) | owned `File`; every fetch takes `&mut self` | |
 | `parsing_success_` (private) | not represented | See `getParsingSuccess`. |
-| `skip_xml_checks_` (private) | not represented | See `setSkipXMLChecks`. |
+| `skip_xml_checks_` (private) | `PeakFileOptions::skip_xml_checks` | See `setSkipXMLChecks`. |
 | `parseFooter_()` (private) | inside `open_with_limits` | |
 | `getSpectrumById_helper_`, `getChromatogramById_helper_` (private) | `record_xml(kind, index) -> Result<Vec<u8>>` | Public here, and trimmed at the record's closing tag. |
 
@@ -95,12 +95,12 @@ This header has no ledger entry of its own here. Its job — turn one
 
 | C++ member | Rust | Notes |
 |---|---|---|
-| `explicit MzMLSpectrumDecoder(bool skip_xml_checks = false)` | not ported as a type | The decoder is `mzml::read_with_load_options` over an assembled document. |
+| `explicit MzMLSpectrumDecoder(bool skip_xml_checks = false)` | not ported as a type | The decoder is `mzml::read_with_load_options` over an assembled document; the constructor flag is `PeakFileOptions::skip_xml_checks`. |
 | `void domParseSpectrum(const std::string&, Interfaces::SpectrumPtr&)` | not ported | No `Interfaces` layer. |
 | `void domParseSpectrum(const std::string&, MSSpectrum&)` | covered by `IndexedMzMLHandler::spectrum` | Strictly more is decoded: the source reads only `id`, `defaultArrayLength` and `binaryDataArray`. |
 | `void domParseChromatogram(const std::string&, MSChromatogram&)` | covered by `IndexedMzMLHandler::chromatogram` | |
 | `void domParseChromatogram(const std::string&, Interfaces::ChromatogramPtr&)` | not ported | No `Interfaces` layer. |
-| `void setSkipXMLChecks(bool)` | not ported | As above. |
+| `void setSkipXMLChecks(bool)` | `options_mut().skip_xml_checks` | As above; the decoder's copy of the flag is the same option value. |
 | `domParseString_`, `handleBinaryDataArray_`, `decodeBinaryData*_` (protected) | `src/format/mzml.rs` | The whole-file reader's own binary-array handling. |
 
 Two source checks in `MzMLSpectrumDecoder.cpp:25-50` (`checkData_`) deserve

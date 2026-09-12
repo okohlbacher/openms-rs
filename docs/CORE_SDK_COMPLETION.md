@@ -8,11 +8,11 @@ Validated TOPP workflows: **5** of 146, each reproducing its upstream test again
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 16 |
-| evidence_requires_review | 159 |
-| native_equivalent | 70 |
-| partial | 20 |
-| unmapped | 521 |
+| complete | 20 |
+| evidence_requires_review | 162 |
+| native_equivalent | 73 |
+| partial | 19 |
+| unmapped | 512 |
 
 ## Highest fan-out open SDK dependencies
 

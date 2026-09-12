@@ -41,6 +41,65 @@ remote development loops only; every test still runs in both. nextest runs each
 test in its own process, which is stricter than `cargo test`'s shared-process
 threads, and all 2,506 tests pass under it.
 
+## Kernel wave 2: ion mobility, chromatogram merging, feature identification, MRM and indexed mzML (2026-09-12)
+
+Five work packages ported in parallel git worktrees, each followed by an
+**independent adversarial audit in its own worktree** that re-ran every gate
+itself rather than trusting the port's report. Kernel headers closed or
+native-equivalent rise from 18 of 34 to 24 of 34.
+
+| Work package | Headers | Class-test sections | Rust |
+| --- | --- | --- | --- |
+| Ion mobility | MSSpectrum (mobility surface) | 68 ported, 3 mapped | `src/kernel/spectrum_mobility.rs` |
+| Chromatogram merging | MSChromatogram, Mobilogram | 91 ported | `src/kernel/chromatogram_merge.rs` |
+| Feature identification | BaseFeature, Feature, ConsensusFeature | 92 ported | `src/kernel/feature_identification.rs` |
+| MRM | MRMFeature, MRMTransitionGroup | 44 ported | `src/kernel/mrm.rs` |
+| Indexed mzML | FORMAT/HANDLERS/IndexedMzMLHandler | 16 ported | `src/format/indexed_mzml_handler.rs` |
+
+311 upstream class-test sections were ported and 3 mapped with cited evidence,
+0 unaccounted. All transcribed literals, which is tier 3 evidence under
+[the differential validation policy](DIFFERENTIAL_VALIDATION.md). No C++ was
+executed. Thirty-five further C++ defects were recorded as CPP-076 to CPP-110,
+including an `MRMFeature` lookup by unknown key that default-inserts into the map
+and returns the first feature, a `BaseFeature::sortPeptideIdentifications`
+comparator that is not a strict weak ordering and mutates its own arguments, and
+an `IndexedMzMLHandler::openFile` that accumulates index state instead of
+replacing it.
+
+**No audit returned a blocker.** Every auditor independently re-ran
+`cargo +1.85.0 check --locked --all-features --all-targets`, the full nextest
+sweep, clippy, rustdoc and the doc-coverage report, enumerated each owned
+header's public members by hand against the support doc's API table, and counted
+`START_SECTION`s itself. Four verdicts were `accept_with_fixes` and one `accept`.
+
+**Both major findings were claim defects, not code defects, and both were
+fixed before merge.** The ion-mobility package proposed a ledger entry for
+`MSSpectrum.h` that would have *replaced* the accumulated record of three earlier
+waves — `documentation` and `scope` pointed only at the new support document.
+Applied verbatim it would have erased the InstrumentSettings, AcquisitionInfo,
+`getType(bool)` precedence and record-metadata review history. The integrator
+merged instead: `rust` and `tests` unioned, the prior scope preserved and the new
+wave's sentence appended naming its document. The indexed-mzML package documented
+`setSkipXMLChecks` as "not ported" in three table rows and its provenance
+manifest; the auditor traced `options_mut().skip_xml_checks` through
+`mzml::read_with_load_options` to the Base64 whitespace strip at
+`src/format/mzml.rs:2386`, which is the entire effect of the flag in the source
+as well. All four claims were corrected to record the member as ported.
+
+Three minor findings against the ion-mobility package are recorded rather than
+fixed: an unreachable `DriftTimeUnit::None` branch documented as reachable, a
+non-finite rejection whose stated rationale covers NaN but not infinities, and
+the bottom-up chunk merge whose stability argument is untested because both
+presorted fixtures use all-distinct m/z. The last is a real coverage gap — no
+case has equal m/z spanning a chunk boundary.
+
+Full sweep on the 384-core node at the merge commit: build 32 s, nextest
+all-features 2,763 passed, doctests 8 passed, nextest no-default-features 2,247
+passed, clippy `-D warnings` clean, `cargo +1.85.0 check --all-features
+--all-targets` clean, rustdoc `-D warnings` clean, `cargo fmt --check` clean, and
+all six Python gates green after the integrator regenerated the three generated
+files.
+
 ## Kernel wave 1: ranges, predicates, helpers, gap-0 review and geometry (2026-09-12)
 
 Five work packages ported in parallel git worktrees, then rebased onto wave 0,

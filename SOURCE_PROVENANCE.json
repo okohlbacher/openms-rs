@@ -557,7 +557,12 @@
   "tests/data/range_utils_provenance.json",
   "tests/data/spectrum_helper_provenance.json",
   "tests/data/kernel_gap_closures_provenance.json",
-  "tests/data/dposition_provenance.json"
+  "tests/data/dposition_provenance.json",
+  "tests/data/spectrum_mobility_provenance.json",
+  "tests/data/chromatogram_merge_provenance.json",
+  "tests/data/feature_identification_provenance.json",
+  "tests/data/mrm_provenance.json",
+  "tests/data/indexed_mzml_handler_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -606,5 +611,12 @@
   "tests/data/spectrum_helper_provenance.json",
   "tests/data/kernel_gap_closures_provenance.json",
   "tests/data/dposition_provenance.json"
+ ],
+ "kernel_wave2_reference_manifests": [
+  "tests/data/spectrum_mobility_provenance.json",
+  "tests/data/chromatogram_merge_provenance.json",
+  "tests/data/feature_identification_provenance.json",
+  "tests/data/mrm_provenance.json",
+  "tests/data/indexed_mzml_handler_provenance.json"
  ]
 }

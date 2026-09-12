@@ -136,6 +136,6 @@
  "gaps": [
   "The source parallelises nothing in this class, but its own class documentation recommends copying the handler for OpenMP use; this port is serial and offers no copy, so a second reader is a second open of the same path.",
   "The Interfaces::Spectrum / Interfaces::Chromatogram pointer overloads are not ported; the crate has no OpenSWATH Interfaces layer.",
-  "setSkipXMLChecks is not ported: the crate's mzML reader has no unchecked fast path."
+  "setSkipXMLChecks maps to PeakFileOptions::skip_xml_checks, passed through to the mzML decoder where it suppresses the Base64 whitespace strip, matching the source's forwarding to MzMLHandlerHelper::decodeBase64Arrays."
  ]
 }
