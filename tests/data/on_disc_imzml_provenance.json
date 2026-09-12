@@ -1,0 +1,378 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/OnDiscImzMLExperiment.h",
+   "sha256": "c55b444687b93ae008e685504fb5ae83cb47f664fd6dc55c60bc38bc8aa20408",
+   "role": "The ported header. Every public member is mapped in docs/ON_DISC_IMZML_SUPPORT.md."
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "sha256": "be623d23886e1a5ec301e5b39ccfc77ed3d9a48387e2a686dec57092c4735bfa",
+   "role": "The ported implementation, including the PIMPL's decodeSpectrum / decodePeaks split and the unreachable .ibd path fallback recorded in OpenMS_CPP_ISSUES."
+  },
+  {
+   "path": "src/openms/include/OpenMS/IMAGING/MSImagingGeometry.h",
+   "sha256": "5afdad3eb9f9608a694c0f6b68c1f14990e1aef5bc14f2b69a44e878e5fb573d",
+   "role": "Not this package's header. Read and reproduced as ImagingGeometry because getGeometry() returns it and the facade cannot be ported without it. A later IMAGING package owns the header itself."
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingGeometry.cpp",
+   "sha256": "e7b7d6e35f1f95a7ec18aeaceb07ab5d238a3296b937cb491634a7c7acab511f",
+   "role": "Same. Source of the packKey_ layout, the duplicate/bounds rules of addPixel, the disjointness rule of addRegion and the removeRegion reindexing."
+  },
+  {
+   "path": "src/openms/include/OpenMS/IMAGING/MSImagingRegion.h",
+   "sha256": "93e3ed1533d176964e62e84c02788c8728f5194a9476998278e3bc5d5ef32a65",
+   "role": "Not this package's header. Read and reproduced as ImagingRegion because the region-scoped extractIonImage overload and the mutable getGeometry() need a footprint type."
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingRegion.cpp",
+   "sha256": "cadb9ba47ba7ddfed0d3f922bf1af56ca99a106a8a68938ac6fb92b1d50bf9d6",
+   "role": "Same. Source of the rectangle/fromMask validation, the inclusive bounding box, contains() and the intersects() bbox-then-mask walk."
+  },
+  {
+   "path": "src/openms/include/OpenMS/IMAGING/IonImage.h",
+   "sha256": "5ce2ca6740621b6cea3ae1f26bdb01523f2cabeee7c8edb5c6e0a70e6674605e",
+   "role": "Not this package's header. Read and reproduced as IonImage because it is extractIonImage's return type."
+  },
+  {
+   "path": "src/openms/source/IMAGING/IonImage.cpp",
+   "sha256": "79897467fa53fb8e51d5ea84ea7fa3b3cee8884f04cc8d576ebc2aaa0d269068",
+   "role": "Same. Source of the row-major layout, the resize semantics, hasPixel's silent out-of-bounds false and linearIndex_'s IndexOverflow."
+  },
+  {
+   "path": "src/openms/include/OpenMS/IMAGING/IonImageExtraction.h",
+   "sha256": "133262f6600b18ed8ee9730cb416da7d8b148aa61194a13c1ce70144cde0de1f",
+   "role": "Header-only. The shared extraction kernel Internal::extractIonImage that both source overloads delegate to; ported as OnDiscImzMLExperiment::extract."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ImzMLFile.h",
+   "sha256": "a26a957813d7a33053d86dd211a70963aabd150f1833c012557fc74444e7efe4",
+   "role": "Not ported here. Read for the two statics the facade calls: buildImagingGeometry(index, meta, geom) and loadSpectraIndex."
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "sha256": "5ae841d09aa6a815f2046fc56e47c1b339c6789f8b0b6b14f97ecfbd38c9eb5f",
+   "role": "Not ported here. Source of buildImagingGeometry (ported as build_imaging_geometry) and of loadImpl_'s unconditional meta_.ibd_file_path assignment, which is what makes the facade's own path fallback unreachable."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ImzMLFile_test.cpp",
+   "sha256": "7584cf31d29aa05cc80b9a5eea1bbf9da265f3bb46e92e0c6d517f1a50a0917e",
+   "role": "The oracle. OnDiscImzMLExperiment has no class test of its own; nineteen sections of this file construct one. Every transcribed literal in tests/on_disc_imzml_experiment.rs comes from here or from the all-modes test."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ImzMLFile_all_modes_test.cpp",
+   "sha256": "adc5bf88d28146b8f7430dfe2ec752f9680c1cc9df6dbcb9f2f4ce08865bfa54",
+   "role": "Second oracle: 'mode 5: OnDiscImzMLExperiment random access', 'mode 7: buildImagingGeometry' and the cross-mode consistency section. Source of the nine spectra, the 3x3 grid and the continuous/processed mode literals."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSImagingGeometry_test.cpp",
+   "sha256": "d5584e15345d5e4f076bef546910f1e462aa86502e0ca4d99f3a33a5365fa118",
+   "role": "Read, not claimed. Source of the default 1.0/1.0/'micrometer' pixel state, the insertion-order pixel list and the clear() contract that tests/on_disc_imzml_experiment.rs checks on ImagingGeometry. The header stays unported."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSImagingRegion_test.cpp",
+   "sha256": "60dd6425c8519551ce7ebb494fdb14fda9fe902d63ed94c15f32561f601db7a0",
+   "role": "Read, not claimed. Source of the rectangle/mask validation and intersection expectations checked on ImagingRegion."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IonImage_test.cpp",
+   "sha256": "1e6f35c4e119404455a85944cb93a312a0d5235490617b7d6e7d3052a2ff730e",
+   "role": "Read, not claimed. Source of the zeroed-and-masked-out fresh image, the row-major indexing and the out-of-bounds expectations checked on IonImage."
+  }
+ ],
+ "fixtures": [],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/ImzMLFile_1_Example_Continuous.imzML",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.imzML",
+   "sha256": "a358a80751cfd014dc86d5a18ee04c21b98063d3523c0f03f29c375f49c6b0cc",
+   "bytes": 16916,
+   "role": "Added unmodified by the ImzMLHandler package and reused here. Nine spectra at 1-based (1..3, 1..3, z=1) on a declared 3x3 grid with 100 um pixels, mode continuous, one shared float32 m/z array at .ibd offset 16. Drives the grid, coordinate-lookup and whole-image extraction tests."
+  },
+  {
+   "path": "tests/data/ImzMLFile_1_Example_Continuous.ibd",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.ibd",
+   "sha256": "a3e6f4695c121f7f4da07eec1ba7b55dbbcf06b77afd444b788909655e972e6a",
+   "bytes": 335976,
+   "role": "Companion binary; its 16-byte UUID header matches the XML's IMS:1000080, which the facade records as UuidStatus::Match at open()."
+  },
+  {
+   "path": "tests/data/ImzMLFile_2_Example_Processed.imzML",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.imzML",
+   "sha256": "066671590f01d4820b7ac5bd1f669d23dca04a91e40c08a35f7d0c6d6c729480",
+   "bytes": 23929,
+   "role": "Added unmodified by the ImzMLHandler package and reused here. Processed mode, a private m/z array per pixel, and no IMS:1000052 at all, which is what exercises the absent-param z == 1 default on the addressable plane. Also the .imzML copied to a temp path for the explicit .ibd override test."
+  },
+  {
+   "path": "tests/data/ImzMLFile_2_Example_Processed.ibd",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.ibd",
+   "sha256": "1a5410dd26e844f714b53db7506d8474a40af37323bf19396df68ea7733ded9a",
+   "bytes": 604744,
+   "role": "Companion binary, named explicitly by the .ibd override test so the inferred sibling is provably not what is read."
+  }
+ ],
+ "native_implementation": [
+  "src/kernel/on_disc_imzml_experiment.rs"
+ ],
+ "native_tests": [
+  "tests/on_disc_imzml_experiment.rs"
+ ],
+ "support_document": "docs/ON_DISC_IMZML_SUPPORT.md",
+ "depends_on": [
+  "tests/data/imzml_handler_provenance.json"
+ ],
+ "source_anchors": [
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 65,
+   "operation": "decodePeaksInto_ refuses a compressed external m/z or intensity array before any read, with the advice to re-export without compression; only MS:1000576 is acceptable"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 75,
+   "operation": "decoded m/z and intensity lengths must agree and the ParseError message names the (x,y,z) pixel; the port reproduces that message on both the getSpectrum and the extractIonImage path"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 84,
+   "operation": "a declared non-zero array that decodes to nothing raises 'failed to decode spectrum peaks from .ibd'; unreachable in the port, whose .ibd layer preflights every range against the file length and reports a short read as an error"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 101,
+   "operation": "decodeSpectrum writes the pixel coordinates as the imzml:x / imzml:y / imzml:z MetaValues, cast to Int"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 108,
+   "operation": "auxiliary external arrays are attached before sortByPosition so the FloatDataArrays stay aligned with peak order; the port sorts after the reader has attached them, for the same reason"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 159,
+   "operation": "a spectrum carrying per-peak ion mobility is marked IMPeakType::IM_PROFILE when the type is still UNKNOWN; not ported, because MSSpectrum has no im_peak_type field (docs/SPECTRUM_MOBILITY_SUPPORT.md)"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 164,
+   "operation": "decodeSpectrum ends with sortByPosition(), so getSpectrum returns m/z-sorted peaks even when the .ibd stores them unsorted"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 171,
+   "operation": "decodePeaks exists so ion-image extraction reads neither the auxiliary arrays nor the pixel MetaValues; this is why a compressed auxiliary array fails getSpectrum but not an extraction"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 209,
+   "operation": "the move constructor and move assignment leave the moved-from object holding a fresh empty Impl rather than a null pointer; Rust's move semantics make both the operations and that reset unnecessary"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 228,
+   "operation": "open() replaces pimpl_ on its first line, so a failed open leaves an empty experiment and discards whatever was loaded; the port commits only on success"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 238,
+   "operation": "open() re-derives the .ibd path from meta_.ibd_file_path and falls back to its own copy of inferIbdPath_ when that string is empty; it never is, so the fallback is unreachable duplicated logic (OpenMS_CPP_ISSUES candidate)"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 248,
+   "operation": "the .ibd is opened with fopen(\"rb\") and a null result raises Exception::FileNotFound naming the path"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 255,
+   "operation": "close() is noexcept: it closes the FILE*, clears is_open_ and clears geometry_, and deliberately retains meta_ and index_, so getNrSpectra and getIndex keep answering afterwards"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 278,
+   "operation": "getIndex and getSpectrum raise Exception::IndexOverflow for i >= index_.size()"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 298,
+   "operation": "getSpectrumAtCoord tests the open .ibd before the coordinate, then requires z == 1 && x >= 1 && y >= 1, converts to 0-based and looks the pixel up in the geometry; every other case is Exception::ElementNotFound"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 320,
+   "operation": "the whole-dataset extractIonImage materialises a std::iota over every geometry pixel before calling the shared kernel; the port iterates the range instead of allocating it"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 332,
+   "operation": "the region overload delegates the unknown-region error to geometry_.getRegionPixels, which throws Exception::ElementNotFound"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 352,
+   "operation": "gridWidth and gridHeight are shorthands for meta_.max_count_x / max_count_y, which are the declared extent and need not equal the built geometry's"
+  },
+  {
+   "path": "src/openms/include/OpenMS/IMAGING/IonImageExtraction.h",
+   "line": 78,
+   "operation": "the shared kernel rejects a non-finite or negative mz or tolerance_ppm with Exception::InvalidValue before allocating the image"
+  },
+  {
+   "path": "src/openms/include/OpenMS/IMAGING/IonImageExtraction.h",
+   "line": 85,
+   "operation": "dm = mz * tolerance_ppm * 1e-6, the image is sized from the geometry's width and height, and its m/z range is set to [mz - dm, mz + dm]"
+  },
+  {
+   "path": "src/openms/include/OpenMS/IMAGING/IonImageExtraction.h",
+   "line": 96,
+   "operation": "a pixel whose spectrum_index is not below the spectrum count raises Exception::InvalidValue 'Pixel references missing spectrum'"
+  },
+  {
+   "path": "src/openms/include/OpenMS/IMAGING/IonImageExtraction.h",
+   "line": 107,
+   "operation": "the sum runs from MZBegin(mz_lo) to MZEnd(mz_hi), so the window is inclusive at both ends, and setIntensity marks the pixel valid even when the sum is 0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 380,
+   "operation": "buildImagingGeometry applies the declared IMS:1000042/43 extent only when both values are positive, which is what lets addPixel's bounds test recognise a stray pixel"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 390,
+   "operation": "at most 20 offending spectrum indices are retained for the warning while all are counted, because a broken converter can put every spectrum on the same pixel"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 397,
+   "operation": "a spectrum with z != 1 is skipped without any warning at all, because MSImagingGeometry is 2-D and models only the first plane"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 401,
+   "operation": "imzML coordinates are 1-based, so a value below 1 is non-conformant: warn and skip the spectrum rather than aborting the load; it stays reachable by linear index"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 414,
+   "operation": "the geometry's strict in-bounds rule is softened to a warning here: a pixel beyond the declared grid is dropped from the geometry instead of throwing"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 424,
+   "operation": "a duplicated pixel keeps the first spectrum in document order; later ones are counted, dropped from the geometry and still reachable by index"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 459,
+   "operation": "after the loop an undeclared width or height is derived as max_x + 1 / max_y + 1, and setDimensions is re-applied only when the result differs from what the geometry already holds"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 472,
+   "operation": "the pixel size is copied into the geometry, in micrometres, only when both IMS:1000046 and IMS:1000047 are positive; otherwise the geometry's own 1.0/1.0 default stands"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 568,
+   "operation": "loadImpl_ resolves the .ibd path as override-or-inferIbdPath_ and then assigns meta_.ibd_file_path unconditionally; this is the line that makes the facade's own empty-path fallback dead code"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 616,
+   "operation": "verifyIbdUuid_ runs after the parse on every read path, including the on-disc reader, and warns rather than throwing for a mismatch, a missing XML UUID or a too-short .ibd"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingGeometry.cpp",
+   "line": 46,
+   "operation": "addPixel rejects a coordinate outside the configured bounds and a duplicate coordinate with Exception::InvalidValue; the bounds test is skipped entirely while either dimension is zero"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingGeometry.cpp",
+   "line": 70,
+   "operation": "getSpectrumIndex throws Exception::ElementNotFound for a coordinate with no pixel; the port returns None, because an unacquired pixel is the normal state of most of an image"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingGeometry.cpp",
+   "line": 90,
+   "operation": "regionOf requires an acquired pixel first and returns the NO_REGION sentinel both for an unacquired coordinate and for one in no region; the port returns None"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingGeometry.cpp",
+   "line": 141,
+   "operation": "clear() restores width 0, height 0, pixel size 1.0/1.0 and unit 'micrometer', which is also the member-initialiser state of a default-constructed geometry"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingGeometry.cpp",
+   "line": 153,
+   "operation": "addRegion rejects the NO_REGION identifier, a duplicate identifier and a footprint that geometrically overlaps an existing region; regions are therefore disjoint by construction"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingGeometry.cpp",
+   "line": 171,
+   "operation": "removeRegion erases from the vector and rebuilds the whole id-to-position map, so positions stay valid"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingGeometry.cpp",
+   "line": 184,
+   "operation": "packKey_ is (y << 32) | x, so the lookup key is exactly the coordinate pair; the port keeps the layout and stores it in a BTreeMap for deterministic iteration"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingRegion.cpp",
+   "line": 17,
+   "operation": "rectangle rejects a maximum below its minimum; bounding boxes are inclusive on both ends"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingRegion.cpp",
+   "line": 37,
+   "operation": "fromMask rejects a zero extent, a mask whose length is not width*height and an all-false mask, then sets max = origin + extent - 1 in wrapping UInt arithmetic; the port refuses the overflow instead"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingRegion.cpp",
+   "line": 91,
+   "operation": "area() is the bounding-box area for a rectangle and the set-bit count for a mask"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingRegion.cpp",
+   "line": 97,
+   "operation": "contains() tests the bounding box first and then, for a mask, the bbox-local row-major bit"
+  },
+  {
+   "path": "src/openms/source/IMAGING/MSImagingRegion.cpp",
+   "line": 107,
+   "operation": "intersects() early-returns on disjoint bounding boxes, short-circuits true for two rectangles, and otherwise walks the intersection of the two boxes, which is bounded by the smaller mask"
+  },
+  {
+   "path": "src/openms/source/IMAGING/IonImage.cpp",
+   "line": 21,
+   "operation": "resize assigns width*height zeros and a parallel all-false mask, so every cell becomes invalid again; there is no ceiling on the product"
+  },
+  {
+   "path": "src/openms/source/IMAGING/IonImage.cpp",
+   "line": 40,
+   "operation": "hasPixel answers false for an out-of-bounds coordinate instead of throwing, unlike every other accessor"
+  },
+  {
+   "path": "src/openms/source/IMAGING/IonImage.cpp",
+   "line": 78,
+   "operation": "linearIndex_ raises Exception::IndexOverflow for an out-of-bounds coordinate, which is what a 0x0 image does to the first setIntensity of an extraction"
+  }
+ ],
+ "evidence": "Tier 3 source review with one independent cross-check. OnDiscImzMLExperiment is constructed in 22 distinct upstream sections (19 in ImzMLFile_test.cpp, 3 in ImzMLFile_all_modes_test.cpp); 17 are ported, 2 are partial and 3 are writer-driven and unreproducible without ImzMLWriter, with the per-section table in docs/ON_DISC_IMZML_SUPPORT.md, and tier 4 for everything no upstream fixture reaches. OnDiscImzMLExperiment has no class test of its own; it is exercised through ImzMLFile_test.cpp and ImzMLFile_all_modes_test.cpp, whose literals are transcribed into tests/on_disc_imzml_experiment.rs: nine spectra on a 3x3 grid with getNumberOfPixels() == getNrSpectra() and getSpectrumIndex(0,0) == 0, 100 um pixels in micrometres, the continuous and processed modes, the duplicate-pixel contract (size() == 2, one mapped pixel, spectrum 0 keeps it), the explicit-.ibd-override regression case, and the sorted-external-peaks case whose on-disc ion image at pixel (0,0) is 1310.0 for peaks stored 131.0/121.0 in that order. The independent check does not rely on that suite: every extracted ion-image pixel is compared against a sum computed in the test directly from ImzMLHandler::spectrum over the same window, which is the Rust equivalent of the C++ section's in-memory-versus-on-disc comparison (the in-memory MSImagingExperiment path is unported). The MAX_IMAGE_PIXELS and MAX_REGIONS ceilings, the hostile .ibd offset, the atomic-open behaviour, the non-finite rejections, the u32 far-corner overflow and every Error-variant choice are independently derived (tier 4). No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential.",
+ "gaps": [
+  "IMAGING/MSImagingGeometry.h, IMAGING/MSImagingRegion.h, IMAGING/IonImage.h and IMAGING/IonImageExtraction.h are not this package's headers. ImagingGeometry, ImagingRegion and IonImage reproduce as much of them as the facade's public surface requires, because getGeometry() and extractIonImage() cannot be ported otherwise. Their own class tests (MSImagingGeometry_test.cpp, MSImagingRegion_test.cpp, IonImage_test.cpp) were read, and the behaviours the facade depends on are checked, but those suites were not ported section by section and no claim is made on the headers. A later IMAGING package owns them and may replace these types.",
+  "IMAGING/MSImagingExperiment.h, the in-memory counterpart, is unported. The C++ extractIonImage sections compare on-disc against in-memory results; the Rust test compares against a sum computed from ImzMLHandler instead.",
+  "MSSpectrum has no im_peak_type field, so the source's IMPeakType::IM_PROFILE marking in decodeSpectrum is not reproduced. The same gap is recorded in docs/SPECTRUM_MOBILITY_SUPPORT.md, and MSSpectrum belongs to another package.",
+  "PeakFileOptions is not threaded through. The source's open() constructs an ImzMLFile, sets ProgressLogger::NONE and inherits that object's options; the facade reads no option and reports no progress. SortSpectraByMZ is the only option that would change an on-disc result, and this port always sorts, which is what the source does on this path.",
+  "The source parallelises nothing in this header, and neither does this port; the pixel sweep is serial in both.",
+  "close() copies the parsed index out of the reader in order to keep the source's post-close contract (getNrSpectra and getIndex keep answering), so it is O(number of spectra) where the source's is O(1).",
+  "docs/core-sdk-reviewed-apis.json and docs/core-sdk-coverage.json were not edited: both are outside this package's scope. tools/core_sdk_coverage.py already reports the coverage file as stale from the ImzMLHandler package's manifest alone, and it maps src/kernel/on_disc_imzml_experiment.rs onto KERNEL/OnDiscImzMLExperiment.h and IMAGING/IonImage.h by name; the integrator must add the ledger entry and run --write.",
+  "SOURCE_PROVENANCE.json's current_sdk_reference_manifests lists neither tests/data/imzml_handler_provenance.json nor this manifest, so check_core_sdk.py does not yet hash-verify either. Adding both is the integrator's step.",
+  "docs/doc-coverage.json was not rewritten. src/kernel/on_disc_imzml_experiment.rs measures 100.0% (88/88) and src/kernel.rs stays at 100.0% (70/70); recording the new floor with --write touches a file outside this package's scope.",
+  "CI wiring was not added: append '--test on_disc_imzml_experiment' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features --features mzml, under --all-features and under cargo +1.85.0."
+ ]
+}
