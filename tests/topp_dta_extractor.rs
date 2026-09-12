@@ -6,6 +6,11 @@
 //! tool, so agreement here is executed differential evidence for the whole
 //! chain: command line, parameter validation, mzML reading and DTA writing.
 
+// The TOPP framework lives behind `paramxml` (every tool supports -ini) and these
+// tools read mzML, so the whole file is inert without both features. Without this
+// gate `cargo test --no-default-features` fails to compile.
+#![cfg(all(feature = "mzml", feature = "paramxml"))]
+
 use openms::cli::tools::DTAExtractor;
 use openms::cli::{ExitCode, run_with};
 use std::fs;

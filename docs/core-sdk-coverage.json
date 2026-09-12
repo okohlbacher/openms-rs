@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 12,
-      "evidence_requires_review": 167,
-      "native_equivalent": 62,
-      "partial": 21,
-      "unmapped": 524
+      "complete": 16,
+      "evidence_requires_review": 159,
+      "native_equivalent": 70,
+      "partial": 20,
+      "unmapped": 521
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -4433,10 +4433,23 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
       "sha256": "787ed51ddf700a472a09dcaed4eb738c50ab8353e0b212f0a6a8a3171615b495",
       "domain": "DATASTRUCTURES",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/data_structures/dinterval.rs"
+        ],
+        "tests": [
+          "tests/dinterval.rs"
+        ],
+        "documentation": "docs/DPOSITION_SUPPORT.md",
+        "scope": "Complete public surface: the exact empty sentinel (min +DBL_MAX, max -DBL_MAX), zero statics, normalising corner constructor and setMinMax, corner-adjusting setMin/setMax and 2D accessors, cross-dimension assign, isEmpty per dimension, center, diagonal, width, height and translation."
+      },
+      "candidate_rust_files": [
+        "src/data_structures/dinterval.rs"
+      ],
       "reference_manifests": [
+        "tests/data/dposition_provenance.json",
         "tests/data/peak_file_options_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -4445,10 +4458,23 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
       "sha256": "3e459554651865c58b174d0d80f89ca877aee6fb62bfc570c66fa48cf5434e40",
       "domain": "DATASTRUCTURES",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/data_structures/dposition.rs"
+        ],
+        "tests": [
+          "tests/dposition.rs"
+        ],
+        "documentation": "docs/DPOSITION_SUPPORT.md",
+        "scope": "Complete public surface as const-generic DPosition<D> over f64: all constructors, finite-extrema statics, checked and indexed access, lexicographic ordering, spatial comparisons, every arithmetic operator including inner product, iterators, Display and signed-zero-normalised Hash. The coordinate type is fixed to f64."
+      },
+      "candidate_rust_files": [
+        "src/data_structures/dposition.rs"
+      ],
       "reference_manifests": [
+        "tests/data/dposition_provenance.json",
         "tests/data/peak2d_provenance.json",
         "tests/data/peak_file_options_provenance.json"
       ],
@@ -4460,10 +4486,23 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
       "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060",
       "domain": "DATASTRUCTURES",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/data_structures/drange.rs"
+        ],
+        "tests": [
+          "tests/drange.rs"
+        ],
+        "documentation": "docs/DPOSITION_SUPPORT.md",
+        "scope": "Complete public surface composing DIntervalBase: the DRangeIntersection enum, half-open encloses, transcribed intersects and united including the empty-plus-empty universal-range quirk, extend_by_factor with checked factors, extend_by with centre collapse, ensure_min_span, swap_dimensions and pull_in as a return value."
+      },
+      "candidate_rust_files": [
+        "src/data_structures/drange.rs"
+      ],
       "reference_manifests": [
+        "tests/data/dposition_provenance.json",
         "tests/data/featurexml_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_isolation_provenance.json",
@@ -8333,7 +8372,8 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mass_trace_detection_provenance.json"
+        "tests/data/mass_trace_detection_provenance.json",
+        "tests/data/ranges_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -8414,12 +8454,26 @@
       "header": "src/openms/include/OpenMS/KERNEL/BinnedSpectrum.h",
       "sha256": "e734cfa2a84c79d5a41e3376ad85696b9e48adb58c87f71564e5722896b5d49f",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs",
+          "src/kernel/gap_closures.rs"
+        ],
+        "tests": [
+          "tests/binned_spectrum.rs",
+          "tests/comparison.rs"
+        ],
+        "documentation": "docs/COMPARISON_SUPPORT.md",
+        "scope": "Every public member reviewed; the four DEFAULT_BIN_* constants added. Deliberately not ported: the null-bins default constructor, mutable bin and precursor access, and coeffRef zero-insertion on lookup. Equality also compares the offset; ppm m/z below 1 and unsorted input are checked errors."
+      },
       "candidate_rust_files": [
         "src/comparison.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/kernel_gap_closures_provenance.json"
+      ],
       "direct_topp_consumers": [
         "OpenNuXL"
       ]
@@ -8455,11 +8509,22 @@
       "header": "src/openms/include/OpenMS/KERNEL/ChromatogramRangeManager.h",
       "sha256": "cd366a55182c0540dc7b570bf248da01945e37d1185e9fa77446098ca342284c",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/ranges.rs"
+        ],
+        "tests": [
+          "tests/ranges.rs"
+        ],
+        "documentation": "docs/RANGES_SUPPORT.md",
+        "scope": "RangeManager<RT, Intensity, MZ> as chromatogram_manager(); the experiment's chromatogram role reproduces the source product m/z of pointless chromatograms, and combined_range_manager merges spectra then chromatograms."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/experiment_summary_provenance.json"
+        "tests/data/experiment_summary_provenance.json",
+        "tests/data/ranges_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -8579,10 +8644,23 @@
       "header": "src/openms/include/OpenMS/KERNEL/DPeak.h",
       "sha256": "82b6a53f382fdb9111a17ae1162ef0f33e90cfe34eee37e35bfa5e45c956e60f",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel.rs",
+          "src/kernel/peak2d.rs"
+        ],
+        "tests": [
+          "tests/kernel_aliases.rs"
+        ],
+        "documentation": "docs/NATIVE_EQUIVALENTS.md",
+        "scope": "Compile-time selector with two specialisations: DPeak<1>::Type is Peak1D and DPeak<2>::Type is Peak2D. The empty primary template and the namespace-scope default objects have no API and are not represented. No runtime behaviour differs."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/kernel_gap_closures_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8619,12 +8697,27 @@
       "header": "src/openms/include/OpenMS/KERNEL/FeatureHandle.h",
       "sha256": "d9c75f7b57f4b7ff29dafa9189e899b09946176a57bfa582d4ae3d18357f89d4",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/kernel/features.rs",
+          "src/kernel/gap_closures.rs",
+          "src/concept/unique_id.rs"
+        ],
+        "tests": [
+          "tests/feature_handle.rs",
+          "tests/features.rs"
+        ],
+        "documentation": "docs/FEATURE_SUPPORT.md",
+        "scope": "Every public member reviewed; gap closures add the Peak2D and element-index constructor, Display, Hash with signed-zero normalisation and HasUniqueId. IndexLess is key-tuple ordering; asMutable and FeatureHandleMutable_ are replaced by &mut and set_handles. validate rejects the negative width the source stores."
+      },
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/kernel_gap_closures_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8715,7 +8808,8 @@
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/experiment_aggregation_provenance.json",
         "tests/data/experiment_summary_provenance.json",
-        "tests/data/feature_hypothesis_provenance.json"
+        "tests/data/feature_hypothesis_provenance.json",
+        "tests/data/ranges_provenance.json"
       ],
       "direct_topp_consumers": [
         "EICExtractor"
@@ -8764,6 +8858,7 @@
         "tests/data/peak2d_provenance.json",
         "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
+        "tests/data/ranges_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8876,6 +8971,7 @@
         "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/proforma_spectra_provenance.json",
+        "tests/data/ranges_provenance.json",
         "tests/data/rna_processing_provenance.json",
         "tests/data/spectrum_annotation_provenance.json",
         "tests/data/text_peak_lists_provenance.json",
@@ -8990,7 +9086,8 @@
         "src/kernel/mobilogram.rs"
       ],
       "reference_manifests": [
-        "tests/data/mobilogram_provenance.json"
+        "tests/data/mobilogram_provenance.json",
+        "tests/data/ranges_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9105,14 +9202,27 @@
       "header": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
       "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/ranges.rs"
+        ],
+        "tests": [
+          "tests/ranges.rs"
+        ],
+        "documentation": "docs/RANGES_SUPPORT.md",
+        "scope": "RangeBase algebra, per-dimension RT/MZ/intensity/mobility families, MSDim, HasRangeType and a run-time-dimensioned RangeManager (assign/extend/pushInto/clampTo/containsAll/hasRange/getRangeForDim/clear/printRange). The container updateRanges/getRange cache becomes on-demand range_manager() accessors by design; the mutable cache is not ported."
+      },
+      "candidate_rust_files": [
+        "src/kernel/ranges.rs"
+      ],
       "reference_manifests": [
         "tests/data/area_iteration_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/mobilogram_provenance.json",
-        "tests/data/peak_data_provenance.json"
+        "tests/data/peak_data_provenance.json",
+        "tests/data/ranges_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9120,10 +9230,22 @@
       "header": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
       "sha256": "1cc25d24b1e729ef0c3ac1f61203dd36fbcfe47d5358a2f4dbb8cfbe05da3cd4",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/kernel/range_utils.rs"
+        ],
+        "tests": [
+          "tests/range_utils.rs"
+        ],
+        "documentation": "docs/RANGE_UTILS_SUPPORT.md",
+        "scope": "All fifteen functors: thirteen ported as SpectrumPredicate/PeakPredicate structs with the source reverse flag and closed-interval and MS1 early-return conventions; InRTRange and InMSLevelRange map to existing experiment APIs. Adds retain_spectra and retain_peaks_where with a count preflight."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/range_utils_provenance.json"
+      ],
       "direct_topp_consumers": [
         "AssayGeneratorMetabo",
         "AssayGeneratorMetaboSirius",
@@ -9136,24 +9258,26 @@
       "header": "src/openms/include/OpenMS/KERNEL/RichPeak2D.h",
       "sha256": "66cdccdcc7ccec237b5ddb4dcd164defa5d8179b218a55b7f32ab1c568f417a9",
       "domain": "KERNEL",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/kernel/peak2d.rs",
           "src/concept/unique_id.rs"
         ],
         "tests": [
+          "tests/rich_peak2d.rs",
           "tests/peak2d.rs",
           "tests/unique_id.rs"
         ],
         "documentation": "docs/PEAK2D_SUPPORT.md",
-        "scope": "Complete direct point/value/conversion surface with owned metadata and ID, Deref and HasUniqueId. Plain assignment returns previous ownership and clears metadata/ID. Full inherited C++ metadata registry/equality conventions and global-service ABI remain native boundaries requiring separate class coverage."
+        "scope": "Every public and inherited member reviewed: constructors, copy and move, Peak2D assignment returning the previous value, equality, Deref point access, name-keyed metadata and HasUniqueId. Registry-index metadata overloads and the process ID-generator singleton are not ported."
       },
       "candidate_rust_files": [
         "src/kernel/peak2d.rs"
       ],
       "reference_manifests": [
+        "tests/data/kernel_gap_closures_provenance.json",
         "tests/data/peak2d_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -9162,11 +9286,22 @@
       "header": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
       "sha256": "70e1af93e346f655de0072f6424a7ea504252639a71f1dfe5ffac89cdc3b855d",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/spectrum_helper.rs"
+        ],
+        "tests": [
+          "tests/spectrum_helper.rs"
+        ],
+        "documentation": "docs/SPECTRUM_HELPER_SUPPORT.md",
+        "scope": "Complete free-function surface: data-array lookup by name for all three array kinds, minimum-intensity rebasing with source f32/f64 arithmetic, IntensityAveragingMethod in source order, position-unique merging and metadata-only copy including drift time and unit. removePeaks maps to retain_peaks. Source metadata loss is retained only behind an explicit option."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/iterative_provenance.json"
+        "tests/data/iterative_provenance.json",
+        "tests/data/spectrum_helper_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -9174,10 +9309,24 @@
       "header": "src/openms/include/OpenMS/KERNEL/SpectrumRangeManager.h",
       "sha256": "57709f2901021f536e61b073247caf245861ad41e31a14182993920d775508ca",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel/ranges.rs"
+        ],
+        "tests": [
+          "tests/ranges.rs"
+        ],
+        "documentation": "docs/RANGES_SUPPORT.md",
+        "scope": "Global plus per-MS-level ranges: clearRanges, extend(other, level), byMSLevel (Option instead of throw), getMSLevels, extendRT/extendMZ and extendUnsafe(spectrum), computed on demand. Peakless spectra contribute RT; mobility comes from the IM array, else the scalar drift time."
+      },
+      "candidate_rust_files": [
+        "src/kernel/ranges.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/ranges_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -9192,13 +9341,14 @@
           "src/lib.rs"
         ],
         "tests": [
-          "tests/kernel.rs"
+          "tests/kernel_aliases.rs"
         ],
         "documentation": "docs/NATIVE_EQUIVALENTS.md",
-        "scope": "All three aliases map directly to existing MSSpectrum, MSExperiment and MSChromatogram. No alias wrapper is needed. This closes only the alias header; it does not certify full underlying class or forward-declared Mobilogram behavior."
+        "scope": "Four forward declarations and three typedefs: PeakSpectrum, PeakMap and Chromatogram are MSSpectrum, MSExperiment and MSChromatogram. No second Rust name is introduced; consumers take the MS* type."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/kernel_gap_closures_provenance.json",
         "tests/data/native_equivalents_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -12066,7 +12216,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/RangeUtils.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
         "OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h"
@@ -12109,7 +12258,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/RangeUtils.h",
         "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
         "OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h",
         "OpenMS/SYSTEM/File.h"
@@ -12712,7 +12860,6 @@
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/RangeUtils.h",
         "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -12882,7 +13029,6 @@
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/DBoundingBox.h",
-        "OpenMS/DATASTRUCTURES/DPosition.h",
         "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
         "OpenMS/FEATUREFINDER/MultiplexClustering.h",
         "OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h",
@@ -12898,7 +13044,6 @@
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/RangeUtils.h",
         "OpenMS/ML/CLUSTERING/GridBasedCluster.h",
         "OpenMS/ML/REGRESSION/LinearRegression.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
@@ -13079,7 +13224,6 @@
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/RangeUtils.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h"
       ],
@@ -14758,7 +14902,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/KERNEL/BinnedSpectrum.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/KERNEL/MSSpectrum.h",
         "OpenMS/MATH/MathFunctions.h",

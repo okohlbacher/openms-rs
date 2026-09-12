@@ -5,6 +5,11 @@
 //! retained C++ output. The upstream `${DIFF}` runs with an index whitelist, so
 //! byte equality was never the contract; this compares decoded content.
 
+// The TOPP framework lives behind `paramxml` (every tool supports -ini) and these
+// tools read mzML, so the whole file is inert without both features. Without this
+// gate `cargo test --no-default-features` fails to compile.
+#![cfg(all(feature = "mzml", feature = "paramxml"))]
+
 use openms::cli::tools::MapNormalizer;
 use openms::cli::{ExitCode, run_with};
 use openms::format::file_handler::FileHandler;

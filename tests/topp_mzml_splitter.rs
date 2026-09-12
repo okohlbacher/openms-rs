@@ -9,6 +9,11 @@
 //! this compares decoded content: how many records each part received, which
 //! records they are, and their peak values.
 
+// The TOPP framework lives behind `paramxml` (every tool supports -ini) and these
+// tools read mzML, so the whole file is inert without both features. Without this
+// gate `cargo test --no-default-features` fails to compile.
+#![cfg(all(feature = "mzml", feature = "paramxml"))]
+
 use openms::cli::tools::MzMLSplitter;
 use openms::cli::{ExitCode, run_with};
 use openms::format::file_handler::FileHandler;

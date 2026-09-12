@@ -3,6 +3,11 @@
 // $Maintainer: OpenMS Rust contributors $
 //! The upstream `TOPP_BaselineFilter_1` test against the retained C++ output.
 
+// The TOPP framework lives behind `paramxml` (every tool supports -ini) and these
+// tools read mzML, so the whole file is inert without both features. Without this
+// gate `cargo test --no-default-features` fails to compile.
+#![cfg(all(feature = "mzml", feature = "paramxml"))]
+
 use openms::cli::tools::BaselineFilter;
 use openms::cli::{ExitCode, run_with};
 use openms::format::file_handler::FileHandler;
