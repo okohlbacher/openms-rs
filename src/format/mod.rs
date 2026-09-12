@@ -75,6 +75,8 @@ pub mod mzml;
 pub mod mzml_schema;
 /// MzTab data model: cell vocabulary, record structs and document (`MzTabBase.h`, `MzTab.h`).
 pub mod mztab;
+/// MzTab-M metabolomics profile: data model, `FeatureMap` export and writer (`MzTabM.h`, `MzTabMFile.h`).
+pub mod mztab_m;
 
 use crate::{Error, Result};
 
