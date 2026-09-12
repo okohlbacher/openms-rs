@@ -625,6 +625,46 @@
    "documentation": "docs/FILE_HANDLING_SUPPORT.md",
    "scope": "All 73 source formats, names, descriptions, properties, CV names, directory kinds and FileTypeList filter generation/lookup. Rust enum excludes invalid numeric sentinel values. Source properties are distinct from Rust adapter support."
   },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/imzml_file.rs",
+    "src/format/imzml_handler.rs"
+   ],
+   "tests": [
+    "tests/imzml_all_modes.rs",
+    "tests/imzml_file.rs",
+    "tests/imzml_handler.rs"
+   ],
+   "documentation": "docs/IMZML_HANDLER_SUPPORT.md",
+   "scope": "The IMS interception layer the source defines: three-block CV dispatch, referenceable-group replay, per-spectrum index, dataset geometry, both storage modes and per-pixel .ibd decode. A one-pass value-returning parser replaces the SAX subclass, so ImzMLInterceptConsumer, connectDecodeConsumer and the mutable meta accessor are deliberately unported. mzML metadata stays with crate::format::mzml. Every reader-side section of the family's two class tests is now ported and passing, against both upstream fixtures and against writer round trips verified through the .ibd offsets for every spectrum. Still tier 3: no C++ was built or executed. The mzML base-class metadata this handler inherits in C++ remains unavailable. Held below native_equivalent by an open audit finding: a spectrum with exactly one external peak array returns Err where ImzMLHandler.cpp:198-234 fills the non-external side from the inline peaks and succeeds. Conformant imzML 1.1.0 always stores both arrays externally, so this needs a non-conformant file."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h": {
+   "status": "complete",
+   "rust": [
+    "src/format/imzml_handler.rs"
+   ],
+   "tests": [
+    "tests/imzml_all_modes.rs",
+    "tests/imzml_file.rs",
+    "tests/imzml_handler.rs"
+   ],
+   "documentation": "docs/IMZML_HANDLER_SUPPORT.md",
+   "scope": "All three records and all seven ImzMLBinaryIO methods: ImzMLMeta geometry/mode/checksums/acquisition, ImzMLSpectrumIndex with DataType and AuxArray, the four typed .ibd readers and four little-endian writers. Offsets and lengths are preflighted against the file length and explicit ceilings before allocation; from_le_bytes replaces the conditional byte swap. UUID parsing and SHA-1 verification added. ImzMLMeta, ImzMLSpectrumIndex and ImzMLAuxArray are now exercised end to end through loadSpectraIndex in both suites, including the all-modes index-only section and the binary-precision section asserting FLOAT64 after setMz32Bit(false). Tier 3 only; no C++ was executed and no C++ output retained."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLWriter.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/imzml_file.rs",
+    "src/format/imzml_writer.rs"
+   ],
+   "tests": [
+    "tests/imzml_file.rs",
+    "tests/imzml_writer.rs"
+   ],
+   "documentation": "docs/IMZML_WRITER_SUPPORT.md",
+   "scope": "The header's single public member, static ImzMLWriter::store, is ported as store/store_with_options with every documented behaviour of its @brief block mapped member-by-member in the support doc: both storage modes, the .ibd UUID header and layout, PeakFileOptions precision and filtering, FloatDataArray export with ontology resolution, duplicate pixels, and all five @throws. One statement is explicitly not ported (MSSpectrum::containsIMData, a KERNEL header). Every writer-driven class-test section is now ported through ImzMLFile::store, including the three the on-disc stage could not reach, and each round trip is checked through the .ibd offsets for every spectrum with distinct increasing offsets asserted in processed mode. Tier 3; no C++ output was retained. Held below complete by three open audit findings: float cvParam text does not follow the source's std::to_chars fixed/scientific rule (NumericFormatting.h:26-135); six meta keys use the erroring MetaValue::as_str where DataValue::toString() is deliberately lenient (ImzMLWriter.cpp:340-390); and a misaligned auxiliary data array is skipped with default options but fatal under any sort or trimming filter."
+  },
   "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h": {
    "status": "native_equivalent",
    "rust": [
@@ -662,6 +702,18 @@
    ],
    "documentation": "docs/IDENTIFICATION_PATH_SUPPORT.md",
    "scope": "Native idXML document read/write and direct path load/store, document identifier, registry/options overloads, bounded plain/gzip/bzip2 input and source plain output regardless of suffix. Checked output extension and atomic file/destination replacement. Existing metadata/sequence encoding boundaries, source hit-order/rank differences, ZIP and inherited logger/schema/CV APIs remain."
+  },
+  "src/openms/include/OpenMS/FORMAT/ImzMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/imzml_file.rs"
+   ],
+   "tests": [
+    "tests/imzml_all_modes.rs",
+    "tests/imzml_file.rs"
+   ],
+   "documentation": "docs/IMZML_FILE_SUPPORT.md",
+   "scope": "All thirteen declared public members ported and documented, plus the private helpers and the inherited XMLFile/ProgressLogger surface. All 50 family class-test sections ported. Withheld from complete because load does not reconstruct the mzML-level metadata MzMLHandler supplies: three strictnesses in src/format/mzml.rs, a file this package does not own, block it. All 50 class-test sections of ImzMLFile_test.cpp and ImzMLFile_all_modes_test.cpp are ported, none mapped. Held at evidence_requires_review because the ported ClassTest::isRealSimilar helper backing 47 of those assertions omitted the opposite-sign branch of ClassTest.cpp:439-451, so those assertions were weaker than they read until it is corrected."
   },
   "src/openms/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h": {
    "status": "native_equivalent",
@@ -826,6 +878,39 @@
    ],
    "documentation": "docs/SEMANTIC_VALIDATOR_SUPPORT.md",
    "scope": "Complete class-specific general CV/mapping validation, ParsedCVTerm value, configurable qnames/attributes/switches, borrowed providers, owned error/warning report and selection-only locate_term. Source order/count collisions, MUST/MAY/SHOULD logic and value conversions retained, including documented non-XSD date behavior CPP-046. Unit descendant target, failed-parse state and history-dependent absent-path lookup corrected (CPP-039/040/044). Exact historical 738-term CV, valid/corrupt XML and all nine diagnostic literals; independent branch/resource/transport tests. Shared private XML extraction preserves CVMapping behavior; optional semantic-validation feature. Inherited XMLFile, C++ subclass extension points, derived format validators and full XSD lexical/schema validation are separate."
+  },
+  "src/openms/include/OpenMS/IMAGING/IonImage.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel/on_disc_imzml_experiment.rs"
+   ],
+   "tests": [
+    "tests/on_disc_imzml_experiment.rs"
+   ],
+   "documentation": "docs/ON_DISC_IMZML_SUPPORT.md",
+   "scope": "Reproduced as IonImage because it is extractIonImage's return type; every public member is mapped, with a MAX_IMAGE_PIXELS ceiling the source lacks. IonImage_test.cpp was read but not ported section by section. Owned by a later IMAGING package."
+  },
+  "src/openms/include/OpenMS/IMAGING/MSImagingGeometry.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel/on_disc_imzml_experiment.rs"
+   ],
+   "tests": [
+    "tests/on_disc_imzml_experiment.rs"
+   ],
+   "documentation": "docs/ON_DISC_IMZML_SUPPORT.md",
+   "scope": "Reproduced as ImagingGeometry because getGeometry() returns it; every public member is mapped. Not a claim on the header: MSImagingGeometry_test.cpp was read but not ported section by section, and a later IMAGING package owns it and may replace the type."
+  },
+  "src/openms/include/OpenMS/IMAGING/MSImagingRegion.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel/on_disc_imzml_experiment.rs"
+   ],
+   "tests": [
+    "tests/on_disc_imzml_experiment.rs"
+   ],
+   "documentation": "docs/ON_DISC_IMZML_SUPPORT.md",
+   "scope": "Reproduced as ImagingRegion because the region-scoped extractIonImage overload needs a footprint type; every public member is mapped. MSImagingRegion_test.cpp was read but not ported section by section. Owned by a later IMAGING package."
   },
   "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h": {
    "status": "native_equivalent",
@@ -1161,6 +1246,20 @@
    ],
    "documentation": "docs/MOBILOGRAM_SUPPORT.md",
    "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain. Every declared member is in the API table and all 48 class-test sections are ported. The inherited RangeManagerContainer surface maps onto the on-demand Mobilogram::range_manager(); the source's cached updateRanges and its cache-mutating members have no counterpart, a ratified divergence. selectUnchecked is deliberately absent."
+  },
+  "src/openms/include/OpenMS/KERNEL/OnDiscImzMLExperiment.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/imzml_file.rs",
+    "src/kernel/on_disc_imzml_experiment.rs"
+   ],
+   "tests": [
+    "tests/imzml_all_modes.rs",
+    "tests/imzml_file.rs",
+    "tests/on_disc_imzml_experiment.rs"
+   ],
+   "documentation": "docs/ON_DISC_IMZML_SUPPORT.md",
+   "scope": "Every public member ported: default construction, open with derived or explicit .ibd path, close, isOpen, getNrSpectra/size, getIndex, getSpectrum, getSpectrumAtCoord, both extractIonImage overloads, getImzMLMeta, both getGeometry overloads, gridWidth/gridHeight. operator[] has no Index impl; IMPeakType is unrepresentable. Tier 3 review plus one independent cross-check; no executed differential. The five sections the on-disc stage recorded as partial or writer-driven are now ported, including both extractIonImage comparisons against a genuine in-memory path and the cross-mode section comparing the three access paths bit for bit where upstream compares only peak counts. Tier 3; no C++ was executed. Held by an open audit finding: extract_ion_image reads peak arrays through mz_array/intensity_array, which do not test mz_external/int_external, while spectrum() gates each read on them, so the two paths disagree for the same pixel."
   },
   "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h": {
    "status": "native_equivalent",
@@ -1524,5 +1623,19 @@
    "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
   }
  },
- "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md"
+ "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md",
+ "outside_registered_union": {
+  "src/openms/include/OpenMS/IMAGING/IonImageExtraction.h": {
+   "status": "partial",
+   "rust": [
+    "src/kernel/on_disc_imzml_experiment.rs"
+   ],
+   "tests": [
+    "tests/on_disc_imzml_experiment.rs"
+   ],
+   "documentation": "docs/ON_DISC_IMZML_SUPPORT.md",
+   "scope": "The header-only shared kernel Internal::extractIonImage is ported as the private OnDiscImzMLExperiment::extract. With the in-memory caller unported there is one caller, so the generic form is not reproduced; restore it when MSImagingExperiment is ported.",
+   "note": "Ported alongside the imzML family but NOT a registered public header: docs/core-sdk-update.json records it as not_in_scientific_registration_union, so it is outside the 786-header denominator and cannot appear in `headers`. Same category as APPLICATIONS/TOPPBase.h."
+  }
+ }
 }

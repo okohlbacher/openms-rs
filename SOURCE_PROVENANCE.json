@@ -568,7 +568,11 @@
   "tests/data/on_disc_experiment_provenance.json",
   "tests/data/experiment_mobility_provenance.json",
   "tests/data/im_types_provenance.json",
-  "tests/data/consensus_display_provenance.json"
+  "tests/data/consensus_display_provenance.json",
+  "tests/data/on_disc_imzml_provenance.json",
+  "tests/data/imzml_file_provenance.json",
+  "tests/data/imzml_handler_provenance.json",
+  "tests/data/imzml_writer_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -632,5 +636,11 @@
   "tests/data/im_types_provenance.json",
   "tests/data/map_operations_provenance.json",
   "tests/data/on_disc_experiment_provenance.json"
+ ],
+ "imzml_family_reference_manifests": [
+  "tests/data/on_disc_imzml_provenance.json",
+  "tests/data/imzml_file_provenance.json",
+  "tests/data/imzml_handler_provenance.json",
+  "tests/data/imzml_writer_provenance.json"
  ]
 }
