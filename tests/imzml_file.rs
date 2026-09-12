@@ -36,6 +36,15 @@
 //! The resource ceilings, the refusal of a filter whose input is not parsed,
 //! and the `fill_data` load are independently derived (tier 4): no upstream
 //! fixture reaches them.
+//!
+//! The float oracle itself is tested. [`is_real_similar`] is
+//! `ClassTest::isRealSimilar` ported branch for branch, and thirteen tests at
+//! the end of this file pin every branch of it, including the two upstream
+//! quirks it faithfully reproduces and the two guards [`close`] adds to keep
+//! those quirks away from the 38 call sites. An earlier version of that helper
+//! omitted the opposite-sign branch and so accepted any sign error whose
+//! magnitudes matched; `docs/IMZML_FILE_SUPPORT.md` records what re-running the
+//! file against the faithful oracle did and did not turn up.
 
 #![cfg(feature = "mzml")]
 
@@ -164,33 +173,135 @@ fn reference_sum(spectrum: &MSSpectrum, mz: f64, tolerance_ppm: f64) -> f64 {
         .sum()
 }
 
-/// `TEST_REAL_SIMILAR`, as `ClassTest::isRealSimilar` defines it: similar when
-/// the absolute difference is within `1e-5` **or** the ratio is within
-/// `1 + 1e-5`. The C++ literals here are decimal roundings of values stored as
-/// float32, so this is the comparison the upstream suite actually makes.
+/// `ClassTest::absdiff_max_allowed`, the absolute tolerance of
+/// `TEST_REAL_SIMILAR` (`ClassTest.cpp:35`).
+const ABSDIFF_MAX_ALLOWED: f64 = 1E-5;
+/// `ClassTest::ratio_max_allowed`, the relative tolerance of
+/// `TEST_REAL_SIMILAR` (`ClassTest.cpp:38`).
+const RATIO_MAX_ALLOWED: f64 = 1. + 1E-5;
+
+/// `ClassTest::isRealSimilar`, ported branch for branch from
+/// `src/testframework/source/CONCEPT/ClassTest.cpp:364-489`.
+///
+/// The decision tree, in upstream order:
+///
+/// 1. either argument NaN — not similar;
+/// 2. both zero — similar;
+/// 3. exactly one zero — similar iff the absolute difference is within
+///    [`ABSDIFF_MAX_ALLOWED`];
+/// 4. **opposite signs** (the quotient is negative) — similar iff the absolute
+///    difference is within [`ABSDIFF_MAX_ALLOWED`], so `-1.0` and `1.0` are
+///    *not* similar. Omitting this branch is what made an earlier version of
+///    this helper accept any sign error whose magnitudes matched, because the
+///    reciprocal of a negative quotient is still negative and so passes
+///    `ratio <= RATIO_MAX_ALLOWED` unconditionally;
+/// 5. same signs — the quotient is folded to `>= 1` by taking its reciprocal
+///    when it is below one, and is similar if it is within
+///    [`RATIO_MAX_ALLOWED`], or else iff the absolute difference is within
+///    [`ABSDIFF_MAX_ALLOWED`].
+///
+/// Upstream takes `long double`; this takes `f64`, which is what every call
+/// site holds. Widening f64 to long double is exact, so the only divergence is
+/// the precision of the quotient itself, far below the `1e-5` thresholds being
+/// tested against. The running `absdiff_max` / `ratio_max` statistics upstream
+/// keeps for its verbose report have no counterpart here and are not ported.
+///
+/// Two upstream quirks are reproduced rather than corrected, because this
+/// function's contract is to *be* the C++ oracle. Both were confirmed by
+/// compiling and running upstream's control flow:
+///
+/// - any two infinities are "similar" — the quotient is NaN, so neither the
+///   sign test nor the ratio test fires and control reaches "ratio of numbers
+///   is small";
+/// - the function is **not symmetric**. Step 4 decides "opposite signs" from
+///   the sign of the quotient, and that quotient underflows to `-0.0` when the
+///   magnitudes are far enough apart. `-0.0 < 0.` is false, so the sign branch
+///   is skipped, `-0.0 < 1.` then takes the reciprocal to `-inf`, and `-inf >
+///   RATIO_MAX_ALLOWED` is false — so `isRealSimilar(1e-300, -1e300)` is
+///   `true` while `isRealSimilar(-1e300, 1e-300)` is `false`.
+///
+/// [`close`], the assertion the call sites actually use, refuses both of those
+/// pairs. It is strictly stricter than this function, never looser.
+fn is_real_similar(number_1: f64, number_2: f64) -> bool {
+    if number_1.is_nan() || number_2.is_nan() {
+        return false;
+    }
+
+    // A small absolute difference licenses a large relative error, and a small
+    // relative error licenses a large absolute difference; upstream computes
+    // both and lets either one pass.
+    let absdiff = (number_1 - number_2).abs();
+    let is_absdiff_small = absdiff <= ABSDIFF_MAX_ALLOWED;
+
+    if number_1 == 0. {
+        // Both zero is similar; otherwise only the absolute test can save it.
+        return number_2 == 0. || is_absdiff_small;
+    }
+    if number_2 == 0. {
+        return is_absdiff_small;
+    }
+
+    let mut ratio = number_1 / number_2;
+    if ratio < 0. {
+        // "numbers have different signs and difference is not small"
+        return is_absdiff_small;
+    }
+    if ratio < 1. {
+        ratio = 1. / ratio;
+    }
+    // By now ratio >= 1 for every ordinary pair. Two exceptions reach here and
+    // are the two upstream quirks above: NaN, when both arguments were
+    // infinite, and -inf, when the quotient underflowed to -0.0 and skipped the
+    // sign branch. Neither is > RATIO_MAX_ALLOWED, so both fall through to
+    // upstream's "ratio of numbers is small", as this does.
+    if ratio > RATIO_MAX_ALLOWED {
+        return is_absdiff_small;
+    }
+    true
+}
+
+/// `TEST_REAL_SIMILAR`: assert [`is_real_similar`], plus the two guards that
+/// close the upstream holes its doc comment lists. The C++ literals in this
+/// suite are decimal roundings of values stored as float32, so `is_real_similar`
+/// is the comparison the upstream suite actually makes; the guards only ever
+/// reject pairs upstream would have accepted, so no assertion below is weaker
+/// than its C++ original.
+///
+/// Every one of the 38 call sites compares one finite measured quantity against
+/// another, so neither guard can fire on a correct run: they exist so that a
+/// defect which produces a sign flip or a non-finite value cannot slip through
+/// the oracle's own blind spots.
 fn close(left: f64, right: f64) {
-    let absolute = (left - right).abs();
-    let ratio = if left == right {
-        1.0
-    } else if right == 0.0 {
-        f64::INFINITY
-    } else {
-        let ratio = left / right;
-        if ratio < 1.0 { 1.0 / ratio } else { ratio }
-    };
     assert!(
-        absolute <= 1e-5 || ratio <= 1.0 + 1e-5,
+        left.is_finite() && right.is_finite(),
+        "close compares finite measurements, got {left} and {right}"
+    );
+    // Decide "opposite signs" from the operands rather than from the quotient,
+    // which is what upstream means but not what it computes.
+    let opposite_signs = left.is_sign_negative() != right.is_sign_negative();
+    assert!(
+        !opposite_signs || (left - right).abs() <= ABSDIFF_MAX_ALLOWED,
+        "{left} and {right} have opposite signs and differ by more than {ABSDIFF_MAX_ALLOWED}"
+    );
+    assert!(
+        is_real_similar(left, right),
         "{left} is not similar to {right}"
     );
 }
 
-/// Two computations of the same quantity inside this crate, which must agree to
-/// f64 accumulation error rather than to the suite's reporting tolerance.
+/// Whether two computations of the same quantity inside this crate agree to f64
+/// accumulation error rather than to the suite's reporting tolerance.
+///
+/// This is a plain absolute-plus-relative band around `right`. It has no
+/// quotient and therefore, unlike [`is_real_similar`], no opposite-sign branch
+/// to get wrong: a sign flip lands `left` a full `2 * |right|` away and fails.
+fn identical_holds(left: f64, right: f64) -> bool {
+    (left - right).abs() <= right.abs() * 1e-12 + 1e-12
+}
+
+/// Assert [`identical_holds`].
 fn identical(left: f64, right: f64) {
-    assert!(
-        (left - right).abs() <= right.abs() * 1e-12 + 1e-12,
-        "{left} is not {right}"
-    );
+    assert!(identical_holds(left, right), "{left} is not {right}");
 }
 
 // ---------------------------------------------------------------------------
@@ -2121,4 +2232,189 @@ fn the_ibd_sibling_is_inferred_case_insensitively() {
     ] {
         assert_eq!(infer_ibd_path(input), PathBuf::from(expected), "{input}");
     }
+}
+
+// ===========================================================================
+// The test oracle itself — `ClassTest::isRealSimilar`
+// ===========================================================================
+//
+// `close` backs 38 call sites above, several inside loops over all nine
+// spectra, so a hole in it silently weakens the whole file. An earlier version
+// dropped upstream's opposite-sign branch, which made `close` accept any sign
+// error whose magnitudes matched. These tests pin every branch of
+// `ClassTest.cpp:364-489` so that can never happen unnoticed again.
+
+#[test]
+fn the_oracle_rejects_opposite_signs_whose_difference_is_not_small() {
+    // ClassTest.cpp:439-451, "numbers have different signs and difference is
+    // not small". The reciprocal of a negative quotient is still negative, so
+    // an implementation that reaches the ratio test at all accepts these.
+    for (left, right) in [(-1.0, 1.0), (-100.0, 100.0), (-1e9, 3.0)] {
+        assert!(
+            !is_real_similar(left, right),
+            "{left} must not be similar to {right}"
+        );
+        assert!(
+            !is_real_similar(right, left),
+            "{right} must not be similar to {left}"
+        );
+    }
+}
+
+#[test]
+fn the_oracle_accepts_opposite_signs_whose_difference_is_small() {
+    // ClassTest.cpp:452-457, "numbers have different signs, but difference is
+    // small": the absolute escape is checked before the signs, so straddling
+    // zero inside 1e-5 is still similar.
+    assert!(is_real_similar(-1e-6, 4e-6)); // absolute difference 5e-6
+    assert!(is_real_similar(4e-6, -1e-6));
+    assert!(!is_real_similar(-1e-5, 4e-5)); // absolute difference 5e-5
+}
+
+#[test]
+fn the_oracle_accepts_same_sign_pairs_within_either_tolerance() {
+    // Equal values, and the two tolerances one at a time: a pair far apart in
+    // absolute terms but within the ratio, and a pair far apart in ratio terms
+    // but within the absolute difference.
+    assert!(is_real_similar(100.0, 100.0));
+    assert!(is_real_similar(-100.0, -100.0));
+    assert!(is_real_similar(100.083336, 100.08334)); // a fixture literal pair
+    assert!(is_real_similar(1e9, 1e9 * (1.0 + 5e-6))); // ratio only, absdiff 5000
+    assert!(is_real_similar(-1e9, -1e9 * (1.0 + 5e-6)));
+    assert!(is_real_similar(1e-6, 5e-6)); // absdiff only, ratio 5
+    assert!(is_real_similar(-1e-6, -5e-6));
+}
+
+#[test]
+fn the_oracle_rejects_same_sign_pairs_outside_both_tolerances() {
+    // Negative values must not be waved through: the quotient is positive, so
+    // these reach the ratio test and must fail it.
+    assert!(!is_real_similar(1e9, 1e9 * (1.0 + 1e-4)));
+    assert!(!is_real_similar(-1e9, -1e9 * (1.0 + 1e-4)));
+    assert!(!is_real_similar(-1.0, -2.0));
+    assert!(!is_real_similar(-2.0, -1.0));
+    assert!(!is_real_similar(1.0, 2.0));
+}
+
+#[test]
+fn the_oracle_handles_zero_and_nan_as_upstream_does() {
+    // ClassTest.cpp:374-385 (nan) and :441-462 in the zero branches.
+    assert!(!is_real_similar(f64::NAN, 1.0));
+    assert!(!is_real_similar(1.0, f64::NAN));
+    assert!(!is_real_similar(f64::NAN, f64::NAN));
+
+    assert!(is_real_similar(0.0, 0.0)); // "both numbers are zero"
+    assert!(is_real_similar(0.0, -0.0));
+    assert!(is_real_similar(0.0, 1e-6)); // "number_1 is zero, number_2 is small"
+    assert!(is_real_similar(1e-6, 0.0));
+    assert!(is_real_similar(0.0, -1e-6));
+    assert!(!is_real_similar(0.0, 1.0)); // "number_2 is not small"
+    assert!(!is_real_similar(1.0, 0.0));
+    assert!(!is_real_similar(0.0, -1.0));
+}
+
+#[test]
+fn the_oracle_reproduces_the_upstream_infinity_quirk() {
+    // Two infinities give a NaN quotient *and* a NaN absolute difference, so
+    // none of upstream's comparisons fire and control reaches "ratio of
+    // numbers is small" -- even for +inf against -inf. Confirmed by compiling
+    // and running ClassTest.cpp:364-489's control flow. Reproduced rather than
+    // corrected: this function's contract is to be the C++ oracle, and `close`
+    // is what refuses the pair at the call sites.
+    assert!(is_real_similar(f64::INFINITY, f64::INFINITY));
+    assert!(is_real_similar(f64::NEG_INFINITY, f64::NEG_INFINITY));
+    assert!(is_real_similar(f64::INFINITY, f64::NEG_INFINITY));
+    assert!(is_real_similar(f64::NEG_INFINITY, f64::INFINITY));
+    // One infinity against a finite value does have a real quotient, so the
+    // sign and ratio tests work -- except when the quotient underflows, below.
+    assert!(!is_real_similar(f64::INFINITY, 1.0));
+    assert!(!is_real_similar(f64::NEG_INFINITY, 1.0));
+    assert!(!is_real_similar(f64::INFINITY, -1.0));
+}
+
+#[test]
+fn the_oracle_reproduces_the_upstream_negative_zero_asymmetry() {
+    // Upstream reads "opposite signs" off the quotient, which underflows to
+    // -0.0 once the magnitudes are far enough apart. `-0.0 < 0.` is false, so
+    // the sign branch is skipped; `-0.0 < 1.` then takes the reciprocal to
+    // -inf, and `-inf > ratio_max_allowed` is false, so it returns true. The
+    // same pair in the other order divides to -inf, takes the sign branch and
+    // returns false. Both confirmed against the compiled C++.
+    assert!(is_real_similar(1e-300, -1e300));
+    assert!(!is_real_similar(-1e300, 1e-300));
+    assert!(is_real_similar(1.0, f64::NEG_INFINITY));
+    assert!(!is_real_similar(f64::NEG_INFINITY, 1.0));
+    // The same-sign pair in that regime is correctly rejected, which is what
+    // makes the above a defect and not a deliberate tolerance.
+    assert!(!is_real_similar(1e-300, 1e300));
+}
+
+#[test]
+fn the_oracle_is_symmetric_on_the_finite_values_the_call_sites_use() {
+    // Away from the underflow regime the reciprocal fold makes the quotient
+    // test order-independent and the absolute difference is symmetric, so
+    // argument order cannot matter. The 38 call sites pass the observed value
+    // first; this is what lets each be read as an equality rather than a
+    // direction.
+    let values = [
+        -1e9, -100.0, -1.0, -5e-6, -1e-6, -0.0, 0.0, 1e-6, 5e-6, 1.0, 3.0, 100.0, 100.083336,
+        100.08334, 1e9,
+    ];
+    for left in values {
+        for right in values {
+            assert_eq!(
+                is_real_similar(left, right),
+                is_real_similar(right, left),
+                "{left} vs {right}"
+            );
+        }
+    }
+}
+
+#[test]
+#[should_panic(expected = "have opposite signs and differ by more than")]
+fn the_close_assertion_refuses_the_negative_zero_asymmetry() {
+    // `is_real_similar` accepts this pair, faithfully; `close` must not.
+    close(1e-300, -1e300);
+}
+
+#[test]
+#[should_panic(expected = "compares finite measurements")]
+fn the_close_assertion_refuses_a_non_finite_measurement() {
+    close(f64::INFINITY, f64::NEG_INFINITY);
+}
+
+#[test]
+#[should_panic(expected = "have opposite signs and differ by more than")]
+fn the_close_assertion_refuses_a_plain_sign_flip() {
+    close(-100.0, 100.0);
+}
+
+#[test]
+fn the_close_assertion_accepts_what_the_call_sites_pass() {
+    // The guards must not fire on any shape a call site legitimately produces,
+    // including a value that straddles zero inside the absolute tolerance and
+    // the signed zeros a sum of no peaks can yield.
+    close(100.0, 100.0);
+    close(100.083336, 100.08334);
+    close(-100.0, -100.0);
+    close(0.0, 0.0);
+    close(-0.0, 0.0);
+    close(-0.0, 1e-6);
+    close(1e9, 1e9 * (1.0 + 5e-6));
+}
+
+#[test]
+fn the_identical_helper_rejects_a_sign_flip() {
+    // The file's other hand-rolled comparison. Unlike `close` before this fix,
+    // `identical` is a pure absolute-plus-relative band around `right` with no
+    // quotient and so no sign hole; this pins that.
+    assert!(!identical_holds(-1.0, 1.0));
+    assert!(!identical_holds(1.0, -1.0));
+    assert!(!identical_holds(-1e9, 1e9));
+    assert!(identical_holds(0.0, 0.0));
+    assert!(identical_holds(1.0, 1.0));
+    assert!(identical_holds(-1.0, -1.0));
+    assert!(identical_holds(1e9, 1e9 + 1e-4));
+    assert!(!identical_holds(1e9, 1e9 * (1.0 + 1e-6)));
 }
