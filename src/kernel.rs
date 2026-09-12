@@ -43,6 +43,8 @@ pub(crate) mod spectrum_type;
 pub use experiment_summary::SummaryLimits;
 pub use mobilogram::{MobilityPeak1D, Mobilogram, MobilogramLimits, MobilogramRanges};
 pub use spectrum_type::SpectrumTypeQueryLimits;
+/// Identification surface of the feature containers: annotation state, primary IDs, match sets and reference updates.
+pub mod feature_identification;
 /// Feature, consensus and map containers: `BaseFeature`, `Feature`,
 /// `FeatureHandle`, `ConsensusFeature`, `FeatureMap` and `ConsensusMap`.
 pub mod features;
