@@ -960,13 +960,33 @@ pub fn uuid_bytes(uuid: &str) -> Option<[u8; IBD_UUID_BYTES]> {
 /// private to a header this package does not own; it is reproduced here so a
 /// handler can open a dataset from the `.imzML` path alone, which is what the
 /// source's loaders do on the caller's behalf.
+///
+/// The suffix is matched on character boundaries with [`str::get`], never by
+/// byte slicing: `path[len - 6..]` panics whenever the sixth-from-last byte is a
+/// UTF-8 continuation byte, and every public load and store path in this family
+/// reaches this function first, so `dir/日本語.txt` aborted the process before a
+/// single validation ran.
+///
+/// The suffix is replaced by truncation, as the source's
+/// `p.substr(0, p.size() - 6) + ".ibd"` does, not with
+/// [`PathBuf::set_extension`]. Rust treats a name that is entirely `.imzML` as
+/// having no extension, so `set_extension` appended and produced
+/// `.imzML.ibd` where the source yields `.ibd`.
+///
+/// For a path that is not valid UTF-8 the suffix is tested against a lossy view.
+/// The suffix itself is ASCII, so only a path whose final six bytes are
+/// themselves malformed could be judged differently, and such a path names no
+/// `.imzML` file.
 pub fn infer_ibd_path(imzml_path: impl AsRef<Path>) -> PathBuf {
     let path = imzml_path.as_ref();
     let text = path.as_os_str().to_string_lossy();
-    if text.len() >= 6 && text[text.len() - 6..].eq_ignore_ascii_case(".imzml") {
-        let mut replaced = path.to_path_buf();
-        replaced.set_extension("ibd");
-        return replaced;
+    if let Some(cut) = text.len().checked_sub(6) {
+        if text
+            .get(cut..)
+            .is_some_and(|suffix| suffix.eq_ignore_ascii_case(".imzml"))
+        {
+            return PathBuf::from(format!("{}.ibd", &text[..cut]));
+        }
     }
     let mut appended = path.as_os_str().to_os_string();
     appended.push(".ibd");

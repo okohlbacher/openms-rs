@@ -1550,6 +1550,24 @@ fn the_ibd_sibling_is_inferred_case_insensitively() {
         infer_ibd_path("/data/tissue"),
         PathBuf::from("/data/tissue.ibd")
     );
+    // A non-ASCII name must not panic. The suffix used to be tested by byte
+    // slicing `path[len - 6..]`, which aborts whenever the sixth-from-last byte
+    // is a UTF-8 continuation byte, and every public load and store path in this
+    // family calls this function first.
+    assert_eq!(
+        infer_ibd_path("dir/日本語.txt"),
+        PathBuf::from("dir/日本語.txt.ibd")
+    );
+    assert_eq!(
+        infer_ibd_path("dir/組織.imzML"),
+        PathBuf::from("dir/組織.ibd")
+    );
+    assert_eq!(infer_ibd_path("日本"), PathBuf::from("日本.ibd"));
+    // A name that is entirely the suffix truncates to `.ibd`, as the source's
+    // `p.substr(0, p.size() - 6) + ".ibd"` does. `PathBuf::set_extension` treats
+    // this as an extensionless hidden file and would append instead.
+    assert_eq!(infer_ibd_path(".imzML"), PathBuf::from(".ibd"));
+    assert_eq!(infer_ibd_path("dir/.imzML"), PathBuf::from("dir/.ibd"));
     assert_eq!(
         infer_ibd_path("/data/tissue.mzML"),
         PathBuf::from("/data/tissue.mzML.ibd")
