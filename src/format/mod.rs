@@ -75,6 +75,8 @@ pub mod mzml;
 pub mod mzml_schema;
 /// MzTab data model: cell vocabulary, record structs and document (`MzTabBase.h`, `MzTab.h`).
 pub mod mztab;
+/// MzTab file adapter: reading and writing `.mzTab` documents (`MzTabFile.h`).
+pub mod mztab_file;
 
 use crate::{Error, Result};
 

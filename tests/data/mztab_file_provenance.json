@@ -1,0 +1,344 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
+   "sha256": "68f95d183392bdb6cbe022a9dea98bbfcbc6011ccee36615f066d2f28a604e63",
+   "role": "The ported header. 208 lines: two constructors, three store overloads, nine optional-column setters, load, sixteen protected flags, nineteen protected generators and fifteen protected statics that are declared and never defined."
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe",
+   "role": "The ported implementation, read in full. 3,352 lines: about 1,450 of reader column bookkeeping and metadata branches, about 1,300 of writer header and row generators, and the three store entry points."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzTabFile_test.cpp",
+   "sha256": "57055cfd50a6e04ee5ce3aa6a3f5e211c0ce3f22b23e010bd27fc0fa2bf867ab",
+   "role": "The oracle. 164 lines, five START_SECTIONs, six assertion macros in total; all five sections are ported, none is merely mapped. Its generateMzTabPSMSectionRow_ section is the only place any expected cell value is written down."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
+   "sha256": "5a1d37f0a750b5834d12f05db81ca561e04f671323bc04dd3ffa14e54a10364a",
+   "role": "Not ported here; ported by the sibling data-model package as src/format/mztab.rs. Read for the exact field list and type of every section row and of MzTabMetaData, because the reader and writer address them field by field, and for the colunit_* members, which are std::vector<std::string> while MzTabFile.cpp indexes them by a bracketed key index."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
+   "sha256": "c434e6f2ed6dae49bfabb324441d212a533c704d33fb5b9c80aed421a23c60a4",
+   "role": "Not ported here. Read for the cell vocabulary the file layer renders and parses: which types carry the null/NaN/Inf state, which spell null as an empty payload, and the separator each list cell uses."
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "sha256": "41ca2dbb84ed035991570c48cef9a50e64c5179eaf6ac1d8b93ab21715df8807",
+   "role": "Not ported here. Read for MzTabModification::toCellString (line 73, its position loop at line 85), whose position rendering is what makes a C++-written modifications cell unreadable, and to confirm that IDMzTabStream and CMMzTabStream are the row sources of the two unported store overloads."
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2",
+   "role": "Not ported here. Read to confirm the exact toCellString of each cell type the writer calls."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Not ported here. Read for split (line 596 for the char overload, 666 for the string overload): a subject with no separator yields one field and an empty subject yields none, which is why meta_key_fields[0] is an out-of-range read for an empty MTD key cell. Also read for toInt32, whose declaration at line 49 leads to the throwing definition that makes every colunit line abort load."
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
+   "sha256": "9b7c5bd57ed1751e281c9e31ce46d81e49c82ded6749131b459f648f2107a97b",
+   "role": "Not ported. Read to reproduce the oracle's comparison exactly: readNextLine_ at line 837 skips every empty and whitespace-only line, and the constructor at line 273 sets the default tolerances to relative 1.0 and absolute 0.0, so numbers compare numerically and all other text character for character. tests/mztab_file.rs::similar_lines implements that, and knowing that blank lines are skipped is what revealed the doubled-blank defect its own round-trip test cannot see."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/MzTabFile_SILAC.mzTab",
+   "source_path": "src/tests/class_tests/openms/data/MzTabFile_SILAC.mzTab",
+   "sha256": "4b859482447d45a54460663cfe65ff166c374d0a87a106e454500290dff3c74a",
+   "bytes": 239580,
+   "role": "Unmodified upstream. 1,291 lines, the largest reference document: Complete/Quantification, 199 MTD lines covering every metadata key family, 6 ms_runs, 12 assays, 2 study variables, and PRT (57 rows), PEP (80) and PSM (946) sections. Four optional columns in the protein section and two in the peptide section, and a peptide optional cell whose text is NaN, which is a string and not the numeric NaN state. Its PRH declares no num_peptides_distinct/unique columns at all, which is what exercises an absent column family. Two COM lines and four blank lines, two of them adjacent around a comment, which is the case that distinguishes this port's blank restoration from the source's."
+  },
+  {
+   "path": "tests/data/MzTabFile_SILAC2.mzTab",
+   "source_path": "src/tests/class_tests/openms/data/MzTabFile_SILAC2.mzTab",
+   "sha256": "be77fc05641c50a0af4fb6e373c0f6ef756d43fd5bd1d7f6c6ba1c4874ddf569",
+   "bytes": 11412,
+   "role": "Unmodified upstream. 97 lines with six COM lines interleaved inside the metadata and both data sections, and two blank lines; the test that asserts comments and blanks stay on their original line numbers uses this file. 3 ms_runs, PRT and PSM only, and a PSH header line with a trailing space that TextFile's line trimming removes."
+  },
+  {
+   "path": "tests/data/MzTabFile_labelfree.mzTab",
+   "source_path": "src/tests/class_tests/openms/data/MzTabFile_labelfree.mzTab",
+   "sha256": "c0631c7ead4dd501e5ccffc4923afe53e7a9c8221ce6c9e1400f251a278145a6",
+   "bytes": 15392,
+   "role": "Unmodified upstream. 104 lines. Its PRH declares all three num_* families over all six runs, and its PRT rows carry negative and null score values in the ms-run score columns."
+  },
+  {
+   "path": "tests/data/MzTabFile_iTRAQ.mzTab",
+   "source_path": "src/tests/class_tests/openms/data/MzTabFile_iTRAQ.mzTab",
+   "sha256": "e4ac2b0c1a0b73d93cb16c58320fd9247653ed605497009f34e706ad8ef41de5",
+   "bytes": 15414,
+   "role": "Unmodified upstream. 115 lines, the widest header: 16 assays and 4 study variables, so 16 + 12 quantification columns in the protein section."
+  },
+  {
+   "path": "tests/data/MzTabFile_Cytidine.mzTab",
+   "source_path": "src/tests/class_tests/openms/data/MzTabFile_Cytidine.mzTab",
+   "sha256": "8154bf1251042fa151d0854166e49c04c3c5008a9071e9c1f54f67c07cc9a81a",
+   "bytes": 2193,
+   "role": "Unmodified upstream. The only reference document with an SML section, the only one with CRLF line endings, and the only one whose mzTab-version is not a dotted triple ('1.0 rc5'). Summary/Identification, no assays and no study variables, a five-element sample_processing parameter list, two instrument analyzers, two software entries with a setting, and parameter cells with empty cv_label and accession such as '[ , , CHEMMOD:2M+H, ]'."
+  },
+  {
+   "path": "tests/data/MzTabFile_unicode.mzTab",
+   "source_path": null,
+   "sha256": "682bad3a753ad1dcc932571e6f91f856745cc258e90e69b1b28759e8c926a8e9",
+   "bytes": 870,
+   "role": "Added by this package; not upstream. Non-ASCII throughout: a Japanese COM line, mzTab-ID and description, an em dash and a Greek capital omega in the description, a URL with Japanese path segments, and an opt_global_ column whose name and value are Japanese. Its second PSM row's sequence is a run of two-byte characters. It also carries a colunit-psm key, which no upstream fixture has because the C++ reader throws on one, and the three numeric states: a NaN calc_mass_to_charge, an Inf score and a null calc_mass_to_charge. Every numeric value has an exact binary representation and the metadata is already in the writer's order, so the round trip is asserted byte for byte."
+  }
+ ],
+ "native_implementation": [
+  "src/format/mztab_file.rs"
+ ],
+ "native_tests": [
+  "tests/mztab_file.rs"
+ ],
+ "support": "docs/MZTAB_FILE_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 29,
+   "operation": "extractBracketIndex: substitute the prefix away, remove every ']', trim, StringUtils::toInt32. Returns a signed Int that every caller casts to Size, so assay[0] yields key 0 and assay[-1] yields SIZE_MAX"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 45,
+   "operation": "the constructor lists all sixteen optional-column flags and sets every one to false"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 67,
+   "operation": "extractIndexPairsFromBrackets_ leaves either member of the pair at 0 when its regex does not match, producing the column family member '...[0]' that the format does not define"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 223,
+   "operation": "the read loop increments line_number in the for-statement, so a continue still advances it: comment and empty-row positions are indices into the whole file"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 229,
+   "operation": "a line whose trimmed length is under three bytes is recorded as an empty row and never dispatched to a section"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 249,
+   "operation": "a data line with fewer than three tab-separated cells throws Exception::ParseError"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 257,
+   "operation": "the MTD key is split on '-' and meta_key_fields[0] is read unconditionally; StringUtils::split clears the vector for an empty subject, so an empty key cell makes this an out-of-range read"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 295,
+   "operation": "the first of thirty-two MTD branches that index meta_key_fields[1] without checking the field count; 'MTD instrument[1] value' reads past the end of the vector"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 581,
+   "operation": "two further MTD branches index meta_key_fields[2] without checking the field count"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 685,
+   "operation": "the colunit-protein branch calls extractBracketIndex(meta_key_fields[0], \"colunit[\") on the literal key 'colunit', so StringUtils::toInt32 throws a ConversionError: every MTD colunit line aborts load"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 819,
+   "operation": "PRH optional columns are discovered by the 'opt_' prefix and keyed by name in a std::map, so row.opt_ is filled in lexicographic order whatever order the header used"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 832,
+   "operation": "the twenty mandatory-column checks begin; each writes to std::cout once per data row and never reaches the caller"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 937,
+   "operation": "PRT row cells are read as cells[index] with no bounds check, and index 0 means 'the header omitted this column', which is also the index of the section tag"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1089,
+   "operation": "the PEH 'uri' column index is assigned to protein_uri_index: the peptide uri is never read, and a later PRT row reads its protein uri from the peptide section's column number"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1130,
+   "operation": "the PEP branch inserts \"PRT\" into sections_present instead of \"PEP\""
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1160,
+   "operation": "the peptide uri assignment is commented out with the note 'always false'"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1265,
+   "operation": "the PSH 'uri' column index is likewise assigned to protein_uri_index"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1287,
+   "operation": "PSH optional columns are matched with cells[i] == \"opt_\" for exact equality rather than by prefix, so every optional column of a PSM section is dropped on load"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1544,
+   "operation": "the read loop ends: load handles MTD, COM, PRH/PRT, PEH/PEP, PSH/PSM and SMH/SML only. NUH/NUC, OLH/OLI and OSH/OSM are never parsed, although store writes all three"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1547,
+   "operation": "hasMandatoryMetaDataKeys_ is commented out, which is why sections_present has no consumer"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1560,
+   "operation": "generateMzTabMetaDataSection_ writes mzTab-version, mzTab-mode and mzTab-type unconditionally, then title and mzTab-ID only when set, then description unconditionally"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1608,
+   "operation": "nucleic_acid_search_engine_score, oligonucleotide_search_engine_score and osm_search_engine_score are written; none of the three is ever read back"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1660,
+   "operation": "a software[n] line is written even when the term is null, unlike every other optional metadata key"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 1984,
+   "operation": "colunit-protein is written as the key concatenated with the value and no separator at all, so the reader sees a two-cell line; and the PSM key is written 'colunit-PSM' while the reader matches the lower-case 'psm'"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2037,
+   "operation": "the protein header emits the search_engine_score[s]_ms_run[r] columns runs-outer, scores-inner"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2119,
+   "operation": "the protein row emits the same values scores-outer, runs-inner: the counts agree so the postcondition stays silent, and with two or more scores and two or more runs the values land under the wrong headers"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2164,
+   "operation": "the protein row's quantification cells are looked up by the metadata's assay and study_variable keys, with MzTabString().toCellString() as the fallback, which is the null cell"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2231,
+   "operation": "the peptide header repeats the runs-outer, scores-inner order"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2367,
+   "operation": "the peptide row advances the study-variable value, stdev and std_error iterators in lock-step and stops at the first exhausted one, so a row with no standard deviations writes no study-variable columns at all"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2397,
+   "operation": "the PSM row writes a single literal 'null' score cell when the row's score map is empty, a workaround for identifications without hits that matches the header only when it declared exactly one score column"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2482,
+   "operation": "the small-molecule header declares one smallmolecule_abundance_assay[n] column per assay"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2548,
+   "operation": "the small-molecule row jumps from modifications straight to the study-variable triple and never emits the assay cells the header declared, so any document with an assay fails the column-count postcondition and cannot be written"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2603,
+   "operation": "the nucleic-acid header numbers num_osms_ms_run, num_oligos_distinct_ms_run and num_oligos_unique_ms_run from zero, alone among all bracketed families, while the row writer emits the values keyed from one"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 2873,
+   "operation": "addOptionalColumnsToSectionRow_ searches the row's entries linearly per requested name, breaks on the first match, and writes MzTabString(\"null\") for a miss, which is the null cell"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 3129,
+   "operation": "store(filename, MzTab) rejects an extension that is neither mzTab nor tsv with Exception::UnableToCreateFile, then opens the destination with ios::trunc before anything is validated"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 3168,
+   "operation": "in Complete mode the peptide section declares a score column for every ms_run of the metadata whether or not a row carries one; otherwise only when at least one row has run-level scores"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 3200,
+   "operation": "the PSM score column count is capped at one with the comment that only the main score is stored, a limit of the exporters rather than of the format"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 3257,
+   "operation": "generateMzTabNucleicAcidHeader_ is called with its second and third arguments transposed relative to its signature (search_ms_runs, n_best_search_engine_scores, n_search_engine_scores)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "line": 3328,
+   "operation": "the comment and blank restoration inserts a blank whenever the current position was blank in the original file, even though the generated lines already carry one before each section, so every separator is emitted twice; and the loop stops as soon as the generated lines run out, dropping any comment or blank recorded past that point"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
+   "line": 139,
+   "operation": "generateMzTabSection_ throws Exception::Postcondition when a header and a row disagree on the column count: 'Header and content differs in columns. Please report this bug to the OpenMS developers.'"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
+   "line": 151,
+   "operation": "the first of fifteen protected static members declared here and defined nowhere in the tree; the run ends at line 201 with writeProteinData_"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
+   "line": 204,
+   "operation": "friend class MzTabMFile, which is why the generators are protected rather than private"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 85,
+   "operation": "MzTabModification::toCellString appends each position with std::string::operator+= applied to a Size, which resolves to the char overload: position 12 is written as byte 0x0c, so a modifications cell written by C++ cannot be read back"
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
+   "line": 837,
+   "operation": "readNextLine_ skips every empty and whitespace-only line, which is why the upstream round-trip test cannot see the doubled blank lines"
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
+   "line": 273,
+   "operation": "default tolerances: ratio_max_allowed_ 1.0 and absdiff_max_allowed_ 0.0, so TEST_FILE_SIMILAR requires numeric equality but tolerates a different spelling of the same number"
+  }
+ ],
+ "evidence": "Tier 3, source review, with a tier 3 round trip over the retained upstream reference documents. MzTabFile_test.cpp has five START_SECTIONs and six assertion macros in total; all five sections are ported rather than mapped, and the four transcribed cell literals ('null', 'NDYKAPPQPAPGK', '0.0420992', 'null', the last four cells of a PSM row) are the only expected output values the upstream suite writes down anywhere. Transcribed C++ literals are tier 3 evidence. The five reference documents are the other half: each is loaded, written and compared with the original through tests/mztab_file.rs::similar_lines, which reproduces the upstream comparison exactly (sort the lines, remove every space, skip the blank ones as FuzzyStringComparator::readNextLine_ does, and compare numbers numerically at the default relative 1.0 / absolute 0.0 tolerances). Each is also written to disk, read back and compared as a model, which is stronger than any text comparison because it covers the null/NaN/Inf state of every numeric cell, the optional columns of every row, and the recorded comment and blank-line positions. The additional unicode fixture round-trips byte for byte. Everything else - the four resource ceilings, the hostile headers and metadata keys, the non-ASCII output paths, the error-variant choices, and every test of a divergence listed in docs/MZTAB_FILE_SUPPORT.md - is independently derived (tier 4). No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential: the reference .mzTab files are upstream *inputs* that its own suite round-trips, not outputs a C++ build produced here.",
+ "gaps": [
+  "store(filename, protein_identifications, peptide_identifications, ...) is not ported: it builds rows through MzTab::IDMzTabStream, which is not in the crate.",
+  "store(filename, ConsensusMap, ...) is not ported: it builds rows through MzTab::CMMzTabStream, which is not in the crate.",
+  "The MapAccPepType typedef and the fifteen protected statics of MzTabFile.h:151-201 are not ported; all fifteen are declared and defined nowhere in the pinned tree.",
+  "friend class MzTabMFile has no Rust equivalent. MzTabMFile is a separate unmapped header; the generators are pub here so it can use them when it lands.",
+  "sections_present is not ported: the source fills it but its only consumer, hasMandatoryMetaDataKeys_, is commented out at MzTabFile.cpp:1547.",
+  "No tier 1 differential exists for this header. Reaching one needs an oracle driver that links the prebuilt C++ and prints a stored document, because the upstream suite retains no MzTabFile output - only its inputs.",
+  "The reliability, uri and go_terms columns are optional in the format, so a document written with one of the sixteen flags cleared does not round-trip a row carrying that cell. MzTabFile::lossless sets all sixteen.",
+  "A section header declares one column set for every row, so an indexed family member that only some rows carry becomes a null cell, and therefore a null entry, in the rest. The file cannot express 'absent' as distinct from 'null'.",
+  "The port is serial, as the source is: MzTabFile.cpp carries no OpenMP directive, so there is no parallelism gap to record.",
+  "An indexed metadata group survives a round trip only if at least one of its keys has a non-null value, because every optional metadata key is skipped when null. A document whose assay[1] is declared only by 'MTD assay[1]-sample_ref null' loses the key and the abundance column the layout would have declared. Shared with the source; closing it needs a record of declared-versus-valued keys that neither the source nor MzTabMetaData has. No reference document is affected.",
+  "CI wiring, the docs/core-sdk-reviewed-apis.json ledger entry, the docs/VALIDATION.md checkpoint, the README.md row and the CHANGELOG.md line are outside this package's writable set and are handed to the integrating agent."
+ ]
+}
