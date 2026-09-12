@@ -255,9 +255,20 @@ fn later_selected_ions_are_ignored_but_markup_groups_and_counts_are_checked() {
         )
         .is_err()
     );
-    assert!(
+    // MzMLHandler.cpp:1371-1375 reads the selectedIonList count only to warn
+    // when it exceeds one; it never compares it with the actual ions, so a
+    // disagreement is advisory on reading. The attribute stays required.
+    assert_eq!(
         read(
             &xml.replace("selectedIonList count=\"2\"", "selectedIonList count=\"3\""),
+            &filtered()
+        )
+        .unwrap(),
+        e
+    );
+    assert!(
+        read(
+            &xml.replace("selectedIonList count=\"2\"", "selectedIonList"),
             &filtered()
         )
         .is_err()

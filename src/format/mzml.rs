@@ -1342,8 +1342,6 @@ fn read_engine(
     let mut header_registry = header::Registry::default();
     let mut header_work = header::Work::default();
     let mut default_processing = Vec::new();
-    let mut actual_spectra = 0usize;
-    let mut actual_chromatograms = 0usize;
     let limit = options
         .max_xml_bytes
         .checked_add(1)
@@ -1360,10 +1358,9 @@ fn read_engine(
     let mut seen_run = false;
     let mut total_peaks = 0usize;
     let mut records = 0usize;
-    let mut spectrum_count = None;
-    let mut chromatogram_count = None;
-    let mut array_count = None;
-    let mut arrays_seen = 0usize;
+    let mut spectrum_list_seen = false;
+    let mut chromatogram_list_seen = false;
+    let mut array_list_seen = false;
     let mut total_arrays = 0usize;
     let mut numpress_limits = coder::NumpressCoderLimits::default();
     numpress_limits.raw.max_encoded_bytes = options.max_array_bytes;
@@ -1372,7 +1369,36 @@ fn read_engine(
     let mut remaining_array_bytes = options.max_total_array_bytes;
     let mut remaining_array_elements = options.max_total_array_elements;
     let mut ids = BTreeSet::new();
-    let mut counted_lists: Vec<(usize, &str, usize, usize)> = Vec::new();
+    // Record, binary-array, precursor/selectedIon/scan and product/scanWindow
+    // list `count` attributes must be present and numeric, but a value
+    // disagreeing with the actual number of children is **advisory on reading**:
+    // the source reader never compares the two. `spectrumList` and
+    // `chromatogramList` spend the count on a progress range and
+    // `reserveSpaceSpectra`/`reserveSpaceChromatograms`
+    // (MzMLHandler.cpp:965-979 and :996-1013), `binaryDataArrayList` on
+    // `bin_data_.reserve(...)` (MzMLHandler.cpp:1015-1017), and
+    // `selectedIonList` only warns when the count exceeds one
+    // (MzMLHandler.cpp:1371-1375); `precursorList`, `productList` and
+    // `scanWindowList` have no open-tag handler at all. The count attribute is
+    // read in exactly those four places (MzMLHandler.cpp:965, :996, :1017,
+    // :1374) and compared against nothing.
+    //
+    // Real files carry wrong counts. The upstream class-test fixture
+    // `MzMLFile_1.mzML` declares `<binaryDataArrayList count="2">` with four
+    // `binaryDataArray` children, and `MzMLFile_test.cpp` loads it; rejecting
+    // the mismatch made this port unable to read its own reference data, the
+    // same defect already fixed for header lists in
+    // `mzml_header::Node::children` (`DTAExtractor_1_input.mzML` declares
+    // `softwareList count="5"` with four entries). Declared counts are still
+    // spent as resource ceilings before any allocation, and writing still emits
+    // the true count.
+    //
+    // `referenceableParamGroupList` is the single exception kept strict: its
+    // count is still compared here so that `read` and `mzml_counts::read_size`
+    // agree on the same file. Upstream has no handler for that list either, so
+    // this remains a documented divergence rather than source behavior.
+    // (depth of the group children, declared count, groups seen)
+    let mut group_list: Option<(usize, usize, usize)> = None;
     let mut groups = BTreeMap::<String, Vec<Parameter>>::new();
     let mut group: Option<(String, Vec<Parameter>)> = None;
     let mut group_list_seen = false;
@@ -1484,8 +1510,8 @@ fn read_engine(
                     buffer.clear();
                     continue;
                 }
-                if let Some((depth, child, _, actual)) = counted_lists.last_mut() {
-                    if *depth == stack.len() && *child == tag {
+                if let Some((depth, _, actual)) = group_list.as_mut() {
+                    if *depth == stack.len() && tag == "referenceableParamGroup" {
                         *actual += 1;
                     }
                 }
@@ -1531,11 +1557,11 @@ fn read_engine(
                             return Err(invalid("duplicate product list"));
                         }
                         r.product_list_seen = true;
+                        // Advisory declared count; still a parameter ceiling.
                         let count = number::<usize>(required(&attrs, "count")?, "product count")?;
                         if count > parameter_budget.remaining {
                             return Err(invalid("product count exceeds parameter limit"));
                         }
-                        counted_lists.push((stack.len() + 1, "product", count, 0));
                     }
                     "product" => {
                         if !matches!(parent, "productList" | "chromatogram") {
@@ -1597,12 +1623,12 @@ fn read_engine(
                             return Err(invalid("duplicate scanWindowList"));
                         }
                         r.scan_window_list_seen = true;
+                        // Advisory declared count; still a parameter ceiling.
                         let count =
                             number::<usize>(required(&attrs, "count")?, "scan window count")?;
                         if count > parameter_budget.remaining {
                             return Err(invalid("scan window count exceeds parameter limit"));
                         }
-                        counted_lists.push((stack.len() + 1, "scanWindow", count, 0));
                     }
                     "scanWindow" => {
                         if parent != "scanWindowList" {
@@ -1642,16 +1668,11 @@ fn read_engine(
                             return Err(invalid("duplicate precursor/scan list"));
                         }
                         *seen = true;
-                        let expected: usize = number(required(&attrs, "count")?, "list count")?;
-                        if tag == "scanList" && expected > parameter_budget.remaining {
+                        // Advisory declared count; still a parameter ceiling for scans.
+                        let declared: usize = number(required(&attrs, "count")?, "list count")?;
+                        if tag == "scanList" && declared > parameter_budget.remaining {
                             return Err(invalid("scan count exceeds parameter limit"));
                         }
-                        let child = match tag.as_str() {
-                            "precursorList" => "precursor",
-                            "selectedIonList" => "selectedIon",
-                            _ => "scan",
-                        };
-                        counted_lists.push((stack.len() + 1, child, expected, 0));
                     }
                     "mzML" => {
                         if seen_mzml || !matches!(parent, "" | "indexedmzML") {
@@ -1721,12 +1742,7 @@ fn read_engine(
                             ));
                         }
                         group_list_seen = true;
-                        counted_lists.push((
-                            stack.len() + 1,
-                            "referenceableParamGroup",
-                            expected,
-                            0,
-                        ));
+                        group_list = Some((stack.len() + 1, expected, 0));
                     }
                     "referenceableParamGroup" => {
                         if parent != "referenceableParamGroupList" || group.is_some() {
@@ -1770,14 +1786,17 @@ fn read_engine(
                             return Ok(experiment);
                         }
                         let slot = if tag == "spectrumList" {
-                            &mut spectrum_count
+                            &mut spectrum_list_seen
                         } else {
-                            &mut chromatogram_count
+                            &mut chromatogram_list_seen
                         };
-                        if slot.is_some() {
+                        if *slot {
                             return Err(invalid("duplicate record list"));
                         }
-                        *slot = Some(number::<usize>(required(&attrs, "count")?, "record count")?);
+                        *slot = true;
+                        // Advisory declared count; records are bounded by
+                        // `options.max_records` as each one opens.
+                        let _declared: usize = number(required(&attrs, "count")?, "record count")?;
                         default_processing = attrs
                             .get("defaultDataProcessingRef")
                             .map(|id| header_registry.processing(id, &mut header_work))
@@ -1810,11 +1829,6 @@ fn read_engine(
                         let id = required(&attrs, "id")?.to_owned();
                         if id.is_empty() || !ids.insert((tag.clone(), id.clone())) {
                             return Err(invalid("empty or duplicate record id"));
-                        }
-                        if tag == "spectrum" {
-                            actual_spectra += 1;
-                        } else {
-                            actual_chromatograms += 1;
                         }
                         record = Some(Record {
                             spectrum: (tag == "spectrum").then(|| MSSpectrum {
@@ -1903,20 +1917,20 @@ fn read_engine(
                             c.data_processing = processing;
                             c.source_file = source;
                         }
-                        array_count = None;
-                        arrays_seen = 0;
+                        array_list_seen = false;
                     }
                     "binaryDataArrayList" => {
                         if !matches!(parent, "spectrum" | "chromatogram")
                             || record.is_none()
-                            || array_count.is_some()
+                            || array_list_seen
                         {
                             return Err(invalid("misplaced/duplicate binary array list"));
                         }
-                        array_count = Some(number::<usize>(
-                            required(&attrs, "count")?,
-                            "binary array count",
-                        )?);
+                        array_list_seen = true;
+                        // Advisory declared count; arrays are bounded by
+                        // `options.max_total_arrays` as each one opens.
+                        let _declared: usize =
+                            number(required(&attrs, "count")?, "binary array count")?;
                     }
                     "binaryDataArray" => {
                         if parent != "binaryDataArrayList" || binary.is_some() {
@@ -1946,7 +1960,6 @@ fn read_engine(
                                 .transpose()?,
                             ..Default::default()
                         });
-                        arrays_seen += 1;
                         total_arrays = total_arrays
                             .checked_add(1)
                             .filter(|&n| n <= options.max_total_arrays)
@@ -2066,13 +2079,12 @@ fn read_engine(
                 stack.push(tag);
             }
             Event::End(_) => {
-                if counted_lists
-                    .last()
-                    .is_some_and(|(depth, _, _, _)| *depth == stack.len())
-                {
-                    let (_, child, expected, actual) = counted_lists.pop().unwrap();
-                    if expected != actual {
-                        return Err(invalid(format!("{child} list count mismatch")));
+                if let Some((depth, declared, actual)) = group_list {
+                    if depth == stack.len() {
+                        group_list = None;
+                        if declared != actual {
+                            return Err(invalid("parameter group count mismatch"));
+                        }
                     }
                 }
                 let tag = stack
@@ -2225,11 +2237,6 @@ fn read_engine(
                             if slot.replace(values).is_some() {
                                 return Err(invalid("duplicate coordinate/intensity array"));
                             }
-                        }
-                    }
-                    "binaryDataArrayList" => {
-                        if array_count != Some(arrays_seen) {
-                            return Err(invalid("binary array count mismatch"));
                         }
                     }
                     "precursor" => {
@@ -2461,11 +2468,6 @@ fn read_engine(
     }
     if !seen_mzml || !seen_run || !stack.is_empty() || record.is_some() {
         return Err(invalid("incomplete mzML document"));
-    }
-    if spectrum_count.is_some_and(|n| n != actual_spectra)
-        || chromatogram_count.is_some_and(|n| n != actual_chromatograms)
-    {
-        return Err(invalid("declared record count mismatch"));
     }
     Ok(experiment)
 }
