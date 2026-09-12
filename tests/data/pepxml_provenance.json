@@ -1,0 +1,281 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PepXMLFile.h",
+   "sha256": "44d48e40f00532ac74703b78fa27f2377849574b0bf21feb844e09dad759b278"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PepXMLFile_test.cpp",
+   "sha256": "299ccb1949c73a6360134368af93f2eb0db54fb0e4aa194699e7d5f1bca1711b",
+   "role": "The oracle. All ten of its START_SECTIONs are ported into tests/pepxml.rs; every transcribed literal comes from this file."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumMetaDataLookup.h",
+   "sha256": "54fffc86be75095032e25e433a006c6f6c607557c6e7701e9e27157e3a4d5ccc",
+   "role": "Not ported here. Read for the SpectrumMetaData fields and the getSpectrumMetaData/readSpectra/empty contract that PepXMLFile::load and ::store depend on; src/format/pepxml.rs re-creates only those four queries as SpectrumIndex."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumLookup.cpp",
+   "sha256": "380dbdff4c92a2f1bcceda2cb23ae4143193b5f7ba00ecafcff2c474c9acfcff",
+   "role": "Not ported here. Source of default_scan_regexp '=(?<SCAN>\\d+)$', of findByRT's two-neighbour tie rule and of findByNativeID/findByScanNumber, all reproduced in SpectrumIndex."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "sha256": "a27025952c9d2e8bbdc535f96abd409b1d9e6c37bcc197a125e10661b142e49b",
+   "role": "Not ported here. Source of isNativeID's ten-prefix test and of extractScanNumber's 'last matching subgroup' rule."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+   "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9",
+   "role": "Not ported here. Source of getDiffMonoMassString and createUnknownFromMassString, whose identifier spellings 'M[+1.0]', '.n[+2.5]' and '.c[+3.4]' this port reproduces without registering anything, and of toBracketString's integer-nominal-mass default."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+   "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715",
+   "role": "Not ported here. Source of searchModificationsByDiffMonoMass and its Sorted variant, whose (|mass error|, insertion counter) ordering the port reproduces with a stable sort over the registry order."
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a",
+   "role": "Not ported here. Defines the full-precision double text that PepXMLFile::store emits through precisionWrapper: fixed 15 fractional digits inside [1e-2, 1e4) and shortest round-trip scientific outside it. crate::param::value::format_float already implements it and this module calls it."
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
+   "sha256": "9b7c5bd57ed1751e281c9e31ce46d81e49c82ded6749131b459f648f2107a97b",
+   "role": "Not ported here. Read to reproduce the store sections' comparison policy exactly: a number pair passes when EITHER the absolute difference is within setAcceptableAbsolute OR the ratio is within setAcceptableRelative (FuzzyStringComparator.cpp:616-684). tests/pepxml.rs::fuzzy_equal implements that rule and is itself unit-tested."
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/PepXMLFile_test.mzML",
+   "sha256": "f59715fe0d154e728a685658abc7cf661a72deb8a6239fbd1fd2265070bbf51d",
+   "role": "Not copied into tests/data: 1.4 MB, and this port never reads spectra from pepXML. The 13 rows tests/pepxml.rs::upstream_lookup builds are transcribed from this file's <spectrum> id attributes (scan=1..scan=13), MS:1000511 ms levels (1,2,2,2,1,2,2,2,1,2,2,2,1) and MS:1000016 scan start times (0.5927, 1.3653, 1.719, 2.0436, 2.3364, 2.7843, 3.085, 3.4018, 3.7572, 4.4573, 4.8288, 5.1785, 5.4999)."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+   "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693",
+   "role": "Not ported here. Source of toBracketString, whose default integer nominal masses PepXMLFile::store writes into modification_info/@modified_peptide."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/PepXMLFile_test.pepxml",
+   "source_path": "src/tests/class_tests/openms/data/PepXMLFile_test.pepxml",
+   "sha256": "e51c6e28d29cbea6ddba6237c7765595dfe72b3d0a6bacdbc281490bd4eb2f0c",
+   "bytes": 27908,
+   "role": "Unmodified upstream input of the two load sections. Two msms_run_summary blocks over the same base_name (X! Tandem (k-score) and SEQUEST), 18 spectrum_query records, 20 distinct protein accessions in the first run. Its search_summary declares one fixed and twelve variable modifications, eight of them deliberately bogus (massdiff 1, 2, 2.5, -2.5, 3.4 with mass 123.456) to exercise every branch of AminoAcidModification: peptide_terminus, protein_terminus spelled 'c'/'n'/'N'/'Y', an aminoacid='O' entry whose mass equals its massdiff, and a peptide_next_aa='-' protein terminus in the second run."
+  },
+  {
+   "path": "tests/data/PepXMLFile_test_extended.pepxml",
+   "source_path": "src/tests/class_tests/openms/data/PepXMLFile_test_extended.pepxml",
+   "sha256": "54f16c7119e23c7dc3d03c5adbeeb271df115d88f6fe1f9eda163c0d155fb31b",
+   "bytes": 11952,
+   "role": "Unmodified upstream input of the [EXTRA] load and [EXTRA] store sections. Two spectrum_query records; the second carries experiment_label, swath_assay, status, a TPP-format spectrum name and two analysis_result blocks (peptideprophet 0.0660 with four sub-scores, interprophet 0.93814 with five)."
+  },
+  {
+   "path": "tests/data/PepXMLFile_test_store.pepxml",
+   "source_path": "src/tests/class_tests/openms/data/PepXMLFile_test_store.pepxml",
+   "sha256": "d782953df0fe0358daa1601daa94d83e553a7130ad24c5c71819f0d12c697a31",
+   "bytes": 18027,
+   "role": "Unmodified upstream input of all three store sections and of the idXML round-trip section. One run, nine spectrum_query records with start_scan 2,3,4,6,7,8,10,11,12, a fixed Carbamidomethyl (C) and four variable modifications."
+  },
+  {
+   "path": "tests/data/PepXMLFile_test_out.pepxml",
+   "source_path": "src/tests/class_tests/openms/data/PepXMLFile_test_out.pepxml",
+   "sha256": "ef7352b7e06a5c3b0a12b6f2b84a4ac2dc6070aec7b9b9b8437f724e537f0f38",
+   "bytes": 9486,
+   "role": "RETAINED C++ OUTPUT: what PepXMLFile::store wrote for PepXMLFile_test_store.pepxml with mz_name='test' and peptideprophet_analyzed=true. tests/pepxml.rs reproduces it through pepxml::write_with_options and compares with the section's own FuzzyStringComparator tolerances (absolute 1e-7, relative 1+1e-7). This is the package's tier 1 evidence."
+  },
+  {
+   "path": "tests/data/PepXMLFile_test_out_1.pepxml",
+   "source_path": "src/tests/class_tests/openms/data/PepXMLFile_test_out_1.pepxml",
+   "sha256": "db511152dd047482b4c164e9705cd36512c7fdb9512222383755c9a529bb81d3",
+   "bytes": 8246,
+   "role": "RETAINED C++ OUTPUT: the same input with peptideprophet_analyzed=false, so search_score elements replace the analysis_result blocks. Note that this file and PepXMLFile_test_out.pepxml disagree on one value they both derive from the same peptide - 2269.195424231600555 against 2269.1954242316001 for VSLPNYPAIPSDATLEVQSLR - so the retained pair was produced by two different OpenMS builds and cannot be byte-compared even against itself."
+  },
+  {
+   "path": "tests/data/PepXMLFile_test_out_mzML.pepxml",
+   "source_path": "src/tests/class_tests/openms/data/PepXMLFile_test_out_mzML.pepxml",
+   "sha256": "3047918dba6423181e4f01600ace43cdc940e6ccf196c21b9600f63d8d2d5f16",
+   "bytes": 9500,
+   "role": "RETAINED C++ OUTPUT: the same input stored with mz_file=PepXMLFile_test.mzML, so start_scan/end_scan/index come from the spectra (2..12 and 1..11) instead of from the identification order (1..9). Reproduced with SpectrumIndex built from the mzML's own spectrum list."
+  }
+ ],
+ "native_implementation": [
+  "src/format/pepxml.rs"
+ ],
+ "native_tests": [
+  "tests/pepxml.rs"
+ ],
+ "support_document": "docs/PEPXML_SUPPORT.md",
+ "support": "docs/PEPXML_SUPPORT.md",
+ "target_verification": [
+  "cargo fmt --all -- --check",
+  "cargo clippy --locked --all-features --all-targets -- -D warnings",
+  "cargo nextest run --locked --all-features",
+  "cargo nextest run --locked --no-default-features",
+  "cargo test --locked --all-features --doc",
+  "RUSTDOCFLAGS=-D warnings cargo doc --locked --all-features --no-deps",
+  "cargo +1.85.0 check --locked --all-features --all-targets",
+  "python3 tools/check_doc_coverage.py"
+ ],
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 348,
+   "operation": "mod_tol_ is 0.002 and xtandem_artificial_mod_tol_ is 0.0005; the second drops a terminal_modification whose |massdiff| is below it because some X!Tandem versions annotate a spurious near-zero fixed terminal modification"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 225,
+   "operation": "when the header sets mass == massdiff the absolute mass is recomputed as massdiff plus the internal-to-N/C-terminus mass or, with no terminus, plus ResidueDB::getResidue(aminoacid_)->getMonoWeight(Internal); the lookup result is dereferenced without a null check, so an unknown residue code crashes"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 182,
+   "operation": "protein_terminus is interpreted case-sensitively because tools write 'Y'/'N' where the schema allows only ''/'n'/'c' and the letter n collides: lower 'y' and 'c' and exact 'n' set a protein terminus, exact 'N' clears it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 282,
+   "operation": "the least specific registry search (ANYWHERE) is tried first only when the declaration left the terminus open, then the declared or wildcard specificity; a still-unresolved nonzero massdiff becomes a MASS_ONLY registration and a zero massdiff is dropped entirely"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 930,
+   "operation": "readRTMZCharge_ recomputes m/z as (precursor_neutral_mass + hydrogen_mass * charge) / charge, with hydrogen_mass_ monoisotopic or average per search_summary's precursor_mass_type and average assumed when search_summary is absent"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 935,
+   "operation": "'end_scan' is read into endscan from the 'start_scan' attribute, so the 'endscan not equal to startscan' error can never fire; the port compares the two attributes as intended and warns"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 1745,
+   "operation": "mod_aminoacid_mass: when the registry mass search returns EXACTLY ONE match the modification is never appended - only the size() > 1 branch appends - so a uniquely resolved modification not declared in the pepXML header is silently dropped"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 1695,
+   "operation": "mod_aminoacid_mass indexes current_sequence_[position - 1] with position taken from the file, so position=\"0\" wraps the unsigned subtraction and a position past the peptide reads out of bounds"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 1642,
+   "operation": "the C-terminal 'Cannot find' diagnostic prints mod_nterm_mass, a different and possibly uninitialised local, and says 'N-terminal'"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 1381,
+   "operation": "search_hit and alternative_protein index current_proteins_[min(size, search_id_) - 1]; search_id=\"0\" or an empty run underflows the unsigned subtraction"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 2004,
+   "operation": "msms_pipeline_analysis tests date[4], date[7] and date[10] for the corrupted 'yyyy:MM:dd:hh:mm:ss' spelling with no length check"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 1947,
+   "operation": "search_summary calls ProteaseDB::getEnzyme(enzyme_) unguarded, although sample_enzyme guarded the same lookup with hasEnzyme; an unknown sample_enzyme name therefore throws Exception::ElementNotFound and the file cannot be read"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 1854,
+   "operation": "search_summary assigns params_ = ProteinIdentification::SearchParameters() before anything else, discarding the user-defined DigestionEnzymeProtein that the 'specificity' handler built, and params_ only reaches the run at the search_summary end tag, so that handler's result is unreachable"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 2181,
+   "operation": "search_summary's end tag advances date_ by one second per identification run, because idXML identifies a run by search engine plus date and two runs must differ"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 2134,
+   "operation": "the implicit fixed-modification loop tests C_TERM || PROTEIN_N_TERM for the C-terminal branch, a copy/paste slip: a fixed PROTEIN_C_TERM modification falls through to the internal-residue branch and is applied to every matching residue instead"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 2015,
+   "operation": "lookupAddFromHeader_ matches a header declaration by |mod_mass - header mass| < mod_tol_ and requires the declaration's aminoacid string to contain current_sequence_[position]; the sequence is indexed without a bounds check"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 427,
+   "operation": "store splits the enzyme's cleavage expression on ')' and then reads sub_regex[1] without checking the vector's length; StringUtils::split returns a single element when the separator is absent, which a user-defined enzyme's expression (the bare cut residues) always is"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 554,
+   "operation": "store writes one spectrum_query per peptide HIT rather than per PeptideIdentification, so a multi-hit identification is emitted as several single-hit queries sharing a scan number"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 653,
+   "operation": "store always writes num_tot_proteins=\"1\", num_matched_ions=\"0\", tot_num_ions=\"0\", massdiff=\"0.0\", num_missed_cleavages=\"0\" and protein_descr=\"Protein No. 1\", and derives num_tol_term only from the leading evidence's AABefore being R or K with a Trypsin enzyme"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 414,
+   "operation": "store replaces every '.' in base_name with '_' because a spectrum query name is split on dots and the charge could not otherwise be read back"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "line": 418,
+   "operation": "the msms_pipeline_analysis date and the analysis_timestamp time are the hard-coded literals 2007-12-05T17:49:46 and 2007-12-05T17:49:52, so store output is reproducible"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+   "line": 435,
+   "operation": "searchModificationsByDiffMonoMassSorted keys a std::map on (|diff mono mass error|, insertion counter), so equal errors preserve registry order; the unsorted overload preserves registry order outright and PepXMLFile uses both"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+   "line": 1000,
+   "operation": "getDiffMonoMassString prefixes '+' or '-' and appends the magnitude through the full-precision double printer, which is why the bogus header masses read back as '+1.0', '+2.5', '-2.5' and '+3.4'"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+   "line": 219,
+   "operation": "toBracketString defaults to integer_mass=true and mass_delta=false, so a terminal annotation is written as the rounded diff mono mass plus the internal-to-terminus mass and a residue annotation as the rounded modified internal residue mass"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumLookup.cpp",
+   "line": 18,
+   "operation": "default_scan_regexp is '=(?<SCAN>\\d+)$', anchored at the end, so a native ID's LAST '='-separated numeric token becomes the scan number even when an earlier 'scan=' token exists"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumLookup.cpp",
+   "line": 37,
+   "operation": "findByRT inspects only the two neighbours of the requested time and prefers the upper one when both are equally far, and its std::map keying means a repeated retention time resolves to the last spectrum with it"
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
+   "line": 616,
+   "operation": "is_absdiff_small_ is computed before the sign and ratio tests and suppresses every one of them, so a number pair passes when the absolute difference OR the ratio is acceptable"
+  }
+ ],
+ "evidence": "Tier 1 executed differential on the writer, tier 3 source review on the reader. Tier 1: the three upstream store sections compare PepXMLFile::store's output against three RETAINED C++ outputs (PepXMLFile_test_out.pepxml, PepXMLFile_test_out_1.pepxml, PepXMLFile_test_out_mzML.pepxml, all hashed above), and tests/pepxml.rs reproduces each of those three invocations through pepxml::write_with_options and compares against the retained bytes with the sections' own FuzzyStringComparator policy (absolute 1e-7 OR relative 1+1e-7, the OR reproduced from FuzzyStringComparator.cpp:616-684 and unit-tested in fuzzy_comparator_matches_the_source_acceptance_rule). Byte equality is NOT the contract here and could not be: the two retained files disagree with each other on 2269.1954242316001 vs 2269.195424231600555 for the same peptide. Tier 3: every load expectation is a literal transcribed from PepXMLFile_test.cpp - 18 and 2 peptide identifications, 2 protein identifications, RT 1.3653 and 488.652, m/z 538.605, 585.3166250319, 538.6159248633 and 585.3304219355, sequence '.(Glu->pyro-Glu)ELNKEMAAEKAKAAAG', 20 protein hits, './current.fasta', Trypsin, one fixed and twelve variable modifications in the exact order 'Ammonia-loss (N-term C)', 'Glu->pyro-Glu (N-term E)', 'Oxidation (M)', 'Gln->pyro-Glu (N-term Q)', 'M[+1.0]', '.n[+2.0]', '.c[+2.0]', '.n[+2.5]', '.n[+2.5]', '.n[-2.5]', '.n[+2.5]', '.c[+3.4]', and the PeptideProphet/InterProphet scores 0.0660, 0.7114, 2, 79.79, 9, 0.93814 and 10.2137. Transcribed C++ literals are tier 3 evidence: they were read from the pinned test source, not produced by running it. Tier 4 (independently derived): every resource ceiling, the one-based index and non-ASCII boundary tests, the malformed-document rejections, the error-variant choices and the diagnostics channel, because no upstream section reaches them. No C++ was built or executed for this package.",
+ "gaps": [
+  "METADATA/SpectrumLookup.h and METADATA/SpectrumMetaDataLookup.h are separate unported headers. SpectrumIndex provides only findByNativeID, findByScanNumber, findByRT and getSpectrumMetaData plus the default scan regexp; addReferenceFormat, findByReference, findByIndex, the SpectrumMetaData precursor fields and the SpectrumMetaDataLookup::getSpectrumMetaData(String, ...) overloads are absent. The source store()'s comment that findByNativeID falls back to an RT lookup does not describe findByNativeID, which is an exact map lookup in both.",
+  "PepXMLFile::store loads the mz_file to build its lookup. This port never reads spectra: WriteOptions::mz_file supplies only base_name and raw_data, and WriteOptions::lookup supplies the spectrum metadata. A caller that wants the source's behaviour builds SpectrumIndex::read_spectra from a loaded experiment.",
+  "The source registers an unexplained header mass as a MASS_ONLY record in the process-wide ModificationsDB, which mutates global state and grows for the life of the process. This port produces an equivalent anonymous MassTag with the identical identifier and never mutates a registry, so the same document read twice yields byte-identical results.",
+  "A resolved modification is re-attached to the sequence through the registry by full identifier, because the crate has no public setter taking an already-resolved specificity. When that named lookup is not valid at the annotated residue or terminus - which the source's pointer assignment never checks - the port retains the mass difference as an anonymous annotation and records a diagnostic instead of attaching a modification for a different amino acid.",
+  "Numeric bracket annotations are re-resolved against the registry at the written precision, as crate::chemistry::AASequence documents for every numeric annotation, so an anonymous mass within one written decimal of a known modification is named rather than left anonymous. The source keeps its MASS_ONLY record.",
+  "The reader leaves SearchParameters::digestion_regex empty for a named enzyme, because idXML refuses a nonempty custom expression and the name determines the rule; the writer reads the expression back from ProteaseDB. Only a user-defined enzyme stores an expression.",
+  "PeptideEvidence flanking residues are FlankingResidue values, so the pepXML protein-terminus spelling '-' becomes NTerminus/CTerminus on read and '-' again on write. The source stores the character '-' itself, so an OpenMS marker character reaching store() is written verbatim there and as '-' here.",
+  "The source's ProteinIdentification score_type, higher_score_better and significance_threshold are never set by either direction; a pepXML carries no protein-level score.",
+  "store() warns when more than one ProteinIdentification is supplied and writes only the first one's search parameters. This port has no log stream in the writer and documents the same restriction instead.",
+  "The source parallelises nothing in PepXMLFile and the reader is a single pass in both, but the cost of annotating one search_hit differs: the source assigns a resolved ResidueModification* into a slot in constant time, while every crate::chemistry::AASequence setter clones the peptide and recomputes its formula and its mass from every residue. Applying the annotations one at a time therefore cost the peptide length per annotation - measured on Linux in release mode at 0.45 s for 53,784 bytes, 3.63 s for 161,784 bytes, 14.6 s for 318,384 bytes and 121.2 s for 946,785 bytes, one peptide of 17,400 residues carrying 17,400 annotations. The annotations are now decided against the free slots first and installed in one pass (10.3 ms, 31.6 ms, 60.9 ms and 0.187 s for the same four inputs, linear in the input); see docs/PEPXML_SUPPORT.md. A peptide attribute that itself carries a bracket annotation cannot be respelled and keeps one setter per modification, charged its real cost, so a peptide long enough for the product of sites and length to matter is now refused rather than run.",
+  "The source logs the whole peptide in the diagnostics it emits per annotation, which retained 64,091,000 bytes of messages from a 114,941 byte input here because ReadOptions::max_warnings bounds the number of messages and not their size. A diagnostic now quotes at most the first 32 residues and then the peptide's byte length, building and retaining one is charged against the meter, and ReadOptions::max_warning_bytes bounds the retained total; the overflow is counted in PepXmlDocument::suppressed_warnings exactly as the count overflow is.",
+  "The work and allocation budget derives from ReadOptions::max_input_bytes, which is a ceiling and not a measurement, so a small document read with the default ceiling was entitled to gigabytes of work. It is lowered once the input is decoded to 2,048 work and 512 allocation units per decoded byte, never below the 16 MiB floor the ceiling-derived budget already has and never raised, which keeps total work linear in the input length. The source has no equivalent accounting.",
+  "docs/core-sdk-reviewed-apis.json, docs/core-sdk-coverage.json, docs/doc-coverage.json, docs/VALIDATION.md, README.md, CHANGELOG.md, SOURCE_PROVENANCE.json, OpenMS_CPP_ISSUES.md and .github/workflows/rust.yml are outside this package's scope. Adding this manifest flips FORMAT/PepXMLFile.h from 'unmapped' to 'evidence_requires_review', so docs/core-sdk-coverage.json must be regenerated with 'python3 tools/core_sdk_coverage.py --write' when the ledger entry is recorded, and this file must be added to SOURCE_PROVENANCE.json's current_sdk_reference_manifests.",
+  "CI wiring was not added for the same reason: append '--test pepxml' to the minimum-rust job's '--features idxml' line in .github/workflows/rust.yml. The test passes under --all-features, under --no-default-features (where it compiles to nothing) and under cargo +1.85.0."
+ ]
+}

@@ -87,6 +87,9 @@ pub mod mztab_m;
 /// Legacy mzXML 3.1 adapter: nested scans and paired peak arrays (`MzXMLFile.h`).
 #[cfg(feature = "mzml")]
 pub mod mzxml;
+/// pepXML search results: load, store and modification resolution (`PepXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod pepxml;
 
 use crate::{Error, Result};
 
