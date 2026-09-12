@@ -123,7 +123,11 @@ member is unaccounted for, and names the file that owns each row.
 | `checkDataArraySizes_()` (protected) | `MSSpectrum::validate_data_arrays()` — `src/kernel.rs` |
 | protected fields `retention_time_`, `drift_time_`, `drift_time_unit_`, `ms_level_`, `name_`, the three array vectors | the public fields of the same meaning — `src/kernel.rs` |
 | `operator<<(std::ostream&, const MSSpectrum&)` | not ported for the whole spectrum. `Peak1D: Display` reproduces the per-peak `POS: … INT: …` lines the source prints; the `-- MSSPECTRUM BEGIN --` framing and the `SpectrumSettings` block have no counterpart. |
-| `setIMFormat` / `getIMFormat` / `getIMPeakType` / `setIMPeakType` (inherited from `SpectrumSettings`) | **not ported: deferred.** The enums are ported (`metadata::IonMobilityFormat`, `metadata::IonMobilityPeakType`) but `MSSpectrum` carries no field for either, and this work package may not change the struct. Three class-test sections depend on them; see *Section accounting*. |
+| `setIMFormat` (inherited from `SpectrumSettings`) | `metadata::SpectrumSettings::set_im_format` — `src/metadata/acquisition.rs`. Added by the IM-types package, which ported the quartet on the class that declares it; see [IM_TYPES_SUPPORT.md](IM_TYPES_SUPPORT.md) |
+| `getIMFormat` (inherited from `SpectrumSettings`) | `metadata::SpectrumSettings::im_format` — `src/metadata/acquisition.rs`, over the public `ion_mobility_format` field |
+| `setIMPeakType` (inherited from `SpectrumSettings`) | `metadata::SpectrumSettings::set_im_peak_type` — `src/metadata/acquisition.rs` |
+| `getIMPeakType` (inherited from `SpectrumSettings`) | `metadata::SpectrumSettings::im_peak_type` — `src/metadata/acquisition.rs`, over the public `ion_mobility_peak_type` field |
+| calling the four above **on an `MSSpectrum`** | still not available: the Rust `MSSpectrum` flattens `SpectrumSettings` into named fields rather than inheriting it, and it has no `ion_mobility_format` / `ion_mobility_peak_type` field of its own. `ImTypes::determine_im_format_with_stored` takes the stored value as an argument so a caller can supply it. This is the one part of this package's deferral that survives; see *Deferrals* |
 
 ## Preserved source conventions
 
@@ -270,18 +274,22 @@ files and pins 21 source anchors.
 
 `MSSpectrum_test.cpp` has 71 `START_SECTION`s. 68 are ported into
 `tests/spectrum_mobility.rs`, none of them merely mapped to another file's test.
-The remaining three have no `MSSpectrum` surface to assert, because the port has
-no field for either property; they are mapped onto the ported enums, each with
-one concrete value from the section, in
+The remaining three had no `MSSpectrum` surface to assert when this package was
+written, because the port had no field for either property; this file maps them
+onto the ported enums, each with one concrete value from the section, in
 `im_format_and_peak_type_enums_exist_but_no_spectrum_field_does`:
 
-| Section | Asserts | Mapped to |
-| --- | --- | --- |
-| `void setIMFormat(IMFormat)` | 2 | `IonMobilityFormat::PerPeak.name() == "im_peak"` and `IonMobilityFormat::None.name() == "none"` |
-| `IMPeakType getIMPeakType() const` | 1 | `IonMobilityPeakType::default() == Unknown` |
-| `void setIMPeakType(IMPeakType)` | 2 | `IonMobilityPeakType::Centroid.name() == "im_centroided"` and `Profile.name() == "im_profile"` |
+| Section | Asserts | Mapped to here | Now ported in |
+| --- | --- | --- | --- |
+| `void setIMFormat(IMFormat)` | 2 | `IonMobilityFormat::PerPeak.name() == "im_peak"` and `IonMobilityFormat::None.name() == "none"` | `tests/im_types.rs::set_im_format_round_trips`, on `SpectrumSettings` |
+| `IMPeakType getIMPeakType() const` | 1 | `IonMobilityPeakType::default() == Unknown` | `tests/im_types.rs::get_im_peak_type_defaults_to_unknown` |
+| `void setIMPeakType(IMPeakType)` | 2 | `IonMobilityPeakType::Centroid.name() == "im_centroided"` and `Profile.name() == "im_profile"` | `tests/im_types.rs::set_im_peak_type_round_trips` |
 
-None is unaccounted for.
+None is unaccounted for. The three enum assertions in this file are kept as they
+are: they still hold, and they pin the enum names that the round-trip tests in
+`tests/im_types.rs` rely on. The accounting for those three sections now belongs
+to [IM_TYPES_SUPPORT.md](IM_TYPES_SUPPORT.md), which asserts them on
+`SpectrumSettings`, the class that declares the members.
 
 Two further sections assert C++-only mechanics and are ported to their nearest
 Rust meaning, with the substitution stated at the assertion: `~MSSpectrum()`
@@ -290,13 +298,17 @@ Rust meaning, with the substitution stated at the assertion: `~MSSpectrum()`
 
 ## Deferrals
 
-- `MSSpectrum` needs an `im_format` and an `im_peak_type` field to complete
-  `SpectrumSettings`' ion-mobility surface. Adding them means editing the struct
-  in `src/kernel.rs`, which this work package may not do.
-- `tests/data/spectrum_mobility_provenance.json` is not yet listed in
-  `SOURCE_PROVENANCE.json`'s `kernel_wave1_reference_manifests`, so
-  `tools/check_core_sdk.py` does not verify its hashes. Registering it is the
-  integrator's step.
+- **Partly closed.** `MSSpectrum` needs an `im_format` and an `im_peak_type`
+  field to complete `SpectrumSettings`' ion-mobility surface. Adding them means
+  editing the struct in `src/kernel.rs`, which this work package may not do.
+  The four accessors themselves are ported — on `SpectrumSettings`, the class
+  that declares them — by the IM-types package
+  ([IM_TYPES_SUPPORT.md](IM_TYPES_SUPPORT.md)); what survives is only that an
+  `MSSpectrum` cannot answer them itself.
+- **Closed.** `tests/data/spectrum_mobility_provenance.json` was not yet listed
+  in `SOURCE_PROVENANCE.json`, so `tools/check_core_sdk.py` did not verify its
+  hashes. It is now registered under both `current_sdk_reference_manifests` and
+  `kernel_wave2_reference_manifests`.
 - `MSSpectrum::operator==` excluding `name_` is left as a stated divergence
   rather than reproduced; reproducing it needs a hand-written `PartialEq` on a
   struct this work package does not own.

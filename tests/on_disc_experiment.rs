@@ -9,17 +9,22 @@
 //! transcribed source review (tier 3); the resource-limit and atomicity
 //! expectations are independently derived (tier 4). No C++ was executed.
 //!
-//! Two fixture substitutions, both recorded in
+//! Both fixtures the upstream sections open are committed unmodified and used
+//! as they are; they are recorded in
 //! `tests/data/on_disc_experiment_provenance.json`:
 //!
-//! - the upstream sections open `IndexedmzMLFile_1.mzML`, committed unmodified
-//!   at `tests/data/indexed_mzml/IndexedmzMLFile_1.mzML`;
-//! - the failure sections open the upstream non-indexed `MzMLFile_1.mzML`, which
-//!   this crate's mzML reader rejects for an unrelated reason ("binary array
-//!   count mismatch"). `tests/data/mzml_upstream_minimal.mzML`
-//!   (upstream `MzMLFile_2_minimal.mzML`) stands in: like `MzMLFile_1.mzML` it is
-//!   plain mzML with no `indexListOffset` footer, which is the only property the
-//!   upstream sections rely on.
+//! - the non-failure sections open `IndexedmzMLFile_1.mzML`, at
+//!   `tests/data/indexed_mzml/IndexedmzMLFile_1.mzML`;
+//! - the failure sections open the non-indexed `MzMLFile_1.mzML`, at
+//!   `tests/data/mzml_validator/MzMLFile_1.mzML`.
+//!
+//! One derived fixture:
+//! `a_duplicate_native_identifier_resolves_to_the_first_record` writes a copy of
+//! `IndexedmzMLFile_1.mzML` into a temporary directory with the second
+//! spectrum's native identifier rewritten to the first's. The rewrite is
+//! byte-length preserving, so every `indexList` offset in the fixture stays
+//! correct, and the helper asserts that; no upstream section covers a duplicate
+//! identifier, so the input has to be made.
 
 #![cfg(feature = "mzml")]
 
@@ -51,9 +56,10 @@ fn indexed_with_precursor() -> PathBuf {
     data("mzml_validator/MzMLFile_4_indexed.mzML")
 }
 
-/// Plain mzML without an index footer, standing in for `MzMLFile_1.mzML`.
+/// The upstream `MzMLFile_1.mzML`: plain mzML with no `indexListOffset` footer,
+/// which is what the failure sections need. Committed unmodified.
 fn not_indexed() -> PathBuf {
-    data("mzml_upstream_minimal.mzML")
+    data("mzml_validator/MzMLFile_1.mzML")
 }
 
 fn opened(path: impl AsRef<Path>, skip_metadata: bool) -> OnDiscPeakMap {
@@ -330,8 +336,15 @@ fn spectrum_count_matches_the_index() {
     assert_eq!(without_metadata().spectrum_count(), 2);
     assert_eq!(failed_open().spectrum_count(), 0);
     // The failed open still loaded the metadata, as the source does, but the
-    // counts come from the index and are therefore zero.
-    assert!(failed_open().metadata().is_some());
+    // counts come from the index and are therefore zero. `MzMLFile_1.mzML`
+    // declares 4 spectra and 2 chromatograms, so the two answers are
+    // distinguishable: the metadata is present and the index is not.
+    let failed = failed_open();
+    let meta = failed
+        .metadata()
+        .expect("a failed index parse still loads the metadata");
+    assert_eq!(meta.spectra.len(), 4);
+    assert_eq!(meta.chromatograms.len(), 2);
 }
 
 // ---------------------------------------------------------------------------
@@ -945,27 +958,80 @@ fn half_open_range_endpoints_follow_drange_encloses() {
     assert!(experiment.spectrum(0).unwrap().peaks.is_empty());
 }
 
+/// A copy of `IndexedmzMLFile_1.mzML` in `dir` whose second spectrum carries
+/// the *first* spectrum's native identifier, in both the record and the index.
+///
+/// The identifier appears exactly twice in the fixture, once on the
+/// `<spectrum>` element and once as the `idRef` of its `<indexList>` entry, and
+/// `scan=1` and `scan=2` are the same length, so rewriting both leaves every
+/// byte offset in the index correct. Nothing else about the file changes:
+/// spectrum 0 still has 19914 peaks and spectrum 1 still has 19800.
+fn duplicate_native_id_fixture(dir: &TempDir) -> PathBuf {
+    let text = std::fs::read_to_string(indexed()).expect("the fixture is UTF-8");
+    assert_eq!(
+        text.matches(SCAN_2).count(),
+        2,
+        "the rewrite expects exactly the <spectrum> element and its <offset>"
+    );
+    assert_eq!(
+        SCAN_1.len(),
+        SCAN_2.len(),
+        "the rewrite must preserve length"
+    );
+    let rewritten = text.replace(SCAN_2, SCAN_1);
+    assert_eq!(rewritten.len(), text.len(), "byte offsets must not move");
+    let path = dir.path().join("duplicate_native_id.mzML");
+    std::fs::write(&path, rewritten).unwrap();
+    path
+}
+
 #[test]
-fn a_duplicate_native_identifier_keeps_the_first_record() {
+fn a_duplicate_native_identifier_resolves_to_the_first_record() {
     // Source `getMetaSpectrumById_` fills its map with
-    // `unordered_map::emplace`, which does not overwrite, so the first entry
-    // wins. The upstream fixture has unique identifiers, so this checks the rule
-    // through the resolved index rather than through a synthetic duplicate.
-    let mut experiment = with_metadata();
+    // `unordered_map::emplace`, which does not overwrite, so for two records
+    // sharing an identifier the first wins. No upstream section covers that:
+    // `IndexedmzMLFile_1.mzML`'s identifiers are unique, so the input is derived
+    // here, and the derivation shows where the rule is and is not observable.
+    let dir = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let duplicated = duplicate_native_id_fixture(&dir);
+
+    // Loading the metadata is refused outright: mzML's schema makes record
+    // identifiers unique per kind (`KEY_SPECTRUM_ID`, `KEY_CHROMATOGRAM_ID`)
+    // and this crate's reader enforces that, keyed by `(tag, id)`
+    // (`src/format/mzml.rs`, "empty or duplicate record id"). So the facade's
+    // *own* metadata cache never sees a duplicate through `open_file`; its
+    // first-wins `entry().or_insert_with()` is defensive, not a path a file can
+    // reach.
+    // The refusal is atomic, as `a_failed_open_leaves_the_previous_file_in_place`
+    // asserts for the general case.
+    let mut refused = OnDiscPeakMap::new();
+    let error = refused.open_file(&duplicated, false).unwrap_err();
+    assert!(matches!(error, Error::Parse { .. }), "{error:?}");
+    assert!(refused.metadata().is_none());
+    assert_eq!(refused.path(), Path::new(""));
+
+    // Where first-wins *is* observable is the index: `skip_metadata` loads no
+    // metadata, so the identifier goes straight to the handler's own
+    // `<indexList>` map, which is built with `or_insert` for the same reason.
+    // Both offsets are still in the index, and the duplicated identifier
+    // resolves to the first of them - spectrum 0, with 19914 peaks, not
+    // spectrum 1 with 19800.
+    let mut experiment = OnDiscPeakMap::new();
+    assert!(experiment.open_file(&duplicated, true).unwrap());
+    assert_eq!(experiment.len(), 2, "both records are still indexed");
+    let resolved = experiment.spectrum_by_native_id(SCAN_1).unwrap();
     assert_eq!(
-        experiment
-            .spectrum_by_native_id(SCAN_1)
-            .unwrap()
-            .peaks
-            .len(),
-        19914
+        resolved.peaks.len(),
+        19914,
+        "the first index entry won, not the second"
     );
-    assert_eq!(
-        experiment
-            .spectrum_by_native_id(SCAN_2)
-            .unwrap()
-            .peaks
-            .len(),
-        19800
-    );
+
+    // The identifier the rewrite overwrote is gone from the index entirely.
+    let error = experiment.spectrum_by_native_id(SCAN_2).unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+
+    // First-wins loses no data: it only decides what one identifier resolves
+    // to, and both records stay reachable by index.
+    assert_eq!(experiment.spectrum(0).unwrap().peaks.len(), 19914);
+    assert_eq!(experiment.spectrum(1).unwrap().peaks.len(), 19800);
 }

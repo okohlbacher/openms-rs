@@ -126,7 +126,23 @@ fields), `with_limits`, `open`, `limits()`, `path()`, `is_indexed()`,
   metadata is absent (`OnDiscMSExperiment.h:112-124`).
 - **`setSkipXMLChecks` is independent of `options_`** in both directions.
 - **Duplicate native identifiers:** the first entry wins, as
-  `unordered_map::emplace` does.
+  `unordered_map::emplace` does. `identifier_caches` uses
+  `entry(…).or_insert_with(…)` for the metadata caches and
+  `IndexedMzMLHandler`'s `identifier_map` uses `or_insert` for the index map,
+  so both layers agree. Only the index layer is reachable with a duplicate,
+  though. mzML requires record identifiers to be unique — the schema's
+  `KEY_SPECTRUM_ID` and `KEY_CHROMATOGRAM_ID` keys
+  (`resources/schemas/mzML_1_10.xsd:920-937`), one per record kind, which is why
+  a spectrum and a chromatogram may legally share an identifier — and this
+  crate's reader enforces exactly that, keyed by `(tag, id)`
+  (`src/format/mzml.rs`, "empty or duplicate record id"). A metadata load
+  carrying a duplicate is therefore refused before `identifier_caches` runs, and
+  a cross-kind collision lands in the two separate caches rather than colliding
+  in one. The first-wins line in `identifier_caches` is therefore defensive.
+  `a_duplicate_native_identifier_resolves_to_the_first_record` asserts both
+  halves of that: the refusal on a metadata load, and — with `skip_metadata`,
+  which loads no metadata and so resolves through the index alone — that a
+  `<indexList>` naming one identifier twice resolves to the first offset.
 
 ## Native differences
 
@@ -197,14 +213,17 @@ chromatogram, 19914 and 19800 peaks, 48 chromatogram points, instrument
 `controllerType=0 controllerNumber=1 scan=1`, `…scan=2` and `TIC`, the m/z window
 400–600, the intensity window 1000–1000000, and from `MzMLFile_4_indexed.mzML`
 the MS2 at index 1 with precursor m/z 5.55. Scan start times 0.2961 s and
-0.4738 s and the peak counts 15 and 10 are read from the same fixtures through
-this crate's own metadata load.
+0.4738 s, the peak counts 15 and 10, and the 4 spectra and 2 chromatograms the
+failure-path `MzMLFile_1.mzML` declares are read from the same unmodified
+fixtures through this crate's own metadata load.
 
 **Evidence tier 4 (independently derived).** The resource ceilings, the
 atomicity of a failed `open_file`, the half-open endpoints exercised at a
 spectrum's own retention time, `load_experiment`, `try_clone` resolving native
-identifiers where a source copy cannot, and the assertion that the by-native-id
-fetches ignore the options.
+identifiers where a source copy cannot, the assertion that the by-native-id
+fetches ignore the options, and — over the one derived fixture — the first-wins
+resolution of a duplicated native identifier and the reader's refusal of a
+duplicate record identifier.
 
 No C++ was built or executed and no retained C++ output was used, so nothing here
 is tier 1 or tier 2. An oracle driver over `OnDiscMSExperiment` in
@@ -256,16 +275,45 @@ Native tests beyond the sections: `a_failed_open_leaves_the_previous_file_in_pla
 `skip_xml_checks_reaches_the_decoder_and_survives_reopening`,
 `the_metadata_is_loaded_without_peak_data`,
 `half_open_range_endpoints_follow_drange_encloses`,
-`a_duplicate_native_identifier_keeps_the_first_record`.
+`a_duplicate_native_identifier_resolves_to_the_first_record`.
 
-Fixture substitution: the failure sections open the upstream non-indexed
-`MzMLFile_1.mzML`, which this crate's mzML reader rejects with "binary array
-count mismatch" for an unrelated reason. The already-committed upstream
-`MzMLFile_2_minimal.mzML` (`tests/data/mzml_upstream_minimal.mzML`) stands in;
-like `MzMLFile_1.mzML` it is plain mzML with no `indexListOffset` footer, which
-is the only property those sections rely on. Its metadata is empty where
-`MzMLFile_1.mzML`'s is not, so the failed-open experiment's metadata *content* is
-not exercised.
+No fixture substitution. Both files the class test opens are committed
+unmodified and used as they are: `IndexedmzMLFile_1.mzML` at
+`tests/data/indexed_mzml/IndexedmzMLFile_1.mzML` for the non-failure sections,
+and the non-indexed `MzMLFile_1.mzML` at
+`tests/data/mzml_validator/MzMLFile_1.mzML` for the failure sections.
+
+An earlier revision of this document said the failure-path fixture *had* to be
+substituted because the upstream `MzMLFile_1.mzML` was unavailable. That was
+wrong on both counts, and the correction is recorded here rather than quietly
+dropped. The file was already committed in-tree, twice — at
+`tests/data/mzml_validator/MzMLFile_1.mzML` and
+`tests/data/mzml_header/MzMLFile_1.original.mzML`, both sha256
+`076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2`, byte-identical
+to the pinned copy. What actually blocked it was this crate's own mzML reader,
+which refused the fixture's `binaryDataArrayList count="2"` carrying four
+`binaryDataArray` children (and its `productList count="1"` carrying two
+products). Upstream `MzMLHandler` compares neither count with anything, and the
+reader now treats both as advisory, so the fixture loads and the substitute
+(`tests/data/mzml_upstream_minimal.mzML`, upstream `MzMLFile_2_minimal.mzML`) is
+no longer used by this test file at all.
+
+Restoring it also closed the gap the substitution had opened. `open_file` on a
+non-indexed file returns `false` and still loads the metadata, as the source
+does; the substitute's metadata was empty, so "no records from the index" and
+"no records at all" were indistinguishable. `MzMLFile_1.mzML` declares 4 spectra
+and 2 chromatograms, and `spectrum_count_matches_the_index` now asserts both the
+zero counts and those metadata record counts.
+
+One derived fixture remains, and it is derived rather than substituted:
+`a_duplicate_native_identifier_resolves_to_the_first_record` writes a copy of
+`IndexedmzMLFile_1.mzML` into a temporary directory with the second spectrum's
+native identifier rewritten to the first's. The identifier occurs exactly twice
+in the file — on the `<spectrum>` element and as the `idRef` of its
+`<indexList>` offset — and `scan=1` and `scan=2` are the same length, so the
+rewrite preserves every byte offset; the test asserts that before using the
+file. No upstream section covers a duplicate identifier, so the input has to be
+made.
 
 ## Consumers
 
@@ -357,3 +405,9 @@ there.
   which is wrong — that member maps to `options_mut().skip_xml_checks` and
   reaches the decoder. Correcting that scope string belongs to the integrator,
   who owns the ledger.
+- `tests/data/on_disc_experiment_provenance.json` is not listed in
+  `SOURCE_PROVENANCE.json`, so `tools/check_core_sdk.py` does not verify the
+  hashes it records — including the `MzMLFile_1.mzML` hash restored above, which
+  was therefore checked by hand against the pinned copy and against the second
+  in-tree copy at `tests/data/mzml_header/MzMLFile_1.original.mzML`. Registering
+  the manifest is the integrator's step.
