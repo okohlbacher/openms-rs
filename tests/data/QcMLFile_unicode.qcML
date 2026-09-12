@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qcML xmlns="https://github.com/qcML/qcml" >
+	<runQuality ID="日本語_id">
+				<qualityParameter name="mzML file" ID="ja_run_name" cvRef="MS" accession="MS:1000577" value="日本語.mzML"/>
+				<attachment  name="ピーク" ID="ja_table" cvRef="QC" accession="QC:0000044" qualityParameterRef="ja_run_name">
+<table>					<tableColumnTypes>m/z 強度</tableColumnTypes>
+					<tableRowValues>500.5 1e5</tableRowValues>
+</table>				</attachment>
+	</runQuality>
+	<cvList>
+	<cv uri="http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" ID="psi_cv_ref" fullName="PSI-MS" version="3.41.0"/>
+	<cv uri="https://github.com/qcML/qcML-development/blob/master/cv/qc-cv.obo" ID="qc_cv_ref" fullName="QC-CV" version="0.1.1"/>
+	<cv uri="http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo" ID="uo_cv_ref" fullName="unit" version="1.0.0"/>
+	</cvList>
+</qcML>

@@ -91,6 +91,11 @@ pub mod mzxml;
 #[cfg(feature = "idxml")]
 pub mod pepxml;
 
+/// qcML quality-control reports: runs, sets, quality parameters, attachments
+/// and their XML and table serialisations (`QcMLFile.h`).
+#[cfg(feature = "paramxml")]
+pub mod qcml;
+
 use crate::{Error, Result};
 
 fn parse_error(line: usize, message: impl Into<String>) -> Error {

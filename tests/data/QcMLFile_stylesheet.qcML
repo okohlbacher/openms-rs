@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#openms-qc-stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
+<qcML xmlns="https://github.com/qcML/qcml" >
+	<runQuality ID="styled_id">
+				<qualityParameter name="mzML file" ID="styled_run_name" cvRef="MS" accession="MS:1000577" value="styled_run"/>
+	</runQuality>
+	<cvList>
+	<cv uri="http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" ID="psi_cv_ref" fullName="PSI-MS" version="3.41.0"/>
+	<cv uri="https://github.com/qcML/qcML-development/blob/master/cv/qc-cv.obo" ID="qc_cv_ref" fullName="QC-CV" version="0.1.1"/>
+	<cv uri="http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo" ID="uo_cv_ref" fullName="unit" version="1.0.0"/>
+	</cvList>
+<xsl:stylesheet id="openms-qc-stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="/">
+    <html><body><h1>qcML report</h1>
+      <table border="1"><tr><th>run</th></tr>
+        <xsl:for-each select="//runQuality"><tr><td><xsl:value-of select="@ID"/></td></tr></xsl:for-each>
+      </table>
+    </body></html>
+  </xsl:template>
+</xsl:stylesheet>
+</qcML>
