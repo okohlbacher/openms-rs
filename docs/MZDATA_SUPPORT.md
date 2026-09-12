@@ -25,7 +25,9 @@ array declares its own `precision`, `endian` and `length` as XML attributes**,
 and the source honours all three. `endian="big"` is read for the m/z array, the
 intensity array and every annotation array independently, so one spectrum may
 mix both byte orders. `tests/mzdata.rs::big_endian_arrays_are_honoured` and
-`byte_order_changes_the_decoded_values` hold that behaviour down.
+`byte_order_changes_the_decoded_values` hold that behaviour down, and
+`big_endian_input_survives_a_round_trip` stores a big-endian document back out
+— little endian, as `writeBinary_` writes — and asserts every value returns.
 
 ---
 
@@ -48,6 +50,8 @@ mix both byte orders. `tests/mzdata.rs::big_endian_arrays_are_honoured` and
 | inherited `Internal::XMLFile::isValid(filename, os)` | **not ported**: XSD validation. `crate::format::mzml_schema` is mzML-specific and `mzData_1_05.xsd` is not shipped. `tests/mzdata.rs::stored_documents_are_wellformed` reproduces what can be reproduced — both documents are well-formed and reload |
 | inherited `Internal::XMLFile::getVersion()` | `MzDataFile::version`, and the `SCHEMA_VERSION` constant |
 | inherited `XMLFile::parse_` / `save_` / `schema_location_` / `schema_version_` (protected) | replaced by the free `read_*` / `write_*` functions and the `SCHEMA_*` constants. `store_with_options` publishes through `crate::format::path_io::write`, which is this crate's equivalent of `save_`: a sibling temporary renamed onto the destination, with `.gz`/`.bz2` suffix compression |
+| inherited `XMLFile::parseBuffer_` (protected) | `read` / `read_with_options`, which take any `BufRead` and so cover both the file and the in-memory case; `parse_` is the only one `MzDataFile` itself calls |
+| inherited `XMLFile::enforceEncoding_` / `enforced_encoding_` (protected) | **not ported**: the override exists for X!Tandem output whose declaration the Xerces parser stumbles on, and no `MzData*` code path sets it. The declared encoding is honoured instead — ISO-8859-1, UTF-8 and US-ASCII are read and anything else is refused rather than misread |
 | inherited `ProgressLogger` (`setLogType`, `getLogType`, `startProgress`, `setProgress`, `endProgress`, `nextProgress`) | **not ported here**: `crate::concept::progress_logger` exists but is not threaded through this module. The counters the handler spends on progress are returned instead, in `LoadReport` and `StoreReport` |
 
 ### `FORMAT/HANDLERS/MzDataHandler.h`
@@ -55,12 +59,15 @@ mix both byte orders. `tests/mzdata.rs::big_endian_arrays_are_honoured` and
 The handler is a SAX subclass whose class documentation says "Do not use this
 class. It is only needed in MzDataFile." Its observable behaviour is the whole
 of mzData reading and writing, so all of it is ported — as a one-pass,
-value-returning parser and a writer, not as a subclass. The three namespace-level
-`typedef`s (`MapType`, `SpectrumType`, `ChromatogramType`) map to
-`MSExperiment`, `MSSpectrum` and `MSChromatogram` and introduce no Rust alias.
+value-returning parser and a writer, not as a subclass. The three
+`typedef`s the header declares at namespace scope, above the class, are rows of
+the table like any other member.
 
 | C++ member | Rust counterpart |
 |---|---|
+| `typedef PeakMap MapType` (namespace scope) | `crate::kernel::MSExperiment`; no Rust alias is introduced |
+| `typedef MSSpectrum SpectrumType` (namespace scope) | `crate::kernel::MSSpectrum`; no Rust alias is introduced |
+| `typedef MSChromatogram ChromatogramType` (namespace scope) | **not ported**: the alias is declared and never used — mzData 1.05 has no chromatogram element, `MzDataHandler` never mentions a `ChromatogramType` value, and neither reading nor writing has anything to map it onto. The writer refuses `MSExperiment::chromatograms` (see **What the writer refuses by default**) rather than silently dropping them, which is where a caller meets the gap |
 | `MzDataHandler(MapType& exp, filename, version, ProgressLogger&)` | the reading path: `read_with_options` and the private `Parser`. The header comments on the two constructors are **swapped**: this one assigns `exp_` and is used by `load`, but is documented "Constructor for a write-only handler" |
 | `MzDataHandler(const MapType& exp, filename, version, const ProgressLogger&)` | the writing path: `write_with_options`. Documented "Constructor for a read-only handler", and it is the store constructor |
 | `~MzDataHandler() override` | not ported: empty body, `Drop` is derived |
@@ -160,7 +167,17 @@ value-returning parser and a writer, not as a subclass. The three namespace-leve
   end tag, a DTD and an undeclared entity are all refused, as Xerces refuses
   them for the source. CDATA sections and the five predefined entities and
   numeric character references resolve, because Xerces hands the source handler
-  their content through `characters()` like any other text.
+  their content through `characters()` like any other text. quick-xml reports
+  each `&…;` in character data as its own `Event::GeneralRef`, so the event
+  loop resolves that variant explicitly and refuses `DocType` and an
+  unexpanded `Empty` — there is no catch-all arm that could swallow a
+  reference, the defect that turned `1&#46;5` into `15` in the Mascot XML
+  reader (`src/format/mzml.rs:2465` is the established shape; commit
+  `c218077` applied it to `src/format/imzml_handler.rs`).
+  `tests/mzdata.rs::entity_references_in_character_data_never_vanish` splices a
+  reference into a base64 payload — where a dropped one would change numbers
+  with no error at all — and into a metadata value, and asserts the undeclared
+  entity is refused.
 * **Deliberately ignored terms.** `PSI:1000017` (`ScanFunction`),
   `PSI:1000020` (`TandemScanningMethod`), `PSI:1000035` (`PeakProcessing`),
   `PSI:1000043` (intensity unit) and `PSI:1000046` (energy unit, "we assume
@@ -173,6 +190,17 @@ value-returning parser and a writer, not as a subclass. The three namespace-leve
   zero-length placeholder spectrum an empty experiment produces. The whole
   empty-experiment document is asserted byte for byte in
   `stored_documents_are_wellformed`.
+* **Two round-trip losses that are the source's own**, reproduced rather than
+  repaired, and pinned by
+  `tests/mzdata.rs::the_two_round_trip_losses_that_are_the_sources_own`:
+  `writeCVS_` writes nothing for a numeric value that is exactly zero
+  (`MzDataHandler.cpp:1442-1448`), so a retention time of exactly 0 s emits no
+  `TimeInSeconds` and reads back as the `MSSpectrum` default of −1 (every other
+  zero-valued field has zero as its default and so is unaffected); and the
+  placeholder spectrum above means an empty experiment reloads with one empty
+  spectrum in it. Both are also what `MzDataFile_test.cpp` gets away with: its
+  three spectra sit at 60, 120 and 180 s and its stored experiments are never
+  empty.
 * **Native-ID renumbering.** `<spectrum id>` is an integer, so the writer
   reproduces the three-flag analysis of `MzDataHandler.cpp:764-800`: ids are
   taken from a `spectrum=`-prefixed number, else from a bare number, else the
@@ -274,6 +302,26 @@ Each is documented at the Rust item as well.
 14. **Nothing mzData cannot represent is discarded silently.** The default
     `WriteOptions` refuses; `WriteOptions::source` discards, warning where the
     source warns. The refusals are enumerated below.
+15. **Every document this writer produces, this reader loads.**
+    `<supDataArrayBinary>` is aligned with the peak array element for element,
+    and mzData has no way to say otherwise. `writeTo` nevertheless writes an
+    annotation array whose length differs from the spectrum's, reporting it
+    through the non-fatal `error(LOAD, …)` (`MzDataHandler.cpp:1032-1037`) —
+    and `fillData_` then reads `decoded_list_[2 + i][n]` past the end of that
+    array for every peak it does not have (`:562-572`), which this reader
+    refuses. A store followed by a load therefore failed on any experiment
+    holding a misaligned array, including the empty placeholder array
+    `DataArray` documents and `MSExperiment::validate` accepts. The array
+    length is now checked in the preflight, before anything is written, and
+    `WriteOptions::discard_unrepresentable` drops such an array — with the
+    source's warning and the `<supDesc>` / `<supDataArrayBinary>` numbering of
+    the surviving arrays kept in step — instead of writing a document that
+    cannot be read back. A nonfinite m/z, intensity or annotation value is
+    refused in *both* modes for the same reason: it is not a representability
+    gap that could be discarded, and the reader refuses a decoded array that
+    holds one (difference 6). `tests/mzdata.rs::annotation_array_length_must_match_the_peak_count`,
+    `::misaligned_annotation_arrays_are_dropped_rather_than_written` and
+    `::nonfinite_values_are_refused_by_the_writer` hold all three down.
 
 ### What the writer refuses by default
 
@@ -297,9 +345,16 @@ outside `MassSpectrum`; an unknown spectrum type together with acquisitions, or
 a spectrum type without them; acquisition-info metadata; an acquisition
 identifier that is not a 32-bit integer; more than one activation method; a
 precursor isolation window, charge-state list, CV term, drift time or spectrum
-reference; data-array processing history; more than one data-processing record
-per spectrum, spectra whose records differ, software metadata, and a processing
-action outside `Deisotoping`, `ChargeDeconvolution` and `PeakPicking`.
+reference; an annotation array whose length differs from the spectrum's peak
+count, the empty placeholder array included; data-array processing history;
+more than one data-processing record per spectrum, spectra whose records differ,
+software metadata, and a processing action outside `Deisotoping`,
+`ChargeDeconvolution` and `PeakPicking`.
+
+Refused in **both** modes, `WriteOptions::source` included: a nonfinite m/z,
+intensity or annotation value. That is not something mzData cannot represent —
+it is a value the reader refuses on the way back in, so writing it would
+produce a document this crate cannot load (difference 15).
 
 `ScanMode::Ms1Spectrum` and `MsnSpectrum` are refused because `writeTo` maps
 both to the same `MassScan` value as `MassSpectrum`. `Absorption`,
@@ -394,8 +449,14 @@ established by the bytes, not by anything the class test asserts.
 
 Tier 4, independently derived: the big-endian, ISO-8859-1 and UTF-8 fixtures;
 every resource ceiling; the hostile `length` and `count` attributes; the writer
-refusals; and the byte-exact empty-experiment document, which is transcribed
-from `MzDataHandler.cpp:583-1072` rather than captured from a run.
+refusals; the round-trip closure of difference 15
+(`annotation_array_length_must_match_the_peak_count`,
+`misaligned_annotation_arrays_are_dropped_rather_than_written`,
+`nonfinite_values_are_refused_by_the_writer`,
+`big_endian_input_survives_a_round_trip`); the character-reference regression
+`entity_references_in_character_data_never_vanish`; and the byte-exact
+empty-experiment document, which is transcribed from
+`MzDataHandler.cpp:583-1072` rather than captured from a run.
 
 ---
 
@@ -440,6 +501,6 @@ from `MzDataHandler.cpp:583-1072` rather than captured from a run.
 * **CI wiring** was not added for the same reason: append `--test mzdata` to
   `.github/workflows/rust.yml:87`, the second `--no-default-features --features
   mzml` line of the `minimum-rust` job (the one that already carries the imzML
-  tests). Verified: all 52 tests pass under
+  tests). Verified: all 63 tests pass under
   `cargo nextest run --locked --no-default-features --features mzml --test mzdata`
   and `cargo +1.85.0 check --locked --all-features --all-targets` is clean.

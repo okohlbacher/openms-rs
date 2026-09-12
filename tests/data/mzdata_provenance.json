@@ -71,7 +71,7 @@
    "path": "tests/data/mzdata_big_endian.mzData",
    "sha256": "9344aa501df97dd3b04e345811c8e382f9421b0bdbf7ed076dfa6e532ab4dd89",
    "bytes": 1438,
-   "role": "Synthetic (tier 4). No upstream fixture declares endian=\"big\" on a peak array, only on annotation arrays. One spectrum at 42 s with a 64-bit big-endian m/z array (110/120/130), a 32-bit big-endian intensity array (100/200/100) and a 32-bit big-endian annotation array named widths (1.5/2.5/3.5). byte_order_changes_the_decoded_values rewrites endian=\"big\" to endian=\"little\" in the same bytes and asserts the values change, which is what proves the attribute is read rather than the host byte order assumed."
+   "role": "Synthetic (tier 4). No upstream fixture declares endian=\"big\" on a peak array, only on annotation arrays. One spectrum at 42 s with a 64-bit big-endian m/z array (110/120/130), a 32-bit big-endian intensity array (100/200/100) and a 32-bit big-endian annotation array named widths (1.5/2.5/3.5). byte_order_changes_the_decoded_values rewrites endian=\"big\" to endian=\"little\" in the same bytes and asserts the values change, which is what proves the attribute is read rather than the host byte order assumed. big_endian_input_survives_a_round_trip stores the loaded experiment back out - little endian, as writeBinary_ writes - and asserts every value returns."
   },
   {
    "path": "tests/data/mzdata_latin1.mzData",
@@ -97,9 +97,9 @@
   "gates": [
    "cargo fmt --all -- --check",
    "cargo clippy --locked --all-features --all-targets -- -D warnings",
-   "cargo nextest run --locked --all-features (3245 tests)",
+   "cargo nextest run --locked --all-features (3256 tests)",
    "cargo nextest run --locked --no-default-features (2376 tests)",
-   "cargo nextest run --locked --no-default-features --features mzml --test mzdata (52 tests)",
+   "cargo nextest run --locked --no-default-features --features mzml --test mzdata (63 tests)",
    "cargo test --locked --all-features --doc",
    "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --all-features --no-deps",
    "cargo +1.85.0 check --locked --all-features --all-targets",
@@ -170,7 +170,7 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
    "line": 1037,
-   "operation": "a supplemental-array length mismatch during writeTo is reported with error(LOAD, ...) rather than error(STORE, ...), so the message reads \"Non-fatal error while loading\" from the store path"
+   "operation": "a supplemental-array length mismatch during writeTo is reported with error(LOAD, ...) rather than error(STORE, ...), so the message reads \"Non-fatal error while loading\" from the store path - and the misaligned array is then written anyway, producing a document whose <supDataArrayBinary> is not aligned with the peak array; fillData_ at :562-572 reads past the end of that array on the way back in"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",

@@ -36,6 +36,16 @@
 //! allocated, and the parsed experiment is committed only once the whole
 //! document has been read.
 //!
+//! Writing closes the round trip: every document this writer produces, this
+//! reader loads. mzData aligns each `<supDataArrayBinary>` with the peak array
+//! element for element and has no way to say otherwise, so an annotation array
+//! whose length differs from the peak count — the empty placeholder
+//! [`DataArray`](crate::kernel::DataArray) permits included — is refused
+//! before anything is written, or dropped with the source's warning under
+//! [`WriteOptions::discard_unrepresentable`](crate::format::mzdata::WriteOptions::discard_unrepresentable).
+//! `MzDataHandler::writeTo` writes such an array anyway and only logs, and its
+//! own `fillData_` then reads past the end of the decoded list.
+//!
 //! The source parallelises nothing here, and neither does this port; the
 //! `ProgressLogger` the source handler takes by reference is replaced by the
 //! counters in [`LoadReport`](crate::format::mzdata::LoadReport).
@@ -369,6 +379,9 @@ pub struct WriteOptions {
     /// Write `<supDesc>` and `<supDataArrayBinary>` for each float data array,
     /// the source `PeakFileOptions::getWriteSupplementalData()`
     /// (`MzDataHandler.cpp:983`, `:1023`).
+    ///
+    /// Only arrays as long as the spectrum's peak array can be written; see
+    /// [`WriteOptions::discard_unrepresentable`].
     pub write_supplemental_data: bool,
     /// Write the m/z array as `precision="32"`, as `writeBinary_` hardcodes
     /// (`MzDataHandler.cpp:1500-1506`).
@@ -380,6 +393,13 @@ pub struct WriteOptions {
     /// mass.
     pub mz_32_bit: bool,
     /// Discard what mzData cannot represent instead of refusing to write it.
+    ///
+    /// An annotation array whose length differs from the spectrum's peak count
+    /// is dropped from the document — not written misaligned, as
+    /// `MzDataHandler::writeTo` writes it — so that what this writer produces
+    /// this reader can still load. The source's warning is reported either
+    /// way. A nonfinite value is refused even here; see
+    /// [`MzDataFile::store`].
     pub discard_unrepresentable: bool,
 }
 
@@ -564,8 +584,12 @@ impl MzDataFile {
     /// [`Error::Io`] when the output cannot be created — the source
     /// `Exception::UnableToCreateFile` — and [`Error::Unsupported`] when the
     /// experiment holds metadata mzData cannot represent and
-    /// [`MzDataFile::discards_unrepresentable`] is false. The destination file
-    /// is published only after the whole document has been serialised.
+    /// [`MzDataFile::discards_unrepresentable`] is false, which includes an
+    /// annotation array whose length differs from the spectrum's peak count.
+    /// [`Error::InvalidValue`] for a nonfinite m/z, intensity or annotation
+    /// value, in either mode, because the reader refuses such an array. The
+    /// destination file is published only after the whole document has been
+    /// serialised.
     pub fn store(&self, path: impl AsRef<Path>, experiment: &MSExperiment) -> Result<()> {
         store_with_options(path, experiment, &self.write_options())
     }
@@ -2407,6 +2431,32 @@ fn preflight_store(
     report: &mut StoreReport,
 ) -> Result<()> {
     let settings = &experiment.settings;
+    // Refused in *both* modes, because neither is a representability gap
+    // mzData could be asked to drop: the reader refuses a decoded array that
+    // holds a nonfinite value (`fill_data`), so writing one would produce a
+    // document this crate cannot read back. The source encodes whatever the
+    // `float` holds and its own reader then stores a NaN coordinate.
+    for spectrum in &experiment.spectra {
+        if spectrum
+            .peaks
+            .iter()
+            .any(|peak| !peak.mz.is_finite() || !peak.intensity.is_finite())
+        {
+            return Err(Error::InvalidValue(
+                "mzData cannot store a nonfinite m/z or intensity: the reader refuses such an array".into(),
+            ));
+        }
+        if spectrum
+            .float_data_arrays
+            .iter()
+            .any(|array| array.data.iter().any(|value| !value.is_finite()))
+        {
+            return Err(Error::InvalidValue(
+                "mzData cannot store a nonfinite annotation value: the reader refuses such an array"
+                    .into(),
+            ));
+        }
+    }
     if !options.discard_unrepresentable {
         if !experiment.chromatograms.is_empty() {
             return Err(unsupported("chromatograms"));
@@ -2514,7 +2564,7 @@ fn preflight_store(
             .first()
             .and_then(|spectrum| spectrum.data_processing.first());
         for spectrum in &experiment.spectra {
-            preflight_spectrum(spectrum, shared)?;
+            preflight_spectrum(spectrum, shared, options)?;
         }
     }
     // The renumbering verdict is part of the report whether or not discarding
@@ -2537,7 +2587,36 @@ fn preflight_store(
     Ok(())
 }
 
-fn preflight_spectrum(spectrum: &MSSpectrum, shared: Option<&Arc<DataProcessing>>) -> Result<()> {
+fn preflight_spectrum(
+    spectrum: &MSSpectrum,
+    shared: Option<&Arc<DataProcessing>>,
+    options: &WriteOptions,
+) -> Result<()> {
+    // `<supDataArrayBinary>` is aligned with the peak array element for
+    // element: `fill_data` refuses an annotation array whose decoded length
+    // differs from the m/z array's, which is where the source reads past the
+    // end of its own decoded list (`MzDataHandler.cpp:562-572`). The source
+    // writer emits the array anyway and only logs
+    // (`MzDataHandler.cpp:1032-1037`), which produces a document neither
+    // reader can load faithfully. Refusing here keeps the store/load round
+    // trip closed; [`WriteOptions::discard_unrepresentable`] drops the array
+    // in `write_spectra` instead, with the source's warning.
+    //
+    // This also catches the empty placeholder array `DataArray` documents and
+    // `MSExperiment::validate` allows: mzData has no way to say "this array
+    // carries no values for these peaks".
+    if options.write_supplemental_data {
+        for (index, array) in spectrum.float_data_arrays.iter().enumerate() {
+            if array.data.len() != spectrum.peaks.len() {
+                return Err(unsupported(&format!(
+                    "the annotation array at index {index} (name '{}'), whose {} values do not match the spectrum's {} peaks",
+                    array.name,
+                    array.data.len(),
+                    spectrum.peaks.len()
+                )));
+            }
+        }
+    }
     if !spectrum.name.is_empty() {
         return Err(unsupported("a spectrum name"));
     }
@@ -3349,19 +3428,46 @@ fn write_spectra(
             out.raw("\t\t\t\t</precursorList>\n")?;
         }
         out.raw("\t\t\t</spectrumDesc>\n")?;
+        // The annotation arrays that are actually written, with the
+        // `supDataArrayRef` / `id` each one gets. An array whose length
+        // differs from the peak count is dropped rather than written: the
+        // reader refuses a misaligned `<supDataArrayBinary>`, so emitting one
+        // would produce a document this crate cannot load. The preflight
+        // refuses it outright unless `discard_unrepresentable` is set, which
+        // is the only way to reach the warning below — the source's own
+        // message, which it logs while writing the array anyway
+        // (`MzDataHandler.cpp:1032-1037`). Numbering the retained arrays from
+        // one keeps `<supDesc>` and `<supDataArrayBinary>` paired, which is
+        // what the reader resolves the description by.
+        let mut annotations = Vec::new();
         if options.write_supplemental_data {
             for (position, array) in spectrum.float_data_arrays.iter().enumerate() {
-                out.raw(&format!(
-                    "\t\t\t<supDesc supDataArrayRef=\"{}\">\n",
-                    position + 1
-                ))?;
-                if !array.metadata.is_empty() {
-                    out.raw("\t\t\t\t<supDataDesc>\n")?;
-                    out.user_params(5, &array.metadata)?;
-                    out.raw("\t\t\t\t</supDataDesc>\n")?;
+                if array.data.len() == spectrum.peaks.len() {
+                    annotations.push(array);
+                } else {
+                    warn(
+                        report,
+                        &format!(
+                            "Length of meta data array (index:'{position}' name:'{}') differs from spectrum length. meta data array: {} / spectrum: {} . The array is not stored.",
+                            array.name,
+                            array.data.len(),
+                            spectrum.peaks.len()
+                        ),
+                    );
                 }
-                out.raw("\t\t\t</supDesc>\n")?;
             }
+        }
+        for (position, array) in annotations.iter().enumerate() {
+            out.raw(&format!(
+                "\t\t\t<supDesc supDataArrayRef=\"{}\">\n",
+                position + 1
+            ))?;
+            if !array.metadata.is_empty() {
+                out.raw("\t\t\t\t<supDataDesc>\n")?;
+                out.user_params(5, &array.metadata)?;
+                out.raw("\t\t\t\t</supDataDesc>\n")?;
+            }
+            out.raw("\t\t\t</supDesc>\n")?;
         }
         let mz_precision = if options.mz_32_bit {
             Precision::Bits32
@@ -3376,27 +3482,14 @@ fn write_spectra(
             .map(|peak| f64::from(peak.intensity))
             .collect();
         out.binary("intenArrayBinary", Precision::Bits32, &magnitudes, None)?;
-        if options.write_supplemental_data {
-            for (position, array) in spectrum.float_data_arrays.iter().enumerate() {
-                if array.data.len() != spectrum.peaks.len() {
-                    warn(
-                        report,
-                        &format!(
-                            "Length of meta data array (index:'{position}' name:'{}') differs from spectrum length. meta data array: {} / spectrum: {} .",
-                            array.name,
-                            array.data.len(),
-                            spectrum.peaks.len()
-                        ),
-                    );
-                }
-                let values: Vec<f64> = array.data.iter().map(|&v| f64::from(v)).collect();
-                out.binary(
-                    "supDataArrayBinary",
-                    Precision::Bits32,
-                    &values,
-                    Some((array.name.as_str(), position + 1)),
-                )?;
-            }
+        for (position, array) in annotations.iter().enumerate() {
+            let values: Vec<f64> = array.data.iter().map(|&v| f64::from(v)).collect();
+            out.binary(
+                "supDataArrayBinary",
+                Precision::Bits32,
+                &values,
+                Some((array.name.as_str(), position + 1)),
+            )?;
         }
         out.raw("\t\t</spectrum>\n")?;
     }

@@ -2489,3 +2489,297 @@ fn duplicate_attributes_are_refused() {
     ));
     assert!(matches!(read_text(&text), Err(Error::Parse { .. })));
 }
+
+// ===========================================================================
+// [EXTRA] The store/load round trip is closed
+// ===========================================================================
+
+/// An annotation array whose length differs from the spectrum's peak count
+/// cannot be stored, because the reader refuses a misaligned
+/// `<supDataArrayBinary>`.
+///
+/// `writeTo` writes such an array anyway and only logs
+/// (`MzDataHandler.cpp:1032-1037`), which is what made `store` produce a
+/// document this crate's own `load` refuses: `fill_data` compares every
+/// annotation array with the m/z array, the place where `fillData_` reads past
+/// the end of `decoded_list_[2 + i]` (`MzDataHandler.cpp:562-572`). The empty
+/// placeholder array that `DataArray`'s documentation permits and
+/// `MSExperiment::validate` accepts is the shortest way to reach it.
+#[test]
+fn annotation_array_length_must_match_the_peak_count() {
+    let with_array = |values: Vec<f32>| {
+        let mut experiment = MSExperiment::new();
+        experiment.spectra.push(MSSpectrum {
+            native_id: "spectrum=1".into(),
+            rt: 1.0,
+            peaks: vec![Peak1D::new(100.0, 1.0), Peak1D::new(200.0, 2.0)],
+            float_data_arrays: vec![openms::kernel::DataArray::new("widths", values)],
+            ..Default::default()
+        });
+        experiment
+    };
+    // The empty placeholder, one value short, and one value too many.
+    for values in [vec![], vec![1.5f32], vec![1.5f32, 2.5, 3.5]] {
+        let experiment = with_array(values.clone());
+        let mut bytes = Vec::new();
+        let error =
+            write_with_options(&mut bytes, &experiment, &WriteOptions::default()).unwrap_err();
+        assert!(
+            matches!(&error, Error::Unsupported(message)
+                if message.contains("annotation array at index 0")
+                    && message.contains("do not match")),
+            "{values:?}: {error}"
+        );
+        assert!(bytes.is_empty(), "a refusal must write nothing");
+    }
+
+    // A matching array is written and reloads unchanged.
+    let experiment = with_array(vec![1.5f32, 2.5]);
+    let mut bytes = Vec::new();
+    write_with_options(&mut bytes, &experiment, &WriteOptions::default()).unwrap();
+    let text = String::from_utf8(bytes).unwrap();
+    let reloaded = read_text(&text).unwrap();
+    assert_eq!(
+        reloaded.spectra[0].float_data_arrays[0].data,
+        vec![1.5f32, 2.5]
+    );
+}
+
+/// With `discard_unrepresentable` the misaligned array is dropped from the
+/// document instead of being written, so the stored file still reloads — and
+/// the arrays that survive keep their names, their descriptions and their
+/// values, because `<supDesc>` and `<supDataArrayBinary>` are renumbered
+/// together.
+#[test]
+fn misaligned_annotation_arrays_are_dropped_rather_than_written() {
+    let mut experiment = MSExperiment::new();
+    let mut short = openms::kernel::DataArray::new("short", vec![1.0f32]);
+    short
+        .metadata
+        .insert("Comment".into(), MetaValue::from("dropped"));
+    let mut kept = openms::kernel::DataArray::new("kept", vec![7.5f32, 8.5]);
+    kept.metadata
+        .insert("Comment".into(), MetaValue::from("survives"));
+    experiment.spectra.push(MSSpectrum {
+        native_id: "spectrum=1".into(),
+        rt: 1.0,
+        peaks: vec![Peak1D::new(100.0, 1.0), Peak1D::new(200.0, 2.0)],
+        float_data_arrays: vec![short, kept],
+        ..Default::default()
+    });
+
+    let directory = TempDir::new(false).unwrap();
+    let path = directory.path().join("dropped.mzData");
+    let mut file = MzDataFile::new();
+    file.set_discard_unrepresentable(true);
+    let report = file.store_report(&path, &experiment).unwrap();
+    assert_eq!(report.warning_count, 1);
+    assert!(
+        report.warnings[0].contains("Length of meta data array (index:'0' name:'short')")
+            && report.warnings[0].contains("not stored"),
+        "{:?}",
+        report.warnings
+    );
+
+    let document = std::fs::read_to_string(&path).unwrap();
+    assert!(!document.contains("short"), "{document}");
+    assert_eq!(
+        document.matches("<supDesc supDataArrayRef=\"1\">").count(),
+        1
+    );
+    assert_eq!(document.matches("<supDataArrayBinary id=\"1\">").count(), 1);
+    assert!(!document.contains("id=\"2\""), "{document}");
+
+    let reloaded = load(&path).unwrap();
+    assert_eq!(reloaded.spectra.len(), 1);
+    let arrays = &reloaded.spectra[0].float_data_arrays;
+    assert_eq!(arrays.len(), 1);
+    assert_eq!(arrays[0].name, "kept");
+    assert_eq!(arrays[0].data, vec![7.5f32, 8.5]);
+    assert_eq!(meta(arrays[0].metadata.get("Comment")), "survives");
+    assert_eq!(reloaded.spectra[0].peaks.len(), 2);
+}
+
+/// A nonfinite coordinate, intensity or annotation value is refused in both
+/// modes: the reader refuses such an array, so writing one would produce a
+/// document this crate cannot load back. `writeBinary_` encodes whatever the
+/// `float` holds.
+#[test]
+fn nonfinite_values_are_refused_by_the_writer() {
+    let cases: &[(&str, MSSpectrum)] = &[
+        (
+            "nonfinite m/z",
+            MSSpectrum {
+                native_id: "spectrum=1".into(),
+                rt: 1.0,
+                peaks: vec![Peak1D::new(f64::NAN, 1.0)],
+                ..Default::default()
+            },
+        ),
+        (
+            "nonfinite intensity",
+            MSSpectrum {
+                native_id: "spectrum=1".into(),
+                rt: 1.0,
+                peaks: vec![Peak1D::new(100.0, f32::INFINITY)],
+                ..Default::default()
+            },
+        ),
+        (
+            "nonfinite annotation",
+            MSSpectrum {
+                native_id: "spectrum=1".into(),
+                rt: 1.0,
+                peaks: vec![Peak1D::new(100.0, 1.0)],
+                float_data_arrays: vec![openms::kernel::DataArray::new("widths", vec![f32::NAN])],
+                ..Default::default()
+            },
+        ),
+    ];
+    for (what, spectrum) in cases {
+        let mut experiment = MSExperiment::new();
+        experiment.spectra.push(spectrum.clone());
+        for options in [WriteOptions::default(), WriteOptions::source()] {
+            let mut bytes = Vec::new();
+            let error = write_with_options(&mut bytes, &experiment, &options).unwrap_err();
+            assert!(
+                matches!(&error, Error::InvalidValue(message) if message.contains("nonfinite")),
+                "{what}: {error}"
+            );
+            assert!(bytes.is_empty(), "{what}: a refusal must write nothing");
+        }
+    }
+}
+
+/// A big-endian document survives a store followed by a load. The writer emits
+/// little endian only, as `writeBinary_` does, so this is the one direction in
+/// which the per-array `endian` attribute has to be honoured on reading for the
+/// values to come back at all.
+#[test]
+fn big_endian_input_survives_a_round_trip() {
+    let loaded = load(data(FIXTURE_BIG_ENDIAN)).unwrap();
+    let directory = TempDir::new(false).unwrap();
+    let path = directory.path().join("from_big_endian.mzData");
+    store(&path, &loaded).unwrap();
+    let document = std::fs::read_to_string(&path).unwrap();
+    assert!(!document.contains("endian=\"big\""), "{document}");
+    let reloaded = load(&path).unwrap();
+    assert_eq!(reloaded, loaded);
+    let spectrum = &reloaded.spectra[0];
+    assert_eq!(spectrum.peaks[0].mz, 110.0);
+    assert_eq!(spectrum.peaks[1].mz, 120.0);
+    assert_eq!(spectrum.peaks[2].mz, 130.0);
+    assert_eq!(spectrum.peaks[1].intensity, 200.0);
+    assert_eq!(spectrum.float_data_arrays[0].name, "widths");
+    assert_eq!(spectrum.float_data_arrays[0].data, vec![1.5f32, 2.5, 3.5]);
+}
+
+/// An `&…;` reference inside character data is resolved, never dropped.
+///
+/// quick-xml reports every reference in character data as its own
+/// `Event::GeneralRef`, so a reader that takes character data through a
+/// catch-all arm silently deletes it — the defect found in the Mascot XML
+/// reader, where `1&#46;5` became `15`. The established fix is the explicit
+/// arm at `src/format/mzml.rs:2465`, applied to `src/format/imzml_handler.rs`
+/// in commit `c218077`. This reader resolves the five predefined entities and
+/// every numeric character reference, refuses an undeclared one, and takes
+/// CDATA and a DTD through arms of their own. A base64 payload is where
+/// dropping a reference would change numbers with no error at all.
+#[test]
+fn entity_references_in_character_data_never_vanish() {
+    // 110/120/130 as three 32-bit little-endian values, with the payload's
+    // last character written as the numeric reference for the same character.
+    let payload = "AADcQgAA8EIAAAJD";
+    let spliced = format!("{}&#x44;", &payload[..payload.len() - 1]);
+    let text = spectrum_with(&format!(
+        concat!(
+            "\t\t\t<mzArrayBinary>\n",
+            "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\"3\">{}</data>\n",
+            "\t\t\t</mzArrayBinary>\n",
+            "\t\t\t<intenArrayBinary>\n",
+            "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\"3\">AADIQgAASEMAAMhC</data>\n",
+            "\t\t\t</intenArrayBinary>\n"
+        ),
+        spliced
+    ));
+    let referenced = read_text(&text).unwrap();
+    let literal = read_text(&text.replace("&#x44;", "D")).unwrap();
+    assert_eq!(referenced.spectra[0].peaks.len(), 3);
+    assert_eq!(referenced.spectra[0].peaks[0].mz, 110.0);
+    assert_eq!(referenced.spectra[0].peaks[1].mz, 120.0);
+    assert_eq!(referenced.spectra[0].peaks[2].mz, 130.0);
+    assert_eq!(referenced.spectra[0].peaks[1].intensity, 200.0);
+    assert_eq!(referenced, literal);
+
+    // The Mascot shape: a decimal point written as a reference must not turn
+    // 1.5 into 15.
+    let text = concat!(
+        "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n",
+        "<mzData version=\"1.05\" accessionNumber=\"x\">\n",
+        "\t<description>\n\t\t<admin>\n",
+        "\t\t\t<sampleName>1&#46;5</sampleName>\n",
+        "\t\t</admin>\n",
+        "\t\t<instrument>\n\t\t\t<instrumentName>a&amp;b</instrumentName>\n\t\t</instrument>\n",
+        "\t</description>\n",
+        "</mzData>\n"
+    );
+    let loaded = read_text(text).unwrap();
+    assert_eq!(loaded.settings.sample.name, "1.5");
+    assert_eq!(loaded.settings.instrument.name, "a&b");
+
+    // An undeclared entity in character data is refused rather than expanded
+    // or dropped.
+    let text = concat!(
+        "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n",
+        "<mzData version=\"1.05\" accessionNumber=\"x\">\n",
+        "\t<description>\n\t\t<admin>\n",
+        "\t\t\t<sampleName>&external;</sampleName>\n",
+        "\t\t</admin>\n\t</description>\n",
+        "</mzData>\n"
+    );
+    let error = read_text(text).unwrap_err();
+    assert!(
+        matches!(&error, Error::Unsupported(message) if message.contains("external")),
+        "{error}"
+    );
+}
+
+/// What a store followed by a load still does *not* preserve, for the record.
+///
+/// Both losses are the source's, reproduced deliberately, and both are cheap
+/// to mistake for the defect above. `writeCVS_` writes nothing for a numeric
+/// value that is exactly zero (`MzDataHandler.cpp:1442-1448`), so a retention
+/// time of exactly 0 s emits no `TimeInSeconds` and reads back as the
+/// `MSSpectrum` default of −1; and `writeTo` emits one zero-length
+/// placeholder spectrum for an empty experiment, because the schema requires
+/// at least one (`:1057-1072`), so an empty experiment reloads with a
+/// spectrum in it.
+#[test]
+fn the_two_round_trip_losses_that_are_the_sources_own() {
+    let mut experiment = MSExperiment::new();
+    experiment.spectra.push(MSSpectrum {
+        native_id: "spectrum=1".into(),
+        rt: 0.0,
+        peaks: vec![Peak1D::new(100.0, 1.0)],
+        ..Default::default()
+    });
+    let mut bytes = Vec::new();
+    write_with_options(&mut bytes, &experiment, &WriteOptions::default()).unwrap();
+    let text = String::from_utf8(bytes).unwrap();
+    assert!(!text.contains("TimeInSeconds"), "{text}");
+    let reloaded = read_text(&text).unwrap();
+    assert_eq!(reloaded.spectra[0].rt, -1.0);
+    // Any other retention time returns.
+    experiment.spectra[0].rt = 60.0;
+    let mut bytes = Vec::new();
+    write_with_options(&mut bytes, &experiment, &WriteOptions::default()).unwrap();
+    let reloaded = read_text(&String::from_utf8(bytes).unwrap()).unwrap();
+    assert_eq!(reloaded.spectra[0].rt, 60.0);
+
+    let empty = MSExperiment::new();
+    let mut bytes = Vec::new();
+    write_with_options(&mut bytes, &empty, &WriteOptions::default()).unwrap();
+    let reloaded = read_text(&String::from_utf8(bytes).unwrap()).unwrap();
+    assert_eq!(reloaded.spectra.len(), 1);
+    assert!(reloaded.spectra[0].peaks.is_empty());
+}
