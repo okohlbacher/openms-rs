@@ -1,0 +1,224 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/ImzMLFile.h",
+      "sha256": "a26a957813d7a33053d86dd211a70963aabd150f1833c012557fc74444e7efe4",
+      "role": "The ported header, 283 lines. Every public member, every private member, every file-static helper of the implementation and the whole surface inherited from Internal::XMLFile and ProgressLogger is mapped in docs/IMZML_FILE_SUPPORT.md."
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "sha256": "5ae841d09aa6a815f2046fc56e47c1b339c6789f8b0b6b14f97ecfbd38c9eb5f",
+      "role": "The implementation, 645 lines. Source of the two geometry builders' orderings, the advisory .ibd UUID check, attachImzMLMeta_'s presence rules, the loadImpl_ option switches, the geometry-driven store and the .ibd path rule."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ImzMLFile_test.cpp",
+      "sha256": "7584cf31d29aa05cc80b9a5eea1bbf9da265f3bb46e92e0c6d517f1a50a0917e",
+      "role": "The family's class test, 1769 lines, 41 START_SECTIONs. All 41 are ported into tests/imzml_file.rs (42 test functions; section 8's two per-fixture blocks became two tests). Every transcribed literal is tier 3."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ImzMLFile_all_modes_test.cpp",
+      "sha256": "adc5bf88d28146b8f7430dfe2ec752f9680c1cc9df6dbcb9f2f4ce08865bfa54",
+      "role": "The seven-mode suite, 258 lines, 9 START_SECTIONs. All 9 are ported into tests/imzml_all_modes.rs, including the cross-mode consistency section that is upstream's only assertion that the three access paths agree."
+    },
+    {
+      "path": "src/openms/include/OpenMS/IMAGING/MSImagingExperiment.h",
+      "sha256": "9c8487ff42c54d83c25fe80aff3f496a88d47ea32c903ae55dddf14cc6f45281",
+      "role": "Read, not ported. Two of ImzMLFile's public members are typed on it, so ImagingExperiment in src/format/imzml_file.rs reproduces the surface those two members need. Its own class test was not ported and no claim is made on the header; docs/IMZML_FILE_SUPPORT.md lists which of its members are covered."
+    },
+    {
+      "path": "src/openms/source/IMAGING/MSImagingExperiment.cpp",
+      "sha256": "32b398e687182c7e7f8e4344bcd4c229f9a2ee84ec2f9dd547a14f4b2fa461d6",
+      "role": "Read for validate() and the two extractIonImage overloads, which ImzMLFile::load calls and the class test compares against the on-disc path."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/XMLFile.h",
+      "sha256": "dbdf6d6a9f9b0de336bcc90d507dcdda86dace44fa583308f5ec39d908a2edf4",
+      "role": "Read to enumerate the public surface ImzMLFile inherits: isValid(filename, os) and getVersion(). Both are accounted for in the API mapping table."
+    }
+  ],
+  "fixtures": [],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/ImzMLFile_1_Example_Continuous.imzML",
+      "source_path": "src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.imzML",
+      "sha256": "a358a80751cfd014dc86d5a18ee04c21b98063d3523c0f03f29c375f49c6b0cc",
+      "bytes": 16916,
+      "role": "Added unmodified by the ImzMLHandler package and reused here. Nine spectra at 1-based (1..3, 1..3, z=1) on a declared 3x3 grid with 100 um pixels and 300 um extents, mode continuous, one shared float32 m/z array at .ibd offset 16, UUID 12345678-1234-1234-1234-123456789012, IMS:1000090 MD5 4b5dd9fa84fafc955cfdd301f9ed55d7 and no SHA-1. Drives 29 of the 41 class-test sections and 8 of the 9 all-modes sections."
+    },
+    {
+      "path": "tests/data/ImzMLFile_1_Example_Continuous.ibd",
+      "source_path": "src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.ibd",
+      "sha256": "a3e6f4695c121f7f4da07eec1ba7b55dbbcf06b77afd444b788909655e972e6a",
+      "bytes": 335976,
+      "role": "The continuous companion binary: 16-byte UUID header, then the shared float32 m/z array once and nine float32 intensity arrays. First m/z of pixel (1,1) is 100.0."
+    },
+    {
+      "path": "tests/data/ImzMLFile_2_Example_Processed.imzML",
+      "source_path": "src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.imzML",
+      "sha256": "066671590f01d4820b7ac5bd1f669d23dca04a91e40c08a35f7d0c6d6c729480",
+      "bytes": 23929,
+      "role": "Added unmodified by the ImzMLHandler package and reused here. Nine spectra on the same 3x3 grid, mode processed so every pixel owns its m/z array, UUID 9d501bdc53444916b7e97e795b02c856, IMS:1000091 SHA-1 7e8fdb93053915d3edb51b70aa0619ac209964df and no MD5, negative polarity with top down / horizontal / left-right acquisition geometry. Drives the processed-mode sections and the explicit-.ibd-override section."
+    },
+    {
+      "path": "tests/data/ImzMLFile_2_Example_Processed.ibd",
+      "source_path": "src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.ibd",
+      "sha256": "1a5410dd26e844f714b53db7506d8474a40af37323bf19396df68ea7733ded9a",
+      "bytes": 604744,
+      "role": "The processed companion binary: 16-byte UUID header, then nine distinct float32 m/z arrays each followed by its float32 intensity array. First m/z of pixel (1,1) is 100.083336."
+    }
+  ],
+  "native_implementation": [
+    "src/format/imzml_file.rs"
+  ],
+  "native_tests": [
+    "tests/imzml_file.rs",
+    "tests/imzml_all_modes.rs"
+  ],
+  "support_document": "docs/IMZML_FILE_SUPPORT.md",
+  "depends_on": [
+    "tests/data/imzml_handler_provenance.json",
+    "tests/data/imzml_writer_provenance.json",
+    "tests/data/on_disc_imzml_provenance.json"
+  ],
+  "source_anchors": [
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 45,
+      "operation": "uuidStringToBytes_ strips dashes and braces before requiring exactly 32 hex digits, so the .ibd header comparison accepts the hyphenated and the bare spelling of IMS:1000080; the port reuses imzml_handler::uuid_bytes, which mirrors it"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 88,
+      "operation": "verifyIbdUuid_ reports a UUID mismatch, a missing or unparsable identifier, and an .ibd shorter than 16 bytes as OPENMS_LOG_WARN and lets the load continue, deliberately, so legacy and non-conformant datasets stay readable; the port returns the verdict in LoadReport::uuid and likewise never fails the load"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 125,
+      "operation": "attachImzMLMeta_ writes imzml:imaging_mode, imzml:ibd_path and the three grid counts unconditionally, the pixel sizes and image extents only when positive, and the identifier, the two checksums, the two array data types and the four acquisition-geometry terms only when non-empty; attach_dataset_meta reproduces every presence rule, so a key present means the file declared it"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 199,
+      "operation": "XercesPlatformGuard calls XMLPlatformUtils::Initialize() and deliberately never Terminate(), because Terminate() is not noexcept and would std::terminate from an implicitly noexcept destructor (observed as an MSVC fastfail 0xC0000409); quick_xml has no process-global state, so the port has no counterpart and the source note is neutralised"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 208,
+      "operation": "the constructor registers /SCHEMAS/mzML_1_10.xsd and version 1.1.0 with its Internal::XMLFile base, which is why isValid validates imzML against the unmodified mzML schema; ImzMLFile::is_valid selects the same schema through mzml_schema::validate_schema"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 229,
+      "operation": "load(MSImagingExperiment&) builds the geometry from the parsed per-spectrum index rather than from imzml:x/y meta values, because index[i] corresponds to spectrum i and the in-memory and on-disc paths must not diverge; then calls exp.validate()"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 277,
+      "operation": "the meta-value geometry builder tests x_imz < 1 || y_imz < 1 BEFORE reading imzml:z, so a spectrum at (0,0,2) is reported as a non-positive coordinate; the index-based builder at line 397 tests z != 1 first and reports the same spectrum as another plane. Both orderings are reproduced and asserted"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 302,
+      "operation": "a pixel beyond the declared IMS:1000042 x IMS:1000043 grid is dropped from the geometry with a warning instead of aborting the load, and the spectrum stays reachable by index; softening the grid type's own strict in-bounds rule is explicit in the source comment"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 312,
+      "operation": "only the first spectrum per pixel enters the geometry; later spectra at the same coordinate are counted, at most 20 are listed in the warning, and all stay reachable by index. MAX_LISTED_PROBLEMS is that cap"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 349,
+      "operation": "when the file declares no grid, width and height are derived as the largest observed zero-based coordinate plus one, and the dimensions are only ever raised, so a declared grid larger than any pixel survives"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 363,
+      "operation": "the meta-value builder copies the pixel size when imzml:pixel_size_x and imzml:pixel_size_y merely exist, without requiring either to be positive, where the index-based builder at line 472 requires both > 0; the port keeps that difference, so the two builders can disagree about the pixel size of one dataset; neither C++ MSImagingGeometry::setPixelSize nor the ported set_pixel_size rejects a zero, and only the latter rejects a non-finite value"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 397,
+      "operation": "the index-based builder skips every entry whose z is not 1 without even a warning, because MSImagingGeometry is two-dimensional; GeometryReport::other_plane_count counts them instead"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 472,
+      "operation": "the index-based builder sets the pixel size in micrometer only when both IMS:1000046 and IMS:1000047 are strictly positive"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 490,
+      "operation": "isValid forwards to Internal::XMLFile::isValid with the schema the constructor registered and writes the engine messages to the caller's ostream; the port returns a SchemaValidationReport whose is_valid() is the bool and whose diagnostics are the messages"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 511,
+      "operation": "the geometry-driven store throws Exception::InvalidValue when a pixel's spectrum_index is at or above getNrSpectra(), before writing anything; store_imaging returns Error::InvalidValue there and leaves no file"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 518,
+      "operation": "the geometry-driven store converts the 0-based grid coordinate to 1-based imzML by adding one, and sets imzml:z to 1 only when the spectrum does not already carry one; store_imaging does both"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 526,
+      "operation": "the geometry-driven store overwrites imzml:max_count_x/y and imzml:pixel_size_x/y from the geometry whenever the geometry's value is positive, so the grid is the source of truth and any value already on the experiment is replaced"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 550,
+      "operation": "loadImpl_ copies the adapter's PeakFileOptions onto the handler and then overrides: an index-only load sets FillData(false) and AlwaysAppendData(false), and a load with no consumer sets AlwaysAppendData(true). The port honours fill_data on every load; always_append_data has no counterpart because each load returns a fresh experiment"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 568,
+      "operation": "a caller-supplied .ibd path wins over the inferred sibling, and it is threaded through both the index load and the UUID check so that neither targets a file that will not be read; every load path here has a _with_ibd variant that does the same"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 616,
+      "operation": "verifyIbdUuid_ runs after the parse on every read path, because the XML UUID is only known then; that covers the in-memory loads, the streaming load and the on-disc reader, which routes through loadSpectraIndex"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 627,
+      "operation": "attachImzMLMeta_ is skipped for the index-only path, so load_spectra_index returns the metadata without mirroring it onto an experiment"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+      "line": 639,
+      "operation": "inferIbdPath_ lower-cases the path to test for a .imzml suffix, replaces those six characters with .ibd, and otherwise appends .ibd; so scan.IMZML and scan.ImzMl both give scan.ibd while scan.mzML gives scan.mzML.ibd"
+    },
+    {
+      "path": "src/openms/source/IMAGING/MSImagingExperiment.cpp",
+      "line": 102,
+      "operation": "validate() walks the geometry's pixels and throws Exception::InvalidValue 'Pixel references missing spectrum' on the first spectrum_index at or above getNrSpectra(); ImagingExperiment::validate returns Error::InvalidValue naming the same pixel, and ImzMLFile::load calls it as the source's load does"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ImzMLFile_test.cpp",
+      "line": 1264,
+      "operation": "the store-metadata-round-trip section asserts reloaded[0].getRT() == 12.34 and getMSLevel() == 1 after a load; those values come from ImzMLHandler's MzMLHandler base, which this port cannot reach for an .imzML, so that half of the section is asserted against the written document instead. The gap, its three causes in src/format/mzml.rs and the probe that proves them are recorded in docs/IMZML_FILE_SUPPORT.md"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ImzMLFile_all_modes_test.cpp",
+      "line": 206,
+      "operation": "the cross-mode consistency section is upstream's only assertion that the full in-memory load, the on-disc random access and the RAM pixel lookup return the same spectrum; it compares peak counts only, and the port additionally compares the f64 and f32 bit patterns of every peak"
+    }
+  ],
+  "evidence": "Tier 3 source review with three independent cross-checks. All 41 START_SECTIONs of ImzMLFile_test.cpp are ported into tests/imzml_file.rs (42 test functions, because section 8's two per-fixture blocks became two tests) and all 9 of ImzMLFile_all_modes_test.cpp into tests/imzml_all_modes.rs; none is merely mapped and none is unaccounted for, with the per-section table naming the header each section covers in docs/IMZML_FILE_SUPPORT.md. The transcribed literals are the suites': nine spectra on a 3x3 grid with 100 um pixels and 300 um extents, the continuous and processed modes, the UUIDs 12345678-1234-1234-1234-123456789012 and 9d501bdc53444916b7e97e795b02c856, the MD5 4b5dd9fa84fafc955cfdd301f9ed55d7 and SHA-1 7e8fdb93053915d3edb51b70aa0619ac209964df, float32 for both arrays, negative polarity with top down / horizontal / left-right geometry, the first m/z of pixel (1,1) at 100.0 and 100.083336, MS:1003006 with its single MS:1002814 unit, MS:1000786 for a free-text name, MS:1000821 pressure array with UO:0000110 pascal, MS:1003007 written without a unit because it allows two, the binaryDataArrayList counts of 2, 3 and 4, and the sorted-external-peaks ion image of 1310.0. Numeric comparisons port ClassTest::isRealSimilar exactly (absolute 1e-5 or ratio 1+1e-5), because those decimal literals are roundings of float32-stored values. No C++ was built or executed and no C++ output was retained, so this is NOT a tier 1 differential. The three checks that do not depend on the suites are stronger than a transcription: every round trip writes a dataset and reads it back through the ported reader, comparing decoded m/z, intensities, auxiliary arrays and pixel coordinates for every spectrum and, in processed mode, asserting the per-spectrum .ibd offsets are distinct and increasing, which closes the loop through the binary offsets; every ion image is compared against a sum computed directly from the decoded peaks rather than through either extraction path; and the three access paths are compared bit for bit where the upstream section compares only peak counts. The resource ceilings, the refusal of a filter whose input an .imzML scan never parses, the fill_data load, the UUID-mismatch path, the dangling-pixel refusal and the error-variant choices are independently derived (tier 4): no upstream fixture reaches them.",
+  "gaps": [
+    "ImzMLFile::load does not reconstruct the mzML-level metadata that the source's ImzMLHandler inherits from MzMLHandler: no instrument configuration, no software list, no data processing, and no per-spectrum MS:1000016 scan start time or MS:1000511 ms level, so a loaded spectrum carries the OpenMS unset defaults rt = -1.0 and ms_level = 1. The cause is three strictnesses in src/format/mzml.rs, a file this package does not own, measured against the merged tree: mzml::read rejects ImzMLFile_1_Example_Continuous.imzML with 'unresolved softwareRef' because the fixture puts softwareList after dataProcessingList; it rejects ImzMLFile_2_Example_Processed.imzML with 'only mzML 1.1 is supported' because that fixture declares version=\"1.1\" and, behind that, is ISO-8859-1 with three Latin-1 bytes; and it rejects any imzML this port writes with 'unsupported: binary array CV IMS:1000101', the external-data param that makes an imzML an imzML. The store path is unaffected, because the writer emits RT and MS level from whatever the experiment holds. Consequently the RT and MS-level half of ImzMLFile_test.cpp's store-metadata-round-trip section is asserted against the written document rather than after a reload, and the test says so in place. Two rejected workarounds are recorded in docs/IMZML_FILE_SUPPORT.md: a second XML parser in this module, and an attempt-and-silently-degrade fallback.",
+    "IMAGING/MSImagingExperiment.h is not this package's header and is unported. Two of ImzMLFile's public members are typed on it, so ImagingExperiment in src/format/imzml_file.rs reproduces exactly the surface those two members need — the fourteen public members listed in docs/IMZML_FILE_SUPPORT.md — rather than leaving both members unported. MSImagingExperiment_test.cpp was not ported section by section and no claim is made on the header. The same applies to MSImagingGeometry.h, MSImagingRegion.h, IonImage.h and IonImageExtraction.h, reproduced to the same standard by the on-disc package. A later IMAGING package owns all five.",
+    "MSSpectrum::getIMPeakType() has no Rust counterpart, so the two class-test sections that assert IMPeakType::IM_PROFILE and IMPeakType::UNKNOWN on a round-tripped ion mobility array check contains_im_data(), the DriftTimeUnit from im_data() and the unit_accession meta value instead. IMDataConverter::getIMUnit is likewise unported; im_data() returns the same unit, spelled InverseReducedMobility where the source spells the same MS:1002814 term VSSC.",
+    "Two defects in the upstream test fixtures were found by running the ported isValid and the crate's mzML reader against them, and neither is reported in OpenMS_CPP_ISSUES.md because this package does not own that log. ImzMLFile_1_Example_Continuous.imzML is not schema-valid mzML 1.1.0: ten cvParam elements omit the required cvRef attribute and scanSettingsList precedes softwareList where the schema's sequence is softwareList then scanSettingsList then instrumentConfigurationList then dataProcessingList. ImzMLFile_2_Example_Processed.imzML declares version=\"1.1\" rather than 1.1.0 and is ISO-8859-1 with three Latin-1 bytes in its contact metadata. Neither affects any assertion here; the imzML reader in this crate reads both fixtures correctly, and the C++ suite only ever validates a file it has just written.",
+    "The port is serial. The source parallelises the per-spectrum array decode inside ImzMLHandler with #pragma omp parallel for, so a large image decodes on one core here.",
+    "FileHandler::load_experiment still refuses imzML with Error::Unsupported, which matches the C++ Exception::InvalidFileType and is correct: the generic loader cannot know about the companion .ibd. Routing FileHandler through ImzMLFile would change src/format/file_handler.rs, outside this package.",
+    "docs/doc-coverage.json was not rewritten. src/format/imzml_file.rs measures 100.0% (48/48) and check_doc_coverage.py reports 'coverage improved or the surface changed'; recording the new floor with --write is the integrator's step, because that file is outside this package's scope.",
+    "CI wiring is the integrator's step for the same reason: append '--test imzml_file --test imzml_all_modes' to a --features mzml line of the minimum-rust job in .github/workflows/rust.yml. Both tests pass under --no-default-features --features mzml and under cargo +1.85.0; ImzMLFile::is_valid and its one test are gated on the existing mzml-schema feature and are simply absent without it."
+  ]
+}

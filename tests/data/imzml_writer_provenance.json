@@ -1,0 +1,253 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLWriter.h",
+   "sha256": "722567f40e05591742026185dec78be755cf799199bdbef35443e0ad966004dc"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "sha256": "634f8a68d86bd2128932731b1f124ccad7b2e16e0c939c917f97a560da982b42"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h",
+   "sha256": "2c1a2b09729cf2e54e09f81c125c6a2dde93564a543624b43ef63765ea95835c",
+   "role": "Not ported here; ported in stage 1. Read for the ImzMLBinaryIO write entry points this package calls through crate::format::imzml_handler and for ImzMLMeta's field set."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+   "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f",
+   "role": "Not ported here; already ported as src/format/peak_options.rs. Read for the exact meaning of the filters applyStoreOptions_ applies and of getMz32Bit / getIntensity32Bit."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ImzMLFile_test.cpp",
+   "sha256": "7584cf31d29aa05cc80b9a5eea1bbf9da265f3bb46e92e0c6d517f1a50a0917e",
+   "role": "The writer's oracle. ImzMLWriter.h has no class test of its own; every transcribed literal comes from this file's store sections (lines 703-935, 936-1106, 1210-1303, 1503-1530, 1597-1727)."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ImzMLFile_all_modes_test.cpp",
+   "sha256": "adc5bf88d28146b8f7430dfe2ec752f9680c1cc9df6dbcb9f2f4ce08865bfa54",
+   "role": "Second family test, read for the storage-mode expectations the writer has to reproduce on the two fixtures."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/ImzMLFile_1_Example_Continuous.imzML",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.imzML",
+   "sha256": "a358a80751cfd014dc86d5a18ee04c21b98063d3523c0f03f29c375f49c6b0cc",
+   "bytes": 16916,
+   "added_by": "tests/data/imzml_handler_provenance.json",
+   "role": "Reused unchanged. Read through the stage-1 reader into an MSExperiment, stored, and read back: the continuous round trip. Also the m/z-range filter, metadata-only and acquisition-geometry cases."
+  },
+  {
+   "path": "tests/data/ImzMLFile_1_Example_Continuous.ibd",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.ibd",
+   "sha256": "a3e6f4695c121f7f4da07eec1ba7b55dbbcf06b77afd444b788909655e972e6a",
+   "bytes": 335976,
+   "added_by": "tests/data/imzml_handler_provenance.json",
+   "role": "Reused unchanged. Source of the 9 x 8399 peaks the continuous round trip writes out and reads back."
+  },
+  {
+   "path": "tests/data/ImzMLFile_2_Example_Processed.imzML",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.imzML",
+   "sha256": "066671590f01d4820b7ac5bd1f669d23dca04a91e40c08a35f7d0c6d6c729480",
+   "bytes": 23929,
+   "added_by": "tests/data/imzml_handler_provenance.json",
+   "role": "Reused unchanged. The processed round trip and the metadata-only store."
+  },
+  {
+   "path": "tests/data/ImzMLFile_2_Example_Processed.ibd",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.ibd",
+   "sha256": "1a5410dd26e844f714b53db7506d8474a40af37323bf19396df68ea7733ded9a",
+   "bytes": 604744,
+   "added_by": "tests/data/imzml_handler_provenance.json",
+   "role": "Reused unchanged. Source of the nine private m/z axes the processed round trip writes out and reads back."
+  }
+ ],
+ "native_implementation": [
+  "src/format/imzml_writer.rs"
+ ],
+ "native_tests": [
+  "tests/imzml_writer.rs"
+ ],
+ "support": "docs/IMZML_WRITER_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 119,
+   "operation": "a unit is written only when the CV term declares exactly one allowed unit; a term with several (raw ion mobility array) is left without unit attributes rather than guessed"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 133,
+   "operation": "an array name that matches no child of MS:1000513 becomes MS:1000786 'non-standard data array' with the name as the param's value"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 216,
+   "operation": "a pixel coordinate below 1 raises Exception::InvalidValue; validatePixelMetadataForStore_ caps the duplicate listing at 20 while counting all of them"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 238,
+   "operation": "a spectrum reusing an earlier pixel is counted and warned about, never rejected: the readers accept duplicates, so a dataset that loads must be storable again"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 279,
+   "operation": "integer and string data arrays have no imzML representation and are dropped with one warning per store, with the name listing capped at 20"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 348,
+   "operation": "extractMeta_ reads the dataset grid with static_cast<UInt>, which wraps a negative or above-2^32 MetaValue instead of rejecting it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 408,
+   "operation": "instrumentModelForExport_ falls back to the instrument name and then to the literal 'OpenMS export', because MS:1000031 must carry a value"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 454,
+   "operation": "applyStoreOptions_ sorts each non-empty unsorted spectrum by m/z when getSortSpectraByMZ is set, inside the peak-filter branch and again in the else branch, and never moves the aligned data arrays with the peaks"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 489,
+   "operation": "getMetadataOnly clears every peak with spectrum.clear(false), which keeps the metadata and therefore the pixel coordinates"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 512,
+   "operation": "an empty FloatDataArray is skipped before every other check and without any warning, so a named but valueless array vanishes silently"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 522,
+   "operation": "an auxiliary array whose length is not the peak count is skipped with a warning; the per-peak contract includes both being empty"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 534,
+   "operation": "an array resolving to MS:1000514 or MS:1000515 is skipped, because written out it becomes a second m/z or intensity binaryDataArray whose offset and type replace the real peak metadata on read (last cvParam wins)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 548,
+   "operation": "a FloatDataArray is always written as float32, four bytes per element, whatever the peak precision"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 633,
+   "operation": "ensureUuidBytes_ draws 16 bytes from std::random_device and stamps them as an RFC 4122 version 4 identifier when imzml:uuid is absent or unparsable"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 661,
+   "operation": "updateGridFromPixels_ only ever raises the declared grid, floors max_count_z at 1, and recomputes max_dim_x / max_dim_y as pixel size times pixel count, overwriting any declared extent"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 692,
+   "operation": "spectraShareMz_ takes the first non-empty spectrum as the reference and compares every m/z with an absolute tolerance of 1e-5; continuous mode then stores one axis, discarding every difference inside that window"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 738,
+   "operation": "isContinuousMode_ honours an explicit 'continuous' only if the axes really are shared and throws Exception::InvalidParameter otherwise, honours 'processed' unconditionally, and otherwise auto-detects"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 879,
+   "operation": "md5Hex_ is an inline RFC 1321 implementation reading the finished .ibd back from disk; sha1Hex_ at line 951 reads it a second time"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1047,
+   "operation": "writeCvParam_ omits the value attribute when the value is empty, so a term whose meaning is its presence carries no value=\"\""
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1128,
+   "operation": "every external binaryDataArray carries encodedLength=\"0\" and an empty <binary/> child; the payload is addressed by IMS:1000102 / 1000103 / 1000104 alone"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1150,
+   "operation": "an auxiliary array is written with inline cvParams rather than a referenceableParamGroup, always MS:1000576 uncompressed and MS:1000521 32-bit float, so an arbitrary array name round-trips"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1346,
+   "operation": "a spectrum with no native identifier is written as 'spectrum=<index+1>', 1-based"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1367,
+   "operation": "MS:1000016 scan start time is written for every spectrum in seconds, including the OpenMS unset default of -1"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1437,
+   "operation": "startProgress is called over 0..size+2 and endProgress only on the success path at line 1519, so every throw in between leaks ProgressLogger's recursion depth"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1440,
+   "operation": "the .ibd is opened and written before the .imzML, and before several validation failures can still occur, so a failed store leaves a truncated .ibd with no .imzML"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1466,
+   "operation": "continuous mode writes the shared m/z array once at offset 16 and sets every spectrum's mz_offset to 16, mz_count to the shared length and mz_encoded to the shared byte length"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1486,
+   "operation": "processed mode accumulates a plain uint64_t offset from 16, writing m/z then intensity then the auxiliary arrays per spectrum, with no overflow or size ceiling of any kind"
+  }
+ ],
+ "evidence": "Tier 3 source review for the behavioural literals, closed by a Rust-only round trip. ImzMLWriter.h has no class test upstream; the writer is exercised through ImzMLFile_test.cpp, whose store sections supply every transcribed expectation in tests/imzml_writer.rs: both upstream fixtures round-tripping with their mode preserved and a non-empty imzml:ibd_md5; MS:1003006 with its single MS:1002814 unit and MS:1000786 carrying a free-text name at binaryDataArrayList count=\"4\"; MS:1000821 'pressure array' with unitAccession=\"UO:0000110\", unitName=\"pascal\" and unitCvRef=\"UO\"; MS:1003007 written with no unitAccession because it allows two units; count=\"2\" and no MS:1000786 for an unnamed array; count=\"2\" and an empty aux index for arrays named after the peak arrays; MS:1000576 inside both referenceableParamGroups; Exception::MissingInformation for a spectrum with no imzml:x/y; two spectra written and one geometry pixel for a duplicated coordinate; Exception::InvalidParameter for an incompatible continuous mode; FLOAT64 for both arrays after setMz32Bit(false) and setIntensity32Bit(false); a shrunken first spectrum under an m/z range filter; and the geometry, instrument-model and 300 um extent round trip. Two strands are independent of that suite. First, every store test reads its own output back through the stage-1 crate::format::imzml_handler reader and compares decoded m/z, intensities, auxiliary arrays and pixel coordinates against what went in -- which is what validates the .ibd offsets, the part no transcribed literal can reach; the continuous case additionally derives the exact .ibd size from first principles (16 + peaks*8 + 9*peaks*4), checks the file on disk is that long, checks every IMS:1000102 equals 16, and recomputes and verifies the declared IMS:1000091 SHA-1. Second, the ported MD5 is checked against the seven published RFC 1321 appendix A.5 vectors, a specification rather than OpenMS output. The eleven resource ceilings, the atomicity of a rejected store (no .imzML and no .ibd on any refusal path), the deterministic identifier derivation, the exact-versus-source shared-m/z tolerance, the XML 1.0 string validation and the error-variant choices are independently derived (tier 4) because the source has no analogue for any of them. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential.",
+ "cpp_issue_candidates": [
+  {
+   "title": "ImzMLWriter::store cannot write a metadata-only continuous dataset",
+   "files": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:485-491, 692-754, 1410-1415",
+   "trigger": "Load any continuous imzML into an MSExperiment (which sets imzml:imaging_mode = \"continuous\"), set PeakFileOptions::setMetadataOnly(true), and call ImzMLFile::store.",
+   "behaviour": "applyStoreOptions_ clears every peak with spectrum.clear(false). isContinuousMode_ then calls spectraShareMz_ over the emptied spectra, which cannot find a non-empty reference and returns false, so the explicit \"continuous\" branch throws Exception::InvalidParameter. A metadata-only store of a continuous dataset is therefore impossible, while the same store of a processed dataset succeeds.",
+   "proposed_fix": "Skip the shared-axis check when every spectrum is empty, or honour the declared mode for a metadata-only store, since with no peaks the two layouts are indistinguishable on disk.",
+   "evidence": "Source review, unconfirmed against running C++. Reproduced in the Rust port, which is a faithful transcription of both functions, by tests/imzml_writer.rs::metadata_only_over_a_declared_continuous_dataset_is_refused_as_in_the_source.",
+   "rust_handling": "Reproduced deliberately rather than quietly downgrading the declared mode. Documented as a # Warning on crate::format::imzml_writer::apply_store_options and referenced from store_with_options; removing imzml:imaging_mode lets the same store succeed as processed."
+  },
+  {
+   "title": "ImzMLWriter::store leaks the ProgressLogger recursion depth on every throw",
+   "files": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:1437, 1519",
+   "trigger": "Any store that throws between startProgress and endProgress -- an unwritable .ibd or .imzML path, a ParseError from the array writers or the fflush, or a UUID header write that comes up short.",
+   "behaviour": "logger.startProgress(0, work.size() + 2, ...) is called at line 1437 and logger.endProgress() only on the success path at line 1519. ProgressLogger's recursion depth stays incremented, so later progress output in the same process is indented wrongly and, at the depth cap, suppressed.",
+   "proposed_fix": "Guard the range with a scope object whose destructor calls endProgress, or wrap the body in try/catch and end the range before rethrowing.",
+   "evidence": "Source review, unconfirmed against running C++.",
+   "rust_handling": "crate::format::imzml_writer::store_with_options ends the progress range before propagating, so the nesting depth is balanced on every path."
+  },
+  {
+   "title": "A failed ImzMLWriter::store leaves a truncated .ibd with no .imzML",
+   "files": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:1440-1511",
+   "trigger": "Any store that fails after fopen on the .ibd: a ParseError from writeFloat32Array's MAX_IBD_ARRAY_ELEMENTS check, a short fwrite, a failed fflush, or an unwritable .imzML path.",
+   "behaviour": "The .ibd is created and written before the .imzML, and UniqueFile_'s destructor only closes it. A partially written .ibd outlives the failure and a later run of the same pipeline can mistake it for the companion of an older .imzML.",
+   "proposed_fix": "Write to a temporary path and rename on success, or unlink the .ibd when store exits by exception.",
+   "evidence": "Source review, unconfirmed against running C++.",
+   "rust_handling": "Every check that does not need the filesystem runs in a preflight before either file is created, so no rejected experiment leaves a file behind; tests/imzml_writer.rs asserts the absence of both files on every refusal path. A genuine I/O failure mid-write still leaves the partial files, as in the source."
+  }
+ ],
+ "gaps": [
+  "No tier 1 differential. An oracle driver under ../oracle/drivers/ linking the prebuilt libOpenMS could call ImzMLWriter::store on a fixed experiment and retain the .imzML and .ibd for byte comparison of the XML and exact comparison of the decoded arrays, excluding the <software version> and the IMS:1000080 identifier, which is random in the source and derived here. That is the highest-value upgrade for this package.",
+  "The identifier is derived, not random: this crate has no random-number dependency and adding one is a Cargo.toml change outside this package. derive_uuid computes an RFC 4122 version 5 identifier over the .ibd payload, so two datasets with byte-identical payloads share an identifier. A declared imzml:uuid is honoured verbatim by both implementations.",
+  "Continuous mode is lossless by default: ImzMLWriteOptions::default() compares m/z exactly where spectraShareMz_ uses an absolute tolerance of 1e-5. ImzMLWriteOptions::source() selects the source's tolerance and its loss.",
+  "ImzMLFile::store's own layer is not ported. The MSImagingExperiment overload that derives pixel coordinates from an MSImagingGeometry when the spectra carry no imzml:x/y lives in FORMAT/ImzMLFile.h and IMAGING/MSImagingGeometry.h, neither of which this package owns; an experiment whose coordinates exist only in a geometry is refused here.",
+  "The written .imzML is not read back by this crate's whole-file mzML reader, only by the stage-1 imzML index reader. Reading it as a complete MSExperiment needs the FORMAT/ImzMLFile.h stage.",
+  "docs/core-sdk-reviewed-apis.json, docs/core-sdk-coverage.json, docs/doc-coverage.json, docs/VALIDATION.md, README.md, CHANGELOG.md, OpenMS_CPP_ISSUES.md and .github/workflows/rust.yml are outside this package and were not written. src/format/imzml_writer.rs measures 100.0% (19/19) rustdoc and check_doc_coverage.py reports an improvement; core_sdk_coverage.py reports docs/core-sdk-coverage.json stale, which it already was at this branch point (stage 1's ImzMLHandler.h is still recorded as unmapped with no reference manifests).",
+  "CI wiring was not added for the same reason: append '--test imzml_writer' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features --features mzml and under cargo +1.85.0.",
+  "MD5 is implemented in this module because the source implements it inline and neither OpenMS nor this crate has one elsewhere. It is a file-integrity fingerprint only and is documented as unsuitable for authentication."
+ ]
+}

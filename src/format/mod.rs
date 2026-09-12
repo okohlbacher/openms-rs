@@ -55,6 +55,15 @@ pub mod modification_definitions;
 #[cfg(feature = "idxml")]
 pub mod idxml;
 
+/// imzML file adapter: load, store and the imaging geometry (`ImzMLFile.h`).
+#[cfg(feature = "mzml")]
+pub mod imzml_file;
+/// Two-file imzML imaging index, geometry and `.ibd` reads (`ImzMLHandler.h`).
+#[cfg(feature = "mzml")]
+pub mod imzml_handler;
+/// Writer for an imzML dataset, `.imzML` plus `.ibd` (`ImzMLWriter.h`).
+#[cfg(feature = "mzml")]
+pub mod imzml_writer;
 #[cfg(feature = "mzml")]
 pub mod indexed_mzml;
 /// Random access to one record of an indexed mzML file (`IndexedMzMLHandler.h`).

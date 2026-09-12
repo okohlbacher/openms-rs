@@ -1,0 +1,240 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h",
+   "sha256": "2c1a2b09729cf2e54e09f81c125c6a2dde93564a543624b43ef63765ea95835c"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+   "sha256": "79722cdffaa819085bc5572f3f99a307448badf475772011ffe233b180f6a049"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandler.h",
+   "sha256": "6bc6caa8ba8463bde820327916096149befa5328db4a0019db0e5bfb401067ff"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "sha256": "626174e1ce26f96e1d221d6f16159fcbf118fc75c1b809c0d9d619707a8db304"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ImzMLFile.h",
+   "sha256": "a26a957813d7a33053d86dd211a70963aabd150f1833c012557fc74444e7efe4",
+   "role": "Not ported here. Read for the two file-static helpers this package reproduces because the handler needs them to open a dataset at all: uuidStringToBytes_ / verifyIbdUuid_ (the .ibd UUID header check) and inferIbdPath_ (the .ibd sibling name)."
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "sha256": "5ae841d09aa6a815f2046fc56e47c1b339c6789f8b0b6b14f97ecfbd38c9eb5f",
+   "role": "Not ported here. Source of those helpers and of the index-only load path that calls this handler."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ImzMLFile_test.cpp",
+   "sha256": "7584cf31d29aa05cc80b9a5eea1bbf9da265f3bb46e92e0c6d517f1a50a0917e",
+   "role": "The imzML family's oracle. Neither header ported here has a class test of its own; every transcribed literal comes from this file's sections on the two fixtures."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ImzMLFile_all_modes_test.cpp",
+   "sha256": "adc5bf88d28146b8f7430dfe2ec752f9680c1cc9df6dbcb9f2f4ce08865bfa54",
+   "role": "Second family test, read for the storage-mode and geometry expectations."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/ImzMLFile_1_Example_Continuous.imzML",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.imzML",
+   "sha256": "a358a80751cfd014dc86d5a18ee04c21b98063d3523c0f03f29c375f49c6b0cc",
+   "bytes": 16916,
+   "role": "Unmodified upstream continuous-mode imzML: 9 spectra on a 3x3 grid, one shared float32 m/z array at .ibd offset 16, MD5 checksum declared, no SHA-1, IMS:1000052 present on every spectrum. Its <softwareList> follows <dataProcessingList>, which this crate's whole-file mzML reader rejects as a forward softwareRef."
+  },
+  {
+   "path": "tests/data/ImzMLFile_1_Example_Continuous.ibd",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.ibd",
+   "sha256": "a3e6f4695c121f7f4da07eec1ba7b55dbbcf06b77afd444b788909655e972e6a",
+   "bytes": 335976,
+   "role": "Companion binary. UUID header 12345678123412341234123456789012 matches the XML's IMS:1000080; MD5 4b5dd9fa84fafc955cfdd301f9ed55d7 matches its IMS:1000090. Also used as the backing store for every synthetic hostile-offset document in tests/imzml_handler.rs."
+  },
+  {
+   "path": "tests/data/ImzMLFile_2_Example_Processed.imzML",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.imzML",
+   "sha256": "066671590f01d4820b7ac5bd1f669d23dca04a91e40c08a35f7d0c6d6c729480",
+   "bytes": 23929,
+   "role": "Unmodified upstream processed-mode imzML: 9 spectra, a private m/z array per pixel, SHA-1 declared, no MD5, no IMS:1000052, acquisition geometry and MS:1000129 polarity reached through referenceableParamGroups. Declares encoding=ISO-8859-1 and is not valid UTF-8 (0xfc in an MS:1000590 contact affiliation), and declares version=\"1.1\" rather than 1.1.0."
+  },
+  {
+   "path": "tests/data/ImzMLFile_2_Example_Processed.ibd",
+   "source_path": "src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.ibd",
+   "sha256": "1a5410dd26e844f714b53db7506d8474a40af37323bf19396df68ea7733ded9a",
+   "bytes": 604744,
+   "role": "Companion binary. UUID header 9d501bdc53444916b7e97e795b02c856 matches the XML's IMS:1000080, and its SHA-1 7e8fdb93053915d3edb51b70aa0619ac209964df matches the declared IMS:1000091 when recomputed by this port."
+  }
+ ],
+ "native_implementation": [
+  "src/format/imzml_handler.rs"
+ ],
+ "native_tests": [
+  "tests/imzml_handler.rs"
+ ],
+ "support": "docs/IMZML_HANDLER_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+   "line": 37,
+   "operation": "MAX_IBD_ARRAY_ELEMENTS is 100,000,000 and validateCount_ is the only ceiling; no check compares the requested range against the .ibd's actual length"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+   "line": 125,
+   "operation": "readMzArray returns immediately for count == 0, before seekIbd_, so a garbage offset on a zero-length array is not an error"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+   "line": 134,
+   "operation": "out.resize(count) is sized from the declared count with no comparison against the .ibd length, so a hostile IMS:1000103 at the 100,000,000 ceiling commits the memory before the short fread reports the truncation; the FLOAT32 branch stages a second std::vector<float> as well"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+   "line": 183,
+   "operation": "int64 m/z values are widened with static_cast<double>, losing precision above 2^53; float32 and int32 widen implicitly"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+   "line": 92,
+   "operation": "decodeLittleEndian_ byte-swaps only under OPENMS_IS_BIG_ENDIAN; .ibd arrays are little-endian per imzML 1.1.0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp",
+   "line": 335,
+   "operation": "writeMzAsFloat32 narrows every m/z with static_cast<float> before writing"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 74,
+   "operation": "parseImsUInt64_ rejects any value containing '-' explicitly, because std::stoull would wrap a negative to a huge unsigned number and uint64 has no range ceiling to catch it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 193,
+   "operation": "the dataset bounding box is raised to the largest delivered pixel coordinate, so IMS:1000042/43 are a floor rather than the extent; max_count_z has no CV term and is only observed"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 249,
+   "operation": "mz_data_type / int_data_type are recorded inside the decode branch, so the index-only load path (loadSpectraIndex, decode_ibd == false) leaves both empty"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 264,
+   "operation": "an unnamed external auxiliary array is warned about and skipped at decode, and line 376 omits it from the index entry as well"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 270,
+   "operation": "a compressed auxiliary array is the one auxiliary condition that throws rather than warns, and the message names its IMS:1000104 encoded length"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 282,
+   "operation": "an auxiliary array whose IMS:1000103 is not the peak count is warned about and skipped, because viewers require equal length for ion mobility"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 290,
+   "operation": "an auxiliary array with no MS:1000521/523/519/522 is skipped rather than aborting the load, matching the warn-and-skip policy for other bad aux arrays"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 234,
+   "operation": "decoded m/z and intensity lengths must agree, and the ParseError message names the (x,y,z) pixel"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 321,
+   "operation": "a non-external auxiliary array is warned about and dropped when the peaks come from the .ibd; inline aux payloads are never decoded"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 536,
+   "operation": "endElement(binaryDataArray) classifies in order: m/z wins, then intensity, then external becomes auxiliary, and anything left is recorded as an inline auxiliary name"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 550,
+   "operation": "the captured inline array length is zeroed for an external array purely to stop MzMLHandler logging a size mismatch from inside its OpenMP loop, which corrupted the heap on Windows"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 561,
+   "operation": "a spectrum with no IMS:1000050 or no IMS:1000051 raises Exception::ParseError on the closing spectrum tag"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 641,
+   "operation": "handleIMSCvParam_ dispatch order: coordinates only inside a scan inside a spectrum, and only the three coordinate accessions return, so other terms fall through to the dataset block"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 662,
+   "operation": "MS:1000576 clears the compression flag and any other child of MS:1000572 sets it, so zlib and every numpress variant are caught without being enumerated"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 684,
+   "operation": "a child of MS:1000513 names the array with the CV term's own name, not the XML name attribute, to match how MzMLHandler names the float data array"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 694,
+   "operation": "every other cvParam inside a binaryDataArray is ignored so it cannot overwrite the array name, and the block returns unconditionally"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 707,
+   "operation": "an empty IMS:1000080 keeps the previously parsed UUID rather than clearing it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 722,
+   "operation": "applyRefGroup_ silently ignores a reference to an undeclared group, so a forward reference has no effect"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 45,
+   "operation": "uuidStringToBytes_ strips '-', '{' and '}' and then requires exactly 32 hex digits, so reader and writer agree on the .ibd header byte order"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 88,
+   "operation": "verifyIbdUuid_ reports a mismatch, a missing or unparsable XML UUID and a too-short .ibd as warnings and loads the dataset anyway, so non-conformant datasets still open"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 152,
+   "operation": "IMS:1000091 SHA-1 and IMS:1000090 MD5 are only mirrored onto the experiment as MetaValues; no read path recomputes either digest"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 566,
+   "operation": "an explicit .ibd path override is threaded through both the index load and the UUID check, so neither targets an inferred sibling that may be missing or stale"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
+   "line": 633,
+   "operation": "inferIbdPath_ replaces a case-insensitive .imzML suffix with .ibd and otherwise appends .ibd"
+  }
+ ],
+ "evidence": "Tier 3 source review with two independent cross-checks. Neither ported header has a class test upstream; the imzML family is tested through ImzMLFile_test.cpp, whose literals for the two fixtures are transcribed into tests/imzml_handler.rs: 9 spectra on a 3x3 grid, 100 um pixels, 300 um extents, 'continuous'/'processed', uuid 12345678-1234-1234-1234-123456789012 and 9d501bdc53444916b7e97e795b02c856, MD5 4b5dd9fa84fafc955cfdd301f9ed55d7, SHA-1 7e8fdb93053915d3edb51b70aa0619ac209964df, float32 for both arrays, 'negative' polarity with 'top down'/'horizontal'/'left-right' geometry, and the first m/z of pixel (1,1) at 100.0 continuous and 100.083336 processed. Two checks do not depend on that suite: the decoded intensities of processed pixel (1,1) sum to 121.85039039868471, exactly the MS:1000285 total ion current the same fixture's XML declares (a value written by the instrument's exporter, not by a test), and the fixture's declared IMS:1000091 SHA-1 is recomputed from the .ibd and matches, which no OpenMS read path does. The synthetic documents, the resource ceilings, the hostile offsets, the compression and auxiliary-array edge cases and the error-variant choices are independently derived (tier 4) because no upstream fixture reaches them. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential.",
+ "gaps": [
+  "MD5 (IMS:1000090) is parsed but never verified: the crate has a SHA-1 implementation because indexed mzML needs one, and no MD5 implementation, and adding a dependency is a Cargo.toml change outside this package's scope. The declared string is preserved verbatim for a later stage.",
+  "The .ibd UUID header and the SHA-1 are checked only on request. The source warns about a UUID mismatch during every load and still loads; this port returns UuidStatus instead of logging and rejects nothing, leaving the policy to the caller.",
+  "The source parallelises its spectrum population with #pragma omp parallel for; this port is serial, so a large image decodes on one core.",
+  "This package ports only the IMS interception layer, as the source's own class documentation defines it. mzML metadata (instrument, RT, MS level, data processing) is crate::format::mzml's, and joining the halves belongs to the stage that ports FORMAT/ImzMLFile.h.",
+  "Neither upstream fixture can currently be read by this crate's whole-file mzML reader: the continuous one trips 'unresolved softwareRef' because its <softwareList> follows <dataProcessingList>, and the processed one is refused first for version=\"1.1\" (the reader requires a '1.1.' prefix) and then for non-ASCII ISO-8859-1. All three are in src/format/mzml.rs, which this package does not own; the ImzMLFile stage must resolve them.",
+  "IMAGING/MSImagingGeometry.h, IMAGING/IonImage.h, IMAGING/MSImagingExperiment.h, IMAGING/MSImagingRegion.h and IMAGING/IonImageExtraction.h are separate headers with their own class tests and are unported. ImzMLIndex::index_at_coord is a linear scan over the index, not that 2-D grid.",
+  "ProgressLogger is a constructor parameter of source ImzMLHandler and is not threaded through this module.",
+  "PeakFileOptions filtering (RT, MS level, m/z range, SortSpectraByMZ, FillData) is applied by ImzMLFile / OnDiscImzMLExperiment around the handler in the source and is left to those stages; decoded peaks are returned in stored order.",
+  "docs/doc-coverage.json was not rewritten: src/format/imzml_handler.rs measures 100.0% (63/63) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
+  "CI wiring was not added for the same reason: append '--test imzml_handler' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features --features mzml and under cargo +1.85.0."
+ ]
+}
