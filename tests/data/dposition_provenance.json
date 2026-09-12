@@ -1,0 +1,121 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
+      "sha256": "3e459554651865c58b174d0d80f89ca877aee6fb62bfc570c66fa48cf5434e40"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DPosition.cpp",
+      "sha256": "38e2cd08990f45a30402333e706936eff3337d00236970e8e9cc046ed5c8a6f5"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DPosition_test.cpp",
+      "sha256": "5455042c9de352b0d4f6d59d79e7821c21e0d5506192e97ed8df4466c1215f35"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+      "sha256": "787ed51ddf700a472a09dcaed4eb738c50ab8353e0b212f0a6a8a3171615b495"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DIntervalBase.cpp",
+      "sha256": "dedc194761cd49263edfd9de5a742c274511cc92669fd54c45f9fbdb973ccd3f"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DIntervalBase_test.cpp",
+      "sha256": "8c30ad6575e90a79aa0d4de665c07df63b00cba99c813700472179ec9993d6fc"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/DRange.cpp",
+      "sha256": "95dae6e25d55aaf0c8d2db02143e9a044e4acc048264c2c191ae3b7c24a6f482"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DRange_test.cpp",
+      "sha256": "3cdef97d6e8574acd065d5b9fa887d6bb3dc371f8c4a45bbdeb63965b87f6894"
+    }
+  ],
+  "native_implementation": [
+    "src/data_structures/dposition.rs",
+    "src/data_structures/dinterval.rs",
+    "src/data_structures/drange.rs"
+  ],
+  "native_tests": [
+    "tests/dposition.rs",
+    "tests/dinterval.rs",
+    "tests/drange.rs"
+  ],
+  "support": "docs/DPOSITION_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
+      "line": 176,
+      "operation": "lexicographic operator< over std::array from dimension 0"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
+      "line": 326,
+      "operation": "minPositive/minNegative/maxPositive from numeric_limits min/lowest/max (finite extrema)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+      "line": 53,
+      "operation": "default constructor min=maxPositive, max=minNegative"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+      "line": 367,
+      "operation": "static empty sentinel built through the non-normalizing pair constructor: min=+max_double, max=-max_double"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+      "line": 342,
+      "operation": "normalize_ swaps coordinates per dimension where min > max"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+      "line": 222,
+      "operation": "isEmpty(dim) compares a 1D pair-constructed interval with the 1D empty sentinel"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "line": 74,
+      "operation": "DRange() delegates to the empty base default constructor despite its all-zero comment"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "line": 152,
+      "operation": "encloses: position[i] < min_ or >= max_ rejects (half-open)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "line": 178,
+      "operation": "united: per-dimension min/max then setMinMax normalization (empty+empty becomes the universal range)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "line": 202,
+      "operation": "intersects: Inside/Intersects when range.min_ enclosed, Disjoint on any min>=max or max<=min"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "line": 285,
+      "operation": "extend(factor): InvalidParameter below zero; extra=(max-min)/2*(factor-1)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "line": 313,
+      "operation": "extend(addition): halve, translate, collapse inverted dimensions to their center"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+      "line": 354,
+      "operation": "pullIn: std::max(min_, std::min(point, max_)) per dimension"
+    }
+  ],
+  "evidence": "Tier 3 (source review): all 48 + 35 + 21 class-test sections transcribed as literal expectations, plus native checks for the empty sentinel, NaN handling, dimension errors, stream output and hashing. The three headers are header-only templates; the .cpp files only instantiate default objects. No C++ build or execution."
+}
