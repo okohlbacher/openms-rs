@@ -87,6 +87,9 @@ pub mod indexed_mzml_handler;
 /// Streaming mzML consumer that writes records as they arrive (`MSDataWritingConsumer.h`).
 #[cfg(feature = "mzml")]
 pub mod ms_data_writing_consumer;
+/// mzIdentML adapter: PSI identification interchange (`MzIdentMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod mzidentml;
 #[cfg(feature = "mzml")]
 pub mod mzml;
 #[cfg(feature = "mzml-schema")]
