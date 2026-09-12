@@ -1,0 +1,410 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
+   "sha256": "c434e6f2ed6dae49bfabb324441d212a533c704d33fb5b9c80aed421a23c60a4"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
+   "sha256": "5a1d37f0a750b5834d12f05db81ca561e04f671323bc04dd3ffa14e54a10364a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "sha256": "41ca2dbb84ed035991570c48cef9a50e64c5179eaf6ac1d8b93ab21715df8807",
+   "role": "Read in full. Lines 36-696 are the data model ported here (the two modification cells, the protein-row and metadata constructors, the MzTab accessors, getNumberOfPSMs, the seven optional-column readers, addPepEvidenceToRows, addMetaInfoToOptionalColumns and the three modification-metadata generators). Lines 698-3414 are the FeatureMap/ConsensusMap/identification export surface and the two row streams, which this package does not port."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzTab_test.cpp",
+   "sha256": "6bad52949dee31894b9d906d3b9dcd11d5bdad52204b498fcedb07268b38e828",
+   "role": "The oracle. 307 lines, 7 START_SECTIONs for 5,572 lines of C++. Five sections are ported into tests/mztab.rs with every literal; the two that call exportIdentificationsToMzTab and exportConsensusMapToMzTab are unaccounted and belong to the exporter stage."
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a",
+   "role": "Not ported here. Read because MzTabDouble::toCellString renders through StringUtils::toStr(double), whose exact output this port must reproduce: the [1e-2, 1e4) fixed/scientific threshold, fifteen fractional digits, trailing-zero trimming that keeps one digit, and the '+'-free two-digit exponent. The crate already has this convention as the pub(crate) helper crate::param::value::format_float, which this module reuses rather than reimplementing."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Not ported here. Read for the exact semantics every MzTab cell parser depends on: trim covers only ' ', '\\t', '\\n' and '\\r'; both split overloads clear their output and return for an empty subject, so an empty cell yields no list entries; the char overload pushes the whole subject when the separator does not occur."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "role": "Not ported here. Read for toDouble/toInt32 (leading '+' accepted, surrounding whitespace skipped, trailing garbage and out-of-range rejected) and for the appendToStr overloads that select the precision NumericFormatting applies."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+   "sha256": "ae4767948b7c5b40bd7398e210a8fbabe008021210192d1c64f3d59d83c79212",
+   "role": "Not ported here. Read because DataValue::toString renders a list through this operator<<, which is what add_meta_info_to_optional_columns must reproduce: '[' , entries joined by ', ', ']', each entry via StringUtils::toStr."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+   "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b",
+   "role": "Not ported here. Read for DataValue::toString(full_precision), the exact function MzTab::addMetaInfoToOptionalColumns stringifies a meta value with, and the source of the class test's expected '[0.5, 1.4, -2.0, 0.1]'."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/PeptideEvidence.h",
+   "sha256": "8f7d254f49d7ca63d505f85c5c8aa31235bb224036796baf395d39c8a6e0a55f",
+   "role": "Not ported here. Read for the four sentinels MzTabPSMSectionRow::addPepEvidenceToRows tests: UNKNOWN_POSITION == -1, UNKNOWN_AA == 'X', N_TERMINAL_AA == '[' and C_TERMINAL_AA == ']', and for the zero-based protein coordinate that MzTab reports plus one."
+  },
+  {
+   "path": "src/openms/source/METADATA/PeptideEvidence.cpp",
+   "sha256": "7c580274b885535f5237d74821cde3a03e71917a977ae632b753f3b7a4c3dddc",
+   "role": "Not ported here. Source of those four constant definitions."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueModification.h",
+   "sha256": "c9e87e432f3399782dc5148af1465d021a578468076b4e386a544bfd5359bf0e",
+   "role": "Not ported here. Read for the accessors generateMzTabStringFromModifications uses — getUniModAccession, getId, getTermSpecificity, getOrigin — and for the 'X' default of origin_, which the Rust record spells as None."
+  }
+ ],
+ "fixtures": [],
+ "native_implementation": [
+  "src/format/mztab.rs"
+ ],
+ "native_tests": [
+  "tests/mztab.rs"
+ ],
+ "support": "docs/MZTAB_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
+   "line": 36,
+   "operation": "SIZE_OF_MZTAB_CELLTYPE is a variant-count sentinel for sizing C arrays and is not ported"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
+   "line": 202,
+   "operation": "MzTabOptionalColumnEntry is a pair whose comment records that the column name is not nullable and the value is"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
+   "line": 273,
+   "operation": "setSeparator exists because ambiguity_members and GO accessions use ',' while the other string lists use '|'"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
+   "line": 376,
+   "operation": "getOptionalColumnNames_ deduplicates with a linear std::find over a vector, deliberately preserving first-occurrence column order at quadratic cost"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 68,
+   "operation": "a member of a Param[] spelled 'null' is a ConversionError, unlike every other list type"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 71,
+   "operation": "MzTabParameterList::fromCellString pushes onto parameters_ without clearing, so a second parse into the same object concatenates"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 87,
+   "operation": "MzTabStringList's default separator is '|'"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 147,
+   "operation": "MzTabStringList::fromCellString appends without clearing"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 169,
+   "operation": "MzTabSpectraRef::isNull is (ms_run_ < 1) || spec_ref_.empty(), so either half missing makes the whole cell null"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 183,
+   "operation": "setMSFile asserts index >= 1 and, with assertions compiled out, silently ignores a zero and keeps the previous index"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 192,
+   "operation": "setSpecRef asserts a non-empty reference and otherwise logs 'Spectrum reference not set.' and keeps the previous value"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 205,
+   "operation": "getSpecRef and getMSFile assert(!isNull()), which a release build compiles out so the stored empty/zero value is returned"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 215,
+   "operation": "setSpecRefFile is a copy of setSpecRef minus the warning, despite a name that suggests it sets a file"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 248,
+   "operation": "fromCellString requires exactly two colon-separated fields, so a native spectrum identifier containing a colon cannot be read back"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 254,
+   "operation": "ms_run_ = (Size)toInt32(f0) turns a negative run index into a value near 2^64; this port rejects it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 337,
+   "operation": "toCellString quotes name and value only when they contain a comma FOLLOWED BY A SPACE, so a bare comma produces a five-field cell its own parser rejects"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 393,
+   "operation": "the parameter scanner drops every '[' and ']' unconditionally, inside quotes included, so a quoted \"a, [b]\" parses as 'a, b'"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 406,
+   "operation": "a parameter cell must yield exactly four fields"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 426,
+   "operation": "MzTabString::set lowercases and trims to test for 'null', then trims the stored value, so construction normalises"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 493,
+   "operation": "MzTabBoolean::get returns the raw int, which is -1 when the cell is null"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 505,
+   "operation": "setNull(b) sets value_ = b ? -1 : 0, so setNull(false) stores 0 rather than restoring the previous value"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 537,
+   "operation": "fromCellString compares the UNTRIMMED text to \"0\" and \"1\" although it trimmed for the 'null' test, so ' 1' is a ConversionError"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 602,
+   "operation": "MzTabIntegerList::fromCellString appends without clearing"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 641,
+   "operation": "MzTabInteger::get throws Exception::ElementNotFound outside MZTAB_CELLSTATE_DEFAULT"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 675,
+   "operation": "the integer parser accepts a float spelling ('4.0') by parsing a double and requiring val == (Int)val; the cast is undefined behaviour outside the int range, and this port range-checks instead"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 763,
+   "operation": "MzTabDouble::get throws Exception::ElementNotFound outside MZTAB_CELLSTATE_DEFAULT"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 784,
+   "operation": "MzTabDouble::toCellString renders a value with StringUtils::toStr(value_), i.e. full precision"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 810,
+   "operation": "operator< compares value_ only and ignores state_, so a null cell sorts as 0.0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 815,
+   "operation": "operator== compares value_ only, so MzTabDouble() equals MzTabDouble(0.0) although one renders 'null'"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "line": 870,
+   "operation": "MzTabDoubleList::fromCellString appends without clearing"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
+   "line": 62,
+   "operation": "assay[n]-ms_run_ref is a vector rather than one reference, adapted for HUPO-PSI/mzTab issue 26"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
+   "line": 258,
+   "operation": "the PSM row comparator's own @TODO asks whether PSM_ID should take part in the order; it does not"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
+   "line": 302,
+   "operation": "MzTabNucleicAcidSectionRow declares no constructor, so its ambiguity_members and go_terms keep the '|' separator while the protein row's use ','"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
+   "line": 481,
+   "operation": "getNumberOfPSMs is documented as the number of PSMs rather than of rows, with a @note that it relies on PSM_ID being set for every row"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 85,
+   "operation": "pos_param_string += pos_param_pairs_[i].first appends a Size through std::string::operator+=(char), so position 3 is written as the byte 0x03 and position 10 as a line feed; this port writes decimal digits"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 101,
+   "operation": "toCellString throws ConversionError when the modification is not null but its identifier is"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 131,
+   "operation": "modification text with no '-' is taken as a bare identifier with no positions"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 142,
+   "operation": "modification text is split on '-' and must yield exactly two fields, which is why a CHEMMOD identifier with a negative delta cannot be read back"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 157,
+   "operation": "position/parameter pairs are emplaced onto pos_param_pairs_ without clearing it first"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 263,
+   "operation": "a comma is protected from the list split only while !in_quotes && in_param_bracket, so a comma inside a quoted parameter part still splits; the comment above the loop claims the opposite"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 265,
+   "operation": "the protected comma is substituted in place with ASCII bell 0x07 and restored after the split; this port accumulates characters instead and never mutates the subject"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 278,
+   "operation": "MzTabModificationList::fromCellString appends without clearing"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 294,
+   "operation": "MzTabProteinSectionRow's constructor sets ',' on go_terms and ambiguity_members because '|' can occur inside GO terms and protein accessions"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 301,
+   "operation": "MzTabMetaData's constructor declares mzTab-version 1.0.0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 402,
+   "operation": "getNumberOfPSMs inserts psm.PSM_ID.get() into an unordered_set, so it throws for any row whose PSM_ID cell is null"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 512,
+   "operation": "addPepEvidenceToRows returns early for an empty evidence list, clearing pre/post/start/end but leaving accession untouched"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 566,
+   "operation": "start and end are written as getStart() + 1 because counting in mzTab starts at 1, while an unknown position writes the literal text 'null' into the comma-joined list"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 600,
+   "operation": "addMetaInfoToOptionalColumns replaces spaces in the key with underscores because a column name may not contain whitespace"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 604,
+   "operation": "the column value is MzTabString(meta.getMetaValue(key).toString()), i.e. DataValue's full-precision stringification; a key absent from the metadata still emits a column whose value is the default null cell"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 619,
+   "operation": "generateMzTabStringFromModifications resolves names through the ModificationsDB::getInstance() singleton; this port takes the registry as a parameter"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 629,
+   "operation": "a UniMod accession is reported upper-cased with CV label UNIMOD, and the term name is the modification's short getId()"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 657,
+   "operation": "catch(...) logs 'Skipping unknown residue modification' and drops the name; this port returns it in ModificationMetaDataReport::skipped"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 661,
+   "operation": "++index runs outside the try, so a name the registry does not know leaves a gap in the returned index map"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 672,
+   "operation": "an empty variable-modification list yields '[MS, MS:1002454, No variable modifications searched, ]' at index 1"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 688,
+   "operation": "an empty fixed-modification list yields '[MS, MS:1002453, No fixed modifications searched, ]' at index 1"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "line": 1528,
+   "operation": "getModificationIdentifier_ writes 'CHEMMOD:' plus the diff mono mass for a modification with no UniMod accession, which is negative for a loss and therefore unreadable by fromCellString"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "line": 395,
+   "operation": "trim removes only ' ', '\\t', '\\n' and '\\r', so Unicode whitespace such as U+00A0 is content"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "line": 601,
+   "operation": "the char split overload clears its output and returns for an empty subject, and pushes the whole subject when the separator does not occur"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "line": 670,
+   "operation": "the string split overload also yields no fields for an empty subject, so an empty list cell adds no entries rather than one empty entry"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 42,
+   "operation": "scientific notation is selected for a non-zero |value| >= 1e4 or < 1e-2, fixed notation otherwise"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 82,
+   "operation": "fixed output passes the precision to std::to_chars as FRACTIONAL digits, so 'full precision' for a double is fifteen digits after the point, not fifteen significant digits"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 126,
+   "operation": "trailing zeros are trimmed but at least one digit is kept after the decimal point, and an integral value gains '.0'"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+   "line": 716,
+   "operation": "DataValue::toString renders a DOUBLE_LIST at full precision through the vector operator<<, which is why the class test expects '[0.5, 1.4, -2.0, 0.1]' with the trailing '.0' Rust's own Display would drop"
+  },
+  {
+   "path": "src/openms/source/METADATA/PeptideEvidence.cpp",
+   "line": 15,
+   "operation": "UNKNOWN_POSITION is -1, UNKNOWN_AA is 'X', N_TERMINAL_AA is '[' and C_TERMINAL_AA is ']' — the four sentinels addPepEvidenceToRows maps to 'null' and '-'"
+  }
+ ],
+ "evidence": "Tier 3 source review, with the class test transcribed; transcribed C++ literals are tier-3 evidence. MzTab_test.cpp is 307 lines and 7 START_SECTIONs for 5,572 lines of C++, so source review carries most of the weight and the API mapping table in docs/MZTAB_SUPPORT.md is the primary deliverable. Five of the seven sections are ported into tests/mztab.rs with every literal: the default constructor (via the mzTab-version 1.0.0 its metadata constructor sets), the destructor (drop of a populated document), getPSMOptionalColumnNames (rows == 2 and five distinct optional columns, plus every cell of the two-row fixture: PSM_ID 38/39, '[, , Percolator, ]', search engine scores 51.9678841193106 and 9.55915773892318, unique 1/0, database null), addMetaInfoToOptionalColumns (all seven assertions, including opt_global_with_space from the key 'with space' and the value text '[0.5, 1.4, -2.0, 0.1]'), and the MzTabBoolean setNull/isNull polarity regression (all five assertions). The two remaining sections call MzTab::exportIdentificationsToMzTab and MzTab::exportConsensusMapToMzTab, neither of which this package ports, so they are recorded as unaccounted rather than mapped; the 18-macro consensus-map section must be ported when the exporter stage lands. The remaining 55 tests are independently derived (tier 4): the cell state machine, the source number convention reproduced through the crate's existing format_float helper, every list separator and the empty-subject split rule, the two comma scanners including the source's own worked example string, MzTabSpectraRef's null rule and colon restriction, the modification position and CHEMMOD round-trip failures, all seven row structs' full column sets, every metadata struct, the document accessors and number_of_psms, the resource ceilings and their atomicity, and non-ASCII inputs for every parser. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential.",
+ "gaps": [
+  "No fixture is added: the data model has no file format of its own, and MzTab_test.cpp reads no data file. The MzTabFile stage will need the upstream .mzTab reference files.",
+  "The export surface of MzTab.h is not ported: exportFeatureMapToMzTab, exportIdentificationsToMzTab, exportConsensusMapToMzTab, extractModificationList, the nested IDMzTabStream and CMMzTabStream classes and all 22 protected static helpers, roughly 2,900 of MzTab.cpp's 3,414 lines. They depend on FeatureMap, ConsensusMap, ProteinIdentification, PeptideIdentification, PeptideHit, ExperimentalDesign and IDFilter. Two MzTab_test.cpp sections belong to that stage.",
+  "MzTabFile.h (the reader and writer) and MzTabM.h / MzTabMFile.h (the metabolomics variant) are separate stages and build on the types this package publishes.",
+  "MzTabModification::toCellString deliberately diverges: the source writes each position as a raw byte through std::string::operator+=(char), and this port writes decimal digits. Any position-annotated modification cell therefore differs byte for byte from what the C++ produces, so a byte-exact differential against a C++-written mzTab file containing modification positions will fail by design. The divergence is stated at the item and in the support document.",
+  "docs/core-sdk-coverage.json and docs/CORE_SDK_COMPLETION.md are stale after this package, because src/format/mztab.rs makes MzTab.h a candidate Rust file; regenerate with python3 tools/core_sdk_coverage.py --write after adding the ledger entries. The name heuristic does not associate mztab.rs with MzTabBase.h, so that ledger entry must list its rust file explicitly. Both generated files are outside this package's scope.",
+  "docs/doc-coverage.json was not rewritten: src/format/mztab.rs measures 100.0% (220/220) and check_doc_coverage.py reports an improvement, but recording the new floor touches a file outside this package's scope.",
+  "CI wiring was not added: append '--test mztab' to the no-feature line of the minimum-rust job in .github/workflows/rust.yml. The test needs no Cargo feature and passes under --all-features, --no-default-features and cargo +1.85.0.",
+  "Seven C++ defects were found by source review and are listed in docs/MZTAB_SUPPORT.md for OpenMS_CPP_ISSUES.md, which this package does not own."
+ ]
+}
