@@ -1,7 +1,10 @@
 # Native equivalents for aliases and standard containers
 
-This review covers every declaration in six small public headers from Core SDK
-`6bfc0e4711105f4eda2fea86812a83af7c7e791f`. A `native_equivalent` ledger entry
+This review covers every declaration in seven small public headers from Core SDK
+`6bfc0e4711105f4eda2fea86812a83af7c7e791f`; the `StandardTypes.h` and `DPeak.h`
+sections were re-reviewed member by member at
+`bc9cc12514c768385ce121d6ca4bb710fe1983c4` (see
+[kernel_gap_closures_provenance.json](../tests/data/kernel_gap_closures_provenance.json)). A `native_equivalent` ledger entry
 means that Rust's existing types and standard library provide the header's data
 and container operations. It does not promise C++ symbol names, binary layout,
 allocator behavior, template inheritance, invalid iterator behavior, or identical
@@ -11,6 +14,7 @@ of the domain classes stored in those containers.
 | Header | Review result |
 | --- | --- |
 | `KERNEL/StandardTypes.h` | Native equivalent: three aliases |
+| `KERNEL/DPeak.h` | Native equivalent: `Peak1D` / `Peak2D` are the two concrete `DPeak<D>::Type` results |
 | `METADATA/PeptideIdentificationList.h` | Native equivalent: `Vec<PeptideIdentification>` |
 | `DATASTRUCTURES/ExposedVector.h` | Native equivalent: `Vec<T>`, slices, iterators and `std::mem` |
 | `DATASTRUCTURES/TypeAliases.h` | Native equivalent: three vector aliases |
@@ -24,24 +28,78 @@ separate validation of the Rust standard library.
 
 ## Standard spectrum names
 
-The complete `StandardTypes.h` API is:
+`StandardTypes.h` (sha256 `434a332d5ff5388768e66b463b6e32814d6f44990d8fa1b998041259c3b4047a`)
+declares four forward declarations and three typedefs. Every declaration:
 
-| Source alias | Existing Rust type |
-| --- | --- |
-| `PeakSpectrum` | `openms::MSSpectrum` |
-| `PeakMap` | `openms::MSExperiment` |
-| `Chromatogram` | `openms::MSChromatogram` |
+| Source declaration | Rust counterpart | Notes |
+| --- | --- | --- |
+| `class MSSpectrum;` | `openms::MSSpectrum` | forward declaration; adds no member or runtime behavior |
+| `class MSChromatogram;` | `openms::MSChromatogram` | forward declaration |
+| `class Mobilogram;` | `openms::Mobilogram` | forward declaration only; the header defines **no** `Mobilogram` alias |
+| `class MSExperiment;` | `openms::MSExperiment` | forward declaration |
+| `typedef MSSpectrum PeakSpectrum;` | `openms::MSSpectrum` | not ported as a second Rust name: one name per type. Every consumer that takes a source `PeakSpectrum` (for example `comparison::BinnedSpectrum::new`) takes `&MSSpectrum` |
+| `typedef MSExperiment PeakMap;` | `openms::MSExperiment` | same |
+| `typedef MSChromatogram Chromatogram;` | `openms::MSChromatogram` | same |
 
-The header also forward-declares those three classes and `Mobilogram`; a forward
-declaration adds no methods or runtime behavior. It does **not** define a
-`Mobilogram` alias. This review therefore neither claims Mobilogram support nor
-marks MSSpectrum/MSExperiment/MSChromatogram themselves feature-complete.
+Behavioural differences: none. A C++ typedef is the same type, and so is the
+Rust mapping; the only difference is that Rust code spells the `MS*` name. This
+review neither claims `Mobilogram` support through this header nor marks
+`MSSpectrum` / `MSExperiment` / `MSChromatogram` themselves feature-complete.
 
 The Rust types are exported by [lib.rs](../src/lib.rs) and implemented in
-[kernel.rs](../src/kernel.rs). [Kernel tests](../tests/kernel.rs) cover their
-construction, ownership, metadata and scientific operations. The source
-`StandardTypes_test.cpp` only checks typedef construction/destruction, with
-PeakSpectrum and PeakMap repeated; it supplies no additional numerical contract.
+[kernel.rs](../src/kernel.rs). `StandardTypes_test.cpp` (sha256
+`5daffef668fe54e6bce15348745502908830e253567005b4390fe7fd2d522c73`) has one
+`NOT_TESTABLE` section plus the `GOOD_TYPEDEF` macro, which expands to a
+construct section and a delete section and is invoked for `PeakSpectrum` and
+`PeakMap` twice each (nine section invocations, five distinct sections);
+`Chromatogram` is never instantiated by the source test. Section mapping into
+[tests/kernel_aliases.rs](../tests/kernel_aliases.rs), tier 3 (source review):
+
+| Source section | Rust test |
+| --- | --- |
+| `StandardTypes` (`NOT_TESTABLE`) | mapped: no assertion exists; `peak_spectrum_typedef_is_ms_spectrum` exercises the typedef target and asserts the source default `rt == -1.0`, `ms_level == 1` |
+| `PeakSpectrum()` / `~PeakSpectrum()` (x2) | ported: `peak_spectrum_typedef_is_ms_spectrum` |
+| `PeakMap()` / `~PeakMap()` (x2) | ported: `peak_map_typedef_is_ms_experiment` |
+| (none) | extra: `chromatogram_typedef_is_ms_chromatogram` |
+
+Self-audit (`StandardTypes.h`): 4 ported, 1 mapped-with-evidence, 0
+mapped-without-evidence, 0 unaccounted.
+
+## DPeak metafunction
+
+`KERNEL/DPeak.h` (sha256 `82b6a53f382fdb9111a17ae1162ef0f33e90cfe34eee37e35bfa5e45c956e60f`)
+declares a compile-time selector `DPeak<dimensions>::Type` with exactly two
+specialisations; `DPeak.cpp` (sha256
+`6b182e99286f8647d4493040c43eb0288a4036a1bdad10024b4d69b4e0477504`) only
+instantiates four namespace-scope default objects. Rust has no use for the
+metafunction: C++ code that is generic over dimensionality is written against
+the two concrete types.
+
+| Source declaration | Rust counterpart |
+| --- | --- |
+| `template <UInt dimensions> struct DPeak {}` (primary template, no members) | not ported: an unspecialised `DPeak<N>` has no `Type` and is a compile error in C++; nothing to represent |
+| `DPeak<1>::Type` = `Peak1D` | `openms::Peak1D` ([kernel.rs](../src/kernel.rs)) |
+| `DPeak<2>::Type` = `Peak2D` | `openms::kernel::Peak2D` ([kernel/peak2d.rs](../src/kernel/peak2d.rs)) |
+| `DPeak.cpp` globals `default_dpeak_1`, `default_dpeak_1_type`, `default_dpeak_2`, `default_dpeak_2_type` | not ported: translation-unit anchors with no API; `Peak1D::default()` and `Peak2D::default()` are the observable values, all zero |
+
+Behavioural differences: none at runtime. Representation differs as documented
+for the concrete types: `Peak1D::PositionType` is `DPosition<1>` in C++ and
+`Peak1D` stores `mz: f64` directly; `Peak2D` stores `position: [f64; 2]`
+([PEAK2D_SUPPORT.md](PEAK2D_SUPPORT.md)).
+
+`DPeak_test.cpp` (sha256
+`32f56ebcc47e75bb040d9b4848122104c41eaf40577c75e968893492c7dd2185`) has four
+sections, all construct/delete. Mapping into
+[tests/kernel_aliases.rs](../tests/kernel_aliases.rs), tier 3:
+
+| Source section | Rust test |
+| --- | --- |
+| `DPeak()` / `~DPeak()` (`DPeak<1>::Type`) | ported: `dpeak_1_type_is_peak1d` (`Peak1D::default() == Peak1D::new(0.0, 0.0)`) |
+| `[EXTRA]DPeak()` / `[EXTRA]~DPeak()` (`DPeak<2>::Type`) | ported: `dpeak_2_type_is_peak2d` (`position == [0.0, 0.0]`, `DIMENSION == 2`) |
+| (`DPeak.cpp` globals) | extra: `dpeak_cpp_globals_have_only_the_two_concrete_defaults` |
+
+Self-audit (`DPeak.h`): 4 ported, 0 mapped-with-evidence, 0
+mapped-without-evidence, 0 unaccounted.
 
 ## Peptide-identification collections
 

@@ -76,3 +76,56 @@ values, every dimension string and named wrapper, comparator ordering literals,
 Display labels, rich metadata ownership/assignment, ID state, units and signed
 zero hashing. The [provenance manifest](../tests/data/peak2d_provenance.json)
 records exact source hashes. No C++ reference program was built or executed.
+
+## RichPeak2D member review
+
+`RichPeak2D.h` was re-reviewed member by member at Core SDK
+`bc9cc12514c768385ce121d6ca4bb710fe1983c4` (header sha256
+`66cdccdcc7ccec237b5ddb4dcd164defa5d8179b218a55b7f32ab1c568f417a9`; the `.cpp`
+is an empty namespace, sha256
+`fbaa5dd023cf079201ebc4d9f4765a600df79eccdbb3360eef474be7731d62af`). Every
+public member, including the three inherited surfaces:
+
+| Source member | Rust counterpart | Difference |
+| --- | --- | --- |
+| `class RichPeak2D : public Peak2D, public MetaInfoInterface, public UniqueIdInterface` | `RichPeak2D { peak: Peak2D, metadata: MetaInfo, unique_id: u64 }` with `Deref`/`DerefMut` to `Peak2D` | composition instead of inheritance; all three parts are public fields |
+| `RichPeak2D()` | `RichPeak2D::default()` | zero point, empty metadata, ID 0 |
+| `RichPeak2D(const RichPeak2D&) = default` | `Clone` | metadata deep-copied |
+| `explicit RichPeak2D(const Peak2D&)` (calls `clearUniqueId`) | `From<Peak2D>`, `From<&Peak2D>` | empty metadata, ID 0 |
+| `explicit RichPeak2D(const PositionType&, IntensityType)` | `from_position([rt, mz], intensity)`; `new(rt, mz, intensity)` | none |
+| `RichPeak2D(RichPeak2D&&) = default` (source test asserts `noexcept`) | Rust move | Rust moves cannot throw |
+| `~RichPeak2D()` | drop | none |
+| `operator=(const RichPeak2D&) = default` | assignment of a `clone()` | none |
+| `operator=(RichPeak2D&&) & = default` | move assignment | none |
+| `operator=(const Peak2D&)` (self-assignment guard; clears metadata and ID) | `replace_from_peak(Peak2D) -> RichPeak2D` | returns the previous value instead of destroying it; the borrow checker makes the self-assignment case unrepresentable |
+| `operator==` (point, metadata, unique ID) | `PartialEq` | metadata compares exact typed values; the source registry float epsilon is not reproduced (see above) |
+| `operator!=` | `!=` | none |
+| inherited `Peak2D` accessors (`getRT`, `setRT`, `getMZ`, `setMZ`, `getPosition`, `setPosition`, `getIntensity`, `setIntensity`) | `rt()`, `set_rt`, `mz()`, `set_mz`, `position`, `intensity` through `Deref` | none |
+| inherited `MetaInfoInterface` (`setMetaValue`, `getMetaValue`, `removeMetaValue`, `isMetaEmpty`, `metaValueExists`, `clearMetaInfo`, `getKeys`, ...) | `metadata: BTreeMap<String, MetaValue>` (`insert`, `get`/`[]`, `remove`, `is_empty`, `contains_key`, `clear`, `keys`) | registry-index overloads (`setMetaValue(UInt, ...)`) are not ported: keys are names only. The source registry pre-registers index 2 as `cluster_id`, which the two `[EXTRA]` test sections use |
+| inherited `UniqueIdInterface` (`getUniqueId`, `setUniqueId`, `hasValidUniqueId`, `hasInvalidUniqueId`, `clearUniqueId`, `swapUniqueId`, `ensureUniqueId`, `setUniqueId(const String&)`) | `HasUniqueId` implementation over `unique_id` | `ensureUniqueId` takes a caller-owned `UniqueIdGenerator` instead of the process singleton |
+
+`RichPeak2D_test.cpp` (sha256
+`4a88424fa3fb0661707e451deb8186df77a5bb8a6100bcb5921ff629d0ad38f2`) has twelve
+sections. All are ported into [tests/rich_peak2d.rs](../tests/rich_peak2d.rs),
+tier 3 (transcribed literals `123.456f`, `4711`, `21.21`, `22.22`, `"bla"`,
+`"bluff"`; no C++ execution):
+
+| Source section | Rust test |
+| --- | --- |
+| `RichPeak2D()` | `default_constructor` |
+| `~RichPeak2D()` | `destructor` |
+| `RichPeak2D(const RichPeak2D&)` | `copy_constructor` |
+| `RichPeak2D(RichPeak2D&&)` | `move_constructor` |
+| `RichPeak2D(const Peak2D&)` | `constructor_from_peak2d` |
+| `explicit RichPeak2D(const PositionType&, const IntensityType)` | `member_constructor` |
+| `operator=(const RichPeak2D&)` | `assignment_operator` |
+| `operator=(const Peak2D&)` | `assignment_from_peak2d_clears_meta_info` |
+| `operator==` | `equality_operator` |
+| `operator!=` | `inequality_operator` |
+| `[EXTRA] meta info with copy constructor` | `meta_info_with_copy_constructor` |
+| `[EXTRA] meta info with assignment` | `meta_info_with_assignment` |
+| (none) | extra: `inherited_unique_id_interface` |
+
+Self-audit (`RichPeak2D.h`): 12 ported, 0 mapped-with-evidence, 0
+mapped-without-evidence, 0 unaccounted. The earlier value tests in
+[tests/peak2d.rs](../tests/peak2d.rs) remain and are not counted here.

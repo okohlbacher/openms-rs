@@ -1,0 +1,160 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/DPeak.h",
+      "sha256": "82b6a53f382fdb9111a17ae1162ef0f33e90cfe34eee37e35bfa5e45c956e60f"
+    },
+    {
+      "path": "src/openms/source/KERNEL/DPeak.cpp",
+      "sha256": "6b182e99286f8647d4493040c43eb0288a4036a1bdad10024b4d69b4e0477504"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/DPeak_test.cpp",
+      "sha256": "32f56ebcc47e75bb040d9b4848122104c41eaf40577c75e968893492c7dd2185"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/StandardTypes.h",
+      "sha256": "434a332d5ff5388768e66b463b6e32814d6f44990d8fa1b998041259c3b4047a"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/StandardTypes_test.cpp",
+      "sha256": "5daffef668fe54e6bce15348745502908830e253567005b4390fe7fd2d522c73"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RichPeak2D.h",
+      "sha256": "66cdccdcc7ccec237b5ddb4dcd164defa5d8179b218a55b7f32ab1c568f417a9"
+    },
+    {
+      "path": "src/openms/source/KERNEL/RichPeak2D.cpp",
+      "sha256": "fbaa5dd023cf079201ebc4d9f4765a600df79eccdbb3360eef474be7731d62af"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/RichPeak2D_test.cpp",
+      "sha256": "4a88424fa3fb0661707e451deb8186df77a5bb8a6100bcb5921ff629d0ad38f2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/FeatureHandle.h",
+      "sha256": "d9c75f7b57f4b7ff29dafa9189e899b09946176a57bfa582d4ae3d18357f89d4"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureHandle.cpp",
+      "sha256": "56a66eea0fa16b56e8c88bd9818fccfd94e2872866537c21f7f186e55579c283"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FeatureHandle_test.cpp",
+      "sha256": "1e48b67f7d50e4448abfd9c11ed25565c5bdc089cc8af77f761815e148f0e5a3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/BinnedSpectrum.h",
+      "sha256": "e734cfa2a84c79d5a41e3376ad85696b9e48adb58c87f71564e5722896b5d49f"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BinnedSpectrum.cpp",
+      "sha256": "c724cc045175cdc84ff59470020461b9f74f23a96c3c6cdbb1f079348559f9e2"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/BinnedSpectrum_test.cpp",
+      "sha256": "528251907315c3d1975456c8c82dde629b53a39ebf30bb69d111e868bdba123f"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/comparison_dfpianger.dta",
+      "upstream_path": "src/tests/class_tests/openms/data/PILISSequenceDB_DFPIANGER_1.dta",
+      "sha256": "0175e395630673e3f0a7e44ba9b450aae2af316c18d18587509fddb8e64ae4bb",
+      "used_by": "tests/binned_spectrum.rs"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel.rs",
+    "src/kernel/peak2d.rs",
+    "src/kernel/features.rs",
+    "src/kernel/gap_closures.rs",
+    "src/comparison.rs",
+    "src/concept/unique_id.rs"
+  ],
+  "native_tests": [
+    "tests/kernel_aliases.rs",
+    "tests/rich_peak2d.rs",
+    "tests/feature_handle.rs",
+    "tests/binned_spectrum.rs"
+  ],
+  "support": [
+    "docs/NATIVE_EQUIVALENTS.md",
+    "docs/PEAK2D_SUPPORT.md",
+    "docs/FEATURE_SUPPORT.md",
+    "docs/COMPARISON_SUPPORT.md"
+  ],
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/StandardTypes.h",
+      "line": 29,
+      "operation": "PeakSpectrum / PeakMap / Chromatogram typedefs mapped to MSSpectrum / MSExperiment / MSChromatogram"
+    },
+    {
+      "path": "src/openms/source/KERNEL/DPeak.cpp",
+      "line": 13,
+      "operation": "four namespace-scope default objects with no API; only Peak1D/Peak2D defaults are observable"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RichPeak2D.h",
+      "line": 71,
+      "operation": "operator=(const Peak2D&) clears metadata and unique ID; ported as replace_from_peak returning the previous value"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/FeatureHandle.h",
+      "line": 148,
+      "operation": "asMutable const_cast view; not ported, &mut plus ConsensusFeature::set_handles replaces it"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/FeatureHandle.h",
+      "line": 155,
+      "operation": "IndexLess: map index then unique ID; native key() tuple ordering"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/FeatureHandle.h",
+      "line": 174,
+      "operation": "std::hash specialisation over seven members with signed-zero normalisation; native Hash in gap_closures.rs"
+    },
+    {
+      "path": "src/openms/source/KERNEL/FeatureHandle.cpp",
+      "line": 92,
+      "operation": "operator<< banner and five labelled lines; native Display in gap_closures.rs"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/BinnedSpectrum.h",
+      "line": 74,
+      "operation": "four DEFAULT_BIN_* constants; native associated consts in gap_closures.rs"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/BinnedSpectrum.h",
+      "line": 93,
+      "operation": "default constructor leaves bins_ null; not ported"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BinnedSpectrum.cpp",
+      "line": 88,
+      "operation": "binSpectrum_ spread loop with static_cast<int> left-boundary guard; native saturating range"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BinnedSpectrum.cpp",
+      "line": 125,
+      "operation": "operator== omits offset_; native PartialEq includes it"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BinnedSpectrum.cpp",
+      "line": 191,
+      "operation": "getBinIntensity uses coeffRef and inserts a zero coefficient on a miss; native lookup is read-only"
+    }
+  ],
+  "evidence": "Tier 3 (source review): every literal in the four new test files is transcribed from the pinned class tests; no C++ was built or executed, and no retained C++ output exists for these headers. Class-test section accounting per header: DPeak.h 4 sections, 4 ported, 0 mapped-with-evidence; StandardTypes.h 5 distinct sections (9 invocations), 4 ported, 1 mapped-with-evidence (the NOT_TESTABLE section, cited against peak_spectrum_typedef_is_ms_spectrum asserting rt == -1.0); RichPeak2D.h 12 sections, 12 ported; FeatureHandle.h 16 sections, 16 ported; BinnedSpectrum.h 14 sections, 14 ported. 0 mapped-without-evidence and 0 unaccounted for all five. Gap closures (FeatureHandle::from_peak, Display, Hash, HasUniqueId; BinnedSpectrum DEFAULT_BIN_* constants) are native code reviewed against the cited source anchors and covered by the new tests.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}

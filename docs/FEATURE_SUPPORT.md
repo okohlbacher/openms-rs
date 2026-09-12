@@ -19,6 +19,73 @@ The native `kernel::features` and `kernel::geometry` modules port a defined subs
 
 Feature, map and column metadata uses owned typed `MetaInfo` values. Peptide/protein records are attached through the [identification module](IDENTIFICATION_SUPPORT.md) and validated recursively. Identification references, annotation-state inference, ratios, document provenance graphs, automatic unique-ID generation, map append/split and label interpretation are not implemented here. Maps additionally preserve `data_processing`, `loaded_file_path` and `loaded_file_type`; clearing metadata clears these fields too. Column headers preserve filename, label, feature count, unique ID and metadata. Consensus experiment type defaults to `label-free`; validation permits the source values `label-free`, `labeled_MS1` and `labeled_MS2`.
 
+### FeatureHandle member review
+
+`FeatureHandle.h` was re-reviewed member by member at Core SDK
+`bc9cc12514c768385ce121d6ca4bb710fe1983c4` (header sha256
+`d9c75f7b57f4b7ff29dafa9189e899b09946176a57bfa582d4ae3d18357f89d4`, `.cpp` sha256
+`56a66eea0fa16b56e8c88bd9818fccfd94e2872866537c21f7f186e55579c283`). Four
+members had no counterpart; they live in
+[`kernel/gap_closures.rs`](../src/kernel/gap_closures.rs) because
+`kernel/features.rs` was frozen for the review, and Rust allows inherent and
+trait impls for a crate-local type from any module of the same crate.
+
+| Source member | Rust counterpart | Difference |
+| --- | --- | --- |
+| `class FeatureHandle : public Peak2D, public UniqueIdInterface` | `FeatureHandle { map_index, unique_id, rt, mz, intensity, charge, width }` (`Copy`) | flat struct; no `[f64; 2]` position array, the pair is `(rt, mz)` |
+| `class FeatureHandleMutable_` (private ctors; hides `setUniqueId`, `setMapIndex`) | not ported | `&mut FeatureHandle` is the mutable view. A handle stored in a `ConsensusFeature` is edited by copying it out of `handles()` and calling `set_handles`, which re-sorts and re-checks `(map_index, unique_id)` uniqueness; the source instead trusts the caller not to touch those two fields |
+| `ChargeType = Int` | `i32` | none |
+| `WidthType = float` | `f32` | none |
+| `FeatureHandle()` | `Default` | all zero |
+| `FeatureHandle(UInt64 map_index, const Peak2D& point, UInt64 element_index)` | `FeatureHandle::from_peak(map_index, Peak2D, element_index)` (gap closure) | element index becomes `unique_id`; charge and width 0 |
+| `FeatureHandle(UInt64 map_index, const BaseFeature& feature)` | `FeatureHandle::new(map_index, &BaseFeature)` | copies RT, m/z, intensity, charge, width and unique ID |
+| copy constructor, `operator=`, `~FeatureHandle()` | `Copy`/`Clone`, assignment, drop | none |
+| `asMutable() const` (`const_cast`) | not ported | see `FeatureHandleMutable_` |
+| `getMapIndex()` / `setMapIndex(UInt64)` | `map_index` field | none |
+| `setCharge(ChargeType)` / `getCharge()` | `charge` field | none |
+| `setWidth(WidthType)` / `getWidth()` | `width` field | the field accepts any `f32`; `validate()` (called by consensus insertion) rejects negative or non-finite width, which the source stores silently |
+| `operator==` / `operator!=` (point, ID, map index, charge, width) | derived `PartialEq` over all seven fields | none |
+| `struct IndexLess` (map index, then unique ID) | `key() -> (u64, u64)` tuple ordering; `ConsensusFeature` sorts by it | none |
+| protected `map_index_`, `charge_`, `width_` | public fields | none |
+| `operator<<(std::ostream&, const FeatureHandle&)` | `Display` (gap closure) | same banner and five labelled lines; Rust number formatting instead of the stream's six significant digits |
+| `std::hash<FeatureHandle>` (RT, m/z, intensity, ID, map index, charge, width) | `Hash` (gap closure) | same seven inputs and signed-zero normalisation fed to the caller's `Hasher`; no C++ FNV-1a digest value |
+| inherited `Peak2D` (`getRT`, `getMZ`, `getIntensity`, `getPosition`, setters) | `rt`, `mz`, `intensity` fields | none |
+| inherited `UniqueIdInterface` | `HasUniqueId` impl (gap closure) over `unique_id` | `ensureUniqueId` takes a caller-owned generator |
+
+`FeatureHandle_test.cpp` (sha256
+`1e48b67f7d50e4448abfd9c11ed25565c5bdc089cc8af77f761815e148f0e5a3`) has sixteen
+sections. All are ported into
+[tests/feature_handle.rs](../tests/feature_handle.rs), tier 3 (transcribed
+literals `-17`, `-1717`, `10.7`, `-8.9`, `44324.6`, `867.4`, `23`, `99`,
+`-64544.3`, `77`, `29`; no C++ execution):
+
+| Source section | Rust test |
+| --- | --- |
+| `FeatureHandle()` | `default_constructor` |
+| `virtual ~FeatureHandle()` | `destructor` |
+| `operator=(const FeatureHandle&)` | `assignment_operator` |
+| `FeatureHandle(const FeatureHandle&)` | `copy_constructor` |
+| `setCharge(ChargeType)` | `set_and_get_charge` |
+| `getCharge()` (`NOT_TESTABLE`) | `set_and_get_charge` |
+| `setWidth(WidthType)` | `set_and_get_width` |
+| `getWidth()` (`NOT_TESTABLE`) | `set_and_get_width` |
+| `FeatureHandle(UInt64, const Peak2D&, UInt64)` | `constructor_from_map_index_point_and_element_index` |
+| `FeatureHandle(UInt64, const BaseFeature&)` | `constructor_from_map_index_and_base_feature` |
+| `asMutable() const` | `as_mutable_equivalent` |
+| `operator!=` | `inequality_operator` |
+| `operator==` | `equality_operator` |
+| `getMapIndex()` | `get_map_index` |
+| `setMapIndex(UInt64)` | `set_map_index` |
+| `[FeatureHandle::IndexLess] operator()` | `index_less_is_key_ordering` |
+| (none) | extra: `stream_output_layout`, `hash_covers_all_members_and_normalises_signed_zero`, `inherited_unique_id_interface` |
+
+The source `IndexLess` section assigns `lhs.setUniqueId` twice (77 then 29)
+and never sets `rhs`'s ID; the assertions hold because the map indices differ.
+The port reproduces the literal sequence and adds the equal-map-index branch.
+
+Self-audit (`FeatureHandle.h`): 16 ported, 0 mapped-with-evidence, 0
+mapped-without-evidence, 0 unaccounted.
+
 ## Hull semantics
 
 OpenMS `ConvexHull2D` is a scan envelope and can be non-convex. `from_points` and `add_points` group equal RT values into minimum/maximum m/z intervals; intervals are joined linearly between scans. The lower outline is emitted in ascending RT and the upper outline in descending RT, omitting duplicate endpoint vertices. It is not a mathematical convex-hull algorithm.
