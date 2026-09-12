@@ -1,0 +1,165 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "sha256": "a0b5d1ac569910120c039e996be8e6e05829642ba00d52b9dc96ba6ec398d16e"
+    },
+    {
+      "path": "src/openms/include/OpenMS/IONMOBILITY/IMDataArrayUtils.h",
+      "sha256": "5e6ed7bbd5afe5eb74388056c8f7767de7ecb86dd616013f2ff6cdc342017d7c"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "sha256": "f6a4a70d3f55cc9337dbeb6ec3156cbaeb4b8cfe6a35412347689a0e26065869"
+    },
+    {
+      "path": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
+      "sha256": "78234161bbea0fc48d21c1898451d75d98f1829ce313b9e7295ca96f3ac2fbc4"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "sha256": "beadab7ea4eb41079d1a5642f73ba92b46ea3351a2cb53e2ac48382c17161631"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+      "sha256": "33fa5e9375dc6f08315a12de6d38e74fc81e307f8bdb0ab7493f3bc983a79dec"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/spectrum_mobility.rs"
+  ],
+  "native_tests": [
+    "tests/spectrum_mobility.rs"
+  ],
+  "support": "docs/SPECTRUM_MOBILITY_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "line": 208,
+      "operation": "getDriftTime @note: the drift time of an IM spectrum is always set on the spectrum, while the Precursor drift time is often unpopulated; IMTypes::DRIFTTIME_NOT_SET (-1) means unset"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "line": 58,
+      "operation": "Chunk{start inclusive, end exclusive, is_sorted}; Chunks::add starts at the previous end and ends at the spectrum's current size, holding a const MSSpectrum& across mutation"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "line": 563,
+      "operation": "containsIMData inspects only float-array names: a child of 'MS:1002893 ! ion mobility array'"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "line": 702,
+      "operation": "rasterizeIMFrame notes: requires IM data, does NOT require m/z sorting, zero-initializes the output; throws MissingInformation/NullPointer/InvalidValue/InvalidRange; the @code block is Python for pyOpenMS"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 383,
+      "operation": "sortByIonMobility: getIMData may throw, the IM array is captured by reference, std::is_sorted short-circuits, and sort() indexes the captured array per peak (an empty IM array reads out of bounds)"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 397,
+      "operation": "sortByPositionPresorted: empty chunks return; one sorted chunk returns; with no data arrays the whole peak list is stable_sorted and chunks are ignored; otherwise per-chunk stable_sort followed by a balanced recursive std::inplace_merge over chunks[first].start/chunks[mid].end/chunks[last].end and selectUnchecked"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 506,
+      "operation": "isSortedByIM: getIMData may throw, then std::is_sorted over the IM array with '<'"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 573,
+      "operation": "updateRanges: mobility comes from the IM float array when containsIMData(), otherwise from getDriftTime() when it is not -1"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 638,
+      "operation": "getDriftTimeUnitAsString indexes NamesOfDriftTimeUnit without a bounds check"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 808,
+      "operation": "getIonMobilityArray__ scans the float arrays in storage order and returns the first whose name IMDataArrayUtils::getIMUnit recognizes"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 844,
+      "operation": "maybeGetIMData returns {DriftTimeUnit::NONE, {}} when no IM array exists, which collides with an empty IM array and with a CV term that declares no unit"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 857,
+      "operation": "rasterizeIMFrame: bounds validated, total_pixels = im_bins * mz_bins multiplied unchecked, buffer zeroed, empty spectrum returns early, IM/peak length mismatch throws after the buffer was already cleared, peaks outside [min,max] skipped, bin = (value - min) * scale truncated then clamped to bins-1, row-major mz_bin * im_bins + im_bin"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "line": 37,
+      "operation": "getIMUnit: exact PSI-MS name lookup and MS:1002893 ancestry first, unit from has_units (MS:1002814 -> VSSC, UO:0000028 -> MILLISECOND, UO:0000324 -> CCS, else NONE with a warning); then the MEAN_INVERSE_REDUCED_ION_MOBILITY_ARRAY / INVERSE_REDUCED_ION_MOBILITY prefixes as VSSC; then the ION_MOBILITY prefix, VSSC for an embedded MS:1002815 or MS:1003006, CCS for MS:1002954, MILLISECOND otherwise"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 23,
+      "operation": "NamesOfDriftTimeUnit = {\"<NONE>\", \"ms\", \"1/K0\", \"FAIMS_CV\", \"CCS\"}"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+      "line": 325,
+      "operation": "IMDataConverter::setIMUnit forwards to IMDataArrayUtils::setIMUnit, which names a MILLISECOND array 'mean ion mobility array' (MS:1002816); this is how the class test's getPrefilledSpec marks its second float array"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "line": 31,
+      "operation": "getPrefilledSpec: ten peaks in descending m/z 423.269..412.321, intensities and three identical float arrays [56,201,31,31,31,37,29,34,60,29], float array 1 renamed to the millisecond IM CV term, two string arrays, two integer arrays, RT 5"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "line": 168,
+      "operation": "Drift-time sections: default -1, set 0.451, default unit NONE printing \"<NONE>\", MILLISECOND printing \"ms\""
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "line": 370,
+      "operation": "updateRanges over getPrefilledSpec: intensity 29..201, m/z 412.321..423.269, mobility 29..201 from the IM array; a single peak leaves RangeMobility empty"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "line": 856,
+      "operation": "sortByIonMobility: isSortedByIM false before and true after, getIMData index 1 and unit MILLISECOND"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "line": 876,
+      "operation": "sortByPositionPresorted: ten peaks appended in five descending-start runs giving chunks [0,3) [3,6) [6,8) [8,9) [9,10), all is_sorted, producing intensities 12,12,13,14,15,16,18,19,20,23 with array names f1/f2/f3, s1/s2, i1 intact"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "line": 1243,
+      "operation": "getIMData over getPrefilledSpec: index 1, unit MILLISECOND"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "line": 1540,
+      "operation": "maybeGetIMData: an 'Ion Mobility' array [1,2,3] yields MILLISECOND; no arrays, an empty array list and the name 'Wrong Name' all yield {NONE, {}}"
+    }
+  ],
+  "evidence": "Tier 3 (source review) for every expectation carrying a section number: the literals of all 71 START_SECTIONs of MSSpectrum_test.cpp transcribed into tests/spectrum_mobility.rs, including the ion-mobility permutation of getPrefilledSpec and the five-chunk presorted fixture. Tier 4 (independently derived) for rasterizeIMFrame, which has no upstream section: bin indices, aggregation and the max-bound clamp computed from MSSpectrum.cpp:857-967, and for the native boundaries (chunk tiling, dishonest is_sorted claims, empty and mis-sized IM arrays, non-finite values, pixel and item ceilings). The nine PSI-MS ion-mobility array names and their units were read out of resources/cv/psi-ms.obo, which is the CV the source resolves at run time. No C++ was built or executed.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}

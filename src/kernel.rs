@@ -59,6 +59,8 @@ pub mod ranges;
 /// Free functions over spectra and chromatograms (`SpectrumHelper.h`): data-array
 /// lookup by name, intensity rebasing, position-unique merging and metadata copy.
 pub mod spectrum_helper;
+/// Spectrum ion mobility (`MSSpectrum.h`): drift time, IM arrays, sorting, rasterizing.
+pub mod spectrum_mobility;
 pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};
 pub use features::{
     BaseFeature, ColumnHeader, ConsensusFeature, ConsensusMap, Feature, FeatureHandle, FeatureMap,
