@@ -73,6 +73,8 @@ pub mod indexed_mzml_handler;
 pub mod mzml;
 #[cfg(feature = "mzml-schema")]
 pub mod mzml_schema;
+/// MzTab data model: cell vocabulary, record structs and document (`MzTabBase.h`, `MzTab.h`).
+pub mod mztab;
 
 use crate::{Error, Result};
 
