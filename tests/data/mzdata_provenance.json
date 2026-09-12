@@ -1,0 +1,237 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzDataFile.h",
+   "sha256": "3f540a0e81559f9773f4370a5860a46aaee93ba3cdb170a9f17fe309bda8700d",
+   "role": "Ported here. The file adapter: default constructor pinning /SCHEMAS/mzData_1_05.xsd and version 1.05, the three PeakFileOptions accessors, load, store and isSemanticallyValid."
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzDataFile.cpp",
+   "sha256": "b301edec0895f5d13e3536a98a3ae2c8826cd9a819c21036ac13c064bcb137ff",
+   "role": "Ported here. load resets the map and records the document path and type before parsing; store passes the options to the handler; isSemanticallyValid loads the hand-crafted mapping file and the psi-mzdata OBO."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzDataHandler.h",
+   "sha256": "9c15452c6334cd9702bfc9c803e2551ef931306cfc728f2f0e5abb0597467fb1",
+   "role": "Ported here. 191 lines: the two constructors, the three SAX callbacks, writeTo, setOptions, init_, fillData_, the three writeCVS_ overloads, writeUserParam_, cvParam_, writeBinary_ and the thirteen protected members."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d",
+   "role": "Ported here. 1510 lines, the whole of mzData reading and writing: the 19 hard-coded cv_terms_ tables, the element dispatch, the per-array base64 decode, the cvParam_ section dispatch and the byte layout of writeTo."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzDataFile_test.cpp",
+   "sha256": "f5d0c7ba196a35b92861bfbb17a3c10c812c16ef93bb22b94a758f82bcfb63ff",
+   "role": "The oracle. 15 START_SECTIONs, 435 assertion macros; every transcribed literal in tests/mzdata.rs comes from this file or from the three fixtures it loads."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/Base64.h",
+   "sha256": "d125c893282cf9822635e4e2e676163b20e7e70f28d9966567ca8232b4f84cc4",
+   "role": "Not ported here. Read for decodeUncompressed_ (lines 309-345), which defines the tolerances the reader must reproduce: a payload under four characters decodes to nothing, a length that is not a multiple of four throws ConversionError, and out.assign(fptr, fptr + s.size()/element_size) silently drops a trailing partial element."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7",
+   "role": "Not ported here. Read for cvStringToEnum_ (lines 131-145), which resolves an unknown CV term to index 0 with a warning, and for the error/warning/fatalError triple: only fatalError throws, error logs, and warning is #ifdef'd down to a debug log in a release build."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/MzDataFile_1.mzData",
+   "source_path": "src/tests/class_tests/openms/data/MzDataFile_1.mzData",
+   "sha256": "2a50f4bc28c5bcd3f3625e67b5860dfbdddb011febcd10253776b6dc4a0de64f",
+   "bytes": 18259,
+   "role": "Unmodified upstream fixture and the oracle for 299 of the 435 assertion macros: accession lsid, sample MS-Sample/0-815 in the gas state, one source file, two contacts, two mass analyzers, one ion source, one ion detector, a document-wide dataProcessing with completionTime 2001-02-03T04:05:06, and three spectra at 60/120/180 s with native IDs 10/11/12, 1/3/5 peaks and eight supDataArrayBinary annotation arrays each. Hand-written, not written by OpenMS: it carries ScanFunction (PSI:1000017) and TandemScanningMethod (PSI:1000020) cvParams that writeTo never emits, and its second spectrum declares mzRangeStart without mzRangeStop, which yields the scan window (110, 0) that ScanWindow::validate rejects."
+  },
+  {
+   "path": "tests/data/MzDataFile_3_minimal.mzData",
+   "source_path": "src/tests/class_tests/openms/data/MzDataFile_3_minimal.mzData",
+   "sha256": "68e635bfb16fa50b87672454d88db422e8da4f5e53fe5578c7ffb99cc92f3c54",
+   "bytes": 1158,
+   "role": "Unmodified upstream fixture: one spectrum of three peaks, both arrays precision=64 endian=little, with newlines, tabs and spaces inside the m/z base64 payload. Both payloads are 36 base64 characters, which is 25 bytes where the declared length=\"3\" needs 24, so each depends on Base64::decodeUncompressed_ dropping the trailing partial element."
+  },
+  {
+   "path": "tests/data/MzDataFile_4_64bit.mzData",
+   "source_path": "src/tests/class_tests/openms/data/MzDataFile_4_64bit.mzData",
+   "sha256": "0c598515f77f9027b3c3124cd0a1d8b8c72670ecce474207d00f527a7fdc184f",
+   "bytes": 2633,
+   "role": "Unmodified upstream fixture and the only one that exercises endian=\"big\": empty accessionNumber, one spectrum of three peaks with a 64-bit little-endian m/z array, a 32-bit little-endian intensity array, and eight annotation arrays mixing 32-bit little, 64-bit little, 32-bit big (QsgAAENIAABCyAAA) and 64-bit big (QFkAAAAAAABAaQAAAAAAAEBZAAAAAAAA). All eight decode to 100/200/100."
+  },
+  {
+   "path": "(not copied) src/tests/class_tests/openms/data/MzDataFile_2_long.mzData",
+   "sha256": "49eb9ddace09238710a52eb75c6bf17d09f22e4eae4a188f85f47f1b96f45cdf",
+   "bytes": 10641944,
+   "role": "Upstream fixture deliberately NOT copied into this repository: 10.6 MB would nearly double the 15 MB of tests/data. The section's asserted value is one spectrum of 997530 peaks; tests/mzdata.rs::load_special_cases writes and reads an equivalent 997530-peak document instead. The character-data splitting the upstream comment refers to is reached directly by split_base64_payload_is_concatenated, which puts an XML comment inside a base64 payload."
+  },
+  {
+   "path": "tests/data/mzdata_big_endian.mzData",
+   "sha256": "9344aa501df97dd3b04e345811c8e382f9421b0bdbf7ed076dfa6e532ab4dd89",
+   "bytes": 1438,
+   "role": "Synthetic (tier 4). No upstream fixture declares endian=\"big\" on a peak array, only on annotation arrays. One spectrum at 42 s with a 64-bit big-endian m/z array (110/120/130), a 32-bit big-endian intensity array (100/200/100) and a 32-bit big-endian annotation array named widths (1.5/2.5/3.5). byte_order_changes_the_decoded_values rewrites endian=\"big\" to endian=\"little\" in the same bytes and asserts the values change, which is what proves the attribute is read rather than the host byte order assumed. big_endian_input_survives_a_round_trip stores the loaded experiment back out - little endian, as writeBinary_ writes - and asserts every value returns."
+  },
+  {
+   "path": "tests/data/mzdata_latin1.mzData",
+   "sha256": "7f73073ce6dd4521e3597eac25e9816505558b7ae8851f00149aa057f3a93ce3",
+   "bytes": 1205,
+   "role": "Synthetic (tier 4). encoding=\"ISO-8859-1\", which is what MzDataHandler::writeTo emits, with raw high bytes in four metadata values: sampleName Prüfmuster (0xfc), contact François Müller (0xe7, 0xfc), institution Universität Tübingen (0xe4, 0xfc) and instrumentName Meßgerät (0xdf, 0xe4). Not valid UTF-8."
+  },
+  {
+   "path": "tests/data/mzdata_utf8.mzData",
+   "sha256": "a27bffb0b341017c34f1ea5735ac5e9c1e01e5b1f43d38c66c008af5d56f775c",
+   "bytes": 1175,
+   "role": "Synthetic (tier 4). encoding=\"UTF-8\" with metadata outside ISO-8859-1 (日本語, 東京, 質量分析計), so the writer has to emit numeric character references to keep its ISO-8859-1 declaration truthful. writeTo would emit the raw UTF-8 bytes under that declaration."
+  }
+ ],
+ "native_implementation": [
+  "src/format/mzdata.rs"
+ ],
+ "native_tests": [
+  "tests/mzdata.rs"
+ ],
+ "support_document": "docs/MZDATA_SUPPORT.md",
+ "target_verification": {
+  "gates": [
+   "cargo fmt --all -- --check",
+   "cargo clippy --locked --all-features --all-targets -- -D warnings",
+   "cargo nextest run --locked --all-features (3256 tests)",
+   "cargo nextest run --locked --no-default-features (2376 tests)",
+   "cargo nextest run --locked --no-default-features --features mzml --test mzdata (63 tests)",
+   "cargo test --locked --all-features --doc",
+   "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --all-features --no-deps",
+   "cargo +1.85.0 check --locked --all-features --all-targets",
+   "python3 tools/check_doc_coverage.py",
+   "python3 tools/check_core_sdk.py",
+   "python3 tools/test_core_sdk.py",
+   "python3 tools/test_core_sdk_coverage.py",
+   "python3 tools/check_schema_feature_graph.py"
+  ],
+  "doc_coverage": "src/format/mzdata.rs 44/44 = 100.0%; src/format/mod.rs improves from 4/28 to 5/29",
+  "sections_total": 15,
+  "sections_ported": 13,
+  "sections_mapped": 2,
+  "sections_unaccounted": 0,
+  "assertion_macros_total": 435
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 522,
+   "operation": "fillData_ reads precisions_[0] and precisions_[1] before the data_to_decode_.size() < 2 guard at :533, so a spectrum with fewer than two binary arrays reads past the end of a std::vector"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 539,
+   "operation": "an m/z-versus-intensity length disagreement is reported with the non-fatal error(LOAD, ...), which only logs; the loop at :558-574 then indexes the intensity array and every annotation array at every position below the m/z length"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 572,
+   "operation": "spec_.getFloatDataArrays()[i] is filled from decoded_double_list_[2 + i][n] / decoded_list_[2 + i][n] with no length check on that array, so a supDataArrayBinary shorter than the m/z array reads out of bounds"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 352,
+   "operation": "UInt count = attributeAsInt_(attributes, \"count\") then exp_->reserve(count): a signed Int read into an unsigned, passed straight to a reserve with no ceiling, so <spectrumList count=\"4000000000\"> or a negative count asks for roughly a terabyte before any data is read"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 415,
+   "operation": "peak_count_ = attributeAsInt_(attributes, \"length\") is the only assignment to that handler member and is reached only for <data> inside <mzArrayBinary>, and onEndElement does not reset it, so a spectrum without an m/z array inherits the previous spectrum's peak count"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 436,
+   "operation": "static UInt scan_count = 0 inside onEndElement is a function-local static shared by every MzDataHandler instance and thread, so concurrent or successive loads interleave the progress count; it is reset only when </mzData> is reached"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 345,
+   "operation": "spec_.getDataProcessing().push_back(data_processing_) runs for every <spectrum> without checking the pointer, so a document with no <dataProcessing> element gives every spectrum a null DataProcessingPtr"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 1136,
+   "operation": "the unknown-scan-mode fallback for an MS2 spectrum sets MSNSPECTRUM on exp_->getSpectra().back() - the previously added spectrum, and .back() on an empty vector when this is the first one - and warns only on the MS1 branch"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 583,
+   "operation": "writeTo emits <?xml version=\"1.0\" encoding=\"ISO-8859-1\"?> and then streams every std::string with os << unescaped and untranscoded, so an & or a < in any metadata value produces a document that is not well-formed and UTF-8 metadata produces bytes the declared encoding cannot describe"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 1500,
+   "operation": "writeBinary_ hardcodes precision=\"32\" endian=\"little\" and encodes from the std::vector<float> data_to_encode_, so every f64 m/z coordinate loses about nine significant digits on every store"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 1037,
+   "operation": "a supplemental-array length mismatch during writeTo is reported with error(LOAD, ...) rather than error(STORE, ...), so the message reads \"Non-fatal error while loading\" from the store path - and the misaligned array is then written anyway, producing a document whose <supDataArrayBinary> is not aligned with the peak array; fillData_ at :562-572 reads past the end of that array on the way back in"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 492,
+   "operation": "StringUtils::removeWhitespaces is applied to every payload before decoding, \"this should not be necessary, but line breaks inside the base64 data are unfortunately no exception\""
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 503,
+   "operation": "precision is compared only against \"32\" and endian only against \"big\", so every other spelling of either silently selects 64-bit and little endian respectively"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 392,
+   "operation": "a ScanWindow is pushed only when begin != 0.0 || end != 0.0, so a spectrumInstrument with mzRangeStart and no mzRangeStop yields the window (110, 0) whose begin exceeds its end"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 426,
+   "operation": "the decode slot for a supDataArrayBinary is pushed when its <arrayName> child opens, so an annotation array without that child shifts every following payload by one slot"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 42,
+   "operation": "init_ builds 19 cv_terms_ tables from semicolon-separated literals; five (4 ScanFunction, 12 TandemScanningMethod, 15 EnergyUnits, 16 ScanMode, 17 Polarity) are commented \"no longer used\" and left empty, and table 18 ActivationMethod is the only one without a leading empty entry, so cvStringToEnum_'s index-0 fallback makes an unknown activation method CID"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 764,
+   "operation": "the writer's three-flag native-ID analysis: all_prefixed_numbers takes the id from a spectrum=-prefixed number, all_numbers from a bare number, and otherwise the spectra are renumbered from 1, silently when every native ID is empty"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 899,
+   "operation": "writeTo emits PhotodiodeArrayDetector, EnhancedMultiplyChargedScan and TimeDelayedFragmentationScan for the ABSORPTION, EMC and TDF scan modes, none of which its own cvParam_ at :1088-1142 recognises, so each reads back as MASSSPECTRUM through the fallback that also touches getSpectra().back()"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "line": 716,
+   "operation": "the data processing of the first spectrum is used for the whole document, and only <name> and <version> of its software are written - the <comments> child the reader accepts at :131-134 is never emitted, which is why MzDataFile_test.cpp:662-664 has to put the software comment back before comparing"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzDataHandler.h",
+   "line": 42,
+   "operation": "the two constructor doc comments are swapped: the MapType& overload is documented \"Constructor for a write-only handler\" but assigns exp_ and is used by load, and the const MapType& overload is documented \"read-only\" but assigns cexp_ and is used by store"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/Base64.h",
+   "line": 344,
+   "operation": "out.assign(fptr, fptr + s.size()/element_size) truncates to whole elements, so a payload holding a trailing partial element silently loses it; both MzDataFile_3_minimal.mzData and MzDataFile_4_64bit.mzData depend on this"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "line": 100,
+   "operation": "XMLHandler::warning is #ifdef OPENMS_ASSERTIONS around OPENMS_LOG_WARN and falls back to OPENMS_LOG_DEBUG, so in a release build none of the handler's warnings reaches a user"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+   "line": 152,
+   "operation": "DRange<1>::encloses is inclusive at the minimum and exclusive at the maximum, which is the membership rule every PeakFileOptions filter uses"
+  }
+ ],
+ "evidence": "Tier 3 source review with one independent cross-check. Every literal in tests/mzdata.rs that describes upstream data is transcribed from MzDataFile_test.cpp or from the three unmodified fixtures: 3 spectra at 60/120/180 s with native IDs spectrum=10/11/12 and 1/3/5 peaks, the eight annotation arrays area..peakShape with their URL and Comment descriptions and the supDataDesc comment bla|comment|bla, the accession lsid, two precursors at m/z 1.2 and 2.2 with charges 2 and 3 and activation CID and SID, the source file MzDataFile_test_1.raw in /share/data/, contacts John Doe and Jane Doe, dataProcessing MS-X 1.0 with completionTime 2001-02-03 04:05:06, the instrument MS-Instrument/MS-Vendor/MS 1/tuned with two analyzers at resolutions 22.33 and 12.3 and FinalMSExponent 2 and -2, the sample MS-Sample 0-815 in the gas state with mass 1.01, volume 2.02 and concentration 3.03, the 997530-peak long spectrum, and the 64-bit and mixed-endian arrays of MzDataFile_4_64bit.mzData. Transcribed literals are tier-3 evidence. The one check independent of that suite is upstream_payload_holds_a_partial_trailing_element, which decodes the m/z payload of MzDataFile_3_minimal.mzData outside the reader and shows it to hold 25 bytes where the declared three 64-bit values need 24 - establishing from the bytes, not from any upstream assertion, that the fixtures depend on Base64::decodeUncompressed_ truncating to whole elements. The big-endian, ISO-8859-1 and UTF-8 fixtures, every resource ceiling, the hostile length and count attributes, the writer refusals and the byte-exact empty-experiment document are independently derived (tier 4). No C++ was built or executed, no C++ output was retained, and no retained mzData output exists in the pinned tree - MzDataFile_1.mzData is hand-written, carrying ScanFunction and TandemScanningMethod cvParams the writer never emits - so this is not a tier 1 differential."
+}

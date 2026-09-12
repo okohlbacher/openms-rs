@@ -90,6 +90,9 @@ pub mod ms_data_writing_consumer;
 /// mzIdentML adapter: PSI identification interchange (`MzIdentMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod mzidentml;
+/// mzData 1.05 file adapter and handler (`MzDataFile.h`, `MzDataHandler.h`).
+#[cfg(feature = "mzml")]
+pub mod mzdata;
 #[cfg(feature = "mzml")]
 pub mod mzml;
 #[cfg(feature = "mzml-schema")]
