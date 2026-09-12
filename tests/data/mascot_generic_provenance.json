@@ -268,21 +268,23 @@
   }
  ],
  "evidence": "Tier 3 source review. Every expectation is either a transcribed literal from MascotGenericFile_test.cpp or read off MascotGenericFile.cpp/.h; the transcribed literals are therefore tier-3 evidence and are labelled as such. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential: the upstream suite retains no MGF output at all -- its two store sections compare substrings of an in-memory stringstream, and both committed fixtures are inputs. Transcribed and reproduced: one spectrum of nine peaks from MascotInfile_test.mascot_in; the written block TITLE=Testtitle_index=0 / PEPMASS=1998.0 / RTINSECONDS=25.379000000000001 / SCANS=0 with peak lines 1.0 1.0 through 9.0 81.0; the generated title 1998.0_25.379000000000001_index=0_test; MODS=Carbamidomethyl (C), MODS=Phospho (ST), IT_MODS=Deamidated (NQ), IT_MODS=Oxidation (M); the compact block TITLE=901.23457_234.568_index=250_test / PEPMASS=901.23457 / RTINSECONDS=234.568 / SCANS=250 / 890.12346 2345.679; Caffeine under Metabolite_Name with two peaks, precursor 500.0 and charge 1; and the GNPS spectrum's CCMSLIB00000001547, 3-Des-Microcystein_LR, precursor 981.54, charge 1, 43 peaks and base peak 599.352783 at intensity 764523.0, plus the four SEQ cases. The resource ceilings, the non-ASCII inputs, the multi-byte-offset refusal, the carry-over comparison, the block-merge and truncation asymmetry, the CHARGE rejection set, the range filters, the consumer interface, the native-ID accession table and the parameter-header line order are independently derived (tier 4). A second-model adversarial review of this port raised nine findings, eight of which changed behaviour and each of which now has a named regression test: the PEPMASS whitespace rule, the title retention-time commit order, the compact precision with a stored TITLE, the substr clamp, the from_chars conversion strictness, the scan number's 32-bit width and last-match-wins rule, the WIFF final-pair rule with its uncaught InvalidValue, and the quadratic SEQ accumulation (433.9 s to 0.04 s in release mode on the Linux gate node for the 100,000-line ceiling). The ninth was the documentation correction that the third field of a peak line is ignored rather than parsed and discarded. The libc++-only acceptance of '0x10' by strtod is deliberately not reproduced, because the std::from_chars path every other platform takes rejects it.",
- "target_verification": {
+ "gaps": [
+  "ProgressLogger is a base class of the source file adapter and is not threaded through this port, so a large file reports no progress.",
+  "SpectrumLookup::extractScanNumber is reproduced only as the accession table the MGF writer reaches, with hand-coded scanning instead of Boost regular expressions. When METADATA/SpectrumLookup.h is ported, the local subset in mascot_generic.rs should be deleted in favour of it.",
+  "ModificationsDB has no all_search_modifications accessor in this crate, so the equivalent filter (a UniMod record ID, case-insensitive sort, shorter string first) lives in mascot_generic.rs. It belongs on the database once that module is revisited.",
+  "The three range filters and the MSDataConsumer interface are native additions; MascotGenericFile consumes no PeakFileOptions and has no consumer API upstream."
+ ],
+ "historical_package_validation": {
   "sections_total": 8,
   "sections_ported": 8,
   "sections_mapped": 0,
   "sections_unaccounted": 0,
   "tests": 46,
-  "rustdoc_coverage": "41/41 public items in src/format/mascot_generic.rs"
+  "rustdoc_coverage": "41/41 public items in src/format/mascot_generic.rs",
+  "scope": "Historical pre-integration package validation; test counts refer to that package checkpoint, not the current combined repository."
  },
- "gaps": [
-  "ProgressLogger is a base class of the source file adapter and is not threaded through this port, so a large file reports no progress.",
-  "SpectrumLookup::extractScanNumber is reproduced only as the accession table the MGF writer reaches, with hand-coded scanning instead of Boost regular expressions. When METADATA/SpectrumLookup.h is ported, the local subset in mascot_generic.rs should be deleted in favour of it.",
-  "ModificationsDB has no all_search_modifications accessor in this crate, so the equivalent filter (a UniMod record ID, case-insensitive sort, shorter string first) lives in mascot_generic.rs. It belongs on the database once that module is revisited.",
-  "The three range filters and the MSDataConsumer interface are native additions; MascotGenericFile consumes no PeakFileOptions and has no consumer API upstream.",
-  "docs/doc-coverage.json was not rewritten: src/format/mascot_generic.rs measures 100.0% (41/41) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
-  "CI wiring was not added: append '--test mascot_generic' to the no-default-features line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features and under cargo +1.85.0.",
-  "The ledger entry and the following 'python3 tools/core_sdk_coverage.py --write' are left to the integrator; without them core_sdk_coverage.py reports docs/core-sdk-coverage.json stale, because its heuristic now finds src/format/mascot_generic.rs as a candidate for MascotGenericFile.h."
+ "integration": "The combined format wave registers this module in the reviewed API ledger, refreshes generated coverage and documentation floors, and wires its tests into the minimum-rust CI job.",
+ "cpp_issue_log_entries": [
+  "CPP-166"
  ]
 }

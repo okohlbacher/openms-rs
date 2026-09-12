@@ -1,6 +1,46 @@
 # Validation of the ongoing Rust port
 
-## Build and test throughput: the bottleneck was execution, not compilation (2026-09-12)
+## FORMAT integration checkpoint (2026-09-12)
+
+The fifteen-module [FORMAT wave](FORMAT_WAVE_SUPPORT.md) was built and tested
+on IBMI `kim`, with sources and target directories on node-local NVMe `/scratch`.
+Rust 1.96.0 and minimum Rust 1.85.0 were used with 32 compile jobs. Independent
+workers used separate scratch directories; final checks used frozen snapshots.
+
+| Check | Executed result |
+|---|---|
+| All features, current Rust (`nextest` and `cargo test --all-targets`) | 3,835 passed |
+| No default features, current Rust | 2,640 passed |
+| All features/all targets, Rust 1.85 | 3,835 passed |
+| Doctests, each compiler | 26 passed |
+| Six minimum-feature FORMAT selections on Rust 1.85 | all passed |
+| Full strict Clippy, rustdoc and formatting | passed after fixes |
+| Six provenance/coverage/feature-graph checks | passed |
+| Ten scientific-data/reference regeneration checks | passed |
+
+The first combined run found a module-order formatting change, three test-style
+Clippy diagnostics and a DTA documentation link that needed qualification.
+Those corrections were followed by green checks, another full current-Rust test
+run, the affected minimum-feature tests and an MSRV all-target build check.
+Runtime source and Rust-test hashes match the final tested snapshot; later edits
+record evidence and documentation. Strong local source verification checked
+2,004 distinct pinned source/registration/reference files.
+
+Five completed Claude Fable 5.1 review reports and their dispositions are
+[retained with the validation artifacts](../tests/data/format_wave_validation/reviews.json).
+Review found a Percolator line-limit regression and helped check order-sensitive
+pepXML chemistry. Unsupported review claims were corrected against source and
+regressions; a model's approval is not an SDK-wide correctness proof.
+
+[The machine-readable record](../tests/data/format_wave_validation/summary.json)
+contains commands, outcomes, snapshot hashes and remote log locations. Full logs
+remain under `/ceph/ibmi/abi/oliver/openms-rs/results/format-final-20260912-214524`
+and `format-final-20260912-215205`. Initial failed quality checks are retained,
+not erased. This checkpoint adds no executed full-SDK C++ differential and makes
+no new macOS/Windows validation claim. Public API gaps remain in the coverage
+ledger and per-format support documents.
+
+## Historical throughput measurement before FORMAT (2026-09-12)
 
 The full sweep on the remote host was profiled after wave 1 rather than tuned by
 assumption. Splitting `cargo test --all-features --all-targets` showed a rebuild
@@ -18,8 +58,10 @@ it. `cargo-nextest` runs every test from every binary in one work-stealing pool:
 | `cargo test --no-default-features` | 38 s | — |
 | `cargo nextest run --no-default-features` | **8 s** | — |
 
-The complete sweep — build, both test selections, doctests, clippy, the MSRV
-1.85 gate, rustdoc, fmt and the six Python gates — now takes **42 s** on kim.
+At that earlier, smaller snapshot, the complete sweep — build, both test
+selections, doctests, clippy, the MSRV 1.85 gate, rustdoc, fmt and the six
+Python gates — took **42 s** on kim. This is not a timing claim for the later
+FORMAT integration or for a cold build.
 
 Two things did not help and are recorded so they are not retried:
 

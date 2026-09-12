@@ -133,14 +133,15 @@ Every public and protected member of the header.
 - **A `.pin` file without a `FileName` column is refused.** The source reads
   that column optionally but then calls `map_filename_to_idx.at(raw_file_name)`
   unconditionally (`PercolatorInfile.cpp:273`), so a file without it looks up
-  the never-inserted default name `UNKNOWN` and terminates the process with an
-  uncaught `std::out_of_range`. This port returns
+  the never-inserted default name `UNKNOWN` and throws `std::out_of_range`,
+  which can be caught by its caller. This port returns
   `Error::MissingInformation` naming the column.
 - **Required columns are named, not dereferenced.** `SpecId`, `ScanNr`,
   `Label`, `Peptide`, `Proteins`, `retentiontime`, `ExpMass`, `CalcMass`,
   `FileName` and the configured score column are all looked up once, up front,
   and a missing one is `Error::MissingInformation`. The source reads each with
-  `std::unordered_map::at` inside the row loop, which terminates the process.
+  `std::unordered_map::at` inside the row loop, which throws
+  `std::out_of_range` for an absent key.
 - **A duplicate column name is refused.** The source builds an
   `unordered_map`, so a duplicate silently resolves to the last occurrence.
 - **The first row always opens an identification.** The source compares the
@@ -172,9 +173,10 @@ Every public and protected member of the header.
   the hit has more than one accession.
 - **The Sage sibling paths are derived by stripping suffixes.** The source
   computes them with `StringUtils::substr(pin_file, 0, pin_file.size() - 3)`
-  and `pin_file.size() - 16` — unchecked byte-offset arithmetic on the path
+  and `pin_file.size() - 15` — unchecked byte-offset arithmetic on the path
   string. A path shorter than `results.sage.pin` wraps the unsigned
-  subtraction, and a multi-byte path can be cut inside a character. This port
+  subtraction; the substring count is clamped, producing the wrong sibling
+  name. A positive cutoff can split a UTF-8 character if the suffix is absent. This port
   requires the literal suffixes (`strip_suffix`) and returns
   `Error::InvalidValue` otherwise, so neither a short nor a non-ASCII path can
   misbehave. `tests/percolator_infile.rs` exercises both `a.pin` and
@@ -213,8 +215,13 @@ Every public and protected member of the header.
 | `MAX_CHARGE_COLUMNS` | 1,024 | one-hot charge columns a feature set may declare |
 
 A zero ceiling is `Error::InvalidValue`. `prepare_pin` also bounds the declared
-column count. The `CsvFile` port applies its own line and field limits
-underneath.
+column count. Before CSV materialization, `max_bytes` also caps each input file
+(and each Sage sibling), subject to the stricter `CsvFile` hard ceilings.
+These per-file staging bounds are separate from the parsed-payload budget.
+`max_rows` and `max_columns` are checked after bounded CSV staging; skipped
+comments do not consume the data-row limit. The CSV line and field ceilings
+also apply. Invalid zero limits are
+rejected before input is consumed.
 
 No string is byte-sliced on file-derived data: the Sage sibling paths use
 `strip_suffix`, the peptide spelling fix uses `str::replace`, the scan-number
@@ -274,22 +281,25 @@ All five `START_SECTION`s of `PercolatorInfile_test.cpp` are ported.
 Recorded for `OpenMS_CPP_ISSUES.md`; the integrator owns that file. Suggested
 IDs are noted so the Rust test comments can cite them.
 
-- **OPENMS-PERCIN-001 — `load` terminates on a `.pin` file with no `FileName`
+- **OPENMS-PERCIN-001 — `load` throws on a `.pin` file with no `FileName`
   column.** `PercolatorInfile.cpp:245` fills `map_filename_to_idx` only inside
   `if (file_name_column_index >= 0)`, and line 273 then calls
   `map_filename_to_idx.at(raw_file_name)` unconditionally with the initial
-  default name `"UNKNOWN"`. `std::map::at` throws `std::out_of_range`, which
-  nothing catches, so the process aborts rather than reporting a bad input.
+  default name `"UNKNOWN"`. `std::map::at` throws `std::out_of_range`, which this function does not
+  translate to a file-format error. A caller may catch it; process termination
+  is not inevitable. Confirmed in the shared log as CPP-161.
   Proposed fix: insert `"UNKNOWN"` on first use, or set the merge index only
   when the column exists. Rust handling: `Error::MissingInformation` naming the
   column.
 - **OPENMS-PERCIN-002 — an unchecked path subtraction builds the Sage sibling
   paths.** `PercolatorInfile.cpp:95` and `:100` compute
   `pin_file.size() - 3` and `pin_file.size() - std::string("results.sage.pin").length()`
-  without checking the path length. A `.pin` path shorter than sixteen
-  characters wraps the `size_t`, and a path whose bytes are multi-byte UTF-8
-  can be cut inside a character, producing a sibling path built from an invalid
-  byte offset. Proposed fix: strip the literal suffixes and report a mismatch.
+  without checking the path length. A path shorter than fifteen bytes wraps the unsigned requested
+  substring length. `StringUtils::substr` delegates to `std::string::substr`,
+  which clamps that count and keeps the whole input, producing an incorrect
+  sibling name rather than an out-of-bounds read or a subtraction exception.
+  When the expected suffix is absent, a positive byte cutoff can also split
+  a UTF-8 character. Proposed fix: strip the literal suffixes and report a mismatch.
   Rust handling: `strip_suffix` plus `Error::InvalidValue`; tested with `a.pin`
   and `日本語.pin`.
 - **OPENMS-PERCIN-003 — protein-terminal PSMs are reported as non-enzymatic.**
@@ -310,8 +320,8 @@ IDs are noted so the Rust test comments can cite them.
 - **OPENMS-PERCIN-005 — `retentiontime` and the other `.at`-read columns are
   undocumented requirements.** `PercolatorInfile.cpp:257`, `:267`, `:274`,
   `:285`, `:286`, `:288` and `:370` all use `std::unordered_map::at` on the
-  column index map, so a `.pin` file missing any of them aborts the process
-  instead of reporting a parse error. The header's `@throws` documents only
+  column index map, so a `.pin` file missing any of them throws
+  `std::out_of_range` instead of the documented parse error. A caller may catch it. The header's `@throws` documents only
   `Exception::ParseError` for a wrong column count. Proposed fix: check the
   header up front and throw `ParseError`. Rust handling: all of them are
   checked up front, as `Error::MissingInformation`.

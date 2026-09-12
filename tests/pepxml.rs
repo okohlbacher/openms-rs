@@ -1374,3 +1374,97 @@ fn the_work_budget_follows_the_decoded_input_and_not_only_the_ceiling() {
     let document = pepxml::read_with_options(text.as_bytes(), &read).unwrap();
     assert_eq!(document.peptide_identifications.len(), 1);
 }
+
+#[test]
+fn unmatched_fixed_origins_exhaust_the_existing_work_budget() {
+    let header = format!(
+        "<aminoacid_modification aminoacid=\"{}\" massdiff=\"57.0215\" mass=\"160.0306\" variable=\"N\" description=\"Carbamidomethyl\"/>",
+        "C".repeat(20_000)
+    );
+    let text = run_with_hit(&header, &"A".repeat(20_000), "");
+    let error = pepxml::read(text.as_bytes()).expect_err("expected resource rejection");
+    assert!(error.to_string().contains("resource limit"), "{error}");
+}
+
+#[test]
+fn unmatched_header_origins_exhaust_the_existing_work_budget() {
+    let header = format!(
+        "<aminoacid_modification aminoacid=\"{}\" massdiff=\"57.0215\" mass=\"160.0306\" variable=\"Y\" description=\"Carbamidomethyl\"/>",
+        "C".repeat(20_000)
+    );
+    let annotations = "<mod_aminoacid_mass position=\"1\" mass=\"160.0306\"/>".repeat(2_000);
+    let text = run_with_hit(&header, "A", &annotations);
+    let options = ReadOptions {
+        max_input_bytes: text.len(),
+        ..Default::default()
+    };
+    let error = pepxml::read_with_options(text.as_bytes(), &options)
+        .expect_err("expected resource rejection");
+    assert!(error.to_string().contains("resource limit"), "{error}");
+}
+
+#[test]
+fn terminal_atoms_are_available_before_consuming_residue_modifications() {
+    // Native regression: source applies explicit annotations in encounter order.
+    // Dimethyl supplies four H atoms before the three Unknown:177 records each
+    // remove seven. The complete peptide has H=0; residues alone have H=-4.
+    let header = "<terminal_modification terminus=\"n\" protein_terminus=\"N\" massdiff=\"28.0313\" mass=\"29.039125\" variable=\"Y\" description=\"Dimethyl (N-term)\"/>
+        <aminoacid_modification aminoacid=\"D\" massdiff=\"176.744957\" mass=\"291.771900\" variable=\"Y\" description=\"Unknown:177 (D)\"/>";
+    let text = run_with_hit(
+        header,
+        "DDD",
+        "<mod_aminoacid_mass position=\"1\" mass=\"291.771900\"/>
+        <mod_aminoacid_mass position=\"2\" mass=\"291.771900\"/>
+        <mod_aminoacid_mass position=\"3\" mass=\"291.771900\"/>
+        ",
+    )
+    .replacen(
+        "<modification_info>",
+        "<modification_info mod_nterm_mass=\"29.039125\">",
+        1,
+    );
+    let document = pepxml::read(text.as_bytes()).unwrap();
+    let sequence = &document.peptide_identifications[0].hits[0].sequence;
+    assert_eq!(
+        sequence.to_string(),
+        ".(Dimethyl)D(Unknown:177)D(Unknown:177)D(Unknown:177)"
+    );
+    assert_eq!(
+        sequence.formula().unwrap(),
+        openms::chemistry::EmpiricalFormula::parse("C14Fe9N3O13").unwrap()
+    );
+}
+
+#[test]
+fn a_later_atom_donor_does_not_hide_an_earlier_setter_failure() {
+    // Bulk chemistry is valid (H=2), but the eighth Unknown:177 consumes atoms
+    // before the last residue's Dimethyl adds them. Ordered setters must fail.
+    let header = "<aminoacid_modification aminoacid=\"D\" massdiff=\"176.744957\" mass=\"291.771900\" variable=\"Y\" description=\"Unknown:177 (D)\"/>
+        <aminoacid_modification aminoacid=\"K\" massdiff=\"28.0313\" mass=\"156.126263\" variable=\"Y\" description=\"Dimethyl (K)\"/>";
+    let mut annotations = String::new();
+    for position in 1..=8 {
+        annotations.push_str(&format!(
+            "<mod_aminoacid_mass position=\"{position}\" mass=\"291.771900\"/>"
+        ));
+    }
+    annotations.push_str("<mod_aminoacid_mass position=\"9\" mass=\"156.126263\"/>");
+    let text = run_with_hit(header, "DDDDDDDDK", &annotations);
+    let error = pepxml::read(text.as_bytes())
+        .expect_err("ordered chemistry must reject the intermediate deficit");
+    assert!(
+        error.to_string().contains("negative peptide atom counts"),
+        "{error}"
+    );
+}
+
+#[test]
+fn negative_residue_mass_is_rejected_by_both_installation_paths() {
+    for peptide in ["GG", "GM(Oxidation)"] {
+        let text = run_with_hit(
+            "",
+            peptide,
+            "<mod_aminoacid_mass position=\"1\" mass=\"-1000\"/>",
+        );
+        assert!(pepxml::read(text.as_bytes()).is_err());
+    }
+}

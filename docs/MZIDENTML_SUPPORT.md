@@ -1,7 +1,7 @@
 # mzIdentML support
 
 Ported headers: `FORMAT/MzIdentMLFile.h` (107 lines) and
-`FORMAT/HANDLERS/MzIdentMLHandler.h` (115 lines), with their implementations
+`FORMAT/HANDLERS/MzIdentMLHandler.h` (375 lines), with their implementations
 `MzIdentMLFile.cpp` (115 lines) and `MzIdentMLHandler.cpp` (2302 lines).
 
 Rust: [`src/format/mzidentml.rs`](../src/format/mzidentml.rs) — one module,
@@ -302,7 +302,7 @@ Each one is documented at the item in the module as well.
 | **A cross-link group with no experimental m/z** | `min_element` over a vector of NaN, then `light[0]` on an empty index vector | The group is skipped. Pinned by `a_crosslink_group_without_an_experimental_mz_is_skipped` |
 | **The result's own parameters** | Applied to `pep_id_->back()`, so with several groups per result only the last one gets the retention time, and with no group at all they land on an unrelated earlier identification | Applied to every identification the result produced |
 | **A loop-link's second position** | Set from the acceptor and then overwritten with the mono-link placeholder `"-"` two branches later, which makes the source's own loop-link branch dead and drops the second half of every loop-link on a store | Kept, so a loop-link round-trips. Pinned by `a_loop_link_keeps_both_positions_on_one_chain`. `OpenMS_CPP_ISSUES.md` |
-| **`BetaPepEv:start` / `:end`** | Built with `std::string += Int`, which appends the *code point* of the position instead of its digits, so the writer's `toInt32` cannot read its own value back | Decimal numbers. `OpenMS_CPP_ISSUES.md` |
+| **`BetaPepEv:start` / `:end` (preserved convention)** | `StringUtils.h` provides the numeric `std::string += Int` overload, which appends decimal digits | Decimal numbers, matching the source; the former character-narrowing claim was incorrect |
 | **Hits of a non-cross-linked identification** | `removeBetaPeptideHits` keeps only the first hit of every identification, so a spectrum read through the fallback path loses every candidate but the best | Only a folded beta chain is removed. Pinned by `noncovalent_association_resolves_every_sequence` |
 | **The merged identification's run link** | Left empty, so every cross-linking PSM ends up unlinked from its protein run and the writer has to fall back to the first list | Kept |
 | **A terminal cross-link's location** | Written at `location=0` (or the position plus two) only when `CrossLinksDB` also holds a terminal record of that mass, and otherwise emits an attribute list with no element name in front of it | The location follows the hit's terminal specificity, so `N_TERM` and `C_TERM` round-trip. Pinned by `terminal_crosslink_positions_round_trip` |
@@ -437,8 +437,8 @@ attribute). 55 tests in total.
 
 Tier 3 (source review) for everything transcribed from the class test and the
 nine upstream fixtures; tier 4 (independently derived) for the synthetic
-documents, the ceilings and the error-variant choices. No C++ was built or
-executed and no C++ output was retained, so this is **not** a tier 1
+documents, the ceilings and the error-variant choices. No C++ mzIdentML reader or writer was built or
+executed and no differential output from those operations was retained, so this is **not** a tier 1
 differential. Upgrading it needs an oracle driver under `../oracle/` that links
 `libOpenMS` and prints the loaded identifications; the natural first comparison
 is `msgf_mini`, whose values are all pinned above.
@@ -505,8 +505,7 @@ not a file format, and they keep their own ledger entry. Only the six
 post-processing functions `readMzIdentMLFile` calls are reproduced here, as
 private helpers, because the read path is not meaningful without them. The
 divergences that reproduction introduces are in section 3 — the loop-link
-position the source overwrites, the `BetaPepEv:` positions it writes as code
-points, and the first-hit-only merge — and each of them only keeps data the
+position the source overwrites and the first-hit-only merge — and each of them only keeps data the
 source drops.
 
 [`SCHEMA_VERSION`]: ../src/format/mzidentml.rs
@@ -539,3 +538,10 @@ source drops.
 [`Error::Unsupported`]: ../src/error.rs
 [`Error::InvalidValue`]: ../src/error.rs
 [`Error::MissingInformation`]: ../src/error.rs
+
+### XML transport limits
+
+The reader accepts UTF-8 bytes with an absent or UTF-8 encoding declaration;
+other declared encodings return `Error::Unsupported`, including ASCII-only
+documents declaring ISO-8859-1. Entity and structural checks in the reader are
+not a general XML/XSD validation service.

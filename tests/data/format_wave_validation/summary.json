@@ -1,0 +1,518 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "integration_base": "c218077c99fe5d972c85cb54cfd569fc43ae9493",
+ "merged_branches_head": "b19832c",
+ "host": "kim",
+ "execution": "Compilation and native tests on node-local NVMe /scratch;32compile jobs; Rust1.96.0 and1.85.0. Metadata/source-hash checks also run locally.",
+ "runs": [
+  {
+   "run": "full",
+   "artifact": "tests/data/format_wave_validation/full_results.json",
+   "sha256": "a4bba44e0a5a4fc39114756a78298f4245bbd783257e4b4312a2e791ead176b4",
+   "remote_log_directory": "/ceph/ibmi/abi/oliver/openms-rs/results/format-final-20260912-214524",
+   "snapshot_sha256": "87725d1da08d0b7c2720e442779741c1f00a15312110ba222cede15692335e74"
+  },
+  {
+   "run": "finish",
+   "artifact": "tests/data/format_wave_validation/finish_results.json",
+   "sha256": "62b5b44d69e8516ffff965802790676c7be76a41dcc726583073b432317d3660",
+   "remote_log_directory": "/ceph/ibmi/abi/oliver/openms-rs/results/format-final-20260912-215205",
+   "snapshot_sha256": "94e66f1ab3d858eb1dd81713eb7ff594fdec3efc86bdc6fc201dbaba48e4e15b"
+  }
+ ],
+ "effective_checks": [
+  {
+   "name": "fmt",
+   "command": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 2.14,
+   "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "run": "finish"
+  },
+  {
+   "name": "clippy",
+   "command": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--all-features",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+   ],
+   "exit": 0,
+   "seconds": 30.75,
+   "log_sha256": "ccb57a37d502b73bf2ca51cec0adf04adc5d0d7ad54e705c4987873ac538c795",
+   "run": "finish"
+  },
+  {
+   "name": "nextest_all",
+   "command": [
+    "cargo",
+    "nextest",
+    "run",
+    "--locked",
+    "--all-features",
+    "--no-fail-fast"
+   ],
+   "exit": 0,
+   "seconds": 49.68,
+   "log_sha256": "38eba71ed0df817d57b2e8cffbad0b7fbcabfa49a340667c4466de43ebbef523",
+   "run": "finish"
+  },
+  {
+   "name": "cargo_all_targets",
+   "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--all-features",
+    "--all-targets"
+   ],
+   "exit": 0,
+   "seconds": 66.78,
+   "log_sha256": "4eeacb630239de634dcde51193b1948cbbd9811e9bed4fbe33c26866fd08f4bc",
+   "run": "full"
+  },
+  {
+   "name": "portable",
+   "command": [
+    "cargo",
+    "nextest",
+    "run",
+    "--locked",
+    "--no-default-features",
+    "--no-fail-fast"
+   ],
+   "exit": 0,
+   "seconds": 19.91,
+   "log_sha256": "730a2bdb44f57e0add2fa9894132760d60b95d41e0407202bb5cec1746797b1c",
+   "run": "full"
+  },
+  {
+   "name": "doctests",
+   "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--all-features",
+    "--doc"
+   ],
+   "exit": 0,
+   "seconds": 3.69,
+   "log_sha256": "68b4dee2604725bfe3aec668c7e1f95f696dc86f5e08a8d20d20f58e47098d9f",
+   "run": "full"
+  },
+  {
+   "name": "rustdoc",
+   "command": [
+    "cargo",
+    "doc",
+    "--locked",
+    "--all-features",
+    "--no-deps"
+   ],
+   "exit": 0,
+   "seconds": 13.34,
+   "log_sha256": "af4666b67c52a276c7f83f8dc495aee894b950673e7c9c131259a86b456643ba",
+   "run": "finish"
+  },
+  {
+   "name": "msrv_all_targets",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--all-features",
+    "--all-targets"
+   ],
+   "exit": 0,
+   "seconds": 120.96,
+   "log_sha256": "def3e35dcc0c5198b88321a576b3fb2d2728e52abc5c7d62b45d75c892d27dd7",
+   "run": "full"
+  },
+  {
+   "name": "msrv_doctests",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--all-features",
+    "--doc"
+   ],
+   "exit": 0,
+   "seconds": 4.21,
+   "log_sha256": "2ce5a885f870efae5c18d54d83f877b36c67ce2279bb4f6d0f0dd0a2c5ad5635",
+   "run": "full"
+  },
+  {
+   "name": "msrv_slice_portable",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--test",
+    "mztab",
+    "--test",
+    "mztab_file",
+    "--test",
+    "mztab_m",
+    "--test",
+    "percolator_infile",
+    "--test",
+    "mascot_generic",
+    "--test",
+    "sv_out_stream"
+   ],
+   "exit": 0,
+   "seconds": 20.06,
+   "log_sha256": "49e0fbdd48d118165c49a39315468ebb0a70f8dea68ce556a75d185e6fcaf9e5",
+   "run": "full"
+  },
+  {
+   "name": "msrv_slice_idxml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "idxml",
+    "--test",
+    "pepxml",
+    "--test",
+    "mascot_xml",
+    "--test",
+    "mzidentml"
+   ],
+   "exit": 0,
+   "seconds": 26.44,
+   "log_sha256": "25d2a2e0fb4e26cd068de56491778a3ca97febc1f6d87be304b54d7d67c5fa15",
+   "run": "finish"
+  },
+  {
+   "name": "msrv_slice_mzml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "mzml",
+    "--test",
+    "ms_data_writing_consumer",
+    "--test",
+    "mzxml",
+    "--test",
+    "mzdata"
+   ],
+   "exit": 0,
+   "seconds": 23.55,
+   "log_sha256": "02bf5dadcfced110e6a8df0729e955dcb189b409f47a48196b60af6273646f73",
+   "run": "full"
+  },
+  {
+   "name": "msrv_slice_consensusxml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "consensusxml",
+    "--test",
+    "msstats",
+    "--test",
+    "transformation_xml"
+   ],
+   "exit": 0,
+   "seconds": 20.53,
+   "log_sha256": "09c22bd31d2ecf82b499cff0ff88e159ac5dbd650c99dc1c458b5da2cd099229",
+   "run": "full"
+  },
+  {
+   "name": "msrv_slice_featurexml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "featurexml",
+    "--test",
+    "transformation_xml"
+   ],
+   "exit": 0,
+   "seconds": 18.13,
+   "log_sha256": "0e99486384e929095a40c4b6c7ac21cc16efdef080c09de492631d672a82a94b",
+   "run": "full"
+  },
+  {
+   "name": "msrv_slice_paramxml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "paramxml",
+    "--test",
+    "qcml"
+   ],
+   "exit": 0,
+   "seconds": 24.62,
+   "log_sha256": "22aa91dd2747a00e962e3d8001230cd3fe3da2633651f0f2fc49ff57c931ba10",
+   "run": "full"
+  },
+  {
+   "name": "check_core_sdk",
+   "command": [
+    "python3",
+    "tools/check_core_sdk.py"
+   ],
+   "exit": 0,
+   "seconds": 0.08,
+   "log_sha256": "8f2082659f174f3d1cb0602d39b3f1ebadaffccb6b3119c3e88d958bc71be5d4",
+   "run": "finish"
+  },
+  {
+   "name": "test_core_sdk",
+   "command": [
+    "python3",
+    "tools/test_core_sdk.py"
+   ],
+   "exit": 0,
+   "seconds": 0.05,
+   "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+   "run": "finish"
+  },
+  {
+   "name": "core_sdk_coverage",
+   "command": [
+    "python3",
+    "tools/core_sdk_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.16,
+   "log_sha256": "298b0637d7f7dfbe497c9394fd862cd5afbfc1690077e95a67470f8c4cf083b1",
+   "run": "finish"
+  },
+  {
+   "name": "test_core_sdk_coverage",
+   "command": [
+    "python3",
+    "tools/test_core_sdk_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.2,
+   "log_sha256": "de546a2c0df932284ca0ebcd402a97159dfadd390d7d43c73e31c0bb13fd2e4e",
+   "run": "finish"
+  },
+  {
+   "name": "check_schema_feature_graph",
+   "command": [
+    "python3",
+    "tools/check_schema_feature_graph.py"
+   ],
+   "exit": 0,
+   "seconds": 20.18,
+   "log_sha256": "f5f49505982da5a26ef691a771e6b59311ad707a91a37c77bb8528142fccea16",
+   "run": "finish"
+  },
+  {
+   "name": "check_doc_coverage",
+   "command": [
+    "python3",
+    "tools/check_doc_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.08,
+   "log_sha256": "f25f48221151ebefcaaed62b7956b0d8077a2810c77746a3dae21f22f0b0728d",
+   "run": "finish"
+  },
+  {
+   "name": "generate_modifications",
+   "command": [
+    "python3",
+    "tools/generate_modifications.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.12,
+   "log_sha256": "b6eaaae6ffeaef59e66ceaef00844ccf9e198e8ff1c4d85bb1d8640a6078bf8d",
+   "run": "full"
+  },
+  {
+   "name": "generate_enzymes",
+   "command": [
+    "python3",
+    "tools/generate_enzymes.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.38,
+   "log_sha256": "08b827a1f21b817358b273a37457b5ab0ee4e7a036e56dc9c027d9de5934faf3",
+   "run": "full"
+  },
+  {
+   "name": "generate_ribonucleotides",
+   "command": [
+    "python3",
+    "tools/generate_ribonucleotides.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.04,
+   "log_sha256": "93587badb6d246c880be61bf7d025198a67826059592ee8fde7e3facf2dc7c9b",
+   "run": "full"
+  },
+  {
+   "name": "generate_rnases",
+   "command": [
+    "python3",
+    "tools/generate_rnases.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.03,
+   "log_sha256": "d8823feb4dcf78c7f42e662bb43a4ef2d9ec0a28b8289147a749395efa76fe51",
+   "run": "full"
+  },
+  {
+   "name": "generate_monosaccharides",
+   "command": [
+    "python3",
+    "tools/generate_monosaccharides.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.03,
+   "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9",
+   "run": "full"
+  },
+  {
+   "name": "generate_controlled_vocabulary_reference",
+   "command": [
+    "python3",
+    "tools/generate_controlled_vocabulary_reference.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.59,
+   "log_sha256": "efb52c2938751c18143f76d47982e0db276493a7289bd457d13d54594ea9b902",
+   "run": "full"
+  },
+  {
+   "name": "generate_cv_mapping_reference",
+   "command": [
+    "python3",
+    "tools/generate_cv_mapping_reference.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.04,
+   "log_sha256": "2d9a8fec403aa748c44c79e05813a3ef4ae15beb831b7e76741f0a28bf3f9c7b",
+   "run": "full"
+  },
+  {
+   "name": "semantic_validator_projection",
+   "command": [
+    "python3",
+    "tools/semantic_validator/projection.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.04,
+   "log_sha256": "445ebd77b854c299e154436fd573195203ef5047aa2404c20336e0e566024bfc",
+   "run": "full"
+  },
+  {
+   "name": "generate_metabo_isotope_models",
+   "command": [
+    "python3",
+    "tools/generate_metabo_isotope_models.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.04,
+   "log_sha256": "7b491f74722286e8632f85d151557291f35a0f000a429809eaf0477727005cd0",
+   "run": "full"
+  },
+  {
+   "name": "probes_ims_witness_source_oracle",
+   "command": [
+    "python3",
+    "tools/probes/ims_witness_source_oracle.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.03,
+   "log_sha256": "7556d0af95f7272add3979e04fa25d7984bba438ee13e9b75cc59f6971f36a44",
+   "run": "full"
+  },
+  {
+   "name": "msrv_check",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "check",
+    "--locked",
+    "--all-features",
+    "--all-targets"
+   ],
+   "exit": 0,
+   "seconds": 31.41,
+   "log_sha256": "41747fe7ac1a5493e2268b9bf426af3db2c8e21f2c4ae4593745b5324a0adfff",
+   "run": "finish"
+  }
+ ],
+ "native_test_counts": {
+  "current_all_features": 3835,
+  "current_no_default_features": 2640,
+  "current_doctests": 26,
+  "msrv_all_features": 3835,
+  "msrv_doctests": 26
+ },
+ "artifacts": [
+  {
+   "path": "tests/data/format_wave_validation/tested_runtime_files.json",
+   "sha256": "4bdcab2200f1c0e9fcfdaad487a7972f6c6d1e7ffa40aec0085cb5cc0ba6b1c1"
+  },
+  {
+   "path": "tests/data/format_wave_validation/reviews.json",
+   "sha256": "6d6984aaf6955c706059492b8c44288499a4e319410e8dc8f6fe3ad435b0896d"
+  },
+  {
+   "path": "tests/data/format_wave_validation/local_provenance.json",
+   "sha256": "0ff42eafd3094e4ad32841001f14658e15180ef27904b1770c936d0c67aedea9"
+  }
+ ],
+ "iteration": [
+  "Full run caught formatting order, three err().expect() test-style diagnostics and a broken DTA rustdoc link. All three failed checks pass in finish run.",
+  "Between full and finish snapshots, only runtime/test paths src/format/mod.rs (module sorting), src/format/dta.rs (qualified documentation link) and tests/pepxml.rs (expect_err style) changed. Finish reruns full current tests, full clippy/rustdoc, minimum-feature identification tests and MSRV all-target check.",
+  "Full cargo test --all-features --all-targets and all six minimum-feature slices passed on Rust1.85.0;26doctests passed on both compilers.",
+  "Final runtime sources, Rust tests, Cargo manifests and resources match finish snapshot hashes exactly. Later changes only record evidence, source-review notes and documentation; local metadata checks were rerun."
+ ],
+ "scope_limitations": [
+  "The FORMAT wave is not whole-SDK/CLI/TOPP completion.",
+  "No newly executed full C++ SDK differential is claimed. Retained output comparisons and isolated numeric-overload correction have separate provenance.",
+  "Native test totals do not include Python checks and do not establish platform portability; this wave ran on Linux kim, not macOS or Windows.",
+  "Model review findings were verified independently; five completed bounded Fable5.1 reports are retained."
+ ]
+}

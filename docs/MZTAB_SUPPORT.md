@@ -436,13 +436,12 @@ build the export streams and are [deferred](#deferred) with them.
 Each of these differs from the source on purpose, and each is documented at the
 Rust item as well.
 
-1. **Modification positions render as decimal digits.** MzTab.cpp:85 appends the
-   `Size` position with `std::string::operator+=`, whose only viable overload
-   for an integer is `operator+=(char)`, so position `3` is written as the byte
-   `0x03` and position `65` as `A`. This port writes `3`, which is what the
-   specification requires and what the source's own `fromCellString` reads back.
-   **Any position-annotated modification cell therefore differs byte for byte
-   from what the C++ produces.** See issue 1 below.
+1. **Correction to the earlier review: position rendering is compatible.**
+   The source's `StringUtils.h:865–909` declares numeric string operators that
+   append decimal text. Its `Size` positions do not select the character
+   overload. Rust's decimal spelling agrees; the earlier claimed byte-level
+   divergence was incorrect. An isolated overload-resolution probe is recorded
+   in the manifest; it is not a full SDK or mzTab execution.
 2. **A second parse replaces rather than appends.** Every source list parser
    pushes onto the existing vector without clearing it (for example
    MzTabBase.cpp:71, 870), so `fromCellString` twice into the same object
@@ -549,7 +548,7 @@ unchecked arithmetic on it:
 **Tier 3 (source review), with the class test transcribed.** `MzTab_test.cpp`
 is 307 lines and 7 `START_SECTION`s for 5,572 lines of C++, so source review
 carries most of the weight and the API table above is the primary deliverable.
-No C++ was built or executed and no C++ output was retained, so this is **not** a
+No full format implementation was built or executed and no format output was retained, so this is **not** a
 tier 1 differential. Transcribed C++ literals are tier-3 evidence.
 
 Class-test accounting — 7 sections, 5 ported, 0 mapped, 2 unaccounted:
@@ -575,7 +574,7 @@ modification-metadata generators, the resource ceilings and the non-ASCII cases.
 ## Public API for the dependent stages
 
 The reader/writer (`MzTabFile.h`) and the metabolomics variant (`MzTabM.h`)
-should build on:
+build on these shared types:
 
 - Cell vocabulary: `crate::format::mztab::{MzTabCellState, MzTabCell,
   parse_cell, MzTabDouble, MzTabDoubleList, MzTabInteger, MzTabIntegerList,
@@ -605,15 +604,9 @@ under `--no-default-features`.
 Reported to the integrating agent for `OpenMS_CPP_ISSUES.md`; this package does
 not own that file.
 
-1. **`MzTabModification::toCellString` writes a control byte for every
-   modification position.** MzTab.cpp:85,
-   `pos_param_string += pos_param_pairs_[i].first;` where `first` is a `Size`.
-   The only viable `std::string::operator+=` overload for an integer is the
-   `char` one, so position `3` becomes the byte `0x03`, position `10` a line
-   feed and position `65` the letter `A`. Every `modifications` cell that
-   carries position information is malformed, the line feed truncates the row,
-   and `fromCellString` cannot read any of it back. Fix: append
-   `StringUtils::toStr(pos_param_pairs_[i].first)`.
+1. **Withdrawn: numeric position narrowing.** The original review overlooked
+   the numeric string operators in `StringUtils.h`. Decimal positions are
+   compatible with the source; no C++ fix is indicated by this claim.
 2. **A `CHEMMOD` identifier with a negative mass delta cannot be read back.**
    `getModificationIdentifier_` (MzTab.cpp:1528) writes
    `"CHEMMOD:" + toStr(r.getDiffMonoMass())`, which is negative for any loss,
@@ -643,24 +636,23 @@ not own that file.
    bare comma.** The test at MzTabBase.cpp:337 is `hasSubstring(name_, ", ")`,
    comma *and* space. A name like `a,b` is written unquoted and produces a cell
    with five fields that `fromCellString` rejects. Fix: test for `,`.
-6. **`MzTabDouble::operator==` and `operator<` ignore the cell state.**
+6. **Unconfirmed comparison-contract concern: `MzTabDouble` ignores state.**
    MzTabBase.cpp:810, 815 compare `value_` only, so the `null` cell equals
    `MzTabDouble(0.0)` and a `NaN`-state cell sorts as zero. Any container
    keyed or sorted on `MzTabDouble` conflates absent with zero. Fix: compare
-   `state_` first.
-7. **`MzTabSpectraRef::setSpecRefFile` is a silent duplicate of
+   `state_` first if state-aware comparison is intended; value-only comparison
+   may be deliberate and is not established as a contract violation.
+7. **Naming observation: `MzTabSpectraRef::setSpecRefFile` duplicates
    `setSpecRef`.** MzTabBase.cpp:215 differs from :190 only in omitting the
    warning, despite a name that suggests it sets a file rather than a spectrum.
-   Fix: remove it or give it the documented behaviour.
+   An alias or ambiguous name alone is not a demonstrated defect; no distinct
+   promised behavior has been established.
 
 ## Deferred
 
-- **`MzTabFile.h`** (10,609 header bytes, 127,062 implementation bytes) is the
-  reader and writer, and is the next stage. It owns `load`, `store`, the header
-  row layout, the `MTD` key grammar and the `opt_` column ordering.
-- **`MzTabM.h`** and **`MzTabMFile.h`** are the metabolomics variant and its
-  file adapter, a separate stage with its own class test (`MzTabM_test.cpp`,
-  14,453 bytes).
+The sibling [proteomics file adapter](MZTAB_FILE_SUPPORT.md) and
+[metabolomics records and writer](MZTAB_M_SUPPORT.md) are implemented.
+
 - **The export surface of `MzTab.h`**: `exportFeatureMapToMzTab`,
   `exportIdentificationsToMzTab`, `exportConsensusMapToMzTab`,
   `extractModificationList`, the nested `IDMzTabStream` and `CMMzTabStream`
@@ -669,17 +661,6 @@ not own that file.
   `ProteinIdentification`, `PeptideIdentification`, `PeptideHit`,
   `ExperimentalDesign` and `IDFilter`. Two `MzTab_test.cpp` sections, including
   the 18-macro consensus-map section, belong to that stage.
-- **`docs/core-sdk-coverage.json` and `docs/CORE_SDK_COMPLETION.md` are stale**
-  after this package: `src/format/mztab.rs` makes `MzTab.h` a candidate, so the
-  generated coverage moves one header from `unmapped` to
-  `evidence_requires_review`. Regenerate with
-  `python3 tools/core_sdk_coverage.py --write` after adding the ledger entries.
-  Both files, and the `--write` flag, are outside this package's scope.
-- **`docs/doc-coverage.json` was not rewritten.** `src/format/mztab.rs`
-  measures 100.0% (220/220) and `tools/check_doc_coverage.py` reports an
-  improvement, but recording the new floor touches a file outside this
-  package's scope.
-- **CI wiring was not added.** `tests/mztab.rs` needs no features: append
-  `--test mztab` to the `minimum-rust` job's no-feature line in
-  `.github/workflows/rust.yml`. The test passes under `--all-features`, under
-  `--no-default-features`, and under `cargo +1.85.0`.
+
+The format integration records this module in the coverage ledger, rustdoc
+ratchet and minimum-feature CI tests. Exporter limitations above remain open.

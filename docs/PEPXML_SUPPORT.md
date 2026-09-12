@@ -289,7 +289,20 @@ Each of these is also stated at the item in `src/format/pepxml.rs`.
   performs and installed in one call; and the at most two terminal annotations
   keep their own setters. The same document now loads in 0.18 s. A `peptide`
   attribute that carries an annotation of its own cannot be respelled and keeps
-  one setter per modification, which is charged its real cost, so a peptide long
+  one setter per modification. Before bulk installation, a conservative
+  composition bound subtracts every known negative atom contribution from the
+  original peptide, ignoring additions. This includes named mass tags resolved
+  during parsing. When that bound stays nonnegative, every intermediate subset
+  also has sufficient atoms. A corresponding upper bound adds every positive
+  contribution and declines batching on count overflow. Unknown residue mass tags disable composition
+  validation after their first occurrence; the bound still protects earlier
+  known prefixes. If the proof is unavailable (including absolute replacement
+  formulas and unknown terminal tags), insufficient, or bulk chemistry rejects,
+  the reader retries encounter-order setters. An earlier terminal annotation can
+  then supply atoms consumed by later residues; conversely, a later donor cannot
+  hide an earlier failure. The retry spends the same existing work allowance,
+  including the attempted batch and the metered formula arithmetic.
+  The per-setter path is charged its real cost, so a peptide long
   enough for the product of sites and length to matter is refused rather than
   run.
 - **Ambiguous residue codes have no monoisotopic mass.** The internal residue
@@ -329,9 +342,15 @@ ceiling and not a measurement: with the default ceiling a small document would
 be entitled to gigabytes of work. Once the input is decoded the budget is
 lowered to what its length entitles it to — 2,048 work units and 512 allocation
 units per decoded byte, never below the 16 MiB floor the ceiling-derived budget
-already has, and never raised. Total work is therefore linear in the input
-length, which is what bounds the per-`search_hit` annotation work described
-above. Reading the upstream fixtures spends 13 to 22 work units per byte and 7
+already has, and never raised. The metered work allowance is therefore linear
+in input length. Header searches charge every candidate, including failed mass
+matches, and every byte of an origin string before searching it. Implicit fixed
+modification planning charges the residue-count × origin-string-length bound
+before each scan, including scans that attach nothing. Terminal header searches
+also charge each candidate. These prevent independent declaration, annotation,
+and peptide-size limits from admitting an uncharged product. Fixed declarations
+are borrowed during planning rather than cloned per hit. These are native work
+limits, not changes to source modification precedence or tolerance. Reading the upstream fixtures spends 13 to 22 work units per byte and 7
 to 15 allocation units per byte; a document that is almost entirely one long
 peptide spends an order of magnitude more, which is the headroom those two
 factors leave.
@@ -423,3 +442,14 @@ follows the decoded input rather than the declared ceiling.
   `decoy_prefix` are interpreted — exactly the source's set.
 - `ProteinIdentification` score type, direction and significance threshold are
   never set in either direction; a pepXML carries no protein-level score.
+
+
+The 2026-09-12 residual-scaling regression cases are native Rust checks (tier 4).
+Two bounded hostile inputs previously completed uncharged origin searches; they
+now reject through the unchanged work allowance. A Dimethyl N-terminus followed
+by three Unknown:177 modifications on `DDD` retains encounter-order chemistry
+and formula `C14Fe9N3O13`, rather than failing at the temporary H=-4 residue-only
+state. A separate eight-Unknown:177-then-Dimethyl case verifies that a later
+atom donor cannot hide the original setter path's earlier deficit. These checks
+preserve native setter semantics; they do not establish C++ parity for unusual
+negative-formula combinations. No C++ execution is claimed for these cases.

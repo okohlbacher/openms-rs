@@ -25,6 +25,11 @@
    "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
    "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693",
    "role": "Not ported here (src/chemistry/sequence.rs already covers it, minus toBracketString). Read for toBracketString(integer_mass=false, mass_delta=true), which bracket_sequence reproduces for the Peptide column."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Pinned source reviewed for the format behavior and documentation described in this manifest."
   }
  ],
  "fixtures": [
@@ -80,7 +85,7 @@
   {
    "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
    "line": 100,
-   "operation": "the Sage annotation path subtracts the length of the literal \"results.sage.pin\" (16) from the path size without checking that the path is at least that long, so a shorter path wraps the unsigned subtraction, and a multi-byte path can be cut inside a character"
+   "operation": "the Sage annotation path subtracts the length of the literal \"results.sage.pin\" (15) from the path size without checking that the path is at least that long, so a shorter path wraps the unsigned subtraction; StringUtils::substr then clamps the oversized count and builds an incorrect sibling name from the whole input. A positive byte cutoff can split a UTF-8 character if the expected suffix is absent"
   },
   {
    "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
@@ -100,7 +105,7 @@
   {
    "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
    "line": 273,
-   "operation": "map_filename_to_idx.at(raw_file_name) is reached unconditionally, so a .pin file with no FileName column looks up the never-inserted default name 'UNKNOWN' and terminates the process with std::out_of_range"
+   "operation": "map_filename_to_idx.at(raw_file_name) is reached unconditionally, so a .pin file with no FileName column looks up the never-inserted default name 'UNKNOWN' and throws std::out_of_range, which may be caught by the caller"
   },
   {
    "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
@@ -225,5 +230,10 @@
   "toBracketString is a member of AASequence.h, which this package does not own. bracket_sequence reimplements only the (integer_mass=false, mass_delta=true) form the .pin writer needs, and returns Error::Unsupported for a modified X residue whose absolute internal mass the crate cannot resolve. The fixed_modifications filter argument is not reproduced, because PercolatorInfile never passes it.",
   "The source parallelises nothing here, so there is no OpenMP gap to record for this header.",
   "store writes Percolator's tab-separated trailing protein list and load requires a rectangular table, so a multi-accession .pin is not a C++ round trip either (OPENMS-PERCIN-007). This port reproduces both halves: prepare_pin accepts a tab only in a trailing Proteins column, and read/load keep the source's field-count check, which now names that case in the parse error."
+ ],
+ "cpp_issue_log_entries": [
+  "CPP-161",
+  "CPP-162",
+  "CPP-163"
  ]
 }

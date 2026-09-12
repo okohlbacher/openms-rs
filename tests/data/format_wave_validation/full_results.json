@@ -1,0 +1,434 @@
+{
+ "environment": {
+  "host": "kim",
+  "timestamp_utc": "20260912-214524",
+  "loadavg_start": [
+   68.97705078125,
+   65.72265625,
+   66.39501953125
+  ],
+  "cpu_count": 384,
+  "cwd": "/scratch/kohlbach/agents/codex-format-integrate",
+  "target_dir": "/scratch/kohlbach/targets/codex-format-integrate",
+  "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)\nbinary: rustc\ncommit-hash: ac68faa20c58cbccd01ee7208bf3b6e93a7d7f96\ncommit-date: 2026-05-25\nhost: x86_64-unknown-linux-gnu\nrelease: 1.96.0\nLLVM version: 22.1.2\n",
+  "msrv": "rustc 1.85.0 (4d91de4e4 2025-02-17)\nbinary: rustc\ncommit-hash: 4d91de4e48198da2e33413efdcd9cd2cc0c46688\ncommit-date: 2025-02-17\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.0\nLLVM version: 19.1.7\n",
+  "snapshot_sha256": "87725d1da08d0b7c2720e442779741c1f00a15312110ba222cede15692335e74"
+ },
+ "remote_log_directory": "/ceph/ibmi/abi/oliver/openms-rs/results/format-final-20260912-214524",
+ "results": [
+  {
+   "name": "fmt",
+   "command": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+   ],
+   "exit": 1,
+   "seconds": 2.39,
+   "log_sha256": "6bea757c1d4e5e1282fb2078b5f10cb1476085b053b7f06d39f9d66a3eec72b4"
+  },
+  {
+   "name": "clippy",
+   "command": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--all-features",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+   ],
+   "exit": 101,
+   "seconds": 31.78,
+   "log_sha256": "cf0e3a2619929a16aee96ac82054cf3028497edde652f94593ab40793bedcb0b"
+  },
+  {
+   "name": "nextest_all",
+   "command": [
+    "cargo",
+    "nextest",
+    "run",
+    "--locked",
+    "--all-features",
+    "--no-fail-fast"
+   ],
+   "exit": 0,
+   "seconds": 28.33,
+   "log_sha256": "d94778d78bcaa5057ac06f6cc92ea8793ff84eefadd109f6fbdf6f3b3bf9eeee"
+  },
+  {
+   "name": "cargo_all_targets",
+   "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--all-features",
+    "--all-targets"
+   ],
+   "exit": 0,
+   "seconds": 66.78,
+   "log_sha256": "4eeacb630239de634dcde51193b1948cbbd9811e9bed4fbe33c26866fd08f4bc"
+  },
+  {
+   "name": "portable",
+   "command": [
+    "cargo",
+    "nextest",
+    "run",
+    "--locked",
+    "--no-default-features",
+    "--no-fail-fast"
+   ],
+   "exit": 0,
+   "seconds": 19.91,
+   "log_sha256": "730a2bdb44f57e0add2fa9894132760d60b95d41e0407202bb5cec1746797b1c"
+  },
+  {
+   "name": "doctests",
+   "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--all-features",
+    "--doc"
+   ],
+   "exit": 0,
+   "seconds": 3.69,
+   "log_sha256": "68b4dee2604725bfe3aec668c7e1f95f696dc86f5e08a8d20d20f58e47098d9f"
+  },
+  {
+   "name": "rustdoc",
+   "command": [
+    "cargo",
+    "doc",
+    "--locked",
+    "--all-features",
+    "--no-deps"
+   ],
+   "exit": 101,
+   "seconds": 12.43,
+   "log_sha256": "dfb6aa48518ecedc11ee1ecdb7ec076974749226cf40905706760a84380a6927"
+  },
+  {
+   "name": "msrv_all_targets",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--all-features",
+    "--all-targets"
+   ],
+   "exit": 0,
+   "seconds": 120.96,
+   "log_sha256": "def3e35dcc0c5198b88321a576b3fb2d2728e52abc5c7d62b45d75c892d27dd7"
+  },
+  {
+   "name": "msrv_doctests",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--all-features",
+    "--doc"
+   ],
+   "exit": 0,
+   "seconds": 4.21,
+   "log_sha256": "2ce5a885f870efae5c18d54d83f877b36c67ce2279bb4f6d0f0dd0a2c5ad5635"
+  },
+  {
+   "name": "msrv_slice_portable",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--test",
+    "mztab",
+    "--test",
+    "mztab_file",
+    "--test",
+    "mztab_m",
+    "--test",
+    "percolator_infile",
+    "--test",
+    "mascot_generic",
+    "--test",
+    "sv_out_stream"
+   ],
+   "exit": 0,
+   "seconds": 20.06,
+   "log_sha256": "49e0fbdd48d118165c49a39315468ebb0a70f8dea68ce556a75d185e6fcaf9e5"
+  },
+  {
+   "name": "msrv_slice_idxml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "idxml",
+    "--test",
+    "pepxml",
+    "--test",
+    "mascot_xml",
+    "--test",
+    "mzidentml"
+   ],
+   "exit": 0,
+   "seconds": 25.25,
+   "log_sha256": "594d0c8f6adbe63eb7d3922cb66610f5bbe5c27fbed5a4f6c7de84a4618ef7e9"
+  },
+  {
+   "name": "msrv_slice_mzml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "mzml",
+    "--test",
+    "ms_data_writing_consumer",
+    "--test",
+    "mzxml",
+    "--test",
+    "mzdata"
+   ],
+   "exit": 0,
+   "seconds": 23.55,
+   "log_sha256": "02bf5dadcfced110e6a8df0729e955dcb189b409f47a48196b60af6273646f73"
+  },
+  {
+   "name": "msrv_slice_consensusxml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "consensusxml",
+    "--test",
+    "msstats",
+    "--test",
+    "transformation_xml"
+   ],
+   "exit": 0,
+   "seconds": 20.53,
+   "log_sha256": "09c22bd31d2ecf82b499cff0ff88e159ac5dbd650c99dc1c458b5da2cd099229"
+  },
+  {
+   "name": "msrv_slice_featurexml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "featurexml",
+    "--test",
+    "transformation_xml"
+   ],
+   "exit": 0,
+   "seconds": 18.13,
+   "log_sha256": "0e99486384e929095a40c4b6c7ac21cc16efdef080c09de492631d672a82a94b"
+  },
+  {
+   "name": "msrv_slice_paramxml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "paramxml",
+    "--test",
+    "qcml"
+   ],
+   "exit": 0,
+   "seconds": 24.62,
+   "log_sha256": "22aa91dd2747a00e962e3d8001230cd3fe3da2633651f0f2fc49ff57c931ba10"
+  },
+  {
+   "name": "check_core_sdk",
+   "command": [
+    "python3",
+    "tools/check_core_sdk.py"
+   ],
+   "exit": 0,
+   "seconds": 0.08,
+   "log_sha256": "d77ce1d2c3342a14db278c1d7207d8dee49894ae7d782a8716ec22f389cbea9f"
+  },
+  {
+   "name": "test_core_sdk",
+   "command": [
+    "python3",
+    "tools/test_core_sdk.py"
+   ],
+   "exit": 0,
+   "seconds": 0.05,
+   "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4"
+  },
+  {
+   "name": "core_sdk_coverage",
+   "command": [
+    "python3",
+    "tools/core_sdk_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.17,
+   "log_sha256": "298b0637d7f7dfbe497c9394fd862cd5afbfc1690077e95a67470f8c4cf083b1"
+  },
+  {
+   "name": "test_core_sdk_coverage",
+   "command": [
+    "python3",
+    "tools/test_core_sdk_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.2,
+   "log_sha256": "d2f08ec279e0ca14a0ad02d92ace1caec533d0ca1856c6ac3e20c0dcccba4785"
+  },
+  {
+   "name": "check_schema_feature_graph",
+   "command": [
+    "python3",
+    "tools/check_schema_feature_graph.py"
+   ],
+   "exit": 0,
+   "seconds": 19.73,
+   "log_sha256": "244409ce3b6724bc115b372ce027b8bd6cdd3983b70c62bd1066154fd99a6ded"
+  },
+  {
+   "name": "check_doc_coverage",
+   "command": [
+    "python3",
+    "tools/check_doc_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.1,
+   "log_sha256": "f25f48221151ebefcaaed62b7956b0d8077a2810c77746a3dae21f22f0b0728d"
+  },
+  {
+   "name": "generate_modifications",
+   "command": [
+    "python3",
+    "tools/generate_modifications.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.12,
+   "log_sha256": "b6eaaae6ffeaef59e66ceaef00844ccf9e198e8ff1c4d85bb1d8640a6078bf8d"
+  },
+  {
+   "name": "generate_enzymes",
+   "command": [
+    "python3",
+    "tools/generate_enzymes.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.38,
+   "log_sha256": "08b827a1f21b817358b273a37457b5ab0ee4e7a036e56dc9c027d9de5934faf3"
+  },
+  {
+   "name": "generate_ribonucleotides",
+   "command": [
+    "python3",
+    "tools/generate_ribonucleotides.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.04,
+   "log_sha256": "93587badb6d246c880be61bf7d025198a67826059592ee8fde7e3facf2dc7c9b"
+  },
+  {
+   "name": "generate_rnases",
+   "command": [
+    "python3",
+    "tools/generate_rnases.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.03,
+   "log_sha256": "d8823feb4dcf78c7f42e662bb43a4ef2d9ec0a28b8289147a749395efa76fe51"
+  },
+  {
+   "name": "generate_monosaccharides",
+   "command": [
+    "python3",
+    "tools/generate_monosaccharides.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.03,
+   "log_sha256": "e5350a401a7fdfd5b41037dcd25138c0305158ac6ba913ed0f2b62cad5e4b6c9"
+  },
+  {
+   "name": "generate_controlled_vocabulary_reference",
+   "command": [
+    "python3",
+    "tools/generate_controlled_vocabulary_reference.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.59,
+   "log_sha256": "efb52c2938751c18143f76d47982e0db276493a7289bd457d13d54594ea9b902"
+  },
+  {
+   "name": "generate_cv_mapping_reference",
+   "command": [
+    "python3",
+    "tools/generate_cv_mapping_reference.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.04,
+   "log_sha256": "2d9a8fec403aa748c44c79e05813a3ef4ae15beb831b7e76741f0a28bf3f9c7b"
+  },
+  {
+   "name": "semantic_validator_projection",
+   "command": [
+    "python3",
+    "tools/semantic_validator/projection.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.04,
+   "log_sha256": "445ebd77b854c299e154436fd573195203ef5047aa2404c20336e0e566024bfc"
+  },
+  {
+   "name": "generate_metabo_isotope_models",
+   "command": [
+    "python3",
+    "tools/generate_metabo_isotope_models.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.04,
+   "log_sha256": "7b491f74722286e8632f85d151557291f35a0f000a429809eaf0477727005cd0"
+  },
+  {
+   "name": "probes_ims_witness_source_oracle",
+   "command": [
+    "python3",
+    "tools/probes/ims_witness_source_oracle.py",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 0.03,
+   "log_sha256": "7556d0af95f7272add3979e04fa25d7984bba438ee13e9b75cc59f6971f36a44"
+  }
+ ]
+}

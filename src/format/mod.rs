@@ -7,38 +7,55 @@
 //! DTA/MGF represent peak lists and a limited subset of experiment metadata;
 //! writing them does not preserve auxiliary arrays or arbitrary instrument data.
 
+/// Controlled-vocabulary records, OBO parsing and checked ontology queries.
 pub mod controlled_vocabulary;
+/// Delimited text tables with source-compatible quoting and field access.
 pub mod csv;
+/// Controlled-vocabulary mapping records and mapping XML input.
 #[cfg(feature = "cv-mapping")]
 pub mod cv_mapping;
 #[cfg(any(feature = "cv-mapping", feature = "mzml-schema"))]
 mod cv_xml;
+/// Raw MS-Numpress numeric codecs.
 pub mod numpress;
+/// MS-Numpress configuration, Base64 transport and optional zlib compression.
 #[cfg(feature = "numpress")]
 pub mod numpress_coder;
+/// Controlled-vocabulary validation against mapping rules.
 #[cfg(feature = "semantic-validation")]
 pub mod semantic_validator;
 #[cfg(feature = "mzml-validation")]
 pub use semantic_validator::mzml as mzml_validator;
+/// Line-oriented text loading and writing.
 pub mod text;
 pub use csv::CsvFile;
 pub use text::TextFile;
 
+/// OpenMS parameter trees in INI XML format.
 #[cfg(feature = "paramxml")]
 pub mod paramxml;
 
+/// Single-spectrum DTA peak-list input and output.
 pub mod dta;
+/// Retention-time-indexed DTA2D peak-list input and output.
 pub mod dta2d;
+/// Tabular experimental-design loading and validation.
 pub mod experimental_design_file;
+/// Streaming FASTA sequence input and output.
 pub mod fasta;
+/// File-type-based dispatch to implemented native format adapters.
 pub mod file_handler;
+/// File-type identities, properties, extensions and filter labels.
 pub mod file_types;
 /// Mascot generic format (MGF) peak lists and search header (`MascotGenericFile.h`).
 pub mod mascot_generic;
+/// Streaming MGF peak lists and their supported text metadata.
 pub mod mgf;
+/// MS2 peak-list input and output with explicit transport boundaries.
 pub mod ms2;
 /// Long-format MSstats and MSstatsTMT CSV writer (`MSstatsFile.h`).
 pub mod msstats;
+/// Scientific peak-file filters, precision, compression and loading options.
 pub mod peak_options;
 /// Percolator tab-separated input: writing, reading and the PIN feature set
 /// (`PercolatorInfile.h`).
@@ -54,16 +71,20 @@ pub mod sv_out_stream;
 pub use file_handler::FileHandler;
 pub use file_types::{FileProperty, FileType, FileTypeList, FilterLayout};
 
+/// Consensus feature maps and identification metadata in consensusXML.
 #[cfg(feature = "consensusxml")]
 pub mod consensusxml;
+/// Feature maps and identification metadata in featureXML.
 #[cfg(feature = "featurexml")]
 pub mod featurexml;
 #[cfg(any(feature = "idxml", feature = "featurexml", feature = "consensusxml"))]
 pub(crate) mod identification_xml;
 #[cfg(any(feature = "featurexml", feature = "consensusxml"))]
 pub(crate) mod map_xml;
+/// Modification definitions from identification and feature documents.
 pub mod modification_definitions;
 
+/// Protein and peptide identifications in idXML.
 #[cfg(feature = "idxml")]
 pub mod idxml;
 /// Mascot XML search-result reader and its title lookup (`MascotXMLFile.h`).
@@ -79,6 +100,7 @@ pub mod imzml_handler;
 /// Writer for an imzML dataset, `.imzML` plus `.ibd` (`ImzMLWriter.h`).
 #[cfg(feature = "mzml")]
 pub mod imzml_writer;
+/// Indexed mzML footer discovery and checked offset decoding.
 #[cfg(feature = "mzml")]
 pub mod indexed_mzml;
 /// Random access to one record of an indexed mzML file (`IndexedMzMLHandler.h`).
@@ -87,14 +109,16 @@ pub mod indexed_mzml_handler;
 /// Streaming mzML consumer that writes records as they arrive (`MSDataWritingConsumer.h`).
 #[cfg(feature = "mzml")]
 pub mod ms_data_writing_consumer;
-/// mzIdentML adapter: PSI identification interchange (`MzIdentMLFile.h`).
-#[cfg(feature = "idxml")]
-pub mod mzidentml;
 /// mzData 1.05 file adapter and handler (`MzDataFile.h`, `MzDataHandler.h`).
 #[cfg(feature = "mzml")]
 pub mod mzdata;
+/// mzIdentML adapter: PSI identification interchange (`MzIdentMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod mzidentml;
+/// mzML spectra, chromatograms, headers, scientific loading and writing.
 #[cfg(feature = "mzml")]
 pub mod mzml;
+/// Explicit validation against the retained ordinary and indexed mzML schemas.
 #[cfg(feature = "mzml-schema")]
 pub mod mzml_schema;
 /// MzTab data model: cell vocabulary, record structs and document (`MzTabBase.h`, `MzTab.h`).

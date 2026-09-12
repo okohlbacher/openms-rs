@@ -36,7 +36,12 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
    "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a",
-   "role": "Not ported here. Read because this consumer is a thin driver over its writers; source of the record element layout, of the sf_sp_/dp_sp_ reference numbering that streaming makes dangling, and of the std::string + Size narrowing candidates recorded below."
+   "role": "Source of record layout and streaming source-file/data-processing reference numbering. Numeric string operators were separately checked; they do not narrow Size to characters."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Numeric string-operator declarations at lines865\u2013909 invalidate the earlier character-narrowing inference."
   }
  ],
  "fixtures": [],
@@ -161,17 +166,17 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
    "line": 4966,
-   "operation": "writeSourceFile_(os, std::string(\"sf_sp_\") + i, ...) with Size i: the only viable operator+ is the charT overload, so the declared id ends in a narrowed character - '\\0' for i == 0 - while line 5254 streams the integer. The adjacent run-level call at line 4964 uses StringUtils::toStr(i) correctly"
+   "operation": "Numeric string concatenation uses StringUtils.h decimal overloads; the earlier character-narrowing claim is withdrawn. This does not establish streamed header/reference consistency."
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
    "line": 5181,
-   "operation": "writeDataProcessing_(os, std::string(\"dp_sp_\") + s, ...) with Size s has the same narrowing shape, while the list tags at lines 4784 and 4823 reference the literal \"dp_sp_0\"; lines 5123 and 5194 repeat the pattern for software and per-array processing ids"
+   "operation": "Numeric string concatenation uses StringUtils.h decimal overloads; the earlier character-narrowing claim is withdrawn. This does not establish streamed header/reference consistency."
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
    "line": 5244,
-   "operation": "renew_native_ids builds std::string(\"spectrum=\") + s from a Size, the same narrowing; not reachable through this consumer, which passes renew_native_ids = false"
+   "operation": "Numeric string concatenation uses StringUtils.h decimal overloads; the earlier character-narrowing claim is withdrawn. This does not establish streamed header/reference consistency."
   },
   {
    "path": "src/tests/class_tests/openms/executables.cmake",
@@ -179,7 +184,7 @@
    "operation": "'#MSDataWritingConsumer_test' - the class test is commented out and never built, which is why ten of its eleven sections are '// TODO' and the eleventh does not compile"
   }
  ],
- "evidence": "Tier 3 source review plus tier 4 native invariants. The upstream class test contributes no expected value at all - ten '// TODO' sections, one section that cannot compile, and the whole file disabled in executables.cmake - so nothing here is a transcribed C++ literal except the two error message texts and the element/attribute names, which are read from MSDataWritingConsumer.cpp and MzMLHandler.cpp and are tier-3 evidence on that basis. The structural expectations (header at the first record, the list tags carrying the expected counts, the close-list-then-footer order, spectra refused after chromatograms, the record copy, addDataProcessing replacing rather than appending, the counters) are each pinned to a source_anchor above. The strongest independent check is tier 4 and does not depend on the C++ at all: tests/ms_data_writing_consumer.rs streams a three-spectrum experiment through the consumer and asserts the result is byte-identical to crate::format::mzml::write over the same experiment, and separately reads every streamed document back with mzml::read and compares the records to the input. Both hold, which is what proves the one-record renders are spliced correctly and the index attributes renumbered. The resource ceilings, the duplicate-identifier and undeclared-reference refusals, the CountPolicy choice and the error variants are native decisions (tier 4). No C++ was built or executed and no C++ output was retained, so this is not a tier-1 differential.",
+ "evidence": "Tier 3 source review plus tier 4 native invariants. The upstream class test contributes no expected value at all - ten '// TODO' sections, one section that cannot compile, and the whole file disabled in executables.cmake - so nothing here is a transcribed C++ literal except the two error message texts and the element/attribute names, which are read from MSDataWritingConsumer.cpp and MzMLHandler.cpp and are tier-3 evidence on that basis. The structural expectations (header at the first record, the list tags carrying the expected counts, the close-list-then-footer order, spectra refused after chromatograms, the record copy, addDataProcessing replacing rather than appending, the counters) are each pinned to a source_anchor above. The strongest independent check is tier 4 and does not depend on the C++ at all: tests/ms_data_writing_consumer.rs streams a three-spectrum experiment through the consumer and asserts the result is byte-identical to crate::format::mzml::write over the same experiment, and separately reads every streamed document back with mzml::read and compares the records to the input. Both hold, which is what proves the one-record renders are spliced correctly and the index attributes renumbered. The resource ceilings, the duplicate-identifier and undeclared-reference refusals, the CountPolicy choice and the error variants are native decisions (tier 4). No full format implementation was built or executed and no format output was retained, so this is not a tier-1 differential.",
  "gaps": [
   "The port does not subclass an mzML handler; it drives crate::format::mzml's whole-document writer once per record and splices the record element out between the list tags. That couples it to three literal tag spellings and to the ' index=\"0\" defaultArrayLength=\"' marker, all held as constants in the module and all checked - a writer change makes the consumer return Error::Unsupported rather than emit wrong XML. The record-element internals of src/format/mzml* are private to that module, and this package does not own it.",
   "Because of that, every record re-renders the header text and discards it: cost per record is the header plus the record, where the source pays the record only. Memory stays one record at a time, which is the property the class exists for. A future increment that exposes a record-level writer from src/format/mzml would remove the overhead.",
@@ -192,5 +197,33 @@
   "docs/doc-coverage.json was not rewritten: src/format/ms_data_writing_consumer.rs measures 100.0% (38/38) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
   "docs/core-sdk-coverage.json is now stale, because two new candidate Rust files exist without ledger entries. The integrator adds the two docs/core-sdk-reviewed-apis.json entries and runs 'python3 tools/core_sdk_coverage.py --write'; both files are outside this package's scope. It is clean on the base commit.",
   "CI wiring was not added: append '--test ms_data_writing_consumer' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test is gated on the mzml feature and passes under --all-features and under cargo +1.85.0."
+ ],
+ "numeric_operator_review": "The earlier claimed character narrowing was withdrawn after checking pinned StringUtils.h and an isolated executed overload-resolution probe. No full mzTab/MSDataWritingConsumer or full SDK C++ execution is claimed.",
+ "external_reference_note": "Isolated overload-resolution probe, compiled and run on kim with GCC13.3 C++20. Numeric global overload block copied from pinned StringUtils.h; appendToStr functions replaced by std::to_string adapters and Size by std::size_t. No full SDK include closure or linking; proves presence/selectability of numeric overloads in OpenMS namespace contexts and falsifies the claim only char overloads exist.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/format-numeric-overload/manifest.json",
+   "sha256": "541aea8cbf183e1ecbbac3ea5afaedf8d680f0c70d28264079741e048162b8c1",
+   "origin_key": "format_numeric_overload_probe/manifest.json"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/numeric_overloads.inc",
+   "sha256": "eebd8107668a744ec3e8fb9b41d0b289ced546dff920bedccfae7e6401b633a1",
+   "origin_key": "format_numeric_overload_probe/numeric_overloads.inc"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/probe.cpp",
+   "sha256": "4d22cc3232146d4f1fd7909f8e12994fe2fe38c238b0c863f4adf01accd4eabe",
+   "origin_key": "format_numeric_overload_probe/probe.cpp"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/result.log",
+   "sha256": "715c67a81f515b8603b938fc5533b6216db57e53f175373e3b22b6e29074cd00",
+   "origin_key": "format_numeric_overload_probe/result.log"
+  }
+ ],
+ "cpp_issue_log_entries": [
+  "CPP-172",
+  "CPP-188"
  ]
 }

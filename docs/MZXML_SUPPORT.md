@@ -369,12 +369,13 @@ otherwise allocate gigabytes for a hostile level) and `max_metadata_entries`.
 and from the four unmodified upstream fixtures. No C++ was built or executed and
 no C++ output was retained, so this is **not** a tier 1 differential.
 
-All 15 `START_SECTION`s of `MzXMLFile_test.cpp` are ported; none is merely
-mapped. `tests/mzxml.rs` carries 61 cases. The one substitution is
+Of 15 `START_SECTION`s of `MzXMLFile_test.cpp`, 14 are ported and one
+has only a weaker structural substitute:
 `[EXTRA] static bool isValid(...)` (1 assertion): Xerces XSD validation is
 unavailable here, so `the_stored_document_is_structurally_valid` asserts instead
 that the writer's output carries the 3.1 namespace and schema location, has
-balanced `<scan>` elements, and reloads to the same experiment.
+balanced `<scan>` elements, and reloads to the same experiment. This does not
+implement or certify the source XSD-validation contract.
 
 `MzXMLFile_4_long.mzXML` (10,641,595 bytes) is **not** copied into this
 repository; its sha256 is recorded in the manifest. An equivalent document with

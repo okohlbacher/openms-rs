@@ -1353,6 +1353,30 @@ fn an_incomplete_or_multi_root_document_is_refused() {
     assert!(mascot::read(text.as_bytes(), &lookup).is_ok());
 }
 
+#[test]
+fn references_outside_the_root_or_in_ignored_text_are_still_checked() {
+    let lookup = SpectrumTitleLookup::new();
+    let root = document("<header><NumQueries>1</NumQueries></header>");
+    for text in [
+        format!("&amp;{root}"),
+        format!("{root}&#32;"),
+        document("<header><NumQueries>1</NumQueries>&undeclared;</header>"),
+    ] {
+        assert!(mascot::read(text.as_bytes(), &lookup).is_err(), "{text}");
+    }
+}
+
+#[test]
+fn a_non_utf8_declaration_is_refused_even_when_the_bytes_are_utf8() {
+    let lookup = SpectrumTitleLookup::new();
+    let text = document("<header><DB>café</DB><NumQueries>1</NumQueries></header>")
+        .replace("encoding=\"UTF-8\"", "encoding=\"ISO-8859-1\"");
+    assert!(matches!(
+        mascot::read(text.as_bytes(), &lookup),
+        Err(Error::Unsupported(_))
+    ));
+}
+
 /// `<NumQueries>` is an index space, not an allocation.
 ///
 /// The source calls `id_data_.resize(...)` with the declared count, so a

@@ -33,7 +33,7 @@ direct TOPP consumers of this header.
 | C++ member | Rust counterpart |
 |---|---|
 | `class MascotXMLFile` | `MascotXmlFile`, a unit struct |
-| base `Internal::XMLFile` | **not ported**: for Mascot XML the base's schema location and version are both empty, so it contributes no state. `XMLFile.h` is a separate unmapped header |
+| base `Internal::XMLFile` | **not ported**: for Mascot XML the base's schema location and version are both empty, so it contributes no state. the general `XMLFile` base contract remains a separate unimplemented surface |
 | `MascotXMLFile()` | `MascotXmlFile::new` (also `Default`) |
 | `void load(const std::string& filename, ProteinIdentification&, PeptideIdentificationList&, const SpectrumMetaDataLookup&)` | `MascotXmlFile::load` and free `load`, returning `MascotXmlResult`; the three out-parameters become its three fields |
 | `void load(const std::string& filename, ProteinIdentification&, PeptideIdentificationList&, std::map<std::string, std::vector<AASequence>>&, const SpectrumMetaDataLookup&)` | `MascotXmlFile::load_with_peptides` and free `load_with_peptides`. The `[in,out]` map is taken by shared reference: the source never writes to it |
@@ -49,7 +49,7 @@ constants `EVALUE_KEY`, `HOMOLOGY_THRESHOLD_KEY`, `IDENTITY_THRESHOLD_KEY`,
 
 Not one of this package's owned headers, but `MascotXMLFile::load` is a thin
 shell around it, so its behaviour is reproduced and its members are listed here.
-The header stays `unmapped` in the ledger: its `XMLHandler` base, its
+This does not implement the general handler contract: its `XMLHandler` base, its
 `fatalError`/`error`/`warning` reporting contract and its reuse by other
 handlers are not ported.
 
@@ -58,7 +58,7 @@ handlers are not ported.
 | `MascotXMLHandler(ProteinIdentification&, PeptideIdentificationList&, const std::string&, std::map<...>&, const SpectrumMetaDataLookup&)` | private `Handler::new` |
 | `void onStartElement(const char16_t*, const XMLAttributes&)` | private `Handler::start_element` |
 | `void onEndElement(const char16_t*)` | private `Handler::end_element` |
-| `void onCharacters(const char16_t*, Size)` | the `Event::Text` arm of `Handler::run`, including the `tag_.empty()` guard. Xerces delivers CDATA content and expanded entity references through the same callback; this reader refuses both instead — see "Native differences" |
+| `void onCharacters(const char16_t*, Size)` | the `Event::Text` and `Event::GeneralRef` arms of `Handler::run`, including the `tag_.empty()` guard. Predefined and numeric references are expanded; CDATA remains unsupported — see "Native differences" |
 | `static std::vector<std::string> splitModificationBySpecifiedAA(const std::string&)` | private `Handler::split_modification`. Kept private because it needs the modification registry the handler holds; expose it if a caller ever needs it |
 | private `protein_identification_`, `id_data_`, `actual_protein_hit_`, `actual_peptide_hit_`, `actual_peptide_evidence_`, `peptide_identification_index_`, `tag_`, `date_`, `date_time_string_`, `actual_query_`, `search_parameters_`, `identifier_`, `actual_title_`, `modified_peptides_`, `tags_open_`, `character_buffer_`, `major_version_`, `minor_version_`, `remove_fixed_mods_`, `lookup_`, `no_rt_error_` | the corresponding `Handler` fields. `actual_title_` is written but never read by the source and is not ported; `minor_version_` is parsed and never used, so the Rust reader only requires `majorVersion` |
 | `XMLHandler::fatalError`/`error`/`warning` | `Error::Parse` for the fatal case; `MascotXmlResult::warnings` for the non-fatal ones |
@@ -196,7 +196,7 @@ Each is covered by a named test in `tests/mascot_xml.rs`.
 for both) could not be read. Recorded as `MXML-08`. |
 | **The unresolved-retention-time warning is reported.** The source's guard is `if (!id_data_[i].getRT())`, which is false for the NaN it has just assigned, so an unresolved title reports nothing while a title legitimately encoding retention time 0 reports an error. | The port reports the unresolved case, which is the one a caller can act on. Recorded as `MXML-04`. |
 | **Non-finite numbers are refused** wherever the source's `toDouble` would accept `inf`/`nan`. | Every consumer of an identification rejects them. An overflowing decimal literal is refused as a *conversion* error rather than becoming an infinity, which is what `std::from_chars` reports and what `toDouble` therefore throws; a second `+` (`++1`) is refused for the same reason. |
-| **XML entity references, CDATA sections and DTDs are refused.** Xerces expands references before the C++ handler sees any character data. | quick-xml does not expand them: it splits the text at every `&...;` and emits the reference as its own event, so a catch-all event arm silently *deletes* it and concatenates the fragments — `<pep_score>1&#46;5</pep_score>` read as the score 15. Refusing is what `src/format/mzml.rs` already does, and a mis-decoded score is worse than a rejected file. This is stricter than the source for a document that legitimately escapes an `&` in a protein description; such a file must be pre-processed. Not a C++ defect: Xerces handles all three correctly (`entity_references_cdata_and_dtds_are_refused`). |
+| **Predefined entities and numeric character references are expanded; CDATA and DTDs are refused.** Xerces expands references before the C++ handler sees character data. | quick-xml emits references separately, so the reader resolves them before appending to element text. Thus `<pep_score>1&#46;5</pep_score>` reads as 1.5, and `&amp;` in descriptions is supported. Undeclared references fail even in text the handler ignores, and references outside the root are malformed XML. CDATA is an explicit native limitation. Not a C++ defect (`entity_references_are_expanded_and_unresolvable_shapes_refused`, `references_outside_the_root_or_in_ignored_text_are_still_checked`). |
 | **A document must be one complete element tree.** Xerces rejects a truncated document, content before the root and a second root; quick-xml's `check_end_names` only pairs the tags it sees. | Exactly one root element, closed, and no non-whitespace character data outside it, checked in the event loop. Without it a download truncated mid-export loaded as a valid partial result and never ran the root-close post-processing (`an_incomplete_or_multi_root_document_is_refused`). |
 | **A reference format that matched but whose captured value does not convert is an error, not a miss.** `getSpectrumMetaData` returns after the first matching expression, and the `toInt32`/`toDouble` it calls inside throw, which the handler catches as a warning. | Falling through to the next format invents a successful association from a different part of the title: `500_12 scan=9223372036854775808` would resolve to RT 12 and m/z 500 after the scan-number format had already claimed it (`a_matched_format_whose_value_does_not_convert_does_not_fall_through`). |
 | **`^` and `$` in the default formats are line anchors, and scan numbers are 32-bit.** Boost's perl syntax compiles them to `syntax_element_start_line`/`..._end_line` unless `no_mod_m` is set, and `initializeLookup` sets no flags; `SpectrumLookup` converts with `toInt32`. | A wrapped title matches on its later lines and a native ID with a trailing annotation line still yields its scan number; a digit run too long for `toInt32` is the source's `-1`, i.e. no scan-number entry and a warning (`the_title_anchors_are_line_anchors_and_scan_numbers_are_32_bit`). |
@@ -264,7 +264,7 @@ name, so the two vocabularies agree on the result.
 All 4 upstream `START_SECTION`s are ported — none is merely mapped.
 
 **Independently derived (tier 4).** The resource ceilings, the bound checks, the
-malformed and non-ASCII documents, the entity-reference, CDATA and DTD refusal,
+malformed and non-ASCII documents, the entity-reference expansion, CDATA and DTD refusal,
 the one-complete-document rule, the lazily materialised query vector, the
 `-` flanking mapping, the title-lookup format tests (including the line
 anchors, the 32-bit scan width and the matched-but-unconvertible case), the
@@ -274,8 +274,8 @@ derived from reading the implementation.
 **Second-model review.** An adversarial review by another model found that the
 catch-all arm of the event loop *deleted* every XML entity reference from
 element text, so `<pep_score>1&#46;5</pep_score>` was read as the score 15 —
-silent corruption of a scientific value, and the reason references, CDATA and
-DTDs are now refused. The same review supplied the truncated-document,
+silent corruption of a scientific value. Predefined and numeric references
+are now expanded; undeclared references, CDATA and DTDs remain refused. The same review supplied the truncated-document,
 NumQueries-amplification, matched-but-unconvertible, line-anchor and 32-bit
 scan-width findings above, and corrected three claims in this document: the
 `<MODS>`/`<IT_MODS>` guard tests list emptiness rather than section presence,

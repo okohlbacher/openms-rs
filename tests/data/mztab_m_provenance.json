@@ -26,12 +26,12 @@
     {
       "path": "src/tests/class_tests/openms/source/MzTabM_test.cpp",
       "sha256": "aa84a688ca6a30da00738da96b50415aceb738ace98fdd7949edc248a11a5c19",
-      "role": "Class test oracle, 342 lines, 4 START_SECTIONs with 1, 0, 21 and 6 assertion macros. All four ported."
+      "role": "Class test oracle, 342 lines, 4 START_SECTIONs with 1, 0, 21 and 6 assertion macros. Three sections ported; exporter section has partial retained-output-count evidence, without executing the original OMS input."
     },
     {
       "path": "src/tests/class_tests/openms/source/MzTabMFile_test.cpp",
       "sha256": "69c015247e3463b447f642cc0ba3cb40799760fa349002b3fddacba7c4ab17bc",
-      "role": "Class test oracle, 59 lines, 3 START_SECTIONs with 1, 0 and 1 assertion macros. All three ported."
+      "role": "Class test oracle, 59 lines, 3 START_SECTIONs with 1, 0 and 1 assertion macros. Two lifecycle sections ported; store comparison mapped to selected retained rows rather than the full original OMS input."
     },
     {
       "path": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
@@ -355,12 +355,17 @@
     }
   ],
   "external_reference_artifacts": [],
-  "evidence": "Tier 1 for the writer's line grammar and for the exporter's metadata section; tier 3 for the data model; tier 4 for the ceilings, the native error paths and the non-ASCII inputs. Two unmodified retained C++ outputs are committed and hashed above: MzTabMFile_output_1.mztab, the exact bytes MzTabMFile_test.cpp's store section compares against, and AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab, the retained MzTab-M output of the one direct TOPP consumer of MzTabMFile.h. Against those two files this package asserts byte equality for: all 25 MTD lines of the first and all 24 of the second, each reproduced twice - once from a hand-built MzTabMMetaData through generate_meta_data_section, and once from MzTabM::export_feature_map_with driven by a synthetic IdentificationData graph; all six header lines, including the two id_confidence_measure[n] columns the second fixture declares; SML row 3, SMF row 1 and SME row 1 of both files, with all 18 and all 6 optional columns of the first; the three section sizes 83/83/312 and the three optional-column counts 0/18/6 that the exportFeatureMapToMzTabM section asserts; and the three-empty-line section structure. Ten PSI-MS accessions the exporter selects (MS:1001456, MS:1002169, MS:1001834, MS:1000130, MS:1000129, MS:1001844, MS:1002896, MS:1000207, MS:1000511, MS:1000543) are confirmed both against the pinned resources/cv/psi-ms.obo and against the retained bytes. All 7 START_SECTIONs of the two class tests are ported, none merely mapped and none unaccounted; the 21-macro Fill data structure section is transcribed literal by literal, and transcribed C++ literals are tier-3 evidence. The one gap is that neither data-carrying section's INPUT can be fed to the port: both load MzTabMFile_input_1.oms and OMSFile.h is unported, so the exporter has no end-to-end tier-1 differential - its metadata section is verified byte for byte and its row construction only behaviourally. No C++ was built or executed for this package.",
+  "evidence": "Tier 1 for the writer's line grammar and for the exporter's metadata section; tier 3 for the data model; tier 4 for the ceilings, the native error paths and the non-ASCII inputs. Two unmodified retained C++ outputs are committed and hashed above: MzTabMFile_output_1.mztab, the exact bytes MzTabMFile_test.cpp's store section compares against, and AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab, the retained MzTab-M output of the one direct TOPP consumer of MzTabMFile.h. Against those two files this package asserts byte equality for: all 25 MTD lines of the first and all 24 of the second, each reproduced twice - once from a hand-built MzTabMMetaData through generate_meta_data_section, and once from MzTabM::export_feature_map_with driven by a synthetic IdentificationData graph; all six header lines, including the two id_confidence_measure[n] columns the second fixture declares; SML row 3, SMF row 1 and SME row 1 of both files, with all 18 and all 6 optional columns of the first; the three section sizes 83/83/312 and the three optional-column counts 0/18/6 that the exportFeatureMapToMzTabM section asserts; and the three-empty-line section structure. Ten PSI-MS accessions the exporter selects (MS:1001456, MS:1002169, MS:1001834, MS:1000130, MS:1000129, MS:1001844, MS:1002896, MS:1000207, MS:1000511, MS:1000543) are confirmed both against the pinned resources/cv/psi-ms.obo and against the retained bytes. Five of the seven START_SECTIONs are ported; the exporter section has partial retained-output-count evidence and the store section is mapped to selected retained-row comparisons and none unaccounted; the 21-macro Fill data structure section is transcribed literal by literal, and transcribed C++ literals are tier-3 evidence. The one gap is that neither data-carrying section's INPUT can be fed to the port: both load MzTabMFile_input_1.oms and OMSFile.h is unported, so the exporter has no end-to-end tier-1 differential - its metadata section is verified byte for byte and its row construction only behaviourally. No C++ was built or executed for this package.",
   "gaps": [
     "MzTabMFile_input_1.oms cannot be read: OMSFile.h is unported. Both data-carrying class-test sections load it, so the exporter's row construction is verified behaviourally rather than end to end. This is why the MzTabM.h ledger status is partial.",
-    "MzTabFile.h is unported; its static addOptionalColumnsToSectionRow_ is reproduced here as write::optional_cells and should move when that header lands.",
+    "The MzTabM writer retains its budgeted private write::optional_cells helper; the separate, implemented mztab_file module exposes optional_column_cells for proteomics mzTab.",
     "ControlledVocabulary::psi_ms() holds all five pinned vocabularies in one object, so its name/label/version/url identify the last one loaded and MzTabM::export_feature_map produces a generic cv[1] block. The tests load resources/cv/psi-ms.obo alone under the name PSI-MS to reproduce the source's cv[1]; a PSI-MS-only accessor on ControlledVocabulary would remove the need.",
-    "No reader exists for MzTab or MzTab-M in either language, so nothing round-trips through the format.",
+    "MzTab-M has no reader in this port or the pinned MzTabMFile API. Proteomics MzTabFile loading is implemented in both languages; its tests and scope are separate.",
     "docs/core-sdk-coverage.json and docs/core-sdk-reviewed-apis.json are not updated by this package; the ledger entries and the coverage regeneration are proposed in the work-package report."
+  ],
+  "cpp_issue_log_entries": [
+    "CPP-149",
+    "CPP-150",
+    "CPP-151"
   ]
 }

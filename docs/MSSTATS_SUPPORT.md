@@ -153,8 +153,9 @@ aliases it declares.
   `path_label_to_sample`, `path_label_to_fraction`,
   `path_label_to_fractiongroup` and `run_map` with `std::map::operator[]`,
   which inserts a zero for a key the design does not hold; the sample index `0`
-  is then read as sample-section row `0`, so the row is silently annotated with
-  another sample's condition and biological replicate. This port returns
+  would then be read as sample-section row `0`. Whether a missing pair can pass
+  the source's upfront filename-subset and label guards remains unconfirmed
+  (CPP-178). This port returns
   `Error::MissingInformation` naming the file and the label.
 - **An unknown summarization method is refused.** The source's accumulator is
   initialised to `0` and no branch assigns it unless the name is `max`, `min`,
@@ -273,14 +274,15 @@ resource ceilings are likewise independently derived (tier 4).
 
 Recorded for `OpenMS_CPP_ISSUES.md`; the integrator owns that file.
 
-- **OPENMS-MSSTATS-001 — a design gap silently annotates rows with the wrong
-  sample.** `MSstatsFile.cpp:440` (and the isobaric counterpart at `:701`)
+- **OPENMS-MSSTATS-001 / CPP-178 — unconfirmed reachable design gap.** `MSstatsFile.cpp:440` (and the isobaric counterpart at `:701`)
   indexes `path_label_to_sample`, `path_label_to_fraction`,
   `path_label_to_fractiongroup` and `run_map` with `std::map::operator[]`. A
   `(file, label)` pair the design does not declare is inserted with the value
   `0`, and `SampleSection::getFactorValue(0, factor)`
   (`ExperimentalDesign.cpp:971`) then returns row `0`'s condition and
-  biological replicate. The output looks complete and is wrong. Proposed fix:
+  biological replicate if that lookup is reached. A concrete input that passes
+  the earlier filename-subset and label checks is still needed; this is an
+  unchecked-lookup candidate, not an executed reproduction. Proposed fix:
   use `at` inside a membership check and throw
   `Exception::MissingInformation`. Rust handling: `Error::MissingInformation`
   naming the file and the label.

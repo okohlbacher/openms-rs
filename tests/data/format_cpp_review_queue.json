@@ -1,0 +1,3918 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
+   "sha256": "68f95d183392bdb6cbe022a9dea98bbfcbc6011ccee36615f066d2f28a604e63"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "sha256": "094c7211eb1cdcb17bdca61bf783131acd8f8fdf820ce9116ac249802be2b7a2"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "sha256": "ba8d16b22034f0a7f0f257469f7437e0e3e4589b48bb9ecb80caf2fe8df5c67e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+   "sha256": "fd873728ec7a4e98084403a765e085b5345cb88b16d6ed9be5b05ac7f7b3a64c"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabM.cpp",
+   "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+   "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "sha256": "bb2fd4ac12284b3dc4db88987056e6f072c495471d10b9128eb90eaf01761e6c"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "sha256": "51f9f722e32f83ad6bcfaf3938e370b839aeee0033eb3a881c3131247a2c11a8"
+  }
+ ],
+ "evidence": "Unreviewed documentary observations only, retained to prevent handoff omissions. No C++ reproduction, verified source defect, native correction, or completeness count is implied. Original report may need correction; promote only after source/contract review and duplicate checking. Stable observation IDs must be retained when triaged.",
+ "observations": [
+  {
+   "id": "FORMAT-OBS-001",
+   "candidate_key": "mztab-doc-394",
+   "title": "The parameter scanner drops every `[` and `]`",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_SUPPORT.md",
+   "reported_lines": [
+    394,
+    395
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+     "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "[",
+    "]",
+    "\"a, [b]\"",
+    "a, b"
+   ],
+   "report": "- **The parameter scanner drops every `[` and `]`**, including inside quotes\n  (MzTabBase.cpp:393), so `\"a, [b]\"` parses as `a, b`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-002",
+   "candidate_key": "mztab-doc-460",
+   "title": "Out-of-range numbers are refused rather than cast.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_SUPPORT.md",
+   "reported_lines": [
+    460,
+    473
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+     "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2"
+    },
+    {
+     "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+     "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabInteger::fromCellString",
+    "int",
+    "int",
+    "MzTabSpectraRef::fromCellString",
+    "Size",
+    "2^64",
+    "std::from_chars",
+    "result_out_of_range",
+    "parse",
+    "StringUtils::toInt32",
+    "ms_run",
+    "spectra_ref",
+    "i32",
+    "ms_run[3000000000]:scan=1",
+    "3000000000-UNIMOD:35",
+    "+",
+    "++5"
+   ],
+   "report": "5. **Out-of-range numbers are refused rather than cast.**\n   `MzTabInteger::fromCellString` casts the parsed double to `int`\n   (MzTabBase.cpp:679), which is undefined behaviour outside the `int` range;\n   this checks the range. `MzTabSpectraRef::fromCellString` casts a negative run\n   index to `Size` (MzTabBase.cpp:254), producing an index near `2^64`; this\n   rejects it. A double literal that overflows is a conversion error, matching\n   the source's `std::from_chars` reporting `result_out_of_range` \u2014 Rust's own\n   `parse` would have returned infinity. The two integer tokens the source reads\n   with `StringUtils::toInt32` \u2014 the `ms_run` index of a `spectra_ref` and a\n   modification position \u2014 are parsed into an `i32` here for the same reason, so\n   `ms_run[3000000000]:scan=1` and `3000000000-UNIMOD:35` are conversion errors\n   in both implementations (StringUtils.cpp:150-156, pinned by\n   StringUtils_test.cpp:272), and only one leading `+` is skipped\n   (StringUtils.cpp:148), so `++5` is refused in both.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-003",
+   "candidate_key": "mztab-doc-626",
+   "title": "Every list cell parser appends instead of replacing.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_SUPPORT.md",
+   "reported_lines": [
+    626,
+    634
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+     "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabParameterList",
+    "MzTabStringList",
+    "MzTabIntegerList",
+    "MzTabDoubleList",
+    "MzTabModificationList",
+    "MzTabModification",
+    "pos_param_pairs_",
+    "MzTab_test.cpp"
+   ],
+   "report": "4. **Every list cell parser appends instead of replacing.**\n   `MzTabParameterList` (MzTabBase.cpp:71), `MzTabStringList` (147),\n   `MzTabIntegerList` (602), `MzTabDoubleList` (870),\n   `MzTabModificationList` (229, 278) and `MzTabModification`'s\n   `pos_param_pairs_` (157, 167) all push onto the existing container without\n   clearing it. Parsing a second cell into a reused object silently concatenates\n   \u2014 and `MzTab_test.cpp` itself reuses one row object across two rows, which is\n   why the second row carries nine optional entries rather than five. Fix: clear\n   the container, or build into a temporary and swap.",
+   "proposed_fix_status": "clear\n   the container, or build into a temporary and swap.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-004",
+   "candidate_key": "mztab-doc-639",
+   "title": "Unconfirmed comparison-contract concern: `MzTabDouble` ignores state.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_SUPPORT.md",
+   "reported_lines": [
+    639,
+    644
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+     "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabDouble",
+    "value_",
+    "null",
+    "MzTabDouble(0.0)",
+    "NaN",
+    "MzTabDouble",
+    "state_"
+   ],
+   "report": "6. **Unconfirmed comparison-contract concern: `MzTabDouble` ignores state.**\n   MzTabBase.cpp:810, 815 compare `value_` only, so the `null` cell equals\n   `MzTabDouble(0.0)` and a `NaN`-state cell sorts as zero. Any container\n   keyed or sorted on `MzTabDouble` conflates absent with zero. Fix: compare\n   `state_` first if state-aware comparison is intended; value-only comparison\n   may be deliberate and is not established as a contract violation.",
+   "proposed_fix_status": "compare\n   `state_` first if state-aware comparison is intended; value-only comparison\n   may be deliberate and is not established as a contract violation.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-005",
+   "candidate_key": "mztab_file-doc-218",
+   "title": "Header and row column counts are made equal by construction.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    218,
+    226
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "Exception::Postcondition",
+    "generateMzTabSection_",
+    ":139",
+    "store",
+    ":2958",
+    ":2987",
+    ":3086",
+    "SectionLayout",
+    "null"
+   ],
+   "report": "2. **Header and row column counts are made equal by construction.** The source\n   derives its counts from the metadata in the protein section, from the *first*\n   row in the peptide and small-molecule sections, and from each row's own maps\n   in the row writers; where they disagree it throws\n   `Exception::Postcondition` from `generateMzTabSection_` (`:139`) or one of\n   the three copies in `store` (`:2958`, `:2987`, `:3086`). Here one\n   `SectionLayout` per section is the union of every row's keys with the\n   metadata keys the source consults, and each row is rendered against it with a\n   `null` cell for a member it lacks.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-006",
+   "candidate_key": "mztab_file-doc-233",
+   "title": "The peptide and small-molecule study-variable triples are driven by the    layout, not by three iterators in lock-step",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    233,
+    237
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    ":2367",
+    ":2555",
+    "peptide_study_variable_triple_survives_a_missing_stdev_map"
+   ],
+   "report": "4. **The peptide and small-molecule study-variable triples are driven by the\n   layout, not by three iterators in lock-step** (`:2367`, `:2555`). The source\n   stops at the first exhausted map, so a row with values but no standard\n   deviations writes no study-variable columns at all. Test:\n   `peptide_study_variable_triple_survives_a_missing_stdev_map`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-007",
+   "candidate_key": "mztab_file-doc-286",
+   "title": "A column the header did not declare leaves its field at the default.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    286,
+    290
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "0",
+    "cells[0]",
+    "PRT",
+    "taxid",
+    "PRT",
+    "optional_columns_tolerate_any_header_order_and_unknown_names"
+   ],
+   "report": "11. **A column the header did not declare leaves its field at the default.** The\n    source uses `0` as the \"column absent\" sentinel, which is also the index of\n    the section tag, and then reads `cells[0]` into the field: a `PRT` row whose\n    header omitted `taxid` parses the text `PRT` as an integer and throws. Test:\n    `optional_columns_tolerate_any_header_order_and_unknown_names`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-008",
+   "candidate_key": "mztab_file-doc-316",
+   "title": "A section header replaces the previous one for that section.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    316,
+    319
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PRH",
+    "a_second_section_header_replaces_the_first"
+   ],
+   "report": "15. **A section header replaces the previous one for that section.** The source\n    accumulates into the same column maps, so a file with two `PRH` lines keeps\n    the first one's column numbers alongside the second's. Test:\n    `a_second_section_header_replaces_the_first`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-009",
+   "candidate_key": "mztab_file-doc-338",
+   "title": "A cell carrying a tab or a line break is refused.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    338,
+    340
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "a_failed_store_leaves_the_previous_file_intact"
+   ],
+   "report": "17. **A cell carrying a tab or a line break is refused.** Either would corrupt\n    the row; the source concatenates unconditionally and produces a file it\n    cannot read back. Test: `a_failed_store_leaves_the_previous_file_intact`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-010",
+   "candidate_key": "mztab_file-doc-342",
+   "title": "The `psm_search_engine_score` count is not capped at one.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    342,
+    345
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "psm_search_engine_score",
+    ":3200",
+    "ConsensusMap"
+   ],
+   "report": "18. **The `psm_search_engine_score` count is not capped at one.** The source\n    caps it with the comment \"we currently only store one search engine score\n    per PSM\" (`:3200`); that limit belongs to its `ConsensusMap` and\n    identification exporters, not to the file format.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-011",
+   "candidate_key": "mztab_file-doc-493",
+   "title": "CPP-MZTABFILE-01",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    493,
+    496
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
+     "sha256": "68f95d183392bdb6cbe022a9dea98bbfcbc6011ccee36615f066d2f28a604e63"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabFile.h",
+    "class SVOutStream;"
+   ],
+   "report": "- **CPP-MZTABFILE-01** \u2014 fifteen protected static members of `MzTabFile.h`\n  (lines 151-201) are declared and defined nowhere in the tree. Dead\n  declarations; any use is a link error. Fix: delete them, and the\n  `class SVOutStream;` forward declaration that only they need.",
+   "proposed_fix_status": "delete them, and the\n  `class SVOutStream;` forward declaration that only they need.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-012",
+   "candidate_key": "mztab_file-doc-508",
+   "title": "CPP-MZTABFILE-04",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    508,
+    511
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "smallmolecule_abundance_assay[n]",
+    ":2548",
+    ":2482",
+    "Exception::Postcondition"
+   ],
+   "report": "- **CPP-MZTABFILE-04** \u2014 the small-molecule row writer never emits\n  `smallmolecule_abundance_assay[n]` (`:2548`) although the header declares one\n  per assay (`:2482`), so any document with an assay throws\n  `Exception::Postcondition`. Fix: emit the cells, as the peptide writer does.",
+   "proposed_fix_status": "emit the cells, as the peptide writer does.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-013",
+   "candidate_key": "mztab_file-doc-512",
+   "title": "CPP-MZTABFILE-05",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    512,
+    516
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PEH",
+    "PSH",
+    "uri",
+    "protein_uri_index",
+    ":1089",
+    ":1265",
+    "uri",
+    "PRT",
+    "PEH",
+    "PSH",
+    "uri"
+   ],
+   "report": "- **CPP-MZTABFILE-05** \u2014 the `PEH` and `PSH` `uri` column index is stored in\n  `protein_uri_index` (`:1089`, `:1265`). The peptide and PSM `uri` cells are\n  never read, and a `PRT` row following a `PEH`/`PSH` section reads its protein\n  `uri` from the wrong column. Fix: separate indices, and re-enable the two\n  commented-out assignments.",
+   "proposed_fix_status": "separate indices, and re-enable the two\n  commented-out assignments.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-014",
+   "candidate_key": "mztab_file-doc-521",
+   "title": "CPP-MZTABFILE-07",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    521,
+    525
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "load",
+    "NUH",
+    "NUC",
+    "OLH",
+    "OLI",
+    "OSH",
+    "OSM",
+    "*_search_engine_score",
+    "store"
+   ],
+   "report": "- **CPP-MZTABFILE-07** \u2014 `load` never parses the `NUH`/`NUC`, `OLH`/`OLI` or\n  `OSH`/`OSM` sections, nor the three `*_search_engine_score` metadata families\n  of those sections, all of which `store` writes. Every nucleic-acid,\n  oligonucleotide and OSM row is lost by a load/store cycle. Fix: add the\n  reader branches.",
+   "proposed_fix_status": "add the\n  reader branches.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-015",
+   "candidate_key": "mztab_file-doc-526",
+   "title": "CPP-MZTABFILE-08",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    526,
+    529
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "num_osms_ms_run",
+    "num_oligos_distinct_ms_run",
+    "num_oligos_unique_ms_run",
+    ":2603",
+    "i + 1"
+   ],
+   "report": "- **CPP-MZTABFILE-08** \u2014 the nucleic-acid header numbers `num_osms_ms_run`,\n  `num_oligos_distinct_ms_run` and `num_oligos_unique_ms_run` from zero\n  (`:2603`) while the row writer emits values keyed from one. Fix: `i + 1`, as\n  every other family does.",
+   "proposed_fix_status": "`i + 1`, as\n  every other family does.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-016",
+   "candidate_key": "mztab_file-doc-530",
+   "title": "CPP-MZTABFILE-09",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    530,
+    531
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "generateMzTabNucleicAcidHeader_",
+    ":3257"
+   ],
+   "report": "- **CPP-MZTABFILE-09** \u2014 `generateMzTabNucleicAcidHeader_` is called with its\n  second and third arguments swapped (`:3257`). Fix: swap them back.",
+   "proposed_fix_status": "swap them back.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-017",
+   "candidate_key": "mztab_file-doc-532",
+   "title": "CPP-MZTABFILE-10",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    532,
+    536
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    ":3328",
+    "FuzzyStringComparator"
+   ],
+   "report": "- **CPP-MZTABFILE-10** \u2014 blank lines are duplicated by the comment restoration\n  (`:3328`): a recorded blank is inserted even when the generated line at that\n  position is already the section separator. Masked by\n  `FuzzyStringComparator`, which skips blank lines. Fix: consume the generated\n  blank when there is one.",
+   "proposed_fix_status": "consume the generated\n  blank when there is one.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-018",
+   "candidate_key": "mztab_file-doc-537",
+   "title": "CPP-MZTABFILE-11",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    537,
+    542
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "meta_key_fields[1]",
+    "MTD",
+    "meta_key_fields[2]",
+    "meta_key_fields[0]",
+    "StringUtils::split",
+    "cells[index]"
+   ],
+   "report": "- **CPP-MZTABFILE-11** \u2014 out-of-range reads. `meta_key_fields[1]` is indexed in\n  thirty-two `MTD` branches and `meta_key_fields[2]` in two more without\n  checking the field count; `meta_key_fields[0]` is indexed when\n  `StringUtils::split` cleared the vector for an empty key cell; and every\n  section row reads `cells[index]` with no bounds check, so a row shorter than\n  its header reads past the end. Fix: check the sizes.",
+   "proposed_fix_status": "check the sizes.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-019",
+   "candidate_key": "mztab_file-doc-543",
+   "title": "CPP-MZTABFILE-12",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    543,
+    547
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "extractBracketIndex",
+    "Int",
+    "Size",
+    "assay[0]",
+    "0",
+    "assay[-1]",
+    "SIZE_MAX",
+    "extractIndexPairsFromBrackets_",
+    "0"
+   ],
+   "report": "- **CPP-MZTABFILE-12** \u2014 `extractBracketIndex` returns a signed `Int` that every\n  caller casts to `Size`, so `assay[0]` yields key `0` and `assay[-1]` yields\n  `SIZE_MAX`, which the writer emits as a column name the format does not\n  define. `extractIndexPairsFromBrackets_` likewise substitutes `0` for a\n  bracketed group its regex does not match. Fix: reject a non-positive index.",
+   "proposed_fix_status": "reject a non-positive index.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-020",
+   "candidate_key": "mztab_file-doc-548",
+   "title": "CPP-MZTABFILE-13",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    548,
+    550
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PEP",
+    "\"PRT\"",
+    "sections_present",
+    ":1130",
+    ":1547",
+    "\"PEP\""
+   ],
+   "report": "- **CPP-MZTABFILE-13** \u2014 the `PEP` branch inserts `\"PRT\"` into\n  `sections_present` (`:1130`). No effect today, because the only consumer is\n  commented out at `:1547`. Fix: insert `\"PEP\"`, or delete the set.",
+   "proposed_fix_status": "insert `\"PEP\"`, or delete the set.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-021",
+   "candidate_key": "mztab_m-doc-514",
+   "title": "An empty identification graph is an error, not undefined behaviour.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    514,
+    517
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabM.cpp",
+     "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+    },
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "OPENMS_PRECONDITION(!id_data.empty(), \u2026)",
+    "Error::MissingInformation"
+   ],
+   "report": "3. **An empty identification graph is an error, not undefined behaviour.** The\n   source states `OPENMS_PRECONDITION(!id_data.empty(), \u2026)`, which a release\n   build compiles out and then reads an empty graph. This returns\n   `Error::MissingInformation`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-022",
+   "candidate_key": "mztab_m-doc-525",
+   "title": "An input file whose basename holds no `.` is not an error.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    525,
+    530
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabM.cpp",
+     "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+    },
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    ".",
+    "String::prefix(char)",
+    "Exception::ElementNotFound",
+    "export_assay_name_survives_a_basename_without_a_dot_and_non_ascii"
+   ],
+   "report": "6. **An input file whose basename holds no `.` is not an error.**\n   `String::prefix(char)` throws `Exception::ElementNotFound` when the\n   delimiter is absent, so a feature map read from an extensionless file makes\n   the source throw. This uses the whole trimmed basename. Asserted, together\n   with a non-ASCII basename, in\n   `export_assay_name_survives_a_basename_without_a_dot_and_non_ascii`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-023",
+   "candidate_key": "mztab_m-doc-795",
+   "title": "`MzTabMFile.cpp:331` appends `-uri` to `derivatization_agent[n]`.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    795,
+    798
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabMFile.cpp:331",
+    "-uri",
+    "derivatization_agent[n]",
+    "derivatization_agent[n]",
+    "source_derivatization_agent_key"
+   ],
+   "report": "3. **`MzTabMFile.cpp:331` appends `-uri` to `derivatization_agent[n]`.** The\n   specification defines `derivatization_agent[n]`, and the value written is\n   the agent parameter, not a URI. Rust:\n   `source_derivatization_agent_key`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-024",
+   "candidate_key": "mztab_m-doc-799",
+   "title": "`MzTabMFile.cpp:190-200` never writes `ms_run[n]-id_format`.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    799,
+    801
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabMFile.cpp:190-200",
+    "ms_run[n]-id_format",
+    "MzTabMMSRunMetaData",
+    "omit_ms_run_id_format"
+   ],
+   "report": "4. **`MzTabMFile.cpp:190-200` never writes `ms_run[n]-id_format`.** It is the\n   only member of `MzTabMMSRunMetaData` the metadata generator does not read,\n   so a caller that sets it loses it. Rust: `omit_ms_run_id_format`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-025",
+   "candidate_key": "mztab_m-doc-802",
+   "title": "`MzTabMFile.cpp:422-435`, `:482` and `:546` emit row cells from the row's    own maps while the header derives its columns from the metadata section.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    802,
+    807
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabMFile.cpp:422-435",
+    ":482",
+    ":546",
+    "OPENMS_POSTCONDITION",
+    "source_row_abundance_cells"
+   ],
+   "report": "5. **`MzTabMFile.cpp:422-435`, `:482` and `:546` emit row cells from the row's\n   own maps while the header derives its columns from the metadata section.** A\n   row with fewer abundances than the metadata declares produces a short row\n   and an unparseable file; the guard is an `OPENMS_POSTCONDITION` that a\n   release build drops. Rust: `source_row_abundance_cells`, with the native\n   default aligning and refusing an undeclared index.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-026",
+   "candidate_key": "mztab_m-doc-808",
+   "title": "`MzTabM.cpp:680-698` dereferences a `std::find_if` iterator without    comparing it to `end()`.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    808,
+    810
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabM.cpp",
+     "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabM.cpp:680-698",
+    "std::find_if",
+    "end()",
+    "SMF_ID_REFS",
+    "SME",
+    "Error::MissingInformation"
+   ],
+   "report": "6. **`MzTabM.cpp:680-698` dereferences a `std::find_if` iterator without\n   comparing it to `end()`.** An `SMF_ID_REFS` entry that no `SME` row carries\n   is undefined behaviour. Rust: `Error::MissingInformation`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-027",
+   "candidate_key": "mztab_m-doc-811",
+   "title": "`MzTabM.cpp:572` discards observation matches.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    811,
+    817
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabM.cpp",
+     "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabM.cpp:572",
+    "std::set<ObservationMatchRef, CompareMzTabMMatchRef>",
+    "identifier",
+    "deduplicate_matches_by_compound"
+   ],
+   "report": "7. **`MzTabM.cpp:572` discards observation matches.** The\n   `std::set<ObservationMatchRef, CompareMzTabMMatchRef>` comparator orders by\n   the identified compound's `identifier` alone, so matches agreeing on it are\n   equivalent and all but one are dropped \u2014 including matches with different\n   adducts or scores. Which one survives is decided by the address ordering of\n   the feature's own reference set, so the output is not a function of the data.\n   Rust: `deduplicate_matches_by_compound`, default off.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-028",
+   "candidate_key": "mztab_m-doc-828",
+   "title": "`MzTabM.cpp:287` indexes a `std::string_view` at `size() - 1`.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    828,
+    832
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabM.cpp",
+     "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabM.cpp:287",
+    "std::string_view",
+    "size() - 1",
+    "at()",
+    "std::out_of_range",
+    "== '+'"
+   ],
+   "report": "9. **`MzTabM.cpp:287` indexes a `std::string_view` at `size() - 1`.** An adduct\n   registered with an empty name underflows and `at()` throws\n   `std::out_of_range` from inside an export. Rust: a match on the last\n   character, which reproduces the `== '+'` test for every non-empty name and\n   selects positive for the empty one rather than throwing.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-029",
+   "candidate_key": "mztab_m-doc-833",
+   "title": "`MzTabM.cpp:349-351` crosses `cv[n]-label` and `cv[n]-full_name`.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    833,
+    835
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabM.cpp",
+     "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabM.cpp:349-351",
+    "cv[n]-label",
+    "cv[n]-full_name",
+    "swap_cv_label_and_full_name"
+   ],
+   "report": "10. **`MzTabM.cpp:349-351` crosses `cv[n]-label` and `cv[n]-full_name`.** See\n    `swap_cv_label_and_full_name`. Both retained fixtures carry the swap, so\n    fixing it upstream changes reference files.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-030",
+   "candidate_key": "mztab_m-doc-836",
+   "title": "`MzTabMFile.cpp:626-631` writes every cell verbatim.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "reported_lines": [
+    836,
+    845
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzTabMFile.cpp:626-631",
+    "TextFile",
+    "MTD",
+    "SMH",
+    "SML",
+    "chemical_name",
+    "uri",
+    "smiles",
+    "opt_",
+    ".oms",
+    "OPENMS_POSTCONDITION",
+    "MzTabMWriteOptions::source_verbatim_cells"
+   ],
+   "report": "11. **`MzTabMFile.cpp:626-631` writes every cell verbatim.** Each rendered row\n    goes to `TextFile` unchanged, so a cell carrying a tab gains a column and\n    one carrying a line break splits the row across physical lines \u2014 and text\n    beginning with `MTD`, `SMH` or `SML` forges a line of that kind in the\n    middle of a section. The text is file-derived: `chemical_name`, `uri`,\n    `smiles` and every `opt_` value come from a featureXML or `.oms` text node,\n    which may legally contain both characters. The source's own\n    `OPENMS_POSTCONDITION` column check cannot see it, because it counts the\n    cells it pushed rather than the tabs in the line it wrote. Rust:\n    `MzTabMWriteOptions::source_verbatim_cells`, default off.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-031",
+   "candidate_key": "pepxml-doc-202",
+   "title": "A modification that cannot sit where it was annotated is kept as a mass.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    202,
+    209
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "ResidueModification*",
+    "Ammonia-loss (N-term C)"
+   ],
+   "report": "- **A modification that cannot sit where it was annotated is kept as a mass.**\n  The source assigns the resolved `ResidueModification*` directly and never\n  re-checks it, so a terminal mass search that returns, say,\n  `Ammonia-loss (N-term C)` for an E-terminal peptide annotates the wrong\n  chemistry. This port prefers a candidate whose origin is compatible with the\n  peptide's terminal residue and, if the named attachment is still invalid,\n  retains the mass difference as an anonymous annotation and records a\n  diagnostic.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-032",
+   "candidate_key": "pepxml-doc-210",
+   "title": "One-based indices of zero are errors.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    210,
+    213
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "hit_rank=\"0\"",
+    "position=\"0\"",
+    "position",
+    "search_id=\"0\"",
+    "PepXMLFile.cpp:1381",
+    ":1695"
+   ],
+   "report": "- **One-based indices of zero are errors.** `hit_rank=\"0\"`, `position=\"0\"`, a\n  `position` past the peptide, `search_id=\"0\"` and an empty run all underflow an\n  unsigned subtraction in the source and then index out of bounds\n  (`PepXMLFile.cpp:1381`, `:1695`). Reported as PEPXML-001 and PEPXML-002.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-033",
+   "candidate_key": "pepxml-doc-214",
+   "title": "`assumed_charge=\"0\"` is an error.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    214,
+    215
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "assumed_charge=\"0\""
+   ],
+   "report": "- **`assumed_charge=\"0\"` is an error.** The source divides by the charge\n  unconditionally and produces an infinite m/z.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-034",
+   "candidate_key": "pepxml-doc-220",
+   "title": "A corrupted `date` is length-checked.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    220,
+    222
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "date",
+    "date[4]",
+    "date[7]",
+    "date[10]",
+    "PepXMLFile.cpp:2004"
+   ],
+   "report": "- **A corrupted `date` is length-checked.** The source tests `date[4]`,\n  `date[7]` and `date[10]` with no bounds check (`PepXMLFile.cpp:2004`);\n  a shorter value reads past the string. Reported as PEPXML-007.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-035",
+   "candidate_key": "pepxml-doc-223",
+   "title": "An unknown enzyme name does not abort the load.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    223,
+    227
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "sample_enzyme",
+    "ProteaseDB",
+    "hasEnzyme",
+    "search_summary",
+    "PepXMLFile.cpp:1947",
+    "Exception::ElementNotFound",
+    "unknown_enzyme"
+   ],
+   "report": "- **An unknown enzyme name does not abort the load.** `sample_enzyme` guards its\n  `ProteaseDB` lookup with `hasEnzyme`, but `search_summary` does not\n  (`PepXMLFile.cpp:1947`), so the source throws `Exception::ElementNotFound` and\n  cannot read such a file at all. This port leaves `unknown_enzyme`. Reported as\n  PEPXML-003.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-036",
+   "candidate_key": "pepxml-doc-237",
+   "title": "The C-terminal diagnostic names the C-terminal mass.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    237,
+    239
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "mod_nterm_mass",
+    "PepXMLFile.cpp:1642"
+   ],
+   "report": "- **The C-terminal diagnostic names the C-terminal mass.** The source prints\n  `mod_nterm_mass`, a different and possibly uninitialised local, and says\n  \"N-terminal\" (`PepXMLFile.cpp:1642`). Reported as PEPXML-009.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-037",
+   "candidate_key": "pepxml-doc-240",
+   "title": "The cleavage expression is split safely.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    240,
+    244
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    ")",
+    "sub_regex[1]",
+    "PepXMLFile.cpp:427",
+    "StringUtils::split"
+   ],
+   "report": "- **The cleavage expression is split safely.** The writer splits the enzyme's\n  expression on `)` and the source then reads `sub_regex[1]` without a bounds\n  check (`PepXMLFile.cpp:427`); `StringUtils::split` returns one element when\n  the separator is absent, which a user-defined enzyme's expression \u2014 the bare\n  cut residues \u2014 always is. Reported as PEPXML-010.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-038",
+   "candidate_key": "pepxml-doc-249",
+   "title": "`search_engine_version` is retained.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    249,
+    251
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "search_engine_version",
+    "TODO",
+    "ProteinIdentification::search_engine_version"
+   ],
+   "report": "- **`search_engine_version` is retained.** The source reads it into a local,\n  uses it only to detect MSFragger and drops it with a `TODO`; this port also\n  stores it on `ProteinIdentification::search_engine_version`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-039",
+   "candidate_key": "pepxml-doc-256",
+   "title": "`>` is not escaped and `&`, `<` and `\"` are.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    256,
+    259
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    ">",
+    "&",
+    "<",
+    "\"",
+    "&",
+    ">",
+    "description=\"Glu->pyro-Glu (N-term E)\""
+   ],
+   "report": "- **`>` is not escaped and `&`, `<` and `\"` are.** The source escapes nothing,\n  which produces a malformed document for an accession containing `&`; `>` is\n  legal inside an attribute value and the retained outputs contain\n  `description=\"Glu->pyro-Glu (N-term E)\"`, so it is left alone.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-040",
+   "candidate_key": "pepxml-doc-308",
+   "title": "Ambiguous residue codes have no monoisotopic mass.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    308,
+    313
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "mass == massdiff",
+    "mod_aminoacid_mass",
+    "Residue*"
+   ],
+   "report": "- **Ambiguous residue codes have no monoisotopic mass.** The internal residue\n  mass a `mass == massdiff` repair and a `mod_aminoacid_mass` difference need is\n  computed from the crate's chemistry, which has no monoisotopic composition for\n  B/Z/X where the source supplies an averaged placeholder. The repair then keeps\n  the declared mass and records a diagnostic; the source dereferences a null\n  `Residue*`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-041",
+   "candidate_key": "pepxml-doc-314",
+   "title": "`makeScanMap_`, `scan_map_`, `use_precursor_data_` and   `enzyme_cuttingsite_` have no counterpart",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "reported_lines": [
+    314,
+    316
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "makeScanMap_",
+    "scan_map_",
+    "use_precursor_data_",
+    "enzyme_cuttingsite_"
+   ],
+   "report": "- **`makeScanMap_`, `scan_map_`, `use_precursor_data_` and\n  `enzyme_cuttingsite_` have no counterpart**, being dead members of the source\n  class. Reported as PEPXML-011.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-042",
+   "candidate_key": "qcml-doc-191",
+   "title": "`exportQP`'s asymmetry.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    191,
+    193
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "exportQP",
+    "accession",
+    "name",
+    "QcMLFile.cpp:638",
+    "659"
+   ],
+   "report": "- **`exportQP`'s asymmetry.** A run parameter is matched on `accession`, a set\n  parameter on `name` (`QcMLFile.cpp:638` and `659`). Undocumented upstream and\n  almost certainly accidental, but it decides which lookups succeed.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-043",
+   "candidate_key": "qcml-doc-225",
+   "title": "`merge` deduplication.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    225,
+    228
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "merge",
+    "std::unique",
+    "MergeOptions::default()",
+    "MergeOptions::source()"
+   ],
+   "report": "2. **`merge` deduplication.** The source's `std::unique` with a name-only\n   comparator collapses distinct parameters that share a name.\n   `MergeOptions::default()` collapses only exact duplicates;\n   `MergeOptions::source()` reproduces the collapse.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-044",
+   "candidate_key": "qcml-doc-229",
+   "title": "The `flag` value.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    229,
+    231
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "flag",
+    "flag=\"true\"",
+    "source_flag_literal",
+    "\"true\""
+   ],
+   "report": "3. **The `flag` value.** The source writes the literal `flag=\"true\"` for any\n   non-empty flag and reads the attribute back verbatim, so the value is lost.\n   The default writer emits the value; `source_flag_literal` emits `\"true\"`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-045",
+   "candidate_key": "qcml-doc-233",
+   "title": "`qualityParameterRef` is optional on read.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    233,
+    236
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "qualityParameterRef",
+    "attributeAsString_"
+   ],
+   "report": "5. **`qualityParameterRef` is optional on read.** The source omits it when empty\n   but reads it with `attributeAsString_`, which raises a fatal parse error on a\n   missing attribute, so C++ cannot re-read its own attachment that hangs off the\n   run. This port treats it as optional.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-046",
+   "candidate_key": "qcml-doc-243",
+   "title": "Incomplete and over-complete attachments.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    243,
+    247
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "store",
+    "drop_unrepresentable"
+   ],
+   "report": "7. **Incomplete and over-complete attachments.** The source returns the empty\n   string for an attachment with neither a binary payload nor a complete table,\n   so `store` writes nothing for it, and writes only the binary when both are\n   present, dropping the table. The default refuses both;\n   `drop_unrepresentable` restores the source behaviour.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-047",
+   "candidate_key": "qcml-doc-248",
+   "title": "Unpersistable names.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    248,
+    251
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MS:1000577",
+    "QC:0000058",
+    "drop_unrepresentable"
+   ],
+   "report": "8. **Unpersistable names.** A run or set name that differs from its identifier\n   survives a write only inside an `MS:1000577` or `QC:0000058` parameter. The\n   default writer refuses to write a name that no parameter carries;\n   `drop_unrepresentable` drops it, as the source does.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-048",
+   "candidate_key": "qcml-doc-259",
+   "title": "XML escaping.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    259,
+    263
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "&",
+    "<",
+    ">",
+    "\"",
+    "Error::InvalidValue"
+   ],
+   "report": "10. **XML escaping.** The source concatenates attribute values verbatim, so a\n    value containing `&`, `<`, `>` or `\"` produces a document no parser accepts.\n    This port always escapes, and writes tab, line feed and carriage return as\n    character references so attribute-value normalization cannot eat them. A\n    character XML 1.0 cannot represent is `Error::InvalidValue`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-049",
+   "candidate_key": "qcml-doc-267",
+   "title": "No phantom entries.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    267,
+    270
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "collectSetParameter",
+    "operator[]",
+    "collect_set_parameter",
+    "&self"
+   ],
+   "report": "12. **No phantom entries.** The source's removal methods and\n    `collectSetParameter` reach their maps with `operator[]`, registering an\n    empty run and set for an unknown key. The port touches only existing lists,\n    and `collect_set_parameter` takes `&self`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-050",
+   "candidate_key": "qcml-doc-271",
+   "title": "Misplaced elements are refused.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    271,
+    276
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "parent_tag == \"runQuality\"",
+    "else",
+    "qualityParameter",
+    "tableRowValues",
+    "Error::Parse",
+    "runQuality",
+    "setQuality"
+   ],
+   "report": "13. **Misplaced elements are refused.** The source decides a parameter's role by\n    `parent_tag == \"runQuality\"` with an unconditional `else`, so a\n    `qualityParameter` outside any entry is treated as a set parameter and\n    attached to whichever entry closes next; a stray `tableRowValues` lands in\n    the next attachment's table. The port makes all of these `Error::Parse`, and\n    also rejects a nested or duplicated `runQuality`/`setQuality`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-051",
+   "candidate_key": "qcml-doc-277",
+   "title": "No parser state leaks.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    277,
+    281
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "names_",
+    "load",
+    "qp_"
+   ],
+   "report": "14. **No parser state leaks.** The source never clears `names_`, so every set\n    inherits the members of the sets before it, in the same file and across a\n    second `load`; and it leaves `qp_` populated after a set-member parameter, so\n    the next parameter's absent optional attributes keep the previous values. The\n    port's parser state lives for one element or one entry.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-052",
+   "candidate_key": "qcml-doc-282",
+   "title": "Complete character data.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/QCML_SUPPORT.md",
+   "reported_lines": [
+    282,
+    286
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "StringUtils::split",
+    "<binary>"
+   ],
+   "report": "15. **Complete character data.** The source uses the first non-empty character\n    notification for a row and `StringUtils::split` clears its output, so a\n    second chunk overwrites the first and a row containing an entity reference\n    loses everything before it. The port assembles an element's whole text first.\n    Repeated `<binary>` elements still concatenate, as the source does.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-053",
+   "candidate_key": "percolator_infile-doc-145",
+   "title": "A duplicate column name is refused.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "reported_lines": [
+    145,
+    146
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "unordered_map"
+   ],
+   "report": "- **A duplicate column name is refused.** The source builds an\n  `unordered_map`, so a duplicate silently resolves to the last occurrence.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-054",
+   "candidate_key": "percolator_infile-doc-154",
+   "title": "A `rank` column below one is refused.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "reported_lines": [
+    154,
+    161
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "rank",
+    "rank - 1",
+    "int",
+    "-1",
+    "i32::MIN",
+    "u32",
+    "checked_sub",
+    "i32",
+    "Error::Parse",
+    "i32::MAX",
+    "an_extreme_rank_column_is_an_error_not_an_overflow",
+    "read",
+    "load"
+   ],
+   "report": "- **A `rank` column below one is refused.** The source computes `rank - 1` into\n  an `int`, giving `-1` for zero and a signed overflow for `i32::MIN`; the\n  crate's rank is a `u32`, and the decrement is `checked_sub` before it is\n  narrowed, so the whole `i32` range the column accepts is an\n  `Error::Parse` naming the line rather than a debug panic or a release wrap to\n  `i32::MAX`. Covered by\n  `an_extreme_rank_column_is_an_error_not_an_overflow`, through both `read` and\n  `load`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-055",
+   "candidate_key": "percolator_infile-doc-167",
+   "title": "A feature name or value containing a CR or LF is refused",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "reported_lines": [
+    167,
+    173
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "Proteins",
+    "Proteins",
+    "Proteins"
+   ],
+   "report": "- **A feature name or value containing a CR or LF is refused**, and so is a tab\n  in every column but a trailing `Proteins`. The source writes all of them\n  through unescaped: a line break ends the row early and a tab shifts every\n  column after it. The trailing `Proteins` column is the one place a tab is\n  meaningful, because Percolator reads that column as a tab-separated protein\n  list; `Proteins` declared anywhere but last is therefore still refused when\n  the hit has more than one accession.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-056",
+   "candidate_key": "percolator_infile-doc-294",
+   "title": "OPENMS-PERCIN-002 \u2014 an unchecked path subtraction builds the Sage sibling   paths.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "reported_lines": [
+    294,
+    304
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PercolatorInfile.cpp:95",
+    ":100",
+    "pin_file.size() - 3",
+    "pin_file.size() - std::string(\"results.sage.pin\").length()",
+    "StringUtils::substr",
+    "std::string::substr",
+    "strip_suffix",
+    "Error::InvalidValue",
+    "a.pin",
+    "\u65e5\u672c\u8a9e.pin"
+   ],
+   "report": "- **OPENMS-PERCIN-002 \u2014 an unchecked path subtraction builds the Sage sibling\n  paths.** `PercolatorInfile.cpp:95` and `:100` compute\n  `pin_file.size() - 3` and `pin_file.size() - std::string(\"results.sage.pin\").length()`\n  without checking the path length. A path shorter than fifteen bytes wraps the unsigned requested\n  substring length. `StringUtils::substr` delegates to `std::string::substr`,\n  which clamps that count and keeps the whole input, producing an incorrect\n  sibling name rather than an out-of-bounds read or a subtraction exception.\n  When the expected suffix is absent, a positive byte cutoff can also split\n  a UTF-8 character. Proposed fix: strip the literal suffixes and report a mismatch.\n  Rust handling: `strip_suffix` plus `Error::InvalidValue`; tested with `a.pin`\n  and `\u65e5\u672c\u8a9e.pin`.",
+   "proposed_fix_status": "strip the literal suffixes and report a mismatch.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-057",
+   "candidate_key": "percolator_infile-doc-314",
+   "title": "OPENMS-PERCIN-004 \u2014 `pids.back()` on an empty vector for an empty first   `SpecId`.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "reported_lines": [
+    314,
+    319
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "pids.back()",
+    "SpecId",
+    "PercolatorInfile.cpp:268",
+    "SpecId",
+    "spec_id",
+    "SpecId",
+    "else",
+    "PeptideIdentificationList"
+   ],
+   "report": "- **OPENMS-PERCIN-004 \u2014 `pids.back()` on an empty vector for an empty first\n  `SpecId`.** `PercolatorInfile.cpp:268` compares the row's `SpecId` against a\n  `spec_id` that starts as the empty string, so a first data row whose `SpecId`\n  field is empty takes the `else` path and line 273 dereferences the back of an\n  empty `PeptideIdentificationList`. Proposed fix: track whether an\n  identification is open. Rust handling: the first row always opens one.",
+   "proposed_fix_status": "track whether an\n  identification is open.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-058",
+   "candidate_key": "percolator_infile-doc-320",
+   "title": "OPENMS-PERCIN-005 \u2014 `retentiontime` and the other `.at`-read columns are   undocumented requirements.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "reported_lines": [
+    320,
+    327
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "retentiontime",
+    ".at",
+    "PercolatorInfile.cpp:257",
+    ":267",
+    ":274",
+    ":285",
+    ":286",
+    ":288",
+    ":370",
+    "std::unordered_map::at",
+    ".pin",
+    "std::out_of_range",
+    "@throws",
+    "Exception::ParseError",
+    "ParseError",
+    "Error::MissingInformation"
+   ],
+   "report": "- **OPENMS-PERCIN-005 \u2014 `retentiontime` and the other `.at`-read columns are\n  undocumented requirements.** `PercolatorInfile.cpp:257`, `:267`, `:274`,\n  `:285`, `:286`, `:288` and `:370` all use `std::unordered_map::at` on the\n  column index map, so a `.pin` file missing any of them throws\n  `std::out_of_range` instead of the documented parse error. A caller may catch it. The header's `@throws` documents only\n  `Exception::ParseError` for a wrong column count. Proposed fix: check the\n  header up front and throw `ParseError`. Rust handling: all of them are\n  checked up front, as `Error::MissingInformation`.",
+   "proposed_fix_status": "check the\n  header up front and throw `ParseError`.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-059",
+   "candidate_key": "percolator_infile-doc-328",
+   "title": "OPENMS-PERCIN-006 \u2014 the winning one-hot charge column is unspecified.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "reported_lines": [
+    328,
+    334
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PercolatorInfile.cpp:293",
+    "col_name_to_charge",
+    "unordered_map",
+    "\"1\""
+   ],
+   "report": "- **OPENMS-PERCIN-006 \u2014 the winning one-hot charge column is unspecified.**\n  `PercolatorInfile.cpp:293` iterates `col_name_to_charge`, an\n  `unordered_map`, and breaks at the first column equal to `\"1\"`. A row with\n  more than one one-hot column set therefore yields a charge that depends on\n  the hash order, so the same file can read differently across builds.\n  Proposed fix: iterate in ascending charge order. Rust handling: ascending\n  charge order.",
+   "proposed_fix_status": "iterate in ascending charge order.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-060",
+   "candidate_key": "mascot_xml-doc-191",
+   "title": "`<NumQueries>` is bounded *and* not materialised. The source calls `resize` with the converted value, so 2,000,000,000 commits the memory, a negative value wraps to an enormous `size_t`, and a header repeating the element constructs and drops the vector again; `MascotXMLFile::load` then reserves the unfiltered count a second time for its filtered output.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_XML_SUPPORT.md",
+   "reported_lines": [
+    191,
+    191
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+     "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480"
+    },
+    {
+     "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+     "sha256": "fd873728ec7a4e98084403a765e085b5345cb88b16d6ed9be5b05ac7f7b3a64c"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "<NumQueries>",
+    "resize",
+    "size_t",
+    "MascotXMLFile::load",
+    "ReadLimits::max_queries",
+    "MXML-02",
+    "MXML-09",
+    "a_hostile_numqueries_is_bounded_rather_than_allocated",
+    "a_declared_query_count_is_not_materialised_up_front"
+   ],
+   "report": "| **`<NumQueries>` is bounded *and* not materialised.** The source calls `resize` with the converted value, so 2,000,000,000 commits the memory, a negative value wraps to an enormous `size_t`, and a header repeating the element constructs and drops the vector again; `MascotXMLFile::load` then reserves the unfiltered count a second time for its filtered output. | `ReadLimits::max_queries` (5,000,000 by default) is checked before any allocation, a negative count is a parse error, the declared count is only an index space, and the filtered vector reserves the number of survivors. A five-million-query header with four repetitions went from 1.59 s to 0.02 s in release mode on the gate node. Recorded as `MXML-02` and `MXML-09` (`a_hostile_numqueries_is_bounded_rather_than_allocated`, `a_declared_query_count_is_not_materialised_up_front`). |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-061",
+   "candidate_key": "mascot_xml-doc-192",
+   "title": "Index bounds are checked. The source's guard is `peptide_identification_index_ > id_data_.size()`, so `query == size + 1` indexes one past the end and a document with no `<NumQueries>` indexes an empty vector. `<peptide query=\"0\">` is *not* one of those cases: the member is a `UInt`, so `0 - 1` wraps to 4294967295 and the guard does catch it. The genuinely unchecked index is `id_data_[actual_query_ - 1]` in the `<queries>` branches, where `actual_query_` is also unsigned: `<query number=\"0\">` followed by `<StringTitle>` or `<RTINSECONDS>` reads at index 4294967295.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_XML_SUPPORT.md",
+   "reported_lines": [
+    192,
+    192
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+     "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480"
+    },
+    {
+     "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+     "sha256": "fd873728ec7a4e98084403a765e085b5345cb88b16d6ed9be5b05ac7f7b3a64c"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "peptide_identification_index_ > id_data_.size()",
+    "query == size + 1",
+    "<NumQueries>",
+    "<peptide query=\"0\">",
+    "UInt",
+    "0 - 1",
+    "id_data_[actual_query_ - 1]",
+    "<queries>",
+    "actual_query_",
+    "<query number=\"0\">",
+    "<StringTitle>",
+    "<RTINSECONDS>",
+    "<peptide>",
+    "MXML-01",
+    "MXML-03",
+    "a_missing_numqueries_header_is_refused_rather_than_read_out_of_bounds"
+   ],
+   "report": "| **Index bounds are checked.** The source's guard is `peptide_identification_index_ > id_data_.size()`, so `query == size + 1` indexes one past the end and a document with no `<NumQueries>` indexes an empty vector. `<peptide query=\"0\">` is *not* one of those cases: the member is a `UInt`, so `0 - 1` wraps to 4294967295 and the guard does catch it. The genuinely unchecked index is `id_data_[actual_query_ - 1]` in the `<queries>` branches, where `actual_query_` is also unsigned: `<query number=\"0\">` followed by `<StringTitle>` or `<RTINSECONDS>` reads at index 4294967295. | All of them are refused, the `<peptide>` cases with the source's own \"show_header=1\" message. Recorded as `MXML-01` and `MXML-03` (`a_missing_numqueries_header_is_refused_rather_than_read_out_of_bounds`). |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": "CPP-164"
+  },
+  {
+   "id": "FORMAT-OBS-062",
+   "candidate_key": "mascot_xml-doc-194",
+   "title": "An empty `<pep_seq>` is handled. The source's `(C-term X)` / `(N-term X)` branches dereference `end() - 1` and `begin()` without checking.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_XML_SUPPORT.md",
+   "reported_lines": [
+    194,
+    194
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+     "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480"
+    },
+    {
+     "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+     "sha256": "fd873728ec7a4e98084403a765e085b5345cb88b16d6ed9be5b05ac7f7b3a64c"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "<pep_seq>",
+    "(C-term X)",
+    "(N-term X)",
+    "end() - 1",
+    "begin()",
+    "MXML-07"
+   ],
+   "report": "| **An empty `<pep_seq>` is handled.** The source's `(C-term X)` / `(N-term X)` branches dereference `end() - 1` and `begin()` without checking. | Recorded as `MXML-07`. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-063",
+   "candidate_key": "mascot_xml-doc-195",
+   "title": "Mascot's `-` flanking marker becomes a terminus marker. The source stores the character verbatim, and `IdXMLFile` then writes `aa_before=\"-\"`, which is neither of OpenMS's own `[`/`]` markers and which nothing downstream interprets \u2014 this crate's `FlankingResidue` cannot represent it at all. `-` before the peptide becomes `NTerminus`, after it `CTerminus`.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_XML_SUPPORT.md",
+   "reported_lines": [
+    195,
+    196
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+     "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480"
+    },
+    {
+     "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+     "sha256": "fd873728ec7a4e98084403a765e085b5345cb88b16d6ed9be5b05ac7f7b3a64c"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "-",
+    "IdXMLFile",
+    "aa_before=\"-\"",
+    "[",
+    "]",
+    "FlankingResidue",
+    "-",
+    "NTerminus",
+    "CTerminus",
+    "MascotXMLFile_test_2.mascotXML",
+    "-",
+    "MXML-08"
+   ],
+   "report": "| **Mascot's `-` flanking marker becomes a terminus marker.** The source stores the character verbatim, and `IdXMLFile` then writes `aa_before=\"-\"`, which is neither of OpenMS's own `[`/`]` markers and which nothing downstream interprets \u2014 this crate's `FlankingResidue` cannot represent it at all. `-` before the peptide becomes `NTerminus`, after it `CTerminus`. | It is the information the character carries, and without the mapping `MascotXMLFile_test_2.mascotXML` (which uses `-` \nfor both) could not be read. Recorded as `MXML-08`. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-064",
+   "candidate_key": "mascot_generic-doc-265",
+   "title": "A value offset landing inside a multi-byte character is a parse error. The source slices raw bytes and produces an ill-formed string.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_GENERIC_SUPPORT.md",
+   "reported_lines": [
+    265,
+    265
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+     "sha256": "ba8d16b22034f0a7f0f257469f7437e0e3e4589b48bb9ecb80caf2fe8df5c67e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PEPMASS\u00e9=1.0",
+    "StringUtils::substr",
+    "a_header_line_shorter_than_its_key_yields_an_empty_value"
+   ],
+   "report": "| **A value offset landing inside a multi-byte character is a parse error.** The source slices raw bytes and produces an ill-formed string. | Rust string slicing at a non-boundary aborts the process, and half a character is not a usable value. Tested with `PEPMASS\u00e9=1.0`. An offset *past* the end of the line is not this case: `StringUtils::substr` clamps it, and so does this port (`a_header_line_shorter_than_its_key_yields_an_empty_value`). |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-065",
+   "candidate_key": "mascot_generic-doc-266",
+   "title": "A `SEQ=` list is accumulated in the reader, not round-tripped through the meta value on every line.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_GENERIC_SUPPORT.md",
+   "reported_lines": [
+    266,
+    266
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+     "sha256": "ba8d16b22034f0a7f0f257469f7437e0e3e4589b48bb9ecb80caf2fe8df5c67e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "SEQ=",
+    "SEQ=",
+    "many_seq_lines_in_one_query_are_linear",
+    "MGF-04"
+   ],
+   "report": "| **A `SEQ=` list is accumulated in the reader**, not round-tripped through the meta value on every line. | The source reads the whole list out of the meta value, appends one entry and writes it back for each `SEQ=` line, which is quadratic: the 100,000-line ceiling costs about five billion string copies, 434 s in release mode on the gate node, for a 1.2 MB block. Accumulating and storing once is 0.04 s and stores the identical list (`many_seq_lines_in_one_query_are_linear`). Recorded as `MGF-04`. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-066",
+   "candidate_key": "mascot_generic-doc-267",
+   "title": "A scan number that overflows 32-bit arithmetic yields the `-1` sentinel and a warning. The source's `index=` branch computes `toInt32(value) + 1` and its WIFF branch `cycle * 1000 + experiment` in `int`, both of which are signed overflow \u2014 undefined behaviour \u2014 for a large native ID.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_GENERIC_SUPPORT.md",
+   "reported_lines": [
+    267,
+    267
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+     "sha256": "ba8d16b22034f0a7f0f257469f7437e0e3e4589b48bb9ecb80caf2fe8df5c67e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "-1",
+    "index=",
+    "toInt32(value) + 1",
+    "cycle * 1000 + experiment",
+    "int",
+    "MGF-05",
+    "the_last_scan_number_match_wins_before_conversion"
+   ],
+   "report": "| **A scan number that overflows 32-bit arithmetic yields the `-1` sentinel and a warning.** The source's `index=` branch computes `toInt32(value) + 1` and its WIFF branch `cycle * 1000 + experiment` in `int`, both of which are signed overflow \u2014 undefined behaviour \u2014 for a large native ID. | Checked arithmetic cannot wrap, so the port takes the same path as every other extraction failure and says so in the warning. Recorded as `MGF-05` (`the_last_scan_number_match_wins_before_conversion`). |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-067",
+   "candidate_key": "mascot_generic-doc-270",
+   "title": "`isdigit(line[0])` is replaced by a byte test.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_GENERIC_SUPPORT.md",
+   "reported_lines": [
+    270,
+    270
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+     "sha256": "ba8d16b22034f0a7f0f257469f7437e0e3e4589b48bb9ecb80caf2fe8df5c67e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "isdigit(line[0])",
+    "char",
+    "isdigit",
+    "MGF-02"
+   ],
+   "report": "| **`isdigit(line[0])` is replaced by a byte test.** | Passing a negative `char` to `isdigit` is undefined behaviour; recorded as `MGF-02`. Tested with a whole non-ASCII line. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-068",
+   "candidate_key": "mascot_generic-doc-271",
+   "title": "A non-positive `MSLEVEL` is refused rather than stored.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MASCOT_GENERIC_SUPPORT.md",
+   "reported_lines": [
+    271,
+    271
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+     "sha256": "ba8d16b22034f0a7f0f257469f7437e0e3e4589b48bb9ecb80caf2fe8df5c67e"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MSLEVEL",
+    "std::stoi"
+   ],
+   "report": "| **A non-positive `MSLEVEL` is refused** rather than stored. | The source assigns whatever `std::stoi` returned, and MS level 0 makes the record invalid for every consumer. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-069",
+   "candidate_key": "mzidentml-doc-300",
+   "title": "Cross-link group index",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    300,
+    300
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [],
+   "report": "| **Cross-link group index** | Groups by an index that counts *every* element child of the result, then looks the item up in the result's item list, so a result with a non-item element child before its items groups the wrong item | Groups by the item's own ordinal |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-070",
+   "candidate_key": "mzidentml-doc-301",
+   "title": "A result with no items",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    301,
+    301
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "(0 \u2192 item 0)",
+    "item(0)"
+   ],
+   "report": "| **A result with no items** | Registers the group `(0 \u2192 item 0)` unconditionally and then dereferences a null `item(0)` | No identification, no crash |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-071",
+   "candidate_key": "mzidentml-doc-302",
+   "title": "A cross-link group with no experimental m/z",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    302,
+    302
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "min_element",
+    "light[0]",
+    "a_crosslink_group_without_an_experimental_mz_is_skipped"
+   ],
+   "report": "| **A cross-link group with no experimental m/z** | `min_element` over a vector of NaN, then `light[0]` on an empty index vector | The group is skipped. Pinned by `a_crosslink_group_without_an_experimental_mz_is_skipped` |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-072",
+   "candidate_key": "mzidentml-doc-303",
+   "title": "The result's own parameters",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    303,
+    303
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "pep_id_->back()"
+   ],
+   "report": "| **The result's own parameters** | Applied to `pep_id_->back()`, so with several groups per result only the last one gets the retention time, and with no group at all they land on an unrelated earlier identification | Applied to every identification the result produced |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-073",
+   "candidate_key": "mzidentml-doc-304",
+   "title": "A loop-link's second position",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    304,
+    304
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "\"-\"",
+    "a_loop_link_keeps_both_positions_on_one_chain",
+    "OpenMS_CPP_ISSUES.md"
+   ],
+   "report": "| **A loop-link's second position** | Set from the acceptor and then overwritten with the mono-link placeholder `\"-\"` two branches later, which makes the source's own loop-link branch dead and drops the second half of every loop-link on a store | Kept, so a loop-link round-trips. Pinned by `a_loop_link_keeps_both_positions_on_one_chain`. `OpenMS_CPP_ISSUES.md` |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-074",
+   "candidate_key": "mzidentml-doc-306",
+   "title": "Hits of a non-cross-linked identification",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    306,
+    306
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "removeBetaPeptideHits",
+    "noncovalent_association_resolves_every_sequence"
+   ],
+   "report": "| **Hits of a non-cross-linked identification** | `removeBetaPeptideHits` keeps only the first hit of every identification, so a spectrum read through the fallback path loses every candidate but the best | Only a folded beta chain is removed. Pinned by `noncovalent_association_resolves_every_sequence` |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-075",
+   "candidate_key": "mzidentml-doc-307",
+   "title": "The merged identification's run link",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    307,
+    307
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [],
+   "report": "| **The merged identification's run link** | Left empty, so every cross-linking PSM ends up unlinked from its protein run and the writer has to fall back to the first list | Kept |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-076",
+   "candidate_key": "mzidentml-doc-308",
+   "title": "A terminal cross-link's location",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    308,
+    308
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "location=0",
+    "CrossLinksDB",
+    "N_TERM",
+    "C_TERM",
+    "terminal_crosslink_positions_round_trip"
+   ],
+   "report": "| **A terminal cross-link's location** | Written at `location=0` (or the position plus two) only when `CrossLinksDB` also holds a terminal record of that mass, and otherwise emits an attribute list with no element name in front of it | The location follows the hit's terminal specificity, so `N_TERM` and `C_TERM` round-trip. Pinned by `terminal_crosslink_positions_round_trip` |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-077",
+   "candidate_key": "mzidentml-doc-309",
+   "title": "The beta chain's C-terminal location",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    309,
+    309
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "OpenMS_CPP_ISSUES.md"
+   ],
+   "report": "| **The beta chain's C-terminal location** | Written at the peptide length plus two, which its own reader reads as an internal position one past the end | The position plus two, i.e. the schema's C-terminus. `OpenMS_CPP_ISSUES.md` |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-078",
+   "candidate_key": "mzidentml-doc-310",
+   "title": "An ambiguous cross-linker mass",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    310,
+    310
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "getModification(one-letter code, full id, ANYWHERE)"
+   ],
+   "report": "| **An ambiguous cross-linker mass** | Falls back to `getModification(one-letter code, full id, ANYWHERE)` - the name and residue arguments the wrong way round, which throws | The first record of that mass, as the intent reads |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-079",
+   "candidate_key": "mzidentml-doc-311",
+   "title": "`xl_pos1_protein` / `xl_pos2_protein`",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    311,
+    311
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "xl_pos1_protein",
+    "xl_pos2_protein",
+    "evidence start + link position + 1",
+    "start"
+   ],
+   "report": "| **`xl_pos1_protein` / `xl_pos2_protein`** | `evidence start + link position + 1`, where the source's own reader stored the file's 1-based `start`, so the protein coordinate is one too high | The same formula on the 0-based start this reader stores, i.e. the coordinate the source's comment describes |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-080",
+   "candidate_key": "mzidentml-doc-316",
+   "title": "`PeptideEvidence` positions",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    316,
+    316
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PeptideEvidence",
+    "start=\"115\"",
+    "OpenMS_CPP_ISSUES.md"
+   ],
+   "report": "| **`PeptideEvidence` positions** | Read as the file's 1-based value into a member documented as 0-based, and written as position + 1, so each store/load cycle shifts them | Converted on both sides; `start=\"115\"` reads as 114 and writes back as 115. `OpenMS_CPP_ISSUES.md`. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-081",
+   "candidate_key": "mzidentml-doc-317",
+   "title": "`userParam` type",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    317,
+    317
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "userParam",
+    "unitName",
+    "type",
+    "OpenMS_CPP_ISSUES.md"
+   ],
+   "report": "| **`userParam` type** | The XSD type goes into `unitName`, which no reader reads | The schema's `type` attribute, so integers and doubles survive a round trip. `OpenMS_CPP_ISSUES.md`. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-082",
+   "candidate_key": "mzidentml-doc-318",
+   "title": "`pass_threshold` storage",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    318,
+    318
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "pass_threshold",
+    "setMetaValue(String, bool)",
+    "DataValue::toBool",
+    "\"true\"",
+    "\"false\"",
+    "MetaValue::to_bool"
+   ],
+   "report": "| **`pass_threshold` storage** | `setMetaValue(String, bool)` promotes the bool to an integer, which `DataValue::toBool` then rejects | The crate's documented boolean strings `\"true\"`/`\"false\"`, so `MetaValue::to_bool` works. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-083",
+   "candidate_key": "mzidentml-doc-320",
+   "title": "`nan` in required attributes",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    320,
+    320
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "nan",
+    "nan",
+    "xsd:double",
+    "NaN",
+    "None"
+   ],
+   "report": "| **`nan` in required attributes** | Writes the literal `nan` for an absent m/z, which is not a valid `xsd:double` | Writes `NaN`, the schema's lexical form. An absent RT or m/z is `None`, never a NaN sentinel. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-084",
+   "candidate_key": "mzidentml-doc-321",
+   "title": "Protein-terminal search modifications",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    321,
+    321
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "writeModParam_",
+    "@TODO: handle protein C-term/N-term",
+    "MS:1001189",
+    "MS:1001190",
+    "MS:1002057",
+    "MS:1002058",
+    "Xlink:DTSSP[88] (Protein N-term)"
+   ],
+   "report": "| **Protein-terminal search modifications** | `writeModParam_` writes specificity rules for the peptide termini only, leaving a `@TODO: handle protein C-term/N-term`, so a protein-terminal modification cannot be resolved unambiguously on re-read | All four rules are written (`MS:1001189`, `MS:1001190`, `MS:1002057`, `MS:1002058`), so `Xlink:DTSSP[88] (Protein N-term)` round-trips. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-085",
+   "candidate_key": "mzidentml-doc-322",
+   "title": "Ambiguous modification names",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    322,
+    322
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "searchModifications"
+   ],
+   "report": "| **Ambiguous modification names** | `searchModifications` returns a set and every match is written, multiplying the element | Refused as ambiguous by the registry, so the output cannot silently gain modifications. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-086",
+   "candidate_key": "mzidentml-doc-323",
+   "title": "`NumTolerableTermini` / `taxonomy`",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    323,
+    323
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "NumTolerableTermini",
+    "taxonomy",
+    "userParam"
+   ],
+   "report": "| **`NumTolerableTermini` / `taxonomy`** | Consumed on read and dropped by the writer, losing the enzyme specificity | Written back as `userParam`s, so both survive a round trip. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-087",
+   "candidate_key": "mzidentml-doc-324",
+   "title": "`AdditionalSearchParams` ordering",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    324,
+    324
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "AdditionalSearchParams",
+    "AdditionalSearchParams",
+    "ModificationParams",
+    "Enzymes",
+    "AdditionalSearchParams"
+   ],
+   "report": "| **`AdditionalSearchParams` ordering** | Assigns the parsed block *over* the accumulated parameters, so a document that places `AdditionalSearchParams` after `ModificationParams`, `Enzymes` or the tolerances silently loses them | Seeded from `AdditionalSearchParams` first, then the other children, so the result does not depend on child order. The schema fixes that order, so no conformant file is affected. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-088",
+   "candidate_key": "mzidentml-doc-325",
+   "title": "Namespaces",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    325,
+    325
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "setDoNamespaces(false)",
+    "SpectraData",
+    "a_prefixed_namespace_is_resolved",
+    "a_foreign_root_namespace_is_refused"
+   ],
+   "report": "| **Namespaces** | `setDoNamespaces(false)`: tag names are matched as written, so a document that binds the mzIdentML namespace to a prefix is read as empty and then rejected for having no `SpectraData` | The default namespace and prefixed names both resolve; the root's namespace must be an mzIdentML one, and an element in a foreign namespace is refused. Pinned by `a_prefixed_namespace_is_resolved` and `a_foreign_root_namespace_is_refused`. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-089",
+   "candidate_key": "mzidentml-doc-326",
+   "title": "Malformed XML",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    326,
+    326
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "Error::Parse"
+   ],
+   "report": "| **Malformed XML** | A Xerces parse failure is logged and the partial document is used | Any XML error is an [`Error::Parse`]. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-090",
+   "candidate_key": "mzidentml-doc-327",
+   "title": "Peptide sequence failures",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    327,
+    327
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PeptideSequence",
+    "AASequence"
+   ],
+   "report": "| **Peptide sequence failures** | An unknown modification, a bad substitution location or an empty `PeptideSequence` ends in a logged warning and an *empty* `AASequence` in the peptide map, so the affected PSMs silently lose their sequence; one of those paths is an out-of-bounds write | Every one of them is an error. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": "CPP-168"
+  },
+  {
+   "id": "FORMAT-OBS-091",
+   "candidate_key": "mzidentml-doc-329",
+   "title": "Evidence deduplication on write",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    329,
+    329
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "Peptide",
+    "Peptide"
+   ],
+   "report": "| **Evidence deduplication on write** | One `Peptide` and one evidence list per *sequence string*; a later PSM with the same sequence reuses the first PSM's evidence list and its own evidences are dropped | The `Peptide` element is still shared, but evidences are deduplicated by their full content, so no evidence is lost and the round trip is stable. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-092",
+   "candidate_key": "mzidentml-doc-330",
+   "title": "A PSM whose evidence names an undeclared protein",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    330,
+    330
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "Error::InvalidValue"
+   ],
+   "report": "| **A PSM whose evidence names an undeclared protein** | Logged and skipped, dropping the evidence | [`Error::InvalidValue`] before any output. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-093",
+   "candidate_key": "mzidentml-doc-331",
+   "title": "A peptide identification not linked to a run",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    331,
+    331
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "Error::InvalidValue"
+   ],
+   "report": "| **A peptide identification not linked to a run** | Logged and dropped, losing the whole spectrum | [`Error::InvalidValue`] before any output. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-094",
+   "candidate_key": "mzidentml-doc-332",
+   "title": "An empty `SpectrumIdentificationResult`",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    332,
+    332
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "SpectrumIdentificationResult",
+    "Error::MissingInformation"
+   ],
+   "report": "| **An empty `SpectrumIdentificationResult`** | Emitted, which the schema forbids | [`Error::MissingInformation`]. |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-095",
+   "candidate_key": "mzidentml-doc-341",
+   "title": "duplicate element id (same kind)",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    341,
+    341
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "std::map::insert",
+    "Error::Parse"
+   ],
+   "report": "| duplicate element id (same kind) | `std::map::insert` keeps the **first** silently, so the second element's data is lost | [`Error::Parse`] naming the kind and id |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-096",
+   "candidate_key": "mzidentml-doc-342",
+   "title": "dangling `peptide_ref` on a `SpectrumIdentificationItem`",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    342,
+    342
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "peptide_ref",
+    "SpectrumIdentificationItem",
+    "operator[]",
+    "AASequence",
+    "Error::Parse"
+   ],
+   "report": "| dangling `peptide_ref` on a `SpectrumIdentificationItem` | `operator[]` default-constructs an empty `AASequence`: the PSM keeps its score and loses its sequence | [`Error::Parse`] |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-097",
+   "candidate_key": "mzidentml-doc-343",
+   "title": "dangling `dBSequence_ref` on a `PeptideEvidence`",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    343,
+    343
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "dBSequence_ref",
+    "PeptideEvidence",
+    "operator[]",
+    "ProteinHit",
+    "Error::Parse"
+   ],
+   "report": "| dangling `dBSequence_ref` on a `PeptideEvidence` | `operator[]` default-constructs: the PSM gets an empty protein accession and the run gains a `ProteinHit` with an empty accession | [`Error::Parse`] |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-098",
+   "candidate_key": "mzidentml-doc-344",
+   "title": "`DBSequence` with an empty `accession`",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    344,
+    344
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "DBSequence",
+    "accession",
+    "Error::Parse",
+    "DBSequence"
+   ],
+   "report": "| `DBSequence` with an empty `accession` | Not registered at all, so every evidence pointing at it behaves as the case above | [`Error::Parse`] at the `DBSequence` |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-099",
+   "candidate_key": "mzidentml-doc-345",
+   "title": "`SpectrumIdentificationList` no `SpectrumIdentification` references",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    345,
+    345
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "SpectrumIdentificationList",
+    "SpectrumIdentification",
+    "operator[]",
+    "Error::Parse"
+   ],
+   "report": "| `SpectrumIdentificationList` no `SpectrumIdentification` references | `operator[]` yields index 0: its results are attributed to the **first** run | [`Error::Parse`] |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-100",
+   "candidate_key": "mzidentml-doc-346",
+   "title": "two `SpectrumIdentification`s referencing one list",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    346,
+    346
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "SpectrumIdentification",
+    "insert",
+    "Error::Parse"
+   ],
+   "report": "| two `SpectrumIdentification`s referencing one list | `insert` keeps the first, so the second run silently gets no spectra | [`Error::Parse`] |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-101",
+   "candidate_key": "mzidentml-doc-352",
+   "title": "`PeptideEvidenceRef` children",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "reported_lines": [
+    352,
+    352
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "PeptideEvidenceRef",
+    "Peptide"
+   ],
+   "report": "| `PeptideEvidenceRef` children | Ignored; evidences come from the `Peptide` id instead | Ignored, same |",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-102",
+   "candidate_key": "mzdata-doc-223",
+   "title": "No panic on untrusted input.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    223,
+    230
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MzDataHandler.cpp",
+    ".back()",
+    "exp_->getContacts()",
+    ":117",
+    ":121",
+    ":125",
+    "exp_->getSourceFiles()",
+    ":150",
+    ":158",
+    ":166",
+    "meta_id_descs_",
+    ":265",
+    ":292",
+    "spec_.getPrecursors()",
+    ":284",
+    ":1186",
+    "exp_->getSpectra()",
+    ":1136",
+    "data_processing_",
+    ":113",
+    ":129",
+    ":133",
+    ":246",
+    ":316",
+    "Error::Parse"
+   ],
+   "report": "1. **No panic on untrusted input.** Nine places in `MzDataHandler.cpp` call\n   `.back()` on a container a hostile document can leave empty \u2014\n   `exp_->getContacts()` (`:117`, `:121`, `:125`), `exp_->getSourceFiles()`\n   (`:150`, `:158`, `:166`), `meta_id_descs_` (`:265`, `:292`),\n   `spec_.getPrecursors()` (`:284`, `:1186`\u2026), the three instrument component\n   vectors, and `exp_->getSpectra()` (`:1136`) \u2014 and dereference\n   `data_processing_` (`:113`, `:129`, `:133`, `:246`, `:316`) without a null\n   check. Each of those is an `Error::Parse` here.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": "CPP-170"
+  },
+  {
+   "id": "FORMAT-OBS-103",
+   "candidate_key": "mzdata-doc-240",
+   "title": "`peak_count_` does not leak between spectra.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    240,
+    242
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "peak_count_",
+    "<data>",
+    "<mzArrayBinary>"
+   ],
+   "report": "3. **`peak_count_` does not leak between spectra.** It is a handler member\n   assigned only from `<data>` inside `<mzArrayBinary>`, so upstream a spectrum\n   without an m/z array inherits the previous one's count.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-104",
+   "candidate_key": "mzdata-doc-249",
+   "title": "Text is XML-escaped and the declared encoding is kept truthful.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    249,
+    257
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "writeTo",
+    "std::string",
+    "&",
+    "<",
+    "encoding=\"ISO-8859-1\"",
+    "U+0080..U+00FF",
+    "U+00FF"
+   ],
+   "report": "5. **Text is XML-escaped and the declared encoding is kept truthful.**\n   `writeTo` streams every `std::string` raw, so an `&` or a `<` in any\n   metadata value produces a document that is not well-formed, and UTF-8\n   metadata produces bytes `encoding=\"ISO-8859-1\"` cannot describe. Here the\n   five XML delimiters are escaped, characters in `U+0080..U+00FF` are written\n   as single ISO-8859-1 bytes, and anything above `U+00FF` as a numeric\n   character reference. Reading transcodes ISO-8859-1 exactly, accepts UTF-8\n   and US-ASCII, and refuses any other declared encoding rather than\n   misreading it.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-105",
+   "candidate_key": "mzdata-doc-258",
+   "title": "Unparsable numbers are refused.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    258,
+    267
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+     "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "asDouble_",
+    "asInt_",
+    "0",
+    "XMLHandler.h:264-317",
+    "Error::Parse",
+    "asDateTime_",
+    "completionTime",
+    "None",
+    "DateTime"
+   ],
+   "report": "6. **Unparsable numbers are refused.** `asDouble_` and `asInt_` log a\n   non-fatal error and substitute `0` (`XMLHandler.h:264-317`). Substituting\n   zero for a mass, an intensity or a charge is worse than refusing the\n   document, so both are `Error::Parse` here. Nonfinite values are refused for\n   the same reason, in an attribute and in a *decoded* array alike: a NaN or\n   infinite m/z makes every later sort and binary search on that spectrum\n   undefined, and an intensity outside the f32 range cannot be stored at all.\n   `asDateTime_`'s failure remains non-fatal: an unparsable `completionTime`\n   leaves `None` and raises a warning, as the source leaves its\n   invalid-`DateTime` sentinel.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-106",
+   "candidate_key": "mzdata-doc-268",
+   "title": "Character data is accumulated per element.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    268,
+    272
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "characters()",
+    "data"
+   ],
+   "report": "7. **Character data is accumulated per element.** The source applies each\n   chunk as it arrives, so a value split across `characters()` calls keeps only\n   the last chunk for every tag except `data`. Accumulating and applying at the\n   closing tag also makes CDATA sections and character references work, which\n   Xerces gives the source handler for free.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-107",
+   "candidate_key": "mzdata-doc-273",
+   "title": "`<supDataArrayBinary>` cannot shift its neighbours.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    273,
+    280
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "<supDataArrayBinary>",
+    "<arrayName>",
+    ":426-429",
+    "precisions_",
+    "<data>",
+    "<arrayName>",
+    "<supDataArrayBinary>",
+    "<data>"
+   ],
+   "report": "8. **`<supDataArrayBinary>` cannot shift its neighbours.** The source pushes\n   the decode slot when `<arrayName>` opens (`:426-429`), so an annotation array\n   without that child shifts every following payload by one slot and the\n   trailing array reads past the end of `precisions_`. Here the `<data>`\n   element creates its own slot, `<arrayName>` only names it, and each slot\n   carries the index of the float data array it belongs to, so a\n   `<supDataArrayBinary>` with no `<data>` child or with two is an error rather\n   than a silent mispairing.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-108",
+   "candidate_key": "mzdata-doc-281",
+   "title": "The m/z and intensity arrays are identified by their parent element.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    281,
+    286
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "fillData_",
+    "<data>",
+    "precisions_[0]",
+    "precisions_[1]",
+    ":522-527",
+    "<intenArrayBinary>",
+    "<mzArrayBinary>"
+   ],
+   "report": "9. **The m/z and intensity arrays are identified by their parent element.**\n   `fillData_` identifies them by *position* among the `<data>` elements \u2014\n   `precisions_[0]` and `precisions_[1]` (`:522-527`) \u2014 so a document that\n   writes `<intenArrayBinary>` before `<mzArrayBinary>` has its two arrays\n   silently swapped. This port classifies by parent tag and refuses a second\n   array of either kind.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-109",
+   "candidate_key": "mzdata-doc-287",
+   "title": "A document with no `<dataProcessing>` leaves the spectra without one.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    287,
+    290
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "<dataProcessing>",
+    "data_processing_",
+    "<spectrum>",
+    ":345",
+    "DataProcessingPtr"
+   ],
+   "report": "10. **A document with no `<dataProcessing>` leaves the spectra without one.**\n   The source pushes `data_processing_` unconditionally at `<spectrum>`\n   (`:345`), so such a document gives every spectrum a null\n   `DataProcessingPtr`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-110",
+   "candidate_key": "mzdata-doc-294",
+   "title": "The spectrum comment lives in metadata.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    294,
+    298
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "spec_.setComment",
+    ":137",
+    "MSSpectrum",
+    "SpectrumSettings",
+    "MSSpectrum",
+    "comment"
+   ],
+   "report": "12. **The spectrum comment lives in metadata.** `spec_.setComment` (`:137`)\n    has no `MSSpectrum` counterpart in this crate; the comment is on\n    `SpectrumSettings`, which `MSSpectrum` does not embed, so the value is kept\n    as a `comment` metadata entry. The source writer never emits the element,\n    so it is read-only either way.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-111",
+   "candidate_key": "mzdata-doc-299",
+   "title": "No progress logging and no OpenMP.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    299,
+    304
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "ProgressLogger&",
+    "static UInt",
+    ":436"
+   ],
+   "report": "13. **No progress logging and no OpenMP.** The source handler takes a\n    `ProgressLogger&` and keeps its scan counter in a **function-local\n    `static UInt`** (`:436`), shared by every handler instance and thread, so\n    concurrent or successive loads interleave the count. Neither the logger nor\n    any threading is ported; the source parallelises nothing in this file, so\n    there is no OpenMP gap to record beyond that.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-112",
+   "candidate_key": "mzdata-doc-308",
+   "title": "Every document this writer produces, this reader loads.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "reported_lines": [
+    308,
+    327
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "<supDataArrayBinary>",
+    "writeTo",
+    "error(LOAD, \u2026)",
+    "MzDataHandler.cpp:1032-1037",
+    "fillData_",
+    "decoded_list_[2 + i][n]",
+    ":562-572",
+    "DataArray",
+    "MSExperiment::validate",
+    "WriteOptions::discard_unrepresentable",
+    "<supDesc>",
+    "<supDataArrayBinary>",
+    "tests/mzdata.rs::annotation_array_length_must_match_the_peak_count",
+    "::misaligned_annotation_arrays_are_dropped_rather_than_written",
+    "::nonfinite_values_are_refused_by_the_writer"
+   ],
+   "report": "15. **Every document this writer produces, this reader loads.**\n    `<supDataArrayBinary>` is aligned with the peak array element for element,\n    and mzData has no way to say otherwise. `writeTo` nevertheless writes an\n    annotation array whose length differs from the spectrum's, reporting it\n    through the non-fatal `error(LOAD, \u2026)` (`MzDataHandler.cpp:1032-1037`) \u2014\n    and `fillData_` then reads `decoded_list_[2 + i][n]` past the end of that\n    array for every peak it does not have (`:562-572`), which this reader\n    refuses. A store followed by a load therefore failed on any experiment\n    holding a misaligned array, including the empty placeholder array\n    `DataArray` documents and `MSExperiment::validate` accepts. The array\n    length is now checked in the preflight, before anything is written, and\n    `WriteOptions::discard_unrepresentable` drops such an array \u2014 with the\n    source's warning and the `<supDesc>` / `<supDataArrayBinary>` numbering of\n    the surviving arrays kept in step \u2014 instead of writing a document that\n    cannot be read back. A nonfinite m/z, intensity or annotation value is\n    refused in *both* modes for the same reason: it is not a representability\n    gap that could be discarded, and the reader refuses a decoded array that\n    holds one (difference 6). `tests/mzdata.rs::annotation_array_length_must_match_the_peak_count`,\n    `::misaligned_annotation_arrays_are_dropped_rather_than_written` and\n    `::nonfinite_values_are_refused_by_the_writer` hold all three down.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": "CPP-170"
+  },
+  {
+   "id": "FORMAT-OBS-113",
+   "candidate_key": "msstats-doc-297",
+   "title": "OPENMS-MSSTATS-003 \u2014 `storeISO`'s run mapping is never populated.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MSSTATS_SUPPORT.md",
+   "reported_lines": [
+    297,
+    303
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "storeISO",
+    "MSstatsFile.cpp:534",
+    "msstats_run_to_openms_fractiongroup",
+    ":744",
+    "tests/msstats.rs"
+   ],
+   "report": "- **OPENMS-MSSTATS-003 \u2014 `storeISO`'s run mapping is never populated.**\n  `MSstatsFile.cpp:534` declares `msstats_run_to_openms_fractiongroup`, the\n  isobaric loop never writes to it, and the informational loop at `:744` that\n  prints \"MSstats run N corresponds to OpenMS TechRepMixture M\" therefore\n  always prints nothing. Proposed fix: fill it, or delete it and its printout.\n  Rust handling: the map is reported empty for the isobaric layout, and\n  `tests/msstats.rs` asserts that.",
+   "proposed_fix_status": "fill it, or delete it and its printout.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-114",
+   "candidate_key": "msstats-doc-304",
+   "title": "OPENMS-MSSTATS-004 \u2014 the triple sanity check is dead.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MSSTATS_SUPPORT.md",
+   "reported_lines": [
+    304,
+    310
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MSstatsFile.cpp:138",
+    "set<tuple<std::string, std::string, std::string>> peptideseq_precursor_charge_run",
+    ":162"
+   ],
+   "report": "- **OPENMS-MSSTATS-004 \u2014 the triple sanity check is dead.**\n  `MSstatsFile.cpp:138` declares\n  `set<tuple<std::string, std::string, std::string>> peptideseq_precursor_charge_run`\n  described as a \"sanity check that the triples (peptide_sequence,\n  precursor_charge, run) only appears once\", `:162` inserts into it, and\n  nothing ever reads it or its size. The check the comment promises is not\n  performed. Proposed fix: perform it or remove it. Rust handling: not ported.",
+   "proposed_fix_status": "perform it or remove it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-115",
+   "candidate_key": "msstats-doc-319",
+   "title": "OPENMS-MSSTATS-006 \u2014 the label-free channel default cannot match a design   label of anything but 1.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MSSTATS_SUPPORT.md",
+   "reported_lines": [
+    319,
+    328
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "MSstatsFile.cpp:106",
+    ":115",
+    "channel_id",
+    "1u",
+    "storeLFQ",
+    "Label",
+    "channel_id = 0",
+    "0",
+    ":113"
+   ],
+   "report": "- **OPENMS-MSSTATS-006 \u2014 the label-free channel default cannot match a design\n  label of anything but 1.** `MSstatsFile.cpp:106` and `:115` push the raw\n  `channel_id` when the column header has one and `1u` when it does not, and\n  `storeLFQ` uses that value directly as the design `Label`. A label-free map\n  whose headers happen to carry `channel_id = 0` therefore looks up label `0`,\n  which no design declares, and falls into OPENMS-MSSTATS-001. The source's own\n  comment at `:113` notes the value \"could be missing due to other reasons\".\n  Proposed fix: derive the label from the design's label count. Rust handling:\n  reproduced, and the missing lookup is an explicit error rather than a silent\n  zero.",
+   "proposed_fix_status": "derive the label from the design's label count.",
+   "related_issue": "CPP-178"
+  },
+  {
+   "id": "FORMAT-OBS-116",
+   "candidate_key": "ms_data_writing_consumer-doc-157",
+   "title": "An empty `native_id` is filled in",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
+   "reported_lines": [
+    157,
+    160
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+     "sha256": "094c7211eb1cdcb17bdca61bf783131acd8f8fdf820ce9116ac249802be2b7a2"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+     "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "native_id",
+    "index=N",
+    "chromatogram=N",
+    "id=\"\""
+   ],
+   "report": "- **An empty `native_id` is filled in** with `index=N` or `chromatogram=N`,\n  which is what the whole-document writer would have produced at that position.\n  The source writes the empty identifier through, giving a file whose records\n  all carry `id=\"\"`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-117",
+   "candidate_key": "ms_data_writing_consumer-doc-161",
+   "title": "Duplicate identifiers are refused.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
+   "reported_lines": [
+    161,
+    163
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+     "sha256": "094c7211eb1cdcb17bdca61bf783131acd8f8fdf820ce9116ac249802be2b7a2"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+     "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "WritingLimits::max_native_id_bytes"
+   ],
+   "report": "- **Duplicate identifiers are refused.** The whole-document writer rejects them;\n  the streaming path must not be the weaker one. Retained identifier text is\n  charged against `WritingLimits::max_native_id_bytes`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-118",
+   "candidate_key": "ms_data_writing_consumer-doc-174",
+   "title": "`NoopMSDataWritingConsumer` takes no path",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
+   "reported_lines": [
+    174,
+    176
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+     "sha256": "094c7211eb1cdcb17bdca61bf783131acd8f8fdf820ce9116ac249802be2b7a2"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+     "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "NoopMSDataWritingConsumer"
+   ],
+   "report": "- **`NoopMSDataWritingConsumer` takes no path**, so asking for a consumer that\n  does nothing cannot truncate an existing output \u2014 the source's does, through\n  its base constructor.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-119",
+   "candidate_key": "mzxml-doc-204",
+   "title": "Metadata attribution under nesting is per-scan.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    204,
+    211
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "<nameValue>",
+    "<comment>",
+    "<precursorMz>",
+    "<peaks>",
+    "spectrum_data_.back()",
+    "</scan>",
+    "<nameValue>",
+    "MzXMLFile_5_nested.mzXML",
+    "nested_scan_metadata_stays_on_its_own_scan"
+   ],
+   "report": "1. **Metadata attribution under nesting is per-scan.** Upstream attaches\n   `<nameValue>`, `<comment>`, `<precursorMz>` and `<peaks>` to\n   `spectrum_data_.back()` \u2014 the most recently *started* scan \u2014 and nothing pops\n   that on `</scan>`. A parent's `<nameValue>` written after a nested child\n   therefore lands on the child. This port keeps a stack of open scans, so each\n   level keeps its own metadata. `MzXMLFile_5_nested.mzXML` and\n   `nested_scan_metadata_stays_on_its_own_scan` pin the corrected behaviour.\n   Recorded as a C++ issue candidate.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-120",
+   "candidate_key": "mzxml-doc-212",
+   "title": "`skip_spectrum_` is per-scan.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    212,
+    214
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "skip_spectrum_",
+    "</scan>",
+    "slot == None"
+   ],
+   "report": "2. **`skip_spectrum_` is per-scan.** Upstream's single flag stays set after a\n   filtered child's `</scan>`, so the parent's remaining children are dropped\n   too. A frame's `slot == None` replaces it.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-121",
+   "candidate_key": "mzxml-doc-221",
+   "title": "The four undefined `<peaks>` attribute values are refused.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    221,
+    226
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "<peaks>",
+    "precision",
+    "network",
+    "byteOrder",
+    "m/z-int",
+    "contentType",
+    "compressionType",
+    "Error::Unsupported",
+    "ReadReport"
+   ],
+   "report": "4. **The four undefined `<peaks>` attribute values are refused.** Upstream logs\n   a non-fatal error for an unknown `precision`, a non-`network` `byteOrder`, a\n   non-`m/z-int` `contentType` or an unknown `compressionType`, and then decodes\n   anyway \u2014 reading little-endian data as big-endian, or intensity-first pairs as\n   m/z-first. This port returns `Error::Unsupported` and records the source's own\n   message in `ReadReport`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-122",
+   "candidate_key": "mzxml-doc-227",
+   "title": "`<peaks>`, `<precursorMz>`, `<software>`, `<processingOperation>` and    `<msResolution>` outside their expected parent are errors or diagnostics, not    undefined behaviour.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    227,
+    232
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "<peaks>",
+    "<precursorMz>",
+    "<software>",
+    "<processingOperation>",
+    "<msResolution>",
+    "spectrum_data_.back()",
+    "data_processing_.back()",
+    "getMassAnalyzers()[0]",
+    "*(open_tags_.end() - 2)"
+   ],
+   "report": "5. **`<peaks>`, `<precursorMz>`, `<software>`, `<processingOperation>` and\n   `<msResolution>` outside their expected parent are errors or diagnostics, not\n   undefined behaviour.** Upstream indexes `spectrum_data_.back()`,\n   `data_processing_.back()` or `getMassAnalyzers()[0]` unconditionally, and\n   `*(open_tags_.end() - 2)` even at depth one. Recorded as a C++ issue\n   candidate.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-123",
+   "candidate_key": "mzxml-doc-233",
+   "title": "A negative `xs:duration` keeps its sign.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    233,
+    241
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "xs:duration",
+    "T",
+    "-PT1S",
+    "MSSpectrum",
+    "-1",
+    "+1",
+    "MzXMLFile_4_long.mzXML",
+    "-",
+    "PT-1S",
+    "msRun/@startTime",
+    "str::parse",
+    "-1",
+    "duration_components_parse_as_the_source_parses_them"
+   ],
+   "report": "6. **A negative `xs:duration` keeps its sign.** Upstream takes the text after\n   the last `T` before looking at anything, so `-PT1S` \u2014 which its own writer\n   emits for the `MSSpectrum` default retention time `-1` \u2014 reads back as `+1`.\n   `MzXMLFile_4_long.mzXML` is exactly such a file. This port removes a leading\n   `-` and negates the total, which makes a store/load cycle lossless. That\n   leading sign is the only thing it removes: a sign *inside* the duration, as\n   in the `PT-1S` upstream writes for `msRun/@startTime`, reaches `str::parse`\n   and reads as `-1` in both implementations. Recorded as a C++ issue\n   candidate. Test: `duration_components_parse_as_the_source_parses_them`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-124",
+   "candidate_key": "mzxml-doc-250",
+   "title": "`startTime`/`endTime` are signed.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    250,
+    252
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "startTime",
+    "endTime",
+    "PT-1S",
+    "xs:duration",
+    "-PT1S",
+    "retentionTime"
+   ],
+   "report": "8. **`startTime`/`endTime` are signed.** Upstream writes `PT-1S` there, which\n   `xs:duration` does not permit; this port writes `-PT1S`, the same spelling it\n   uses for a scan's `retentionTime`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-125",
+   "candidate_key": "mzxml-doc-253",
+   "title": "The XML declaration follows the bytes.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    253,
+    258
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "encoding=\"ISO-8859-1\"",
+    "std::string",
+    "ISO-8859-1",
+    "UTF-8"
+   ],
+   "report": "9. **The XML declaration follows the bytes.** Upstream hard-codes\n   `encoding=\"ISO-8859-1\"` and streams `std::string` bytes unchanged, so a UTF-8\n   experiment produces a document whose declaration contradicts its content \u2014\n   which this crate's own readers then refuse. This port keeps\n   `ISO-8859-1` whenever every written string is ASCII and switches to `UTF-8`\n   when it is not.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-126",
+   "candidate_key": "mzxml-doc-259",
+   "title": "Attribute-backed metadata is not duplicated.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    259,
+    263
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "filterLine",
+    "lowMz",
+    "highMz",
+    "basePeakMz",
+    "basePeakIntensity",
+    "totIonCurrent",
+    "<scan>",
+    "<nameValue>",
+    "writeUserParam_",
+    "ATTRIBUTE_METADATA_KEYS"
+   ],
+   "report": "10. **Attribute-backed metadata is not duplicated.** Upstream writes\n    `filterLine`, `lowMz`, `highMz`, `basePeakMz`, `basePeakIntensity` and\n    `totIonCurrent` as `<scan>` attributes *and* again as `<nameValue>` children,\n    because `writeUserParam_` does not skip them. This port skips the six keys\n    named in `ATTRIBUTE_METADATA_KEYS`.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-127",
+   "candidate_key": "mzxml-doc-264",
+   "title": "MaxQuant mode treats a skipped next spectrum as no next spectrum.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    264,
+    276
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "cexp_[s + 1]",
+    "MzXMLHandler.cpp:1082-1086",
+    "next_ms_level",
+    "[MS1 with peaks, empty MS1, MS2 with peaks]",
+    "force_mq_compatibility"
+   ],
+   "report": "11. **MaxQuant mode treats a skipped next spectrum as no next spectrum.**\n    Upstream reads `cexp_[s + 1]`'s MS level unconditionally\n    (`MzXMLHandler.cpp:1082-1086`), even when that spectrum is about to be\n    skipped for being empty, so it can leave a scan open for a child that is\n    never written. This port nullifies that one-step lookahead when the next\n    spectrum will be skipped \u2014 `next_ms_level` becomes 0, which closes the\n    open scans, as at the end of the file. It does *not* scan forward to the\n    next spectrum that will actually be written, so a written spectrum behind a\n    skipped one is a sibling rather than a nested child: for\n    `[MS1 with peaks, empty MS1, MS2 with peaks]` under\n    `force_mq_compatibility` both implementations emit the MS2 as a sibling,\n    and they differ only where the skipped spectrum's own MS level would have\n    kept the scan open. Recorded as a C++ issue candidate.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-128",
+   "candidate_key": "mzxml-doc-277",
+   "title": "MaxQuant mode refuses an unsorted spectrum.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    277,
+    280
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "begin()->getMZ()",
+    "rbegin()->getMZ()",
+    "lowMz",
+    "highMz",
+    "Error::UnsortedData"
+   ],
+   "report": "12. **MaxQuant mode refuses an unsorted spectrum.** Upstream logs a non-fatal\n    error and then writes `begin()->getMZ()` and `rbegin()->getMZ()` as\n    `lowMz`/`highMz` anyway, producing wrong attributes. This port returns\n    `Error::UnsortedData` before writing anything.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-129",
+   "candidate_key": "mzxml-doc-308",
+   "title": "A peak value that is not finite, or an intensity beyond `f32`, is     refused.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "reported_lines": [
+    308,
+    311
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "f32",
+    "f32",
+    "MSSpectrum::validate"
+   ],
+   "report": "20. **A peak value that is not finite, or an intensity beyond `f32`, is\n    refused.** A 64-bit payload can hold an intensity the kernel's `f32` field\n    cannot; upstream narrows it with an implicit conversion and stores the\n    resulting infinity, which then fails `MSSpectrum::validate` downstream.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-130",
+   "candidate_key": "sv_out_stream-doc-125",
+   "title": "A carriage return is rejected too.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/SV_OUT_STREAM_SUPPORT.md",
+   "reported_lines": [
+    125,
+    127
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+     "sha256": "bb2fd4ac12284b3dc4db88987056e6f072c495471d10b9128eb90eaf01761e6c"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "\\n",
+    "\\r"
+   ],
+   "report": "- **A carriage return is rejected too.** The source tests only for `\\n`, so a\n  lone `\\r` reaches the file and a reader treating it as a line break sees a row\n  the writer counted as one.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-131",
+   "candidate_key": "sv_out_stream-doc-128",
+   "title": "The separator and replacement are validated.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/SV_OUT_STREAM_SUPPORT.md",
+   "reported_lines": [
+    128,
+    131
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+     "sha256": "bb2fd4ac12284b3dc4db88987056e6f072c495471d10b9128eb90eaf01761e6c"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "StringUtils::substitute",
+    "Error::InvalidValue"
+   ],
+   "report": "- **The separator and replacement are validated.** An empty separator makes\n  `StringUtils::substitute` a no-op and emits nothing between fields, producing\n  a file that cannot be read back; a line break in either string desynchronises\n  the line state. Both are `Error::InvalidValue` at construction.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-132",
+   "candidate_key": "sv_out_stream-doc-132",
+   "title": "`write_display` has no stream precision.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/SV_OUT_STREAM_SUPPORT.md",
+   "reported_lines": [
+    132,
+    138
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+     "sha256": "bb2fd4ac12284b3dc4db88987056e6f072c495471d10b9128eb90eaf01761e6c"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "write_display",
+    "precision(numeric_limits<double>::digits10)",
+    "Display",
+    "write_display",
+    "write_number",
+    "write_display"
+   ],
+   "report": "- **`write_display` has no stream precision.** The constructor's\n  `precision(numeric_limits<double>::digits10)` affected only the generic\n  non-arithmetic overload. Rust's `Display` has no such setting, so a type\n  rendering a float through `write_display` is spelled by Rust;\n  `write_number` is the source-equivalent route for numbers. `write_display`\n  also rejects a newline, which the source's generic overload does not check at\n  all.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-133",
+   "candidate_key": "transformation_xml-doc-107",
+   "title": "Weighted models round-trip.",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/TRANSFORMATION_XML_SUPPORT.md",
+   "reported_lines": [
+    107,
+    111
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+     "sha256": "51f9f722e32f83ad6bcfaf3938e370b839aeee0033eb3a881c3131247a2c11a8"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [
+    "Param",
+    "invert()"
+   ],
+   "report": "- **Weighted models round-trip.** The source writes the weight parameters only\n  when its `Param` happens to carry them, which after `invert()` it does and\n  after a plain fit-from-coefficients it does not. Writing them whenever they\n  are non-identity means a weighted model survives a store/load cycle instead\n  of silently becoming unweighted.",
+   "proposed_fix_status": "Not separately specified by the leaf report. Investigate the reported case and apply a checked implementation matching the stated native handling where the public C++ contract supports it.",
+   "related_issue": null
+  },
+  {
+   "id": "FORMAT-OBS-134",
+   "candidate_key": "mztab_file-colunit-writer-amendment",
+   "title": "colunit writer delimiter and PSM key spelling",
+   "status": "Unreviewed documentation observation, not an established defect. May be an API policy, implementation limit, or amendment to an existing issue.",
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "reported_lines": [
+    497,
+    502
+   ],
+   "affected_source_files": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ],
+   "symbols_as_reported_not_verified_functions": [],
+   "report": "- **CPP-MZTABFILE-02** \u2014 `colunit-*` cannot round-trip: written without a\n  separator (`:1984`), and read by feeding the literal key `colunit` to\n  `StringUtils::toInt32` (`:685`), which throws. Any `MTD colunit-\u2026` line aborts\n  `load`. Fix: write `\"MTD\\tcolunit-protein\\t\" + value`; read the value with no\n  index, into a `std::vector<std::string>`; and write `colunit-psm` to match the\n  reader and the specification.",
+   "proposed_fix_status": "See reported proposal; not source-verified.",
+   "related_issue": "CPP-148"
+  }
+ ],
+ "policy_and_withdrawn": [
+  {
+   "item": "Withdrawn numeric character-overload claims",
+   "handling": "Not C++ defects; isolated numeric-overload probe disconfirms sole-char-overload claim. Already separately tracked."
+  },
+  {
+   "item": "MzTabSpectraRef setSpecRefFile name/alias",
+   "handling": "No distinct promised behavior; retain as naming observation, not bug."
+  },
+  {
+   "item": "Too-new TrafoXML version, unknown elements, unsupported type continuation",
+   "handling": "Forward compatibility / error policy; unsupported type already CPP-176 candidate. Do not automatically call acceptance a defect."
+  },
+  {
+   "item": "Precision defaults, IDs/date randomization, API lifetime/ownership, globals, logger/progress, serial execution, borrowed parameters, XML parser limitations, source raw handle availability",
+   "handling": "Native policy/design differences; require concrete documented loss or contract violation before assigning bug."
+  },
+  {
+   "item": "Malformed input rejection differences without unchecked access or incorrect accepted data",
+   "handling": "Error-type or strictness difference, not automatically defect. Examples Mascot var-mod vector::at and sequence setter already reject; no unchecked-residue claim."
+  },
+  {
+   "item": "Global resource ceilings and atomic publication",
+   "handling": "Added native safeguards alone do not establish a source bug; concrete quadratic SEQ issue retained separately."
+  },
+  {
+   "item": "Native-only performance/parser bugs from newer leaf changes",
+   "handling": "Do not attribute Rust quadratic annotation updates, Rust diagnostic retention, old quick-xml missing event handling, or incomplete-root handling to C++ Xerces."
+  },
+  {
+   "item": "MSDataWritingConsumer expected counts",
+   "handling": "Source explicitly requires correct expected sizes; CountPolicy difference alone is caller precondition, not confirmed defect."
+  },
+  {
+   "item": "MzTabM getIdentifiedCompoundRef throws for noncompound, unsupported empty record fields, static member dead storage",
+   "handling": "Map API/precondition differences separately; empty identification graph remains candidate because document specifically alleges undefined access."
+  }
+ ]
+}

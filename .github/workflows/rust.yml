@@ -33,9 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
         with:
           components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
       - uses: ./.github/actions/setup-libxml
       - run: cargo fmt --all -- --check
       - run: python3 tools/generate_modifications.py --check
@@ -87,6 +87,12 @@ jobs:
       - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml --test mzml_product --test mzml_load_options --test mzml_paths --test data_array_xml --test mzml_list_counts --test imzml_handler --test imzml_writer --test imzml_file --test imzml_all_modes --test on_disc_imzml_experiment
       - run: cargo test --locked --no-default-features --features proforma-json --test proforma_json
       - run: cargo test --locked --no-default-features --features idxml --test identification_paths --test data_array_xml
+      - run: cargo test --locked --no-default-features --test mztab --test mztab_file --test mztab_m --test percolator_infile --test mascot_generic --test sv_out_stream
+      - run: cargo test --locked --no-default-features --features idxml --test pepxml --test mascot_xml --test mzidentml
+      - run: cargo test --locked --no-default-features --features mzml --test ms_data_writing_consumer --test mzxml --test mzdata
+      - run: cargo test --locked --no-default-features --features consensusxml --test msstats --test transformation_xml
+      - run: cargo test --locked --no-default-features --features featurexml --test transformation_xml
+      - run: cargo test --locked --no-default-features --features paramxml --test qcml
   cross-platform:
     # Linux-first development: these run on a release tag or on demand, not on
     # every push. Keep them green before cutting a release.

@@ -984,3 +984,38 @@ fn a_short_or_non_ascii_sage_path_is_refused_rather_than_wrapping() {
     }
     std::fs::remove_dir_all(&directory).unwrap();
 }
+
+#[test]
+fn input_limits_apply_before_csv_materialization() {
+    let text = b"SpecId\nthis line must not be consumed in full\n";
+    let mut input = &text[..];
+    let options = ReadOptions {
+        max_bytes: 8,
+        ..Default::default()
+    };
+    assert!(pin::read(&mut input, &options).is_err());
+    assert!(
+        input.len() >= text.len() - 9,
+        "input was read beyond its ceiling"
+    );
+
+    let mut input = &text[..];
+    let options = ReadOptions {
+        max_rows: 0,
+        ..Default::default()
+    };
+    assert!(pin::read(&mut input, &options).is_err());
+    assert_eq!(input.len(), text.len(), "invalid options consumed input");
+}
+
+#[test]
+fn comments_do_not_consume_the_data_row_ceiling() {
+    let text = "# comment\nSpecId\tLabel\tScanNr\tExpMass\tCalcMass\tFileName\tretentiontime\tscore\tPeptide\tProteins\n\
+                a\t1\t7\t1.0\t1.0\tf.mzML\t1.0\t0.5\tPEPTIDE\tP1\n# trailing comment\n";
+    let options = ReadOptions {
+        max_rows: 1,
+        score_name: "score".into(),
+        ..Default::default()
+    };
+    assert!(pin::read(text.as_bytes(), &options).is_ok());
+}

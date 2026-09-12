@@ -32,6 +32,11 @@
    "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
    "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a",
    "role": "Not ported here as a module. appendNumeric is the algorithm reproduced by source_float_text (T = double) and source_f32_text (T = float), including the NaN/inf spellings, the T(1e-2)/T(1e4) scientific thresholds evaluated at the argument's own width, the shortest-round-trip scientific mantissa of that width, the '+' removal with retained zero padding and the keep-one-fractional-digit rule. The char buf[64] overflow path at lines 136-139, which falls through to std::to_string(double), is not reproduced: the port clamps fixed_digits at MAX_FIXED_DIGITS instead, and neither behaviour is reachable from the source's own call sites."
+  },
+  {
+   "path": "src/tests/class_tests/openms/executables.cmake",
+   "sha256": "d606cc39e24bda314dcaac0d64310f357a296ce0cf44c616ef9763fadac2a899",
+   "role": "Source anchor reviewed for this module; no C++ execution claimed."
   }
  ],
  "fixtures": [],
@@ -168,5 +173,8 @@
   "appendToStrLowP (3 fractional digits, the low-precision variant) is not ported: SVOutStream only ever calls the full-precision conversion.",
   "docs/doc-coverage.json was not rewritten: src/format/sv_out_stream.rs measures 100.0% (44/44) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
   "CI wiring was not added for the same reason: append '--test sv_out_stream' to a minimum-rust job line in .github/workflows/rust.yml. The test needs no feature and passes under --no-default-features and under cargo +1.85.0."
+ ],
+ "cpp_issue_log_entries": [
+  "CPP-175"
  ]
 }

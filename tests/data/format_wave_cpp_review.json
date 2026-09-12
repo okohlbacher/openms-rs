@@ -1,0 +1,1562 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "sha256": "1760bddee993898af23866a5a5558b19f8e658180adcae568584cbfc77001256"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp",
+   "sha256": "f13f08d93670d88347d16b16cc35618eadb75587495ef7272464818381f9c5f6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "sha256": "094c7211eb1cdcb17bdca61bf783131acd8f8fdf820ce9116ac249802be2b7a2"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+   "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "sha256": "41ca2dbb84ed035991570c48cef9a50e64c5179eaf6ac1d8b93ab21715df8807"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+   "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabM.cpp",
+   "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+   "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+   "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "sha256": "bb2fd4ac12284b3dc4db88987056e6f072c495471d10b9128eb90eaf01761e6c"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "sha256": "51f9f722e32f83ad6bcfaf3938e370b839aeee0033eb3a881c3131247a2c11a8"
+  }
+ ],
+ "evidence": "Source-review consolidation only: 36 defect entries and two unconfirmed candidates; no C++ defect reproduction is claimed. Numeric-overload correction has a separate isolated probe manifest.",
+ "entries": [
+  {
+   "proposal_key": "mztab-negative",
+   "title": "Negative CHEMMOD identifiers fail modification-cell parsing",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTab.cpp",
+     "function": "MzTabModification::fromCellString",
+     "start_line": 130,
+     "end_line": 171
+    }
+   ],
+   "concrete_trigger": "Parse 8-CHEMMOD:-18.010565.",
+   "incorrect_behavior": "Splitting on every hyphen yields three fields; the parser requires exactly two and throws.",
+   "proposed_cpp_fix": "Split position/identifier once with CHEMMOD signed mass retained.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Preserves source rejection of negative CHEMMOD strings. No native grammar correction is claimed.",
+   "native_files": [
+    "src/format/mztab.rs",
+    "tests/mztab.rs"
+   ],
+   "support_document": "docs/MZTAB_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-143",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTab.cpp",
+     "start_line": 130,
+     "end_line": 171,
+     "sha256": "41ca2dbb84ed035991570c48cef9a50e64c5179eaf6ac1d8b93ab21715df8807"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mztab-quotes",
+   "title": "Quoted commas split a MzTab modification-list entry",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTab.cpp",
+     "function": "MzTabModificationList::fromCellString",
+     "start_line": 236,
+     "end_line": 280
+    }
+   ],
+   "concrete_trigger": "A modification parameter includes quoted name \"blabla, [bla]\".",
+   "incorrect_behavior": "Comma protection excludes in_quotes, so later comma split separates a quoted field.",
+   "proposed_cpp_fix": "Protect all commas within parameters/quotes and keep quote/bracket states distinct.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Preserves source quoted-comma splitting behavior, including the defective case. No native tokenizer correction is claimed.",
+   "native_files": [
+    "src/format/mztab.rs",
+    "tests/mztab.rs"
+   ],
+   "support_document": "docs/MZTAB_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-144",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTab.cpp",
+     "start_line": 236,
+     "end_line": 280,
+     "sha256": "41ca2dbb84ed035991570c48cef9a50e64c5179eaf6ac1d8b93ab21715df8807"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mztab-commas",
+   "title": "MzTab parameter rendering fails to quote a bare comma",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+     "function": "MzTabParameter::toCellString",
+     "start_line": 327,
+     "end_line": 355
+    }
+   ],
+   "concrete_trigger": "Set parameter name a,b and serialize/reparse.",
+   "incorrect_behavior": "Only comma-space triggers quoting, producing an extra cell component for bare comma.",
+   "proposed_cpp_fix": "Quote any comma and escape embedded quotes consistently.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Preserves source comma-space-only quoting rule. Bare comma rendering remains source-compatible and non-round-trippable.",
+   "native_files": [
+    "src/format/mztab.rs",
+    "tests/mztab.rs"
+   ],
+   "support_document": "docs/MZTAB_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-145",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabBase.cpp",
+     "start_line": 327,
+     "end_line": 355,
+     "sha256": "f0e28b9afda4f470d326833c91e8a52b04b1a5626e8f5a4c140ee844f1b3f1c2"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mztabfile-score-order",
+   "title": "MzTab score-by-run header order differs from row order",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "function": "MzTabFile::generateMzTabProteinHeader_",
+     "start_line": 2033,
+     "end_line": 2044
+    },
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "function": "MzTabFile::generateMzTabSectionRow_ (protein overload)",
+     "start_line": 2114,
+     "end_line": 2125
+    }
+   ],
+   "concrete_trigger": "Protein row has scores1/2 and runs1/2 with four distinct values.",
+   "incorrect_behavior": "Header iterates run then score; row iterates score then run, interchanging off-diagonal cells.",
+   "proposed_cpp_fix": "Share score/run ordering between header and row.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native SectionLayout aligns header and cells; checks source fixtures and synthetic column families.",
+   "native_files": [
+    "src/format/mztab_file.rs",
+    "tests/mztab_file.rs"
+   ],
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-146",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "start_line": 2033,
+     "end_line": 2044,
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    },
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "start_line": 2114,
+     "end_line": 2125,
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mztabfile-opt",
+   "title": "MzTab PSM optional columns are dropped on load",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "function": "MzTabFile::load",
+     "start_line": 1278,
+     "end_line": 1291
+    }
+   ],
+   "concrete_trigger": "PSH declares opt_global_score with a PSM value.",
+   "incorrect_behavior": "Header matches exactly opt_ rather than its prefix, so named optional columns never get registered.",
+   "proposed_cpp_fix": "Use hasPrefix(cells[i], \"opt_\").",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native reader recognizes named optional columns.",
+   "native_files": [
+    "src/format/mztab_file.rs",
+    "tests/mztab_file.rs"
+   ],
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-147",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "start_line": 1278,
+     "end_line": 1291,
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mztabfile-colunit",
+   "title": "MzTab column-unit metadata parses its key as an index",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "function": "MzTabFile::load",
+     "start_line": 683,
+     "end_line": 696
+    }
+   ],
+   "concrete_trigger": "Load MTD colunit-protein with a valid value.",
+   "incorrect_behavior": "extractBracketIndex receives colunit without brackets; downstream indexed vector assignment has no resize.",
+   "proposed_cpp_fix": "Parse nonindexed column-unit value into vector append; validate malformed keys.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native column-unit grammar uses the expected vector form.",
+   "native_files": [
+    "src/format/mztab_file.rs",
+    "tests/mztab_file.rs"
+   ],
+   "support_document": "docs/MZTAB_FILE_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-148",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+     "start_line": 683,
+     "end_line": 696,
+     "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mztabm-assay",
+   "title": "MzTab-M assay custom metadata is written under ms_run",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "function": "MzTabMFile::generateMzTabMMetaDataSection_",
+     "start_line": 222,
+     "end_line": 232
+    }
+   ],
+   "concrete_trigger": "Assay1 has custom1 parameter while ms_run1 denotes a different entity.",
+   "incorrect_behavior": "Writer emits ms_run[1]-custom[1], attributing assay metadata to run.",
+   "proposed_cpp_fix": "Emit assay index prefix.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Correct by default; source_assay_custom_key opts into source spelling.",
+   "native_files": [
+    "src/format/mztab_m.rs",
+    "tests/mztab_m.rs"
+   ],
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-149",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "start_line": 222,
+     "end_line": 232,
+     "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mztabm-colunit",
+   "title": "MzTab-M column-unit families share an incorrect output key",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "function": "MzTabMFile::generateMzTabMMetaDataSection_",
+     "start_line": 347,
+     "end_line": 363
+    }
+   ],
+   "concrete_trigger": "Metadata has different feature and evidence column units.",
+   "incorrect_behavior": "All loops emit colunit_small_molecule, losing family distinction.",
+   "proposed_cpp_fix": "Use distinct feature/evidence keys.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Correct by default; source_colunit_keys explicit compatibility flag.",
+   "native_files": [
+    "src/format/mztab_m.rs",
+    "tests/mztab_m.rs"
+   ],
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-150",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+     "start_line": 347,
+     "end_line": 363,
+     "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mztabm-space",
+   "title": "MzTab-M exporter changes metadata keys before lookup",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabM.cpp",
+     "function": "MzTabM::getFeatureMapMetaValues_",
+     "start_line": 103,
+     "end_line": 120
+    }
+   ],
+   "concrete_trigger": "Feature metadata contains raw key with space.",
+   "incorrect_behavior": "Collector changes key to underscore spelling, so later original metadata lookup yields absence/null.",
+   "proposed_cpp_fix": "Retain raw lookup keys; normalize output column names only.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "substitute_keys_before_lookup default false, preserving raw key lookup.",
+   "native_files": [
+    "src/format/mztab_m.rs",
+    "tests/mztab_m.rs"
+   ],
+   "support_document": "docs/MZTAB_M_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-151",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MzTabM.cpp",
+     "start_line": 103,
+     "end_line": 120,
+     "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e"
+    }
+   ]
+  },
+  {
+   "proposal_key": "pepxml-end-scan",
+   "title": "pepXML end_scan mismatch check reads start_scan twice",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "function": "PepXMLFile::readRTMZCharge_",
+     "start_line": 926,
+     "end_line": 939
+    }
+   ],
+   "concrete_trigger": "spectrum_query start_scan=1 end_scan=2.",
+   "incorrect_behavior": "Both locals read start_scan so merged-scan diagnostic never fires.",
+   "proposed_cpp_fix": "Read end_scan for endscan.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native parser compares actual attributes and reports mismatch.",
+   "native_files": [
+    "src/format/pepxml.rs",
+    "tests/pepxml.rs"
+   ],
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-152",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "start_line": 926,
+     "end_line": 939,
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ]
+  },
+  {
+   "proposal_key": "pepxml-single-mod",
+   "title": "pepXML drops a uniquely resolved undeclared modification",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "function": "PepXMLFile::onStartElement",
+     "start_line": 1725,
+     "end_line": 1764
+    }
+   ],
+   "concrete_trigger": "A mod_aminoacid_mass not in header resolves to exactly one modification in registry.",
+   "incorrect_behavior": "mods nonempty branch appends only if size>1; exactly one match silently omitted.",
+   "proposed_cpp_fix": "Always append first resolved match; warn only if multiple.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native reader installs uniquely resolved match.",
+   "native_files": [
+    "src/format/pepxml.rs",
+    "tests/pepxml.rs"
+   ],
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-153",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "start_line": 1725,
+     "end_line": 1764,
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ]
+  },
+  {
+   "proposal_key": "pepxml-fixed-cterm",
+   "title": "pepXML fixed protein C-terminal modification misses terminal branch",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "function": "PepXMLFile::onEndElement",
+     "start_line": 2123,
+     "end_line": 2152
+    }
+   ],
+   "concrete_trigger": "Implicit fixed modification has PROTEIN_C_TERM specificity.",
+   "incorrect_behavior": "C-terminal conditional repeats PROTEIN_N_TERM and falls through to internal-residue loop.",
+   "proposed_cpp_fix": "Replace second repeated enum with PROTEIN_C_TERM.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native terminal logic accounts for protein C terminus; source-specific warnings documented.",
+   "native_files": [
+    "src/format/pepxml.rs",
+    "tests/pepxml.rs"
+   ],
+   "support_document": "docs/PEPXML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-154",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
+     "start_line": 2123,
+     "end_line": 2152,
+     "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9"
+    }
+   ]
+  },
+  {
+   "proposal_key": "qcml-unit",
+   "title": "qcML loses units across its own store/load",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "function": "QcMLFile::QualityParameter::toXMLString",
+     "start_line": 81,
+     "end_line": 99
+    },
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "function": "QcMLFile::onStartElement",
+     "start_line": 820,
+     "end_line": 830
+    }
+   ],
+   "concrete_trigger": "QualityParameter has nonempty unitRef and unitAcc.",
+   "incorrect_behavior": "Writer uses unitRef/unitAcc; reader recognizes unitCvRef/unitAccession.",
+   "proposed_cpp_fix": "Use canonical names and optional legacy aliases.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Reader accepts both legacy and schema unit spellings. Default writer uses schema spelling; WriteOptions::source() selects legacy output.",
+   "native_files": [
+    "src/format/qcml.rs",
+    "tests/qcml.rs"
+   ],
+   "support_document": "docs/QCML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-155",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "start_line": 81,
+     "end_line": 99,
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    },
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "start_line": 820,
+     "end_line": 830,
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ]
+  },
+  {
+   "proposal_key": "qcml-row-spaces",
+   "title": "qcML table writer discards its normalized row copy",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "function": "QcMLFile::Attachment::toXMLString",
+     "start_line": 227,
+     "end_line": 242
+    }
+   ],
+   "concrete_trigger": "One table cell contains a space.",
+   "incorrect_behavior": "Writer substitutes spaces in copy_row, then concatenates original row, splitting cell on reload.",
+   "proposed_cpp_fix": "Serialize copy_row, or implement an escaping grammar.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Default writer refuses empty or XML-whitespace table cells. source_table_text reproduces unnormalized source rows; it does not normalize them into a corrected value.",
+   "native_files": [
+    "src/format/qcml.rs",
+    "tests/qcml.rs"
+   ],
+   "support_document": "docs/QCML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-156",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "start_line": 227,
+     "end_line": 242,
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ]
+  },
+  {
+   "proposal_key": "qcml-remove-all",
+   "title": "qcML removeAllAttachments omits set-only entries",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "function": "QcMLFile::removeAllAttachments",
+     "start_line": 511,
+     "end_line": 517
+    }
+   ],
+   "concrete_trigger": "Set has matching attachment and no run attachment map entry of same ID.",
+   "incorrect_behavior": "Method iterates runQualityAts_ only despite all-runs/sets contract.",
+   "proposed_cpp_fix": "Visit union of run and set identifiers.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Preserves run-map-only iteration. Sets are reached only through a matching run attachment-map key.",
+   "native_files": [
+    "src/format/qcml.rs",
+    "tests/qcml.rs"
+   ],
+   "support_document": "docs/QCML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-157",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "start_line": 511,
+     "end_line": 517,
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ]
+  },
+  {
+   "proposal_key": "qcml-mapcsv",
+   "title": "qcML map2csv emits misaligned rows when a column is missing",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "function": "QcMLFile::map2csv",
+     "start_line": 684,
+     "end_line": 711
+    }
+   ],
+   "concrete_trigger": "First map row has columns A/B; next has only B.",
+   "incorrect_behavior": "Missing A emits no separator/cell, so B shifts into A column.",
+   "proposed_cpp_fix": "Emit empty missing cells and choose union of columns, or reject inconsistent rows.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Preserves first-row column selection and missing-cell misalignment. Resource limits do not correct this layout behavior.",
+   "native_files": [
+    "src/format/qcml.rs",
+    "tests/qcml.rs"
+   ],
+   "support_document": "docs/QCML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-158",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "start_line": 684,
+     "end_line": 711,
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ]
+  },
+  {
+   "proposal_key": "qcml-member-roundtrip",
+   "title": "qcML writer and reader disagree on set-member CV accession",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "function": "QcMLFile::onEndElement",
+     "start_line": 940,
+     "end_line": 949
+    },
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "function": "QcMLFile::store",
+     "start_line": 2072,
+     "end_line": 2087
+    }
+   ],
+   "concrete_trigger": "Register set membership to a run with its name parameter and store/reload.",
+   "incorrect_behavior": "Writer emits QC:0000005 membership record; reader treats MS:1000577 as set member.",
+   "proposed_cpp_fix": "Use one membership representation and resolve names/IDs consistently.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Reader also recognizes QC:0000005 membership while retaining the parameter. Writer checks representability; source policy can select original drops.",
+   "native_files": [
+    "src/format/qcml.rs",
+    "tests/qcml.rs"
+   ],
+   "support_document": "docs/QCML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-159",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "start_line": 940,
+     "end_line": 949,
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    },
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "start_line": 2072,
+     "end_line": 2087,
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ]
+  },
+  {
+   "proposal_key": "qcml-slump",
+   "title": "qcML TIC slump percentage truncates before multiplication",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "function": "QcMLFile::collectQCData",
+     "start_line": 1293,
+     "end_line": 1303
+    }
+   ],
+   "concrete_trigger": "Run has200 spectra,100 below threshold.",
+   "incorrect_behavior": "(100/200)*100 integer arithmetic yields0 instead of50.",
+   "proposed_cpp_fix": "Compute floating percentage 100.0*count/size with explicit empty guard; same RIC formula.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "collectQCData remains unported; avoid reproducing when QC-computation wave begins.",
+   "native_files": [
+    "src/format/qcml.rs",
+    "tests/qcml.rs"
+   ],
+   "support_document": "docs/QCML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Public collectQCData is explicitly deferred in module scope; no native QC computation tested.",
+   "id": "CPP-160",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+     "start_line": 1293,
+     "end_line": 1303,
+     "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee"
+    }
+   ]
+  },
+  {
+   "proposal_key": "percin-missing-filename",
+   "title": "Percolator loader requires FileName through an unchecked map lookup",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "function": "PercolatorInfile::load",
+     "start_line": 239,
+     "end_line": 274
+    }
+   ],
+   "concrete_trigger": "Valid rectangular PIN omits optional FileName column.",
+   "incorrect_behavior": "Filename map stays empty; .at(UNKNOWN) throws std::out_of_range rather than declared parse error. Caller may catch; process abort is NOT inevitable.",
+   "proposed_cpp_fix": "Register default filename or reject missing requirement with structured ParseError.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native Error::MissingInformation names absent column.",
+   "native_files": [
+    "src/format/percolator_infile.rs",
+    "tests/percolator_infile.rs"
+   ],
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-161",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "start_line": 239,
+     "end_line": 274,
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ]
+  },
+  {
+   "proposal_key": "percin-protein-termini",
+   "title": "Percolator enzyme features use unmapped protein-terminal markers",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "function": "PercolatorInfile::stampPinFeaturesOnHits (feature tracking overload)",
+     "start_line": 520,
+     "end_line": 541
+    }
+   ],
+   "concrete_trigger": "PeptideEvidence has [ before or ] after at protein terminus.",
+   "incorrect_behavior": "enzN/enzC are computed before terminal marker becomes recognized dash.",
+   "proposed_cpp_fix": "Normalize markers before both enzyme features and peptide text.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Source feature behavior deliberately reproduced and documented; source correction not applied upstream.",
+   "native_files": [
+    "src/format/percolator_infile.rs",
+    "tests/percolator_infile.rs"
+   ],
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-162",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "start_line": 520,
+     "end_line": 541,
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ]
+  },
+  {
+   "proposal_key": "percin-width",
+   "title": "Percolator writer and loader disagree on trailing protein-list width",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "function": "PercolatorInfile::load",
+     "start_line": 234,
+     "end_line": 240
+    },
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "function": "PercolatorInfile::stampPinFeaturesOnHits (feature tracking overload)",
+     "start_line": 544,
+     "end_line": 549
+    }
+   ],
+   "concrete_trigger": "One PSM maps to two protein accessions.",
+   "incorrect_behavior": "Writer separates proteins with tab; loader rejects row wider than header.",
+   "proposed_cpp_fix": "Read final Proteins column as variable-width list, retaining semicolon support for Sage.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native writer preserves tabs and reader explicitly reports source incompatibility.",
+   "native_files": [
+    "src/format/percolator_infile.rs",
+    "tests/percolator_infile.rs"
+   ],
+   "support_document": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-163",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "start_line": 234,
+     "end_line": 240,
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    },
+    {
+     "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+     "start_line": 544,
+     "end_line": 549,
+     "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mascot-bounds",
+   "title": "Mascot query index guard accepts one-past-end",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+     "function": "Internal::MascotXMLHandler::onStartElement",
+     "start_line": 49,
+     "end_line": 63
+    }
+   ],
+   "concrete_trigger": "NumQueries=1 and peptide query=2, followed by a peptide field.",
+   "incorrect_behavior": "Zero-based index1 is not greater than size1 and later indexes outside vector.",
+   "proposed_cpp_fix": "Check index>=size and validate positive query before subtraction.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native lazy query indexing checks declared range before access.",
+   "native_files": [
+    "src/format/mascot_xml.rs",
+    "tests/mascot_xml.rs"
+   ],
+   "support_document": "docs/MASCOT_XML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-164",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+     "start_line": 49,
+     "end_line": 63,
+     "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mascot-rt",
+   "title": "Mascot RT failure test treats zero as failure and NaN as success",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+     "function": "Internal::MascotXMLHandler::onEndElement",
+     "start_line": 108,
+     "end_line": 125
+    }
+   ],
+   "concrete_trigger": "Title lookup leaves RT NaN, or legitimately returns RT0.",
+   "incorrect_behavior": "Boolean negation of double skips missing NaN and flags valid zero.",
+   "proposed_cpp_fix": "Use finite/NaN or explicit found flag.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native lookup reports absent information explicitly; zero RT retained.",
+   "native_files": [
+    "src/format/mascot_xml.rs",
+    "tests/mascot_xml.rs"
+   ],
+   "support_document": "docs/MASCOT_XML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-165",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+     "start_line": 108,
+     "end_line": 125,
+     "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mgf-carryover",
+   "title": "Mascot MGF loader carries precursor and RT fields between blocks",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+     "function": "MascotGenericFile::load (template)",
+     "start_line": 85,
+     "end_line": 104
+    },
+    {
+     "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+     "function": "MascotGenericFile::load (template)",
+     "start_line": 140,
+     "end_line": 157
+    }
+   ],
+   "concrete_trigger": "First BEGIN IONS block has RTINSECONDS; second block has its own PEPMASS but omits optional RTINSECONDS.",
+   "incorrect_behavior": "The second spectrum retains the previous RT because only selected state is cleared. Missing PEPMASS similarly retains precursor state, but optional RT omission is sufficient for this trigger.",
+   "proposed_cpp_fix": "Reset per-query spectrum metadata or construct a fresh spectrum each block.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "The default CarryOver::Reset starts each MGF block with fresh metadata. CarryOver::Source explicitly opts into the source carry-over behavior; this differs from default general MGF input.",
+   "native_files": [
+    "src/format/mascot_generic.rs",
+    "tests/mascot_generic.rs"
+   ],
+   "support_document": "docs/MASCOT_GENERIC_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-166",
+   "source_evidence": [
+    {
+     "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+     "start_line": 85,
+     "end_line": 104,
+     "sha256": "1760bddee993898af23866a5a5558b19f8e658180adcae568584cbfc77001256"
+    },
+    {
+     "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+     "start_line": 140,
+     "end_line": 157,
+     "sha256": "1760bddee993898af23866a5a5558b19f8e658180adcae568584cbfc77001256"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mzid-cterm",
+   "title": "mzIdentML writer places C-terminal modification at last-residue location",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "function": "Internal::MzIdentMLHandler::writePeptideHit",
+     "start_line": 1363,
+     "end_line": 1371
+    }
+   ],
+   "concrete_trigger": "A peptide of lengthN has a C-terminal modification.",
+   "incorrect_behavior": "Writer emits location N; schema convention is N+1, so it targets final residue.",
+   "proposed_cpp_fix": "Emit sequence.size()+1 and test terminal round trip.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native writer uses terminal location convention and tests modified peptides.",
+   "native_files": [
+    "src/format/mzidentml.rs",
+    "tests/mzidentml.rs"
+   ],
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-167",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+     "start_line": 1363,
+     "end_line": 1371,
+     "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mzid-empty",
+   "title": "mzIdentML reader dereferences missing PeptideSequence child",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "function": "Internal::MzIdentMLDOMHandler::parsePeptideSiblings_",
+     "start_line": 2466,
+     "end_line": 2479
+    }
+   ],
+   "concrete_trigger": "A Peptide includes empty PeptideSequence element.",
+   "incorrect_behavior": "getFirstChild returns null and getNodeType dereferences it.",
+   "proposed_cpp_fix": "Handle empty text node explicitly, reject or represent empty sequence according to schema.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native parser returns checked outcome; no null dereference.",
+   "native_files": [
+    "src/format/mzidentml.rs",
+    "tests/mzidentml.rs"
+   ],
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-168",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "start_line": 2466,
+     "end_line": 2479,
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mzid-substitution",
+   "title": "mzIdentML substitution position is used as unchecked string index",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "function": "Internal::MzIdentMLDOMHandler::parsePeptideSiblings_",
+     "start_line": 2491,
+     "end_line": 2504
+    }
+   ],
+   "concrete_trigger": "SubstitutionModification location0 or >peptide length with replacementResidue present.",
+   "incorrect_behavior": "Signed location-1 converts into string index and writes out of bounds.",
+   "proposed_cpp_fix": "Validate1<=location<=sequence length and nonempty residue attributes before indexing.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native parser checks positions and rejects invalid substitutions.",
+   "native_files": [
+    "src/format/mzidentml.rs",
+    "tests/mzidentml.rs"
+   ],
+   "support_document": "docs/MZIDENTML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-169",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+     "start_line": 2491,
+     "end_line": 2504,
+     "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mzdata-arrays",
+   "title": "mzData checks missing and short arrays after unsafe indexing",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "function": "Internal::MzDataHandler::fillData_",
+     "start_line": 518,
+     "end_line": 572
+    }
+   ],
+   "concrete_trigger": "Spectrum has one array, or intensity/auxiliary array shorter than m/z.",
+   "incorrect_behavior": "precisions0/1 accessed before missing-array guard; length mismatch only logs, then peak loop indexes short data.",
+   "proposed_cpp_fix": "Require primary arrays before reading precision and validate all decoded lengths before peak construction.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native parser checks primary/aligned-array shapes with structured error.",
+   "native_files": [
+    "src/format/mzdata.rs",
+    "tests/mzdata.rs"
+   ],
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-170",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "start_line": 518,
+     "end_line": 572,
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mzdata-scan-mode",
+   "title": "mzData writer emits scan modes its reader does not recognize",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "function": "Internal::MzDataHandler::writeTo",
+     "start_line": 919,
+     "end_line": 930
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "function": "Internal::MzDataHandler::cvParam_",
+     "start_line": 1088,
+     "end_line": 1142
+    }
+   ],
+   "concrete_trigger": "Store ABSORPTION/EMC/TDF mode then load.",
+   "incorrect_behavior": "Writer spellings absent from reader map; fallback loses mode and may modify previous spectrum for MSlevel>=2.",
+   "proposed_cpp_fix": "Use shared bidirectional scan-mode table and update current spec in fallback.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Default writer refuses scan modes that cannot round-trip through the source-compatible mapping. Parser updates the current spectrum, not the previous spectrum, for unknown MSn modes. It does not add recognition of these three spellings.",
+   "native_files": [
+    "src/format/mzdata.rs",
+    "tests/mzdata.rs"
+   ],
+   "support_document": "docs/MZDATA_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-171",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "start_line": 919,
+     "end_line": 930,
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
+     "start_line": 1088,
+     "end_line": 1142,
+     "sha256": "6c46f9fd6fea59394bcdd22b79477fc0c9e20823d33b0001c86d71e848385f1d"
+    }
+   ]
+  },
+  {
+   "proposal_key": "consumer-dangling",
+   "title": "Streaming mzML consumer references header entries declared only for first record",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+     "function": "MSDataWritingConsumer::consumeSpectrum",
+     "start_line": 62,
+     "end_line": 96
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+     "function": "Internal::MzMLHandler::writeSpectrum_",
+     "start_line": 5250,
+     "end_line": 5280
+    }
+   ],
+   "concrete_trigger": "Second streamed spectrum has non-default source file or processing history differing from first.",
+   "incorrect_behavior": "Header derives from dummy one-record map; second sourceFileRef/processing fallback points to undeclared entry. This is independent of numeric-overload claims.",
+   "proposed_cpp_fix": "Predeclare record dependencies or refuse new dependencies after header publication.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native consumer rejects dependencies absent from first header rather than emitting dangling references.",
+   "native_files": [
+    "src/format/ms_data_writing_consumer.rs",
+    "tests/ms_data_writing_consumer.rs"
+   ],
+   "support_document": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-172",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+     "start_line": 62,
+     "end_line": 96,
+     "sha256": "094c7211eb1cdcb17bdca61bf783131acd8f8fdf820ce9116ac249802be2b7a2"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+     "start_line": 5250,
+     "end_line": 5280,
+     "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mzxml-short-payload",
+   "title": "mzXML release decode reads beyond short peak payload",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "function": "Internal::MzXMLHandler::doPopulateSpectraWithData_",
+     "start_line": 1162,
+     "end_line": 1213
+    }
+   ],
+   "concrete_trigger": "peaksCount2 with decoded payload containing only one mz/intensity pair, assertions disabled.",
+   "incorrect_behavior": "Only assert validates length; loop trusts declared count and indexes past vector.",
+   "proposed_cpp_fix": "Replace assert with runtime payload-length validation before loop.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native runtime shape check rejects mismatch in all builds.",
+   "native_files": [
+    "src/format/mzxml.rs",
+    "tests/mzxml.rs"
+   ],
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-173",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "start_line": 1162,
+     "end_line": 1213,
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ]
+  },
+  {
+   "proposal_key": "mzxml-chunks",
+   "title": "mzXML precursor value and window width depend on SAX chunking",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "function": "Internal::MzXMLHandler::onCharacters",
+     "start_line": 569,
+     "end_line": 605
+    }
+   ],
+   "concrete_trigger": "Precursor numeric text is delivered in two character callbacks, e.g. an entity/comment boundary.",
+   "incorrect_behavior": "Each chunk sets m/z and halves previous width again; split comments retain only last chunk.",
+   "proposed_cpp_fix": "Accumulate per-element text and parse/apply once at closing tag.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native parser accumulates text and preserves full value/window.",
+   "native_files": [
+    "src/format/mzxml.rs",
+    "tests/mzxml.rs"
+   ],
+   "support_document": "docs/MZXML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-174",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+     "start_line": 569,
+     "end_line": 605,
+     "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+    }
+   ]
+  },
+  {
+   "proposal_key": "sv-manipulator",
+   "title": "SVOutStream probe stream remains poisoned after non-newline manipulator",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+     "function": "SVOutStream::operator<<(std::ostream& (*)(std::ostream&))",
+     "start_line": 101,
+     "end_line": 116
+    }
+   ],
+   "concrete_trigger": "Write field, apply std::ends then std::endl then write next field.",
+   "incorrect_behavior": "Probe string contains NUL plus newline, never equals newline; bookkeeping emits unwanted separator at next line start.",
+   "proposed_cpp_fix": "Reset probe buffer/error state per manipulator or identify line-end operations explicitly.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native named end_line/newline avoid manipulator-detection state.",
+   "native_files": [
+    "src/format/sv_out_stream.rs",
+    "tests/sv_out_stream.rs"
+   ],
+   "support_document": "docs/SV_OUT_STREAM_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-175",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+     "start_line": 101,
+     "end_line": 116,
+     "sha256": "bb2fd4ac12284b3dc4db88987056e6f072c495471d10b9128eb90eaf01761e6c"
+    }
+   ]
+  },
+  {
+   "proposal_key": "trafo-param",
+   "title": "TrafoXML omits unsupported parameter types after a non-fatal diagnostic",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed behavior; unconfirmed defect / API error-policy difference",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+     "function": "TransformationXMLFile::onStartElement",
+     "start_line": 145,
+     "end_line": 162
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+     "function": "Internal::XMLHandler::error",
+     "start_line": 71,
+     "end_line": 97
+    }
+   ],
+   "concrete_trigger": "Param name slope type bogus value1.",
+   "incorrect_behavior": "Unsupported type logs a non-fatal error and omits the parameter. This can cause missing/default model parameters, but non-fatal continuation is explicit source behavior; whether it violates the public contract is not established.",
+   "proposed_cpp_fix": "Throw ParseError for unsupported types.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native Error::Unsupported preserves explicit failure.",
+   "native_files": [
+    "src/format/transformation_xml.rs",
+    "tests/transformation_xml.rs"
+   ],
+   "support_document": "docs/TRANSFORMATION_XML_SUPPORT.md",
+   "source_verdict": "candidate requiring public error-handling contract review",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-176",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+     "start_line": 145,
+     "end_line": 162,
+     "sha256": "51f9f722e32f83ad6bcfaf3938e370b839aeee0033eb3a881c3131247a2c11a8"
+    },
+    {
+     "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+     "start_line": 71,
+     "end_line": 97,
+     "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+    }
+   ]
+  },
+  {
+   "proposal_key": "trafo-symmetric",
+   "title": "Linear transformation accepts symmetric_regression but never uses it",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp",
+     "function": "TransformationModelLinear::TransformationModelLinear",
+     "start_line": 18,
+     "end_line": 70
+    }
+   ],
+   "concrete_trigger": "Fit non-collinear data with symmetric_regression=true versus false.",
+   "incorrect_behavior": "Constructor stores symmetric_ but fitting path never consults it; the documented regression on y-x versus y+x is not selected.",
+   "proposed_cpp_fix": "Implement declared symmetric regression or reject/remove option and correct docs.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native fitting behavior remains same; setting retained as documented source limitation.",
+   "native_files": [
+    "src/format/transformation_xml.rs",
+    "tests/transformation_xml.rs"
+   ],
+   "support_document": "docs/TRANSFORMATION_XML_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-177",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp",
+     "start_line": 18,
+     "end_line": 70,
+     "sha256": "f13f08d93670d88347d16b16cc35618eadb75587495ef7272464818381f9c5f6"
+    }
+   ]
+  },
+  {
+   "proposal_key": "msstats-design",
+   "title": "MSstats missing design pair silently uses sample0",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed unchecked lookup; unconfirmed reachable defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "function": "MSstatsFile::storeLFQ",
+     "start_line": 432,
+     "end_line": 449
+    }
+   ],
+   "concrete_trigger": "A consensus channel label/file pair absent from the design but passing storeLFQ filename-subset and one-label guards; exact input not yet constructed.",
+   "incorrect_behavior": "If a missing pair reaches operator[], it inserts zero and may read sample row zero; upstream guards exist and a concrete reachable malformed pair remains to be demonstrated.",
+   "proposed_cpp_fix": "Check design/run membership and throw MissingInformation.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Native lookup checks file/label and run mappings and returns MissingInformation; exact reachable C++ missing-pair case remains pending.",
+   "native_files": [
+    "src/format/msstats.rs",
+    "tests/msstats.rs"
+   ],
+   "support_document": "docs/MSSTATS_SUPPORT.md",
+   "source_verdict": "candidate requiring a reachable file/label mismatch despite upfront filename and single-label checks",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-178",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "start_line": 432,
+     "end_line": 449,
+     "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+    }
+   ]
+  },
+  {
+   "proposal_key": "msstats-method",
+   "title": "MSstats unknown summarization method writes zero intensities",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "function": "MSstatsFile::constructFile_",
+     "start_line": 174,
+     "end_line": 200
+    }
+   ],
+   "concrete_trigger": "Library caller sets method bogus with nonzero intensities.",
+   "incorrect_behavior": "No branch assigns initial0, but CSV still emitted.",
+   "proposed_cpp_fix": "Validate method before processing.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Typed RetentionTimeSummarization rejects unknown names.",
+   "native_files": [
+    "src/format/msstats.rs",
+    "tests/msstats.rs"
+   ],
+   "support_document": "docs/MSSTATS_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-179",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "start_line": 174,
+     "end_line": 200,
+     "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+    }
+   ]
+  },
+  {
+   "proposal_key": "msstats-duplicates",
+   "title": "MSstats aggregation collapses equal intensities at distinct times",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "status": "source-reviewed defect; no C++ execution of this defect",
+   "affected_files_and_functions": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "function": "MSstatsFile::constructFile_",
+     "start_line": 140,
+     "end_line": 160
+    }
+   ],
+   "concrete_trigger": "Distinct RTs have intensities10,10,20; sum requested.",
+   "incorrect_behavior": "std::set yields10,20, so sum30 instead of40 and mean15 instead of13.333.",
+   "proposed_cpp_fix": "Keep multiset/vector for sample intensities, separate RT duplicate policy.",
+   "evidence_note": "Independently reviewed pinned source. No full SDK run, sanitizer reproduction or upstream patch is claimed. Native tests are not C++ execution.",
+   "rust_handling": "Preserves source intensity deduplication before summarizing, explicitly sorting and deduplicating f32 intensities.",
+   "native_files": [
+    "src/format/msstats.rs",
+    "tests/msstats.rs"
+   ],
+   "support_document": "docs/MSSTATS_SUPPORT.md",
+   "source_verdict": "confirmed by source review; not executed",
+   "native_handling_verification": "Source/docs read during this triage; no native tests executed in this subtask. Integrator should preserve separate build/test evidence.",
+   "id": "CPP-180",
+   "source_evidence": [
+    {
+     "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+     "start_line": 140,
+     "end_line": 160,
+     "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+    }
+   ]
+  }
+ ],
+ "review_exclusions": [
+  {
+   "item": "MzTabModification position-byte corruption / mzML numeric IDs / OPXL BetaPepEv numeric positions",
+   "reason": "Global numeric overloads invalidate claim only char overload is viable. Isolated executed probe emits decimal. Do not log as C++ defect; fix docs and retain no full-SDK-execution claim."
+  },
+  {
+   "item": "MzTabSpectraRef::setSpecRefFile duplicates setSpecRef",
+   "reason": "Naming ambiguity/alias alone is not a defect; no distinct promised behavior established."
+  },
+  {
+   "item": "Accepting too-new TrafoXML version",
+   "reason": "Warning plus forward-compatibility policy is not demonstrably wrong without concrete misread future data."
+  },
+  {
+   "item": "SVOutStream absence of std::ostream inheritance in Rust",
+   "reason": "Native API design difference, not source defect."
+  },
+  {
+   "item": "Percolator short Sage path subtraction",
+   "reason": "Unsigned subtraction verified but std::string substr count can clamp oversized length; do not call it memory unsafety/automatic process abort. Wrong derived path/error deserves further contract review."
+  },
+  {
+   "item": "Unbounded allocation, non-atomic file I/O and permissive count handling",
+   "reason": "Need concrete defect/contract assessment; do not log every native resource-policy addition as C++ bug."
+  },
+  {
+   "item": "MzTabM find_if end dereference",
+   "reason": "Unchecked dereference visible but exporter constructs both collections internally; malformed externally supplied IDs may not reach this loop. Need reachable graph trigger before confirmed defect."
+  },
+  {
+   "item": "MzTabDouble value-only comparison",
+   "reason": "State conflation is real but comparison contract may deliberately be value-based. Require public contract review before confirmed defect."
+  },
+  {
+   "item": "Additional FORMAT source anchors",
+   "reason": "This bounded pass prioritized concrete incorrect output, missing bounds and self-roundtrip defects; remaining named doc findings are pending deeper verification, not certified false or complete."
+  },
+  {
+   "item": "All other defect anchors in support documents",
+   "reason": "Pending deeper source and contract verification; surveyed does not mean independently verified. Do not promote them automatically to confirmed defects."
+  }
+ ]
+}

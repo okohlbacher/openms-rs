@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 26,
-      "evidence_requires_review": 163,
-      "native_equivalent": 77,
-      "partial": 23,
-      "unmapped": 497
+      "evidence_requires_review": 169,
+      "native_equivalent": 82,
+      "partial": 39,
+      "unmapped": 470
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -949,7 +949,9 @@
       "candidate_rust_files": [
         "src/analysis/transformations.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/transformation_xml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileMerger"
       ]
@@ -963,7 +965,9 @@
       "candidate_rust_files": [
         "src/analysis/transformations.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/transformation_xml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -990,20 +994,24 @@
       "header": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h",
       "sha256": "89fea751d824d6908fc9910f1796d760f921508ae68b94a9700a035f0a034e6e",
       "domain": "ANALYSIS",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/transformation_xml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h",
       "sha256": "250ccf7969913cef1e07aefeb6ff3c9e425e3bf32ee686ab4e46f27406237d7d",
       "domain": "ANALYSIS",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/transformation_xml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -2291,10 +2299,12 @@
       "header": "src/openms/include/OpenMS/ANALYSIS/XLMS/OPXLHelper.h",
       "sha256": "425c3aa4132d17e9562822bcd5ab94801afdb78c3c0648a45a5251d67d510735",
       "domain": "ANALYSIS",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzidentml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -2382,6 +2392,8 @@
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
         "tests/data/peptide_properties_provenance.json",
+        "tests/data/pepxml_provenance.json",
+        "tests/data/percolator_infile_provenance.json",
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_spectra_provenance.json",
         "tests/data/registry_provenance.json",
@@ -3043,9 +3055,12 @@
       ],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/mascot_generic_provenance.json",
+        "tests/data/mascot_xml_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/pepxml_provenance.json",
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
@@ -3397,6 +3412,8 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/modification_definition_io_provenance.json",
         "tests/data/modification_generation_provenance.json",
+        "tests/data/mztab_provenance.json",
+        "tests/data/pepxml_provenance.json",
         "tests/data/proforma_conversion_provenance.json",
         "tests/data/proforma_mass_provenance.json",
         "tests/data/proforma_resolution_provenance.json",
@@ -4518,9 +4535,11 @@
       "reference_manifests": [
         "tests/data/dposition_provenance.json",
         "tests/data/featurexml_provenance.json",
+        "tests/data/mzdata_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_isolation_provenance.json",
         "tests/data/mzml_load_provenance.json",
+        "tests/data/mzxml_provenance.json",
         "tests/data/on_disc_experiment_provenance.json",
         "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
@@ -4542,6 +4561,7 @@
         "tests/data/list_utils_provenance.json",
         "tests/data/metadata_hash_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json",
+        "tests/data/mztab_provenance.json",
         "tests/data/peak2d_provenance.json",
         "tests/data/protein_run_provenance.json",
         "tests/data/run_mapping_provenance.json",
@@ -4766,7 +4786,8 @@
       "reference_manifests": [
         "tests/data/controlled_vocabulary_provenance.json",
         "tests/data/imzml_writer_provenance.json",
-        "tests/data/list_utils_provenance.json"
+        "tests/data/list_utils_provenance.json",
+        "tests/data/mztab_provenance.json"
       ],
       "direct_topp_consumers": [
         "EICExtractor",
@@ -4953,15 +4974,23 @@
         "tests/data/experiment_metadata_provenance.json",
         "tests/data/imzml_writer_provenance.json",
         "tests/data/list_utils_provenance.json",
+        "tests/data/mascot_generic_provenance.json",
+        "tests/data/mascot_xml_provenance.json",
         "tests/data/mass_decomposition_provenance.json",
+        "tests/data/ms_data_writing_consumer_provenance.json",
+        "tests/data/mzidentml_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_normalization_provenance.json",
+        "tests/data/mztab_file_provenance.json",
+        "tests/data/mztab_provenance.json",
         "tests/data/param_value_provenance.json",
+        "tests/data/percolator_infile_provenance.json",
         "tests/data/proforma_parser_probe_provenance.json",
         "tests/data/proforma_spectra_provenance.json",
         "tests/data/protein_run_provenance.json",
         "tests/data/sdk_numeric_formatting_provenance.json",
         "tests/data/semantic_validator_provenance.json",
+        "tests/data/sv_out_stream_provenance.json",
         "tests/data/text_csv_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -5634,6 +5663,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/mzdata_provenance.json",
         "tests/data/mzml_normalization_provenance.json",
         "tests/data/mzml_provenance.json",
         "tests/data/numpress_coder_provenance.json"
@@ -5953,10 +5983,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
       "sha256": "c95f0a2cb4d87cf59b6d38549bbb47b5d9b03ef27f18847d8b60fa5bb7fe9c79",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/ms_data_writing_consumer.rs"
+        ],
+        "tests": [
+          "tests/ms_data_writing_consumer.rs"
+        ],
+        "documentation": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
+        "scope": "Streaming consumer hooks, settings/counts/processing and Plain/Noop variants mapped. Indexed footer output, per-record semantic validation and progress are not supplied; changing source-file or processing header dependencies can be refused. Whole-header equivalence not established."
+      },
+      "candidate_rust_files": [
+        "src/format/ms_data_writing_consumer.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/ms_data_writing_consumer_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CometAdapter",
         "FileConverter",
@@ -6695,30 +6739,66 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h",
       "sha256": "9092ecd6bce4f54da27ae78a9373286880271e2e9f11478914f2bf8455a6a9bc",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mascot_xml.rs"
+        ],
+        "tests": [
+          "tests/mascot_xml.rs"
+        ],
+        "documentation": "docs/MASCOT_XML_SUPPORT.md",
+        "scope": "Private handler implements the Mascot XML reader behavior and callbacks through typed parser state, but generic XMLHandler/reporting/inheritance contract and arbitrary lookup regex surface are not ported. No separate direct SAX interface is exposed."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mascot_xml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzDataHandler.h",
       "sha256": "9c15452c6334cd9702bfc9c803e2551ef931306cfc728f2f0e5abb0597467fb1",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mzdata.rs"
+        ],
+        "tests": [
+          "tests/mzdata.rs"
+        ],
+        "documentation": "docs/MZDATA_SUPPORT.md",
+        "scope": "Native parser/writer covers mzData callbacks and metadata/array behavior; source progress callback contract is absent. Bounds and loss policies explicit, but no exported SAX handler/inherited XMLHandler contract; keep conservative partial until scope owner reviews."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzdata_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h",
       "sha256": "b48d7c7b5e2f9f844109b853ff5bc0642b4267454ae43f67a9a846fc6460e6e9",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mzidentml.rs"
+        ],
+        "tests": [
+          "tests/mzidentml.rs"
+        ],
+        "documentation": "docs/MZIDENTML_SUPPORT.md",
+        "scope": "Write path including XLMS fragments and three public analysisXML value types mapped. Public read-mode constructor and SAX callback stream path deliberately not implemented because source fails to publish parsed identifications; a separate DOM-equivalent parser supplies file loads. No generic XMLHandler/ProgressLogger contract."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzidentml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -6734,6 +6814,7 @@
         "tests/data/data_array_xml_provenance.json",
         "tests/data/experimental_settings_provenance.json",
         "tests/data/imzml_handler_provenance.json",
+        "tests/data/ms_data_writing_consumer_provenance.json",
         "tests/data/mzml_acquisition_guards_provenance.json",
         "tests/data/mzml_acquisition_provenance.json",
         "tests/data/mzml_centroid_provenance.json",
@@ -6807,10 +6888,22 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzXMLHandler.h",
       "sha256": "de0a04f443a65f7623defa62e34d8f2dc9089f194775080105d372f9edf3d2f6",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mzxml.rs"
+        ],
+        "tests": [
+          "tests/mzxml.rs"
+        ],
+        "documentation": "docs/MZXML_SUPPORT.md",
+        "scope": "Native nested-scan parser/writer implements recorded callbacks, array transport and metadata, serial rather than source parallel batch decoding. Generic SAX and progress-logger constructor contract are not exposed; keep partial pending full boundary acceptance."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzxml_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -6921,6 +7014,7 @@
         "tests/data/experimental_settings_provenance.json",
         "tests/data/idxml_provenance.json",
         "tests/data/modification_definition_io_provenance.json",
+        "tests/data/mzdata_provenance.json",
         "tests/data/mzml_acquisition_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_header_provenance.json",
@@ -6928,8 +7022,10 @@
         "tests/data/mzml_settings_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_validator_provenance.json",
+        "tests/data/mzxml_provenance.json",
         "tests/data/paramxml_provenance.json",
-        "tests/data/semantic_validator_provenance.json"
+        "tests/data/semantic_validator_provenance.json",
+        "tests/data/transformation_xml_provenance.json"
       ],
       "direct_topp_consumers": [
         "XFDR"
@@ -7224,10 +7320,22 @@
       "header": "src/openms/include/OpenMS/FORMAT/MSstatsFile.h",
       "sha256": "d8195b02cafbc9c1c4b2a229422dab0bcc220ca154336961f9a2e9dce9b75397",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/msstats.rs"
+        ],
+        "tests": [
+          "tests/msstats.rs"
+        ],
+        "documentation": "docs/MSSTATS_SUPPORT.md",
+        "scope": "Both public storeLFQ/storeISO operations and all member helper/line mappings covered. Retained TOPP output compares complete LFQ and two ISO outputs under tighter numeric tolerance. Reports replace logging; source set-based intensity deduplication preserved. MSstats TOPP tool itself is not ported by this header group."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/msstats_provenance.json"
+      ],
       "direct_topp_consumers": [
         "MSstatsConverter",
         "ProteomicsLFQ"
@@ -7237,10 +7345,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
       "sha256": "1760bddee993898af23866a5a5558b19f8e658180adcae568584cbfc77001256",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mascot_generic.rs"
+        ],
+        "tests": [
+          "tests/mascot_generic.rs"
+        ],
+        "documentation": "docs/MASCOT_GENERIC_SUPPORT.md",
+        "scope": "MGF peak reading, stream/path storing, header/default-parameter options, native-ID parsing subset and sequence-query fields mapped. Source ProgressLogger base is not wired; generic base/template/API behavior should be reviewed before whole-header promotion."
+      },
+      "candidate_rust_files": [
+        "src/format/mascot_generic.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mascot_generic_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileConverter",
         "MascotAdapterOnline",
@@ -7252,10 +7374,22 @@
       "header": "src/openms/include/OpenMS/FORMAT/MascotXMLFile.h",
       "sha256": "9c82a6ff15552ce1bc0dbb7c055d117ff2fa3e121688cafe7e705e157b14345e",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mascot_xml.rs"
+        ],
+        "tests": [
+          "tests/mascot_xml.rs"
+        ],
+        "documentation": "docs/MASCOT_XML_SUPPORT.md",
+        "scope": "Both load overloads and default title-lookup initialization implemented; custom scan_regex accepted by source initializeLookup is refused. Retained C++ idXML fixture provides load comparison, with dedicated fixture extractor due current idXML budget limitation. No writer exists upstream."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mascot_xml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "IDFileConverter",
         "MascotAdapterOnline"
@@ -7299,10 +7433,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/MzDataFile.h",
       "sha256": "3f540a0e81559f9773f4370a5860a46aaee93ba3cdb170a9f17fe309bda8700d",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mzdata.rs"
+        ],
+        "tests": [
+          "tests/mzdata.rs"
+        ],
+        "documentation": "docs/MZDATA_SUPPORT.md",
+        "scope": "Options, load/store, version, legacy precision/endian handling and reports mapped. isSemanticallyValid unsupported; inherited XSD isValid and ProgressLogger absent. Structural tests are weaker than schema validation; FileHandler dispatch still missing."
+      },
+      "candidate_rust_files": [
+        "src/format/mzdata.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mzdata_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileInfo",
         "XMLValidator"
@@ -7312,10 +7460,22 @@
       "header": "src/openms/include/OpenMS/FORMAT/MzIdentMLFile.h",
       "sha256": "f149bebfbf8256862cea540e78fa4a6b069cc801a24cdea0fe6ce596b48095e4",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mzidentml.rs"
+        ],
+        "tests": [
+          "tests/mzidentml.rs"
+        ],
+        "documentation": "docs/MZIDENTML_SUPPORT.md",
+        "scope": "Linear and cross-link load/store plus detectVersion mapped. isValid XSD and isSemanticallyValid remain unimplemented; no certification from structural round-trip checks."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzidentml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileInfo",
         "IDFileConverter",
@@ -7434,10 +7594,26 @@
       "header": "src/openms/include/OpenMS/FORMAT/MzTab.h",
       "sha256": "5a1d37f0a750b5834d12f05db81ca561e04f671323bc04dd3ffa14e54a10364a",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mztab.rs"
+        ],
+        "tests": [
+          "tests/mztab.rs"
+        ],
+        "documentation": "docs/MZTAB_SUPPORT.md",
+        "scope": "All seven row families, modification cells, document storage/accessors and optional metadata mapping. Missing exportFeatureMapToMzTab, exportIdentificationsToMzTab, exportConsensusMapToMzTab, extractModificationList and nested IDMzTabStream/CMMzTabStream. Two upstream exporter test sections remain unported; no whole-header completion."
+      },
+      "candidate_rust_files": [
+        "src/format/mztab.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mztab_file_provenance.json",
+        "tests/data/mztab_m_provenance.json",
+        "tests/data/mztab_provenance.json"
+      ],
       "direct_topp_consumers": [
         "AccurateMassSearch",
         "MSstatsConverter",
@@ -7452,20 +7628,49 @@
       "header": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
       "sha256": "c434e6f2ed6dae49bfabb324441d212a533c704d33fb5b9c80aed421a23c60a4",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/mztab.rs"
+        ],
+        "tests": [
+          "tests/mztab.rs"
+        ],
+        "documentation": "docs/MZTAB_SUPPORT.md",
+        "scope": "Full shared cell vocabulary, cell states, metadata records and optional-column collection mapped. Native checked parsing, typed state-aware equality and explicit source comparison operations replace unchecked C++ behavior. Source-review and independently derived evidence only; no executed C++ claim."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mztab_file_provenance.json",
+        "tests/data/mztab_m_provenance.json",
+        "tests/data/mztab_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
       "sha256": "68f95d183392bdb6cbe022a9dea98bbfcbc6011ccee36615f066d2f28a604e63",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mztab_file.rs"
+        ],
+        "tests": [
+          "tests/mztab_file.rs"
+        ],
+        "documentation": "docs/MZTAB_FILE_SUPPORT.md",
+        "scope": "Load/store MzTab records, seven section column families, flags and defined row/header generators. Identification-list and ConsensusMap store overloads require unported MzTab exporters; undefined protected statics explicitly accounted for. Retained upstream inputs are not executed output evidence."
+      },
+      "candidate_rust_files": [
+        "src/format/mztab_file.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mztab_file_provenance.json",
+        "tests/data/mztab_m_provenance.json"
+      ],
       "direct_topp_consumers": [
         "AccurateMassSearch",
         "FileInfo",
@@ -7484,20 +7689,48 @@
       "header": "src/openms/include/OpenMS/FORMAT/MzTabM.h",
       "sha256": "c6959e7f47b0e0c6060f109cd1de4e8dd39188c60f5ec3220a8babd1b7b3bb2e",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mztab_m.rs"
+        ],
+        "tests": [
+          "tests/mztab_m.rs"
+        ],
+        "documentation": "docs/MZTAB_M_SUPPORT.md",
+        "scope": "Metabolomics records and FeatureMap exporter are implemented, but end-to-end exporter reproduction from the OMS input remains absent and default CV identity differs. Retained output comparisons cover metadata, selected rows and writer grammar; counts copied from expected output do not certify exporter row construction. Promote only after these documented fidelity/validation gaps close."
+      },
+      "candidate_rust_files": [
+        "src/format/mztab_m.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mztab_m_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/MzTabMFile.h",
       "sha256": "4d97e6874f219b7459e3be2a0aed8741e581e539144374d3f8cc53e6b0a4ed68",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/mztab_m.rs"
+        ],
+        "tests": [
+          "tests/mztab_m.rs"
+        ],
+        "documentation": "docs/MZTAB_M_SUPPORT.md",
+        "scope": "Full constructor/store and all seven metadata/header/row generators mapped. Retained C++ output grammar and selected rows verified in package tests; explicit source flags preserve known faulty spellings where requested. No mzTab-M reader is required by this source header; exporter validation is tracked separately under MzTabM.h."
+      },
+      "candidate_rust_files": [
+        "src/format/mztab_m.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mztab_m_provenance.json"
+      ],
       "direct_topp_consumers": [
         "AccurateMassSearch"
       ]
@@ -7506,10 +7739,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/MzXMLFile.h",
       "sha256": "c169e1f74e42e83c7500b8cbff4e6f4f8d2bd41259cbb97c150c9d798e19da6c",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mzxml.rs"
+        ],
+        "tests": [
+          "tests/mzxml.rs"
+        ],
+        "documentation": "docs/MZXML_SUPPORT.md",
+        "scope": "Options, load/store and both transform overloads mapped, including source serial behavior and explicit source flags. XSD isValid and ProgressLogger inherited operations absent; structural checks do not validate XSD. FileHandler dispatch missing."
+      },
+      "candidate_rust_files": [
+        "src/format/mzxml.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mzxml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileConverter",
         "FileInfo",
@@ -7776,10 +8023,22 @@
       "header": "src/openms/include/OpenMS/FORMAT/PepXMLFile.h",
       "sha256": "44d48e40f00532ac74703b78fa27f2377849574b0bf21feb844e09dad759b278",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/pepxml.rs"
+        ],
+        "tests": [
+          "tests/pepxml.rs"
+        ],
+        "documentation": "docs/PEPXML_SUPPORT.md",
+        "scope": "Load/store, preferred modifications, native spectrum names and unknown-score policy mapped with retained output writer comparisons. Caller-built SpectrumIndex replaces source store loading mz_file; arbitrary SpectrumMetaDataLookup behaviors are a subset. Do not close whole header until integration review resolves/documentedly accepts this public store convenience gap and validates final scaling fixes."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/pepxml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CometAdapter",
         "FileInfo",
@@ -7804,10 +8063,22 @@
       "header": "src/openms/include/OpenMS/FORMAT/PercolatorInfile.h",
       "sha256": "6d4faa562f1e6da1660b02aeef444f8c53f97aa8143b7877ef772198f68441c9",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/percolator_infile.rs"
+        ],
+        "tests": [
+          "tests/percolator_infile.rs"
+        ],
+        "documentation": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+        "scope": "All six public operations including both stampPinFeaturesOnHits overloads mapped to typed API, plus PIN row preparation and enzyme helpers. Native bounds and explicit ambiguous-charge/error policies; source-review plus Rust-only tests, not executed C++ evidence."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/percolator_infile_provenance.json"
+      ],
       "direct_topp_consumers": [
         "PercolatorAdapter",
         "ProSE",
@@ -7915,10 +8186,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/QcMLFile.h",
       "sha256": "5c523b523175b6cc7585afea153a3f3331dcc353a2d125a3575c68cdbfd84391",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/qcml.rs"
+        ],
+        "tests": [
+          "tests/qcml.rs"
+        ],
+        "documentation": "docs/QCML_SUPPORT.md",
+        "scope": "QualityParameter/Attachment values, run/set registration, lookup, removal, merge, export and XML file I/O mapped. collectQCData and its metric computation are explicitly unported. Stylesheet is caller supplied; source bugs and native compatibility policies remain documented."
+      },
+      "candidate_rust_files": [
+        "src/format/qcml.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/qcml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "QCEmbedder",
         "QCExporter",
@@ -7942,10 +8227,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/SVOutStream.h",
       "sha256": "1c50649625d8ff38e2eef3665b11863fca94261ef68b5c4e5c7a1123ca6a1f84",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/sv_out_stream.rs"
+        ],
+        "tests": [
+          "tests/sv_out_stream.rs"
+        ],
+        "documentation": "docs/SV_OUT_STREAM_SUPPORT.md",
+        "scope": "Public stream constructors, field/char/numeric/display writing, raw writes, newline/flush and modifyStrings mapped. Rust Display and explicit end_line replace arbitrary C++ stream manipulators; documented native contract with source spelling for arithmetic types. No C++ execution."
+      },
+      "candidate_rust_files": [
+        "src/format/sv_out_stream.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/sv_out_stream_provenance.json"
+      ],
       "direct_topp_consumers": [
         "MassCalculator",
         "MetaProSIP",
@@ -8103,10 +8402,22 @@
       "header": "src/openms/include/OpenMS/FORMAT/TransformationXMLFile.h",
       "sha256": "e03a77b24c3912a4db473e17f02a72fe5a64b544f088a3aeabb79ab3f2aeefde",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/transformation_xml.rs"
+        ],
+        "tests": [
+          "tests/transformation_xml.rs"
+        ],
+        "documentation": "docs/TRANSFORMATION_XML_SUPPORT.md",
+        "scope": "Load/store/version and record-level persistence mapped. b_spline cannot be resolved to a native transformation; inherited XSD isValid unsupported. Four fixture structural verdicts are useful evidence but do not implement schema validation."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/transformation_xml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "ExternalCalibration",
         "FileInfo",
@@ -8283,9 +8594,11 @@
         "tests/data/cv_mapping_provenance.json",
         "tests/data/identification_paths_provenance.json",
         "tests/data/imzml_file_provenance.json",
+        "tests/data/mascot_xml_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_paths_provenance.json",
         "tests/data/mzml_validator_provenance.json",
+        "tests/data/mzxml_provenance.json",
         "tests/data/paramxml_provenance.json",
         "tests/data/semantic_validator_provenance.json"
       ],
@@ -8482,6 +8795,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/ms_data_writing_consumer_provenance.json",
         "tests/data/mzml_centroid_provenance.json",
         "tests/data/mzml_consumer_provenance.json"
       ],
@@ -10169,7 +10483,8 @@
         "src/metadata/experimental_design.rs"
       ],
       "reference_manifests": [
-        "tests/data/experimental_design_provenance.json"
+        "tests/data/experimental_design_provenance.json",
+        "tests/data/msstats_provenance.json"
       ],
       "direct_topp_consumers": [
         "Epifany",
@@ -10782,6 +11097,7 @@
       ],
       "reference_manifests": [
         "tests/data/identification_converter_provenance.json",
+        "tests/data/mztab_provenance.json",
         "tests/data/peptide_evidence_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -11142,10 +11458,14 @@
       "header": "src/openms/include/OpenMS/METADATA/SpectrumLookup.h",
       "sha256": "ef733def587a9043ac2a368e8e9560499b193c1566b16c0dd24ce6897d524b2b",
       "domain": "METADATA",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mascot_generic_provenance.json",
+        "tests/data/mascot_xml_provenance.json",
+        "tests/data/pepxml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "NovorAdapter",
         "OpenNuXL"
@@ -11155,10 +11475,13 @@
       "header": "src/openms/include/OpenMS/METADATA/SpectrumMetaDataLookup.h",
       "sha256": "54fffc86be75095032e25e433a006c6f6c607557c6e7701e9e27157e3a4d5ccc",
       "domain": "METADATA",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mascot_xml_provenance.json",
+        "tests/data/pepxml_provenance.json"
+      ],
       "direct_topp_consumers": [
         "CometAdapter",
         "MSGFPlusAdapter",
@@ -11170,10 +11493,14 @@
       "header": "src/openms/include/OpenMS/METADATA/SpectrumNativeIDParser.h",
       "sha256": "04253d21d6dd3268451502ec0b8d085e982d6264f2719686782fac97822d4df3",
       "domain": "METADATA",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mascot_generic_provenance.json",
+        "tests/data/pepxml_provenance.json",
+        "tests/data/percolator_infile_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -12549,7 +12876,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/FORMAT/MzTabMFile.h",
         "OpenMS/FORMAT/OMSFile.h"
       ],
       "workflow_validated": false
@@ -14458,7 +14784,6 @@
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MSstatsFile.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/SYSTEM/File.h"
@@ -14668,7 +14993,6 @@
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/AASequence.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "workflow_validated": false
@@ -14745,7 +15069,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/GaussModel.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MISC/CubicSpline2d.h",
         "OpenMS/MATH/StatisticFunctions.h",
@@ -15048,7 +15371,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/OMSFile.h",
-        "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/KERNEL/MSSpectrum.h",
         "OpenMS/MATH/StatisticFunctions.h",
@@ -15814,7 +16136,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/OSWFile.h",
-        "OpenMS/FORMAT/PercolatorInfile.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/SYSTEM/File.h"
@@ -15872,7 +16193,6 @@
         "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
         "OpenMS/FORMAT/ArrowIOHelpers.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/PercolatorInfile.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
         "OpenMS/FORMAT/ProteinIdentificationArrowIO.h",
         "OpenMS/FORMAT/QPXFile.h",
@@ -15950,7 +16270,6 @@
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
         "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/SYSTEM/File.h"
@@ -16040,7 +16359,6 @@
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MSstatsFile.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/PeakTypeEstimator.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
@@ -16327,7 +16645,6 @@
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/NASequence.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "workflow_validated": false
@@ -16410,7 +16727,6 @@
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/PepXMLFile.h",
-        "OpenMS/FORMAT/PercolatorInfile.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -16438,7 +16754,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/SeedListGenerator.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/SYSTEM/File.h"
@@ -16739,7 +17054,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/FORMAT/XICParquetFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MathFunctions.h",

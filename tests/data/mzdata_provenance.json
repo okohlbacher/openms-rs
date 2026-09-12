@@ -26,7 +26,7 @@
   {
    "path": "src/tests/class_tests/openms/source/MzDataFile_test.cpp",
    "sha256": "f5d0c7ba196a35b92861bfbb17a3c10c812c16ef93bb22b94a758f82bcfb63ff",
-   "role": "The oracle. 15 START_SECTIONs, 435 assertion macros; every transcribed literal in tests/mzdata.rs comes from this file or from the three fixtures it loads."
+   "role": "The oracle. 15 START_SECTIONs, 429 assertion macros; every transcribed literal in tests/mzdata.rs comes from this file or from the three fixtures it loads."
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/Base64.h",
@@ -37,6 +37,11 @@
    "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
    "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7",
    "role": "Not ported here. Read for cvStringToEnum_ (lines 131-145), which resolves an unknown CV term to index 0 with a warning, and for the error/warning/fatalError triple: only fatalError throws, error logs, and warning is #ifdef'd down to a debug log in a release build."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+   "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060",
+   "role": "Pinned source reviewed for the format behavior and documentation described in this manifest."
   }
  ],
  "fixtures": [
@@ -45,7 +50,7 @@
    "source_path": "src/tests/class_tests/openms/data/MzDataFile_1.mzData",
    "sha256": "2a50f4bc28c5bcd3f3625e67b5860dfbdddb011febcd10253776b6dc4a0de64f",
    "bytes": 18259,
-   "role": "Unmodified upstream fixture and the oracle for 299 of the 435 assertion macros: accession lsid, sample MS-Sample/0-815 in the gas state, one source file, two contacts, two mass analyzers, one ion source, one ion detector, a document-wide dataProcessing with completionTime 2001-02-03T04:05:06, and three spectra at 60/120/180 s with native IDs 10/11/12, 1/3/5 peaks and eight supDataArrayBinary annotation arrays each. Hand-written, not written by OpenMS: it carries ScanFunction (PSI:1000017) and TandemScanningMethod (PSI:1000020) cvParams that writeTo never emits, and its second spectrum declares mzRangeStart without mzRangeStop, which yields the scan window (110, 0) that ScanWindow::validate rejects."
+   "role": "Unmodified upstream fixture and the oracle for 294 of the 429 assertion macros: accession lsid, sample MS-Sample/0-815 in the gas state, one source file, two contacts, two mass analyzers, one ion source, one ion detector, a document-wide dataProcessing with completionTime 2001-02-03T04:05:06, and three spectra at 60/120/180 s with native IDs 10/11/12, 1/3/5 peaks and eight supDataArrayBinary annotation arrays each. Hand-written, not written by OpenMS: it carries ScanFunction (PSI:1000017) and TandemScanningMethod (PSI:1000020) cvParams that writeTo never emits, and its second spectrum declares mzRangeStart without mzRangeStop, which yields the scan window (110, 0) that ScanWindow::validate rejects."
   },
   {
    "path": "tests/data/MzDataFile_3_minimal.mzData",
@@ -62,12 +67,6 @@
    "role": "Unmodified upstream fixture and the only one that exercises endian=\"big\": empty accessionNumber, one spectrum of three peaks with a 64-bit little-endian m/z array, a 32-bit little-endian intensity array, and eight annotation arrays mixing 32-bit little, 64-bit little, 32-bit big (QsgAAENIAABCyAAA) and 64-bit big (QFkAAAAAAABAaQAAAAAAAEBZAAAAAAAA). All eight decode to 100/200/100."
   },
   {
-   "path": "(not copied) src/tests/class_tests/openms/data/MzDataFile_2_long.mzData",
-   "sha256": "49eb9ddace09238710a52eb75c6bf17d09f22e4eae4a188f85f47f1b96f45cdf",
-   "bytes": 10641944,
-   "role": "Upstream fixture deliberately NOT copied into this repository: 10.6 MB would nearly double the 15 MB of tests/data. The section's asserted value is one spectrum of 997530 peaks; tests/mzdata.rs::load_special_cases writes and reads an equivalent 997530-peak document instead. The character-data splitting the upstream comment refers to is reached directly by split_base64_payload_is_concatenated, which puts an XML comment inside a base64 payload."
-  },
-  {
    "path": "tests/data/mzdata_big_endian.mzData",
    "sha256": "9344aa501df97dd3b04e345811c8e382f9421b0bdbf7ed076dfa6e532ab4dd89",
    "bytes": 1438,
@@ -77,13 +76,13 @@
    "path": "tests/data/mzdata_latin1.mzData",
    "sha256": "7f73073ce6dd4521e3597eac25e9816505558b7ae8851f00149aa057f3a93ce3",
    "bytes": 1205,
-   "role": "Synthetic (tier 4). encoding=\"ISO-8859-1\", which is what MzDataHandler::writeTo emits, with raw high bytes in four metadata values: sampleName Prüfmuster (0xfc), contact François Müller (0xe7, 0xfc), institution Universität Tübingen (0xe4, 0xfc) and instrumentName Meßgerät (0xdf, 0xe4). Not valid UTF-8."
+   "role": "Synthetic (tier 4). encoding=\"ISO-8859-1\", which is what MzDataHandler::writeTo emits, with raw high bytes in four metadata values: sampleName Pr\u00fcfmuster (0xfc), contact Fran\u00e7ois M\u00fcller (0xe7, 0xfc), institution Universit\u00e4t T\u00fcbingen (0xe4, 0xfc) and instrumentName Me\u00dfger\u00e4t (0xdf, 0xe4). Not valid UTF-8."
   },
   {
    "path": "tests/data/mzdata_utf8.mzData",
    "sha256": "a27bffb0b341017c34f1ea5735ac5e9c1e01e5b1f43d38c66c008af5d56f775c",
    "bytes": 1175,
-   "role": "Synthetic (tier 4). encoding=\"UTF-8\" with metadata outside ISO-8859-1 (日本語, 東京, 質量分析計), so the writer has to emit numeric character references to keep its ISO-8859-1 declaration truthful. writeTo would emit the raw UTF-8 bytes under that declaration."
+   "role": "Synthetic (tier 4). encoding=\"UTF-8\" with metadata outside ISO-8859-1 (\u65e5\u672c\u8a9e, \u6771\u4eac, \u8cea\u91cf\u5206\u6790\u8a08), so the writer has to emit numeric character references to keep its ISO-8859-1 declaration truthful. writeTo would emit the raw UTF-8 bytes under that declaration."
   }
  ],
  "native_implementation": [
@@ -93,29 +92,6 @@
   "tests/mzdata.rs"
  ],
  "support_document": "docs/MZDATA_SUPPORT.md",
- "target_verification": {
-  "gates": [
-   "cargo fmt --all -- --check",
-   "cargo clippy --locked --all-features --all-targets -- -D warnings",
-   "cargo nextest run --locked --all-features (3256 tests)",
-   "cargo nextest run --locked --no-default-features (2376 tests)",
-   "cargo nextest run --locked --no-default-features --features mzml --test mzdata (63 tests)",
-   "cargo test --locked --all-features --doc",
-   "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --all-features --no-deps",
-   "cargo +1.85.0 check --locked --all-features --all-targets",
-   "python3 tools/check_doc_coverage.py",
-   "python3 tools/check_core_sdk.py",
-   "python3 tools/test_core_sdk.py",
-   "python3 tools/test_core_sdk_coverage.py",
-   "python3 tools/check_schema_feature_graph.py"
-  ],
-  "doc_coverage": "src/format/mzdata.rs 44/44 = 100.0%; src/format/mod.rs improves from 4/28 to 5/29",
-  "sections_total": 15,
-  "sections_ported": 13,
-  "sections_mapped": 2,
-  "sections_unaccounted": 0,
-  "assertion_macros_total": 435
- },
  "source_anchors": [
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp",
@@ -233,5 +209,42 @@
    "operation": "DRange<1>::encloses is inclusive at the minimum and exclusive at the maximum, which is the membership rule every PeakFileOptions filter uses"
   }
  ],
- "evidence": "Tier 3 source review with one independent cross-check. Every literal in tests/mzdata.rs that describes upstream data is transcribed from MzDataFile_test.cpp or from the three unmodified fixtures: 3 spectra at 60/120/180 s with native IDs spectrum=10/11/12 and 1/3/5 peaks, the eight annotation arrays area..peakShape with their URL and Comment descriptions and the supDataDesc comment bla|comment|bla, the accession lsid, two precursors at m/z 1.2 and 2.2 with charges 2 and 3 and activation CID and SID, the source file MzDataFile_test_1.raw in /share/data/, contacts John Doe and Jane Doe, dataProcessing MS-X 1.0 with completionTime 2001-02-03 04:05:06, the instrument MS-Instrument/MS-Vendor/MS 1/tuned with two analyzers at resolutions 22.33 and 12.3 and FinalMSExponent 2 and -2, the sample MS-Sample 0-815 in the gas state with mass 1.01, volume 2.02 and concentration 3.03, the 997530-peak long spectrum, and the 64-bit and mixed-endian arrays of MzDataFile_4_64bit.mzData. Transcribed literals are tier-3 evidence. The one check independent of that suite is upstream_payload_holds_a_partial_trailing_element, which decodes the m/z payload of MzDataFile_3_minimal.mzData outside the reader and shows it to hold 25 bytes where the declared three 64-bit values need 24 - establishing from the bytes, not from any upstream assertion, that the fixtures depend on Base64::decodeUncompressed_ truncating to whole elements. The big-endian, ISO-8859-1 and UTF-8 fixtures, every resource ceiling, the hostile length and count attributes, the writer refusals and the byte-exact empty-experiment document are independently derived (tier 4). No C++ was built or executed, no C++ output was retained, and no retained mzData output exists in the pinned tree - MzDataFile_1.mzData is hand-written, carrying ScanFunction and TandemScanningMethod cvParams the writer never emits - so this is not a tier 1 differential."
+ "evidence": "Tier 3 source review with one independent cross-check. Every literal in tests/mzdata.rs that describes upstream data is transcribed from MzDataFile_test.cpp or from the three unmodified fixtures: 3 spectra at 60/120/180 s with native IDs spectrum=10/11/12 and 1/3/5 peaks, the eight annotation arrays area..peakShape with their URL and Comment descriptions and the supDataDesc comment bla|comment|bla, the accession lsid, two precursors at m/z 1.2 and 2.2 with charges 2 and 3 and activation CID and SID, the source file MzDataFile_test_1.raw in /share/data/, contacts John Doe and Jane Doe, dataProcessing MS-X 1.0 with completionTime 2001-02-03 04:05:06, the instrument MS-Instrument/MS-Vendor/MS 1/tuned with two analyzers at resolutions 22.33 and 12.3 and FinalMSExponent 2 and -2, the sample MS-Sample 0-815 in the gas state with mass 1.01, volume 2.02 and concentration 3.03, the 997530-peak long spectrum, and the 64-bit and mixed-endian arrays of MzDataFile_4_64bit.mzData. Transcribed literals are tier-3 evidence. The one check independent of that suite is upstream_payload_holds_a_partial_trailing_element, which decodes the m/z payload of MzDataFile_3_minimal.mzData outside the reader and shows it to hold 25 bytes where the declared three 64-bit values need 24 - establishing from the bytes, not from any upstream assertion, that the fixtures depend on Base64::decodeUncompressed_ truncating to whole elements. The big-endian, ISO-8859-1 and UTF-8 fixtures, every resource ceiling, the hostile length and count attributes, the writer refusals and the byte-exact empty-experiment document are independently derived (tier 4). No C++ was built or executed, no C++ output was retained, and no retained mzData output exists in the pinned tree - MzDataFile_1.mzData is hand-written, carrying ScanFunction and TandemScanningMethod cvParams the writer never emits - so this is not a tier 1 differential.",
+ "upstream_only_fixtures": [
+  {
+   "sha256": "49eb9ddace09238710a52eb75c6bf17d09f22e4eae4a188f85f47f1b96f45cdf",
+   "bytes": 10641944,
+   "role": "Upstream fixture deliberately NOT copied into this repository: the original package omitted the 10.6 MB input to limit fixture size. The section's asserted value is one spectrum of 997530 peaks; tests/mzdata.rs::load_special_cases writes and reads an equivalent 997530-peak document instead. The character-data splitting the upstream comment refers to is reached directly by split_base64_payload_is_concatenated, which puts an XML comment inside a base64 payload.",
+   "source_path": "src/tests/class_tests/openms/data/MzDataFile_2_long.mzData",
+   "evidence": "Source hash verified only; not copied and not executed by Rust or C++ in this group. The separate synthetic Rust test is not an execution of this fixture."
+  }
+ ],
+ "historical_package_validation": {
+  "gates": [
+   "cargo fmt --all -- --check",
+   "cargo clippy --locked --all-features --all-targets -- -D warnings",
+   "cargo nextest run --locked --all-features (3256 tests)",
+   "cargo nextest run --locked --no-default-features (2376 tests)",
+   "cargo nextest run --locked --no-default-features --features mzml --test mzdata (63 tests)",
+   "cargo test --locked --all-features --doc",
+   "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --all-features --no-deps",
+   "cargo +1.85.0 check --locked --all-features --all-targets",
+   "python3 tools/check_doc_coverage.py",
+   "python3 tools/check_core_sdk.py",
+   "python3 tools/test_core_sdk.py",
+   "python3 tools/test_core_sdk_coverage.py",
+   "python3 tools/check_schema_feature_graph.py"
+  ],
+  "doc_coverage": "src/format/mzdata.rs 44/44 = 100.0%; src/format/mod.rs improves from 4/28 to 5/29",
+  "sections_total": 15,
+  "sections_ported": 13,
+  "sections_mapped": 2,
+  "sections_unaccounted": 0,
+  "assertion_macros_total": 429,
+  "scope": "Historical pre-integration package validation; test counts refer to that package checkpoint, not the current combined repository."
+ },
+ "cpp_issue_log_entries": [
+  "CPP-170",
+  "CPP-171"
+ ]
 }

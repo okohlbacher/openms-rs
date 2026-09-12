@@ -335,3 +335,11 @@ writer's 15-significant-digit form preserves.
   touched here; `MascotGenericFile` replaced `MascotInfile` upstream, and the
   upstream fixture is still named `MascotInfile_test.mascot_in`.
 - The writer has no `PeakFileOptions` hook, matching the source.
+
+### Stream failure boundary
+
+`store_with_options` preflights semantic errors and output size before creating
+a file. `store_to`, `write_spectrum` and `write_header_to` write directly to the
+caller-owned stream: a later validation or I/O error can leave an output prefix,
+and `store_to` does not apply the path writer's output-byte ceiling. Callers
+requiring atomic publication should stage the stream before publishing it.

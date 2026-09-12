@@ -946,7 +946,7 @@
     "tests/experiment_mobility.rs"
    ],
    "documentation": "docs/AREA_ITERATION_SUPPORT.md",
-   "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain. Complete: the scalar RT/m/z traversal plus the closed residuals — Param's lowIM/highIM as AreaOptions::mobility, getDriftTime on both yielded items, and the RangeManager overloads through from_range_manager. Mobility filters the scalar drift time only, as nextScan_ does; empty or absent dimensions do not restrict and intensity is ignored. Checked ordering, finiteness and shared resource budgets."
+   "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain. Complete: the scalar RT/m/z traversal plus the closed residuals \u2014 Param's lowIM/highIM as AreaOptions::mobility, getDriftTime on both yielded items, and the RangeManager overloads through from_range_manager. Mobility filters the scalar drift time only, as nextScan_ does; empty or absent dimensions do not restrict and intensity is ignored. Checked ordering, finiteness and shared resource budgets."
   },
   "src/openms/include/OpenMS/KERNEL/BaseFeature.h": {
    "status": "native_equivalent",
@@ -1174,7 +1174,7 @@
     "tests/ranges.rs"
    ],
    "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-   "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate. Whole header audited member by member. Adds scan-mobility IMBegin/IMEnd, isIMFrame, both mobility bulk exports, rasterizeRTMZ and the RangeManager area overloads to the scalar area, precursor, container, range, TIC, 2D and aggregation surfaces already present. Three members remain unported: set2DData's mass-trace specialization, getFirstProductSpectrum and operator<<; each is documented with the file that must own it. See docs/EXPERIMENT_MOBILITY_SUPPORT.md. Test accounting after the follow-up fix: 56 of the 81 class-test sections are ported, 21 are mapped with a named test function and a concrete asserted value, and 4 are unaccounted because their members are unported — set2DData<add_mass_traces=true> (section 11), both getFirstProductSpectrum overloads (42, 43) and operator<< (54). The header stays partial for exactly those four."
+   "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate. Whole header audited member by member. Adds scan-mobility IMBegin/IMEnd, isIMFrame, both mobility bulk exports, rasterizeRTMZ and the RangeManager area overloads to the scalar area, precursor, container, range, TIC, 2D and aggregation surfaces already present. Three members remain unported: set2DData's mass-trace specialization, getFirstProductSpectrum and operator<<; each is documented with the file that must own it. See docs/EXPERIMENT_MOBILITY_SUPPORT.md. Test accounting after the follow-up fix: 56 of the 81 class-test sections are ported, 21 are mapped with a named test function and a concrete asserted value, and 4 are unaccounted because their members are unported \u2014 set2DData<add_mass_traces=true> (section 11), both getFirstProductSpectrum overloads (42, 43) and operator<< (54). The header stays partial for exactly those four."
   },
   "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
    "status": "partial",
@@ -1621,6 +1621,237 @@
    ],
    "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
    "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTabBase.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/mztab.rs"
+   ],
+   "tests": [
+    "tests/mztab.rs"
+   ],
+   "documentation": "docs/MZTAB_SUPPORT.md",
+   "scope": "Full shared cell vocabulary, cell states, metadata records and optional-column collection mapped. Native checked parsing, typed state-aware equality and explicit source comparison operations replace unchecked C++ behavior. Source-review and independently derived evidence only; no executed C++ claim."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTab.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mztab.rs"
+   ],
+   "tests": [
+    "tests/mztab.rs"
+   ],
+   "documentation": "docs/MZTAB_SUPPORT.md",
+   "scope": "All seven row families, modification cells, document storage/accessors and optional metadata mapping. Missing exportFeatureMapToMzTab, exportIdentificationsToMzTab, exportConsensusMapToMzTab, extractModificationList and nested IDMzTabStream/CMMzTabStream. Two upstream exporter test sections remain unported; no whole-header completion."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTabFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mztab_file.rs"
+   ],
+   "tests": [
+    "tests/mztab_file.rs"
+   ],
+   "documentation": "docs/MZTAB_FILE_SUPPORT.md",
+   "scope": "Load/store MzTab records, seven section column families, flags and defined row/header generators. Identification-list and ConsensusMap store overloads require unported MzTab exporters; undefined protected statics explicitly accounted for. Retained upstream inputs are not executed output evidence."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTabM.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mztab_m.rs"
+   ],
+   "tests": [
+    "tests/mztab_m.rs"
+   ],
+   "documentation": "docs/MZTAB_M_SUPPORT.md",
+   "scope": "Metabolomics records and FeatureMap exporter are implemented, but end-to-end exporter reproduction from the OMS input remains absent and default CV identity differs. Retained output comparisons cover metadata, selected rows and writer grammar; counts copied from expected output do not certify exporter row construction. Promote only after these documented fidelity/validation gaps close."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTabMFile.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/mztab_m.rs"
+   ],
+   "tests": [
+    "tests/mztab_m.rs"
+   ],
+   "documentation": "docs/MZTAB_M_SUPPORT.md",
+   "scope": "Full constructor/store and all seven metadata/header/row generators mapped. Retained C++ output grammar and selected rows verified in package tests; explicit source flags preserve known faulty spellings where requested. No mzTab-M reader is required by this source header; exporter validation is tracked separately under MzTabM.h."
+  },
+  "src/openms/include/OpenMS/FORMAT/PepXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/pepxml.rs"
+   ],
+   "tests": [
+    "tests/pepxml.rs"
+   ],
+   "documentation": "docs/PEPXML_SUPPORT.md",
+   "scope": "Load/store, preferred modifications, native spectrum names and unknown-score policy mapped with retained output writer comparisons. Caller-built SpectrumIndex replaces source store loading mz_file; arbitrary SpectrumMetaDataLookup behaviors are a subset. Do not close whole header until integration review resolves/documentedly accepts this public store convenience gap and validates final scaling fixes."
+  },
+  "src/openms/include/OpenMS/FORMAT/QcMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/qcml.rs"
+   ],
+   "tests": [
+    "tests/qcml.rs"
+   ],
+   "documentation": "docs/QCML_SUPPORT.md",
+   "scope": "QualityParameter/Attachment values, run/set registration, lookup, removal, merge, export and XML file I/O mapped. collectQCData and its metric computation are explicitly unported. Stylesheet is caller supplied; source bugs and native compatibility policies remain documented."
+  },
+  "src/openms/include/OpenMS/FORMAT/PercolatorInfile.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/percolator_infile.rs"
+   ],
+   "tests": [
+    "tests/percolator_infile.rs"
+   ],
+   "documentation": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "scope": "All six public operations including both stampPinFeaturesOnHits overloads mapped to typed API, plus PIN row preparation and enzyme helpers. Native bounds and explicit ambiguous-charge/error policies; source-review plus Rust-only tests, not executed C++ evidence."
+  },
+  "src/openms/include/OpenMS/FORMAT/MascotXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mascot_xml.rs"
+   ],
+   "tests": [
+    "tests/mascot_xml.rs"
+   ],
+   "documentation": "docs/MASCOT_XML_SUPPORT.md",
+   "scope": "Both load overloads and default title-lookup initialization implemented; custom scan_regex accepted by source initializeLookup is refused. Retained C++ idXML fixture provides load comparison, with dedicated fixture extractor due current idXML budget limitation. No writer exists upstream."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mascot_xml.rs"
+   ],
+   "tests": [
+    "tests/mascot_xml.rs"
+   ],
+   "documentation": "docs/MASCOT_XML_SUPPORT.md",
+   "scope": "Private handler implements the Mascot XML reader behavior and callbacks through typed parser state, but generic XMLHandler/reporting/inheritance contract and arbitrary lookup regex surface are not ported. No separate direct SAX interface is exposed."
+  },
+  "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mascot_generic.rs"
+   ],
+   "tests": [
+    "tests/mascot_generic.rs"
+   ],
+   "documentation": "docs/MASCOT_GENERIC_SUPPORT.md",
+   "scope": "MGF peak reading, stream/path storing, header/default-parameter options, native-ID parsing subset and sequence-query fields mapped. Source ProgressLogger base is not wired; generic base/template/API behavior should be reviewed before whole-header promotion."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzIdentMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzidentml.rs"
+   ],
+   "tests": [
+    "tests/mzidentml.rs"
+   ],
+   "documentation": "docs/MZIDENTML_SUPPORT.md",
+   "scope": "Linear and cross-link load/store plus detectVersion mapped. isValid XSD and isSemanticallyValid remain unimplemented; no certification from structural round-trip checks."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzidentml.rs"
+   ],
+   "tests": [
+    "tests/mzidentml.rs"
+   ],
+   "documentation": "docs/MZIDENTML_SUPPORT.md",
+   "scope": "Write path including XLMS fragments and three public analysisXML value types mapped. Public read-mode constructor and SAX callback stream path deliberately not implemented because source fails to publish parsed identifications; a separate DOM-equivalent parser supplies file loads. No generic XMLHandler/ProgressLogger contract."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzDataFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzdata.rs"
+   ],
+   "tests": [
+    "tests/mzdata.rs"
+   ],
+   "documentation": "docs/MZDATA_SUPPORT.md",
+   "scope": "Options, load/store, version, legacy precision/endian handling and reports mapped. isSemanticallyValid unsupported; inherited XSD isValid and ProgressLogger absent. Structural tests are weaker than schema validation; FileHandler dispatch still missing."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzDataHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzdata.rs"
+   ],
+   "tests": [
+    "tests/mzdata.rs"
+   ],
+   "documentation": "docs/MZDATA_SUPPORT.md",
+   "scope": "Native parser/writer covers mzData callbacks and metadata/array behavior; source progress callback contract is absent. Bounds and loss policies explicit, but no exported SAX handler/inherited XMLHandler contract; keep conservative partial until scope owner reviews."
+  },
+  "src/openms/include/OpenMS/FORMAT/MSstatsFile.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/msstats.rs"
+   ],
+   "tests": [
+    "tests/msstats.rs"
+   ],
+   "documentation": "docs/MSSTATS_SUPPORT.md",
+   "scope": "Both public storeLFQ/storeISO operations and all member helper/line mappings covered. Retained TOPP output compares complete LFQ and two ISO outputs under tighter numeric tolerance. Reports replace logging; source set-based intensity deduplication preserved. MSstats TOPP tool itself is not ported by this header group."
+  },
+  "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/ms_data_writing_consumer.rs"
+   ],
+   "tests": [
+    "tests/ms_data_writing_consumer.rs"
+   ],
+   "documentation": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
+   "scope": "Streaming consumer hooks, settings/counts/processing and Plain/Noop variants mapped. Indexed footer output, per-record semantic validation and progress are not supplied; changing source-file or processing header dependencies can be refused. Whole-header equivalence not established."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzxml.rs"
+   ],
+   "tests": [
+    "tests/mzxml.rs"
+   ],
+   "documentation": "docs/MZXML_SUPPORT.md",
+   "scope": "Options, load/store and both transform overloads mapped, including source serial behavior and explicit source flags. XSD isValid and ProgressLogger inherited operations absent; structural checks do not validate XSD. FileHandler dispatch missing."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzXMLHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzxml.rs"
+   ],
+   "tests": [
+    "tests/mzxml.rs"
+   ],
+   "documentation": "docs/MZXML_SUPPORT.md",
+   "scope": "Native nested-scan parser/writer implements recorded callbacks, array transport and metadata, serial rather than source parallel batch decoding. Generic SAX and progress-logger constructor contract are not exposed; keep partial pending full boundary acceptance."
+  },
+  "src/openms/include/OpenMS/FORMAT/SVOutStream.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/sv_out_stream.rs"
+   ],
+   "tests": [
+    "tests/sv_out_stream.rs"
+   ],
+   "documentation": "docs/SV_OUT_STREAM_SUPPORT.md",
+   "scope": "Public stream constructors, field/char/numeric/display writing, raw writes, newline/flush and modifyStrings mapped. Rust Display and explicit end_line replace arbitrary C++ stream manipulators; documented native contract with source spelling for arithmetic types. No C++ execution."
+  },
+  "src/openms/include/OpenMS/FORMAT/TransformationXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/transformation_xml.rs"
+   ],
+   "tests": [
+    "tests/transformation_xml.rs"
+   ],
+   "documentation": "docs/TRANSFORMATION_XML_SUPPORT.md",
+   "scope": "Load/store/version and record-level persistence mapped. b_spline cannot be resolved to a native transformation; inherited XSD isValid unsupported. Four fixture structural verdicts are useful evidence but do not implement schema validation."
   }
  },
  "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md",

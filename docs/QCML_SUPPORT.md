@@ -355,7 +355,7 @@ Input policy, all independently derived:
   non-ASCII fixture exists because an audit in this project found a reachable
   panic from byte-slicing a path with a non-ASCII component.
 
-Parse cost is linear in the document, not quadratic. The reader reports a line
+Line-number tracking is linear in the document. The reader reports a line
 number with every diagnostic, and the first release of this port derived it by
 counting the newlines of the whole byte prefix on **every** event, so a
 document of many small nodes cost O(nodes x document bytes). Measured in
@@ -376,6 +376,16 @@ at all, which is why they now count against `Limits::max_elements` alongside
 processing instructions. `tests/qcml.rs` pins both: it times the same three
 sizes, with and without a comment before every element, and refuses a
 fourfold-larger document that costs more than eight times as much.
+
+The reader also validates an entry's accumulated children once and moves their
+complete vectors into the registered entry. It does not repeatedly call the
+single-child public insertion API, which used to compare, validate and clone
+the same enclosing ID for every child. Thus ID bytes are not multiplied by
+child count during commit. Registration still performs ordered-map lookups;
+this is not a claim that every reader or writer operation has linear cost.
+The native regression covers both runs and sets with 128 KiB IDs, 512 quality
+parameters and 512 attachments each, checking values, order and name fallback.
+Public incremental insertion retains its own validation and lookup semantics.
 
 Evidence, in full in `tests/data/qcml_provenance.json`: **tier 3 source review**,
 no tier 1 differential. No C++ was built or executed and no C++ output was

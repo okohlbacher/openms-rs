@@ -1730,6 +1730,24 @@ fn cdata_and_entities_in_character_data_resolve() {
     assert_eq!(e.settings.sample.name, "A & B 日 B");
 }
 
+#[test]
+fn one_xml_document_excludes_trailing_roots_and_outside_character_data() {
+    let root = "<mzData accessionNumber=\"x\"/>";
+    assert!(read_text(root).is_ok());
+    for text in [
+        format!("{root}{root}"),
+        format!("{root}<x/>"),
+        format!("junk{root}"),
+        format!("{root}junk"),
+        format!("&amp;{root}"),
+        format!("{root}&#32;"),
+        format!("{root}<![CDATA[ ]]>"),
+    ] {
+        assert!(read_text(&text).is_err(), "accepted malformed XML: {text}");
+    }
+    assert!(read_text(&format!(" \t\r\n{root}\n ")).is_ok());
+}
+
 /// An unrecognised encoding declaration is refused rather than read as UTF-8.
 #[test]
 fn unknown_encoding_declaration_is_refused() {

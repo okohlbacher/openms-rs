@@ -5,7 +5,7 @@
 //! Coverage for `FORMAT/MzIdentMLFile.h` and
 //! `FORMAT/HANDLERS/MzIdentMLHandler.h`.
 //!
-//! Every literal taken from `MzIdentMLFile_test.cpp` or from one of the nine
+//! Every literal taken from `MzIdentMLFile_test.cpp` or from one of the ten
 //! unmodified upstream fixtures is transcribed source review (tier 3): the
 //! counts, accessions, score types, scores, spectrum references, the
 //! `database.fasta`/`MSDB` search databases, `missed_cleavages` 1000, the
@@ -13,7 +13,7 @@
 //! modifications, the `Acetyl (N-term)` variable modification, the 0.5
 //! significance threshold, the modification inference cases of issue #5443 and
 //! the cross-linking positions, masses, chains and fragment annotations of the
-//! two XLMS fixtures. No C++ was built or run, so nothing here is a tier 1
+//! two XLMS fixtures. No C++ mzIdentML operation was run, so nothing here is a tier 1
 //! differential.
 //!
 //! The synthetic documents - duplicate ids, dangling references, an
@@ -1225,6 +1225,13 @@ fn an_external_entity_reference_is_refused() {
         Error::Unsupported(message) => assert!(message.contains("external"), "{message}"),
         other => panic!("expected Unsupported, got {other:?}"),
     }
+}
+
+#[test]
+fn unsupported_encoding_is_not_silently_interpreted_as_utf8() {
+    let text = document("", "").replace("encoding=\"UTF-8\"", "encoding=\"ISO-8859-1\"");
+    assert!(text.contains("ISO-8859-1"));
+    assert!(matches!(read(&text), Err(Error::Unsupported(_))));
 }
 
 #[test]

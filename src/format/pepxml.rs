@@ -1771,6 +1771,7 @@ impl<'a> ReaderState<'a> {
             let mut found = None;
             for source in [&self.run.variable, &self.run.fixed] {
                 for candidate in source {
+                    meter.spend(1, 0)?;
                     if (mass - candidate.mass).abs() < MODIFICATION_TOLERANCE
                         && candidate.terminus == wanted
                     {
@@ -1892,9 +1893,9 @@ impl<'a> ReaderState<'a> {
             .ok_or_else(|| bad("'position' is outside the peptide sequence"))?;
         // The source cannot infer fixed vs variable from pepXML reliably, so it
         // tries the fixed declarations first and then the variable ones.
-        let mut found = lookup_from_header(&self.run.fixed, mass, origin);
+        let mut found = lookup_from_header(&self.run.fixed, mass, origin, meter)?;
         if found.is_none() {
-            found = lookup_from_header(&self.run.variable, mass, origin);
+            found = lookup_from_header(&self.run.variable, mass, origin, meter)?;
         }
         if found.is_none() {
             if let Some(psi_mod) = attribute(attributes, "id").filter(|v| !v.is_empty()) {
@@ -2408,7 +2409,9 @@ impl<'a> ReaderState<'a> {
             }
         }
         // Plan the implicit fixed modifications wherever nothing is annotated.
-        for declaration in self.run.fixed.clone() {
+        for declaration_index in 0..self.run.fixed.len() {
+            meter.spend(1, 0)?;
+            let declaration = &self.run.fixed[declaration_index];
             let Some(modification) = declaration.resolved.as_ref() else {
                 continue;
             };
@@ -2435,6 +2438,14 @@ impl<'a> ReaderState<'a> {
                     plan.push((PlannedSlot::CTerm, modification.clone()));
                 }
             } else {
+                // Charge failed matches as well as attachments, before the
+                // scan. A long origin string also costs its bytes per test.
+                meter.spend(
+                    residues
+                        .len()
+                        .saturating_mul(declaration.amino_acid.len().saturating_add(1)),
+                    0,
+                )?;
                 for index in 0..residues.len() {
                     if taken.get(index) != Some(&false) {
                         continue;
@@ -2550,11 +2561,12 @@ fn bracket_safe(text: &str) -> bool {
 /// planned named modifications are resolved with the lookup
 /// `AASequence::set_modification_with_registry` performs and are installed
 /// together; and the at most two terminal annotations keep their own setters.
-/// One `search_hit` therefore costs its peptide length, rather than that length
-/// once per annotation.
+/// Eligible plans rebuild chemistry a constant number of times.
 ///
-/// Returns `Ok(None)`, with the peptide untouched, when a planned mass cannot be
-/// spelled inside brackets; the caller then falls back to one setter per entry.
+/// Returns `Ok(None)`, with the peptide untouched, when a planned mass cannot
+/// be spelled in brackets, bulk residue chemistry rejects an intermediate state,
+/// or the conservative composition bound cannot prove regrouping safe. Those
+/// plans keep encounter-order setters and their metered cost.
 fn respell_plan(
     sequence: &AASequence,
     plan: &[(PlannedSlot, ResolvedModification)],
@@ -2654,11 +2666,84 @@ fn respell_plan(
                 annotated.push(']');
             }
         }
-        AASequence::parse_with_registry(&annotated, registry)?
+        let Ok(applied) = AASequence::parse_with_registry(&annotated, registry) else {
+            return Ok(None);
+        };
+        applied
     };
+    // Prove that regrouping cannot hide a negative-atom intermediate state.
+    // Subtract every known negative contribution from the original composition,
+    // ignoring additions. Every prefix then has at least this many atoms.
+    // Unknown residue mass tags disable composition checking after their first
+    // appearance; ignoring them still proves every earlier known prefix safe.
+    let Ok(mut lower) = sequence.formula() else {
+        return Ok(None);
+    };
+    meter.spend(
+        lower.stored_atom_types(),
+        lower.stored_atom_types().saturating_mul(128),
+    )?;
+    let mut upper = lower.clone();
+    for index in 0..result.len() {
+        meter.spend(1, 0)?;
+        if let Some(SequenceModification::Known(value)) = result.residue_modification(index)? {
+            if !bound_atom_contributions(&mut lower, &mut upper, value, meter)? {
+                return Ok(None);
+            }
+        }
+    }
+    for (_, value) in &handles {
+        if !bound_atom_contributions(&mut lower, &mut upper, value, meter)? {
+            return Ok(None);
+        }
+    }
+    for &(entry, n_terminal) in &terminals {
+        let (_, ResolvedModification::Known(value)) = &plan[entry] else {
+            return Ok(None);
+        };
+        let residue = if n_terminal {
+            residues.first()
+        } else {
+            residues.last()
+        };
+        let Some(&residue) = residue else {
+            return Ok(None);
+        };
+        // Mirror resolve_terminal's specificity order, including aliases that
+        // could resolve a full ID to another record under the first specificity.
+        let types = if n_terminal {
+            [TermSpecificity::NTerm, TermSpecificity::ProteinNTerm]
+        } else {
+            [TermSpecificity::CTerm, TermSpecificity::ProteinCTerm]
+        };
+        let mut resolved = None;
+        for term in types {
+            if !registry
+                .find(value.full_id(), Some(residue), Some(term))
+                .is_empty()
+            {
+                resolved = registry
+                    .get_modification_handle(value.full_id(), Some(residue), Some(term))
+                    .ok();
+                break;
+            }
+        }
+        let Some(resolved) = resolved else {
+            return Ok(None);
+        };
+        if !bound_atom_contributions(&mut lower, &mut upper, &resolved, meter)? {
+            return Ok(None);
+        }
+    }
     if !handles.is_empty() {
         charge_rebuild(residues.len(), meter)?;
-        result = result.with_resolved_modifications(&handles, None, None)?;
+        // Bulk installation can expose a temporary atom deficit before an
+        // earlier terminal annotation supplies the missing atoms. Preserve the
+        // original setter order in that case, including its mass-only fallback.
+        let Ok(applied) = result.with_resolved_modifications(&handles, None, None) else {
+            return Ok(None);
+        };
+        result = applied;
     }
     for (entry, n_terminal) in terminals {
         let (_, modification) = plan
@@ -2671,6 +2756,36 @@ fn respell_plan(
         }
     }
     Ok(Some((result, diagnostics)))
+}
+
+/// Conservative composition bounds for any prefix or regrouping of a plan.
+fn bound_atom_contributions(
+    lower: &mut EmpiricalFormula,
+    upper: &mut EmpiricalFormula,
+    modification: &ResidueModification,
+    meter: &mut Meter,
+) -> Result<bool> {
+    let delta = modification.diff_formula();
+    if delta.is_empty() && modification.absolute_formula().is_some() {
+        return Ok(false);
+    }
+    let atoms = lower
+        .stored_atom_types()
+        .saturating_add(delta.stored_atom_types());
+    meter.spend(atoms.saturating_mul(32), atoms.saturating_mul(512))?;
+    let negative = delta.negative_part();
+    let Ok(next_lower) = lower.checked_add(&negative) else {
+        return Ok(false);
+    };
+    let Ok(positive) = delta.checked_sub(&negative) else {
+        return Ok(false);
+    };
+    let Ok(next_upper) = upper.checked_add(&positive) else {
+        return Ok(false);
+    };
+    *lower = next_lower;
+    *upper = next_upper;
+    Ok(!lower.has_negative_atom_counts())
 }
 
 /// Attach a resolved modification to one residue.
@@ -2757,16 +2872,19 @@ fn lookup_from_header(
     declarations: &[HeaderModification],
     mass: f64,
     residue: char,
-) -> Option<ResolvedModification> {
+    meter: &mut Meter,
+) -> Result<Option<ResolvedModification>> {
     for declaration in declarations {
-        if (mass - declaration.mass).abs() < MODIFICATION_TOLERANCE
-            && declaration.amino_acid.contains(residue)
-        {
-            // Only one modification should match, so the search stops here.
-            return declaration.resolved.clone();
+        meter.spend(1, 0)?;
+        if (mass - declaration.mass).abs() < MODIFICATION_TOLERANCE {
+            meter.spend(declaration.amino_acid.len(), 0)?;
+            if declaration.amino_acid.contains(residue) {
+                // Only one modification should match, so the search stops here.
+                return Ok(declaration.resolved.clone());
+            }
         }
     }
-    None
+    Ok(None)
 }
 
 /// Flanking residue of a `peptide_prev_aa`/`peptide_next_aa` attribute.
@@ -3792,6 +3910,72 @@ fn write_scores(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn failed_header_candidates_spend_work_before_scanning() {
+        let declaration = HeaderModification::new(
+            "C",
+            "57.0215",
+            "160.0306",
+            "Y",
+            "Carbamidomethyl",
+            "",
+            "",
+            &ReadOptions::default(),
+            ModificationsDB::global(),
+        )
+        .unwrap();
+        let headers = [declaration.clone(), declaration];
+        let mut meter = Meter { work: 1, bytes: 0 };
+        assert!(lookup_from_header(&headers, 1.0, 'A', &mut meter).is_err());
+        let mut meter = Meter { work: 2, bytes: 0 };
+        assert!(
+            lookup_from_header(&headers, 1.0, 'A', &mut meter)
+                .unwrap()
+                .is_none()
+        );
+        assert_eq!(meter.work, 0);
+        // A matching mass must additionally account for a failed origin scan.
+        let mut meter = Meter { work: 1, bytes: 0 };
+        assert!(lookup_from_header(&headers, 160.0306, 'A', &mut meter).is_err());
+    }
+
+    #[test]
+    fn unmatched_fixed_declarations_spend_their_complete_scan() {
+        let options = ReadOptions::default();
+        let registry = ModificationsDB::global();
+        let declaration = HeaderModification::new(
+            "C",
+            "57.0215",
+            "160.0306",
+            "N",
+            "Carbamidomethyl",
+            "",
+            "",
+            &options,
+            registry,
+        )
+        .unwrap();
+        let mut state = ReaderState::new(&options, registry).unwrap();
+        state.run.fixed = vec![declaration.clone(), declaration];
+        let sequence = AASequence::parse("AA").unwrap();
+        // Two taken slots, then two declarations each costing one examination
+        // and two (one-byte origin plus slot-check) comparisons: 2 + 2*(1+4).
+        let mut meter = Meter { work: 12, bytes: 2 };
+        assert!(
+            state
+                .plan_annotations(&sequence, &['A', 'A'], &mut meter)
+                .unwrap()
+                .is_empty()
+        );
+        assert_eq!(meter.work, 0);
+        let mut meter = Meter { work: 11, bytes: 2 };
+        assert!(
+            state
+                .plan_annotations(&sequence, &['A', 'A'], &mut meter)
+                .is_err()
+        );
+    }
 
     #[test]
     fn general_matches_stream_precision_fifteen() {

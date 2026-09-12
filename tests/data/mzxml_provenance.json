@@ -38,6 +38,11 @@
    "path": "src/openms/include/OpenMS/FORMAT/XMLFile.h",
    "sha256": "dbdf6d6a9f9b0de336bcc90d507dcdda86dace44fa583308f5ec39d908a2edf4",
    "role": "Not ported here. The base class MzXMLFile inherits: schema_location_/schema_version_, getVersion, isValid (unported, needs the mzXML XSD) and the compression-sniffing parse_/save_ pair this crate's path_io replaces."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+   "sha256": "ce5b17f911e46c9e12a1e3010794e086ea4f4b5753bd24df3c2160153a122060",
+   "role": "Source anchor reviewed for this module; no C++ execution claimed."
   }
  ],
  "fixtures": [
@@ -74,13 +79,6 @@
    "sha256": "3402f37d551061f1eb79d7227bcc16c796b7733980725334131c83f0775f0500",
    "bytes": 1789,
    "role": "Hand-written for this package; not upstream. A three-level scan tree (MS1 > MS2 > MS3) in which every level carries a <nameValue> and a <comment> AFTER its nested child, which is the shape that reveals the upstream metadata misattribution, plus a fourth scan whose <peaks> is xsi:nil. Peak payloads are (120,100), (121,50) and (122,25) as 32-bit big-endian pairs."
-  },
-  {
-   "path": "src/tests/class_tests/openms/data/MzXMLFile_4_long.mzXML",
-   "sha256": "30ecfc2276ed99c25a15ef5797b3bd26518c85c28933057d430cdb0ef337cab0",
-   "bytes": 10641595,
-   "copied": false,
-   "role": "NOT copied into this repository: 10.6 MB would more than double tests/data, whose current largest entry is 3.4 MB. Hashed here for provenance. It is one scan with peaksCount=\"997530\" and retentionTime=\"-PT1S\", written by OpenMS itself for a spectrum whose retention time was the MSSpectrum default -1. tests/mzxml.rs generates an equivalent document with the same 997530 peaks and asserts the upstream count; the coordinates are independently derived."
   }
  ],
  "native_implementation": [
@@ -109,7 +107,7 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
    "line": 126,
-   "operation": "if (skip_spectrum_ && tag != \"scan\") return — a filtered scan swallows every child except a nested <scan>, and the nested scan resets the flag"
+   "operation": "if (skip_spectrum_ && tag != \"scan\") return \u2014 a filtered scan swallows every child except a nested <scan>, and the nested scan resets the flag"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
@@ -353,5 +351,18 @@
   "CI wiring was not added: append '--test mzxml' to a '--no-default-features --features mzml' line of the minimum-rust job in .github/workflows/rust.yml (rust.yml:86 or :87). The test passes under --features mzml alone and under cargo +1.85.0.",
   "MzXMLFile_4_long.mzXML is not copied (10.6 MB); the long-spectrum section is reproduced from a generated document with the same peak count. The upstream file's sha256 is recorded above, so it can be added later without ambiguity.",
   "mzXML cannot express the sample description, the HPLC gradient, instrument configurations, more than one ion source or analyzer, chromatograms, auxiliary data arrays, ion mobility or peptide identifications. Storing an mzML-derived experiment drops them, as upstream does; this is a format limit, not a port limit."
+ ],
+ "upstream_only_fixtures": [
+  {
+   "sha256": "30ecfc2276ed99c25a15ef5797b3bd26518c85c28933057d430cdb0ef337cab0",
+   "bytes": 10641595,
+   "copied": false,
+   "role": "NOT copied into this repository: 10.6 MB would more than double tests/data, whose current largest entry is 3.4 MB. Hashed here for provenance. It is one scan with peaksCount=\"997530\" and retentionTime=\"-PT1S\", written by OpenMS itself for a spectrum whose retention time was the MSSpectrum default -1. tests/mzxml.rs generates an equivalent document with the same 997530 peaks and asserts the upstream count; the coordinates are independently derived.",
+   "execution": "Not retained or executed in Rust; synthetic long-record coverage is independently derived."
+  }
+ ],
+ "cpp_issue_log_entries": [
+  "CPP-173",
+  "CPP-174"
  ]
 }

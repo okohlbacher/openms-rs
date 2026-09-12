@@ -1928,3 +1928,31 @@ fn parse_cost_grows_with_the_document_and_not_with_its_square() {
         );
     }
 }
+
+#[test]
+fn long_entry_identifiers_keep_all_children() {
+    // A long enclosing ID is present once in XML, regardless of child count.
+    // The parser must validate the same fields while moving complete lists.
+    for tag in ["runQuality", "setQuality"] {
+        let id = "r".repeat(128 * 1024);
+        let mut text = format!("<qcML><{tag} ID=\"{id}\">");
+        for index in 0..512 {
+            text.push_str(&format!("<qualityParameter ID=\"q{index}\" name=\"metric\" cvRef=\"QC\" accession=\"QC:1\" value=\"{index}\"/>
+                <attachment ID=\"a{index}\" name=\"payload\" cvRef=\"QC\" accession=\"QC:2\"><binary>AA==</binary></attachment>"));
+        }
+        text.push_str(&format!("</{tag}></qcML>"));
+        let file = qcml::read(text.as_bytes()).unwrap();
+        let (parameters, attachments) = if tag == "runQuality" {
+            assert_eq!(file.run_id_for_name(&id), Some(id.as_str()));
+            (file.run_quality_parameters(&id), file.run_attachments(&id))
+        } else {
+            assert_eq!(file.set_id_for_name(&id), Some(id.as_str()));
+            (file.set_quality_parameters(&id), file.set_attachments(&id))
+        };
+        assert_eq!(parameters.len(), 512);
+        assert_eq!(parameters[511].value, "511");
+        assert_eq!(attachments.len(), 512);
+        assert_eq!(attachments[511].id, "a511");
+        assert_eq!(attachments[511].binary, "AA==");
+    }
+}

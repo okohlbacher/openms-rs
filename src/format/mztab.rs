@@ -1634,12 +1634,9 @@ impl MzTabModification {
     ///
     /// # Notes
     ///
-    /// The source appends each position with `std::string::operator+=` applied
-    /// to a `Size`, which resolves to the `char` overload: position `3` is
-    /// written as the single byte `0x03`, not as the digit `3`. This port
-    /// writes decimal digits, which is what the format requires and what the
-    /// source's own parser reads back. Any position-annotated cell therefore
-    /// differs from the bytes the C++ produces; see `docs/MZTAB_SUPPORT.md`.
+    /// Positions render as decimal digits, as do the numeric string-append
+    /// overloads in the pinned source's `StringUtils.h`. This is compatible
+    /// behavior, not a native correction of character narrowing.
     pub fn to_cell_string(&self) -> Result<String> {
         if self.is_null() {
             return Ok("null".to_owned());

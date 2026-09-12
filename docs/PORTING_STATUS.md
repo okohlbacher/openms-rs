@@ -8,11 +8,15 @@ operation groups and remaining work. Full SDK/TOPP certification remains open.
 
 The target is a feature-complete reduced Core SDK suitable for porting TOPP tools, with an idiomatic Rust API. Spectra, chemistry and common processing were the starting priorities. This document describes the implemented surface rather than claiming parity for every method of a similarly named C++ class. The [completion ledger](CORE_SDK_COMPLETION.md) tracks all registered public headers and direct TOPP dependencies.
 
-The current target is SDK 4.0.0 at `82ce5b3`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
+The current target is SDK 4.0.0 at `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
 
-**All file formats stay in core.** No file-format header may be re-scoped out of the port or deferred to a separate project, including vendor and binary formats (`ThermoRawFile`, `BrukerTimsFile`, `BrukerTimsImagingFile`), container and database formats (`HDF5Connector`, `SqliteConnector`, `SqMassFile`, `OSWFile`, the Arrow/Parquet family), the `MzTab` family and the imzML family (`ImzMLFile`, `ImzMLHandler`, `ImzMLHandlerHelper`, `ImzMLWriter`, `OnDiscImzMLExperiment`). Where a format needs an external dependency or a helper process, that is a dependency decision to record, not a reason to narrow scope. An unported format is therefore always `unmapped` — a backlog item — and never a documented exclusion. The only classes outside the remaining backlog are the tool backends upstream itself moved out of the Core package, listed in [the SDK update](CORE_SDK_UPDATE.md); none of those is a file format.
+**All file formats stay in core.** No file-format header may be re-scoped out of the port or deferred to a separate project, including vendor and binary formats (`ThermoRawFile`, `BrukerTimsFile`, `BrukerTimsImagingFile`), container and database formats (`HDF5Connector`, `SqliteConnector`, `SqMassFile`, `OSWFile`, the Arrow/Parquet family), the `MzTab` family and the imzML family (`ImzMLFile`, `ImzMLHandler`, `ImzMLHandlerHelper`, `ImzMLWriter`, `OnDiscImzMLExperiment`). Where a format needs an external dependency or a helper process, that is a dependency decision to record, not a reason to narrow scope. An unported format remains a backlog item, recorded as `unmapped` or `evidence_requires_review` according to the ledger; a partly implemented format is `partial`, never a scope exclusion. The only classes outside the remaining backlog are the tool backends upstream itself moved out of the Core package, listed in [the SDK update](CORE_SDK_UPDATE.md); none of those is a file format.
 
 [CV mapping records and XML loading](CV_MAPPING_SUPPORT.md) cover all five class-specific source APIs, with atomic loads and explicit compatibility corrections. [General semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) now supplies the complete class-specific mapping/term validator with ordered diagnostics and bounded, reusable operations. [MzMLValidator](MZML_VALIDATOR_SUPPORT.md) is also implemented; other derived validators and XSD validation remain separate.
+
+The [FORMAT wave](FORMAT_WAVE_SUPPORT.md) integrates fifteen modules with
+per-header status, feature requirements and evidence limitations. SQLite-family
+formats remain the next planned wave.
 
 ## Mass traces and additional SDK values
 
@@ -28,8 +32,8 @@ now available. ProForma sequence parsing and mass calculation are implemented;
 
 [MobilityPeak1D/Mobilogram](MOBILOGRAM_SUPPORT.md) now represent the source
 value and scientific container operations, with current ranges and explicit
-source partial-swap/equality behavior. Inherited generic range algebra and
-mobility-bearing experiment operations remain. Generic arrays retain owned
+source partial-swap/equality behavior. [Generic range algebra](RANGES_SUPPORT.md) and [mobility-bearing experiment
+operations](EXPERIMENT_MOBILITY_SUPPORT.md) are now implemented. Generic arrays retain owned
 metadata and shared processing handles; the existing constructor is unchanged,
 and struct literals require defaults for the two new fields. Native processing
 preserves retained descriptions. [XML guards](DATA_ARRAY_XML_SUPPORT.md) prevent

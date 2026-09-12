@@ -1,0 +1,171 @@
+{
+ "environment": {
+  "host": "kim",
+  "timestamp_utc": "20260912-215205",
+  "loadavg_start": [
+   39.3740234375,
+   55.58544921875,
+   63.4638671875
+  ],
+  "cpu_count": 384,
+  "cwd": "/scratch/kohlbach/agents/codex-format-finish",
+  "target_dir": "/scratch/kohlbach/targets/codex-format-finish",
+  "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)\nbinary: rustc\ncommit-hash: ac68faa20c58cbccd01ee7208bf3b6e93a7d7f96\ncommit-date: 2026-05-25\nhost: x86_64-unknown-linux-gnu\nrelease: 1.96.0\nLLVM version: 22.1.2\n",
+  "msrv": "rustc 1.85.0 (4d91de4e4 2025-02-17)\nbinary: rustc\ncommit-hash: 4d91de4e48198da2e33413efdcd9cd2cc0c46688\ncommit-date: 2025-02-17\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.0\nLLVM version: 19.1.7\n",
+  "snapshot_sha256": "94e66f1ab3d858eb1dd81713eb7ff594fdec3efc86bdc6fc201dbaba48e4e15b"
+ },
+ "remote_log_directory": "/ceph/ibmi/abi/oliver/openms-rs/results/format-final-20260912-215205",
+ "results": [
+  {
+   "name": "fmt",
+   "command": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+   ],
+   "exit": 0,
+   "seconds": 2.14,
+   "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "name": "clippy",
+   "command": [
+    "cargo",
+    "clippy",
+    "--locked",
+    "--all-features",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+   ],
+   "exit": 0,
+   "seconds": 30.75,
+   "log_sha256": "ccb57a37d502b73bf2ca51cec0adf04adc5d0d7ad54e705c4987873ac538c795"
+  },
+  {
+   "name": "nextest_all",
+   "command": [
+    "cargo",
+    "nextest",
+    "run",
+    "--locked",
+    "--all-features",
+    "--no-fail-fast"
+   ],
+   "exit": 0,
+   "seconds": 49.68,
+   "log_sha256": "38eba71ed0df817d57b2e8cffbad0b7fbcabfa49a340667c4466de43ebbef523"
+  },
+  {
+   "name": "rustdoc",
+   "command": [
+    "cargo",
+    "doc",
+    "--locked",
+    "--all-features",
+    "--no-deps"
+   ],
+   "exit": 0,
+   "seconds": 13.34,
+   "log_sha256": "af4666b67c52a276c7f83f8dc495aee894b950673e7c9c131259a86b456643ba"
+  },
+  {
+   "name": "msrv_slice_idxml",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "test",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "idxml",
+    "--test",
+    "pepxml",
+    "--test",
+    "mascot_xml",
+    "--test",
+    "mzidentml"
+   ],
+   "exit": 0,
+   "seconds": 26.44,
+   "log_sha256": "25d2a2e0fb4e26cd068de56491778a3ca97febc1f6d87be304b54d7d67c5fa15"
+  },
+  {
+   "name": "check_core_sdk",
+   "command": [
+    "python3",
+    "tools/check_core_sdk.py"
+   ],
+   "exit": 0,
+   "seconds": 0.08,
+   "log_sha256": "8f2082659f174f3d1cb0602d39b3f1ebadaffccb6b3119c3e88d958bc71be5d4"
+  },
+  {
+   "name": "test_core_sdk",
+   "command": [
+    "python3",
+    "tools/test_core_sdk.py"
+   ],
+   "exit": 0,
+   "seconds": 0.05,
+   "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4"
+  },
+  {
+   "name": "core_sdk_coverage",
+   "command": [
+    "python3",
+    "tools/core_sdk_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.16,
+   "log_sha256": "298b0637d7f7dfbe497c9394fd862cd5afbfc1690077e95a67470f8c4cf083b1"
+  },
+  {
+   "name": "test_core_sdk_coverage",
+   "command": [
+    "python3",
+    "tools/test_core_sdk_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.2,
+   "log_sha256": "de546a2c0df932284ca0ebcd402a97159dfadd390d7d43c73e31c0bb13fd2e4e"
+  },
+  {
+   "name": "check_schema_feature_graph",
+   "command": [
+    "python3",
+    "tools/check_schema_feature_graph.py"
+   ],
+   "exit": 0,
+   "seconds": 20.18,
+   "log_sha256": "f5f49505982da5a26ef691a771e6b59311ad707a91a37c77bb8528142fccea16"
+  },
+  {
+   "name": "check_doc_coverage",
+   "command": [
+    "python3",
+    "tools/check_doc_coverage.py"
+   ],
+   "exit": 0,
+   "seconds": 0.08,
+   "log_sha256": "f25f48221151ebefcaaed62b7956b0d8077a2810c77746a3dae21f22f0b0728d"
+  },
+  {
+   "name": "msrv_check",
+   "command": [
+    "cargo",
+    "+1.85.0",
+    "check",
+    "--locked",
+    "--all-features",
+    "--all-targets"
+   ],
+   "exit": 0,
+   "seconds": 31.41,
+   "log_sha256": "41747fe7ac1a5493e2268b9bf426af3db2c8e21f2c4ae4593745b5324a0adfff"
+  }
+ ]
+}

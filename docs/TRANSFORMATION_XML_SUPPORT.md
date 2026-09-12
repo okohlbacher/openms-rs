@@ -152,8 +152,8 @@ is tested with `日本語 & <anchor>` and with `"quoted"` notes.
 compared with `TEST_REAL_SIMILAR`'s relative tolerance (the fixture stores them
 at six significant digits), the three pairs (1.2, 5.2) (2.2, 6.25) (3.2, 7.3),
 `extrapolation_type` `two-point-linear` appearing in a reloaded interpolated
-model, the `fit_model = false` path reporting `none`, the `isValid` verdicts on
-the four fixtures, and `Exception::IllegalArgument` for the model name
+model, the `fit_model = false` path reporting `none`, structural accept/reject outcomes on
+the four fixtures (a weaker substitute for their source `isValid` checks), and `Exception::IllegalArgument` for the model name
 `mumble_pfrwoarpfz`. Transcribed literals detect transcription drift but cannot
 falsify a misread algorithm. No C++ was built or executed and no C++ output was
 retained, so nothing here is tier 1 or 2. The escaping round trip, the
@@ -163,12 +163,14 @@ unknown-element refusals and the resource ceilings are independently derived
 
 ### Section accounting
 
-All four `START_SECTION`s of `TransformationXMLFile_test.cpp` are ported.
+Three of four `START_SECTION`s of `TransformationXMLFile_test.cpp` are
+ported. The XSD `isValid` section has a structural substitute only; accepting
+three fixtures and rejecting malformed XML does not implement XSD validation.
 
 | Section | Assertion macros | Rust test | One reproduced value |
 |---|---|---|---|
 | `TransformationXMLFile()` | 1 | `the_constructor_state_is_version_1_1_and_its_schema` | the handler version `1.1` |
-| `[EXTRA] static bool isValid(const std::string&)` | 4 | `the_three_schema_valid_fixtures_read_and_the_invalid_one_does_not` | `TransformationXMLFile_3.trafoXML` → invalid |
+| `[EXTRA] static bool isValid(const std::string&)` | 4 | `the_three_schema_valid_fixtures_read_and_the_invalid_one_does_not` | `TransformationXMLFile_3.trafoXML` → malformed XML; no XSD verdict |
 | `void load(..., bool fit_model=true)` | 17 | `loading_fits_the_named_model_from_the_file` | `getModelType()` of file 4 is `interpolated`, and its second pair is (2.2, 6.25) |
 | `void store(...)` | 18 (its `#if 0` b_spline block is excluded, as the compiler excludes it) | `storing_and_reloading_preserves_the_model_and_its_parameters` | a reloaded stored interpolated model has `params.size() == 2` with `extrapolation_type == "two-point-linear"` |
 
@@ -184,11 +186,12 @@ Recorded for `OpenMS_CPP_ISSUES.md`; the integrator owns that file.
   regression is not implemented. A TrafoXML carrying
   `symmetric_regression="true"` is accepted and ignored, by C++ and by this
   port alike.
-- **An unsupported `<Param type>` is dropped silently.**
+- **Unconfirmed error-policy candidate (CPP-176): unsupported `<Param type>`.**
   `TransformationXMLFile.cpp:161` calls `XMLHandler::error`, which
   (`XMLHandler.cpp:71`) only logs. A file whose model parameters use any other
   type loads as a model with missing parameters, and `fitModel` then either
-  falls back to defaults or fails for an unrelated reason.
-- **A too-new document version is accepted.**
+  falls back to defaults or fails for an unrelated reason. Non-fatal continuation
+  is explicit source policy; a public-contract violation has not been established.
+- **Forward-compatibility policy: a too-new document version is accepted.**
   `TransformationXMLFile.cpp:137` warns that this "might lead to undefined
-  program behavior" and continues.
+  program behavior" and continues. This alone does not establish a source defect.

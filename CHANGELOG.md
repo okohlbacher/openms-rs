@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Integrated the fifteen-module FORMAT wave: mzTab records and file adapters,
+  mzTab-M, streaming mzML consumers, separated-value output, mzXML, mzData,
+  pepXML, qcML, MSstats, Percolator input, transformation XML, Mascot and
+  mzIdentML. Public API coverage and remaining gaps are recorded in
+  `docs/FORMAT_WAVE_SUPPORT.md`; this does not complete the Core SDK.
+- Added bounded pepXML annotation processing and qcML child handling, and
+  tightened malformed-document and encoding checks in legacy XML readers.
+  Review corrections and regression evidence are recorded with the wave.
+
 - Fixed (imzML reader): a spectrum whose m/z and intensity arrays are not both external
   now decodes — the external side from the `.ibd`, the other from its inline base64, as
   `ImzMLInterceptConsumer` does — instead of reporting a length mismatch;

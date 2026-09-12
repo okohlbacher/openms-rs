@@ -9,17 +9,18 @@ implementation lines), at source revision
 
 | Artifact | Path |
 |---|---|
-| Rust module | `src/format/mztab_m.rs` (2,712 lines) |
-| Integration test | `tests/mztab_m.rs` (48 tests) |
+| Rust module | `src/format/mztab_m.rs` |
+| Integration test | `tests/mztab_m.rs` |
 | Provenance manifest | `tests/data/mztab_m_provenance.json` |
 | Fixtures | `tests/data/MzTabMFile_output_1.mztab`, `tests/data/AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab` |
 
 This is stage 2 of the MzTab family. Stage 1, `docs/MZTAB_SUPPORT.md`, ported
 the shared cell vocabulary of `MzTabBase.h` and the proteomics data model of
 `MzTab.h`. This stage adds the MzTab-M 2.0.0-M data model, the `FeatureMap`
-exporter and the writer. Neither stage ports a **reader**; the source has none
-for either flavour. `MzTabFile.h`, the proteomics writer, is still unported —
-this module borrows one static helper from it, named below.
+exporter and the writer. MzTab-M has no reader in this port or the pinned
+`MzTabMFile` API. Proteomics mzTab is different: both the source and the native
+[`MzTabFile`](MZTAB_FILE_SUPPORT.md) provide loading as well as writing.
+This module retains a budgeted version of its optional-column helper, named below.
 
 The module is registered ungated in `src/format/mod.rs`: it needs
 `crate::format::mztab`, `crate::format::controlled_vocabulary`,
@@ -339,11 +340,11 @@ Two native additions: `MzTabMFile::with_options`, and
 `MzTabMFile::generate_lines`, which returns the whole document's lines — the
 `StringList` the source builds inside `store` and does not expose.
 
-### Borrowed from the unported `MzTabFile.h`
+### Shared source helper from `MzTabFile.h`
 
 | Source member | Rust |
 |---|---|
-| `static void MzTabFile::addOptionalColumnsToSectionRow_(column_names, column_entries, StringList& output)` | private `write::optional_cells`. `MzTabMFile` calls this static from all three row generators, so it had to be reproduced here; `MzTabFile.h` itself is not ported by this package |
+| `static void MzTabFile::addOptionalColumnsToSectionRow_(column_names, column_entries, StringList& output)` | private `write::optional_cells`. `MzTabMFile` calls this static from all three row generators, so it had to be reproduced here; the separate `mztab_file` module also exposes `optional_column_cells` |
 
 Its contract is preserved exactly: one output cell per requested column name,
 taken from the **first** row entry with that name, and the literal `null` when
@@ -670,10 +671,14 @@ error.
 | `MzTabM_test.cpp` `START_SECTION(MzTabM())` | 1 | `default_constructor_declares_the_profile_version` | ported |
 | `MzTabM_test.cpp` `START_SECTION(~MzTabM())` | 0 | `destructor_releases_a_populated_document` | ported |
 | `MzTabM_test.cpp` `START_SECTION(Fill data structure)` | 21 | `fill_data_structure` | ported, all 21 macros and every literal the section sets |
-| `MzTabM_test.cpp` `START_SECTION(MzTabM::exportFeatureMapToMzTabM(const FeatureMap&))` | 6 | `export_feature_map_to_mztab_m` | ported, see the caveat below |
+| `MzTabM_test.cpp` `START_SECTION(MzTabM::exportFeatureMapToMzTabM(const FeatureMap&))` | 6 | `export_feature_map_to_mztab_m` | partial: retained-output counts only; original exporter input is not executed |
 | `MzTabMFile_test.cpp` `START_SECTION(MzTabMFile())` | 1 | `file_default_constructor` | ported |
 | `MzTabMFile_test.cpp` `START_SECTION(~MzTabFile())` | 0 | `file_destructor` | ported |
-| `MzTabMFile_test.cpp` `START_SECTION(void store(const std::string&, MzTabM&))` | 1 | `store_writes_the_retained_bytes` | ported, see the caveat below |
+| `MzTabMFile_test.cpp` `START_SECTION(void store(const std::string&, MzTabM&))` | 1 | `store_writes_the_retained_bytes` | mapped: selected retained rows compared; original full input is not executed |
+
+Five sections are ported, one has partial exporter evidence and one maps the
+source store comparison to selected retained rows. These are not seven complete
+upstream test reproductions.
 
 **The `.oms` caveat, stated plainly.** Both of the two sections that carry real
 data load `MzTabMFile_input_1.oms`, an SQLite `.oms` file this crate has no

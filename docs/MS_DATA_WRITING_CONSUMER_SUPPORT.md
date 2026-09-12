@@ -211,18 +211,17 @@ never built. All eleven sections are still accounted for in
 `.cpp` and each pinned to a line-level anchor in
 [the provenance record](../tests/data/ms_data_writing_consumer_provenance.json).
 The strongest checks depend on no C++ at all: byte-identity with
-`mzml::write` and a full read-back comparison. No C++ was built or executed and
-no C++ output was retained, so this is not a tier-1 differential.
+`mzml::write` and a full read-back comparison. No full format implementation was built or executed and
+no format output was retained, so this is not a tier-1 differential.
 
-Three candidate defects were recorded from this reading, and one more from
-`SVOutStream` is recorded in `docs/SV_OUT_STREAM_SUPPORT.md` (the `ss_`
-manipulator state that poisons `std::endl` detection) — four across the
-package. The integrator files them in `OpenMS_CPP_ISSUES.md`, which this
-package does not own. Two are
-specific to this class — the dangling `sf_sp_`/`dp_sp_` references a streamed
-file receives, and a class test that cannot compile and is disabled while ten
-TOPP tools depend on the class — and one is in `MzMLHandler.cpp` on the path
-this class drives: `std::string("dp_sp_") + Size` and
-`std::string("sf_sp_") + i` resolve to `operator+(std::string&&, char)`, so the
-declared identifiers carry a narrowed control character while the references
-are decimal. None is confirmed by execution; all three are source review.
+Two candidate defects are specific to this class: dangling `sf_sp_`/`dp_sp_`
+references in streamed files and a disabled class test whose constructor call
+no longer matches the class. Both are source-review findings; no full consumer
+C++ execution is claimed. The separate `SVOutStream` manipulator-state finding
+is recorded in [its support document](SV_OUT_STREAM_SUPPORT.md).
+
+The earlier additional claim that `std::string + Size` narrows numeric IDs to
+characters is withdrawn. The pinned `StringUtils.h` supplies numeric string
+operators, so IDs such as `sf_sp_0` and `dp_sp_0` contain decimal numbers. An
+isolated overload-resolution probe is recorded in the manifest; it does not
+validate streaming-reference correctness or execute the full SDK.

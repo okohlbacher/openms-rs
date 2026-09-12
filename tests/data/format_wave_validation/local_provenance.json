@@ -1,0 +1,44 @@
+[
+ {
+  "command": [
+   "python3",
+   "tools/check_core_sdk.py",
+   "--source",
+   ".reference/openms4-core-bc9cc12"
+  ],
+  "exit": 0,
+  "output": "Verified 2004 distinct current source/registration/reference files at bc9cc12514c768385ce121d6ca4bb710fe1983c4.\nSDK 4.0.0 target, 1578 scientific files, 220 historical reference paths, 21 graph and 1389 added source references agree.\n"
+ },
+ {
+  "command": [
+   "python3",
+   "tools/test_core_sdk.py"
+  ],
+  "exit": 0,
+  "output": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK\n"
+ },
+ {
+  "command": [
+   "python3",
+   "tools/core_sdk_coverage.py"
+  ],
+  "exit": 0,
+  "output": "{\"by_status\": {\"complete\": 26, \"evidence_requires_review\": 169, \"native_equivalent\": 82, \"partial\": 39, \"unmapped\": 470}, \"registered_public_headers\": 786, \"topp_sources\": 146, \"validated_topp_workflows\": 5}\n"
+ },
+ {
+  "command": [
+   "python3",
+   "tools/test_core_sdk_coverage.py"
+  ],
+  "exit": 0,
+  "output": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.049s\n\nOK\n"
+ },
+ {
+  "command": [
+   "python3",
+   "tools/check_doc_coverage.py"
+  ],
+  "exit": 0,
+  "output": "rustdoc coverage: 3119/4702 public items = 66.3%\n"
+ }
+]

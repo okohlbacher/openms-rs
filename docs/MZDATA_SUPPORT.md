@@ -45,7 +45,7 @@ mix both byte orders. `tests/mzdata.rs::big_endian_arrays_are_honoured` and
 | `void setOptions(const PeakFileOptions&)` | `MzDataFile::set_options` |
 | `void load(const std::string&, MapType&)` | `MzDataFile::load` (returns the experiment), `MzDataFile::load_into` (replaces a destination), `MzDataFile::load_report` (also returns `LoadReport`). Free forms: `load`, `load_with_options`, `load_into`, `read`, `read_with_options` |
 | `void store(const std::string&, const MapType&) const` | `MzDataFile::store`, `MzDataFile::store_report`. Free forms: `store`, `store_with_options`, `store_report_with_options`, `write`, `write_with_options` |
-| `bool isSemanticallyValid(const std::string&, StringList& errors, StringList& warnings)` | **not ported**: `MzDataFile::is_semantically_valid` returns `Error::Unsupported`. It needs `/MAPPING/mzdata-mapping.xml` and `/CV/psi-mzdata.obo`, neither of which ships with this crate, and `MzDataFile_test.cpp:849-854` marks its own section `NOT_TESTABLE` because "the mapping file was hand-crafted by Marc Sturm". The generic machinery is `crate::format::semantic_validator` behind the `semantic-validation` feature |
+| `bool isSemanticallyValid(const std::string&, StringList& errors, StringList& warnings)` | **not ported**: `MzDataFile::is_semantically_valid` returns `Error::Unsupported`. It needs `/MAPPING/mzdata-mapping.xml` and `/CV/psi-mzdata.obo`, the mapping is retained at `tests/data/cv_mapping/mzdata-mapping.xml`, but the vocabulary and mzData validator integration are not bundled, and `MzDataFile_test.cpp:849-854` marks its own section `NOT_TESTABLE` because "the mapping file was hand-crafted by Marc Sturm". The generic machinery is `crate::format::semantic_validator` behind the `semantic-validation` feature |
 | `PeakFileOptions options_` (private) | private `MzDataFile::options` field |
 | inherited `Internal::XMLFile::isValid(filename, os)` | **not ported**: XSD validation. `crate::format::mzml_schema` is mzML-specific and `mzData_1_05.xsd` is not shipped. `tests/mzdata.rs::stored_documents_are_wellformed` reproduces what can be reproduced — both documents are well-formed and reload |
 | inherited `Internal::XMLFile::getVersion()` | `MzDataFile::version`, and the `SCHEMA_VERSION` constant |
@@ -163,7 +163,10 @@ the table like any other member.
   `msLevel` attribute with 2.
 * **Multiple precursor charges.** A second `PSI:1000041` resets the charge to
   zero and warns, rather than overwriting it.
-* **XML strictness.** A duplicate attribute, an unbalanced tree, a mismatched
+* **XML strictness.** Exactly one root is required, with only literal XML
+  whitespace outside it; second roots, outside-root CDATA and references are
+  refused. Metadata-only reads intentionally stop at `<spectrumList>` and do
+  not validate an unread suffix. A duplicate attribute, an unbalanced tree, a mismatched
   end tag, a DTD and an undeclared entity are all refused, as Xerces refuses
   them for the source. CDATA sections and the five predefined entities and
   numeric character references resolve, because Xerces hands the source handler
@@ -407,7 +410,7 @@ a process in this project's earlier audit.
 
 ### Class-test sections
 
-All fifteen `START_SECTION`s of `MzDataFile_test.cpp` (435 assertion macros)
+All fifteen `START_SECTION`s of `MzDataFile_test.cpp` (429 assertion macros)
 are accounted for. Thirteen are ported; two — both at or below the
 five-macro threshold — are mapped with the Rust function and the concrete
 asserted value they reproduce.
@@ -419,7 +422,7 @@ asserted value they reproduce.
 | 3 | `const PeakFileOptions& getOptions() const` (49-57, 2) | ported | `option_accessors` | `hasMSLevels() == false` on a fresh adapter and on a const copy |
 | 4 | `setOptions(const PeakFileOptions&)` (59-71, 2) | ported | `option_accessors` | `hasMSLevels()` false, then true after `setOptions` |
 | 5 | `PeakFileOptions& getOptions()` (73-79, 1) | ported | `option_accessors` | `hasMSLevels() == true` after `addMSLevel(1)` in place |
-| 6 | `load(...)` (81-497, 299) | ported | `load_document_identity_and_scan_axis`, `load_annotation_array_descriptions`, `load_precursors`, `load_instrument_settings_and_acquisition`, `load_peaks_and_annotation_values`, `load_experiment_metadata`, `load_special_cases` | `e.size() == 3`; RT 60/120/180; `spectrum=10`/`11`/`12`; `lsid`; `MS-Sample`/`0-815`/gas; resolutions 22.33 and 12.3; 997530 peaks; the 64-bit and big-endian arrays |
+| 6 | `load(...)` (81-497, 294) | ported | `load_document_identity_and_scan_axis`, `load_annotation_array_descriptions`, `load_precursors`, `load_instrument_settings_and_acquisition`, `load_peaks_and_annotation_values`, `load_experiment_metadata`, `load_special_cases` | `e.size() == 3`; RT 60/120/180; `spectrum=10`/`11`/`12`; `lsid`; `MS-Sample`/`0-815`/gas; resolutions 22.33 and 12.3; 997530 peaks; the 64-bit and big-endian arrays |
 | 7 | `[EXTRA] load with metadata - only flag` (499-524, 10) | ported | `load_metadata_only` | `e.size() == 0` with `MzDataFile_test_1.raw` and `MS-Instrument` still present |
 | 8 | `[EXTRA] load with selected MS levels` (526-555, 14) | ported | `load_selected_ms_levels` | `e.size() == 2`, native IDs `spectrum=10` and `spectrum=12`, 1 and 5 peaks |
 | 9 | `[EXTRA] load with RT range` (557-577, 5) | ported | `load_rt_range` | `e.size() == 2`, RT 120 and 180 |
@@ -427,8 +430,8 @@ asserted value they reproduce.
 | 11 | `[EXTRA] load with intensity range` (616-648, 12) | ported | `load_intensity_range` | peak counts 0/1/3 with intensities 200; 200,300,200 |
 | 12 | `store(...)` (650-667, 3) | ported | `store_round_trip_equals_the_loaded_experiment` | `e2.getIdentifier() == "lsid"` and `e1 == e2` after restoring the software comment |
 | 13 | `[EXTRA] storing / loading of meta data arrays` (669-828, 69) | ported | `store_and_load_annotation_arrays` | array counts 1/0/2, names `MDA1`/`MDA2`, values 1.1…1.5 and −2.1…−2.5, and 1.3/1.4/1.5 after the [2.5, 7.0) filter |
-| 14 | `[EXTRA] static bool isValid(...)` (830-847, 2) | **mapped** | `stored_documents_are_wellformed` | `isValid(...) == true` for both stored documents, reproduced as "both are well-formed, both reload, and the empty-experiment document matches the exact byte layout". The XSD itself is not shipped; see the gap below |
-| 15 | `bool isSemanticallyValid(...)` (849-854, 1) | **mapped** | `semantic_validation_is_unsupported` | `NOT_TESTABLE` — the section asserts nothing, and the method reports that the mapping file and OBO are unavailable |
+| 14 | `[EXTRA] static bool isValid(...)` (830-847, 2) | **mapped** | `stored_documents_are_wellformed` | The source asserts XSD validity. The native test only checks structural parsing, reload and the empty-experiment byte layout; this is weaker evidence and does not reproduce schema validation. The XSD remains unported |
+| 15 | `bool isSemanticallyValid(...)` (849-854, 0) | **mapped** | `semantic_validation_is_unsupported` | `NOT_TESTABLE` — the section asserts nothing, and the method reports that mzData semantic validation is unavailable |
 
 **Sections ported: 13. Mapped with a cited asserted value: 2. Unaccounted: 0.**
 
@@ -465,15 +468,18 @@ empty-experiment document, which is transcribed from
 * **XSD validation** (`XMLFile::isValid`, class-test section 14) is not ported:
   `mzData_1_05.xsd` does not ship with this crate and
   `crate::format::mzml_schema` is mzML-specific. A caller with the schema can
-  validate with any XML tool; the port guarantees well-formedness only.
+  validate with any XML tool. The port checks the structural and entity
+  boundaries listed above; these checks are not an XML or XSD conformance
+  validator.
 * **Semantic validation** (`MzDataFile::isSemanticallyValid`) is not ported:
-  `mzdata-mapping.xml` and `psi-mzdata.obo` do not ship either, and the upstream
-  section is `NOT_TESTABLE` by its own admission.
+  `mzdata-mapping.xml` is retained as a mapping-parser fixture, but
+  `psi-mzdata.obo` and the mzData semantic-validation integration do not ship.
+  The upstream section is `NOT_TESTABLE` by its own admission.
 * **`ProgressLogger`** is a base class of `MzDataFile` and a constructor
   parameter of the handler; it is not threaded through this module.
   `LoadReport` and `StoreReport` carry the counters instead.
 * **`MzDataFile_2_long.mzData`** (10.6 MB, 997530 peaks) is not copied into
-  `tests/data`: it would nearly double the 15 MB of fixture data. Its sha256 is
+  `tests/data`: the original work package omitted it to limit fixture size. Its sha256 is
   recorded in the manifest and `load_special_cases` writes and reads an
   equivalent 997530-peak document instead. What upstream calls "CDATA
   splitting" is character data split across parser callbacks, which
@@ -488,19 +494,11 @@ empty-experiment document, which is transcribed from
   class test and is unported.
 * **The spectrum comment** has no `MSSpectrum` field in this crate and is kept
   as metadata; see native difference 11.
-* **`docs/doc-coverage.json` was not rewritten.** `src/format/mzdata.rs`
-  measures 100.0% (44/44) and `src/format/mod.rs` improves from 4/28 to 5/29,
-  so `check_doc_coverage.py` passes, but recording the new floor with `--write`
-  touches a file outside this package's scope.
-* **`docs/core-sdk-coverage.json` and `docs/CORE_SDK_COMPLETION.md` are stale**
-  until the integrator runs `python3 tools/core_sdk_coverage.py --write`: the
-  generator now detects `src/format/mzdata.rs` as a candidate for
-  `MzDataFile.h`, which moves that header from `unmapped` to
-  `evidence_requires_review` before the ledger entries are added. Both files are
-  outside this package's scope.
-* **CI wiring** was not added for the same reason: append `--test mzdata` to
-  `.github/workflows/rust.yml:87`, the second `--no-default-features --features
-  mzml` line of the `minimum-rust` job (the one that already carries the imzML
-  tests). Verified: all 63 tests pass under
-  `cargo nextest run --locked --no-default-features --features mzml --test mzdata`
-  and `cargo +1.85.0 check --locked --all-features --all-targets` is clean.
+
+## Integration
+
+The combined format wave records this module in
+`docs/core-sdk-reviewed-apis.json`, regenerates `docs/core-sdk-coverage.json`
+and `docs/CORE_SDK_COMPLETION.md`, and updates `docs/doc-coverage.json`.
+The `minimum-rust` CI job runs `--test mzdata` with the `mzml` feature.
+The format and dispatcher limitations above remain open.

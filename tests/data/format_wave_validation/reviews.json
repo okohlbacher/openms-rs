@@ -1,0 +1,51 @@
+{
+ "reviews": [
+  {
+   "model": "claude-fable-5-1",
+   "report": "tests/data/format_wave_validation/legacy_xml_initial.md",
+   "sha256": "a5587415f9f2da7944eea6f2c471d7745884f914c00448dbac4c3b0b7d266c7c",
+   "raw_report_sha256": "d0f0498a1e71cfab4f01dc8d3123ea9de86936083866babc60b3bd44f9ea7ae4",
+   "scope": "Focused review of supplied patch/source excerpts; not SDK-wide certification."
+  },
+  {
+   "model": "claude-fable-5-1",
+   "report": "tests/data/format_wave_validation/legacy_xml_final.md",
+   "sha256": "583cfc60db0fcb85387c7e37d406450ac3301e59f00c22b8da215e80fd075c72",
+   "raw_report_sha256": "72e6c86be5b9489254679dd38bfc64d451f6f8b63c915279ab1ec054fdee2451",
+   "scope": "Focused review of supplied patch/source excerpts; not SDK-wide certification."
+  },
+  {
+   "model": "claude-fable-5-1",
+   "report": "tests/data/format_wave_validation/scaling_initial.md",
+   "sha256": "33c8d2bd10471d3d71924c849261029be690e1afce198d273aa4b9b5e42beb3c",
+   "raw_report_sha256": "33c8d2bd10471d3d71924c849261029be690e1afce198d273aa4b9b5e42beb3c",
+   "scope": "Focused review of supplied patch/source excerpts; not SDK-wide certification."
+  },
+  {
+   "model": "claude-fable-5-1",
+   "report": "tests/data/format_wave_validation/scaling_followup.md",
+   "sha256": "d7e2b0979c81ec5cb939fad551cfc3da024c60167a754c755cb9b68dc6f502e9",
+   "raw_report_sha256": "d7e2b0979c81ec5cb939fad551cfc3da024c60167a754c755cb9b68dc6f502e9",
+   "scope": "Focused review of supplied patch/source excerpts; not SDK-wide certification."
+  },
+  {
+   "model": "claude-fable-5-1",
+   "report": "tests/data/format_wave_validation/scaling_final.md",
+   "sha256": "66772454ce913780073b18a8a9c92c3c96f66273e8ed6e6172bc1c937e55eeb2",
+   "raw_report_sha256": "66772454ce913780073b18a8a9c92c3c96f66273e8ed6e6172bc1c937e55eeb2",
+   "scope": "Focused review of supplied patch/source excerpts; not SDK-wide certification."
+  }
+ ],
+ "dispositions": [
+  "Removed Percolator physical-line clamp after review showed comment-row regression; retained byte staging limits and semantic row counts.",
+  "Confirmed mzData empty elements are expanded; strengthened trailing-root regression.",
+  "Withdrew false numeric-overload corruption claims using pinned StringUtils operators and isolated execution; Fable explicitly retracted its contrary inference.",
+  "Made pepXML batching conditional on composition bounds and exact terminal resolution, retaining ordered fallback; regression covers early and late atom donors.",
+  "Verified preannotated peptides use ordered path because apply_plan compares original spelling with AASequence::as_str (unmodified residues).",
+  "One broad tool-enabled legacy XML review was aborted without findings and is not counted as completed."
+ ],
+ "limitations": [
+  "Review is fallible; findings were checked against code and executable regressions.",
+  "Existing documented API gaps and pending source observations remain open."
+ ]
+}

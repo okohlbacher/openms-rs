@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 3928,
-  "documented": 2321
+  "items": 4702,
+  "documented": 3119
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -469,13 +469,21 @@
    "items": 1,
    "documented": 1
   },
+  "src/format/mascot_generic.rs": {
+   "items": 41,
+   "documented": 41
+  },
+  "src/format/mascot_xml.rs": {
+   "items": 28,
+   "documented": 28
+  },
   "src/format/mgf.rs": {
    "items": 4,
    "documented": 4
   },
   "src/format/mod.rs": {
-   "items": 28,
-   "documented": 4
+   "items": 43,
+   "documented": 43
   },
   "src/format/modification_definitions.rs": {
    "items": 23,
@@ -484,6 +492,22 @@
   "src/format/ms2.rs": {
    "items": 15,
    "documented": 3
+  },
+  "src/format/ms_data_writing_consumer.rs": {
+   "items": 38,
+   "documented": 38
+  },
+  "src/format/msstats.rs": {
+   "items": 22,
+   "documented": 22
+  },
+  "src/format/mzdata.rs": {
+   "items": 44,
+   "documented": 44
+  },
+  "src/format/mzidentml.rs": {
+   "items": 28,
+   "documented": 28
   },
   "src/format/mzml.rs": {
    "items": 9,
@@ -541,6 +565,22 @@
    "items": 6,
    "documented": 4
   },
+  "src/format/mztab.rs": {
+   "items": 220,
+   "documented": 220
+  },
+  "src/format/mztab_file.rs": {
+   "items": 40,
+   "documented": 40
+  },
+  "src/format/mztab_m.rs": {
+   "items": 54,
+   "documented": 54
+  },
+  "src/format/mzxml.rs": {
+   "items": 42,
+   "documented": 42
+  },
   "src/format/numpress.rs": {
    "items": 23,
    "documented": 8
@@ -557,13 +597,33 @@
    "items": 36,
    "documented": 14
   },
+  "src/format/pepxml.rs": {
+   "items": 29,
+   "documented": 29
+  },
+  "src/format/percolator_infile.rs": {
+   "items": 28,
+   "documented": 28
+  },
+  "src/format/qcml.rs": {
+   "items": 79,
+   "documented": 79
+  },
   "src/format/semantic_validator.rs": {
    "items": 11,
    "documented": 5
   },
+  "src/format/sv_out_stream.rs": {
+   "items": 46,
+   "documented": 46
+  },
   "src/format/text.rs": {
    "items": 21,
    "documented": 5
+  },
+  "src/format/transformation_xml.rs": {
+   "items": 20,
+   "documented": 20
   },
   "src/identification/graph/cleanup.rs": {
    "items": 7,

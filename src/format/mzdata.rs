@@ -1059,6 +1059,9 @@ impl<'a> Parser<'a> {
             match event {
                 Event::Start(element) => {
                     let tag = local_name(&element)?;
+                    if seen_root && self.stack.is_empty() {
+                        return Err(parse_error("multiple mzData XML roots"));
+                    }
                     if !seen_root {
                         if tag != "mzData" {
                             return Err(parse_error("mzData root element is not <mzData>"));
@@ -1094,12 +1097,21 @@ impl<'a> Parser<'a> {
                 }
                 Event::Text(text) => {
                     let decoded = text.decode().map_err(|e| parse_error(e.to_string()))?;
+                    if self.stack.is_empty() {
+                        if decoded.trim_matches([' ', '\t', '\r', '\n']).is_empty() {
+                            continue;
+                        }
+                        return Err(parse_error("character data outside the mzData root"));
+                    }
                     self.push_text(&decoded)?;
                 }
                 // Xerces delivers a CDATA section's content through
                 // `characters()` like any other character data, so the source
                 // handler cannot tell the two apart and neither does this.
                 Event::CData(text) => {
+                    if self.stack.is_empty() {
+                        return Err(parse_error("CDATA outside the mzData root"));
+                    }
                     let decoded = text.decode().map_err(|e| parse_error(e.to_string()))?;
                     self.push_text(&decoded)?;
                 }
@@ -1109,6 +1121,9 @@ impl<'a> Parser<'a> {
                 // refused rather than expanded, so no document can pull in a
                 // file this parser was not given.
                 Event::GeneralRef(reference) => {
+                    if self.stack.is_empty() {
+                        return Err(parse_error("entity reference outside the mzData root"));
+                    }
                     let resolved = if let Some(c) = reference
                         .resolve_char_ref()
                         .map_err(|e| parse_error(e.to_string()))?

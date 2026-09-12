@@ -1,0 +1,112 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/SqliteConnector.h",
+   "sha256": "e8045bfae45e9f244951ceacedfb895f386de6fce7c2a4dffad8770dcc3156ee"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+   "sha256": "d15e067d6f51fd4b35ffa197e7cfb3a3fbd79257cf59a149f6c65f46c86d62bd"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/SqliteConnector_impl.h",
+   "sha256": "93379fbf9940bd766be91716222d2ab09938e0deffd3acf47482ca1964b175cf"
+  }
+ ],
+ "evidence": "Source review during planning only. No C++ or Rust execution for this group; no native implementation.",
+ "entries": [
+  {
+   "id": "CPP-181",
+   "title": "SqliteConnector permits copying an owned database handle",
+   "status": "Source-reviewed candidate; not reproduced in running C++",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/include/OpenMS/FORMAT/SqliteConnector.h",
+   "line": 40,
+   "functions": "Implicit copy constructor/assignment and ~SqliteConnector",
+   "trigger": "Copy an open connector and destroy both copies.",
+   "issue": "The implicit copy duplicates db_ without ownership transfer; both destructors call sqlite3_close_v2 on the same handle. Assignment also loses the previous handle.",
+   "proposed_fix": "Delete copy operations and provide explicit move ownership if needed.",
+   "rust_handling": "SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed."
+  },
+  {
+   "id": "CPP-182",
+   "title": "SqliteConnector does not close a handle when opening fails",
+   "status": "Source-reviewed candidate; not reproduced in running C++",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+   "line": 32,
+   "functions": "SqliteConnector::openDatabase_",
+   "trigger": "Construct a connector for a missing read-only database or an inaccessible path.",
+   "issue": "sqlite3_open_v2 may return an allocated error handle. The constructor stores it then throws; the object destructor is not run, leaving that handle unclosed.",
+   "proposed_fix": "Close any returned handle before throwing, or use an owning local guard until successful construction.",
+   "rust_handling": "SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed."
+  },
+  {
+   "id": "CPP-183",
+   "title": "SQLite bound statements leak on bind or step errors",
+   "status": "Source-reviewed candidate; not reproduced in running C++",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+   "line": 156,
+   "functions": "Internal::SqliteHelper::executeBindStatement",
+   "trigger": "Supply more blobs than placeholders, or violate a UNIQUE constraint during the step.",
+   "issue": "Both error branches throw before sqlite3_finalize; the source TODO acknowledges the leak. The statement may also retain borrowed SQLITE_STATIC buffers.",
+   "proposed_fix": "Use a statement RAII guard on all exits; bind owned data or ensure it outlives the statement.",
+   "rust_handling": "SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed."
+  },
+  {
+   "id": "CPP-184",
+   "title": "SQLite table-name helpers interpolate names as SQL syntax",
+   "status": "Source-reviewed candidate; not reproduced in running C++",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+   "line": 118,
+   "functions": "SqliteConnector::tableExists, columnExists and countTableRows",
+   "trigger": "Create a table whose name contains an apostrophe or SQL punctuation, then query it by its actual name.",
+   "issue": "tableExists inserts the name into a quoted literal without escaping; countTableRows and columnExists insert an unquoted identifier. Valid names can fail or alter the query meaning.",
+   "proposed_fix": "Bind values such as sqlite_master.name and correctly quote SQL identifiers with doubled double quotes.",
+   "rust_handling": "SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed."
+  },
+  {
+   "id": "CPP-185",
+   "title": "SQLite query helpers ignore step errors and can leak statements",
+   "status": "Source-reviewed candidate; not reproduced in running C++",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+   "line": 77,
+   "functions": "SqliteConnector::countTableRows; Internal::SqliteHelper::tableExists and columnExists",
+   "trigger": "Cause sqlite3_step to return SQLITE_BUSY or another error while querying an existing table.",
+   "issue": "The helpers inspect column types without checking the step result. Existence queries can conflate an execution error with absence; countTableRows throws on NULL before finalizing. Reachable lock/error behavior still needs execution.",
+   "proposed_fix": "Check SQLITE_ROW/DONE explicitly, report other statuses, and finalize through RAII.",
+   "rust_handling": "SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed."
+  },
+  {
+   "id": "CPP-186",
+   "title": "SQLite string extraction truncates embedded NUL bytes",
+   "status": "Source-reviewed candidate; not reproduced in running C++",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+   "line": 218,
+   "functions": "Internal::SqliteHelper::extractValue<std::string> / extractString",
+   "trigger": "Extract a SQLite TEXT value containing bytes a, NUL, b.",
+   "issue": "The helper constructs std::string from a C string and loses bytes after the first NUL.",
+   "proposed_fix": "Use sqlite3_column_bytes with the returned pointer and retain an explicit byte length.",
+   "rust_handling": "SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed."
+  },
+  {
+   "id": "CPP-187",
+   "title": "SQLite integer-to-string extraction narrows to 32 bits",
+   "status": "Source-reviewed candidate; not reproduced in running C++",
+   "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+   "line": 261,
+   "functions": "Internal::SqliteHelper::extractValueIntStr",
+   "trigger": "Read the SQLite INTEGER value 4294967297 through extractValueIntStr.",
+   "issue": "The helper uses sqlite3_column_int despite SQLite INTEGER being signed 64-bit; conversion to text follows an already narrowed value.",
+   "proposed_fix": "Use sqlite3_column_int64 before decimal formatting.",
+   "rust_handling": "SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed."
+  }
+ ]
+}

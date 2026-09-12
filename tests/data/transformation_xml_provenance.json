@@ -35,6 +35,11 @@
    "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.cpp",
    "sha256": "8ab294029aab443a27019f0f565f4c299ce66e457e864d5080f4250b10da7434",
    "role": "Not ported here. Read for the interpolation_type/extrapolation_type names and the cspline/two-point-linear defaults the reload sees."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7",
+   "role": "Source anchor reviewed for this module; no C++ execution claimed."
   }
  ],
  "fixtures": [
@@ -161,12 +166,16 @@
    "operation": "an empty x/y_weight string means unweighted, for TrafoXML files written before OpenMS 3.0"
   }
  ],
- "evidence": "Tier 3 source review. The expectations in tests/transformation_xml.rs are transcribed class-test literals from TransformationXMLFile_test.cpp: model names 'none'/'linear'/'interpolated', parameter counts 0/2/2, slope pi and intercept e compared with TEST_REAL_SIMILAR's relative tolerance, the three pairs (1.2,5.2) (2.2,6.25) (3.2,7.3), extrapolation_type 'two-point-linear' appearing in a reloaded interpolated model, the fit_model=false path reporting 'none', the isValid verdicts on the four fixtures, and Exception::IllegalArgument for the model name 'mumble_pfrwoarpfz'. Transcribed literals are tier-3 evidence: they detect transcription drift but cannot falsify a misread algorithm. No C++ was built or executed and no C++ output was retained, so nothing here is tier 1 or 2. The escaping round trip, the non-ASCII note, the coordinate-weight round trip, the version and unknown-element refusals and the resource ceilings are independently derived (tier 4) because no upstream fixture reaches them.",
+ "evidence": "Tier 3 source review. The expectations in tests/transformation_xml.rs are transcribed class-test literals from TransformationXMLFile_test.cpp: model names 'none'/'linear'/'interpolated', parameter counts 0/2/2, slope pi and intercept e compared with TEST_REAL_SIMILAR's relative tolerance, the three pairs (1.2,5.2) (2.2,6.25) (3.2,7.3), extrapolation_type 'two-point-linear' appearing in a reloaded interpolated model, the fit_model=false path reporting 'none', structural accept/reject outcomes on the four fixtures (a weaker substitute, not implementation of source XSD isValid), and Exception::IllegalArgument for the model name 'mumble_pfrwoarpfz'. Transcribed literals are tier-3 evidence: they detect transcription drift but cannot falsify a misread algorithm. No C++ was built or executed and no C++ output was retained, so nothing here is tier 1 or 2. The escaping round trip, the non-ASCII note, the coordinate-weight round trip, the version and unknown-element refusals and the resource ceilings are independently derived (tier 4) because no upstream fixture reaches them.",
  "gaps": [
   "b_spline is a model TransformationDescription::fitModel accepts and src/analysis/transformations.rs does not implement, so a TrafoXML naming it reads as a record and returns Error::Unsupported when its model is resolved. The file's parameters and pairs are still readable through read_record_with_options.",
-  "Internal::XMLFile::isValid performs XSD validation against the bundled TrafoXML_1_1.xsd. This port has no XSD validator for TrafoXML (src/format/mzml_schema.rs is mzML-only and needs the libxml feature); the structural reader stands in, and reaches the same verdict on all four upstream fixtures.",
+  "Internal::XMLFile::isValid performs XSD validation against the bundled TrafoXML_1_1.xsd. This port has no XSD validator for TrafoXML (src/format/mzml_schema.rs is mzML-only and needs the libxml feature); the structural reader accepts three fixtures and rejects the malformed fourth. This does not implement or establish equivalent XSD validation.",
   "The source's exact output bytes are not reproduced: attribute order within an element follows the shared XML writer (alphabetical) rather than the source's type/name/value, the source's two spaces after '<Param' are not emitted, and indentation is two spaces per level rather than a tab. Content, escaping and the round trip are equivalent; upstream compares trafoXML with FuzzyDiff, not byte-for-byte.",
   "A data-fitted linear model in C++ carries the eight merged weight and datum defaults in its Param and writes all of them. This port writes slope, intercept and the weight parameters only when a weight is not the identity, so a file written here is smaller and independent of how the model was constructed. Both forms read back to the same model.",
   "The source writes a list-valued parameter as type=\"string\" holding its bracketed text, which cannot be read back as a list. This port reproduces that on writing and therefore inherits the same one-way conversion."
+ ],
+ "cpp_issue_log_entries": [
+  "CPP-176",
+  "CPP-177"
  ]
 }

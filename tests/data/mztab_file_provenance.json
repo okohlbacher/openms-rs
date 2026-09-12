@@ -31,7 +31,7 @@
   {
    "path": "src/openms/source/FORMAT/MzTab.cpp",
    "sha256": "41ca2dbb84ed035991570c48cef9a50e64c5179eaf6ac1d8b93ab21715df8807",
-   "role": "Not ported here. Read for MzTabModification::toCellString (line 73, its position loop at line 85), whose position rendering is what makes a C++-written modifications cell unreadable, and to confirm that IDMzTabStream and CMMzTabStream are the row sources of the two unported store overloads."
+   "role": "Shared data-model implementation, including decimal numeric modification positions and unported IDMzTabStream/CMMzTabStream exporters."
   },
   {
    "path": "src/openms/source/FORMAT/MzTabBase.cpp",
@@ -319,7 +319,7 @@
   {
    "path": "src/openms/source/FORMAT/MzTab.cpp",
    "line": 85,
-   "operation": "MzTabModification::toCellString appends each position with std::string::operator+= applied to a Size, which resolves to the char overload: position 12 is written as byte 0x0c, so a modifications cell written by C++ cannot be read back"
+   "operation": "Modification positions use the decimal numeric append overloads declared by StringUtils.h; the earlier character-narrowing claim is withdrawn."
   },
   {
    "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
@@ -332,12 +332,12 @@
    "operation": "TEST::isFileSimilar overrides FuzzyStringComparator's constructor defaults with absdiff_max_allowed and ratio_max_allowed, which are 1E-5 and 1.+1E-5 at ClassTest.cpp:35 and 38 unless a test sets TOLERANCE_*; MzTabFile_test.cpp sets neither, so TEST_FILE_SIMILAR tolerates 1e-5 absolute / 1+1e-5 relative there, while tests/mztab_file.rs::similar_line requires exact f64 equality and is therefore stricter"
   }
  ],
- "evidence": "Tier 3, source review, with a tier 3 round trip over the retained upstream reference documents. MzTabFile_test.cpp has five START_SECTIONs and six assertion macros in total; all five sections are ported rather than mapped, and the four transcribed cell literals ('null', 'NDYKAPPQPAPGK', '0.0420992', 'null', the last four cells of a PSM row) are the only expected output values the upstream suite writes down anywhere. Transcribed C++ literals are tier 3 evidence. The five reference documents are the other half: each is loaded, written and compared with the original through tests/mztab_file.rs::similar_lines, which reproduces the upstream comparison except that it is stricter on numbers (sort the lines, remove every space, skip the blank ones as FuzzyStringComparator::readNextLine_ does, and compare numbers numerically; upstream's TEST_FILE_SIMILAR tolerates 1e-5 absolute / 1+1e-5 relative through TEST::isFileSimilar, this requires exact f64 equality). Each is also written to disk, read back and compared as a model, which is stronger than any text comparison because it covers the null/NaN/Inf state of every numeric cell, the optional columns of every row, and the recorded comment and blank-line positions. The additional unicode fixture round-trips byte for byte. Everything else - the four resource ceilings, the hostile headers and metadata keys, the non-ASCII output paths, the error-variant choices, and every test of a divergence listed in docs/MZTAB_FILE_SUPPORT.md - is independently derived (tier 4). No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential: the reference .mzTab files are upstream *inputs* that its own suite round-trips, not outputs a C++ build produced here.",
+ "evidence": "Tier 3, source review, with a tier 3 round trip over the retained upstream reference documents. MzTabFile_test.cpp has five START_SECTIONs and six assertion macros in total; all five sections are ported rather than mapped, and the four transcribed cell literals ('null', 'NDYKAPPQPAPGK', '0.0420992', 'null', the last four cells of a PSM row) are the only expected output values the upstream suite writes down anywhere. Transcribed C++ literals are tier 3 evidence. The five reference documents are the other half: each is loaded, written and compared with the original through tests/mztab_file.rs::similar_lines, which reproduces the upstream comparison except that it is stricter on numbers (sort the lines, remove every space, skip the blank ones as FuzzyStringComparator::readNextLine_ does, and compare numbers numerically; upstream's TEST_FILE_SIMILAR tolerates 1e-5 absolute / 1+1e-5 relative through TEST::isFileSimilar, this requires exact f64 equality). Each is also written to disk, read back and compared as a model, which is stronger than any text comparison because it covers the null/NaN/Inf state of every numeric cell, the optional columns of every row, and the recorded comment and blank-line positions. The additional unicode fixture round-trips byte for byte. Everything else - the four resource ceilings, the hostile headers and metadata keys, the non-ASCII output paths, the error-variant choices, and every test of a divergence listed in docs/MZTAB_FILE_SUPPORT.md - is independently derived (tier 4). No full format implementation was built or executed and no format output was retained, so this is not a tier 1 differential: the reference .mzTab files are upstream *inputs* that its own suite round-trips, not outputs a C++ build produced here.",
  "gaps": [
   "store(filename, protein_identifications, peptide_identifications, ...) is not ported: it builds rows through MzTab::IDMzTabStream, which is not in the crate.",
   "store(filename, ConsensusMap, ...) is not ported: it builds rows through MzTab::CMMzTabStream, which is not in the crate.",
   "The MapAccPepType typedef and the fifteen protected statics of MzTabFile.h:151-201 are not ported; all fifteen are declared and defined nowhere in the pinned tree.",
-  "friend class MzTabMFile has no Rust equivalent. MzTabMFile is a separate unmapped header; the generators are pub here so it can use them when it lands.",
+  "friend class MzTabMFile has no Rust equivalent. MzTabMFile is implemented in mztab_m; the proteomics generators remain public native methods.",
   "sections_present is not ported: the source fills it but its only consumer, hasMandatoryMetaDataKeys_, is commented out at MzTabFile.cpp:1547.",
   "No tier 1 differential exists for this header. Reaching one needs an oracle driver that links the prebuilt C++ and prints a stored document, because the upstream suite retains no MzTabFile output - only its inputs.",
   "The reliability, uri and go_terms columns are optional in the format, so a document written with one of the sixteen flags cleared does not round-trip a row carrying that cell. MzTabFile::lossless sets all sixteen.",
@@ -345,5 +345,34 @@
   "The port is serial, as the source is: MzTabFile.cpp carries no OpenMP directive, so there is no parallelism gap to record.",
   "An indexed metadata group survives a round trip only if at least one of its keys has a non-null value, because every optional metadata key is skipped when null. A document whose assay[1] is declared only by 'MTD assay[1]-sample_ref null' loses the key and the abundance column the layout would have declared. Shared with the source; closing it needs a record of declared-versus-valued keys that neither the source nor MzTabMetaData has. No reference document is affected.",
   "CI wiring, the docs/core-sdk-reviewed-apis.json ledger entry, the docs/VALIDATION.md checkpoint, the README.md row and the CHANGELOG.md line are outside this package's writable set and are handed to the integrating agent."
+ ],
+ "numeric_operator_review": "The earlier claimed character narrowing was withdrawn after checking pinned StringUtils.h and an isolated executed overload-resolution probe. No full mzTab/MSDataWritingConsumer or full SDK C++ execution is claimed.",
+ "external_reference_note": "Isolated overload-resolution probe, compiled and run on kim with GCC13.3 C++20. Numeric global overload block copied from pinned StringUtils.h; appendToStr functions replaced by std::to_string adapters and Size by std::size_t. No full SDK include closure or linking; proves presence/selectability of numeric overloads in OpenMS namespace contexts and falsifies the claim only char overloads exist.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/format-numeric-overload/manifest.json",
+   "sha256": "541aea8cbf183e1ecbbac3ea5afaedf8d680f0c70d28264079741e048162b8c1",
+   "origin_key": "format_numeric_overload_probe/manifest.json"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/numeric_overloads.inc",
+   "sha256": "eebd8107668a744ec3e8fb9b41d0b289ced546dff920bedccfae7e6401b633a1",
+   "origin_key": "format_numeric_overload_probe/numeric_overloads.inc"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/probe.cpp",
+   "sha256": "4d22cc3232146d4f1fd7909f8e12994fe2fe38c238b0c863f4adf01accd4eabe",
+   "origin_key": "format_numeric_overload_probe/probe.cpp"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/result.log",
+   "sha256": "715c67a81f515b8603b938fc5533b6216db57e53f175373e3b22b6e29074cd00",
+   "origin_key": "format_numeric_overload_probe/result.log"
+  }
+ ],
+ "cpp_issue_log_entries": [
+  "CPP-146",
+  "CPP-147",
+  "CPP-148"
  ]
 }

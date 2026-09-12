@@ -896,9 +896,7 @@ impl QcMLFile {
         id: &str,
         qp: QualityParameter,
     ) -> Result<()> {
-        for field in qp.fields() {
-            check_text(field, QualityParameter::MAX_TEXT_BYTES)?;
-        }
+        check_parameter(&qp)?;
         let list = map.entry(id.to_owned()).or_default();
         if list.len() >= Self::MAX_PARAMETERS_PER_ENTRY {
             return Err(limit("qcML quality parameter limit exceeded"));
@@ -918,11 +916,7 @@ impl QcMLFile {
             ));
         }
         check_text(r, QualityParameter::MAX_TEXT_BYTES)?;
-        for field in at.scalar_fields() {
-            check_text(field, Attachment::MAX_TEXT_BYTES)?;
-        }
-        check_text(&at.binary, Attachment::MAX_TEXT_BYTES)?;
-        at.preflight_table()?;
+        check_attachment(&at)?;
         if map.len() >= Self::MAX_ENTRIES && !map.contains_key(r) {
             return Err(limit("qcML entry limit exceeded"));
         }
@@ -2048,6 +2042,21 @@ fn indent(level: u32) -> Result<String> {
     Ok("\t".repeat(level as usize))
 }
 
+fn check_parameter(qp: &QualityParameter) -> Result<()> {
+    for field in qp.fields() {
+        check_text(field, QualityParameter::MAX_TEXT_BYTES)?;
+    }
+    Ok(())
+}
+
+fn check_attachment(at: &Attachment) -> Result<()> {
+    for field in at.scalar_fields() {
+        check_text(field, Attachment::MAX_TEXT_BYTES)?;
+    }
+    check_text(&at.binary, Attachment::MAX_TEXT_BYTES)?;
+    at.preflight_table()
+}
+
 fn check_text(value: &str, maximum: usize) -> Result<()> {
     if value.len() > maximum {
         return Err(limit("qcML field byte limit exceeded"));
@@ -2709,34 +2718,27 @@ impl<'a> Parser<'a> {
             Error::MissingInformation(message) => parse_error(line, message),
             other => other,
         };
+        // Validate children once, then move their complete lists. Calling the
+        // public single-child setters here rescanned and copied the enclosing
+        // ID for every child: a long ID multiplied by many tiny children.
+        for qp in &entry.qps {
+            check_parameter(qp).map_err(map_err)?;
+        }
+        for at in &entry.ats {
+            check_attachment(at).map_err(map_err)?;
+        }
         match entry.kind {
             EntryKind::Run => {
                 self.out.register_run(&entry.id, &name).map_err(map_err)?;
-                for qp in entry.qps {
-                    self.out
-                        .add_run_quality_parameter(&entry.id, qp)
-                        .map_err(map_err)?;
-                }
-                for at in entry.ats {
-                    self.out
-                        .add_run_attachment(&entry.id, at)
-                        .map_err(map_err)?;
-                }
+                self.out.run_qps.insert(entry.id.clone(), entry.qps);
+                self.out.run_ats.insert(entry.id, entry.ats);
             }
             EntryKind::Set => {
                 self.out
                     .register_set(&entry.id, &name, &entry.members)
                     .map_err(map_err)?;
-                for qp in entry.qps {
-                    self.out
-                        .add_set_quality_parameter(&entry.id, qp)
-                        .map_err(map_err)?;
-                }
-                for at in entry.ats {
-                    self.out
-                        .add_set_attachment(&entry.id, at)
-                        .map_err(map_err)?;
-                }
+                self.out.set_qps.insert(entry.id.clone(), entry.qps);
+                self.out.set_ats.insert(entry.id, entry.ats);
             }
         }
         Ok(())

@@ -5,7 +5,7 @@
 //! DTA singly protonated precursor mass and fragment peak lists.
 //! Read behavior follows `FORMAT/DTAFile.h`. The default writer uses the exact
 //! proton mass in both directions; the C++ writer's legacy 1.0 approximation
-//! is available explicitly through [`MassConvention::LegacyOpenMS`].
+//! is available explicitly through [`MassConvention::LegacyOpenMS`](crate::format::dta::MassConvention::LegacyOpenMS).
 
 use super::{intensity, number, parse_error};
 use crate::chemistry::PROTON_MASS_U;

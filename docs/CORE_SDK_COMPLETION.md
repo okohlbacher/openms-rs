@@ -9,10 +9,10 @@ Validated TOPP workflows: **5** of 146, each reproducing its upstream test again
 | Review state | Headers |
 | --- | ---: |
 | complete | 26 |
-| evidence_requires_review | 163 |
-| native_equivalent | 77 |
-| partial | 23 |
-| unmapped | 497 |
+| evidence_requires_review | 169 |
+| native_equivalent | 82 |
+| partial | 39 |
+| unmapped | 470 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -31,10 +31,10 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/METADATA/PeptideIdentification.h` | 12 | evidence_requires_review |
 | `OpenMS/CHEMISTRY/ModificationsDB.h` | 11 | evidence_requires_review |
 | `OpenMS/FORMAT/FeatureXMLFile.h` | 11 | partial |
-| `OpenMS/FORMAT/MzTabFile.h` | 11 | unmapped |
+| `OpenMS/FORMAT/MzTabFile.h` | 11 | partial |
 | `OpenMS/MATH/MathFunctions.h` | 11 | evidence_requires_review |
 | `OpenMS/CONCEPT/Exception.h` | 10 | evidence_requires_review |
-| `OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h` | 10 | unmapped |
+| `OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h` | 10 | partial |
 | `OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h` | 9 | evidence_requires_review |
 | `OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h` | 9 | unmapped |
 | `OpenMS/FORMAT/ConsensusXMLFile.h` | 9 | partial |
@@ -44,17 +44,17 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/ANALYSIS/ID/PeptideIndexing.h` | 7 | evidence_requires_review |
 | `OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h` | 7 | unmapped |
 | `OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h` | 7 | unmapped |
-| `OpenMS/FORMAT/MzTab.h` | 7 | unmapped |
-| `OpenMS/FORMAT/PepXMLFile.h` | 7 | unmapped |
-| `OpenMS/FORMAT/SVOutStream.h` | 7 | unmapped |
+| `OpenMS/FORMAT/MzTab.h` | 7 | partial |
+| `OpenMS/FORMAT/PepXMLFile.h` | 7 | partial |
 | `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 6 | unmapped |
 | `OpenMS/CHEMISTRY/ProteaseDigestion.h` | 6 | evidence_requires_review |
 | `OpenMS/CONCEPT/VersionInfo.h` | 6 | unmapped |
 | `OpenMS/FORMAT/OMSFile.h` | 6 | unmapped |
-| `OpenMS/FORMAT/QcMLFile.h` | 6 | unmapped |
+| `OpenMS/FORMAT/QcMLFile.h` | 6 | partial |
 | `OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h` | 6 | evidence_requires_review |
 | `OpenMS/PROCESSING/FILTERING/ThresholdMower.h` | 6 | evidence_requires_review |
 | `OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h` | 5 | unmapped |
+| `OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h` | 5 | unmapped |
 
 ## Completion requirements
 

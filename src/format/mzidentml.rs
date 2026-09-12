@@ -584,7 +584,18 @@ fn parse(input: impl BufRead, options: &ReadOptions, budget: &mut Budget) -> Res
                     .push_str(&text);
             }
             Event::Eof => break,
-            Event::Decl(_) | Event::Comment(_) | Event::PI(_) => {}
+            Event::Decl(declaration) => {
+                if let Some(encoding) = declaration
+                    .encoding()
+                    .transpose()
+                    .map_err(|error| bad(format!("mzIdentML declaration: {error}")))?
+                {
+                    if !encoding.eq_ignore_ascii_case(b"UTF-8") {
+                        return Err(unsupported("mzIdentML supports only UTF-8 encoding"));
+                    }
+                }
+            }
+            Event::Comment(_) | Event::PI(_) => {}
             Event::DocType(_) => {
                 return Err(unsupported(
                     "mzIdentML documents must not declare a DOCTYPE",
@@ -3191,17 +3202,18 @@ fn add_crosslink_target_decoy(identifications: &mut [PeptideIdentification]) -> 
 /// reference become one identification with several hits, as in the source,
 /// which is why an upstream section counts one hit per cross-link.
 ///
-/// Three divergences, all of them data the source drops:
+/// Two divergences, both preserving data the source drops:
 ///
 /// * The source keeps only the *first* hit of every input identification, so a
 ///   spectrum read through the non-cross-linked fallback path - a noncovalent
 ///   association, for instance - loses every candidate but the best one. Only
 ///   a folded beta chain is removed here.
-/// * It builds `BetaPepEv:start` and `:end` with `std::string += Int`, which
-///   appends the code point of the position rather than its digits and makes
-///   the value unreadable for its own writer; this writes decimal numbers.
 /// * The merged identification keeps its run identifier, which the source
 ///   drops, leaving every cross-linking PSM unlinked from its protein run.
+///
+/// `BetaPepEv:start` and `:end` use decimal positions in both implementations:
+/// the source global numeric `std::string += Int` overload in `StringUtils.h`
+/// calls `appendToStr`, which formats decimal digits with `std::to_chars`.
 fn merge_crosslink_hits(
     identifications: Vec<PeptideIdentification>,
     options: &ReadOptions,

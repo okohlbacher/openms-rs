@@ -2564,6 +2564,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-141 — DataValue::operator double() reads the union's double member for a non-numeric value
 
+**Duplicate tracking:** This is the imzML call-site instance of [CPP-058](#cpp-058--nonnumeric-datavalue-casts-read-an-inactive-union-member). The stable ID and original evidence are retained; it is not an additional distinct DataValue defect.
+
 **Affected files:** src/openms/source/DATASTRUCTURES/DataValue.cpp:466-478 (operator double()), :480-491 (operator float()), :452-464 (operator long double()); reached from src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:356-378
 
 **Issue and reproduction:** operator double() throws only for EMPTY_VALUE and converts INT_VALUE; for STRING_VALUE and the three list types it falls through to `return data_.dou_;`. For a STRING_VALUE the live union member is a std::string*, so this reinterprets a pointer's bit pattern as a double — undefined behaviour, and in practice a garbage number rather than the Exception::ConversionError that operator int() and operator unsigned int() raise for the same input. extractMeta_ reaches it for all four of imzml:pixel_size_x, imzml:pixel_size_y, imzml:max_dim_x and imzml:max_dim_y, so `exp.setMetaValue("imzml:pixel_size_x", "wide")` followed by ImzMLFile::store writes an imzML carrying a nonsense pixel size and a nonsense IMS:1000044/45 extent computed from it.
@@ -2585,3 +2587,764 @@ fraction. No upstream fix is claimed.
 **Proposed fix:** Apply the per-peak-contract check before applyStoreOptions_ and drop the offending arrays there, warning once per array as appendAndWriteFloatDataArrays_ does, so skip-and-warn is the only outcome and neither sortByPosition nor select ever sees a misaligned array. The kernel preconditions stay as they are — they are correct to refuse a reorder under a mis-sized annotation array.
 
 **Rust handling:** Was reproduced in the port and is now fixed at this package's own call site, since src/kernel.rs is out of scope and is right to refuse: apply_store_options lifts every misaligned float, integer and string data array off the spectrum around the sort and the peak filters via detach_misaligned_arrays / restore_misaligned_arrays, restoring each at its original index with its original values, so the array and its original length still reach StoreReport::skipped_float_arrays. validate_data_arrays, select and sort_by_position are unchanged. Pinned by a_misaligned_array_is_skipped_whatever_the_peak_file_options_say (three option sets, one outcome) and apply_store_options_puts_a_misaligned_array_back_in_place. Recorded as cpp_issue_candidate 5; unconfirmed against running C++.
+
+
+## FORMAT wave evidence scope
+
+The following entries were consolidated against the pinned source and existing
+IDs during integration. Source review does not imply executed C++ reproduction.
+The two unconfirmed candidates are explicitly labeled. Some native APIs retain
+source behavior for compatibility; a recorded proposed fix is not an upstream
+change or a claim that the Rust behavior was corrected.
+
+## CPP-143 — Negative CHEMMOD identifiers fail modification-cell parsing
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabModification::fromCellString` in [src/openms/source/FORMAT/MzTab.cpp:130](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTab.cpp#L130).
+
+**Trigger:** Parse 8-CHEMMOD:-18.010565.
+
+**Issue:** Splitting on every hyphen yields three fields; the parser requires exactly two and throws.
+
+**Proposed C++ fix:** Split position/identifier once with CHEMMOD signed mass retained. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Preserves source rejection of negative CHEMMOD strings. No native grammar correction is claimed. See [src/format/mztab.rs](src/format/mztab.rs), [tests/mztab.rs](tests/mztab.rs) and [MZTAB_SUPPORT.md](docs/MZTAB_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-144 — Quoted commas split a MzTab modification-list entry
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabModificationList::fromCellString` in [src/openms/source/FORMAT/MzTab.cpp:236](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTab.cpp#L236).
+
+**Trigger:** A modification parameter includes quoted name "blabla, [bla]".
+
+**Issue:** Comma protection excludes in_quotes, so later comma split separates a quoted field.
+
+**Proposed C++ fix:** Protect all commas within parameters/quotes and keep quote/bracket states distinct. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Preserves source quoted-comma splitting behavior, including the defective case. No native tokenizer correction is claimed. See [src/format/mztab.rs](src/format/mztab.rs), [tests/mztab.rs](tests/mztab.rs) and [MZTAB_SUPPORT.md](docs/MZTAB_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-145 — MzTab parameter rendering fails to quote a bare comma
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabParameter::toCellString` in [src/openms/source/FORMAT/MzTabBase.cpp:327](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabBase.cpp#L327).
+
+**Trigger:** Set parameter name a,b and serialize/reparse.
+
+**Issue:** Only comma-space triggers quoting, producing an extra cell component for bare comma.
+
+**Proposed C++ fix:** Quote any comma and escape embedded quotes consistently. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Preserves source comma-space-only quoting rule. Bare comma rendering remains source-compatible and non-round-trippable. See [src/format/mztab.rs](src/format/mztab.rs), [tests/mztab.rs](tests/mztab.rs) and [MZTAB_SUPPORT.md](docs/MZTAB_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-146 — MzTab score-by-run header order differs from row order
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabFile::generateMzTabProteinHeader_` in [src/openms/source/FORMAT/MzTabFile.cpp:2033](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L2033); `MzTabFile::generateMzTabSectionRow_ (protein overload)` in [src/openms/source/FORMAT/MzTabFile.cpp:2114](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L2114).
+
+**Trigger:** Protein row has scores1/2 and runs1/2 with four distinct values.
+
+**Issue:** Header iterates run then score; row iterates score then run, interchanging off-diagonal cells.
+
+**Proposed C++ fix:** Share score/run ordering between header and row. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native SectionLayout aligns header and cells; checks source fixtures and synthetic column families. See [src/format/mztab_file.rs](src/format/mztab_file.rs), [tests/mztab_file.rs](tests/mztab_file.rs) and [MZTAB_FILE_SUPPORT.md](docs/MZTAB_FILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-147 — MzTab PSM optional columns are dropped on load
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabFile::load` in [src/openms/source/FORMAT/MzTabFile.cpp:1278](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L1278).
+
+**Trigger:** PSH declares opt_global_score with a PSM value.
+
+**Issue:** Header matches exactly opt_ rather than its prefix, so named optional columns never get registered.
+
+**Proposed C++ fix:** Use hasPrefix(cells[i], "opt_"). No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native reader recognizes named optional columns. See [src/format/mztab_file.rs](src/format/mztab_file.rs), [tests/mztab_file.rs](tests/mztab_file.rs) and [MZTAB_FILE_SUPPORT.md](docs/MZTAB_FILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-148 — MzTab column-unit metadata parses its key as an index
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabFile::load` in [src/openms/source/FORMAT/MzTabFile.cpp:683](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L683).
+
+**Trigger:** Load MTD colunit-protein with a valid value.
+
+**Issue:** extractBracketIndex receives colunit without brackets; downstream indexed vector assignment has no resize.
+
+**Proposed C++ fix:** Parse nonindexed column-unit value into vector append; validate malformed keys. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native column-unit grammar uses the expected vector form. See [src/format/mztab_file.rs](src/format/mztab_file.rs), [tests/mztab_file.rs](tests/mztab_file.rs) and [MZTAB_FILE_SUPPORT.md](docs/MZTAB_FILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-149 — MzTab-M assay custom metadata is written under ms_run
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabMFile::generateMzTabMMetaDataSection_` in [src/openms/source/FORMAT/MzTabMFile.cpp:222](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabMFile.cpp#L222).
+
+**Trigger:** Assay1 has custom1 parameter while ms_run1 denotes a different entity.
+
+**Issue:** Writer emits ms_run[1]-custom[1], attributing assay metadata to run.
+
+**Proposed C++ fix:** Emit assay index prefix. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Correct by default; source_assay_custom_key opts into source spelling. See [src/format/mztab_m.rs](src/format/mztab_m.rs), [tests/mztab_m.rs](tests/mztab_m.rs) and [MZTAB_M_SUPPORT.md](docs/MZTAB_M_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-150 — MzTab-M column-unit families share an incorrect output key
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabMFile::generateMzTabMMetaDataSection_` in [src/openms/source/FORMAT/MzTabMFile.cpp:347](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabMFile.cpp#L347).
+
+**Trigger:** Metadata has different feature and evidence column units.
+
+**Issue:** All loops emit colunit_small_molecule, losing family distinction.
+
+**Proposed C++ fix:** Use distinct feature/evidence keys. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Correct by default; source_colunit_keys explicit compatibility flag. See [src/format/mztab_m.rs](src/format/mztab_m.rs), [tests/mztab_m.rs](tests/mztab_m.rs) and [MZTAB_M_SUPPORT.md](docs/MZTAB_M_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-151 — MzTab-M exporter changes metadata keys before lookup
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MzTabM::getFeatureMapMetaValues_` in [src/openms/source/FORMAT/MzTabM.cpp:103](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabM.cpp#L103).
+
+**Trigger:** Feature metadata contains raw key with space.
+
+**Issue:** Collector changes key to underscore spelling, so later original metadata lookup yields absence/null.
+
+**Proposed C++ fix:** Retain raw lookup keys; normalize output column names only. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** substitute_keys_before_lookup default false, preserving raw key lookup. See [src/format/mztab_m.rs](src/format/mztab_m.rs), [tests/mztab_m.rs](tests/mztab_m.rs) and [MZTAB_M_SUPPORT.md](docs/MZTAB_M_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-152 — pepXML end_scan mismatch check reads start_scan twice
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `PepXMLFile::readRTMZCharge_` in [src/openms/source/FORMAT/PepXMLFile.cpp:926](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PepXMLFile.cpp#L926).
+
+**Trigger:** spectrum_query start_scan=1 end_scan=2.
+
+**Issue:** Both locals read start_scan so merged-scan diagnostic never fires.
+
+**Proposed C++ fix:** Read end_scan for endscan. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native parser compares actual attributes and reports mismatch. See [src/format/pepxml.rs](src/format/pepxml.rs), [tests/pepxml.rs](tests/pepxml.rs) and [PEPXML_SUPPORT.md](docs/PEPXML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-153 — pepXML drops a uniquely resolved undeclared modification
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `PepXMLFile::onStartElement` in [src/openms/source/FORMAT/PepXMLFile.cpp:1725](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PepXMLFile.cpp#L1725).
+
+**Trigger:** A mod_aminoacid_mass not in header resolves to exactly one modification in registry.
+
+**Issue:** mods nonempty branch appends only if size>1; exactly one match silently omitted.
+
+**Proposed C++ fix:** Always append first resolved match; warn only if multiple. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native reader installs uniquely resolved match. See [src/format/pepxml.rs](src/format/pepxml.rs), [tests/pepxml.rs](tests/pepxml.rs) and [PEPXML_SUPPORT.md](docs/PEPXML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-154 — pepXML fixed protein C-terminal modification misses terminal branch
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `PepXMLFile::onEndElement` in [src/openms/source/FORMAT/PepXMLFile.cpp:2123](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PepXMLFile.cpp#L2123).
+
+**Trigger:** Implicit fixed modification has PROTEIN_C_TERM specificity.
+
+**Issue:** C-terminal conditional repeats PROTEIN_N_TERM and falls through to internal-residue loop.
+
+**Proposed C++ fix:** Replace second repeated enum with PROTEIN_C_TERM. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native terminal logic accounts for protein C terminus; source-specific warnings documented. See [src/format/pepxml.rs](src/format/pepxml.rs), [tests/pepxml.rs](tests/pepxml.rs) and [PEPXML_SUPPORT.md](docs/PEPXML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-155 — qcML loses units across its own store/load
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `QcMLFile::QualityParameter::toXMLString` in [src/openms/source/FORMAT/QcMLFile.cpp:81](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L81); `QcMLFile::onStartElement` in [src/openms/source/FORMAT/QcMLFile.cpp:820](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L820).
+
+**Trigger:** QualityParameter has nonempty unitRef and unitAcc.
+
+**Issue:** Writer uses unitRef/unitAcc; reader recognizes unitCvRef/unitAccession.
+
+**Proposed C++ fix:** Use canonical names and optional legacy aliases. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Reader accepts both legacy and schema unit spellings. Default writer uses schema spelling; WriteOptions::source() selects legacy output. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-156 — qcML table writer discards its normalized row copy
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `QcMLFile::Attachment::toXMLString` in [src/openms/source/FORMAT/QcMLFile.cpp:227](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L227).
+
+**Trigger:** One table cell contains a space.
+
+**Issue:** Writer substitutes spaces in copy_row, then concatenates original row, splitting cell on reload.
+
+**Proposed C++ fix:** Serialize copy_row, or implement an escaping grammar. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Default writer refuses empty or XML-whitespace table cells. source_table_text reproduces unnormalized source rows; it does not normalize them into a corrected value. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-157 — qcML removeAllAttachments omits set-only entries
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `QcMLFile::removeAllAttachments` in [src/openms/source/FORMAT/QcMLFile.cpp:511](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L511).
+
+**Trigger:** Set has matching attachment and no run attachment map entry of same ID.
+
+**Issue:** Method iterates runQualityAts_ only despite all-runs/sets contract.
+
+**Proposed C++ fix:** Visit union of run and set identifiers. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Preserves run-map-only iteration. Sets are reached only through a matching run attachment-map key. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-158 — qcML map2csv emits misaligned rows when a column is missing
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `QcMLFile::map2csv` in [src/openms/source/FORMAT/QcMLFile.cpp:684](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L684).
+
+**Trigger:** First map row has columns A/B; next has only B.
+
+**Issue:** Missing A emits no separator/cell, so B shifts into A column.
+
+**Proposed C++ fix:** Emit empty missing cells and choose union of columns, or reject inconsistent rows. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Preserves first-row column selection and missing-cell misalignment. Resource limits do not correct this layout behavior. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-159 — qcML writer and reader disagree on set-member CV accession
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `QcMLFile::onEndElement` in [src/openms/source/FORMAT/QcMLFile.cpp:940](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L940); `QcMLFile::store` in [src/openms/source/FORMAT/QcMLFile.cpp:2072](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L2072).
+
+**Trigger:** Register set membership to a run with its name parameter and store/reload.
+
+**Issue:** Writer emits QC:0000005 membership record; reader treats MS:1000577 as set member.
+
+**Proposed C++ fix:** Use one membership representation and resolve names/IDs consistently. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Reader also recognizes QC:0000005 membership while retaining the parameter. Writer checks representability; source policy can select original drops. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-160 — qcML TIC slump percentage truncates before multiplication
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `QcMLFile::collectQCData` in [src/openms/source/FORMAT/QcMLFile.cpp:1293](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L1293).
+
+**Trigger:** Run has200 spectra,100 below threshold.
+
+**Issue:** (100/200)*100 integer arithmetic yields0 instead of50.
+
+**Proposed C++ fix:** Compute floating percentage 100.0*count/size with explicit empty guard; same RIC formula. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** collectQCData remains unported; avoid reproducing when QC-computation wave begins. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-161 — Percolator loader requires FileName through an unchecked map lookup
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `PercolatorInfile::load` in [src/openms/source/FORMAT/PercolatorInfile.cpp:239](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PercolatorInfile.cpp#L239).
+
+**Trigger:** Valid rectangular PIN omits optional FileName column.
+
+**Issue:** Filename map stays empty; .at(UNKNOWN) throws std::out_of_range rather than declared parse error. Caller may catch; process abort is NOT inevitable.
+
+**Proposed C++ fix:** Register default filename or reject missing requirement with structured ParseError. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native Error::MissingInformation names absent column. See [src/format/percolator_infile.rs](src/format/percolator_infile.rs), [tests/percolator_infile.rs](tests/percolator_infile.rs) and [PERCOLATOR_INFILE_SUPPORT.md](docs/PERCOLATOR_INFILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-162 — Percolator enzyme features use unmapped protein-terminal markers
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `PercolatorInfile::stampPinFeaturesOnHits (feature tracking overload)` in [src/openms/source/FORMAT/PercolatorInfile.cpp:520](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PercolatorInfile.cpp#L520).
+
+**Trigger:** PeptideEvidence has [ before or ] after at protein terminus.
+
+**Issue:** enzN/enzC are computed before terminal marker becomes recognized dash.
+
+**Proposed C++ fix:** Normalize markers before both enzyme features and peptide text. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Source feature behavior deliberately reproduced and documented; source correction not applied upstream. See [src/format/percolator_infile.rs](src/format/percolator_infile.rs), [tests/percolator_infile.rs](tests/percolator_infile.rs) and [PERCOLATOR_INFILE_SUPPORT.md](docs/PERCOLATOR_INFILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-163 — Percolator writer and loader disagree on trailing protein-list width
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `PercolatorInfile::load` in [src/openms/source/FORMAT/PercolatorInfile.cpp:234](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PercolatorInfile.cpp#L234); `PercolatorInfile::stampPinFeaturesOnHits (feature tracking overload)` in [src/openms/source/FORMAT/PercolatorInfile.cpp:544](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PercolatorInfile.cpp#L544).
+
+**Trigger:** One PSM maps to two protein accessions.
+
+**Issue:** Writer separates proteins with tab; loader rejects row wider than header.
+
+**Proposed C++ fix:** Read final Proteins column as variable-width list, retaining semicolon support for Sage. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native writer preserves tabs and reader explicitly reports source incompatibility. See [src/format/percolator_infile.rs](src/format/percolator_infile.rs), [tests/percolator_infile.rs](tests/percolator_infile.rs) and [PERCOLATOR_INFILE_SUPPORT.md](docs/PERCOLATOR_INFILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-164 — Mascot query index guard accepts one-past-end
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MascotXMLHandler::onStartElement` in [src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp:49](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp#L49).
+
+**Trigger:** NumQueries=1 and peptide query=2, followed by a peptide field.
+
+**Issue:** Zero-based index1 is not greater than size1 and later indexes outside vector.
+
+**Proposed C++ fix:** Check index>=size and validate positive query before subtraction. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native lazy query indexing checks declared range before access. See [src/format/mascot_xml.rs](src/format/mascot_xml.rs), [tests/mascot_xml.rs](tests/mascot_xml.rs) and [MASCOT_XML_SUPPORT.md](docs/MASCOT_XML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-165 — Mascot RT failure test treats zero as failure and NaN as success
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MascotXMLHandler::onEndElement` in [src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp:108](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp#L108).
+
+**Trigger:** Title lookup leaves RT NaN, or legitimately returns RT0.
+
+**Issue:** Boolean negation of double skips missing NaN and flags valid zero.
+
+**Proposed C++ fix:** Use finite/NaN or explicit found flag. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native lookup reports absent information explicitly; zero RT retained. See [src/format/mascot_xml.rs](src/format/mascot_xml.rs), [tests/mascot_xml.rs](tests/mascot_xml.rs) and [MASCOT_XML_SUPPORT.md](docs/MASCOT_XML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-166 — Mascot MGF loader carries precursor and RT fields between blocks
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MascotGenericFile::load (template)` in [src/openms/include/OpenMS/FORMAT/MascotGenericFile.h:85](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/include/OpenMS/FORMAT/MascotGenericFile.h#L85); `MascotGenericFile::load (template)` in [src/openms/include/OpenMS/FORMAT/MascotGenericFile.h:140](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/include/OpenMS/FORMAT/MascotGenericFile.h#L140).
+
+**Trigger:** First BEGIN IONS block has RTINSECONDS; second block has its own PEPMASS but omits optional RTINSECONDS.
+
+**Issue:** The second spectrum retains the previous RT because only selected state is cleared. Missing PEPMASS similarly retains precursor state, but optional RT omission is sufficient for this trigger.
+
+**Proposed C++ fix:** Reset per-query spectrum metadata or construct a fresh spectrum each block. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** The default CarryOver::Reset starts each MGF block with fresh metadata. CarryOver::Source explicitly opts into the source carry-over behavior; this differs from default general MGF input. See [src/format/mascot_generic.rs](src/format/mascot_generic.rs), [tests/mascot_generic.rs](tests/mascot_generic.rs) and [MASCOT_GENERIC_SUPPORT.md](docs/MASCOT_GENERIC_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-167 — mzIdentML writer places C-terminal modification at last-residue location
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MzIdentMLHandler::writePeptideHit` in [src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp:1363](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp#L1363).
+
+**Trigger:** A peptide of lengthN has a C-terminal modification.
+
+**Issue:** Writer emits location N; schema convention is N+1, so it targets final residue.
+
+**Proposed C++ fix:** Emit sequence.size()+1 and test terminal round trip. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native writer uses terminal location convention and tests modified peptides. See [src/format/mzidentml.rs](src/format/mzidentml.rs), [tests/mzidentml.rs](tests/mzidentml.rs) and [MZIDENTML_SUPPORT.md](docs/MZIDENTML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-168 — mzIdentML reader dereferences missing PeptideSequence child
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MzIdentMLDOMHandler::parsePeptideSiblings_` in [src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp:2466](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp#L2466).
+
+**Trigger:** A Peptide includes empty PeptideSequence element.
+
+**Issue:** getFirstChild returns null and getNodeType dereferences it.
+
+**Proposed C++ fix:** Handle empty text node explicitly, reject or represent empty sequence according to schema. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native parser returns checked outcome; no null dereference. See [src/format/mzidentml.rs](src/format/mzidentml.rs), [tests/mzidentml.rs](tests/mzidentml.rs) and [MZIDENTML_SUPPORT.md](docs/MZIDENTML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-169 — mzIdentML substitution position is used as unchecked string index
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MzIdentMLDOMHandler::parsePeptideSiblings_` in [src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp:2491](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp#L2491).
+
+**Trigger:** SubstitutionModification location0 or >peptide length with replacementResidue present.
+
+**Issue:** Signed location-1 converts into string index and writes out of bounds.
+
+**Proposed C++ fix:** Validate1<=location<=sequence length and nonempty residue attributes before indexing. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native parser checks positions and rejects invalid substitutions. See [src/format/mzidentml.rs](src/format/mzidentml.rs), [tests/mzidentml.rs](tests/mzidentml.rs) and [MZIDENTML_SUPPORT.md](docs/MZIDENTML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-170 — mzData checks missing and short arrays after unsafe indexing
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MzDataHandler::fillData_` in [src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp:518](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp#L518).
+
+**Trigger:** Spectrum has one array, or intensity/auxiliary array shorter than m/z.
+
+**Issue:** precisions0/1 accessed before missing-array guard; length mismatch only logs, then peak loop indexes short data.
+
+**Proposed C++ fix:** Require primary arrays before reading precision and validate all decoded lengths before peak construction. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native parser checks primary/aligned-array shapes with structured error. See [src/format/mzdata.rs](src/format/mzdata.rs), [tests/mzdata.rs](tests/mzdata.rs) and [MZDATA_SUPPORT.md](docs/MZDATA_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-171 — mzData writer emits scan modes its reader does not recognize
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MzDataHandler::writeTo` in [src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp:919](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp#L919); `Internal::MzDataHandler::cvParam_` in [src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp:1088](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp#L1088).
+
+**Trigger:** Store ABSORPTION/EMC/TDF mode then load.
+
+**Issue:** Writer spellings absent from reader map; fallback loses mode and may modify previous spectrum for MSlevel>=2.
+
+**Proposed C++ fix:** Use shared bidirectional scan-mode table and update current spec in fallback. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Default writer refuses scan modes that cannot round-trip through the source-compatible mapping. Parser updates the current spectrum, not the previous spectrum, for unknown MSn modes. It does not add recognition of these three spellings. See [src/format/mzdata.rs](src/format/mzdata.rs), [tests/mzdata.rs](tests/mzdata.rs) and [MZDATA_SUPPORT.md](docs/MZDATA_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-172 — Streaming mzML consumer references header entries declared only for first record
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MSDataWritingConsumer::consumeSpectrum` in [src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp:62](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp#L62); `Internal::MzMLHandler::writeSpectrum_` in [src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:5250](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L5250).
+
+**Trigger:** Second streamed spectrum has non-default source file or processing history differing from first.
+
+**Issue:** Header derives from dummy one-record map; second sourceFileRef/processing fallback points to undeclared entry. This is independent of numeric-overload claims.
+
+**Proposed C++ fix:** Predeclare record dependencies or refuse new dependencies after header publication. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native consumer rejects dependencies absent from first header rather than emitting dangling references. See [src/format/ms_data_writing_consumer.rs](src/format/ms_data_writing_consumer.rs), [tests/ms_data_writing_consumer.rs](tests/ms_data_writing_consumer.rs) and [MS_DATA_WRITING_CONSUMER_SUPPORT.md](docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-173 — mzXML release decode reads beyond short peak payload
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MzXMLHandler::doPopulateSpectraWithData_` in [src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp:1162](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp#L1162).
+
+**Trigger:** peaksCount2 with decoded payload containing only one mz/intensity pair, assertions disabled.
+
+**Issue:** Only assert validates length; loop trusts declared count and indexes past vector.
+
+**Proposed C++ fix:** Replace assert with runtime payload-length validation before loop. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native runtime shape check rejects mismatch in all builds. See [src/format/mzxml.rs](src/format/mzxml.rs), [tests/mzxml.rs](tests/mzxml.rs) and [MZXML_SUPPORT.md](docs/MZXML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-174 — mzXML precursor value and window width depend on SAX chunking
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::MzXMLHandler::onCharacters` in [src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp:569](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp#L569).
+
+**Trigger:** Precursor numeric text is delivered in two character callbacks, e.g. an entity/comment boundary.
+
+**Issue:** Each chunk sets m/z and halves previous width again; split comments retain only last chunk.
+
+**Proposed C++ fix:** Accumulate per-element text and parse/apply once at closing tag. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native parser accumulates text and preserves full value/window. See [src/format/mzxml.rs](src/format/mzxml.rs), [tests/mzxml.rs](tests/mzxml.rs) and [MZXML_SUPPORT.md](docs/MZXML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-175 — SVOutStream probe stream remains poisoned after non-newline manipulator
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `SVOutStream::operator<<(std::ostream& (*)(std::ostream&))` in [src/openms/source/FORMAT/SVOutStream.cpp:101](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SVOutStream.cpp#L101).
+
+**Trigger:** Write field, apply std::ends then std::endl then write next field.
+
+**Issue:** Probe string contains NUL plus newline, never equals newline; bookkeeping emits unwanted separator at next line start.
+
+**Proposed C++ fix:** Reset probe buffer/error state per manipulator or identify line-end operations explicitly. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native named end_line/newline avoid manipulator-detection state. See [src/format/sv_out_stream.rs](src/format/sv_out_stream.rs), [tests/sv_out_stream.rs](tests/sv_out_stream.rs) and [SV_OUT_STREAM_SUPPORT.md](docs/SV_OUT_STREAM_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-176 — TrafoXML omits unsupported parameter types after a non-fatal diagnostic
+
+**Status and source:** source-reviewed behavior; unconfirmed defect / API error-policy difference. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `TransformationXMLFile::onStartElement` in [src/openms/source/FORMAT/TransformationXMLFile.cpp:145](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/TransformationXMLFile.cpp#L145); `Internal::XMLHandler::error` in [src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp:71](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp#L71).
+
+**Trigger:** Param name slope type bogus value1.
+
+**Issue:** Unsupported type logs a non-fatal error and omits the parameter. This can cause missing/default model parameters, but non-fatal continuation is explicit source behavior; whether it violates the public contract is not established.
+
+**Proposed C++ fix:** Throw ParseError for unsupported types. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. candidate requiring public error-handling contract review.
+
+**Rust handling:** Native Error::Unsupported preserves explicit failure. See [src/format/transformation_xml.rs](src/format/transformation_xml.rs), [tests/transformation_xml.rs](tests/transformation_xml.rs) and [TRANSFORMATION_XML_SUPPORT.md](docs/TRANSFORMATION_XML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-177 — Linear transformation accepts symmetric_regression but never uses it
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `TransformationModelLinear::TransformationModelLinear` in [src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp:18](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp#L18).
+
+**Trigger:** Fit non-collinear data with symmetric_regression=true versus false.
+
+**Issue:** Constructor stores symmetric_ but fitting path never consults it; the documented regression on y-x versus y+x is not selected.
+
+**Proposed C++ fix:** Implement declared symmetric regression or reject/remove option and correct docs. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Native fitting behavior remains same; setting retained as documented source limitation. See [src/format/transformation_xml.rs](src/format/transformation_xml.rs), [tests/transformation_xml.rs](tests/transformation_xml.rs) and [TRANSFORMATION_XML_SUPPORT.md](docs/TRANSFORMATION_XML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-178 — MSstats missing design pair silently uses sample0
+
+**Status and source:** source-reviewed unchecked lookup; unconfirmed reachable defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MSstatsFile::storeLFQ` in [src/openms/source/FORMAT/MSstatsFile.cpp:432](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MSstatsFile.cpp#L432).
+
+**Trigger:** A consensus channel label/file pair absent from the design but passing storeLFQ filename-subset and one-label guards; exact input not yet constructed.
+
+**Issue:** If a missing pair reaches operator[], it inserts zero and may read sample row zero; upstream guards exist and a concrete reachable malformed pair remains to be demonstrated.
+
+**Proposed C++ fix:** Check design/run membership and throw MissingInformation. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. candidate requiring a reachable file/label mismatch despite upfront filename and single-label checks.
+
+**Rust handling:** Native lookup checks file/label and run mappings and returns MissingInformation; exact reachable C++ missing-pair case remains pending. See [src/format/msstats.rs](src/format/msstats.rs), [tests/msstats.rs](tests/msstats.rs) and [MSSTATS_SUPPORT.md](docs/MSSTATS_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-179 — MSstats unknown summarization method writes zero intensities
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MSstatsFile::constructFile_` in [src/openms/source/FORMAT/MSstatsFile.cpp:174](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MSstatsFile.cpp#L174).
+
+**Trigger:** Library caller sets method bogus with nonzero intensities.
+
+**Issue:** No branch assigns initial0, but CSV still emitted.
+
+**Proposed C++ fix:** Validate method before processing. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Typed RetentionTimeSummarization rejects unknown names. See [src/format/msstats.rs](src/format/msstats.rs), [tests/msstats.rs](tests/msstats.rs) and [MSSTATS_SUPPORT.md](docs/MSSTATS_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## CPP-180 — MSstats aggregation collapses equal intensities at distinct times
+
+**Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `MSstatsFile::constructFile_` in [src/openms/source/FORMAT/MSstatsFile.cpp:140](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MSstatsFile.cpp#L140).
+
+**Trigger:** Distinct RTs have intensities10,10,20; sum requested.
+
+**Issue:** std::set yields10,20, so sum30 instead of40 and mean15 instead of13.333.
+
+**Proposed C++ fix:** Keep multiset/vector for sample intensities, separate RT duplicate policy. No upstream patch is claimed.
+
+**Evidence:** Source review, with pinned source hashes and line references in [the FORMAT review manifest](tests/data/format_wave_cpp_review.json). This entry has no executed C++ reproduction or sanitizer evidence. confirmed by source review; not executed.
+
+**Rust handling:** Preserves source intensity deduplication before summarizing, explicitly sorting and deduplicating f32 intensities. See [src/format/msstats.rs](src/format/msstats.rs), [tests/msstats.rs](tests/msstats.rs) and [MSSTATS_SUPPORT.md](docs/MSSTATS_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
+
+## FORMAT review corrections and unresolved observations
+
+- **MzTabModification position-byte corruption / mzML numeric IDs / OPXL BetaPepEv numeric positions:** Global numeric overloads invalidate claim only char overload is viable. Isolated executed probe emits decimal. Do not log as C++ defect; fix docs and retain no full-SDK-execution claim.
+- **MzTabSpectraRef::setSpecRefFile duplicates setSpecRef:** Naming ambiguity/alias alone is not a defect; no distinct promised behavior established.
+- **Accepting too-new TrafoXML version:** Warning plus forward-compatibility policy is not demonstrably wrong without concrete misread future data.
+- **SVOutStream absence of std::ostream inheritance in Rust:** Native API design difference, not source defect.
+- **Percolator short Sage path subtraction:** Unsigned subtraction verified but std::string substr count can clamp oversized length; do not call it memory unsafety/automatic process abort. Wrong derived path/error deserves further contract review.
+- **Unbounded allocation, non-atomic file I/O and permissive count handling:** Need concrete defect/contract assessment; do not log every native resource-policy addition as C++ bug.
+- **MzTabM find_if end dereference:** Unchecked dereference visible but exporter constructs both collections internally; malformed externally supplied IDs may not reach this loop. Need reachable graph trigger before confirmed defect.
+- **MzTabDouble value-only comparison:** State conflation is real but comparison contract may deliberately be value-based. Require public contract review before confirmed defect.
+- **Additional FORMAT source anchors:** This bounded pass prioritized concrete incorrect output, missing bounds and self-roundtrip defects; remaining named doc findings are pending deeper verification, not certified false or complete.
+- **All other defect anchors in support documents:** Pending deeper source and contract verification; surveyed does not mean independently verified. Do not promote them automatically to confirmed defects.
+
+The numeric-overload correction has isolated executed evidence under
+`../oracle/format-numeric-overload/`, with hashes recorded in the affected
+format manifests. It substitutes small formatting adapters and is not a full
+SDK build. No new defect ID is assigned to the disproved narrowing claim.
+
+## Additional FORMAT observations awaiting source review
+
+The [retained review queue](tests/data/format_cpp_review_queue.json) gives stable
+`FORMAT-OBS-001` through `FORMAT-OBS-134` identifiers to the remaining leaf-document
+reports, including the reported affected files, behavior and proposed changes.
+These are **unreviewed observations, not 134 additional defects**: the queue
+includes policy differences, possible duplicates and incomplete hypotheses.
+Known overlaps point back to existing CPP entries. Resolve duplicates and check
+source contracts before promoting a report; retain its observation ID when
+recording the disposition. Source file hashes establish provenance only.
+
+## SQLite S0 planning candidates
+
+These candidates were identified while reading the next wave's source, before
+implementation. They do not count as completed Rust functionality.
+
+## CPP-181 — SqliteConnector permits copying an owned database handle
+
+**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Implicit copy constructor/assignment and ~SqliteConnector` in [src/openms/include/OpenMS/FORMAT/SqliteConnector.h:40](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/include/OpenMS/FORMAT/SqliteConnector.h#L40). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
+
+**Trigger and issue:** Copy an open connector and destroy both copies. The implicit copy duplicates db_ without ownership transfer; both destructors call sqlite3_close_v2 on the same handle. Assignment also loses the previous handle.
+
+**Proposed C++ fix:** Delete copy operations and provide explicit move ownership if needed. No upstream change is claimed.
+
+**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+
+**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+
+## CPP-182 — SqliteConnector does not close a handle when opening fails
+
+**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `SqliteConnector::openDatabase_` in [src/openms/source/FORMAT/SqliteConnector.cpp:32](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L32). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
+
+**Trigger and issue:** Construct a connector for a missing read-only database or an inaccessible path. sqlite3_open_v2 may return an allocated error handle. The constructor stores it then throws; the object destructor is not run, leaving that handle unclosed.
+
+**Proposed C++ fix:** Close any returned handle before throwing, or use an owning local guard until successful construction. No upstream change is claimed.
+
+**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+
+**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+
+## CPP-183 — SQLite bound statements leak on bind or step errors
+
+**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::SqliteHelper::executeBindStatement` in [src/openms/source/FORMAT/SqliteConnector.cpp:156](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L156). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
+
+**Trigger and issue:** Supply more blobs than placeholders, or violate a UNIQUE constraint during the step. Both error branches throw before sqlite3_finalize; the source TODO acknowledges the leak. The statement may also retain borrowed SQLITE_STATIC buffers.
+
+**Proposed C++ fix:** Use a statement RAII guard on all exits; bind owned data or ensure it outlives the statement. No upstream change is claimed.
+
+**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+
+**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+
+## CPP-184 — SQLite table-name helpers interpolate names as SQL syntax
+
+**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `SqliteConnector::tableExists, columnExists and countTableRows` in [src/openms/source/FORMAT/SqliteConnector.cpp:118](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L118). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
+
+**Trigger and issue:** Create a table whose name contains an apostrophe or SQL punctuation, then query it by its actual name. tableExists inserts the name into a quoted literal without escaping; countTableRows and columnExists insert an unquoted identifier. Valid names can fail or alter the query meaning.
+
+**Proposed C++ fix:** Bind values such as sqlite_master.name and correctly quote SQL identifiers with doubled double quotes. No upstream change is claimed.
+
+**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+
+**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+
+## CPP-185 — SQLite query helpers ignore step errors and can leak statements
+
+**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `SqliteConnector::countTableRows; Internal::SqliteHelper::tableExists and columnExists` in [src/openms/source/FORMAT/SqliteConnector.cpp:77](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L77). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
+
+**Trigger and issue:** Cause sqlite3_step to return SQLITE_BUSY or another error while querying an existing table. The helpers inspect column types without checking the step result. Existence queries can conflate an execution error with absence; countTableRows throws on NULL before finalizing. Reachable lock/error behavior still needs execution.
+
+**Proposed C++ fix:** Check SQLITE_ROW/DONE explicitly, report other statuses, and finalize through RAII. No upstream change is claimed.
+
+**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+
+**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+
+## CPP-186 — SQLite string extraction truncates embedded NUL bytes
+
+**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::SqliteHelper::extractValue<std::string> / extractString` in [src/openms/source/FORMAT/SqliteConnector.cpp:218](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L218). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
+
+**Trigger and issue:** Extract a SQLite TEXT value containing bytes a, NUL, b. The helper constructs std::string from a C string and loses bytes after the first NUL.
+
+**Proposed C++ fix:** Use sqlite3_column_bytes with the returned pointer and retain an explicit byte length. No upstream change is claimed.
+
+**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+
+**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+
+## CPP-187 — SQLite integer-to-string extraction narrows to 32 bits
+
+**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `Internal::SqliteHelper::extractValueIntStr` in [src/openms/source/FORMAT/SqliteConnector.cpp:261](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L261). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
+
+**Trigger and issue:** Read the SQLite INTEGER value 4294967297 through extractValueIntStr. The helper uses sqlite3_column_int despite SQLite INTEGER being signed 64-bit; conversion to text follows an already narrowed value.
+
+**Proposed C++ fix:** Use sqlite3_column_int64 before decimal formatting. No upstream change is claimed.
+
+**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+
+**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+
+## CPP-188 — MSDataWritingConsumer class test is disabled and calls a nonexistent constructor
+
+**Status and source:** Source-reviewed test-coverage issue at `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; no compiler reproduction claimed.
+
+**Affected files and functions:** `src/tests/class_tests/openms/source/MSDataWritingConsumer_test.cpp:25–29`, constructor section; `src/tests/class_tests/openms/executables.cmake:239`, test registration; `src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h:76`, constructor declaration. All three files are hashed in [the consumer manifest](tests/data/ms_data_writing_consumer_provenance.json).
+
+**Trigger and issue:** Re-enable the commented-out class-test registration. The test instantiates `MSDataWritingConsumer()` while the header requires a filename; the stale test cannot exercise the current API. In its present disabled state it supplies no executed regression coverage. This is a test-maintenance defect, not a claim that the production consumer necessarily fails.
+
+**Proposed C++ fix:** Update the fixture to a concrete consumer with a temporary output path, implement the empty test sections against the current contract, and re-enable registration. No upstream patch is claimed.
+
+**Rust handling:** The native consumer suite is enabled and exercises settings, counts, streaming and output checks. Its expectations are source-derived and independent Rust checks; the disabled C++ test is not an executed oracle.

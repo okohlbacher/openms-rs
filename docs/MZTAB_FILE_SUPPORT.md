@@ -130,7 +130,7 @@ issue **CPP-MZTABFILE-01** below.
 
 | C++ | Rust |
 |---|---|
-| `friend class MzTabMFile` | not ported: Rust has no friendship. `MzTabMFile` is a separate unmapped header; when it lands it will use the public generators above, which are `pub` here precisely because that access was needed |
+| `friend class MzTabMFile` | not ported: Rust has no friendship. the sibling `mztab_m` module implements `MzTabMFile`; native generators are public without a friendship mechanism |
 | `class SVOutStream;` forward declaration | not ported: only the two undefined `write*Header_` statics mention the type |
 
 ### Native additions
@@ -548,9 +548,6 @@ Proposed for `OpenMS_CPP_ISSUES.md`; the integrating agent owns that file.
 - **CPP-MZTABFILE-13** — the `PEP` branch inserts `"PRT"` into
   `sections_present` (`:1130`). No effect today, because the only consumer is
   commented out at `:1547`. Fix: insert `"PEP"`, or delete the set.
-- **CPP-MZTABFILE-14** — `MzTabModification::toCellString` appends each
-  position with `std::string::operator+=` applied to a `Size`
-  (`MzTab.cpp:85`), which resolves to the `char` overload, so position 12 is
-  written as byte `0x0c`. Already recorded by the data-model package; repeated
-  here because it is what makes a `PRT` or `PEP` `modifications` cell
-  unreadable after a C++ store. The Rust writer emits decimal digits.
+- **CPP-MZTABFILE-14 — withdrawn**: the earlier character-narrowing claim
+  overlooked `StringUtils.h`'s numeric string operators. Source and native
+  modification positions render as decimal digits; this is not a source bug.

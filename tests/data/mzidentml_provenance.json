@@ -21,7 +21,7 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
    "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6",
-   "role": "Ported here. writeTo and its helpers (writeMetaInfos_, writeEnzyme_, writeModParam_, writeFragmentAnnotations_, trimOpenMSfileURI, writePeptideHit) are the writer this module reproduces; writeXLMSPeptideHit is not ported."
+   "role": "Ported here. writeTo and its helpers (writeMetaInfos_, writeEnzyme_, writeModParam_, writeFragmentAnnotations_, trimOpenMSfileURI, writePeptideHit and writeXLMSPeptideHit) are the ordinary and cross-linking writer paths this module reproduces."
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h",
@@ -36,7 +36,7 @@
   {
    "path": "src/tests/class_tests/openms/source/MzIdentMLFile_test.cpp",
    "sha256": "cac5d656ca7b41d853c1ec3bc992729e437a117151f8643826440572a76fc0a9",
-   "role": "The oracle. 15 START_SECTIONs; every transcribed literal in tests/mzidentml.rs comes from the nine non-cross-linking ones."
+   "role": "The oracle. 15 START_SECTIONs; tests/mzidentml.rs covers both the nine non-cross-linking sections and the six cross-linking sections."
   },
   {
    "path": "share/OpenMS/SCHEMAS/mzIdentML1.3.0.xsd",
@@ -51,7 +51,17 @@
   {
    "path": "src/openms/source/ANALYSIS/XLMS/OPXLHelper.cpp",
    "sha256": "196e3b40cef65f53fdce5abefde3ba1b04ec465b7c9f05646387890ea0d6a3ac",
-   "role": "Not ported as a header. Implementation of the six post-processing functions above, read at lines 960-1250: the protein-coordinate formula, the beta accession list, the per-chain target/decoy rule, the beta-hit merge and its spectrum grouping, the delta-score ratios and the 32-entry Percolator feature list. Two defects recorded in the support document come from it: BetaPepEv:start/end are built with std::string += Int, and the merge keeps only the first hit of every identification."
+   "role": "Not ported as a header. Implementation of the six post-processing functions above, read at lines 960-1250: the protein-coordinate formula, the beta accession list, the per-chain target/decoy rule, the beta-hit merge and its spectrum grouping, the delta-score ratios and the 32-entry Percolator feature list. The merge keeps only the first hit of every identification. BetaPepEv:start/end numeric appends correctly use StringUtils.h global overloads and are not a character-narrowing defect."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Global numeric string append overloads establish decimal BetaPepEv position formatting."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "role": "appendToStr integer implementations use std::to_chars for decimal output."
   }
  ],
  "fixtures": [
@@ -380,7 +390,7 @@
    "operation": "is_ppxl is true when a run declares is_cross_linking_experiment or SpectrumIdentificationProtocol == MS:1002494, which adds the XLMOD cv entry and groups all results of one spectrum reference into a single SpectrumIdentificationResult"
   }
  ],
- "evidence": "Tier 3 source review. The expectations in tests/mzidentml.rs are transcribed from MzIdentMLFile_test.cpp and from the nine unmodified upstream fixtures: the 2/2/1/5 counts of msgf_mini, MS-GF+ 'Beta (v9979)', database.fasta, missed_cleavages 1000, the fixed modifications Carbamidomethyl (C) and Xlink:DTSSP[88] (Protein N-term), the 20 ppm parent tolerance, the protein accessions in their sorted order (sp|P0A9K9|SLYD_ECOLI before sp|P0A786|PYRB_ECOLI, which is the source's (score, accession) descending key), the four MS-GF:RawScore values 195/182/191/211 with their sequences and spectrum references, the 0.5 significance threshold and the pass_threshold pattern of spectrum 17 in whole.mzid, the Acetyl (N-term) variable modification, and the five modification-inference outcomes of issue #5443. No C++ was built or executed and no C++ output was retained, so nothing here is a tier 1 differential. Two expectations are independently derived rather than transcribed, and are marked as such in the test: the run date stays absent where the source substitutes DateTime::now(), and PeptideEvidence positions are converted from the file's 1-based values to OpenMS's documented 0-based ones, which the source does not do. The synthetic documents (duplicate ids, dangling peptide_ref and dBSequence_ref, an unreferenced SpectrumIdentificationList, two runs sharing one list, a prefixed namespace, a foreign namespace, non-ASCII accessions, an empty PeptideSequence, an out-of-range SubstitutionModification location, a negative rank, the C-terminal modification location, the ProteinDetectionList and every ReadOptions/WriteOptions ceiling) are tier 4, derived from mzIdentML1.3.0.xsd and from this port's own resource contract. The cross-linking expectations are transcribed the same way: the xl_pos1/xl_pos2 pairs, term specificities, sequence_beta values, xl_mod DSS, xl_mass 138.0680796, the heavy retention time 2125.5966796875 and m/z 725.109252929687841, the score -0.190406834856118 and the annotation strings [alpha|ci$b2], [beta|ci$y2] and [alpha|xi$b4] of sections 10 and 11, plus the counts of sections 12 to 15. The terminal-link, loop-link, empty-m/z and userParam-typing cases no upstream fixture reaches are tier 4, derived from the mzIdentML 1.3.0 schema and the crosslinking extension's cvParam definitions.",
+ "evidence": "Tier 3 source review. The expectations in tests/mzidentml.rs are transcribed from MzIdentMLFile_test.cpp and from the ten unmodified upstream fixtures: the 2/2/1/5 counts of msgf_mini, MS-GF+ 'Beta (v9979)', database.fasta, missed_cleavages 1000, the fixed modifications Carbamidomethyl (C) and Xlink:DTSSP[88] (Protein N-term), the 20 ppm parent tolerance, the protein accessions in their sorted order (sp|P0A9K9|SLYD_ECOLI before sp|P0A786|PYRB_ECOLI, which is the source's (score, accession) descending key), the four MS-GF:RawScore values 195/182/191/211 with their sequences and spectrum references, the 0.5 significance threshold and the pass_threshold pattern of spectrum 17 in whole.mzid, the Acetyl (N-term) variable modification, and the five modification-inference outcomes of issue #5443. No C++ mzIdentML reader or writer was built or executed and no differential output from those operations was retained, so nothing here is a tier 1 differential. Two expectations are independently derived rather than transcribed, and are marked as such in the test: the run date stays absent where the source substitutes DateTime::now(), and PeptideEvidence positions are converted from the file's 1-based values to OpenMS's documented 0-based ones, which the source does not do. The synthetic documents (duplicate ids, dangling peptide_ref and dBSequence_ref, an unreferenced SpectrumIdentificationList, two runs sharing one list, a prefixed namespace, a foreign namespace, non-ASCII accessions, an empty PeptideSequence, an out-of-range SubstitutionModification location, a negative rank, the C-terminal modification location, the ProteinDetectionList and every ReadOptions/WriteOptions ceiling) are tier 4, derived from mzIdentML1.3.0.xsd and from this port's own resource contract. The cross-linking expectations are transcribed the same way: the xl_pos1/xl_pos2 pairs, term specificities, sequence_beta values, xl_mod DSS, xl_mass 138.0680796, the heavy retention time 2125.5966796875 and m/z 725.109252929687841, the score -0.190406834856118 and the annotation strings [alpha|ci$b2], [beta|ci$y2] and [alpha|xi$b4] of sections 10 and 11, plus the counts of sections 12 to 15. The terminal-link, loop-link, empty-m/z and userParam-typing cases no upstream fixture reaches are tier 4, derived from the mzIdentML 1.3.0 schema and the crosslinking extension's cvParam definitions.",
  "gaps": [
   "Cross-linking mzIdentML is read and written. What is still not ported is ANALYSIS/XLMS/OPXLHelper.h as a whole: only the six post-processing functions readMzIdentMLFile calls are reproduced, as private helpers of src/format/mzidentml.rs, and the search algorithm around them (enumerateCrossLinksAndMasses, digestDatabase, buildCandidates, buildPeptideIDs, combineTopRanksFromPairs, collectPrecursorCandidates, filterPrecursorsByTags, isoPeakMeans, computePrecursorError, buildFragmentAnnotations) keeps its own ledger entry. Reproducing the six locally duplicates logic that a later OPXLHelper port should own; the natural follow-up is to move them there and have this module call them.",
   "MzIdentMLFile::isValid is not ported: it validates against the bundled XSD through XMLValidator, and the crate's only schema validator is behind the optional mzml-schema feature (libxml) and is mzML-specific. detectVersion, the half of isValid that selects the schema, is ported and tested.",
@@ -391,8 +401,35 @@
   "An identification run with no peptide identifications emits a SpectrumIdentification that references a SpectrumIdentificationList the document does not contain, because mzIdentML requires at least one SpectrumIdentificationResult per list. The source produces the same dangling reference. No fixture reaches it.",
   "Enzyme site regular expressions are not written: mzIdentML has SiteRegexp, and the source omits it ('SiteRegex unstorable just now'), so SearchParameters::digestion_regex is lost on store. Run metadata other than spectra_data is lost as well, because the source's writeMetaInfos_ is applied to the search parameters only.",
   "The source parallelises nothing in this family, so there is no OpenMP gap to record; the reader is a single pass over an in-memory tree and the writer a single pass over the document.",
-  "docs/doc-coverage.json was not rewritten: src/format/mzidentml.rs measures 100.0% (28/28) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
-  "CI wiring was not added for the same reason: append '--test mzidentml' to a '--features idxml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --all-features, under --no-default-features (where the module is compiled out) and under cargo +1.85.0.",
   "The ProteinIdentification::sort of src/identification.rs orders hits by score alone, while ProteinHit::ScoreMore/ScoreLess compare (score, accession); this reader applies the source's full key itself so a load reproduces the C++ order, but callers of that method still see the shorter key. Fixing it belongs to the package that owns src/identification.rs."
+ ],
+ "integration": "The combined format wave registers this module in the reviewed API ledger, refreshes generated coverage and documentation floors, and wires its tests into the minimum-rust CI job.",
+ "cpp_issue_log_entries": [
+  "CPP-167",
+  "CPP-168",
+  "CPP-169"
+ ],
+ "external_reference_note": "Isolated overload-resolution probe, compiled and run on kim with GCC13.3 C++20. Numeric global overload block copied from pinned StringUtils.h; appendToStr functions replaced by std::to_string adapters and Size by std::size_t. No full SDK include closure or linking; proves presence/selectability of numeric overloads in OpenMS namespace contexts and falsifies the claim only char overloads exist.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/format-numeric-overload/manifest.json",
+   "sha256": "541aea8cbf183e1ecbbac3ea5afaedf8d680f0c70d28264079741e048162b8c1",
+   "origin_key": "format_numeric_overload_probe/manifest.json"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/numeric_overloads.inc",
+   "sha256": "eebd8107668a744ec3e8fb9b41d0b289ced546dff920bedccfae7e6401b633a1",
+   "origin_key": "format_numeric_overload_probe/numeric_overloads.inc"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/probe.cpp",
+   "sha256": "4d22cc3232146d4f1fd7909f8e12994fe2fe38c238b0c863f4adf01accd4eabe",
+   "origin_key": "format_numeric_overload_probe/probe.cpp"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/result.log",
+   "sha256": "715c67a81f515b8603b938fc5533b6216db57e53f175373e3b22b6e29074cd00",
+   "origin_key": "format_numeric_overload_probe/result.log"
+  }
  ]
 }

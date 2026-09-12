@@ -984,7 +984,8 @@ pub struct ReadOptions {
     pub max_rows: usize,
     /// Ceiling on the columns the header may declare.
     pub max_columns: usize,
-    /// Ceiling on the cumulative owned payload.
+    /// Ceiling on parsed payload and, separately, each staged input file.
+    /// Applied while reading bytes, before the CSV table is materialized.
     pub max_bytes: usize,
 }
 impl Default for ReadOptions {
@@ -1113,23 +1114,25 @@ fn charge_columns(header: &Header) -> Vec<(usize, i32)> {
 ///
 /// Returns [`Error::Parse`] when a row does not declare the same number of
 /// columns as the header — the source throws `Exception::ParseError` there —
-/// or when a numeric field does not parse; [`Error::MissingInformation`] when a
+/// or when a numeric field does not parse, including a non-positive `rank`;
+/// [`Error::MissingInformation`] when a
 /// required column (`SpecId`, `ScanNr`, `Label`, `Peptide`, `Proteins`,
 /// `retentiontime`, `ExpMass`, `CalcMass`, `FileName` and the configured score)
-/// is absent; [`Error::InvalidValue`] when a limit is reached, when
-/// `sage_annotation` is requested without a path, or when a `rank` column holds
-/// zero, which the source turns into the rank `-1`.
+/// is absent; [`Error::InvalidValue`] when a limit is reached or
+/// `sage_annotation` is requested without a path. The source turns rank zero
+/// into the rank `-1`; this reader reports a parse error.
 ///
 /// The source reads `FileName` optionally but then looks the resulting name up
-/// with `std::map::at`, which terminates the process when no `FileName` column
-/// exists; this requires the column instead. See the support document.
+/// with `std::map::at`, which throws `std::out_of_range` when no `FileName`
+/// column exists; this requires the column instead. The caller may catch the
+/// source exception. See the support document.
 pub fn read(reader: impl BufRead, options: &ReadOptions) -> Result<PinDocument> {
     if options.sage_annotation {
         return Err(invalid(
             "Sage annotation needs the .pin path to find its sibling files",
         ));
     }
-    let csv = CsvFile::from_reader(reader, &tab_options())?;
+    let csv = CsvFile::from_reader(reader, &tab_options(options)?)?;
     read_csv(&csv, options, None)
 }
 
@@ -1147,11 +1150,12 @@ pub fn read(reader: impl BufRead, options: &ReadOptions) -> Result<PinDocument> 
 /// [`Error::InvalidValue`] when `sage_annotation` is set and the path is too
 /// short to carry the expected Sage suffixes. The source computes both sibling
 /// paths with unchecked `size() - N` subtraction on the path string, so a short
-/// or non-ASCII path there either throws or reads a path built from a byte
-/// offset inside a character.
+/// path can wrap the requested substring length; `substr` clamps that length
+/// and yields an incorrect sibling name. A positive byte cutoff can also split
+/// a UTF-8 character when the expected ASCII suffix is absent.
 pub fn load(path: impl AsRef<Path>, options: &ReadOptions) -> Result<PinDocument> {
     let path = path.as_ref();
-    let csv = CsvFile::from_path(path, &tab_options())?;
+    let csv = CsvFile::from_path(path, &tab_options(options)?)?;
     let sage = if options.sage_annotation {
         Some(SageSiblings::read(path, options)?)
     } else {
@@ -1160,13 +1164,23 @@ pub fn load(path: impl AsRef<Path>, options: &ReadOptions) -> Result<PinDocument
     read_csv(&csv, options, sage.as_ref())
 }
 
-fn tab_options() -> csv::ReadOptions {
-    csv::ReadOptions {
+fn tab_options(options: &ReadOptions) -> Result<csv::ReadOptions> {
+    if options.max_rows == 0 || options.max_columns == 0 || options.max_bytes == 0 {
+        return Err(invalid("percolator limits must be positive"));
+    }
+    let cap = csv::Limits::default();
+    let limits = csv::Limits {
+        max_input_bytes: cap.max_input_bytes.min(options.max_bytes),
+        max_storage_bytes: cap.max_storage_bytes.min(options.max_bytes),
+        max_line_bytes: cap.max_line_bytes.min(options.max_bytes),
+        ..cap
+    };
+    Ok(csv::ReadOptions {
         separator: b'\t',
         item_enclosed: false,
         first_n: -1,
-        ..Default::default()
-    }
+        limits,
+    })
 }
 
 struct SageSiblings {
@@ -1187,10 +1201,10 @@ impl SageSiblings {
         let results = name
             .strip_suffix("results.sage.pin")
             .ok_or_else(|| invalid("Sage annotation expects a results.sage.pin path"))?;
-        let tsv = CsvFile::from_path(format!("{stem}tsv"), &tab_options())?;
+        let tsv = CsvFile::from_path(format!("{stem}tsv"), &tab_options(options)?)?;
         let annotations = CsvFile::from_path(
             format!("{results}matched_fragments.sage.tsv"),
-            &tab_options(),
+            &tab_options(options)?,
         )?;
 
         let header = Header::new(tsv.row(0)?.1)?;

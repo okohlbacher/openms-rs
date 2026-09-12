@@ -274,6 +274,26 @@ impl EmpiricalFormula {
         self.atoms.values().map(|&n| i64::from(n)).sum()
     }
 
+    /// The negative atom contributions only, with charge cleared.
+    #[cfg(feature = "idxml")]
+    pub(crate) fn negative_part(&self) -> Self {
+        Self {
+            atoms: self
+                .atoms
+                .iter()
+                .filter(|(_, count)| **count < 0)
+                .map(|(&atom, &count)| (atom, count))
+                .collect(),
+            charge: 0,
+        }
+    }
+
+    /// Whether any stored isotope or element has a negative atom count.
+    #[cfg(feature = "idxml")]
+    pub(crate) fn has_negative_atom_counts(&self) -> bool {
+        self.atoms.values().any(|&count| count < 0)
+    }
+
     /// Number of stored keys for bounded graph measurement; no formula formatting.
     pub(crate) fn stored_atom_types(&self) -> usize {
         self.atoms.len()

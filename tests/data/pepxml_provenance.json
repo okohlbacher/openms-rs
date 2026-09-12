@@ -114,16 +114,6 @@
  ],
  "support_document": "docs/PEPXML_SUPPORT.md",
  "support": "docs/PEPXML_SUPPORT.md",
- "target_verification": [
-  "cargo fmt --all -- --check",
-  "cargo clippy --locked --all-features --all-targets -- -D warnings",
-  "cargo nextest run --locked --all-features",
-  "cargo nextest run --locked --no-default-features",
-  "cargo test --locked --all-features --doc",
-  "RUSTDOCFLAGS=-D warnings cargo doc --locked --all-features --no-deps",
-  "cargo +1.85.0 check --locked --all-features --all-targets",
-  "python3 tools/check_doc_coverage.py"
- ],
  "source_anchors": [
   {
    "path": "src/openms/source/FORMAT/PepXMLFile.cpp",
@@ -277,5 +267,34 @@
   "The work and allocation budget derives from ReadOptions::max_input_bytes, which is a ceiling and not a measurement, so a small document read with the default ceiling was entitled to gigabytes of work. It is lowered once the input is decoded to 2,048 work and 512 allocation units per decoded byte, never below the 16 MiB floor the ceiling-derived budget already has and never raised, which keeps total work linear in the input length. The source has no equivalent accounting.",
   "docs/core-sdk-reviewed-apis.json, docs/core-sdk-coverage.json, docs/doc-coverage.json, docs/VALIDATION.md, README.md, CHANGELOG.md, SOURCE_PROVENANCE.json, OpenMS_CPP_ISSUES.md and .github/workflows/rust.yml are outside this package's scope. Adding this manifest flips FORMAT/PepXMLFile.h from 'unmapped' to 'evidence_requires_review', so docs/core-sdk-coverage.json must be regenerated with 'python3 tools/core_sdk_coverage.py --write' when the ledger entry is recorded, and this file must be added to SOURCE_PROVENANCE.json's current_sdk_reference_manifests.",
   "CI wiring was not added for the same reason: append '--test pepxml' to the minimum-rust job's '--features idxml' line in .github/workflows/rust.yml. The test passes under --all-features, under --no-default-features (where it compiles to nothing) and under cargo +1.85.0."
+ ],
+ "recommended_validation_commands": [
+  "cargo fmt --all -- --check",
+  "cargo clippy --locked --all-features --all-targets -- -D warnings",
+  "cargo nextest run --locked --all-features",
+  "cargo nextest run --locked --no-default-features",
+  "cargo test --locked --all-features --doc",
+  "RUSTDOCFLAGS=-D warnings cargo doc --locked --all-features --no-deps",
+  "cargo +1.85.0 check --locked --all-features --all-targets",
+  "python3 tools/check_doc_coverage.py"
+ ],
+ "residual_scaling_review": {
+  "date": "2026-09-12",
+  "evidence": "Tier 4 native Rust regression tests and tier 3 source review; no new C++ execution.",
+  "scope": "Failed header-candidate and origin-string scans use the existing work allowance; fixed declarations are borrowed. Composition bounds preserve original native setter behavior when reordering could hide intermediate negative atom counts or integer overflow.",
+  "regression_tests": [
+   "unmatched_fixed_origins_exhaust_the_existing_work_budget",
+   "unmatched_header_origins_exhaust_the_existing_work_budget",
+   "terminal_atoms_are_available_before_consuming_residue_modifications",
+   "a_later_atom_donor_does_not_hide_an_earlier_setter_failure",
+   "format::pepxml::tests::failed_header_candidates_spend_work_before_scanning",
+   "format::pepxml::tests::unmatched_fixed_declarations_spend_their_complete_scan"
+  ],
+  "limits": "The conservative batching proof may fall back to bounded ordered setters for unusual composition dependencies or absolute replacement formulas. These cases preserve native setter semantics and do not certify C++ parity."
+ },
+ "cpp_issue_log_entries": [
+  "CPP-152",
+  "CPP-153",
+  "CPP-154"
  ]
 }

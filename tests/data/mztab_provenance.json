@@ -63,7 +63,7 @@
   {
    "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueModification.h",
    "sha256": "c9e87e432f3399782dc5148af1465d021a578468076b4e386a544bfd5359bf0e",
-   "role": "Not ported here. Read for the accessors generateMzTabStringFromModifications uses — getUniModAccession, getId, getTermSpecificity, getOrigin — and for the 'X' default of origin_, which the Rust record spells as None."
+   "role": "Not ported here. Read for the accessors generateMzTabStringFromModifications uses \u2014 getUniModAccession, getId, getTermSpecificity, getOrigin \u2014 and for the 'X' default of origin_, which the Rust record spells as None."
   }
  ],
  "fixtures": [],
@@ -248,7 +248,7 @@
   {
    "path": "src/openms/source/FORMAT/MzTab.cpp",
    "line": 85,
-   "operation": "pos_param_string += pos_param_pairs_[i].first appends a Size through std::string::operator+=(char), so position 3 is written as the byte 0x03 and position 10 as a line feed; this port writes decimal digits"
+   "operation": "pos_param_string += Size selects StringUtils.h numeric append overloads, yielding decimal positions; the earlier claimed character narrowing is withdrawn"
   },
   {
    "path": "src/openms/source/FORMAT/MzTab.cpp",
@@ -393,18 +393,46 @@
   {
    "path": "src/openms/source/METADATA/PeptideEvidence.cpp",
    "line": 15,
-   "operation": "UNKNOWN_POSITION is -1, UNKNOWN_AA is 'X', N_TERMINAL_AA is '[' and C_TERMINAL_AA is ']' — the four sentinels addPepEvidenceToRows maps to 'null' and '-'"
+   "operation": "UNKNOWN_POSITION is -1, UNKNOWN_AA is 'X', N_TERMINAL_AA is '[' and C_TERMINAL_AA is ']' \u2014 the four sentinels addPepEvidenceToRows maps to 'null' and '-'"
   }
  ],
- "evidence": "Tier 3 source review, with the class test transcribed; transcribed C++ literals are tier-3 evidence. MzTab_test.cpp is 307 lines and 7 START_SECTIONs for 5,572 lines of C++, so source review carries most of the weight and the API mapping table in docs/MZTAB_SUPPORT.md is the primary deliverable. Five of the seven sections are ported into tests/mztab.rs with every literal: the default constructor (via the mzTab-version 1.0.0 its metadata constructor sets), the destructor (drop of a populated document), getPSMOptionalColumnNames (rows == 2 and five distinct optional columns, plus every cell of the two-row fixture: PSM_ID 38/39, '[, , Percolator, ]', search engine scores 51.9678841193106 and 9.55915773892318, unique 1/0, database null), addMetaInfoToOptionalColumns (all seven assertions, including opt_global_with_space from the key 'with space' and the value text '[0.5, 1.4, -2.0, 0.1]'), and the MzTabBoolean setNull/isNull polarity regression (all five assertions). The two remaining sections call MzTab::exportIdentificationsToMzTab and MzTab::exportConsensusMapToMzTab, neither of which this package ports, so they are recorded as unaccounted rather than mapped; the 18-macro consensus-map section must be ported when the exporter stage lands. The remaining 55 tests are independently derived (tier 4): the cell state machine, the source number convention reproduced through the crate's existing format_float helper, every list separator and the empty-subject split rule, the two comma scanners including the source's own worked example string, MzTabSpectraRef's null rule and colon restriction, the modification position and CHEMMOD round-trip failures, all seven row structs' full column sets, every metadata struct, the document accessors and number_of_psms, the resource ceilings and their atomicity, and non-ASCII inputs for every parser. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential.",
+ "evidence": "Tier 3 source review, with the class test transcribed; transcribed C++ literals are tier-3 evidence. MzTab_test.cpp is 307 lines and 7 START_SECTIONs for 5,572 lines of C++, so source review carries most of the weight and the API mapping table in docs/MZTAB_SUPPORT.md is the primary deliverable. Five of the seven sections are ported into tests/mztab.rs with every literal: the default constructor (via the mzTab-version 1.0.0 its metadata constructor sets), the destructor (drop of a populated document), getPSMOptionalColumnNames (rows == 2 and five distinct optional columns, plus every cell of the two-row fixture: PSM_ID 38/39, '[, , Percolator, ]', search engine scores 51.9678841193106 and 9.55915773892318, unique 1/0, database null), addMetaInfoToOptionalColumns (all seven assertions, including opt_global_with_space from the key 'with space' and the value text '[0.5, 1.4, -2.0, 0.1]'), and the MzTabBoolean setNull/isNull polarity regression (all four assertions). The two remaining sections call MzTab::exportIdentificationsToMzTab and MzTab::exportConsensusMapToMzTab, neither of which this package ports, so they are recorded as unaccounted rather than mapped; the 18-macro consensus-map section must be ported when the exporter stage lands. The remaining 55 tests are independently derived (tier 4): the cell state machine, the source number convention reproduced through the crate's existing format_float helper, every list separator and the empty-subject split rule, the two comma scanners including the source's own worked example string, MzTabSpectraRef's null rule and colon restriction, decimal modification positions and CHEMMOD round-trip failures, all seven row structs' full column sets, every metadata struct, the document accessors and number_of_psms, the resource ceilings and their atomicity, and non-ASCII inputs for every parser. No full format implementation was built or executed and no format output was retained, so this is not a tier 1 differential.",
  "gaps": [
-  "No fixture is added: the data model has no file format of its own, and MzTab_test.cpp reads no data file. The MzTabFile stage will need the upstream .mzTab reference files.",
+  "No fixture is added: the data model has no file format of its own, and MzTab_test.cpp reads no data file. The implemented sibling mztab_file module retains the upstream .mzTab reference inputs.",
   "The export surface of MzTab.h is not ported: exportFeatureMapToMzTab, exportIdentificationsToMzTab, exportConsensusMapToMzTab, extractModificationList, the nested IDMzTabStream and CMMzTabStream classes and all 22 protected static helpers, roughly 2,900 of MzTab.cpp's 3,414 lines. They depend on FeatureMap, ConsensusMap, ProteinIdentification, PeptideIdentification, PeptideHit, ExperimentalDesign and IDFilter. Two MzTab_test.cpp sections belong to that stage.",
-  "MzTabFile.h (the reader and writer) and MzTabM.h / MzTabMFile.h (the metabolomics variant) are separate stages and build on the types this package publishes.",
-  "MzTabModification::toCellString deliberately diverges: the source writes each position as a raw byte through std::string::operator+=(char), and this port writes decimal digits. Any position-annotated modification cell therefore differs byte for byte from what the C++ produces, so a byte-exact differential against a C++-written mzTab file containing modification positions will fail by design. The divergence is stated at the item and in the support document.",
+  "MzTabFile.h (the reader and writer) and MzTabM.h / MzTabMFile.h (the metabolomics variant) are implemented in the sibling mztab_file and mztab_m modules and build on these shared types.",
   "docs/core-sdk-coverage.json and docs/CORE_SDK_COMPLETION.md are stale after this package, because src/format/mztab.rs makes MzTab.h a candidate Rust file; regenerate with python3 tools/core_sdk_coverage.py --write after adding the ledger entries. The name heuristic does not associate mztab.rs with MzTabBase.h, so that ledger entry must list its rust file explicitly. Both generated files are outside this package's scope.",
   "docs/doc-coverage.json was not rewritten: src/format/mztab.rs measures 100.0% (220/220) and check_doc_coverage.py reports an improvement, but recording the new floor touches a file outside this package's scope.",
   "CI wiring was not added: append '--test mztab' to the no-feature line of the minimum-rust job in .github/workflows/rust.yml. The test needs no Cargo feature and passes under --all-features, --no-default-features and cargo +1.85.0.",
   "Seven C++ defects were found by source review and are listed in docs/MZTAB_SUPPORT.md for OpenMS_CPP_ISSUES.md, which this package does not own."
+ ],
+ "numeric_operator_review": "The earlier claimed character narrowing was withdrawn after checking pinned StringUtils.h and an isolated executed overload-resolution probe. No full mzTab/MSDataWritingConsumer or full SDK C++ execution is claimed.",
+ "external_reference_note": "Isolated overload-resolution probe, compiled and run on kim with GCC13.3 C++20. Numeric global overload block copied from pinned StringUtils.h; appendToStr functions replaced by std::to_string adapters and Size by std::size_t. No full SDK include closure or linking; proves presence/selectability of numeric overloads in OpenMS namespace contexts and falsifies the claim only char overloads exist.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/format-numeric-overload/manifest.json",
+   "sha256": "541aea8cbf183e1ecbbac3ea5afaedf8d680f0c70d28264079741e048162b8c1",
+   "origin_key": "format_numeric_overload_probe/manifest.json"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/numeric_overloads.inc",
+   "sha256": "eebd8107668a744ec3e8fb9b41d0b289ced546dff920bedccfae7e6401b633a1",
+   "origin_key": "format_numeric_overload_probe/numeric_overloads.inc"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/probe.cpp",
+   "sha256": "4d22cc3232146d4f1fd7909f8e12994fe2fe38c238b0c863f4adf01accd4eabe",
+   "origin_key": "format_numeric_overload_probe/probe.cpp"
+  },
+  {
+   "path": "../oracle/format-numeric-overload/result.log",
+   "sha256": "715c67a81f515b8603b938fc5533b6216db57e53f175373e3b22b6e29074cd00",
+   "origin_key": "format_numeric_overload_probe/result.log"
+  }
+ ],
+ "cpp_issue_log_entries": [
+  "CPP-143",
+  "CPP-144",
+  "CPP-145"
  ]
 }

@@ -863,10 +863,8 @@ fn modification_without_positions_is_a_bare_identifier() {
 
 #[test]
 fn modification_positions_render_as_decimal_digits() {
-    // The source appends each Size position with std::string::operator+=,
-    // which resolves to the char overload, so position 3 is written as the
-    // byte 0x03. This port writes "3", which is what the format requires and
-    // what the source's own parser reads back.
+    // Numeric string append in the source uses StringUtils.h's decimal
+    // overload. Keep decimal spelling and parse/write round-trip coverage.
     let mut modification = MzTabModification::default();
     modification.from_cell_string("3-UNIMOD:35").unwrap();
     assert_eq!(

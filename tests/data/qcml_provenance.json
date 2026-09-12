@@ -257,5 +257,22 @@
   "The module is gated on the `paramxml` feature because it needs the crate's quick-xml dependency and adding a feature is a Cargo.toml change outside a port package's scope. A dedicated `qcml` feature would be the honest gate; the integrator decides.",
   "An attachment's <binary> payload is carried as an opaque string, exactly as the source does. Neither side decodes or validates base64. The crate's base64 dependency is optional behind `numpress`, so a decode helper here would either widen the feature graph or be conditionally absent; a caller that needs the bytes decodes them itself.",
   "Set membership has no single identity in the source: the reader records MS:1000577 values (names), merge records run identifiers, and both store and collectSetParameter look members up as identifiers. This port additionally recovers members from the QC:0000005 parameters store writes (by their ID, which is a run identifier) and resolves a member through the name map when writing under the native options, which makes a round trip lossless, but a document assembled through the source's own reader path can still hold name-shaped members that only the name map resolves."
+ ],
+ "residual_scaling_review": {
+  "date": "2026-09-12",
+  "evidence": "Tier 4 native Rust regression tests and tier 3 source review; no new C++ execution.",
+  "scope": "Reader entry commit validates children once and moves complete vectors, avoiding repeated enclosing-ID copying and validation per child. Public incremental insertion and all ceilings remain unchanged.",
+  "regression_tests": [
+   "long_entry_identifiers_keep_all_children"
+  ],
+  "limits": "Ordered-map string comparisons remain; no blanket linear-time claim is made for all reader/writer or public API operations."
+ },
+ "cpp_issue_log_entries": [
+  "CPP-155",
+  "CPP-156",
+  "CPP-157",
+  "CPP-158",
+  "CPP-159",
+  "CPP-160"
  ]
 }

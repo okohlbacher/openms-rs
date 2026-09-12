@@ -1030,8 +1030,13 @@ impl<'a> Handler<'a> {
                 // contains `&`; that reasoning does not carry to this reader,
                 // whose text nodes hold sequences and free-text descriptions.
                 Event::GeneralRef(reference) => {
-                    if root_opened && !root_closed && !self.tag.is_empty() {
-                        let expanded = expand_reference(reference.as_ref())?;
+                    if self.tags_open.is_empty() {
+                        return Err(parse("XML entity reference outside the root element"));
+                    }
+                    // Resolve even ignored mixed content: its undeclared
+                    // references still make the XML document malformed.
+                    let expanded = expand_reference(reference.as_ref())?;
+                    if !self.tag.is_empty() {
                         self.append_text(&expanded)?;
                     }
                 }
@@ -1042,6 +1047,19 @@ impl<'a> Handler<'a> {
                 }
                 Event::DocType(_) => {
                     return Err(Error::Unsupported("XML DTDs are not supported".into()));
+                }
+                Event::Decl(declaration) => {
+                    if let Some(encoding) = declaration
+                        .encoding()
+                        .transpose()
+                        .map_err(|error| parse(format!("Mascot XML declaration: {error}")))?
+                    {
+                        if !encoding.eq_ignore_ascii_case(b"UTF-8") {
+                            return Err(Error::Unsupported(
+                                "Mascot XML supports only UTF-8 encoding".into(),
+                            ));
+                        }
+                    }
                 }
                 Event::Eof => {
                     if !root_opened || !root_closed || !self.tags_open.is_empty() {
