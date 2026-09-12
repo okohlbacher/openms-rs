@@ -77,6 +77,8 @@ pub mod mzml_schema;
 pub mod mztab;
 /// MzTab file adapter: reading and writing `.mzTab` documents (`MzTabFile.h`).
 pub mod mztab_file;
+/// MzTab-M metabolomics profile: data model, `FeatureMap` export and writer (`MzTabM.h`, `MzTabMFile.h`).
+pub mod mztab_m;
 
 use crate::{Error, Result};
 
