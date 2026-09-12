@@ -29,11 +29,26 @@
 //! before anything is allocated, and every export is committed atomically, so a
 //! rejected call leaves both the run and the caller's output unchanged.
 //!
-//! The source parallelises `rasterizeRTMZ` with OpenMP and per-thread
-//! accumulation buffers (`MSExperiment.cpp:395-515`). This port is serial: it
-//! reproduces the source's own single-threaded branch (`MSExperiment.cpp:353-392`),
-//! which computes the same image. The performance gap is stated rather than
-//! closed, because the crate introduces no threads.
+//! The source parallelises `rasterizeRTMZ` with OpenMP: it allocates one
+//! full-size `f32` accumulation buffer per thread, fills them under
+//! `#pragma omp parallel for` (`MSExperiment.cpp:409`, loop body to
+//! `MSExperiment.cpp:487`) and merges them into the output afterwards
+//! (`MSExperiment.cpp:489-517`). This port is serial: it reproduces the
+//! source's own single-threaded branch, `if (num_threads <= 1)` at
+//! `MSExperiment.cpp:355`, which writes straight into the output and returns at
+//! `MSExperiment.cpp:398`.
+//!
+//! The two source branches agree exactly only for
+//! [`RasterAggregation::Max`](crate::kernel::spectrum_mobility::RasterAggregation::Max),
+//! because a maximum is associative and commutative. For
+//! [`RasterAggregation::Sum`](crate::kernel::spectrum_mobility::RasterAggregation::Sum)
+//! they need not: the parallel branch accumulates
+//! into per-thread `f32` buffers (`MSExperiment.cpp:460`) and then adds those
+//! partial sums into the pixel (`MSExperiment.cpp:499`), so the `f32`
+//! summation order — and with it the rounded result — depends on how the
+//! spectra were distributed over threads. This port matches the
+//! single-threaded branch, not the parallel one. The performance gap is stated
+//! rather than closed, because the crate introduces no threads.
 
 use super::spectrum_mobility::RasterAggregation;
 use super::{AreaBounds, AreaIter, AreaOptions, MSExperiment, MSSpectrum, check_sorted, finite};
@@ -42,13 +57,13 @@ use crate::{Error, Result};
 use std::mem::size_of;
 
 /// The sentinel the source writes for a peak with no ion mobility value
-/// (`MSExperiment.cpp:204`, `MSExperiment.cpp:258`). It is the same value as
+/// (`MSExperiment.cpp:201`, `MSExperiment.cpp:257`). It is the same value as
 /// `IMTypes::DRIFTTIME_NOT_SET`, so a genuine mobility of `-1` and a missing
 /// one are indistinguishable in the source output; this port preserves that.
 const MOBILITY_NOT_SET: f32 = -1.0;
 
 /// The value the source's row cursor starts at (`float t = -1.0;`,
-/// `MSExperiment.cpp:180`). A first selected retention time of exactly `-1`
+/// `MSExperiment.cpp:181`). A first selected retention time of exactly `-1`
 /// therefore opens no row.
 const ROW_RT_START: f32 = -1.0;
 
@@ -61,7 +76,7 @@ const ROW_RT_START: f32 = -1.0;
 ///
 /// Each peak's mobility comes from its **own** spectrum. The source declares
 /// its row cursor `float t = -1.0;` *inside* the per-peak loop
-/// (`MSExperiment.cpp:240-242`), so the cursor never advances and the
+/// (`MSExperiment.cpp:239-241`), so the cursor never advances and the
 /// `it.getRT() != t` guard is true for every peak except one whose retention
 /// time is exactly `-1` — for that peak the array is never fetched and `-1` is
 /// written even though the spectrum carries ion mobility. This port always
@@ -87,7 +102,7 @@ pub struct FlatPeakDataIm {
 /// together, one entry per row.
 ///
 /// Rows are **not** spectra. The source compares the `f64` retention time
-/// against its `f32` narrowing per peak (`MSExperiment.cpp:186`), so two
+/// against its `f32` narrowing per peak (`MSExperiment.cpp:184-186`), so two
 /// spectra whose retention times narrow to the same `f32` merge into one row,
 /// and a spectrum whose retention time is not exactly representable in `f32`
 /// can split across rows. This is the same grouping
@@ -481,7 +496,7 @@ impl MSExperiment {
     /// As [`Self::get_2d_peak_data_im_per_spectrum`]. Additionally returns
     /// [`Error::InvalidValue`] when the first selected retention time is
     /// exactly `-1` and the output holds no row to continue: the source's row
-    /// cursor starts at `-1` (`MSExperiment.cpp:180`), so it would append
+    /// cursor starts at `-1` (`MSExperiment.cpp:181`), so it would append
     /// through `mz.back()` into an empty vector.
     pub fn append_2d_peak_data_im_per_spectrum(
         &self,
@@ -635,6 +650,23 @@ impl MSExperiment {
     /// check has passed. The source has no finiteness guard either: a NaN m/z
     /// passes both range tests and `static_cast<Int64>(NaN)` is undefined
     /// behaviour in C++.
+    ///
+    /// The source also carries two *negative-bin* guards this port has no
+    /// counterpart for: it skips the whole spectrum when `rt_bin < 0`
+    /// (`MSExperiment.cpp:362` in the single-threaded branch, `:425-428` in the
+    /// parallel one) and skips one peak when `mz_bin < 0` (the `mz_bin >= 0`
+    /// tests at `MSExperiment.cpp:376` and `:388`, and `:453`/`:472` in the
+    /// parallel branch). Both are unreachable on the input the function
+    /// documents: `RTBegin(min_rt)` and `MZBegin(min_mz)` are `lower_bound`
+    /// calls, so every visited retention time is at least `min_rt` and every
+    /// visited m/z at least `min_mz`, and the two scales are positive because
+    /// `min < max` is enforced. They can only fire when the run is *not*
+    /// sorted, which makes those `lower_bound` results meaningless — and that
+    /// input this port rejects outright with [`Error::UnsortedData`] before any
+    /// binning, through the `rt_begin`/`mz_begin` calls it shares with every
+    /// other search. Nothing here therefore silently drops a spectrum or a
+    /// peak; were the branch reachable, Rust's saturating `as usize` cast would
+    /// clamp a negative bin into bin `0` rather than skip it.
     pub fn rasterize_rt_mz(&self, raster: &RtMzRaster) -> Result<Vec<f32>> {
         let pixels = raster.validate()?;
         self.cap_spectra()?;
@@ -707,7 +739,7 @@ impl MSExperiment {
 /// present usable ones.
 ///
 /// Source `maybeGetIMData` followed by the `unit != DriftTimeUnit::NONE` test
-/// (`MSExperiment.cpp:193`, `MSExperiment.cpp:255`). The array-name rule itself
+/// (`MSExperiment.cpp:194`, `MSExperiment.cpp:250`). The array-name rule itself
 /// is [`MSSpectrum::maybe_im_data`], not re-derived here.
 fn frame_values(spectrum: &MSSpectrum) -> Option<&[f32]> {
     match spectrum.maybe_im_data() {

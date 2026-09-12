@@ -111,12 +111,22 @@
     {
       "path": "src/openms/source/KERNEL/MSExperiment.cpp",
       "line": 355,
-      "operation": "the single-threaded rasterizer branch this port reproduces: rt_bin clamped to rt_bins-1, mz window from MZBegin/MZEnd, pixel index mz_bin * rt_bins + rt_bin, SUM or MAX"
+      "operation": "the single-threaded rasterizer branch this port reproduces: `if (num_threads <= 1)` at 355, rt_bin clamped to rt_bins-1, mz window from MZBegin/MZEnd, pixel index mz_bin * rt_bins + rt_bin, SUM or MAX, returning at 398"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 362,
+      "operation": "the single-threaded branch skips a whole spectrum when rt_bin < 0 (362) and one peak when mz_bin < 0 (the mz_bin >= 0 tests at 376 and 388); both are unreachable because RTBegin/MZBegin are lower_bound calls and min < max is enforced, so they can fire only on unsorted input, which this port rejects with Error::UnsortedData first"
     },
     {
       "path": "src/openms/source/KERNEL/MSExperiment.cpp",
       "line": 409,
-      "operation": "the OpenMP branch with per-thread accumulation buffers and a thread-count heuristic; the port is serial and records the gap"
+      "operation": "the OpenMP branch: per-thread f32 accumulation buffers allocated at 402-406, `#pragma omp parallel for` at 409 with the loop body to 487, the same negative-bin skips at 425-428 and 453/472, and the merge into the output at 489-517; the function ends at 518. The port is serial and records the gap"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 460,
+      "operation": "each thread adds into its own f32 buffer (460) and the merge then adds those partial sums into the pixel (499), so for RasterAggregation::SUM the f32 summation order and therefore the rounded result differ between the parallel and the single-threaded branch; for MAX they agree, because a maximum is associative and commutative"
     },
     {
       "path": "src/openms/source/KERNEL/MSExperiment.cpp",
@@ -140,8 +150,18 @@
     },
     {
       "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "line": 277,
+      "operation": "nextScan_ constructs RangeMobility mb {p_.low_im_, p_.high_im_} on every call, before the scan loop; RangeMobility inherits RangeBase's constructors (RangeManager.h:486)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
       "line": 281,
       "operation": "nextScan_ skips a scan whose MS level differs or whose drift time is not contained in RangeMobility{low_im_, high_im_}; the level is compared after uint8_t/int8_t narrowing"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "line": 49,
+      "operation": "RangeBase(min, max) throws Exception::InvalidRange when min > max (the check at 51), so a reversed lowIM/highIM pair makes AreaIterator::nextScan_ throw rather than silently select nothing; a NaN bound does not throw, because min_ > max_ is false for NaN"
     },
     {
       "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
@@ -170,8 +190,28 @@
     },
     {
       "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 115,
+      "operation": "copy assignment (115-140, 7 macros) and move assignment (142-174, 9 macros): one contact named \"Name\" and one spectrum with peaks at m/z 5 and 10; the copy reports contacts size 1, size 1, getMinMZ 5.0 and getMaxMZ 10.0, assignment from a temporary empties both, and the moved-from container has size 0"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 429,
+      "operation": "the first updateRanges section (429-603, 64 macros): four scans with drift times 99, 99, 199, 66 give combined mobility 66..199 and MS1 m/z 5.0..7.0; the chromatogram block adds product m/z 80 and 100 and RT 0.1..0.3"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 824,
+      "operation": "getClosestSpectrumInRT(RT, ms_level) over RTs 30,31,32,40,41,50,60,61 at levels 1,2,2,1,2,1,1,2; line 829 asserts that ms_level 0 answers cend() because no scan carries that level, which the port does not reproduce because it reserves 0 as the any-level wildcard of the single-argument overload"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
       "line": 1906,
       "operation": "the get2DPeakDataIMPerSpectrum fixture and its six cases, including the -1.0 sentinel for a spectrum with no ion mobility array"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 2735,
+      "operation": "the second updateRanges section (2735-2915, 50 macros): four dual-range sub-cases plus a three-level tail; the mixed run reports combinedRanges().getMinMZ() == 0 because the chromatogram's Product m/z is unset, and chromatogramRanges().hasRange() == ALL"
     },
     {
       "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
@@ -190,7 +230,7 @@
     }
   ],
   "evidence_tier": 3,
-  "evidence": "Tier 3 (source review): every literal in tests/experiment_mobility.rs is transcribed from the two pinned class tests. No C++ was built or executed and no retained C++ output exists for these headers, so tier 1 is unavailable. Class-test section accounting across both files: 81 sections, 14 ported as new tests here (AreaIterator_test.cpp getDriftTime, getRT, the ion-mobility and MS-level cases of the overall test; MSExperiment_test.cpp areaBeginConst(range), areaBegin(range), IMBegin, IMEnd, isIMFrame, get2DPeakDataIM, get2DPeakDataIMPerSpectrum and the backward-compatibility delegates), 63 mapped to existing Rust tests of earlier kernel packages with a cited asserted value, and 4 unaccounted: the set2DData add_mass_traces specialization, both getFirstProductSpectrum overloads and operator<<(ostream&, const MSExperiment&). Those four are the three deferrals recorded in docs/EXPERIMENT_MOBILITY_SUPPORT.md, each needing a file outside this work package's ownership. Everything the port checks that the source does not - the drift-time ordering and finiteness guards, the ion mobility array length guard, the raster sortedness and finiteness guards, the resource ceilings and the atomic commit - is tier 4 (Rust-only invariants) derived from the source lines anchored above.",
+  "evidence": "Tier 3 (source review): every literal in tests/experiment_mobility.rs is transcribed from the two pinned class tests. No C++ was built or executed and no retained C++ output exists for these headers, so tier 1 is unavailable. Class-test section accounting across both files: 81 sections, 56 ported (a Rust test asserts the section's own literals), 21 mapped (no transcription, but a named Rust test function asserts a concrete value exercising the same member; every mapped section carries five assertion macros or fewer), 4 unaccounted. The per-section tables with the test function and the asserted value for each are in docs/EXPERIMENT_MOBILITY_SUPPORT.md. This replaces the previous claim of 14 ported and 63 mapped, which an audit found unsupported: the earlier revision of the support document accounted for 54 MSExperiment_test.cpp sections with a bare list of nine Rust test files and named no test function and no asserted value for any of them, and 22 of those 54 carried more than five assertion macros and therefore had to be ported, not mapped. The four unaccounted sections are the set2DData add_mass_traces specialization (10 macros), both getFirstProductSpectrum overloads (11 and 10) and operator<<(ostream&, const MSExperiment&) (5) - the three deferrals recorded in the support document, each needing a file outside this work package's ownership. Macro counts exclude TEST_PRECONDITION_VIOLATED, which OPENMS_PRECONDITION compiles away in a release build. Everything the port checks that the source does not - the drift-time ordering and finiteness guards, the ion mobility array length guard, the raster sortedness and finiteness guards, the resource ceilings and the atomic commit - is tier 4 (Rust-only invariants) derived from the source lines anchored above.",
   "target_verification": {
     "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
     "source_revisions": [

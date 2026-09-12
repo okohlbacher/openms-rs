@@ -130,9 +130,24 @@ impl AreaOptions {
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when either bound is not finite or
-    /// `min_im` exceeds `max_im`. The source stores whatever it is given and
-    /// lets `RangeBase::contains` decide, under which a reversed pair silently
-    /// selects nothing and a NaN bound excludes every scan.
+    /// `min_im` exceeds `max_im`.
+    ///
+    /// A **reversed** pair is rejected by the source too, not silently
+    /// tolerated: `Param` stores the two bounds unchecked, but `nextScan_`
+    /// builds `RangeMobility mb {p_.low_im_, p_.high_im_}`
+    /// (`AreaIterator.h:277`) on every call, and the inherited
+    /// `RangeBase(min, max)` throws `Exception::InvalidRange` when `min > max`
+    /// (`RangeManager.h:49-52`). The port's `Err` therefore agrees with the
+    /// source in outcome; it differs only in raising at builder time instead of
+    /// on first advance, and in the variant — [`Error::InvalidValue`] rather
+    /// than [`Error::InvalidRange`].
+    ///
+    /// A **NaN** bound is where the source really does select nothing in
+    /// silence: `min_ > max_` is false for NaN, so the constructor does not
+    /// throw, and `RangeBase::contains` is
+    /// `uint8_t(min_ <= value) & uint8_t(value <= max_)`
+    /// (`RangeManager.h:94-97`), which is false for every scan. The port
+    /// rejects the bound instead.
     pub fn with_mobility(mut self, min_im: f64, max_im: f64) -> Result<Self> {
         self.mobility = Some(NumericRange {
             min: min_im,
