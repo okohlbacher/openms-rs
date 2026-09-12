@@ -237,6 +237,10 @@ pub struct ReadLimits {
     /// Maximum retained base64 characters for one `<peaks>` element.
     pub max_encoded_bytes: usize,
     /// Maximum decoded bytes for one `<peaks>` element, compression included.
+    ///
+    /// Charged three times: against the declared `peaksCount`, against the
+    /// symbol count of the payload *before* the base64 decode allocates, and
+    /// against the inflated length of a compressed payload.
     pub max_decoded_bytes: usize,
     /// Maximum open-element depth, which bounds nested `<scan>` recursion.
     pub max_depth: usize,
@@ -1896,8 +1900,27 @@ impl<'a> Run<'a> {
             }
             return Ok(Vec::new());
         }
+        // Charge the decoded ceiling against the symbol count *before* the
+        // decode allocates. Whitespace was stripped as the payload
+        // accumulated, so this is the exact decoded length of any well-formed
+        // payload, padded or not: three bytes per four symbols, the trailing
+        // partial group contributing one byte less than its symbol count, less
+        // the padding. A malformed payload fails in `decode` below anyway.
+        let symbols = block.encoded.as_bytes();
+        let padding = symbols
+            .iter()
+            .rev()
+            .take_while(|byte| **byte == b'=')
+            .count()
+            .min(2);
+        let decoded_len = (symbols.len() / 4 * 3)
+            .saturating_add((symbols.len() % 4).saturating_sub(1))
+            .saturating_sub(padding);
+        if decoded_len > self.options.limits.max_decoded_bytes {
+            return Err(budget("decoded array byte"));
+        }
         let raw = PEAKS_BASE64
-            .decode(block.encoded.as_bytes())
+            .decode(symbols)
             .map_err(|e| invalid(format!("invalid base64 in peaks: {e}")))?;
         if raw.len() > self.options.limits.max_decoded_bytes {
             return Err(budget("decoded array byte"));
@@ -2033,16 +2056,24 @@ fn required(element: &BytesStart<'_>, name: &str) -> Result<String> {
 ///
 /// The source drops everything before the last `T`, so the date part of
 /// `P1DT2H` is ignored, and it never inspects the leading sign, so `-PT1S`
-/// reads as `+1`. This port honours the sign, because the writer emits it for a
-/// negative retention time and losing it makes a store/load cycle change the
-/// data. Returns the seconds and whether a component failed to parse; the
-/// source logs that and contributes zero.
+/// reads as `+1`. This port removes a leading `-` and applies it to the total,
+/// because the writer emits that spelling for a negative retention time and
+/// losing it makes a store/load cycle change the data. That is the *only*
+/// divergence: each component's text goes to `str::parse` exactly as the source
+/// hands it to `XMLHandler::asDouble_`, with nothing stripped, so `PT-1S` reads
+/// as `-1` in both and a component the source cannot convert — the `P1` of a
+/// month-only `P1M`, say — contributes zero in both. Returns the seconds and
+/// whether a component failed to parse; the source logs that and contributes
+/// zero.
 fn duration_seconds(text: &str) -> (f64, bool) {
     let trimmed = text.trim();
-    let negative = trimmed.starts_with('-');
-    let mut rest = trimmed.rsplit('T').next().unwrap_or("");
-    if !trimmed.contains('T') {
-        rest = trimmed;
+    let (negative, body) = match trimmed.strip_prefix('-') {
+        Some(unsigned) => (true, unsigned),
+        None => (false, trimmed),
+    };
+    let mut rest = body.rsplit('T').next().unwrap_or("");
+    if !body.contains('T') {
+        rest = body;
     }
     let mut seconds = 0.0;
     let mut bad = false;
@@ -2051,7 +2082,6 @@ fn duration_seconds(text: &str) -> (f64, bool) {
             continue;
         }
         let head = rest.split(marker).next().unwrap_or("");
-        let head = head.trim_start_matches(['-', '+', 'P']);
         match head.trim().parse::<f64>() {
             Ok(value) if value.is_finite() => seconds += scale * value,
             _ => bad = true,
@@ -2327,7 +2357,7 @@ fn write_header(
          <mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1\" \n\
         \x20xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n\
         \x20xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1\
-         http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd\">\n"
+        \x20http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd\">\n"
     ))?;
     out.text(&format!(
         "\t<msRun scanCount=\"{count}\" startTime=\"{}\" endTime=\"{}\" >\n",
@@ -2692,6 +2722,12 @@ fn write_scans(
         }
         // Close as many scans as the next MS level allows, so an MS2 scan stays
         // nested inside its MS1 parent (MzXMLHandler.cpp:1082-1096).
+        //
+        // A next spectrum that MaxQuant mode will skip for being empty counts
+        // as no next spectrum, which closes the open scans instead of leaving
+        // one open for a child that is never written; upstream reads its MS
+        // level regardless. This is a one-step lookahead in both: neither scans
+        // forward to the next spectrum that will actually be written.
         let next_ms_level = spectra
             .get(position + 1)
             .filter(|next| !(next.peaks.is_empty() && options.force_mq_compatibility))

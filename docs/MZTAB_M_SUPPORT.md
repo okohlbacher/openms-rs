@@ -10,7 +10,7 @@ implementation lines), at source revision
 | Artifact | Path |
 |---|---|
 | Rust module | `src/format/mztab_m.rs` (2,712 lines) |
-| Integration test | `tests/mztab_m.rs` (44 tests) |
+| Integration test | `tests/mztab_m.rs` (48 tests) |
 | Provenance manifest | `tests/data/mztab_m_provenance.json` |
 | Fixtures | `tests/data/MzTabMFile_output_1.mztab`, `tests/data/AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab` |
 
@@ -452,9 +452,17 @@ not written at all.
     `export_identification_method_and_ms_level_follow_the_tool`; the
     `data processing action` branch is also what the retained `store` output
     shows.
-23. **Scan polarity comes from the sign of the first adduct's name**, and
-    defaults to positive when the graph declares no adduct. The source warns
-    in that case; this port does not log.
+23. **Scan polarity is positive only when the first adduct's name ends in
+    `+`**, exactly as `MzTabM.cpp:287` (`at(size() - 1) == '+'`), so a name
+    with no charge suffix — `M+H`, `M+Na`, a bare `H` — is negative in both.
+    Polarity defaults to positive when the graph declares no adduct, where the
+    source writes no `scan_polarity` at all even though the profile makes it
+    mandatory; the source also warns, and this port does not log. An empty
+    adduct name is the one divergence: `at(size() - 1)` underflows and throws
+    `std::out_of_range` there, while there is no sign to read here, so the
+    mandatory field is written as positive. Tests:
+    `export_scan_polarity_follows_the_first_adduct_and_defaults_to_positive`,
+    `export_scan_polarity_is_positive_only_for_a_name_ending_in_plus`.
 24. **`ms_run[1]-location` is `file://`-prefixed and backslash-normalised.**
     Every `\` becomes `/`, and `file://` is prepended unless already present.
     The same normalisation applies to each `|`-separated entry of a search
@@ -618,8 +626,8 @@ Each item says what the source does and why this differs.
 |---|---|---|
 | `MzTabM::MAX_ROWS` | 10,000,000 | each of the three sections, checked in `export_feature_map_with` before the loops and again as rows accumulate, and in `generate_lines` before any line is built |
 | `MzTabM::MAX_OPTIONAL_COLUMNS` | 100,000 | `optional_column_names` (shared), `add_meta_info_to_optional_columns` (shared), and every header and row generator |
-| `MzTabM::MAX_INDEXED_ENTRIES` | 100,000 | every indexed metadata map, checked in the metadata-section preflight |
-| `MzTabMFile::MAX_LINES` | 1,000,000 | the estimated metadata line count, and the total document line count, both before allocating |
+| `MzTabM::MAX_INDEXED_ENTRIES` | 100,000 | the *number of entries* in every indexed metadata map, checked in the metadata-section preflight. It does not bound the index values themselves: a key inserted at `usize::MAX` is written as `ms_run[18446744073709551615]-…`, which is what the source's unchecked `Size` does too, and nothing refuses it (`an_extreme_index_is_written_rather_than_refused`) |
+| `MzTabMFile::MAX_LINES` | 1,000,000 | the estimated metadata line count and the total document line count, both before allocating, and the *physical* line count of the rendered document — a verbatim cell carrying a line break (source options only) turns one row into several, and those are charged too |
 
 The metadata-section preflight computes an upper bound — eight lines is the
 largest any one indexed record produces — checks every indexed map against
@@ -679,7 +687,12 @@ to the port.
   the `opt_` columns of the three header lines are the three optional-column
   lists. Every one of the six is therefore a value the C++ produced, not a
   transcribed literal. What the test does **not** do is re-run the exporter on
-  the same input. The exporter is exercised separately, on synthetic graphs, in
+  the same input — and because its helper `document_from_retained` seeds the
+  document with exactly those counts, the second half of the assertion is
+  arithmetic over the retained file rather than a call into
+  `MzTabM::export_feature_map`. A regression in the exporter is caught by
+  `export_builds_one_summary_row_per_feature_row` and by the metadata
+  differentials below, not by this section. The exporter is exercised separately, on synthetic graphs, in
   `export_reproduces_retained_metadata_section` (which reproduces all 25 `MTD`
   lines of that same retained file byte for byte),
   `export_reproduces_retained_ams_metadata_section` (all 24 `MTD` lines of the
@@ -731,6 +744,15 @@ evidence.
 atomicity, the non-ASCII inputs, the five native error paths, the option
 matrices and the rectangularity invariant.
 
+**The rectangularity guarantee, stated exactly.** With the default options the
+output is a rectangle: one cell per declared column in every row, and no cell
+may carry a tab, a carriage return or a line feed — such a cell is refused with
+`Error::InvalidValue` before anything is written, because the source would pass
+it through and split the row (defect 11 below). `MzTabMWriteOptions::source()`
+turns both halves off and reproduces the source's output, corruption included.
+Tests: `a_cell_carrying_a_tab_or_a_line_break_is_refused_by_default`,
+`a_metadata_key_or_value_carrying_a_separator_is_refused_by_default`.
+
 No C++ was built or executed for this package. The `.oms` input cannot be read,
 so the exporter has no end-to-end tier-1 differential; that is the single
 largest gap and the reason this package's ledger status for `MzTabM.h` is
@@ -755,8 +777,9 @@ The `AccurateMassSearch` TOPP tool is the one direct consumer of
 
 ## C++ defects found while porting
 
-Eight, all reproducible on demand through the two option structs. They are
-proposed for `OpenMS_CPP_ISSUES.md`, which this package may not edit.
+Eleven: the eight below, then three milder ones. All eleven are reproducible
+on demand through the two option structs. They are proposed for
+`OpenMS_CPP_ISSUES.md`, which this package may not edit.
 
 1. **`MzTabMFile.cpp:230` writes an assay's custom parameter under an `ms_run`
    key.** `"MTD\tms_run[" + toStr(assay.first) + "]-custom[…"` inside the
@@ -799,15 +822,26 @@ proposed for `OpenMS_CPP_ISSUES.md`, which this package may not edit.
    produces a `null` column. `MzTab.h`'s own callers pass raw keys and do not
    have this problem. Rust: `substitute_keys_before_lookup`, default off.
 
-Two further points, defects of a milder kind:
+Three further points, defects of a milder kind:
 
 9. **`MzTabM.cpp:287` indexes a `std::string_view` at `size() - 1`.** An adduct
    registered with an empty name underflows and `at()` throws
-   `std::out_of_range` from inside an export. Rust: `str::ends_with`, which is
-   false for an empty name and selects positive polarity.
+   `std::out_of_range` from inside an export. Rust: a match on the last
+   character, which reproduces the `== '+'` test for every non-empty name and
+   selects positive for the empty one rather than throwing.
 10. **`MzTabM.cpp:349-351` crosses `cv[n]-label` and `cv[n]-full_name`.** See
     `swap_cv_label_and_full_name`. Both retained fixtures carry the swap, so
     fixing it upstream changes reference files.
+11. **`MzTabMFile.cpp:626-631` writes every cell verbatim.** Each rendered row
+    goes to `TextFile` unchanged, so a cell carrying a tab gains a column and
+    one carrying a line break splits the row across physical lines — and text
+    beginning with `MTD`, `SMH` or `SML` forges a line of that kind in the
+    middle of a section. The text is file-derived: `chemical_name`, `uri`,
+    `smiles` and every `opt_` value come from a featureXML or `.oms` text node,
+    which may legally contain both characters. The source's own
+    `OPENMS_POSTCONDITION` column check cannot see it, because it counts the
+    cells it pushed rather than the tabs in the line it wrote. Rust:
+    `MzTabMWriteOptions::source_verbatim_cells`, default off.
 
 ## Deferred
 

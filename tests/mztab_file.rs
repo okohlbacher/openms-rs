@@ -64,12 +64,20 @@ const REFERENCE_FILES: [&str; 5] = [
 
 /// `MzTabFile_test.cpp`'s store section compares two files by loading both into
 /// a `TextFile`, sorting the lines, removing every space, and handing the result
-/// to `TEST_FILE_SIMILAR`, i.e. `FuzzyStringComparator` at its default
-/// tolerances (relative 1.0, absolute 0.0). That comparator skips any line that
-/// is empty or whitespace only (`FuzzyStringComparator.cpp:843`) and compares
-/// numbers numerically wherever a number begins on both sides, so `46` and
-/// `46.0` are equal and so are `5035500000` and `5.0355e09`, while any other
-/// difference fails.
+/// to `TEST_FILE_SIMILAR`. That comparator skips any line that is empty or
+/// whitespace only (`FuzzyStringComparator.cpp:843`) and compares numbers
+/// numerically wherever a number begins on both sides, so `46` and `46.0` are
+/// equal and so are `5035500000` and `5.0355e09`, while any other difference
+/// fails.
+///
+/// This reproduction is deliberately *stricter* than upstream on the numeric
+/// comparison: `TEST_FILE_SIMILAR` does not use `FuzzyStringComparator`'s
+/// constructor defaults, because `TEST::isFileSimilar` overrides them with
+/// `absdiff_max_allowed` and `ratio_max_allowed` (`ClassTest.cpp:591-592`),
+/// which are 1e-5 and 1 + 1e-5 (`ClassTest.cpp:35, 38`) unless a test sets
+/// `TOLERANCE_*` — and `MzTabFile_test.cpp` sets neither. `similar_line` below
+/// requires exact `f64` equality instead, so it can only fail where upstream
+/// would pass, never the other way round.
 fn similar_lines(left: &str, right: &str) -> Result<(), String> {
     let prepare = |text: &str| {
         let mut lines: Vec<&str> = text.lines().collect();
@@ -500,6 +508,60 @@ fn store_restores_comments_and_blank_lines_in_place() {
     for &index in &document.empty_rows {
         assert!(lines[index].is_empty(), "line {index} stays blank");
     }
+}
+
+#[test]
+fn store_emits_a_comment_and_a_blank_recorded_past_the_generated_lines() {
+    // Three `assay[n]-sample_ref` keys carry `null`, so they are recorded on
+    // read and not written back: the generated lines run out while a blank and
+    // a comment are still recorded further down. The source's restoration loop
+    // stops at that point and drops both (MzTabFile.cpp:3328); this walks on and
+    // emits them. Nothing fills the gap the three keys left, so the tail keeps
+    // its order and its content but moves up by the width of the gap — which is
+    // why this asserts on content rather than on the recorded positions.
+    let input = concat!(
+        "COM head\n",
+        "MTD\tmzTab-version\t1.0.0\n",
+        "MTD\tmzTab-mode\tSummary\n",
+        "MTD\tmzTab-type\tIdentification\n",
+        "MTD\tassay[1]-sample_ref\tnull\n",
+        "MTD\tassay[2]-sample_ref\tnull\n",
+        "MTD\tassay[3]-sample_ref\tnull\n",
+        "\n",
+        "COM tail\n",
+    );
+    let directory = TempDir::new_in(std::env::temp_dir(), false).expect("temp dir");
+    let adapter = MzTabFile::new();
+    let path = directory.path().join("recorded-tail.mzTab");
+    std::fs::write(&path, input).expect("fixture is written");
+    let document = adapter.load(&path).expect("the document loads");
+    assert_eq!(document.comment_rows.len(), 2, "both comments are recorded");
+    assert_eq!(document.empty_rows, vec![7], "the blank is recorded");
+
+    let lines = adapter
+        .document_lines(&document)
+        .expect("the document renders");
+    assert!(
+        lines.iter().any(|line| line == "COM tail"),
+        "the recorded tail comment is emitted: {lines:?}"
+    );
+
+    let written = directory.path().join("recorded-tail-out.mzTab");
+    adapter
+        .store(&written, &document)
+        .expect("the store succeeds");
+    let reloaded = adapter.load(&written).expect("the output loads");
+    let comments: Vec<&str> = reloaded.comment_rows.values().map(String::as_str).collect();
+    assert_eq!(
+        comments,
+        vec!["COM head", "COM tail"],
+        "both comments survive the round trip"
+    );
+    assert_eq!(
+        reloaded.empty_rows.len(),
+        1,
+        "the recorded blank survives too"
+    );
 }
 
 // ---------------------------------------------------------------------------

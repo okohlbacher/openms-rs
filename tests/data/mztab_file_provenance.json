@@ -6,7 +6,7 @@
   {
    "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
    "sha256": "68f95d183392bdb6cbe022a9dea98bbfcbc6011ccee36615f066d2f28a604e63",
-   "role": "The ported header. 208 lines: two constructors, three store overloads, nine optional-column setters, load, sixteen protected flags, nineteen protected generators and fifteen protected statics that are declared and never defined."
+   "role": "The ported header. 208 lines: two constructors, three store overloads, nine optional-column setters, load, sixteen protected flags, eighteen protected generators and helpers - seventeen of them defined in MzTabFile.cpp and the generateMzTabSection_ template inline in the header at lines 132-143 - and fifteen protected statics that are declared and never defined."
   },
   {
    "path": "src/openms/source/FORMAT/MzTabFile.cpp",
@@ -46,7 +46,12 @@
   {
    "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
    "sha256": "9b7c5bd57ed1751e281c9e31ce46d81e49c82ded6749131b459f648f2107a97b",
-   "role": "Not ported. Read to reproduce the oracle's comparison exactly: readNextLine_ at line 837 skips every empty and whitespace-only line, and the constructor at line 273 sets the default tolerances to relative 1.0 and absolute 0.0, so numbers compare numerically and all other text character for character. tests/mztab_file.rs::similar_lines implements that, and knowing that blank lines are skipped is what revealed the doubled-blank defect its own round-trip test cannot see."
+   "role": "Not ported. Read to reproduce the oracle's comparison: readNextLine_ at line 837 skips every empty and whitespace-only line, and the constructor at line 273 sets the *constructor* defaults to relative 1.0 and absolute 0.0 - which TEST_FILE_SIMILAR does not use, see ClassTest.cpp below. tests/mztab_file.rs::similar_lines implements the line handling, and knowing that blank lines are skipped is what revealed the doubled-blank defect its own round-trip test cannot see."
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
+   "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f",
+   "role": "Not ported. Read to pin what TEST_FILE_SIMILAR actually compares with: TEST::isFileSimilar at lines 591-592 overrides FuzzyStringComparator's constructor defaults with absdiff_max_allowed and ratio_max_allowed, declared at lines 35 and 38 as 1E-5 and 1.+1E-5. MzTabFile_test.cpp sets no TOLERANCE_*, so the upstream store comparison runs at those tolerances, and tests/mztab_file.rs::similar_line - which requires exact f64 equality - is stricter than upstream rather than equal to it."
   }
  ],
  "fixtures": [
@@ -294,7 +299,7 @@
   {
    "path": "src/openms/source/FORMAT/MzTabFile.cpp",
    "line": 3328,
-   "operation": "the comment and blank restoration inserts a blank whenever the current position was blank in the original file, even though the generated lines already carry one before each section, so every separator is emitted twice; and the loop stops as soon as the generated lines run out, dropping any comment or blank recorded past that point"
+   "operation": "the comment and blank restoration inserts a blank whenever the current position was blank in the original file, even though the generated lines already carry one before each section, so every separator is emitted twice; and the loop stops as soon as the generated lines run out, dropping any comment or blank recorded past that point, which this port instead walks on to emit (positions shift up by the width of any gap, since nothing fills it)"
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
@@ -322,12 +327,12 @@
    "operation": "readNextLine_ skips every empty and whitespace-only line, which is why the upstream round-trip test cannot see the doubled blank lines"
   },
   {
-   "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
-   "line": 273,
-   "operation": "default tolerances: ratio_max_allowed_ 1.0 and absdiff_max_allowed_ 0.0, so TEST_FILE_SIMILAR requires numeric equality but tolerates a different spelling of the same number"
+   "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
+   "line": 591,
+   "operation": "TEST::isFileSimilar overrides FuzzyStringComparator's constructor defaults with absdiff_max_allowed and ratio_max_allowed, which are 1E-5 and 1.+1E-5 at ClassTest.cpp:35 and 38 unless a test sets TOLERANCE_*; MzTabFile_test.cpp sets neither, so TEST_FILE_SIMILAR tolerates 1e-5 absolute / 1+1e-5 relative there, while tests/mztab_file.rs::similar_line requires exact f64 equality and is therefore stricter"
   }
  ],
- "evidence": "Tier 3, source review, with a tier 3 round trip over the retained upstream reference documents. MzTabFile_test.cpp has five START_SECTIONs and six assertion macros in total; all five sections are ported rather than mapped, and the four transcribed cell literals ('null', 'NDYKAPPQPAPGK', '0.0420992', 'null', the last four cells of a PSM row) are the only expected output values the upstream suite writes down anywhere. Transcribed C++ literals are tier 3 evidence. The five reference documents are the other half: each is loaded, written and compared with the original through tests/mztab_file.rs::similar_lines, which reproduces the upstream comparison exactly (sort the lines, remove every space, skip the blank ones as FuzzyStringComparator::readNextLine_ does, and compare numbers numerically at the default relative 1.0 / absolute 0.0 tolerances). Each is also written to disk, read back and compared as a model, which is stronger than any text comparison because it covers the null/NaN/Inf state of every numeric cell, the optional columns of every row, and the recorded comment and blank-line positions. The additional unicode fixture round-trips byte for byte. Everything else - the four resource ceilings, the hostile headers and metadata keys, the non-ASCII output paths, the error-variant choices, and every test of a divergence listed in docs/MZTAB_FILE_SUPPORT.md - is independently derived (tier 4). No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential: the reference .mzTab files are upstream *inputs* that its own suite round-trips, not outputs a C++ build produced here.",
+ "evidence": "Tier 3, source review, with a tier 3 round trip over the retained upstream reference documents. MzTabFile_test.cpp has five START_SECTIONs and six assertion macros in total; all five sections are ported rather than mapped, and the four transcribed cell literals ('null', 'NDYKAPPQPAPGK', '0.0420992', 'null', the last four cells of a PSM row) are the only expected output values the upstream suite writes down anywhere. Transcribed C++ literals are tier 3 evidence. The five reference documents are the other half: each is loaded, written and compared with the original through tests/mztab_file.rs::similar_lines, which reproduces the upstream comparison except that it is stricter on numbers (sort the lines, remove every space, skip the blank ones as FuzzyStringComparator::readNextLine_ does, and compare numbers numerically; upstream's TEST_FILE_SIMILAR tolerates 1e-5 absolute / 1+1e-5 relative through TEST::isFileSimilar, this requires exact f64 equality). Each is also written to disk, read back and compared as a model, which is stronger than any text comparison because it covers the null/NaN/Inf state of every numeric cell, the optional columns of every row, and the recorded comment and blank-line positions. The additional unicode fixture round-trips byte for byte. Everything else - the four resource ceilings, the hostile headers and metadata keys, the non-ASCII output paths, the error-variant choices, and every test of a divergence listed in docs/MZTAB_FILE_SUPPORT.md - is independently derived (tier 4). No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential: the reference .mzTab files are upstream *inputs* that its own suite round-trips, not outputs a C++ build produced here.",
  "gaps": [
   "store(filename, protein_identifications, peptide_identifications, ...) is not ported: it builds rows through MzTab::IDMzTabStream, which is not in the crate.",
   "store(filename, ConsensusMap, ...) is not ported: it builds rows through MzTab::CMMzTabStream, which is not in the crate.",

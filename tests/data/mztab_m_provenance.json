@@ -151,7 +151,7 @@
     {
       "path": "src/openms/source/FORMAT/MzTabM.cpp",
       "line": 287,
-      "operation": "first_adduct.at(first_adduct.size() - 1) underflows for an empty adduct name and at() throws std::out_of_range; the port uses str::ends_with('-'), which selects positive polarity for an empty name"
+      "operation": "scan polarity is positive only when first_adduct.at(first_adduct.size() - 1) == '+', so every other final character - including the 'H' of a name such as M+H - selects negative; an empty name underflows and at() throws std::out_of_range. The port matches on the last character, reproducing the == '+' test for every non-empty name and selecting positive for the empty one instead of throwing"
     },
     {
       "path": "src/openms/source/FORMAT/MzTabM.cpp",
@@ -347,6 +347,11 @@
       "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
       "line": 626,
       "operation": "the lines are written through TextFile, so every line including the last gets one terminator"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 629,
+      "operation": "every rendered row reaches TextFile unchanged, so a cell carrying a tab gains a column and one carrying a line break splits the row across physical lines - text beginning with MTD/SMH/SML then forges a line of that kind; the OPENMS_POSTCONDITION column check cannot see it because it counts pushed cells rather than tabs. MzTabMWriteOptions::source_verbatim_cells, default off"
     }
   ],
   "external_reference_artifacts": [],

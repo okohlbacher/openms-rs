@@ -1932,6 +1932,19 @@ fn restore_comments_and_blanks(generated: Vec<String>, document: &MzTab) -> Resu
     if blanks.is_empty() && comments.is_empty() {
         return Ok(generated);
     }
+    // The furthest recorded position, so the walk can reach a comment or blank
+    // recorded past the point the generated lines run out. Checking it here
+    // charges MzTabFile::MAX_LINES before the walk rather than during it.
+    let last_recorded = blanks
+        .iter()
+        .next_back()
+        .copied()
+        .into_iter()
+        .chain(comments.keys().next_back().copied())
+        .max();
+    if last_recorded.is_some_and(|last| last > MzTabFile::MAX_LINES) {
+        return Err(bad("MzTab output exceeds its line limit"));
+    }
     let mut out = LineBuffer::default();
     let mut line = 0usize;
     let mut pending = generated.into_iter().peekable();
@@ -1947,7 +1960,11 @@ fn restore_comments_and_blanks(generated: Vec<String>, document: &MzTab) -> Resu
             out.push(comment.clone())?;
         } else if let Some(next) = pending.next() {
             out.push(next)?;
-        } else {
+        } else if last_recorded.is_none_or(|last| line >= last) {
+            // Nothing generated and nothing recorded further down: done. When
+            // something *is* recorded further down, the walk continues to it —
+            // the source stops here and drops that tail. Nothing fills the gap,
+            // so the tail moves up by as many lines as the gap holds.
             break;
         }
         line = line
@@ -1988,7 +2005,12 @@ impl MzTabFile {
     /// recorded blank position consumes a generated blank when there is one, so
     /// the line count and the recorded positions survive a round trip. The
     /// source also stops as soon as the generated lines run out, dropping any
-    /// comment or blank recorded past that point; those are emitted here.
+    /// comment or blank recorded past that point; those are emitted here. Their
+    /// recorded positions are only reproducible when the recorded tail is
+    /// contiguous with the end of the generated lines: nothing fills a gap left
+    /// by a metadata key that was recorded but is not written back (a
+    /// null-valued optional key, say), so a tail behind such a gap keeps its
+    /// order and its content but moves up by the width of the gap.
     pub fn document_lines(&self, document: &MzTab) -> Result<Vec<String>> {
         let meta = &document.meta_data;
         let mut out = LineBuffer::default();
@@ -3059,6 +3081,14 @@ fn read_osm_row(
 // ---------------------------------------------------------------------------
 
 fn parse_reference_list(text: &str, label: &str, line: usize) -> Result<Vec<i32>> {
+    // Charge the entry ceiling by counting separators, before anything is
+    // collected: stripping the brackets never removes a comma, so this is the
+    // field count the split below would produce. Collecting first would build
+    // one `&str` per field — several million for a 16 MiB line of commas —
+    // before the ceiling was consulted.
+    if text.matches(',').count().saturating_add(1) > MzTabFile::MAX_COLUMNS {
+        return Err(bad("MzTab reference list exceeds its entry limit"));
+    }
     let stripped = text.replace(&format!("{label}["), "").replace(']', "");
     let fields: Vec<&str> = if stripped.is_empty() {
         Vec::new()

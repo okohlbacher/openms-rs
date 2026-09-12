@@ -144,7 +144,7 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
    "line": 259,
-   "operation": "xs:duration parsing takes StringUtils::suffix(time_string, 'T'), which discards the leading sign and any day component, then adds the H, M and S components; -PT1S therefore reads as +1"
+   "operation": "xs:duration parsing takes StringUtils::suffix(time_string, 'T'), which discards the leading sign and any day component, then adds the H, M and S components, each converted by XMLHandler::asDouble_ with nothing stripped - so PT-1S reads as -1 and the P1 of a month-only P1M is a conversion error contributing 0, while -PT1S reads as +1. This port removes only the leading sign and negates the total."
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
@@ -293,6 +293,11 @@
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 646,
+   "operation": "the root element's xsi:schemaLocation is written as two whitespace-separated tokens, the namespace then the .xsd location, with the separating space emitted explicitly at the start of the second stream fragment"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
    "line": 1153,
    "operation": "doPopulateSpectraWithData_ returns immediately for an empty char_rest_, so a nonzero peaksCount with an empty payload is not an error"
   },
@@ -344,7 +349,7 @@
   "src/format/file_handler.rs does not dispatch FileType::MzXml to this module, although the file type and its content magic already exist. That file is outside this package.",
   "The source parallelises batch decoding with #pragma omp parallel for (MzXMLHandler.cpp:1224); this port is serial, so a large file decodes on one core.",
   "docs/doc-coverage.json was not rewritten: src/format/mzxml.rs measures 100.0% (42/42) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
-  "docs/core-sdk-coverage.json and docs/CORE_SDK_COMPLETION.md are stale because the coverage script now detects src/format/mzxml.rs as a candidate file for FORMAT/MzXMLFile.h. Regenerating them with python3 tools/core_sdk_coverage.py --write, after the two ledger entries are added, is the integrating agent's step; both files are outside this package.",
+  "docs/core-sdk-coverage.json and docs/CORE_SDK_COMPLETION.md are stale because the coverage script now detects src/format/mzxml.rs as a candidate file for FORMAT/MzXMLFile.h. Two headers change status, not one: FORMAT/MzXMLFile.h gains candidate_rust_files, and FORMAT/HANDLERS/MzXMLHandler.h gains a reference_manifests entry for tests/data/mzxml_provenance.json with candidate_rust_files left empty, so the summary moves unmapped 497 -> 495 and evidence_requires_review 163 -> 165; docs/CORE_SDK_COMPLETION.md changes by two lines. Regenerating them with python3 tools/core_sdk_coverage.py --write, after the two ledger entries are added, is the integrating agent's step; both files are outside this package.",
   "CI wiring was not added: append '--test mzxml' to a '--no-default-features --features mzml' line of the minimum-rust job in .github/workflows/rust.yml (rust.yml:86 or :87). The test passes under --features mzml alone and under cargo +1.85.0.",
   "MzXMLFile_4_long.mzXML is not copied (10.6 MB); the long-spectrum section is reproduced from a generated document with the same peak count. The upstream file's sha256 is recorded above, so it can be added later without ambiguity.",
   "mzXML cannot express the sample description, the HPLC gradient, instrument configurations, more than one ion source or analyzer, chromatograms, auxiliary data arrays, ion mobility or peptide identifications. Storing an mzML-derived experiment drops them, as upstream does; this is a format limit, not a port limit."

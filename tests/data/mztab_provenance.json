@@ -237,7 +237,7 @@
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
-   "line": 302,
+   "line": 338,
    "operation": "MzTabNucleicAcidSectionRow declares no constructor, so its ambiguity_members and go_terms keep the '|' separator while the protein row's use ','"
   },
   {

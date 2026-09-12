@@ -327,8 +327,13 @@ reachable without them.
     (`FuzzyStringComparator.cpp:843`). Here a recorded blank position consumes a
     generated blank when there is one. The source also stops as soon as the
     generated lines run out, dropping any comment or blank recorded past that
-    point; those are emitted here. Test:
-    `store_restores_comments_and_blank_lines_in_place`.
+    point; those are emitted here. Their recorded positions only survive when
+    the recorded tail is contiguous with the end of the generated lines —
+    nothing fills the gap left by a recorded metadata key that is not written
+    back, so a tail behind such a gap keeps its order and its content but moves
+    up by the width of the gap. Tests:
+    `store_restores_comments_and_blank_lines_in_place`,
+    `store_emits_a_comment_and_a_blank_recorded_past_the_generated_lines`.
 
 17. **A cell carrying a tab or a line break is refused.** Either would corrupt
     the row; the source concatenates unconditionally and produces a file it
@@ -405,7 +410,7 @@ the port.
 |---|---|---|
 | `MzTabFile::MAX_LINES` | 4,000,000 | reading or writing another line; also caps the recorded empty-row list |
 | `MzTabFile::MAX_BYTES` | 512 MiB | accumulating another line, in both directions |
-| `MzTabFile::MAX_COLUMNS` | 200,000 | splitting a line, parsing a header, and computing a `SectionLayout` |
+| `MzTabFile::MAX_COLUMNS` | 200,000 | splitting a line, parsing a header, computing a `SectionLayout`, and splitting a comma-separated reference list — each by counting separators first, so nothing is collected before the ceiling is charged |
 | `MzTabFile::MAX_INDEX` | 1,000,000 | inserting an indexed metadata key or column family member |
 | `MzTab::MAX_ROWS` | from the data model | appending a row to a section |
 | `MzTab::MAX_OPTIONAL_COLUMNS` | from the data model | recording an optional column, in either direction |
@@ -446,8 +451,14 @@ The store section's comparison is reproduced exactly rather than approximated:
 `similar_lines` sorts the lines, removes every space, drops the blank ones as
 `FuzzyStringComparator::readNextLine_` does, and compares numbers numerically
 wherever a numeric literal begins on both sides — which is how `46` matches
-`46.0` and `5035500000` matches `5.0355e09` at the comparator's default
-tolerances (relative 1.0, absolute 0.0).
+`46.0` and `5035500000` matches `5.0355e09`. The numeric comparison here is
+*stricter* than upstream's: `TEST_FILE_SIMILAR` never uses
+`FuzzyStringComparator`'s constructor defaults, because `TEST::isFileSimilar`
+overrides them with `absdiff_max_allowed` = 1e-5 and `ratio_max_allowed` =
+1 + 1e-5 (`ClassTest.cpp:591-592`, values at `ClassTest.cpp:35, 38`, and
+`MzTabFile_test.cpp` sets no `TOLERANCE_*`), whereas `similar_line` requires
+exact `f64` equality. Nothing upstream tolerates is refused here that the
+reference files actually contain, but the comparison is not tolerance-faithful.
 
 `store_round_trips_every_reference_document_through_a_file` is the stronger
 statement, and it is the one that had to be earned: the five reference documents

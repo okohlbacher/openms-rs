@@ -129,6 +129,18 @@ pub const F32_FIXED_DIGITS: usize = 6;
 pub const SCIENTIFIC_LOWER: f64 = 1e-2;
 /// From this magnitude upwards a value is written in scientific notation.
 pub const SCIENTIFIC_UPPER: f64 = 1e4;
+/// [`SCIENTIFIC_LOWER`] as the source's `T(1e-2)` for `T = float`.
+///
+/// Not the same comparison: `0.01_f32` is below `1e-2_f64` but equal to
+/// `1e-2_f32`, so it is scientific in the `f64` pipeline and fixed in this one.
+const SCIENTIFIC_LOWER_F32: f32 = 1e-2;
+/// [`SCIENTIFIC_UPPER`] as the source's `T(1e4)` for `T = float`.
+const SCIENTIFIC_UPPER_F32: f32 = 1e4;
+/// Largest `fixed_digits` the two text renderers honour.
+///
+/// Native: the source has no clamp and overflows its `char buf[64]` instead,
+/// falling through to a `std::to_string(double)` with six fractional digits.
+pub const MAX_FIXED_DIGITS: usize = 512;
 
 /// Render a floating-point value as `NumericFormatting::appendNumeric` does at
 /// full precision.
@@ -150,9 +162,17 @@ pub const SCIENTIFIC_UPPER: f64 = 1e4;
 ///
 /// * `value` - any finite or nonfinite value; no range is rejected.
 /// * `fixed_digits` - digits after the decimal point in fixed notation,
-///   [`F64_FIXED_DIGITS`] or [`F32_FIXED_DIGITS`] in the source's two calls.
-///   Values above 512 are clamped, because the source's fixed `char buf[64]`
-///   makes a larger precision fall into its `std::to_string` fallback.
+///   [`F64_FIXED_DIGITS`] in the source's `double` call. Values above
+///   [`MAX_FIXED_DIGITS`] are clamped; the source has no clamp and instead
+///   overflows its `char buf[64]`, after which `appendNumeric` falls through to
+///   `std::to_string(static_cast<double>(value))`, i.e. exactly six fractional
+///   digits (`NumericFormatting.h:136-139`). Neither behaviour is reachable
+///   from the source's own call sites, which pass at most
+///   `writtenDigits<long double>()` = 18.
+///
+/// This is the `T = double` instantiation of the source template. An `f32`
+/// must go through [`source_f32_text`] instead: promoting it here would change
+/// both the shortest round-trip mantissa and the branch boundary.
 pub fn source_float_text(value: f64, fixed_digits: usize) -> String {
     if value.is_nan() {
         return "NaN".to_owned();
@@ -164,7 +184,38 @@ pub fn source_float_text(value: f64, fixed_digits: usize) -> String {
     if magnitude != 0.0 && !(SCIENTIFIC_LOWER..SCIENTIFIC_UPPER).contains(&magnitude) {
         return scientific_text(format!("{value:e}"));
     }
-    let digits = fixed_digits.min(512);
+    let digits = fixed_digits.min(MAX_FIXED_DIGITS);
+    trim_fraction(format!("{value:.digits$}"))
+}
+
+/// [`source_float_text`] for an `f32`: the `T = float` instantiation.
+///
+/// `appendNumeric` is a template, so for a `float` argument the source compares
+/// `abs_val` against `T(1e-2)` and `T(1e4)` in *float* arithmetic and calls
+/// `std::to_chars` with the `float` overload, whose shortest round-trip is the
+/// shortest decimal that round-trips as a `float`. Both differ from the `f64`
+/// pipeline: `1.23e-5_f32` is `1.23e-05` here and `1.2299999980314169e-05`
+/// after a promotion to `f64`, and `0.01_f32` — which equals `1e-2_f32` exactly
+/// and so takes the fixed branch — is `0.01` here and `9.999999776482582e-03`
+/// after a promotion.
+///
+/// # Arguments
+///
+/// * `value` - any finite or nonfinite value; no range is rejected.
+/// * `fixed_digits` - digits after the decimal point in fixed notation,
+///   [`F32_FIXED_DIGITS`] in the source's `float` call, clamped as above.
+pub fn source_f32_text(value: f32, fixed_digits: usize) -> String {
+    if value.is_nan() {
+        return "NaN".to_owned();
+    }
+    if value.is_infinite() {
+        return if value < 0.0 { "-inf" } else { "inf" }.to_owned();
+    }
+    let magnitude = value.abs();
+    if magnitude != 0.0 && !(SCIENTIFIC_LOWER_F32..SCIENTIFIC_UPPER_F32).contains(&magnitude) {
+        return scientific_text(format!("{value:e}"));
+    }
+    let digits = fixed_digits.min(MAX_FIXED_DIGITS);
     trim_fraction(format!("{value:.digits$}"))
 }
 
@@ -248,7 +299,7 @@ impl SvNumber for f64 {
 
 impl SvNumber for f32 {
     fn sv_text(self) -> String {
-        source_float_text(f64::from(self), F32_FIXED_DIGITS)
+        source_f32_text(self, F32_FIXED_DIGITS)
     }
     fn sv_class(self) -> NumberClass {
         float_class(self.is_nan(), self.is_infinite(), self < 0.0)
@@ -508,6 +559,7 @@ impl<W: Write> SVOutStream<W> {
         } else if self.quoting != QuotingMethod::None {
             quote(text, self.quoting)
         } else {
+            self.preflight_substitution(text)?;
             text.replace(self.separator.as_str(), &self.replacement)
         };
         self.emit_field(&rendered)
@@ -692,10 +744,43 @@ impl<W: Write> SVOutStream<W> {
         Ok(self.writer)
     }
 
+    /// Charge a [`QuotingMethod::None`] substitution before it is allocated.
+    ///
+    /// [`Self::preflight`]'s worst case bounds both `quote` paths, because
+    /// each at most doubles the field. It does not bound the substitution:
+    /// [`Self::replacement`] may be arbitrarily longer than the
+    /// separator, so a field of separators grows by
+    /// `replacement.len() / separator.len()`, which is not 2. The rendered
+    /// length is therefore computed exactly here — by counting separators,
+    /// which allocates nothing — and charged before `str::replace` runs.
+    /// [`Self::emit_field`] checks the same ceiling again on the rendered text.
+    fn preflight_substitution(&self, text: &str) -> Result<()> {
+        let separator = self.separator.as_str();
+        // The constructor refuses an empty separator, so `matches` counts
+        // non-overlapping occurrences exactly as `replace` substitutes them.
+        let occurrences = text.matches(separator).count();
+        let removed = occurrences
+            .checked_mul(separator.len())
+            .ok_or_else(|| limit("field"))?;
+        let substituted = occurrences
+            .checked_mul(self.replacement.len())
+            .and_then(|grown| grown.checked_add(text.len().saturating_sub(removed)))
+            .ok_or_else(|| limit("field"))?;
+        let total = substituted
+            .checked_add(separator.len())
+            .ok_or_else(|| limit("field"))?;
+        if total > self.limits.max_field_bytes {
+            return Err(limit("field"));
+        }
+        Ok(())
+    }
+
     /// Charge one field against the ceilings before it is rendered.
     ///
     /// Quoting can at most double a field and add two quote characters, so the
-    /// worst case is checked before the rendering allocation happens.
+    /// worst case is checked before the rendering allocation happens. The
+    /// substitution path is charged separately, by
+    /// [`Self::preflight_substitution`].
     fn preflight(&self, raw: usize) -> Result<()> {
         let fields = self
             .row_fields

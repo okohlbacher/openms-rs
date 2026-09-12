@@ -818,6 +818,32 @@ fn spectra_ref_refuses_the_states_the_source_only_asserts() {
     assert!(parsed.is_null());
 }
 
+/// The source reads the run index with `StringUtils::toInt32`, which parses
+/// into an `Int32` — a token outside that range is a `ConversionError`
+/// (`StringUtils.cpp:150-156`, pinned by `StringUtils_test.cpp:272`) — and
+/// which advances past exactly one `+` (`StringUtils.cpp:148`), so a second
+/// sign still reaches `std::from_chars` and fails.
+#[test]
+fn spectra_ref_run_index_is_an_int32_with_at_most_one_leading_plus() {
+    for input in [
+        "ms_run[2147483648]:scan=1",
+        "ms_run[3000000000]:scan=1",
+        "ms_run[++5]:scan=1",
+        "ms_run[+-5]:scan=1",
+    ] {
+        let result: Result<MzTabSpectraRef, Error> = parse_cell(input);
+        assert!(
+            matches!(result, Err(Error::Parse { .. })),
+            "{input:?} must be a conversion error"
+        );
+    }
+    // One '+' is skipped, and the largest Int32 is still a legal index.
+    let parsed: MzTabSpectraRef = parse_cell("ms_run[+5]:scan=1").unwrap();
+    assert_eq!(parsed.ms_file(), 5);
+    let parsed: MzTabSpectraRef = parse_cell("ms_run[2147483647]:scan=1").unwrap();
+    assert_eq!(parsed.ms_file(), 2_147_483_647);
+}
+
 // ---------------------------------------------------------------------------
 // Cell vocabulary: MzTabModification and MzTabModificationList
 // ---------------------------------------------------------------------------
@@ -938,6 +964,31 @@ fn modification_position_must_be_a_non_negative_integer() {
     // Position 0 is the N-terminus and is legal.
     let modification: MzTabModification = parse_cell("0-UNIMOD:1").unwrap();
     assert_eq!(modification.positions_and_parameters()[0].0, 0);
+}
+
+/// Positions go through `StringUtils::toInt32` in the source, so the same
+/// 32-bit range and single-`+` rules hold as for a `spectra_ref` index.
+#[test]
+fn modification_position_is_an_int32_with_at_most_one_leading_plus() {
+    for input in [
+        "2147483648-UNIMOD:35",
+        "3000000000-UNIMOD:35",
+        "++5-UNIMOD:35",
+        "1|++2-UNIMOD:35",
+    ] {
+        let result: Result<MzTabModification, Error> = parse_cell(input);
+        assert!(
+            matches!(result, Err(Error::Parse { .. })),
+            "{input:?} must be a conversion error"
+        );
+    }
+    let modification: MzTabModification = parse_cell("+5-UNIMOD:35").unwrap();
+    assert_eq!(modification.positions_and_parameters()[0].0, 5);
+    let modification: MzTabModification = parse_cell("2147483647-UNIMOD:35").unwrap();
+    assert_eq!(
+        modification.positions_and_parameters()[0].0,
+        2_147_483_647_usize
+    );
 }
 
 #[test]

@@ -214,8 +214,11 @@ The strongest checks depend on no C++ at all: byte-identity with
 `mzml::write` and a full read-back comparison. No C++ was built or executed and
 no C++ output was retained, so this is not a tier-1 differential.
 
-Three candidate defects were recorded from this reading; the integrator files
-them in `OpenMS_CPP_ISSUES.md`, which this package does not own. Two are
+Three candidate defects were recorded from this reading, and one more from
+`SVOutStream` is recorded in `docs/SV_OUT_STREAM_SUPPORT.md` (the `ss_`
+manipulator state that poisons `std::endl` detection) — four across the
+package. The integrator files them in `OpenMS_CPP_ISSUES.md`, which this
+package does not own. Two are
 specific to this class — the dangling `sf_sp_`/`dp_sp_` references a streamed
 file receives, and a class test that cannot compile and is disabled while ten
 TOPP tools depend on the class — and one is in `MzMLHandler.cpp` on the path

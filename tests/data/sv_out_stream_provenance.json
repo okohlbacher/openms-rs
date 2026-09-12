@@ -31,7 +31,7 @@
   {
    "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
    "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a",
-   "role": "Not ported here as a module. appendNumeric is the algorithm reproduced by source_float_text, including the NaN/inf spellings, the 1e-2/1e4 scientific thresholds, the shortest-round-trip scientific mantissa, the '+' removal with retained zero padding and the keep-one-fractional-digit rule."
+   "role": "Not ported here as a module. appendNumeric is the algorithm reproduced by source_float_text (T = double) and source_f32_text (T = float), including the NaN/inf spellings, the T(1e-2)/T(1e4) scientific thresholds evaluated at the argument's own width, the shortest-round-trip scientific mantissa of that width, the '+' removal with retained zero padding and the keep-one-fractional-digit rule. The char buf[64] overflow path at lines 136-139, which falls through to std::to_string(double), is not reproduced: the port clamps fixed_digits at MAX_FIXED_DIGITS instead, and neither behaviour is reachable from the source's own call sites."
   }
  ],
  "fixtures": [],
@@ -116,7 +116,7 @@
   {
    "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
    "line": 42,
-   "operation": "scientific notation is selected for a nonzero magnitude at or above 1e4 or below 1e-2; zero always takes the fixed branch and therefore prints \"0.0\""
+   "operation": "scientific notation is selected for a nonzero magnitude at or above T(1e4) or below T(1e-2) - the comparison is in the template argument's own arithmetic, so 0.01f, which equals float(1e-2), takes the fixed branch while the same value promoted to double does not; zero always takes the fixed branch and therefore prints \"0.0\""
   },
   {
    "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
@@ -142,6 +142,11 @@
    "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
    "line": 29,
    "operation": "NaN is written \"NaN\" in upper case for compatibility with the removed Karma formatter, while infinities are \"inf\"/\"-inf\" specifically so the keep-one-digit rule cannot turn them into the unreadable \"inf.0\""
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "line": 376,
+   "operation": "appendToStr(float) instantiates appendNumeric with T = float and precision writtenDigits<float>() = 6, so both the threshold comparison and std::to_chars run at float width; sv_out_stream::source_f32_text is that instantiation and no f32 is promoted to f64 before formatting"
   },
   {
    "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",

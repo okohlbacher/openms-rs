@@ -28,7 +28,7 @@ use openms::format::controlled_vocabulary::ControlledVocabulary;
 use openms::format::mztab::{
     MzTabCVMetaData, MzTabContactMetaData, MzTabDouble, MzTabInstrumentMetaData, MzTabInteger,
     MzTabOptionalColumnEntry, MzTabParameter, MzTabParameterList, MzTabSampleMetaData,
-    MzTabSoftwareMetaData, MzTabSpectraRef, MzTabString,
+    MzTabSoftwareMetaData, MzTabSpectraRef, MzTabString, MzTabStringList,
 };
 use openms::format::mztab_m::{
     MzTabM, MzTabMAssayMetaData, MzTabMDatabaseMetaData, MzTabMExportOptions, MzTabMFile,
@@ -836,12 +836,85 @@ fn file_default_constructor() {
     assert!(!file.options.source_derivatization_agent_key);
     assert!(!file.options.omit_ms_run_id_format);
     assert!(!file.options.source_row_abundance_cells);
+    assert!(!file.options.source_verbatim_cells);
     let source = MzTabMFile::with_options(MzTabMWriteOptions::source());
     assert!(source.options.source_assay_custom_key);
     assert!(source.options.source_colunit_keys);
     assert!(source.options.source_derivatization_agent_key);
     assert!(source.options.omit_ms_run_id_format);
     assert!(source.options.source_row_abundance_cells);
+    assert!(source.options.source_verbatim_cells);
+}
+
+/// One SML row whose `chemical_name` and `opt_` value carry a tab and a line
+/// break, the shape a featureXML or `.oms` text node can legally have.
+fn document_with_separator_cells() -> MzTabM {
+    let mut names = MzTabStringList::default();
+    names.set(vec![MzTabString::from_text("acetyl-\n-carnitine")]);
+    let mut row = MzTabMSmallMoleculeSectionRow {
+        sml_identifier: MzTabString::from_text("1"),
+        chemical_name: names,
+        ..MzTabMSmallMoleculeSectionRow::default()
+    };
+    row.opt.push(MzTabOptionalColumnEntry {
+        name: "opt_global_note".to_owned(),
+        value: MzTabString::from_text("a\tb"),
+    });
+    let mut document = MzTabM::new();
+    document.small_molecule_data.push(row);
+    document
+}
+
+#[test]
+fn a_cell_carrying_a_tab_or_a_line_break_is_refused_by_default() {
+    // `MzTabMFile.cpp:626-631` hands each row to TextFile unchanged, so such a
+    // cell splits the row or adds a column and the output stops being a
+    // rectangle — and text starting with MTD/SMH/SML forges a line of that
+    // kind. The default refuses it; `MzTabMWriteOptions::source()` reproduces
+    // the source's pass-through.
+    let document = document_with_separator_cells();
+    let error = MzTabMFile::new().generate_lines(&document).unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error}");
+
+    // The same document under source options is written as the source writes
+    // it: the SML row splits across two physical lines of 8 and 10 fields
+    // against a 17-field header.
+    let lines = MzTabMFile::with_options(MzTabMWriteOptions::source())
+        .generate_lines(&document)
+        .expect("source options reproduce the defect");
+    let header = lines
+        .iter()
+        .find(|line| line.starts_with("SMH\t"))
+        .expect("an SMH header");
+    let row = lines
+        .iter()
+        .find(|line| line.starts_with("SML\t"))
+        .expect("an SML row");
+    assert!(row.contains('\n'), "the cell's line break survives");
+    assert_ne!(
+        row.split('\n').next().unwrap().split('\t').count(),
+        header.split('\t').count(),
+        "the first physical line is short of the header"
+    );
+}
+
+#[test]
+fn a_metadata_key_or_value_carrying_a_separator_is_refused_by_default() {
+    let mut document = MzTabM::new();
+    document.set_meta_data(MzTabMMetaData {
+        title: MzTabString::from_text("a\tb\nMTD\tmzTab-version\tforged"),
+        ..MzTabMMetaData::default()
+    });
+    let error = MzTabMFile::new().generate_lines(&document).unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error}");
+    // Under source options the forged line is written, as the source writes it.
+    let lines = MzTabMFile::with_options(MzTabMWriteOptions::source())
+        .generate_lines(&document)
+        .expect("source options reproduce the defect");
+    assert!(
+        lines.iter().any(|line| line.contains("\nMTD\t")),
+        "the forged metadata line is present: {lines:?}"
+    );
 }
 
 #[test]
@@ -1818,6 +1891,50 @@ fn export_scan_polarity_follows_the_first_adduct_and_defaults_to_positive() {
 }
 
 #[test]
+fn export_scan_polarity_is_positive_only_for_a_name_ending_in_plus() {
+    // `MzTabM.cpp:287` tests `first_adduct.at(size() - 1) == '+'`, so any other
+    // final character — including none at all, where `at()` underflows and
+    // throws — is negative there. `AdductInfo::new` takes any bounded text as a
+    // name, so names with no charge suffix are reachable; only the empty name
+    // diverges, and it diverges from a throw.
+    let map = FeatureMap::new();
+    for (name, expected) in [
+        ("M+H;1+", "[MS, MS:1000130, positive scan, ]"),
+        ("M+H", "[MS, MS:1000129, negative scan, ]"),
+        ("M+Na", "[MS, MS:1000129, negative scan, ]"),
+        ("H", "[MS, MS:1000129, negative scan, ]"),
+        ("M-H;1-", "[MS, MS:1000129, negative scan, ]"),
+        // No name to take a sign from: the source throws, this writes positive.
+        ("", "[MS, MS:1000130, positive scan, ]"),
+    ] {
+        let mut graph = IdentificationData::new().unwrap();
+        let software = graph
+            .register_processing_software(ProcessingSoftware::new("Tool", "1.0"))
+            .unwrap();
+        graph
+            .register_processing_step(ProcessingStep::new(software), None)
+            .unwrap();
+        graph
+            .register_adduct(
+                AdductInfo::new(
+                    name,
+                    openms::chemistry::EmpiricalFormula::parse("H").unwrap(),
+                    1,
+                    1,
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        let document = MzTabM::export_feature_map(&map, &graph).unwrap();
+        assert_eq!(
+            document.meta_data().ms_run[&1].scan_polarity[&1].to_cell_string(),
+            expected,
+            "adduct name {name:?}"
+        );
+    }
+}
+
+#[test]
 fn export_quantification_unit_follows_the_quant_method_parameter() {
     for (method, expected) in [
         ("area", "[MS, MS:1001844, MS1 feature area, ]"),
@@ -2338,6 +2455,26 @@ fn a_metadata_section_over_the_indexed_entry_ceiling_is_refused() {
     meta.publication.pop_last();
     // At the ceiling the section still builds; the estimate is what bounds it.
     assert!(MzTabMFile::new().generate_meta_data_section(&meta).is_ok());
+}
+
+/// `MAX_INDEXED_ENTRIES` bounds how many entries an indexed map may carry, not
+/// how large its keys may be: a key at `usize::MAX` is written out, exactly as
+/// the source's unchecked `Size` writes it, and nothing refuses it. Pinned so
+/// the ceiling's scope is not mistaken for a check on the index values.
+#[test]
+fn an_extreme_index_is_written_rather_than_refused() {
+    let mut meta = MzTabMMetaData::default();
+    meta.ms_run
+        .insert(usize::MAX, MzTabMMSRunMetaData::default());
+    let lines = MzTabMFile::new()
+        .generate_meta_data_section(&meta)
+        .expect("an extreme index is not a ceiling violation");
+    assert!(
+        lines
+            .iter()
+            .any(|line| line.contains("ms_run[18446744073709551615]")),
+        "{lines:?}"
+    );
 }
 
 #[test]

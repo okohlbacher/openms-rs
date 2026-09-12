@@ -8,7 +8,7 @@ revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 - Rust: `src/format/mzxml.rs` (gated on the existing `mzml` feature, for
   quick-xml, base64 and flate2)
-- Tests: `tests/mzxml.rs` (59 cases)
+- Tests: `tests/mzxml.rs` (61 cases)
 - Fixtures: `tests/data/MzXMLFile_1.mzXML`,
   `tests/data/MzXMLFile_1_compressed.mzXML`,
   `tests/data/MzXMLFile_2_minimal.mzXML`, `tests/data/MzXMLFile_3_64bit.mzXML`
@@ -144,7 +144,11 @@ the handler.
   `M` and `S` in that order and the components are summed
   (`MzXMLHandler.cpp:254-279`). A day component is therefore dropped, and a
   duration with no `T` and no `H`/`M`/`S` contributes nothing. A missing
-  `retentionTime` gives 0.0, not the `MSSpectrum` sentinel `-1`.
+  `retentionTime` gives 0.0, not the `MSSpectrum` sentinel `-1`. Each
+  component's text is parsed as the source's `XMLHandler::asDouble_` parses it,
+  with nothing stripped: `PT-1S` is `-1`, and a component text the source
+  cannot convert contributes zero and a diagnostic — so a month-only `P1M`,
+  whose `M` component reads `P1`, is 0.0 and not 60.0.
 - **`windowWideness` is a full width.** It is stored in the lower offset at the
   start tag and both offsets are set to half of it when the m/z text arrives
   (`:219-222`, `:574-579`). An empty `<precursorMz/>` therefore leaves the full
@@ -229,8 +233,12 @@ Each of these changes observable behaviour and is documented at the item in
 6. **A negative `xs:duration` keeps its sign.** Upstream takes the text after
    the last `T` before looking at anything, so `-PT1S` — which its own writer
    emits for the `MSSpectrum` default retention time `-1` — reads back as `+1`.
-   `MzXMLFile_4_long.mzXML` is exactly such a file. This port negates, which
-   makes a store/load cycle lossless. Recorded as a C++ issue candidate.
+   `MzXMLFile_4_long.mzXML` is exactly such a file. This port removes a leading
+   `-` and negates the total, which makes a store/load cycle lossless. That
+   leading sign is the only thing it removes: a sign *inside* the duration, as
+   in the `PT-1S` upstream writes for `msRun/@startTime`, reaches `str::parse`
+   and reads as `-1` in both implementations. Recorded as a C++ issue
+   candidate. Test: `duration_components_parse_as_the_source_parses_them`.
 7. **Writer defaults are lossless.** `WriteOptions::default` writes
    `precision="64"` and Rust's shortest round-tripping numbers, and keeps a
    fractional `precursorIntensity`. `WriteOptions::source()` selects the source
@@ -253,10 +261,19 @@ Each of these changes observable behaviour and is documented at the item in
     `totIonCurrent` as `<scan>` attributes *and* again as `<nameValue>` children,
     because `writeUserParam_` does not skip them. This port skips the six keys
     named in `ATTRIBUTE_METADATA_KEYS`.
-11. **MaxQuant mode looks at the next *written* spectrum.** Upstream reads
-    `cexp_[s + 1]`'s MS level even when that spectrum is about to be skipped for
-    being empty, which can nest an MS1 scan inside another MS1 scan. This port
-    skips over the empty ones. Recorded as a C++ issue candidate.
+11. **MaxQuant mode treats a skipped next spectrum as no next spectrum.**
+    Upstream reads `cexp_[s + 1]`'s MS level unconditionally
+    (`MzXMLHandler.cpp:1082-1086`), even when that spectrum is about to be
+    skipped for being empty, so it can leave a scan open for a child that is
+    never written. This port nullifies that one-step lookahead when the next
+    spectrum will be skipped — `next_ms_level` becomes 0, which closes the
+    open scans, as at the end of the file. It does *not* scan forward to the
+    next spectrum that will actually be written, so a written spectrum behind a
+    skipped one is a sibling rather than a nested child: for
+    `[MS1 with peaks, empty MS1, MS2 with peaks]` under
+    `force_mq_compatibility` both implementations emit the MS2 as a sibling,
+    and they differ only where the skipped spectrum's own MS level would have
+    kept the scan open. Recorded as a C++ issue candidate.
 12. **MaxQuant mode refuses an unsorted spectrum.** Upstream logs a non-fatal
     error and then writes `begin()->getMZ()` and `rbegin()->getMZ()` as
     `lowMz`/`highMz` anyway, producing wrong attributes. This port returns
@@ -314,7 +331,7 @@ length, following `src/identification/run_mapping.rs` and
 | `max_peaks_per_scan` | 10,000,000 | one scan's `peaksCount`, checked before `try_reserve_exact` |
 | `max_total_peaks` | 20,000,000 | declared peaks summed over the file, filtered scans included |
 | `max_encoded_bytes` | 128 MiB | retained base64 characters of one `<peaks>` |
-| `max_decoded_bytes` | 64 MiB | decoded bytes of one `<peaks>`, before and after inflation |
+| `max_decoded_bytes` | 64 MiB | decoded bytes of one `<peaks>`: the length the declared `peaksCount` needs, the length the payload's symbol count will decode to — charged before the base64 decode allocates — and the inflated length of a compressed payload |
 | `max_depth` | 64 | open elements, which bounds nested `<scan>` recursion |
 | `max_source_files` | 100,000 | `<parentFile>` |
 | `max_data_processing` | 100,000 | `<dataProcessing>` |
@@ -353,7 +370,7 @@ and from the four unmodified upstream fixtures. No C++ was built or executed and
 no C++ output was retained, so this is **not** a tier 1 differential.
 
 All 15 `START_SECTION`s of `MzXMLFile_test.cpp` are ported; none is merely
-mapped. `tests/mzxml.rs` carries 59 cases. The one substitution is
+mapped. `tests/mzxml.rs` carries 61 cases. The one substitution is
 `[EXTRA] static bool isValid(...)` (1 assertion): Xerces XSD validation is
 unavailable here, so `the_stored_document_is_structurally_valid` asserts instead
 that the writer's output carries the 3.1 namespace and schema location, has

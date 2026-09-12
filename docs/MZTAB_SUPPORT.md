@@ -10,7 +10,7 @@ implementation lines), at source revision
 | Artifact | Path |
 |---|---|
 | Rust module | `src/format/mztab.rs` |
-| Integration test | `tests/mztab.rs` (60 tests) |
+| Integration test | `tests/mztab.rs` (62 tests) |
 | Provenance manifest | `tests/data/mztab_provenance.json` |
 
 This is stage 1 of the MzTab family. It is the data model only: it does not read
@@ -243,7 +243,7 @@ Every member keeps its source name and type, with `std::map<Size, T>` becoming
 ### `class MzTabMetaData` → `MzTabMetaData`
 
 `MzTabMetaData()` becomes `Default`, which sets `mz_tab_version` to `1.0.0`
-(MzTab.cpp:301). All 37 public data members are ported as public fields with
+(MzTab.cpp:301). All 36 public data members are ported as public fields with
 their source names: `mz_tab_version`, `mz_tab_mode`, `mz_tab_type`, `mz_tab_id`,
 `title`, `description`, `protein_search_engine_score`,
 `peptide_search_engine_score`, `psm_search_engine_score`,
@@ -338,7 +338,7 @@ build the export streams and are [deferred](#deferred) with them.
 
 | Rust | Purpose |
 |---|---|
-| `MzTabCell` trait (`is_null`, `set_null`, `write_cell`, `read_cell`) | one contract for all thirteen cell types, so a reader or writer can drive a column generically |
+| `MzTabCell` trait (`is_null`, `set_null`, `write_cell`, `read_cell`) | one contract for all twelve cell types of the family — the ten of `MzTabBase.h` plus `MzTabModification` and `MzTabModificationList` from `MzTab.h` — so a reader or writer can drive a column generically |
 | `parse_cell::<T>` | parse straight into a fresh cell; the source only has in-place `fromCellString` |
 | `MzTabOptionalColumns` trait | replaces the protected `getOptionalColumnNames_` template's implicit requirement |
 | `ModificationMetaDataReport` | carries the modification names the registry could not resolve, which the source only writes to a log |
@@ -382,7 +382,7 @@ build the export streams and are [deferred](#deferred) with them.
   `ambiguity_members` string lists of the protein row, because `|` occurs inside
   GO terms and accessions (MzTab.cpp:294).
 - **`MzTabNucleicAcidSectionRow` keeps `|`** for the same two columns, because
-  the source declares no constructor for it (MzTab.h:302). The inconsistency
+  the source declares no constructor for it (MzTab.h:338). The inconsistency
   with the protein row is preserved.
 - **An empty cell yields no list entries.** `StringUtils::split` clears its
   output and returns for an empty subject (StringUtils.h:601, 670), so parsing
@@ -427,7 +427,7 @@ build the export streams and are [deferred](#deferred) with them.
   returned map; the empty-list variants emit
   `[MS, MS:1002453, No fixed modifications searched, ]` and
   `[MS, MS:1002454, No variable modifications searched, ]` at index 1
-  (MzTab.cpp:672, 688).
+  (MzTab.cpp:688, 672).
 - **A modification metadata `site` of `X` means "any residue"**, because
   `ResidueModification` initialises `origin_` to `'X'`.
 
@@ -465,7 +465,13 @@ Rust item as well.
    index to `Size` (MzTabBase.cpp:254), producing an index near `2^64`; this
    rejects it. A double literal that overflows is a conversion error, matching
    the source's `std::from_chars` reporting `result_out_of_range` — Rust's own
-   `parse` would have returned infinity.
+   `parse` would have returned infinity. The two integer tokens the source reads
+   with `StringUtils::toInt32` — the `ms_run` index of a `spectra_ref` and a
+   modification position — are parsed into an `i32` here for the same reason, so
+   `ms_run[3000000000]:scan=1` and `3000000000-UNIMOD:35` are conversion errors
+   in both implementations (StringUtils.cpp:150-156, pinned by
+   StringUtils_test.cpp:272), and only one leading `+` is skipped
+   (StringUtils.cpp:148), so `++5` is refused in both.
 6. **`getModOrSubstIdentifier` borrows.** The source returns a copied
    `MzTabString`; this returns `&MzTabString`.
 7. **Getters borrow instead of copying.** `MzTabDoubleList::get` and its
@@ -506,7 +512,7 @@ Rust item as well.
 
 | Constant | Value | Guards |
 |---|---|---|
-| `MAX_CELL_BYTES` | 4 MiB | every `from_cell_string`/`read_cell`, before any split or allocation |
+| `MAX_CELL_BYTES` | 4 MiB | every `read_cell`, and every `from_cell_string` except `MzTabString`'s, before any split or allocation. `MzTabString::from_cell_string` is infallible, mirroring the source's infallible `MzTabString::set` (MzTabBase.cpp:423); its `read_cell` counterpart does charge the ceiling |
 | `MAX_CELL_ITEMS` | 100,000 | the separated entry count of every list cell, and the evidence list of `add_pep_evidence_to_rows` |
 | `MAX_MODIFICATION_NAMES` | 100,000 | the input list of the three modification-metadata generators |
 | `MzTab::MAX_ROWS` | 10,000,000 | `number_of_psms` and `optional_column_names` |
@@ -555,10 +561,10 @@ Class-test accounting — 7 sections, 5 ported, 0 mapped, 2 unaccounted:
 | `std::vector<std::string> getPSMOptionalColumnNames() const` | 2 | **ported** — `psm_optional_column_names_from_the_upstream_two_row_fixture`, with both literals (`rows.size() == 2`, `optional_columns.size() == 5`) and every cell of the fixture. |
 | `static void addMetaInfoToOptionalColumns(...)` | 7 | **ported** — `add_meta_info_to_optional_columns_matches_the_upstream_seven_assertions`, all seven literals including `[0.5, 1.4, -2.0, 0.1]`. |
 | `[EXTRA] exportIdentificationsToMzTab terminates with export_all_psms on empty-hit PeptideIdentification` | 1 | **unaccounted** — it calls `MzTab::exportIdentificationsToMzTab`, which this package does not port. The regression it pins lives in `IDMzTabStream::nextPSMRow`, whose advance condition underflowed for an empty hit list; nothing in `src/format/mztab.rs` contains that loop, so there is no Rust behaviour to assert. It must be ported with the exporter stage. |
-| `[EXTRA] MzTabBoolean setNull / isNull polarity` | 5 | **ported** — `boolean_set_null_polarity`, all five literals. |
+| `[EXTRA] MzTabBoolean setNull / isNull polarity` | 4 | **ported** — `boolean_set_null_polarity`, all four literals plus two native extras (`value() == 0`, `to_cell_string() == "0"`). |
 | `[EXTRA] consensus-map assays use fraction-group/label grain and samples are study variables` | 18 | **unaccounted** — it calls `MzTab::exportConsensusMapToMzTab` and asserts assay/study-variable grain and abundance placement produced by `CMMzTabStream`. Those are 3,400 lines of `MzTab.cpp` plus `ConsensusMap` plumbing that this package does not port. It is above the five-macro threshold and must be ported, not mapped, when the exporter stage lands; it is listed here as unaccounted rather than claimed. |
 
-Beyond the class test, `tests/mztab.rs` has 60 tests covering every cell type's
+Beyond the class test, `tests/mztab.rs` has 62 tests covering every cell type's
 render/parse round trip, the null/`NaN`/`Inf` state machine, the source number
 convention, every list separator, the two scanners, `MzTabSpectraRef`'s null
 rule and colon restriction, the modification position and `CHEMMOD` behaviour,

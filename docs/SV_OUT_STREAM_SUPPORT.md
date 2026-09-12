@@ -51,13 +51,14 @@ the class cannot be ported without.
 | `OpenMS::QuotingMethod` (`StringUtils.h:39`) | `sv_out_stream::QuotingMethod` | `NONE`/`ESCAPE`/`DOUBLE` become `None`/`Escape`/`Double`. |
 | `StringUtils::quote(s, q, method)` (`StringUtils.h:553`) | `sv_out_stream::quote(&str, QuotingMethod)` | Only `q == '"'` is offered, which is the only value this class uses. |
 | `StringUtils::substitute(s, from, to)` (`StringUtils.h:484`) | `str::replace` | Not re-exported. An empty pattern returns the input unchanged upstream; here an empty separator is refused at construction instead. |
-| `StringUtils::toStr(float/double)` → `NumericFormatting::appendNumeric` | `sv_out_stream::source_float_text(f64, usize)` and `SvNumber` | Full precision only. |
+| `StringUtils::toStr(float/double)` → `NumericFormatting::appendNumeric` | `sv_out_stream::source_float_text(f64, usize)`, `sv_out_stream::source_f32_text(f32, usize)` and `SvNumber` | Full precision only. `appendNumeric` is a template, so the `float` instantiation compares `abs_val` against `T(1e-2)`/`T(1e4)` and calls `std::to_chars` at `float` width; that is `source_f32_text`, and an `f32` is never promoted to `f64` before formatting. |
 | `StringUtils::appendToStrLowP` (3 fractional digits) | not ported: `SVOutStream` never calls the low-precision variant | |
 
 Native additions with no source counterpart: `SVLimits` and its three
 constants, `SVOutStream::with_limits`, `limits`, `row_fields`, `rows`, `flush`,
 `DEFAULT_SEPARATOR`, `DEFAULT_REPLACEMENT`, `NumberClass`, `SvNumber`,
-`F64_FIXED_DIGITS`, `F32_FIXED_DIGITS`, `SCIENTIFIC_LOWER`, `SCIENTIFIC_UPPER`.
+`F64_FIXED_DIGITS`, `F32_FIXED_DIGITS`, `SCIENTIFIC_LOWER`, `SCIENTIFIC_UPPER`,
+`MAX_FIXED_DIGITS`.
 
 ## Preserved source conventions
 
@@ -95,6 +96,15 @@ constants, `SVOutStream::with_limits`, `limits`, `row_fields`, `rows`, `flush`,
   fractional zeros trimmed to one surviving digit, the exponent's `+` dropped
   but its two-digit zero padding kept, and a mantissa without a point given
   `.0`. `1e4` is written `1.0e04`; `5.0` never degrades to `5`.
+- **Both template instantiations, at their own width.** The source's
+  `appendNumeric<float>` compares `abs_val` against `T(1e-2)` and `T(1e4)` in
+  float arithmetic and hands the `float` to `std::to_chars`, whose shortest
+  round-trip is the shortest decimal that round-trips as a *float*. `f32` text
+  therefore goes through `source_f32_text`, not through the `f64` pipeline:
+  `1.23e-5f32` is `1.23e-05` (a promotion gives `1.2299999980314169e-05`),
+  `12345.6f32` is `1.23456e04`, and `0.01f32` — equal to `float(1e-2)`, so not
+  below it — takes the fixed branch and prints `0.01`. Test:
+  `f32_text_is_formatted_at_f32_width_not_through_f64`.
 
 ## Native differences
 
@@ -138,7 +148,14 @@ constants, `SVOutStream::with_limits`, `limits`, `row_fields`, `rows`, `flush`,
 line (2^20) and the lines in one file (2^30). Worst-case quoting — double the
 input plus two quote characters plus the separator — is charged *before* the
 rendering allocation, so exceeding a ceiling leaves the output byte-for-byte
-unchanged. A field and its separator are built into one buffer and written with
+unchanged. That worst case bounds both `quote` paths, each of which at most
+doubles the field, but it does not bound the `QuotingMethod::None`
+substitution, whose growth factor is `replacement.len() / separator.len()`: a
+caller-chosen replacement longer than the separator can grow a field without
+limit. The substituted length is therefore computed exactly — by counting
+separators, which allocates nothing — and charged before `str::replace` runs,
+so the ceiling is consulted before the allocation there too. Test:
+`a_replacement_longer_than_the_separator_is_charged_before_the_substitution`. A field and its separator are built into one buffer and written with
 a single `write_all`, so a rejected or failed field emits no separator and does
 not advance the line state; the tests assert that on both the rejection and the
 I/O-failure path.
@@ -152,7 +169,7 @@ that.
 Evidence is tier 3: every expected string in `tests/sv_out_stream.rs` is a
 literal transcribed from the 12 sections of `SVOutStream_test.cpp`, which is
 built upstream (`executables.cmake:284`). All 12 sections are ported, including
-the four marked `NOT_TESTABLE`. The upstream `-1.23e45` assertion accepts three
+the three marked `NOT_TESTABLE` (`SVOutStream_test.cpp:100`, `:106`, `:112`). The upstream `-1.23e45` assertion accepts three
 platform spellings and the pinned `NumericFormatting` produces the third,
 `-1.23e45`, which is the one reproduced here. No C++ was built or executed and
 no C++ output was retained, so this is not a tier-1 differential. The numeric

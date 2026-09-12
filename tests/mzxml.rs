@@ -30,8 +30,9 @@ use openms::format::mzxml::{
 use openms::interfaces::MSDataConsumer;
 use openms::kernel::{MSChromatogram, MSExperiment, MSSpectrum, NumericRange, Peak1D, Precursor};
 use openms::metadata::{
-    AnalyzerType, ChecksumType, DetectorType, ExperimentalSettings, InletType, IonizationMethod,
-    Polarity, ProcessingAction, ResolutionMethod, ResolutionType, ScanMode,
+    AnalyzerType, ChecksumType, DetectorAcquisitionMode, DetectorType, ExperimentalSettings,
+    InletType, IonizationMethod, Polarity, ProcessingAction, ReflectronState, ResolutionMethod,
+    ResolutionType, SampleState, ScanDirection, ScanLaw, ScanMode,
 };
 use openms::system::file::TempDir;
 use std::ops::ControlFlow;
@@ -352,12 +353,19 @@ fn load_reads_the_instrument() {
     );
     assert_eq!(instrument.ion_detectors[0].resolution, 0.0);
     assert_eq!(instrument.ion_detectors[0].adc_sampling_frequency, 0.0);
+    assert_eq!(
+        instrument.ion_detectors[0].acquisition_mode,
+        DetectorAcquisitionMode::Unknown
+    );
 
     assert_eq!(instrument.mass_analyzers.len(), 1);
     let analyzer = &instrument.mass_analyzers[0];
     assert_eq!(analyzer.analyzer_type, AnalyzerType::PaulIonTrap);
     assert_eq!(analyzer.resolution_method, ResolutionMethod::Fwhm);
     assert_eq!(analyzer.resolution_type, ResolutionType::Unknown);
+    assert_eq!(analyzer.scan_direction, ScanDirection::Unknown);
+    assert_eq!(analyzer.scan_law, ScanLaw::Unknown);
+    assert_eq!(analyzer.reflectron_state, ReflectronState::Unknown);
     assert_eq!(analyzer.resolution, 0.0);
     assert_eq!(analyzer.accuracy, 0.0);
     assert_eq!(analyzer.scan_rate, 0.0);
@@ -388,6 +396,7 @@ fn load_reads_the_operator_and_leaves_the_sample_empty() {
     let sample = &experiment.settings.sample;
     assert_eq!(sample.name, "");
     assert_eq!(sample.number, "");
+    assert_eq!(sample.state, SampleState::Unknown);
     assert_eq!(sample.mass, 0.0);
     assert_eq!(sample.volume, 0.0);
     assert_eq!(sample.concentration, 0.0);
@@ -825,6 +834,18 @@ fn the_stored_document_is_structurally_valid() {
     assert!(document.starts_with("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"));
     assert!(document.contains(mzxml::NAMESPACE), "{document}");
     assert!(document.contains("mzXML_idx_3.1.xsd"));
+    // xsi:schemaLocation is a whitespace-separated list of (namespace,
+    // location) pairs, and MzXMLHandler.cpp:646-647 writes the separating
+    // space explicitly. Without it the attribute is one unparseable token and
+    // the root element fails XSD validation, which the two `contains` checks
+    // above cannot see.
+    assert!(
+        document.contains(&format!(
+            "xsi:schemaLocation=\"{NS} {NS}/mzXML_idx_3.1.xsd\"",
+            NS = mzxml::NAMESPACE
+        )),
+        "{document}"
+    );
     assert_eq!(
         document.matches("<scan ").count(),
         document.matches("</scan>").count()
@@ -1035,6 +1056,86 @@ fn an_empty_payload_with_a_nonzero_count_is_only_reported() {
         "{:?}",
         report.diagnostics
     );
+}
+
+/// Each `xs:duration` component is parsed exactly as `XMLHandler::asDouble_`
+/// parses it (`MzXMLHandler.cpp:254-279`, `XMLHandler.h:305-317`): nothing is
+/// stripped, so a sign inside the duration is a sign and a component the source
+/// cannot convert contributes zero with a diagnostic. The one divergence is the
+/// leading `-`, which upstream loses to `suffix(time_string, 'T')`.
+#[test]
+fn duration_components_parse_as_the_source_parses_them() {
+    for (duration, expected, diagnostic) in [
+        ("PT1S", 1.0, false),
+        ("PT2M1S", 121.0, false),
+        ("PT1H61S", 3661.0, false),
+        // Upstream's own writer emits this for msRun/@startTime.
+        ("PT-1S", -1.0, false),
+        ("PT+1S", 1.0, false),
+        // A month-only duration: the source hands "P1" to asDouble_, which
+        // reports a conversion error and contributes 0.
+        ("P1M", 0.0, true),
+        // The date part is dropped, the time part kept.
+        ("P1DT2H", 7200.0, false),
+        // The leading sign is the port's documented divergence.
+        ("-PT1S", -1.0, false),
+    ] {
+        let document = format!(
+            "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<mzXML><msRun>\
+             <scan num=\"1\" msLevel=\"1\" peaksCount=\"0\" retentionTime=\"{duration}\">\
+             <peaks precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\"/>\
+             </scan></msRun></mzXML>"
+        );
+        let mut report = mzxml::ReadReport::default();
+        let experiment = mzxml::read_with_report(
+            std::io::Cursor::new(document),
+            &ReadOptions::default(),
+            &mut report,
+        )
+        .unwrap_or_else(|error| panic!("{duration} loads: {error}"));
+        close(experiment.spectra[0].rt, expected);
+        assert_eq!(
+            report
+                .diagnostics
+                .iter()
+                .any(|line| line.contains("retentionTime")),
+            diagnostic,
+            "{duration}: {:?}",
+            report.diagnostics
+        );
+    }
+}
+
+/// `max_decoded_bytes` is charged against the payload's symbol count before
+/// the base64 decode allocates, not against the buffer it produced.
+///
+/// The payload below is 40 symbols, so it decodes to 30 bytes — over an
+/// 8-byte ceiling — and its last four symbols are invalid base64. A decode
+/// that ran first would report the invalid base64; charging the ceiling first
+/// reports the budget, which is also what keeps the transient allocation
+/// bounded by `max_decoded_bytes` rather than by `max_encoded_bytes`.
+#[test]
+fn the_decoded_ceiling_is_charged_before_the_base64_decode() {
+    let document = scan_document(
+        "peaksCount=\"0\"",
+        "precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\"",
+        &format!("{}!!!!", "A".repeat(36)),
+    );
+    let options = ReadOptions {
+        peaks: Default::default(),
+        limits: ReadLimits {
+            max_decoded_bytes: 8,
+            ..ReadLimits::default()
+        },
+    };
+    let error = mzxml::read_with_options(std::io::Cursor::new(document), &options).unwrap_err();
+    match &error {
+        Error::InvalidValue(message) => assert!(
+            message.contains("decoded array byte"),
+            "expected the decoded-byte budget, got {message:?}"
+        ),
+        other => panic!("expected a limit error, got {other:?}"),
+    }
 }
 
 /// The four `<peaks>` attributes the source checks with a non-fatal `error`

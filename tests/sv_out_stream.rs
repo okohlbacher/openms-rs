@@ -13,8 +13,8 @@
 
 use openms::Error;
 use openms::format::sv_out_stream::{
-    F32_FIXED_DIGITS, F64_FIXED_DIGITS, NumberClass, QuotingMethod, SVLimits, SVOutStream,
-    SvNumber, quote, source_float_text,
+    F32_FIXED_DIGITS, F64_FIXED_DIGITS, MAX_FIXED_DIGITS, NumberClass, QuotingMethod, SVLimits,
+    SVOutStream, SvNumber, quote, source_f32_text, source_float_text,
 };
 
 /// Build a stream over an in-memory buffer, the test's `stringstream`.
@@ -396,6 +396,40 @@ fn field_row_and_line_ceilings_are_checked_before_rendering() {
 }
 
 #[test]
+fn a_replacement_longer_than_the_separator_is_charged_before_the_substitution() {
+    // The worst case `preflight` charges - twice the field plus two quotes -
+    // bounds both quote paths but not the QuotingMethod::None substitution,
+    // whose growth factor is replacement.len() / separator.len(). With a
+    // 4096-byte replacement, a 400-byte field of commas renders to 1,638,400
+    // bytes, so the ceiling has to be charged from the separator count rather
+    // than from the raw length.
+    let replacement = "R".repeat(4096);
+    let limits = SVLimits {
+        max_field_bytes: 1024,
+        ..SVLimits::default()
+    };
+    let mut out = SVOutStream::with_options(Vec::new(), ",", &replacement, QuotingMethod::None)
+        .expect("valid separator and replacement")
+        .with_limits(limits);
+    let error = out.write_field(&",".repeat(400)).unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error}");
+    // Nothing was emitted and the line state did not advance.
+    assert_eq!(text(out), "");
+
+    // A field that fits after substitution is still written: one separator
+    // becomes 4096 bytes, which is under a 8192-byte ceiling.
+    let limits = SVLimits {
+        max_field_bytes: 8192,
+        ..SVLimits::default()
+    };
+    let mut out = SVOutStream::with_options(Vec::new(), ",", &replacement, QuotingMethod::None)
+        .expect("valid separator and replacement")
+        .with_limits(limits);
+    out.write_field("a,b").expect("3 bytes become 4098");
+    assert_eq!(text(out), format!("a{replacement}b"));
+}
+
+#[test]
 fn the_file_constructor_creates_and_truncates() {
     let dir = std::env::temp_dir().join("openms_sv_out_stream_file");
     std::fs::create_dir_all(&dir).unwrap();
@@ -459,6 +493,55 @@ fn numeric_text_matches_the_source_formatter() {
     assert_eq!(source_float_text(1.0 / 3.0, F32_FIXED_DIGITS), "0.333333");
     assert_eq!(0.5f32.sv_text(), "0.5");
     assert_eq!(3.14f64.sv_text(), "3.14");
+    // A precision above MAX_FIXED_DIGITS is clamped rather than honoured. The
+    // source has no clamp: it overflows its char buf[64] and falls through to
+    // std::to_string(double), which would print "0.333333"
+    // (NumericFormatting.h:136-139). Neither is reachable from the source's own
+    // call sites, which pass at most writtenDigits<long double>() = 18.
+    assert_eq!(
+        source_float_text(1.0 / 3.0, MAX_FIXED_DIGITS + 1),
+        source_float_text(1.0 / 3.0, MAX_FIXED_DIGITS)
+    );
+}
+
+/// `appendNumeric` is a template: for a `float` the branch comparison and
+/// `std::to_chars` both run at `float` width, so an `f32` must not be promoted
+/// to `f64` before it is formatted.
+#[test]
+fn f32_text_is_formatted_at_f32_width_not_through_f64() {
+    // The third column says whether the promoted `f64` pipeline spells the
+    // value differently - the defect this separation fixes.
+    for (value, expected, promotion_differs) in [
+        (1.23e-5f32, "1.23e-05", true),
+        (12345.6f32, "1.23456e04", true),
+        (1.23e10f32, "1.23e10", true),
+        (0.001f32, "1.0e-03", true),
+        // 0.01f32 == float(1e-2) exactly, so `abs_val < T(1e-2)` is false and
+        // the fixed branch prints it; the promoted f64 is below 1e-2 and would
+        // take the scientific branch.
+        (0.01f32, "0.01", true),
+        // Both pipelines agree on a short value inside the fixed range.
+        (0.5f32, "0.5", false),
+        (1.0f32 / 3.0f32, "0.333333", false),
+    ] {
+        assert_eq!(
+            source_f32_text(value, F32_FIXED_DIGITS),
+            expected,
+            "{value}"
+        );
+        assert_eq!(value.sv_text(), expected, "{value} through SvNumber");
+        let promoted = source_float_text(f64::from(value), F32_FIXED_DIGITS);
+        assert_eq!(
+            promoted != expected,
+            promotion_differs,
+            "{value} promoted is {promoted:?}, f32 text is {expected:?}"
+        );
+    }
+    assert_eq!(source_f32_text(f32::NAN, F32_FIXED_DIGITS), "NaN");
+    assert_eq!(source_f32_text(f32::INFINITY, F32_FIXED_DIGITS), "inf");
+    assert_eq!(source_f32_text(f32::NEG_INFINITY, F32_FIXED_DIGITS), "-inf");
+    assert_eq!(source_f32_text(0.0f32, F32_FIXED_DIGITS), "0.0");
+    assert_eq!(source_f32_text(-0.0f32, F32_FIXED_DIGITS), "-0.0");
 }
 
 #[test]

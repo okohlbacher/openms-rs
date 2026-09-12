@@ -535,6 +535,10 @@ impl MzTabM {
     /// Native: the source has no ceiling and the writer emits up to eight lines
     /// per `ms_run` entry, so an oversized metadata section would otherwise
     /// grow the output without bound.
+    ///
+    /// This bounds the entry *count*, not the index values: a key inserted at
+    /// `usize::MAX` is written as `ms_run[18446744073709551615]-…`, exactly as
+    /// the source's unchecked `Size` would, and nothing refuses it.
     pub const MAX_INDEXED_ENTRIES: usize = 100_000;
 
     /// An empty document whose metadata declares `2.0.0-M`. Source `MzTabM()`,
@@ -896,6 +900,21 @@ pub struct MzTabMWriteOptions {
     /// an assay or study variable the metadata does not declare, so the output
     /// is always a rectangle. `true` reproduces the source's cells exactly.
     pub source_row_abundance_cells: bool,
+    /// Write a cell whose text carries a tab or a line break unchanged.
+    ///
+    /// `MzTabMFile.cpp:626-631` hands every rendered row to `TextFile` as it
+    /// is, so a cell containing a tab silently gains a column and a cell
+    /// containing a line break splits the row across physical lines — text
+    /// that begins with `MTD`, `SMH` or `SML` then forges a line of that kind.
+    /// The text is reachable from file-derived data: `chemical_name`, `uri`,
+    /// `smiles` and every `opt_` value come from a featureXML or `.oms` text
+    /// node, and an XML text node may legally contain tabs and newlines.
+    ///
+    /// `false`, the default, refuses such a cell with [`Error::InvalidValue`]
+    /// before anything is written, which is what makes the default output
+    /// rectangular and parseable. `true` reproduces the source's
+    /// pass-through — the eleventh source defect of the writer.
+    pub source_verbatim_cells: bool,
 }
 
 impl MzTabMWriteOptions {
@@ -907,6 +926,7 @@ impl MzTabMWriteOptions {
             source_derivatization_agent_key: true,
             omit_ms_run_id_format: true,
             source_row_abundance_cells: true,
+            source_verbatim_cells: true,
         }
     }
 }
@@ -919,8 +939,12 @@ impl MzTabMWriteOptions {
 pub struct MzTabMSectionLine {
     /// The rendered line, tabs included, without a terminator.
     pub text: String,
-    /// The number of tab-separated columns `text` carries, including the
-    /// leading `SMH`/`SML`/`SFH`/`SMF`/`SEH`/`SME` prefix.
+    /// The number of cells rendered into `text`, including the leading
+    /// `SMH`/`SML`/`SFH`/`SMF`/`SEH`/`SME` prefix — the source's `n_columns`.
+    ///
+    /// Equal to the number of tab-separated columns `text` carries, unless
+    /// [`MzTabMWriteOptions::source_verbatim_cells`] let a cell through with a
+    /// tab of its own, in which case `text` has more.
     pub columns: usize,
 }
 
@@ -940,6 +964,11 @@ impl MzTabMFile {
     /// Largest number of lines [`MzTabMFile::store`] will write, matching the
     /// line ceiling of [`crate::format::TextFile`], through which the source
     /// also writes.
+    ///
+    /// Counted as *physical* lines: a verbatim cell carrying a line break —
+    /// possible only with [`MzTabMWriteOptions::source_verbatim_cells`] — turns
+    /// one rendered row into several, and the rendered document is charged
+    /// again for those before it is handed back.
     pub const MAX_LINES: usize = 1_000_000;
 
     /// A writer with native options. Source `MzTabMFile()`.
@@ -968,10 +997,12 @@ impl MzTabMFile {
     ///
     /// # Errors
     ///
-    /// [`Error::InvalidValue`] when any indexed metadata map exceeds
-    /// [`MzTabM::MAX_INDEXED_ENTRIES`], or when the estimated line count
-    /// exceeds [`MzTabMFile::MAX_LINES`]. Both are checked before any line is
-    /// built.
+    /// [`Error::InvalidValue`] when any indexed metadata map has more entries
+    /// than [`MzTabM::MAX_INDEXED_ENTRIES`] (the ceiling bounds the entry
+    /// count, not the index values), or when the estimated line count exceeds
+    /// [`MzTabMFile::MAX_LINES`] — both checked before any line is built — or
+    /// when a key or value carries a tab or a line break and
+    /// [`MzTabMWriteOptions::source_verbatim_cells`] is off.
     pub fn generate_meta_data_section(&self, md: &MzTabMMetaData) -> Result<Vec<String>> {
         write::meta_data_section(md, &self.options)
     }
@@ -990,13 +1021,15 @@ impl MzTabMFile {
     /// # Errors
     ///
     /// [`Error::InvalidValue`] when the column count would exceed
-    /// [`MzTabM::MAX_OPTIONAL_COLUMNS`] plus the fixed columns.
+    /// [`MzTabM::MAX_OPTIONAL_COLUMNS`] plus the fixed columns, and when a
+    /// column name carries a tab or a line break while
+    /// [`MzTabMWriteOptions::source_verbatim_cells`] is off.
     pub fn generate_small_molecule_header(
         &self,
         meta: &MzTabMMetaData,
         optional_columns: &[String],
     ) -> Result<MzTabMSectionLine> {
-        write::small_molecule_header(meta, optional_columns)
+        write::small_molecule_header(meta, optional_columns, &self.options)
     }
 
     /// Generate one `SML` row.
@@ -1018,8 +1051,10 @@ impl MzTabMFile {
     /// # Errors
     ///
     /// [`Error::InvalidValue`] under native options when the row's abundance
-    /// maps name an assay or study variable `meta` does not declare, and for
-    /// the column ceiling.
+    /// maps name an assay or study variable `meta` does not declare, or when a
+    /// cell carries a tab or a line break — see
+    /// [`MzTabMWriteOptions::source_verbatim_cells`] — and for the column
+    /// ceiling.
     pub fn generate_small_molecule_section_row(
         &self,
         row: &MzTabMSmallMoleculeSectionRow,
@@ -1042,7 +1077,7 @@ impl MzTabMFile {
         meta: &MzTabMMetaData,
         optional_columns: &[String],
     ) -> Result<MzTabMSectionLine> {
-        write::small_molecule_feature_header(meta, optional_columns)
+        write::small_molecule_feature_header(meta, optional_columns, &self.options)
     }
 
     /// Generate one `SMF` row.
@@ -1076,7 +1111,7 @@ impl MzTabMFile {
         meta: &MzTabMMetaData,
         optional_columns: &[String],
     ) -> Result<MzTabMSectionLine> {
-        write::small_molecule_evidence_header(meta, optional_columns)
+        write::small_molecule_evidence_header(meta, optional_columns, &self.options)
     }
 
     /// Generate one `SME` row.
@@ -1088,7 +1123,10 @@ impl MzTabMFile {
     /// # Errors
     ///
     /// [`Error::InvalidValue`] under native options when the row reports a
-    /// confidence measure `meta` does not declare, and for the column ceiling.
+    /// confidence measure `meta` does not declare, or when a cell carries a
+    /// tab or a line break — see
+    /// [`MzTabMWriteOptions::source_verbatim_cells`] — and for the column
+    /// ceiling.
     pub fn generate_small_molecule_evidence_section_row(
         &self,
         row: &MzTabMSmallMoleculeEvidenceSectionRow,
@@ -1106,7 +1144,11 @@ impl MzTabMFile {
     ///
     /// # Errors
     ///
-    /// As [`MzTabMFile::store`], minus the extension check and the I/O.
+    /// As [`MzTabMFile::store`], minus the extension check and the I/O:
+    /// [`Error::InvalidValue`] for any resource ceiling, for a row that does
+    /// not fill its header, and — unless
+    /// [`MzTabMWriteOptions::source_verbatim_cells`] is set — for a cell,
+    /// metadata key or metadata value carrying a tab or a line break.
     pub fn generate_lines(&self, mztab_m: &MzTabM) -> Result<Vec<String>> {
         write::document(mztab_m, &self.options)
     }
@@ -1633,14 +1675,45 @@ mod write {
                 sl.push(line(format!("{MTD}{name}"), value.to_cell_string()));
             }
         }
+        // Every `MTD` line is exactly three tab-separated fields. A key or a
+        // value carrying a separator would add a field or split the line — and
+        // text beginning with `MTD`, `SMH` or `SML` would forge a line of that
+        // kind — so the whole section is checked before it is handed back.
+        if !options.source_verbatim_cells {
+            for text in &sl {
+                if text.matches('\t').count() != 2 || text.contains(['\n', '\r']) {
+                    return Err(bad(
+                        "MzTab-M metadata key or value carries a tab or a line break",
+                    ));
+                }
+            }
+        }
         Ok(sl)
     }
 
-    fn finish(parts: Vec<String>) -> MzTabMSectionLine {
-        MzTabMSectionLine {
+    /// The separators a cell may not carry: a tab would add a column and a
+    /// line break would split the row. See
+    /// [`MzTabMWriteOptions::source_verbatim_cells`].
+    const CELL_SEPARATORS: [char; 3] = ['\t', '\n', '\r'];
+
+    fn finish(
+        parts: Vec<String>,
+        what: &str,
+        options: &MzTabMWriteOptions,
+    ) -> Result<MzTabMSectionLine> {
+        if !options.source_verbatim_cells {
+            for (column, part) in parts.iter().enumerate() {
+                if part.contains(CELL_SEPARATORS) {
+                    return Err(bad(format!(
+                        "MzTab-M {what} column {column} carries a tab or a line break"
+                    )));
+                }
+            }
+        }
+        Ok(MzTabMSectionLine {
             columns: parts.len(),
             text: parts.join("\t"),
-        }
+        })
     }
 
     fn check_columns(count: usize) -> Result<()> {
@@ -1704,6 +1777,7 @@ mod write {
     pub(super) fn small_molecule_header(
         meta: &MzTabMMetaData,
         optional_columns: &[String],
+        options: &MzTabMWriteOptions,
     ) -> Result<MzTabMSectionLine> {
         check_columns(optional_columns.len())?;
         let mut header: Vec<String> = [
@@ -1737,7 +1811,7 @@ mod write {
             &mut header,
         );
         header.extend(optional_columns.iter().cloned());
-        Ok(finish(header))
+        finish(header, "SMH header", options)
     }
 
     pub(super) fn small_molecule_row(
@@ -1784,12 +1858,13 @@ mod write {
             &mut s,
         )?;
         optional_cells(optional_columns, &row.opt, &mut s);
-        Ok(finish(s))
+        finish(s, "SML row", options)
     }
 
     pub(super) fn small_molecule_feature_header(
         meta: &MzTabMMetaData,
         optional_columns: &[String],
+        options: &MzTabMWriteOptions,
     ) -> Result<MzTabMSectionLine> {
         check_columns(optional_columns.len())?;
         let mut header: Vec<String> = [
@@ -1810,7 +1885,7 @@ mod write {
         .collect();
         abundance_columns("abundance_assay", &meta.assay, &mut header);
         header.extend(optional_columns.iter().cloned());
-        Ok(finish(header))
+        finish(header, "SMF header", options)
     }
 
     pub(super) fn small_molecule_feature_row(
@@ -1839,12 +1914,13 @@ mod write {
             &mut s,
         )?;
         optional_cells(optional_columns, &row.opt, &mut s);
-        Ok(finish(s))
+        finish(s, "SMF row", options)
     }
 
     pub(super) fn small_molecule_evidence_header(
         meta: &MzTabMMetaData,
         optional_columns: &[String],
+        options: &MzTabMWriteOptions,
     ) -> Result<MzTabMSectionLine> {
         check_columns(optional_columns.len())?;
         let mut header: Vec<String> = [
@@ -1874,7 +1950,7 @@ mod write {
         }
         header.push("rank".to_owned());
         header.extend(optional_columns.iter().cloned());
-        Ok(finish(header))
+        finish(header, "SEH header", options)
     }
 
     pub(super) fn small_molecule_evidence_row(
@@ -1910,7 +1986,7 @@ mod write {
         )?;
         s.push(row.rank.to_cell_string());
         optional_cells(optional_columns, &row.opt, &mut s);
-        Ok(finish(s))
+        finish(s, "SME row", options)
     }
 
     pub(super) fn document(mztab_m: &MzTabM, options: &MzTabMWriteOptions) -> Result<Vec<String>> {
@@ -1939,7 +2015,7 @@ mod write {
 
         let sml_optional = mztab_m.small_molecule_optional_column_names()?;
         out.push(String::new());
-        let header = small_molecule_header(meta, &sml_optional)?;
+        let header = small_molecule_header(meta, &sml_optional, options)?;
         let sml_columns = header.columns;
         out.push(header.text);
         for row in &mztab_m.small_molecule_data {
@@ -1950,7 +2026,7 @@ mod write {
 
         let smf_optional = mztab_m.small_molecule_feature_optional_column_names()?;
         out.push(String::new());
-        let header = small_molecule_feature_header(meta, &smf_optional)?;
+        let header = small_molecule_feature_header(meta, &smf_optional, options)?;
         let smf_columns = header.columns;
         out.push(header.text);
         for row in &mztab_m.small_molecule_feature_data {
@@ -1966,7 +2042,7 @@ mod write {
 
         let sme_optional = mztab_m.small_molecule_evidence_optional_column_names()?;
         out.push(String::new());
-        let header = small_molecule_evidence_header(meta, &sme_optional)?;
+        let header = small_molecule_evidence_header(meta, &sme_optional, options)?;
         let sme_columns = header.columns;
         out.push(header.text);
         for row in &mztab_m.small_molecule_evidence_data {
@@ -1978,6 +2054,17 @@ mod write {
                 options,
             )?;
             out.push(rendered.text);
+        }
+        // MzTabMFile::MAX_LINES counts *physical* lines. Under source options a
+        // verbatim cell may carry a line break, which turns one rendered row
+        // into several, so the rendered lines are charged again here — the
+        // pre-render estimate above cannot see them.
+        let mut physical = out.len();
+        for text in &out {
+            physical = add(physical, text.matches('\n').count())?;
+        }
+        if physical > MzTabMFile::MAX_LINES {
+            return Err(bad("MzTab-M output exceeds the line limit"));
         }
         Ok(out)
     }
@@ -2294,9 +2381,17 @@ mod export {
             ));
         }
         adduct_names.sort_by(|a, b| (a.0, &a.1, a.2).cmp(&(b.0, &b.1, b.2)));
+        // `MzTabM.cpp:287` selects positive only when the last character is
+        // `+`, so every other spelling — `M+H`, `M+Na`, a bare `H` — is
+        // negative there. An empty name underflows `at(size() - 1)` and throws
+        // `std::out_of_range`; there is no name to take a sign from, so this
+        // keeps the mandatory field writable and calls it positive.
         let positive = match adduct_names.first() {
             None => true,
-            Some((_, _, name)) => !name.ends_with('-'),
+            Some((_, _, name)) => match name.chars().next_back() {
+                Some('+') | None => true,
+                Some(_) => false,
+            },
         };
         let (polarity_id, polarity_name) = term(
             cv,

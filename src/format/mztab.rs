@@ -154,6 +154,32 @@ fn parse_source_double(text: &str) -> Result<f64> {
     Ok(value)
 }
 
+/// `StringUtils::toInt32`: source whitespace, then at most one leading `+`,
+/// then a signed 32-bit integer and nothing else.
+///
+/// The source parses into an `Int32` with `std::from_chars`, which reports
+/// `result_out_of_range` for a token outside the 32-bit range and is turned
+/// into a `ConversionError` (`StringUtils.cpp:150-156`, pinned by
+/// `StringUtils_test.cpp:272`). It also advances past exactly one `+`
+/// (`StringUtils.cpp:148`), so `from_chars` still sees a second sign and
+/// fails. Both properties are reproduced here: `"2147483648"` and `"++5"` are
+/// refused.
+fn parse_source_int32(text: &str, label: &str) -> Result<i32> {
+    let token = trim_source(text);
+    // `strip_prefix` removes at most one '+'. Rust's integer `FromStr` would
+    // accept a second one, which the source's `from_chars` does not, so the
+    // remainder is rejected when it carries another sign.
+    let digits = token.strip_prefix('+').unwrap_or(token);
+    if digits.starts_with('+') {
+        return Err(conversion(format!(
+            "could not convert {token:?} to {label}"
+        )));
+    }
+    digits
+        .parse::<i32>()
+        .map_err(|_| conversion(format!("could not convert {token:?} to {label}")))
+}
+
 /// Header cell state for `Integer` and `Double` columns.
 ///
 /// Source `MzTabCellStateType`. The source's trailing
@@ -1494,7 +1520,9 @@ impl MzTabSpectraRef {
     ///
     /// [`Error::Parse`] when the text does not split into exactly two
     /// colon-separated fields, or when the run index is not a non-negative
-    /// integer. The source casts a negative index to `Size`, producing a run
+    /// `Int32`. The source reads the index with `StringUtils::toInt32`, so a
+    /// token outside the 32-bit range is a `ConversionError` there and an error
+    /// here. The source then casts a negative index to `Size`, producing a run
     /// index near `2^64`; this rejects it.
     pub fn from_cell_string(&mut self, text: &str) -> Result<()> {
         if is_token(text, "null") {
@@ -1509,14 +1537,11 @@ impl MzTabSpectraRef {
             )));
         }
         let index_text: String = fields[0].replace("ms_run[", "").replace(']', "");
-        let index = trim_source(&index_text)
-            .trim_start_matches('+')
-            .parse::<i64>()
-            .map_err(|_| {
-                conversion(format!(
-                    "can not convert {text:?} to an MzTab spectra_ref: {index_text:?} is not an integer"
-                ))
-            })?;
+        let index = parse_source_int32(&index_text, "an MzTab ms_run index").map_err(|_| {
+            conversion(format!(
+                "can not convert {text:?} to an MzTab spectra_ref: {index_text:?} is not an Int32"
+            ))
+        })?;
         if index < 0 {
             return Err(conversion(format!(
                 "MzTab ms_run index must not be negative: {index_text:?}"
@@ -1650,9 +1675,10 @@ impl MzTabModification {
     /// # Errors
     ///
     /// [`Error::Parse`] when the text contains more than one `-`, or a position
-    /// is not an integer, or a bracketed parameter does not parse, and
-    /// [`Error::InvalidValue`] for the [`MAX_CELL_BYTES`]/[`MAX_CELL_ITEMS`]
-    /// ceilings.
+    /// is not a non-negative `Int32` (the source reads positions with
+    /// `StringUtils::toInt32`, which refuses a token outside the 32-bit range),
+    /// or a bracketed parameter does not parse, and [`Error::InvalidValue`] for
+    /// the [`MAX_CELL_BYTES`]/[`MAX_CELL_ITEMS`] ceilings.
     ///
     /// # Notes
     ///
@@ -1709,15 +1735,11 @@ impl MzTabModification {
 }
 
 fn parse_position(text: &str) -> Result<usize> {
-    let token = trim_source(text).trim_start_matches('+');
-    let value = token.parse::<i64>().map_err(|_| {
-        conversion(format!(
-            "could not convert {token:?} to an MzTab modification position"
-        ))
-    })?;
+    let value = parse_source_int32(text, "an MzTab modification position")?;
     usize::try_from(value).map_err(|_| {
         conversion(format!(
-            "MzTab modification position must not be negative: {token:?}"
+            "MzTab modification position must not be negative: {:?}",
+            trim_source(text)
         ))
     })
 }
