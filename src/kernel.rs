@@ -47,6 +47,8 @@ pub use spectrum_type::SpectrumTypeQueryLimits;
 pub mod chromatogram_merge;
 /// Conversions between peak, feature and consensus containers (`ConversionHelper.h`).
 pub mod conversion_helper;
+/// Experiment ion mobility and rasterization (`MSExperiment.h`): scan-mobility search, IM frames, mobility exports, RT/m/z raster.
+pub mod experiment_mobility;
 /// Identification surface of the feature containers: annotation state, primary IDs, match sets and reference updates.
 pub mod feature_identification;
 /// Feature, consensus and map containers: `BaseFeature`, `Feature`,

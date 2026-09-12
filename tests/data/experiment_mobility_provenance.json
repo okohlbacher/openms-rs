@@ -1,0 +1,201 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "sha256": "ee0c62b7a97bacb035bc1a4084f753dbf37619e1410bdc7f5a8008af8bb00cb3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "sha256": "f6a4a70d3f55cc9337dbeb6ec3156cbaeb4b8cfe6a35412347689a0e26065869"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Macros.h",
+      "sha256": "90d8f9cd59f9248df8df8b60d2c2f71e415f0688a31b6fd7f5d3fd9b9590ed82"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "sha256": "842bf219137c3f9078765dea7b39eb0a821771872888d58645551358149df888"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AreaIterator_test.cpp",
+      "sha256": "d69e7034b39401fdfb70cb768b33eff37e408bf9de95be6d8dd42848a320e6b9"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/experiment_mobility.rs",
+    "src/kernel/area_iteration.rs",
+    "src/kernel.rs"
+  ],
+  "native_tests": [
+    "tests/experiment_mobility.rs"
+  ],
+  "support": "docs/EXPERIMENT_MOBILITY_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 642,
+      "operation": "IMBegin is a lower_bound under MSSpectrum::IMLess, which compares getDriftTime(); only the const overload is declared even though the class test names a mutable one"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 649,
+      "operation": "IMEnd is the matching upper_bound"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 803,
+      "operation": "MSSpectrum::IMLess::operator() compares a.getDriftTime() < b.getDriftTime(), so the scalar drift time alone orders the scans"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 1322,
+      "operation": "isIMFrame: empty run returns false; the first spectrum's RT is the reference, compared with !=; last_drift starts at numeric_limits<double>::lowest() and only the previous scan is compared, so a single scan with no drift time reports true"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 179,
+      "operation": "get2DPeakDataIMPerSpectrum declares DriftTimeUnit unit, std::vector<float> im and float t = -1.0 before the loop, so a first selected RT of exactly -1 opens no row and mz.back() writes into an empty vector"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 184,
+      "operation": "the row key is the f64 RT compared against the f32 cursor, and maybeGetIMData() is called only when a row starts, so spectra merged into one row are looked up in the first spectrum's ion mobility array"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 196,
+      "operation": "im[peak_index] with peak_index = it.getPeakIndex().peak, the peak's index inside its own spectrum, and no comparison against im.size()"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 201,
+      "operation": "a spectrum whose maybeGetIMData() reports DriftTimeUnit::NONE contributes the sentinel -1.0 per peak, the same value a genuine mobility of -1 would produce"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 239,
+      "operation": "get2DPeakDataIM declares unit, im and t = -1.0 INSIDE the per-peak loop, so the array is refetched per peak and a spectrum at RT exactly -1 reports -1 mobility although it carries ion mobility data"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 274,
+      "operation": "rasterizeRTMZ throws Exception::NullPointer for a null buffer and Exception::InvalidValue for a zero bin count, then Exception::InvalidRange for min >= max on either axis"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 297,
+      "operation": "total_pixels = rt_bins * mz_bins is computed unchecked and then filled through the caller's pointer"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 355,
+      "operation": "the single-threaded rasterizer branch this port reproduces: rt_bin clamped to rt_bins-1, mz window from MZBegin/MZEnd, pixel index mz_bin * rt_bins + rt_bin, SUM or MAX"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 409,
+      "operation": "the OpenMP branch with per-thread accumulation buffers and a thread-count heuristic; the port is serial and records the gap"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 544,
+      "operation": "areaBegin(const RangeManagerType&, UInt) reads RangeRT, RangeMZ and RangeMobility with getNonEmptyRange() and ignores RangeIntensity"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 536,
+      "operation": "the scalar areaBegin passes RangeMobility{}.getNonEmptyRange(), a full range, so an unrestricted mobility filter is the source default"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "line": 88,
+      "operation": "Param::lowIM / highIM store the mobility boundary; both default to lowest()/max()"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "line": 248,
+      "operation": "AreaIterator::getDriftTime returns current_scan_->getDriftTime(), the scalar value, never a per-peak array"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
+      "line": 281,
+      "operation": "nextScan_ skips a scan whose MS level differs or whose drift time is not contained in RangeMobility{low_im_, high_im_}; the level is compared after uint8_t/int8_t narrowing"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "line": 94,
+      "operation": "RangeBase::contains is min <= value & value <= max, which answers false for NaN, so a scan with a NaN drift time is silently skipped even by a full range"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "line": 278,
+      "operation": "getNonEmptyRange returns (lowest, max) for an empty range, which is why an empty dimension of a RangeManager does not restrict the area"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "line": 37,
+      "operation": "getIMUnit decides from the array NAME only: a PSI-MS child of MS:1002893 with its declared unit, then the UserParam prefixes; the array's own 'unit' meta value is never read"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/Macros.h",
+      "line": 91,
+      "operation": "OPENMS_PRECONDITION expands to nothing unless OPENMS_ASSERTIONS is defined, so the areaBegin swapped-bound and isSorted guards do not exist in a release build"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 617,
+      "operation": "the exp_area fixture: set2DData of six RT/m/z points becomes three scans (RT -1, 1, 2) and drift times 0, 1, 2 are assigned afterwards"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 1906,
+      "operation": "the get2DPeakDataIMPerSpectrum fixture and its six cases, including the -1.0 sentinel for a spectrum with no ion mobility array"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSExperiment_test.cpp",
+      "line": 2917,
+      "operation": "the backward-compatibility section: getMinMobility/getMaxMobility read the combined range manager, and the minimum m/z is 0 because the chromatogram's product m/z is unset"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AreaIterator_test.cpp",
+      "line": 180,
+      "operation": "the getDriftTime section: lowIM(1).highIM(1.5) over RT [3,9] and m/z [503,509] keeps only the scan with drift time 1.4"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/AreaIterator_test.cpp",
+      "line": 194,
+      "operation": "the overall test's mobility cases: lowIM(0).highIM(2) selects all eight peaks, lowIM(0).highIM(0.9) selects none"
+    }
+  ],
+  "evidence_tier": 3,
+  "evidence": "Tier 3 (source review): every literal in tests/experiment_mobility.rs is transcribed from the two pinned class tests. No C++ was built or executed and no retained C++ output exists for these headers, so tier 1 is unavailable. Class-test section accounting across both files: 81 sections, 14 ported as new tests here (AreaIterator_test.cpp getDriftTime, getRT, the ion-mobility and MS-level cases of the overall test; MSExperiment_test.cpp areaBeginConst(range), areaBegin(range), IMBegin, IMEnd, isIMFrame, get2DPeakDataIM, get2DPeakDataIMPerSpectrum and the backward-compatibility delegates), 63 mapped to existing Rust tests of earlier kernel packages with a cited asserted value, and 4 unaccounted: the set2DData add_mass_traces specialization, both getFirstProductSpectrum overloads and operator<<(ostream&, const MSExperiment&). Those four are the three deferrals recorded in docs/EXPERIMENT_MOBILITY_SUPPORT.md, each needing a file outside this work package's ownership. Everything the port checks that the source does not - the drift-time ordering and finiteness guards, the ion mobility array length guard, the raster sortedness and finiteness guards, the resource ceilings and the atomic commit - is tier 4 (Rust-only invariants) derived from the source lines anchored above.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}
