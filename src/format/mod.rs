@@ -38,6 +38,8 @@ pub mod ms2;
 pub mod peak_options;
 pub use peak_options::PeakFileOptions;
 pub(crate) mod path_io;
+/// Separated-value output with automatic separators and quoting (`SVOutStream.h`).
+pub mod sv_out_stream;
 
 pub use file_handler::FileHandler;
 pub use file_types::{FileProperty, FileType, FileTypeList, FilterLayout};
@@ -69,6 +71,9 @@ pub mod indexed_mzml;
 /// Random access to one record of an indexed mzML file (`IndexedMzMLHandler.h`).
 #[cfg(feature = "mzml")]
 pub mod indexed_mzml_handler;
+/// Streaming mzML consumer that writes records as they arrive (`MSDataWritingConsumer.h`).
+#[cfg(feature = "mzml")]
+pub mod ms_data_writing_consumer;
 #[cfg(feature = "mzml")]
 pub mod mzml;
 #[cfg(feature = "mzml-schema")]
