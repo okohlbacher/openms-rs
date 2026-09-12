@@ -496,11 +496,11 @@ fn combine(method: IntensityAveragingMethod, values: &mut [f64]) -> Result<f32> 
 /// `clear_spectrum` those four are emptied, otherwise they are retained.
 ///
 /// The native `peptide_identifications` field, which the source keeps outside
-/// `MSSpectrum`, is treated as metadata and copied. The native spectrum carries
-/// no spectrum-level drift time or unit (those live on `Precursor`), so the
-/// source's `setDriftTime`/`setDriftTimeUnit` copies have no counterpart; see
-/// the support document. No ceiling applies: the call clones metadata only,
-/// which is outside the checked-operation budgets like ordinary `Clone`.
+/// `MSSpectrum`, is treated as metadata and copied. The source's explicit
+/// `setDriftTime`/`setDriftTimeUnit` calls are covered by the same clone, since
+/// [`MSSpectrum::drift_time`] and [`MSSpectrum::drift_time_unit`] are ordinary
+/// fields here. No ceiling applies: the call clones metadata only, which is
+/// outside the checked-operation budgets like ordinary `Clone`.
 pub fn copy_spectrum_meta(input: &MSSpectrum, output: &mut MSSpectrum, clear_spectrum: bool) {
     let (peaks, float_data_arrays, integer_data_arrays, string_data_arrays) = if clear_spectrum {
         (Vec::new(), Vec::new(), Vec::new(), Vec::new())

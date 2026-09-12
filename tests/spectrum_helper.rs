@@ -541,6 +541,9 @@ fn copy_spectrum_meta_copies_metadata_only() {
     input.name = "in".into();
     input.native_id = "scan=1".into();
     input.metadata.insert("key".into(), "value".into());
+    // Source copySpectrumMeta assigns drift time and its unit explicitly.
+    input.drift_time = 12.5;
+    input.drift_time_unit = openms::metadata::DriftTimeUnit::Millisecond;
     input
         .float_data_arrays
         .push(DataArray::new("fda", vec![1.0; 6]));
@@ -556,9 +559,11 @@ fn copy_spectrum_meta_copies_metadata_only() {
     assert_eq!(output.ms_level, 2);
     assert_eq!(output.name, "in");
     assert_eq!(output.native_id, "scan=1");
+    assert_eq!(output.metadata["key"].as_str().unwrap(), "value");
+    assert_eq!(output.drift_time, 12.5);
     assert_eq!(
-        output.metadata.get("key").map(String::as_str),
-        Some("value")
+        output.drift_time_unit,
+        openms::metadata::DriftTimeUnit::Millisecond
     );
     let mut expected = input.clone();
     expected.peaks.clear();
@@ -576,10 +581,7 @@ fn copy_spectrum_meta_copies_metadata_only() {
     assert_eq!(output.rt, 100.5);
     assert_eq!(output.ms_level, 2);
     assert_eq!(output.name, "in");
-    assert_eq!(
-        output.metadata.get("key").map(String::as_str),
-        Some("value")
-    );
+    assert_eq!(output.metadata["key"].as_str().unwrap(), "value");
 
     // The input is not modified and the source default (clear) is explicit.
     assert_eq!(input.peaks.len(), 6);

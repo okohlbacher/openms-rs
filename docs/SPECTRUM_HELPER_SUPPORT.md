@@ -23,7 +23,7 @@ existing kernel operation rather than duplicated.
 | `template <typename PeakContainerT> void subtractMinimumIntensity(PeakContainerT& p)` | `subtract_minimum_intensity(&mut C)` and `subtract_minimum_intensity_with_limits(&mut C, SpectrumHelperLimits)` for `C: PeakContainer` | ported |
 | `enum class IntensityAveragingMethod : int { MEDIAN, MEAN, SUM, MIN, MAX }` | `IntensityAveragingMethod::{Median, Mean, Sum, Min, Max}` in source order; `Default` is `Median`, the source default argument | ported |
 | `template <typename PeakContainerT> void makePeakPositionUnique(PeakContainerT& p, IntensityAveragingMethod m = MEDIAN)` | `make_peak_position_unique(&mut C, IntensityAveragingMethod)` (native defaults) and `make_peak_position_unique_with(&mut C, IntensityAveragingMethod, UniquePositionOptions)`; `UniquePositionOptions::source()` reproduces the source | ported |
-| `OPENMS_DLLAPI void copySpectrumMeta(const MSSpectrum& input, MSSpectrum& output, bool clear_spectrum = true)` | `copy_spectrum_meta(&MSSpectrum, &mut MSSpectrum, bool)`; the source default `true` is passed explicitly | ported (drift-time copy deferred, see below) |
+| `OPENMS_DLLAPI void copySpectrumMeta(const MSSpectrum& input, MSSpectrum& output, bool clear_spectrum = true)` | `copy_spectrum_meta(&MSSpectrum, &mut MSSpectrum, bool)`; the source default `true` is passed explicitly | ported |
 | `PeakContainerT` template parameter (positions, intensities, three data-array lists) | `PeakContainer` trait, implemented for `MSSpectrum` (`Peak1D`, m/z) and `MSChromatogram` (`ChromatogramPeak`, RT) | native trait |
 | `SpectrumHelperLimits`, `UniquePositionOptions` | native only: per-call ceilings and the lossy-behaviour opt-in | native |
 
@@ -85,12 +85,12 @@ or `@deprecated` tags. The inline comment `data arrays are not updated` in
   intensity that is not a finite `f32` (for example a `Sum` overflowing
   `f32`). The source performs none of these checks; a `NaN` position would
   enter `std::sort` unordered.
-- **Drift time is not copied.** The source `copySpectrumMeta` also assigns the
-  spectrum-level drift time and its unit. The native `MSSpectrum` carries no
-  spectrum-level drift time (only `Precursor` does), so there is nothing to
-  copy; this is a deferral until the spectrum gains those fields. The native
-  `peptide_identifications` field, which the source keeps outside
-  `MSSpectrum`, is treated as metadata and copied.
+- **Drift time is copied.** The source `copySpectrumMeta` assigns the
+  spectrum-level drift time and its unit explicitly; here
+  `MSSpectrum::drift_time` and `drift_time_unit` are ordinary fields, so the
+  single struct-update clone covers both. `tests/spectrum_helper.rs` asserts
+  the copied value and unit. The native `peptide_identifications` field, which
+  the source keeps outside `MSSpectrum`, is treated as metadata and copied.
 - No `Result` is returned by `copy_spectrum_meta`; it has no failure path.
 
 ## Checked boundaries and evidence
