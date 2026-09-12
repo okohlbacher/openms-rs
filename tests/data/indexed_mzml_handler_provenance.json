@@ -1,0 +1,141 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h",
+   "sha256": "10e0d9ddc06913956ccc99366abdbef2d2cf61dc29fb1f8e5afc24a5a23fff17"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "sha256": "727096f0ed488a732fc03ab64daa0ef1ee1d23e66717c06731c955fa37355fed"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h",
+   "sha256": "ca4dd1842161e6423e8c8024d8b4c8195c8f061a63bd24dc87a450f260c67dbd"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLSpectrumDecoder.cpp",
+   "sha256": "7e931ee1fbee8b23cd810bb7f4c4bff08d7da5b4e0756796ebd2248aea632158"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
+   "sha256": "acb4f9a230851f6dd1359cfba4e188458436e2de6122b7b75c992cb808ff9dfb"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLDecoder.cpp",
+   "sha256": "fc9343bf28a6756f063f1fa91471a015d2f6d09e572b6a136372fa9d0473478c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
+   "sha256": "345f204d382aac62551e93c4392a4400d093276b5b6a8200600d9ac4be8fca46"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+   "sha256": "392346db930157903bf75d2dda12fad394e45425a5190337d0b9c3b235dce032"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IndexedMzMLFile_test.cpp",
+   "sha256": "f008dd3a0ecd824805392c29c2879bf8659458ed7455581bd56f9f6587539a7e"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/indexed_mzml_handler/IndexedmzMLFile_2_broken.mzML",
+   "source_path": "src/tests/class_tests/openms/data/IndexedmzMLFile_2_broken.mzML",
+   "sha256": "434fb05da4b3d65a690c019a6f621847ebcf6c6cc4173fab712258467d2ebaa7",
+   "role": "indexListOffset 18446744073709551616; source throws Exception::ConversionError"
+  },
+  {
+   "path": "tests/data/indexed_mzml_handler/IndexedmzMLFile_3_broken.mzML",
+   "source_path": "src/tests/class_tests/openms/data/IndexedmzMLFile_3_broken.mzML",
+   "sha256": "9d110298945cb54cc7cc97756084684bfd83703385804a5526fb21b6dd703875",
+   "role": "indexListOffset 9223372036854775807 in a 3202-byte file; source parsing_success_ stays false"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/indexed_mzml/IndexedmzMLFile_1.mzML",
+   "source_path": "src/tests/class_tests/openms/data/IndexedmzMLFile_1.mzML",
+   "sha256": "0b5506dacd470abe850de55f21fdd40c7684592405ffdf65eca4cdfe54a0d9fc",
+   "role": "Unmodified upstream indexed mzML used by every non-broken class-test section; committed by tests/data/indexed_mzml_provenance.json"
+  },
+  {
+   "path": "tests/data/mzml_upstream_minimal.mzML",
+   "source_path": "src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML",
+   "sha256": "01fdbc15e97c6ff2fb565fc5beea8e8e6d01474a2333da79b72f2440345ae6d3",
+   "role": "Already-committed upstream plain mzML (committed by tests/data/mzml_provenance.json) standing in for the class test's non-indexed MzMLFile_1.mzML: neither carries an indexListOffset footer, so the source records parsing_success_ == false for both"
+  }
+ ],
+ "native_implementation": [
+  "src/format/indexed_mzml_handler.rs"
+ ],
+ "native_tests": [
+  "tests/indexed_mzml_handler.rs"
+ ],
+ "support": "docs/INDEXED_MZML_HANDLER_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "line": 37,
+   "operation": "parseFooter_ appends to the offset vectors and emplaces native ids without clearing, so a repeated openFile accumulates; first entry wins for a duplicate native id"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "line": 48,
+   "operation": "spectra_before_chroms_ defaults to true and is only computed when both index sections are populated"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "line": 76,
+   "operation": "copy constructor reopens the file but omits spectra_native_ids_ and chromatograms_native_ids_ from its initialiser list"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "line": 134,
+   "operation": "chromatogram out-of-range message names spectra and reports getNrSpectra() as the maximum"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "line": 142,
+   "operation": "last chromatogram ends at the first spectrum when chromatograms precede spectra, otherwise at index_offset_"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "line": 162,
+   "operation": "readl = endidx - startidx handed to new char[] with no ordering, file-length or size check, and the stream read result is never inspected"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "line": 202,
+   "operation": "last spectrum ends at the first chromatogram when spectra precede chromatograms, otherwise at index_offset_"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp",
+   "line": 267,
+   "operation": "getMSSpectrumById calls updateRanges once; getMSChromatogramById(int) at line 282 calls it a second time after the two-argument overload already did"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLSpectrumDecoder.cpp",
+   "line": 538,
+   "operation": "XercesDOMParser parses the record text with no error handler installed, so the well-formedness errors caused by the trailing list and run tags in the last record's byte range are discarded"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLSpectrumDecoder.cpp",
+   "line": 570,
+   "operation": "domParseString_ reads only defaultArrayLength, id and the binaryDataArray elements; every other record field is left default-constructed"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscMSExperiment.cpp",
+   "line": 141,
+   "operation": "PeakFileOptions RT, MS-level and precursor-m/z checks run before peak I/O and return a metadata-only spectrum; m/z and intensity ranges select peaks afterwards"
+  }
+ ],
+ "evidence": "Tier 3 source review. Every expected value is either a literal transcribed from IndexedMzMLFile_test.cpp and its unmodified fixture (2 spectra, 1 chromatogram, index offset 667742, record offsets 24146/345745/665563, native ids 'controllerType=0 controllerNumber=1 scan=1', '...scan=2', 'TIC', 19914/19800/48 points, ms level 1, scan start times 0.2961 s and 0.4738 s), or a self-consistency comparison against this crate's own whole-file mzML reader on the same fixture, which is what the class test does with MzMLFile().load. The offset-ordering branch, the hostile-index rejections and the PeakFileOptions behaviour use independently constructed documents (tier 4) because the upstream fixture cannot reach them. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential.",
+ "gaps": [
+  "The source parallelises nothing in this class, but its own class documentation recommends copying the handler for OpenMP use; this port is serial and offers no copy, so a second reader is a second open of the same path.",
+  "The Interfaces::Spectrum / Interfaces::Chromatogram pointer overloads are not ported; the crate has no OpenSWATH Interfaces layer.",
+  "setSkipXMLChecks is not ported: the crate's mzML reader has no unchecked fast path."
+ ]
+}

@@ -57,6 +57,9 @@ pub mod idxml;
 
 #[cfg(feature = "mzml")]
 pub mod indexed_mzml;
+/// Random access to one record of an indexed mzML file (`IndexedMzMLHandler.h`).
+#[cfg(feature = "mzml")]
+pub mod indexed_mzml_handler;
 #[cfg(feature = "mzml")]
 pub mod mzml;
 #[cfg(feature = "mzml-schema")]
