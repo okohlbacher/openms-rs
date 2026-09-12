@@ -1,0 +1,143 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumRangeManager.h",
+      "sha256": "57709f2901021f536e61b073247caf245861ad41e31a14182993920d775508ca"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramRangeManager.h",
+      "sha256": "cd366a55182c0540dc7b570bf248da01945e37d1185e9fa77446098ca342284c"
+    },
+    {
+      "path": "src/openms/source/KERNEL/RangeManager.cpp",
+      "sha256": "64d0fd7ae2ae8742e42aa33610d065f0b6ac90fa3d1db5ac420b177e8933db12"
+    },
+    {
+      "path": "src/openms/source/KERNEL/SpectrumRangeManager.cpp",
+      "sha256": "7d5d775399577744266403a43fa1ff644770363f99806ac1bd62ed4d5fc5e065"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ChromatogramRangeManager.cpp",
+      "sha256": "abe605cbc26fbc69c83d956030634affb4977e072814fc6fdf79e813ca526ef6"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/RangeManager_test.cpp",
+      "sha256": "2592d387bed90c4900accd918d44fed74f996a6940a0d345e6af1f0c965bd2b9"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumRangeManager_test.cpp",
+      "sha256": "dbe5824dddba6c17d47ba3071622f6e66aa045ff929abbb8198a99e5598739da"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+      "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a"
+    },
+    {
+      "path": "src/openms/source/KERNEL/Mobilogram.cpp",
+      "sha256": "62bf89e3796337ec479eb2924ce883c39b7fecd1abe707cfa99a8a4f0fe6b84f"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "sha256": "f6a4a70d3f55cc9337dbeb6ec3156cbaeb4b8cfe6a35412347689a0e26065869"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/ranges.rs"
+  ],
+  "native_tests": [
+    "tests/ranges.rs"
+  ],
+  "support": "docs/RANGES_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "line": 288,
+      "operation": "empty range is min > max with defaults numeric_limits max/lowest"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "line": 203,
+      "operation": "pushInto: cut to sandbox span keeping min, then shift right or left; throws on empty sandbox"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "line": 796,
+      "operation": "containsAll: empty rhs dimension counts as contained; no overlap throws InvalidRange"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+      "line": 823,
+      "operation": "clear(DIM_UNIT): IM_MS, IM_VSSC and FAIMS_CV all clear RangeMobility"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumRangeManager.h",
+      "line": 94,
+      "operation": "byMSLevel throws InvalidValue for an absent level, including level 0 (global lives in the base class)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumRangeManager.h",
+      "line": 84,
+      "operation": "extend*/extendUnsafe with ms_level 0 address the global base ranges; other levels operator[]-insert a per-level manager"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 691,
+      "operation": "updateRanges refreshes each spectrum's own cache as a side effect (on-demand port covers it)"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 696,
+      "operation": "peakless spectra still contribute RT to the global and per-level spectrum ranges"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 713,
+      "operation": "chromatogram manager m/z extended with cp.getMZ() for every chromatogram, even without points"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+      "line": 81,
+      "operation": "MSChromatogram::getMZ() returns the product m/z"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 718,
+      "operation": "combined ranges = extendUnsafe(spectrum ranges) then extendUnsafe(chromatogram ranges): includes chromatogram RT, intensity and product m/z"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "line": 592,
+      "operation": "mobility from the IM float data array when containsIMData(), else from the scalar drift time when != DRIFTTIME_NOT_SET (-1)"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "line": 37,
+      "operation": "getIMUnit: exact PSI-MS child of MS:1002893 by name, else UserParam prefix fallbacks Ion Mobility / inverse reduced ion mobility / mean inverse reduced ion mobility array"
+    },
+    {
+      "path": "src/openms/source/KERNEL/Mobilogram.cpp",
+      "line": 43,
+      "operation": "mobilogram ranges: mobility and intensity of every peak"
+    },
+    {
+      "path": "src/openms/source/KERNEL/RangeManager.cpp",
+      "line": 15,
+      "operation": "operator<< prints [min, max] or [, ] for empty; typed ranges prefix rt:/mz:/intensity:/mobility: and end with a newline"
+    }
+  ],
+  "evidence": "Tier 3 source review: all 38 RangeManager_test.cpp sections and all 10 SpectrumRangeManager_test.cpp sections are ported with their literals transcribed; container range rules are read from the anchored MSSpectrum/MSChromatogram/Mobilogram/MSExperiment/IMDataArrayUtils implementations. Native finite-domain, atomicity, dimension-set and three-role experiment tests are Rust-only (tier 4). No C++ build or execution; no retained C++ output exists for these headers."
+}

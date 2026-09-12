@@ -48,6 +48,8 @@ pub use spectrum_type::SpectrumTypeQueryLimits;
 pub mod features;
 /// Points, bounding boxes and convex hulls shared by the feature containers.
 pub mod geometry;
+/// RT, m/z, intensity and mobility range algebra and on-demand container ranges.
+pub mod ranges;
 pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};
 pub use features::{
     BaseFeature, ColumnHeader, ConsensusFeature, ConsensusMap, Feature, FeatureHandle, FeatureMap,
