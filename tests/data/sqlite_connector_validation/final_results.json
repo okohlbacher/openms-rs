@@ -1,0 +1,272 @@
+{
+  "environment": {
+    "host": "kim",
+    "timestamp_utc": "20260912-221616",
+    "loadavg_start": [
+      37.1025390625,
+      37.2958984375,
+      45.45703125
+    ],
+    "cpu_count": 384,
+    "cwd": "/scratch/kohlbach/agents/codex-sqlite-s0-integrate",
+    "target_dir": "/scratch/kohlbach/targets/codex-sqlite-s0-integrate",
+    "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)\nbinary: rustc\ncommit-hash: ac68faa20c58cbccd01ee7208bf3b6e93a7d7f96\ncommit-date: 2026-05-25\nhost: x86_64-unknown-linux-gnu\nrelease: 1.96.0\nLLVM version: 22.1.2\n",
+    "msrv": "rustc 1.85.0 (4d91de4e4 2025-02-17)\nbinary: rustc\ncommit-hash: 4d91de4e48198da2e33413efdcd9cd2cc0c46688\ncommit-date: 2025-02-17\nhost: x86_64-unknown-linux-gnu\nrelease: 1.85.0\nLLVM version: 19.1.7\n",
+    "snapshot_sha256": "3dd5451d5a7a335d51409c322c04352015f4f56e645ed73da1b4be7ddb920a51"
+  },
+  "remote_directory": "/ceph/ibmi/abi/oliver/openms-rs/results/sqlite-s0-20260912-221616",
+  "checks": [
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 2.19,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-features",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 13.52,
+      "log_sha256": "3b7c9852888c499dfa0cb46032cd836b7fefc10f04b2a67ac30c0b2c68f79e0d"
+    },
+    {
+      "name": "nextest_all",
+      "command": [
+        "cargo",
+        "nextest",
+        "run",
+        "--locked",
+        "--all-features",
+        "--no-fail-fast"
+      ],
+      "exit": 0,
+      "seconds": 27.26,
+      "log_sha256": "9dc36337f272f56720261c3f704bd2f9ec83a2c8cd6720e7a10415cfeede641d"
+    },
+    {
+      "name": "cargo_all_targets",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--all-features",
+        "--all-targets"
+      ],
+      "exit": 0,
+      "seconds": 65.91,
+      "log_sha256": "edca6dfe1352f1f5224db2e37b9e933d5f9566b585c6c723d06af38bd1080f62"
+    },
+    {
+      "name": "portable",
+      "command": [
+        "cargo",
+        "nextest",
+        "run",
+        "--locked",
+        "--no-default-features",
+        "--no-fail-fast"
+      ],
+      "exit": 0,
+      "seconds": 18.05,
+      "log_sha256": "191dc77f48c55ad04d01417cf17371430d63750f5fde5eb9f14b19d80dcc3e25"
+    },
+    {
+      "name": "doctests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--all-features",
+        "--doc"
+      ],
+      "exit": 0,
+      "seconds": 2.96,
+      "log_sha256": "475c64f7ff074034136ce56cc81b45baa756025b3b2a901c248b378d9828d87f"
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "doc",
+        "--locked",
+        "--all-features",
+        "--no-deps"
+      ],
+      "exit": 0,
+      "seconds": 5.78,
+      "log_sha256": "d58fa1cc919fc44c3508e4e6b9cc212f0b3477d2d6c8c8690f27482df95098e5"
+    },
+    {
+      "name": "msrv_all_targets",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--all-targets"
+      ],
+      "exit": 0,
+      "seconds": 94.37,
+      "log_sha256": "3ddc17e0abf52525264151bd6123c0872500b33d9166a6476055b368bef7206c"
+    },
+    {
+      "name": "msrv_doctests",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--all-features",
+        "--doc"
+      ],
+      "exit": 0,
+      "seconds": 3.92,
+      "log_sha256": "36d9434d975a80fea2562dc08414a7f0de9060313b32978aa738fc5c45715251"
+    },
+    {
+      "name": "sqlite_only",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "sqlite",
+        "--test",
+        "sqlite_connector"
+      ],
+      "exit": 0,
+      "seconds": 4.88,
+      "log_sha256": "557aab32a76eb35f84acedbdd7104197fed45302a00b147203607a070ab58fb9"
+    },
+    {
+      "name": "sqlite_only_extra_check",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "sqlite rusqlite/extra_check",
+        "--test",
+        "sqlite_connector"
+      ],
+      "exit": 0,
+      "seconds": 16.75,
+      "log_sha256": "fb45a27fdfd9d7490b0ad246c57ee47c549dd1bbc128375c9eda824d8a8b4089"
+    },
+    {
+      "name": "msrv_sqlite_only",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "sqlite",
+        "--test",
+        "sqlite_connector"
+      ],
+      "exit": 0,
+      "seconds": 6.01,
+      "log_sha256": "f5439c0a82e73f75f0e5b8e0e40337849e740f275328fff91de641ef6f7ef36c"
+    },
+    {
+      "name": "msrv_sqlite_only_extra_check",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "sqlite rusqlite/extra_check",
+        "--test",
+        "sqlite_connector"
+      ],
+      "exit": 0,
+      "seconds": 18.4,
+      "log_sha256": "6a50faadd282ee8528854afb16b15e64937cca734943f31b6267fc370b149056"
+    },
+    {
+      "name": "check_core_sdk",
+      "command": [
+        "python3",
+        "tools/check_core_sdk.py"
+      ],
+      "exit": 0,
+      "seconds": 0.08,
+      "log_sha256": "2022768b4de47faadea464e6539350d6bc68623a09c075be3be4d66361e036cc"
+    },
+    {
+      "name": "test_core_sdk",
+      "command": [
+        "python3",
+        "tools/test_core_sdk.py"
+      ],
+      "exit": 0,
+      "seconds": 0.05,
+      "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4"
+    },
+    {
+      "name": "core_sdk_coverage",
+      "command": [
+        "python3",
+        "tools/core_sdk_coverage.py"
+      ],
+      "exit": 0,
+      "seconds": 0.17,
+      "log_sha256": "db9453af9daa4c4dd729457d2a051cc749e1dde1d51c617627fb9f2961ffd11c"
+    },
+    {
+      "name": "test_core_sdk_coverage",
+      "command": [
+        "python3",
+        "tools/test_core_sdk_coverage.py"
+      ],
+      "exit": 0,
+      "seconds": 0.21,
+      "log_sha256": "0a7bc1d16d98ad92cfbd86a8b672e6840b33873d04666089ec61ba8024cab58c"
+    },
+    {
+      "name": "check_schema_feature_graph",
+      "command": [
+        "env",
+        "RUSTUP_TOOLCHAIN=1.85.0",
+        "python3",
+        "tools/check_schema_feature_graph.py"
+      ],
+      "exit": 0,
+      "seconds": 37.13,
+      "log_sha256": "5acd13a6f967a08f54ebbd5a28b0b1ae528cd9cef799f55285751a5db503ffbd"
+    },
+    {
+      "name": "check_doc_coverage",
+      "command": [
+        "python3",
+        "tools/check_doc_coverage.py"
+      ],
+      "exit": 0,
+      "seconds": 0.08,
+      "log_sha256": "1669d506d8e788bfb10a79241d44898cd88e56cd5a9cd8552eff0dc0699718ba"
+    }
+  ]
+}

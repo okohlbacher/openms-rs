@@ -373,3 +373,12 @@ a separate C library with its own distribution notices. The two unchanged mzML
 schemas retain their original creator comments and source attribution; see
 [the schema resource notices](resources/schemas/NOTICE.md) and
 [dependency provenance](tests/data/mzml_schema_provenance.json).
+
+## Optional SQLite backend
+
+The optional `sqlite` feature uses the MIT-licensed registry packages
+`rusqlite 0.40.2` and `libsqlite3-sys 0.38.2`, pinned by `Cargo.lock`.
+The `bundled` feature compiles SQLite C code distributed with `libsqlite3-sys`;
+SQLite carries its own public-domain dedication. The connector port is
+BSD-3-Clause like the other OpenMS-derived implementation. These separate
+terms are not replaced by the OpenMS license.

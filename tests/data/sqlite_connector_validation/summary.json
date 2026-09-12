@@ -1,0 +1,38 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "date": "2026-09-13",
+  "date_timezone": "Europe/Berlin",
+  "base_commit": "a477773d3a86a165edd8c7a091c61b5294d2b9bd",
+  "scope": "SQLite S0 public connector; subsequent storage adapters remain unported",
+  "host": "kim",
+  "storage": "Node-local /scratch source and targets; persistent logs on ABI Ceph",
+  "compile_jobs": 32,
+  "initial_checks": 17,
+  "final_checks": 19,
+  "final_test_totals": {
+    "cargo_all_targets": 3854,
+    "msrv_all_targets": 3854,
+    "doctests": 26,
+    "msrv_doctests": 26,
+    "sqlite_only": 19,
+    "sqlite_only_extra_check": 19,
+    "msrv_sqlite_only": 19,
+    "msrv_sqlite_only_extra_check": 19
+  },
+  "no_default_tests": 2640,
+  "status": "All recorded final integration checks passed",
+  "reviews": "tests/data/sqlite_connector_validation/reviews.json",
+  "adapted_cpp_evidence": "tests/data/sqlite_connector_provenance.json",
+  "runtime_snapshot": "tests/data/sqlite_connector_validation/tested_runtime_files.json",
+  "runtime_snapshot_sha256": "1dfc35df71c54302cb77a7bf41dd6cbfb7a072c25e48c5709c7c7d9ce8b11518",
+  "runs": {
+    "initial": "/ceph/ibmi/abi/oliver/openms-rs/results/sqlite-s0-20260912-220706",
+    "final": "/ceph/ibmi/abi/oliver/openms-rs/results/sqlite-s0-20260912-221616"
+  },
+  "limits": [
+    "Full source/test snapshot matches final remote runtime hashes; later edits record validation and review metadata.",
+    "C++ defect probe uses explicit support substitutions and host SQLite; no full SDK ABI execution or source class-test execution claimed.",
+    "Linux validation only; CI adds cross-platform selections but no new macOS/Windows execution claimed.",
+    "S0 closes the installed SqliteConnector.h mapping only, not private helpers or sqMass/OSW/OMS adapters."
+  ]
+}

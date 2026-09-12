@@ -7,9 +7,9 @@
     "by_status": {
       "complete": 26,
       "evidence_requires_review": 169,
-      "native_equivalent": 82,
+      "native_equivalent": 83,
       "partial": 39,
-      "unmapped": 470
+      "unmapped": 469
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -8304,10 +8304,24 @@
       "header": "src/openms/include/OpenMS/FORMAT/SqliteConnector.h",
       "sha256": "e8045bfae45e9f244951ceacedfb895f386de6fce7c2a4dffad8770dcc3156ee",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/sqlite_connector.rs"
+        ],
+        "tests": [
+          "tests/sqlite_connector.rs"
+        ],
+        "documentation": "docs/SQLITE_CONNECTOR_SUPPORT.md",
+        "scope": "All public connector operations and three distinct modes mapped; all eight upstream class-test sections represented. Owned cleanup, bound names, quoted identifiers and checked query errors correct source defects. Raw SQL batches and first-statement-only BLOB binding preserve source transaction/tail conventions; explicit native NUL-SQL rejection and error mapping documented. Does not close private helpers or SqMass/OSW/OMS/SQLite handlers; adapted C++ probes and native test evidence are scoped separately."
+      },
+      "candidate_rust_files": [
+        "src/format/sqlite_connector.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/sqlite_connector_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {

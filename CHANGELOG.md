@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added the optional SQLite connector: three open modes, checked table/column queries and row counts, SQL batches and binary bindings. Names are treated as literal identifiers, statements use owned cleanup, and operational errors retain their SQLite cause. SQL transaction control remains with the caller; sqMass, OSW and OMS adapters are subsequent work.
+
 - Integrated the fifteen-module FORMAT wave: mzTab records and file adapters,
   mzTab-M, streaming mzML consumers, separated-value output, mzXML, mzData,
   pepXML, qcML, MSstats, Percolator input, transformation XML, Mascot and

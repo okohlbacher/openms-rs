@@ -1,5 +1,55 @@
 # Validation of the ongoing Rust port
 
+## SQLite S0 checkpoint (2026-09-13)
+
+The [public SQLite connector](SQLITE_CONNECTOR_SUPPORT.md) was validated on
+IBMI `kim`, using node-local `/scratch` sources and build targets, 32 compile
+jobs, Rust 1.96.0 and minimum Rust 1.85.0. SQLite remains optional.
+
+| Check | Final executed result |
+|---|---|
+| All features, current Rust (`nextest` and all-target `cargo test`) | 3,854 passed |
+| All features/all targets, Rust 1.85 | 3,854 passed |
+| No default features, current Rust | 2,640 passed |
+| SQLite-only, both compilers, with and without `rusqlite/extra_check` | 19 passed in each of four selections |
+| Doctests, each compiler | 26 passed |
+| Formatting, full strict Clippy and rustdoc | passed |
+| SQLite-only strict Clippy with `extra_check` | passed in the focused worker run |
+| Provenance, coverage and feature-boundary gates | passed |
+
+All eight upstream connector class-test sections and 17 assertion macros are
+mapped to named native tests. The 19 native tests also cover binary bindings,
+literal identifiers, external non-UTF-8 schema names, lock errors and recovery,
+transaction cleanup, late row errors, ignored binding tails and dependency
+feature unification. The feature-boundary check on Rust 1.85 verifies that
+default/no-default builds exclude SQLite and libxml, and SQLite-only excludes
+libxml while selecting the bundled SQLite dependency.
+
+The initial full run passed before review refinements. Claude Fable 5.1 then
+reviewed the connector and re-reviewed the changes. Byte comparison removed
+an unnecessary UTF-8 failure, a stronger destructor test proved release of the
+write lock, and bound execution was made independent of the dependency's
+optional precheck. An overstatement in the first review was corrected against
+the pinned dependency source. Both reports and their dispositions are
+[retained](../tests/data/sqlite_connector_validation/reviews.json).
+
+A separate adapted C++ probe reproduced CPP-184, CPP-185 and the CPP-189
+exception-documentation mismatch using the exact pinned connector implementation
+and declarations, substitute support headers and host SQLite 3.45.1. Its
+sources, binary and logs are retained outside this repository and hashed in
+[the provenance manifest](../tests/data/sqlite_connector_provenance.json).
+This is isolated adapted execution, not a full SDK build, original exception ABI
+test or execution of the upstream class-test binary.
+
+[The validation record](../tests/data/sqlite_connector_validation/summary.json)
+contains final runtime hashes, commands, outcomes and retained remote log paths.
+The final full run has 19 successful checks; the initial run has 17. Strong local
+verification checked 2,007 distinct pinned source/registration/reference files.
+No new macOS or Windows execution is claimed. The next storage stages remain
+unported; their source findings and fixture inspection are recorded separately
+in the [S1 plan](SQLITE_STORAGE_PLAN.md), without claiming native fixes.
+
+
 ## FORMAT integration checkpoint (2026-09-12)
 
 The fifteen-module [FORMAT wave](FORMAT_WAVE_SUPPORT.md) was built and tested

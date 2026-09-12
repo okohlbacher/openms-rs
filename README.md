@@ -14,6 +14,8 @@ Native [spectrum–chromatogram conversion](docs/CHROMATOGRAM_TOOLS_SUPPORT.md) 
 
 The [FORMAT wave](docs/FORMAT_WAVE_SUPPORT.md) adds mzTab/mzTab-M, mzXML, mzData, pepXML, mzIdentML, Mascot, qcML, Percolator, MSstats and transformation XML adapters. Its remaining exporter, validator and lookup gaps are recorded individually.
 
+The optional [SQLite connector](docs/SQLITE_CONNECTOR_SUPPORT.md) supplies connection modes, table queries, SQL batches and BLOB binding. The sqMass, OSW and OMS adapters remain in the [next storage stages](docs/PORTING_WAVES.md).
+
 ## What works
 
 [MassTrace](docs/MASS_TRACE_SUPPORT.md) provides owned trace peaks, cached centroids,

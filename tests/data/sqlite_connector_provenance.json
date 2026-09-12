@@ -1,0 +1,430 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/SqliteConnector.h",
+      "sha256": "e8045bfae45e9f244951ceacedfb895f386de6fce7c2a4dffad8770dcc3156ee",
+      "role": "Public installed API: open-mode enum, deleted default constructor, owning constructor/destructor, five database operations. No SQLite native type is exposed."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "sha256": "d15e067d6f51fd4b35ffa197e7cfb3a3fbd79257cf59a149f6c65f46c86d62bd",
+      "role": "Constructor/open/close and all five public forwarding/query operations; private helper implementations read as source context."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/SqliteConnector_impl.h",
+      "sha256": "93379fbf9940bd766be91716222d2ab09938e0deffd3acf47482ca1964b175cf",
+      "role": "Explicitly non-installed implementation header. Native handles, statement helpers, clearSignBit, SqlState and extraction helpers are private implementation context, not a second public-header coverage target."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SqliteConnector_test.cpp",
+      "sha256": "171e2b0918864fbe8bdd9961be22ad65974d49c9ba712f14f0cbcbcd162458cd",
+      "role": "Eight START_SECTION blocks and seventeen assertion macros. Database contents are built in the test; no external input or retained C++ output fixture exists."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/sources.cmake",
+      "sha256": "f52404e6e8b1f622c3aef67aca51d5d98e606cfabbf8666d09ac5e1f96f57e4f",
+      "role": "Public SqliteConnector.h registration at95 and private SqliteConnector_impl.h registration at166-175."
+    },
+    {
+      "path": "src/openms/source/FORMAT/sources.cmake",
+      "sha256": "636c61bd6e959d69afcd29227069573713e2aba3c9d99e69688440ae69b4230a",
+      "role": "SqliteConnector.cpp implementation registration at89."
+    },
+    {
+      "path": "src/tests/class_tests/openms/executables.cmake",
+      "sha256": "d606cc39e24bda314dcaac0d64310f357a296ce0cf44c616ef9763fadac2a899",
+      "role": "SqliteConnector_test registration at290."
+    },
+    {
+      "path": "src/openms/extern/SQLiteCpp/sqlite3/sqlite3.h",
+      "sha256": "2198c66d4c59ae86421590c27fd53309ec14a595ae31c0c7143247444018a0bd",
+      "role": "Pinned dependency contract used for source issue review: handle ownership after failed open, valid close handle, explicit byte lengths and signed64-bit integer access. Not a claim that this vendored SQLite version is the Rust bundled version.",
+      "license_note": "SQLite public-domain dedication in the source header; wrapper and OpenMS tests use BSD-3-Clause."
+    }
+  ],
+  "fixtures": [],
+  "native_implementation": [
+    "src/format/sqlite_connector.rs"
+  ],
+  "native_tests": [
+    "tests/sqlite_connector.rs"
+  ],
+  "support": "docs/SQLITE_CONNECTOR_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 18,
+      "operation": "Construction forwards exactly once to openDatabase_."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 23,
+      "operation": "Destructor closes the stored native handle; copying is not disabled by the public header."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 32,
+      "operation": "Three enum cases select SQLite READONLY, READWRITE, or READWRITE|CREATE flags; failure throws SqlOperationFailed."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 77,
+      "operation": "countTableRows builds SELECT count(*) using raw table text, steps once and reads int64; prepare errors actually throw IllegalArgument despite the public SqlOperationFailed comment."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 95,
+      "operation": "columnExists uses PRAGMA table_info and exact strcmp on the returned column names; unknown table yields no rows."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 118,
+      "operation": "tableExists queries sqlite_master type table and name literal; views and the temporary schema are not included."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 132,
+      "operation": "executeStatement calls sqlite3_exec with no row callback; it can process multiple SQL statements and does not create an implicit transaction."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 145,
+      "operation": "prepareStatement calls sqlite3_prepare_v2 and discards the tail pointer; binding executes only the first prepared statement."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 156,
+      "operation": "executeBindStatement binds each std::string as a BLOB using its byte length and ordinalk+1, then requires SQLITE_DONE; absent bindings remain NULL, excess bindings cause an error."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 218,
+      "operation": "Private string extraction constructs a C string without sqlite3_column_bytes; not ported as a public operation."
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "line": 261,
+      "operation": "Private extractValueIntStr selects sqlite3_column_int; not ported as a public operation."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/SqliteConnector.h",
+      "line": 75,
+      "operation": "Installed countTableRows documentation promises SqlOperationFailed for an unknown table; actual prepare path and class test disagree."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SqliteConnector_test.cpp",
+      "line": 106,
+      "operation": "Unknown table UNKNOWN must throw IllegalArgument according to the source class test; source-reviewed expectation, not executed C++."
+    }
+  ],
+  "class_test_sections": [
+    {
+      "ordinal": 1,
+      "title": "(SqliteConnector(const std::string& filename, const SqlOpenMode mode = SqlOpenMode::READWRITE_OR_CREATE))",
+      "line": 44,
+      "native_test": "construction_creates_a_usable_database",
+      "status": "mapped and source/native test code reviewed; remote execution recorded separately in docs/VALIDATION.md",
+      "assertion_count": 2,
+      "source_expectations": {
+        "successful_construction": true,
+        "table": "liveness_check",
+        "exists": true
+      }
+    },
+    {
+      "ordinal": 2,
+      "title": "(~SqliteConnector())",
+      "line": 55,
+      "native_test": "destruction_closes_the_connection",
+      "status": "mapped and source/native test code reviewed; remote execution recorded separately in docs/VALIDATION.md",
+      "assertion_count": 0,
+      "source_expectations": {
+        "source_assertions": 0,
+        "operation": "delete owned connector"
+      }
+    },
+    {
+      "ordinal": 3,
+      "title": "(void executeStatement(const std::string& statement))",
+      "line": 61,
+      "native_test": "execute_statement_inserts_and_reports_malformed_sql",
+      "status": "mapped and source/native test code reviewed; remote execution recorded separately in docs/VALIDATION.md",
+      "assertion_count": 2,
+      "source_expectations": {
+        "table": "T",
+        "exists": true,
+        "invalid_sql": "THIS IS NOT SQL",
+        "source_exception": "IllegalArgument"
+      }
+    },
+    {
+      "ordinal": 4,
+      "title": "(bool tableExists(const std::string& tablename))",
+      "line": 74,
+      "native_test": "table_exists_matches_exact_main_table_names",
+      "status": "mapped and source/native test code reviewed; remote execution recorded separately in docs/VALIDATION.md",
+      "assertion_count": 2,
+      "source_expectations": {
+        "T": true,
+        "DOES_NOT_EXIST": false
+      }
+    },
+    {
+      "ordinal": 5,
+      "title": "(bool columnExists(const std::string& tablename, const std::string& colname))",
+      "line": 84,
+      "native_test": "column_exists_matches_exact_column_names",
+      "status": "mapped and source/native test code reviewed; remote execution recorded separately in docs/VALIDATION.md",
+      "assertion_count": 3,
+      "source_expectations": {
+        "table": "T",
+        "ID": true,
+        "NAME": true,
+        "MISSING": false
+      }
+    },
+    {
+      "ordinal": 6,
+      "title": "(Size countTableRows(const std::string& table_name))",
+      "line": 95,
+      "native_test": "count_table_rows_preserves_the_source_zero_and_two_counts",
+      "status": "mapped and source/native test code reviewed; remote execution recorded separately in docs/VALIDATION.md",
+      "assertion_count": 3,
+      "source_expectations": {
+        "initial_rows": 0,
+        "inserted_rows": [
+          [
+            1,
+            "a"
+          ],
+          [
+            2,
+            "b"
+          ]
+        ],
+        "final_rows": 2,
+        "unknown_table": "UNKNOWN",
+        "source_exception": "IllegalArgument"
+      }
+    },
+    {
+      "ordinal": 7,
+      "title": "(void executeBindStatement(const std::string& prepare_statement, const std::vector<std::string>& data))",
+      "line": 110,
+      "native_test": "execute_bind_statement_inserts_the_source_bound_value",
+      "status": "mapped and source/native test code reviewed; remote execution recorded separately in docs/VALIDATION.md",
+      "assertion_count": 1,
+      "source_expectations": {
+        "bound_bytes_utf8": "bound_value",
+        "parameter_index": 1,
+        "rows": 1,
+        "source_does_not_assert_blob_contents": true
+      }
+    },
+    {
+      "ordinal": 8,
+      "title": "[EXTRA] (open modes: existing DB read-only and missing-file errors)",
+      "line": 120,
+      "native_test": "open_modes_preserve_read_only_and_missing_file_behavior",
+      "status": "mapped and source/native test code reviewed; remote execution recorded separately in docs/VALIDATION.md",
+      "assertion_count": 4,
+      "source_expectations": {
+        "table": "RO",
+        "exists_read_only": true,
+        "rows_read_only": 3,
+        "missing_file_modes": [
+          "READ_ONLY",
+          "READWRITE"
+        ],
+        "source_exception": "SqlOperationFailed"
+      }
+    }
+  ],
+  "source_assertion_count": 17,
+  "evidence": "Tier3 source review for all8class-test sections and17macros, mapped to eight named native tests. All19 native tests and implementation reviewed. No full OpenMS C++ SDK build/execution or upstream-class-test execution. A separate tier2 adapted C++ probe compiled exact pinned connector code with explicit support substitutes and system SQLite3.45.1, reproducing CPP184/185 and the CPP189 exception mismatch; hashed external artifacts listed. Native test execution is recorded in docs/VALIDATION.md, not inferred from mapping. Other native boundary assertions are tier4 independently derived; bundled SQLite Rust execution alone is not an OpenMS C++ differential.",
+  "gaps": [
+    "No full OpenMS C++ SDK differential or upstream-class-test execution; the executed probe uses explicitly listed support adapters and a host SQLite shared library.",
+    "S0 excludes the non-installed helper API and does not claim SqMass, OSW, OMS, MzMLSqlite or SQLite FileHandler dispatch completion.",
+    "Raw SQL execution deliberately has no wrapper work/memory/time budget or implicit transaction. Caller-controlled SQL may change a database before reporting an error.",
+    "Bindings execute only the first prepared statement and ignore trailing SQL, matching pinned source. SQLite failures map to Error::Io rather than preserving C++ exception class distinctions."
+  ],
+  "cpp_issue_log_entries": [
+    "CPP-181",
+    "CPP-182",
+    "CPP-183",
+    "CPP-184",
+    "CPP-185",
+    "CPP-186",
+    "CPP-187",
+    "CPP-189"
+  ],
+  "external_reference_note": "Adapted C++ probe on kim. Exact pinned SqliteConnector.cpp/.h/_impl.h and sqlite3.h declarations; small support substitutes for StandardTypes, Exception and StringUtils. Host SQLite3.45.1 shared library. Not full OpenMS SDK include/link closure or original exception ABI.",
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/SqliteConnector.cpp",
+      "sha256": "d15e067d6f51fd4b35ffa197e7cfb3a3fbd79257cf59a149f6c65f46c86d62bd",
+      "origin_key": "sqlite_connector_s0_adapted_probe/SqliteConnector.cpp"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/build.log",
+      "sha256": "41e143f80e40382efc151ea33a4fc54dd8fe5119dfe10feb83cad6ba4184101d",
+      "origin_key": "sqlite_connector_s0_adapted_probe/build.log"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/include/OpenMS/CONCEPT/Exception.h",
+      "sha256": "fe8ea68ca9357a2ca424a372e292216507f369db5677070b73c7d72d30d01643",
+      "origin_key": "sqlite_connector_s0_adapted_probe/include/OpenMS/CONCEPT/Exception.h"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "4989eb149512cceeb1d393467da93d263c908e147d20d7eb0fce8eaf98fe9b12",
+      "origin_key": "sqlite_connector_s0_adapted_probe/include/OpenMS/DATASTRUCTURES/StringUtils.h"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/include/OpenMS/FORMAT/SqliteConnector.h",
+      "sha256": "e8045bfae45e9f244951ceacedfb895f386de6fce7c2a4dffad8770dcc3156ee",
+      "origin_key": "sqlite_connector_s0_adapted_probe/include/OpenMS/FORMAT/SqliteConnector.h"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/include/OpenMS/FORMAT/SqliteConnector_impl.h",
+      "sha256": "93379fbf9940bd766be91716222d2ab09938e0deffd3acf47482ca1964b175cf",
+      "origin_key": "sqlite_connector_s0_adapted_probe/include/OpenMS/FORMAT/SqliteConnector_impl.h"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/include/OpenMS/KERNEL/StandardTypes.h",
+      "sha256": "a0a4ca29ea67b0877a9e9d1d5aa7dc3a59506b7cae44bd56d94479756910d77a",
+      "origin_key": "sqlite_connector_s0_adapted_probe/include/OpenMS/KERNEL/StandardTypes.h"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/include/sqlite3.h",
+      "sha256": "2198c66d4c59ae86421590c27fd53309ec14a595ae31c0c7143247444018a0bd",
+      "origin_key": "sqlite_connector_s0_adapted_probe/include/sqlite3.h"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/manifest.json",
+      "sha256": "99dc8440031f081fdc510357f9aefa4837a6d89dabf05cd72c720a4197f48495",
+      "origin_key": "sqlite_connector_s0_adapted_probe/manifest.json"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/probe",
+      "sha256": "edf2cca6e57f91c7c87d35b69f71568a383a9c7547ea46b5941c4b2266d11905",
+      "origin_key": "sqlite_connector_s0_adapted_probe/probe"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/probe.cpp",
+      "sha256": "8bd16e45e77077d06a942b18a424bb248bd4d353dbce71698037dbb523aa55f5",
+      "origin_key": "sqlite_connector_s0_adapted_probe/probe.cpp"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-probe/result.log",
+      "sha256": "3fbfa5a9581fc309788e0f8141fc651f867a3e55b1e140cc59124c9ef2019941",
+      "origin_key": "sqlite_connector_s0_adapted_probe/result.log"
+    }
+  ],
+  "adapted_cpp_probe": {
+    "evidence_tier": 2,
+    "scope": "Adapted C++ probe on kim. Exact pinned SqliteConnector.cpp/.h/_impl.h and sqlite3.h declarations; small support substitutes for StandardTypes, Exception and StringUtils. Host SQLite3.45.1 shared library. Not full OpenMS SDK include/link closure or original exception ABI.",
+    "execution": {
+      "host": "kim",
+      "workdir": "/scratch/kohlbach/codex-sqlite-s0-probe-20260913",
+      "compiler": "g++ (Ubuntu13.3.0-6ubuntu2~24.04.1)13.3.0",
+      "language": "C++20",
+      "compile_exit": 0,
+      "run_exit": 0,
+      "sqlite_runtime_version": "3.45.1",
+      "sqlite_runtime_source_id": "2024-01-30 16:01:20 e876e51a0ed5c5b3126f52e532044363a014bc594cfefa87ffb5b82257ccalt1",
+      "linkage": "Host system libsqlite3.so.0; development headers absent, exact pinned SQLite declaration header used. No SQLite implementation source compiled and no library downloaded.",
+      "logs": [
+        {
+          "path": "build.log",
+          "sha256": "41e143f80e40382efc151ea33a4fc54dd8fe5119dfe10feb83cad6ba4184101d"
+        },
+        {
+          "path": "result.log",
+          "sha256": "3fbfa5a9581fc309788e0f8141fc651f867a3e55b1e140cc59124c9ef2019941"
+        }
+      ],
+      "executable": {
+        "path": "probe",
+        "sha256": "edf2cca6e57f91c7c87d35b69f71568a383a9c7547ea46b5941c4b2266d11905"
+      }
+    },
+    "observations": {
+      "CPP-184": [
+        "The ordinary table T exists; ABSENT does not.",
+        "The existing table named odd'name causes IllegalArgument during preparation.",
+        "The absent literal name \"ABSENT' OR 1=1 --\" incorrectly returns true.",
+        "The existing table named \"odd table\" causes preparation errors in both row-count and column-existence queries."
+      ],
+      "CPP-185": [
+        "After a warm read returns 3 rows, a second connection holds BEGIN EXCLUSIVE.",
+        "A direct trace records successful preparation (SQLITE_OK, 0) followed by SQLITE_BUSY (5) at step.",
+        "Both tableExists(T) and columnExists(T, ID) return false, with database error code 5.",
+        "countTableRows(T) throws the adapted SqlOperationFailed and leaves one outstanding statement, counted using sqlite3_next_stmt.",
+        "After the second connection rolls back, the count is again 3."
+      ],
+      "CPP-189": [
+        "countTableRows(UNKNOWN) throws the adapted IllegalArgument from the exact pinned prepareStatement path, agreeing with the source class test and contradicting the installed header.",
+        "Substitute exception classes preserve distinct throw/catch paths; the original exception inheritance, ABI and metadata formatting are not exercised."
+      ]
+    },
+    "native_comparison": "Native code and regression cases reviewed: punctuation names are literal; query errors propagate and lock recovery is checked; error classes intentionally map to Error::Io. Runtime outcomes belong to the integration validation record."
+  },
+  "native_policy_reviewed": {
+    "errors": "SQLite operation errors wrap as Error::Io retaining rusqlite cause; explicit native validation InvalidValue",
+    "execution": "Drain every result row of each batch statement; caller controls transaction, no implicit rollback",
+    "binding": "Byte-oriented &[&[u8]] BLOB bindings; execute only first prepared statement, ignore trailing SQL without preparing it; reject empty/comment-only binding input; reject embedded NUL in all SQL before execution",
+    "budgets": "No additional wrapper runtime/memory budgets, per integrating primitive-wrapper design; higher-level adapters own policy"
+  },
+  "native_review": {
+    "implementation_sha256_at_review": "0c6698378a56802ce196d812ba83e17ee2a1927acf9195a124388dfce071229e",
+    "tests_sha256_at_review": "c8dd6448f3851a4e40cc6a5084e2fe77f32883dc2e66b6f0aefe2a5648e787a0",
+    "test_names": [
+      "construction_creates_a_usable_database",
+      "destruction_closes_the_connection",
+      "execute_statement_inserts_and_reports_malformed_sql",
+      "table_exists_matches_exact_main_table_names",
+      "column_exists_matches_exact_column_names",
+      "external_non_utf8_column_names_do_not_hide_valid_columns",
+      "count_table_rows_preserves_the_source_zero_and_two_counts",
+      "execute_bind_statement_inserts_the_source_bound_value",
+      "open_modes_preserve_read_only_and_missing_file_behavior",
+      "blobs_preserve_empty_nul_and_non_utf8_bytes_and_missing_bindings",
+      "quoted_identifiers_are_literal_and_cannot_change_the_query",
+      "batch_failures_preserve_prior_effects_and_caller_transactions",
+      "batch_execution_observes_errors_after_the_first_result_row",
+      "failed_bindings_and_constraints_do_not_poison_the_connection",
+      "binding_steps_transactions_and_returning_statements_once",
+      "binding_ignores_the_tail_without_preparing_its_pragma",
+      "nul_sql_is_rejected_before_running_any_prefix",
+      "locked_query_errors_are_not_reported_as_absence",
+      "sqlite_temporary_filename_is_supported"
+    ],
+    "public_api_mapping": {
+      "SqlOpenMode": "ReadOnly/ReadWrite/ReadWriteOrCreate; Default=create; READONLY spelling alias has same ReadOnly counterpart",
+      "constructor": "new(path) and open(path,mode)",
+      "destructor": "Owned private Connection; no Clone/Copy, no raw handle",
+      "tableExists": "table_exists",
+      "columnExists": "column_exists",
+      "countTableRows": "count_table_rows -> Result<usize>",
+      "executeStatement": "execute_statement",
+      "executeBindStatement": "execute_bind_statement(sql, &[&[u8]])"
+    },
+    "coverage_recommendation": "native_equivalent for installed SqliteConnector.h once integration gates pass; all public operations mapped, explicit native error/identifier/NUL safeguards differ; private implementation helpers not public closure",
+    "review_note": "Integrator reviewed the final destructor write-lock assertion, byte-based column-name comparison, and single-step bound execution independent of rusqlite extra_check. Remote validation and focused Fable follow-up are recorded separately."
+  },
+  "native_validation": {
+    "record": "tests/data/sqlite_connector_validation/summary.json",
+    "final_sqlite_tests_per_selection": 19,
+    "rust_versions": [
+      "1.96.0",
+      "1.85.0"
+    ],
+    "extra_check_tested": true,
+    "host": "kim",
+    "status": "passed"
+  }
+}

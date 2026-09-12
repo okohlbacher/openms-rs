@@ -65,6 +65,9 @@ pub mod percolator_infile;
 pub mod transformation_xml;
 pub use peak_options::PeakFileOptions;
 pub(crate) mod path_io;
+/// SQLite connections and checked table, statement and blob operations.
+#[cfg(feature = "sqlite")]
+pub mod sqlite_connector;
 /// Separated-value output with automatic separators and quoting (`SVOutStream.h`).
 pub mod sv_out_stream;
 

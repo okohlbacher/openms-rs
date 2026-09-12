@@ -1852,6 +1852,17 @@
    ],
    "documentation": "docs/TRANSFORMATION_XML_SUPPORT.md",
    "scope": "Load/store/version and record-level persistence mapped. b_spline cannot be resolved to a native transformation; inherited XSD isValid unsupported. Four fixture structural verdicts are useful evidence but do not implement schema validation."
+  },
+  "src/openms/include/OpenMS/FORMAT/SqliteConnector.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/sqlite_connector.rs"
+   ],
+   "tests": [
+    "tests/sqlite_connector.rs"
+   ],
+   "documentation": "docs/SQLITE_CONNECTOR_SUPPORT.md",
+   "scope": "All public connector operations and three distinct modes mapped; all eight upstream class-test sections represented. Owned cleanup, bound names, quoted identifiers and checked query errors correct source defects. Raw SQL batches and first-statement-only BLOB binding preserve source transaction/tail conventions; explicit native NUL-SQL rejection and error mapping documented. Does not close private helpers or SqMass/OSW/OMS/SQLite handlers; adapted C++ probes and native test evidence are scoped separately."
   }
  },
  "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md",

@@ -10,9 +10,10 @@
   "sdk_wide": false,
   "executed_cases_vs_openms_cpp": 2310,
   "executed_cases_vs_external_libraries": 488,
-  "scope": "Six isolated leaf probes only: MSNumpress raw codecs (295), the ProForma parser (476) and writer (160), DateTime (301) and the private massDeltaText_ formatter (1078) against extracted OpenMS translation units, plus 488 predictions against unmodified external LIBSVM. Several probes substitute hand-written stub headers or a capture-only error adapter for SDK infrastructure, so the compiled unit is an adaptation rather than the shipped C++.",
+  "scope": "Counted reference suites: MSNumpress raw codecs (295), the ProForma parser (476) and writer (160), DateTime (301) and the private massDeltaText_ formatter (1078) against extracted OpenMS translation units, plus 488 predictions against unmodified external LIBSVM. Several probes substitute hand-written stub headers or a capture-only error adapter for SDK infrastructure, so the compiled unit is an adaptation rather than the shipped C++.",
   "not_covered": "No algorithm with SDK dependency closure -- no smoother, picker, aligner, inference algorithm or feature finder -- has been compared against executed C++. The full C++ SDK was not built. Evidence for those groups is transcribed class-test literals, independently derived expectations and Rust-only invariant tests, which detect transcription drift but not a misread algorithm.",
-  "harness": "None yet. Planned in docs/DIFFERENTIAL_VALIDATION.md against the prebuilt C++ tree, which stays outside this repository."
+  "harness": "No full-SDK differential harness yet. Isolated probe drivers and retained outputs are recorded in per-group manifests; the prebuilt C++ reference remains outside this repository.",
+  "additional_probes": "The FORMAT numeric-overload probe and SQLite S0 connector defect probes are retained separately in their manifests; they are not included in the scientific case totals above. Both compile adapted isolated C++ contexts, not the full SDK."
  },
  "source_inventory": "docs/source-inventory.json",
  "license": "Implementation and OpenMS custom data: BSD-3-Clause; UniMod-derived modification data: Design Science License; XLMOD data/reference projection: CC-BY-3.0 (see LICENSES.md); private decoy/unique-ID RNG: BSD-3-Clause AND BSL-1.0; MODOMICS RNA inputs and transformed records retain separate data notices, with general redistribution terms unresolved for release (see LICENSES.md); optional serde_json: MIT OR Apache-2.0; optional bzip2 and libbz2-rs-sys: MIT OR Apache-2.0; raw Numpress: original Johan Teleman/Lund University BSD-3-Clause notice retained in source and LICENSES.md",
@@ -590,7 +591,9 @@
   "tests/data/msstats_provenance.json",
   "tests/data/format_wave_cpp_review.json",
   "tests/data/format_cpp_review_queue.json",
-  "tests/data/sqlite_connector_review.json"
+  "tests/data/sqlite_connector_review.json",
+  "tests/data/sqlite_connector_provenance.json",
+  "tests/data/sqlite_s1_review.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -681,5 +684,10 @@
  "format_wave_cpp_review": "tests/data/format_wave_cpp_review.json",
  "format_wave_pending_review": "tests/data/format_cpp_review_queue.json",
  "sqlite_s0_source_review": "tests/data/sqlite_connector_review.json",
- "format_wave_validation": "tests/data/format_wave_validation/summary.json"
+ "format_wave_validation": "tests/data/format_wave_validation/summary.json",
+ "sqlite_family_reference_manifests": [
+  "tests/data/sqlite_connector_provenance.json"
+ ],
+ "sqlite_s1_source_review": "tests/data/sqlite_s1_review.json",
+ "sqlite_s0_validation": "tests/data/sqlite_connector_validation/summary.json"
 }

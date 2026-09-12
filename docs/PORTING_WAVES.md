@@ -6,7 +6,7 @@ explicit source-refresh checkpoint updates the inventory and manifests.
 The [completion ledger](CORE_SDK_COMPLETION.md), not a module-name list, remains
 the record of outstanding public operations.
 
-## Current checkpoint: FORMAT integration
+## Completed checkpoint: FORMAT integration
 
 [The fifteen-module wave](FORMAT_WAVE_SUPPORT.md) combines the preserved
 `fmt-pkg-*`/`fx-*` branches with source, documentation and regression review.
@@ -15,10 +15,15 @@ The [validation record](VALIDATION.md) identifies executed checks. Known gaps
 remain work for subsequent waves, including mzTab exporters, format-specific
 validators, qcML metrics and missing FileHandler dispatch.
 
-## Next: SQLite family
+## Current wave: SQLite family
 
 The optional `sqlite` feature and pinned `rusqlite` dependency are already in
 Cargo. Keeping SQLite optional is a dependency boundary, not a scope exclusion.
+
+S0 now has a [native connector](SQLITE_CONNECTOR_SUPPORT.md), all eight source
+class-test sections mapped, nineteen native regression tests and an adapted
+C++ defect probe. The [validation record](VALIDATION.md) records the executed
+integration checks. S1 is next; no database file adapter is closed by S0 alone.
 
 | Stage | Work | Dependency and verification boundary |
 |---|---|---|
@@ -28,6 +33,11 @@ Cargo. Keeping SQLite optional is a dependency boundary, not a scope exclusion.
 | S2 | `SqMassFile`, consumer and `SpectrumAccessSqMass` | Reuse S1 storage, existing experiment/consumer interfaces and Numpress; test random access, full load, transforms and metadata retention. |
 | S2 parallel | `OMSFileStore`, `OMSFileLoad`, `OMSFile` | Map identification-graph, FeatureMap and ConsensusMap persistence; test foreign-key relationships, version handling and round trips against retained source databases. |
 | S3 | Integrate and review the whole family | Wire supported FileHandler operations, run all features plus SQLite-only/minimum combinations, compare retained source results and update documentation before committing. |
+
+The [S1 implementation plan](SQLITE_STORAGE_PLAN.md) pins the schema, fixtures,
+API mapping and regression matrix. Its thirteen source findings are recorded as
+CPP-190 through CPP-202; the auxiliary-array recovery contract remains an
+unconfirmed candidate. These findings are not implemented fixes.
 
 Before each stage, inspect the pinned header, implementation, registrations and
 class tests. A dependency discovered during implementation becomes an explicit

@@ -3249,9 +3249,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Delete copy operations and provide explicit move ownership if needed. No upstream change is claimed.
 
-**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+**Evidence:** Direct pinned-source review. This issue has no executed C++ reproduction or sanitizer result; native S0 handling and regression checks are distinct evidence, described below and in the connector provenance.
 
-**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+**Rust handling:** SqliteConnector owns a rusqlite Connection and implements neither Clone nor Copy. Dropping an uncommitted connection rolls back through SQLite ownership; no duplicate raw handle API is exposed.
 
 ## CPP-182 — SqliteConnector does not close a handle when opening fails
 
@@ -3263,9 +3263,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Close any returned handle before throwing, or use an owning local guard until successful construction. No upstream change is claimed.
 
-**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+**Evidence:** Direct pinned-source review. This issue has no executed C++ reproduction or sanitizer result; native S0 handling and regression checks are distinct evidence, described below and in the connector provenance.
 
-**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+**Rust handling:** Connection::open_with_flags owns failed-open cleanup. Missing read-only/read-write files are rejected and remain absent. Native tests check failures and later successful opening; they do not measure allocator leaks.
 
 ## CPP-183 — SQLite bound statements leak on bind or step errors
 
@@ -3277,13 +3277,13 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Use a statement RAII guard on all exits; bind owned data or ensure it outlives the statement. No upstream change is claimed.
 
-**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+**Evidence:** Direct pinned-source review. This issue has no executed C++ reproduction or sanitizer result; native S0 handling and regression checks are distinct evidence, described below and in the connector provenance.
 
-**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+**Rust handling:** Prepared statements are owned RAII values. Excess bindings, constraint errors and returned rows report errors and release the statement. Native regression tests verify that subsequent queries and bindings remain usable.
 
 ## CPP-184 — SQLite table-name helpers interpolate names as SQL syntax
 
-**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+**Status and source:** Reproduced in an adapted C++ probe on kim at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; not a full SDK build.
 
 **Affected files and functions:** `SqliteConnector::tableExists, columnExists and countTableRows` in [src/openms/source/FORMAT/SqliteConnector.cpp:118](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L118). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
 
@@ -3291,23 +3291,23 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Bind values such as sqlite_master.name and correctly quote SQL identifiers with doubled double quotes. No upstream change is claimed.
 
-**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+**Evidence:** Exact pinned connector implementation and declarations were compiled with small substitute StandardTypes, Exception and StringUtils support headers against host SQLite 3.45.1 (GCC 13.3, C++20). The ordinary table T exists; ABSENT does not. The existing table named odd'name causes IllegalArgument during preparation. The absent literal name "ABSENT' OR 1=1 --" incorrectly returns true. The existing table named "odd table" causes preparation errors in both row-count and column-existence queries. Probe sources, adapters, executable and logs are hashed in [the connector provenance](tests/data/sqlite_connector_provenance.json) and retained externally under `../oracle/sqlite-connector-s0-probe/`. This does not execute the original OpenMS exception ABI or full SDK dependency closure.
 
-**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+**Rust handling:** table_exists binds its name as a value; count_table_rows and column_exists quote the entire identifier and double embedded quotes. Native tests cover punctuation-bearing names, injection-shaped input and NUL identifier rejection.
 
 ## CPP-185 — SQLite query helpers ignore step errors and can leak statements
 
-**Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+**Status and source:** Reproduced in an adapted C++ probe on kim at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; not a full SDK build.
 
 **Affected files and functions:** `SqliteConnector::countTableRows; Internal::SqliteHelper::tableExists and columnExists` in [src/openms/source/FORMAT/SqliteConnector.cpp:77](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L77). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
 
-**Trigger and issue:** Cause sqlite3_step to return SQLITE_BUSY or another error while querying an existing table. The helpers inspect column types without checking the step result. Existence queries can conflate an execution error with absence; countTableRows throws on NULL before finalizing. Reachable lock/error behavior still needs execution.
+**Trigger and issue:** Cause sqlite3_step to return SQLITE_BUSY or another error while querying an existing table. The helpers inspect column types without checking the step result. Existence queries can conflate an execution error with absence; countTableRows throws on NULL before finalizing. The adapted probe reproduced this with an exclusive lock after a warm read.
 
 **Proposed C++ fix:** Check SQLITE_ROW/DONE explicitly, report other statuses, and finalize through RAII. No upstream change is claimed.
 
-**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+**Evidence:** Exact pinned connector implementation and declarations were compiled with small substitute StandardTypes, Exception and StringUtils support headers against host SQLite 3.45.1 (GCC 13.3, C++20). After a warm read returns 3 rows, a second connection holds BEGIN EXCLUSIVE. A direct trace records successful preparation (SQLITE_OK, 0) followed by SQLITE_BUSY (5) at step. Both tableExists(T) and columnExists(T, ID) return false, with database error code 5. countTableRows(T) throws the adapted SqlOperationFailed and leaves one outstanding statement, counted using sqlite3_next_stmt. After the second connection rolls back, the count is again 3. Probe sources, adapters, executable and logs are hashed in [the connector provenance](tests/data/sqlite_connector_provenance.json) and retained externally under `../oracle/sqlite-connector-s0-probe/`. This does not execute the original OpenMS exception ABI or full SDK dependency closure.
 
-**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+**Rust handling:** Every query checks rusqlite preparation and row-step results; errors propagate as Error::Io rather than false. Owned statements clean up on all exits. Native locked-query tests cover all three operations and successful reuse after unlocking.
 
 ## CPP-186 — SQLite string extraction truncates embedded NUL bytes
 
@@ -3319,9 +3319,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Use sqlite3_column_bytes with the returned pointer and retain an explicit byte length. No upstream change is claimed.
 
-**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+**Evidence:** Direct pinned-source review. This issue has no executed C++ reproduction or sanitizer result; native S0 handling and regression checks are distinct evidence, described below and in the connector provenance.
 
-**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+**Rust handling:** The S0 public connector is implemented, but the private extraction helper remains unported. Binary-binding tests preserve NUL bytes; they are not evidence for a text-extraction replacement.
 
 ## CPP-187 — SQLite integer-to-string extraction narrows to 32 bits
 
@@ -3333,9 +3333,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Use sqlite3_column_int64 before decimal formatting. No upstream change is claimed.
 
-**Evidence:** Direct source review during S0 planning. No executed C++ reproduction, sanitizer result or Rust test is claimed; error-path and public-contract confirmation remains part of S0.
+**Evidence:** Direct pinned-source review. This issue has no executed C++ reproduction or sanitizer result; native S0 handling and regression checks are distinct evidence, described below and in the connector provenance.
 
-**Rust handling:** SQLite connector port has not started. Planned implementation uses rusqlite ownership, bound values, quoted identifiers and checked row/column APIs; no implemented correction or native test is claimed.
+**Rust handling:** The S0 public connector is implemented, but the private integer-to-string extraction helper remains unported. Row counts use a checked i64-to-usize conversion; no extraction-helper correction is claimed.
 
 ## CPP-188 — MSDataWritingConsumer class test is disabled and calls a nonexistent constructor
 
@@ -3348,3 +3348,224 @@ implementation. They do not count as completed Rust functionality.
 **Proposed C++ fix:** Update the fixture to a concrete consumer with a temporary output path, implement the empty test sections against the current contract, and re-enable registration. No upstream patch is claimed.
 
 **Rust handling:** The native consumer suite is enabled and exercises settings, counts, streaming and output checks. Its expectations are source-derived and independent Rust checks; the disabled C++ test is not an executed oracle.
+
+## CPP-189 — SqliteConnector row-count documentation names the wrong exception
+
+**Status and source:** Reproduced in an adapted C++ probe on kim at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; not a full SDK build.
+
+**Affected files and functions:** `SqliteConnector::countTableRows`, `src/openms/include/OpenMS/FORMAT/SqliteConnector.h:75`; `src/openms/source/FORMAT/SqliteConnector.cpp:82,145–153`; `src/tests/class_tests/openms/source/SqliteConnector_test.cpp:105–106`. Files are hashed in [the connector provenance](tests/data/sqlite_connector_provenance.json).
+
+**Trigger and issue:** Call `countTableRows("UNKNOWN")` on a database without that table. The installed header promises `SqlOperationFailed`, but preparing the SELECT throws `IllegalArgument`; the class test explicitly expects that latter type. A caller handling only the documented exception can miss the actual failure.
+
+**Proposed C++ fix:** Correct the header to document `IllegalArgument` for an unknown table. Alternatively, deliberately translate the exception and update the class test as an API change. No upstream fix is claimed.
+
+**Evidence:** Exact pinned connector implementation and declarations were compiled with small substitute StandardTypes, Exception and StringUtils support headers against host SQLite 3.45.1 (GCC 13.3, C++20). countTableRows(UNKNOWN) throws the adapted IllegalArgument from the exact pinned prepareStatement path, agreeing with the source class test and contradicting the installed header. Substitute exception classes preserve distinct throw/catch paths; the original exception inheritance, ABI and metadata formatting are not exercised. Probe sources, adapters, executable and logs are hashed in [the connector provenance](tests/data/sqlite_connector_provenance.json) and retained externally under `../oracle/sqlite-connector-s0-probe/`. This does not execute the original OpenMS exception ABI or full SDK dependency closure.
+
+**Rust handling:** The native rustdoc and support document state the source mismatch and specify Error::Io with an underlying SQLite cause for an absent table. The source class-test expectation is mapped to a native error regression.
+## CPP-190 — Default handler writing reads an uninitialized SQL batch size
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:269` (`MzMLSqliteHandler::MzMLSqliteHandler`); `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h:121` (`MzMLSqliteHandler::setConfig`); `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h:238` (`MzMLSqliteHandler::sql_batch_size_`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1261` (`MzMLSqliteHandler::writeSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1472` (`MzMLSqliteHandler::writeChromatograms`).
+
+**Trigger:** Construct a handler, createTables(), then write a nonempty spectra/chromatogram vector without first calling setConfig().
+
+**Issue:** sql_batch_size_ is an int with no in-class initializer and is absent from the constructor initializer list. setConfig is its only assignment; writes compare sql_it to the indeterminate member. Higher-level SqMassFile calls setConfig, but the direct public API and source class-test writeExperiment path do not require it.
+
+**Proposed C++ fix:** Initialize sql_batch_size_ to 500 in-class or in the constructor, keeping setConfig override; validate positive overrides. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Initialize a typed default configuration explicitly and validate overrides.
+
+## CPP-191 — Array hydration lacks pair length and role validation
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:196` (`populateContainer_sub_`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:255` (`populateContainer_sub_`).
+
+**Trigger:** A spectrum DATA coordinate array has 2 doubles and its intensity array has 1 (or 3); separately, provide two coordinate-role rows and no intensity-role row.
+
+**Issue:** Only the first nonempty array determines container length. Every subsequent array is copied using container length and an unchecked decoded-data iterator: shorter data is read beyond end, longer data is truncated. cont_data only counts rows and accepts >=2, so duplicate roles can satisfy completeness while a required role is absent.
+
+**Proposed C++ fix:** Decode into separate role slots; reject duplicate or unexpected roles, require exactly coordinate+intensity, verify equal lengths (including empty arrays), then construct peaks with bounded indexing. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Validate roles and equal lengths before constructing any returned spectrum/chromatogram.
+
+## CPP-192 — Blob hydration assigns objects by SQL row encounter order instead of record identity
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:122` (`populateContainer_sub_`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:559` (`MzMLSqliteHandler::populateSpectraWithData_`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:511` (`MzMLSqliteHandler::populateChromatogramsWithData_`).
+
+**Trigger:** Store metadata records ID0/native s0 and ID1/native s1, but insert DATA rows for ID1 before ID0; use a legal query plan that returns DATA insertion order.
+
+**Issue:** The first encountered DATA ID is mapped to containers[0] regardless of that container’s actual SQL ID. Metadata and blob queries have no matching ORDER BY. Differing natural order throws a false native-ID mismatch; identical native IDs can instead put data on the wrong metadata record.
+
+**Proposed C++ fix:** Carry the actual record-ID-to-result-position map out of metadata preparation and use it for every blob row; ORDER BY alone is insufficient if independent metadata snapshots are used. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. The retained Python SQLite observations support the SQL mechanism, not an execution of the C++ control flow. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Hydrate by explicit record identity; reject missing/extra references and snapshot disagreement.
+
+## CPP-193 — Spectrum/chromatogram IDs and peptide sequence remain unescaped SQL values
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1167` (`MzMLSqliteHandler::writeSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1194` (`MzMLSqliteHandler::writeSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1405` (`MzMLSqliteHandler::writeChromatograms`).
+
+**Trigger:** Write a native ID such as scan'1 or a precursor peptide_sequence containing an apostrophe; crafted text may add SQL syntax to the concatenated batch.
+
+**Issue:** Values are surrounded by apostrophes but never escaped or parameterized, making valid text fail SQL parsing and allowing supplied content to alter the statement. The pinned run-path binding fix at lines 897-900 does not cover these fields. This is distinct from CPP184 identifier-helper interpolation.
+
+**Proposed C++ fix:** Bind every text, numeric and binary field through prepared statements; never interpolate record content into SQL. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Use typed rusqlite parameters throughout; test apostrophes and embedded NULs.
+
+## CPP-194 — Metadata failures leave committed DATA rows and advanced writer counters
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1261` (`MzMLSqliteHandler::writeSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1472` (`MzMLSqliteHandler::writeChromatograms`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:897` (`MzMLSqliteHandler::writeRunLevelInformation`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:873` (`MzMLSqliteHandler::writeExperiment`).
+
+**Trigger:** Cause a metadata insert to fail after blob insertion (e.g. native-ID apostrophe, duplicate ID from reopening an existing database, or SQLite trigger abort).
+
+**Issue:** DATA executeBindStatement calls run before BEGIN TRANSACTION, so their successful inserts autocommit; counters advance before the metadata transaction succeeds. Later metadata failure rolls back at most that metadata transaction and leaves orphan DATA. RUN and RUN_EXTRA are likewise separate commits, and writeExperiment sequences multiple independently committed operations.
+
+**Proposed C++ fix:** Use one transaction for each public write operation, including all DATA/metadata and run snapshot rows; publish counter increments only after commit. Share internal transaction-taking helpers for writeExperiment to avoid nested independent commits. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Perform prepared bounded writes inside one transaction and update counters after commit; inject later-statement failures in tests.
+
+## CPP-195 — Product and precursor indexes are accidentally built on DATA
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1047` (`MzMLSqliteHandler::createIndices_`).
+
+**Trigger:** Create a sqMass database and inspect indexes, or query joins against a large PRODUCT/PRECURSOR table.
+
+**Issue:** Four named product/precursor indexes target DATA instead of PRODUCT/PRECURSOR. This adds redundant DATA insertion/index storage overhead while leaving the intended join columns unindexed. The retained original sqMass fixture has the same four wrong targets.
+
+**Proposed C++ fix:** Create product_chr_idx/product_sp_idx on PRODUCT and precursor_chr_idx/precursor_sp_idx on PRECURSOR. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. The retained Python SQLite observations support the SQL mechanism, not an execution of the C++ control flow. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Create correct table indexes and assert sqlite_master targets; do not require performance differences in correctness fixtures.
+
+## CPP-196 — SWATH selection stops at a matching chromatogram precursor NULL ID
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:92` (`MzMLSqliteSwathHandler::readSpectraForWindow`).
+
+**Trigger:** PRECURSOR contains a chromatogram row with NULL SPECTRUM_ID and isolation target 412.5 before matching spectrum rows, then readSpectraForWindow(center=412.5).
+
+**Issue:** The query selects all matching precursor rows, including chromatograms. The loop uses column-0 NULL as end-of-results and therefore stops on the first chromatogram row, returning no or only a prefix of matching spectra. Source writeExperiment writes chromatograms before spectra, so this row ordering can arise naturally.
+
+**Proposed C++ fix:** Filter SPECTRUM_ID IS NOT NULL (prefer join to SPECTRUM for valid identities) and iterate with checked SQLITE_ROW/SQLITE_DONE status instead of a column-value sentinel. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. The retained Python SQLite observations support the SQL mechanism, not an execution of the C++ control flow. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Use fallible typed row iteration and filter out non-spectrum precursors.
+
+## CPP-197 — SWATH window docs promise distinct centers but query deduplicates full bounds tuples
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h:57` (`MzMLSqliteSwathHandler::readSwathWindows documentation`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:30` (`MzMLSqliteSwathHandler::readSwathWindows`).
+
+**Trigger:** Two MS2 precursors have center 412.5 but lower/upper offsets 12.5 and 10.
+
+**Issue:** SELECT DISTINCT(ISOLATION_TARGET), lower, upper applies DISTINCT to all three output columns, returning two windows with the same center. The new header explicitly promises one per distinct center. The tuple result is meaningful for variable widths, so this is a documentation/contract mismatch, not proof that tuple behavior itself should change.
+
+**Proposed C++ fix:** Document distinct (center,lower,upper) tuples and add a differing-width example; if unique centers are intended instead, define how conflicting bounds are handled before changing SQL. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. The retained Python SQLite observations support the SQL mechanism, not an execution of the C++ control flow. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Preserve distinct tuples and describe that behavior accurately.
+
+## CPP-198 — Recreating tables on a used handler retains counters from the deleted database
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:939` (`MzMLSqliteHandler::createTables`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:269` (`MzMLSqliteHandler::MzMLSqliteHandler`); `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h:223` (`writer counter contract`).
+
+**Trigger:** Construct/configure handler, createTables, write two spectra, createTables again on the same object, write a new spectrum, then select database ID0.
+
+**Issue:** createTables deletes the file and recreates an empty database but never resets spec_id_/chrom_id_. The new spectrum is assigned ID2 while count is1; ID0 selection fails. The existing class test recreates through the same handler but checks counts rather than IDs. The counters are documented as global to a particular database file, and downstream SqMassFile transforms assume IDs begin at zero.
+
+**Proposed C++ fix:** Reset both counters only after successful destructive schema recreation; retain existing counters if recreation fails. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Reset counters on successful create_tables and regression-test IDs across repeated creation.
+
+## CPP-199 — Metadata readers accept invalid negative activation enum values below -1
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:708` (`MzMLSqliteHandler::prepareChroms_`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:852` (`MzMLSqliteHandler::prepareSpectra_`).
+
+**Trigger:** Read a PRECURSOR row with ACTIVATION_METHOD=-2 (or a more negative value) and valid surrounding metadata.
+
+**Issue:** The reader excludes only -1 and checks value < SIZE_OF_ACTIVATIONMETHOD, allowing all smaller negative values through the cast and insertion into the activation-method set. This is outside the named enum domain. No downstream crash is claimed without execution.
+
+**Proposed C++ fix:** Check 0 <= value && value < SIZE_OF_ACTIVATIONMETHOD; handle -1 as unset and reject other invalid values explicitly. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Use checked enum conversion with a deliberate NULL/-1 unset policy.
+
+## CPP-200 — SqMassFile transform issues an extra empty selected-read batch
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/SqMassFile.cpp:49` (`SqMassFile::transform`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:390` (`MzMLSqliteHandler::readSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:413` (`MzMLSqliteHandler::readChromatograms`).
+
+**Trigger:** Transform a file containing zero spectra/chromatograms, or exactly 500,1000,... of either record type.
+
+**Issue:** The <= count/batch_size loop runs a final iteration with start=end and an empty indices vector. The selected-read APIs require nonempty input. In a precondition-enabled build this fails immediately; for nonempty exact multiples with preconditions disabled, empty indices mean unrestricted metadata and the subsequent size comparison throws. The normal empty side of a spectra-only/chromatogram-only file also violates the stated precondition.
+
+**Proposed C++ fix:** Loop while idx_start < count or iterate nonempty chunks of actual record IDs; cache counts and skip zero-record types. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. S1 remains unported; address in subsequent SqMassFile consumer wave and add 0/1/499/500/501 boundary tests.
+
+## CPP-201 — Full metadata recovery promise omits auxiliary-array loss
+
+**Status and source:** Unconfirmed documentation/contract candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h:116` (`MzMLSqliteHandler::setConfig documentation`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:904` (`MzMLSqliteHandler::writeRunLevelInformation`); `src/openms/source/KERNEL/MSSpectrum.cpp:203` (`MSSpectrum::clear`); `src/openms/source/KERNEL/MSChromatogram.cpp:335` (`MSChromatogram::clear`).
+
+**Trigger:** Store an experiment with a nonempty auxiliary float/string/integer data array using write_full_meta=true, then load it.
+
+**Issue:** The RUN_EXTRA snapshot invokes clear(false), which clears all auxiliary arrays as well as peaks. DATA writing supports only primary coordinate/intensity arrays, so auxiliary values have no storage path. This contradicts the header parenthetical allowing complete recovery of the input file. Array loss is source-confirmed; whether the format intentionally excludes these arrays is a contract question, so classified as a documentation/contract candidate rather than an unqualified algorithm defect.
+
+**Proposed C++ fix:** At minimum qualify the recovery promise and detect/document unsupported arrays. For complete recovery, provide an explicit format-compatible auxiliary-data representation or reject such input instead of silently accepting it. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Choose and document an explicit auxiliary-array policy before advertising full experiment recovery. No handling implemented yet.
+
+## CPP-202 — Read accessors create an empty database when the input path is missing
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:23` (`MzMLSqliteSwathHandler::readSwathWindows`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:58` (`MzMLSqliteSwathHandler::readMS1Spectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:84` (`MzMLSqliteSwathHandler::readSpectraForWindow`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:280` (`MzMLSqliteHandler::readExperiment`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:390` (`MzMLSqliteHandler::readSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:413` (`MzMLSqliteHandler::readChromatograms`); `src/openms/include/OpenMS/FORMAT/SqliteConnector.h:58` (`SqliteConnector default open mode`); `src/openms/source/FORMAT/SqliteConnector.cpp:44` (`SqliteConnector::openDatabase_`).
+
+**Trigger:** Call a read accessor with a nonexistent filename whose parent directory is writable.
+
+**Issue:** Read methods construct SqliteConnector(filename_) without an explicit mode, selecting READWRITE_OR_CREATE. SQLite creates an empty file, then the read query fails because the required tables do not exist. Thus a read error mutates the filesystem and is reported as a missing-table query failure instead of a missing-input open failure. The same call sites unnecessarily request write access to existing databases.
+
+**Proposed C++ fix:** Pass SqlOpenMode::READ_ONLY from all read/count/lookup accessors. Retain creating modes only for explicit create/write operations; test that failed reads leave no file. No upstream fix is claimed.
+
+**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+
+**Rust handling:** Not implemented in S0. Open all read paths with explicit ReadOnly mode and test missing-path noncreation.

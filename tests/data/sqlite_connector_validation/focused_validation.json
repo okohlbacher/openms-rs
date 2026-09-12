@@ -1,0 +1,51 @@
+{
+  "scope": "Focused final connector validation on kim; full integration is separate",
+  "source_files": [
+    {
+      "path": "src/format/sqlite_connector.rs",
+      "sha256": "0c6698378a56802ce196d812ba83e17ee2a1927acf9195a124388dfce071229e"
+    },
+    {
+      "path": "tests/sqlite_connector.rs",
+      "sha256": "c8dd6448f3851a4e40cc6a5084e2fe77f32883dc2e66b6f0aefe2a5648e787a0"
+    }
+  ],
+  "validation": {
+    "host": "kim",
+    "slot": "codex-sqlite-s0-review",
+    "current_rust": "1.96",
+    "minimum_rust": "1.85",
+    "matrix": [
+      "current + sqlite:19 passed",
+      "current + sqlite,rusqlite/extra_check:19 passed",
+      "minimum + sqlite:19 passed",
+      "minimum + sqlite,rusqlite/extra_check:19 passed"
+    ],
+    "strict_clippy": "current, sqlite,rusqlite/extra_check, -D warnings: passed",
+    "local_compilation": false,
+    "cpp_execution_by_this_worker": false,
+    "source_tests": "Eight upstream sections / seventeen assertion macros mapped to eight named native tests; eleven additional native regressions. Source-review evidence for the transcribed outcomes."
+  },
+  "logs": [
+    {
+      "path": "tests/data/sqlite_connector_validation/current-normal.log",
+      "sha256": "4c634efcb685fb8b12553ed8ed879d16c0cd6847c3aa508c00f37680201ca14c"
+    },
+    {
+      "path": "tests/data/sqlite_connector_validation/current-extra.log",
+      "sha256": "c8b38132f5124067456952ea08276311dcad1666a713f54cbe28af40f3025af7"
+    },
+    {
+      "path": "tests/data/sqlite_connector_validation/minimum-normal.log",
+      "sha256": "86fed6b94cdf04f4ebb3f8c0c5f6cafeaad8a4b6078f59050841f644a3de67b7"
+    },
+    {
+      "path": "tests/data/sqlite_connector_validation/minimum-extra.log",
+      "sha256": "233feb0ae5c81425cb5b4ead53be429359173ca787a594b93a7a16ed1f9e5947"
+    },
+    {
+      "path": "tests/data/sqlite_connector_validation/clippy.log",
+      "sha256": "541d5db82ab79a2b0677081d12d080dcf33f4be3ea974598122fe229c5016c10"
+    }
+  ]
+}

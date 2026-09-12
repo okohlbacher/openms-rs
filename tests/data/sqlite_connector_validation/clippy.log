@@ -1,0 +1,20 @@
+   Compiling find-msvc-tools v0.1.12
+   Compiling shlex v2.0.1
+   Compiling vcpkg v0.2.15
+   Compiling autocfg v1.5.1
+   Compiling pkg-config v0.3.34
+   Compiling libc v0.2.189
+   Compiling libm v0.2.16
+    Checking fallible-streaming-iterator v0.1.9
+    Checking smallvec v1.16.1
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/codex-sqlite-s0-review)
+    Checking fallible-iterator v0.3.0
+    Checking bitflags v2.13.2
+    Checking iana-time-zone v0.1.65
+   Compiling cc v1.4.5
+   Compiling num-traits v0.2.19
+   Compiling libsqlite3-sys v0.38.2
+    Checking cpu-time v1.0.0
+    Checking chrono v0.4.45
+    Checking rusqlite v0.40.2
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.01s

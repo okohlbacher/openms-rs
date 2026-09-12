@@ -1,0 +1,658 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "prepared_at": "2026-09-13",
+  "scope": "S1 MzMLSqliteHandler and MzMLSqliteSwathHandler read-only preparation; one discovered S2 consumer issue included",
+  "no_cpp_execution": true,
+  "deduplication": "Stable IDs assigned by the integrating agent after comparison with CPP-001 through CPP-189. No implementation is claimed for these next-stage findings.",
+  "findings": [
+    {
+      "local_key": "s1-uninitialized-batch",
+      "stable_issue_id": "CPP-190",
+      "title": "Default handler writing reads an uninitialized SQL batch size",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::MzMLSqliteHandler",
+          "line_start": 269,
+          "line_end": 278
+        },
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
+          "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e",
+          "function": "MzMLSqliteHandler::setConfig",
+          "line_start": 121,
+          "line_end": 126
+        },
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
+          "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e",
+          "function": "MzMLSqliteHandler::sql_batch_size_",
+          "line_start": 238,
+          "line_end": 238
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeSpectra",
+          "line_start": 1261,
+          "line_end": 1269
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeChromatograms",
+          "line_start": 1472,
+          "line_end": 1480
+        }
+      ],
+      "trigger": "Construct a handler, createTables(), then write a nonempty spectra/chromatogram vector without first calling setConfig().",
+      "explanation": "sql_batch_size_ is an int with no in-class initializer and is absent from the constructor initializer list. setConfig is its only assignment; writes compare sql_it to the indeterminate member. Higher-level SqMassFile calls setConfig, but the direct public API and source class-test writeExperiment path do not require it.",
+      "proposed_cpp_fix": "Initialize sql_batch_size_ to 500 in-class or in the constructor, keeping setConfig override; validate positive overrides.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Initialize a typed default configuration explicitly and validate overrides."
+      },
+      "upstream_fix_applied": false
+    },
+    {
+      "local_key": "s1-array-pair-validation",
+      "stable_issue_id": "CPP-191",
+      "title": "Array hydration lacks pair length and role validation",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "populateContainer_sub_",
+          "line_start": 196,
+          "line_end": 244
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "populateContainer_sub_",
+          "line_start": 255,
+          "line_end": 262
+        }
+      ],
+      "trigger": "A spectrum DATA coordinate array has 2 doubles and its intensity array has 1 (or 3); separately, provide two coordinate-role rows and no intensity-role row.",
+      "explanation": "Only the first nonempty array determines container length. Every subsequent array is copied using container length and an unchecked decoded-data iterator: shorter data is read beyond end, longer data is truncated. cont_data only counts rows and accepts >=2, so duplicate roles can satisfy completeness while a required role is absent.",
+      "proposed_cpp_fix": "Decode into separate role slots; reject duplicate or unexpected roles, require exactly coordinate+intensity, verify equal lengths (including empty arrays), then construct peaks with bounded indexing.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Validate roles and equal lengths before constructing any returned spectrum/chromatogram."
+      },
+      "upstream_fix_applied": false
+    },
+    {
+      "local_key": "s1-row-identity-order",
+      "stable_issue_id": "CPP-192",
+      "title": "Blob hydration assigns objects by SQL row encounter order instead of record identity",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "populateContainer_sub_",
+          "line_start": 122,
+          "line_end": 148
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::populateSpectraWithData_",
+          "line_start": 559,
+          "line_end": 596
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::populateChromatogramsWithData_",
+          "line_start": 511,
+          "line_end": 550
+        }
+      ],
+      "trigger": "Store metadata records ID0/native s0 and ID1/native s1, but insert DATA rows for ID1 before ID0; use a legal query plan that returns DATA insertion order.",
+      "explanation": "The first encountered DATA ID is mapped to containers[0] regardless of that container\u2019s actual SQL ID. Metadata and blob queries have no matching ORDER BY. Differing natural order throws a false native-ID mismatch; identical native IDs can instead put data on the wrong metadata record.",
+      "proposed_cpp_fix": "Carry the actual record-ID-to-result-position map out of metadata preparation and use it for every blob row; ORDER BY alone is insufficient if independent metadata snapshots are used.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Hydrate by explicit record identity; reject missing/extra references and snapshot disagreement."
+      },
+      "upstream_fix_applied": false,
+      "independent_evidence": {
+        "tier": 4,
+        "artifact": "tests/data/sqlite_s1_source_review/result.json",
+        "observations": [
+          "metadata_order=[[0,\"s0\"],[1,\"s1\"]]",
+          "blob_join_order=[[1,\"s1\"],[0,\"s0\"]]"
+        ],
+        "qualification": "Executed Python sqlite3, not C++."
+      }
+    },
+    {
+      "local_key": "s1-unbound-text",
+      "stable_issue_id": "CPP-193",
+      "title": "Spectrum/chromatogram IDs and peptide sequence remain unescaped SQL values",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeSpectra",
+          "line_start": 1167,
+          "line_end": 1173
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeSpectra",
+          "line_start": 1194,
+          "line_end": 1204
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeChromatograms",
+          "line_start": 1405,
+          "line_end": 1425
+        }
+      ],
+      "trigger": "Write a native ID such as scan'1 or a precursor peptide_sequence containing an apostrophe; crafted text may add SQL syntax to the concatenated batch.",
+      "explanation": "Values are surrounded by apostrophes but never escaped or parameterized, making valid text fail SQL parsing and allowing supplied content to alter the statement. The pinned run-path binding fix at lines 897-900 does not cover these fields. This is distinct from CPP184 identifier-helper interpolation.",
+      "proposed_cpp_fix": "Bind every text, numeric and binary field through prepared statements; never interpolate record content into SQL.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Use typed rusqlite parameters throughout; test apostrophes and embedded NULs."
+      },
+      "upstream_fix_applied": false
+    },
+    {
+      "local_key": "s1-nonatomic-write",
+      "stable_issue_id": "CPP-194",
+      "title": "Metadata failures leave committed DATA rows and advanced writer counters",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeSpectra",
+          "line_start": 1261,
+          "line_end": 1291
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeChromatograms",
+          "line_start": 1472,
+          "line_end": 1500
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeRunLevelInformation",
+          "line_start": 897,
+          "line_end": 935
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeExperiment",
+          "line_start": 873,
+          "line_end": 883
+        }
+      ],
+      "trigger": "Cause a metadata insert to fail after blob insertion (e.g. native-ID apostrophe, duplicate ID from reopening an existing database, or SQLite trigger abort).",
+      "explanation": "DATA executeBindStatement calls run before BEGIN TRANSACTION, so their successful inserts autocommit; counters advance before the metadata transaction succeeds. Later metadata failure rolls back at most that metadata transaction and leaves orphan DATA. RUN and RUN_EXTRA are likewise separate commits, and writeExperiment sequences multiple independently committed operations.",
+      "proposed_cpp_fix": "Use one transaction for each public write operation, including all DATA/metadata and run snapshot rows; publish counter increments only after commit. Share internal transaction-taking helpers for writeExperiment to avoid nested independent commits.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Perform prepared bounded writes inside one transaction and update counters after commit; inject later-statement failures in tests."
+      },
+      "upstream_fix_applied": false
+    },
+    {
+      "local_key": "s1-index-targets",
+      "stable_issue_id": "CPP-195",
+      "title": "Product and precursor indexes are accidentally built on DATA",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::createIndices_",
+          "line_start": 1047,
+          "line_end": 1051
+        }
+      ],
+      "trigger": "Create a sqMass database and inspect indexes, or query joins against a large PRODUCT/PRECURSOR table.",
+      "explanation": "Four named product/precursor indexes target DATA instead of PRODUCT/PRECURSOR. This adds redundant DATA insertion/index storage overhead while leaving the intended join columns unindexed. The retained original sqMass fixture has the same four wrong targets.",
+      "proposed_cpp_fix": "Create product_chr_idx/product_sp_idx on PRODUCT and precursor_chr_idx/precursor_sp_idx on PRECURSOR.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Create correct table indexes and assert sqlite_master targets; do not require performance differences in correctness fixtures."
+      },
+      "upstream_fix_applied": false,
+      "independent_evidence": {
+        "tier": 4,
+        "artifact": "tests/data/sqlite_s1_source_review/result.json",
+        "observations": [
+          "indexes: product_chr_idx, product_sp_idx, precursor_chr_idx, precursor_sp_idx all tbl_name=DATA"
+        ],
+        "qualification": "Executed Python sqlite3, not C++."
+      }
+    },
+    {
+      "local_key": "s1-swath-null-stop",
+      "stable_issue_id": "CPP-196",
+      "title": "SWATH selection stops at a matching chromatogram precursor NULL ID",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+          "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597",
+          "function": "MzMLSqliteSwathHandler::readSpectraForWindow",
+          "line_start": 92,
+          "line_end": 105
+        }
+      ],
+      "trigger": "PRECURSOR contains a chromatogram row with NULL SPECTRUM_ID and isolation target 412.5 before matching spectrum rows, then readSpectraForWindow(center=412.5).",
+      "explanation": "The query selects all matching precursor rows, including chromatograms. The loop uses column-0 NULL as end-of-results and therefore stops on the first chromatogram row, returning no or only a prefix of matching spectra. Source writeExperiment writes chromatograms before spectra, so this row ordering can arise naturally.",
+      "proposed_cpp_fix": "Filter SPECTRUM_ID IS NOT NULL (prefer join to SPECTRUM for valid identities) and iterate with checked SQLITE_ROW/SQLITE_DONE status instead of a column-value sentinel.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Use fallible typed row iteration and filter out non-spectrum precursors."
+      },
+      "upstream_fix_applied": false,
+      "independent_evidence": {
+        "tier": 4,
+        "artifact": "tests/data/sqlite_s1_source_review/result.json",
+        "observations": [
+          "swath_null_row=[[null],[0],[1]]"
+        ],
+        "qualification": "Executed Python sqlite3, not C++."
+      }
+    },
+    {
+      "local_key": "s1-swath-distinct-doc",
+      "stable_issue_id": "CPP-197",
+      "title": "SWATH window docs promise distinct centers but query deduplicates full bounds tuples",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
+          "sha256": "de45201a11fce98dfd88f5c9c0bacf661963ff803abbd8b3ade202972ebc03c4",
+          "function": "MzMLSqliteSwathHandler::readSwathWindows documentation",
+          "line_start": 57,
+          "line_end": 62
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+          "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597",
+          "function": "MzMLSqliteSwathHandler::readSwathWindows",
+          "line_start": 30,
+          "line_end": 37
+        }
+      ],
+      "trigger": "Two MS2 precursors have center 412.5 but lower/upper offsets 12.5 and 10.",
+      "explanation": "SELECT DISTINCT(ISOLATION_TARGET), lower, upper applies DISTINCT to all three output columns, returning two windows with the same center. The new header explicitly promises one per distinct center. The tuple result is meaningful for variable widths, so this is a documentation/contract mismatch, not proof that tuple behavior itself should change.",
+      "proposed_cpp_fix": "Document distinct (center,lower,upper) tuples and add a differing-width example; if unique centers are intended instead, define how conflicting bounds are handled before changing SQL.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Preserve distinct tuples and describe that behavior accurately."
+      },
+      "upstream_fix_applied": false,
+      "independent_evidence": {
+        "tier": 4,
+        "artifact": "tests/data/sqlite_s1_source_review/result.json",
+        "observations": [
+          "swath_distinct_tuples=[[412.5,400,425],[412.5,402.5,422.5]]"
+        ],
+        "qualification": "Executed Python sqlite3, not C++."
+      }
+    },
+    {
+      "local_key": "s1-recreate-counters",
+      "stable_issue_id": "CPP-198",
+      "title": "Recreating tables on a used handler retains counters from the deleted database",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::createTables",
+          "line_start": 939,
+          "line_end": 1023
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::MzMLSqliteHandler",
+          "line_start": 269,
+          "line_end": 278
+        },
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
+          "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e",
+          "function": "writer counter contract",
+          "line_start": 223,
+          "line_end": 232
+        }
+      ],
+      "trigger": "Construct/configure handler, createTables, write two spectra, createTables again on the same object, write a new spectrum, then select database ID0.",
+      "explanation": "createTables deletes the file and recreates an empty database but never resets spec_id_/chrom_id_. The new spectrum is assigned ID2 while count is1; ID0 selection fails. The existing class test recreates through the same handler but checks counts rather than IDs. The counters are documented as global to a particular database file, and downstream SqMassFile transforms assume IDs begin at zero.",
+      "proposed_cpp_fix": "Reset both counters only after successful destructive schema recreation; retain existing counters if recreation fails.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Reset counters on successful create_tables and regression-test IDs across repeated creation."
+      },
+      "upstream_fix_applied": false
+    },
+    {
+      "local_key": "s1-negative-activation",
+      "stable_issue_id": "CPP-199",
+      "title": "Metadata readers accept invalid negative activation enum values below -1",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::prepareChroms_",
+          "line_start": 708,
+          "line_end": 716
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::prepareSpectra_",
+          "line_start": 852,
+          "line_end": 860
+        }
+      ],
+      "trigger": "Read a PRECURSOR row with ACTIVATION_METHOD=-2 (or a more negative value) and valid surrounding metadata.",
+      "explanation": "The reader excludes only -1 and checks value < SIZE_OF_ACTIVATIONMETHOD, allowing all smaller negative values through the cast and insertion into the activation-method set. This is outside the named enum domain. No downstream crash is claimed without execution.",
+      "proposed_cpp_fix": "Check 0 <= value && value < SIZE_OF_ACTIVATIONMETHOD; handle -1 as unset and reject other invalid values explicitly.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Use checked enum conversion with a deliberate NULL/-1 unset policy."
+      },
+      "upstream_fix_applied": false
+    },
+    {
+      "local_key": "s2-transform-empty-batch",
+      "stable_issue_id": "CPP-200",
+      "title": "SqMassFile transform issues an extra empty selected-read batch",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/SqMassFile.cpp",
+          "sha256": "19e64020e62911174ab90a58ff9e8c008fe311d7faf74dc79906536066784e65",
+          "function": "SqMassFile::transform",
+          "line_start": 49,
+          "line_end": 85
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::readSpectra",
+          "line_start": 390,
+          "line_end": 402
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::readChromatograms",
+          "line_start": 413,
+          "line_end": 427
+        }
+      ],
+      "trigger": "Transform a file containing zero spectra/chromatograms, or exactly 500,1000,... of either record type.",
+      "explanation": "The <= count/batch_size loop runs a final iteration with start=end and an empty indices vector. The selected-read APIs require nonempty input. In a precondition-enabled build this fails immediately; for nonempty exact multiples with preconditions disabled, empty indices mean unrestricted metadata and the subsequent size comparison throws. The normal empty side of a spectra-only/chromatogram-only file also violates the stated precondition.",
+      "proposed_cpp_fix": "Loop while idx_start < count or iterate nonempty chunks of actual record IDs; cache counts and skip zero-record types.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "S1 remains unported; address in subsequent SqMassFile consumer wave and add 0/1/499/500/501 boundary tests."
+      },
+      "upstream_fix_applied": false
+    },
+    {
+      "local_key": "s1-full-meta-recovery-contract",
+      "stable_issue_id": "CPP-201",
+      "title": "Full metadata recovery promise omits auxiliary-array loss",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "unconfirmed_contract_candidate",
+      "locations": [
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
+          "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e",
+          "function": "MzMLSqliteHandler::setConfig documentation",
+          "line_start": 116,
+          "line_end": 116
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::writeRunLevelInformation",
+          "line_start": 904,
+          "line_end": 924
+        },
+        {
+          "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+          "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+          "function": "MSSpectrum::clear",
+          "line_start": 203,
+          "line_end": 210
+        },
+        {
+          "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+          "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a",
+          "function": "MSChromatogram::clear",
+          "line_start": 335,
+          "line_end": 346
+        }
+      ],
+      "trigger": "Store an experiment with a nonempty auxiliary float/string/integer data array using write_full_meta=true, then load it.",
+      "explanation": "The RUN_EXTRA snapshot invokes clear(false), which clears all auxiliary arrays as well as peaks. DATA writing supports only primary coordinate/intensity arrays, so auxiliary values have no storage path. This contradicts the header parenthetical allowing complete recovery of the input file. Array loss is source-confirmed; whether the format intentionally excludes these arrays is a contract question, so classified as a documentation/contract candidate rather than an unqualified algorithm defect.",
+      "proposed_cpp_fix": "At minimum qualify the recovery promise and detect/document unsupported arrays. For complete recovery, provide an explicit format-compatible auxiliary-data representation or reject such input instead of silently accepting it.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Choose and document an explicit auxiliary-array policy before advertising full experiment recovery. No handling implemented yet."
+      },
+      "upstream_fix_applied": false
+    },
+    {
+      "local_key": "s1-read-creates-file",
+      "stable_issue_id": "CPP-202",
+      "title": "Read accessors create an empty database when the input path is missing",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "status": "confirmed_from_source",
+      "locations": [
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+          "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597",
+          "function": "MzMLSqliteSwathHandler::readSwathWindows",
+          "line_start": 23,
+          "line_end": 39
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+          "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597",
+          "function": "MzMLSqliteSwathHandler::readMS1Spectra",
+          "line_start": 58,
+          "line_end": 69
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+          "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597",
+          "function": "MzMLSqliteSwathHandler::readSpectraForWindow",
+          "line_start": 84,
+          "line_end": 98
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::readExperiment",
+          "line_start": 280,
+          "line_end": 282
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::readSpectra",
+          "line_start": 390,
+          "line_end": 397
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+          "function": "MzMLSqliteHandler::readChromatograms",
+          "line_start": 413,
+          "line_end": 422
+        },
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/SqliteConnector.h",
+          "sha256": "e8045bfae45e9f244951ceacedfb895f386de6fce7c2a4dffad8770dcc3156ee",
+          "function": "SqliteConnector default open mode",
+          "line_start": 58,
+          "line_end": 60
+        },
+        {
+          "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+          "sha256": "d15e067d6f51fd4b35ffa197e7cfb3a3fbd79257cf59a149f6c65f46c86d62bd",
+          "function": "SqliteConnector::openDatabase_",
+          "line_start": 44,
+          "line_end": 49
+        }
+      ],
+      "trigger": "Call a read accessor with a nonexistent filename whose parent directory is writable.",
+      "explanation": "Read methods construct SqliteConnector(filename_) without an explicit mode, selecting READWRITE_OR_CREATE. SQLite creates an empty file, then the read query fails because the required tables do not exist. Thus a read error mutates the filesystem and is reported as a missing-table query failure instead of a missing-input open failure. The same call sites unnecessarily request write access to existing databases.",
+      "proposed_cpp_fix": "Pass SqlOpenMode::READ_ONLY from all read/count/lookup accessors. Retain creating modes only for explicit create/write operations; test that failed reads leave no file.",
+      "evidence_tier": 3,
+      "evidence": "Pinned source review; no C++ execution performed.",
+      "native_handling": {
+        "implemented": false,
+        "state": "S1 unported",
+        "proposed": "Open all read paths with explicit ReadOnly mode and test missing-path noncreation."
+      },
+      "upstream_fix_applied": false
+    }
+  ],
+  "unresolved_review_questions": [
+    "Lossless C++ double pointer reinterpretation alignment/aliasing: not executed; use explicit native decoding.",
+    "Unchecked sqlite3_step in handler paths: existing helper issue does not itself prove all handler failures; native fallible iteration should cover each path.",
+    "RT >= query LIMIT 1 has no ORDER BY; desired first-at-or-after semantics should be made explicit and probed.",
+    "External PRECURSOR/PRODUCT multiplicity may duplicate metadata joins; define rejection vs aggregation rather than assume writer-only single rows."
+  ],
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
+      "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
+      "sha256": "de45201a11fce98dfd88f5c9c0bacf661963ff803abbd8b3ade202972ebc03c4"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/SqliteConnector.h",
+      "sha256": "e8045bfae45e9f244951ceacedfb895f386de6fce7c2a4dffad8770dcc3156ee"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+      "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597"
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqMassFile.cpp",
+      "sha256": "19e64020e62911174ab90a58ff9e8c008fe311d7faf74dc79906536066784e65"
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+      "sha256": "d15e067d6f51fd4b35ffa197e7cfb3a3fbd79257cf59a149f6c65f46c86d62bd"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+      "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SqliteMassFile_1.sqMass",
+      "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/sqlite_s1_source_review/probe.py",
+      "sha256": "f0565d778c88867e79957fbb0c495b82293adb91416558cf5dc1c62651aaecb5",
+      "role": "Independent Python SQL probe",
+      "evidence_tier": 4
+    },
+    {
+      "path": "tests/data/sqlite_s1_source_review/result.json",
+      "sha256": "a43ab0abd7cd70572366a11b393206382816bb12a518fca8cc154a214daa2fe7",
+      "role": "Independent Python SQL probe output",
+      "evidence_tier": 4
+    },
+    {
+      "path": "tests/data/sqlite_s1_source_review/SqliteMassFile_1.sqMass",
+      "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
+      "role": "Unchanged upstream fixture inspected by the Python SQL probe; no C++ execution or Rust comparison claimed."
+    }
+  ],
+  "retained_probe_note": "Original Python probe kept unchanged, including its historical local checkout path. It is evidence of independent SQLite queries and source-fixture inspection; native builds and tests continue remotely. To rerun elsewhere, change only the checkout path and retain a new hash."
+}

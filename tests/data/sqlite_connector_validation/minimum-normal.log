@@ -1,0 +1,45 @@
+   Compiling find-msvc-tools v0.1.12
+   Compiling shlex v2.0.1
+   Compiling autocfg v1.5.1
+   Compiling pkg-config v0.3.34
+   Compiling vcpkg v0.2.15
+   Compiling libc v0.2.189
+   Compiling libm v0.2.16
+   Compiling bitflags v2.13.2
+   Compiling iana-time-zone v0.1.65
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/codex-sqlite-s0-review)
+   Compiling smallvec v1.16.1
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling fallible-iterator v0.3.0
+   Compiling cc v1.4.5
+   Compiling num-traits v0.2.19
+   Compiling libsqlite3-sys v0.38.2
+   Compiling cpu-time v1.0.0
+   Compiling chrono v0.4.45
+   Compiling rusqlite v0.40.2
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.77s
+
+running 19 tests
+test batch_execution_observes_errors_after_the_first_result_row ... ok
+test batch_failures_preserve_prior_effects_and_caller_transactions ... ok
+test binding_ignores_the_tail_without_preparing_its_pragma ... ok
+test binding_steps_transactions_and_returning_statements_once ... ok
+test count_table_rows_preserves_the_source_zero_and_two_counts ... ok
+test quoted_identifiers_are_literal_and_cannot_change_the_query ... ok
+test sqlite_temporary_filename_is_supported ... ok
+test column_exists_matches_exact_column_names ... ok
+     Running tests/sqlite_connector.rs (target/debug/deps/sqlite_connector-d0bb6c3a5b9a8b19)
+test failed_bindings_and_constraints_do_not_poison_the_connection ... ok
+test nul_sql_is_rejected_before_running_any_prefix ... ok
+test execute_statement_inserts_and_reports_malformed_sql ... ok
+test table_exists_matches_exact_main_table_names ... ok
+test construction_creates_a_usable_database ... ok
+test blobs_preserve_empty_nul_and_non_utf8_bytes_and_missing_bindings ... ok
+test destruction_closes_the_connection ... ok
+test external_non_utf8_column_names_do_not_hide_valid_columns ... ok
+test execute_bind_statement_inserts_the_source_bound_value ... ok
+test locked_query_errors_are_not_reported_as_absence ... ok
+test open_modes_preserve_read_only_and_missing_file_behavior ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

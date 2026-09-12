@@ -1,0 +1,65 @@
+{
+  "model": "claude-fable-5-1",
+  "reviews": [
+    {
+      "scope": "Whole S0 connector and tests, with pinned C++ snippets; did not include central docs/features",
+      "status": "completed",
+      "report": "tests/data/sqlite_connector_validation/initial_review.md",
+      "sha256": "9f971b8928c68751f25e7f9474c36bfee5fbf49ee520ed9050ee1b34e25edd09",
+      "duration_ms": 452204,
+      "turns": 1,
+      "permission_denials": []
+    },
+    {
+      "scope": "Changed byte comparison and one-step binding implementation, focused regressions and corrected initial finding; final special-filename wording reviewed separately by integrator",
+      "status": "completed",
+      "report": "tests/data/sqlite_connector_validation/followup_review.md",
+      "sha256": "e079afbfe98f2bfcc72352e25ebacf0fa78dec6b1304778df4a117dc2d0e02dd",
+      "duration_ms": 88032,
+      "turns": 1,
+      "permission_denials": []
+    }
+  ],
+  "dispositions": [
+    {
+      "finding": "UTF-8 conversion while scanning schema column names",
+      "action": "Changed to byte comparison and added an externally constructed non-UTF-8 schema regression."
+    },
+    {
+      "finding": "Optional extra_check changes raw_execute behavior",
+      "action": "Verified against rusqlite 0.40.2. Review incorrectly described the guard as OR; actual guard is column_count > 0 AND readonly, so BEGIN was not broken. The SELECT precheck can still change the error path. Bound execution now performs one raw_query step and is tested both with and without extra_check on both Rust versions."
+    },
+    {
+      "finding": "Destructor regression did not prove handle release on Unix",
+      "action": "Already strengthened to write successfully after reopening, proving the old writer lock was released."
+    },
+    {
+      "finding": "Special-filename documentation could imply URI mode",
+      "action": "Named :memory: and the empty filename explicitly; no URI flag is enabled."
+    },
+    {
+      "finding": "Lock regression journal/schema assumptions",
+      "action": "Confirmed fixture uses default DELETE journal mode and warms all three queries before taking the exclusive lock."
+    }
+  ],
+  "limits": "Model reviews are fallible. Source inspection and executable regressions determine dispositions; a completed review is not full-SDK equivalence evidence.",
+  "retained_external_inputs": [
+    {
+      "path": "../oracle/sqlite-connector-s0-review/fable-prompt.txt",
+      "sha256": "2b34ec2a8872f3dc68039fd6d286b1d9419ae3979019baf842b09b7bc1d01196",
+      "role": "Model-review input or pinned dependency excerpt; not C++ execution evidence"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-review/fable-followup-prompt.txt",
+      "sha256": "c73607283f6877dcbddef500fc82d3347d21eb9b82ec11c323ea5fb9bf79924d",
+      "role": "Model-review input or pinned dependency excerpt; not C++ execution evidence"
+    },
+    {
+      "path": "../oracle/sqlite-connector-s0-review/rusqlite-review.log",
+      "sha256": "7539833d5a3b006e847f392387d6b5706e95a9d526d353f0e51984bdbce5f7df",
+      "role": "Model-review input or pinned dependency excerpt; not C++ execution evidence"
+    }
+  ],
+  "final_source_sha256": "0c6698378a56802ce196d812ba83e17ee2a1927acf9195a124388dfce071229e",
+  "final_tests_sha256": "c8dd6448f3851a4e40cc6a5084e2fe77f32883dc2e66b6f0aefe2a5648e787a0"
+}

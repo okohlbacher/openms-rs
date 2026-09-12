@@ -1,0 +1,218 @@
+{
+  "evidence": "Python sqlite3 read-only fixture inspection and independently executed SQL, not executed C++",
+  "sqlite_version": "3.53.4",
+  "fixture": {
+    "path": ".reference/openms4-core-bc9cc12/src/tests/class_tests/openms/data/SqliteMassFile_1.sqMass",
+    "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
+    "bytes": 94208
+  },
+  "tables": {
+    "RUN": [
+      [
+        12345,
+        "/tmp/IndexedmzMLFile_1.mzML",
+        "/tmp/IndexedmzMLFile_1.mzML"
+      ]
+    ],
+    "SPECTRUM": [
+      [
+        0,
+        12345,
+        1,
+        0.2961,
+        1,
+        "controllerType=0 controllerNumber=1 scan=1"
+      ],
+      [
+        1,
+        12345,
+        1,
+        0.4738,
+        1,
+        "controllerType=0 controllerNumber=1 scan=2"
+      ]
+    ],
+    "CHROMATOGRAM": [
+      [
+        0,
+        12345,
+        "TIC"
+      ]
+    ],
+    "PRECURSOR": [
+      [
+        null,
+        0,
+        0,
+        null,
+        -1.0,
+        -1,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "PRODUCT": [
+      [
+        null,
+        0,
+        0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ]
+  },
+  "indexes": [
+    [
+      "data_chr_idx",
+      "DATA",
+      "CREATE INDEX data_chr_idx ON DATA(CHROMATOGRAM_ID)"
+    ],
+    [
+      "data_sp_idx",
+      "DATA",
+      "CREATE INDEX data_sp_idx ON DATA(SPECTRUM_ID)"
+    ],
+    [
+      "spec_rt_idx",
+      "SPECTRUM",
+      "CREATE INDEX spec_rt_idx ON SPECTRUM(RETENTION_TIME)"
+    ],
+    [
+      "spec_mslevel_idx",
+      "SPECTRUM",
+      "CREATE INDEX spec_mslevel_idx ON SPECTRUM(MSLEVEL)"
+    ],
+    [
+      "spec_run_idx",
+      "SPECTRUM",
+      "CREATE INDEX spec_run_idx ON SPECTRUM(RUN_ID)"
+    ],
+    [
+      "run_extra_idx",
+      "RUN_EXTRA",
+      "CREATE INDEX run_extra_idx ON RUN_EXTRA(RUN_ID)"
+    ],
+    [
+      "chrom_run_idx",
+      "CHROMATOGRAM",
+      "CREATE INDEX chrom_run_idx ON CHROMATOGRAM(RUN_ID)"
+    ],
+    [
+      "product_chr_idx",
+      "DATA",
+      "CREATE INDEX product_chr_idx ON DATA(CHROMATOGRAM_ID)"
+    ],
+    [
+      "product_sp_idx",
+      "DATA",
+      "CREATE INDEX product_sp_idx ON DATA(SPECTRUM_ID)"
+    ],
+    [
+      "precursor_chr_idx",
+      "DATA",
+      "CREATE INDEX precursor_chr_idx ON DATA(CHROMATOGRAM_ID)"
+    ],
+    [
+      "precursor_sp_idx",
+      "DATA",
+      "CREATE INDEX precursor_sp_idx ON DATA(SPECTRUM_ID)"
+    ]
+  ],
+  "arrays": [
+    [
+      null,
+      0,
+      5,
+      2,
+      27
+    ],
+    [
+      null,
+      0,
+      6,
+      1,
+      115
+    ],
+    [
+      0,
+      null,
+      5,
+      0,
+      11435
+    ],
+    [
+      0,
+      null,
+      6,
+      1,
+      22741
+    ],
+    [
+      1,
+      null,
+      5,
+      0,
+      239
+    ],
+    [
+      1,
+      null,
+      6,
+      1,
+      26654
+    ]
+  ],
+  "run_extra": [
+    {
+      "run_id": 12345,
+      "compressed_bytes": 3457,
+      "xml_bytes": 30278
+    }
+  ],
+  "swath_null_row": [
+    [
+      null
+    ],
+    [
+      0
+    ],
+    [
+      1
+    ]
+  ],
+  "swath_distinct_tuples": [
+    [
+      412.5,
+      400.0,
+      425.0
+    ],
+    [
+      412.5,
+      402.5,
+      422.5
+    ]
+  ],
+  "metadata_order": [
+    [
+      0,
+      "s0"
+    ],
+    [
+      1,
+      "s1"
+    ]
+  ],
+  "blob_join_order": [
+    [
+      1,
+      "s1"
+    ],
+    [
+      0,
+      "s0"
+    ]
+  ]
+}
