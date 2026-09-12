@@ -1,0 +1,83 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
+      "sha256": "70e1af93e346f655de0072f6424a7ea504252639a71f1dfe5ffac89cdc3b855d"
+    },
+    {
+      "path": "src/openms/source/KERNEL/SpectrumHelper.cpp",
+      "sha256": "0cfdd04ed006acfddf0d7f52efc2841a18337094dedbe5f0d5a74b19203fd0b7"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumHelper_test.cpp",
+      "sha256": "5c16449015832bcf433daf09bf0d73433d0db01e9688441e848492e8371cd344"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/spectrum_helper.rs"
+  ],
+  "native_tests": [
+    "tests/spectrum_helper.rs"
+  ],
+  "support": "docs/SPECTRUM_HELPER_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
+      "line": 26,
+      "operation": "getDataArrayByName: linear scan by exact name, first match, end iterator when absent (mutable and const overloads)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
+      "line": 49,
+      "operation": "removePeaks: inclusive PosBegin/PosEnd range, arrays trimmed only when their size equals the peak count, ignore_data_arrays leaves arrays misaligned; mapped onto retain_peaks"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
+      "line": 105,
+      "operation": "subtractMinimumIntensity: first minimum, double rebase, float narrowing, data arrays not updated"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
+      "line": 129,
+      "operation": "IntensityAveragingMethod declared in order MEDIAN, MEAN, SUM, MIN, MAX"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
+      "line": 148,
+      "operation": "makePeakPositionUnique: warning-only data array handling, empty early return, stable position sort, strict > grouping, double group values, Math::median/mean/sum and min/max, float narrowing"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/SpectrumHelper.h",
+      "line": 196,
+      "operation": "std::swap with a default-constructed container resets all metadata and drops data arrays (C++ issue candidate; native default keeps metadata and refuses arrays)"
+    },
+    {
+      "path": "src/openms/source/KERNEL/SpectrumHelper.cpp",
+      "line": 14,
+      "operation": "copySpectrumMeta: optional clear(true), then SpectrumSettings, RT, drift time and unit, MS level and name are assigned; drift time has no native spectrum-level field"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumHelper_test.cpp",
+      "line": 23,
+      "operation": "Six getDataArrayByName sections: values 56,201,31,201,201 in three arrays f1/f2/f3, indices 0/1/2, NOT_THERE absent"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumHelper_test.cpp",
+      "line": 160,
+      "operation": "removePeaks positions 5..14 with integer array: ranges [3,6], [0,4], [12,16], [9,12] and empty container"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumHelper_test.cpp",
+      "line": 211,
+      "operation": "subtractMinimumIntensity intensities [-5,4] and [5,14] to 0,1,9; empty chromatogram"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumHelper_test.cpp",
+      "line": 257,
+      "operation": "makePeakPositionUnique template (1,1),(2,4),(2,8),(3,9),(4,7),(2,10) under MEDIAN/MEAN/SUM/MIN/MAX and empty containers"
+    }
+  ],
+  "evidence": "Tier 3 (source review): class-test literals transcribed into tests/spectrum_helper.rs with explicit per-assertion tolerances; native tests add even-count median, signed-zero grouping, f64 accumulation order, metadata retention, array refusal/discard, source option set, non-finite/overflow rejection, limit preflight and copy_spectrum_meta modes. No C++ build or execution."
+}
