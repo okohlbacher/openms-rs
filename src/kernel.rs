@@ -45,6 +45,8 @@ pub use mobilogram::{MobilityPeak1D, Mobilogram, MobilogramLimits, MobilogramRan
 pub use spectrum_type::SpectrumTypeQueryLimits;
 /// Chromatogram point merging, subrange search and the remaining `MSChromatogram.h` members.
 pub mod chromatogram_merge;
+/// The `ConsensusFeature.h` stream operator as `Display`, and checked operations over `Ratio::description`.
+pub mod consensus_display;
 /// Conversions between peak, feature and consensus containers (`ConversionHelper.h`).
 pub mod conversion_helper;
 /// Identification surface of the feature containers: annotation state, primary IDs, match sets and reference updates.

@@ -8,11 +8,13 @@
 mod acquisition;
 mod document_identifier;
 mod experiment_support;
+mod im_types;
 mod value;
 
 pub use acquisition::*;
 pub use document_identifier::*;
 pub use experiment_support::*;
+pub use im_types::*;
 pub use value::*;
 
 mod experimental_design;

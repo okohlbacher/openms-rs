@@ -1,0 +1,234 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
+      "sha256": "78234161bbea0fc48d21c1898451d75d98f1829ce313b9e7295ca96f3ac2fbc4"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "sha256": "beadab7ea4eb41079d1a5642f73ba92b46ea3351a2cb53e2ac48382c17161631"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+      "sha256": "2477cd337d99f670558b9a30e78c2fb3c0d0a9f351acfcbf2f4240d6e74a8249"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IMTypes_test.cpp",
+      "sha256": "fbd3b767f589331dad26aeccd080ff3887e5cbbd37a019f26690af70e40dd24e"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/SpectrumSettings.h",
+      "sha256": "adf1f2f327a7bc9149a61a90adf5db16970446fcf69f3397421a4bb0c38eddc6"
+    },
+    {
+      "path": "src/openms/source/METADATA/SpectrumSettings.cpp",
+      "sha256": "1c0f999341b221548a751e51adbde3025db84d5a7e18bf25e020ce43a6ec2f7b"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumSettings_test.cpp",
+      "sha256": "0f64cac216b8daffad2d659536218de6a4dceaa8856b1e1ddcbf8d50bfb235d3"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "sha256": "a0b5d1ac569910120c039e996be8e6e05829642ba00d52b9dc96ba6ec398d16e"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "sha256": "f6a4a70d3f55cc9337dbeb6ec3156cbaeb4b8cfe6a35412347689a0e26065869"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+      "sha256": "33fa5e9375dc6f08315a12de6d38e74fc81e307f8bdb0ab7493f3bc983a79dec"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerIM.cpp",
+      "sha256": "59d62c2e5fc3cf813e0ac50db146d0df1fa3ff9bc8073721ca358181a32fca47"
+    }
+  ],
+  "native_implementation": [
+    "src/metadata/im_types.rs",
+    "src/metadata/acquisition.rs"
+  ],
+  "native_tests": [
+    "tests/im_types.rs"
+  ],
+  "support": "docs/IM_TYPES_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
+      "line": 93,
+      "operation": "IMTypes::DRIFTTIME_NOT_SET is -1.0; a spectrum that is not an IM spectrum stores that value as its drift time"
+    },
+    {
+      "path": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
+      "line": 106,
+      "operation": "determineIMFormat(const MSSpectrum&) documents @throws Exception::InvalidValue for a spectrum annotated with both a drift time and a float array; the implementation throws nothing and the class test asserts IM_PEAK, so the documentation is wrong"
+    },
+    {
+      "path": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
+      "line": 121,
+      "operation": "N2_BUFFER_GAS_MASS is the rounded 28.0 rather than 28.006148, deliberately, to match the calibration constant validated against Bruker/alphatims and MaxQuant CCS values"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 23,
+      "operation": "NamesOfDriftTimeUnit = {\"<NONE>\", \"ms\", \"1/K0\", \"FAIMS_CV\", \"CCS\"}, in enum order"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 24,
+      "operation": "NamesOfIMFormat = {\"none\", \"im_peak\", \"im_spectrum\", \"unknown\"}, in enum order"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 69,
+      "operation": "NamesOfIMPeakType = {\"im_profile\", \"im_centroided\", \"unknown\"}, in enum order"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 31,
+      "operation": "toDriftTimeUnit is std::find over the name array and throws Exception::InvalidValue with the offending string; matching is exact and case-sensitive"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 39,
+      "operation": "driftTimeUnitToString throws only for SIZE_OF_DRIFTTIMEUNIT; imFormatToString (line 60) and imPeakTypeToString (line 81) guard the same way, which a Rust enum cannot trigger"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 90,
+      "operation": "IMTypes::fromIMUnit maps four DriftTimeUnit values onto DIM_UNIT and throws Exception::ConversionError for NONE; DIM_UNIT is not ported, so neither is this"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 112,
+      "operation": "MASON_SCHAMP_CONSTANT = 1059.62245 in an anonymous namespace, so it is private to the translation unit"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 115,
+      "operation": "reducedMass_ approximates the ion mass as mz * |charge| and returns (m_ion * m_gas) / (m_ion + m_gas)"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 124,
+      "operation": "oneOverK0ToCCS rejects one_over_k0 <= 0, mz <= 0 and charge == 0 only, so a NaN passes every comparison and the result is NaN; the buffer gas mass is never examined"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 131,
+      "operation": "return MASON_SCHAMP_CONSTANT * std::abs(charge) / std::sqrt(mu) * one_over_k0 — the multiplication order the port reproduces for bit-identical results"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypes.cpp",
+      "line": 143,
+      "operation": "return ccs * std::sqrt(mu) / (MASON_SCHAMP_CONSTANT * std::abs(charge)) — the inverse divides in a different order, so the round trip is accurate to one rounding rather than exact"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+      "line": 26,
+      "operation": "determineIMFormat(exp, ms_level) compares the MS level with std::cmp_not_equal, so a negative ms_level matches no spectrum instead of wrapping"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+      "line": 29,
+      "operation": "IMFormat::NONE is erased from the collected set before the verdict, so a level mixing plain and IM spectra takes the IM format"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+      "line": 39,
+      "operation": "the single-format branch rejects anything but IM_PEAK and IM_SPECTRUM with \"subfunction returned invalid value(s)\"; unreachable, because the per-spectrum function returns only NONE, IM_PEAK or IM_SPECTRUM and NONE was just erased"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+      "line": 47,
+      "operation": "two or more distinct formats within one MS level throw Exception::InvalidValue naming the number of formats"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+      "line": 56,
+      "operation": "determineIMFormat(spec) returns the spectrum's stored getIMFormat() unchanged whenever it is not UNKNOWN, so a stored NONE suppresses detection on a spectrum that does carry ion mobility"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+      "line": 66,
+      "operation": "a float array wins over a drift time: both annotations give IM_PEAK and only a debug record, which this port does not emit"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMTypesExperiment.cpp",
+      "line": 74,
+      "operation": "a drift time with DriftTimeUnit::NONE gives IM_SPECTRUM and a warning, which this port does not emit; the condition stays observable on the spectrum"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataArrayUtils.cpp",
+      "line": 28,
+      "operation": "setIMUnit names a VSSC float data array after MS:1003008 ! raw inverse reduced ion mobility array; this is the array name the test fixture IMwithFDA carries after reshapeIMFrameToSingle"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+      "line": 289,
+      "operation": "reshapeIMFrameToSingle builds the class test's IMwithFDA fixture; IMDataConverter is not ported, so tests/im_types.rs builds the reshaped spectrum directly"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/SpectrumSettings.h",
+      "line": 97,
+      "operation": "setIMFormat / getIMFormat (line 103) / setIMPeakType (line 107) / getIMPeakType (line 111) are declared on SpectrumSettings and inherited by MSSpectrum; both stored fields default to UNKNOWN (lines 170-171)"
+    },
+    {
+      "path": "src/openms/source/METADATA/SpectrumSettings.cpp",
+      "line": 21,
+      "operation": "NamesOfSpectrumType = {\"Unknown\", \"Centroid\", \"Profile\"}"
+    },
+    {
+      "path": "src/openms/source/METADATA/SpectrumSettings.cpp",
+      "line": 23,
+      "operation": "operator== compares neither im_type_ nor im_peak_type_, so two settings differing only in their ion-mobility annotation compare equal; the port's derived PartialEq includes both"
+    },
+    {
+      "path": "src/openms/source/METADATA/SpectrumSettings.cpp",
+      "line": 46,
+      "operation": "unify never mentions im_type_ or im_peak_type_, so both stay at the receiver's value"
+    },
+    {
+      "path": "src/openms/source/METADATA/SpectrumSettings.cpp",
+      "line": 185,
+      "operation": "operator<<(ostream&, const SpectrumSettings&) ignores its argument and prints two banner lines; not ported"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerIM.cpp",
+      "line": 975,
+      "operation": "the IM peak picker stamps IMFormat::IM_PEAK and IMPeakType::IM_CENTROIDED on its centroided output frame, which is the intended writer of both fields"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IMTypes_test.cpp",
+      "line": 206,
+      "operation": "reserpine [M+H]+ at 1/K0 = 1.196, m/z 609.28, z = 1 gives CCS 244.9402 within TOLERANCE_ABSOLUTE(0.01)"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IMTypes_test.cpp",
+      "line": 186,
+      "operation": "a spectrum with both a float array and a drift time is asserted to be IM_PEAK, contradicting the header's @throws"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSSpectrum_test.cpp",
+      "line": 1453,
+      "operation": "the three MSSpectrum ion-mobility sections (setIMFormat at 1453, getIMPeakType at 1463, setIMPeakType at 1470) call the inherited accessors on a spectrum; ported here against SpectrumSettings, the declaring class"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumSettings_test.cpp",
+      "line": 428,
+      "operation": "getAllNamesOfSpectrumType returns SIZE_OF_SPECTRUMTYPE names with \"Centroid\" and \"Profile\" at the enum's own indices"
+    }
+  ],
+  "evidence_tier": 3,
+  "evidence": "Tier 3 (source review): every literal in tests/im_types.rs is transcribed from the pinned class tests — all 12 sections of IMTypes_test.cpp, the three ion-mobility sections of MSSpectrum_test.cpp and the getAllNamesOfSpectrumType section of SpectrumSettings_test.cpp — or read off the pinned implementation at the anchors above. No C++ was built or executed, and no retained C++ output exists for these headers. Class-test section accounting: IMTypes_test.cpp 12 sections, 12 ported, 0 mapped-with-evidence, 0 unaccounted; MSSpectrum_test.cpp 3 of its 71 sections ported here (the other 68 in tests/spectrum_mobility.rs), each asserted on SpectrumSettings rather than MSSpectrum because the Rust MSSpectrum flattens the settings and carries no stored ion-mobility field, with the substitution stated at the test; SpectrumSettings_test.cpp 1 of 33 sections ported here, the remaining 32 exercising members the METADATA package implemented without section accounting. The IMwithFDA fixture is built directly rather than through the unported IMDataConverter, using the array name IMDataArrayUtils::setIMUnit writes for the fixture's VSSC unit; both determineIMFormat overloads read only containsIMData() and getDriftTime(), so the substitution cannot change an asserted value. Everything the port checks that the source does not — non-finite 1/K0, m/z and CCS, a non-positive buffer gas mass, i32::MIN as a charge, the negative MS level, the name-table agreement and ImTypes::MAX_SPECTRA — is tier 4 (Rust-only invariants) derived from the anchored source lines.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h",
+      "sha256": "96d3732735a4f72d250cde236e8c75e65c5381f40cea3111e8513311da37177c"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "sha256": "d604cb44c4964c3f6d8526ebe95bbee10d1d9fb73115833d8a97c4aab7542c61"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ConsensusFeature_test.cpp",
+      "sha256": "f7cc1bc48b972d29eed135ecabed51d0e4d369fd4c949ecad816184c0f4e7d0d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/PrecisionWrapper.h",
+      "sha256": "3134c07bdbd5a4faec1d18d91b4ea54abcc0aa811c643b74249811385724e9cb"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
+      "sha256": "3e459554651865c58b174d0d80f89ca877aee6fb62bfc570c66fa48cf5434e40"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/consensus_display.rs"
+  ],
+  "native_tests": [
+    "tests/consensus_display.rs"
+  ],
+  "support": "docs/CONSENSUS_DISPLAY_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h",
+      "line": 110,
+      "operation": "Ratio::description_ is a public std::vector<std::string> that nothing in the SDK writes; the struct's own @TODO at line 106 notes that its members are public and should not end in underscores"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h",
+      "line": 311,
+      "operation": "operator<<(std::ostream&, const ConsensusFeature&) is declared as a free function, not a member"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 393,
+      "operation": "the printed block opens with \"---------- CONSENSUS ELEMENT BEGIN -----------------\" and closes at line 415 with \"---------- CONSENSUS ELEMENT END ----------------- \", whose literal ends in a space before the newline"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 394,
+      "operation": "Position is streamed through DPosition's operator<<, which writes the coordinates space-separated: RT then m/z"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 395,
+      "operation": "\"Intensity \" and \"Quality \" (line 396) carry no colon while every other label does, and both values go through precisionWrapper"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 397,
+      "operation": "\"Grouped features: \" ends in a space inside the literal, as \"Meta information: \" does at line 408"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 399,
+      "operation": "the handles are printed in HandleSetType order (FeatureHandle::IndexLess: map index then unique ID), five indented lines each, not in insertion order"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 410,
+      "operation": "getKeys yields meta value names in MetaInfoRegistry index order, i.e. the order the process first registered each name; the port's BTreeMap prints them sorted"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 391,
+      "operation": "the operator prints no ratios at all, so Ratio and its description have no place in the stream output"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
+      "line": 412,
+      "operation": "DPosition's operator<< writes precisionWrapper(pos[0]) and then a space before each further coordinate"
+    },
+    {
+      "path": "src/openms/include/OpenMS/CONCEPT/PrecisionWrapper.h",
+      "line": 69,
+      "operation": "precisionWrapper sets the stream precision to writtenDigits<T>, which is digits10: 6 for float, 15 for double (CONCEPT/Types.h:178-195); this port writes Rust's shortest round-trip form instead"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ConsensusFeature_test.cpp",
+      "line": 32,
+      "operation": "the class test's 39 sections cover the constructors, the insert overloads, the ranges, the three consensus computations and the container accessors; none of them exercises operator<<, Ratio::description_, addRatio, setRatios or getRatios, so the two members ported here have no upstream section"
+    }
+  ],
+  "evidence_tier": 3,
+  "evidence": "Tier 3 (source review), read off the implementation rather than off a class-test literal: ConsensusFeature_test.cpp has no START_SECTION for either ported member, so the stream layout asserted in tests/consensus_display.rs is transcribed from ConsensusFeature.cpp:391-418 and the formatting claims from CONCEPT/PrecisionWrapper.h, CONCEPT/Types.h:178-195 and DATASTRUCTURES/DPosition.h:412-420. No C++ was built or executed, and no retained C++ output exists for this header. One expectation is corroborated independently: the block asserted in display_reproduces_the_source_stream_layout is the same string the earlier cm_display test in tests/map_operations.rs asserts for ConsensusMap, and display_agrees_with_the_consensus_map_block asserts the two implementations agree character for character, so any future drift between them fails. Class-test section accounting: ConsensusFeature_test.cpp 39 sections, 39 already ported in tests/feature_identification.rs, 0 newly ported here because 0 exist for these members, 0 mapped-with-evidence, 0 unaccounted. Everything else is tier 4 (Rust-only invariants): Ratio::MAX_DESCRIPTION_LINES, Ratio::MAX_DESCRIPTION_BYTES, their atomicity, and the deliberate split between Ratio::validate (ratio value only, as the consensus feature calls it) and Ratio::validate_description.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}
