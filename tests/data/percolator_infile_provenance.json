@@ -1,0 +1,229 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PercolatorInfile.h",
+   "sha256": "6d4faa562f1e6da1660b02aeef444f8c53f97aa8143b7877ef772198f68441c9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PercolatorInfile_test.cpp",
+   "sha256": "4d7b4998eaba470345ed7f7df6b54030f05ae594aab7ac5cd9d575137f6caec8",
+   "role": "The oracle. Every transcribed literal in tests/percolator_infile.rs comes from this file's five sections."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "sha256": "a27025952c9d2e8bbdc535f96abd409b1d9e6c37bcc197a125e10661b142e49b",
+   "role": "Not ported as a class. Read for getRegExFromNativeID's prefix table and extractScanNumber's last-match / conversion-error semantics, which ScanNumberPattern reproduces without a regular-expression dependency."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+   "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693",
+   "role": "Not ported here (src/chemistry/sequence.rs already covers it, minus toBracketString). Read for toBracketString(integer_mass=false, mass_delta=true), which bracket_sequence reproduces for the Peptide column."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/percolator_infile_sage.pin",
+   "source_path": "src/tests/class_tests/openms/data/sage.pin",
+   "sha256": "4f782a3e301760f9372b8668abadea30f35dac53ccf89f4d5765153c5a387927",
+   "bytes": 3082,
+   "role": "Unmodified upstream. Sage-flavoured .pin: 34 columns including FileName, rank, z=2..z=6 and z=other, and nine data rows over two raw files. Row 8 is labelled target but maps only to a DECOY_-prefixed protein, which is the reannotation the class test checks."
+  },
+  {
+   "path": "tests/data/percolator_infile_sage_results.sage.pin",
+   "sha256": "bfe6fe233dde2de9faf86ca1509a227a69ba5330283b6bcc1b902b6d3ba6d31c",
+   "bytes": 295,
+   "role": "Derived, not upstream. A minimal three-row .pin named so that the source's sibling-path derivation resolves: stripping 'pin' gives the .tsv and stripping 'results.sage.pin' gives the matched-fragments prefix. No upstream fixture exercises the SageAnnotation path at all."
+  },
+  {
+   "path": "tests/data/percolator_infile_sage_results.sage.tsv",
+   "sha256": "21e6c6534dba8b4397fd177240b394f4be9954da59c59ed2577b2a600da50ad0",
+   "bytes": 75,
+   "role": "Derived. The sibling Sage .tsv, whose spectrum_q column filters rows; its second row is 0.5, above the 0.01 default threshold."
+  },
+  {
+   "path": "tests/data/percolator_infile_sage_matched_fragments.sage.tsv",
+   "sha256": "b61a7ff5ca8f30ed370514151b9b91036a02713ed9d14f32adb4cd697c809198",
+   "bytes": 162,
+   "role": "Derived. The sibling Sage annotation file, with two fragments for psm_id 0 and one for psm_id 2, using the column names the source reads: psm_id, fragment_type, fragment_ordinals, fragment_charge, fragment_intensity, fragment_mz_experimental."
+  }
+ ],
+ "native_implementation": [
+  "src/format/percolator_infile.rs"
+ ],
+ "native_tests": [
+  "tests/percolator_infile.rs"
+ ],
+ "support": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 39,
+   "operation": "getStandardFeatureSet is the column contract: SpecId, Label, ScanNr, ExpMass, CalcMass, mass, peplen, then charge<c> for c in [min,max], then enzN, enzC, enzInt, dm, absdm. A max_charge below min_charge yields no charge column, and the span is otherwise unbounded"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 56,
+   "operation": "getScanIdentifier prefers the spectrum reference, falls back to 'scan=' + the spectrum_id meta value, then to 'index=' + the index, and finally removes all whitespace"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 95,
+   "operation": "the Sage sibling .tsv path is StringUtils::substr(pin_file, 0, pin_file.size()-3) + \"tsv\": an unchecked byte-offset slice of the path string"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 100,
+   "operation": "the Sage annotation path subtracts the length of the literal \"results.sage.pin\" (16) from the path size without checking that the path is at least that long, so a shorter path wraps the unsigned subtraction, and a multi-byte path can be cut inside a character"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 239,
+   "operation": "a row whose column count differs from the header throws Exception::ParseError naming the line"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 245,
+   "operation": "the FileName column is optional here, filling map_filename_to_idx only when it exists"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 268,
+   "operation": "a new identification is opened when the row's SpecId differs from the previous one, which starts as an empty string; a first row with an empty SpecId therefore calls pids.back() on an empty vector"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 273,
+   "operation": "map_filename_to_idx.at(raw_file_name) is reached unconditionally, so a .pin file with no FileName column looks up the never-inserted default name 'UNKNOWN' and terminates the process with std::out_of_range"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 274,
+   "operation": "the retention time is multiplied by 60 because search engines typically write minutes; the retentiontime column is read with .at and is therefore mandatory in practice"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 283,
+   "operation": "ScanNr becomes the spectrum reference, which may be an integer or a whole vendor identifier"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 293,
+   "operation": "the one-hot charge columns are iterated from an unordered_map and the loop breaks at the first column equal to \"1\", so a row with two columns set picks an unspecified charge"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 310,
+   "operation": "the identification m/z is ExpMass / |charge| + PROTON_MASS_U, and is left unset when no charge could be determined"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 352,
+   "operation": "']-' becomes '].' and '-[' becomes '.[' before AASequence::fromString, so Percolator's terminal bracket spelling parses"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 361,
+   "operation": "a 'ln(-poisson)' value of 'inf' is replaced by '3.5' as a Sage workaround; extra scores are stored as strings, not numbers"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 420,
+   "operation": "the scan-number regex is derived from the first identification's scan identifier and then applied to all of them"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 449,
+   "operation": "stamp_meta_value records only keys the hit did not already have, so a caller can remove adapter-generated values without touching input metadata of the same name"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 458,
+   "operation": "a hit with no PeptideEvidence, and a hit whose target/decoy status is UNKNOWN, are skipped and their (pid, hit) indices returned"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 483,
+   "operation": "an existing CalcMass meta value is reused; otherwise it is the sequence m/z at the hit's charge"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 494,
+   "operation": "an IsotopeError meta value (the legacy MS-GF+ adapter spelling before 2.6) or the current isotope_error shifts ExpMass by isoErr * C13C12_MASSDIFF_U / charge, dividing by a charge that is not checked for zero"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 517,
+   "operation": "the charge<i> features are stamped with a bool, which DataValue has no alternative for and therefore promotes to an int, so the column reads 1 or 0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 524,
+   "operation": "enzN and enzC are computed from the raw flanking markers, before the '[' and ']' markers are mapped to Percolator's '-' at line 534, so a protein-terminal PSM is reported as non-enzymatic"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 526,
+   "operation": "StringUtils::prefix(unmodified_sequence, 1)[0] and suffix(..., 1)[0] index the first and last byte of the unmodified sequence, which reads past the end for an empty peptide"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 549,
+   "operation": "the Proteins field joins the accessions with tabs, so the trailing protein list occupies as many columns as the hit has evidences"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 588,
+   "operation": "preparePin_ writes a row only when every declared feature has a meta value; a short hit is counted and dropped, and the missing names are logged"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 621,
+   "operation": "isEnz_'s per-enzyme table, including the '-' terminus shortcut and the else branch that makes every bond enzymatic for an unknown enzyme name"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 691,
+   "operation": "countEnzymatic_ counts internal bonds by indexing the peptide string per byte"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "line": 38,
+   "operation": "scan=, controllerType=, function= and frame= all select the 'scan=(\\\\d+)' pattern; index=, scanId=, scanID=, spectrum= and file= select their own; anything else falls back to a bare '(\\\\d+)'"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "line": 68,
+   "operation": "extractScanNumber takes the last match and swallows a ConversionError, returning -1 when no_error is set"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+   "line": 219,
+   "operation": "toBracketString writes an N-terminal annotation as n[...] and a C-terminal one as c[...], with a '+' prefix only when the relative mass is positive; a modified X residue falls back to its absolute internal mass with no sign"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 290,
+   "operation": "load splits the Proteins field on ';', the spelling Sage writes, while store joins the accessions with '\\t' at line 549; with the rectangular row check at line 239 this means OpenMS cannot read back the .pin it writes for a PSM with more than one protein evidence (OPENMS-PERCIN-007)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PercolatorInfile.cpp",
+   "line": 298,
+   "operation": "rank is read with toInt32 over the whole int range and PeptideHit is then constructed from rank - 1, which is a signed overflow for INT_MIN and UINT_MAX after the conversion for rank 0"
+  }
+ ],
+ "evidence": "Tier 3 source review. The expectations in tests/percolator_infile.rs are transcribed class-test literals from PercolatorInfile_test.cpp: the exact ordered feature sets for charges 2-4 and 3-3, the assembled header beginning with SpecId and ending with Peptide, Proteins, and the written row's SpecId 'scan=529', ScanNr '529', Label '1', peplen '7', charge2 '1', charge3 '0', enzN '1', enzC '1', Peptide 'K.SAMPLER.S' and Proteins 'PROT1'; plus, for the reader, 9 identifications, 2 filenames, the spectrum references '30381' and 'spectrum=2041', and the DECOY_ reannotation of the eighth entry. Transcribed literals are tier-3 evidence: they detect transcription drift but cannot falsify a misread algorithm. No C++ was built or executed and no C++ output was retained, so nothing here is tier 1 or 2. The per-enzyme specificity table, the scan-number pattern table, the isotope-error shift, the bracket rendering, the Sage annotation path, the non-ASCII inputs, the resource ceilings, the multi-accession trailing protein list, the separator refusals, the ScanNr -1 sentinel and the out-of-range rank column are independently derived (tier 4) from the implementation, since the class test reaches none of them: its one stored PSM has a single accession, a matching 'scan=' identifier and no rank column.",
+ "gaps": [
+  "The source's SageAnnotation path also reads a 'peptide' column that it never uses, and it re-reads spectrum_q twice per row (once to filter, once to stamp). Both are reproduced in behaviour, not in shape.",
+  "load's decoy_prefix reannotation compares the prefix with StringUtils::hasPrefix on each accession. This port uses str::starts_with, which is byte-identical for the ASCII prefixes adapters pass; a non-ASCII prefix behaves the same because both compare bytes.",
+  "toBracketString is a member of AASequence.h, which this package does not own. bracket_sequence reimplements only the (integer_mass=false, mass_delta=true) form the .pin writer needs, and returns Error::Unsupported for a modified X residue whose absolute internal mass the crate cannot resolve. The fixed_modifications filter argument is not reproduced, because PercolatorInfile never passes it.",
+  "The source parallelises nothing here, so there is no OpenMP gap to record for this header.",
+  "store writes Percolator's tab-separated trailing protein list and load requires a rectangular table, so a multi-accession .pin is not a C++ round trip either (OPENMS-PERCIN-007). This port reproduces both halves: prepare_pin accepts a tab only in a trailing Proteins column, and read/load keep the source's field-count check, which now names that case in the parse error."
+ ]
+}

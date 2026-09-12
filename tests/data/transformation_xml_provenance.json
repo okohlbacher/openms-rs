@@ -1,0 +1,172 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/TransformationXMLFile.h",
+   "sha256": "e03a77b24c3912a4db473e17f02a72fe5a64b544f088a3aeabb79ab3f2aeefde"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "sha256": "51f9f722e32f83ad6bcfaf3938e370b839aeee0033eb3a881c3131247a2c11a8"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationXMLFile_test.cpp",
+   "sha256": "d64d22c910b3626ca1264d10290e08f7c46e0561ec42790cf3256c850fb4673b",
+   "role": "The oracle. Every transcribed literal in tests/transformation_xml.rs comes from this file's four sections."
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationDescription.cpp",
+   "sha256": "e4e74833b21270b137a6b0f75ffef8e1290e4563b33e76050fc9a04e94fbec29",
+   "role": "Not ported here (src/analysis/transformations.rs already covers it). Read for fitModel's unknown-name exception, for setDataPoints resetting the model type to 'none' even from 'identity', and for getModelParameters delegating to the model."
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModel.cpp",
+   "sha256": "670e4fa807ee04db27a4f0ed350428ee39c0910747a5b81e32be08b212a75844",
+   "role": "Not ported here. Read for params_(p) in the base constructor, the x/y_weight and x/y_datum_min/max defaults, the pre-3.0 empty-weight tolerance, the valid weight name sets and weightDatum/unWeightDatum."
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp",
+   "sha256": "f13f08d93670d88347d16b16cc35618eadb75587495ef7272464818381f9c5f6",
+   "role": "Not ported here. Read for which parameters a fitted linear model exposes (slope, intercept, plus the eight merged defaults on the data-fitted path only) and for the dead symmetric_regression parameter."
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.cpp",
+   "sha256": "8ab294029aab443a27019f0f565f4c299ce66e457e864d5080f4250b10da7434",
+   "role": "Not ported here. Read for the interpolation_type/extrapolation_type names and the cspline/two-point-linear defaults the reload sees."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/transformation_xml_1.trafoXML",
+   "source_path": "src/tests/class_tests/openms/data/TransformationXMLFile_1.trafoXML",
+   "sha256": "a65978549222e8e23eead966660abeb8e211c5946cf8b8cef911acda92afe209",
+   "bytes": 307,
+   "role": "Unmodified upstream. Version 1.0, model name 'none', no Param and no Pairs. Schema-valid per the class test's isValid section."
+  },
+  {
+   "path": "tests/data/transformation_xml_2.trafoXML",
+   "source_path": "src/tests/class_tests/openms/data/TransformationXMLFile_2.trafoXML",
+   "sha256": "108684af362700c5164e63a573f97800be28c1b35419de710ff6a3cf58268d94",
+   "bytes": 427,
+   "role": "Unmodified upstream. Model 'linear' with slope=3.141593 and intercept=2.718282 written at six significant digits, which is why the class test compares them with TEST_REAL_SIMILAR and not exactly."
+  },
+  {
+   "path": "tests/data/transformation_xml_3.trafoXML",
+   "source_path": "src/tests/class_tests/openms/data/TransformationXMLFile_3.trafoXML",
+   "sha256": "621759e0f30e94fa2733ecc6165989e975293f9735648b25742d9aea6d245912",
+   "bytes": 324,
+   "role": "Unmodified upstream. The deliberately invalid file: it carries a second </Transformation> close tag, so it is not well-formed XML at all, not merely schema-invalid."
+  },
+  {
+   "path": "tests/data/transformation_xml_4.trafoXML",
+   "source_path": "src/tests/class_tests/openms/data/TransformationXMLFile_4.trafoXML",
+   "sha256": "a30707d0eea3bd6458f65b89c0ed8bb4668c6dd92266601ed956d61c2e94d50d",
+   "bytes": 521,
+   "role": "Unmodified upstream. Model 'interpolated' with interpolation_type=linear and three Pairs (1.2,5.2) (2.2,6.25) (3.2,7.3) under a Pairs count=\"3\"."
+  }
+ ],
+ "native_implementation": [
+  "src/format/transformation_xml.rs"
+ ],
+ "native_tests": [
+  "tests/transformation_xml.rs"
+ ],
+ "support": "docs/TRANSFORMATION_XML_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 19,
+   "operation": "the constructor pins the handler version to 1.1 and the schema to /SCHEMAS/TrafoXML_1_1.xsd; this port exposes both as VERSION and SCHEMA_LOCATION"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 36,
+   "operation": "load always calls setDataPoints and only calls fitModel when fit_model is set, so the fit_model=false path returns a description whose model type has been reset to 'none' and whose model name is lost"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 48,
+   "operation": "store throws Exception::IllegalArgument 'will not write a transformation with empty name' for an empty model type"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 57,
+   "operation": "os.precision(writtenDigits<double>(0.0)) sets 15 significant digits, but Param values are written through ParamValue::toString() and only the Pair from/to attributes use the stream precision"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 73,
+   "operation": "a ParamValue::EMPTY_VALUE parameter is skipped; INT_VALUE writes type=\"int\", DOUBLE_VALUE writes type=\"float\", and STRING_VALUE together with all three list types writes type=\"string\", so a list is flattened into its bracketed text and cannot be read back as a list"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 93,
+   "operation": "the default branch calls fatalError(STORE, ...) for any other value type"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 102,
+   "operation": "<Pairs> is written only when the data points are non-empty, with count equal to their number"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 109,
+   "operation": "the note attribute is written only when non-empty, and it is the only attribute passed through writeXMLEscape; from and to are not escaped because they are numbers"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 137,
+   "operation": "a file version above the parser's is only warned about, with the message 'This might lead to undefined program behavior'; this port refuses it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 161,
+   "operation": "an unsupported <Param type> reaches error(LOAD, ...), which only logs, so the parameter is silently dropped; this port returns Error::Unsupported"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 167,
+   "operation": "<Pairs count> is only passed to data_.reserve and never compared with the number of <Pair> children, so a disagreement is accepted; this port accepts it too but checks the count against max_data_points first"
+  },
+  {
+   "path": "src/openms/source/FORMAT/TransformationXMLFile.cpp",
+   "line": 179,
+   "operation": "an unknown element reaches warning(LOAD, ...), which logs at debug level in a release build and drops the element; this port returns Error::Unsupported"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "line": 71,
+   "operation": "XMLHandler::error only writes to OPENMS_LOG_ERROR and returns; it does not throw, which is why an unsupported Param type is a silent loss"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "line": 89,
+   "operation": "XMLHandler::warning writes to OPENMS_LOG_WARN only under OPENMS_ASSERTIONS and to OPENMS_LOG_DEBUG otherwise"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationDescription.cpp",
+   "line": 69,
+   "operation": "fitModel returns immediately when the previous model type was 'identity', and throws Exception::IllegalArgument \"unknown model type\" for a name outside none/identity/linear/b_spline/lowess/interpolated"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp",
+   "line": 34,
+   "operation": "symmetric_regression is read into symmetric_ and then never used; the header documents a symmetric regression the implementation does not perform"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModel.cpp",
+   "line": 38,
+   "operation": "an empty x/y_weight string means unweighted, for TrafoXML files written before OpenMS 3.0"
+  }
+ ],
+ "evidence": "Tier 3 source review. The expectations in tests/transformation_xml.rs are transcribed class-test literals from TransformationXMLFile_test.cpp: model names 'none'/'linear'/'interpolated', parameter counts 0/2/2, slope pi and intercept e compared with TEST_REAL_SIMILAR's relative tolerance, the three pairs (1.2,5.2) (2.2,6.25) (3.2,7.3), extrapolation_type 'two-point-linear' appearing in a reloaded interpolated model, the fit_model=false path reporting 'none', the isValid verdicts on the four fixtures, and Exception::IllegalArgument for the model name 'mumble_pfrwoarpfz'. Transcribed literals are tier-3 evidence: they detect transcription drift but cannot falsify a misread algorithm. No C++ was built or executed and no C++ output was retained, so nothing here is tier 1 or 2. The escaping round trip, the non-ASCII note, the coordinate-weight round trip, the version and unknown-element refusals and the resource ceilings are independently derived (tier 4) because no upstream fixture reaches them.",
+ "gaps": [
+  "b_spline is a model TransformationDescription::fitModel accepts and src/analysis/transformations.rs does not implement, so a TrafoXML naming it reads as a record and returns Error::Unsupported when its model is resolved. The file's parameters and pairs are still readable through read_record_with_options.",
+  "Internal::XMLFile::isValid performs XSD validation against the bundled TrafoXML_1_1.xsd. This port has no XSD validator for TrafoXML (src/format/mzml_schema.rs is mzML-only and needs the libxml feature); the structural reader stands in, and reaches the same verdict on all four upstream fixtures.",
+  "The source's exact output bytes are not reproduced: attribute order within an element follows the shared XML writer (alphabetical) rather than the source's type/name/value, the source's two spaces after '<Param' are not emitted, and indentation is two spaces per level rather than a tab. Content, escaping and the round trip are equivalent; upstream compares trafoXML with FuzzyDiff, not byte-for-byte.",
+  "A data-fitted linear model in C++ carries the eight merged weight and datum defaults in its Param and writes all of them. This port writes slope, intercept and the weight parameters only when a weight is not the identity, so a file written here is smaller and independent of how the model was constructed. Both forms read back to the same model.",
+  "The source writes a list-valued parameter as type=\"string\" holding its bracketed text, which cannot be read back as a list. This port reproduces that on writing and therefore inherits the same one-way conversion."
+ ]
+}

@@ -1,0 +1,4 @@
+psm_id	fragment_type	fragment_ordinals	fragment_charge	fragment_intensity	fragment_mz_experimental
+0	b	2	1	500.5	201.1
+0	y	3	1	600.25	333.25
+2	y	4	2	700.75	444.5
