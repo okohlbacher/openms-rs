@@ -145,6 +145,61 @@ fn spectrum_with_aux(aux: &str) -> String {
     ))
 }
 
+/// Standard base64 of `bytes`, written out here so the decoder under test is
+/// not also the encoder that produced its input.
+fn base64(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::new();
+    for chunk in bytes.chunks(3) {
+        let triple = [
+            chunk[0],
+            chunk.get(1).copied().unwrap_or(0),
+            chunk.get(2).copied().unwrap_or(0),
+        ];
+        let packed =
+            (u32::from(triple[0]) << 16) | (u32::from(triple[1]) << 8) | u32::from(triple[2]);
+        for position in 0..4 {
+            if position <= chunk.len() {
+                let index = (packed >> (18 - 6 * position)) & 63;
+                out.push(char::from(ALPHABET[index as usize]));
+            } else {
+                out.push('=');
+            }
+        }
+    }
+    out
+}
+
+/// A float32 peak array with **no** `IMS:1000101` whose payload is inline
+/// base64, but which nevertheless still declares `IMS:1000102` /
+/// `IMS:1000103`.
+///
+/// That is the non-conformant shape the two read paths used to disagree on:
+/// `spectrum` honoured the missing `IMS:1000101` and returned nothing, while
+/// `extract_ion_image` read `.ibd` bytes at the offset anyway.
+fn inline_array_with_offsets(role: &str, values: &[f32], offset: u64, length: u64) -> String {
+    let mut bytes = Vec::new();
+    for value in values {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    format!(
+        concat!(
+            "<binaryDataArray encodedLength=\"0\">",
+            "<cvParam accession=\"{role}\" name=\"array\"/>",
+            "<cvParam accession=\"MS:1000521\" name=\"binary type\"/>",
+            "<cvParam accession=\"MS:1000576\" name=\"compression\"/>",
+            "<cvParam accession=\"IMS:1000102\" name=\"external offset\" value=\"{offset}\"/>",
+            "<cvParam accession=\"IMS:1000103\" name=\"external array length\" value=\"{length}\"/>",
+            "<binary>{payload}</binary>",
+            "</binaryDataArray>"
+        ),
+        role = role,
+        offset = offset,
+        length = length,
+        payload = base64(&bytes)
+    )
+}
+
 /// One `<spectrum>` at 1-based pixel `(x, y)` whose peaks live in the `.ibd`.
 fn spectrum(id: &str, x: u32, y: u32, mz_offset: u64, int_offset: u64, length: u64) -> String {
     format!(
@@ -693,6 +748,76 @@ fn the_extraction_is_faithful_to_the_upstream_sorted_peak_case() {
     let image = experiment.extract_ion_image(131.0, 10.0).unwrap();
     assert!((image.intensity(0, 0).unwrap() - 1310.0).abs() < 1e-6);
     assert_eq!((image.width(), image.height()), (1, 1));
+}
+
+/// The ion-image path and the spectrum path resolve each peak array the same
+/// way, so a file built to make them disagree cannot.
+///
+/// The m/z array here declares no `IMS:1000101` — its payload is inline — but
+/// still carries an `IMS:1000102` offset, and the `.ibd` holds *different* m/z
+/// values at that offset. Source `Impl::decodePeaks` and
+/// `Impl::decodeSpectrum` share `decodePeaksInto_`, so one rule governs both;
+/// this port's two entry points must likewise agree. Before the fix
+/// `extract_ion_image` read the `.ibd` at the offset while `spectrum` returned
+/// no m/z at all for the same pixel.
+#[test]
+fn an_ion_image_and_a_decoded_spectrum_agree_on_an_inline_peak_array() {
+    let dir = temp_dir();
+    let inline_mz = [121.0_f32, 131.0];
+    // The .ibd carries the intensities at offset 16 and, at offset 24, two m/z
+    // values a reader that honoured IMS:1000102 would pick up instead.
+    let decoy_mz = [500.0_f32, 600.0];
+    let intensity = [1210.0_f32, 1310.0];
+    let body = format!(
+        concat!(
+            "<run><spectrumList count=\"1\">",
+            "<spectrum id=\"s=1\" index=\"0\" defaultArrayLength=\"0\">",
+            "<scanList count=\"1\"><scan>",
+            "<cvParam accession=\"IMS:1000050\" name=\"position x\" value=\"1\"/>",
+            "<cvParam accession=\"IMS:1000051\" name=\"position y\" value=\"1\"/>",
+            "</scan></scanList>",
+            "<binaryDataArrayList count=\"2\">{mz}{int}</binaryDataArrayList>",
+            "</spectrum>",
+            "</spectrumList></run>"
+        ),
+        mz = inline_array_with_offsets("MS:1000514", &inline_mz, 24, 2),
+        int = array("MS:1000515", 16, 2)
+    );
+    let path = write_arrays(dir.path(), &document(&body), &[&intensity, &decoy_mz]);
+
+    let mut experiment = OnDiscImzMLExperiment::new();
+    experiment.open(&path).unwrap();
+    assert!(!experiment.index(0).unwrap().mz_external);
+    assert_eq!(experiment.index(0).unwrap().mz_offset, 24);
+
+    let decoded = experiment.spectrum(0).unwrap();
+    assert_eq!(decoded.peaks.len(), 2);
+    assert!((decoded.peaks[0].mz - 121.0).abs() < 1e-9);
+    assert!((decoded.peaks[1].mz - 131.0).abs() < 1e-9);
+
+    // The window around the inline m/z sums that pixel's intensity; the window
+    // around the decoy m/z the offset points at sums nothing.
+    let image = experiment.extract_ion_image(131.0, 10.0).unwrap();
+    assert!((image.intensity(0, 0).unwrap() - 1310.0).abs() < 1e-6);
+    let decoy = experiment.extract_ion_image(500.0, 10.0).unwrap();
+    assert_eq!(decoy.intensity(0, 0).unwrap(), 0.0);
+
+    // And the general contract: every window agrees with a sum taken from the
+    // decoded spectrum itself.
+    for mz in [121.0, 131.0, 500.0, 600.0] {
+        let image = experiment.extract_ion_image(mz, 10.0).unwrap();
+        let dm = mz * 10.0 * 1e-6;
+        let expected: f64 = decoded
+            .peaks
+            .iter()
+            .filter(|peak| peak.mz >= mz - dm && peak.mz <= mz + dm)
+            .map(|peak| f64::from(peak.intensity))
+            .sum();
+        assert!(
+            (image.intensity(0, 0).unwrap() - expected).abs() < 1e-6,
+            "{mz}"
+        );
+    }
 }
 
 #[test]

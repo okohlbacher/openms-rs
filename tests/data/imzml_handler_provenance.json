@@ -222,6 +222,41 @@
    "path": "src/openms/source/FORMAT/ImzMLFile.cpp",
    "line": 633,
    "operation": "inferIbdPath_ replaces a case-insensitive .imzML suffix with .ibd and otherwise appends .ibd"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 198,
+   "operation": "the decode block is entered when EITHER peak array is external, so a spectrum with exactly one external array is decoded rather than refused"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 214,
+   "operation": "the non-external m/z side is filled from the peaks MzMLHandler already decoded (mz_vec[i] = s[i].getMZ()), so both sides end up the same length and the mismatch throw at :234 guards genuine corruption only"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 228,
+   "operation": "the non-external intensity side is filled the same way (int_vec[i] = s[i].getIntensity())"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 608,
+   "operation": "default_array_length_ is zeroed whenever either peak array is external, to stop MzMLHandler warning about the empty inline placeholders from inside its OpenMP loop"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 410,
+   "operation": "populateSpectraWithData_ compares the two arrays' DECODED sizes and calls fatalError (which throws ParseError) when they differ; for a mixed imzML spectrum the inline side decodes to N values and the external side's empty <binary/> placeholder to none, so the base class throws before ImzMLHandler.cpp:214-232 can run - the non-external fill is latent upstream"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+   "line": 147,
+   "operation": "decodeBase64Arrays removes whitespace from the base64 payload before decoding it, because 'line breaks inside the base64 data are unfortunately no exception'"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h",
+   "line": 102,
+   "operation": "ImzMLSpectrumIndex carries no is_ext field, so the on-disc reader's readMz_/readInt_ gate on mz_length/int_length != 0 instead; an inline array has no IMS:1000103 and therefore never satisfies that gate, which is why the upstream on-disc path cannot reach the non-external fill either"
   }
  ],
  "evidence": "Tier 3 source review with two independent cross-checks. Neither ported header has a class test upstream; the imzML family is tested through ImzMLFile_test.cpp, whose literals for the two fixtures are transcribed into tests/imzml_handler.rs: 9 spectra on a 3x3 grid, 100 um pixels, 300 um extents, 'continuous'/'processed', uuid 12345678-1234-1234-1234-123456789012 and 9d501bdc53444916b7e97e795b02c856, MD5 4b5dd9fa84fafc955cfdd301f9ed55d7, SHA-1 7e8fdb93053915d3edb51b70aa0619ac209964df, float32 for both arrays, 'negative' polarity with 'top down'/'horizontal'/'left-right' geometry, and the first m/z of pixel (1,1) at 100.0 continuous and 100.083336 processed. Two checks do not depend on that suite: the decoded intensities of processed pixel (1,1) sum to 121.85039039868471, exactly the MS:1000285 total ion current the same fixture's XML declares (a value written by the instrument's exporter, not by a test), and the fixture's declared IMS:1000091 SHA-1 is recomputed from the .ibd and matches, which no OpenMS read path does. The synthetic documents, the resource ceilings, the hostile offsets, the compression and auxiliary-array edge cases and the error-variant choices are independently derived (tier 4) because no upstream fixture reaches them. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential.",
@@ -235,6 +270,9 @@
   "ProgressLogger is a constructor parameter of source ImzMLHandler and is not threaded through this module.",
   "PeakFileOptions filtering (RT, MS level, m/z range, SortSpectraByMZ, FillData) is applied by ImzMLFile / OnDiscImzMLExperiment around the handler in the source and is left to those stages; decoded peaks are returned in stored order.",
   "docs/doc-coverage.json was not rewritten: src/format/imzml_handler.rs measures 100.0% (63/63) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
-  "CI wiring was not added for the same reason: append '--test imzml_handler' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features --features mzml and under cargo +1.85.0."
+  "CI wiring was not added for the same reason: append '--test imzml_handler' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features --features mzml and under cargo +1.85.0.",
+  "ImzMLFile::preflight (src/format/imzml_file.rs, another package) sums entry.mz_length against max_loaded_peaks; an inline peak array has no IMS:1000103, so its peaks escape that ceiling. They stay bounded by ImzMLReadLimits::max_text_bytes, which the index scan charges the retained base64 against before appending it (64 MiB default, about 12 million float32 elements across a whole file). Charging inline peaks against max_loaded_peaks as well belongs to the package that owns imzml_file.rs; a conformant dataset is unaffected because its peak arrays are external and already counted.",
+  "This port decodes a spectrum with exactly one external peak array, following ImzMLHandler.cpp:198-232. The upstream in-memory loader does not get that far: MzMLHandler::populateSpectraWithData_ throws on the inline-vs-placeholder size disagreement first (MzMLHandler.cpp:410), and the upstream on-disc loader cannot reach it either because ImzMLSpectrumIndex has no is_ext field. So the Rust reader accepts a non-conformant file that C++ rejects in a different class with a different message. Recorded as a C++ issue rather than smoothed over; conformant imzML 1.1.0 never produces such a file.",
+  "max_xml_bytes now caps the reader at the ceiling plus one byte (the pattern mzml::read uses), so it bounds the quick-xml event buffer as well as cumulative progress. Testing buffer_position() alone bounded only the latter: read_event_into grows its buffer to hold one whole start tag or text node before returning, so a single oversized event was fully allocated and only then refused."
  ]
 }

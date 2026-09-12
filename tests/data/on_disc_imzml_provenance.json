@@ -360,6 +360,16 @@
    "path": "src/openms/source/IMAGING/IonImage.cpp",
    "line": 78,
    "operation": "linearIndex_ raises Exception::IndexOverflow for an out-of-bounds coordinate, which is what a 0x0 image does to the first setIntensity of an extraction"
+  },
+  {
+   "path": "src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp",
+   "line": 168,
+   "operation": "decodePeaks and decodeSpectrum both delegate to decodePeaksInto_, so one rule resolves a peak array whichever entry point asked; the port's two entry points reach the reader through different accessors (ImzMLHandler::spectrum versus mz_array/intensity_array) and those accessors now apply the identical IMS:1000101 rule"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp",
+   "line": 198,
+   "operation": "the interception layer's decode block runs when EITHER peak array is external and fills the non-external side from the peaks MzMLHandler decoded (:214-232), which is the rule both Rust read paths follow for an array with no IMS:1000101"
   }
  ],
  "evidence": "Tier 3 source review with one independent cross-check. OnDiscImzMLExperiment is constructed in 22 distinct upstream sections (19 in ImzMLFile_test.cpp, 3 in ImzMLFile_all_modes_test.cpp); 17 are ported, 2 are partial and 3 are writer-driven and unreproducible without ImzMLWriter, with the per-section table in docs/ON_DISC_IMZML_SUPPORT.md, and tier 4 for everything no upstream fixture reaches. OnDiscImzMLExperiment has no class test of its own; it is exercised through ImzMLFile_test.cpp and ImzMLFile_all_modes_test.cpp, whose literals are transcribed into tests/on_disc_imzml_experiment.rs: nine spectra on a 3x3 grid with getNumberOfPixels() == getNrSpectra() and getSpectrumIndex(0,0) == 0, 100 um pixels in micrometres, the continuous and processed modes, the duplicate-pixel contract (size() == 2, one mapped pixel, spectrum 0 keeps it), the explicit-.ibd-override regression case, and the sorted-external-peaks case whose on-disc ion image at pixel (0,0) is 1310.0 for peaks stored 131.0/121.0 in that order. The independent check does not rely on that suite: every extracted ion-image pixel is compared against a sum computed in the test directly from ImzMLHandler::spectrum over the same window, which is the Rust equivalent of the C++ section's in-memory-versus-on-disc comparison (the in-memory MSImagingExperiment path is unported). The MAX_IMAGE_PIXELS and MAX_REGIONS ceilings, the hostile .ibd offset, the atomic-open behaviour, the non-finite rejections, the u32 far-corner overflow and every Error-variant choice are independently derived (tier 4). No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential.",
@@ -373,6 +383,7 @@
   "docs/core-sdk-reviewed-apis.json and docs/core-sdk-coverage.json were not edited: both are outside this package's scope. tools/core_sdk_coverage.py already reports the coverage file as stale from the ImzMLHandler package's manifest alone, and it maps src/kernel/on_disc_imzml_experiment.rs onto KERNEL/OnDiscImzMLExperiment.h and IMAGING/IonImage.h by name; the integrator must add the ledger entry and run --write.",
   "SOURCE_PROVENANCE.json's current_sdk_reference_manifests lists neither tests/data/imzml_handler_provenance.json nor this manifest, so check_core_sdk.py does not yet hash-verify either. Adding both is the integrator's step.",
   "docs/doc-coverage.json was not rewritten. src/kernel/on_disc_imzml_experiment.rs measures 100.0% (88/88) and src/kernel.rs stays at 100.0% (70/70); recording the new floor with --write touches a file outside this package's scope.",
-  "CI wiring was not added: append '--test on_disc_imzml_experiment' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features --features mzml, under --all-features and under cargo +1.85.0."
+  "CI wiring was not added: append '--test on_disc_imzml_experiment' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features --features mzml, under --all-features and under cargo +1.85.0.",
+  "extract_ion_image and spectrum reach the reader through different accessors, so keeping them in agreement is this package's responsibility rather than something the shared decodePeaksInto_ guarantees for free as it does in C++. An earlier revision had ImzMLHandler::mz_array/intensity_array read the .ibd without testing IMS:1000101, so a non-conformant file with an inline peak array that still carried an IMS:1000102 offset produced an ion image from bytes spectrum never returned. Both accessors now apply the reader's single rule, and an_ion_image_and_a_decoded_spectrum_agree_on_an_inline_peak_array is built from exactly that file. Conformant imzML 1.1.0 stores both peak arrays externally, so only a non-conformant dataset can tell the two rules apart."
  ]
 }
