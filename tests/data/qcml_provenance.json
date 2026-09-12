@@ -1,0 +1,261 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/QcMLFile.h",
+   "sha256": "5c523b523175b6cc7585afea153a3f3331dcc353a2d125a3575c68cdbfd84391",
+   "lines": 206,
+   "role": "The ported header. QcMLFile plus its two nested records QualityParameter and Attachment, the registration/lookup/removal/merge/export surface, store, load, the three protected SAX callbacks and the seven protected maps."
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "sha256": "d1bd5f2d52a4413bc9a2151302805ed24711ee6b286b0d1e718f0200e35598ee",
+   "lines": 2137,
+   "role": "The implementation, and the specification for everything the header does not state: the exact attribute order and whitespace of toXMLString, the name-only comparators, the reader's attribute spellings, and store's fixed preamble and cvList. Lines 998-1967 are calculateSNmedian and collectQCData, which are read but not ported; see gaps."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/QcMLFile_test.cpp",
+   "sha256": "faf7a88342e5624539eed9dc3d949f361e0cc21373e52b1be9cd20638a73be57",
+   "lines": 356,
+   "role": "The oracle. 43 START_SECTIONs. Counted by assertion macro: 12 assert at least one value, 29 are NOT_TESTABLE, and 2 (both destructor sections) hold only `delete ptr` and a comment. Exactly one section, `load` at line 182 with 11 macros, is above the five-macro threshold that forbids mapping. Every transcribed literal in tests/qcml.rs comes from this file and is marked `upstream:` at its assertion."
+  },
+  {
+   "path": "share/OpenMS/XSL/QcML_report_sheet.xsl",
+   "sha256": "5d0d6afb754675abf408733f64221e99f21122585f4f473ae11837a42d435fd6",
+   "bytes": 23513,
+   "role": "Not ported and not bundled. The report stylesheet store() injects into the document so a browser renders the qcML as HTML; read to establish the shape of the injection (an xml-stylesheet PI with href=\"#openms-qc-stylesheet\", a DOCTYPE declaring the id attribute of xsl:stylesheet, and the body with its own XML declaration stripped). WriteOptions::stylesheet lets a caller supply it; tests/data/QcMLFile_report_sheet.xsl is a small stand-in with the same structure."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/QcMLFile_reload_A.qcML",
+   "source_path": "src/tests/class_tests/openms/data/QcMLFile_reload_A.qcML",
+   "sha256": "29d10c42522bbecfbe1895ae760759e7c7933e01fb89873495b69ace4d2736bc",
+   "bytes": 403,
+   "role": "Unmodified upstream. One runQuality ID=runA_id whose MS:1000577 value names it runAlpha, and one setQuality ID=setA_id whose QC:0000058 value names it setAlpha. Declares ISO-8859-1 and is pure ASCII. Used by the load section for the regression it was added for: reloading must not leave stale run/set names behind."
+  },
+  {
+   "path": "tests/data/QcMLFile_reload_B.qcML",
+   "source_path": "src/tests/class_tests/openms/data/QcMLFile_reload_B.qcML",
+   "sha256": "dee04aeb726e132bf228f5f2fcb30045b37661b6c8eaba1d6148b4235aecd735",
+   "bytes": 401,
+   "role": "Unmodified upstream. The same document with disjoint identifiers and names (runB_id/runBeta, setB_id/setBeta), loaded into the same object by the upstream load section."
+  },
+  {
+   "path": "tests/data/QcMLFile_store_shape.qcML",
+   "sha256": "778d388c2123837a6dc6fede3f5e4f166f6d8ebad5c0a90d0579528ab7eca920",
+   "bytes": 2438,
+   "role": "Synthetic, generated as a byte-level transcription of what QcMLFile::store writes (QcMLFile.cpp:78-255 and 1972-2135): tab indentation level 4, the two spaces in \"<attachment  name=\", the unindented and newline-less <table> wrapper, the writer's unitRef/unitAcc spellings, flag=\"true\", and one QC:0000005 \"set name\" parameter per set member. It exists because no upstream fixture contains an attachment at all, so nothing upstream exercises the table, the binary payload, the unit attributes or set membership. Evidence tier 3: its literals are transcribed from the writer's source, not captured from a C++ run."
+  },
+  {
+   "path": "tests/data/QcMLFile_unicode.qcML",
+   "sha256": "2b895b42e74081dc81bfea244a61d249fda88ff904b11d46f501e1e8d4532777",
+   "bytes": 947,
+   "role": "Synthetic UTF-8 document with a Japanese run identifier, run name, attachment name and table column type. Tier 4, independently derived: it exists because an audit in this project found a reachable panic from byte-slicing a path with a non-ASCII component, and every qcML string reaches a splitter, a trimmer or an escaper."
+  },
+  {
+   "path": "tests/data/QcMLFile_latin1.qcML",
+   "sha256": "995f609869310a99d6900033cef504f576b529c9f83f84d5ac50f53928da59bc",
+   "bytes": 698,
+   "role": "Synthetic ISO-8859-1 document holding the byte 0xFC (U+00FC) in an MS:1000577 value, and therefore not valid UTF-8. Tier 4. It reproduces what the source's writer produces for a run name with a German umlaut held in a Latin-1 std::string: store declares ISO-8859-1 (QcMLFile.cpp:2007) and writes the bytes unchanged."
+  },
+  {
+   "path": "tests/data/QcMLFile_stylesheet.qcML",
+   "sha256": "9a01d81d1d5c8dc692d8a794dd64cf1121fcb2c26eff005f641264787a90ca52",
+   "bytes": 1227,
+   "role": "Synthetic, in the shape store() writes when it finds the report stylesheet: the xml-stylesheet processing instruction, the DOCTYPE with its internal ATTLIST subset, and an embedded xsl:stylesheet body between </cvList> and </qcML>. Tier 3 for the injection structure (transcribed from QcMLFile.cpp:2007-2015 and 2129-2134); the XSL body is a small stand-in, not the shipped 23 KB sheet."
+  },
+  {
+   "path": "tests/data/QcMLFile_report_sheet.xsl",
+   "sha256": "3f1d3f151a35bf1ed62a5451f742d255efa34c0daf162cd4762dc23fcca74be1",
+   "bytes": 436,
+   "role": "Synthetic minimal stylesheet with an XML declaration on its first line, so Stylesheet::from_file_text can be checked against the source's xslt.erase(0, xslt.find('\\n') + 1)."
+  }
+ ],
+ "native_implementation": [
+  "src/format/qcml.rs"
+ ],
+ "native_tests": [
+  "tests/qcml.rs"
+ ],
+ "support": "docs/QCML_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 63,
+   "operation": "operator<, operator> and operator== on QualityParameter compare `name` alone, ignoring the other seven fields; Attachment does the same at lines 141-154. merge() feeds those comparators to std::sort and std::unique, so two parameters that share a name but differ in ID, value or unit collapse into one"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 96,
+   "operation": "toXMLString writes the literal flag=\"true\" whenever `flag` is non-empty, discarding the value the reader parsed into it at line 827"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 88,
+   "operation": "the writer emits unitRef= and unitAcc= while onStartElement (lines 825-826, 854-855) parses unitAccession and unitCvRef, so a stored unit never survives a reload"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 207,
+   "operation": "toXMLString omits qualityParameterRef when `qualityRef` is empty, but line 860 reads it with attributeAsString_, which raises a fatal ParseError on a missing attribute; C++ therefore cannot re-read its own attachment that hangs off the run rather than a parameter"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 236,
+   "operation": "the table branch builds copy_row with ' ' substituted by '_' and then concatenates the ORIGINAL *it, so the substitution is discarded for row values while line 227 applies it to column types; a cell containing a space silently becomes two cells on reload"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 218,
+   "operation": "an attachment with both a binary payload and a table writes only the binary, silently dropping the table; line 248 returns the empty string for an attachment with neither, so store writes nothing at all for it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 221,
+   "operation": "the <table> wrapper is emitted with no indentation and no newline, and </table> is followed directly by the indented </attachment>, so the element's own layout differs from every other element the writer produces"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 266,
+   "operation": "addRunQualityParameter silently discards the parameter when `run_id` is neither a run ID nor a run name; the comment above it reads \"TODO warn that run has to be registered!\""
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 411,
+   "operation": "removeQualityParameter and removeAttachment reach their maps with operator[], which inserts an empty list for an unknown `r`, so removing from a run that does not exist registers a phantom run and a phantom set that store then writes"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 511,
+   "operation": "removeAllAttachments iterates runQualityAts_ only, so a set's attachments are reached only when its identifier is also a run identifier with an attachment list, despite the header comment \"Removes attachment with cv accession at from all runs/sets\""
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 519,
+   "operation": "registerRun assigns fresh empty vectors, so registering an existing ID discards its parameters and attachments; registerSet at line 526 does the same and also replaces the member set"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 560,
+   "operation": "merge inserts the addendum's set membership with std::map::insert, which keeps an existing key's value, so a set present in both documents silently retains only this document's members"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 638,
+   "operation": "exportQP matches a RUN parameter on cvAcc and a SET parameter on name (line 659), an asymmetry that decides which lookups succeed and is nowhere documented upstream; the function returns the literal \"N/A\" at line 666 while exportAttachment returns the empty string at line 620"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 686,
+   "operation": "map2csv takes its column names from cvs_table.begin()->second only, and line 704 emits neither cell nor separator for a row that lacks one of them, so every row with a different key set is silently misaligned; the comment at line 709 is \"TODO else throw error\". exportIDstats builds exactly such a table, because the QC:43-47 and QC:53-57 CV names differ"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 751,
+   "operation": "collectSetParameter is non-const and indexes setQualityQPs_members_ and runQualityQPs_ with operator[], so asking about an unknown set or member creates it; it also appends to the caller's vector without clearing it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 770,
+   "operation": "load clears the seven data maps but not the transient parser state, and onStartElement for setQuality (line 862) clears qps_, ats_, qp_, at_ and name_ but never names_, so every set inherits the member names of the sets before it, in the same file and across a second load"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 945,
+   "operation": "a set-member qualityParameter (MS:1000577 inside setQuality) is not pushed and qp_ is not reset, so the next parameter's absent optional attributes keep the previous parameter's value, unit and flag"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 832,
+   "operation": "onStartElement decides the parameter's role by `parent_tag == \"runQuality\"` with an unconditional else, so a qualityParameter outside any entry is treated as a set parameter and attached to whichever entry closes next; onCharacters (line 874) keys purely on the tag name, so a stray tableRowValues lands in the next attachment's table"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 876,
+   "operation": "onCharacters uses the first non-empty notification for a row and calls StringUtils::split, which clears its output, so a second non-empty chunk overwrites the first; a row containing an entity reference therefore loses everything before it. <binary> is the one case that concatenates (line 896)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 956,
+   "operation": "a runQuality or setQuality with no name parameter is named after its own ID; the comment reads \"TODO give warning that a run should have a name cv!!!\". A name given to registerRun is stored in no element of its own, so it survives a store only when an MS:1000577 (run) or QC:0000058 (set) parameter carries it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 2082,
+   "operation": "store documents each set member as a QC:0000005 parameter whose ID is the member key and whose value is that run's MS:1000577 value, but the reader (line 841) records members only from MS:1000577 inside a setQuality, so C++ loses set membership on every store/load round trip. The lookup at line 2079 is also by run ID while the reader records names, so a member whose name differs from its identifier is skipped with no warning (\"TODO warn - no mzML file registered for this run\")"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 2019,
+   "operation": "store writes the union of the parameter and attachment map keys through a std::set, so output order is lexical by identifier and a run known only through addRunAttachment is written even though existsRun and getRunIDs do not see it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 2123,
+   "operation": "the closing cvList is three hard-coded cv elements with fixed URIs and versions (PSI-MS 3.41.0, QC-CV 0.1.1, unit 1.0.0), unrelated to what the document actually references"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 1996,
+   "operation": "store opens an ofstream and streams straight into it, so a failure part-way leaves a truncated report on disk; the only checked condition is that the stream opened at all"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 258,
+   "operation": "the XMLFile base is constructed with an empty schema path and version \"0.7\", so no schema validation happens at all: \"no bundled XSD; qcML schema is archived\""
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 1297,
+   "operation": "collectQCData computes the TIC slump percentage as (100 / exp.size()) * below_10k in integer arithmetic, which is identically zero for any run with more than 100 spectra; line 1371 repeats it for the RIC slump"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 1904,
+   "operation": "collectQCData's duplicate-feature branch loops `for (UInt k = fiter; k <= feature_map.size(); ++k)` and dereferences feature_map[k] at k == size(), one past the end; map_out is then built and never used, and the attachment it adds has column types but no rows, which toXMLString discards"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 1134,
+   "operation": "collectQCData calls getPrecursors().front() on every MS2 spectrum without checking, tracks m/z in UInt (line 1060) which truncates it to whole numbers, and reads exp.begin()->getRT() at line 1244 without checking that the experiment is non-empty"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 1348,
+   "operation": "collectQCData counts a RIC drop whenever `sum < fact * prev` with fact = 10, so almost every spectrum whose intensity sum is below ten times its predecessor's counts as a drop; the intended test is sum * fact < prev"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 1527,
+   "operation": "collectQCData's missed-cleavage loop runs `st != it->end() - 1` over each peptide string, which is undefined for an empty sequence"
+  },
+  {
+   "path": "src/openms/source/FORMAT/QcMLFile.cpp",
+   "line": 1938,
+   "operation": "collectQCData's consensus attachment declares eight column types but pushes only seven values per row (Feature_Intensity is never written), and its accession is the placeholder \"QC:xxxxxxxx\" on a qp that is mutated and then never added"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/QcMLFile.h",
+   "line": 49,
+   "operation": "QualityParameter::flag is documented \"cv accession of the unit\", a copy-paste of the two members above it; Attachment::id is documented \"Name\" for the same reason"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/QcMLFile_test.cpp",
+   "line": 42,
+   "operation": "the destructor has two sections, the second being the comment \"uh, twice?! No!\"; 26 of the 43 sections are NOT_TESTABLE, and there is no section for collectQCData at all"
+  }
+ ],
+ "evidence": "Tier 3 source review, with no tier 1 differential. No C++ was built or executed and no C++ output was retained: QcMLFile has no TOPP test with a retained qcML output in the upstream suite, and the class test's own two fixtures are inputs rather than captured outputs. The 12 START_SECTIONs that assert at least one value are transcribed literally into tests/qcml.rs and marked `upstream:` at the assertion - registerRun/existsRun on (\"abc\",\"somerun\"), registerSet on (\"def\",\"someset\"), getRunIDs [\"123\",\"456\"], getRunNames [\"testrun1\",\"testrun2\"], the QualityParameter copy and assignment on \"somename\"/\"id\"/\"somevalue\", name-only equality, \"somename\" < \"tomename\", \"somename\" > \"romename\", and all eleven assertions of the load section on QcMLFile_reload_A/B (one run name runAlpha then runBeta, with A's names no longer resolving). The 29 NOT_TESTABLE sections and the 2 destructor sections carry no upstream expected value, so each of those 31 is ported with an expectation derived from QcMLFile.cpp and marked `derived:` with the line it comes from; the exact byte layout of toXMLString and store is transcribed from QcMLFile.cpp:78-255 and 1972-2135 into both the assertions and tests/data/QcMLFile_store_shape.qcML, which is transcribed writer output and therefore also tier 3, not tier 1. The resource ceilings, the DOCTYPE and encoding policies, the non-ASCII and Latin-1 fixtures, the malformed-input corpus and every error-variant choice are independently derived (tier 4), because nothing upstream reaches them.",
+ "gaps": [
+  "collectQCData (QcMLFile.cpp:1042-1967, 926 lines) and its file-static helper calculateSNmedian are NOT ported. It is a QC-metric computation over FeatureMap, ConsensusMap, MSExperiment, ProteinIdentification and PeptideIdentificationList rather than a format concern, it loads three OBO vocabularies through File::find (CV/psi-ms.obo, CV/qc-cv.obo, CV/qc-cv-legacy.obo) of which this crate bundles only psi-ms.obo, and it carries at least seven defects recorded in source_anchors above, several of them out-of-bounds reads. Porting it means first deciding which of those to reproduce and adding the two qc-cv OBO resources; the header is therefore `partial`, not `complete`. Nothing else in the header is unported.",
+  "The report stylesheet is not bundled. store() injects share/OpenMS/XSL/QcML_report_sheet.xsl (23,513 bytes) so a browser renders the qcML as an HTML report, and warns \"No qcml stylesheet found, result will not be viewable in a browser!\" when it cannot find it. This port reproduces the stylesheet-absent path by default and accepts the sheet through WriteOptions::stylesheet, so a caller with the file gets byte-identical output; embedding a 23 KB XSL resource is the integrator's call.",
+  "ProgressLogger is a base class of QcMLFile and load() drives it (startProgress at QcMLFile.cpp:807 and setProgress per run and set). This port does no progress logging; the crate has src/concept/progress_logger.rs and wiring it into a parse would add a logging side effect to a library read, which no other format module in this crate does.",
+  "The qcML schema is not validated, by either side. The source constructs its XMLFile base with an empty schema path because the schema is archived, so version \"0.7\" is declared and never checked. This port exposes it as qcml::VERSION and validates structure rather than a schema.",
+  "The module is gated on the `paramxml` feature because it needs the crate's quick-xml dependency and adding a feature is a Cargo.toml change outside a port package's scope. A dedicated `qcml` feature would be the honest gate; the integrator decides.",
+  "An attachment's <binary> payload is carried as an opaque string, exactly as the source does. Neither side decodes or validates base64. The crate's base64 dependency is optional behind `numpress`, so a decode helper here would either widen the feature graph or be conditionally absent; a caller that needs the bytes decodes them itself.",
+  "Set membership has no single identity in the source: the reader records MS:1000577 values (names), merge records run identifiers, and both store and collectSetParameter look members up as identifiers. This port additionally recovers members from the QC:0000005 parameters store writes (by their ID, which is a run identifier) and resolves a member through the name map when writing under the native options, which makes a round trip lossless, but a document assembled through the source's own reader path can still hold name-shaped members that only the name map resolves."
+ ]
+}
