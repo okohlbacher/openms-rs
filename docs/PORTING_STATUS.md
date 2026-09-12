@@ -10,6 +10,8 @@ The target is a feature-complete reduced Core SDK suitable for porting TOPP tool
 
 The current target is SDK 4.0.0 at `82ce5b3`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
 
+**All file formats stay in core.** No file-format header may be re-scoped out of the port or deferred to a separate project, including vendor and binary formats (`ThermoRawFile`, `BrukerTimsFile`, `BrukerTimsImagingFile`), container and database formats (`HDF5Connector`, `SqliteConnector`, `SqMassFile`, `OSWFile`, the Arrow/Parquet family), the `MzTab` family and the imzML family (`ImzMLFile`, `ImzMLHandler`, `ImzMLHandlerHelper`, `ImzMLWriter`, `OnDiscImzMLExperiment`). Where a format needs an external dependency or a helper process, that is a dependency decision to record, not a reason to narrow scope. An unported format is therefore always `unmapped` — a backlog item — and never a documented exclusion. The only classes outside the remaining backlog are the tool backends upstream itself moved out of the Core package, listed in [the SDK update](CORE_SDK_UPDATE.md); none of those is a file format.
+
 [CV mapping records and XML loading](CV_MAPPING_SUPPORT.md) cover all five class-specific source APIs, with atomic loads and explicit compatibility corrections. [General semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) now supplies the complete class-specific mapping/term validator with ordered diagnostics and bounded, reusable operations. [MzMLValidator](MZML_VALIDATOR_SUPPORT.md) is also implemented; other derived validators and XSD validation remain separate.
 
 ## Mass traces and additional SDK values
