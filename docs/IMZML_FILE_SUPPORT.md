@@ -10,7 +10,7 @@ suite.
 - Class tests: `ImzMLFile_test.cpp` (1,769 lines, 41 sections),
   `ImzMLFile_all_modes_test.cpp` (258 lines, 9 sections)
 - Rust: `src/format/imzml_file.rs`
-- Tests: `tests/imzml_file.rs` (42 section tests for 41 sections + 15 native), `tests/imzml_all_modes.rs` (9 sections)
+- Tests: `tests/imzml_file.rs` (42 section tests for 41 sections + 15 native + 13 for the float oracle, 70 in all), `tests/imzml_all_modes.rs` (9 sections)
 - Provenance: `tests/data/imzml_file_provenance.json`
 - Fixtures: reused unmodified from stage 1 —
   `tests/data/ImzMLFile_1_Example_Continuous.{imzML,ibd}`,
@@ -414,6 +414,65 @@ whole `ImagingExperiment` accessor surface, the unsorted-extraction refusal, all
 five unplaceable-spectrum reports with the two builders' ordering difference, a
 wrongly typed meta value, the two builders' agreement on both fixtures, and the
 `.ibd` path rule.
+
+Thirteen further tests cover the suite's own float oracle; see below.
+
+---
+
+## The float oracle — `ClassTest::isRealSimilar`
+
+`TEST_REAL_SIMILAR` is what 38 assertions in `tests/imzml_file.rs` rest on, so
+the helper that stands in for it is load-bearing and is tested directly.
+
+The first version of that helper claimed to port
+`src/testframework/source/CONCEPT/ClassTest.cpp:364-489` exactly and did not:
+it omitted the opposite-sign branch at `:439-451`. Because the reciprocal of a
+negative quotient is still negative, `ratio <= 1 + 1e-5` was then trivially
+true, so the helper accepted **any sign error whose magnitudes matched** —
+`close(-1.0, 1.0)`, `close(-100.0, 100.0)` and `close(-1e9, 3.0)` all passed
+where C++ returns `false`. Every one of the 38 assertions was weaker than it
+read.
+
+`is_real_similar` in `tests/imzml_file.rs` is now the whole decision tree,
+branch for branch, and `close` asserts it. **Re-running the file with the
+faithful oracle changed no result: all 57 pre-existing tests still pass.** The
+weak oracle was hiding no sign error — which is a real finding, not an excuse
+for it, because nothing but re-running it could have established that.
+
+Porting it faithfully surfaced two defects in upstream's own oracle. Both were
+confirmed by compiling and executing upstream's control flow, not by reading it:
+
+1. **Any two infinities are "similar".** The quotient is NaN and so is the
+   absolute difference, so neither the sign test nor the ratio test fires and
+   control reaches "ratio of numbers is small" — including `+inf` against
+   `-inf`.
+2. **`isRealSimilar` is not symmetric.** It decides "opposite signs" from the
+   sign of the quotient, and that quotient underflows to `-0.0` once the
+   magnitudes are far enough apart. `-0.0 < 0.` is false, so the sign branch is
+   skipped; `-0.0 < 1.` then takes the reciprocal to `-inf`, and `-inf > 1 +
+   1e-5` is false. So `isRealSimilar(1e-300, -1e300)` is `true` while
+   `isRealSimilar(-1e300, 1e-300)` is `false`, and the same-sign pair
+   `isRealSimilar(1e-300, 1e300)` is correctly `false` — which is what makes
+   this a defect and not a deliberate tolerance.
+
+Both are reproduced by `is_real_similar`, whose contract is to *be* the C++
+oracle, and both are pinned by tests so they cannot be mistaken for port bugs.
+`close`, the assertion the call sites use, then refuses both: it requires each
+side to be finite, and decides "opposite signs" from the operands rather than
+from the quotient. Those two guards can only reject pairs upstream would have
+accepted, so **no assertion in the file is weaker than its C++ original**, and
+neither guard can fire on a correct run, since every call site compares one
+finite measured quantity against another.
+
+The file's other hand-rolled comparison, `identical_holds`, was audited for the
+same defect and does not have it: it is a plain absolute-plus-relative band
+around its second argument with no quotient, so a sign flip lands a full
+`2 * |right|` away and fails. A test pins that. No assertion in either file
+compares computed floats with `==` where the oracle is the right tool: the one
+exact float comparison, `reloaded.spectra[0].rt == -1.0` in section 29, asserts
+that RT is still exactly its untouched default and so is deliberately exact,
+and the float comparisons in `tests/imzml_all_modes.rs` use `to_bits()`, which
+is stronger than either.
 
 ---
 
