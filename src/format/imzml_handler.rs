@@ -1590,6 +1590,22 @@ pub fn read_index_with_limits(
                 parser.end(&name)?;
             }
             Event::Text(text) => parser.text(text.as_ref())?,
+            // quick-xml does not expand references inside text: it splits the text
+            // at every `&...;` and emits the reference as its own event, and
+            // `BytesText::xml_content()` only decodes and normalises line endings.
+            // Swallowing these in the catch-all arm therefore DELETED the reference
+            // and concatenated the surrounding fragments, silently corrupting the
+            // inline Base64 of a peak array; CData was dropped whole, yielding an
+            // empty array instead of an error. `src/format/mzml.rs:2465` already
+            // refuses both for the same reason, and a DTD is refused there too.
+            Event::GeneralRef(_) | Event::CData(_) => {
+                return Err(Error::Unsupported(
+                    "XML entity references in text and CDATA are not supported".into(),
+                ));
+            }
+            Event::DocType(_) => {
+                return Err(Error::Unsupported("XML DTDs are not supported".into()));
+            }
             Event::Eof => break,
             _ => {}
         }

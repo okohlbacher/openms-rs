@@ -2201,3 +2201,37 @@ fn a_missing_file_is_an_io_error() {
     assert!(matches!(ImzMLHandler::open(&missing), Err(Error::Io(_))));
     assert!(matches!(ImzMLBinaryIO::open(&missing), Err(Error::Io(_))));
 }
+
+// ---------------------------------------------------------------------------
+// XML shapes this reader refuses rather than silently mishandling
+// ---------------------------------------------------------------------------
+
+/// A reference or CDATA section inside element text is refused, not dropped.
+///
+/// quick-xml does not expand references inside text: it splits the text at every
+/// `&...;` and emits the reference as its own event. A catch-all event arm
+/// therefore DELETED the reference and concatenated the surrounding fragments,
+/// which silently corrupts the inline Base64 of a peak array; CData was dropped
+/// whole, yielding an empty array instead of an error. `src/format/mzml.rs`
+/// already refuses both, and a DTD with it.
+///
+/// Found by a second-model review of the sibling Mascot XML port, which had the
+/// same catch-all arm and turned `1&#46;5` into `15`.
+#[test]
+fn entity_references_cdata_and_dtds_in_text_are_refused() {
+    let unsupported = |xml: String| {
+        let error = read_index(BufReader::new(xml.as_bytes())).unwrap_err();
+        assert!(
+            matches!(error, Error::Unsupported(_)),
+            "expected Unsupported, got {error:?} for {xml}"
+        );
+    };
+    unsupported(document("<cvParam accession=\"x\" value=\"y\"/>1&#46;5"));
+    unsupported(document(
+        "<cvParam accession=\"x\" value=\"y\"/><![CDATA[QUJD]]>",
+    ));
+    unsupported(format!(
+        "<?xml version=\"1.0\"?>\n<!DOCTYPE mzML>\n{}",
+        document("<cvParam accession=\"x\" value=\"y\"/>")
+    ));
+}
