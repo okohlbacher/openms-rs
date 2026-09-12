@@ -52,6 +52,9 @@ pub mod geometry;
 pub mod range_utils;
 /// RT, m/z, intensity and mobility range algebra and on-demand container ranges.
 pub mod ranges;
+/// Free functions over spectra and chromatograms (`SpectrumHelper.h`): data-array
+/// lookup by name, intensity rebasing, position-unique merging and metadata copy.
+pub mod spectrum_helper;
 pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};
 pub use features::{
     BaseFeature, ColumnHeader, ConsensusFeature, ConsensusMap, Feature, FeatureHandle, FeatureMap,
