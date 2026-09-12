@@ -1,0 +1,308 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzIdentMLFile.h",
+   "sha256": "f149bebfbf8256862cea540e78fa4a6b069cc801a24cdea0fe6ce596b48095e4",
+   "role": "Ported here. load/store/detectVersion are reproduced; isValid and isSemanticallyValid are not (see gaps)."
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzIdentMLFile.cpp",
+   "sha256": "b24ed5b9e238eebea944336fdf8e7aaa90a5ec0f08b1d12e6a2312d3e0550fa6",
+   "role": "Ported here. Source of the 1.3.0 schema default, the clear-before-load rule, the extension check on store and the whole detectVersion algorithm."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h",
+   "sha256": "b48d7c7b5e2f9f844109b853ff5bc0642b4267454ae43f67a9a846fc6460e6e9",
+   "role": "Ported here. The write path plus the three public analysisXML value types (IdentificationHit, SpectrumIdentification, Identification); its stream read path is dead code and is not ported."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6",
+   "role": "Ported here. writeTo and its helpers (writeMetaInfos_, writeEnzyme_, writeModParam_, writeFragmentAnnotations_, trimOpenMSfileURI, writePeptideHit) are the writer this module reproduces; writeXLMSPeptideHit is not ported."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h",
+   "sha256": "ceda46d60dc4e2d9b2488cb734084b295bcb09460e00469d3bfbfe644a09611b",
+   "role": "Not ported as a header, but it is the read path MzIdentMLFile::load actually uses, so its behaviour is what this module's reader reproduces or deliberately diverges from. Its own ledger entry belongs to a later stage."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "sha256": "b2e85ce310d5d17b806478a0219779fb8af7cb37d08baa76901b1c9516677085",
+   "role": "Not ported as a header. Read in full: every reference-resolution rule, the score-selection order, the modification-location inference of issue #5443 and the reader-side defects recorded in OpenMS_CPP_ISSUES.md come from this file. The XL-MS branches (parseSpectrumIdentificationItemSetXLMS and the XL half of parsePeptideSiblings_) are not ported."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzIdentMLFile_test.cpp",
+   "sha256": "cac5d656ca7b41d853c1ec3bc992729e437a117151f8643826440572a76fc0a9",
+   "role": "The oracle. 15 START_SECTIONs; every transcribed literal in tests/mzidentml.rs comes from the nine non-cross-linking ones."
+  },
+  {
+   "path": "share/OpenMS/SCHEMAS/mzIdentML1.3.0.xsd",
+   "sha256": "abac61f57e5dcd2eed76a547a3bbd71a47e241d378ac6963fee1f0c0390a6204",
+   "role": "The schema the adapter declares. Read for the element order of SequenceCollection and SpectrumIdentificationProtocol, for which attributes are required (chargeState, experimentalMassToCharge, rank, passThreshold, peptide_ref, dBSequence_ref), for the optional userParam 'type' attribute, and for the Modification location convention (0 = N-terminus, length + 1 = C-terminus) that the writer's C-terminal divergence rests on."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/mzidentml_whole.mzid",
+   "source_path": "src/tests/class_tests/openms/data/MzIdentMLFile_whole.mzid",
+   "sha256": "883efa27ea3c795cc2569b41d933951d2d6316a11d42651a0f197b4472a6b96e",
+   "bytes": 9925,
+   "role": "Unmodified upstream 1.1.0 document written by OpenMS itself: one run, Mascot 2.1.0, two DBSequences with sequences, four Peptides, six PeptideEvidences with pre/post and isDecoy but no start/end, three SpectrumIdentificationResults covering three different score types (PSM-level q-value, X\\!Tandem:hyperscore, Mascot:score), a 0.5 PSM-level statistical threshold, activityDate 2006-01-12T12:13:14, and a SearchModification block whose third entry is Acetyl with a peptide N-term specificity rule. The store, thresholds and regression sections all use it."
+  },
+  {
+   "path": "tests/data/mzidentml_msgf_mini.mzid",
+   "source_path": "src/tests/class_tests/openms/data/MzIdentMLFile_msgf_mini.mzid",
+   "sha256": "0abf9ddd88a35c34b652be353c10026a15cf1b3c134f063f1195f04cefe0942e",
+   "bytes": 19525,
+   "role": "Unmodified upstream MS-GF+ export: two SpectrumIdentifications over two SpectrumIdentificationLists, five results, MinCharge/MaxCharge instead of a charges list, missedCleavages=1000, a protein N-terminal Xlink:DTSSP[88] search modification, one Carbamidomethyl Modification at location 19, and PeptideEvidences with 1-based start/end. It also carries two deliberately dangling references - SearchProtocol_99 from the second SpectrumIdentification and SearchDB_99 from DBSeq99 - which is why neither may be an error."
+  },
+  {
+   "path": "tests/data/mzidentml_missing_mod_location.mzid",
+   "source_path": "src/tests/class_tests/openms/data/MzIdentMLFile_missing_mod_location.mzid",
+   "sha256": "3f4d36a61e03c2ce586074c450277d4600f9eac4d8d45e500e5c363f744bc426",
+   "bytes": 8488,
+   "role": "Unmodified upstream regression fixture for issue #5443: five peptides whose Modification elements omit the optional location attribute, covering N-terminal Acetyl (inferred), Oxidation (ambiguous, skipped), Amidated (exclusively C-terminal, inferred), a control with a valid location, and Acetyl with residues=\"K\" (residue-specific, skipped)."
+  },
+  {
+   "path": "tests/data/mzidentml_3runs.mzid",
+   "source_path": "src/tests/class_tests/openms/data/MzIdentML_3runs.mzid",
+   "sha256": "041b152c49823ef49b45c0b530bfdab88dc528c13dd8ebf465de3b7b88a07ab2",
+   "bytes": 35273,
+   "role": "Unmodified upstream three-run document: three SpectrumIdentifications over three SpectrumIdentificationLists sharing one SpectrumIdentificationProtocol, three distinct SpectraData locations, and a ppm parent tolerance."
+  },
+  {
+   "path": "tests/data/mzidentml_crosslinking_v1_3.mzid",
+   "source_path": "src/tests/class_tests/openms/data/MzIdentML_v1.3_crosslinking.mzid",
+   "sha256": "f04dffb5d3c90b2d63f0c990854e8b9a4d9b8c46c29b6bf48157154ef017fef4",
+   "bytes": 36915,
+   "role": "Unmodified upstream 1.3.0 cross-linking document, retained only to pin the explicit refusal. The other five cross-linking fixtures (MzIdentML_XLMS_labelled, MzIdentML_XLMS_unlabelled, MzIdentML_v1.3_noncov_assoc, MzIdentML_v1.3_xlink_edc, MzIdentML_v1.3_multi_spectra) exercise the same refusal and are not copied."
+  }
+ ],
+ "native_implementation": [
+  "src/format/mzidentml.rs"
+ ],
+ "native_tests": [
+  "tests/mzidentml.rs"
+ ],
+ "support": "docs/MZIDENTML_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/MzIdentMLFile.cpp",
+   "line": 26,
+   "operation": "the adapter is constructed with /SCHEMAS/mzIdentML1.3.0.xsd and version 1.3.0, and MzIdentMLHandler::writeTo then hard-codes 1.3.0 again instead of using schema_version_"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzIdentMLFile.cpp",
+   "line": 35,
+   "operation": "load clears both output containers before parsing, because the DOM handler only appends; this port returns an owned document and replaces atomically instead"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzIdentMLFile.cpp",
+   "line": 44,
+   "operation": "store throws UnableToCreateFile when the filename does not carry the mzid extension, before the handler runs"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzIdentMLFile.cpp",
+   "line": 60,
+   "operation": "detectVersion reads the first 15 trimmed lines joined by a space, prefers version=\"x.y.z\" over the mzIdentML/x.y namespace, and falls back to the adapter default"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 210,
+   "operation": "a Xerces parse failure is logged and execution continues; only a null document raises ParseError, so a malformed mzIdentML can be read as a partial document"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 249,
+   "operation": "every element is reached through getElementsByTagName, a document-wide scan that ignores nesting, so elements under the wrong parent are still collected; namespace processing is off, so a document that binds mzIdentML to a prefix matches no tag at all"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 808,
+   "operation": "PeptideEvidence start and end are parsed together, so a failure on either leaves both unknown; both are stored without the 1-based to 0-based conversion OpenMS PeptideEvidence documents"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 821,
+   "operation": "pre and post are taken as text[0] of a possibly empty attribute value, which yields the null character for pre=\"\""
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 889,
+   "operation": "SearchParameters.db is the SearchDatabase location attribute, not the DatabaseName, and a dangling searchDatabase_ref default-constructs an empty DatabaseInput through std::map::operator[]"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 905,
+   "operation": "an absent activityDate becomes DateTime::now(), which makes a load unreproducible; this port leaves the date absent"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 907,
+   "operation": "the run identifier is a fresh UniqueIdGenerator value, with the source's own TODO asking for the XML id; this port uses the SpectrumIdentification element id"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 1189,
+   "operation": "missedCleavages below zero, or unreadable, is 'assumed unlimited' and becomes 1000"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 1276,
+   "operation": "the protocol writes into pro_id_->at(si_pro_map_[sil_ref]), where a dangling SpectrumIdentificationList reference yields index 0 through std::map::operator[] and silently retargets the first run"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 1365,
+   "operation": "the XL-MS branch calls pep_id_->back() immediately after the XL item scan, which is undefined when that scan pushed nothing"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 1409,
+   "operation": "a SpectrumIdentificationResult's retention time comes from MS:1000894 or MS:1000016 and is multiplied by 60 when the unit accession is UO:0000031 (minutes)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2104,
+   "operation": "rank 0 is treated as 1 for PMF data, but an unreadable rank stays 0 and rank - 1 then underflows PeptideHit's unsigned rank"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2130,
+   "operation": "the score scan walks the cvParams in lexicographic accession order (a std::map), takes the first q-value child term while skipping MS:1002055, then any MS:1001143 descendant, then any e-value child term; an item with none of those produces no PeptideHit at all"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2171,
+   "operation": "pep_map_[peptide_ref] default-constructs an empty AASequence for a dangling peptide_ref, so the PSM silently loses its sequence"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2197,
+   "operation": "pass_threshold is stored with setMetaValue(String, bool), which promotes the bool to int because DataValue has no boolean constructor; DataValue::toBool then throws on the value the reader itself wrote"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2203,
+   "operation": "every PeptideEvidence of the referenced Peptide is attached to the PSM, not just the ones its PeptideEvidenceRef children name, because the source calls those references redundant"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2262,
+   "operation": "db_sq_map_[dpv] default-constructs, so a PeptideEvidence pointing at an undeclared DBSequence yields an empty protein accession and inserts a ProteinHit with an empty accession into the run"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2338,
+   "operation": "every ProteinDetectionList is applied to pro_id_->back(), whichever run it belongs to, and each hypothesis is appended without checking for an existing accession"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2378,
+   "operation": "inferModificationLocation_ prefers the N-terminus, assigns the C-terminus only for modifications that are not also internal, and refuses to infer anything when residues names a concrete amino acid"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2469,
+   "operation": "parsePeptideSiblings_ dereferences the first child of PeptideSequence without a null check, so a schema-valid empty <PeptideSequence/> crashes the reader"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 2500,
+   "operation": "a SubstitutionModification writes through as[toInt32(location) - 1] with no bounds check, an out-of-bounds heap write driven by a file attribute"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp",
+   "line": 3212,
+   "operation": "findSearchParameters_ maps userParams taxonomy, charges, MinCharge/MaxCharge (which win over charges) and NumTolerableTermini (cast to EnzymaticDigestion::Specificity unchecked) and keeps every other param, including every cvParam, as metadata"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 221,
+   "operation": "the writer's peptide_result_details_ set is built with getAllChildTerms, descendants only, because the parent MS:1001143 has no numeric value"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 415,
+   "operation": "onEndElement accumulates parsed items into current_spectrum_id_, which nothing ever stores, so the handler's documented read mode discards everything it parses"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 597,
+   "operation": "every emitted id (SOF_, SIL_, SIP_, SDAT_, SDB_, PROT_, PEP_, PEV_, SIR_, SII_, ENZ_) is a UniqueIdGenerator value, so two stores of one document differ; the elements are then emitted from std::set<std::string>, i.e. sorted by their own XML text"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 653,
+   "operation": "when both modification lists are empty the writer infers them from the peptides with ModificationDefinitionsSet::inferFromPeptides, adding search parameters the input never declared"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 700,
+   "operation": "an invalid run date becomes DateTime::now() for the activityDate attribute, and line 979 stamps DateTime::now() into the root creationDate"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1113,
+   "operation": "writeMetaInfos_ puts the XSD type of a userParam into unitName instead of the schema's type attribute, so every typed userParam is read back as text"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1158,
+   "operation": "writeModParam_ resolves a modification name with searchModifications and writes one SearchModification per match, so an ambiguous name multiplies; its specificity rules cover the peptide termini only, with a TODO for the protein termini"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1366,
+   "operation": "the C-terminal Modification is written at location = sequence size, while the schema and the source's own reader put the C-terminus at size + 1, so a store/load cycle moves the modification onto the last residue"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1434,
+   "operation": "a PeptideEvidence whose protein accession has no DBSequence is skipped with a log line, dropping the evidence from the output"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1457,
+   "operation": "PeptideEvidence start and end are written as the OpenMS position plus one, which is correct on its own but compounds the reader's missing minus one into a shift per round trip"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1495,
+   "operation": "passThreshold comes from the hit's pass_threshold meta value, else from comparing the score against the run's significance threshold when one was set, else 1"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1546,
+   "operation": "the score cvParam chain is: a score type naming an MS:1001143 descendant, then the same by accession, then q-value/FDR, Posterior Error Probability, OMSSA, Mascot, XTandem, SEQUEST, MS-GF+ and OpenPepXL:score aliases, then the bare parent term plus a userParam carrying the number"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1621,
+   "operation": "the fallback userParam for an unmapped score type is the only place the number survives, and no reader recovers it, so such a score type does not round-trip"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp",
+   "line": 1206,
+   "operation": "writeFragmentAnnotations_ matches annotations against a regex whose charge group is written as a character class, so the charge comes from PeakAnnotation::charge and any annotation that does not fit the mzIdentML fragment structure is skipped"
+  }
+ ],
+ "evidence": "Tier 3 source review. The expectations in tests/mzidentml.rs are transcribed from MzIdentMLFile_test.cpp and from the four unmodified upstream fixtures: the 2/2/1/5 counts of msgf_mini, MS-GF+ 'Beta (v9979)', database.fasta, missed_cleavages 1000, the fixed modifications Carbamidomethyl (C) and Xlink:DTSSP[88] (Protein N-term), the 20 ppm parent tolerance, the protein accessions in their sorted order (sp|P0A9K9|SLYD_ECOLI before sp|P0A786|PYRB_ECOLI, which is the source's (score, accession) descending key), the four MS-GF:RawScore values 195/182/191/211 with their sequences and spectrum references, the 0.5 significance threshold and the pass_threshold pattern of spectrum 17 in whole.mzid, the Acetyl (N-term) variable modification, and the five modification-inference outcomes of issue #5443. No C++ was built or executed and no C++ output was retained, so nothing here is a tier 1 differential. Two expectations are independently derived rather than transcribed, and are marked as such in the test: the run date stays absent where the source substitutes DateTime::now(), and PeptideEvidence positions are converted from the file's 1-based values to OpenMS's documented 0-based ones, which the source does not do. The synthetic documents (duplicate ids, dangling peptide_ref and dBSequence_ref, an unreferenced SpectrumIdentificationList, two runs sharing one list, a prefixed namespace, a foreign namespace, non-ASCII accessions, an empty PeptideSequence, an out-of-range SubstitutionModification location, a negative rank, the C-terminal modification location, the ProteinDetectionList and every ReadOptions/WriteOptions ceiling) are tier 4, derived from mzIdentML1.3.0.xsd and from this port's own resource contract.",
+ "gaps": [
+  "Cross-linking mzIdentML is refused, not read. The source's XL-MS path is parseSpectrumIdentificationItemSetXLMS plus the XL half of parsePeptideSiblings_ (about 800 lines of MzIdentMLDOMHandler.cpp) and, crucially, six OPXLHelper post-processing steps (addProteinPositionMetaValues, addBetaAccessions, addXLTargetDecoyMV, removeBetaPeptideHits, computeDeltaScores, addPercolatorFeatureList) from ANALYSIS/XLMS/OPXLHelper.h, which is unported. removeBetaPeptideHits alone changes the hit counts the upstream test asserts, so a partial XL port could not reproduce those sections either. Six of the 15 upstream sections are therefore unaccounted; what is tested instead is that such a document is refused with Error::Unsupported naming MS:1002494. Writing XL-MS (writeXLMSPeptideHit) is deferred with it, because there would be nothing to write.",
+  "MzIdentMLFile::isValid is not ported: it validates against the bundled XSD through XMLValidator, and the crate's only schema validator is behind the optional mzml-schema feature (libxml) and is mzML-specific. detectVersion, the half of isValid that selects the schema, is ported and tested.",
+  "MzIdentMLFile::isSemanticallyValid is not ported: it needs share/OpenMS/MAPPING/mzIdentML-mapping.xml, which is not among the crate's embedded resources, and FORMAT/VALIDATORS/MzIdentMLValidator.h, a separate unowned header.",
+  "MzIdentMLHandler's stream read path (onStartElement/onCharacters/onEndElement/handleCVParam_) is not ported. It is dead code upstream: MzIdentMLFile::load uses the DOM handler, and the items this path parses are accumulated into current_spectrum_id_, which nothing stores. The three public value types it fills (IdentificationHit, SpectrumIdentification, Identification) are ported as value types, because they are public API of the owned header.",
+  "The writer does not infer search modifications from the peptides when both modification lists are empty (MzIdentMLHandler.cpp:653 does, through ModificationDefinitionsSet::inferFromPeptides). Writing search parameters the input never declared would invent metadata, and the modifications are already in the Peptide elements.",
+  "A score type that maps to none of the writer's CV terms or aliases is written as the bare MS:1001143 term plus a userParam, exactly as the source does, and no reader recovers the number from that userParam. Such a score type therefore does not round-trip; the score types in the upstream fixtures (q-value, X\\!Tandem:hyperscore, Mascot:score, MS-GF:RawScore) all do.",
+  "An identification run with no peptide identifications emits a SpectrumIdentification that references a SpectrumIdentificationList the document does not contain, because mzIdentML requires at least one SpectrumIdentificationResult per list. The source produces the same dangling reference. No fixture reaches it.",
+  "Enzyme site regular expressions are not written: mzIdentML has SiteRegexp, and the source omits it ('SiteRegex unstorable just now'), so SearchParameters::digestion_regex is lost on store. Run metadata other than spectra_data is lost as well, because the source's writeMetaInfos_ is applied to the search parameters only.",
+  "The source parallelises nothing in this family, so there is no OpenMP gap to record; the reader is a single pass over an in-memory tree and the writer a single pass over the document.",
+  "docs/doc-coverage.json was not rewritten: src/format/mzidentml.rs measures 100.0% (28/28) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
+  "CI wiring was not added for the same reason: append '--test mzidentml' to a '--features idxml' line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --all-features, under --no-default-features (where the module is compiled out) and under cargo +1.85.0.",
+  "The ProteinIdentification::sort of src/identification.rs orders hits by score alone, while ProteinHit::ScoreMore/ScoreLess compare (score, accession); this reader applies the source's full key itself so a load reproduces the C++ order, but callers of that method still see the shorter key. Fixing it belongs to the package that owns src/identification.rs."
+ ]
+}
