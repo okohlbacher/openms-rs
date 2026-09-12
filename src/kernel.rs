@@ -46,6 +46,10 @@ pub use spectrum_type::SpectrumTypeQueryLimits;
 /// Feature, consensus and map containers: `BaseFeature`, `Feature`,
 /// `FeatureHandle`, `ConsensusFeature`, `FeatureMap` and `ConsensusMap`.
 pub mod features;
+/// Operations completing ported kernel value types whose home module is owned
+/// elsewhere: `FeatureHandle` construction, ordering and identity, and the
+/// `BinnedSpectrum` default bin constants.
+pub mod gap_closures;
 /// Points, bounding boxes and convex hulls shared by the feature containers.
 pub mod geometry;
 pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};

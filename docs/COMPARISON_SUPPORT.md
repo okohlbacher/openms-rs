@@ -18,6 +18,78 @@ This module ports selected comparison algorithms from OpenMS4-core revision `7c0
 
 BinnedSpectrum sits in `comparison` in Rust to keep the immutable sparse representation next to its consumers. Its layout, bins, and precursor list are private and available through read-only accessors. `BinConfig::default` uses the source's recommended low-resolution width 1.0005, offset 0.4 and spread 0. For high-resolution binning use size 0.02, offset 0.0 and spread 0.
 
+### BinnedSpectrum member review
+
+`KERNEL/BinnedSpectrum.h` was re-reviewed member by member at Core SDK
+`bc9cc12514c768385ce121d6ca4bb710fe1983c4` (header sha256
+`e734cfa2a84c79d5a41e3376ad85696b9e48adb58c87f71564e5722896b5d49f`, `.cpp` sha256
+`c724cc045175cdc84ff59470020461b9f74f23a96c3c6cdbb1f079348559f9e2`). The four
+recommended-layout constants had no counterpart and are declared on
+`BinnedSpectrum` in [`kernel/gap_closures.rs`](../src/kernel/gap_closures.rs)
+(`comparison.rs` was frozen for the review; a crate-local inherent impl may
+live in any module of the crate). Every public member:
+
+| Source member | Rust counterpart | Difference |
+| --- | --- | --- |
+| private `MIN_MZ_ = 1.0` | literal 1.0 inside `BinConfig::bin_index` (`ln(mz)` is `ln(mz / 1.0)`) | ppm binning of m/z < 1 is a checked error; the source only asserts it in debug builds |
+| `DEFAULT_BIN_WIDTH_LOWRES = 1.0005f` | `BinnedSpectrum::DEFAULT_BIN_WIDTH_LOWRES` (gap closure); also `BinConfig::default().size` | none |
+| `DEFAULT_BIN_WIDTH_HIRES = 0.02f` | `BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES` | none |
+| `DEFAULT_BIN_OFFSET_HIRES = 0.0f` | `BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES` | none |
+| `DEFAULT_BIN_OFFSET_LOWRES = 0.4f` | `BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES`; also `BinConfig::default().offset` | none |
+| `SparseVectorType = Eigen::SparseVector<float, 0, int>` | `BTreeMap<usize, f32>` | ordered map instead of a compressed sparse vector; Eigen's `nonZeros()` is `len()`, `coeffRef(i)` read is `[&i]` / `get(&i)` |
+| `BinnedSpectrum()` | not ported | the source default object holds a null `bins_` pointer; `getBinIntensity` on it dereferences null. `BinnedSpectrum::new(&MSSpectrum::default(), config)` is the empty, usable equivalent |
+| `BinnedSpectrum(const PeakSpectrum&, float size, bool unit_ppm, UInt spread, float offset)` | `BinnedSpectrum::new(&MSSpectrum, BinConfig { size, unit, spread, offset, .. }) -> Result` | sortedness is checked (source: debug-only precondition); bin count and spread work are bounded by `BinConfig::max_bins` / `max_updates`; f32 accumulation overflow is an error |
+| copy constructor, `operator=`, `virtual ~BinnedSpectrum()` | `Clone`, assignment, drop | none |
+| `operator==` (unit, size, spread, precursors, stored bins) | `PartialEq` | additionally compares `offset`, which the source omits; resource limits are ignored |
+| `operator!=` | `!=` | none |
+| `float getBinIntensity(double mz)` (non-const; `coeffRef` inserts a zero) | `bin_intensity(f64) -> Result<f32>` | read-only; a miss returns 0 without storing an entry; invalid m/z is an error |
+| `size_t getBinIndex(float mz) const` | `config().bin_index(f64) -> Result<usize>` | narrows to f32 first, as the source signature does; negative, non-finite or out-of-range results are errors instead of a wrapped cast |
+| `float getBinLowerMZ(size_t i) const` | `config().bin_lower_mz(usize) -> Result<f32>` | overflow is an error |
+| `float getBinSize() const` | `config().size` | none |
+| `size_t getBinSpread() const` | `config().spread` (`u32`) | none |
+| `const SparseVectorType* getBins() const` | `bins() -> &BTreeMap<usize, f32>` | never null |
+| `SparseVectorType* getBins()` (mutable) | not ported | bins are immutable after construction so layout and value invariants hold; the bin-wise `+` / `* 5f` algebra the class comment advertises through Eigen is not offered. Rebuild with `new` |
+| `float getOffset() const` | `config().offset` | none |
+| `const std::vector<Precursor>& getPrecursors() const` | `precursors() -> &[Precursor]` | none |
+| `std::vector<Precursor>& getPrecursors()` (mutable) | not ported | same reason as mutable bins; construct from a spectrum with the desired precursors |
+| `static bool isCompatible(const BinnedSpectrum&, const BinnedSpectrum&)` (unit, size, offset) | `a.is_compatible(&b)` | none; spread is ignored in both |
+| private `binSpectrum_` | body of `new` | spread stops at bin 0 without the source's `static_cast<int>(idx - j - 1)` wraparound test |
+| private `bin_spread_`, `bin_size_`, `unit_ppm_`, `offset_`, `bins_`, `precursors_` | `BinConfig` plus private `bins` and `precursors` | none |
+
+The source class comment's `@todo` (weighted intensity spread for
+high-resolution sum scores) is unimplemented upstream and here.
+
+`BinnedSpectrum_test.cpp` (sha256
+`528251907315c3d1975456c8c82dde629b53a39ebf30bb69d111e868bdba123f`) has fourteen
+sections. All are ported into
+[tests/binned_spectrum.rs](../tests/binned_spectrum.rs) against the retained
+`comparison_dfpianger.dta` fixture (byte-identical to the source's
+`PILISSequenceDB_DFPIANGER_1.dta`), tier 3 (transcribed literals `1.5`, `2`,
+`1.234`, `230259`, `460519`, `690778`, `347`, `658`, `501645`, `-0.5`,
+`999.5`; no C++ execution):
+
+| Source section | Rust test |
+| --- | --- |
+| `~BinnedSpectrum()` | `destructor` |
+| `BinnedSpectrum(const PeakSpectrum&, float, UInt, float)` | `detailed_constructor` |
+| `BinnedSpectrum(const BinnedSpectrum&)` | `copy_constructor` (precursor m/z truncates to 1019) |
+| `operator=(const BinnedSpectrum&)` | `assignment_operator` |
+| `operator==` | `equality_operator` |
+| `operator!=` | `inequality_operator` |
+| `getBinSize()` | `get_bin_size` |
+| `getBinSpread()` | `get_bin_spread` |
+| `getBinIndex(double)` | `get_bin_index` |
+| `getBinLowerMZ(size_t)` (19 assertions) | `get_bin_lower_mz` |
+| `const getBins()` | `get_bins_const` |
+| mutable `getBins()` | `get_bins_mutable_equivalent` (read-only lookup of bin 658 by m/z 987.0) |
+| `setBinning()` (`NOT_TESTABLE`) | `set_binning_is_construction` (native spread-at-boundary check) |
+| `isCompatible(a, b)` | `is_compatible` |
+| (none) | extra: `recommended_layout_constants` |
+
+Self-audit (`BinnedSpectrum.h`): 14 ported, 0 mapped-with-evidence, 0
+mapped-without-evidence, 0 unaccounted. The earlier golden and boundary tests in
+[tests/comparison.rs](../tests/comparison.rs) remain and are not counted here.
+
 ## Alignment and score semantics
 
 Absolute alignment preserves the actual source band traversal, fallback costs for absent matrix cells, diagonal-before-gap tie ordering, and traceback starting at the last selected diagonal. It is **not** a greedy nearest-peak substitution. Returned pairs are ordered, one-to-one, and within the inclusive tolerance. Compact contiguous row storage replaces C++ nested maps; 1,000 deterministic cases compare this representation against a separate map-shaped source transcription.
