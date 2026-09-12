@@ -247,9 +247,16 @@ pub struct ConsensusFeature {
 /// map description, as the source stores them.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Ratio {
+    /// The ratio itself, as the source `ratio_value_`.
     pub ratio_value: f64,
+    /// Map description naming the denominator channel, as `denominator_ref_`.
     pub denominator_ref: String,
+    /// Map description naming the numerator channel, as `numerator_ref_`.
     pub numerator_ref: String,
+    /// Free-text description lines, as the source `description_`. The source
+    /// leaves this vector empty unless a caller fills it; nothing in the SDK
+    /// writes it.
+    pub description: Vec<String>,
 }
 
 impl Deref for ConsensusFeature {

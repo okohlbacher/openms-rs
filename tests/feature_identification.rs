@@ -2093,6 +2093,7 @@ fn ratios_are_checked_and_replaced_atomically() {
         ratio_value: 1.5,
         denominator_ref: "channel_0".into(),
         numerator_ref: "channel_1".into(),
+        description: Vec::new(),
     };
     consensus.add_ratio(ratio.clone()).unwrap();
     consensus.add_ratio(ratio.clone()).unwrap();
