@@ -303,11 +303,24 @@ Resource ceilings, all refusals checked before the matching allocation. The
 source has none: `parse_()` hands the whole file to the XML parser and the
 handler appends to `std::vector` and `std::map` until the allocator fails.
 
+Three of these once held only on the way out of the reader, which is what the
+first release of this port claimed they did not do. `Attachment::MAX_COLUMNS`
+was read off the column vector `split_cells` had already built;
+`Attachment::MAX_TABLE_CELLS` and `Attachment::MAX_TEXT_BYTES` were charged
+only when the finished attachment was committed into the document, by
+`Attachment::preflight_table` and `check_text`, so a document could assemble an
+oversized table or accumulate repeated `<binary>` elements in memory first and
+be refused afterwards. All three are now decided on the captured text of the
+element being read - already bounded by `Limits::max_text_bytes` - before any
+cell `String`, row `Vec` or payload append exists, with the running cell count
+carried on the parser and reset for each `<attachment>`. The commit-time and
+write-time checks remain as the in-memory API's own guard.
+
 | Ceiling | Default | Guards |
 |---|---|---|
 | `Limits::max_input_bytes` | 256 MiB | decoded document size |
 | `Limits::max_depth` | 100 | nesting, which an embedded XSL stylesheet uses up |
-| `Limits::max_elements` | 4,000,000 | element count |
+| `Limits::max_elements` | 4,000,000 | markup nodes: elements, and the comments and processing instructions the port discards, each of which costs the parser the same walk as an element |
 | `Limits::max_text_bytes` | 64 MiB | one `<binary>` or table element's character data, and one attribute value |
 | `Limits::max_doctype_bytes` | 4 KiB | the internal DOCTYPE subset the source's own writer emits |
 | `MAX_ATTRIBUTES` (module-private) | 64 | attributes on one element; the duplicate-name scan is quadratic in this count and no qcML element declares more than nine |
@@ -316,10 +329,10 @@ handler appends to `std::vector` and `std::map` until the allocator fails.
 | `QcMLFile::MAX_ATTACHMENTS_PER_ENTRY` | 1,000,000 | attachments per run or set |
 | `QcMLFile::MAX_SET_MEMBERS` | 1,000,000 | member names per set |
 | `QcMLFile::MAX_OUTPUT_BYTES` | 1 GiB | any serialisation or export, preflighted from field sizes |
-| `Attachment::MAX_COLUMNS` | 100,000 | column types per table |
+| `Attachment::MAX_COLUMNS` | 100,000 | column types per table, counted in the captured text before the cells are built |
 | `Attachment::MAX_ROWS` | 4,000,000 | rows per table |
-| `Attachment::MAX_TABLE_CELLS` | 16,000,000 | cells per table |
-| `Attachment::MAX_TEXT_BYTES` | 64 MiB | one cell, scalar field or binary payload |
+| `Attachment::MAX_TABLE_CELLS` | 16,000,000 | cells per table, accumulated row by row as they are read |
+| `Attachment::MAX_TEXT_BYTES` | 64 MiB | one cell, scalar field or binary payload, charged per `<binary>` element because repeated ones accumulate |
 | `QualityParameter::MAX_TEXT_BYTES` | 16 MiB | one field |
 | `QualityParameter::MAX_INDENTATION` | 64 | the source builds `std::string indent(level, '\t')` from an unchecked `UInt` |
 | `Stylesheet::MAX_BYTES` | 16 MiB | an injected report stylesheet body |
@@ -341,6 +354,28 @@ Input policy, all independently derived:
   `str` operations, and every index into decoded bytes goes through `get`. The
   non-ASCII fixture exists because an audit in this project found a reachable
   panic from byte-slicing a path with a non-ASCII component.
+
+Parse cost is linear in the document, not quadratic. The reader reports a line
+number with every diagnostic, and the first release of this port derived it by
+counting the newlines of the whole byte prefix on **every** event, so a
+document of many small nodes cost O(nodes x document bytes). Measured in
+release on the gate node, a `<runQuality>` of self-closing
+`<qualityParameter/>` elements took
+
+| Elements | Document | Before | After |
+|---|---|---|---|
+| 10,000 | 777,868 B | 2,677.178 ms | 10.373 ms |
+| 20,000 | 1,577,868 B | 10,781.590 ms | 18.468 ms |
+| 40,000 | 3,177,868 B | 43,533.878 ms | 39.464 ms |
+
+— twice the input for four times the time before, and for twice the time after.
+`Parser::line_at` now carries the line number forward from the previous event's
+byte position, so every byte of the document is examined once over the whole
+parse. Comments drove exactly the same scan while being charged to no ceiling
+at all, which is why they now count against `Limits::max_elements` alongside
+processing instructions. `tests/qcml.rs` pins both: it times the same three
+sizes, with and without a comment before every element, and refuses a
+fourfold-larger document that costs more than eight times as much.
 
 Evidence, in full in `tests/data/qcml_provenance.json`: **tier 3 source review**,
 no tier 1 differential. No C++ was built or executed and no C++ output was

@@ -78,7 +78,12 @@ pub struct Limits {
     pub max_input_bytes: usize,
     /// Maximum element nesting depth, which an embedded XSL stylesheet uses up.
     pub max_depth: usize,
-    /// Maximum number of elements in the document.
+    /// Maximum number of markup nodes in the document.
+    ///
+    /// Elements, and also the comments and processing instructions the port
+    /// discards: each costs the parser the same walk as an element, so a
+    /// document of nothing but comments would otherwise be bounded only by
+    /// [`max_input_bytes`](Self::max_input_bytes).
     pub max_elements: usize,
     /// Maximum bytes of character data captured for one `<binary>`,
     /// `<tableColumnTypes>` or `<tableRowValues>` element.
@@ -2183,6 +2188,12 @@ struct Parser<'a> {
     out: QcMLFile,
     depth: usize,
     elements: usize,
+    /// Bytes of `text` the line counter has already walked.
+    scanned: usize,
+    /// One-based line number at byte `scanned`.
+    scanned_line: usize,
+    /// Cells of the table being read, counted as its rows arrive.
+    table_cells: usize,
     root: bool,
     entry: Option<Entry>,
     open_qp: Option<QualityParameter>,
@@ -2199,6 +2210,9 @@ impl<'a> Parser<'a> {
             out: QcMLFile::default(),
             depth: 0,
             elements: 0,
+            scanned: 0,
+            scanned_line: 1,
+            table_cells: 0,
             root: false,
             entry: None,
             open_qp: None,
@@ -2208,9 +2222,31 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn line(&self, offset: usize) -> usize {
-        let prefix = self.text.as_bytes().get(..offset).unwrap_or(&[]);
-        1 + prefix.iter().filter(|b| **b == b'\n').count()
+    /// The one-based line number at byte `offset`, carried forward.
+    ///
+    /// The parser's byte position only ever advances, so the newlines between
+    /// the previous event and this one are counted once and added to the
+    /// running total: every byte of the document is examined exactly once over
+    /// the whole parse. Counting over the prefix on each event instead cost
+    /// O(events x document bytes), which made a document of many small
+    /// elements - or many comments - quadratic in its own size. A position
+    /// that did not advance (`get` yields `None`) reuses the last line.
+    fn line_at(&mut self, offset: usize) -> usize {
+        let offset = offset.min(self.text.len());
+        if let Some(span) = self.text.as_bytes().get(self.scanned..offset) {
+            self.scanned_line += span.iter().filter(|b| **b == b'\n').count();
+            self.scanned = offset;
+        }
+        self.scanned_line
+    }
+
+    /// Charge one markup node against [`Limits::max_elements`].
+    fn count_node(&mut self, line: usize) -> Result<()> {
+        self.elements += 1;
+        if self.elements > self.limits.max_elements {
+            return Err(parse_error(line, "qcML element limit exceeded"));
+        }
+        Ok(())
     }
 
     fn run(mut self) -> Result<QcMLFile> {
@@ -2221,18 +2257,15 @@ impl<'a> Parser<'a> {
         let mut doctype = false;
         loop {
             let offset = reader.buffer_position() as usize;
+            let line = self.line_at(offset);
             let event = reader
                 .read_event()
-                .map_err(|e| parse_error(self.line(offset), e.to_string()))?;
-            let line = self.line(offset);
+                .map_err(|e| parse_error(line, e.to_string()))?;
             let self_closing = matches!(&event, Event::Empty(_));
             match event {
                 Event::Start(e) | Event::Empty(e) => {
                     let tag = tag_name(&e, line)?.to_owned();
-                    self.elements += 1;
-                    if self.elements > self.limits.max_elements {
-                        return Err(parse_error(line, "qcML element limit exceeded"));
-                    }
+                    self.count_node(line)?;
                     if self.depth + 1 > self.limits.max_depth {
                         return Err(parse_error(line, "qcML nesting limit exceeded"));
                     }
@@ -2303,6 +2336,7 @@ impl<'a> Parser<'a> {
                 }
                 Event::Decl(_) => {}
                 Event::PI(e) => {
+                    self.count_node(line)?;
                     let target = std::str::from_utf8(e.target())
                         .map_err(|_| parse_error(line, "invalid qcML processing instruction"))?;
                     if target.eq_ignore_ascii_case("xml") {
@@ -2329,7 +2363,11 @@ impl<'a> Parser<'a> {
                         ));
                     }
                 }
-                Event::Comment(_) => {}
+                // A comment holds no data but costs the parser the same walk as
+                // an element, so it draws on the same ceiling; charged to no
+                // ceiling at all, a document of nothing but comments was
+                // bounded only by `max_input_bytes`.
+                Event::Comment(_) => self.count_node(line)?,
                 Event::Eof => {
                     if !stack.is_empty() {
                         return Err(parse_error(line, "incomplete qcML document"));
@@ -2470,6 +2508,7 @@ impl<'a> Parser<'a> {
                     col_types: Vec::new(),
                     table_rows: Vec::new(),
                 });
+                self.table_cells = 0;
             }
             "binary" | "tableColumnTypes" | "tableRowValues" => {
                 if self.open_at.is_none() {
@@ -2505,26 +2544,64 @@ impl<'a> Parser<'a> {
                     .open_at
                     .as_mut()
                     .ok_or_else(|| parse_error(line, "character content outside an attachment"))?;
+                // Every ceiling below is decided on the captured text, which is
+                // already bounded by `max_text_bytes`, and before the `Vec` and
+                // `String`s of the cells exist. Reading them off the assembled
+                // table instead - as `Attachment::preflight_table` does when
+                // the attachment is finally committed - lets a document build
+                // the whole oversized table in memory first.
                 match capture {
                     // The source concatenates every notification, so repeated
-                    // <binary> elements in one attachment accumulate.
-                    Capture::Binary => at.binary.push_str(&text),
+                    // <binary> elements in one attachment accumulate; the
+                    // per-payload ceiling therefore has to be charged here and
+                    // not once at the end.
+                    Capture::Binary => {
+                        if at.binary.len().saturating_add(text.len()) > Attachment::MAX_TEXT_BYTES {
+                            return Err(parse_error(line, "qcML attachment byte limit exceeded"));
+                        }
+                        at.binary.push_str(&text);
+                    }
                     Capture::ColumnTypes => {
-                        at.col_types = split_cells(&text);
-                        if at.col_types.len() > Attachment::MAX_COLUMNS {
+                        let columns = count_cells(&text);
+                        if columns > Attachment::MAX_COLUMNS {
                             return Err(parse_error(line, "qcML attachment column limit exceeded"));
                         }
+                        // The column types are part of the cell count, as in
+                        // `preflight_table`. They are added rather than
+                        // assigned so that rows read before them - and a
+                        // repeated <tableColumnTypes>, which overwrites the
+                        // list the source also overwrites - still count.
+                        let total = self
+                            .table_cells
+                            .checked_add(columns)
+                            .ok_or_else(|| limit("qcML attachment cell limit exceeded"))?;
+                        if total > Attachment::MAX_TABLE_CELLS {
+                            return Err(parse_error(line, "qcML attachment cell limit exceeded"));
+                        }
+                        at.col_types = split_cells(&text);
+                        self.table_cells = total;
                     }
                     Capture::RowValues => {
-                        let row = split_cells(&text);
-                        if !row.is_empty() {
+                        let cells = count_cells(&text);
+                        if cells > 0 {
                             if at.table_rows.len() >= Attachment::MAX_ROWS {
                                 return Err(parse_error(
                                     line,
                                     "qcML attachment row limit exceeded",
                                 ));
                             }
-                            at.table_rows.push(row);
+                            let total = self
+                                .table_cells
+                                .checked_add(cells)
+                                .ok_or_else(|| limit("qcML attachment cell limit exceeded"))?;
+                            if total > Attachment::MAX_TABLE_CELLS {
+                                return Err(parse_error(
+                                    line,
+                                    "qcML attachment cell limit exceeded",
+                                ));
+                            }
+                            at.table_rows.push(split_cells(&text));
+                            self.table_cells = total;
                         }
                     }
                 }
@@ -2700,4 +2777,15 @@ fn split_cells(text: &str) -> Vec<String> {
         return Vec::new();
     }
     trimmed_text.split(' ').map(str::to_owned).collect()
+}
+
+/// The number of cells [`split_cells`] would return, without allocating one.
+///
+/// This is what lets the table ceilings be decided before the cells exist.
+fn count_cells(text: &str) -> usize {
+    let trimmed_text = text.trim_matches(trimmed);
+    if trimmed_text.is_empty() {
+        return 0;
+    }
+    trimmed_text.split(' ').count()
 }

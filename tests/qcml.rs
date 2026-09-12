@@ -1645,6 +1645,58 @@ fn resource_ceilings_refuse_before_allocating() {
         ..Limits::default()
     };
     assert!(qcml::read_with_limits(table.as_bytes(), &limits).is_err());
+    // Comments and processing instructions carry no payload, so nothing else
+    // bounds them: both are charged to the element ceiling. Without that a
+    // document of nothing but comments was held back only by its byte count.
+    let commented = "<qcML><!--a--><!--b--><!--c--><runQuality ID=\"r\"/></qcML>";
+    assert!(qcml::read(commented.as_bytes()).is_ok());
+    for limits in [
+        Limits {
+            max_elements: 3,
+            ..Limits::default()
+        },
+        Limits {
+            max_elements: 2,
+            ..Limits::default()
+        },
+    ] {
+        assert!(qcml::read_with_limits(commented.as_bytes(), &limits).is_err());
+    }
+    let instructed = "<?xml-stylesheet href=\"#a\"?><?xml-stylesheet href=\"#b\"?><qcML/>";
+    assert!(qcml::read(instructed.as_bytes()).is_ok());
+    assert!(
+        qcml::read_with_limits(
+            instructed.as_bytes(),
+            &Limits {
+                max_elements: 2,
+                ..Limits::default()
+            }
+        )
+        .is_err()
+    );
+    // The table ceilings are decided on the captured text, before the cells
+    // are allocated: one column over `MAX_COLUMNS` is refused by the reader
+    // and not only by the later commit into the document.
+    let mut columns = String::from(
+        "<qcML><runQuality ID=\"r\"><attachment name=\"n\" ID=\"i\" cvRef=\"QC\" \
+         accession=\"QC:1\"><table><tableColumnTypes>",
+    );
+    for i in 0..=Attachment::MAX_COLUMNS {
+        if i > 0 {
+            columns.push(' ');
+        }
+        columns.push('c');
+    }
+    let tail = "</tableColumnTypes></table></attachment></runQuality></qcML>";
+    columns.push_str(tail);
+    assert!(qcml::read(columns.as_bytes()).is_err());
+    // One column fewer is inside the ceiling and reads.
+    let accepted = columns.replacen("c c", "c", 1);
+    let file = qcml::read(accepted.as_bytes()).unwrap();
+    assert_eq!(
+        file.run_attachments("r")[0].col_types.len(),
+        Attachment::MAX_COLUMNS
+    );
     // Per-field and per-table ceilings on the in-memory side.
     let mut file = QcMLFile::new();
     let huge = "x".repeat(QualityParameter::MAX_TEXT_BYTES + 1);
@@ -1807,4 +1859,72 @@ fn a_name_that_no_parameter_carries_refuses_under_the_native_default() {
     )
     .unwrap();
     assert!(sets.to_xml_string().is_ok());
+}
+
+/// One `<runQuality>` holding `count` self-closing `<qualityParameter/>`
+/// elements, each preceded by a comment when `commented`.
+fn synthetic_document(count: usize, commented: bool) -> String {
+    let mut out =
+        String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<qcML>\n<runQuality ID=\"r\">\n");
+    for i in 0..count {
+        if commented {
+            out.push_str("<!-- p -->\n");
+        }
+        out.push_str("<qualityParameter name=\"q");
+        out.push_str(&i.to_string());
+        out.push_str("\" ID=\"i");
+        out.push_str(&i.to_string());
+        out.push_str("\" cvRef=\"QC\" accession=\"QC:0000004\"/>\n");
+    }
+    out.push_str("</runQuality>\n</qcML>\n");
+    out
+}
+
+/// Best of three parses of `document`, in nanoseconds, checking the result.
+fn parse_nanos(document: &str, count: usize) -> u128 {
+    let mut best = u128::MAX;
+    for _ in 0..3 {
+        let start = std::time::Instant::now();
+        let file = qcml::read(document.as_bytes()).unwrap();
+        let elapsed = start.elapsed().as_nanos().max(1);
+        assert_eq!(file.run_quality_parameters("r").len(), count);
+        best = best.min(elapsed);
+    }
+    best
+}
+
+#[test]
+fn parse_cost_grows_with_the_document_and_not_with_its_square() {
+    // `Parser::line` used to count the newlines of the whole byte prefix for
+    // every event, so a document of n nodes cost O(n x bytes). Measured in
+    // release on these exact documents: 10,000 elements took 2,677 ms, 20,000
+    // took 10,782 ms and 40,000 took 43,534 ms - twice the input for four
+    // times the time - against 10.4 ms, 18.5 ms and 39.5 ms now that
+    // `Parser::line_at` carries the line number forward and every byte is
+    // examined once. Comments drove the same scan, which is why they are timed
+    // here too and now draw on `max_elements`.
+    for commented in [false, true] {
+        let documents: Vec<(usize, String)> = [10_000usize, 20_000, 40_000]
+            .iter()
+            .map(|count| (*count, synthetic_document(*count, commented)))
+            .collect();
+        let timings: Vec<(usize, usize, u128)> = documents
+            .iter()
+            .map(|(count, text)| (*count, text.len(), parse_nanos(text, *count)))
+            .collect();
+        for (count, bytes, nanos) in &timings {
+            println!(
+                "qcml parse: {count} elements, commented={commented}, {bytes} bytes, {:.3} ms",
+                *nanos as f64 / 1e6
+            );
+        }
+        let small = timings.first().expect("three timings").2;
+        let large = timings.last().expect("three timings").2;
+        // Four times the input is four times the work when the cost is linear
+        // and sixteen when it is quadratic; eight separates them with margin.
+        assert!(
+            large < small.saturating_mul(8),
+            "parse cost is superlinear: {timings:?} (commented={commented})"
+        );
+    }
 }
