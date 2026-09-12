@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Kernel wave 1. `kernel::ranges` ports `RangeManager.h`, `SpectrumRangeManager.h` and
+  `ChromatogramRangeManager.h` as pure value types; `range_manager()` accessors on spectra,
+  chromatograms and mobilograms and three experiment roles replace the source's cached
+  `updateRanges()`, and the combined role now includes chromatogram retention time,
+  intensity and product m/z, which the previous `ranges()` omitted.
+- `kernel::range_utils` ports all fifteen `RangeUtils.h` predicates with the source reverse
+  flag, plus `retain_spectra` and `retain_peaks_where`.
+- `kernel::spectrum_helper` ports the `SpectrumHelper.h` free functions over spectra and
+  chromatograms; source metadata loss is available only behind an explicit option.
+- Member-by-member review of `DPeak.h`, `StandardTypes.h`, `RichPeak2D.h`, `FeatureHandle.h`
+  and `BinnedSpectrum.h`, with `FeatureHandle::from_peak`, `Display`, `Hash` and `HasUniqueId`
+  and the `BinnedSpectrum::DEFAULT_BIN_*` constants added.
+- New `DPosition`, `DIntervalBase` and `DRange` with the exact finite-extrema empty sentinel.
+- Kernel headers closed or native-equivalent: 8 of 34 before this wave, 18 after.
+- Fifteen further C++ defects recorded as CPP-061 to CPP-075.
 - Restore the Rust 1.85 minimum: five let-chain sites (stabilised in 1.88, silently
   accepted by newer compilers under edition 2024) are rewritten as nested `if`s.
   CI `minimum-rust` was red on `5688775`.

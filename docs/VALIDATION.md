@@ -1,5 +1,101 @@
 # Validation of the ongoing Rust port
 
+## Kernel wave 1: ranges, predicates, helpers, gap-0 review and geometry (2026-09-12)
+
+Five work packages ported in parallel git worktrees, then rebased onto wave 0,
+merged and verified together. Kernel headers closed or native-equivalent rise
+from 8 of 34 to 18 of 34.
+
+| Work package | Headers | Class-test sections | Rust |
+| --- | --- | --- | --- |
+| Ranges | RangeManager, SpectrumRangeManager, ChromatogramRangeManager | 48 ported | `src/kernel/ranges.rs` |
+| Predicates | RangeUtils | 33 ported | `src/kernel/range_utils.rs` |
+| Helpers | SpectrumHelper | 9 ported | `src/kernel/spectrum_helper.rs` |
+| Gap-0 review | DPeak, StandardTypes, RichPeak2D, FeatureHandle, BinnedSpectrum | 51 ported | `src/kernel/gap_closures.rs` and existing modules |
+| Geometry | DPosition, DIntervalBase, DRange | 104 ported | `src/data_structures/{dposition,dinterval,drange}.rs` |
+
+245 upstream class-test sections were ported with transcribed literals, which is
+tier 3 evidence under [the differential validation policy](DIFFERENTIAL_VALIDATION.md).
+No C++ was executed. Fifteen further C++ defects were recorded as CPP-061 to
+CPP-075, including a `makePeakPositionUnique` swap that discards the whole
+spectrum record while warning only about data arrays, and a `DRange::united` of
+two empty ranges that returns the universal range.
+
+**Ranges are computed on demand, deliberately.** The source caches ranges in a
+mutable member refreshed by `updateRanges()`. Peak vectors are public here, so a
+cache cannot be invalidated soundly; the algebra is ported as pure values and the
+inherited container surface becomes `range_manager()` accessors. All 21 TOPP
+`updateRanges` call sites were audited before choosing this: every one is a plain
+update-then-read, and the mutable `getRange()` has no mutating caller in core, so
+no ported tool's numbers change. The combined experiment role now folds in
+chromatogram retention time, intensity and **product m/z**, which the previous
+`MSExperiment::ranges()` omitted entirely; a ported `FileInfo` would have printed
+a narrower m/z range.
+
+**Two defects came from stale worktree bases.** Three of the five agents branched
+from `a463e3e`, 26 commits behind, so their own green gates were green against a
+tree without the typed record metadata, the drift-time fields or the 1.85 fixes.
+Rebasing exposed both: two SpectrumHelper test assertions used the pre-migration
+metadata API, and `copySpectrumMeta` documented a drift-time deferral that wave 0
+had already made obsolete. The implementation was correct by construction; the
+rustdoc, support document and API table were not, and nothing tested it. Each
+branch was rebased onto wave 0 and re-verified before merging.
+
+**The no-default-features CI line was broken by wave 0 and is now fixed.** Gating
+`pub mod cli` on `paramxml` left the five `tests/topp_*.rs` files using
+`openms::cli` without a gate of their own, so `cargo test --locked
+--no-default-features` (rust.yml line 22) failed to compile. Verified after wave 0
+were `--all-features` and the Python gates, not that line. Each file now carries
+`#![cfg(all(feature = "mzml", feature = "paramxml"))]`.
+
+Recorded checks on the integrated tree (16-core Apple Silicon, cargo 1.96):
+
+| Check | Result |
+| --- | --- |
+| `cargo build --locked --all-features --all-targets` | clean |
+| `cargo test --locked --no-default-features` | clean, after the gate fix |
+| `cargo fmt --all -- --check` | clean |
+| `python3 tools/check_core_sdk.py` | 1,060 added source references agree |
+| `python3 tools/core_sdk_coverage.py --write` | complete 16, native-equivalent 70, partial 20, evidence-requires-review 159, unmapped 521 |
+| `python3 tools/check_doc_coverage.py --write` | 1,764 of 3,401 public items = 51.9%, all new modules at 100% |
+
+**A remote build host caught a defect the local integration missed.** The full
+sweep was also run on an IBMI HPC node (`kim`, 384 cores). It reported two
+unresolved intra-doc links in `spectrum_helper` that the local run had not been
+repeated after merging. The cause was the wave-1 merge resolution itself: adding
+an outer `///` doc comment on `pub mod spectrum_helper` in `src/kernel.rs` makes
+rustdoc resolve that module's inner `//!` links in the parent `kernel` module,
+so `[`PeakContainer`]` reported "no item named `PeakContainer` in module
+`kernel`" although the trait exists in the module. One work package had warned
+of this mechanism in its own notes. Both links now use full crate paths, and the
+module records why.
+
+### Remote build host
+
+`kim` was provisioned as a second verification host: both toolchains in shared
+CephFS home (install once, visible on every node), source tree and `target/` on
+node-local NVMe `/scratch`, and libxml2 2.15.4 with pkg-config in a shared
+micromamba environment under `/ceph/ibmi/abi/oliver/envs/rustbuild`. Three
+environment facts had to be discovered and are recorded in
+`/scratch/kohlbach/openms-rs-env.sh`: `pkg-config` must be on `PATH` for the
+`libxml` build script, the node ships `libclang.so.1` without its resource
+headers so bindgen needs GCC 13's include directory, and the default
+`ulimit -n` of 1024 starves parallel `rustc`.
+
+| Check | kim (384 c, 96 jobs) | Mac (16 c) |
+| --- | --- | --- |
+| `build --all-features --all-targets` | 22 s | 16 s |
+| `test --all-features --all-targets` | **48 s**, 2,506 passed | **176 s**, 2,235 passed |
+| `test --no-default-features` | 31 s, 2,028 passed | — |
+| `clippy --all-features --all-targets` | 20 s | — |
+| `cargo +1.85.0 check --all-features --all-targets` | 16 s | clean |
+| six Python gates | all pass | all pass |
+
+The test suite runs 3.7 times faster; the cold build does not, because the
+toolchain is read over CephFS. `target/` reaches 23 GB there against 4 GB
+locally, which node-local `/scratch` absorbs.
+
+
 ## Kernel wave 0: MSRV, build baseline and scaffold (2026-09-12)
 
 Preparation for the parallel kernel port. Three findings are recorded because

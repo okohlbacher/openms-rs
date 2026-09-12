@@ -1601,3 +1601,183 @@ both layouts, including a one-table design with no `Sample` column.
 checked `u32` conversion, so a negative `Fraction`, `Fraction_Group` or `Label`
 is a typed parse error naming the column and line. Tests cover a negative
 fraction. No upstream fix is claimed.
+
+## CPP-061 — SpectrumHelper::makePeakPositionUnique discards the whole spectrum record
+
+**Affected files:** `src/openms/include/OpenMS/KERNEL/SpectrumHelper.h`, line 196.
+
+**Issue and reproduction:** `makePeakPositionUnique` ends with `std::swap(p_new, p)` where `p_new` is default constructed and only ever received merged peaks. The result therefore loses retention time, MS level, name, native identifier, precursors, instrument settings and metadata. The `OPENMS_LOG_WARN` at line 150 announces only that the data arrays are dropped, so a caller is told about a smaller loss than actually occurs. Trigger: any non-empty spectrum with a retention time set.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Copy `p` into `p_new` (or call `copySpectrumMeta`) before filling it, then clear the data arrays. Test a spectrum carrying RT, MS level, name and metadata through the call.
+
+**Rust handling:** `make_peak_position_unique` keeps every record field by default; `UniquePositionOptions::reset_metadata` selects the source behaviour explicitly.
+
+## CPP-062 — SpectrumRangeManager::byMSLevel(0) can only throw
+
+**Affected files:** `src/openms/include/OpenMS/KERNEL/SpectrumRangeManager.h`, lines 82-101 and 124-127.
+
+**Issue and reproduction:** `extend` and `extendUnsafe` document `ms_level = 0` as addressing the global ranges, and `byMSLevel` declares `UInt ms_level = 0` as its default argument. The global ranges live in the base subobject and are never inserted into `ms_level_ranges_`, so calling `byMSLevel()` with its own default always throws. The class test codifies the throw.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Return the base subobject for level 0, or remove the misleading default argument. Test `byMSLevel()` with no argument on a populated manager.
+
+**Rust handling:** `by_ms_level(0)` returns `None` and `global()` reads the base; both are stated in the API table.
+
+## CPP-063 — MSExperiment::updateRanges registers no per-level entry for MS level 0
+
+**Affected files:** `src/openms/source/KERNEL/MSExperiment.cpp`, lines 698-699, with `SpectrumRangeManager.h` line 84.
+
+**Issue and reproduction:** A spectrum at MS level 0 extends the global ranges twice and never creates a per-level entry, so `SpectrumRangeManager::getMSLevels()` omits level 0 although `MSExperiment::getMSLevels()` reports it. The two level lists disagree for the same run.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Insert a per-level entry for level 0 as for any other level, or document the exclusion in both accessors. Test a run holding a level-0 spectrum.
+
+**Rust handling:** Replicated, with the disagreement recorded in `docs/RANGES_SUPPORT.md`.
+
+## CPP-064 — RangeBase accepts NaN and infinity and breaks its own emptiness invariant
+
+**Affected files:** `src/openms/include/OpenMS/KERNEL/RangeManager.h`, lines 113-124, 157-171 and 235-251.
+
+**Issue and reproduction:** `setMin`, `setMax` and `extend` perform no finiteness check. `setMin(NaN)` leaves a range for which the documented `isEmpty()` equivalence `min > max` is neither true nor false, and `extend(NaN)` is a silent no-op because every comparison against NaN is false. Later `contains`, `clampTo` and `pushInto` calls then behave arbitrarily.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Reject non-finite input, or document the range as undefined once a non-finite value is stored. Test `setMin`, `setMax` and `extend` with NaN and both infinities.
+
+**Rust handling:** Non-finite input is rejected with `Error::InvalidRange` before any state changes.
+
+## CPP-065 — RangeUtils energy and isolation predicates contradict their own notes for MS1 spectra
+
+**Affected files:** `src/openms/include/OpenMS/KERNEL/RangeUtils.h`, notes at lines 517-518, 570 and 615 against the bodies at 542, 557, 595 and 640.
+
+**Issue and reproduction:** The notes for `IsInCollisionEnergyRange`, `IsInIsolationWindowSizeRange` and `IsInIsolationWindow` state that MS1 spectra, and spectra with no collision energy, return true. The bodies return false in those cases regardless of the `reverse` flag. The code is what the `remove_if` callers need; the documentation describes the opposite filter.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Correct the three notes to state that the predicate returns false, and that `reverse` does not invert the early return.
+
+**Rust handling:** The code behaviour is preserved; each predicate's rustdoc states the early return and the mismatch.
+
+## CPP-066 — BinnedSpectrum default construction leaves a null bin matrix
+
+**Affected files:** `src/openms/include/OpenMS/KERNEL/BinnedSpectrum.h`, line 93; `src/openms/source/KERNEL/BinnedSpectrum.cpp`, line 191.
+
+**Issue and reproduction:** The default constructor leaves `bins_` as a null pointer. `getBinIntensity()` dereferences it without a check, so a default-constructed object is unusable and crashes rather than reporting the error.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Either allocate an empty matrix in the default constructor or check the pointer in every accessor. Test `getBinIntensity` on a default-constructed object.
+
+**Rust handling:** A bin-less object cannot be constructed; the default constructor is deliberately not ported.
+
+## CPP-067 — BinnedSpectrum::getBinIntensity mutates the spectrum it reads
+
+**Affected files:** `src/openms/source/KERNEL/BinnedSpectrum.cpp`, line 191.
+
+**Issue and reproduction:** The method is non-const and uses Eigen's `coeffRef`, which inserts an explicit zero coefficient for every miss. Reading an absent bin therefore changes `nonZeros()` and can change the result of `operator==`, so two equal spectra stop comparing equal after one of them is read.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Use a read-only coefficient accessor and make the method const. Test equality before and after reading an absent bin.
+
+**Rust handling:** Bin lookup is read-only and takes `&self`.
+
+## CPP-068 — BinnedSpectrum::operator== ignores the bin offset
+
+**Affected files:** `src/openms/source/KERNEL/BinnedSpectrum.cpp`, line 125.
+
+**Issue and reproduction:** Equality compares the bin size, the ppm flag and the bin contents but not `offset_`. Two spectra binned on different grid origins compare equal while their bins mean different m/z intervals.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Include `offset_` in the comparison. Test two spectra that differ only in offset.
+
+**Rust handling:** The derived `PartialEq` includes the offset; the difference is stated in `docs/COMPARISON_SUPPORT.md`.
+
+## CPP-069 — BinnedSpectrum left-boundary guard relies on unsigned wraparound
+
+**Affected files:** `src/openms/source/KERNEL/BinnedSpectrum.cpp`, line 88.
+
+**Issue and reproduction:** The guard `static_cast<int>(idx - j - 1) >= 0` computes an unsigned difference that wraps, then truncates it to `int`. For `idx >= 2^31` the truncation changes sign and the guard admits an out-of-range index.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Compare the indices before subtracting, or use a signed type throughout.
+
+**Rust handling:** Uses `saturating_sub`, so the boundary cannot wrap.
+
+## CPP-070 — FeatureHandle::asMutable casts away constness of a possibly const object
+
+**Affected files:** `src/openms/include/OpenMS/KERNEL/FeatureHandle.h`, line 148.
+
+**Issue and reproduction:** `asMutable` applies `const_cast` to `*this` and the header carries a TODO acknowledging it. When the referent is genuinely const, writing through the result is undefined behaviour.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Provide a non-const overload instead of casting, so the compiler rejects mutation of a const handle.
+
+**Rust handling:** Replaced by ordinary `&mut` access and `ConsensusFeature::set_handles`; no cast exists.
+
+## CPP-071 — DRange default constructor contradicts its documentation
+
+**Affected files:** `src/openms/include/OpenMS/KERNEL/../DATASTRUCTURES/DRange.h`, lines 69-77.
+
+**Issue and reproduction:** The default constructor is documented as creating a range with all coordinates zero, but it calls the base constructor, which produces the empty sentinel with minimum `+DBL_MAX` and maximum `-DBL_MAX`. A caller trusting the comment gets the opposite of an all-zero range.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Correct the comment to describe the empty sentinel.
+
+**Rust handling:** `Default` is the empty sentinel, as the body does, and the rustdoc says so.
+
+## CPP-072 — DRange::united of two empty ranges returns the universal range
+
+**Affected files:** `src/openms/include/OpenMS/DATASTRUCTURES/DRange.h`, lines 178-195.
+
+**Issue and reproduction:** Uniting two empty ranges passes their inverted sentinel corners through `setMinMax`, which normalises by swapping them. The result is the universal range from `-DBL_MAX` to `+DBL_MAX`: the union of two empty sets becomes everything.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Return an empty range when both operands are empty.
+
+**Rust handling:** Transcribed and tested as `united_is_the_bounding_range`, with the quirk documented.
+
+## CPP-073 — DRange::extend comment contradicts the collapse it performs
+
+**Affected files:** `src/openms/include/OpenMS/DATASTRUCTURES/DRange.h`, line 310.
+
+**Issue and reproduction:** The `@param` text states that resulting invalid minima and maxima are not fixed automatically, while the body collapses an inverted dimension to its centre. The class test asserts the collapse, so the comment is stale rather than the code.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Update the comment to describe the collapse.
+
+**Rust handling:** The collapse is ported and documented.
+
+## CPP-074 — DIntervalBase default constructor documented as infinite corners
+
+**Affected files:** `src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h`, line 51.
+
+**Issue and reproduction:** The constructor is documented as placing the corners at infinity; it uses the finite `numeric_limits` extrema. Code testing for infinity never matches.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Correct the comment to name the finite extrema.
+
+**Rust handling:** The exact finite sentinel is ported and named in the rustdoc.
+
+## CPP-075 — Class tests with unreachable or duplicated assertions
+
+**Affected files:** `src/tests/class_tests/openms/source/FeatureHandle_test.cpp`, `StandardTypes_test.cpp`, `BinnedSpectrum_test.cpp`.
+
+**Issue and reproduction:** The `FeatureHandle` `IndexLess` section sets `lhs.setUniqueId` twice and never sets `rhs`, so the ordering it claims to test is not exercised. `StandardTypes_test.cpp` constructs `PeakSpectrum` and `PeakMap` twice and never `Chromatogram`. The `BinnedSpectrum` constructor section title omits the `bool unit_ppm` parameter.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Set both operands in the ordering test, cover `Chromatogram`, and correct the section title.
+
+**Rust handling:** The Rust tests set both operands, cover all three aliases and name every parameter.

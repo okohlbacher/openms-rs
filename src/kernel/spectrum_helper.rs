@@ -11,10 +11,10 @@
 //! existing [`MSSpectrum::retain_peaks`] / [`MSChromatogram::retain_peaks`].
 //!
 //! The source templates over any peak container with positions, intensities and
-//! the three data-array lists. The [`PeakContainer`] trait carries exactly that
+//! the three data-array lists. The [`PeakContainer`](crate::kernel::spectrum_helper::PeakContainer) trait carries exactly that
 //! surface for [`MSSpectrum`] and [`MSChromatogram`], so the helpers are generic
 //! where the source is generic. Operations whose cost scales with the peak count
-//! are checked against [`SpectrumHelperLimits`] before anything is mutated; a
+//! are checked against [`SpectrumHelperLimits`](crate::kernel::spectrum_helper::SpectrumHelperLimits) before anything is mutated; a
 //! failure leaves the container unchanged.
 
 use super::{ChromatogramPeak, DataArray, MSChromatogram, MSSpectrum, Peak1D};
