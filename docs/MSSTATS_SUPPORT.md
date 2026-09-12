@@ -231,9 +231,22 @@ count per row, and every non-numeric field — protein, sequence, charge,
 channel, condition, biological replicate, run, mixture, technical replicate,
 fraction and the quoted reference — are exact.
 
+**What the tier-1 evidence does *not* cover.** Grouping each reference file's
+rows on everything but `RetentionTime`, `Intensity` and `Reference` gives
+exactly one row per key in all three: 2028 keys for 2028 rows, and 470 for 470
+twice. So every retained case has a single sample per peptide ion per run, and
+the retained output therefore cannot distinguish `max` from `min`, `mean` or
+`sum`, cannot show the manual branch writing several rows for one key, and
+never reaches the duplicate-retention-time branch. Those three behaviours are
+covered instead by a synthetic two-column map
+(`each_summarization_method_combines_two_samples_differently` and
+`a_duplicate_retention_time_warns_and_drops_one_intensity`), derived from the
+implementation — tier 4, not tier 1.
+
 The unknown-summarization refusal, the distinct-intensity aggregation, the
-design-column checks, the paired-design warning, the multi-label refusal and
-the resource ceilings are independently derived (tier 4).
+design-column checks, the paired-design warning, the multi-label refusal, the
+`IsotopeLabelType` switch, the per-column reannotation contract and the
+resource ceilings are likewise independently derived (tier 4).
 
 ### Section accounting
 

@@ -296,6 +296,208 @@ fn iso_reverts_a_non_manual_summarization_with_a_warning() {
     assert_matches_reference(&report.lines, &reference);
 }
 
+/// A label-free map with two columns for one file, so one peptide ion in one
+/// run carries two samples.
+///
+/// Every retained C++ case has exactly one sample per line key — verified by
+/// grouping each reference file's rows on everything but RetentionTime,
+/// Intensity and Reference — so the tier-1 evidence never distinguishes `max`
+/// from `min`, `mean` or `sum`, and never reaches the duplicate-retention-time
+/// branch. This synthetic map does, from the specification rather than from
+/// retained output.
+fn two_sample_map(first_rt: f64, second_rt: f64) -> openms::kernel::ConsensusMap {
+    use openms::identification::{
+        PeptideEvidence, PeptideHit, PeptideIdentification, ProteinGroup, ProteinIdentification,
+        TargetDecoyType,
+    };
+    use openms::kernel::{ColumnHeader, ConsensusFeature, ConsensusMap, FeatureHandle};
+
+    let mut hit = PeptideHit::new(
+        1.0,
+        0,
+        2,
+        openms::chemistry::AASequence::parse("PEPTIDEK").unwrap(),
+    )
+    .unwrap();
+    hit.set_target_decoy_type(TargetDecoyType::Target);
+    hit.evidences = vec![PeptideEvidence {
+        protein_accession: "P1".into(),
+        ..Default::default()
+    }];
+    let mut identification = PeptideIdentification::new();
+    identification.hits = vec![hit];
+
+    let mut feature = ConsensusFeature::default();
+    feature.base.peptide_identifications = vec![identification];
+    for (index, (intensity, rt)) in [(100.0f32, first_rt), (300.0f32, second_rt)]
+        .into_iter()
+        .enumerate()
+    {
+        feature
+            .insert(FeatureHandle {
+                map_index: index as u64,
+                unique_id: index as u64 + 1,
+                rt,
+                mz: 500.0,
+                intensity,
+                charge: 2,
+                width: 0.0,
+            })
+            .unwrap();
+    }
+
+    let mut protein = ProteinIdentification::new();
+    protein.set_inference_engine("TOPPProteinInference");
+    protein.indistinguishable_groups = vec![ProteinGroup {
+        probability: 1.0,
+        accessions: vec!["P1".into()],
+        ..Default::default()
+    }];
+
+    let mut map = ConsensusMap {
+        features: vec![feature],
+        protein_identifications: vec![protein],
+        ..Default::default()
+    };
+    for index in 0..2u64 {
+        map.column_headers.insert(
+            index,
+            ColumnHeader {
+                filename: "a.mzML".into(),
+                ..Default::default()
+            },
+        );
+    }
+    map
+}
+
+fn one_run_design() -> ExperimentalDesign {
+    let mut columns = BTreeMap::new();
+    columns.insert("MSstats_Condition".to_owned(), 0);
+    columns.insert("MSstats_BioReplicate".to_owned(), 1);
+    let mut rows = BTreeMap::new();
+    rows.insert("1".to_owned(), 0);
+    let section = SampleSection::from_table(
+        vec![vec!["cond".to_owned(), "rep".to_owned()]],
+        rows,
+        columns,
+    )
+    .unwrap();
+    ExperimentalDesign::from_sections(
+        vec![MSFileSectionEntry {
+            fraction_group: 1,
+            fraction: 1,
+            path: "a.mzML".into(),
+            label: 1,
+            sample: 0,
+            sample_name: "1".into(),
+        }],
+        section,
+    )
+    .unwrap()
+}
+
+#[test]
+fn each_summarization_method_combines_two_samples_differently() {
+    let map = two_sample_map(10.0, 20.0);
+    let design = one_run_design();
+    let intensity = |method: RetentionTimeSummarization| -> String {
+        let report = msstats::prepare_lfq(
+            &map,
+            &design,
+            &LfqOptions {
+                retention_time_summarization: method,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(report.lines.len(), 2, "{method:?}");
+        let fields: Vec<&str> = report.lines[1].split(',').collect();
+        // ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,
+        // IsotopeLabelType,Condition,BioReplicate,Run,Intensity,Reference
+        assert_eq!(fields[0], "P1");
+        assert_eq!(fields[2], "2");
+        assert_eq!(fields[3], "NA");
+        assert_eq!(fields[4], "0");
+        assert_eq!(fields[6], "cond");
+        assert_eq!(fields[7], "rep");
+        assert_eq!(fields[8], "1");
+        assert_eq!(fields[10], "\"a.mzML\"");
+        fields[9].to_owned()
+    };
+    assert_eq!(intensity(RetentionTimeSummarization::Max), "300.0");
+    assert_eq!(intensity(RetentionTimeSummarization::Min), "100.0");
+    assert_eq!(intensity(RetentionTimeSummarization::Mean), "200.0");
+    assert_eq!(intensity(RetentionTimeSummarization::Sum), "400.0");
+
+    // Manual writes one row per sample, lowest (intensity, RT, reference) first.
+    let manual = msstats::prepare_lfq(
+        &map,
+        &design,
+        &LfqOptions {
+            retention_time_summarization: RetentionTimeSummarization::Manual,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(manual.lines.len(), 3);
+    assert!(
+        manual.lines[1].starts_with("10.0,P1,"),
+        "{}",
+        manual.lines[1]
+    );
+    assert!(
+        manual.lines[2].starts_with("20.0,P1,"),
+        "{}",
+        manual.lines[2]
+    );
+}
+
+/// Two samples at the same retention time: the source warns and collects only
+/// the first intensity in sorted order, yet the manual branch still writes a
+/// row for each.
+#[test]
+fn a_duplicate_retention_time_warns_and_drops_one_intensity() {
+    let map = two_sample_map(10.0, 10.0);
+    let design = one_run_design();
+    let aggregated = msstats::prepare_lfq(
+        &map,
+        &design,
+        &LfqOptions {
+            retention_time_summarization: RetentionTimeSummarization::Sum,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(
+        aggregated
+            .warnings
+            .iter()
+            .any(|w| w.contains("multiple times at the same retention time"))
+    );
+    // Only the lower intensity of the two survives the deduplication, so the
+    // sum is 100 rather than 400.
+    assert_eq!(aggregated.lines.len(), 2);
+    assert_eq!(aggregated.lines[1].split(',').nth(9).unwrap(), "100.0");
+
+    let manual = msstats::prepare_lfq(
+        &map,
+        &design,
+        &LfqOptions {
+            retention_time_summarization: RetentionTimeSummarization::Manual,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(manual.lines.len(), 3, "both samples are still written");
+    assert!(
+        manual
+            .warnings
+            .iter()
+            .any(|w| w.contains("multiple times at the same retention time"))
+    );
+}
+
 /// A label-free conversion refuses a design with more than one label.
 #[test]
 fn lfq_refuses_a_multi_label_design() {
