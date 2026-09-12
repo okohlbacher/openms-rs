@@ -14,9 +14,13 @@ use openms::Error;
 use openms::kernel::experiment_mobility::{
     ExperimentMobilityLimits, FlatPeakDataIm, RtMzRaster, SpectrumPeakDataIm,
 };
-use openms::kernel::ranges::{MSDim, RangeBase, RangeManager};
+use openms::kernel::ranges::{HasRangeType, MSDim, RangeBase, RangeManager};
 use openms::kernel::spectrum_mobility::RasterAggregation;
-use openms::kernel::{AreaBounds, AreaOptions, DataArray, MSExperiment, MSSpectrum, Peak1D};
+use openms::kernel::{
+    AreaBounds, AreaOptions, ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum,
+    MzAggregation, MzRtRegion, Peak1D,
+};
+use openms::metadata::ContactPerson;
 
 fn scan(rt: f64, drift_time: f64, level: u32, mzs: &[f64]) -> MSSpectrum {
     MSSpectrum {
@@ -1017,4 +1021,826 @@ fn source_backward_compatible_range_delegates_include_scan_mobility() {
     assert_eq!(combined.max_intensity().unwrap(), 1500.0);
     assert_eq!(combined.min_mobility().unwrap(), 50.0);
     assert_eq!(combined.max_mobility().unwrap(), 50.0);
+}
+
+// ---------------------------------------------------------------------------
+// MSExperiment_test.cpp sections whose literals no earlier package asserted.
+//
+// Every section below carries more than five assertion macros, so the mapping
+// rule requires a port rather than a citation. The fixtures and the asserted
+// values are transcribed from the pinned `MSExperiment_test.cpp`; the source
+// line range appears at each test.
+// ---------------------------------------------------------------------------
+
+/// One contact named "Name" plus one spectrum holding peaks at m/z 5 and 10 —
+/// the fixture both assignment sections build (`MSExperiment_test.cpp:117-126`
+/// and `:144-153`).
+fn assignment_fixture() -> MSExperiment {
+    let mut settings = openms::metadata::ExperimentalSettings::new();
+    settings.contacts = vec![ContactPerson {
+        first_name: "Name".into(),
+        ..Default::default()
+    }];
+    MSExperiment {
+        spectra: vec![MSSpectrum {
+            peaks: vec![Peak1D::new(5., 0.), Peak1D::new(10., 0.)],
+            ..Default::default()
+        }],
+        settings,
+        ..Default::default()
+    }
+}
+
+#[test]
+fn source_copy_assignment_carries_contacts_spectra_and_mz_range() {
+    // START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
+    // MSExperiment_test.cpp:115-140. `Clone` is the port's copy assignment.
+    let source = assignment_fixture();
+    let mut copy = MSExperiment::default();
+    assert_eq!(copy.len(), 0); // `PeakMap tmp2;` starts empty
+    copy = source.clone();
+    assert_eq!(copy.settings.contacts.len(), 1);
+    assert_eq!(copy.settings.contacts[0].first_name, "Name");
+    assert_eq!(copy.len(), 1);
+    let ranges = copy.combined_range_manager().unwrap();
+    assert_eq!(ranges.min_mz().unwrap(), 5.0);
+    assert_eq!(ranges.max_mz().unwrap(), 10.0);
+    // `tmp2 = PeakMap();` — assignment from a fresh temporary empties the target.
+    copy = MSExperiment::default();
+    assert_eq!(copy.settings.contacts.len(), 0);
+    assert_eq!(copy.len(), 0);
+    // The source of a copy is untouched, which is what separates this section
+    // from the move-assignment one below.
+    assert_eq!(source.len(), 1);
+    assert_eq!(source.settings.contacts[0].first_name, "Name");
+    // `operator!=` (MSExperiment_test.cpp:191-203): a run that differs in
+    // contacts or in spectrum count is not equal to an empty one.
+    assert_ne!(copy, source);
+    assert_eq!(copy, MSExperiment::default());
+}
+
+#[test]
+fn source_move_assignment_transfers_everything_and_empties_the_origin() {
+    // START_SECTION((MSExperiment& operator= (const MSExperiment&& source)))
+    // MSExperiment_test.cpp:142-174. Rust moves by value, so the section's
+    // `PeakMap tmp2 = std::move(tmp); TEST_EQUAL(tmp.size(), 0)` pair needs a
+    // move that leaves the origin observable: `std::mem::take` is exactly the
+    // source's move-assign-then-default-the-origin behaviour.
+    let mut origin = assignment_fixture();
+    let original = origin.clone();
+    let moved = std::mem::take(&mut origin);
+    assert_eq!(moved, original); // should be equal to the original
+    assert_eq!(moved.settings.contacts.len(), 1);
+    assert_eq!(moved.settings.contacts[0].first_name, "Name");
+    assert_eq!(moved.len(), 1);
+    let ranges = moved.combined_range_manager().unwrap();
+    assert_eq!(ranges.min_mz().unwrap(), 5.0);
+    assert_eq!(ranges.max_mz().unwrap(), 10.0);
+    // test move
+    assert_eq!(origin.len(), 0);
+    // `tmp2 = PeakMap();` — rvalue assignment over a populated run.
+    let mut target = moved;
+    assert_eq!(target.len(), 1);
+    target = MSExperiment::default();
+    assert_eq!(target.settings.contacts.len(), 0);
+    assert_eq!(target.len(), 0);
+    // A plain Rust move of the whole value keeps the peaks too, so the
+    // section's primary claim does not rest on `mem::take` alone.
+    let relocated = original;
+    assert_eq!(relocated.spectra[0].peaks[1].mz, 10.0);
+}
+
+/// One spectrum with one peak and a scalar drift time — the shape the
+/// `updateRanges` fixture of `MSExperiment_test.cpp:431-468` repeats.
+fn im_peak_scan(rt: f64, drift_time: f64, level: u32, mz: f64, intensity: f32) -> MSSpectrum {
+    MSSpectrum {
+        rt,
+        drift_time,
+        ms_level: level,
+        peaks: vec![Peak1D::new(mz, intensity)],
+        ..Default::default()
+    }
+}
+
+/// One spectrum with one peak and no scalar drift time.
+fn plain_peak_scan(rt: f64, level: u32, mz: f64, intensity: f32) -> MSSpectrum {
+    MSSpectrum {
+        rt,
+        ms_level: level,
+        peaks: vec![Peak1D::new(mz, intensity)],
+        ..Default::default()
+    }
+}
+
+/// A chromatogram whose `Product` m/z is set, as `chrom1.setProduct(prod1)` does.
+fn product_chromatogram(mz: f64, points: &[(f64, f32)]) -> MSChromatogram {
+    let mut chromatogram = MSChromatogram {
+        peaks: points
+            .iter()
+            .map(|&(rt, intensity)| ChromatogramPeak::new(rt, intensity))
+            .collect(),
+        ..Default::default()
+    };
+    chromatogram.product.mz = mz;
+    chromatogram
+}
+
+#[test]
+fn source_update_ranges_combined_per_level_and_chromatogram_literals() {
+    // START_SECTION((virtual void updateRanges())) MSExperiment_test.cpp:429-603,
+    // the largest section of the class test (64 assertion macros). The port has
+    // no `updateRanges()`; the three managers are computed on demand, so the
+    // section's repeated "second time to check the initialization" becomes a
+    // second query.
+    let mut exp = MSExperiment {
+        spectra: vec![
+            im_peak_scan(30., 99., 1, 5.0, -5.0),
+            im_peak_scan(40., 99., 1, 7.0, -7.0),
+            im_peak_scan(45., 199., 3, 9.0, -10.0),
+            im_peak_scan(50., 66., 3, 10.0, -9.0),
+        ],
+        ..Default::default()
+    };
+    for _ in 0..2 {
+        let combined = exp.combined_range_manager().unwrap();
+        assert_eq!(combined.min_mz().unwrap(), 5.0);
+        assert_eq!(combined.max_mz().unwrap(), 10.0);
+        assert_eq!(combined.min_intensity().unwrap(), -10.0);
+        assert_eq!(combined.max_intensity().unwrap(), -5.0);
+        assert_eq!(combined.min_rt().unwrap(), 30.0);
+        assert_eq!(combined.max_rt().unwrap(), 50.0);
+        assert_eq!(combined.min_mobility().unwrap(), 66.0);
+        assert_eq!(combined.max_mobility().unwrap(), 199.0);
+        assert_eq!(exp.ms_levels(), [1, 3]);
+        assert_eq!(exp.total_peak_count().unwrap(), 4);
+    }
+    // The MS1 slice of the per-level manager, asserted twice by the source's
+    // own `for (int l = 0; l < 2; ++l)` loop.
+    let initial_ms_levels = exp.ms_levels();
+    for _ in 0..2 {
+        let spectra = exp.spectrum_range_manager().unwrap();
+        let level1 = spectra.by_ms_level(1).unwrap();
+        assert_eq!(level1.min_mz().unwrap(), 5.0);
+        assert_eq!(level1.max_mz().unwrap(), 7.0);
+        assert_eq!(level1.min_intensity().unwrap(), -7.0);
+        assert_eq!(level1.max_intensity().unwrap(), -5.0);
+        assert_eq!(level1.min_rt().unwrap(), 30.0);
+        assert_eq!(level1.max_rt().unwrap(), 40.0);
+        assert_eq!(level1.min_mobility().unwrap(), 99.0);
+        assert_eq!(level1.max_mobility().unwrap(), 99.0);
+        assert_eq!(exp.ms_levels(), initial_ms_levels);
+        assert_eq!(exp.total_peak_count().unwrap(), 4);
+    }
+
+    // "test with only one peak": MSExperiment_test.cpp:524-555.
+    exp = MSExperiment {
+        spectra: vec![im_peak_scan(30., 99., 1, 5.0, -5.0)],
+        ..Default::default()
+    };
+    let combined = exp.combined_range_manager().unwrap();
+    assert_eq!(combined.min_mz().unwrap(), 5.0);
+    assert_eq!(combined.max_mz().unwrap(), 5.0);
+    assert_eq!(combined.min_intensity().unwrap(), -5.0);
+    assert_eq!(combined.max_intensity().unwrap(), -5.0);
+    assert_eq!(combined.min_rt().unwrap(), 30.0);
+    assert_eq!(combined.max_rt().unwrap(), 30.0);
+    assert_eq!(combined.min_mobility().unwrap(), 99.0);
+    assert_eq!(combined.max_mobility().unwrap(), 99.0);
+    let spectra = exp.spectrum_range_manager().unwrap();
+    let global = spectra.global();
+    assert_eq!(global.min_mz().unwrap(), 5.0);
+    assert_eq!(global.max_mz().unwrap(), 5.0);
+    assert_eq!(global.min_intensity().unwrap(), -5.0);
+    assert_eq!(global.max_intensity().unwrap(), -5.0);
+    assert_eq!(global.min_rt().unwrap(), 30.0);
+    assert_eq!(global.max_rt().unwrap(), 30.0);
+    assert_eq!(global.min_mobility().unwrap(), 99.0);
+    assert_eq!(global.max_mobility().unwrap(), 99.0);
+
+    // "test ranges with a chromatogram": MSExperiment_test.cpp:557-600. These
+    // two chromatograms carry real `Product` m/z values, 100 and 80.
+    exp.chromatograms = vec![
+        product_chromatogram(100.0, &[(0.3, 10.0), (0.2, 10.2)]),
+        product_chromatogram(80.0, &[(0.2, 10.2), (0.1, 10.4)]),
+    ];
+    let combined = exp.combined_range_manager().unwrap();
+    assert_eq!(combined.min_mz().unwrap(), 5.0);
+    assert_eq!(combined.max_mz().unwrap(), 100.0);
+    assert_eq!(combined.min_intensity().unwrap(), -5.0);
+    assert_eq!(combined.max_intensity().unwrap(), f64::from(10.4_f32));
+    assert_eq!(combined.min_rt().unwrap(), 0.1);
+    assert_eq!(combined.max_rt().unwrap(), 30.0); // overall range still 30
+    let chromatograms = exp.chromatogram_range_manager().unwrap();
+    assert_eq!(chromatograms.min_mz().unwrap(), 80.0);
+    assert_eq!(chromatograms.max_mz().unwrap(), 100.0);
+    assert_eq!(chromatograms.min_intensity().unwrap(), 10.0);
+    assert_eq!(chromatograms.max_intensity().unwrap(), f64::from(10.4_f32));
+    assert_eq!(chromatograms.min_rt().unwrap(), 0.1);
+    assert_eq!(chromatograms.max_rt().unwrap(), 0.3); // chromatogram range 0.1-0.3
+}
+
+/// The source's `createPeakMapWithRTs`, optionally followed by its
+/// `setMSLevel`: peakless spectra at the given retention times and levels.
+fn rt_only_experiment(rts: &[f64], levels: &[u32]) -> MSExperiment {
+    MSExperiment {
+        spectra: rts
+            .iter()
+            .zip(levels)
+            .map(|(&rt, &ms_level)| MSSpectrum {
+                rt,
+                ms_level,
+                ..Default::default()
+            })
+            .collect(),
+        ..Default::default()
+    }
+}
+
+#[test]
+fn source_closest_spectrum_in_rt_literals_any_level_and_per_level() {
+    // START_SECTION(ConstIterator getClosestSpectrumInRT(const double RT) const)
+    // MSExperiment_test.cpp:768-805. One Rust function answers both source
+    // overloads, with `ms_level == 0` as the "any level" wildcard the
+    // single-argument overload implies.
+    let exp = rt_only_experiment(&[30., 40., 45., 50.], &[1, 1, 1, 1]);
+    for (rt, expected) in [
+        (-200.0, 0),
+        (20.0, 0),
+        (31.0, 0),
+        (34.9, 0),
+        (39.0, 1),
+        (41.0, 1),
+        (42.4, 1),
+        (44.0, 2),
+        (47.0, 2),
+        (47.6, 3),
+        (51.0, 3),
+        (5_100_000.0, 3),
+    ] {
+        assert_eq!(exp.closest_spectrum_in_rt(rt, 0).unwrap(), Some(expected));
+    }
+    assert_eq!(
+        MSExperiment::default()
+            .closest_spectrum_in_rt(47.6, 0)
+            .unwrap(),
+        None
+    );
+    // The same `{30, 40, 45, 50}` fixture carries the four `RTBegin`/`RTEnd`
+    // sections — the mutable pair at MSExperiment_test.cpp:738-765 and the
+    // const pair at :958-1007, which assert the same literals. One Rust index
+    // serves all four.
+    assert_eq!(exp.spectra[exp.rt_begin(20.).unwrap()].rt, 30.0);
+    assert_eq!(exp.spectra[exp.rt_begin(30.).unwrap()].rt, 30.0);
+    assert_eq!(exp.spectra[exp.rt_begin(31.).unwrap()].rt, 40.0);
+    assert_eq!(exp.rt_begin(55.).unwrap(), exp.len());
+    assert_eq!(exp.spectra[exp.rt_end(20.).unwrap()].rt, 30.0);
+    assert_eq!(exp.spectra[exp.rt_end(30.).unwrap()].rt, 40.0);
+    assert_eq!(exp.spectra[exp.rt_end(31.).unwrap()].rt, 40.0);
+    assert_eq!(exp.rt_end(55.).unwrap(), exp.len());
+
+    // START_SECTION(ConstIterator getClosestSpectrumInRT(const double RT, UInt
+    // ms_level) const) MSExperiment_test.cpp:824-883.
+    let exp = rt_only_experiment(
+        &[30., 31., 32., 40., 41., 50., 60., 61.],
+        &[1, 2, 2, 1, 2, 1, 1, 2],
+    );
+    for (rt, level, expected) in [
+        (-200.0, 1, 0),
+        (-200.0, 2, 1),
+        (20.0, 1, 0),
+        (31.0, 1, 0),
+        (34.9, 1, 0),
+        (20.0, 2, 1),
+        (31.0, 2, 1),
+        (31.4, 2, 1),
+        (39.0, 1, 3),
+        (41.0, 1, 3),
+        (42.4, 1, 3),
+        (45.5, 1, 5),
+        (49.0, 1, 5),
+        (54.5, 1, 5),
+        (55.1, 1, 6),
+        (59.1, 1, 6),
+        (5_100_000.0, 1, 6),
+        (58.0, 2, 7),
+        (63.0, 2, 7),
+        (5_100_000.0, 2, 7),
+    ] {
+        assert_eq!(
+            exp.closest_spectrum_in_rt(rt, level).unwrap(),
+            Some(expected)
+        );
+    }
+    assert_eq!(
+        MSExperiment::default()
+            .closest_spectrum_in_rt(47.6, 1)
+            .unwrap(),
+        None
+    );
+    // The one assertion of this section the port does not reproduce: the
+    // source's two-argument overload answers `cend()` for `ms_level == 0`
+    // because no scan carries that level, while the port reserves `0` as the
+    // wildcard standing in for the single-argument overload, so it answers the
+    // first scan of any level. Recorded under *Native differences* in
+    // docs/EXPERIMENT_MOBILITY_SUPPORT.md.
+    assert_eq!(exp.closest_spectrum_in_rt(-200.0, 0).unwrap(), Some(0));
+}
+
+#[test]
+fn source_is_sorted_literals_separate_rt_and_mz_checks() {
+    // START_SECTION(bool isSorted(bool check_mz = true ) const)
+    // MSExperiment_test.cpp:1046-1090.
+    let peaks = || {
+        vec![
+            Peak1D::new(1000., 1.),
+            Peak1D::new(1001., 1.),
+            Peak1D::new(1002., 1.),
+        ]
+    };
+    let mut exp = MSExperiment {
+        spectra: vec![
+            MSSpectrum {
+                rt: 1.,
+                peaks: peaks(),
+                ..Default::default()
+            },
+            MSSpectrum {
+                rt: 2.,
+                peaks: peaks(),
+                ..Default::default()
+            },
+        ],
+        ..Default::default()
+    };
+    // The source labels its first block "test with identical RTs" but assigns
+    // 1.0 and 2.0, so it is the same ascending case its next block repeats.
+    for _ in 0..2 {
+        assert!(exp.is_sorted(false));
+        assert!(exp.is_sorted(true));
+    }
+    // "test with a reversed spectrum": the retention-time order still holds.
+    exp.spectra[0].peaks.reverse();
+    assert!(exp.is_sorted(false));
+    assert!(!exp.is_sorted(true));
+    // "test with reversed RTs".
+    exp.spectra.reverse();
+    assert!(!exp.is_sorted(false));
+    assert!(!exp.is_sorted(true));
+}
+
+#[test]
+fn source_precursor_spectrum_literals_for_both_overloads() {
+    // START_SECTION((ConstIterator getPrecursorSpectrum(ConstIterator) const))
+    // MSExperiment_test.cpp:1149-1178, and the `int` overload at :1181-1208.
+    // One Rust function serves both: `None` replaces the past-the-end iterator
+    // and the `-1`.
+    let mut exp = MSExperiment {
+        spectra: vec![MSSpectrum::default(); 10],
+        ..Default::default()
+    };
+    for (index, level) in [1_u32, 2, 1, 2, 2].into_iter().enumerate() {
+        exp.spectra[index].ms_level = level;
+    }
+    for (index, expected) in [
+        (0, None),
+        (1, Some(0)),
+        (2, None),
+        (3, Some(2)),
+        (4, Some(2)),
+    ] {
+        assert_eq!(exp.precursor_spectrum_index(index).unwrap(), expected);
+    }
+    // `getPrecursorSpectrum(exp.end()) == exp.end()`: the source hands the
+    // past-the-end iterator straight back, while the port rejects an
+    // out-of-range index instead of inventing an answer for it.
+    assert!(exp.precursor_spectrum_index(exp.len()).is_err());
+
+    for (index, level) in [2_u32, 1, 1, 1, 1].into_iter().enumerate() {
+        exp.spectra[index].ms_level = level;
+    }
+    for index in 0..5 {
+        assert_eq!(exp.precursor_spectrum_index(index).unwrap(), None);
+    }
+    assert!(exp.precursor_spectrum_index(exp.len()).is_err());
+}
+
+#[test]
+fn source_swap_exchanges_comment_spectra_levels_and_ranges() {
+    // START_SECTION((void swap(MSExperiment &from)))
+    // MSExperiment_test.cpp:1356-1380. `std::mem::swap` is the counterpart.
+    let mut first = MSExperiment {
+        spectra: vec![MSSpectrum {
+            ms_level: 2,
+            peaks: vec![Peak1D::new(0., 0.5), Peak1D::new(0., 1.7)],
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    first.settings.comment = "stupid comment".into();
+    let mut second = MSExperiment::default();
+    std::mem::swap(&mut first, &mut second);
+
+    assert_eq!(first.settings.comment, "");
+    assert_eq!(first.len(), 0);
+    assert_eq!(
+        first.combined_range_manager().unwrap().has_range(),
+        HasRangeType::None
+    );
+    assert_eq!(first.ms_levels().len(), 0);
+    assert_eq!(first.total_peak_count().unwrap(), 0);
+
+    assert_eq!(second.settings.comment, "stupid comment");
+    assert_eq!(second.len(), 1);
+    assert_eq!(
+        second
+            .combined_range_manager()
+            .unwrap()
+            .min_intensity()
+            .unwrap(),
+        0.5
+    );
+    assert_eq!(second.ms_levels().len(), 1);
+    assert_eq!(second.total_peak_count().unwrap(), 2);
+}
+
+#[test]
+fn source_add_chromatogram_appends_without_touching_earlier_entries() {
+    // START_SECTION((void addChromatogram(const MSChromatogram&)))
+    // MSExperiment_test.cpp:1510-1534. The port's counterpart is
+    // `chromatograms.push`, so the section pins that the push appends and
+    // leaves the existing entry byte-identical.
+    let first = product_chromatogram(0., &[(0.1, 10.0), (0.2, 10.2)]);
+    let second = product_chromatogram(0., &[(0.2, 10.2), (0.3, 10.4)]);
+    let mut exp = MSExperiment::default();
+    assert_eq!(exp.chromatograms.len(), 0);
+    exp.chromatograms.push(first.clone());
+    assert_eq!(exp.chromatograms.len(), 1);
+    assert_eq!(exp.chromatograms[0], first);
+    exp.chromatograms.push(second.clone());
+    assert_eq!(exp.chromatograms.len(), 2);
+    assert_eq!(exp.chromatograms[0], first);
+    assert_eq!(exp.chromatograms[1], second);
+
+    // START_SECTION((void setChromatograms(const std::vector<MSChromatogram>&)))
+    // MSExperiment_test.cpp:1485-1507: assigning the container replaces it
+    // wholesale and preserves each entry. The target starts with an unrelated
+    // chromatogram, so the assertion below also shows the replacement.
+    let mut assigned = MSExperiment {
+        chromatograms: vec![product_chromatogram(999., &[(9., 9.)])],
+        ..Default::default()
+    };
+    assigned.chromatograms = vec![first.clone(), second.clone()];
+    assert_eq!(assigned.chromatograms.len(), 2);
+    assert_eq!(assigned.chromatograms[0], first);
+    assert_eq!(assigned.chromatograms[1], second);
+
+    // START_SECTION((std::vector<MSChromatogram>& getChromatograms()))
+    // MSExperiment_test.cpp:1543-1553: the non-const accessor exists so the
+    // caller can swap the container in and out. The port's public field does
+    // the same through `std::mem::swap`.
+    let mut detached = Vec::new();
+    std::mem::swap(&mut assigned.chromatograms, &mut detached);
+    assert_eq!(assigned.chromatograms.len(), 0);
+    assert_eq!(detached.len(), 2);
+    std::mem::swap(&mut assigned.chromatograms, &mut detached);
+    assert_eq!(assigned.chromatograms.len(), 2);
+    assert_eq!(detached.len(), 0);
+}
+
+#[test]
+fn source_sort_spectra_reset_and_settings_assignment_literals() {
+    // START_SECTION((void sortSpectra(bool sort_mz = true)))
+    // MSExperiment_test.cpp:1010-1043. The `set2DData` fixture groups four
+    // points into two scans whose peaks arrive out of m/z order.
+    let mut exp = MSExperiment {
+        spectra: vec![
+            MSSpectrum {
+                rt: 1.,
+                peaks: vec![Peak1D::new(5., 0.), Peak1D::new(3., 0.)],
+                ..Default::default()
+            },
+            MSSpectrum {
+                rt: 2.,
+                peaks: vec![Peak1D::new(14., 0.), Peak1D::new(11., 0.)],
+                ..Default::default()
+            },
+        ],
+        ..Default::default()
+    };
+    exp.sort_spectra(true).unwrap();
+    assert_eq!(exp.spectra[0].peaks[0].mz, 3.0);
+    assert_eq!(exp.spectra[0].peaks[1].mz, 5.0);
+    assert_eq!(exp.spectra[1].peaks[0].mz, 11.0);
+    assert_eq!(exp.spectra[1].peaks[1].mz, 14.0);
+
+    // START_SECTION((MSExperiment& operator=(const ExperimentalSettings&)))
+    // MSExperiment_test.cpp:1140-1146, and the two `getExperimentalSettings`
+    // accessors at :1124-1138: the port's public `settings` field serves all
+    // three.
+    let mut labelled = MSExperiment::default();
+    labelled.settings.comment = "test".into();
+    assert_eq!(labelled.settings.comment, "test");
+    // The receiver already holds a spectrum, so the assertion also shows that
+    // assigning the settings leaves the run's data alone, as the source's
+    // `operator=(const ExperimentalSettings&)` does.
+    let mut receiver = MSExperiment {
+        spectra: vec![plain_peak_scan(7., 1, 70.0, 700.0)],
+        ..Default::default()
+    };
+    receiver.settings = labelled.settings.clone();
+    assert_eq!(receiver.settings.comment, "test");
+    assert_eq!(receiver.len(), 1);
+
+    // START_SECTION(void clear(bool clear_meta_data))
+    // MSExperiment_test.cpp:1383-1401, and `reset()` at :1092-1121, which the
+    // port answers with `clear(true)` because it keeps no range cache for
+    // `reset()` to drop in addition.
+    let mut edit = MSExperiment {
+        spectra: vec![MSSpectrum::default(); 5],
+        chromatograms: vec![MSChromatogram::default(); 5],
+        ..Default::default()
+    };
+    edit.settings.sample.name = "bla".into();
+    edit.settings.metadata.insert("label".into(), "bla".into());
+    edit.clear(false);
+    assert_eq!(edit.len(), 0);
+    assert!(edit.chromatograms.is_empty());
+    assert_ne!(edit, MSExperiment::default()); // the metadata survived
+    edit.clear(true);
+    assert!(edit.is_empty());
+    assert_eq!(edit, MSExperiment::default());
+}
+
+/// One spectrum with several peaks.
+fn multi_peak_scan(rt: f64, level: u32, points: &[(f64, f32)]) -> MSSpectrum {
+    MSSpectrum {
+        rt,
+        ms_level: level,
+        peaks: points
+            .iter()
+            .map(|&(mz, intensity)| Peak1D::new(mz, intensity))
+            .collect(),
+        ..Default::default()
+    }
+}
+
+/// The four-spectrum aggregation fixture of `MSExperiment_test.cpp`, rebuilt
+/// here for the two extraction cases below.
+fn aggregation_fixture() -> MSExperiment {
+    MSExperiment {
+        spectra: vec![
+            multi_peak_scan(1.0, 1, &[(100., 1000.), (200., 2000.), (300., 3000.)]),
+            multi_peak_scan(2.0, 2, &[(150., 1500.), (250., 2500.)]),
+            multi_peak_scan(3.0, 1, &[(100., 1100.), (200., 2100.), (300., 3100.)]),
+            multi_peak_scan(4.0, 1, &[(100., 1200.), (200., 2200.), (300., 3200.)]),
+        ],
+        ..Default::default()
+    }
+}
+
+#[test]
+fn source_matrix_xic_extraction_over_two_ranges() {
+    // START_SECTION((std::vector<MSChromatogram> extractXICsFromMatrix(...)))
+    // MSExperiment_test.cpp:2316-2389. The section's single case is the
+    // two-row matrix; `tests/experiment_aggregation.rs::source_matrix_all_reducers`
+    // covers the one-row form for every reducer but never this one.
+    let exp = aggregation_fixture();
+    let xics = exp
+        .extract_xics_from_matrix(
+            &[[90.0, 110.0, 0.0, 3.5], [190.0, 210.0, 0.0, 5.0]],
+            1,
+            MzAggregation::Sum,
+        )
+        .unwrap();
+    assert_eq!(xics.len(), 2);
+    assert_eq!(
+        xics[0]
+            .peaks
+            .iter()
+            .map(|p| p.intensity)
+            .collect::<Vec<_>>(),
+        [1000.0, 1100.0]
+    );
+    assert_eq!(
+        xics[1]
+            .peaks
+            .iter()
+            .map(|p| p.intensity)
+            .collect::<Vec<_>>(),
+        [2000.0, 2100.0, 2200.0]
+    );
+}
+
+#[test]
+fn source_custom_reduction_xic_averages_the_whole_mz_window() {
+    // START_SECTION((... extractXICs(..., MzReductionFunctionType))) "Test 3:
+    // Custom reduction function (average intensity)",
+    // MSExperiment_test.cpp:2610-2643. Tests 1 and 2 of that section are
+    // asserted by
+    // `tests/experiment_aggregation.rs::source_xic_full_rt_product_and_default_metadata`;
+    // this third case, whose product m/z is the (90 + 310) / 2 midpoint, is not.
+    let exp = aggregation_fixture();
+    let xics = exp
+        .extract_xics_with(
+            &[MzRtRegion::new(90.0, 310.0, 0.0, 5.0).unwrap()],
+            1,
+            |peaks| MzAggregation::Mean.reduce(peaks),
+        )
+        .unwrap();
+    assert_eq!(xics.len(), 1);
+    assert_eq!(
+        xics[0]
+            .peaks
+            .iter()
+            .map(|p| (p.rt, p.intensity))
+            .collect::<Vec<_>>(),
+        [(1.0, 2000.0), (3.0, 2100.0), (4.0, 2200.0)]
+    );
+    assert_eq!(xics[0].product.mz, (90.0 + 310.0) / 2.0);
+}
+
+/// The chromatogram every `updateRanges` sub-case of the dual-range block adds:
+/// two points and a `"product_mz"` *meta value* that is not the `Product` m/z,
+/// so the m/z the ranges see stays the unset `0`.
+fn meta_only_chromatogram() -> MSChromatogram {
+    let mut chromatogram = MSChromatogram {
+        peaks: vec![
+            ChromatogramPeak::new(10., 500.),
+            ChromatogramPeak::new(20., 1500.),
+        ],
+        ..Default::default()
+    };
+    chromatogram.metadata.insert(
+        "product_mz".into(),
+        openms::metadata::MetaValue::try_from(305.0).unwrap(),
+    );
+    chromatogram
+}
+
+#[test]
+fn source_spectrum_ranges_global_and_per_level_literals() {
+    // START_SECTION((const SpectrumRangeManagerType& spectrumRanges() const))
+    // MSExperiment_test.cpp:2650-2693.
+    let exp = MSExperiment {
+        spectra: vec![
+            plain_peak_scan(30., 1, 100.0, 1000.0),
+            plain_peak_scan(35., 2, 200.0, 2000.0),
+        ],
+        ..Default::default()
+    };
+    let spectra = exp.spectrum_range_manager().unwrap();
+    let global = spectra.global();
+    assert_eq!(global.min_mz().unwrap(), 100.0);
+    assert_eq!(global.max_mz().unwrap(), 200.0);
+    assert_eq!(global.min_intensity().unwrap(), 1000.0);
+    assert_eq!(global.max_intensity().unwrap(), 2000.0);
+    let level1 = spectra.by_ms_level(1).unwrap();
+    assert_eq!(level1.min_mz().unwrap(), 100.0);
+    assert_eq!(level1.max_mz().unwrap(), 100.0);
+    assert_eq!(level1.min_intensity().unwrap(), 1000.0);
+    assert_eq!(level1.max_intensity().unwrap(), 1000.0);
+    let level2 = spectra.by_ms_level(2).unwrap();
+    assert_eq!(level2.min_mz().unwrap(), 200.0);
+    assert_eq!(level2.max_mz().unwrap(), 200.0);
+    assert_eq!(level2.min_intensity().unwrap(), 2000.0);
+    assert_eq!(level2.max_intensity().unwrap(), 2000.0);
+}
+
+#[test]
+fn source_chromatogram_ranges_span_every_chromatogram() {
+    // START_SECTION((const ChromatogramRangeManagerType& chromatogramRanges() const))
+    // MSExperiment_test.cpp:2696-2732. Two chromatograms whose retention-time
+    // and intensity windows interleave, so the manager has to span both.
+    let exp = MSExperiment {
+        chromatograms: vec![
+            product_chromatogram(0., &[(10., 500.), (20., 1500.)]),
+            product_chromatogram(0., &[(15., 800.), (25., 1800.)]),
+        ],
+        ..Default::default()
+    };
+    let chromatograms = exp.chromatogram_range_manager().unwrap();
+    assert_eq!(chromatograms.min_rt().unwrap(), 10.0);
+    assert_eq!(chromatograms.max_rt().unwrap(), 25.0);
+    assert_eq!(chromatograms.min_intensity().unwrap(), 500.0);
+    assert_eq!(chromatograms.max_intensity().unwrap(), 1800.0);
+}
+
+#[test]
+fn source_dual_range_update_ranges_four_cases_and_three_levels() {
+    // START_SECTION((void updateRanges())) MSExperiment_test.cpp:2735-2914, the
+    // second section of that name (50 assertion macros). The port computes the
+    // three managers on demand, so each sub-case queries them directly.
+
+    // Test case 1: Empty experiment.
+    let empty = MSExperiment::default();
+    assert_eq!(
+        empty.spectrum_range_manager().unwrap().global().has_range(),
+        HasRangeType::None
+    );
+    assert_eq!(
+        empty.chromatogram_range_manager().unwrap().has_range(),
+        HasRangeType::None
+    );
+    assert_eq!(
+        empty.combined_range_manager().unwrap().has_range(),
+        HasRangeType::None
+    );
+
+    // Test case 2: Experiment with only spectra.
+    let spectra_only = MSExperiment {
+        spectra: vec![plain_peak_scan(30., 1, 100.0, 1000.0)],
+        ..Default::default()
+    };
+    let spectra = spectra_only.spectrum_range_manager().unwrap();
+    assert_eq!(spectra.global().has_range(), HasRangeType::Some);
+    assert_eq!(spectra.global().min_mz().unwrap(), 100.0);
+    assert_eq!(spectra.global().max_mz().unwrap(), 100.0);
+    assert_eq!(
+        spectra_only
+            .chromatogram_range_manager()
+            .unwrap()
+            .has_range(),
+        HasRangeType::None
+    );
+    let combined = spectra_only.combined_range_manager().unwrap();
+    assert_eq!(combined.has_range(), HasRangeType::Some);
+    assert_eq!(combined.min_mz().unwrap(), 100.0);
+    assert_eq!(combined.max_mz().unwrap(), 100.0);
+    assert_eq!(combined.min_rt().unwrap(), 30.0);
+    assert_eq!(combined.max_rt().unwrap(), 30.0);
+    assert_eq!(combined.min_intensity().unwrap(), 1000.0);
+    assert_eq!(combined.max_intensity().unwrap(), 1000.0);
+
+    // Test case 3: Experiment with only chromatograms.
+    let chromatograms_only = MSExperiment {
+        chromatograms: vec![meta_only_chromatogram()],
+        ..Default::default()
+    };
+    assert_eq!(
+        chromatograms_only
+            .spectrum_range_manager()
+            .unwrap()
+            .global()
+            .has_range(),
+        HasRangeType::None
+    );
+    let chromatograms = chromatograms_only.chromatogram_range_manager().unwrap();
+    assert_eq!(chromatograms.has_range(), HasRangeType::All);
+    assert_eq!(chromatograms.min_rt().unwrap(), 10.0);
+    assert_eq!(chromatograms.max_rt().unwrap(), 20.0);
+    let combined = chromatograms_only.combined_range_manager().unwrap();
+    assert_eq!(combined.has_range(), HasRangeType::Some);
+    assert_eq!(combined.min_rt().unwrap(), 10.0);
+    assert_eq!(combined.max_rt().unwrap(), 20.0);
+    assert_eq!(combined.min_intensity().unwrap(), 500.0);
+    assert_eq!(combined.max_intensity().unwrap(), 1500.0);
+
+    // Test case 4: Experiment with both spectra and chromatograms.
+    let both = MSExperiment {
+        spectra: vec![plain_peak_scan(30., 1, 100.0, 1000.0)],
+        chromatograms: vec![meta_only_chromatogram()],
+        ..Default::default()
+    };
+    let spectra = both.spectrum_range_manager().unwrap();
+    assert_eq!(spectra.global().has_range(), HasRangeType::Some);
+    assert_eq!(spectra.global().min_mz().unwrap(), 100.0);
+    assert_eq!(spectra.global().max_mz().unwrap(), 100.0);
+    assert_eq!(spectra.global().min_intensity().unwrap(), 1000.0);
+    assert_eq!(spectra.global().max_intensity().unwrap(), 1000.0);
+    let chromatograms = both.chromatogram_range_manager().unwrap();
+    assert_eq!(chromatograms.has_range(), HasRangeType::All);
+    assert_eq!(chromatograms.min_rt().unwrap(), 10.0);
+    assert_eq!(chromatograms.max_rt().unwrap(), 20.0);
+    assert_eq!(chromatograms.min_intensity().unwrap(), 500.0);
+    assert_eq!(chromatograms.max_intensity().unwrap(), 1500.0);
+    let combined = both.combined_range_manager().unwrap();
+    assert_eq!(combined.has_range(), HasRangeType::Some);
+    // The source annotates this `0` with "TODO: Why 0? precursor m/z not set?":
+    // the chromatogram's unset `Product` m/z of zero extends the m/z dimension.
+    assert_eq!(combined.min_mz().unwrap(), 0.0);
+    assert_eq!(combined.max_mz().unwrap(), 100.0);
+    assert_eq!(combined.min_rt().unwrap(), 10.0);
+    assert_eq!(combined.max_rt().unwrap(), 30.0);
+    assert_eq!(combined.min_intensity().unwrap(), 500.0);
+    assert_eq!(combined.max_intensity().unwrap(), 1500.0);
+
+    // The section's tail: three MS levels.
+    let levels = MSExperiment {
+        spectra: vec![
+            plain_peak_scan(30., 1, 100.0, 1000.0),
+            plain_peak_scan(35., 2, 200.0, 2000.0),
+            plain_peak_scan(40., 3, 300.0, 3000.0),
+        ],
+        ..Default::default()
+    };
+    let spectra = levels.spectrum_range_manager().unwrap();
+    for (level, mz) in [(1, 100.0), (2, 200.0), (3, 300.0)] {
+        let manager = spectra.by_ms_level(level).unwrap();
+        assert_eq!(manager.min_mz().unwrap(), mz);
+        assert_eq!(manager.max_mz().unwrap(), mz);
+    }
+    assert_eq!(spectra.global().min_mz().unwrap(), 100.0);
+    assert_eq!(spectra.global().max_mz().unwrap(), 300.0);
+    assert_eq!(spectra.global().min_intensity().unwrap(), 1000.0);
+    assert_eq!(spectra.global().max_intensity().unwrap(), 3000.0);
 }
