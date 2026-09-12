@@ -12,10 +12,13 @@ use std::{fmt, str::FromStr};
 macro_rules! named_enum {
     ($(#[$enum_attr:meta])* $name:ident { $($(#[$variant_attr:meta])* $variant:ident => $label:literal),+ $(,)? }) => {
         $(#[$enum_attr])*
+        /// Enumeration with one OpenMS string label per variant, in source order.
         #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
         pub enum $name { $($(#[$variant_attr])* $variant),+ }
         impl $name {
+            /// Every variant, in the source's declaration order.
             pub const ALL: &'static [Self] = &[$(Self::$variant),+];
+            /// The variant's OpenMS label, which its `Display` and `FromStr` also use.
             pub const fn name(self) -> &'static str { match self { $(Self::$variant => $label),+ } }
         }
         impl fmt::Display for $name {
@@ -41,8 +44,12 @@ named_enum!(#[derive(Default)] ScanMode {
 });
 named_enum!(#[derive(Default)] Polarity { #[default] Unknown => "unknown", Positive => "positive", Negative => "negative" });
 named_enum!(#[derive(Default)] DriftTimeUnit { #[default] None => "<NONE>", Millisecond => "ms", InverseReducedMobility => "1/K0", FaimsCompensationVoltage => "FAIMS_CV", CollisionCrossSection => "CCS" });
-named_enum!(#[derive(Default)] IonMobilityFormat { None => "none", PerPeak => "im_peak", PerSpectrum => "im_spectrum", #[default] Unknown => "unknown" });
-named_enum!(#[derive(Default)] IonMobilityPeakType { Profile => "im_profile", Centroid => "im_centroided", #[default] Unknown => "unknown" });
+named_enum!(
+    #[doc = "How a spectrum represents ion mobility, the source `IMFormat` (`IONMOBILITY/IMTypes.h:43-53`). `Unknown`, the default, means not yet determined: the file handler or the ion-mobility peak picker is expected to set a known value, and `ImTypes::determine_im_format` derives one from the data. See `docs/IM_TYPES_SUPPORT.md`."]
+    #[derive(Default)] IonMobilityFormat { None => "none", PerPeak => "im_peak", PerSpectrum => "im_spectrum", #[default] Unknown => "unknown" });
+named_enum!(
+    #[doc = "Processing state of a spectrum's ion-mobility dimension, the source `IMPeakType` (`IONMOBILITY/IMTypes.h:64-72`); the analogue of `SpectrumType` for the m/z dimension. `Profile` is raw data such as a full TIMS frame before ion-mobility centroiding, `Centroid` is data centroided in the ion-mobility dimension, and `Unknown`, the default, means not yet determined."]
+    #[derive(Default)] IonMobilityPeakType { Profile => "im_profile", Centroid => "im_centroided", #[default] Unknown => "unknown" });
 named_enum!(#[derive(Default)] ChecksumType { #[default] Unknown => "Unknown", Sha1 => "SHA-1", Md5 => "MD5" });
 named_enum!(#[derive(Default)] ChromatogramType {
     #[default] Mass => "mass chromatogram", TotalIonCurrent => "total ion current chromatogram", SelectedIonCurrent => "selected ion current chromatogram",
@@ -83,6 +90,7 @@ pub enum ActivationMethod {
     Lift,
 }
 impl ActivationMethod {
+    /// Every activation method, in the pinned OpenMS order.
     pub const ALL: &'static [Self] = &[
         Self::Cid,
         Self::Psd,
@@ -104,6 +112,8 @@ impl ActivationMethod {
         Self::InSource,
         Self::Lift,
     ];
+    /// The method's abbreviation, such as `CID`; `FromStr` accepts it as well
+    /// as the full [`ActivationMethod::name`].
     pub const fn short_name(self) -> &'static str {
         match self {
             Self::Cid => "CID",
@@ -127,6 +137,7 @@ impl ActivationMethod {
             Self::Lift => "LIFT",
         }
     }
+    /// The method's full name, as written by the mzML transport.
     pub const fn name(self) -> &'static str {
         match self {
             Self::Cid => "Collision-induced dissociation",
@@ -195,6 +206,14 @@ impl std::ops::DerefMut for PrecursorInfo {
     }
 }
 impl Precursor {
+    /// Check the acquisition fields and the attached CV terms.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a nonfinite m/z, intensity or drift
+    /// value, a negative isolation target, activation energy or window offset, a
+    /// parent spectrum reference that is empty or holds a control character, or
+    /// an invalid CV term.
     pub fn validate(&self) -> Result<()> {
         finite(self.mz, "precursor m/z")?;
         finite(f64::from(self.intensity), "precursor intensity")?;
@@ -224,6 +243,13 @@ impl Precursor {
         }
         self.cv_terms.validate()
     }
+    /// The isolation window as an absolute m/z range, the target m/z widened by
+    /// the two stored offsets.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when [`Precursor::validate`] fails or
+    /// either bound is not finite.
     pub fn isolation_window(&self) -> Result<NumericRange> {
         self.validate()?;
         checked_window(
@@ -243,6 +269,7 @@ impl Precursor {
     }
 }
 
+/// Isolation description of a product ion: a target m/z with its window.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Product {
     pub mz: f64,
@@ -259,12 +286,25 @@ impl Hash for Product {
     }
 }
 impl Product {
+    /// Check the m/z, both window offsets and the attached CV terms.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a nonfinite m/z, a negative or
+    /// nonfinite window offset, or an invalid CV term.
     pub fn validate(&self) -> Result<()> {
         finite(self.mz, "product m/z")?;
         nonnegative(self.isolation_window_lower_offset, "lower isolation offset")?;
         nonnegative(self.isolation_window_upper_offset, "upper isolation offset")?;
         self.cv_terms.validate()
     }
+    /// The isolation window as an absolute m/z range, the target m/z widened by
+    /// the two stored offsets.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when [`Product::validate`] fails or
+    /// either bound is not finite.
     pub fn isolation_window(&self) -> Result<NumericRange> {
         self.validate()?;
         checked_window(
@@ -275,6 +315,7 @@ impl Product {
     }
 }
 
+/// One inclusive m/z acquisition window of a scan.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ScanWindow {
     pub begin: f64,
@@ -282,6 +323,12 @@ pub struct ScanWindow {
     pub metadata: MetaInfo,
 }
 impl ScanWindow {
+    /// A window from `begin` to `end`, with no metadata.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when either bound is not finite or
+    /// `begin` exceeds `end`.
     pub fn new(begin: f64, end: f64) -> Result<Self> {
         let result = Self {
             begin,
@@ -291,6 +338,12 @@ impl ScanWindow {
         result.validate()?;
         Ok(result)
     }
+    /// Check the bounds and the metadata.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when either bound is not finite, `begin`
+    /// exceeds `end`, or the metadata is invalid.
     pub fn validate(&self) -> Result<()> {
         finite(self.begin, "scan window begin")?;
         finite(self.end, "scan window end")?;
@@ -299,6 +352,12 @@ impl ScanWindow {
         }
         validate_meta(&self.metadata)
     }
+    /// Whether `mz` lies in the window, both bounds included.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when [`ScanWindow::validate`] fails or
+    /// `mz` is not finite.
     pub fn contains(&self, mz: f64) -> Result<bool> {
         self.validate()?;
         finite(mz, "query m/z")?;
@@ -306,6 +365,7 @@ impl ScanWindow {
     }
 }
 
+/// Instrument state for one scan: scan mode, polarity and acquisition windows.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct InstrumentSettings {
     pub scan_mode: ScanMode,
@@ -315,6 +375,12 @@ pub struct InstrumentSettings {
     pub metadata: MetaInfo,
 }
 impl InstrumentSettings {
+    /// Check the metadata and every scan window.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the metadata is invalid or any
+    /// window fails [`ScanWindow::validate`].
     pub fn validate(&self) -> Result<()> {
         validate_meta(&self.metadata)?;
         for window in &self.scan_windows {
@@ -324,6 +390,7 @@ impl InstrumentSettings {
     }
 }
 
+/// Origin of the data: file name and path, size, type and checksum.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SourceFile {
     pub name: String,
@@ -338,6 +405,17 @@ pub struct SourceFile {
     pub cv_terms: CVTermList,
 }
 impl SourceFile {
+    /// Check the size, the checksum against its declared algorithm, and the CV
+    /// terms.
+    ///
+    /// A nonempty checksum must have the hexadecimal length its
+    /// [`ChecksumType`] implies — 40 for SHA-1, 32 for MD5 — and
+    /// [`ChecksumType::Unknown`] imposes no shape at all.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a negative or nonfinite size, a
+    /// checksum that does not match its algorithm, or an invalid CV term.
     pub fn validate(&self) -> Result<()> {
         nonnegative(f64::from(self.size_mb), "source file size")?;
         if !self.checksum.is_empty() {
@@ -357,17 +435,25 @@ impl SourceFile {
     }
 }
 
+/// One acquisition that contributed to a combined spectrum.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Acquisition {
     pub identifier: String,
     pub metadata: MetaInfo,
 }
 impl Acquisition {
+    /// Check the metadata.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the metadata is invalid. The
+    /// identifier is free text and is not examined.
     pub fn validate(&self) -> Result<()> {
         validate_meta(&self.metadata)
     }
 }
 
+/// The acquisitions behind one spectrum and how they were combined.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AcquisitionInfo {
     pub acquisitions: Vec<Acquisition>,
@@ -375,6 +461,12 @@ pub struct AcquisitionInfo {
     pub metadata: MetaInfo,
 }
 impl AcquisitionInfo {
+    /// Check the metadata and every acquisition.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the metadata is invalid or any
+    /// acquisition fails [`Acquisition::validate`].
     pub fn validate(&self) -> Result<()> {
         validate_meta(&self.metadata)?;
         for acquisition in &self.acquisitions {
@@ -384,6 +476,7 @@ impl AcquisitionInfo {
     }
 }
 
+/// Name, version and CV terms of a piece of software.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Software {
     pub name: String,
@@ -391,6 +484,12 @@ pub struct Software {
     pub cv_terms: CVTermList,
 }
 impl Software {
+    /// Check the attached CV terms.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for an invalid CV term. Name and version
+    /// are free text and are not examined.
     pub fn validate(&self) -> Result<()> {
         self.cv_terms.validate()
     }
@@ -472,6 +571,7 @@ impl fmt::Display for CompletionTime {
     }
 }
 
+/// One processing step: the software that ran, what it did and when.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct DataProcessing {
     pub software: Software,
@@ -482,6 +582,13 @@ pub struct DataProcessing {
     pub metadata: MetaInfo,
 }
 impl DataProcessing {
+    /// Check the software record and the metadata.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when [`Software::validate`] fails or the
+    /// metadata is invalid. The action set and the completion time are already
+    /// typed, so neither needs checking here.
     pub fn validate(&self) -> Result<()> {
         self.software.validate()?;
         validate_meta(&self.metadata)
@@ -493,7 +600,15 @@ impl DataProcessing {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SpectrumSettings {
     pub spectrum_type: SpectrumType,
+    /// Stored ion-mobility format, the source `im_type_`. Defaults to
+    /// [`IonMobilityFormat::Unknown`], as in the source. Read and written
+    /// through [`SpectrumSettings::im_format`] and
+    /// [`SpectrumSettings::set_im_format`].
     pub ion_mobility_format: IonMobilityFormat,
+    /// Stored ion-mobility peak type, the source `im_peak_type_`. Defaults to
+    /// [`IonMobilityPeakType::Unknown`], as in the source. Read and written
+    /// through [`SpectrumSettings::im_peak_type`] and
+    /// [`SpectrumSettings::set_im_peak_type`].
     pub ion_mobility_peak_type: IonMobilityPeakType,
     pub native_id: String,
     pub comment: String,
@@ -508,6 +623,67 @@ pub struct SpectrumSettings {
     pub metadata: MetaInfo,
 }
 impl SpectrumSettings {
+    /// Names of the spectrum types, the source
+    /// `SpectrumSettings::NamesOfSpectrumType` (`SpectrumSettings.cpp:21`), in
+    /// enum order.
+    ///
+    /// The source array is sized by `SIZE_OF_SPECTRUMTYPE` and so has one entry
+    /// per real type; the sentinel itself has no name.
+    pub const NAMES_OF_SPECTRUM_TYPE: [&'static str; 3] = ["Unknown", "Centroid", "Profile"];
+
+    /// All spectrum type names known to OpenMS, the source
+    /// `getAllNamesOfSpectrumType`, which copies the array into a `StringList`.
+    ///
+    /// [`SpectrumSettings::NAMES_OF_SPECTRUM_TYPE`] is the same list without the
+    /// allocation.
+    pub fn all_names_of_spectrum_type() -> Vec<String> {
+        Self::NAMES_OF_SPECTRUM_TYPE
+            .iter()
+            .map(|name| (*name).to_string())
+            .collect()
+    }
+
+    /// The name of a spectrum type, the source `spectrumTypeToString`.
+    ///
+    /// Infallible: the source's `@throws Exception::InvalidValue` fires only for
+    /// `SIZE_OF_SPECTRUMTYPE`, which [`SpectrumType`] does not have.
+    pub const fn spectrum_type_to_string(spectrum_type: SpectrumType) -> &'static str {
+        match spectrum_type {
+            SpectrumType::Unknown => Self::NAMES_OF_SPECTRUM_TYPE[0],
+            SpectrumType::Centroid => Self::NAMES_OF_SPECTRUM_TYPE[1],
+            SpectrumType::Profile => Self::NAMES_OF_SPECTRUM_TYPE[2],
+        }
+    }
+
+    /// Convert an entry of [`SpectrumSettings::NAMES_OF_SPECTRUM_TYPE`] to its
+    /// spectrum type, the source `toSpectrumType`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when `name` is not one of the names, as
+    /// the source throws `Exception::InvalidValue` with the offending string.
+    /// Matching is exact and case-sensitive, as the source `std::find`.
+    pub fn to_spectrum_type(name: &str) -> Result<SpectrumType> {
+        match name {
+            "Unknown" => Ok(SpectrumType::Unknown),
+            "Centroid" => Ok(SpectrumType::Centroid),
+            "Profile" => Ok(SpectrumType::Profile),
+            other => Err(invalid(&format!("unknown spectrum type '{other}'"))),
+        }
+    }
+
+    /// Check every nested record and the metadata.
+    ///
+    /// The source validates nothing; this is the native guard that keeps a
+    /// settings object usable by the transports, and `unify` runs it on both
+    /// sides before merging anything.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a nonfinite or out-of-domain value in
+    /// the instrument settings, the acquisition info, the source file, any
+    /// precursor, product or processing record, any attached peptide
+    /// identification, or the metadata.
     pub fn validate(&self) -> Result<()> {
         validate_meta(&self.metadata)?;
         self.instrument_settings.validate()?;
@@ -526,6 +702,57 @@ impl SpectrumSettings {
             identification.validate()?;
         }
         Ok(())
+    }
+    /// The stored ion-mobility format, or
+    /// [`IonMobilityFormat::Unknown`] (the default) when none was set.
+    ///
+    /// Ports `SpectrumSettings::getIMFormat` (`METADATA/SpectrumSettings.h:103`).
+    /// The source `@note` still applies: when this is `Unknown`, derive the
+    /// format from the data with
+    /// [`ImTypes::determine_im_format`](crate::metadata::ImTypes::determine_im_format),
+    /// or with
+    /// [`ImTypes::determine_im_format_with_stored`](crate::metadata::ImTypes::determine_im_format_with_stored)
+    /// to reproduce the source's stored-value short circuit exactly.
+    ///
+    /// The source `operator==` does not compare `im_type_` or `im_peak_type_`,
+    /// so two C++ settings objects differing only in their ion-mobility
+    /// annotation compare equal. The derived [`PartialEq`] here compares both
+    /// fields; `tests/metadata.rs` asserts that divergence rather than hiding
+    /// it, and `unify` leaves both fields local, as the source does.
+    pub const fn im_format(&self) -> IonMobilityFormat {
+        self.ion_mobility_format
+    }
+    /// Set the stored ion-mobility format.
+    ///
+    /// Ports `SpectrumSettings::setIMFormat` (`METADATA/SpectrumSettings.h:97`),
+    /// which stores the value unconditionally; there is nothing to validate, so
+    /// this cannot fail. Setting it does not touch the spectrum's data:
+    /// annotating a format the peaks do not carry is the caller's error, exactly
+    /// as in the source.
+    pub const fn set_im_format(&mut self, im_format: IonMobilityFormat) {
+        self.ion_mobility_format = im_format;
+    }
+    /// The stored ion-mobility peak type, or
+    /// [`IonMobilityPeakType::Unknown`] (the default) when none was set.
+    ///
+    /// Ports `SpectrumSettings::getIMPeakType`
+    /// (`METADATA/SpectrumSettings.h:111`). The source readers use `Unknown` as
+    /// "not annotated" and substitute
+    /// [`IonMobilityPeakType::Profile`] for ion-mobility data that arrived
+    /// without a peak type; the ion-mobility peak picker writes
+    /// [`IonMobilityPeakType::Centroid`] together with
+    /// [`IonMobilityFormat::PerPeak`] on its output
+    /// (`PROCESSING/CENTROIDING/PeakPickerIM.cpp:975-976`).
+    pub const fn im_peak_type(&self) -> IonMobilityPeakType {
+        self.ion_mobility_peak_type
+    }
+    /// Set the stored ion-mobility peak type.
+    ///
+    /// Ports `SpectrumSettings::setIMPeakType`
+    /// (`METADATA/SpectrumSettings.h:107`), an unchecked store like
+    /// [`SpectrumSettings::set_im_format`].
+    pub const fn set_im_peak_type(&mut self, im_peak_type: IonMobilityPeakType) {
+        self.ion_mobility_peak_type = im_peak_type;
     }
     /// Source unify: incoming metadata overwrites, comments concatenate without
     /// a delimiter, lists append, conflicting spectrum types become Unknown.
@@ -556,6 +783,8 @@ impl SpectrumSettings {
     }
 }
 
+/// Acquisition settings of one chromatogram, with a single precursor and
+/// product rather than the spectrum's lists.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ChromatogramSettings {
     pub chromatogram_type: ChromatogramType,
@@ -570,6 +799,13 @@ pub struct ChromatogramSettings {
     pub metadata: MetaInfo,
 }
 impl ChromatogramSettings {
+    /// Check every nested record and the metadata.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for an invalid value in the instrument
+    /// settings, the acquisition info, the source file, the precursor, the
+    /// product, any processing record or the metadata.
     pub fn validate(&self) -> Result<()> {
         validate_meta(&self.metadata)?;
         self.instrument_settings.validate()?;
