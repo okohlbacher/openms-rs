@@ -48,6 +48,8 @@ pub use spectrum_type::SpectrumTypeQueryLimits;
 pub mod features;
 /// Points, bounding boxes and convex hulls shared by the feature containers.
 pub mod geometry;
+/// Range and property predicates over spectra and peaks (`RangeUtils.h`).
+pub mod range_utils;
 /// RT, m/z, intensity and mobility range algebra and on-demand container ranges.
 pub mod ranges;
 pub use experiment_aggregation::{AggregationLimits, MzAggregation, MzRtRegion};
