@@ -1,0 +1,172 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/SVOutStream.h",
+   "sha256": "1c50649625d8ff38e2eef3665b11863fca94261ef68b5c4e5c7a1123ca6a1f84",
+   "role": "The ported header. Declares the namespace-level enum Newline, both constructors, the destructor, five operator<< overloads plus two operator<< templates, write, modifyStrings, the writeValueOrNan template and nine protected members."
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "sha256": "bb2fd4ac12284b3dc4db88987056e6f072c495471d10b9128eb90eaf01761e6c",
+   "role": "The ported implementation. Source of the separator state machine, the quote/substitute branch order and the std::endl detection through the scratch stringstream."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SVOutStream_test.cpp",
+   "sha256": "3437c90e2de015f0a6c5d750a3962ea2659c9b8484a8390815aeaed443bf52d2",
+   "role": "The oracle. 12 START_SECTIONs, 178 lines; every expected string in tests/sv_out_stream.rs is transcribed from its TEST_EQUAL literals. Registered and built upstream (executables.cmake:284)."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Not ported here. Read for the three members SVOutStream depends on: QuotingMethod (line 39), quote (line 553) and substitute (line 484). Only these are reproduced; a general StringUtils port is separate work."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "role": "Not ported here. Read for toStr(float/double) and the precision mapping comment at lines 309-318 that fixes 6 fractional digits for float and 15 for double."
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a",
+   "role": "Not ported here as a module. appendNumeric is the algorithm reproduced by source_float_text (T = double) and source_f32_text (T = float), including the NaN/inf spellings, the T(1e-2)/T(1e4) scientific thresholds evaluated at the argument's own width, the shortest-round-trip scientific mantissa of that width, the '+' removal with retained zero padding and the keep-one-fractional-digit rule. The char buf[64] overflow path at lines 136-139, which falls through to std::to_string(double), is not reproduced: the port clamps fixed_digits at MAX_FIXED_DIGITS instead, and neither behaviour is reachable from the source's own call sites."
+  }
+ ],
+ "fixtures": [],
+ "native_implementation": [
+  "src/format/sv_out_stream.rs"
+ ],
+ "native_tests": [
+  "tests/sv_out_stream.rs"
+ ],
+ "support": "docs/SV_OUT_STREAM_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 67,
+   "operation": "the separator is emitted only when newline_ is false, and the first field on a line clears the flag instead of emitting one; this is the whole state machine the class exists for"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 62,
+   "operation": "operator<<(std::string) throws Exception::IllegalArgument for a '\\n' anywhere in the field, with the message \"argument must not contain newline characters\"; '\\r' is not tested for"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 76,
+   "operation": "branch order inside a field: modify_strings_ off writes verbatim, else a quoting method other than NONE calls StringUtils::quote, else the separator is replaced by replacement_; QuotingMethod::NONE therefore never reaches quote"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 98,
+   "operation": "operator<<(char) routes through StringUtils::toStr(c) into the string overload, so a single character is quoted like any other field and a '\\n' character is rejected"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 102,
+   "operation": "std::endl is detected by applying the function pointer to the member stringstream ss_ and testing the result for \"\\n\", because comparing against &std::endl does not work under libc++ on macOS 10.9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 109,
+   "operation": "ss_ is only cleared inside the newline branch, so a manipulator writing anything else leaves ss_ polluted and every later std::endl fails the equality test - after one std::ends the newline flag is never set again"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 118,
+   "operation": "operator<<(Newline) sets newline_ and writes \"\\n\" without flushing, which is the performance difference the header recommends it for"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 125,
+   "operation": "write() calls ostream::write directly and never touches newline_, so a raw chunk ending in a newline leaves the stream believing it is mid-line; the header comment 'use only on a line of its own!' is the warning about exactly this"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 37,
+   "operation": "the stream precision is set to numeric_limits<double>::digits10, which affects only the generic non-arithmetic operator<< because the arithmetic one converts through StringUtils::toStr"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SVOutStream.cpp",
+   "line": 28,
+   "operation": "the filename constructor throws Exception::FileNotWritable naming the path when the ofstream does not open; the stream constructor cannot fail"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/SVOutStream.h",
+   "line": 143,
+   "operation": "writeValueOrNan switches modification off, writes nan_ (\"nan\"), inf_ (\"inf\") or \"-\" + inf_, and restores the previous state; the texts are the protected members, not the uppercase \"NaN\" appendNumeric produces"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/SVOutStream.h",
+   "line": 26,
+   "operation": "the class documentation states that nl or std::endl is required as the line delimiter and that a literal \"\\n\" 'won't be accepted' - it is rejected by the newline check in the string overload"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "line": 555,
+   "operation": "quote with QuotingMethod::ESCAPE substitutes backslashes before quote characters, an order that cannot be swapped without double-escaping; DOUBLE doubles the quote character; NONE only skips the substitution and still adds the surrounding quotes"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "line": 486,
+   "operation": "substitute returns the string unchanged when the pattern is empty, so an empty separator silently disables separator replacement as well as emitting nothing between fields"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 42,
+   "operation": "scientific notation is selected for a nonzero magnitude at or above T(1e4) or below T(1e-2) - the comparison is in the template argument's own arithmetic, so 0.01f, which equals float(1e-2), takes the fixed branch while the same value promoted to double does not; zero always takes the fixed branch and therefore prints \"0.0\""
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 77,
+   "operation": "the scientific mantissa uses to_chars with no precision, the shortest decimal that round-trips, explicitly so libc++ and libstdc++ agree and reference files need no update"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 107,
+   "operation": "a scientific mantissa with no decimal point gains \".0\", so 1e4 is written \"1.0e04\" rather than \"1e04\""
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 114,
+   "operation": "only the leading '+' is removed from the exponent; the printf-style two-digit zero padding is kept, so the exponent of 1e4 is \"04\""
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 126,
+   "operation": "trailing fractional zeros are trimmed but at least one digit after the point is kept, so 5.0 prints \"5.0\" and not \"5\""
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "line": 29,
+   "operation": "NaN is written \"NaN\" in upper case for compatibility with the removed Karma formatter, while infinities are \"inf\"/\"-inf\" specifically so the keep-one-digit rule cannot turn them into the unreadable \"inf.0\""
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "line": 376,
+   "operation": "appendToStr(float) instantiates appendNumeric with T = float and precision writtenDigits<float>() = 6, so both the threshold comparison and std::to_chars run at float width; sv_out_stream::source_f32_text is that instantiation and no f32 is promoted to f64 before formatting"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "line": 386,
+   "operation": "toStr(double) passes writtenDigits<double>() = 15 as the to_chars fixed precision, which is digits after the decimal point, not significant digits; toStr(float) passes 6"
+  },
+  {
+   "path": "src/tests/class_tests/openms/executables.cmake",
+   "line": 284,
+   "operation": "SVOutStream_test is registered and built upstream, so its literals are values the C++ suite actually asserts"
+  }
+ ],
+ "evidence": "Tier 3 source review. Every expected string in tests/sv_out_stream.rs is a literal transcribed from SVOutStream_test.cpp: \"123,3.14,-1.23e45\\n456\\n\" and \"123_/_3.14_/_-1.23e45\\n456\\n\" for the arithmetic overload, the four quoting outputs \"a,bc,d_f\\ng\\\"i\\\"k,l\\n\", \"\\\"a\\\",\\\"bc\\\",\\\"d,f\\\"\\n\\\"g\\\\\\\"i\\\\\\\"k\\\",\\\"l\\\"\\n\", \"\\\"a\\\",\\\"bc\\\",\\\"d,f\\\"\\n\\\"g\\\"\\\"i\\\"\\\"k\\\",\\\"l\\\"\\n\" and \"a; bc; d,_f\\ng\\\"i\\\"k; l\\n\", \"\\n123\\n\\\"bla\\\"\" for both line terminators, \"\\\"bla\\\",123\\n#This, is, a, comment\\n4.56,\\\"test\\\"\\n\" for write(), \"\\\"test\\\",bla,\\\"laber\\\"\\n\" with the two modifyStrings return values true then false, and \"123,3.14\\n456,nan\\ninf,-inf\\n\" for writeValueOrNan. The upstream -1.23e45 assertion accepts three platform spellings; the pinned NumericFormatting produces the third, \"-1.23e45\", and this port reproduces that one. Transcribed C++ literals are tier-3 evidence: no C++ was built or executed and no C++ output was retained, so this is not a tier-1 differential. The numeric formatter beyond those literals (1.0e04, 1.0e-03, 0.0, -0.0, 5.0, NaN, 1.0e308, f32 0.333333) is independently derived (tier 4) from the appendNumeric algorithm read line by line. The resource ceilings, the empty/newline separator rejection, the carriage-return rejection, the non-ASCII separator and field cases and the error-variant choices are tier 4; no upstream fixture reaches them.",
+ "gaps": [
+  "The source class derives from std::ostream, so a caller can cast to the base and write past the separator bookkeeping. This port does not reproduce the base class; write_raw is the single controlled escape hatch, as SVOutStream::write is upstream.",
+  "The generic non-arithmetic operator<< template streams a value through the ostream with the constructor's 15-digit precision applied. write_display uses Rust's Display, which has no precision setting, so a Display implementation rendering a float spells it Rust's way; write_number is the source-equivalent route for numbers.",
+  "The filename constructor has no upstream START_SECTION at all: the test only exercises the ostream constructor. The create/create_with_options tests are therefore tier 4.",
+  "StringUtils is not ported. QuotingMethod, quote and the toStr numeric conversion are reproduced here because SVOutStream cannot be ported without them; substitute is expressed as str::replace. A DATASTRUCTURES/StringUtils work package should take these over and this module should then defer to it.",
+  "appendToStrLowP (3 fractional digits, the low-precision variant) is not ported: SVOutStream only ever calls the full-precision conversion.",
+  "docs/doc-coverage.json was not rewritten: src/format/sv_out_stream.rs measures 100.0% (44/44) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
+  "CI wiring was not added for the same reason: append '--test sv_out_stream' to a minimum-rust job line in .github/workflows/rust.yml. The test needs no feature and passes under --no-default-features and under cargo +1.85.0."
+ ]
+}

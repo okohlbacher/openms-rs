@@ -1,0 +1,196 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+   "sha256": "c95f0a2cb4d87cf59b6d38549bbb47b5d9b03ef27f18847d8b60fa5bb7fe9c79",
+   "role": "The ported header. Declares MSDataWritingConsumer (one constructor, destructor, four IMSDataConsumer overrides, addDataProcessing, two counters, two private pure virtual hooks, doCleanup_ and eleven protected members) plus PlainMSDataWritingConsumer and NoopMSDataWritingConsumer."
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "sha256": "094c7211eb1cdcb17bdca61bf783131acd8f8fdf820ce9116ac249802be2b7a2",
+   "role": "The ported implementation. Source of the whole state machine: the dummy one-record map that produces the header, the manually written list tags carrying the expected counts, the running record index handed to writeSpectrum_/writeChromatogram_, and doCleanup_'s close-list-then-footer order."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSDataWritingConsumer_test.cpp",
+   "sha256": "7895fe769f2653ff7012ed693c1a8c0ec87622fa034f0c8b452cd79bd01a1018",
+   "role": "The nominal oracle, and it supplies nothing. 11 START_SECTIONs over 98 lines: ten contain only '// TODO' and the eleventh calls new MSDataWritingConsumer(), which cannot compile because the class is abstract and has no default constructor. Not built upstream (executables.cmake:239 comments it out). Every section is still accounted for in tests/ms_data_writing_consumer.rs, with expectations derived from the header and .cpp rather than from this file."
+  },
+  {
+   "path": "src/tests/class_tests/openms/executables.cmake",
+   "sha256": "d606cc39e24bda314dcaac0d64310f357a296ce0cf44c616ef9763fadac2a899",
+   "role": "Not ported. Evidence that MSDataWritingConsumer_test is disabled: line 239 reads '#MSDataWritingConsumer_test'."
+  },
+  {
+   "path": "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h",
+   "sha256": "513bd99bffa60b542ab3ae892eafead238c4714c1ca748f08bcaa7569b54ea9a",
+   "role": "Not ported here; already ported as crate::interfaces::MSDataConsumer. Read for the four-method contract this consumer implements."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+   "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287",
+   "role": "Not ported here. The source class's base; read for the signatures of the four protected writers it drives (writeHeader_, writeSpectrum_, writeChromatogram_, writeFooter_)."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a",
+   "role": "Not ported here. Read because this consumer is a thin driver over its writers; source of the record element layout, of the sf_sp_/dp_sp_ reference numbering that streaming makes dangling, and of the std::string + Size narrowing candidates recorded below."
+  }
+ ],
+ "fixtures": [],
+ "native_implementation": [
+  "src/format/ms_data_writing_consumer.rs"
+ ],
+ "native_tests": [
+  "tests/ms_data_writing_consumer.rs"
+ ],
+ "support": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+   "line": 49,
+   "operation": "class @note: the first consumeChromatogram or consumeSpectrum starts writing the mzML header to disk, together with the first element"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+   "line": 52,
+   "operation": "class @note: spectra may not be added after chromatograms, because that would put two spectrumList tags in one mzML file"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+   "line": 56,
+   "operation": "class @note: the expected size is not enforced and a wrong value leaves an inconsistent mzML whose spectrumList/chromatogramList count attribute disagrees with its contents"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+   "line": 154,
+   "operation": "processSpectrum_ and processChromatogram_ (line 161) are private pure virtuals: the class is abstract and the template-method hooks are the only extension point"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+   "line": 216,
+   "operation": "PlainMSDataWritingConsumer defines both hooks as empty bodies and nothing else; its constructor forwards the filename"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+   "line": 236,
+   "operation": "NoopMSDataWritingConsumer still takes a filename and still runs the base constructor, which creates and truncates that file, even though every method and doCleanup_ are overridden to do nothing"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 33,
+   "operation": "the output stream is opened in binary mode so no line-ending conversion happens, and its precision is set to writtenDigits(double())"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 39,
+   "operation": "the destructor calls doCleanup_, so closing the document is tied to object lifetime and cannot report a failure"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 57,
+   "operation": "consumeSpectrum throws Exception::IllegalArgument with \"Cannot write spectra after writing chromatograms.\" when writing_chromatograms_ is set"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 62,
+   "operation": "the record is copied before processing (SpectrumType scpy = s), so the caller's record is never modified by the hook or by the added data processing"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 76,
+   "operation": "the header is written from a dummy map holding the experimental settings plus this one record, so fileContent, sourceFileList and dataProcessingList describe the first record only"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 89,
+   "operation": "the spectrumList tag is written by hand with spectra_expected_ as its count and defaultDataProcessingRef=\"dp_sp_0\", once, when the first spectrum arrives"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 93,
+   "operation": "'// TODO writeSpectrum assumes that dps_ has at least one value -> assert this here ...' - the source's own marker for the unchecked data-processing assumption that streaming creates"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 95,
+   "operation": "writeSpectrum_ receives spectra_written_++ as the record index and renew_native_ids = false, so the record's own native identifier is written through even when empty"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 102,
+   "operation": "consumeChromatogram closes an open spectrumList before doing anything else and clears writing_spectra_"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 134,
+   "operation": "the chromatogramList tag carries chromatograms_expected_ and, like the spectrumList tag, defaultDataProcessingRef=\"dp_sp_0\""
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 143,
+   "operation": "addDataProcessing replaces additional_dataprocessing_ with a new pointer rather than appending, so calling it twice keeps only the second entry"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 157,
+   "operation": "doCleanup_ closes spectrumList, else chromatogramList - never both, which is correct because consumeChromatogram already closed the spectrum list"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSDataWritingConsumer.cpp",
+   "line": 167,
+   "operation": "the footer is written only when started_writing_ is set, so a consumer that received no record leaves an empty file"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 5251,
+   "operation": "the spectrum open tag takes its index attribute from the running record number s, which is why a record rendered on its own has to be renumbered"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 5254,
+   "operation": "a record with a non-default source file emits sourceFileRef=\"sf_sp_<s>\" from the running index; under this consumer the header declared only the first record's source file, so every later reference is dangling"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 5258,
+   "operation": "dataProcessingRef is emitted when s == 0 or the history differs from dps[0], and the search for a matching entry falls back to dp_ref_num = s when none is found; with the one-record dps_ this consumer builds, that fallback names an undeclared element"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 4966,
+   "operation": "writeSourceFile_(os, std::string(\"sf_sp_\") + i, ...) with Size i: the only viable operator+ is the charT overload, so the declared id ends in a narrowed character - '\\0' for i == 0 - while line 5254 streams the integer. The adjacent run-level call at line 4964 uses StringUtils::toStr(i) correctly"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 5181,
+   "operation": "writeDataProcessing_(os, std::string(\"dp_sp_\") + s, ...) with Size s has the same narrowing shape, while the list tags at lines 4784 and 4823 reference the literal \"dp_sp_0\"; lines 5123 and 5194 repeat the pattern for software and per-array processing ids"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 5244,
+   "operation": "renew_native_ids builds std::string(\"spectrum=\") + s from a Size, the same narrowing; not reachable through this consumer, which passes renew_native_ids = false"
+  },
+  {
+   "path": "src/tests/class_tests/openms/executables.cmake",
+   "line": 239,
+   "operation": "'#MSDataWritingConsumer_test' - the class test is commented out and never built, which is why ten of its eleven sections are '// TODO' and the eleventh does not compile"
+  }
+ ],
+ "evidence": "Tier 3 source review plus tier 4 native invariants. The upstream class test contributes no expected value at all - ten '// TODO' sections, one section that cannot compile, and the whole file disabled in executables.cmake - so nothing here is a transcribed C++ literal except the two error message texts and the element/attribute names, which are read from MSDataWritingConsumer.cpp and MzMLHandler.cpp and are tier-3 evidence on that basis. The structural expectations (header at the first record, the list tags carrying the expected counts, the close-list-then-footer order, spectra refused after chromatograms, the record copy, addDataProcessing replacing rather than appending, the counters) are each pinned to a source_anchor above. The strongest independent check is tier 4 and does not depend on the C++ at all: tests/ms_data_writing_consumer.rs streams a three-spectrum experiment through the consumer and asserts the result is byte-identical to crate::format::mzml::write over the same experiment, and separately reads every streamed document back with mzml::read and compares the records to the input. Both hold, which is what proves the one-record renders are spliced correctly and the index attributes renumbered. The resource ceilings, the duplicate-identifier and undeclared-reference refusals, the CountPolicy choice and the error variants are native decisions (tier 4). No C++ was built or executed and no C++ output was retained, so this is not a tier-1 differential.",
+ "gaps": [
+  "The port does not subclass an mzML handler; it drives crate::format::mzml's whole-document writer once per record and splices the record element out between the list tags. That couples it to three literal tag spellings and to the ' index=\"0\" defaultArrayLength=\"' marker, all held as constants in the module and all checked - a writer change makes the consumer return Error::Unsupported rather than emit wrong XML. The record-element internals of src/format/mzml* are private to that module, and this package does not own it.",
+  "Because of that, every record re-renders the header text and discards it: cost per record is the header plus the record, where the source pays the record only. Memory stays one record at a time, which is the property the class exists for. A future increment that exposes a record-level writer from src/format/mzml would remove the overhead.",
+  "A record needing a sourceFileList or dataProcessingList other than the first record's is refused (Error::Unsupported) instead of being written with the dangling reference the source emits. A stream whose records carry differing source files or data-processing histories therefore cannot be written by this port at all; the whole-document writer handles it.",
+  "The source parallelises nothing here, but MzMLHandler's binary encoding carries #pragma omp in places; this port is serial throughout, so a large record encodes on one core.",
+  "MzMLValidator is not ported: the source constructs one per consumer and passes it to every writer call. The crate's semantic validation is a separate operation behind the mzml-validation feature and is not run per record.",
+  "ProgressLogger is a base of the source class and is not threaded through this module.",
+  "Indexed mzML output is not offered: the source's writeFooter_ can emit an index from spectra_offsets_/chromatograms_offsets_, which this port does not track. Plain mzML only.",
+  "Rust cannot report an error from a drop, so finish() replaces the destructor and dropping a consumer leaves the run and mzML elements unclosed. Documented at the method rather than hidden behind a best-effort Drop that would swallow an I/O failure.",
+  "docs/doc-coverage.json was not rewritten: src/format/ms_data_writing_consumer.rs measures 100.0% (38/38) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
+  "docs/core-sdk-coverage.json is now stale, because two new candidate Rust files exist without ledger entries. The integrator adds the two docs/core-sdk-reviewed-apis.json entries and runs 'python3 tools/core_sdk_coverage.py --write'; both files are outside this package's scope. It is clean on the base commit.",
+  "CI wiring was not added: append '--test ms_data_writing_consumer' to a '--features mzml' line of the minimum-rust job in .github/workflows/rust.yml. The test is gated on the mzml feature and passes under --all-features and under cargo +1.85.0."
+ ]
+}

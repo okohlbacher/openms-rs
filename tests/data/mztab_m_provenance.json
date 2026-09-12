@@ -1,0 +1,366 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MzTabM.h",
+      "sha256": "c6959e7f47b0e0c6060f109cd1de4e8dd39188c60f5ec3220a8babd1b7b3bb2e",
+      "role": "Ported header: the MzTab-M data model, 291 lines."
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "sha256": "85160b095711bbab0077d3370e2567a22c2c39857fff117a87bd05eab1f9852e",
+      "role": "Ported implementation: accessors, addMetaInfoToOptionalColumns, getFeatureMapMetaValues_, getAdductString_ and exportFeatureMapToMzTabM, 745 lines."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MzTabMFile.h",
+      "sha256": "4d97e6874f219b7459e3be2a0aed8741e581e539144374d3f8cc53e6b0a4ed68",
+      "role": "Ported header: the MzTab-M writer, 99 lines."
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "sha256": "a12b351f6bf7e2da305bff25c616c3d653a49019dc61be71840a82a7cdc5dcae",
+      "role": "Ported implementation: the metadata generator, the three header generators, the three row generators and store, 634 lines."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzTabM_test.cpp",
+      "sha256": "aa84a688ca6a30da00738da96b50415aceb738ace98fdd7949edc248a11a5c19",
+      "role": "Class test oracle, 342 lines, 4 START_SECTIONs with 1, 0, 21 and 6 assertion macros. All four ported."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzTabMFile_test.cpp",
+      "sha256": "69c015247e3463b447f642cc0ba3cb40799760fa349002b3fddacba7c4ab17bc",
+      "role": "Class test oracle, 59 lines, 3 START_SECTIONs with 1, 0 and 1 assertion macros. All three ported."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MzTabBase.h",
+      "sha256": "c434e6f2ed6dae49bfabb324441d212a533c704d33fb5b9c80aed421a23c60a4",
+      "role": "Read, not ported here: MzTabM derives from MzTabBase for the protected getOptionalColumnNames_ template, which stage 1 already replaced with crate::format::mztab::optional_column_names."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
+      "sha256": "5a1d37f0a750b5834d12f05db81ca561e04f671323bc04dd3ffa14e54a10364a",
+      "role": "Read for the shared-versus-replaced comparison in docs/MZTAB_M_SUPPORT.md; ported by stage 1 as src/format/mztab.rs."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
+      "sha256": "68f95d183392bdb6cbe022a9dea98bbfcbc6011ccee36615f066d2f28a604e63",
+      "role": "Read, not ported: MzTabMFile calls its static addOptionalColumnsToSectionRow_, which this package reproduces as write::optional_cells."
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+      "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe",
+      "role": "Read for the body of addOptionalColumnsToSectionRow_ at lines 2873-2892; otherwise unported."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/MzTabMFile_output_1.mztab",
+      "source_path": "src/tests/class_tests/openms/data/MzTabMFile_output_1.mztab",
+      "sha256": "14a5df2f880f6155834988f371c25dbedf33f17094049eded57214f2f3a82db6",
+      "bytes": 244542,
+      "role": "Unmodified retained C++ output: the file MzTabMFile_test.cpp's store section compares against, written by MzTabMFile::store from MzTabM::exportFeatureMapToMzTabM(MzTabMFile_input_1.oms). 509 lines: 25 MTD lines, three empty lines, three header lines, 83 SML rows, 83 SMF rows and 312 SME rows, with 0, 18 and 6 optional columns. Tier-1 evidence for the metadata section, all three headers, SML rows 3 and 5 (the latter with two entries in each of its eight list cells, pinning the '|' separators and the 'null|null' spelling of a two-entry list of null strings), SMF row 1 with all 18 of its optional columns, SME row 1 with all 6 of its optional columns, the three section sizes and the three optional-column counts."
+    },
+    {
+      "path": "tests/data/AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab",
+      "source_path": "src/tests/class_tests/openms/data/AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab",
+      "sha256": "4a3f75b8b0de9bab3155906401ba12c973bcc2ae8aa5656c33f7a7af4c8df2aa",
+      "bytes": 20680,
+      "role": "Unmodified retained C++ output of the AccurateMassSearch TOPP test, the one direct TOPP consumer of MzTabMFile.h. 24 MTD lines including two id_confidence_measure[n] entries and a file:// database URI, 15 SML rows, 15 SMF rows and 25 SME rows. Tier-1 evidence for the id_confidence_measure columns, the accurate-mass identification method and the scientific-notation number spellings 3.631019921875e04 and -6.848277357391908e-04."
+    }
+  ],
+  "native_implementation": [
+    "src/format/mztab_m.rs"
+  ],
+  "native_tests": [
+    "tests/mztab_m.rs"
+  ],
+  "support": "docs/MZTAB_M_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 20,
+      "operation": "MzTabMMetaData's constructor sets mz_tab_version to \"2.0.0-M\"; MzTabMMetaData::default() does the same"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 87,
+      "operation": "addMetaInfoToOptionalColumns substitutes '_' for ' ' in the column NAME only and looks the key up unchanged; the body is byte-identical to MzTab::addMetaInfoToOptionalColumns at MzTab.cpp:590-609"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 108,
+      "operation": "getFeatureMapMetaValues_ substitutes '_' for ' ' in every collected feature key BEFORE storing it, so the later metaValueExists() lookup misses any key with a space; MzTabMExportOptions::substitute_keys_before_lookup"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 118,
+      "operation": "the same substitution for observation-match keys"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 125,
+      "operation": "observation-match keys containing \"IDConverter_trace\" are excluded, because IdentificationDataConverter adds one per traced record"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 137,
+      "operation": "the same substitution for identified-compound keys"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 152,
+      "operation": "OPENMS_PRECONDITION(!id_data.empty()) is debug-only; a release build reads an empty graph. The port returns Error::MissingInformation"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 168,
+      "operation": "mz_tab_id is \"local_id: \" plus FeatureMap::getUniqueId(), a UInt64"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 182,
+      "operation": "the vocabulary is loaded from File::find(\"/CV/psi-ms.obo\") under the name \"PSI-MS\"; this port takes a &ControlledVocabulary instead"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 193,
+      "operation": "\"TOPP \" + software name is looked up first, and \"analysis software\" is the fallback; MS:1001456 appears three times and MS:1002169 once in the retained output"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 207,
+      "operation": "software[n] indices are assigned as map.size() + 1, so they follow the (name, version) order of std::set<ProcessingSoftware>"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 232,
+      "operation": "quantification_method is LC-MS label-free quantitation analysis for FeatureFinderMetabo, and the fallback at line 246 uses the same term, so the output cannot differ"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 262,
+      "operation": "the input-file loop overwrites ms_run[1]-location, so the last input file in set order wins; the comment says there should only be one"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 266,
+      "operation": "the location has every backslash replaced by a slash and is file://-prefixed unless already prefixed"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 287,
+      "operation": "scan polarity is positive only when first_adduct.at(first_adduct.size() - 1) == '+', so every other final character - including the 'H' of a name such as M+H - selects negative; an empty name underflows and at() throws std::out_of_range. The port matches on the last character, reproducing the == '+' test for every non-empty name and selecting positive for the empty one instead of throwing"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 307,
+      "operation": "with no adduct at all the source warns and assumes positive scan polarity"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 320,
+      "operation": "assay[1] is \"assay_\" plus the trimmed prefix of the basename up to the first '.'; String::prefix(char) throws when the basename has no '.', where the port uses the whole basename"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 349,
+      "operation": "meta_cv.label = cv.name() and meta_cv.full_name = cv.label() cross the two; both retained fixtures show cv[1]-label PSI-MS and cv[1]-full_name MS. MzTabMExportOptions::swap_cv_label_and_full_name"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 360,
+      "operation": "the MzTabMDatabaseMetaData record is declared outside the loop and accumulates, so a search parameter without a database_location keeps the previous parameter's URI instead of the https://hmdb.ca/ default set at line 364"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 368,
+      "operation": "a database name containing \"custom\" nulls the prefix and writes \"[,, <name>, ]\"; otherwise the prefix is the database name and the parameter is \"[,,<name>, ]\""
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 402,
+      "operation": "the quantification unit is guessed from FeatureFinderMetabo's \"parameter: algorithm:mtd:quant_method\": area -> MS1 feature area, median -> median, anything else -> MS1 feature maximum intensity; absent -> MS1 feature area at line 430"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 440,
+      "operation": "small_molecule-identification_reliability is always \"compound identification confidence level\" (MS:1002896)"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 455,
+      "operation": "id_confidence_measure[n] is \"[,, <score type name>, ]\", one per assigned score of each software in the IDENTIFICATION action list, numbered from 1 in software order"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 483,
+      "operation": "identification_method and ms_level per tool: AccurateMassSearch -> accurate mass at level 1, SiriusAdapter -> de novo search at level 2, MetaboliteSpectralMatcher -> TOPP SpecLibSearcher at level 2, anything else level 1"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 509,
+      "operation": "ms_level defaults to level 1 when no identification tool ran"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 518,
+      "operation": "the placeholder \"[, , OpenMS TOPP, ]\" is detected by its empty CV label and accession and replaced with \"data processing action\" (MS:1000543); that is what the retained store output's SME rows carry"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 537,
+      "operation": "a feature with no identification still gets an SMF row, with a null SME_ID_REFS, a null ambiguity code, and its adduct from the feature's own \"adducts\" meta value or null"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 572,
+      "operation": "std::set<ObservationMatchRef, CompareMzTabMMatchRef> discards every match that shares an identified compound's identifier with an earlier one, and the survivor depends on the address ordering of the feature's own reference set. MzTabMExportOptions::deduplicate_matches_by_compound"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 584,
+      "operation": "evidence_input_id is \"mass=<mz>,rt=<rt>\" with StringUtils::toStr(double), i.e. fifteen fractional digits trimmed"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 596,
+      "operation": "calc_mass_to_charge is the compound formula's monoisotopic mass, uncorrected for adduct and charge, so the theoretical_mass_to_charge column holds a neutral mass"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 610,
+      "operation": "ScoredProcessingResult::getScore returns (NaN, false) for an absent score and the NaN is stored in a value cell, which renders NaN rather than the NaN state"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 635,
+      "operation": "SME_ID_REF_ambiguity_code is null for at most one referenced evidence and 1 otherwise"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 660,
+      "operation": "one SML row per SMF row: OpenMS does not aggregate two features whose adducts imply the same neutral mass"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 680,
+      "operation": "the std::find_if iterator that locates the referenced SME row is dereferenced without comparing it to end(); the port returns Error::MissingInformation"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 688,
+      "operation": "theoretical_neutral_mass is EmpiricalFormula(chemical_formula).getMonoWeight() unless the cell renders \"\" or \"null\"; the \"\" test is dead because MzTabString renders a null cell as \"null\""
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 712,
+      "operation": "abundance_study_variable[1] and abundance_variation_study_variable[1] are created by operator[] and then set null, which is why the retained SML rows carry those two columns"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabM.cpp",
+      "line": 732,
+      "operation": "getAdductString_ reformats M+H;1+ to [M+H]1+ by splitting on the first ';' only, and returns the literal \"null\" when the match has no adduct"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 26,
+      "operation": "mzTab-version and mzTab-ID are written unconditionally, so an unset cell appears as null; title and description are guarded"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 190,
+      "operation": "the ms_run block writes location, instrument_ref, format, fragmentation_method[m], scan_polarity[m], hash and hash_method, and never id_format. MzTabMWriteOptions::omit_ms_run_id_format"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 230,
+      "operation": "an assay's custom[m] is written under the key ms_run[<assay index>]-custom[m]. MzTabMWriteOptions::source_assay_custom_key"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 242,
+      "operation": "assay[n]-sample_ref is guarded by isNull() while assay[n]-ms_run_ref at line 246 is not, so a null ms_run_ref writes ms_run[null]"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 261,
+      "operation": "study_variable[n]-assay_refs is a String[] cell of assay[k] tokens, pipe-separated"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 331,
+      "operation": "derivatization_agent[n] is written with a -uri suffix the specification does not define. MzTabMWriteOptions::source_derivatization_agent_key"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 355,
+      "operation": "colunit_small_molecule_feature is written under the key colunit_small_molecule. MzTabMWriteOptions::source_colunit_keys"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 361,
+      "operation": "colunit_small_molecule_evidence is written under the key colunit_small_molecule as well"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 379,
+      "operation": "the SML header spells the adduct column adduct_ions, while the SFH and SEH headers spell it adduct_ion"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 384,
+      "operation": "the SMH abundance columns come from meta.assay once and from meta.study_variable twice; the SFH header at line 457 takes only meta.assay"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 422,
+      "operation": "the SML row's abundance cells are emitted by iterating the row's own maps, not the metadata's, so a short row is possible. MzTabMWriteOptions::source_row_abundance_cells"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 437,
+      "operation": "MzTabFile::addOptionalColumnsToSectionRow_ is called from all three row generators; its body is at MzTabFile.cpp:2873-2892 and is reproduced here as write::optional_cells"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 508,
+      "operation": "the SEH column for calc_mass_to_charge is named theoretical_mass_to_charge, and the id_confidence_measure[n] columns at line 513 sit between ms_level and rank"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 562,
+      "operation": "store accepts only the mzTab and tsv file types, with FileHandler::hasValidExtension also permitting an unknown extension; the failure is Exception::UnableToCreateFile, mapped to Error::InvalidValue"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 572,
+      "operation": "one empty line precedes each of the three headers, and there is no trailing empty line"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 585,
+      "operation": "the three column-count checks are OPENMS_POSTCONDITIONs, compiled out of a release build; the port's native options make a mismatch impossible instead"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 626,
+      "operation": "the lines are written through TextFile, so every line including the last gets one terminator"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MzTabMFile.cpp",
+      "line": 629,
+      "operation": "every rendered row reaches TextFile unchanged, so a cell carrying a tab gains a column and one carrying a line break splits the row across physical lines - text beginning with MTD/SMH/SML then forges a line of that kind; the OPENMS_POSTCONDITION column check cannot see it because it counts pushed cells rather than tabs. MzTabMWriteOptions::source_verbatim_cells, default off"
+    }
+  ],
+  "external_reference_artifacts": [],
+  "evidence": "Tier 1 for the writer's line grammar and for the exporter's metadata section; tier 3 for the data model; tier 4 for the ceilings, the native error paths and the non-ASCII inputs. Two unmodified retained C++ outputs are committed and hashed above: MzTabMFile_output_1.mztab, the exact bytes MzTabMFile_test.cpp's store section compares against, and AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab, the retained MzTab-M output of the one direct TOPP consumer of MzTabMFile.h. Against those two files this package asserts byte equality for: all 25 MTD lines of the first and all 24 of the second, each reproduced twice - once from a hand-built MzTabMMetaData through generate_meta_data_section, and once from MzTabM::export_feature_map_with driven by a synthetic IdentificationData graph; all six header lines, including the two id_confidence_measure[n] columns the second fixture declares; SML row 3, SMF row 1 and SME row 1 of both files, with all 18 and all 6 optional columns of the first; the three section sizes 83/83/312 and the three optional-column counts 0/18/6 that the exportFeatureMapToMzTabM section asserts; and the three-empty-line section structure. Ten PSI-MS accessions the exporter selects (MS:1001456, MS:1002169, MS:1001834, MS:1000130, MS:1000129, MS:1001844, MS:1002896, MS:1000207, MS:1000511, MS:1000543) are confirmed both against the pinned resources/cv/psi-ms.obo and against the retained bytes. All 7 START_SECTIONs of the two class tests are ported, none merely mapped and none unaccounted; the 21-macro Fill data structure section is transcribed literal by literal, and transcribed C++ literals are tier-3 evidence. The one gap is that neither data-carrying section's INPUT can be fed to the port: both load MzTabMFile_input_1.oms and OMSFile.h is unported, so the exporter has no end-to-end tier-1 differential - its metadata section is verified byte for byte and its row construction only behaviourally. No C++ was built or executed for this package.",
+  "gaps": [
+    "MzTabMFile_input_1.oms cannot be read: OMSFile.h is unported. Both data-carrying class-test sections load it, so the exporter's row construction is verified behaviourally rather than end to end. This is why the MzTabM.h ledger status is partial.",
+    "MzTabFile.h is unported; its static addOptionalColumnsToSectionRow_ is reproduced here as write::optional_cells and should move when that header lands.",
+    "ControlledVocabulary::psi_ms() holds all five pinned vocabularies in one object, so its name/label/version/url identify the last one loaded and MzTabM::export_feature_map produces a generic cv[1] block. The tests load resources/cv/psi-ms.obo alone under the name PSI-MS to reproduce the source's cv[1]; a PSI-MS-only accessor on ControlledVocabulary would remove the need.",
+    "No reader exists for MzTab or MzTab-M in either language, so nothing round-trips through the format.",
+    "docs/core-sdk-coverage.json and docs/core-sdk-reviewed-apis.json are not updated by this package; the ledger entries and the coverage regeneration are proposed in the work-package report."
+  ]
+}

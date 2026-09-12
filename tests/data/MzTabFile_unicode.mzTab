@@ -1,0 +1,13 @@
+COM	日本語のコメント行です
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	Summary
+MTD	mzTab-type	Identification
+MTD	mzTab-ID	ユニコード試験
+MTD	description	ペプチド同定の要約 — em dash and Ω
+MTD	psm_search_engine_score[1]	[MS, MS:1001171, Mascot:score, ]
+MTD	ms_run[1]-location	file:///データ/試料.mzML
+MTD	colunit-psm	retention_time=[UO, UO:0000031, minute, ]
+
+PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_備考
+PSM	NDYKAPPQPAPGK	38	IPI:B1	1	null	null	[, , Percolator, ]	51.5	null	1336.5	3	600.25	NaN	ms_run[1]:scan=1296	K	I	424	439	日本語の注記
+PSM	ÄÖÜQRS	39	IPI:B2	0	null	null	[, , Percolator, ]	Inf	null	1337.5	2	400.5	null	ms_run[1]:scan=1297	R	-	1	6	null

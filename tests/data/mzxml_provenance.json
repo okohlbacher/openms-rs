@@ -1,0 +1,357 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzXMLFile.h",
+   "sha256": "c169e1f74e42e83c7500b8cbff4e6f4f8d2bd41259cbb97c150c9d798e19da6c"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzXMLFile.cpp",
+   "sha256": "34a3b2c400f1afa27f4bf41563d04c5de6faf47a73abda57df5c08e007643fba"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzXMLHandler.h",
+   "sha256": "de0a04f443a65f7623defa62e34d8f2dc9089f194775080105d372f9edf3d2f6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzXMLFile_test.cpp",
+   "sha256": "ee71786eced087d9f6ed5e929a5d28033c5830796c193b00f3c82b2a18057eda",
+   "role": "The oracle. 652 lines, 15 START_SECTIONs, all ported. Every transcribed literal in tests/mzxml.rs comes from here."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264",
+   "role": "Not ported here. Read for the attribute and conversion helpers the handler relies on: attributeAsString_/attributeAsInt_/attributeAsDouble_ are fatal when absent, the optionalAttributeAs*_ char16_t overloads assign before returning and the String one returns !value.empty(), asDouble_/asInt_ log a non-fatal error and return zero, and asDateTime_ trims to 19 characters and logs instead of failing."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7",
+   "role": "Not ported here. Read for cvStringToEnum_ (first match wins, unknown term warns and returns index 0) and for error/warning being log-only while fatalError throws."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/XMLFile.h",
+   "sha256": "dbdf6d6a9f9b0de336bcc90d507dcdda86dace44fa583308f5ec39d908a2edf4",
+   "role": "Not ported here. The base class MzXMLFile inherits: schema_location_/schema_version_, getVersion, isValid (unported, needs the mzXML XSD) and the compression-sniffing parse_/save_ pair this crate's path_io replaces."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/MzXMLFile_1.mzXML",
+   "source_path": "src/tests/class_tests/openms/data/MzXMLFile_1.mzXML",
+   "sha256": "fc6a96d8b35c05ee3d9b62996b09cddfb52c19fa3c6c1eb0f6550a9e7d6c08e7",
+   "bytes": 3177,
+   "role": "Unmodified upstream. The package's main fixture: four scans with MS levels 1/1/1/2 where scan 13 is an XML child of scan 12, 32-bit big-endian peak pairs, two <parentFile> records, a full <msInstrument> with an <operator> and two <nameValue> entries, two <dataProcessing> steps, three <precursorMz> elements and a scan <comment>. It declares pairOrder= rather than contentType=, an attribute the handler never reads, and declares the mzXML_2.1 namespace while OpenMS registers 3.1."
+  },
+  {
+   "path": "tests/data/MzXMLFile_1_compressed.mzXML",
+   "source_path": "src/tests/class_tests/openms/data/MzXMLFile_1_compressed.mzXML",
+   "sha256": "68344eaf9093d7e6c5ad506e8c0a1ff18dd200d9b60fd51b703a19345c47c767",
+   "bytes": 3262,
+   "role": "Unmodified upstream. MzXMLFile_1 with compressionType=\"zlib\" on every <peaks>; MzXMLFile_test.cpp:343-348 asserts the two load to equal experiments."
+  },
+  {
+   "path": "tests/data/MzXMLFile_2_minimal.mzXML",
+   "source_path": "src/tests/class_tests/openms/data/MzXMLFile_2_minimal.mzXML",
+   "sha256": "53caef66a653301f65e8667f0a6a0de5b2d9de14477129cb07687efc5977500e",
+   "bytes": 596,
+   "role": "Unmodified upstream. One scan whose base64 is broken by spaces, a newline and a tab, an empty fileSha1, and no retentionTime attribute, which the source reads as 0.0 rather than the MSSpectrum sentinel -1."
+  },
+  {
+   "path": "tests/data/MzXMLFile_3_64bit.mzXML",
+   "source_path": "src/tests/class_tests/openms/data/MzXMLFile_3_64bit.mzXML",
+   "sha256": "ca281bbe9b1dc8260a0ad87b548af663de6fe53d07372fe56b2abfbd3758f34a",
+   "bytes": 2072,
+   "role": "Unmodified upstream. Mixes precision=\"32\" and precision=\"64\" payloads, exercises the composite durations PT1S / PT2M1S / PT1H61S (1, 121 and 3661 seconds), all three polarity spellings any/+/-, scanType Full and zoom, and startMz/endMz. Its first payload ends AA1=, whose two surplus base64 bits are set: a canonical decoder refuses it, and MzXMLFile_test.cpp:313 asserts the resulting intensity 100.0000991821289."
+  },
+  {
+   "path": "tests/data/MzXMLFile_5_nested.mzXML",
+   "sha256": "3402f37d551061f1eb79d7227bcc16c796b7733980725334131c83f0775f0500",
+   "bytes": 1789,
+   "role": "Hand-written for this package; not upstream. A three-level scan tree (MS1 > MS2 > MS3) in which every level carries a <nameValue> and a <comment> AFTER its nested child, which is the shape that reveals the upstream metadata misattribution, plus a fourth scan whose <peaks> is xsi:nil. Peak payloads are (120,100), (121,50) and (122,25) as 32-bit big-endian pairs."
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzXMLFile_4_long.mzXML",
+   "sha256": "30ecfc2276ed99c25a15ef5797b3bd26518c85c28933057d430cdb0ef337cab0",
+   "bytes": 10641595,
+   "copied": false,
+   "role": "NOT copied into this repository: 10.6 MB would more than double tests/data, whose current largest entry is 3.4 MB. Hashed here for provenance. It is one scan with peaksCount=\"997530\" and retentionTime=\"-PT1S\", written by OpenMS itself for a spectrum whose retention time was the MSSpectrum default -1. tests/mzxml.rs generates an equivalent document with the same 997530 peaks and asserts the upstream count; the coordinates are independently derived."
+  }
+ ],
+ "native_implementation": [
+  "src/format/mzxml.rs"
+ ],
+ "native_tests": [
+  "tests/mzxml.rs"
+ ],
+ "support": "docs/MZXML_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/MzXMLFile.cpp",
+   "line": 18,
+   "operation": "the constructor registers /SCHEMAS/mzXML_idx_3.1.xsd and version 3.1, which is the only place the schema version is set"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzXMLFile.cpp",
+   "line": 83,
+   "operation": "the transform overload that takes a map forces setAlwaysAppendData(true) on a copy of the options, so the caller's false does not suppress the map"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzXMLFile.cpp",
+   "line": 100,
+   "operation": "transformFirstPass_ sets metadata_only = skip_full_count AND load_detail = LD_RAWCOUNTS; with skip_full_count true the scan handler throws EndParsingSoftly before ++scan_count_, so the consumer is told to expect zero spectra"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 126,
+   "operation": "if (skip_spectrum_ && tag != \"scan\") return — a filtered scan swallows every child except a nested <scan>, and the nested scan resets the flag"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 170,
+   "operation": "the <peaks> handler indexes spectrum_data_.back() unconditionally; with no open <scan> the vector is empty and this is undefined behaviour"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 172,
+   "operation": "an unknown precision, a non-network byteOrder, a non-m/z-int contentType and an unknown compressionType are reported through error(LOAD, ...), which only writes to the log stream; decoding then proceeds with the wrong interpretation"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 185,
+   "operation": "the pair order is read from contentType, not from the pairOrder attribute MzXMLFile_1.mzXML actually writes, so the default m/z-int carries that fixture"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 205,
+   "operation": "precursorIntensity is read with the throwing attributeAsDouble_ inside a try/catch that logs and leaves the intensity at its default zero"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 219,
+   "operation": "windowWideness is stored whole in the lower isolation offset and halved into both offsets only when the m/z character content arrives, so an empty <precursorMz/> keeps the full width in the lower offset"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 242,
+   "operation": "metadata_only throws EndParsingSoftly on the first <scan>, after nesting_level_++ and before ++scan_count_"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 259,
+   "operation": "xs:duration parsing takes StringUtils::suffix(time_string, 'T'), which discards the leading sign and any day component, then adds the H, M and S components, each converted by XMLHandler::asDouble_ with nothing stripped - so PT-1S reads as -1 and the P1 of a month-only P1M is a conversion error contributing 0, while -PT1S reads as +1. This port removes only the leading sign and negates the total."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 282,
+   "operation": "++scan_count_ happens before the RT/MS-level/LD_RAWCOUNTS filter, so getScanCount() counts every scan in the file"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 302,
+   "operation": "spectrum.reserve(peak_count_ / 2 + 1) reserves half of what the decode loop needs; the comment above it (\"peak count == twice the scan size\") contradicts the loop at :1177 and is stale"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 311,
+   "operation": "a ScanWindow is stored only when startMz or endMz is nonzero, and neither is compared against the other"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 377,
+   "operation": "scanType EPI rewrites the MS level to 2, and ER and zoom set the zoom-scan flag; EMS, EPI and ER are non-standard ABI Sashimi values"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 436,
+   "operation": "<msResolution> indexes getMassAnalyzers()[0] unconditionally, which is undefined behaviour when it precedes <msMassAnalyzer>"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 481,
+   "operation": "<nameValue> and <software> read *(open_tags_.end() - 2) for the parent tag, which is out of bounds when the element is the document root"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 489,
+   "operation": "a <nameValue> inside a <scan> is attached to spectrum_data_.back(), the most recently STARTED scan; nothing pops that on </scan>, so a parent's nameValue written after a nested child lands on the child"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 539,
+   "operation": "the pending batch is flushed only when nesting_level_ reaches zero, so an entire nested scan tree is committed together"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 572,
+   "operation": "onCharacters applies setMZ and the window halving per text chunk, so a split <precursorMz> halves the window twice; setComment at :605 likewise keeps only the last chunk of a split comment"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 586,
+   "operation": "a precursor m/z outside the configured range sets skip_spectrum_ and pops spectrum_data_, which for a nested scan can pop a different spectrum than the one being filtered"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 634,
+   "operation": "writeTo counts only nonempty spectra for scanCount and bumps a zero to one, because an empty mzXML is not schema-valid"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 640,
+   "operation": "msRun startTime and endTime are the FIRST and LAST spectrum's retention times, not the minimum and maximum, and no sign is written, so a default -1 becomes the invalid PT-1S"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 664,
+   "operation": "fileType is an mzXML enumeration, so the OpenMS free-text type is lowercased and searched for \"raw\"; a checksum that is not 40 SHA-1 characters is replaced with forty zeros at :674"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 696,
+   "operation": "an empty vendor plus an acquisition software name containing \"xcalibur\" makes the writer claim \"Thermo Scientific\", because MaxQuant's parameter defaults require it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 733,
+   "operation": "<msResolution> is omitted when the resolution method has no mzXML name, but must not be empty when written, or MaxQuant crashes on loading"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 774,
+   "operation": "the data processing of the FIRST spectrum is written as the whole file's <dataProcessing>; other spectra's processing is discarded"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 826,
+   "operation": "native IDs are classified before writing: all bare numbers or all scan=-prefixed numbers are preserved, anything else is renumbered from one, and the loss is only warned about when at least one nonempty ID was unparsable"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 867,
+   "operation": "force_mq_compatibility skips empty spectra with continue, but the next MS level at :1086 is still read from cexp_[s+1] even when that spectrum is about to be skipped"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 886,
+   "operation": "indentation is std::string(ms_level + 1, '\\t'), so a hostile MS level allocates gigabytes of tabs per written line"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 967,
+   "operation": "under force_mq_compatibility an unsorted spectrum is reported through error(STORE, ...), which only logs, and begin()->getMZ() and rbegin()->getMZ() are written as lowMz and highMz regardless"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 977,
+   "operation": "basePeakMz is the one statistics attribute written unconditionally; lowMz, highMz, basePeakIntensity and totIonCurrent need force_mq_compatibility"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1008,
+   "operation": "precursorIntensity is written as (int)precursor.getIntensity(), truncating a fractional intensity"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1031,
+   "operation": "the precursor m/z written is the acquisition's [Thermo Trailer Extra]Monoisotopic M/Z: meta value when present, because the old ReAdW converter uses it and it is more accurate"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1043,
+   "operation": "the <peaks> tag is broken across lines under force_mq_compatibility because MaxQuant's reader fails otherwise, while TPP tools such as SpectraST cannot deal with the breaks; a fatalError guards against the newlines being removed by a later edit"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1049,
+   "operation": "the writer always emits precision=\"32\", byteOrder=\"network\", contentType=\"m/z-int\", compressionType=\"none\" and compressedLen=\"0\", narrowing every f64 m/z to float"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1073,
+   "operation": "an empty spectrum writes <peaks ... xsi:nil=\"true\" /> with no payload"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1089,
+   "operation": "the scan nesting is derived from MS levels alone: when the next level is not higher, ms_level - next_ms_level + 1 scans are closed, stopping early if the open-scan stack empties"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1101,
+   "operation": "the <index>/<indexOffset> trailer is written when write_index OR force_mq_compatibility is set, with spaces around the = of the index and offset attributes"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1141,
+   "operation": "writeUserParam_ skips only keys whose first character is '#', and does not skip the keys already written as <scan> attributes, so filterLine and the statistics keys are emitted twice"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 646,
+   "operation": "the root element's xsi:schemaLocation is written as two whitespace-separated tokens, the namespace then the .xsd location, with the separating space emitted explicitly at the start of the second stream fragment"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1153,
+   "operation": "doPopulateSpectraWithData_ returns immediately for an empty char_rest_, so a nonzero peaksCount with an empty payload is not an error"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1175,
+   "operation": "assert(data.size() == 2 * spectrum_data.peak_count_) is compiled out in release builds and the loop then runs to 2 * peak_count_ reading data[n] and data[n+1], so a short payload reads past the decoded buffer; the 32-bit branch at :1202 is identical"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1224,
+   "operation": "populateSpectraWithData_ decodes the pending batch under #pragma omp parallel for, counts failures in an atomic and re-throws one ParseError for any of them"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "line": 1271,
+   "operation": "init_ builds the five position-indexed CV tables; cv_terms_[1] is documented as no longer used, and the ionization, analyzer, detector and resolution tables are padded to their enum sizes with empty strings that cvStringToEnum_ never reaches because index 0 is also empty"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "line": 135,
+   "operation": "cvStringToEnum_ returns the FIRST matching table index and, for an unknown term, warns and returns result_on_error, which defaults to zero"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "line": 71,
+   "operation": "error() and warning() only write to the log stream; only fatalError() throws, so every error(LOAD, ...) in MzXMLHandler is a load that continues"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "line": 369,
+   "operation": "asDateTime_ trims the string to its first 19 BYTES with StringUtils::substr before parsing, which would split a multi-byte character"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "line": 569,
+   "operation": "the char16_t optionalAttributeAsString_ overload returns !value.empty(), so a present but empty attribute assigns the empty string and still reports false"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DRange.h",
+   "line": 152,
+   "operation": "DRange::encloses is closed below and OPEN above (position >= max_ returns false), so every PeakFileOptions range excludes its own maximum"
+  }
+ ],
+ "evidence": "Tier 3 source review. Expectations are transcribed C++ literals from MzXMLFile_test.cpp (652 lines, 15 START_SECTIONs, all ported, none merely mapped) and the four unmodified upstream fixtures listed above: four scans with MS levels 1/1/1/2 and sizes 1/3/5/5, native IDs scan=10..scan=13, peak coordinates 100..140 with intensities 100..300, the two parentFile records with SHA-1 digests 2fd4e1c67a2d28fced849ee1bb76e7391b93eb12 and ...eb13, the MS-X 1.0 / MS-Y 1.1 processing steps with the 2001-02-03 04:05:06 completion time and the 3.4 intensity cutoff, the MS-Vendor / MS 1 / ESI / Quadrupole Ion Trap / Faraday Cup / FWHM / MS-Z 3.0 instrument, the FirstName/LastName/0049/a@b.de/http://bla.de operator, the three precursors at m/z 101/201/301 with intensities 100/200/300, charges 1/2/3 and half-widths 5/10/15, the 64-bit fixture's retention times 1/121/3661 from PT1S/PT2M1S/PT1H61S and its 100.0000991821289 intensity from a non-canonical base64 tail, the 997530-peak long spectrum, and the total ion current 2300 over 14 peaks that both transform sections assert. TRANSCRIBED C++ LITERALS ARE TIER-3 EVIDENCE: they detect transcription drift, not a misread algorithm. No C++ was built or executed, no C++ output was retained, and there is no oracle driver, so this is NOT a tier 1 differential. Independent of that suite: the store/load round trip of MzXMLFile_1.mzXML is asserted field by field on the whole MSExperiment rather than on selected values, and the written <index> offsets are dereferenced back into the document and required to land exactly on their <scan num=\"N\"> tags, which no OpenMS read path checks. The resource ceilings, the four attribute rejections, the peaksCount/payload comparison, the nested-scan metadata attribution, the retention-time sign, the writer's lossless defaults, the non-ASCII inputs and the eleven malformed documents are tier 4, independently derived, because no upstream fixture reaches them.",
+ "gaps": [
+  "XMLFile::isValid against mzXML_idx_3.1.xsd is not ported: this crate embeds no mzXML schema and crate::format::mzml_schema is mzML-only. The one assertion of the upstream [EXTRA] isValid section is replaced by a structural check (3.1 namespace and schema location present, balanced <scan> elements, reloads to the same experiment), which is weaker than XSD validation and is labelled as such in docs/MZXML_SUPPORT.md.",
+  "ProgressLogger is a constructor parameter of both source classes and is not threaded through this module; there is no progress callback. The non-fatal observations the source sends to its log stream come back in ReadReport instead.",
+  "src/format/file_handler.rs does not dispatch FileType::MzXml to this module, although the file type and its content magic already exist. That file is outside this package.",
+  "The source parallelises batch decoding with #pragma omp parallel for (MzXMLHandler.cpp:1224); this port is serial, so a large file decodes on one core.",
+  "docs/doc-coverage.json was not rewritten: src/format/mzxml.rs measures 100.0% (42/42) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
+  "docs/core-sdk-coverage.json and docs/CORE_SDK_COMPLETION.md are stale because the coverage script now detects src/format/mzxml.rs as a candidate file for FORMAT/MzXMLFile.h. Two headers change status, not one: FORMAT/MzXMLFile.h gains candidate_rust_files, and FORMAT/HANDLERS/MzXMLHandler.h gains a reference_manifests entry for tests/data/mzxml_provenance.json with candidate_rust_files left empty, so the summary moves unmapped 497 -> 495 and evidence_requires_review 163 -> 165; docs/CORE_SDK_COMPLETION.md changes by two lines. Regenerating them with python3 tools/core_sdk_coverage.py --write, after the two ledger entries are added, is the integrating agent's step; both files are outside this package.",
+  "CI wiring was not added: append '--test mzxml' to a '--no-default-features --features mzml' line of the minimum-rust job in .github/workflows/rust.yml (rust.yml:86 or :87). The test passes under --features mzml alone and under cargo +1.85.0.",
+  "MzXMLFile_4_long.mzXML is not copied (10.6 MB); the long-spectrum section is reproduced from a generated document with the same peak count. The upstream file's sha256 is recorded above, so it can be added later without ambiguity.",
+  "mzXML cannot express the sample description, the HPLC gradient, instrument configurations, more than one ion source or analyzer, chromatograms, auxiliary data arrays, ion mobility or peptide identifications. Storing an mzML-derived experiment drops them, as upstream does; this is a format limit, not a port limit."
+ ]
+}

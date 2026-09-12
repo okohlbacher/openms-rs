@@ -38,6 +38,8 @@ pub mod ms2;
 pub mod peak_options;
 pub use peak_options::PeakFileOptions;
 pub(crate) mod path_io;
+/// Separated-value output with automatic separators and quoting (`SVOutStream.h`).
+pub mod sv_out_stream;
 
 pub use file_handler::FileHandler;
 pub use file_types::{FileProperty, FileType, FileTypeList, FilterLayout};
@@ -69,10 +71,22 @@ pub mod indexed_mzml;
 /// Random access to one record of an indexed mzML file (`IndexedMzMLHandler.h`).
 #[cfg(feature = "mzml")]
 pub mod indexed_mzml_handler;
+/// Streaming mzML consumer that writes records as they arrive (`MSDataWritingConsumer.h`).
+#[cfg(feature = "mzml")]
+pub mod ms_data_writing_consumer;
 #[cfg(feature = "mzml")]
 pub mod mzml;
 #[cfg(feature = "mzml-schema")]
 pub mod mzml_schema;
+/// MzTab data model: cell vocabulary, record structs and document (`MzTabBase.h`, `MzTab.h`).
+pub mod mztab;
+/// MzTab file adapter: reading and writing `.mzTab` documents (`MzTabFile.h`).
+pub mod mztab_file;
+/// MzTab-M metabolomics profile: data model, `FeatureMap` export and writer (`MzTabM.h`, `MzTabMFile.h`).
+pub mod mztab_m;
+/// Legacy mzXML 3.1 adapter: nested scans and paired peak arrays (`MzXMLFile.h`).
+#[cfg(feature = "mzml")]
+pub mod mzxml;
 
 use crate::{Error, Result};
 
