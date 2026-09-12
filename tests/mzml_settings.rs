@@ -233,7 +233,6 @@ fn structural_duplicates_conflicts_and_nonfinite_fields_are_checked() {
     for contents in [
         "<scanWindow/>".into(), "<scan/>".into(),
         "<scanList count=\"1\"><scanWindowList count=\"0\"/></scanList>".into(),
-        window.replace("count=\"1\"><scanWindow>","count=\"2\"><scanWindow>"),
         window.replace("value=\"2\"","value=\"NaN\""),
         window.replace("value=\"2\"","value=\"0\""),
         window.replace("<cvParam accession=\"MS:1000500\"", "<cvParam accession=\"MS:1000501\""),
@@ -241,9 +240,30 @@ fn structural_duplicates_conflicts_and_nonfinite_fields_are_checked() {
         window.replace("</scanWindow>","<userParam name=\"unit_accession\" value=\"UO:0000018\"/></scanWindow>"),
         format!("{}{}",cv("MS:1000579",""),cv("MS:1000580","")),
         format!("{}{}",cv("MS:1000130",""),cv("MS:1000129","")),
-        "<productList count=\"2\"><product/></productList>".into(),
         "<productList count=\"1\"><product><isolationWindow/><isolationWindow/></product></productList>".into(),
     ] { assert!(read(&spectrum(&contents)).is_err(),"{contents}"); }
+    // A scanWindowList or productList count disagreeing with its children is
+    // advisory on reading: neither tag has an open-tag handler in
+    // MzMLHandler.cpp, so the declared value is never compared. Its parameter
+    // ceiling still applies (see the limits test below).
+    for contents in [
+        window.replace("count=\"1\"><scanWindow>", "count=\"2\"><scanWindow>"),
+        "<productList count=\"2\"><product/></productList>".into(),
+    ] {
+        assert!(read(&spectrum(&contents)).is_ok(), "{contents}");
+    }
+    // The attribute itself stays required and numeric.
+    for contents in [
+        window.replace("<scanWindowList count=\"1\">", "<scanWindowList>"),
+        window.replace(
+            "<scanWindowList count=\"1\">",
+            "<scanWindowList count=\"x\">",
+        ),
+        "<productList><product/></productList>".into(),
+        "<productList count=\"one\"><product/></productList>".into(),
+    ] {
+        assert!(read(&spectrum(&contents)).is_err(), "{contents}");
+    }
 }
 
 #[test]
