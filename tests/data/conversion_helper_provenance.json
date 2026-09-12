@@ -1,0 +1,99 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConversionHelper.h",
+      "sha256": "dd3785f8d8fbbd5b2f9cf3da395a9a7107b9c394e054f9fe5edbb27b9b1427fa"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConversionHelper.cpp",
+      "sha256": "495537816dcdca72e170837f5bfeafdfd6bcf2ea0a7a2be865ee6f04b04acc9d"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ConversionHelper_test.cpp",
+      "sha256": "de2ef21ded81b5c2cffded1e44cb00fefb24d60af35d574fef84ec5190b1dcd9"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "sha256": "d604cb44c4964c3f6d8526ebe95bbee10d1d9fb73115833d8a97c4aab7542c61"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "sha256": "b0166d47181ce74ced4937a112da94788cbc51eb57f88a426a1e62578458151d"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+    }
+  ],
+  "native_implementation": [
+    "src/kernel/conversion_helper.rs",
+    "src/kernel.rs"
+  ],
+  "native_tests": [
+    "tests/conversion_helper.rs"
+  ],
+  "support": "docs/CONVERSION_HELPER_SUPPORT.md",
+  "source_anchors": [
+    {
+      "path": "src/openms/source/KERNEL/ConversionHelper.cpp",
+      "line": 24,
+      "operation": "n is clamped against MSExperiment::getSize(), which counts every spectrum's peaks plus every chromatogram point, while the vector that is sorted comes from get2DData and holds MS1 peaks only"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConversionHelper.cpp",
+      "line": 35,
+      "operation": "std::partial_sort with that middle iterator is undefined when n exceeds tmp.size(), and the following loop indexes tmp[element_index] past the end; the sort is also not stable, so equally intense peaks may be cut arbitrarily"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConversionHelper.cpp",
+      "line": 47,
+      "operation": "the PeakMap overload sets the column header size to n, the number of peaks actually written"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConversionHelper.cpp",
+      "line": 56,
+      "operation": "the ConsensusMap-to-FeatureMap overload resizes the output and then assigns only the BaseFeature slice, so hulls, per-dimension qualities and subordinates stay default and the consensus handles and ratios are dropped"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConversionHelper.cpp",
+      "line": 98,
+      "operation": "the FeatureMap overload takes the output's container unique ID from the input, which the source comment calls an arguable design decision"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConversionHelper.cpp",
+      "line": 104,
+      "operation": "the FeatureMap overload sets the column header size to input_map.size(), the FULL input size, even when n truncated the copy"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 29,
+      "operation": "ConsensusFeature(UInt64, const Peak2D&, UInt64) builds the summary from the peak and inserts one handle identified by the element index"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 35,
+      "operation": "ConsensusFeature(UInt64, const BaseFeature&) uses BaseFeature(element, map_index), stamping map_index onto every copied peptide identification, then inserts FeatureHandle(map_index, element)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "line": 175,
+      "operation": "get2DData skips every spectrum whose MS level is not 1, which is why the conversion sees MS1 peaks only"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 744,
+      "operation": "getSize sums the peaks of all spectra AND all chromatograms, which is the count the clamp above uses"
+    }
+  ],
+  "evidence_tier": 3,
+  "evidence": "Tier 3 (source review): every literal in tests/conversion_helper.rs is transcribed from the pinned class test; no C++ was built or executed, and no retained C++ output exists for this header. Class-test section accounting: ConversionHelper_test.cpp 3 sections, 3 ported, 0 mapped-with-evidence, 0 unaccounted. One divergence is asserted and explained at the test: the source clamps the peak count against MSExperiment::getSize() and then reads past the end of the MS1-only vector whenever an MS2 spectrum or chromatogram is present, so this port clamps against the number of points actually collected. A second, smaller divergence is that the descending intensity sort is stable here and std::partial_sort in the source, so ties at the cut-off are reproducible. Everything the port checks that the source does not - the MAX_ITEMS ceiling and the feature validation ConsensusFeature::from_feature performs - is tier 4 (Rust-only invariants).",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}
