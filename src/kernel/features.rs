@@ -26,6 +26,13 @@ pub struct BaseFeature {
     pub unique_id: u64,
     pub peptide_identifications: Vec<PeptideIdentification>,
     pub metadata: MetaInfo,
+    /// The identified molecule this feature is primarily attributed to, from an
+    /// `IdentificationData` graph held alongside the map. `None` when unassigned.
+    pub primary_id: Option<crate::identification::graph::IdentifiedMolecule>,
+    /// Observation matches (PSM-level results) attributed to this feature, as
+    /// owner-tagged graph references. The graph itself is passed to the
+    /// operations that need it; see `docs/FEATURE_IDENTIFICATION_SUPPORT.md`.
+    pub id_matches: std::collections::BTreeSet<crate::identification::graph::ObservationMatchId>,
 }
 
 impl BaseFeature {
@@ -230,6 +237,19 @@ impl FeatureRanges {
 pub struct ConsensusFeature {
     pub base: BaseFeature,
     handles: Vec<FeatureHandle>,
+    /// Quantitative ratios between channels, as the source `ratios_`.
+    pub ratios: Vec<Ratio>,
+}
+
+/// A ratio between two quantified channels of a consensus feature.
+///
+/// Ports `ConsensusFeature::Ratio`. The two references name the channels by
+/// map description, as the source stores them.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Ratio {
+    pub ratio_value: f64,
+    pub denominator_ref: String,
+    pub numerator_ref: String,
 }
 
 impl Deref for ConsensusFeature {
@@ -248,6 +268,7 @@ impl From<BaseFeature> for ConsensusFeature {
         Self {
             base,
             handles: Vec::new(),
+            ratios: Vec::new(),
         }
     }
 }

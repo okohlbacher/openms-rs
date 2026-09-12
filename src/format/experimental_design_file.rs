@@ -175,10 +175,10 @@ fn find_spectra_file(
         let relative = format!("{}/{}", file::path(design_path), spec_file);
         if file::exists(&relative) {
             result = relative;
-        } else if let Ok(absolute) = file::absolute_path(spec_file)
-            && file::exists(&absolute)
-        {
-            result = absolute.to_string_lossy().into_owned();
+        } else if let Ok(absolute) = file::absolute_path(spec_file) {
+            if file::exists(&absolute) {
+                result = absolute.to_string_lossy().into_owned();
+            }
         }
     }
     if require && !file::exists(&result) {

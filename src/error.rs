@@ -17,6 +17,11 @@ pub enum Error {
     Unsupported(String),
     /// An underlying stream failed.
     Io(std::io::Error),
+    /// A range is empty, inverted or outside the representable domain.
+    InvalidRange(String),
+    /// A record lacks information an operation requires, as the source
+    /// `Exception::MissingInformation`.
+    MissingInformation(String),
 }
 
 impl fmt::Display for Error {
@@ -27,6 +32,8 @@ impl fmt::Display for Error {
             Self::Parse { line, message } => write!(f, "parse error on line {line}: {message}"),
             Self::Unsupported(message) => write!(f, "unsupported: {message}"),
             Self::Io(error) => error.fmt(f),
+            Self::InvalidRange(message) => write!(f, "invalid range: {message}"),
+            Self::MissingInformation(message) => write!(f, "missing information: {message}"),
         }
     }
 }

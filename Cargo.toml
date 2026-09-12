@@ -65,6 +65,12 @@ serde_json = { version = "=1.0.150", features = ["float_roundtrip"], optional = 
 [target.'cfg(any(unix, windows))'.dependencies]
 cpu-time = "=1.0.0"
 
+# Line tables keep panics and backtraces addressable while cutting the full
+# DWARF that made target/ reach 27 GB across 225 test binaries. Test semantics
+# (opt-level, overflow and debug assertions) are unchanged. Stable since 1.71.
+[profile.dev]
+debug = "line-tables-only"
+
 [lints.rust]
 unsafe_code = "forbid"
 

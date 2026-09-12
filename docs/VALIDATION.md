@@ -1,5 +1,55 @@
 # Validation of the ongoing Rust port
 
+## Kernel wave 0: MSRV, build baseline and scaffold (2026-09-12)
+
+Preparation for the parallel kernel port. Three findings are recorded because
+each corrects a claim made earlier in this project.
+
+**The minimum Rust version was broken.** `cargo +1.85.0 check --locked
+--all-features --all-targets` failed on release `5688775` with `E0658` at five
+let-chain sites: `src/cli.rs:128,345`, `src/metadata/experimental_design.rs:163,721`
+and `src/format/experimental_design_file.rs:178`. Let-chains stabilised in Rust
+1.88; edition 2024 accepts the syntax, so rustc 1.96 never reported it and the
+crate's own `rust-version = "1.85"` was not enforced locally. CI `minimum-rust`
+was red. All five are rewritten as nested `if`s; the 35 tests covering those
+sites pass unchanged. An adversarial review found three of the five; the 1.85
+compiler found the other two, and is now the gate — not a grep.
+
+**Build baseline, the first recorded.** Before any change `target/` held 27 GB
+(53.7 GiB of files) for 225 test binaries with full DWARF. With
+`[profile.dev] debug = "line-tables-only"` (test semantics unchanged):
+
+| Check | Result |
+| --- | --- |
+| `cargo test --locked --all-features --all-targets --no-run --timings` | 16 s, clean tree |
+| `cargo test --locked --all-features --all-targets` | 2,231 passed, 176 s |
+| `cargo test --locked --all-features --doc` | 4 passed (excluded by `--all-targets`; 2,235 total) |
+| `target/` after the full build | 4.0 GB |
+| `cargo +1.85.0 check --locked --all-features --all-targets` | clean |
+| `cargo +1.85.0 check --locked --no-default-features` | clean |
+| `cargo fmt --all -- --check` | clean |
+| `check_core_sdk`, `core_sdk_coverage`, `test_core_sdk_coverage`, `check_schema_feature_graph`, `check_doc_coverage` | pass |
+
+Machine: 16-core Apple Silicon, cargo 1.96. `cargo-timing.html` is kept outside
+the repository.
+
+**The struct-literal risk was phantom.** The plan feared ~400 struct literals
+would break when fields were added. A regex over `MSSpectrum {` counted return
+types, `impl` blocks and closure bodies; the compiler reports **zero** `E0063`
+missing-field errors after adding `MSSpectrum::{drift_time, drift_time_unit}`,
+`MSExperiment::sql_run_id`, `BaseFeature::{primary_id, id_matches}` and
+`ConsensusFeature::ratios`. Every real literal already used
+`..Default::default()`, the crate's existing convention. An automated fixer
+built on the same regex was reverted in full rather than patched.
+
+Scaffold additions: the fields above, `Ratio` (ports `ConsensusFeature::Ratio`:
+`ratio_value`, `denominator_ref`, `numerator_ref`), and `Error::{InvalidRange,
+MissingInformation}` mapped to `ILLEGAL_PARAMETERS` and `MISSING_PARAMETERS`.
+`src/kernel.rs`, `src/kernel/features.rs` and `src/error.rs` remain at 100%
+rustdoc coverage. Identification data is attached to maps **by reference**, a
+deliberate divergence from `FeatureMap.h:294`, because the graph is not `Clone`
+and embedding it would strip `Clone`/`PartialEq` from both map types.
+
 ## Indexed mzML writing and binary normalization (2026-09-11)
 
 [Recorded checks](mzml-output-validation.json) cover complete represented

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Restore the Rust 1.85 minimum: five let-chain sites (stabilised in 1.88, silently
+  accepted by newer compilers under edition 2024) are rewritten as nested `if`s.
+  CI `minimum-rust` was red on `5688775`.
+- Cut `target/` from 27 GB to 4 GB with `[profile.dev] debug = "line-tables-only"`;
+  record the first build and test timing baseline (16 s build, 176 s suite).
+- Kernel scaffold: `MSSpectrum::{drift_time, drift_time_unit}`,
+  `MSExperiment::sql_run_id`, `BaseFeature::{primary_id, id_matches}`,
+  `ConsensusFeature::ratios` and `Ratio`, plus `Error::{InvalidRange,
+  MissingInformation}`. Every existing struct literal already used
+  `..Default::default()`, so no caller changed.
+
 ## 0.2.0 — 2026-09-11
 
 First release with executable TOPP tools.

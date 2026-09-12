@@ -53,8 +53,10 @@ the source exit code: `MISSING_PARAMETERS`, `ILLEGAL_PARAMETERS`,
 
 Errors are typed `Result` values mapped to exit codes at the boundary rather
 than exceptions; `Error::Parse` becomes `PARSE_ERROR`, an I/O not-found becomes
-`INPUT_FILE_NOT_FOUND`, a permission failure `CANNOT_WRITE_OUTPUT_FILE`, and
-`Unsupported` `INCOMPATIBLE_INPUT_DATA`.
+`INPUT_FILE_NOT_FOUND`, a permission failure `CANNOT_WRITE_OUTPUT_FILE`,
+`Unsupported` and `UnsortedData` `INCOMPATIBLE_INPUT_DATA`, `InvalidValue` and
+`InvalidRange` `ILLEGAL_PARAMETERS`, and `MissingInformation`
+`MISSING_PARAMETERS`.
 
 Not yet ported, and deliberately deferred: `ToolHandler` and the `.tools.tsv`
 manifest discovery, `INIUpdater`, the CTD/CWL/JSON writers behind `-write_ctd`,

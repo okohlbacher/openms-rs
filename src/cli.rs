@@ -125,12 +125,12 @@ pub fn tool_spec<T: Tool>() -> Result<ToolSpec> {
 fn defaults_with_subsections<T: Tool>(spec: &ToolSpec) -> Result<Param> {
     let mut defaults = spec.to_param(T::NAME)?;
     for (name, description) in spec.subsections() {
-        if let Some(values) = T::subsection_defaults(name)?
-            && !values.is_empty()
-        {
-            let prefix = format!("{}:1:{name}:", T::NAME);
-            defaults.insert(&prefix, &values)?;
-            defaults.set_section_description(prefix.trim_end_matches(':'), description)?;
+        if let Some(values) = T::subsection_defaults(name)? {
+            if !values.is_empty() {
+                let prefix = format!("{}:1:{name}:", T::NAME);
+                defaults.insert(&prefix, &values)?;
+                defaults.set_section_description(prefix.trim_end_matches(':'), description)?;
+            }
         }
     }
     Ok(defaults)
@@ -341,17 +341,20 @@ fn validate(
         if empty {
             continue;
         }
-        if !entry.valid_strings.is_empty()
-            && let ParamValue::String(text) = value
-            && !entry.valid_strings.contains(text)
-        {
-            writeln!(
-                err,
-                "Error: Invalid value '{text}' for parameter '{}'. Valid values are: {}.",
-                entry.name,
-                entry.valid_strings.join(", ")
-            )?;
-            return Ok(Some(ExitCode::IllegalParameters));
+        // Nested rather than a let-chain: let-chains need Rust 1.88 and the
+        // crate's minimum is 1.85.
+        if !entry.valid_strings.is_empty() {
+            if let ParamValue::String(text) = value {
+                if !entry.valid_strings.contains(text) {
+                    writeln!(
+                        err,
+                        "Error: Invalid value '{text}' for parameter '{}'. Valid values are: {}.",
+                        entry.name,
+                        entry.valid_strings.join(", ")
+                    )?;
+                    return Ok(Some(ExitCode::IllegalParameters));
+                }
+            }
         }
         if let ParamValue::Integer(v) = value {
             if entry.min_int.is_some_and(|m| *v < i64::from(m))
@@ -432,7 +435,8 @@ fn exit_code_for(error: &Error) -> ExitCode {
         Error::Io(_) => ExitCode::UnknownError,
         Error::Unsupported(_) => ExitCode::IncompatibleInputData,
         Error::UnsortedData => ExitCode::IncompatibleInputData,
-        Error::InvalidValue(_) => ExitCode::IllegalParameters,
+        Error::InvalidValue(_) | Error::InvalidRange(_) => ExitCode::IllegalParameters,
+        Error::MissingInformation(_) => ExitCode::MissingParameters,
     }
 }
 

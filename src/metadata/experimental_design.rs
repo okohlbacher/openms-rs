@@ -160,10 +160,10 @@ impl SampleSection {
     /// the section has one, else the name store filled by every build path.
     pub fn sample_name(&self, sample_row: u32) -> Result<&str> {
         let row = sample_row as usize;
-        if let Some(column) = self.columnname_to_columnindex.get("Sample")
-            && let Some(name) = self.content.get(row).and_then(|values| values.get(*column))
-        {
-            return Ok(name);
+        if let Some(column) = self.columnname_to_columnindex.get("Sample") {
+            if let Some(name) = self.content.get(row).and_then(|values| values.get(*column)) {
+                return Ok(name);
+            }
         }
         self.sample_to_rowindex
             .iter()
@@ -718,12 +718,12 @@ impl ExperimentalDesign {
                     .metadata
                     .insert("fraction".into(), i64::from(*fraction).into());
             }
-            if let Some(sample) = to_sample.get(&key)
-                && let Ok(name) = self.sample_section.sample_name(*sample)
-            {
-                header
-                    .metadata
-                    .insert("sample_name".into(), name.to_owned().into());
+            if let Some(sample) = to_sample.get(&key) {
+                if let Ok(name) = self.sample_section.sample_name(*sample) {
+                    header
+                        .metadata
+                        .insert("sample_name".into(), name.to_owned().into());
+                }
             }
         }
         Ok(unannotated)

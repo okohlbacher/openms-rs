@@ -248,6 +248,11 @@ pub struct MSSpectrum {
     pub float_data_arrays: Vec<DataArray<f32>>,
     pub integer_data_arrays: Vec<DataArray<i32>>,
     pub string_data_arrays: Vec<DataArray<String>>,
+    /// Ion-mobility drift time of the whole spectrum; -1 means unset, as in
+    /// the source. A per-peak mobility lives in a float data array instead.
+    pub drift_time: f64,
+    /// Unit of [`Self::drift_time`]; `None` when no drift time is set.
+    pub drift_time_unit: crate::metadata::DriftTimeUnit,
 }
 
 impl Default for MSSpectrum {
@@ -270,6 +275,8 @@ impl Default for MSSpectrum {
             float_data_arrays: Vec::new(),
             integer_data_arrays: Vec::new(),
             string_data_arrays: Vec::new(),
+            drift_time: -1.0,
+            drift_time_unit: crate::metadata::DriftTimeUnit::None,
         }
     }
 }
@@ -762,6 +769,8 @@ pub struct MSExperiment {
     pub chromatograms: Vec<MSChromatogram>,
     /// Authoritative experiment-wide settings and typed run metadata owner.
     pub settings: crate::metadata::ExperimentalSettings,
+    /// Identifier of the run in an SQL (OMS/SqMass) store; zero when unset.
+    pub sql_run_id: u64,
 }
 
 impl MSExperiment {
