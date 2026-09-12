@@ -1,0 +1,4 @@
+SpecId	Label	ScanNr	ExpMass	CalcMass	FileName	retentiontime	z=2	z=3	z=other	ln(hyperscore)	Peptide	Proteins
+0	1	101	1000.5	1000.4	a.mzML	1.5	1	0	0	2.5	PEPTIDER	sp|P1|A
+1	1	102	2000.5	2000.4	a.mzML	2.5	0	1	0	2.6	PEPTIDEK	sp|P2|B
+2	-1	103	3000.5	3000.4	b.mzML	3.5	0	0	4	2.7	PEPTIDER	DECOY_sp|P3|C

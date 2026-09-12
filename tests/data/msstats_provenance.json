@@ -1,0 +1,260 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "package_revisions": {
+  "openms4-core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "openms4-tests": "99bb7b86806d9e683296353195d055d2fa21a630"
+ },
+ "package_revision_note": "The ported header is core, so its source files are pinned to source_revision. The tier-1 fixtures are retained C++ outputs from the separately versioned openms4-tests package, whose revision is recorded above; this manifest must therefore not be added to SOURCE_PROVENANCE.json's current_sdk_reference_manifests, because the two halves are not pinned to one revision.",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MSstatsFile.h",
+   "sha256": "d8195b02cafbc9c1c4b2a229422dab0bcc220ca154336961f9a2e9dce9b75397"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "sha256": "ee52a7269b3646448bcc0c2379b66dbc6298971324f72e8ec5e97c3711549e5f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSstatsFile_test.cpp",
+   "sha256": "ec52f18837770410f107aeeeadf67854db53d630424c96bd975d523fa4d58bf2",
+   "role": "Not an oracle. Both of its sections have an empty body carrying only the comment 'tested via MSstatsConverter tool', so it contains no assertion and no literal to transcribe. The expectations here come from the retained TOPP outputs instead."
+  },
+  {
+   "path": "src/openms/source/METADATA/ExperimentalDesign.cpp",
+   "sha256": "996c94e65d8d48666408b49e9d799baddde4349ce2ac1a7a6d85225288667517",
+   "role": "Not ported here (src/metadata/experimental_design.rs already covers it). Read for SampleSection::getFactorValue(unsigned sample_idx, ...) indexing content_ by row, which is why the MS file section's sample field is used directly as a sample-section row index."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/msstats_iso_in.consensusXML.gz",
+   "source_path": "packages/test-data/topp/MSstatsConverter_2_in.consensusXML",
+   "source_sha256": "8f672fae4161cbbec94fefec1910c08601489217c60ca80a113b9aaf46e112da",
+   "sha256": "23b8cc6e103c7b90274a0be210a8369064d9c2875263d1b7ee7d956c06bcb006",
+   "bytes": 51317,
+   "role": "The upstream TOPP_MSstatsConverter_2 and _3 input, unchanged except for gzip -9 recompression to keep the repository small; the crate's reader sniffs gzip from the bytes. A ten-channel TMT consensusXML with two runs. source_sha256 is the uncompressed original's digest."
+  },
+  {
+   "path": "tests/data/msstats_iso_design.tsv",
+   "source_path": "packages/test-data/topp/MSstatsConverter_2_design.tsv",
+   "sha256": "31487d2b71744206c96b572154f2c3144f747303060653cc86195e35c6d3d361",
+   "bytes": 1029,
+   "role": "Unmodified upstream. One fraction group with two fractions, ten labels per file, twenty samples with MSstats_Condition, MSstats_BioReplicate and MSstats_Mixture."
+  },
+  {
+   "path": "tests/data/msstats_iso_expected.csv",
+   "source_path": "packages/test-data/topp/MSstatsConverter_2_out.csv",
+   "sha256": "6542189be7809cf19090478548e489fa1b9e2edc9dbcd2bdde228079c1811319",
+   "bytes": 83615,
+   "role": "Retained C++ output of TOPP_MSstatsConverter_2, unmodified. 471 lines: header plus 470 rows."
+  },
+  {
+   "path": "tests/data/msstats_iso_fractiongroup_design.tsv",
+   "source_path": "packages/test-data/topp/MSstatsConverter_3_design.tsv",
+   "sha256": "f7cb83c8693cdbfc491f017ffb3b6cd1c83f91a9c3d4b455b5fb0de488e04c15",
+   "bytes": 1029,
+   "role": "Unmodified upstream. The same twenty samples over the same two files, but two fraction groups of one fraction each, which changes Run and TechRepMixture in the output."
+  },
+  {
+   "path": "tests/data/msstats_iso_fractiongroup_expected.csv",
+   "source_path": "packages/test-data/topp/MSstatsConverter_3_out.csv",
+   "sha256": "e048c6f093537bc7f3c563e16ba1713a6ed9e34ccc29edbb86870fffeb2be958",
+   "bytes": 83615,
+   "role": "Retained C++ output of TOPP_MSstatsConverter_3, unmodified. Differs from the _2 output only in the Run, TechRepMixture and Fraction columns, which is what makes the pair a non-vacuous check on the design mapping."
+  },
+  {
+   "path": "tests/data/msstats_lfq_in.consensusXML.gz",
+   "source_path": "packages/test-data/topp/MSstatsConverter_1_in.consensusXML",
+   "source_sha256": "cd4d2c742a4d19c90b7b64ec0643922fe8c0431408d7594c6a3ed288f095240b",
+   "sha256": "9917895abfd52a303ac688ce9dcad98af6805027bf010770718ef45ccfe7137f",
+   "bytes": 400463,
+   "role": "The upstream TOPP_MSstatsConverter_1 input, unchanged except for gzip -9 recompression. A twelve-run label-free consensusXML. source_sha256 is the uncompressed original's digest."
+  },
+  {
+   "path": "tests/data/msstats_lfq_design.tsv",
+   "source_path": "packages/test-data/topp/MSstatsConverter_1_design.tsv",
+   "sha256": "82d381f25fdbd0a93c0cd8348a8b28205f037b5a1c29731512c486bca55f1670",
+   "bytes": 607,
+   "role": "Unmodified upstream. Twelve single-fraction fraction groups, label 1 throughout, twelve samples with MSstats_Condition and MSstats_BioReplicate only."
+  },
+  {
+   "path": "tests/data/msstats_lfq_expected.csv",
+   "source_path": "packages/test-data/topp/MSstatsConverter_1_out.csv",
+   "sha256": "d8d427d0a856f73489cb522072f3902843edd01a8bc83edf11787886d4a42322",
+   "bytes": 179105,
+   "role": "Retained C++ output of TOPP_MSstatsConverter_1, unmodified. 2029 lines: header plus 2028 rows, produced with -retention_time_summarization_method max."
+  }
+ ],
+ "native_implementation": [
+  "src/format/msstats.rs"
+ ],
+ "native_tests": [
+  "tests/msstats.rs"
+ ],
+ "support": "docs/MSSTATS_SUPPORT.md",
+ "upstream_test_definition": {
+  "path": "packages/test-data/topp/CMakeLists.txt",
+  "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+  "lines": "1629-1659",
+  "invocations": [
+   "MSstatsConverter -test -in MSstatsConverter_1_in.consensusXML -retention_time_summarization_method max -in_design MSstatsConverter_1_design.tsv -out MSstatsConverter_1_out.tmp.csv  (CMakeLists.txt:1642, diffed at :1643)",
+   "MSstatsConverter -test -in MSstatsConverter_2_in.consensusXML -method ISO -retention_time_summarization_method manual -in_design MSstatsConverter_2_design.tsv -out MSstatsConverter_2_out.tmp.csv -msstats_bioreplicate MSstats_BioReplicate -msstats_condition MSstats_Condition -msstats_mixture MSstats_Mixture  (CMakeLists.txt:1646, diffed at :1647)",
+   "MSstatsConverter -test -in MSstatsConverter_3_in.consensusXML -method ISO -retention_time_summarization_method manual -in_design MSstatsConverter_3_design.tsv -out MSstatsConverter_3_out.tmp.csv -msstats_bioreplicate MSstats_BioReplicate -msstats_condition MSstats_Condition -msstats_mixture MSstats_Mixture  (CMakeLists.txt:1650, diffed at :1651)"
+  ],
+  "comparison": {
+   "tool": "FuzzyDiff",
+   "configuration": "packages/test-data/topp/FuzzyDiff.ini",
+   "configuration_sha256": "238d0598a366b3e9e6f5686a4b666b483317617d33ce36ea5ab9a03842a83dc2",
+   "ratio": 1.01,
+   "absdiff": 0.01,
+   "note": "The upstream contract is a 1% relative or 0.01 absolute tolerance, not byte equality, and the retained files prove that is necessary: their Intensity fields are written in a fixed six-decimal form that the current StringUtils::toStr(float) no longer produces, because Internal::NumericFormatting::appendNumeric switched to shortest-round-trip scientific notation above 1e4. tests/msstats.rs compares field by field, exactly for non-numeric fields and within a 1e-6 relative difference (1e-9 absolute floor) for numeric ones, which is far tighter than upstream."
+  }
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 26,
+   "operation": "checkConditionLFQ_ throws Exception::IllegalArgument naming MSstats_Condition and MSstats_BioReplicate literally, even when the caller configured different column names"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 42,
+   "operation": "a BioReplicate recurring under more than one Condition is warned about, not refused, because it legitimately encodes a paired design (#9864 B7)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 106,
+   "operation": "aggregateInfo_ pushes the raw channel_id meta value, or 1 when the column header has none; storeLFQ then uses that value directly as the design label while storeISO adds one to it, so a TMT map's channel is channel_id + 1 and a map with no channel id yields channel 2"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 146,
+   "operation": "constructFile_ collects the retention times and intensities into std::sets, so duplicate intensities are collapsed before aggregation and the mean divides by the number of distinct values"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 150,
+   "operation": "a repeated retention time is warned about and its intensity is not collected; the manual branch nonetheless writes a row for every stored sample, including those duplicates"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 178,
+   "operation": "the aggregated intensity is initialised to 0 and only assigned when the method is max, min, mean or sum, so an unrecognised method name silently writes the intensity 0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 199,
+   "operation": "the Reference of an aggregated row is the first element of the intensity/retention-time/reference set, i.e. the lowest tuple in that order, not the first sample inserted"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 218,
+   "operation": "storeLFQ refuses a design with more than one label"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 281,
+   "operation": "FileFilter leaves gaps in the column indices, so spectra_paths is sized by the largest index and the run paths are consumed in column order, leaving an empty name for any column past the last path"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 302,
+   "operation": "the active column basenames must be a subset of the design's basenames; a strict subset only warns and proceeds"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 328,
+   "operation": "the LFQ header inserts RetentionTime, first when the summarization is manual and Fraction, before Intensity when the design is fractionated"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 341,
+   "operation": "an empty protein identification list is refused; more than one, and a first run without inference data, are only warned about"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 394,
+   "operation": "decoy hits are skipped, and the peptide sequence recorded is the modified toString() form"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 411,
+   "operation": "a shared peptide is dropped when remove_shared_peptides is set; the LFQ precursor charge is the hit's charge unchanged, unlike storeISO which clamps it to zero"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 423,
+   "operation": "FragmentIon is the NA placeholder and ProductCharge is the literal 0, because neither is used for DDA data; an empty accession set becomes NA"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 440,
+   "operation": "path_label_to_sample[tpl1] and run_map[tpl2] index std::maps with operator[], which inserts a zero for a key the design does not hold; the sample index 0 is then read as sample-section row 0, silently annotating the row with another sample's condition"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MSstatsFile.h",
+   "line": 199,
+   "operation": "MSstatsLine_::operator< orders by (accession, run, condition, bioreplicate, precursor_charge, sequence) with the charge compared as text, so charge 10 sorts before charge 2; fragment_ion, frag_charge, isotope_label_type and fraction are not part of the key"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MSstatsFile.h",
+   "line": 266,
+   "operation": "MSstatsTMTLine_::operator< orders by (accession, run, condition, bioreplicate, mixture, precursor_charge, sequence, channel), again with both numbers compared as text"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 549,
+   "operation": "storeISO forces manual summarization with a warning when the caller asked for anything else, because MSstatsTMT aggregates itself"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 627,
+   "operation": "the isobaric header is fixed: RetentionTime,ProteinName,PeptideSequence,Charge,Channel,Condition,BioReplicate,Run,Mixture,TechRepMixture,Fraction,Intensity,Reference"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 655,
+   "operation": "the isobaric native identifier is the spectrum_reference meta value, or the literal NONATIVEID; the Reference is the run basename joined to it by an underscore"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 671,
+   "operation": "the isobaric precursor charge is max(charge, 0), which MSstats documents as 'unknown'"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 706,
+   "operation": "TechRepMixture is the mixture factor value joined to the OpenMS fraction group, and Run is that joined to the fraction"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 744,
+   "operation": "msstats_run_to_openms_fractiongroup is declared in storeISO and never written, so the informational run-mapping printout that follows is always empty"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 782,
+   "operation": "assembleRunMap_ numbers each distinct (basename, fraction) pair from one, in MS file section order, keeping the first occurrence"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSstatsFile.cpp",
+   "line": 804,
+   "operation": "isQuantifyable_ returns false for an empty accession set, true for a single accession, and otherwise requires every accession to resolve to the same indistinguishable group; an accession outside every group is assumed to be a singleton and disqualifies the peptide"
+  },
+  {
+   "path": "src/openms/source/METADATA/ExperimentalDesign.cpp",
+   "line": 971,
+   "operation": "getFactorValue(unsigned sample_idx, factor) indexes content_.at(sample_idx), so the value is addressed by sample-section row, which is what the MS file section's sample field holds"
+  }
+ ],
+ "evidence": "Tier 1 executed differential, from retained C++ output. The class test contains no assertion, so there was no literal to transcribe; instead all three retained MSstatsConverter outputs are reproduced row for row and field for field by tests/msstats.rs: 2029 lines for the label-free case with max summarization, 471 for each of the two isobaric cases. The two isobaric cases share one input and differ only in the design, and their references differ, so the pair cannot be satisfied by a comparison that ignores content. The comparison is field-wise: non-numeric fields exactly, numeric fields within a 1e-6 relative difference with a 1e-9 absolute floor. That is tighter than the upstream FuzzyDiff contract of 1% relative / 0.01 absolute and is necessary because the retained files' single-precision Intensity text predates the current NumericFormatting. No C++ was executed for this package and none is committed; the evidence chain is the recorded hash of each retained output. The unknown-summarization refusal, the distinct-intensity aggregation unit test, the design-column checks, the paired-design warning and the resource ceilings are independently derived (tier 4).",
+ "gaps": [
+  "The consensusXML read budget shipped in src/format/consensusxml.rs cannot load either fixture at its defaults: the isobaric map exhausts max_work while parsing its modified peptide sequences (each AASequence parse charges the modification registry's size) and the label-free map exhausts max_payload_bytes. tests/msstats.rs raises both ceilings, which are caller-supplied. Raising the shipped defaults is a change to a module this package does not own.",
+  "storeLFQ's and storeISO's run-mapping printouts go to std::cout in the source. This port returns MSstatsReport::run_to_fraction_group instead of printing, and reproduces the isobaric map being empty.",
+  "The subset case TOPP_MSstatsConverter_subset (CMakeLists.txt:1655) is not ported as a differential: its input is 5.4 MB and it adds only the already-covered warnOnSubsetFiles_ path, which tests/msstats.rs exercises through the produced warning. Adding it is a fixture-size decision for the integrator.",
+  "The source's two private line classes are reproduced as an ordered key plus a rendered prefix rather than as types, so a caller cannot construct an MSstatsLine_. They are private in the source too.",
+  "The source parallelises nothing here, so there is no OpenMP gap to record for this header."
+ ]
+}

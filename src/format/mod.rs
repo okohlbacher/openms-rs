@@ -35,7 +35,15 @@ pub mod file_handler;
 pub mod file_types;
 pub mod mgf;
 pub mod ms2;
+/// Long-format MSstats and MSstatsTMT CSV writer (`MSstatsFile.h`).
+pub mod msstats;
 pub mod peak_options;
+/// Percolator tab-separated input: writing, reading and the PIN feature set
+/// (`PercolatorInfile.h`).
+pub mod percolator_infile;
+/// Retention-time transformation persistence as TrafoXML (`TransformationXMLFile.h`).
+#[cfg(any(feature = "featurexml", feature = "consensusxml"))]
+pub mod transformation_xml;
 pub use peak_options::PeakFileOptions;
 pub(crate) mod path_io;
 
