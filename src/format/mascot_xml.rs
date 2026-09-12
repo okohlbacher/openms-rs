@@ -1021,9 +1021,23 @@ impl<'a> Handler<'a> {
                 // fragments, so `<pep_score>1&#46;5</pep_score>` read as the
                 // score 15. `src/format/mzml.rs:2465` already refuses both for
                 // the same reason, and a DTD is refused there too.
-                Event::GeneralRef(_) | Event::CData(_) => {
+                // Predefined and numeric references are ORDINARY XML and must
+                // be expanded, not refused: a protein description holding
+                // `&amp;` is valid Mascot output. Only a reference this reader
+                // cannot resolve without a DTD is refused. `src/format/mzml.rs`
+                // and `src/format/imzml_handler.rs` refuse every reference
+                // because the only text they consume is Base64, which never
+                // contains `&`; that reasoning does not carry to this reader,
+                // whose text nodes hold sequences and free-text descriptions.
+                Event::GeneralRef(reference) => {
+                    if root_opened && !root_closed && !self.tag.is_empty() {
+                        let expanded = expand_reference(reference.as_ref())?;
+                        self.append_text(&expanded)?;
+                    }
+                }
+                Event::CData(_) => {
                     return Err(Error::Unsupported(
-                        "XML entity references in text and CDATA are not supported".into(),
+                        "CDATA sections in Mascot XML are not supported".into(),
                     ));
                 }
                 Event::DocType(_) => {
@@ -1794,4 +1808,42 @@ fn first_residue(sequence: &AASequence) -> Option<String> {
 }
 fn last_residue(sequence: &AASequence) -> Option<String> {
     sequence.as_str().chars().next_back().map(|c| c.to_string())
+}
+
+/// Expand one XML reference that quick-xml emitted as its own event.
+///
+/// quick-xml does not expand references inside text: it splits the text at
+/// every `&...;` and hands the reference back separately. The five predefined
+/// entities and numeric character references are resolvable without a DTD and
+/// are expanded here, because they are ordinary in Mascot output. Anything else
+/// would need a DTD, which this reader refuses outright, so it is an error
+/// rather than a silent deletion — dropping it concatenated the surrounding
+/// fragments and turned `1&#46;5` into the score `15`.
+fn expand_reference(raw: &[u8]) -> Result<String> {
+    let name = std::str::from_utf8(raw)
+        .map_err(|_| parse("non-UTF-8 XML entity reference in Mascot XML"))?;
+    match name {
+        "amp" => return Ok("&".into()),
+        "lt" => return Ok("<".into()),
+        "gt" => return Ok(">".into()),
+        "quot" => return Ok("\"".into()),
+        "apos" => return Ok("'".into()),
+        _ => {}
+    }
+    let digits = name.strip_prefix('#').ok_or_else(|| {
+        Error::Unsupported(format!(
+            "XML entity reference `&{name};` needs a DTD, which is not supported"
+        ))
+    })?;
+    let code = match digits
+        .strip_prefix('x')
+        .or_else(|| digits.strip_prefix('X'))
+    {
+        Some(hex) => u32::from_str_radix(hex, 16),
+        None => digits.parse::<u32>(),
+    }
+    .map_err(|_| parse("malformed numeric character reference in Mascot XML"))?;
+    let character = char::from_u32(code)
+        .ok_or_else(|| parse("numeric character reference is not a Unicode scalar value"))?;
+    Ok(character.to_string())
 }

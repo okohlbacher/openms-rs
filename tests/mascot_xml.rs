@@ -1225,7 +1225,7 @@ fn the_file_struct_and_free_functions_agree() {
 // XML shapes this reader refuses rather than silently mishandling
 // ---------------------------------------------------------------------------
 
-/// An entity reference in element text is refused, not deleted.
+/// An entity reference in element text is EXPANDED, as Xerces expands it.
 ///
 /// quick-xml does not expand references inside text: it splits the text at
 /// every `&...;` and emits the reference as its own `Event::GeneralRef`, and
@@ -1235,13 +1235,20 @@ fn the_file_struct_and_free_functions_agree() {
 /// score **15** — silent corruption of a scientific value. Xerces expands the
 /// reference before the C++ handler sees any character data
 /// (`XMLFile.cpp:78-94`, `MascotXMLHandler.cpp:600-611`), and
-/// `src/format/mzml.rs` already refuses references, CDATA and DTDs for exactly
-/// this reason.
+/// so the source's behaviour is expansion, and this reader now matches it.
 ///
-/// Found by a second-model review of this port; the same defect was found in
-/// the shipped imzML reader by following it there.
+/// A first attempt refused every reference, copying `src/format/mzml.rs` and
+/// `src/format/imzml_handler.rs`. That was wrong here: those readers consume
+/// only Base64 text, which never contains `&`, whereas a Mascot protein
+/// description holding `&amp;` is ordinary valid output, and refusing it failed
+/// the whole load. Predefined and numeric references are expanded; a reference
+/// that would need a DTD is still an error rather than a silent deletion.
+///
+/// Found by a second-model review of this port, and the over-correction by a
+/// second-model review of the fix. The same original defect was found in the
+/// shipped imzML reader by following it there.
 #[test]
-fn entity_references_cdata_and_dtds_are_refused() {
+fn entity_references_are_expanded_and_unresolvable_shapes_refused() {
     let lookup = SpectrumTitleLookup::new();
     let body = |score: &str, sequence: &str| {
         format!(
@@ -1250,10 +1257,37 @@ fn entity_references_cdata_and_dtds_are_refused() {
              <pep_score>{score}</pep_score><pep_seq>{sequence}</pep_seq></u_peptide></unassigned>"
         )
     };
-    // The exact input from the finding.
+    // The exact input from the finding: it read as 15 before the fix, and now
+    // reads the 1.5 the file means, which is what Xerces gives the C++ handler.
     let text = document(&body("1&#46;5", "PEPTIDER"));
-    let error = mascot::read(text.as_bytes(), &lookup).unwrap_err();
-    assert!(matches!(error, Error::Unsupported(_)), "{error:?}");
+    let result = mascot::read(text.as_bytes(), &lookup).unwrap();
+    let score = result.peptide_identifications[0].hits[0].score;
+    assert!((score - 1.5).abs() < 1e-12, "{score}");
+    // Hexadecimal form of the same character reference.
+    let text = document(&body("1&#x2E;5", "PEPTIDER"));
+    let result = mascot::read(text.as_bytes(), &lookup).unwrap();
+    let score = result.peptide_identifications[0].hits[0].score;
+    assert!((score - 1.5).abs() < 1e-12, "{score}");
+    // All five predefined entities must reach the value, not vanish from it.
+    // A peptide sequence is the sharpest probe available: the expanded
+    // character is not a residue, so expansion surfaces as an amino-acid error,
+    // whereas the old deletion left a clean "PEPTIDER" that parsed
+    // successfully. An InvalidValue here therefore proves the character
+    // arrived; an Ok would prove it had been dropped.
+    for reference in ["&amp;", "&lt;", "&gt;", "&quot;", "&apos;"] {
+        let text = document(&body("1.5", &format!("PEP{reference}TIDER")));
+        match mascot::read(text.as_bytes(), &lookup) {
+            Err(Error::InvalidValue(message)) => {
+                assert!(message.contains("amino-acid"), "{reference}: {message}");
+            }
+            Ok(_) => panic!("{reference} was deleted from the sequence, not expanded"),
+            Err(other) => panic!("{reference}: unexpected {other:?}"),
+        }
+    }
+    // And in a numeric field the expanded character is simply the character the
+    // file wrote, so the value parses to what the file means.
+    let text = document(&body("1&#46;5", "PEPTIDER"));
+    assert!(mascot::read(text.as_bytes(), &lookup).is_ok());
     // The undeclared entity that Xerces rejects is refused here too.
     let text = document(&body("1.5", "P&bogus;EPTIDER"));
     assert!(mascot::read(text.as_bytes(), &lookup).is_err());
