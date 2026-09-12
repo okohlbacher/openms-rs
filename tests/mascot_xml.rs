@@ -1008,6 +1008,26 @@ fn mods_and_it_mods_are_read_only_without_the_dedicated_sections() {
         .search_parameters;
     assert_eq!(search.fixed_modifications, ["Carbamidomethyl (C)"]);
     assert_eq!(search.variable_modifications, ["Oxidation (M)"]);
+    // The guard is list emptiness, not section presence: an *empty* section
+    // contributes no name, so a later <MODS>/<IT_MODS> still populates the
+    // list, and the <IT_MODS> fallback expands its specificity groups as it
+    // reads rather than at the document end. A second-model review corrected
+    // this document's earlier "never both" claim.
+    let empty_sections = document(
+        "<header><Date>2012-03-15T14:20:09Z</Date><NumQueries>1</NumQueries></header>\n\
+         <fixed_mods/><variable_mods/>\n\
+         <search_parameters><MODS>Carbamidomethyl (C)</MODS>\n\
+         <IT_MODS>Phospho (ST)</IT_MODS></search_parameters>",
+    );
+    let search = mascot::read(empty_sections.as_bytes(), &lookup)
+        .unwrap()
+        .protein_identification
+        .search_parameters;
+    assert_eq!(search.fixed_modifications, ["Carbamidomethyl (C)"]);
+    assert_eq!(
+        search.variable_modifications,
+        ["Phospho (S)", "Phospho (T)"]
+    );
     // An expansion the modification database does not know is refused, where
     // the source throws ElementNotFound.
     let unknown = document(
@@ -1199,4 +1219,300 @@ fn the_file_struct_and_free_functions_agree() {
     let peptides = BTreeMap::new();
     let c = file.load_with_peptides(TEST_1, &peptides, &lookup).unwrap();
     assert_eq!(a, c);
+}
+
+// ---------------------------------------------------------------------------
+// XML shapes this reader refuses rather than silently mishandling
+// ---------------------------------------------------------------------------
+
+/// An entity reference in element text is refused, not deleted.
+///
+/// quick-xml does not expand references inside text: it splits the text at
+/// every `&...;` and emits the reference as its own `Event::GeneralRef`, and
+/// `BytesText::xml_content()` only decodes and normalises line endings. The
+/// catch-all event arm therefore DELETED the reference and concatenated the
+/// surrounding fragments, so `<pep_score>1&#46;5</pep_score>` was read as the
+/// score **15** — silent corruption of a scientific value. Xerces expands the
+/// reference before the C++ handler sees any character data
+/// (`XMLFile.cpp:78-94`, `MascotXMLHandler.cpp:600-611`), and
+/// `src/format/mzml.rs` already refuses references, CDATA and DTDs for exactly
+/// this reason.
+///
+/// Found by a second-model review of this port; the same defect was found in
+/// the shipped imzML reader by following it there.
+#[test]
+fn entity_references_cdata_and_dtds_are_refused() {
+    let lookup = SpectrumTitleLookup::new();
+    let body = |score: &str, sequence: &str| {
+        format!(
+            "<header><Date>2012-03-15T14:20:09Z</Date><NumQueries>1</NumQueries></header>\n\
+             <unassigned><u_peptide query=\"1\"><pep_exp_mz>500.0</pep_exp_mz>\n\
+             <pep_score>{score}</pep_score><pep_seq>{sequence}</pep_seq></u_peptide></unassigned>"
+        )
+    };
+    // The exact input from the finding.
+    let text = document(&body("1&#46;5", "PEPTIDER"));
+    let error = mascot::read(text.as_bytes(), &lookup).unwrap_err();
+    assert!(matches!(error, Error::Unsupported(_)), "{error:?}");
+    // The undeclared entity that Xerces rejects is refused here too.
+    let text = document(&body("1.5", "P&bogus;EPTIDER"));
+    assert!(mascot::read(text.as_bytes(), &lookup).is_err());
+    // A CDATA section is refused rather than read as plain text.
+    let text = document(&body("1.5", "<![CDATA[PEPTIDER]]>"));
+    let error = mascot::read(text.as_bytes(), &lookup).unwrap_err();
+    assert!(matches!(error, Error::Unsupported(_)), "{error:?}");
+    // A DTD is refused before any element is read.
+    let text = format!(
+        "<!DOCTYPE mascot_search_results>\n{}",
+        document(&body("1.5", "PEPTIDER"))
+    );
+    let error = mascot::read(text.as_bytes(), &lookup).unwrap_err();
+    assert!(matches!(error, Error::Unsupported(_)), "{error:?}");
+    // Without the reference the same document reads the score the file means.
+    let text = document(&body("1.5", "PEPTIDER"));
+    let result = mascot::read(text.as_bytes(), &lookup).unwrap();
+    let score = result.peptide_identifications[0].hits[0].score;
+    assert!((score - 1.5).abs() < 1e-12, "{score}");
+}
+
+/// A document must be one complete element tree, as Xerces requires.
+///
+/// `check_end_names` only pairs the tags quick-xml actually sees, so a document
+/// truncated before its closing root tag used to load successfully — the
+/// root-close post-processing simply never ran — and leading junk or a second
+/// concatenated document were ignored. Found by a second-model review.
+#[test]
+fn an_incomplete_or_multi_root_document_is_refused() {
+    let lookup = SpectrumTitleLookup::new();
+    let parse_error = |text: String| {
+        let error = mascot::read(text.as_bytes(), &lookup).unwrap_err();
+        assert!(matches!(error, Error::Parse { .. }), "{error:?} for {text}");
+    };
+    // Truncated before the closing root tag.
+    parse_error(
+        "<mascot_search_results majorVersion=\"2\" minorVersion=\"1\">\n\
+         <NumQueries>1</NumQueries>\n\
+         <u_peptide query=\"1\"><pep_seq>PEPTIDER</pep_seq></u_peptide>\n"
+            .to_owned(),
+    );
+    // Character data before the root element.
+    parse_error(format!(
+        "junk{}",
+        document("<header><NumQueries>1</NumQueries></header>")
+    ));
+    // Character data after it.
+    parse_error(format!(
+        "{}junk",
+        document("<header><NumQueries>1</NumQueries></header>")
+    ));
+    // Two concatenated documents.
+    parse_error(format!(
+        "{}{}",
+        document("<header><DB>A</DB><NumQueries>1</NumQueries></header>"),
+        document("<header><DB>B</DB><NumQueries>1</NumQueries></header>")
+    ));
+    // White space around the root element is legal, as every fixture has.
+    let text = format!(
+        "\n  {}\n\n",
+        document("<header><NumQueries>1</NumQueries></header>")
+    );
+    assert!(mascot::read(text.as_bytes(), &lookup).is_ok());
+}
+
+/// `<NumQueries>` is an index space, not an allocation.
+///
+/// The source calls `id_data_.resize(...)` with the declared count, so a
+/// five-million-query header commits the whole vector — and repeating the
+/// element constructs and drops it again. The count is recorded here and
+/// entries are materialised only when a query references them; a *smaller*
+/// repeat still truncates, which is the data loss `resize` causes. Measured on
+/// the Linux gate node in release mode for this test: 1.59 s before, 0.02 s
+/// after.
+#[test]
+fn a_declared_query_count_is_not_materialised_up_front() {
+    let lookup = SpectrumTitleLookup::new();
+    let peptide = "<unassigned><u_peptide query=\"1\"><pep_exp_mz>500.0</pep_exp_mz>\n\
+                   <pep_score>1.0</pep_score><pep_seq>PEPTIDER</pep_seq></u_peptide></unassigned>";
+    let text = document(&format!(
+        "<header><Date>2012-03-15T14:20:09Z</Date><NumQueries>5000000</NumQueries></header>\n{peptide}"
+    ));
+    let result = mascot::read(text.as_bytes(), &lookup).unwrap();
+    assert_eq!(result.peptide_identifications.len(), 1);
+    // Repeated counts no longer multiply the work.
+    let text = document(&format!(
+        "<header><Date>2012-03-15T14:20:09Z</Date>\n\
+         <NumQueries>5000000</NumQueries><NumQueries>5000000</NumQueries>\n\
+         <NumQueries>5000000</NumQueries><NumQueries>5000000</NumQueries></header>\n{peptide}"
+    ));
+    assert_eq!(
+        mascot::read(text.as_bytes(), &lookup)
+            .unwrap()
+            .peptide_identifications
+            .len(),
+        1
+    );
+    // A smaller repeat truncates, so a later reference is out of range.
+    let text = document(&format!(
+        "<header><NumQueries>5000000</NumQueries><NumQueries>0</NumQueries></header>\n{peptide}"
+    ));
+    assert!(matches!(
+        mascot::read(text.as_bytes(), &lookup),
+        Err(Error::Parse { .. })
+    ));
+    // `std::from_chars` refuses a second '+', so `++1` is not a query count.
+    let text = document("<header><NumQueries>++1</NumQueries></header>");
+    assert!(matches!(
+        mascot::read(text.as_bytes(), &lookup),
+        Err(Error::Parse { .. })
+    ));
+}
+
+/// A reference format that matched but whose value does not convert is an
+/// error, not a miss.
+///
+/// `SpectrumMetaDataLookup::getSpectrumMetaData` returns after the first
+/// matching expression, and `toInt32`/`toDouble` throw from inside that block,
+/// which `MascotXMLHandler` catches as a warning. Falling through to the next
+/// format instead invents a successful association from a different part of the
+/// title. Found by a second-model review.
+#[test]
+fn a_matched_format_whose_value_does_not_convert_does_not_fall_through() {
+    let experiment = MSExperiment {
+        spectra: vec![MSSpectrum {
+            native_id: "scan=1".into(),
+            rt: 5.0,
+            precursors: vec![Precursor::new(100.0, 1)],
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let (lookup, _) = MascotXmlFile::initialize_lookup(&experiment, None).unwrap();
+    // The scan-number format matches; its digits overflow `toInt32`; the
+    // m/z-underscore-RT format is never tried, so RT 12 and m/z 500 are not
+    // invented from the leading "500_12".
+    let error = lookup
+        .spectrum_meta_data("500_12 scan=9223372036854775808", true)
+        .unwrap_err();
+    assert!(matches!(error, Error::Parse { .. }), "{error:?}");
+    // An overflowing title retention time is a conversion error too, not the
+    // infinity Rust's own parser produces.
+    let mut direct = SpectrumTitleLookup::new();
+    direct.add_reference_format(TitleReferenceFormat::MzThenRt);
+    let error = direct
+        .spectrum_meta_data(&format!("500_{}", "9".repeat(320)), true)
+        .unwrap_err();
+    assert!(matches!(error, Error::Parse { .. }), "{error:?}");
+    // Through the handler the conversion error is a warning, the retention time
+    // stays unset, and the non-empty lookup then makes that an error overall.
+    let text = document(
+        "<header><Date>2012-03-15T14:20:09Z</Date><NumQueries>1</NumQueries></header>\n\
+         <unassigned><u_peptide query=\"1\"><pep_exp_mz>500.0</pep_exp_mz>\n\
+         <pep_score>1.0</pep_score><pep_seq>PEPTIDER</pep_seq>\n\
+         <pep_scan_title>500_12 scan=9223372036854775808</pep_scan_title>\n\
+         </u_peptide></unassigned>",
+    );
+    assert!(matches!(
+        mascot::read(text.as_bytes(), &lookup),
+        Err(Error::MissingInformation(_))
+    ));
+}
+
+/// Boost's `^` and `$` are line anchors, and scan numbers are 32-bit.
+///
+/// `initializeLookup` compiles its expressions with the default perl flags, so
+/// `^` becomes `syntax_element_start_line` and `$` `syntax_element_end_line`
+/// (`basic_regex_parser.hpp`): a wrapped title matches on its later lines and a
+/// native ID with a trailing annotation line still yields its scan number.
+/// `SpectrumLookup` converts with `toInt32`, so a longer digit run is a
+/// conversion failure — reported as the source's `-1` sentinel, i.e. no
+/// scan-number entry and a warning. Found by a second-model review.
+#[test]
+fn the_title_anchors_are_line_anchors_and_scan_numbers_are_32_bit() {
+    let mut direct = SpectrumTitleLookup::new();
+    direct.add_reference_format(TitleReferenceFormat::MzThenRt);
+    let meta = direct
+        .spectrum_meta_data("exported spectrum\n500.5_12.5", true)
+        .unwrap();
+    assert_eq!(meta.precursor_mz, Some(500.5));
+    assert_eq!(meta.rt, Some(12.5));
+    // Not mid-line, though: `^` is still an anchor.
+    let meta = direct.spectrum_meta_data("x 500.5_12.5", true).unwrap();
+    assert_eq!(meta, mascot::SpectrumMetaData::default());
+    // `$` in the native-ID expression `=(?<SCAN>\d+)$` is a line anchor too.
+    let experiment = MSExperiment {
+        spectra: vec![MSSpectrum {
+            native_id: "scan=818\nannotation".into(),
+            rt: 11.5,
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let (lookup, warnings) = MascotXmlFile::initialize_lookup(&experiment, None).unwrap();
+    assert!(warnings.is_empty(), "{warnings:?}");
+    assert_eq!(lookup.spectrum(0).unwrap().scan_number, Some(818));
+    assert_eq!(
+        lookup.spectrum_meta_data("scan=818", true).unwrap().rt,
+        Some(11.5)
+    );
+    // A trailing digit run too long for `toInt32` records no scan number and
+    // produces the source's warning.
+    let experiment = MSExperiment {
+        spectra: vec![MSSpectrum {
+            native_id: "scan=2147483648".into(),
+            rt: 11.5,
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let (lookup, warnings) = MascotXmlFile::initialize_lookup(&experiment, None).unwrap();
+    assert_eq!(warnings.len(), 1);
+    assert!(
+        warnings[0].contains("Could not extract scan number"),
+        "{warnings:?}"
+    );
+    assert_eq!(lookup.spectrum(0).unwrap().scan_number, None);
+}
+
+/// The scan-number matcher commits to its optional groups, and that cannot
+/// change the outcome.
+///
+/// `[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\d+)` has two greedy optional groups
+/// that a real engine would backtrack out of. It never needs to: if ` Number`
+/// or the trailing `s` is present and consuming it fails, *not* consuming it
+/// requires a digit at the `N` or at the `s` itself, which those characters are
+/// not. This asserts the Rust side of that table; the C++ side is Boost's
+/// leftmost-match semantics. Note that the leftmost match wins here, unlike the
+/// MGF writer's accession table, where the token iterator takes the last.
+///
+/// Raised as a suspicion by the porting agent and refuted by a second-model
+/// review; kept as a test so it is not re-suspected.
+#[test]
+fn the_scan_number_matcher_needs_no_backtracking() {
+    let experiment = MSExperiment {
+        spectra: (1..=13)
+            .map(|scan| MSSpectrum {
+                native_id: format!("scan={scan}"),
+                rt: f64::from(scan),
+                ..Default::default()
+            })
+            .collect(),
+        ..Default::default()
+    };
+    let mut lookup = SpectrumTitleLookup::new();
+    lookup.read_spectra(&experiment).unwrap();
+    lookup.add_reference_format(TitleReferenceFormat::ScanNumber);
+    let scan = |title: &str| lookup.spectrum_meta_data(title, false).unwrap().scan_number;
+    // Committing to " Number" or to the trailing 's' never loses a match.
+    assert_eq!(scan("Scans followed later by 5"), None);
+    assert_eq!(scan("Scan Numbers 5"), Some(5));
+    assert_eq!(scan("Scan Numberx5"), None);
+    assert_eq!(scan("Scan Number scan=7"), Some(7));
+    // `[=:]?` precedes ` *`, so a separator after a space is not accepted.
+    assert_eq!(scan("Scan Numbers =5"), None);
+    // The expression is unanchored, and leftmost wins.
+    assert_eq!(scan("xscan=7"), Some(7));
+    assert_eq!(scan("scan=1 scan=2"), Some(1));
+    assert_eq!(scan("scan=00012"), Some(12));
+    assert_eq!(scan("scan=+5"), None);
+    assert_eq!(scan("scanx=3"), None);
 }

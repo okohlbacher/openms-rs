@@ -126,12 +126,19 @@ Every one of these is reproduced, and each is covered by a named test in
 5. *A peak line is whitespace-collapsed, then split on single spaces.* Runs of
    space, tab, CR and LF collapse to one space (the standard allows double
    spaces; tabs are an accepted extension). A line with no whitespace at all is
-   the only "does not contain m/z and intensity" error. A third field is the
-   optional per-peak charge, which the source parses and discards — the upstream
-   fixture uses that to carry `#.two.spaces.(allowed.by.the.standard)` comments
-   through the reader (`load_upstream_infile_fixture`).
+   the only "does not contain m/z and intensity" error. Only the first two
+   fields are converted: a third one — nominally the optional per-peak charge —
+   is *ignored without conversion*, which is how the upstream fixture carries
+   `#.two.spaces.(allowed.by.the.standard)` comments through the reader, and why
+   `100 1 garbage` loads (`load_upstream_infile_fixture`). An earlier revision
+   of this list claimed the source parsed and discarded that field; it does not
+   touch it.
 6. *`PEPMASS=` takes one or two values*; three or more is an error naming the
-   count (`pepmass_accepts_one_or_two_fields_and_rejects_three`).
+   count (`pepmass_accepts_one_or_two_fields_and_rejects_three`). Its value is
+   tab-substituted but **not** whitespace-collapsed — `simplify` is called only
+   on the peak lines — so `PEPMASS=500  10` splits into three fields with an
+   empty middle one and is exactly that error
+   (`pepmass_is_not_whitespace_collapsed`).
 7. *`CHARGE=` strips every `+` and then requires one complete `i32`.* `2+`,
    `+2`, `2` and `-2` parse; a charge list (`1,2,3`) and a trailing `-` (`2-`)
    are conversion errors that propagate out of the load
@@ -141,7 +148,13 @@ Every one of these is reproduced, and each is covered by a named test in
    every chunk containing `min` sets the retention time in minutes, so the last
    such chunk wins and **no** `TITLE` meta value is stored at all. If a
    conversion fails, the text between the first and second `=` is stored as
-   `TITLE`, truncating a title with a second `=`. Otherwise the value is the
+   `TITLE`, truncating a title with a second `=`. `setRT` is called *inside*
+   that loop and the single enclosing `catch` does not undo it, so a retention
+   time an earlier chunk committed survives a later chunk's failure **and** the
+   fallback title is stored beside it: `TITLE=run, 2 min, bad min, 3 min` keeps
+   120 s, and the fourth chunk is never visited
+   (`a_committed_title_retention_time_survives_a_later_failure`). Otherwise the
+   value is the
    text after the first `=` at or after index 4 with `_<native ID>` appended, so
    repeated titles stay distinguishable — unless the stored `TITLE` already
    contains the native ID, in which case a second `TITLE=` line in the same
@@ -152,7 +165,10 @@ Every one of these is reproduced, and each is covered by a named test in
 9. *Key prefixes are matched in the source's order and each assumes `=` right
    after the key.* So `ADDUCT=` and `ION_MODE=` — both present in the upstream
    GNPS fixture — match nothing and are silently dropped, while `IONMODE=`
-   is kept (`gnps_library_spectrum`).
+   is kept (`gnps_library_spectrum`). The value offset is a byte count, and
+   `StringUtils::substr` clamps it to the string length, so a line shorter than
+   its own key — a bare `NAME` or `MSLEVEL` — yields an *empty* value rather
+   than an error (`a_header_line_shorter_than_its_key_yields_an_empty_value`).
 10. *Meta key renaming.* `NAME` and `COMPOUND_NAME` both become
     `Metabolite_Name`; `INCHI` becomes `Inchi_String`; `SMILES` becomes
     `SMILES_String`; `SPECTRUMID` becomes `GNPS_Spectrum_ID`; `SCANS` becomes
@@ -164,49 +180,80 @@ Every one of these is reproduced, and each is covered by a named test in
     silently (`mslevel_falls_back_to_two_when_unparsable`).
 12. *`SEQ=` is always a string list*, even for one line, and accumulates in
     order across repeated lines within one query, because the Mascot
-    specification makes each `SEQ` an independent sequence filter.
-13. *Every spectrum is MS 2, centroided, has one precursor and native ID
+    specification makes each `SEQ` an independent sequence filter
+    (`many_seq_lines_in_one_query_are_linear`).
+13. *Numeric conversion is `std::from_chars` strict.* `toDouble`/`toInt32` skip
+    space, tab, CR and LF, consume one leading `+`, and then require a complete
+    token: a *second* `+` (`++5`) and an overflowing decimal literal (`1e999`,
+    which `from_chars` reports as `result_out_of_range`) are conversion errors,
+    not the value Rust's own parser would produce
+    (`numeric_conversion_refuses_a_second_plus_and_an_overflowing_literal`).
+    `CHARGE=` is the exception: it removes *every* `+` before converting, so a
+    second one never reaches the conversion.
+14. *Every spectrum is MS 2, centroided, has one precursor and native ID
     `index=<n>`.* MGF is centroided by definition, so the type is asserted
     rather than inferred.
 
 **Writing**
 
-14. *Ten thousand peaks is the ceiling*, with the source's message naming
+15. *Ten thousand peaks is the ceiling*, with the source's message naming
     profile data as the likely cause
     (`ten_thousand_peaks_are_refused_by_the_writer`).
-15. *A precursor m/z of exactly zero skips the spectrum.*
-16. *Only MS level 2 is written.* Level 0 warns; every other level is dropped in
+16. *A precursor m/z of exactly zero skips the spectrum.*
+17. *Only MS level 2 is written.* Level 0 warns; every other level is dropped in
     silence (`a_zero_precursor_and_non_ms2_levels_are_skipped_with_a_report`).
-17. *A stored `TITLE` is written verbatim*, because it was either parsed from an
+18. *A stored `TITLE` is written verbatim*, because it was either parsed from an
     MGF or set to be written to one. Otherwise the title is
     `<m/z>_<RT>_<native ID>_<file name stem>`, the stem stripped of every
     non-alphanumeric character.
-18. *Precision.* The default form writes `precisionWrapper`, which is
+19. *Precision.* The default form writes `precisionWrapper`, which is
     `StringUtils::toStr(value, true)`: 15 significant digits for a `double` and
     6 for a `float`, fixed below 1e4 and above 1e-2, scientific outside, always
     with at least one fractional digit — so `1998` becomes `1998.0` and `25.379`
     becomes `25.379000000000001`. The compact form uses five fixed decimals for
-    m/z, three for retention time and intensity, and omits zero-intensity peaks.
+    peak m/z, three for peak intensity, and omits zero-intensity peaks.
     The header's `TOL`/`ITOL` use plain `ostream <<`, i.e. `%g` with precision
     6, so `3.0` is written as `3`.
-19. *`SCANS=`.* With the `UNKNOWN` accession sentinel — which is what an
+20. *Compact `PEPMASS=`/`RTINSECONDS=` depend on a stream flag.* The source
+    streams `fixed` only in the branch that *generates* a `TITLE=` line, and
+    again on every compact peak line. A compact spectrum that already carries a
+    `TITLE` meta value is therefore written while the stream is still in its
+    default float format, so `setprecision(5)`/`setprecision(3)` mean five and
+    three *significant* digits: precursor m/z 901.234567 becomes `901.23` and
+    retention time 234.5678 becomes `235`. Because the flag lives in the
+    `ostream` it stays set, so within one `store` only the spectra before the
+    first generated title or written peak line are affected — the second such
+    spectrum gets `901.23457`/`234.568`
+    (`compact_output_with_a_stored_title_uses_significant_digits`). Recorded as
+    `MGF-03` in the C++ issue log: the compact form loses four significant
+    digits of precursor m/z for exactly the files that came from an MGF.
+21. *`SCANS=`.* With the `UNKNOWN` accession sentinel — which is what an
     experiment with no source file or an empty accession produces — the value is
     the text after the native ID's last `=`. Otherwise it goes through the
     accession table `SpectrumLookup::extractScanNumber` uses, whose failure
     sentinel `-1` is written verbatim
-    (`scans_follows_the_native_id_type_accession_table`).
-20. *`FORMAT` stays within the first five lines*, because that is how OpenMS
+    (`scans_follows_the_native_id_type_accession_table`). The regex token
+    iterator collects *every* match and converts only `matches.back()`, with
+    `toInt32`: so the last match wins even when its digits overflow 32 bits, an
+    earlier convertible match is not a fallback, and the sentinel is written
+    with the source's own warning. The WIFF branch collects two subgroups and
+    inspects only the final `cycle=`/`experiment=` pair, so an earlier pair with
+    an experiment of 1000 or more is never seen — and when the final pair has
+    one, `Exception::InvalidValue` is raised and *not* caught (the handler
+    catches only `ConversionError`), aborting the whole store
+    (`the_last_scan_number_match_wins_before_conversion`).
+22. *`FORMAT` stays within the first five lines*, because that is how OpenMS
     recognises its own MGF files when the suffix is not `.mgf`.
-21. *Optional header lines.* `COM` only for a non-empty `search_title`,
+23. *Optional header lines.* `COM` only for a non-empty `search_title`,
     `USEREMAIL` only for a non-empty `email`, `DECOY=1` only when `decoy` is
     true, `REPORT=AUTO` when `number_of_hits` is zero.
-22. *Modification rewriting.* Each configured modification is looked up in the
+24. *Modification rewriting.* Each configured modification is looked up in the
     specificity-group map (`Deamidated (N)` → `Deamidated (NQ)`) and the result
     collected into a set, so the output is sorted and a group named twice
     appears once (`duplicate_modification_groups_collapse_to_one_line`).
-23. *`skip_spectrum_charges`* suppresses the per-spectrum `CHARGE=` line while
+25. *`skip_spectrum_charges`* suppresses the per-spectrum `CHARGE=` line while
     leaving the header's general `CHARGE` untouched.
-24. *Extension check.* `store` to a path requires the `mgf` suffix; a stream
+26. *Extension check.* `store` to a path requires the `mgf` suffix; a stream
     is written unchecked.
 
 ## Native differences
@@ -215,7 +262,9 @@ Every one of these is reproduced, and each is covered by a named test in
 |---|---|
 | **Carry-over is off by default.** `getNextSpectrum_` clears only peaks, native ID, `TITLE` and `SEQ`, so retention time, precursor m/z, precursor intensity, precursor charge, MS level and every other meta value leak from one block into the next. `CarryOver::Reset` (the default) starts each block fresh; `CarryOver::Source` reproduces the leak. | The upstream class test asserts only that `SEQ` does not leak, which is the one field the source explicitly resets — the author clearly knew about the others. An inherited charge is not recoverable by a caller and is almost never what the file meant. Both behaviours are tested (`carry_over_reproduces_the_source_bleed_and_reset_prevents_it`). Recorded as `MGF-01` in the C++ issue log. |
 | **Non-finite numbers are refused.** The source's `toDouble` accepts `inf` and `nan` and stores them silently. | Every consumer of an `MSSpectrum` rejects a non-finite coordinate, so the failure is moved to the point of parsing. `nan(payload)` is likewise not accepted. |
-| **A value offset landing inside a multi-byte character is a parse error.** The source slices raw bytes and produces an ill-formed string. | Rust string slicing at a non-boundary aborts the process, and half a character is not a usable value. Tested with `PEPMASSé=1.0`. |
+| **A value offset landing inside a multi-byte character is a parse error.** The source slices raw bytes and produces an ill-formed string. | Rust string slicing at a non-boundary aborts the process, and half a character is not a usable value. Tested with `PEPMASSé=1.0`. An offset *past* the end of the line is not this case: `StringUtils::substr` clamps it, and so does this port (`a_header_line_shorter_than_its_key_yields_an_empty_value`). |
+| **A `SEQ=` list is accumulated in the reader**, not round-tripped through the meta value on every line. | The source reads the whole list out of the meta value, appends one entry and writes it back for each `SEQ=` line, which is quadratic: the 100,000-line ceiling costs about five billion string copies, 434 s in release mode on the gate node, for a 1.2 MB block. Accumulating and storing once is 0.04 s and stores the identical list (`many_seq_lines_in_one_query_are_linear`). Recorded as `MGF-04`. |
+| **A scan number that overflows 32-bit arithmetic yields the `-1` sentinel and a warning.** The source's `index=` branch computes `toInt32(value) + 1` and its WIFF branch `cycle * 1000 + experiment` in `int`, both of which are signed overflow — undefined behaviour — for a large native ID. | Checked arithmetic cannot wrap, so the port takes the same path as every other extraction failure and says so in the warning. Recorded as `MGF-05` (`the_last_scan_number_match_wins_before_conversion`). |
 | **Byte, line, spectrum and peak ceilings.** | Shared with the other text adapters through `Limits`; the source has no ceiling other than the 10,000-peak write guard. Output bytes are counted before the destination file is created, so a refused store leaves no truncated file. |
 | **Console output becomes a return value.** `WriteReport` and `SpectrumOutcome` carry the messages the source sends to `cerr`, `cout` and `OPENMS_LOG_WARN`. | The crate has no global streams. |
 | **`isdigit(line[0])` is replaced by a byte test.** | Passing a negative `char` to `isdigit` is undefined behaviour; recorded as `MGF-02`. Tested with a whole non-ASCII line. |
@@ -252,10 +301,26 @@ destructor section has no assertion upstream; the Rust analogue asserts that the
 value is owned, cloneable and droppable without shared state.
 
 **Independently derived (tier 4).** The resource ceilings, the non-ASCII cases,
-the multi-byte-offset refusal, the carry-over comparison, the block-merge and
-truncation asymmetry, the `CHARGE` rejection set, the range filters, the
-consumer interface, the accession table and the parameter-header line order are
-Rust-only checks derived from reading the implementation.
+the multi-byte-offset refusal, the substr clamp, the numeric-conversion
+strictness, the `PEPMASS` whitespace rule, the title retention-time commit
+order, the compact-precision stream flag, the carry-over comparison, the
+block-merge and truncation asymmetry, the `CHARGE` rejection set, the range
+filters, the consumer interface, the accession table (including the
+last-match-wins, 32-bit and WIFF-pair rules) and the parameter-header line order
+are Rust-only checks derived from reading the implementation.
+
+**Second-model review.** An adversarial review by another model raised nine
+findings against this port. Eight changed behaviour, each with a named
+regression test: the `PEPMASS` whitespace collapsing, the title retention-time
+commit order, the compact precision with a stored `TITLE`, the `substr` clamp,
+the numeric-conversion strictness, the scan number's 32-bit width and
+last-match-wins rule, the WIFF final-pair rule with its uncaught
+`InvalidValue`, and the quadratic `SEQ` accumulation. The ninth was a
+documentation correction: the third field of a peak line is ignored, not parsed
+and discarded. One reported difference was *not* changed — on a libc++ build
+the source's `toDouble` accepts `0x10` as 16 through `strtod`, while the
+`std::from_chars` path every other platform takes rejects it, as this port
+does; reproducing a platform-specific accident is not fidelity.
 
 **Tolerances.** Text output is compared exactly. Precursor m/z and retention
 time comparisons on round-trip use 1e-9 absolute, which is the precision the

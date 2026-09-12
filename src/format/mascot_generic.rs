@@ -167,12 +167,25 @@ fn source_split(text: &str, separator: char) -> Vec<&str> {
 /// skipped, one leading `+` is consumed, and the remainder must be a complete
 /// decimal, `inf` or `nan` token. The source's `nan(payload)` extension is not
 /// accepted, because Rust's parser has no such form and no caller writes one.
+///
+/// The remainder then goes to `std::from_chars`, which refuses a *second* `+`
+/// and reports an overflowing decimal literal as `result_out_of_range` — a
+/// conversion error, not an infinity. Rust's own parser accepts both, so `++5`
+/// and `1e999` are rejected here explicitly; only the `inf`/`nan` words
+/// themselves convert to a non-finite value, exactly as they do upstream.
 fn source_double(text: &str) -> Option<f64> {
     let text = trim(text);
-    if text.is_empty() {
+    let body = text.strip_prefix('+').unwrap_or(text);
+    if body.starts_with('+') {
         return None;
     }
-    text.strip_prefix('+').unwrap_or(text).parse::<f64>().ok()
+    let value = body.parse::<f64>().ok()?;
+    if value.is_finite() {
+        return Some(value);
+    }
+    let word = body.strip_prefix('-').unwrap_or(body);
+    let head = word.get(..3).unwrap_or("");
+    (head.eq_ignore_ascii_case("inf") || head.eq_ignore_ascii_case("nan")).then_some(value)
 }
 
 /// [`source_double`] restricted to finite values.
@@ -187,10 +200,15 @@ fn finite_double(text: &str, line: usize, label: &str) -> Result<f64> {
 
 /// `StringUtils::toInt32`: leading and trailing space, tab, CR and LF, one
 /// optional `+`, then a complete `i32`. Trailing characters and range overflow
-/// are conversion errors.
+/// are conversion errors, and so is a second `+`, which `std::from_chars`
+/// refuses even though Rust's own parser accepts it.
 fn source_int32(text: &str) -> Option<i32> {
     let text = trim(text);
-    text.strip_prefix('+').unwrap_or(text).parse::<i32>().ok()
+    let body = text.strip_prefix('+').unwrap_or(text);
+    if body.starts_with('+') {
+        return None;
+    }
+    body.parse::<i32>().ok()
 }
 
 /// `std::stoi`, used only by the source's `MSLEVEL=` branch: leading
@@ -222,11 +240,18 @@ fn source_stoi(text: &str) -> Option<std::result::Result<i32, ()>> {
 /// The suffix of `text` starting at byte `offset`, as `StringUtils::substr`
 /// would return it.
 ///
-/// The source slices raw bytes, so an offset landing inside a multi-byte
-/// character yields an ill-formed string. This port refuses instead: Rust
-/// string slicing at a non-boundary aborts the process, and half a character is
-/// not a value any caller can use.
+/// `StringUtils::substr` clamps the start position to the string length, so a
+/// header line shorter than its own key — a bare `NAME` or `MSLEVEL` — yields
+/// an empty value rather than an error; that clamp is reproduced here.
+///
+/// Within the string the source slices raw bytes, so an offset landing inside a
+/// multi-byte character yields an ill-formed string. This port refuses instead:
+/// Rust string slicing at a non-boundary aborts the process, and half a
+/// character is not a value any caller can use.
 fn value_after<'a>(text: &'a str, offset: usize, line: usize, key: &str) -> Result<&'a str> {
+    if offset >= text.len() {
+        return Ok("");
+    }
     text.get(offset..).ok_or_else(|| {
         parse_error(
             line,
@@ -284,9 +309,13 @@ fn precursor_mut(spectrum: &mut MSSpectrum) -> &mut Precursor {
 /// suffixed with `_<native ID>` to keep titles unique — unless the already
 /// stored `TITLE` contains the native ID, in which case a second `TITLE=` line
 /// in the same block replaces it without the suffix.
+///
+/// The source calls `spectrum.setRT` *inside* the chunk loop and wraps the
+/// whole loop in one `try`, so every conversion that succeeded before a later
+/// one failed stays applied: `TITLE=run, 2 min, bad min, 3 min` keeps the
+/// retention time 120 s from the second chunk *and* stores the fallback title.
 fn read_title(spectrum: &mut MSSpectrum, text: &str, line: usize) -> Result<()> {
     if text.contains("min") {
-        let mut rt = None;
         let mut failed = false;
         for chunk in source_split(text, ',') {
             if !chunk.contains("min") {
@@ -297,7 +326,13 @@ fn read_title(spectrum: &mut MSSpectrum, text: &str, line: usize) -> Result<()> 
                 .copied()
                 .unwrap_or("");
             match source_double(trim(first)) {
-                Some(minutes) => rt = Some(minutes * 60.0),
+                Some(minutes) => {
+                    let value = minutes * 60.0;
+                    if !value.is_finite() {
+                        return Err(parse_error(line, "MGF title retention time overflows"));
+                    }
+                    spectrum.rt = value;
+                }
                 None => {
                     failed = true;
                     break;
@@ -311,11 +346,6 @@ fn read_title(spectrum: &mut MSSpectrum, text: &str, line: usize) -> Result<()> 
                     .metadata
                     .insert(TITLE_KEY.to_owned(), MetaValue::from(parts[1]));
             }
-        } else if let Some(value) = rt {
-            if !value.is_finite() {
-                return Err(parse_error(line, "MGF title retention time overflows"));
-            }
-            spectrum.rt = value;
         }
         return Ok(());
     }
@@ -393,6 +423,10 @@ impl<R: BufRead> MascotGenericReader<R> {
         spectrum.native_id = format!("index={}", self.index);
         spectrum.metadata.remove(TITLE_KEY);
         spectrum.metadata.remove(SEQ_KEY);
+        // `SEQ=` lines accumulate here rather than through the meta value, so a
+        // query with many of them costs one push each instead of copying the
+        // whole list back and forth on every line as the source does.
+        let mut sequences: Vec<String> = Vec::new();
         loop {
             if !self.input.next_line(&mut self.line)? {
                 return Ok(None);
@@ -400,8 +434,13 @@ impl<R: BufRead> MascotGenericReader<R> {
             if trim(&self.line) != "BEGIN IONS" {
                 continue;
             }
-            match self.read_block(&mut spectrum)? {
+            match self.read_block(&mut spectrum, &mut sequences)? {
                 Some(()) => {
+                    if !sequences.is_empty() {
+                        spectrum
+                            .metadata
+                            .insert(SEQ_KEY.to_owned(), MetaValue::from(sequences));
+                    }
                     increment(
                         &mut self.spectra,
                         max_spectra,
@@ -424,7 +463,11 @@ impl<R: BufRead> MascotGenericReader<R> {
 
     /// Read the body of one block. `Ok(None)` reports end of input before any
     /// peak line, which the source treats as a clean end of file.
-    fn read_block(&mut self, spectrum: &mut MSSpectrum) -> Result<Option<()>> {
+    fn read_block(
+        &mut self,
+        spectrum: &mut MSSpectrum,
+        sequences: &mut Vec<String>,
+    ) -> Result<Option<()>> {
         loop {
             if !self.input.next_line(&mut self.line)? {
                 return Ok(None);
@@ -442,7 +485,7 @@ impl<R: BufRead> MascotGenericReader<R> {
                 self.read_peaks(spectrum)?;
                 return Ok(Some(()));
             }
-            self.read_header_line(spectrum)?;
+            self.read_header_line(spectrum, sequences)?;
         }
     }
 
@@ -513,13 +556,21 @@ impl<R: BufRead> MascotGenericReader<R> {
     /// after the key, so `ADDUCT=`, `ION_MODE=` and any other key are silently
     /// ignored. An `END IONS` line reaching here — a block with no peak line —
     /// is ignored too, so such a block merges into the following one.
-    fn read_header_line(&self, spectrum: &mut MSSpectrum) -> Result<()> {
+    fn read_header_line(
+        &self,
+        spectrum: &mut MSSpectrum,
+        sequences: &mut Vec<String>,
+    ) -> Result<()> {
         let line = self.input.line;
         let text = trim(&self.line);
         if text.starts_with("PEPMASS") {
             let value = value_after(text, 8, line, "PEPMASS")?;
-            let simplified = simplify(value);
-            let fields = source_split(&simplified, ' ');
+            // The source substitutes tab for space here but does *not*
+            // simplify, so `PEPMASS=500  10` splits into three fields — the
+            // middle one empty — and is a parse error. Only the peak lines get
+            // the whitespace collapsing.
+            let substituted = value.replace('\t', " ");
+            let fields = source_split(&substituted, ' ');
             match fields.len() {
                 1 => {
                     let mz = finite_double(fields[0], line, "precursor m/z")?;
@@ -629,21 +680,15 @@ impl<R: BufRead> MascotGenericReader<R> {
         } else if text.starts_with("SEQ=") {
             // Per the Mascot specification a query may carry several SEQ lines,
             // each an independent sequence filter, so the value is always a
-            // string list even when only one line was present.
+            // string list even when only one line was present. The source
+            // round-trips the whole list through the meta value on every line,
+            // which is quadratic; the list is accumulated here instead and
+            // stored once when the block ends.
             let value = value_after(text, 4, line, "SEQ")?.to_owned();
-            let mut sequences: Vec<String> = spectrum
-                .metadata
-                .get(SEQ_KEY)
-                .map(|v| v.as_string_list().map(<[String]>::to_vec))
-                .transpose()?
-                .unwrap_or_default();
             if sequences.len() >= MAX_SEQ_ENTRIES {
                 return Err(invalid("MGF SEQ list limit exceeded"));
             }
             sequences.push(value);
-            spectrum
-                .metadata
-                .insert(SEQ_KEY.to_owned(), MetaValue::from(sequences));
         }
         Ok(())
     }
@@ -848,9 +893,19 @@ pub struct SpectrumOutcome {
 /// C++ default `ostream <<` formatting of a `double`: `%g` with precision 6.
 ///
 /// `writeHeader_` streams the tolerance parameters without changing the stream
-/// flags, so `3.0` is written as `3` and `0.3` as `0.3`. The compact peak
-/// writer sets `fixed` instead and is handled separately.
+/// flags, so `3.0` is written as `3` and `0.3` as `0.3`.
 fn ostream_double(value: f64) -> String {
+    ostream_g(value, 6)
+}
+
+/// `%g` with an explicit precision, i.e. `ostream <<` after `setprecision(n)`
+/// while the stream is still in its default float format.
+///
+/// The compact spectrum writer needs precisions 5 and 3: the source sets
+/// `fixed` only while composing a *generated* `TITLE=` line, so a spectrum that
+/// already carries a `TITLE` meta value has its `PEPMASS=` and `RTINSECONDS=`
+/// written in this significant-digit form instead.
+fn ostream_g(value: f64, precision: u32) -> String {
     if value.is_nan() {
         return "nan".into();
     }
@@ -860,19 +915,21 @@ fn ostream_double(value: f64) -> String {
     if value == 0.0 {
         return "0".into();
     }
-    let scientific = format!("{value:.5e}");
+    let digits = i32::try_from(precision.max(1)).unwrap_or(6);
+    let mantissa_decimals = usize::try_from(digits - 1).unwrap_or(0);
+    let scientific = format!("{value:.mantissa_decimals$e}");
     let Some((mantissa, exponent)) = scientific.split_once('e') else {
         return scientific;
     };
     let Ok(exponent) = exponent.parse::<i32>() else {
         return scientific;
     };
-    if !(-4..6).contains(&exponent) {
+    if !(-4..digits).contains(&exponent) {
         let mantissa = strip_trailing_zeros(mantissa);
         let sign = if exponent < 0 { '-' } else { '+' };
         format!("{mantissa}e{sign}{:02}", exponent.unsigned_abs())
     } else {
-        let decimals = usize::try_from(5 - exponent).unwrap_or(0);
+        let decimals = usize::try_from(digits - 1 - exponent).unwrap_or(0);
         strip_trailing_zeros(&format!("{value:.decimals$}"))
     }
 }
@@ -906,9 +963,13 @@ const SCAN_ACCESSIONS: [&str; 6] = [
 /// CV accessions whose native-ID format is `file=<integer>`.
 const FILE_ACCESSIONS: [&str; 2] = ["MS:1000773", "MS:1000775"];
 
-/// The last `<key><digits>` match in `text`, as the source's regex token
-/// iterator takes `matches.back()`.
-fn last_keyed_number(text: &str, key: &str) -> Option<i64> {
+/// The digits of the last `<key><digits>` match in `text`.
+///
+/// The source's regex token iterator collects every match and then takes
+/// `matches.back()` *before* converting it, so the last match wins even when
+/// its digits do not fit an `Int` — an earlier, convertible match is not a
+/// fallback.
+fn last_keyed_digits<'a>(text: &'a str, key: &str) -> Option<&'a str> {
     let bytes = text.as_bytes();
     let mut found = None;
     let mut start = 0;
@@ -921,17 +982,15 @@ fn last_keyed_number(text: &str, key: &str) -> Option<i64> {
         }
         if end > digits_at {
             // ASCII digits only, so this range is a character boundary.
-            if let Some(value) = text.get(digits_at..end).and_then(|v| v.parse::<i64>().ok()) {
-                found = Some(value);
-            }
+            found = text.get(digits_at..end);
         }
         start = at + 1;
     }
     found
 }
 
-/// The last maximal ASCII digit run in `text`.
-fn last_number(text: &str) -> Option<i64> {
+/// The last maximal ASCII digit run in `text`, unconverted.
+fn last_digits(text: &str) -> Option<&str> {
     let bytes = text.as_bytes();
     let mut found = None;
     let mut index = 0;
@@ -941,9 +1000,7 @@ fn last_number(text: &str) -> Option<i64> {
             while index < bytes.len() && bytes[index].is_ascii_digit() {
                 index += 1;
             }
-            if let Some(value) = text.get(start..index).and_then(|v| v.parse::<i64>().ok()) {
-                found = Some(value);
-            }
+            found = text.get(start..index);
         } else {
             index += 1;
         }
@@ -953,9 +1010,20 @@ fn last_number(text: &str) -> Option<i64> {
 
 /// WIFF native IDs encode the scan number as `cycle * 1000 + experiment`. The
 /// source refuses an experiment of 1000 or more, because the encoding collides.
-fn wiff_scan_number(native_id: &str) -> std::result::Result<Option<i64>, String> {
+///
+/// `cycle=(?<GROUP>\d+)\s+experiment=(?<GROUP>\d+)` is collected with *two*
+/// subgroups, and only the final match's pair is examined: an earlier pair with
+/// an experiment of 1000 or more is never seen. Boost's `\s` covers vertical
+/// tab and form feed as well as the four common blanks.
+///
+/// # Errors
+///
+/// The experiment ceiling raises `Exception::InvalidValue` upstream, which
+/// `extractScanNumber` does *not* catch — it catches only `ConversionError` —
+/// so it aborts the whole store rather than writing a sentinel.
+fn wiff_scan_number(native_id: &str) -> Result<(i32, Option<String>)> {
     let bytes = native_id.as_bytes();
-    let mut result = None;
+    let mut last: Option<(&str, &str)> = None;
     let mut start = 0;
     while let Some(offset) = native_id
         .get(start..)
@@ -969,85 +1037,124 @@ fn wiff_scan_number(native_id: &str) -> std::result::Result<Option<i64>, String>
         }
         let cycle = native_id.get(cycle_start..position).unwrap_or("");
         let space_start = position;
-        while position < bytes.len() && matches!(bytes[position], b' ' | b'\t' | b'\n' | b'\r') {
+        while position < bytes.len()
+            && matches!(bytes[position], b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c)
+        {
             position += 1;
         }
         let separated = position > space_start;
         let rest = native_id.get(position..).unwrap_or("");
-        let experiment: String = rest
-            .strip_prefix("experiment=")
-            .unwrap_or("")
-            .chars()
-            .take_while(char::is_ascii_digit)
-            .collect();
+        let experiment = rest.strip_prefix("experiment=").map_or("", |digits| {
+            let end = digits
+                .as_bytes()
+                .iter()
+                .take_while(|b| b.is_ascii_digit())
+                .count();
+            digits.get(..end).unwrap_or("")
+        });
         if !cycle.is_empty() && separated && !experiment.is_empty() {
-            let cycle: i64 = cycle.parse().map_err(|_| conversion_warning(native_id))?;
-            let experiment: i64 = experiment
-                .parse()
-                .map_err(|_| conversion_warning(native_id))?;
-            if experiment >= 1000 {
-                return Err(
-                    "The value of experiment is too large and can not be handled properly."
-                        .to_owned(),
-                );
-            }
-            result = cycle
-                .checked_mul(1000)
-                .and_then(|v| v.checked_add(experiment));
+            last = Some((cycle, experiment));
         }
         start = offset + 1;
     }
-    Ok(result)
+    let Some((cycle, experiment)) = last else {
+        return Ok((-1, Some(no_match_warning(native_id))));
+    };
+    let (Ok(cycle), Ok(experiment)) = (cycle.parse::<i32>(), experiment.parse::<i32>()) else {
+        return Ok((
+            -1,
+            Some(format!(
+                "Values: '{cycle}', '{experiment}' could not be converted to int in string. Native ID='{native_id}' accession='MS:1000770'"
+            )),
+        ));
+    };
+    if experiment >= 1000 {
+        return Err(invalid(&format!(
+            "The value of experiment is too large and can not be handled properly.: '{experiment}'"
+        )));
+    }
+    // The source computes `cycle * 1000 + experiment` in `int`, which is signed
+    // overflow for a large cycle; the sentinel is written instead of wrapping.
+    match cycle
+        .checked_mul(1000)
+        .and_then(|value| value.checked_add(experiment))
+    {
+        Some(value) => Ok((value, None)),
+        None => Ok((
+            -1,
+            Some(format!(
+                "native_id '{native_id}' encodes a scan number that overflows a 32-bit integer."
+            )),
+        )),
+    }
 }
-fn conversion_warning(native_id: &str) -> String {
-    format!("Values could not be converted to int in string. Native ID='{native_id}'")
+fn no_match_warning(native_id: &str) -> String {
+    format!("native_id '{native_id}' is invalid. Could not extract scan number.")
 }
 
 /// Scan number for `native_id` under `accession`, plus any message the source
 /// would have logged.
 ///
-/// Returns the source's `-1` sentinel when nothing matches, because
-/// `writeSpectrum` streams the returned integer verbatim into `SCANS=`.
+/// Returns the source's `-1` sentinel when nothing matches or the last match
+/// does not convert, because `writeSpectrum` streams the returned integer
+/// verbatim into `SCANS=`. The conversion is `toInt32`, so the result is an
+/// `i32`, as `extractScanNumber`'s return type is.
 ///
 /// `METADATA/SpectrumLookup.h` and `METADATA/SpectrumNativeIDParser.h` are
 /// separate unported headers; only the accession table the MGF writer reaches
 /// is reproduced, and `docs/MASCOT_GENERIC_SUPPORT.md` records that.
-fn extract_scan_number(native_id: &str, accession: &str) -> (i64, Option<String>) {
-    let value = if SCAN_ACCESSIONS.contains(&accession) {
-        last_keyed_number(native_id, "scan=")
+///
+/// # Errors
+///
+/// See [`wiff_scan_number`]: a WIFF experiment of 1000 or more aborts the store.
+fn extract_scan_number(native_id: &str, accession: &str) -> Result<(i32, Option<String>)> {
+    let digits = if SCAN_ACCESSIONS.contains(&accession) {
+        last_keyed_digits(native_id, "scan=")
     } else if FILE_ACCESSIONS.contains(&accession) {
-        last_keyed_number(native_id, "file=")
+        last_keyed_digits(native_id, "file=")
     } else if accession == "MS:1000774" {
-        // An `index=` native ID is one less than the scan number consumers such
-        // as pepXML expect, so the source adds one.
-        last_keyed_number(native_id, "index=").and_then(|v| v.checked_add(1))
+        last_keyed_digits(native_id, "index=")
     } else if accession == "MS:1001508" {
-        last_keyed_number(native_id, "scanId=")
+        last_keyed_digits(native_id, "scanId=")
     } else if accession == "MS:1000777" {
-        last_keyed_number(native_id, "spectrum=")
+        last_keyed_digits(native_id, "spectrum=")
     } else if accession == "MS:1001530" {
-        last_number(native_id)
+        last_digits(native_id)
     } else if accession == "MS:1000770" {
-        match wiff_scan_number(native_id) {
-            Ok(value) => value,
-            Err(message) => return (-1, Some(message)),
-        }
+        return wiff_scan_number(native_id);
     } else {
-        return (
+        return Ok((
             -1,
             Some(format!(
                 "native_id: {native_id} accession: {accession} Could not extract scan number - no valid native_id_type_accession was provided"
             )),
-        );
+        ));
     };
-    match value {
-        Some(value) => (value, None),
-        None => (
+    let Some(digits) = digits else {
+        return Ok((-1, Some(no_match_warning(native_id))));
+    };
+    let Ok(value) = digits.parse::<i32>() else {
+        return Ok((
             -1,
             Some(format!(
-                "native_id '{native_id}' is invalid. Could not extract scan number."
+                "Value: '{digits}' could not be converted to int in string. Native ID='{native_id}'"
             )),
-        ),
+        ));
+    };
+    if accession != "MS:1000774" {
+        return Ok((value, None));
+    }
+    // An `index=` native ID is one less than the scan number consumers such as
+    // pepXML expect, so the source adds one — in `int` arithmetic, which is
+    // signed overflow at `INT_MAX`. The sentinel is written instead.
+    match value.checked_add(1) {
+        Some(value) => Ok((value, None)),
+        None => Ok((
+            -1,
+            Some(format!(
+                "native_id '{native_id}' scan number {value} + 1 overflows a 32-bit integer."
+            )),
+        )),
     }
 }
 
@@ -1344,10 +1451,14 @@ impl MascotGenericFile {
         let stem = filtered_filename(filename);
         let (accession, warning) = native_id_accession(experiment);
         report.warnings.extend(warning);
+        // The `fixed` flag the compact writer sets lives in the C++ ostream, so
+        // it is sticky for the rest of the file once any spectrum has set it.
+        let mut fixed = false;
         for spectrum in &experiment.spectra {
             match spectrum.ms_level {
                 2 => {
-                    let outcome = self.write_spectrum(writer, spectrum, &stem, &accession)?;
+                    let outcome =
+                        self.write_spectrum_with(writer, spectrum, &stem, &accession, &mut fixed)?;
                     report.warnings.extend(outcome.warnings);
                     if outcome.written {
                         report.written += 1;
@@ -1409,23 +1520,54 @@ impl MascotGenericFile {
     /// to be written to one; otherwise the title is composed from precursor
     /// m/z, retention time, native ID and `filename`.
     ///
-    /// In compact form m/z values carry five fixed decimals, retention times
-    /// and intensities three, and zero-intensity peaks are omitted. Otherwise
-    /// every value is written at full precision.
+    /// In compact form peak m/z values carry five fixed decimals and peak
+    /// intensities three, and zero-intensity peaks are omitted. Otherwise every
+    /// value is written at full precision.
+    ///
+    /// `PEPMASS=` and `RTINSECONDS=` are the exception: the source sets the
+    /// stream's `fixed` flag only in the branch that *generates* a `TITLE=`
+    /// line, so a compact spectrum that already carries a `TITLE` meta value
+    /// gets five and three *significant* digits — `901.23` and `235`, not
+    /// `901.23457` and `234.568`. Because the flag lives in the stream it stays
+    /// set afterwards, so within one [`Self::store`] only the spectra before the
+    /// first generated title or written peak line are affected. This entry
+    /// point is one call on a fresh stream, as in the source.
     ///
     /// # Errors
     ///
     /// Returns [`InvalidValue`](crate::Error::InvalidValue) when the spectrum
     /// holds [`MAX_WRITTEN_PEAKS`] peaks or more — the source's guard against
-    /// profile data — when precursor m/z or retention time is not finite, or
-    /// when a stored `TITLE` or `SEQ` meta value is not a string or string
-    /// list; [`Io`](crate::Error::Io) on a write failure.
+    /// profile data — when precursor m/z or retention time is not finite, when
+    /// a stored `TITLE` or `SEQ` meta value is not a string or string list, or
+    /// when a WIFF native ID encodes an experiment of 1000 or more, which the
+    /// source raises as an uncaught `InvalidValue`; [`Io`](crate::Error::Io) on
+    /// a write failure.
     pub fn write_spectrum(
         &self,
         writer: &mut impl Write,
         spectrum: &MSSpectrum,
         filename: &str,
         native_id_type_accession: &str,
+    ) -> Result<SpectrumOutcome> {
+        let mut fixed = false;
+        self.write_spectrum_with(
+            writer,
+            spectrum,
+            filename,
+            native_id_type_accession,
+            &mut fixed,
+        )
+    }
+
+    /// [`Self::write_spectrum`] with the caller's stream `fixed` flag, which
+    /// the compact branch reads and then sets.
+    fn write_spectrum_with(
+        &self,
+        writer: &mut impl Write,
+        spectrum: &MSSpectrum,
+        filename: &str,
+        native_id_type_accession: &str,
+        fixed: &mut bool,
     ) -> Result<SpectrumOutcome> {
         let mut warnings = Vec::new();
         if spectrum.precursors.len() > 1 {
@@ -1459,12 +1601,23 @@ impl MascotGenericFile {
         }
         writeln!(writer)?;
         writeln!(writer, "BEGIN IONS")?;
+        let title = spectrum.metadata.get(TITLE_KEY);
         let (mz_text, rt_text) = if self.store_compact {
-            (format!("{mz:.5}"), format!("{rt:.3}"))
+            if title.is_none() {
+                // The source streams `fixed` while composing the generated
+                // title, so the flag is already set for this spectrum's
+                // PEPMASS and RTINSECONDS.
+                *fixed = true;
+            }
+            if *fixed {
+                (format!("{mz:.5}"), format!("{rt:.3}"))
+            } else {
+                (ostream_g(mz, 5), ostream_g(rt, 3))
+            }
         } else {
             (precision_wrapper(mz), precision_wrapper(rt))
         };
-        match spectrum.metadata.get(TITLE_KEY) {
+        match title {
             Some(value) => writeln!(writer, "TITLE={}", value.as_str()?)?,
             None => writeln!(
                 writer,
@@ -1482,7 +1635,7 @@ impl MascotGenericFile {
             writeln!(writer, "SCANS={scans}")?;
         } else {
             let (scans, warning) =
-                extract_scan_number(&spectrum.native_id, native_id_type_accession);
+                extract_scan_number(&spectrum.native_id, native_id_type_accession)?;
             warnings.extend(warning);
             writeln!(writer, "SCANS={scans}")?;
         }
@@ -1500,6 +1653,8 @@ impl MascotGenericFile {
                 if peak.intensity == 0.0 {
                     continue;
                 }
+                // The source streams `fixed` here too, on every peak line.
+                *fixed = true;
                 writeln!(writer, "{:.5} {:.3}", peak.mz, peak.intensity)?;
             } else {
                 writeln!(

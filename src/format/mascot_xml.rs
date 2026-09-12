@@ -106,23 +106,31 @@ fn trim(text: &str) -> &str {
     text.trim_matches([' ', '\t', '\n', '\r'])
 }
 /// `StringUtils::toDouble` restricted to finite values.
+///
+/// One leading `+` is consumed and the remainder goes to `std::from_chars`,
+/// which refuses a *second* `+` even though Rust's own parser accepts it; an
+/// overflowing decimal literal is `result_out_of_range` there and a conversion
+/// error here, not an infinity.
 fn number(text: &str, label: &str) -> Result<f64> {
     let text = trim(text);
-    text.strip_prefix('+')
-        .unwrap_or(text)
-        .parse::<f64>()
-        .ok()
-        .filter(|v| v.is_finite())
-        .ok_or_else(|| parse(format!("Could not convert {text:?} to a finite {label}")))
+    let body = text.strip_prefix('+').unwrap_or(text);
+    let value = if body.starts_with('+') {
+        None
+    } else {
+        body.parse::<f64>().ok().filter(|v| v.is_finite())
+    };
+    value.ok_or_else(|| parse(format!("Could not convert {text:?} to a finite {label}")))
 }
-/// `StringUtils::toInt32`.
+/// `StringUtils::toInt32`, which likewise refuses a second `+`.
 fn integer(text: &str, label: &str) -> Result<i32> {
     let text = trim(text);
-    text.strip_prefix('+')
-        .unwrap_or(text)
-        .parse::<i32>()
-        .ok()
-        .ok_or_else(|| parse(format!("Could not convert {text:?} to an integer {label}")))
+    let body = text.strip_prefix('+').unwrap_or(text);
+    let value = if body.starts_with('+') {
+        None
+    } else {
+        body.parse::<i32>().ok()
+    };
+    value.ok_or_else(|| parse(format!("Could not convert {text:?} to an integer {label}")))
 }
 /// `StringUtils::split(s, c, out)` semantics.
 fn split(text: &str, separator: char) -> Vec<&str> {
@@ -149,8 +157,10 @@ pub struct SpectrumMetaData {
     pub precursor_charge: i32,
     /// MS level; zero when unknown, as in the source.
     pub ms_level: u32,
-    /// Scan number, or `None` for the source's `-1` sentinel.
-    pub scan_number: Option<i64>,
+    /// Scan number, or `None` for the source's `-1` sentinel. The source reads
+    /// it with `toInt32`, so the width is 32 bits and a longer digit run is a
+    /// conversion failure rather than a large scan number.
+    pub scan_number: Option<i32>,
     /// Spectrum native identifier.
     pub native_id: String,
 }
@@ -183,7 +193,7 @@ struct TitleMatch {
     rt: Option<f64>,
     mz: Option<f64>,
     charge: Option<i32>,
-    scan: Option<i64>,
+    scan: Option<i32>,
 }
 
 /// The ported subset of `SpectrumMetaDataLookup` that `MascotXMLFile` needs.
@@ -196,7 +206,7 @@ struct TitleMatch {
 #[derive(Clone, Debug, Default)]
 pub struct SpectrumTitleLookup {
     spectra: Vec<SpectrumMetaData>,
-    by_scan: BTreeMap<i64, usize>,
+    by_scan: BTreeMap<i32, usize>,
     by_native_id: BTreeMap<String, usize>,
     rts: Vec<(f64, usize)>,
     formats: Vec<TitleReferenceFormat>,
@@ -318,7 +328,10 @@ impl SpectrumTitleLookup {
     /// catches both and reports them as warnings.
     pub fn spectrum_meta_data(&self, title: &str, want_mz: bool) -> Result<SpectrumMetaData> {
         for &format in &self.formats {
-            let Some(matched) = match_title(title, format) else {
+            // A format that matched but whose captured value does not convert is
+            // an error, not a miss: the source returns after the first matching
+            // expression, so the later formats are never tried.
+            let Some(matched) = match_title(title, format)? else {
                 continue;
             };
             let mut meta = SpectrumMetaData::default();
@@ -376,19 +389,65 @@ impl SpectrumTitleLookup {
     }
 }
 
-/// The digits following the last `=` at the end of `native_id`, the source
-/// `SpectrumLookup::default_scan_regexp`.
-fn trailing_scan_number(native_id: &str) -> Option<i64> {
-    let position = native_id.rfind('=')?;
-    let digits = native_id.get(position + 1..)?;
-    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return None;
+/// The byte offsets at which Boost's `^` matches.
+///
+/// `initializeLookup` compiles its expressions with the default perl flags, so
+/// `^` becomes `syntax_element_start_line` rather than `..._buffer_start`
+/// (`basic_regex_parser.hpp`, `syntax_caret`): it matches at the buffer start
+/// *and* after every line separator. For `char` Boost's separators are `\n`,
+/// `\r` and `\f`, and the position between a `\r` and a `\n` is not a line
+/// start (`perl_matcher_common.hpp`, `match_start_line`).
+fn line_starts(text: &str) -> impl Iterator<Item = usize> + '_ {
+    let bytes = text.as_bytes();
+    std::iter::once(0).chain((1..=bytes.len()).filter(move |&index| {
+        let previous = bytes[index - 1];
+        matches!(previous, b'\n' | b'\r' | 0x0c)
+            && !(previous == b'\r' && bytes.get(index) == Some(&b'\n'))
+    }))
+}
+
+/// Whether Boost's `$` matches at byte offset `at`: the buffer end, or a
+/// position holding a line separator.
+fn is_line_end(bytes: &[u8], at: usize) -> bool {
+    match bytes.get(at) {
+        None => true,
+        Some(&byte) => matches!(byte, b'\n' | b'\r' | 0x0c),
     }
-    digits.parse::<i64>().ok()
+}
+
+/// The digits following the last `=` at a line end of `native_id`, the source
+/// `SpectrumLookup::default_scan_regexp` `=(?<SCAN>\d+)$`.
+///
+/// `$` is a line anchor, so a native ID with a trailing annotation line still
+/// yields the scan number of its first line, and the token iterator takes the
+/// last match. The conversion is `toInt32`, whose failure the source answers
+/// with its `-1` sentinel — reported here as `None`, which records no
+/// scan-number entry and produces the source's warning.
+fn trailing_scan_number(native_id: &str) -> Option<i32> {
+    let bytes = native_id.as_bytes();
+    let mut found = None;
+    for (index, byte) in bytes.iter().enumerate() {
+        if *byte != b'=' {
+            continue;
+        }
+        let digits_at = index + 1;
+        let mut end = digits_at;
+        while end < bytes.len() && bytes[end].is_ascii_digit() {
+            end += 1;
+        }
+        if end > digits_at && is_line_end(bytes, end) {
+            found = native_id.get(digits_at..end);
+        }
+    }
+    found?.parse::<i32>().ok()
 }
 
 /// A hand-coded equivalent of one registered Boost expression.
-fn match_title(title: &str, format: TitleReferenceFormat) -> Option<TitleMatch> {
+///
+/// `Ok(None)` is "the expression did not match"; an error is "it matched, but a
+/// captured value did not convert", which the source reports through the
+/// handler's `catch (...)` without trying another format.
+fn match_title(title: &str, format: TitleReferenceFormat) -> Result<Option<TitleMatch>> {
     match format {
         TitleReferenceFormat::ScanNumber => match_scan_number(title),
         TitleReferenceFormat::DtaFileName => match_dta_name(title),
@@ -397,7 +456,7 @@ fn match_title(title: &str, format: TitleReferenceFormat) -> Option<TitleMatch> 
 }
 
 /// `[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\d+)`, leftmost match.
-fn match_scan_number(title: &str) -> Option<TitleMatch> {
+fn match_scan_number(title: &str) -> Result<Option<TitleMatch>> {
     let bytes = title.as_bytes();
     for start in 0..bytes.len() {
         if !matches!(bytes[start], b'S' | b's') {
@@ -434,17 +493,31 @@ fn match_scan_number(title: &str) -> Option<TitleMatch> {
         if at == digits_at {
             continue;
         }
-        let scan = title.get(digits_at..at)?.parse::<i64>().ok()?;
-        return Some(TitleMatch {
-            scan: Some(scan),
+        let digits = title.get(digits_at..at).unwrap_or("");
+        return Ok(Some(TitleMatch {
+            scan: Some(scan_number(digits)?),
             ..Default::default()
-        });
+        }));
     }
-    None
+    Ok(None)
+}
+
+/// A matched `?<SCAN>` group, converted as `getSpectrumMetaData` does.
+///
+/// # Errors
+///
+/// Returns [`Parse`](crate::Error::Parse) for a digit run too long for the
+/// source's `toInt32`, which throws rather than trying another format.
+fn scan_number(digits: &str) -> Result<i32> {
+    digits.parse::<i32>().map_err(|_| {
+        parse(format!(
+            "Could not convert {digits:?} to an integer scan number"
+        ))
+    })
 }
 
 /// `\.(?<SCAN>\d+)\.\d+\.(?<CHARGE>\d+)(\.dta)?`, leftmost match.
-fn match_dta_name(title: &str) -> Option<TitleMatch> {
+fn match_dta_name(title: &str) -> Result<Option<TitleMatch>> {
     let bytes = title.as_bytes();
     let digits = |from: usize| -> (usize, usize) {
         let mut at = from;
@@ -469,19 +542,30 @@ fn match_dta_name(title: &str) -> Option<TitleMatch> {
         if charge_to == charge_from {
             continue;
         }
-        let scan = title.get(scan_from..scan_to)?.parse::<i64>().ok()?;
-        let charge = title.get(charge_from..charge_to)?.parse::<i32>().ok();
-        return Some(TitleMatch {
+        let scan = scan_number(title.get(scan_from..scan_to).unwrap_or(""))?;
+        // `getSpectrumMetaData` converts the charge group only when
+        // `MDF_PRECURSORCHARGE` is requested, which `MascotXMLHandler` never
+        // does, so the source never converts it at all and a charge that does
+        // not fit is not an error. It is recorded here when it converts and
+        // left unset otherwise; either way the spectrum look-up that a
+        // scan-only match falls through to replaces the whole record.
+        let charge = title
+            .get(charge_from..charge_to)
+            .and_then(|digits| digits.parse::<i32>().ok());
+        return Ok(Some(TitleMatch {
             scan: Some(scan),
             charge,
             ..Default::default()
-        });
+        }));
     }
-    None
+    Ok(None)
 }
 
-/// `^(?<MZ>\d+(\.\d+)?)_(?<RT>\d+(\.\d+)?)`, anchored at the start.
-fn match_mz_then_rt(title: &str) -> Option<TitleMatch> {
+/// `^(?<MZ>\d+(\.\d+)?)_(?<RT>\d+(\.\d+)?)`, anchored at a line start.
+///
+/// Boost's `^` is a line anchor by default, so a wrapped title whose *second*
+/// line starts with the m/z-underscore-RT pair matches too.
+fn match_mz_then_rt(title: &str) -> Result<Option<TitleMatch>> {
     let bytes = title.as_bytes();
     let unsigned = |from: usize| -> Option<usize> {
         let mut at = from;
@@ -503,18 +587,43 @@ fn match_mz_then_rt(title: &str) -> Option<TitleMatch> {
         }
         Some(at)
     };
-    let mz_end = unsigned(0)?;
-    if bytes.get(mz_end) != Some(&b'_') {
-        return None;
+    for start in line_starts(title) {
+        let Some(mz_end) = unsigned(start) else {
+            continue;
+        };
+        if bytes.get(mz_end) != Some(&b'_') {
+            continue;
+        }
+        let Some(rt_end) = unsigned(mz_end + 1) else {
+            continue;
+        };
+        let mz = coordinate(title.get(start..mz_end).unwrap_or(""), "precursor m/z")?;
+        let rt = coordinate(
+            title.get(mz_end + 1..rt_end).unwrap_or(""),
+            "retention time",
+        )?;
+        return Ok(Some(TitleMatch {
+            mz: Some(mz),
+            rt: Some(rt),
+            ..Default::default()
+        }));
     }
-    let rt_end = unsigned(mz_end + 1)?;
-    let mz = title.get(..mz_end)?.parse::<f64>().ok()?;
-    let rt = title.get(mz_end + 1..rt_end)?.parse::<f64>().ok()?;
-    Some(TitleMatch {
-        mz: Some(mz),
-        rt: Some(rt),
-        ..Default::default()
-    })
+    Ok(None)
+}
+
+/// A matched `?<MZ>` or `?<RT>` group, converted as `getSpectrumMetaData` does.
+///
+/// # Errors
+///
+/// Returns [`Parse`](crate::Error::Parse) when the digits overflow a `double`,
+/// which is the source's `toDouble` conversion error; Rust's own parser would
+/// return an infinity and defeat the finite-coordinate invariant.
+fn coordinate(digits: &str, label: &str) -> Result<f64> {
+    digits
+        .parse::<f64>()
+        .ok()
+        .filter(|value| value.is_finite())
+        .ok_or_else(|| parse(format!("Could not convert {digits:?} to a finite {label}")))
 }
 
 /// What one Mascot XML document yielded.
@@ -766,6 +875,7 @@ fn local_name(raw: &[u8]) -> Result<&str> {
 struct Handler<'a> {
     protein: ProteinIdentification,
     ids: Vec<PeptideIdentification>,
+    declared_queries: usize,
     protein_hit: ProteinHit,
     peptide_hit: PeptideHit,
     evidence: PeptideEvidence,
@@ -798,6 +908,7 @@ impl<'a> Handler<'a> {
         Self {
             protein: ProteinIdentification::default(),
             ids: Vec::new(),
+            declared_queries: 0,
             protein_hit: ProteinHit::default(),
             peptide_hit: PeptideHit::default(),
             evidence: PeptideEvidence::default(),
@@ -825,6 +936,11 @@ impl<'a> Handler<'a> {
         reader.config_mut().expand_empty_elements = true;
         reader.config_mut().check_end_names = true;
         let mut events = 0usize;
+        // `check_end_names` only pairs the tags it sees, so the one-complete-
+        // document rule Xerces enforces is checked here: exactly one root
+        // element, closed, and no character data outside it.
+        let mut root_opened = false;
+        let mut root_closed = false;
         loop {
             let event = reader
                 .read_event()
@@ -836,6 +952,12 @@ impl<'a> Handler<'a> {
             match event {
                 Event::Start(start) => {
                     let name = local_name(start.name().as_ref())?.to_owned();
+                    if self.tags_open.is_empty() {
+                        if root_opened {
+                            return Err(parse("Mascot XML holds more than one root element"));
+                        }
+                        root_opened = true;
+                    }
                     if self.tags_open.len() >= self.limits.max_depth {
                         return Err(bad("Mascot XML nesting depth limit exceeded"));
                     }
@@ -867,28 +989,52 @@ impl<'a> Handler<'a> {
                     self.end_element()?;
                     self.tag.clear();
                     self.buffer.clear();
+                    root_closed = self.tags_open.is_empty();
                 }
                 Event::Text(body) => {
+                    let decoded = body
+                        .xml_content()
+                        .map_err(|error| parse(format!("Mascot XML text: {error}")))?;
+                    if self.tags_open.is_empty() {
+                        // Character data before or after the root element is not
+                        // a well-formed document; only white space is allowed
+                        // there.
+                        if trim(&decoded).is_empty() {
+                            continue;
+                        }
+                        return Err(parse(
+                            "Mascot XML holds character data outside the root element",
+                        ));
+                    }
                     // Source `onCharacters` ignores text that follows a child
                     // element's end tag, because `tag_` is cleared there.
                     if self.tag.is_empty() {
                         continue;
                     }
-                    let decoded = body
-                        .xml_content()
-                        .map_err(|error| parse(format!("Mascot XML text: {error}")))?;
                     self.append_text(&decoded)?;
                 }
-                Event::CData(body) => {
-                    if self.tag.is_empty() {
-                        continue;
+                // quick-xml does not expand references inside text: it splits
+                // the text at every `&...;` and emits the reference as its own
+                // event, and `BytesText::xml_content()` only decodes and
+                // normalises line endings. Swallowing these in the catch-all
+                // arm DELETED the reference and concatenated the surrounding
+                // fragments, so `<pep_score>1&#46;5</pep_score>` read as the
+                // score 15. `src/format/mzml.rs:2465` already refuses both for
+                // the same reason, and a DTD is refused there too.
+                Event::GeneralRef(_) | Event::CData(_) => {
+                    return Err(Error::Unsupported(
+                        "XML entity references in text and CDATA are not supported".into(),
+                    ));
+                }
+                Event::DocType(_) => {
+                    return Err(Error::Unsupported("XML DTDs are not supported".into()));
+                }
+                Event::Eof => {
+                    if !root_opened || !root_closed || !self.tags_open.is_empty() {
+                        return Err(parse("incomplete Mascot XML document"));
                     }
-                    let decoded = body
-                        .decode()
-                        .map_err(|error| parse(format!("Mascot XML CDATA: {error}")))?;
-                    self.append_text(&decoded)?;
+                    return Ok(());
                 }
-                Event::Eof => return Ok(()),
                 _ => {}
             }
         }
@@ -933,14 +1079,15 @@ impl<'a> Handler<'a> {
                     .ok_or_else(|| parse("peptide requires query"))?;
                 let value = integer(number, "peptide query")?;
                 // The source computes `query - 1` into an unsigned member and
-                // then compares it with `>` against the size, so query 0
-                // underflows and query == size + 1 indexes one past the end.
-                // Both are refused here.
+                // then compares it with `>` against the size, so query 0 wraps
+                // to a huge index — which that guard does catch — and
+                // query == size + 1 indexes one past the end, which it does
+                // not. Both are refused here.
                 let index = value
                     .checked_sub(1)
                     .and_then(|v| usize::try_from(v).ok())
                     .ok_or_else(|| parse("peptide query numbers count from one"))?;
-                if index >= self.ids.len() {
+                if index >= self.declared_queries {
                     return Err(parse(
                         "No or conflicting header information present (make sure to use the 'show_header=1' option in the ./export_dat.pl script)",
                     ));
@@ -963,10 +1110,15 @@ impl<'a> Handler<'a> {
                 if count > self.limits.max_queries {
                     return Err(bad("Mascot XML query limit exceeded"));
                 }
-                self.ids
-                    .try_reserve_exact(count.saturating_sub(self.ids.len()))
-                    .map_err(|_| bad("identification allocation failed"))?;
-                self.ids.resize(count, PeptideIdentification::default());
+                // The source resizes the identification vector here, which
+                // commits the whole declared count — hundreds of megabytes for
+                // a five-million-query header, and again for every repetition
+                // of the element. The count is recorded as the index space
+                // instead and entries are materialised when a query actually
+                // references them; a *smaller* repeat still truncates, which is
+                // the data loss `resize` causes.
+                self.declared_queries = count;
+                self.ids.truncate(count);
             }
             "prot_score" => {
                 // The source converts a protein score with toInt32, so a
@@ -1151,28 +1303,48 @@ impl<'a> Handler<'a> {
         Ok(())
     }
 
+    /// The identification at `index`, materialised if `<NumQueries>` declared
+    /// it but no earlier query reached it.
+    fn identification_at(
+        &mut self,
+        index: usize,
+        message: &'static str,
+    ) -> Result<&mut PeptideIdentification> {
+        if index >= self.declared_queries {
+            return Err(parse(message));
+        }
+        if index >= self.ids.len() {
+            let additional = index + 1 - self.ids.len();
+            self.ids
+                .try_reserve(additional)
+                .map_err(|_| bad("identification allocation failed"))?;
+            self.ids.resize(index + 1, PeptideIdentification::default());
+        }
+        self.ids
+            .get_mut(index)
+            .ok_or_else(|| bad("identification allocation failed"))
+    }
+
     fn identification_mut(&mut self) -> Result<&mut PeptideIdentification> {
         let index = self.index;
-        self.ids.get_mut(index).ok_or_else(|| {
-            parse(
-                "No or conflicting header information present (make sure to use the 'show_header=1' option in the ./export_dat.pl script)",
-            )
-        })
+        self.identification_at(
+            index,
+            "No or conflicting header information present (make sure to use the 'show_header=1' option in the ./export_dat.pl script)",
+        )
     }
 
     /// The identification the current `<query number=...>` refers to.
     ///
     /// The source indexes `id_data_[actual_query_ - 1]` with no check at all,
-    /// so a `<query number="0">` or a number beyond `<NumQueries>` reads out of
-    /// bounds. Both are refused here.
+    /// and `actual_query_` is unsigned, so a `<query number="0">` reads at
+    /// index 4294967295 and a number beyond `<NumQueries>` past the end. Both
+    /// are refused here.
     fn query_identification_mut(&mut self) -> Result<&mut PeptideIdentification> {
         let index = usize::try_from(self.query)
             .ok()
             .and_then(|value| value.checked_sub(1))
             .ok_or_else(|| parse("query numbers count from one"))?;
-        self.ids
-            .get_mut(index)
-            .ok_or_else(|| parse("query number exceeds NumQueries"))
+        self.identification_at(index, "query number exceeds NumQueries")
     }
 
     fn scan_title(&mut self, title: &str) -> Result<()> {
@@ -1526,15 +1698,22 @@ impl<'a> Handler<'a> {
 
     /// `MascotXMLFile::load`'s post-processing of the handler's output.
     fn finish(&mut self) -> Result<MascotXmlResult> {
+        // The source reserves the unfiltered count, so a document declaring
+        // five million queries and holding none still commits a five-million
+        // entry vector — and the empty result keeps that capacity. Counting
+        // the survivors first costs one pass and reserves what is needed.
+        let keeps = |identification: &PeptideIdentification| {
+            let hits = &identification.hits;
+            !hits.is_empty() && (hits.len() > 1 || !hits[0].sequence.is_empty())
+        };
         let mut kept: Vec<PeptideIdentification> = Vec::new();
-        kept.try_reserve(self.ids.len())
+        kept.try_reserve_exact(self.ids.iter().filter(|id| keeps(id)).count())
             .map_err(|_| bad("identification allocation failed"))?;
         let mut missing_sequence = 0usize;
         for identification in std::mem::take(&mut self.ids) {
-            let hits = &identification.hits;
-            if !hits.is_empty() && (hits.len() > 1 || !hits[0].sequence.is_empty()) {
+            if keeps(&identification) {
                 kept.push(identification);
-            } else if !hits.is_empty() {
+            } else if !identification.hits.is_empty() {
                 missing_sequence += 1;
             }
         }

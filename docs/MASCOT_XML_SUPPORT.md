@@ -58,7 +58,7 @@ handlers are not ported.
 | `MascotXMLHandler(ProteinIdentification&, PeptideIdentificationList&, const std::string&, std::map<...>&, const SpectrumMetaDataLookup&)` | private `Handler::new` |
 | `void onStartElement(const char16_t*, const XMLAttributes&)` | private `Handler::start_element` |
 | `void onEndElement(const char16_t*)` | private `Handler::end_element` |
-| `void onCharacters(const char16_t*, Size)` | the `Event::Text` / `Event::CData` arms of `Handler::run`, including the `tag_.empty()` guard |
+| `void onCharacters(const char16_t*, Size)` | the `Event::Text` arm of `Handler::run`, including the `tag_.empty()` guard. Xerces delivers CDATA content and expanded entity references through the same callback; this reader refuses both instead — see "Native differences" |
 | `static std::vector<std::string> splitModificationBySpecifiedAA(const std::string&)` | private `Handler::split_modification`. Kept private because it needs the modification registry the handler holds; expose it if a caller ever needs it |
 | private `protein_identification_`, `id_data_`, `actual_protein_hit_`, `actual_peptide_hit_`, `actual_peptide_evidence_`, `peptide_identification_index_`, `tag_`, `date_`, `date_time_string_`, `actual_query_`, `search_parameters_`, `identifier_`, `actual_title_`, `modified_peptides_`, `tags_open_`, `character_buffer_`, `major_version_`, `minor_version_`, `remove_fixed_mods_`, `lookup_`, `no_rt_error_` | the corresponding `Handler` fields. `actual_title_` is written but never read by the source and is not ported; `minor_version_` is parsed and never used, so the Rust reader only requires `majorVersion` |
 | `XMLHandler::fatalError`/`error`/`warning` | `Error::Parse` for the fatal case; `MascotXmlResult::warnings` for the non-fatal ones |
@@ -95,7 +95,10 @@ Each is covered by a named test in `tests/mascot_xml.rs`.
    handler trims the buffer and clears it. Reproduced event for event.
 2. *`<NumQueries>` sizes the identification vector*, and `<peptide query="N">`
    indexes it at `N - 1`. Entries no peptide ever reaches stay empty and are
-   dropped at the end.
+   dropped at the end, which is why this port records the count as an index
+   space and materialises an entry only when a query references it; a repeated
+   element with a *smaller* count truncates what was read, as `resize` does
+   (`a_declared_query_count_is_not_materialised_up_front`).
 3. *Score type and search engine* are the literal `Mascot`, stamped on the
    protein identification at each `</protein>` and on a peptide identification
    at its first inserted hit.
@@ -118,17 +121,24 @@ Each is covered by a named test in `tests/mascot_xml.rs`.
    digit per residue, the C-terminal slot. A non-`0` digit is the one-based
    index into `variable_modifications` — which is why that list must not be
    expanded before the document ends.
-9. *Modification lists come from `<fixed_mods>`/`<variable_mods>` when present
-   and from `<MODS>`/`<IT_MODS>` otherwise*, never both
-   (`mods_and_it_mods_are_read_only_without_the_dedicated_sections`). Mascot
-   XML 1.x has `<name>` only inside `<variable_mods>`; from 2.1 both sections
-   have one, so `majorVersion` plus the enclosing element decides.
+9. *Modification lists come from `<fixed_mods>`/`<variable_mods>` when they
+   produced entries and from `<MODS>`/`<IT_MODS>` otherwise*
+   (`mods_and_it_mods_are_read_only_without_the_dedicated_sections`). The guard
+   is `search_parameters_.fixed_modifications.empty()` — list emptiness, not
+   section presence — so an *empty* `<fixed_mods/>` section still lets a later
+   `<MODS>` populate the fixed list. An earlier revision of this list said
+   "when present"; that is only true for a section that contributed a name.
+   Mascot XML 1.x has `<name>` only inside `<variable_mods>`; from 2.1 both
+   sections have one, so `majorVersion` plus the enclosing element decides.
 10. *Specificity groups are expanded* by `splitModificationBySpecifiedAA`:
     `Phospho (ST)` becomes `Phospho (S)` and `Phospho (T)`, each checked against
     the modification database; terminal specifications and anything that is not
     exactly `name (residues)` pass through. Fixed modifications are expanded as
-    they are read; variable ones only at `</mascot_search_results>`, to keep the
-    index space intact.
+    they are read; variable ones named in `<variable_mods>` only at
+    `</mascot_search_results>`, to keep the index space `<pep_var_mod_pos>`
+    refers to intact. The `<IT_MODS>` *fallback* is the exception: it expands
+    immediately, as the source does, so "variable groups expand only at the
+    document end" holds for the section and not for the fallback.
 11. *A `<warning>` naming a modification that "can only be used as a variable
     modification" removes it from the fixed list*
     (`a_warning_element_removes_a_modification_from_the_fixed_list`).
@@ -158,20 +168,38 @@ Each is covered by a named test in `tests/mascot_xml.rs`.
     without it only the last, because it needs no spectrum to resolve
     (`initialize_lookup_reads_the_spectra_and_registers_the_default_formats`,
     `the_title_lookup_resolves_the_three_default_formats`).
+18. *The scan-number matcher needs no backtracking.* The hand-coded equivalent
+    of `[Ss]can( [Nn]umber)?s?[=:]? *(?<SCAN>\d+)` commits to the optional
+    ` Number` and trailing `s` once it sees them, where a real engine would
+    backtrack. That cannot change the outcome: if ` Number` or `s` is present
+    and consuming it fails, *not* consuming it requires a digit at the `N` or
+    the `s` itself, which is impossible. The groups are disjoint from `\d`, so
+    the leftmost match is the same in both engines. The same disjointness holds
+    for the DTA form. Source-reviewed against Boost's matcher; the Rust side of
+    the table — `Scans followed later by 5`, `Scan Numbers 5`,
+    `Scan Numbers =5`, `Scan Numberx5`, `Scan Number scan=7`, `scan=1 scan=2`,
+    `xscan=7`, `scan=00012`, `scan=+5` and `scanx=3` — is asserted in
+    `the_scan_number_matcher_needs_no_backtracking`. Note that *leftmost* wins
+    here, unlike the MGF writer's accession table, where the token iterator
+    takes the last match.
 
 ## Native differences
 
 | Difference | Why |
 |---|---|
 | **A caller-supplied `scan_regex` is refused.** `initialize_lookup` accepts `None` (or an empty string) and registers the default formats; a non-empty expression returns `Error::Unsupported`. | The source compiles a Boost regular expression with named groups. This crate has no regular-expression engine and this package may not add a dependency, so the three default formats are hand-coded as `TitleReferenceFormat` variants. A caller needing another form registers a variant directly; extending the enum is the path to a fourth format. |
-| **`<NumQueries>` is bounded.** The source calls `resize` with the converted value, so 2,000,000,000 commits the memory and a negative value wraps to an enormous `size_t`. | `ReadLimits::max_queries` (5,000,000 by default) is checked before any allocation, and a negative count is a parse error. Recorded as `MXML-02` (`a_hostile_numqueries_is_bounded_rather_than_allocated`). |
-| **Index bounds are checked.** The source's guard is `peptide_identification_index_ > id_data_.size()`, so `query == size + 1` indexes one past the end and a document with no `<NumQueries>` indexes an empty vector; `<query number="0">` underflows an unsigned member. | All three are refused, the first two with the source's own "show_header=1" message. Recorded as `MXML-01` and `MXML-03` (`a_missing_numqueries_header_is_refused_rather_than_read_out_of_bounds`). |
-| **A `<pep_var_mod_pos>` digit beyond the declared list, or a position beyond the sequence, is a parse error.** The source uses `vector::at` for the former (an uncaught `std::out_of_range`) and an unchecked residue index for the latter. | Both become `Error::Parse`. No upstream fixture reaches either: all 645 aligned pairs in the two large fixtures are in range (`a_variable_modification_index_beyond_the_list_is_refused`). |
+| **`<NumQueries>` is bounded *and* not materialised.** The source calls `resize` with the converted value, so 2,000,000,000 commits the memory, a negative value wraps to an enormous `size_t`, and a header repeating the element constructs and drops the vector again; `MascotXMLFile::load` then reserves the unfiltered count a second time for its filtered output. | `ReadLimits::max_queries` (5,000,000 by default) is checked before any allocation, a negative count is a parse error, the declared count is only an index space, and the filtered vector reserves the number of survivors. A five-million-query header with four repetitions went from 1.59 s to 0.02 s in release mode on the gate node. Recorded as `MXML-02` and `MXML-09` (`a_hostile_numqueries_is_bounded_rather_than_allocated`, `a_declared_query_count_is_not_materialised_up_front`). |
+| **Index bounds are checked.** The source's guard is `peptide_identification_index_ > id_data_.size()`, so `query == size + 1` indexes one past the end and a document with no `<NumQueries>` indexes an empty vector. `<peptide query="0">` is *not* one of those cases: the member is a `UInt`, so `0 - 1` wraps to 4294967295 and the guard does catch it. The genuinely unchecked index is `id_data_[actual_query_ - 1]` in the `<queries>` branches, where `actual_query_` is also unsigned: `<query number="0">` followed by `<StringTitle>` or `<RTINSECONDS>` reads at index 4294967295. | All of them are refused, the `<peptide>` cases with the source's own "show_header=1" message. Recorded as `MXML-01` and `MXML-03` (`a_missing_numqueries_header_is_refused_rather_than_read_out_of_bounds`). |
+| **A `<pep_var_mod_pos>` digit beyond the declared list, or a position beyond the sequence, is a parse error.** The source uses `vector::at` for the former, an uncaught `std::out_of_range`, and `AASequence::setModification` for the latter, which throws `IndexOverflow` when the index is not below the peptide length. | Both become `Error::Parse`, which is the same accept/reject boundary — only the exception type differs. An earlier revision of this row called the residue index unchecked; it is checked one level down (`AASequence.cpp`, `setModification`). No upstream fixture reaches either: all 645 aligned pairs in the two large fixtures are in range (`a_variable_modification_index_beyond_the_list_is_refused`). An empty N- or C-terminal slot (`.00.0` split into three fields with an empty first one) is skipped here, where the source reads `temp_string[0]`, gets the string's NUL terminator and fails its conversion. |
 | **An empty `<pep_seq>` is handled.** The source's `(C-term X)` / `(N-term X)` branches dereference `end() - 1` and `begin()` without checking. | Recorded as `MXML-07`. |
 | **Mascot's `-` flanking marker becomes a terminus marker.** The source stores the character verbatim, and `IdXMLFile` then writes `aa_before="-"`, which is neither of OpenMS's own `[`/`]` markers and which nothing downstream interprets — this crate's `FlankingResidue` cannot represent it at all. `-` before the peptide becomes `NTerminus`, after it `CTerminus`. | It is the information the character carries, and without the mapping `MascotXMLFile_test_2.mascotXML` (which uses `-` 
 for both) could not be read. Recorded as `MXML-08`. |
 | **The unresolved-retention-time warning is reported.** The source's guard is `if (!id_data_[i].getRT())`, which is false for the NaN it has just assigned, so an unresolved title reports nothing while a title legitimately encoding retention time 0 reports an error. | The port reports the unresolved case, which is the one a caller can act on. Recorded as `MXML-04`. |
-| **Non-finite numbers are refused** wherever the source's `toDouble` would accept `inf`/`nan`. | Every consumer of an identification rejects them. |
+| **Non-finite numbers are refused** wherever the source's `toDouble` would accept `inf`/`nan`. | Every consumer of an identification rejects them. An overflowing decimal literal is refused as a *conversion* error rather than becoming an infinity, which is what `std::from_chars` reports and what `toDouble` therefore throws; a second `+` (`++1`) is refused for the same reason. |
+| **XML entity references, CDATA sections and DTDs are refused.** Xerces expands references before the C++ handler sees any character data. | quick-xml does not expand them: it splits the text at every `&...;` and emits the reference as its own event, so a catch-all event arm silently *deletes* it and concatenates the fragments — `<pep_score>1&#46;5</pep_score>` read as the score 15. Refusing is what `src/format/mzml.rs` already does, and a mis-decoded score is worse than a rejected file. This is stricter than the source for a document that legitimately escapes an `&` in a protein description; such a file must be pre-processed. Not a C++ defect: Xerces handles all three correctly (`entity_references_cdata_and_dtds_are_refused`). |
+| **A document must be one complete element tree.** Xerces rejects a truncated document, content before the root and a second root; quick-xml's `check_end_names` only pairs the tags it sees. | Exactly one root element, closed, and no non-whitespace character data outside it, checked in the event loop. Without it a download truncated mid-export loaded as a valid partial result and never ran the root-close post-processing (`an_incomplete_or_multi_root_document_is_refused`). |
+| **A reference format that matched but whose captured value does not convert is an error, not a miss.** `getSpectrumMetaData` returns after the first matching expression, and the `toInt32`/`toDouble` it calls inside throw, which the handler catches as a warning. | Falling through to the next format invents a successful association from a different part of the title: `500_12 scan=9223372036854775808` would resolve to RT 12 and m/z 500 after the scan-number format had already claimed it (`a_matched_format_whose_value_does_not_convert_does_not_fall_through`). |
+| **`^` and `$` in the default formats are line anchors, and scan numbers are 32-bit.** Boost's perl syntax compiles them to `syntax_element_start_line`/`..._end_line` unless `no_mod_m` is set, and `initializeLookup` sets no flags; `SpectrumLookup` converts with `toInt32`. | A wrapped title matches on its later lines and a native ID with a trailing annotation line still yields its scan number; a digit run too long for `toInt32` is the source's `-1`, i.e. no scan-number entry and a warning (`the_title_anchors_are_line_anchors_and_scan_numbers_are_32_bit`). |
 | **UTF-8 only.** The source hands the bytes to Xerces, which honours the declaration's encoding. | Every Mascot export in the upstream suite is ASCII; another encoding is an explicit error rather than mangled text. |
 | **Namespace prefixes are stripped.** The source matches the Xerces qname, which for a default-namespace document — every Mascot export — is the local name; a prefixed document would match nothing at all. | Stripping is strictly more permissive. |
 | **Resource ceilings.** `ReadLimits` bounds bytes, events, depth, queries, hits, per-element text and modification-list length. | The source has none (`resource_ceilings_bound_bytes_events_depth_and_text`). |
@@ -236,9 +264,25 @@ name, so the two vocabularies agree on the result.
 All 4 upstream `START_SECTION`s are ported — none is merely mapped.
 
 **Independently derived (tier 4).** The resource ceilings, the bound checks, the
-malformed and non-ASCII documents, the `-` flanking mapping, the title-lookup
-format tests, the fractional-protein-score rejection and the threshold table are
-Rust-only checks derived from reading the implementation.
+malformed and non-ASCII documents, the entity-reference, CDATA and DTD refusal,
+the one-complete-document rule, the lazily materialised query vector, the
+`-` flanking mapping, the title-lookup format tests (including the line
+anchors, the 32-bit scan width and the matched-but-unconvertible case), the
+fractional-protein-score rejection and the threshold table are Rust-only checks
+derived from reading the implementation.
+
+**Second-model review.** An adversarial review by another model found that the
+catch-all arm of the event loop *deleted* every XML entity reference from
+element text, so `<pep_score>1&#46;5</pep_score>` was read as the score 15 —
+silent corruption of a scientific value, and the reason references, CDATA and
+DTDs are now refused. The same review supplied the truncated-document,
+NumQueries-amplification, matched-but-unconvertible, line-anchor and 32-bit
+scan-width findings above, and corrected three claims in this document: the
+`<MODS>`/`<IT_MODS>` guard tests list emptiness rather than section presence,
+the `<IT_MODS>` fallback expands specificity groups immediately, and the
+residue index of `<pep_var_mod_pos>` is checked one level down by
+`AASequence::setModification` rather than being unchecked. Each behavioural
+finding has a named regression test.
 
 **Tolerances.** 1e-4 absolute wherever the upstream comparison uses
 `setAcceptableAbsolute(0.0001)` or `TOLERANCE_ABSOLUTE(0.0001)`; 1e-9 absolute

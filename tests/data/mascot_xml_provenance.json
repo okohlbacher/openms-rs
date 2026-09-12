@@ -123,12 +123,12 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
    "line": 57,
-   "operation": "peptide_identification_index_ is an unsigned member set to query - 1 and checked with '>' against id_data_.size(), so query == size + 1 indexes one past the end, query 0 underflows, and a document without <NumQueries> indexes an empty vector because 0 > 0 is false"
+   "operation": "peptide_identification_index_ is an unsigned member set to query - 1 and checked with '>' against id_data_.size(), so query == size + 1 indexes one past the end and a document without <NumQueries> indexes an empty vector because 0 > 0 is false. query 0 wraps to 4294967295 and the guard does catch that; the unchecked index is id_data_[actual_query_ - 1] in the <queries> branches, where actual_query_ is unsigned too"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
    "line": 80,
-   "operation": "id_data_.resize(toInt32(trim(buffer))) sizes the identification vector straight from the document, with no ceiling and no sign check"
+   "operation": "id_data_.resize(toInt32(trim(buffer))) sizes the identification vector straight from the document, with no ceiling and no sign check, and every repetition of the element resizes again -- constructing and dropping the whole vector"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
@@ -168,7 +168,7 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
    "line": 263,
-   "operation": "the internal modification index is only precondition-checked (debug builds) before vector::at, and the residue index i is not range-checked against the sequence at all"
+   "operation": "the internal modification index is only precondition-checked (debug builds) before vector::at, while the residue index is checked one level down: AASequence::setModification throws IndexOverflow when the index is not below the peptide length"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
@@ -188,7 +188,7 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
    "line": 418,
-   "operation": "MODS is read only when fixed_modifications is still empty, i.e. when no <fixed_mods> section was present; IT_MODS likewise for variable_modifications, because Mascot sometimes forces a user-set fixed modification to be variable"
+   "operation": "MODS is read only when fixed_modifications is still empty -- list emptiness, not section presence, so an empty <fixed_mods/> still lets MODS populate it; IT_MODS likewise for variable_modifications, because Mascot sometimes forces a user-set fixed modification to be variable, and that fallback calls splitModificationBySpecifiedAA immediately"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
@@ -208,7 +208,7 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
    "line": 587,
-   "operation": "variable modifications are expanded by specificity group only at </mascot_search_results>, after every pep_var_mod_pos has been resolved against their original order"
+   "operation": "variable modifications named in <variable_mods> are expanded by specificity group only at </mascot_search_results>, after every pep_var_mod_pos has been resolved against their original order; the <IT_MODS> fallback expands as it reads"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
@@ -223,7 +223,7 @@
   {
    "path": "src/openms/source/METADATA/SpectrumMetaDataLookup.cpp",
    "line": 148,
-   "operation": "getSpectrumMetaData falls back to a spectrum look-up only when the match itself did not supply every requested field, and returns after the first matching format; a title matching no format leaves the meta data at its NaN defaults and raises nothing"
+   "operation": "getSpectrumMetaData falls back to a spectrum look-up only when the match itself did not supply every requested field, and returns after the first matching format -- so a toInt32/toDouble failure inside that block propagates out instead of another format being tried; a title matching no format leaves the meta data at its NaN defaults and raises nothing"
   },
   {
    "path": "src/openms/include/OpenMS/METADATA/SpectrumMetaDataLookup.h",
@@ -233,16 +233,36 @@
   {
    "path": "src/openms/include/OpenMS/METADATA/SpectrumLookup.h",
    "line": 19,
-   "operation": "the default scan expression is '=(?<SCAN>\\d+)$', so readSpectra derives a scan number from the digits after the last '=' at the end of a native ID"
+   "operation": "the default scan expression is a trailing '=' plus digits anchored with '$', so readSpectra derives a scan number from the digits after the last '=' at a line end of a native ID, converts it with toInt32, and answers a failure with -1 -- which addEntry_ records as no scan-number entry at all, after a warning"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 600,
+   "operation": "onCharacters appends whatever the SAX parser hands it; Xerces has already expanded every entity reference and character reference by then, so the handler never sees a reference of its own -- which is why a pull parser that emits references as separate events must refuse them rather than skip them"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XMLFile.cpp",
+   "line": 78,
+   "operation": "parse_ hands the file to Xerces with error handling that turns a malformed document into a ParseError, so content before the root element, a missing root close and a second root are all rejected before any post-processing runs"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+   "line": 47,
+   "operation": "the filtered-output vector reserves id_data_.size(), the unfiltered count, so a document declaring five million queries and holding none still commits a five-million-entry vector"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumLookup.cpp",
+   "line": 236,
+   "operation": "addEntry_ skips the scans_ entry when the extracted scan number is -1, so a native ID whose digits overflow toInt32 is simply not indexed by scan number"
   }
  ],
- "evidence": "Tier 1 executed differential for MascotXMLFile_test_3, tier 3 source review for _1 and _2, tier 4 for the resource and robustness checks. tests/data/MascotXMLFile_test_out_3.idXML is output the pinned C++ produced: the upstream section loads MascotXMLFile_test_3.mascotXML through MascotXMLFile::load, writes it with IdXMLFile::store and fuzzy-compares the two with setAcceptableAbsolute(0.0001). That retained file is committed here and compared record by record against this port's own load of the same input -- search parameters (database, version, taxonomy, charges, mass type, missed cleavages, both tolerances with their ppm flags, one fixed and five variable modifications, enzyme case-insensitively), run date, search engine and version, 7 protein hits with accession and score in document order, 577 peptide identifications with score type, higher-score-better, significance threshold, precursor m/z to 1e-4 and the absence of a retention time, and 586 peptide hits with score, charge, the rendered modified sequence, every peptide evidence's accession and both flanking residues in order, and the EValue user parameter. The retained file is read by a line-oriented attribute extractor in the test rather than by crate::format::idxml, whose fixed 50,000,000-unit work budget is exhausted after roughly forty modified peptides; IdXMLFile::store writes one element per line with plain double-quoted attributes, so the extractor is exact for this fixture. The _1 and _2 expectations are transcribed class-test literals and are therefore tier-3 evidence: for 1.0 the four fixed and three variable modifications, three identifications at m/z 789.83/135.29/982.58, protein hits AAN17824 (619) and GN1736 (293), date 2006-03-09 11:31:52, significance threshold 31.8621, hit scores 33.85/33.12/43.9, the accession sets and the three modified sequences; for 2.1 seven missed cleavages, the modification lists, 1112 identifications with m/z 304.6967/314.1815/583.7948 at indices 0/1/1111, 66 protein hits, IPI00745872 and IPI00908876 at score 122, date 2011-06-24 19:34:54, significance threshold 5, the five accessions of query 35, hit scores 5.34/14.83/17.5 and the sequences VVFIK, LASYLDK, (Acetyl)AAFESDK, (Acetyl)GALM(Oxidation)NEIQAAK and SHY(Phospho)GGSR. The class test's PSI-MOD renderings MOD:00565 and MOD:00445 are asserted as residue-and-name pairs plus this crate's UniMod:7 and UniMod:52 forms, which name the same two modifications. The resource ceilings, the bound checks, the malformed and non-ASCII documents, the '-' flanking mapping, the title-lookup format tests and the threshold table are independently derived (tier 4).",
+ "evidence": "Tier 1 executed differential for MascotXMLFile_test_3, tier 3 source review for _1 and _2, tier 4 for the resource and robustness checks. tests/data/MascotXMLFile_test_out_3.idXML is output the pinned C++ produced: the upstream section loads MascotXMLFile_test_3.mascotXML through MascotXMLFile::load, writes it with IdXMLFile::store and fuzzy-compares the two with setAcceptableAbsolute(0.0001). That retained file is committed here and compared record by record against this port's own load of the same input -- search parameters (database, version, taxonomy, charges, mass type, missed cleavages, both tolerances with their ppm flags, one fixed and five variable modifications, enzyme case-insensitively), run date, search engine and version, 7 protein hits with accession and score in document order, 577 peptide identifications with score type, higher-score-better, significance threshold, precursor m/z to 1e-4 and the absence of a retention time, and 586 peptide hits with score, charge, the rendered modified sequence, every peptide evidence's accession and both flanking residues in order, and the EValue user parameter. The retained file is read by a line-oriented attribute extractor in the test rather than by crate::format::idxml, whose fixed 50,000,000-unit work budget is exhausted after roughly forty modified peptides; IdXMLFile::store writes one element per line with plain double-quoted attributes, so the extractor is exact for this fixture. The _1 and _2 expectations are transcribed class-test literals and are therefore tier-3 evidence: for 1.0 the four fixed and three variable modifications, three identifications at m/z 789.83/135.29/982.58, protein hits AAN17824 (619) and GN1736 (293), date 2006-03-09 11:31:52, significance threshold 31.8621, hit scores 33.85/33.12/43.9, the accession sets and the three modified sequences; for 2.1 seven missed cleavages, the modification lists, 1112 identifications with m/z 304.6967/314.1815/583.7948 at indices 0/1/1111, 66 protein hits, IPI00745872 and IPI00908876 at score 122, date 2011-06-24 19:34:54, significance threshold 5, the five accessions of query 35, hit scores 5.34/14.83/17.5 and the sequences VVFIK, LASYLDK, (Acetyl)AAFESDK, (Acetyl)GALM(Oxidation)NEIQAAK and SHY(Phospho)GGSR. The class test's PSI-MOD renderings MOD:00565 and MOD:00445 are asserted as residue-and-name pairs plus this crate's UniMod:7 and UniMod:52 forms, which name the same two modifications. The resource ceilings, the bound checks, the malformed and non-ASCII documents, the '-' flanking mapping, the title-lookup format tests and the threshold table are independently derived (tier 4). A second-model adversarial review of this port found that the catch-all arm of the event loop deleted every XML entity reference from element text, so <pep_score>1&#46;5</pep_score> was read as the score 15; references, CDATA and DTDs are now refused, as src/format/mzml.rs already did. The same review supplied the one-complete-document rule (a truncated export used to load as a valid partial result), the NumQueries amplification (1.59 s to 0.02 s in release mode on the Linux gate node for a header repeating a five-million count), the matched-but-unconvertible rule, Boost's line anchors and the 32-bit scan width, and corrected three claims in the support document: the MODS/IT_MODS guard tests list emptiness rather than section presence, the IT_MODS fallback expands specificity groups immediately, and the residue index of pep_var_mod_pos is checked by AASequence::setModification rather than unchecked. Each behavioural finding has a named regression test.",
  "target_verification": {
   "sections_total": 4,
   "sections_ported": 4,
   "sections_mapped": 0,
   "sections_unaccounted": 0,
-  "tests": 21,
+  "tests": 27,
   "differential_records": "7 protein hits, 577 peptide identifications, 586 peptide hits",
   "tolerance": "1e-4 absolute, the upstream FuzzyStringComparator setting; exact for counts, charges, accessions, flanking residues and sequences",
   "rustdoc_coverage": "28/28 public items in src/format/mascot_xml.rs"

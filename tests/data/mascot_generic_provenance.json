@@ -104,7 +104,7 @@
   {
    "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
    "line": 191,
-   "operation": "only split[0] and split[1] are used; a third field is the optional per-peak charge named in the error text and is discarded"
+   "operation": "only split[0] and split[1] are converted; a third field -- nominally the optional per-peak charge the error text names -- is never touched, which is why '100 1 garbage' loads and why the upstream fixture can smuggle comments past the reader"
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
@@ -119,7 +119,7 @@
   {
    "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
    "line": 222,
-   "operation": "PEPMASS accepts exactly one or two whitespace-separated entries; three or more is a ParseError naming the count"
+   "operation": "PEPMASS accepts exactly one or two whitespace-separated entries; three or more is a ParseError naming the count. The value is tab-substituted but NOT simplified, unlike a peak line, so 'PEPMASS=500  10' splits into three fields with an empty middle one and takes that error"
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
@@ -129,7 +129,7 @@
   {
    "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
    "line": 250,
-   "operation": "a TITLE containing 'min' anywhere is read as a Bruker export: the retention time comes from the first whitespace token of every comma chunk containing 'min', in minutes, and no TITLE meta value is stored at all"
+   "operation": "a TITLE containing 'min' anywhere is read as a Bruker export: the retention time comes from the first whitespace token of every comma chunk containing 'min', in minutes, and no TITLE meta value is stored at all. setRT is called inside the loop and the single enclosing catch does not undo it, so a retention time an earlier chunk committed survives a later chunk's failure"
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
@@ -214,7 +214,7 @@
   {
    "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
    "line": 337,
-   "operation": "SCANS is the text after the native ID's last '=' for the UNKNOWN accession sentinel and SpectrumLookup::extractScanNumber otherwise, whose -1 failure sentinel is streamed verbatim"
+   "operation": "SCANS is the text after the native ID's last '=' for the UNKNOWN accession sentinel and SpectrumLookup::extractScanNumber otherwise, whose -1 failure sentinel is streamed verbatim; its InvalidValue for a WIFF experiment of 1000 or more is not caught and aborts the store"
   },
   {
    "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
@@ -224,7 +224,7 @@
   {
    "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
    "line": 403,
-   "operation": "the compact writer skips zero-intensity peaks and uses five fixed decimals for m/z and three for intensity; the default writer uses precisionWrapper for both"
+   "operation": "the compact writer skips zero-intensity peaks and uses five fixed decimals for m/z and three for intensity; the default writer uses precisionWrapper for both. 'fixed' is streamed here and in the generated-title branch only, so a compact spectrum that already carries a TITLE has its PEPMASS and RTINSECONDS written in the stream's default float format -- five and three SIGNIFICANT digits -- and the flag then stays set for the rest of the file"
   },
   {
    "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
@@ -235,15 +235,45 @@
    "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
    "line": 462,
    "operation": "only MS level 2 is written; level 0 warns and every other level is dropped in silence"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "line": 362,
+   "operation": "StringUtils::substr clamps its start position to the string length, so a header line shorter than its own key yields an empty value instead of failing: a bare NAME stores an empty metabolite name and a bare MSLEVEL takes the std::stoi invalid_argument fallback"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "line": 259,
+   "operation": "toDouble skips leading space, tab, CR and LF, consumes one '+' and hands the rest to std::from_chars, which refuses a second '+' and reports an overflowing decimal literal as result_out_of_range -- a conversion error, not an infinity. Only the inf/nan words convert to a non-finite value"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "line": 148,
+   "operation": "toInt32 has the same one-'+' rule through the integer std::from_chars overload, so '++1' is a conversion error"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "line": 149,
+   "operation": "the token iterator collects every match and converts only matches.back() with toInt32, so the last match wins even when its digits overflow 32 bits and an earlier convertible match is not a fallback; the failure is logged and answered with -1"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "line": 183,
+   "operation": "the WIFF branch collects two subgroups and examines only the final cycle/experiment pair, so an earlier pair with an experiment of 1000 or more is never seen; that ceiling raises Exception::InvalidValue, which the surrounding catch (ConversionError only) does not handle"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "line": 113,
+   "operation": "the WIFF expression separates the pair with a whitespace-run escape, and Boost's whitespace class for char covers space, tab, CR, LF, vertical tab and form feed"
   }
  ],
- "evidence": "Tier 3 source review. Every expectation is either a transcribed literal from MascotGenericFile_test.cpp or read off MascotGenericFile.cpp/.h; the transcribed literals are therefore tier-3 evidence and are labelled as such. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential: the upstream suite retains no MGF output at all -- its two store sections compare substrings of an in-memory stringstream, and both committed fixtures are inputs. Transcribed and reproduced: one spectrum of nine peaks from MascotInfile_test.mascot_in; the written block TITLE=Testtitle_index=0 / PEPMASS=1998.0 / RTINSECONDS=25.379000000000001 / SCANS=0 with peak lines 1.0 1.0 through 9.0 81.0; the generated title 1998.0_25.379000000000001_index=0_test; MODS=Carbamidomethyl (C), MODS=Phospho (ST), IT_MODS=Deamidated (NQ), IT_MODS=Oxidation (M); the compact block TITLE=901.23457_234.568_index=250_test / PEPMASS=901.23457 / RTINSECONDS=234.568 / SCANS=250 / 890.12346 2345.679; Caffeine under Metabolite_Name with two peaks, precursor 500.0 and charge 1; and the GNPS spectrum's CCMSLIB00000001547, 3-Des-Microcystein_LR, precursor 981.54, charge 1, 43 peaks and base peak 599.352783 at intensity 764523.0, plus the four SEQ cases. The resource ceilings, the non-ASCII inputs, the multi-byte-offset refusal, the carry-over comparison, the block-merge and truncation asymmetry, the CHARGE rejection set, the range filters, the consumer interface, the native-ID accession table and the parameter-header line order are independently derived (tier 4).",
+ "evidence": "Tier 3 source review. Every expectation is either a transcribed literal from MascotGenericFile_test.cpp or read off MascotGenericFile.cpp/.h; the transcribed literals are therefore tier-3 evidence and are labelled as such. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential: the upstream suite retains no MGF output at all -- its two store sections compare substrings of an in-memory stringstream, and both committed fixtures are inputs. Transcribed and reproduced: one spectrum of nine peaks from MascotInfile_test.mascot_in; the written block TITLE=Testtitle_index=0 / PEPMASS=1998.0 / RTINSECONDS=25.379000000000001 / SCANS=0 with peak lines 1.0 1.0 through 9.0 81.0; the generated title 1998.0_25.379000000000001_index=0_test; MODS=Carbamidomethyl (C), MODS=Phospho (ST), IT_MODS=Deamidated (NQ), IT_MODS=Oxidation (M); the compact block TITLE=901.23457_234.568_index=250_test / PEPMASS=901.23457 / RTINSECONDS=234.568 / SCANS=250 / 890.12346 2345.679; Caffeine under Metabolite_Name with two peaks, precursor 500.0 and charge 1; and the GNPS spectrum's CCMSLIB00000001547, 3-Des-Microcystein_LR, precursor 981.54, charge 1, 43 peaks and base peak 599.352783 at intensity 764523.0, plus the four SEQ cases. The resource ceilings, the non-ASCII inputs, the multi-byte-offset refusal, the carry-over comparison, the block-merge and truncation asymmetry, the CHARGE rejection set, the range filters, the consumer interface, the native-ID accession table and the parameter-header line order are independently derived (tier 4). A second-model adversarial review of this port raised nine findings, eight of which changed behaviour and each of which now has a named regression test: the PEPMASS whitespace rule, the title retention-time commit order, the compact precision with a stored TITLE, the substr clamp, the from_chars conversion strictness, the scan number's 32-bit width and last-match-wins rule, the WIFF final-pair rule with its uncaught InvalidValue, and the quadratic SEQ accumulation (433.9 s to 0.04 s in release mode on the Linux gate node for the 100,000-line ceiling). The ninth was the documentation correction that the third field of a peak line is ignored rather than parsed and discarded. The libc++-only acceptance of '0x10' by strtod is deliberately not reproduced, because the std::from_chars path every other platform takes rejects it.",
  "target_verification": {
   "sections_total": 8,
   "sections_ported": 8,
   "sections_mapped": 0,
   "sections_unaccounted": 0,
-  "tests": 39,
+  "tests": 46,
   "rustdoc_coverage": "41/41 public items in src/format/mascot_generic.rs"
  },
  "gaps": [

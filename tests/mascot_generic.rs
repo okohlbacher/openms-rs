@@ -16,6 +16,7 @@ use openms::format::mascot_generic::{
 };
 use openms::interfaces::MSDataConsumer;
 use openms::kernel::SpectrumType;
+use openms::metadata::{ExperimentalSettings, SourceFile};
 use openms::param::ParamValue;
 use openms::{Error, MSExperiment, MSSpectrum, Peak1D, Precursor};
 use std::ops::ControlFlow;
@@ -217,6 +218,72 @@ fn store_to_stream_reproduces_the_upstream_expectations() {
     assert!(file.store_compact());
 }
 
+/// A compact spectrum that already carries a `TITLE` gets *significant* digits,
+/// not fixed decimals, until something sets the stream's `fixed` flag.
+///
+/// `MascotGenericFile.cpp` streams `fixed` only in the branch that generates a
+/// title, and again on every compact peak line; with a `TITLE` meta value
+/// present the stream is still in its default float format, so
+/// `setprecision(5)`/`setprecision(3)` mean five and three significant digits:
+/// `901.23` and `235`. Because the flag lives in the ostream it stays set for
+/// the rest of the file, so the *second* such spectrum is written with fixed
+/// decimals. Found by a second-model review; the port used to write
+/// `901.23457`/`234.568` for both, which is more precision than the source
+/// keeps.
+#[test]
+fn compact_output_with_a_stored_title_uses_significant_digits() {
+    let titled = |index: u32| MSSpectrum {
+        native_id: format!("index={index}"),
+        ms_level: 2,
+        rt: 234.567_890_1,
+        precursors: vec![Precursor::new(901.234_567_8, 0)],
+        peaks: vec![Peak1D::new(890.123_456_7, 2_345.679)],
+        metadata: [("TITLE".to_owned(), openms::metadata::MetaValue::from("x"))]
+            .into_iter()
+            .collect(),
+        ..Default::default()
+    };
+    let mut file = writer();
+    let experiment = MSExperiment {
+        spectra: vec![titled(0)],
+        ..Default::default()
+    };
+    let text = store_to_string(&mut file, "test", &experiment, true);
+    assert!(
+        text.contains("TITLE=x\nPEPMASS=901.23\nRTINSECONDS=235\n"),
+        "compact output was\n{text}"
+    );
+    // The peak line is fixed in both cases.
+    assert!(text.contains("\n890.12346 2345.679\n"), "{text}");
+    // The flag the peak line set is sticky, so the next spectrum is fixed.
+    let experiment = MSExperiment {
+        spectra: vec![titled(0), titled(1)],
+        ..Default::default()
+    };
+    let text = store_to_string(&mut file, "test", &experiment, true);
+    assert!(
+        text.contains("PEPMASS=901.23\nRTINSECONDS=235\n"),
+        "compact output was\n{text}"
+    );
+    assert!(
+        text.contains("PEPMASS=901.23457\nRTINSECONDS=234.568\n"),
+        "compact output was\n{text}"
+    );
+    // Without a stored title nothing changes: the generated title sets `fixed`
+    // before the precursor m/z is written.
+    let mut plain = titled(0);
+    plain.metadata.clear();
+    let experiment = MSExperiment {
+        spectra: vec![plain],
+        ..Default::default()
+    };
+    let text = store_to_string(&mut file, "test", &experiment, true);
+    assert!(
+        text.contains("TITLE=901.23457_234.568_index=0_test\nPEPMASS=901.23457\n"),
+        "compact output was\n{text}"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // START_SECTION(void store(const std::string&, const PeakMap&, bool))
 // ---------------------------------------------------------------------------
@@ -404,6 +471,43 @@ fn seq_set_programmatically_is_written_in_both_store_modes() {
     assert!(store_to_string(&mut file, "test", &experiment, true).contains("SEQ=PEPTIDER"));
 }
 
+/// A query with the maximum number of `SEQ=` lines is linear, not quadratic.
+///
+/// The source reads the accumulated list out of the meta value, appends one
+/// entry and writes the whole list back on *every* `SEQ=` line, so a 600 kB
+/// block with 100,000 of them copies about five billion strings. Found by a
+/// second-model review; the list is accumulated in the reader and stored once
+/// when the block ends. Measured on the Linux gate node in release mode:
+/// 433.9 s before, 0.04 s after.
+#[test]
+fn many_seq_lines_in_one_query_are_linear() {
+    let mut text = String::from("BEGIN IONS\nPEPMASS=500.0\n");
+    for index in 0..100_000 {
+        text.push_str("SEQ=PEPTIDER");
+        text.push_str(&(index % 10).to_string());
+        text.push('\n');
+    }
+    text.push_str("100.0 5.0\nEND IONS\n");
+    let experiment = mgf::read(text.as_bytes()).unwrap();
+    let sequences = experiment.spectra[0].metadata["SEQ"]
+        .as_string_list()
+        .unwrap()
+        .to_vec();
+    assert_eq!(sequences.len(), 100_000);
+    assert_eq!(sequences[0], "PEPTIDER0");
+    assert_eq!(sequences[99_999], "PEPTIDER9");
+    // One line past the ceiling is refused, and the ceiling is the source's
+    // only protection against an unbounded list.
+    text.insert_str(
+        text.len() - "100.0 5.0\nEND IONS\n".len(),
+        "SEQ=ONE_TOO_MANY\n",
+    );
+    assert!(matches!(
+        mgf::read(text.as_bytes()),
+        Err(Error::InvalidValue(_))
+    ));
+}
+
 #[test]
 fn seq_does_not_bleed_across_blocks_in_either_carry_over_mode() {
     let text = "BEGIN IONS\n\
@@ -569,6 +673,107 @@ fn pepmass_accepts_one_or_two_fields_and_rejects_three() {
     }
 }
 
+/// `PEPMASS=` is tab-substituted but *not* whitespace-collapsed, so a double
+/// space yields an empty middle field and the three-entry error.
+///
+/// `MascotGenericFile.h` calls `simplify` only on the peak lines; `PEPMASS`
+/// gets `substitute('\t', ' ')` and then a plain `split`, and `StringUtils`
+/// keeps empty chunks. Found by a second-model review: the port collapsed the
+/// run and accepted m/z 500 with intensity 10.
+#[test]
+fn pepmass_is_not_whitespace_collapsed() {
+    let read = |line: &str| {
+        let text = format!("BEGIN IONS\n{line}\n100.0 5.0\nEND IONS\n");
+        mgf::read(text.as_bytes())
+    };
+    match read("PEPMASS=500  10").unwrap_err() {
+        Error::Parse { message, .. } => {
+            assert!(message.contains("but 3 were present"), "{message}")
+        }
+        other => panic!("unexpected error {other:?}"),
+    }
+    // A tab is still an accepted separator.
+    let experiment = read("PEPMASS=500\t10").unwrap();
+    assert_eq!(experiment.spectra[0].precursors[0].mz, 500.0);
+    assert_eq!(experiment.spectra[0].precursors[0].intensity, 10.0);
+    // And a single space remains the ordinary two-field form.
+    let experiment = read("PEPMASS=500 10").unwrap();
+    assert_eq!(experiment.spectra[0].precursors[0].intensity, 10.0);
+}
+
+/// `StringUtils::substr` clamps its start position, so a header line shorter
+/// than its own key stores an empty value instead of failing.
+///
+/// Found by a second-model review: `.get(offset..)` treated the out-of-range
+/// offset as an error, so a bare `NAME` line was refused where the source
+/// stores an empty metabolite name and a bare `MSLEVEL` takes its MS2 fallback.
+#[test]
+fn a_header_line_shorter_than_its_key_yields_an_empty_value() {
+    let text = "BEGIN IONS\nNAME\nPEPMASS=500\n100.0 5.0\nEND IONS\n";
+    let experiment = mgf::read(text.as_bytes()).unwrap();
+    assert_eq!(
+        experiment.spectra[0].metadata[MSM_METABOLITE_NAME]
+            .as_str()
+            .unwrap(),
+        ""
+    );
+    let text = "BEGIN IONS\nMSLEVEL\nPEPMASS=500\n100.0 5.0\nEND IONS\n";
+    let experiment = mgf::read(text.as_bytes()).unwrap();
+    assert_eq!(experiment.spectra[0].ms_level, 2);
+    assert_eq!(
+        experiment.spectra[0].metadata["MSLEVEL"].as_str().unwrap(),
+        "2"
+    );
+    // An offset inside a multi-byte character is still refused, because the
+    // source's byte slice would be an ill-formed string.
+    let text = "BEGIN IONS\nPEPMASSé=1.0\n100.0 5.0\nEND IONS\n";
+    assert!(matches!(
+        mgf::read(text.as_bytes()),
+        Err(Error::Parse { .. })
+    ));
+    // A key with nothing after it is still the empty-value conversion error.
+    let text = "BEGIN IONS\nPEPMASS\n100.0 5.0\nEND IONS\n";
+    assert!(matches!(
+        mgf::read(text.as_bytes()),
+        Err(Error::Parse { .. })
+    ));
+}
+
+/// `toDouble`/`toInt32` reject a second `+` and an overflowing decimal.
+///
+/// `StringUtils` strips one leading `+` and hands the rest to
+/// `std::from_chars`, which refuses a `+` of its own and reports an
+/// overflowing literal as `result_out_of_range`. Rust's parser accepts both, so
+/// the port had to refuse them explicitly. Found by a second-model review.
+#[test]
+fn numeric_conversion_refuses_a_second_plus_and_an_overflowing_literal() {
+    let read = |line: &str| {
+        let text = format!("BEGIN IONS\n{line}\n100.0 5.0\nEND IONS\n");
+        mgf::read(text.as_bytes())
+    };
+    assert!(matches!(read("PEPMASS=++5"), Err(Error::Parse { .. })));
+    assert_eq!(read("PEPMASS=+5").unwrap().spectra[0].precursors[0].mz, 5.0);
+    // `CHARGE=` is the exception: it removes *every* '+' before converting, so
+    // a second one never reaches the conversion.
+    assert_eq!(
+        read("PEPMASS=1.0\nCHARGE=++2").unwrap().spectra[0].precursors[0].charge,
+        2
+    );
+    // An overflowing retention time is a conversion error, not an infinity.
+    assert!(matches!(
+        read("PEPMASS=1.0\nRTINSECONDS=1e999"),
+        Err(Error::Parse { .. })
+    ));
+    // In the TITLE branch that conversion error takes the fallback path, so the
+    // title is stored and the block loads.
+    let text = "BEGIN IONS\nTITLE=run, 1e999 min\nPEPMASS=1.0\n100.0 5.0\nEND IONS\n";
+    let experiment = mgf::read(text.as_bytes()).unwrap();
+    assert_eq!(
+        experiment.spectra[0].metadata["TITLE"].as_str().unwrap(),
+        "run, 1e999 min"
+    );
+}
+
 #[test]
 fn title_with_minutes_sets_the_retention_time_and_stores_no_title() {
     let text = "BEGIN IONS\n\
@@ -592,6 +797,42 @@ fn title_with_minutes_but_unparsable_falls_back_to_the_first_equals_split() {
     let spectrum = &experiment.spectra[0];
     assert_eq!(spectrum.metadata["TITLE"].as_str().unwrap(), "a min b");
     assert_eq!(spectrum.rt, -1.0);
+}
+
+/// A retention time already committed by an earlier chunk survives a later
+/// chunk's conversion failure.
+///
+/// `MascotGenericFile.h` calls `spectrum.setRT(...)` *inside* the chunk loop,
+/// immediately after each successful conversion, and the single enclosing
+/// `catch` does not undo it — it only adds the fallback `TITLE`. Found by a
+/// second-model review: the port staged the retention time and discarded it.
+#[test]
+fn a_committed_title_retention_time_survives_a_later_failure() {
+    let text = "BEGIN IONS\n\
+                RTINSECONDS=7\n\
+                TITLE=run, 2 min, bad min, 3 min\n\
+                PEPMASS=1.0\n\
+                100.0 5.0\n\
+                END IONS\n";
+    let experiment = mgf::read(text.as_bytes()).unwrap();
+    let spectrum = &experiment.spectra[0];
+    // The second chunk converted and set 120 s; the third failed and aborted
+    // the loop, so the fourth chunk is never visited.
+    assert!((spectrum.rt - 120.0).abs() < 1e-9, "{}", spectrum.rt);
+    assert_eq!(
+        spectrum.metadata["TITLE"].as_str().unwrap(),
+        "run, 2 min, bad min, 3 min"
+    );
+    // Two TITLE lines in one block: the first commits 60 s, the second commits
+    // 120 s before failing.
+    let text = "BEGIN IONS\n\
+                TITLE=first, 1 min\n\
+                TITLE=second, 2 min, bad min\n\
+                PEPMASS=1.0\n\
+                100.0 5.0\n\
+                END IONS\n";
+    let experiment = mgf::read(text.as_bytes()).unwrap();
+    assert!((experiment.spectra[0].rt - 120.0).abs() < 1e-9);
 }
 
 #[test]
@@ -1094,10 +1335,82 @@ fn scans_follows_the_native_id_type_accession_table() {
     // Failures write the source's -1 sentinel rather than aborting the file.
     assert_eq!(scans("index=250", "MS:1000768"), "-1");
     assert_eq!(scans("index=250", "MS:9999999"), "-1");
+}
+
+/// Only the *last* match is converted, and the WIFF pair is validated only for
+/// the final match — both as `SpectrumNativeIDParser` does.
+///
+/// The token iterator collects every match and then takes `matches.back()`
+/// before calling `toInt32`, so an earlier convertible match is not a fallback,
+/// and the WIFF branch inspects only `matches[size-2]`/`matches[size-1]`. The
+/// conversion is `toInt32`, so the width is 32 bits.
+///
+/// `experiment >= 1000` raises `Exception::InvalidValue`, which
+/// `extractScanNumber` does not catch — only `ConversionError` — so it aborts
+/// the store instead of writing the sentinel. Found by a second-model review;
+/// this test previously asserted `SCANS=-1` for that input.
+#[test]
+fn the_last_scan_number_match_wins_before_conversion() {
+    let spectrum = |native_id: &str| MSSpectrum {
+        native_id: native_id.into(),
+        ms_level: 2,
+        rt: 1.0,
+        precursors: vec![Precursor::new(500.0, 0)],
+        peaks: vec![Peak1D::new(1.0, 1.0)],
+        ..Default::default()
+    };
+    let file = writer();
+    let written = |native_id: &str, accession: &str| -> Result<String, Error> {
+        let mut bytes = Vec::new();
+        file.write_spectrum(&mut bytes, &spectrum(native_id), "run", accession)?;
+        let text = String::from_utf8(bytes).unwrap();
+        Ok(text
+            .lines()
+            .find_map(|line| line.strip_prefix("SCANS="))
+            .expect("a SCANS line")
+            .to_owned())
+    };
+    let scans = |native_id: &str, accession: &str| written(native_id, accession).unwrap();
+    // The last match overflows i32, so the conversion fails and the sentinel is
+    // written; the earlier, convertible match is not used.
+    assert_eq!(scans("scan=7 scan=2147483648", "MS:1000768"), "-1");
+    assert_eq!(scans("scan=2147483647", "MS:1000768"), "2147483647");
+    // index= adds one in int arithmetic, which overflows at INT_MAX; the port
+    // writes the sentinel where the source has signed overflow.
+    assert_eq!(scans("index=2147483646", "MS:1000774"), "2147483647");
+    assert_eq!(scans("index=2147483647", "MS:1000774"), "-1");
+    // WIFF: only the final cycle/experiment pair is examined, so an earlier
+    // out-of-range experiment does not spoil a valid later pair.
     assert_eq!(
-        scans("sample=1 cycle=1 experiment=1000", "MS:1000770"),
-        "-1"
+        scans("cycle=1 experiment=1000 cycle=2 experiment=3", "MS:1000770"),
+        "2003"
     );
+    // Boost's \s covers vertical tab and form feed.
+    assert_eq!(scans("cycle=96\u{b}experiment=1", "MS:1000770"), "96001");
+    assert_eq!(scans("cycle=96\u{c}experiment=1", "MS:1000770"), "96001");
+    // The final pair's experiment of 1000 or more is an uncaught InvalidValue.
+    assert!(matches!(
+        written("sample=1 cycle=1 experiment=1000", "MS:1000770"),
+        Err(Error::InvalidValue(_))
+    ));
+    // The same input through a whole store aborts it rather than writing a file.
+    let experiment = MSExperiment {
+        spectra: vec![spectrum("cycle=1 experiment=1000")],
+        settings: ExperimentalSettings {
+            source_files: vec![SourceFile {
+                native_id_type_accession: "MS:1000770".into(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let mut file = writer();
+    let mut bytes = Vec::new();
+    assert!(matches!(
+        file.store_to(&mut bytes, "test", &experiment, false),
+        Err(Error::InvalidValue(_))
+    ));
 }
 
 #[test]
