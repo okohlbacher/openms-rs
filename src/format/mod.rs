@@ -84,6 +84,9 @@ pub mod mztab;
 pub mod mztab_file;
 /// MzTab-M metabolomics profile: data model, `FeatureMap` export and writer (`MzTabM.h`, `MzTabMFile.h`).
 pub mod mztab_m;
+/// Legacy mzXML 3.1 adapter: nested scans and paired peak arrays (`MzXMLFile.h`).
+#[cfg(feature = "mzml")]
+pub mod mzxml;
 
 use crate::{Error, Result};
 

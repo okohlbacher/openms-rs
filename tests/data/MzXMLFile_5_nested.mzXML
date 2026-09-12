@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1 http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd">
+	<msRun scanCount="4">
+		<parentFile fileName="nested.raw" fileType="RAWData" fileSha1="2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"/>
+		<dataProcessing>
+			<software type="conversion" name="hand-written" version="1.0"/>
+		</dataProcessing>
+		<scan num="1" msLevel="1" peaksCount="1" polarity="+" scanType="Full" retentionTime="PT10S">
+			<peaks precision="32" byteOrder="network" contentType="m/z-int">QvAAAELIAAA=</peaks>
+			<scan num="2" msLevel="2" peaksCount="1" polarity="+" scanType="Full" retentionTime="PT11S">
+				<precursorMz precursorIntensity="50" precursorCharge="2" windowWideness="4" activationMethod="CID">120.0</precursorMz>
+				<peaks precision="32" byteOrder="network" contentType="m/z-int">QvIAAEJIAAA=</peaks>
+				<scan num="3" msLevel="3" peaksCount="1" polarity="+" scanType="Full" retentionTime="PT12S">
+					<peaks precision="32" byteOrder="network" contentType="m/z-int">QvQAAEHIAAA=</peaks>
+					<nameValue name="depth" value="three"/>
+					<comment>level three comment</comment>
+				</scan>
+				<nameValue name="depth" value="two"/>
+				<comment>level two comment</comment>
+			</scan>
+			<nameValue name="depth" value="one"/>
+			<comment>level one comment</comment>
+		</scan>
+		<scan num="4" msLevel="1" peaksCount="0" polarity="-" retentionTime="PT20S">
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" xsi:nil="true"/>
+		</scan>
+	</msRun>
+	<indexOffset>0</indexOffset>
+</mzXML>
