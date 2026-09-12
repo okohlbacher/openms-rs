@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Adopt `cargo-nextest` as the development test runner. Profiling showed 82% of the
+  sweep was test execution, not compilation: `cargo test` runs each of the 225 test
+  binaries in turn, nextest runs all tests in one pool. Full sweep 42 s on a 384-core
+  node, test phase 48 s to 9 s there and 56 s to 18 s locally. CI keeps `cargo test`.
 - Kernel wave 1. `kernel::ranges` ports `RangeManager.h`, `SpectrumRangeManager.h` and
   `ChromatogramRangeManager.h` as pure value types; `range_manager()` accessors on spectra,
   chromatograms and mobilograms and three experiment roles replace the source's cached

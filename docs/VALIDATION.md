@@ -1,5 +1,46 @@
 # Validation of the ongoing Rust port
 
+## Build and test throughput: the bottleneck was execution, not compilation (2026-09-12)
+
+The full sweep on the remote host was profiled after wave 1 rather than tuned by
+assumption. Splitting `cargo test --all-features --all-targets` showed a rebuild
+after touching `src/lib.rs` costs 10 s while running the already-built tests
+costs 47 s: **82% of the wall clock was test execution**, not compiling.
+
+`cargo test` runs each test binary in turn. With 225 integration binaries the
+per-binary serialisation dominates, and no amount of build parallelism touches
+it. `cargo-nextest` runs every test from every binary in one work-stealing pool:
+
+| Runner | kim (384 c) | Mac (16 c) |
+| --- | --- | --- |
+| `cargo test --all-features --all-targets` | 48 s | 56 s |
+| `cargo nextest run --all-features` | **9 s** | **18 s** |
+| `cargo test --no-default-features` | 38 s | — |
+| `cargo nextest run --no-default-features` | **8 s** | — |
+
+The complete sweep — build, both test selections, doctests, clippy, the MSRV
+1.85 gate, rustdoc, fmt and the six Python gates — now takes **42 s** on kim.
+
+Two things did not help and are recorded so they are not retried:
+
+- **More build jobs.** The default thread count already reaches 7.7 s; forcing
+  384 gives 7.7 s. Compilation is 10 s incrementally, so raising
+  `CARGO_BUILD_JOBS` past the current 96 changes nothing measurable.
+- **A RAM-backed `target/`.** `/dev/shm` offers 1.2 TB, but a cold build there
+  took 29 s against 22 s on node-local NVMe. The node's 2.2 TB of RAM already
+  page-caches `/scratch`, so tmpfs only adds a copy.
+
+This corrects an earlier judgement in this project's own plan, which stated that
+nextest should not be installed because "full-suite time is compile/link of 225
+test binaries, not test execution". That was asserted without measurement and is
+wrong by a factor of four on both hosts.
+
+Doctests are not a nextest feature and keep `cargo test --locked --all-features
+--doc`. CI continues to use `cargo test`, so the runner change affects local and
+remote development loops only; every test still runs in both. nextest runs each
+test in its own process, which is stricter than `cargo test`'s shared-process
+threads, and all 2,506 tests pass under it.
+
 ## Kernel wave 1: ranges, predicates, helpers, gap-0 review and geometry (2026-09-12)
 
 Five work packages ported in parallel git worktrees, then rebased onto wave 0,
