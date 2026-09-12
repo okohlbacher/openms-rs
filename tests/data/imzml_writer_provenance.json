@@ -30,6 +30,46 @@
    "path": "src/tests/class_tests/openms/source/ImzMLFile_all_modes_test.cpp",
    "sha256": "adc5bf88d28146b8f7430dfe2ec752f9680c1cc9df6dbcb9f2f4ce08865bfa54",
    "role": "Second family test, read for the storage-mode expectations the writer has to reproduce on the two fixtures."
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a",
+   "role": "Not ported here; already ported as the float branch of src/param/value.rs. Read for the exact text every float cvParam this writer emits must carry: appendNumeric's fixed-15-fractional-digit window [1e-2, 1e4), shortest-round-trip scientific outside it, the e05 exponent rewrite and the forced single digit after the dot. The writer's private float_text calls that existing port."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Not ported here. Read for two things: StringConversions::toString(double) -> appendToStr -> appendNumeric with writtenDigits<double>() and fixed_format = false (lines 802-853, 820-825), and the doc comment on toStr(const DataValue&) at lines 133-142 stating in terms that DataValue::toString() is the LENIENT stringification that never throws."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "role": "Not ported here. Read for appendToStr(double, std::string&) at lines 384-387, which is the appendNumeric call site that fixes the 15-digit precision and fixed_format = false."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+   "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b",
+   "role": "Not ported here; already ported as src/metadata/value.rs. Read for DataValue::toString(bool) at lines 703-737, which extractMeta_ uses for its six vocabulary keys, and for operator double() at lines 466-478 and operator unsigned int() at lines 529-543, which it uses for its seven numeric keys. operator double()'s fall-through to data_.dou_ for a STRING_VALUE is cpp_issue_candidate 4."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+   "sha256": "ae4767948b7c5b40bd7398e210a8fbabe008021210192d1c64f3d59d83c79212",
+   "role": "Not ported here. Read for operator<<(std::ostream&, const std::vector<T>&) at lines 20-45, the '[a, b]' joining DataValue::toString applies to a list and that the writer's meta_text reproduces, including that each element goes through StringUtils::toStr."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+   "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6",
+   "role": "Not ported here. Read to confirm writtenDigits<double>() is std::numeric_limits<double>::digits10 = 15 (lines 189-193), the precision appendNumeric receives for every float cvParam."
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+   "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3",
+   "role": "Not ported here; already ported as src/kernel.rs. Read for sort(Predicate) at lines 364-376, which calls checkDataArraySizes_ before its stable_sort, and for the checkDataArraySizes_ declaration at line 740. This is why applyStoreOptions_ can throw on a misaligned data array; cpp_issue_candidate 5."
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+   "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+   "role": "Not ported here; already ported as src/kernel.rs. Read for checkDataArraySizes_ at lines 20-38, select at lines 40-56, selectUnchecked at lines 58-66 and sortByPosition at lines 444-460: the two entry points applyStoreOptions_ reaches that reject a data array whose length is neither 0 nor the peak count."
   }
  ],
  "fixtures": [
@@ -101,8 +141,18 @@
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 344,
+   "operation": "extractMeta_ reads imzml:imaging_mode with DataValue::toString(), the lenient stringification; the same call is used at 376 for imzml:uuid, 380 for imzml:scan_pattern, 384 for imzml:scan_direction, 388 for imzml:line_scan_direction and 392 for imzml:polarity, so none of the six can fail on a non-string value"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
    "line": 348,
-   "operation": "extractMeta_ reads the dataset grid with static_cast<UInt>, which wraps a negative or above-2^32 MetaValue instead of rejecting it"
+   "operation": "extractMeta_ reads the dataset grid with static_cast<UInt>, which throws Exception::ConversionError for anything but an INT_VALUE and for a negative one, and wraps an above-2^32 MetaValue instead of rejecting it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 360,
+   "operation": "extractMeta_ reads imzml:pixel_size_x/y and imzml:max_dim_x/y with static_cast<double>, which throws only for EMPTY_VALUE, converts INT_VALUE, and for a STRING_VALUE reads the union's double member instead (cpp_issue_candidate 4)"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
@@ -112,7 +162,17 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
    "line": 454,
-   "operation": "applyStoreOptions_ sorts each non-empty unsorted spectrum by m/z when getSortSpectraByMZ is set, inside the peak-filter branch and again in the else branch, and never moves the aligned data arrays with the peaks"
+   "operation": "applyStoreOptions_ sorts each non-empty unsorted spectrum by m/z when getSortSpectraByMZ is set, inside the peak-filter branch and again in the else branch; MSSpectrum::sortByPosition moves the aligned data arrays with the peaks but runs checkDataArraySizes_ first and throws Exception::Precondition for a misaligned one (cpp_issue_candidate 5)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 468,
+   "operation": "applyStoreOptions_ calls MSSpectrum::select when a filter actually trims a peak, which runs checkDataArraySizes_ via selectUnchecked and throws for the same misaligned array (cpp_issue_candidate 5)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 480,
+   "operation": "applyStoreOptions_'s else branch calls sortByPosition again when only getSortSpectraByMZ() is set, so the misaligned-array throw is reachable without any range filter at all"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
@@ -127,7 +187,7 @@
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
    "line": 522,
-   "operation": "an auxiliary array whose length is not the peak count is skipped with a warning; the per-peak contract includes both being empty"
+   "operation": "an auxiliary array whose length is not the peak count is skipped with a warning, under an explicit per-peak-contract comment that includes both being empty; this is the writer's stated policy for a misaligned array and is what the port makes unconditional"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
@@ -181,13 +241,18 @@
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
+   "line": 1292,
+   "operation": "IMS:1000044 max dimension x, and likewise 1000045/1000046/1000047 at 1299/1306/1313, are written with StringConversions::toString(meta.max_dim_x) -- appendNumeric at 15 digits, not an ostringstream"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
    "line": 1346,
    "operation": "a spectrum with no native identifier is written as 'spectrum=<index+1>', 1-based"
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
    "line": 1367,
-   "operation": "MS:1000016 scan start time is written for every spectrum in seconds, including the OpenMS unset default of -1"
+   "operation": "MS:1000016 scan start time is written for every spectrum in seconds, including the OpenMS unset default of -1, through StringConversions::toString(spec.getRT()) -- appendNumeric at 15 digits, so the text is \"-1.0\" and not \"-1\""
   },
   {
    "path": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp",
@@ -238,6 +303,24 @@
    "proposed_fix": "Write to a temporary path and rename on success, or unlink the .ibd when store exits by exception.",
    "evidence": "Source review, unconfirmed against running C++.",
    "rust_handling": "Every check that does not need the filesystem runs in a preflight before either file is created, so no rejected experiment leaves a file behind; tests/imzml_writer.rs asserts the absence of both files on every refusal path. A genuine I/O failure mid-write still leaves the partial files, as in the source."
+  },
+  {
+   "title": "DataValue::operator double() reads the union's double member for a non-numeric value",
+   "files": "src/openms/source/DATASTRUCTURES/DataValue.cpp:466-478 (and operator float() at 480-491, operator long double() at 452-464); reached from src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:356-378",
+   "trigger": "Set a non-numeric MetaValue on an MSExperiment for any of imzml:pixel_size_x, imzml:pixel_size_y, imzml:max_dim_x or imzml:max_dim_y -- exp.setMetaValue(\"imzml:pixel_size_x\", \"wide\") -- and call ImzMLFile::store.",
+   "behaviour": "operator double() throws only for EMPTY_VALUE and converts INT_VALUE; for STRING_VALUE and the three list types it falls through to 'return data_.dou_;'. The union member actually live for a STRING_VALUE is a std::string*, so this reinterprets a pointer's bit pattern as a double: undefined behaviour, and in practice a garbage extent written into the imzML rather than the Exception::ConversionError operator int() and operator unsigned int() raise for the same input.",
+   "proposed_fix": "Give operator double() (and operator float(), operator long double()) the type guard its integer siblings already have: throw Exception::ConversionError unless value_type_ is DOUBLE_VALUE or INT_VALUE.",
+   "evidence": "Source review, unconfirmed against running C++. Not reproducible in the Rust port: MetaValue is a tagged enum and MetaValue::as_f64 returns an error for every non-numeric variant, so there is no union to read.",
+   "rust_handling": "dataset_meta returns Error::InvalidValue for a non-numeric size. This is the one place it is deliberately stricter than extractMeta_, and dataset_meta_reads_every_key_and_refuses_the_wrong_type plus the_numeric_keys_stay_strict_and_a_size_accepts_an_integer pin it, including that an integer size is still accepted because the source accepts one."
+  },
+  {
+   "title": "ImzMLWriter::store treats one misaligned FloatDataArray as skippable or fatal depending on an unrelated PeakFileOptions flag",
+   "files": "src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:454, 468, 475, 522-531; src/openms/source/KERNEL/MSSpectrum.cpp:20-38, 40-66, 444-460; src/openms/include/OpenMS/KERNEL/MSSpectrum.h:364-376",
+   "trigger": "Give a spectrum a FloatDataArray whose size differs from the peak count and store it twice: once with default PeakFileOptions over an already-sorted spectrum, once with the same options over an unsorted spectrum (or with an m/z or intensity range that trims a peak).",
+   "behaviour": "appendAndWriteFloatDataArrays_ skips such an array and warns, under an explicit 'Per-peak contract' comment -- the writer's stated policy. But applyStoreOptions_ runs first and reaches MSSpectrum::sortByPosition and MSSpectrum::select, both of which run checkDataArraySizes_ and throw Exception::Precondition for exactly such an array. So the same experiment with the same array is stored with a warning in one case and aborts the whole store in the other, decided by a flag that has nothing to do with the array.",
+   "proposed_fix": "Apply the per-peak-contract check before applyStoreOptions_ and drop the offending arrays there (warning once per array, as appendAndWriteFloatDataArrays_ does), so skip-and-warn is the only outcome and neither sortByPosition nor select ever sees a misaligned array.",
+   "evidence": "Source review, unconfirmed against running C++. Was reproduced in the Rust port, where apply_store_options reached the same two MSSpectrum entry points and their validate_data_arrays; a_misaligned_array_is_skipped_whatever_the_peak_file_options_say now asserts the three option sets agree.",
+   "rust_handling": "Fixed at the port's own call site, since src/kernel.rs is correct to refuse the reorder: apply_store_options lifts every misaligned float, integer and string data array off the spectrum around the sort and the peak filters and restores it at its original position with its original values, so the array and its original length still reach StoreReport::skipped_float_arrays. The kernel's refusal is unchanged."
   }
  ],
  "gaps": [

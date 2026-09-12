@@ -229,25 +229,63 @@ Each is a deliberate divergence, stated at the item in the rustdoc as well.
 6. **An empty `FloatDataArray` is reported.** The source skips it before any
    other check and without a warning, so a named but valueless array vanishes
    silently. `FloatArraySkipReason::Empty` records it.
-7. **Wrong-typed and out-of-range metadata are errors.** `static_cast<UInt>` on
-   a negative or above-`2^32` pixel count wraps silently in the source;
-   `dataset_meta` and `pixel_coord` reject both. A meta value of the wrong type
-   throws `Exception::ConversionError` in the source and is `Error::InvalidValue`
-   here.
-8. **Annotation arrays are kept aligned.** The source's sort and peak filters
-   reorder and subset `spectrum` without touching its data arrays;
-   `MSSpectrum::sort_by_position` and `MSSpectrum::select` move them together and
-   refuse an array whose length is neither zero nor the peak count, leaving the
-   spectrum unchanged on refusal.
+7. **Out-of-range metadata is an error, and a string pixel size is too.**
+   `static_cast<UInt>` on a negative or above-`2^32` pixel count wraps silently
+   in the source; `dataset_meta` and `pixel_coord` reject both. The seven
+   numeric keys keep the source's type strictness, because the source is strict
+   there — the three `max_count_*` through `static_cast<UInt>`, which throws for
+   anything but an integer, and the four `pixel_size_*` / `max_dim_*` through
+   `static_cast<double>`, which accepts an integer and throws for an empty
+   value. `static_cast<double>` reads the `DataValue` union's `double` member
+   unconditionally for every *other* type, so a string pixel size is undefined
+   behaviour upstream rather than an error; refusing it is the divergence here.
+   See **Source findings**.
+
+   The six *vocabulary* keys — `imzml:imaging_mode`, `imzml:uuid`,
+   `imzml:scan_pattern`, `imzml:scan_direction`, `imzml:line_scan_direction`,
+   `imzml:polarity` — are **not** a divergence and are not strict.
+   `extractMeta_` reads each of them with `DataValue::toString()`, the
+   stringification `StringUtils.h` documents in terms as the one that never
+   throws, and `dataset_meta`'s `meta_text` reproduces it exactly: a number
+   becomes its decimal text, a list is joined as `[a, b]`, an empty value
+   becomes `""`, a string is returned verbatim. The port used to error on a
+   non-string value for these, which refused an experiment — an integer
+   `imzml:polarity`, say — that stores fine upstream.
+8. **Annotation arrays are kept aligned, and a misaligned one is always
+   skipped.** `MSSpectrum::sort_by_position` and `MSSpectrum::select` move the
+   data arrays together with the peaks, and refuse an array whose length is
+   neither zero nor the peak count, leaving the spectrum unchanged on refusal.
+   That refusal must not decide what a *store* does with such an array, because
+   the writer's own policy for one — `appendAndWriteFloatDataArrays_`, with an
+   explicit comment — is to skip it and warn. So `apply_store_options` lifts
+   every misaligned data array off the spectrum for the duration of the sort and
+   the peak filters and puts it back, at its original position and with its
+   original values, before returning. A misaligned array is therefore skipped
+   and reported under *every* `PeakFileOptions`, and nothing else about the
+   sort's or the filter's guarantees changes. Both this port and the source
+   previously diverged with the option set; see **Source findings**.
 9. **Strings are validated as XML 1.0.** `XMLHandler::writeXMLEscape` escapes
    the five entity characters and nothing else, so a native identifier holding,
    say, `U+0001` produces a document no parser can read back. Such a string is
    `Error::InvalidValue` here.
-10. **Floating-point values round-trip.** The source formats doubles through
-    `std::ostringstream` at `writtenDigits<double>()` = 15 significant digits,
-    which is not always exact. Rust's `{}` writes the shortest representation
-    that parses back to the same `f64`, so the port loses nothing the source
-    would.
+10. **Float `cvParam` text follows the source, not Rust's `{}`.** *Not* a
+    native difference — this item previously claimed one on a false premise.
+    The source does not format doubles through `std::ostringstream`.
+    `StringConversions::toString(double)` → `StringUtils::appendToStr`
+    (`StringUtils.cpp:384-387`) → `Internal::NumericFormatting::appendNumeric`
+    (`src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h:26-135`),
+    called with `writtenDigits<double>()` = 15 and `fixed_format = false`. That
+    rule is: `std::to_chars` fixed with 15 *fractional* digits for `|v|` in
+    `[1e-2, 1e4)`, shortest-round-trip `chars_format::scientific` otherwise with
+    the `printf`-style exponent rewritten from `e+05` to `e05`, and in both
+    forms trailing zeros trimmed but at least one digit kept after the dot. So
+    `-1` is `"-1.0"` and `1e5` is `"1.0e05"`, where Rust's `{}` writes `"-1"`
+    and `"100000"`. Every float `cvParam` this writer emits — `IMS:1000044` /
+    `IMS:1000045` extents, `IMS:1000046` / `IMS:1000047` pixel sizes and
+    `MS:1000016` scan start time — now goes through the port of that header
+    already in this crate, `crate::param::value::format_float(v, true)`, via a
+    private `float_text`. Sharing the existing port is what keeps a value
+    written here byte-identical to the same value written through a `Param`.
 11. **Two file passes instead of three.** The source re-reads the `.ibd` once for
     MD5 and once for SHA-1. Here both digests are computed in one re-read, and
     the identifier's seed digest is accumulated in the pass that writes the
@@ -299,9 +337,44 @@ The port decrements unconditionally.
 which a later run of the same pipeline can mistake for a stale companion. The
 port's preflight removes every non-I/O cause of this.
 
-Neither finding was reproduced against running C++ — see **Evidence** — so both
-are labelled candidates in `tests/data/imzml_writer_provenance.json` and neither
-is claimed as an applied upstream fix.
+**`static_cast<double>` on a non-numeric `DataValue` reads the wrong union
+member.** `DataValue::operator double()` (`DataValue.cpp:466-478`) throws only
+for `EMPTY_VALUE`, converts `INT_VALUE`, and for every remaining type —
+`STRING_VALUE` and the three list types — falls through to `return data_.dou_;`.
+For a `STRING_VALUE` the union holds a `std::string*`, so this reinterprets a
+pointer's bits as a `double`: undefined behaviour, and in practice a garbage
+number rather than the `Exception::ConversionError` the integer conversion
+operators raise. `extractMeta_` reaches it for all four of `imzml:pixel_size_x`,
+`imzml:pixel_size_y`, `imzml:max_dim_x` and `imzml:max_dim_y`
+(`ImzMLWriter.cpp:356-378`), so a string pixel size on an experiment yields an
+imzML carrying a nonsense pixel size and extent. `operator float()` and
+`operator long double()` have the same shape. A C++ fix would give
+`operator double()` the type guard its `operator int()` / `operator unsigned
+int()` siblings already have. `dataset_meta` returns `Error::InvalidValue`
+instead, which is the one place it is deliberately stricter than `extractMeta_`.
+
+**One misaligned annotation array is skipped or fatal depending on an unrelated
+option.** `appendAndWriteFloatDataArrays_` (`ImzMLWriter.cpp:522-531`) skips a
+`FloatDataArray` whose `size()` differs from the spectrum's and warns, under an
+explicit "Per-peak contract" comment — that is the writer's stated policy. But
+`applyStoreOptions_` runs first, and it reaches `MSSpectrum::sortByPosition`
+(`ImzMLWriter.cpp:454` and `ImzMLWriter.cpp:475`) and `MSSpectrum::select`
+(`ImzMLWriter.cpp:468`), both of which run `checkDataArraySizes_`
+(`MSSpectrum.cpp:20-38`, reached from `MSSpectrum.h:369` and
+`MSSpectrum.cpp:66`) and throw `Exception::Precondition` for exactly such an
+array. So the same experiment with the same misaligned array stores with a
+warning under default options over an already-sorted spectrum, and throws as
+soon as `getSortSpectraByMZ()` has an unsorted spectrum to sort or an m/z or
+intensity range actually trims a peak. A C++ fix would apply the
+per-peak-contract check before `applyStoreOptions_` and drop the offending
+arrays there, so skip-and-warn is the only outcome. The port does that by
+lifting the misaligned arrays off the spectrum around the sort and the filters;
+see **Native differences** item 8.
+
+None of these findings was reproduced against running C++ — see **Evidence** —
+so all are labelled candidates in
+`tests/data/imzml_writer_provenance.json` and none is claimed as an applied
+upstream fix.
 
 ## Checked boundaries and evidence
 

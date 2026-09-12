@@ -533,6 +533,142 @@ fn a_float_array_of_the_wrong_length_or_no_values_is_skipped() {
     assert!(xml(&path).contains("binaryDataArrayList count=\"2\""));
 }
 
+/// One misaligned annotation array used to be skipped or fatal depending on an
+/// unrelated option: with default options nothing in `apply_store_options`
+/// touched the spectrum and the array was skipped, while any sort or trimming
+/// filter reached `MSSpectrum::sort_by_position` or `MSSpectrum::select`, both
+/// of which refuse a data array whose length is neither 0 nor the peak count.
+/// The source diverges the same way — `applyStoreOptions_` reaches
+/// `sortByPosition` and `select`, and both run `checkDataArraySizes_` — but the
+/// writer's own explicit policy, in `appendAndWriteFloatDataArrays_`, is to
+/// skip and warn. That is now what every option set does.
+#[test]
+fn a_misaligned_array_is_skipped_whatever_the_peak_file_options_say() {
+    // Deliberately unsorted, so `sort_spectra_by_mz` really sorts. The
+    // misaligned arrays are five long against three peaks, so no filter below
+    // can leave them accidentally aligned.
+    fn experiment() -> MSExperiment {
+        let mut experiment = MSExperiment::new();
+        let mut spectrum = pixel_spectrum(
+            1,
+            1,
+            vec![
+                Peak1D::new(300.0, 30.0),
+                Peak1D::new(100.0, 10.0),
+                Peak1D::new(200.0, 20.0),
+            ],
+        );
+        spectrum.float_data_arrays.push(DataArray::new(
+            "temperature array",
+            vec![1.0, 2.0, 3.0, 4.0, 5.0],
+        ));
+        spectrum
+            .float_data_arrays
+            .push(DataArray::new("pressure array", vec![7.0, 8.0, 9.0]));
+        spectrum
+            .integer_data_arrays
+            .push(DataArray::new("charge array", vec![1, 2, 3, 4, 5]));
+        experiment.spectra.push(spectrum);
+        set_mode(&mut experiment, "processed");
+        experiment
+    }
+
+    // Neither sorts nor filters: nothing in `apply_store_options` touches the
+    // spectrum, which is the one option set that always worked.
+    let mut untouched = PeakFileOptions::new();
+    untouched.sort_spectra_by_mz = false;
+    // The library default. `sort_spectra_by_mz` is true, and the spectrum is
+    // unsorted, so `MSSpectrum::sort_by_position` runs.
+    let sorting = PeakFileOptions::new();
+    // Trims a peak, so `MSSpectrum::select` runs.
+    let mut trimming = PeakFileOptions::new();
+    trimming.sort_spectra_by_mz = false;
+    trimming.set_mz_range(NumericRange {
+        min: 150.0,
+        max: 350.0,
+    });
+
+    let temp = TempDir::new(false).unwrap();
+    let mut reports = Vec::new();
+    for (name, options) in [
+        ("untouched.imzML", untouched),
+        ("sorted.imzML", sorting),
+        ("trimmed.imzML", trimming),
+    ] {
+        // The point of the test: none of the three is an error.
+        let (path, report) = store_into(&temp, name, &experiment(), &options);
+        let peaks = if name == "trimmed.imzML" { 2 } else { 3 };
+
+        assert_eq!(report.skipped_float_array_count, 1, "{name}");
+        assert_eq!(report.skipped_float_arrays[0].name, "temperature array");
+        assert_eq!(
+            report.skipped_float_arrays[0].reason,
+            FloatArraySkipReason::LengthMismatch { length: 5, peaks },
+            "{name}"
+        );
+        // The misaligned integer array is dropped like any other, not fatal.
+        assert_eq!(report.dropped_data_array_count, 1, "{name}");
+        assert_eq!(report.dropped_data_array_names, ["charge array"], "{name}");
+        // The aligned array is still exported, and survives the reorder.
+        assert_eq!(report.aux_arrays_written, 1, "{name}");
+        let decoded = decode(&path);
+        assert_eq!(decoded.aux[0].len(), 1, "{name}");
+        assert_eq!(decoded.aux[0][0].0, "pressure array", "{name}");
+        reports.push((report, decoded));
+    }
+
+    // The untouched and the sorting set change no peak count, so their skip
+    // reports agree exactly — the same array, the same reason, the same numbers.
+    assert_eq!(
+        reports[0].0.skipped_float_arrays,
+        reports[1].0.skipped_float_arrays
+    );
+    // Untouched: the peaks keep their input order, and so does the annotation.
+    assert_eq!(reports[0].1.mz[0], vec![300.0, 100.0, 200.0]);
+    assert_eq!(reports[0].1.aux[0][0].1, vec![7.0, 8.0, 9.0]);
+    // Sorting reordered the peaks and carried the aligned array with them.
+    assert_eq!(reports[1].1.mz[0], vec![100.0, 200.0, 300.0]);
+    assert_eq!(reports[1].1.aux[0][0].1, vec![8.0, 9.0, 7.0]);
+    // Trimming dropped the 100.0 peak and its annotation with it.
+    assert_eq!(reports[2].1.mz[0], vec![300.0, 200.0]);
+    assert_eq!(reports[2].1.aux[0][0].1, vec![7.0, 9.0]);
+}
+
+/// `apply_store_options` leaves a misaligned array exactly where it was, with
+/// the values it had, so a caller that filters and then inspects sees the same
+/// spectrum shape the writer reported on.
+#[test]
+fn apply_store_options_puts_a_misaligned_array_back_in_place() {
+    let mut experiment = MSExperiment::new();
+    let mut spectrum = MSSpectrum::from(vec![
+        Peak1D::new(300.0, 30.0),
+        Peak1D::new(100.0, 10.0),
+        Peak1D::new(200.0, 20.0),
+    ]);
+    spectrum
+        .float_data_arrays
+        .push(DataArray::new("short", vec![1.0]));
+    spectrum
+        .float_data_arrays
+        .push(DataArray::new("aligned", vec![1.0, 2.0, 3.0]));
+    spectrum
+        .float_data_arrays
+        .push(DataArray::new("long", vec![1.0, 2.0, 3.0, 4.0]));
+    experiment.spectra.push(spectrum);
+
+    let mut options = PeakFileOptions::new();
+    options.sort_spectra_by_mz = true;
+    assert_eq!(apply_store_options(&mut experiment, &options).unwrap(), 0);
+
+    let arrays = &experiment.spectra[0].float_data_arrays;
+    let names: Vec<&str> = arrays.iter().map(|array| array.name.as_str()).collect();
+    assert_eq!(names, ["short", "aligned", "long"]);
+    assert_eq!(arrays[0].data, vec![1.0]);
+    // Only the aligned array followed the sort.
+    assert_eq!(arrays[1].data, vec![2.0, 3.0, 1.0]);
+    assert_eq!(arrays[2].data, vec![1.0, 2.0, 3.0, 4.0]);
+}
+
 #[test]
 fn integer_and_string_data_arrays_are_dropped_and_reported() {
     let mut experiment = MSExperiment::new();
@@ -1117,8 +1253,13 @@ fn apply_store_options_sorts_by_mz_and_moves_the_annotations_with_it() {
     assert!((unsorted.spectra[0].peaks[0].mz - 200.0).abs() < 1e-9);
 }
 
+/// This used to assert the opposite: that `apply_store_options` refused an
+/// unaligned annotation array, because the sort it runs does. It no longer
+/// does, because the writer's policy for such an array is to skip it and say
+/// so, and that policy must not turn on whether an unrelated option happens to
+/// reach the sort. The array is lifted off for the sort and put back after.
 #[test]
-fn apply_store_options_refuses_an_unaligned_annotation_array() {
+fn apply_store_options_sorts_around_an_unaligned_annotation_array() {
     let mut experiment = MSExperiment::new();
     let mut spectrum = pixel_spectrum(1, 1, vec![Peak1D::new(200.0, 2.0), Peak1D::new(100.0, 1.0)]);
     spectrum
@@ -1128,12 +1269,32 @@ fn apply_store_options_refuses_an_unaligned_annotation_array() {
 
     let mut options = PeakFileOptions::new();
     options.sort_spectra_by_mz = true;
+    assert_eq!(apply_store_options(&mut experiment, &options).unwrap(), 0);
+    // The peaks are sorted, and the unaligned array is untouched and in place.
+    assert!((experiment.spectra[0].peaks[0].mz - 100.0).abs() < 1e-9);
+    let arrays = &experiment.spectra[0].float_data_arrays;
+    assert_eq!(arrays.len(), 1);
+    assert_eq!(arrays[0].name, "temperature array");
+    assert_eq!(arrays[0].data, vec![20.0]);
+
+    // A spectrum the sort genuinely refuses is still left exactly as it was.
+    let mut nonfinite = MSExperiment::new();
+    let mut spectrum = pixel_spectrum(1, 1, vec![Peak1D::new(200.0, 2.0), Peak1D::new(100.0, 1.0)]);
+    spectrum.peaks[0].mz = f64::NAN;
+    spectrum
+        .float_data_arrays
+        .push(DataArray::new("temperature array", vec![20.0]));
+    nonfinite.spectra.push(spectrum);
     assert!(matches!(
-        apply_store_options(&mut experiment, &options),
+        apply_store_options(&mut nonfinite, &options),
         Err(Error::InvalidValue(_))
     ));
-    // The rejected spectrum is left exactly as it was.
-    assert!((experiment.spectra[0].peaks[0].mz - 200.0).abs() < 1e-9);
+    assert!(nonfinite.spectra[0].peaks[0].mz.is_nan());
+    assert_eq!(nonfinite.spectra[0].float_data_arrays.len(), 1);
+    assert_eq!(
+        nonfinite.spectra[0].float_data_arrays[0].data,
+        vec![20.0_f32]
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -1332,12 +1493,15 @@ fn dataset_meta_reads_every_key_and_refuses_the_wrong_type() {
         .insert("imzml:pixel_size_x".into(), MetaValue::from("wide"));
     assert!(matches!(dataset_meta(&wrong), Err(Error::InvalidValue(_))));
 
-    let mut wrong = MSExperiment::new();
-    wrong
+    // A vocabulary key is NOT refused for its type: `extractMeta_` reads all
+    // six of them with the lenient `DataValue::toString()`, which never throws
+    // and renders a number as its decimal text. The port used to error here.
+    let mut lenient = MSExperiment::new();
+    lenient
         .settings
         .metadata
         .insert("imzml:uuid".into(), MetaValue::from(7_i64));
-    assert!(matches!(dataset_meta(&wrong), Err(Error::InvalidValue(_))));
+    assert_eq!(dataset_meta(&lenient).unwrap().uuid, "7");
 
     // A negative count cannot be a pixel count; the source wraps it instead.
     let mut wrong = MSExperiment::new();
@@ -1346,6 +1510,200 @@ fn dataset_meta_reads_every_key_and_refuses_the_wrong_type() {
         .metadata
         .insert("imzml:max_count_y".into(), MetaValue::from(-1_i64));
     assert!(matches!(dataset_meta(&wrong), Err(Error::InvalidValue(_))));
+}
+
+/// `extractMeta_` reads all six vocabulary keys with `DataValue::toString()`,
+/// the stringification `StringUtils.h` documents as the one that never throws.
+/// So a non-string value for any of them is rendered, not refused: an integer
+/// as its decimal text, a float through the same 15-digit rule the float
+/// `cvParam`s use, a list joined as `[a, b]`, and an empty value as `""`.
+#[test]
+fn the_six_vocabulary_keys_take_any_type_the_way_the_source_does() {
+    let mut experiment = MSExperiment::new();
+    let settings = &mut experiment.settings.metadata;
+    settings.insert("imzml:polarity".into(), MetaValue::from(1_i64));
+    settings.insert(
+        "imzml:uuid".into(),
+        MetaValue::try_from(5.0_f64).expect("finite"),
+    );
+    settings.insert(
+        "imzml:scan_pattern".into(),
+        MetaValue::from(vec!["top".to_owned(), "down".to_owned()]),
+    );
+    settings.insert(
+        "imzml:scan_direction".into(),
+        MetaValue::from(vec![1_i64, 2]),
+    );
+    settings.insert(
+        "imzml:line_scan_direction".into(),
+        MetaValue::try_from(vec![1.5_f64, 100_000.0]).expect("a float list"),
+    );
+    settings.insert("imzml:imaging_mode".into(), MetaValue::default());
+
+    let meta = dataset_meta(&experiment).expect("no vocabulary key can be refused");
+    assert_eq!(meta.polarity, "1");
+    // Not Rust's "5": the source's NumericFormatting keeps one fractional digit.
+    assert_eq!(meta.uuid, "5.0");
+    assert_eq!(meta.scan_pattern, "[top, down]");
+    assert_eq!(meta.scan_direction, "[1, 2]");
+    assert_eq!(meta.line_scan_direction, "[1.5, 1.0e05]");
+    // An empty value stringifies to "", which is neither mode, so the mode is
+    // auto-detected rather than refused.
+    assert_eq!(meta.imaging_mode, None);
+
+    // And such an experiment stores: "1" is not "positive", so no polarity term
+    // is written, but nothing fails.
+    let mut storable = experiment.clone();
+    storable
+        .spectra
+        .push(pixel_spectrum(1, 1, vec![Peak1D::new(100.0, 1.0)]));
+    let temp = TempDir::new(false).unwrap();
+    let (path, report) = store_into(&temp, "lenient.imzML", &storable, &PeakFileOptions::new());
+    assert_eq!(report.meta.polarity, "1");
+    let document = xml(&path);
+    assert!(!document.contains("MS:1000130"));
+    assert!(!document.contains("MS:1000129"));
+    // "5.0" is not 16 hex bytes, so the usual derivation replaces it rather
+    // than the store failing.
+    assert_ne!(report.meta.uuid, "5.0");
+    assert_eq!(report.meta.uuid.len(), 36);
+    assert!(document.contains(&format!(
+        "name=\"universally unique identifier\" value=\"{}\"",
+        report.meta.uuid
+    )));
+}
+
+/// The numeric keys keep the source's strictness. `max_count_*` goes through
+/// `static_cast<UInt>`, which throws for anything but a non-negative integer;
+/// `pixel_size_*` and `max_dim_*` go through `static_cast<double>`, which
+/// accepts an integer and throws for an empty value.
+#[test]
+fn the_numeric_keys_stay_strict_and_a_size_accepts_an_integer() {
+    let mut counts = MSExperiment::new();
+    counts.settings.metadata.insert(
+        "imzml:max_count_x".into(),
+        MetaValue::try_from(4.0_f64).expect("finite"),
+    );
+    assert!(matches!(dataset_meta(&counts), Err(Error::InvalidValue(_))));
+
+    let mut sizes = MSExperiment::new();
+    sizes
+        .settings
+        .metadata
+        .insert("imzml:pixel_size_x".into(), MetaValue::from(3_i64));
+    assert!((dataset_meta(&sizes).unwrap().pixel_size_x - 3.0).abs() < 1e-12);
+
+    let mut empty = MSExperiment::new();
+    empty
+        .settings
+        .metadata
+        .insert("imzml:max_dim_x".into(), MetaValue::default());
+    assert!(matches!(dataset_meta(&empty), Err(Error::InvalidValue(_))));
+}
+
+// ---------------------------------------------------------------------------
+// Float cvParam text.
+// ---------------------------------------------------------------------------
+
+/// Every float `cvParam` goes through `StringConversions::toString(double)` →
+/// `StringUtils::appendToStr` → `Internal::NumericFormatting::appendNumeric`
+/// with 15 digits and `fixed_format = false`: fixed with 15 fractional digits
+/// for `|v|` in `[1e-2, 1e4)`, shortest-round-trip scientific with the
+/// exponent rewritten to the `e05` form otherwise, trailing zeros trimmed but
+/// at least one digit kept after the dot. `std::ostringstream` — six
+/// significant digits and no forced `.0` — is what the writer's own self-audit
+/// claimed, and is not what the source does.
+///
+/// `imzml:pixel_size_x` is the probe because it is written verbatim, and
+/// `imzml:max_count_x` is pinned to 1 so that `max_dim_x` is the pixel size
+/// itself.
+#[test]
+fn a_float_cv_param_is_written_with_the_sources_numeric_formatting() {
+    for (size, expected) in [
+        // Just inside the fixed window at the bottom, and just outside it.
+        (0.01_f64, "0.01"),
+        (0.009_f64, "9.0e-03"),
+        (0.009_999_f64, "9.999e-03"),
+        // Just inside the fixed window at the top, and just outside it.
+        (9999.0_f64, "9999.0"),
+        (10000.0_f64, "1.0e04"),
+        // A whole number needs the trailing ".0" the source forces.
+        (5.0_f64, "5.0"),
+        // An exponent that must render as e05, not e5 and not e+05.
+        (100_000.0_f64, "1.0e05"),
+        (123_456.789_f64, "1.23456789e05"),
+        // All 15 fractional digits of the nearest double, which is what
+        // separates this rule from a six-significant-digit stream.
+        (9999.9_f64, "9999.899999999999636"),
+    ] {
+        let mut experiment = one_pixel(100.0, 1.0);
+        let settings = &mut experiment.settings.metadata;
+        settings.insert("imzml:max_count_x".into(), MetaValue::from(1_u32));
+        settings.insert(
+            "imzml:pixel_size_x".into(),
+            MetaValue::try_from(size).expect("finite"),
+        );
+
+        let temp = TempDir::new(false).unwrap();
+        let (path, _) = store_into(&temp, "floats.imzML", &experiment, &PeakFileOptions::new());
+        let document = xml(&path);
+        assert!(
+            document.contains(&format!("name=\"pixel size x\" value=\"{expected}\"")),
+            "{size} must be written as {expected}"
+        );
+        // max_dim_x is pixel size times a one-pixel grid, so the same text.
+        assert!(
+            document.contains(&format!("name=\"max dimension x\" value=\"{expected}\"")),
+            "the recomputed extent of {size} must be written as {expected}"
+        );
+    }
+}
+
+/// The same rule on `MS:1000016` "scan start time", including the OpenMS unset
+/// default of -1, which the source writes as "-1.0" and Rust's own `to_string`
+/// would write as "-1".
+#[test]
+fn the_scan_start_time_is_written_with_the_same_rule() {
+    for (rt, expected) in [
+        (-1.0_f64, "-1.0"),
+        (0.0_f64, "0.0"),
+        (12.34_f64, "12.34"),
+        (0.000_25_f64, "2.5e-04"),
+        (86_400.0_f64, "8.64e04"),
+    ] {
+        let mut experiment = one_pixel(100.0, 1.0);
+        experiment.spectra[0].rt = rt;
+        let temp = TempDir::new(false).unwrap();
+        let (path, _) = store_into(&temp, "rt.imzML", &experiment, &PeakFileOptions::new());
+        assert!(
+            xml(&path).contains(&format!("name=\"scan start time\" value=\"{expected}\"")),
+            "rt {rt} must be written as {expected}"
+        );
+    }
+
+    // `MSSpectrum::rt` is a plain public field, so a caller can put a
+    // non-finite value there. `appendNumeric` has explicit NaN and infinity
+    // branches and so does the port; neither may panic and neither may emit
+    // the "inf.0" that once made such a file unreadable.
+    for (rt, expected) in [
+        (f64::NAN, "NaN"),
+        (f64::INFINITY, "inf"),
+        (f64::NEG_INFINITY, "-inf"),
+    ] {
+        let mut experiment = one_pixel(100.0, 1.0);
+        experiment.spectra[0].rt = rt;
+        let temp = TempDir::new(false).unwrap();
+        let path = temp.path().join("nonfinite.imzML");
+        match store(&path, &experiment, &PeakFileOptions::new()) {
+            Ok(_) => assert!(
+                xml(&path).contains(&format!("name=\"scan start time\" value=\"{expected}\"")),
+                "rt {rt} must be written as {expected}"
+            ),
+            // An explicit refusal is acceptable; a panic is not.
+            Err(Error::InvalidValue(_)) => {}
+            Err(other) => panic!("unexpected error for rt {rt}: {other:?}"),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
