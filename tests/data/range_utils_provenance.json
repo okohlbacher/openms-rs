@@ -1,0 +1,107 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "sha256": "1cc25d24b1e729ef0c3ac1f61203dd36fbcfe47d5358a2f4dbb8cfbe05da3cd4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RangeUtils_test.cpp",
+   "sha256": "5b9c503df7aa18f924c136ccd4ad6ed1cc2e6032212a4782f9759450bbbe3aa2"
+  }
+ ],
+ "native_implementation": [
+  "src/kernel/range_utils.rs"
+ ],
+ "native_tests": [
+  "tests/range_utils.rs"
+ ],
+ "support": "docs/RANGE_UTILS_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 331,
+   "operation": "HasActivationMethod: any precursor with any listed long name matches; early return !reverse"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 379,
+   "operation": "InPrecursorMZRange: closed interval, every precursor must be inside, vacuous without precursors"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 427,
+   "operation": "HasPrecursorCharge: any precursor charge in the list"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 542,
+   "operation": "IsInCollisionEnergyRange: MS level 1 returns false regardless of reverse"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 552,
+   "operation": "IsInCollisionEnergyRange: closed interval via !(cE > max || cE < min), OR over precursors"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 557,
+   "operation": "IsInCollisionEnergyRange: no collision energy on any precursor returns false regardless of reverse"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 595,
+   "operation": "IsInIsolationWindowSizeRange: MS level 1 returns false regardless of reverse"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 601,
+   "operation": "IsInIsolationWindowSizeRange: width = upper + lower offset, closed interval, OR over precursors"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 634,
+   "operation": "IsInIsolationWindow: m/z list sorted in the constructor"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 640,
+   "operation": "IsInIsolationWindow: MS level 1 returns false regardless of reverse"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 647,
+   "operation": "IsInIsolationWindow: zero lower/upper offset logs a warning in the source; the port evaluates without logging"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 651,
+   "operation": "IsInIsolationWindow: lower_bound on mz - lower offset, then candidate <= mz + upper offset"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+   "line": 517,
+   "operation": "Source @note claims true for MS1/no-energy spectra; code returns false (documented at the item)"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RangeUtils_test.cpp",
+   "line": 41,
+   "operation": "InRTRange closed boundaries 4.9/5.0/7.5/10.0/10.1, reused for InMzRange (140) and f32 InIntensityRange (174)"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RangeUtils_test.cpp",
+   "line": 371,
+   "operation": "IsInIsolationWindow unsorted list 300/100/200/400 with precursors 200.3, 201.1 and 299.9 at +-0.5"
+  }
+ ],
+ "evidence_tier": 3,
+ "evidence": "Tier 3 (source review): all 33 class-test sections transcribed as literal expectations, including the closed 5.0/10.0 boundaries with 4.9/10.1 exclusions, f32 intensity widening, the activation-method long names by index, precursor m/z 150/444, and the isolation-window 200.3/201.1/299.9 triple. Tier 4 (independently derived): HasPrecursorCharge, IsInCollisionEnergyRange, IsInIsolationWindowSizeRange and HasMetaValue have no class-test section and are checked against the source bodies; native range validation, removed counts, aligned-array movement and count limits are Rust-only. No C++ build or execution.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
