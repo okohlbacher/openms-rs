@@ -69,6 +69,9 @@ pub mod indexed_mzml;
 /// Random access to one record of an indexed mzML file (`IndexedMzMLHandler.h`).
 #[cfg(feature = "mzml")]
 pub mod indexed_mzml_handler;
+/// mzData 1.05 file adapter and handler (`MzDataFile.h`, `MzDataHandler.h`).
+#[cfg(feature = "mzml")]
+pub mod mzdata;
 #[cfg(feature = "mzml")]
 pub mod mzml;
 #[cfg(feature = "mzml-schema")]
