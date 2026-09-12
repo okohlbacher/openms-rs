@@ -73,6 +73,9 @@ pub mod indexed_mzml_handler;
 pub mod mzml;
 #[cfg(feature = "mzml-schema")]
 pub mod mzml_schema;
+/// Legacy mzXML 3.1 adapter: nested scans and paired peak arrays (`MzXMLFile.h`).
+#[cfg(feature = "mzml")]
+pub mod mzxml;
 
 use crate::{Error, Result};
 
