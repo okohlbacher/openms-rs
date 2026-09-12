@@ -1451,6 +1451,14 @@ impl OnDiscImzMLExperiment {
     /// mzML scan metadata — retention time, MS level, instrument — is not
     /// loaded in on-disc mode, in the source either.
     ///
+    /// A peak array that declares no `IMS:1000101` is decoded from its own
+    /// inline base64 instead, as source `ImzMLInterceptConsumer` fills the
+    /// non-external side from the peaks `MzMLHandler` decoded. Conformant
+    /// imzML 1.1.0 always stores both arrays externally, so that only arises
+    /// for a non-conformant dataset;
+    /// [`extract_ion_image`](Self::extract_ion_image) resolves each array by
+    /// the same rule, so both paths answer alike for such a file.
+    ///
     /// Peaks are sorted by m/z before returning, after the auxiliary arrays are
     /// attached, so those arrays stay aligned with peak order. That ordering is
     /// the source's: `decodeSpectrum` attaches first and calls
@@ -1717,6 +1725,17 @@ impl OnDiscImzMLExperiment {
     /// arrays nor the pixel meta values that `decodeSpectrum` has to produce.
     /// Skipping the auxiliary reads is also why a compressed auxiliary array
     /// does not fail an extraction.
+    ///
+    /// The two peak arrays come from
+    /// [`ImzMLHandler::mz_array`](crate::format::imzml_handler::ImzMLHandler::mz_array)
+    /// and its intensity counterpart, which resolve an array to the `.ibd` or
+    /// to its inline base64 by the same `IMS:1000101` rule
+    /// [`spectrum`](Self::spectrum) uses. That shared rule is what makes an
+    /// ion image and a decoded spectrum report the same peaks for the same
+    /// pixel: an earlier revision had those accessors read the `.ibd`
+    /// unconditionally, so a non-conformant file with an inline peak array
+    /// that still carried an `IMS:1000102` offset produced an ion image from
+    /// bytes `spectrum` never returned.
     fn peaks_only(&mut self, index: usize) -> Result<MSSpectrum> {
         let (x, y, z) = {
             let entry = self.index(index)?;

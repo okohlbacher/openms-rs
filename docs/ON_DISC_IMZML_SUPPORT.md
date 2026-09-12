@@ -6,7 +6,7 @@ Source revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 |---|---|
 | Ported header | `KERNEL/OnDiscImzMLExperiment.h` (266 lines) + `source/KERNEL/OnDiscImzMLExperiment.cpp` (362 lines) |
 | Rust module | `src/kernel/on_disc_imzml_experiment.rs` |
-| Test | `tests/on_disc_imzml_experiment.rs` (52 cases) plus 2 doctests |
+| Test | `tests/on_disc_imzml_experiment.rs` (53 cases) plus 2 doctests |
 | Provenance | `tests/data/on_disc_imzml_provenance.json` |
 | Feature gate | `mzml` (existing; no Cargo change) |
 | Builds on | `src/format/imzml_handler.rs` — see `docs/IMZML_HANDLER_SUPPORT.md` |
@@ -222,13 +222,30 @@ Nothing in the header is omitted.
    intensity, so a compressed auxiliary array fails `spectrum` and not
    `extract_ion_image`. The source splits `decodeSpectrum` from `decodePeaks`
    for exactly this and documents the asymmetry; the port keeps both halves.
-9. **`close()` keeps the index.** It releases the `.ibd` and clears the grid,
+9. **One externality rule serves both read paths.** In C++ the split above is
+   only a split: `decodeSpectrum` and `decodePeaks` both go through
+   `decodePeaksInto_`, so a peak array is resolved the same way whichever entry
+   point asked. Here the two entry points reach the reader through different
+   accessors — `spectrum` through `ImzMLHandler::spectrum` and
+   `extract_ion_image` through `ImzMLHandler::mz_array` /
+   `intensity_array` — and those accessors now apply the identical rule: the
+   `.ibd` at `IMS:1000102` when the array declares `IMS:1000101`, its own
+   inline base64 when it does not. An earlier revision had the per-array
+   accessors read the `.ibd` unconditionally, so a non-conformant file with an
+   inline peak array that still carried an `IMS:1000102` offset yielded an ion
+   image built from bytes `spectrum` never returned for the same pixel;
+   `an_ion_image_and_a_decoded_spectrum_agree_on_an_inline_peak_array` is built
+   from exactly that file and pins the agreement. Conformant imzML 1.1.0 stores
+   both peak arrays externally, so only a non-conformant dataset can tell the
+   two rules apart — which is why the divergence survived earlier review. See
+   **A peak array without `IMS:1000101`** in `docs/IMZML_HANDLER_SUPPORT.md`.
+10. **`close()` keeps the index.** It releases the `.ibd` and clears the grid,
    and `len`, `index` and `meta` keep answering afterwards.
-10. **Compression is only `MS:1000576`.** Any other child of `MS:1000572` —
+11. **Compression is only `MS:1000576`.** Any other child of `MS:1000572` —
     zlib and every numpress variant — is refused without being enumerated. That
     check lives in the reader and is inherited unchanged.
-11. **Serial.** Nothing in this header parallelises in C++ and nothing does here.
-12. **Regions are a decoupled, disjoint overlay.** Membership is derived on
+12. **Serial.** Nothing in this header parallelises in C++ and nothing does here.
+13. **Regions are a decoupled, disjoint overlay.** Membership is derived on
     demand from the footprint; no per-pixel region state is stored, and
     `add_region` refuses an overlap, so `region_of` has at most one answer.
 

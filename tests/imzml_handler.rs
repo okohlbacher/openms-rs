@@ -184,6 +184,105 @@ fn peak_array(role: &str, type_accession: &str, offset: u64, length: u64) -> Str
     )
 }
 
+/// A peak array with **no** `IMS:1000101`, whose payload is therefore the
+/// inline base64 `payload` rather than `.ibd` bytes.
+///
+/// `extra` carries any further params — an `IMS:1000102` / `IMS:1000103` pair,
+/// for the non-conformant shape where a writer left the offsets on an array it
+/// nevertheless stored inline.
+fn inline_peak_array(role: &str, type_accession: &str, payload: &str, extra: &str) -> String {
+    format!(
+        concat!(
+            "<binaryDataArray encodedLength=\"0\">",
+            "<cvParam accession=\"{role}\" name=\"peak array\"/>",
+            "<cvParam accession=\"{type_accession}\" name=\"binary type\"/>",
+            "<cvParam accession=\"MS:1000576\" name=\"no compression\"/>",
+            "{extra}",
+            "<binary>{payload}</binary>",
+            "</binaryDataArray>"
+        ),
+        role = role,
+        type_accession = type_accession,
+        extra = extra,
+        payload = payload
+    )
+}
+
+/// One `<spectrum>` at 1-based pixel `(x, y)` whose two peak arrays are given
+/// verbatim, so a caller can mix an external and an inline one.
+fn mixed_spectrum(x: u32, y: u32, mz: &str, int: &str) -> String {
+    document(&format!(
+        concat!(
+            "<run><spectrumList count=\"1\">",
+            "<spectrum id=\"s=1\" index=\"0\" defaultArrayLength=\"0\">",
+            "<scanList count=\"1\"><scan>",
+            "<cvParam accession=\"IMS:1000050\" name=\"position x\" value=\"{x}\"/>",
+            "<cvParam accession=\"IMS:1000051\" name=\"position y\" value=\"{y}\"/>",
+            "</scan></scanList>",
+            "<binaryDataArrayList count=\"2\">{mz}{int}</binaryDataArrayList>",
+            "</spectrum>",
+            "</spectrumList></run>"
+        ),
+        x = x,
+        y = y,
+        mz = mz,
+        int = int
+    ))
+}
+
+/// Standard base64 of `bytes`.
+///
+/// Written out here rather than taken from a crate so that the decoder under
+/// test is not also the encoder that produced its input.
+fn base64(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::new();
+    for chunk in bytes.chunks(3) {
+        let triple = [
+            chunk[0],
+            chunk.get(1).copied().unwrap_or(0),
+            chunk.get(2).copied().unwrap_or(0),
+        ];
+        let packed =
+            (u32::from(triple[0]) << 16) | (u32::from(triple[1]) << 8) | u32::from(triple[2]);
+        for position in 0..4 {
+            if position <= chunk.len() {
+                let index = (packed >> (18 - 6 * position)) & 63;
+                out.push(char::from(ALPHABET[index as usize]));
+            } else {
+                out.push('=');
+            }
+        }
+    }
+    out
+}
+
+/// Base64 of `values` stored as little-endian float32, the `MS:1000521` layout.
+fn float32_base64(values: &[f32]) -> String {
+    let mut bytes = Vec::new();
+    for value in values {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    base64(&bytes)
+}
+
+/// Write `xml` next to a synthetic `.ibd` holding a 16-byte header followed by
+/// `values` as little-endian float32 at offset 16, and open both.
+fn open_against_written_ibd(xml: &str, values: &[f32]) -> (TempDir, ImzMLHandler) {
+    let dir = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let imzml = dir.path().join("synthetic.imzML");
+    std::fs::write(&imzml, xml).unwrap();
+    let mut ibd = vec![0u8; IBD_UUID_BYTES];
+    for value in values {
+        ibd.extend_from_slice(&value.to_le_bytes());
+    }
+    let ibd_path = dir.path().join("synthetic.ibd");
+    std::fs::write(&ibd_path, &ibd).unwrap();
+    let handler = ImzMLHandler::open_with_ibd(&imzml, &ibd_path)
+        .expect("synthetic document opens against the written .ibd");
+    (dir, handler)
+}
+
 /// Write `xml` next to the unmodified continuous `.ibd` and open both.
 fn open_against_continuous_ibd(xml: &str) -> (TempDir, ImzMLHandler) {
     let dir = TempDir::new_in(std::env::temp_dir(), false).unwrap();
@@ -1020,6 +1119,489 @@ fn mismatched_mz_and_intensity_lengths_name_the_pixel() {
             assert!(message.contains("mz=6"), "{message}");
             assert!(message.contains("intensity=4"), "{message}");
         }
+        other => panic!("{other:?}"),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Inline peak arrays: a peak array without IMS:1000101
+// ---------------------------------------------------------------------------
+//
+// Conformant imzML 1.1.0 stores both peak arrays in the `.ibd`, so every array
+// carries `IMS:1000101` and none of the documents below can come out of a
+// conformant writer. Source `ImzMLInterceptConsumer::consumeSpectrum` handles
+// them anyway: it enters its decode block when *either* array is external
+// (ImzMLHandler.cpp:198) and fills the non-external side from the peaks
+// `MzMLHandler` decoded (:214-218, :228-232), so both sides end up populated
+// and the length-mismatch throw at :234 is reached only by a file whose two
+// arrays genuinely disagree. This module has no base class to borrow inline
+// peaks from, so it keeps the encoded payload and decodes it at the same point.
+
+/// One external array and one inline array: the source decodes both sides, so
+/// this must too rather than reporting a length mismatch.
+#[test]
+fn a_spectrum_with_one_external_and_one_inline_array_decodes_both_sides() {
+    let mz = [100.5_f32, 200.25, 300.125, 400.0];
+    let intensity = [11.0_f32, 22.0, 33.0, 44.0];
+
+    // m/z inline, intensity in the .ibd.
+    let xml = mixed_spectrum(
+        2,
+        3,
+        &inline_peak_array("MS:1000514", "MS:1000521", &float32_base64(&mz), ""),
+        &peak_array("MS:1000515", "MS:1000521", 16, 4),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &intensity);
+    let entry = handler.entry(0).unwrap();
+    assert!(!entry.mz_external);
+    assert!(entry.int_external);
+    assert_eq!(entry.mz_inline, float32_base64(&mz));
+    assert!(entry.int_inline.is_empty());
+    // IMS:1000103 is absent on an inline array, so the index records no length
+    // for it; the element count comes from the payload instead.
+    assert_eq!(entry.mz_length, 0);
+    assert_eq!(entry.int_length, 4);
+
+    let decoded = handler.spectrum(0).unwrap();
+    assert!(decoded.inline_peaks);
+    assert_eq!(decoded.spectrum.peaks.len(), 4);
+    for (peak, (&mz, &intensity)) in decoded.spectrum.peaks.iter().zip(mz.iter().zip(&intensity)) {
+        assert_eq!(peak.mz, f64::from(mz));
+        assert_eq!(peak.intensity, intensity);
+    }
+    // The per-array accessors resolve the same way, which is what keeps the
+    // ion-image path and the spectrum path in agreement.
+    assert_eq!(
+        handler.mz_array(0).unwrap(),
+        mz.iter().map(|&v| f64::from(v)).collect::<Vec<_>>()
+    );
+    assert_eq!(handler.intensity_array(0).unwrap(), intensity.to_vec());
+
+    // The mirror image: intensity inline, m/z in the .ibd.
+    let xml = mixed_spectrum(
+        2,
+        3,
+        &peak_array("MS:1000514", "MS:1000521", 16, 4),
+        &inline_peak_array("MS:1000515", "MS:1000521", &float32_base64(&intensity), ""),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &mz);
+    let entry = handler.entry(0).unwrap();
+    assert!(entry.mz_external);
+    assert!(!entry.int_external);
+    let decoded = handler.spectrum(0).unwrap();
+    assert!(decoded.inline_peaks);
+    assert_eq!(decoded.spectrum.peaks.len(), 4);
+    for (peak, (&mz, &intensity)) in decoded.spectrum.peaks.iter().zip(mz.iter().zip(&intensity)) {
+        assert_eq!(peak.mz, f64::from(mz));
+        assert_eq!(peak.intensity, intensity);
+    }
+}
+
+/// Both arrays inline is a plain mzML spectrum wearing IMS pixel coordinates.
+/// The source's decode block never runs for it and the peaks are entirely its
+/// base class's; here the same peaks come out of the two inline payloads.
+#[test]
+fn a_spectrum_with_both_arrays_inline_decodes_from_the_document_alone() {
+    let mz = [150.0_f32, 250.0];
+    let intensity = [7.5_f32, 8.5];
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000521", &float32_base64(&mz), ""),
+        &inline_peak_array("MS:1000515", "MS:1000521", &float32_base64(&intensity), ""),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[]);
+    let decoded = handler.spectrum(0).unwrap();
+    assert!(decoded.inline_peaks);
+    assert_eq!(decoded.spectrum.peaks.len(), 2);
+    assert_eq!(decoded.spectrum.peaks[0].mz, 150.0);
+    assert_eq!(decoded.spectrum.peaks[1].intensity, 8.5);
+}
+
+/// A float64 inline array is decoded at its own width, because the inline path
+/// and the `.ibd` path share one conversion.
+#[test]
+fn an_inline_float64_array_is_decoded_at_its_own_width() {
+    let mz = [100.125_f64, 900.0625];
+    let mut bytes = Vec::new();
+    for value in mz {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000523", &base64(&bytes), ""),
+        &peak_array("MS:1000515", "MS:1000521", 16, 2),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[1.0, 2.0]);
+    let decoded = handler.spectrum(0).unwrap();
+    assert_eq!(decoded.spectrum.peaks.len(), 2);
+    assert_eq!(decoded.spectrum.peaks[0].mz, 100.125);
+    assert_eq!(decoded.spectrum.peaks[1].mz, 900.0625);
+}
+
+/// Line breaks and indentation inside a `<binary>` payload are removed before
+/// the decode, as source `MzMLHandlerHelper::decodeBase64Arrays` removes them
+/// ("line breaks inside the base64 data are unfortunately no exception").
+#[test]
+fn whitespace_inside_an_inline_payload_is_removed() {
+    let mz = [100.5_f32, 200.25, 300.125, 400.0];
+    let packed = float32_base64(&mz);
+    let mut wrapped = String::new();
+    for (position, character) in packed.chars().enumerate() {
+        if position % 4 == 0 {
+            wrapped.push_str("\n    ");
+        }
+        wrapped.push(character);
+    }
+    wrapped.push_str("\n  ");
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000521", &wrapped, ""),
+        &peak_array("MS:1000515", "MS:1000521", 16, 4),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[1.0, 2.0, 3.0, 4.0]);
+    assert_eq!(handler.entry(0).unwrap().mz_inline, packed);
+    let decoded = handler.spectrum(0).unwrap();
+    assert_eq!(decoded.spectrum.peaks.len(), 4);
+    assert_eq!(decoded.spectrum.peaks[0].mz, 100.5);
+}
+
+/// The length check survives as what it is in the source: the guard against a
+/// file whose two arrays really do disagree, now that a mixed spectrum no
+/// longer trips it by construction.
+#[test]
+fn an_inline_array_of_the_wrong_length_still_names_the_pixel() {
+    let xml = mixed_spectrum(
+        4,
+        5,
+        &inline_peak_array(
+            "MS:1000514",
+            "MS:1000521",
+            &float32_base64(&[100.0, 200.0, 300.0]),
+            "",
+        ),
+        &peak_array("MS:1000515", "MS:1000521", 16, 4),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[1.0, 2.0, 3.0, 4.0]);
+    match handler.spectrum(0).unwrap_err() {
+        Error::Parse { message, .. } => {
+            assert!(message.contains("(4,5,1)"), "{message}");
+            assert!(message.contains("mz=3"), "{message}");
+            assert!(message.contains("intensity=4"), "{message}");
+        }
+        other => panic!("{other:?}"),
+    }
+}
+
+/// A payload that is not base64, or that does not hold a whole number of
+/// elements, is a malformed document rather than a panic.
+#[test]
+fn a_malformed_inline_payload_is_a_parse_error() {
+    // Not base64 at all.
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000521", "not*base*64!", ""),
+        &peak_array("MS:1000515", "MS:1000521", 16, 1),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[1.0]);
+    match handler.spectrum(0).unwrap_err() {
+        Error::Parse { message, .. } => assert!(message.contains("base64"), "{message}"),
+        other => panic!("{other:?}"),
+    }
+
+    // Five bytes cannot be a whole number of 4-byte float32 elements.
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000521", &base64(&[1, 2, 3, 4, 5]), ""),
+        &peak_array("MS:1000515", "MS:1000521", 16, 1),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[1.0]);
+    match handler.spectrum(0).unwrap_err() {
+        Error::Parse { message, .. } => {
+            assert!(message.contains("whole number"), "{message}");
+        }
+        other => panic!("{other:?}"),
+    }
+}
+
+/// An inline array with none of the four binary-data-type terms cannot be
+/// decoded, exactly as an external one cannot.
+#[test]
+fn an_inline_array_without_a_binary_data_type_cannot_be_decoded() {
+    let xml = mixed_spectrum(
+        1,
+        1,
+        // A real CV term that is not a binary data type.
+        &inline_peak_array(
+            "MS:1000514",
+            "MS:1000127",
+            &float32_base64(&[100.0, 200.0]),
+            "",
+        ),
+        &peak_array("MS:1000515", "MS:1000521", 16, 2),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[1.0, 2.0]);
+    assert_eq!(handler.entry(0).unwrap().mz_type, ImzMLDataType::Unknown);
+    match handler.spectrum(0).unwrap_err() {
+        Error::Unsupported(message) => assert!(message.contains("data type"), "{message}"),
+        other => panic!("{other:?}"),
+    }
+    match handler.mz_array(0).unwrap_err() {
+        Error::Unsupported(message) => assert!(message.contains("data type"), "{message}"),
+        other => panic!("{other:?}"),
+    }
+}
+
+/// An empty `<binary>` on a non-external array decodes to nothing rather than
+/// failing, the same tolerance a zero `IMS:1000103` gets.
+#[test]
+fn an_empty_inline_payload_decodes_to_an_empty_array() {
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000521", "", ""),
+        &inline_peak_array("MS:1000515", "MS:1000521", "", ""),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[]);
+    assert!(handler.entry(0).unwrap().mz_inline.is_empty());
+    let decoded = handler.spectrum(0).unwrap();
+    assert!(decoded.spectrum.peaks.is_empty());
+    assert!(decoded.inline_peaks);
+    assert!(handler.mz_array(0).unwrap().is_empty());
+    assert!(handler.intensity_array(0).unwrap().is_empty());
+}
+
+/// The offsets are ignored on an array that declares no `IMS:1000101`, so a
+/// non-conformant file that left them behind cannot make the two read paths
+/// disagree. This is the shape the audit found: `mz_array` used to read the
+/// `.ibd` at `IMS:1000102` while `spectrum` returned nothing for it.
+#[test]
+fn an_inline_array_that_kept_its_offsets_is_still_read_inline() {
+    let inline = [100.5_f32, 200.25];
+    // The .ibd holds different values at the very offset the XML names, so a
+    // read that honoured the offset would be visible.
+    let stored = [999.0_f32, 888.0];
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array(
+            "MS:1000514",
+            "MS:1000521",
+            &float32_base64(&inline),
+            concat!(
+                "<cvParam accession=\"IMS:1000102\" name=\"external offset\" value=\"16\"/>",
+                "<cvParam accession=\"IMS:1000103\" name=\"external array length\" value=\"2\"/>"
+            ),
+        ),
+        &peak_array("MS:1000515", "MS:1000521", 24, 2),
+    );
+    let (_dir, mut handler) = open_against_written_ibd(&xml, &[stored[0], stored[1], 1.0, 2.0]);
+    let entry = handler.entry(0).unwrap();
+    assert!(!entry.mz_external);
+    // The offsets are indexed verbatim, as the source indexes them; they are
+    // simply not what the decode uses.
+    assert_eq!(entry.mz_offset, 16);
+    assert_eq!(entry.mz_length, 2);
+
+    let from_accessor = handler.mz_array(0).unwrap();
+    let from_spectrum: Vec<f64> = handler
+        .spectrum(0)
+        .unwrap()
+        .spectrum
+        .peaks
+        .iter()
+        .map(|peak| peak.mz)
+        .collect();
+    assert_eq!(from_accessor, from_spectrum);
+    assert_eq!(from_accessor, vec![100.5, 200.25]);
+    assert!(!from_accessor.contains(&f64::from(stored[0])));
+}
+
+/// An inline payload is charged against `max_text_bytes` as it accumulates, so
+/// the ceiling bounds the allocation instead of discovering it afterwards.
+///
+/// The control is the same document with the payload moved into the `.ibd`:
+/// it indexes under the ceiling the inline form is refused at, which is what
+/// makes the refusal the payload's cost and not the document's own
+/// identifier-and-accession bookkeeping.
+#[test]
+fn an_inline_payload_is_charged_against_the_text_ceiling() {
+    // 64 float32 values encode to 344 base64 characters.
+    let payload = float32_base64(&[1.0; 64]);
+    assert_eq!(payload.len(), 344);
+    let intensity = peak_array("MS:1000515", "MS:1000521", 16, 64);
+    let inline = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000521", &payload, ""),
+        &intensity,
+    );
+    let control = mixed_spectrum(
+        1,
+        1,
+        &peak_array("MS:1000514", "MS:1000521", 16, 64),
+        &intensity,
+    );
+    let limits = ImzMLReadLimits {
+        max_text_bytes: 256,
+        ..ImzMLReadLimits::default()
+    };
+    match read_index_with_limits(BufReader::new(inline.as_bytes()), &limits).unwrap_err() {
+        Error::InvalidValue(message) => assert!(message.contains("byte limit"), "{message}"),
+        other => panic!("{other:?}"),
+    }
+    assert!(read_index_with_limits(BufReader::new(control.as_bytes()), &limits).is_ok());
+
+    // Room for the payload and the bookkeeping together: both index.
+    let roomy = ImzMLReadLimits {
+        max_text_bytes: 1024,
+        ..ImzMLReadLimits::default()
+    };
+    let index = read_index_with_limits(BufReader::new(inline.as_bytes()), &roomy).unwrap();
+    assert_eq!(index.spectra[0].mz_inline, payload);
+}
+
+/// The `.ibd` array ceilings apply to an inline decode as well, and the byte
+/// ceiling is tested against the encoded length before the decode allocates.
+#[test]
+fn the_array_ceilings_bound_an_inline_decode() {
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000521", &float32_base64(&[1.0; 64]), ""),
+        &peak_array("MS:1000515", "MS:1000521", 16, 64),
+    );
+    for limits in [
+        ImzMLReadLimits {
+            max_array_bytes: 8,
+            ..ImzMLReadLimits::default()
+        },
+        ImzMLReadLimits {
+            max_array_elements: 2,
+            ..ImzMLReadLimits::default()
+        },
+    ] {
+        let dir = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+        let imzml = dir.path().join("synthetic.imzML");
+        std::fs::write(&imzml, &xml).unwrap();
+        let mut ibd = vec![0u8; IBD_UUID_BYTES];
+        ibd.extend_from_slice(&[0u8; 256]);
+        let ibd_path = dir.path().join("synthetic.ibd");
+        std::fs::write(&ibd_path, &ibd).unwrap();
+        let mut handler = ImzMLHandler::open_with_limits(&imzml, &ibd_path, limits).unwrap();
+        match handler.mz_array(0).unwrap_err() {
+            Error::InvalidValue(message) => {
+                assert!(message.contains("inline m/z array"), "{message}");
+            }
+            other => panic!("{other:?}"),
+        }
+    }
+}
+
+/// Only a peak array's inline payload is kept. An auxiliary array without
+/// `IMS:1000101` is still reported as skipped and its `<binary>` is not
+/// retained, so the text budget is not spent on data no decode can use: the
+/// same 344-character payload that is refused at a 256-byte ceiling on a peak
+/// array indexes fine here.
+#[test]
+fn an_inline_auxiliary_payload_is_not_retained() {
+    let aux = format!(
+        concat!(
+            "<binaryDataArray encodedLength=\"0\">",
+            "<cvParam accession=\"MS:1003006\" name=\"aux\"/>",
+            "<cvParam accession=\"MS:1000521\" name=\"32-bit float\"/>",
+            "<cvParam accession=\"MS:1000576\" name=\"no compression\"/>",
+            "<binary>{payload}</binary>",
+            "</binaryDataArray>"
+        ),
+        payload = float32_base64(&[1.0; 64])
+    );
+    let xml = Spec {
+        mz_length: 4,
+        int_length: 4,
+        extra: &aux,
+        ..Spec::default()
+    }
+    .document();
+    let limits = ImzMLReadLimits {
+        max_text_bytes: 256,
+        ..ImzMLReadLimits::default()
+    };
+    let index = read_index_with_limits(BufReader::new(xml.as_bytes()), &limits).unwrap();
+    assert!(index.spectra[0].mz_inline.is_empty());
+    assert!(index.spectra[0].int_inline.is_empty());
+    assert_eq!(index.spectra[0].inline_aux_names.len(), 1);
+}
+
+// ---------------------------------------------------------------------------
+// The XML byte ceiling bounds the parser's buffer, not only its progress
+// ---------------------------------------------------------------------------
+
+/// A single text node larger than `max_xml_bytes` must be refused by the
+/// ceiling rather than buffered whole and refused afterwards. The input is
+/// capped one byte past the ceiling, so the parser never receives the rest of
+/// the node to buffer.
+#[test]
+fn one_oversized_event_cannot_outgrow_the_xml_byte_ceiling() {
+    let payload = "A".repeat(4096);
+    let xml = mixed_spectrum(
+        1,
+        1,
+        &inline_peak_array("MS:1000514", "MS:1000521", &payload, ""),
+        &peak_array("MS:1000515", "MS:1000521", 16, 4),
+    );
+    // The ceiling lands inside the single <binary> text node.
+    let cut = xml.find(&payload).expect("payload is in the document") + 64;
+    let limits = ImzMLReadLimits {
+        max_xml_bytes: cut as u64,
+        ..ImzMLReadLimits::default()
+    };
+    match read_index_with_limits(BufReader::new(xml.as_bytes()), &limits).unwrap_err() {
+        Error::InvalidValue(message) => assert!(message.contains("byte limit"), "{message}"),
+        other => panic!("{other:?}"),
+    }
+    // One byte short of the whole document is still refused; the exact length
+    // is accepted.
+    let whole = xml.len() as u64;
+    assert!(matches!(
+        read_index_with_limits(
+            BufReader::new(xml.as_bytes()),
+            &ImzMLReadLimits {
+                max_xml_bytes: whole - 1,
+                max_text_bytes: 1 << 20,
+                ..ImzMLReadLimits::default()
+            }
+        ),
+        Err(Error::InvalidValue(_))
+    ));
+    assert!(
+        read_index_with_limits(
+            BufReader::new(xml.as_bytes()),
+            &ImzMLReadLimits {
+                max_xml_bytes: whole,
+                max_text_bytes: 1 << 20,
+                ..ImzMLReadLimits::default()
+            }
+        )
+        .is_ok()
+    );
+}
+
+/// A `max_xml_bytes` of `u64::MAX` has no room for the one-byte cap, which is
+/// an explicit error rather than a wrapped ceiling.
+#[test]
+fn an_xml_byte_ceiling_at_the_top_of_u64_is_refused() {
+    let limits = ImzMLReadLimits {
+        max_xml_bytes: u64::MAX,
+        ..ImzMLReadLimits::default()
+    };
+    let xml = Spec::with_length(1).document();
+    match read_index_with_limits(BufReader::new(xml.as_bytes()), &limits).unwrap_err() {
+        Error::InvalidValue(message) => assert!(message.contains("u64::MAX"), "{message}"),
         other => panic!("{other:?}"),
     }
 }

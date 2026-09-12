@@ -7,7 +7,7 @@ Port of `src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h`
 (731 lines), at core SDK revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 - Rust: `src/format/imzml_handler.rs`
-- Tests: `tests/imzml_handler.rs` (56 cases)
+- Tests: `tests/imzml_handler.rs` (70 cases)
 - Fixtures: `tests/data/ImzMLFile_1_Example_Continuous.{imzML,ibd}`,
   `tests/data/ImzMLFile_2_Example_Processed.{imzML,ibd}`
 - Provenance: `tests/data/imzml_handler_provenance.json`
@@ -100,7 +100,7 @@ Every public member of the header, in declaration order.
 | `DataType int_type` | `ImzMLSpectrumIndex::int_type` | |
 | `bool int_compressed` | `ImzMLSpectrumIndex::int_compressed` | |
 | `std::vector<AuxArray> aux` | `ImzMLSpectrumIndex::aux` | named arrays only, as the source's builder |
-| — | `native_id`, `mz_encoded_bytes`, `int_encoded_bytes`, `mz_external`, `int_external`, `unnamed_aux`, `inline_aux_names` | native additions, each justified under **Native differences** |
+| — | `native_id`, `mz_encoded_bytes`, `int_encoded_bytes`, `mz_external`, `int_external`, `mz_inline`, `int_inline`, `unnamed_aux`, `inline_aux_names` | native additions, each justified under **Native differences** |
 
 ### `class ImzMLBinaryIO` → `ImzMLBinaryIO` and four free functions
 
@@ -244,9 +244,10 @@ Each one is also stated at the item in rustdoc.
    warnings to `OPENMS_LOG_WARN`: an unnamed auxiliary array, a zero-length one,
    a length mismatch, a missing data type, and an inline auxiliary array
    alongside external peaks. `DecodedSpectrum::skipped_aux` carries all five as
-   `AuxSkipReason` values and `inline_peaks` reports peak arrays this handler
-   could not supply, so a caller can notice what a log would have buried. This
-   is also why `unnamed_aux` and `inline_aux_names` are public.
+   `AuxSkipReason` values and `inline_peaks` reports that at least one peak
+   array's values came from inline base64 rather than from the `.ibd`, so a
+   caller can notice what a log would have buried. This is also why
+   `unnamed_aux` and `inline_aux_names` are public.
 6. **The UUID and checksum verdicts are returned, not warned.**
    `verifyIbdUuid_` logs for a mismatch, a missing or unparsable XML UUID, an
    unopenable `.ibd` and a too-short `.ibd`, then loads the dataset anyway —
@@ -302,6 +303,74 @@ Each one is also stated at the item in rustdoc.
 17. **Serial.** The source parallelises `populateSpectraWithData_` with
     `#pragma omp parallel for`. Nothing here starts a thread, so a large image
     decodes on one core.
+18. **One inline binary payload is kept, because there is no base class to
+    borrow it from.** See **A peak array without `IMS:1000101`** below. The
+    source reads the non-external side of a spectrum back out of the
+    `MSSpectrum` its `MzMLHandler` base populated; this module parses the
+    `.imzML` alone, so it retains the array's encoded base64 and decodes it
+    where the `.ibd` read would otherwise be. Nothing else inline is retained.
+
+## A peak array without `IMS:1000101`
+
+A conformant imzML 1.1.0 puts **both** peak arrays in the `.ibd`, so every
+`<binaryDataArray>` carries `IMS:1000101` and its inline `<binary>` is an empty
+placeholder. The cases below therefore require a non-conformant file. That is
+why the defect this section describes went unnoticed for so long, and it is not
+a reason to leave it unhandled: the source has code for it, and a reader of an
+attacker-shaped format should behave predictably on input no writer produces.
+
+**What the source does.** `ImzMLInterceptConsumer::consumeSpectrum` enters its
+decode block when *either* array is external (`ImzMLHandler.cpp:198`). It reads
+the external side from the `.ibd` and fills the other side from the peaks
+`MzMLHandler` already decoded: `mz_vec[i] = s[i].getMZ()` at `:214-218`,
+`int_vec[i] = s[i].getIntensity()` at `:228-232`. Both sides are therefore the
+same length, and the length-mismatch `ParseError` at `:234` is reached only by a
+file whose two arrays genuinely disagree.
+
+**What this port does.** Each peak array is resolved independently: the `.ibd`
+at `IMS:1000102` when the array declares `IMS:1000101`, and the array's own
+inline base64 when it does not. The rule is applied in exactly one place per
+array and is shared by `ImzMLHandler::spectrum`, `ImzMLHandler::mz_array` and
+`ImzMLHandler::intensity_array`, which is what keeps
+`OnDiscImzMLExperiment::spectrum` and `OnDiscImzMLExperiment::extract_ion_image`
+in agreement — those two go through different accessors. An earlier revision
+had the per-array accessors read the `.ibd` unconditionally, so a file with an
+inline peak array that still carried an `IMS:1000102` offset produced an ion
+image out of bytes `spectrum` never returned; both are now wrong in no
+direction. The length check stays exactly where the source has it, as the guard
+against genuine disagreement.
+
+**Where this port is more permissive than the C++ in-memory path.** In C++ the
+mixed spectrum does not actually survive as far as
+`ImzMLHandler.cpp:214-232`. `ImzMLHandler::onEndElement` zeroes
+`default_array_length_` whenever either array is external (`:608-610`) and
+zeroes the captured size of each external array (`:550-553`), but
+`MzMLHandler::populateSpectraWithData_` compares the two arrays' *decoded*
+sizes (`MzMLHandler.cpp:407-413`): the inline side decodes to N values and the
+external side's placeholder `<binary/>` to none, so `mz_size != int_size` and
+`fatalError(LOAD, ...)` throws `Exception::ParseError` before the interception
+layer runs. The fill at `:214-232` is therefore latent in the upstream
+in-memory loader, and the upstream on-disc loader cannot reach it either —
+`ImzMLSpectrumIndex` has no `is_ext` field at all, so `Impl::readMz_` gates on
+`mz_length != 0`, which an inline array (no `IMS:1000103`) never satisfies.
+
+This port implements the interception layer, not `MzMLHandler`, and the
+interception layer's own code says what a mixed spectrum should do. Following
+it makes both Rust read paths agree with each other and with the source's
+evident intent, at the cost of accepting a file the upstream in-memory loader
+rejects in a different class with a different message. This is recorded as a
+C++ issue rather than smoothed over.
+
+**Cost and bounds.** The retained payload is encoded ASCII with whitespace
+removed, charged against `ImzMLReadLimits::max_text_bytes` (64 MiB by default)
+*before* each chunk is appended, so the ceiling bounds the allocation rather
+than discovering it. The decode then applies the same `max_array_bytes` and
+`max_array_elements` ceilings the `.ibd` preflight applies, and tests the byte
+ceiling against the encoded character count before the decoder allocates. A
+conformant dataset charges nothing here, because its `<binary>` elements are
+empty. Note that `ImzMLFile`'s own `max_loaded_peaks` preflight sums
+`entry.mz_length`, which an inline array leaves at zero, so inline peaks are
+bounded by `max_text_bytes` rather than by that load ceiling; see **Deferred**.
 
 ## Checksums
 
@@ -340,7 +409,14 @@ re-reading the XML.
 | auxiliary index out of range | `Error::InvalidValue` |
 | no spectrum at a coordinate | `Error::InvalidValue` |
 | spectra > `max_spectra`, aux > `max_aux_arrays` / `max_total_aux_arrays` | `Error::InvalidValue` |
-| XML bytes > `max_xml_bytes`; groups > `max_param_groups`; group params > `max_group_params`; stored text > `max_text_bytes`; vocabulary lookups > `max_cv_lookups` | `Error::InvalidValue` |
+| groups > `max_param_groups`; group params > `max_group_params`; stored text > `max_text_bytes`; vocabulary lookups > `max_cv_lookups` | `Error::InvalidValue` |
+| XML bytes > `max_xml_bytes` | `Error::InvalidValue`. The reader is capped at `max_xml_bytes + 1` bytes, so this bounds both the scan's cumulative progress **and** the parser's peak buffer: `read_event_into` grows its buffer to hold one whole event before returning, and it cannot buffer bytes it was never handed. Testing `buffer_position()` alone would not give the second guarantee — a single start tag or text node larger than the ceiling would be fully allocated first and refused second. `max_xml_bytes == u64::MAX` leaves no room for the cap and is refused outright |
+| inline peak base64: its retained length is charged against `max_text_bytes` before each chunk is appended | `Error::InvalidValue` |
+| inline peak base64: `encoded.len() / 4 * 3` > `max_array_bytes`, checked before the decoder allocates | `Error::InvalidValue` naming the inline array |
+| inline peak base64: element count > `max_array_elements` | `Error::InvalidValue` naming the inline array |
+| inline peak base64: not valid base64, or not a whole number of elements | `Error::Parse` |
+| inline peak base64: a non-ASCII byte inside `<binary>` | `Error::Parse` |
+| non-external peak array with `ImzMLDataType::Unknown` and a non-empty payload | `Error::Unsupported` |
 | `.ibd` longer than `max_checksum_bytes` on a SHA-1 request | `Error::InvalidValue` |
 | spectrum count > `u32` | `Error::InvalidValue` |
 | malformed XML, empty/negative/non-numeric/out-of-range IMS value, non-finite dimension, missing pixel coordinate, non-UTF-8 in a read value | `Error::Parse` |
@@ -392,6 +468,16 @@ them.
   because the reader refuses non-ASCII `ISO-8859-1` ("requires transcoding").
   The stage that ports `ImzMLFile` must resolve these three before an imzML
   dataset can become an `MSExperiment` with its mzML metadata attached.
+- **`ImzMLFile::preflight` does not see inline peaks.** `src/format/imzml_file.rs`
+  sums `entry.mz_length` against `ImzMLLoadLimits::max_loaded_peaks` before the
+  first array is read, and an inline peak array has no `IMS:1000103`, so its
+  `mz_length` is zero and its peaks escape that ceiling. They are not
+  unbounded: the retained base64 is capped by
+  `ImzMLReadLimits::max_text_bytes`, which at the 64 MiB default admits at most
+  about 12 million float32 elements across a whole file. Charging inline peaks
+  against `max_loaded_peaks` too belongs to the package that owns
+  `imzml_file.rs`; a conformant dataset is unaffected, because its peak arrays
+  are external and already counted.
 - **`ProgressLogger`** is a constructor parameter of source `ImzMLHandler` and
   is not threaded through this module; the crate has the type but this package
   reports no progress.

@@ -26,8 +26,21 @@
 //! for IMS terms only, and
 //! [`ImzMLHandler`](crate::format::imzml_handler::ImzMLHandler) pairs the
 //! resulting index with the `.ibd` to decode one pixel's arrays per call. There
-//! is no second mzML parser here: nothing in this module interprets binary
-//! payloads, referenceable groups or header metadata beyond the IMS vocabulary.
+//! is no second mzML parser here: nothing in this module interprets
+//! referenceable groups or header metadata beyond the IMS vocabulary.
+//!
+//! One binary payload is the exception. A `<binary>` element belonging to an
+//! m/z or intensity array that carries **no** `IMS:1000101` holds that array
+//! inline, and the source fills such an array from the peaks its `MzMLHandler`
+//! base decoded rather than from the `.ibd` (`ImzMLHandler.cpp:214-232`). This
+//! module has no base class to borrow those peaks from, so it keeps that one
+//! payload — whitespace removed, charged against
+//! [`max_text_bytes`](crate::format::imzml_handler::ImzMLReadLimits::max_text_bytes)
+//! as it accumulates — and decodes it at the same point the `.ibd` would have
+//! been read. Nothing else inline is kept: an auxiliary array without
+//! `IMS:1000101` is reported as
+//! [`AuxSkipReason::Inline`](crate::format::imzml_handler::AuxSkipReason::Inline)
+//! and dropped, as the source drops it.
 //!
 //! Every offset and length in the index comes from the XML and indexes into a
 //! second file, so this is an attacker-shaped format. Each read is preflighted
@@ -46,6 +59,7 @@ use crate::format::controlled_vocabulary::ControlledVocabulary;
 use crate::kernel::{DataArray, MSSpectrum, Peak1D};
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
+use base64::{Engine, engine::general_purpose::STANDARD};
 use quick_xml::{Reader, events::Event};
 use sha1::{Digest, Sha1};
 use std::collections::BTreeMap;
@@ -281,6 +295,18 @@ pub struct ImzMLSpectrumIndex {
     /// in its private `ArrayMeta` and decides there whether to read the `.ibd`
     /// or keep the base class's inline peaks.
     pub mz_external: bool,
+    /// The m/z array's inline base64 payload with ASCII whitespace removed, or
+    /// empty when [`Self::mz_external`] is set and the payload therefore lives
+    /// in the `.ibd`.
+    ///
+    /// Native addition. The source reads the inline peaks back from the
+    /// `MSSpectrum` its `MzMLHandler` base already populated
+    /// (`ImzMLHandler.cpp:214-218`); this module parses the `.imzML` alone and
+    /// so keeps the encoded text instead, decoding it in
+    /// [`ImzMLHandler::spectrum`] and [`ImzMLHandler::mz_array`] where the
+    /// `.ibd` read would otherwise happen. It is charged against
+    /// [`ImzMLReadLimits::max_text_bytes`] while it accumulates.
+    pub mz_inline: String,
     /// Byte offset of the intensity array, `IMS:1000102`.
     pub int_offset: u64,
     /// Element count of the intensity array, `IMS:1000103`.
@@ -296,6 +322,9 @@ pub struct ImzMLSpectrumIndex {
     /// True when the intensity array declares `IMS:1000101`. Native addition,
     /// as [`Self::mz_external`].
     pub int_external: bool,
+    /// The intensity array's inline base64 payload. Native addition, as
+    /// [`Self::mz_inline`].
+    pub int_inline: String,
     /// Extra external arrays, in document order.
     ///
     /// Only named arrays appear here, as in the source: its index builder skips
@@ -396,7 +425,14 @@ pub struct ImzMLReadLimits {
     /// Maximum parameters captured across all groups.
     pub max_group_params: usize,
     /// Cumulative bytes of every string the index stores: identifiers, array
-    /// names, accessions, checksums and captured group parameters.
+    /// names, accessions, checksums, captured group parameters and the inline
+    /// base64 of a peak array that declares no `IMS:1000101`
+    /// ([`ImzMLSpectrumIndex::mz_inline`]).
+    ///
+    /// The inline payload is charged before it is appended, so this is the
+    /// ceiling on how much encoded peak data one scan retains, and on the peak
+    /// allocation that retention costs. A conformant imzML 1.1.0 stores both
+    /// peak arrays externally and charges nothing here.
     pub max_text_bytes: usize,
     /// Maximum distinct accessions resolved against the PSI-MS vocabulary.
     /// Results are memoised, so this bounds the vocabulary work of one scan.
@@ -516,10 +552,19 @@ pub struct DecodedSpectrum {
     /// Peaks, pixel coordinates as `imzml:x`/`imzml:y`/`imzml:z` meta values,
     /// and one float data array per decoded auxiliary array.
     pub spectrum: MSSpectrum,
-    /// True when the m/z or intensity array is not external, so this handler
-    /// contributed no peaks for it. The source takes those peaks from its
-    /// `MzMLHandler` base; the equivalent here is [`mzml`](crate::format::mzml),
-    /// which this module does not invoke.
+    /// True when the m/z or intensity array is not external, so that side's
+    /// values came from the array's inline base64 rather than from the `.ibd`.
+    ///
+    /// The source fills the non-external side from the peaks its
+    /// `MzMLHandler` base decoded (`ImzMLHandler.cpp:214-232`); this module
+    /// decodes [`ImzMLSpectrumIndex::mz_inline`] /
+    /// [`ImzMLSpectrumIndex::int_inline`] instead. Either way the two sides
+    /// end up the same length for a well-formed file, which is why the
+    /// mismatch below it is a genuine-corruption guard and not the normal
+    /// outcome for a mixed spectrum.
+    ///
+    /// A conformant imzML 1.1.0 stores both arrays externally, so this is
+    /// `false` for every conformant dataset.
     pub inline_peaks: bool,
     /// Auxiliary arrays that produced no data array: the unnamed ones the
     /// index already dropped, then the named ones in document order, then the
@@ -675,31 +720,7 @@ impl ImzMLBinaryIO {
             return Ok(Vec::new());
         };
         let raw = self.read_exact_at(offset, bytes, "m/z array")?;
-        let mut out = try_vec::<f64>(count, "m/z array")?;
-        match data_type {
-            ImzMLDataType::Float32 => {
-                for chunk in raw.chunks_exact(4) {
-                    out.push(f64::from(f32::from_le_bytes(four(chunk))));
-                }
-            }
-            ImzMLDataType::Float64 => {
-                for chunk in raw.chunks_exact(8) {
-                    out.push(f64::from_le_bytes(eight(chunk)));
-                }
-            }
-            ImzMLDataType::Int32 => {
-                for chunk in raw.chunks_exact(4) {
-                    out.push(f64::from(i32::from_le_bytes(four(chunk))));
-                }
-            }
-            ImzMLDataType::Int64 => {
-                for chunk in raw.chunks_exact(8) {
-                    out.push(i64::from_le_bytes(eight(chunk)) as f64);
-                }
-            }
-            ImzMLDataType::Unknown => unreachable!("preflight rejects an unknown data type"),
-        }
-        Ok(out)
+        widen_to_f64(&raw, data_type, count, "m/z array")
     }
 
     /// Read `count` intensity values stored at `offset` with scalar type
@@ -763,31 +784,7 @@ impl ImzMLBinaryIO {
             return Ok(Vec::new());
         };
         let raw = self.read_exact_at(offset, bytes, what)?;
-        let mut out = try_vec::<f32>(count, what)?;
-        match data_type {
-            ImzMLDataType::Float32 => {
-                for chunk in raw.chunks_exact(4) {
-                    out.push(f32::from_le_bytes(four(chunk)));
-                }
-            }
-            ImzMLDataType::Float64 => {
-                for chunk in raw.chunks_exact(8) {
-                    out.push(f64::from_le_bytes(eight(chunk)) as f32);
-                }
-            }
-            ImzMLDataType::Int32 => {
-                for chunk in raw.chunks_exact(4) {
-                    out.push(i32::from_le_bytes(four(chunk)) as f32);
-                }
-            }
-            ImzMLDataType::Int64 => {
-                for chunk in raw.chunks_exact(8) {
-                    out.push(i64::from_le_bytes(eight(chunk)) as f32);
-                }
-            }
-            ImzMLDataType::Unknown => unreachable!("preflight rejects an unknown data type"),
-        }
-        Ok(out)
+        narrow_to_f32(&raw, data_type, count, what)
     }
 
     /// `Ok(None)` for an empty array, otherwise the element count and the
@@ -1222,7 +1219,16 @@ impl ImzMLHandler {
         }
     }
 
-    /// Read the m/z array of spectrum `index` from the `.ibd`.
+    /// The m/z array of spectrum `index`.
+    ///
+    /// The values come from the `.ibd` at [`ImzMLSpectrumIndex::mz_offset`]
+    /// when the array declares `IMS:1000101`, and from its inline base64
+    /// otherwise. That is the one rule [`spectrum`](Self::spectrum) applies,
+    /// and applying it here too is what makes the two agree: an earlier
+    /// revision read the `.ibd` unconditionally, so a non-conformant file with
+    /// an inline m/z array *and* an `IMS:1000102` gave this accessor — and
+    /// through it `OnDiscImzMLExperiment::extract_ion_image` — peaks that
+    /// `spectrum` did not return for the same pixel.
     ///
     /// In continuous mode every spectrum names the same offset, so this returns
     /// the shared axis and re-reads it per call; the source's on-disc reader
@@ -1234,39 +1240,45 @@ impl ImzMLHandler {
     ///
     /// [`Error::InvalidValue`] when `index` is out of range;
     /// [`Error::Unsupported`] when the array is compressed or has no supported
-    /// data type; otherwise as
+    /// data type; [`Error::Parse`] when an inline payload is not base64 or does
+    /// not hold a whole number of elements; otherwise as
     /// [`ImzMLBinaryIO::read_mz_array`].
     pub fn mz_array(&mut self, index: usize) -> Result<Vec<f64>> {
-        let entry = self.entry(index)?;
-        let (offset, length, data_type, compressed) = (
-            entry.mz_offset,
-            entry.mz_length,
-            entry.mz_type,
-            entry.mz_compressed,
-        );
-        if compressed {
+        let Self {
+            index: parsed, ibd, ..
+        } = self;
+        let entry = parsed
+            .get(index)
+            .ok_or_else(|| out_of_range(index, parsed.len()))?;
+        if entry.mz_compressed {
             return Err(compressed_error("m/z array"));
         }
-        self.ibd.read_mz_array(offset, length, data_type)
+        if entry.mz_external {
+            return ibd.read_mz_array(entry.mz_offset, entry.mz_length, entry.mz_type);
+        }
+        inline_mz_array(&entry.mz_inline, entry.mz_type, &ibd.limits())
     }
 
-    /// Read the intensity array of spectrum `index` from the `.ibd`.
+    /// The intensity array of spectrum `index`, by the same rule as
+    /// [`mz_array`](Self::mz_array).
     ///
     /// # Errors
     ///
     /// As [`mz_array`](Self::mz_array).
     pub fn intensity_array(&mut self, index: usize) -> Result<Vec<f32>> {
-        let entry = self.entry(index)?;
-        let (offset, length, data_type, compressed) = (
-            entry.int_offset,
-            entry.int_length,
-            entry.int_type,
-            entry.int_compressed,
-        );
-        if compressed {
+        let Self {
+            index: parsed, ibd, ..
+        } = self;
+        let entry = parsed
+            .get(index)
+            .ok_or_else(|| out_of_range(index, parsed.len()))?;
+        if entry.int_compressed {
             return Err(compressed_error("intensity array"));
         }
-        self.ibd.read_intensity_array(offset, length, data_type)
+        if entry.int_external {
+            return ibd.read_intensity_array(entry.int_offset, entry.int_length, entry.int_type);
+        }
+        inline_intensity_array(&entry.int_inline, entry.int_type, &ibd.limits())
     }
 
     /// Read auxiliary array `aux` of spectrum `index` from the `.ibd`.
@@ -1319,31 +1331,54 @@ impl ImzMLHandler {
     /// array is the one auxiliary condition that is an error rather than a skip,
     /// as in the source.
     ///
+    /// Each of the two peak arrays is read from the `.ibd` when it declares
+    /// `IMS:1000101` and decoded from its own inline base64 when it does not,
+    /// which is the rule source `ImzMLInterceptConsumer::consumeSpectrum`
+    /// applies (`ImzMLHandler.cpp:207-232`, where the non-external side is
+    /// filled from the peaks `MzMLHandler` decoded). A spectrum with exactly
+    /// one external array therefore decodes rather than failing the length
+    /// check; a conformant imzML 1.1.0 never has one, so reaching that path
+    /// takes a non-conformant file. The length check remains, as the guard
+    /// against a file whose two arrays genuinely disagree.
+    ///
     /// # Errors
     ///
-    /// [`Error::InvalidValue`] when `index` is out of range;
+    /// [`Error::InvalidValue`] when `index` is out of range, or when an inline
+    /// payload exceeds [`ImzMLReadLimits::max_array_bytes`] or
+    /// [`ImzMLReadLimits::max_array_elements`];
     /// [`Error::Unsupported`] when the m/z, intensity or any auxiliary array is
     /// compressed, where the source raises `Exception::ParseError` with the
-    /// advice to re-export without compression; [`Error::Parse`] when the
+    /// advice to re-export without compression, or when a non-external peak
+    /// array has no supported binary data type; [`Error::Parse`] when the
     /// decoded m/z and intensity arrays have different lengths, naming the
-    /// pixel as the source's message does; otherwise as
+    /// pixel as the source's message does, or when an inline payload is not
+    /// valid base64 or does not hold a whole number of elements; otherwise as
     /// [`ImzMLBinaryIO::read_mz_array`].
     pub fn spectrum(&mut self, index: usize) -> Result<DecodedSpectrum> {
-        let entry = self.entry(index)?.clone();
+        let Self {
+            index: parsed, ibd, ..
+        } = self;
+        let entry = parsed
+            .get(index)
+            .ok_or_else(|| out_of_range(index, parsed.len()))?;
         if entry.mz_compressed || entry.int_compressed {
             return Err(compressed_error("m/z or intensity arrays"));
         }
+        let limits = ibd.limits();
+        // Source `ImzMLInterceptConsumer::consumeSpectrum` reads the external
+        // side out of the .ibd and fills the other side from the inline peaks
+        // its `MzMLHandler` base decoded (ImzMLHandler.cpp:207-232). The two
+        // therefore always end up the same length for a well-formed file, which
+        // is what makes the mismatch below a corruption guard.
         let mz = if entry.mz_external {
-            self.ibd
-                .read_mz_array(entry.mz_offset, entry.mz_length, entry.mz_type)?
+            ibd.read_mz_array(entry.mz_offset, entry.mz_length, entry.mz_type)?
         } else {
-            Vec::new()
+            inline_mz_array(&entry.mz_inline, entry.mz_type, &limits)?
         };
         let intensity = if entry.int_external {
-            self.ibd
-                .read_intensity_array(entry.int_offset, entry.int_length, entry.int_type)?
+            ibd.read_intensity_array(entry.int_offset, entry.int_length, entry.int_type)?
         } else {
-            Vec::new()
+            inline_intensity_array(&entry.int_inline, entry.int_type, &limits)?
         };
         if mz.len() != intensity.len() {
             return Err(parse(format!(
@@ -1408,12 +1443,8 @@ impl ImzMLHandler {
                 skipped_aux.push(skipped(array, AuxSkipReason::UnknownDataType));
                 continue;
             }
-            let values = self.ibd.read_aux_array(
-                array.offset,
-                array.length,
-                array.data_type,
-                &array.name,
-            )?;
+            let values =
+                ibd.read_aux_array(array.offset, array.length, array.data_type, &array.name)?;
             let mut decoded = DataArray::new(array.name.clone(), values);
             if !array.unit_accession.is_empty() {
                 decoded.metadata.insert(
@@ -1489,11 +1520,23 @@ pub fn read_index(reader: impl BufRead) -> Result<ImzMLIndex> {
 /// Xerces to transcode from the declared encoding and this port implements no
 /// transcoder.
 ///
+/// The one binary payload this scan keeps is the inline base64 of an m/z or
+/// intensity array that declares no `IMS:1000101`, which the source takes from
+/// its `MzMLHandler` base instead. It is kept as encoded ASCII, whitespace
+/// removed, charged against [`ImzMLReadLimits::max_text_bytes`] before it is
+/// appended, and decoded only when a peak array is asked for. Every other
+/// `<binary>` is ignored, as before.
+///
+/// The reader is capped at one byte past [`ImzMLReadLimits::max_xml_bytes`], so
+/// that ceiling bounds the parser's peak buffer and not only its cumulative
+/// progress.
+///
 /// # Errors
 ///
 /// [`Error::Parse`] when the document is not well formed, when an IMS numeric
-/// value is empty, negative, non-numeric, non-finite or out of range, or when a
-/// spectrum carries neither `IMS:1000050` nor `IMS:1000051`; the source raises
+/// value is empty, negative, non-numeric, non-finite or out of range, when a
+/// spectrum carries neither `IMS:1000050` nor `IMS:1000051`, or when a kept
+/// inline payload contains non-ASCII bytes; the source raises
 /// `Exception::ParseError` for all of these, with the same reasons.
 /// [`Error::InvalidValue`] when the document exceeds one of `limits`.
 /// [`Error::Io`] when the reader fails.
@@ -1502,14 +1545,36 @@ pub fn read_index_with_limits(
     limits: &ImzMLReadLimits,
 ) -> Result<ImzMLIndex> {
     let mut parser = Parser::new(limits);
-    let mut reader = Reader::from_reader(reader);
+    // `buffer_position()` is cumulative progress, so testing it after the read
+    // bounds how far the scan may get but not what one event may allocate:
+    // `read_event_into` grows `buffer` to hold a whole start tag or text node
+    // before it returns, so a single oversized event was fully committed before
+    // the ceiling could fire. Capping the input at one byte past the ceiling
+    // caps the buffer with it, because the parser cannot buffer bytes it was
+    // never handed. This is the pattern `mzml::read` already uses.
+    let limit = limits
+        .max_xml_bytes
+        .checked_add(1)
+        .ok_or_else(|| Error::InvalidValue("imzML XML byte limit must be below u64::MAX".into()))?;
+    let mut reader = Reader::from_reader(reader.take(limit));
     reader.config_mut().expand_empty_elements = true;
     reader.config_mut().enable_all_checks(true);
     let mut buffer = Vec::new();
     loop {
-        let event = reader
-            .read_event_into(&mut buffer)
-            .map_err(|e| parse(e.to_string()))?;
+        let event = match reader.read_event_into(&mut buffer) {
+            Ok(event) => event,
+            // The cap truncates an oversized document mid-markup, which the
+            // parser reports as a syntax error; the ceiling is the real reason,
+            // so say so rather than blaming the document's shape.
+            Err(e) => {
+                if reader.buffer_position() > limits.max_xml_bytes {
+                    return Err(Error::InvalidValue(
+                        "imzML XML exceeds the configured byte limit".into(),
+                    ));
+                }
+                return Err(parse(e.to_string()));
+            }
+        };
         if reader.buffer_position() > limits.max_xml_bytes {
             return Err(Error::InvalidValue(
                 "imzML XML exceeds the configured byte limit".into(),
@@ -1524,6 +1589,7 @@ pub fn read_index_with_limits(
                 let name = local_name(element.name().as_ref()).to_vec();
                 parser.end(&name)?;
             }
+            Event::Text(text) => parser.text(text.as_ref())?,
             Event::Eof => break,
             _ => {}
         }
@@ -1591,6 +1657,10 @@ struct ArrayMeta {
     accession: String,
     name: String,
     unit_accession: String,
+    /// The array's inline base64 payload, whitespace already removed. Captured
+    /// only for a non-external m/z or intensity array, which is the only array
+    /// whose inline payload a decode can use.
+    inline: String,
 }
 
 struct Parser<'a> {
@@ -1600,6 +1670,8 @@ struct Parser<'a> {
     in_spectrum: bool,
     in_scan: bool,
     in_bda: bool,
+    in_binary: bool,
+    binary: String,
     in_ref_group: bool,
     ref_id: String,
     ref_groups: BTreeMap<String, Vec<CvEntry>>,
@@ -1629,6 +1701,8 @@ impl<'a> Parser<'a> {
             in_spectrum: false,
             in_scan: false,
             in_bda: false,
+            in_binary: false,
+            binary: String::new(),
             in_ref_group: false,
             ref_id: String::new(),
             ref_groups: BTreeMap::new(),
@@ -1685,6 +1759,10 @@ impl<'a> Parser<'a> {
                 self.in_bda = true;
                 self.array = ArrayMeta::default();
             }
+            b"binary" if self.in_bda => {
+                self.in_binary = true;
+                self.binary.clear();
+            }
             b"referenceableParamGroup" => {
                 self.in_ref_group = true;
                 self.ref_id = attribute(element, b"id")?.unwrap_or_default();
@@ -1711,9 +1789,66 @@ impl<'a> Parser<'a> {
         Ok(())
     }
 
+    /// Accumulate one `<binary>` text chunk of a non-external peak array.
+    ///
+    /// `raw` is the event's bytes, undecoded: base64 is ASCII in every charset
+    /// an `.imzML` can declare, so no transcoder is needed and the module's
+    /// tolerance of an ISO-8859-1 document is preserved. ASCII whitespace is
+    /// removed, as source `MzMLHandlerHelper::decodeBase64Arrays` removes it
+    /// ("line breaks inside the base64 data are unfortunately no exception"),
+    /// and anything else non-ASCII is an error rather than a silent
+    /// replacement.
+    ///
+    /// Only a non-external m/z or intensity array is captured. The mzML 1.1
+    /// schema makes `<binary>` the last child of `<binaryDataArray>`, after
+    /// every `cvParam`, so the array's identity and `IMS:1000101` are already
+    /// known here; an out-of-order document leaves the payload uncaptured and
+    /// decodes as a zero-length array.
+    ///
+    /// The retained length is charged against
+    /// [`ImzMLReadLimits::max_text_bytes`] *before* the bytes are appended, so
+    /// the ceiling bounds the allocation rather than discovering it afterwards.
+    fn text(&mut self, raw: &[u8]) -> Result<()> {
+        if !self.in_binary || self.array.is_external || !(self.array.is_mz || self.array.is_int) {
+            return Ok(());
+        }
+        let mut kept = 0usize;
+        for &byte in raw {
+            if byte.is_ascii_whitespace() {
+                continue;
+            }
+            if !byte.is_ascii() {
+                return Err(parse(
+                    "non-ASCII bytes in the inline base64 of an imzML peak array",
+                ));
+            }
+            kept = kept.saturating_add(1);
+        }
+        if kept == 0 {
+            return Ok(());
+        }
+        self.charge(kept)?;
+        self.binary
+            .try_reserve(kept)
+            .map_err(|_| Error::InvalidValue("cannot allocate imzML inline peak array".into()))?;
+        self.binary.extend(
+            raw.iter()
+                .copied()
+                .filter(|byte| !byte.is_ascii_whitespace())
+                .map(char::from),
+        );
+        Ok(())
+    }
+
     fn end(&mut self, name: &[u8]) -> Result<()> {
         match name {
+            b"binary" if self.in_bda => {
+                self.in_binary = false;
+                self.array.inline = std::mem::take(&mut self.binary);
+            }
             b"binaryDataArray" if self.in_spectrum => {
+                self.in_binary = false;
+                self.binary.clear();
                 let array = std::mem::take(&mut self.array);
                 if array.is_mz {
                     self.mz = array;
@@ -1830,12 +1965,14 @@ impl<'a> Parser<'a> {
             mz_type: mz.data_type,
             mz_compressed: mz.compressed,
             mz_external: mz.is_external,
+            mz_inline: mz.inline,
             int_offset: int.offset,
             int_length: int.count,
             int_encoded_bytes: int.encoded_bytes,
             int_type: int.data_type,
             int_compressed: int.compressed,
             int_external: int.is_external,
+            int_inline: int.inline,
             aux: entries,
             unnamed_aux,
             inline_aux_names: std::mem::take(&mut self.inline_aux),
@@ -2191,6 +2328,161 @@ fn skipped(array: &ImzMLAuxArray, reason: AuxSkipReason) -> SkippedAux {
         name: array.name.clone(),
         reason,
     }
+}
+
+/// Widen `count` little-endian elements of `data_type` out of `raw` into `f64`.
+///
+/// Shared by the `.ibd` read and the inline-base64 decode so the two cannot
+/// widen differently. Integer types are widened exactly as source
+/// `ImzMLBinaryIO::readMzArray` widens them, so a 64-bit integer above 2^53
+/// loses precision in both.
+fn widen_to_f64(
+    raw: &[u8],
+    data_type: ImzMLDataType,
+    count: usize,
+    what: &str,
+) -> Result<Vec<f64>> {
+    let mut out = try_vec::<f64>(count, what)?;
+    match data_type {
+        ImzMLDataType::Float32 => {
+            for chunk in raw.chunks_exact(4) {
+                out.push(f64::from(f32::from_le_bytes(four(chunk))));
+            }
+        }
+        ImzMLDataType::Float64 => {
+            for chunk in raw.chunks_exact(8) {
+                out.push(f64::from_le_bytes(eight(chunk)));
+            }
+        }
+        ImzMLDataType::Int32 => {
+            for chunk in raw.chunks_exact(4) {
+                out.push(f64::from(i32::from_le_bytes(four(chunk))));
+            }
+        }
+        ImzMLDataType::Int64 => {
+            for chunk in raw.chunks_exact(8) {
+                out.push(i64::from_le_bytes(eight(chunk)) as f64);
+            }
+        }
+        // Both callers resolve the element width first, which fails for
+        // `Unknown`, so this arm is unreachable; it is an error rather than a
+        // panic because the input that would reach it is file-derived.
+        ImzMLDataType::Unknown => {
+            return Err(Error::Unsupported(format!("unsupported {what} data type")));
+        }
+    }
+    Ok(out)
+}
+
+/// Narrow `count` little-endian elements of `data_type` out of `raw` into
+/// `f32`, as source `readIntArray` / `readAuxArray` narrow them.
+fn narrow_to_f32(
+    raw: &[u8],
+    data_type: ImzMLDataType,
+    count: usize,
+    what: &str,
+) -> Result<Vec<f32>> {
+    let mut out = try_vec::<f32>(count, what)?;
+    match data_type {
+        ImzMLDataType::Float32 => {
+            for chunk in raw.chunks_exact(4) {
+                out.push(f32::from_le_bytes(four(chunk)));
+            }
+        }
+        ImzMLDataType::Float64 => {
+            for chunk in raw.chunks_exact(8) {
+                out.push(f64::from_le_bytes(eight(chunk)) as f32);
+            }
+        }
+        ImzMLDataType::Int32 => {
+            for chunk in raw.chunks_exact(4) {
+                out.push(i32::from_le_bytes(four(chunk)) as f32);
+            }
+        }
+        ImzMLDataType::Int64 => {
+            for chunk in raw.chunks_exact(8) {
+                out.push(i64::from_le_bytes(eight(chunk)) as f32);
+            }
+        }
+        ImzMLDataType::Unknown => {
+            return Err(Error::Unsupported(format!("unsupported {what} data type")));
+        }
+    }
+    Ok(out)
+}
+
+/// Decode one array's inline base64 payload into raw little-endian bytes and
+/// the element count they hold.
+///
+/// `Ok(None)` for an empty payload, which is what an external array's
+/// placeholder `<binary/>` leaves behind and what an absent `<binary>` leaves
+/// behind, so neither is an error — the same tolerance
+/// [`ImzMLBinaryIO::read_mz_array`] gives a zero `IMS:1000103`.
+///
+/// Every ceiling the `.ibd` preflight applies is applied here too, and the
+/// decoded-size ceiling is checked against the encoded character count
+/// *before* the decode allocates: four base64 characters carry at most three
+/// bytes, so `encoded.len() / 4 * 3` is an upper bound on the output.
+fn inline_preflight(
+    encoded: &str,
+    data_type: ImzMLDataType,
+    limits: &ImzMLReadLimits,
+    what: &str,
+) -> Result<Option<(Vec<u8>, usize)>> {
+    if encoded.is_empty() {
+        return Ok(None);
+    }
+    let width = data_type.width().ok_or_else(|| {
+        Error::Unsupported(format!("unsupported inline {what} data type in .imzML"))
+    })?;
+    // Checked before the decoder allocates its output buffer.
+    if encoded.len() / 4 * 3 > limits.max_array_bytes {
+        return Err(Error::InvalidValue(format!(
+            "inline {what} exceeds the configured byte limit"
+        )));
+    }
+    let raw = STANDARD
+        .decode(encoded.as_bytes())
+        .map_err(|e| parse(format!("invalid inline {what} base64: {e}")))?;
+    if raw.len() % width != 0 {
+        return Err(parse(format!(
+            "inline {what} holds {} bytes, which is not a whole number of {width}-byte elements",
+            raw.len()
+        )));
+    }
+    let count = raw.len() / width;
+    if count as u64 > limits.max_array_elements {
+        return Err(Error::InvalidValue(format!(
+            "inline {what} element count {count} exceeds the configured limit of {}",
+            limits.max_array_elements
+        )));
+    }
+    Ok(Some((raw, count)))
+}
+
+/// The m/z values an array's inline base64 payload holds.
+fn inline_mz_array(
+    encoded: &str,
+    data_type: ImzMLDataType,
+    limits: &ImzMLReadLimits,
+) -> Result<Vec<f64>> {
+    let Some((raw, count)) = inline_preflight(encoded, data_type, limits, "m/z array")? else {
+        return Ok(Vec::new());
+    };
+    widen_to_f64(&raw, data_type, count, "m/z array")
+}
+
+/// The intensity values an array's inline base64 payload holds.
+fn inline_intensity_array(
+    encoded: &str,
+    data_type: ImzMLDataType,
+    limits: &ImzMLReadLimits,
+) -> Result<Vec<f32>> {
+    let Some((raw, count)) = inline_preflight(encoded, data_type, limits, "intensity array")?
+    else {
+        return Ok(Vec::new());
+    };
+    narrow_to_f32(&raw, data_type, count, "intensity array")
 }
 
 fn check_write_count(count: usize, limits: &ImzMLReadLimits, what: &str) -> Result<()> {
