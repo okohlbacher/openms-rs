@@ -113,6 +113,13 @@ aliases it declares.
 - **`FileFilter` gaps.** The run-path vector is sized by the largest column
   index and the run paths are consumed in column order, so a column past the
   last path keeps an empty name.
+- **`reannotate_filenames` is per column header, not per file.** The source
+  walks the column headers and pops one raw path for each, so a ten-channel
+  TMT map with two files needs twenty names — which is also the shape
+  `ConsensusMap::getPrimaryMSRunPath` returns. A shorter list leaves the
+  remaining columns with an empty name, which then fails the design check. Only
+  the basename of each name is used. Preserved, and covered by
+  `reannotated_filenames_replace_the_maps_own_run_paths`.
 - **Subset designs warn and proceed.** The active column basenames must be a
   subset of the design's basenames; a strict subset only warns, naming the
   missing files.

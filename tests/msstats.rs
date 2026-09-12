@@ -194,6 +194,79 @@ fn lfq_header_matches_the_retained_reference_header() {
     );
 }
 
+/// `is_isotope_label_type` selects `H` for the whole file, where the default
+/// is the `L` MSstats documents for endogenous peptides.
+#[test]
+fn the_isotope_label_type_column_switches_between_l_and_h() {
+    let map = load_map("msstats_lfq_in.consensusXML.gz");
+    let design = design("msstats_lfq_design.tsv");
+    let column = |report: &msstats::MSstatsReport| -> Vec<String> {
+        report.lines[1..]
+            .iter()
+            .map(|line| line.split(',').nth(5).unwrap().to_owned())
+            .collect()
+    };
+    let endogenous = msstats::prepare_lfq(&map, &design, &LfqOptions::default()).unwrap();
+    assert!(column(&endogenous).iter().all(|value| value == "L"));
+    let labelled = msstats::prepare_lfq(
+        &map,
+        &design,
+        &LfqOptions {
+            is_isotope_label_type: true,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(column(&labelled).iter().all(|value| value == "H"));
+    assert_eq!(labelled.lines.len(), endogenous.lines.len());
+}
+
+/// `reannotate_filenames` replaces the consensus map's own run paths, and is
+/// checked against the design like any other set of run names.
+///
+/// One name is consumed per *column header*, not per distinct file: the source
+/// walks the column headers and pops one raw path for each, so a ten-channel
+/// TMT map with two files needs twenty names. A shorter list leaves the
+/// remaining columns with an empty name, which then fails the design check.
+#[test]
+fn reannotated_filenames_replace_the_maps_own_run_paths() {
+    let map = load_map("msstats_iso_in.consensusXML.gz");
+    let design = design("msstats_iso_design.tsv");
+    // The same basenames reached by absolute paths: the source takes the
+    // basename of every reannotated name, so the result is unchanged.
+    let relocated: Vec<String> = map
+        .primary_ms_run_path()
+        .iter()
+        .map(|name| format!("/elsewhere/{name}"))
+        .collect();
+    assert_eq!(relocated.len(), 20);
+    let report = msstats::prepare_iso(
+        &map,
+        &design,
+        &IsoOptions {
+            reannotate_filenames: relocated,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let reference = std::fs::read_to_string(data("msstats_iso_expected.csv")).unwrap();
+    assert_matches_reference(&report.lines, &reference);
+    // A reannotated name the design does not declare is refused.
+    let error = msstats::prepare_iso(
+        &map,
+        &design,
+        &IsoOptions {
+            reannotate_filenames: vec!["not_in_the_design.mzML".into()],
+            ..Default::default()
+        },
+    )
+    .unwrap_err();
+    assert!(
+        format!("{error}").contains("not the same as in the experimental design"),
+        "unexpected error: {error}"
+    );
+}
+
 /// The isobaric header, and the source's forced reversion to manual.
 #[test]
 fn iso_reverts_a_non_manual_summarization_with_a_warning() {
