@@ -107,7 +107,15 @@ are marked **new**.
 | `void sortByRT()` | `FeatureMap::sort_by_rt()` |
 | `void sortByMZ()` | `FeatureMap::sort_by_mz()` |
 | `void sortByOverallQuality(bool reverse)` | `FeatureMap::sort_by_quality(reverse)` |
-| `void updateRanges()` | `FeatureMap::ranges()`, recomputed on demand |
+
+> **Sort stability differs for `FeatureMap`, and only there.** All five `FeatureMap`
+> sorts use `std::sort` (FeatureMap.cpp:221-258), which is not stable, while all eight
+> `ConsensusMap` sorts use `std::stable_sort` (ConsensusMap.cpp:307-354). This port uses a
+> stable `sort_by` for both, so equal keys keep input order here and are arbitrary in C++
+> for `FeatureMap`. The port is strictly more deterministic; no test can distinguish the
+> two, and none pins the difference.
+
+| `void updateRanges()` | `FeatureMap::ranges()`, recomputed on demand. **Fallible where the source is not**: `ranges()` begins with `self.validate()?`, so it returns `Err` on a non-finite coordinate, a duplicate feature unique ID, an unknown `experiment_type` or an invalid attached record, whereas `FeatureMap::updateRanges` (FeatureMap.cpp:261-310) cannot fail. The range content is faithful — both extend by convex-hull bounding boxes |
 | `void swapFeaturesOnly(FeatureMap&)` | **new** `FeatureMap::swap_features_only(&mut from)` |
 | `void swap(FeatureMap&)` | **new** `FeatureMap::swap(&mut from)` |
 
@@ -185,7 +193,7 @@ are marked **new**.
 | `void sortBySize()` | `ConsensusMap::sort_by_size()` |
 | `void sortByMaps()` | `ConsensusMap::sort_by_maps()` |
 | `void sortPeptideIdentificationsByMapIndex()` | **new** `ConsensusMap::sort_peptide_identifications_by_map_index()` |
-| `void updateRanges()` | `ConsensusMap::ranges()`, recomputed on demand |
+| `void updateRanges()` | `ConsensusMap::ranges()`, recomputed on demand. **Fallible where the source is not**, for the same reason as `FeatureMap::ranges()`: it begins with `self.validate()?`, whereas `ConsensusMap::updateRanges` (ConsensusMap.cpp:599-622) cannot fail. The range content is faithful — both fold in every handle |
 | `void swap(ConsensusMap&)` | **new** `ConsensusMap::swap(&mut from)` |
 
 ### Records
@@ -207,7 +215,7 @@ are marked **new**.
 | --- | --- |
 | `template<Type> Size applyMemberFunction(Size (Type::*)())` | **new** `ConsensusMap::for_each_unique_id(visit)` |
 | `template<Type> Size applyMemberFunction(Size (Type::*)() const) const` | **new** `ConsensusMap::count_unique_ids(visit)` |
-| `bool isMapConsistent(Logger::LogStream* stream) const` | `ConsensusMap::validate_consistency() -> Result<()>`. The source returns `false` and, when given a stream, writes a report naming every offending map index; this returns the first failure as an error and does not log, because no module of this crate logs |
+| `bool isMapConsistent(Logger::LogStream* stream) const` | `ConsensusMap::validate_consistency() -> Result<()>`. The source returns `false` and, when given a stream, writes a report naming every offending map index; this returns the first failure as an error and does not log, because no module of this crate logs. **It is also strictly stricter than the source.** `isMapConsistent` (ConsensusMap.cpp:643-700) checks exactly two things: duplicate `(filename, label)` column descriptions, and handles whose `map_index` is not a registered column. `validate_consistency` opens with `self.validate()?`, which additionally rejects an `experiment_type` outside {label-free, labeled_MS1, labeled_MS2}, a non-finite rt/mz/intensity/width/quality on any feature or handle, duplicate feature unique IDs, and invalid metadata, data-processing, protein or unassigned-peptide records. A map the source reports as consistent can therefore return `Err` here |
 | `std::vector<FeatureMap> split(SplitMeta mode) const` | **new** `ConsensusMap::split(mode) -> Result<Vec<FeatureMap>>` |
 | `std::set<ObservationMatchRef> getUnassignedIDMatches() const` | **new** `ConsensusMap::unassigned_id_matches(&graph)` |
 | `const IdentificationData& getIdentificationData() const` / non-const | not ported: the graph is the caller's |

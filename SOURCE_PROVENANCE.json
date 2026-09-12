@@ -562,7 +562,9 @@
   "tests/data/chromatogram_merge_provenance.json",
   "tests/data/feature_identification_provenance.json",
   "tests/data/mrm_provenance.json",
-  "tests/data/indexed_mzml_handler_provenance.json"
+  "tests/data/indexed_mzml_handler_provenance.json",
+  "tests/data/map_operations_provenance.json",
+  "tests/data/conversion_helper_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -618,5 +620,9 @@
   "tests/data/feature_identification_provenance.json",
   "tests/data/mrm_provenance.json",
   "tests/data/indexed_mzml_handler_provenance.json"
+ ],
+ "kernel_wave3_reference_manifests": [
+  "tests/data/map_operations_provenance.json",
+  "tests/data/conversion_helper_provenance.json"
  ]
 }

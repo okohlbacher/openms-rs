@@ -41,6 +41,47 @@ remote development loops only; every test still runs in both. nextest runs each
 test in its own process, which is stricter than `cargo test`'s shared-process
 threads, and all 2,506 tests pass under it.
 
+## Kernel wave 3, partial: the map containers (2026-09-12)
+
+Wave 3 launched four work packages. **Three were killed mid-run by an account
+session limit** (WP7 MSExperiment/AreaIterator residuals, WP11 residual closure,
+WP12b the OnDisc facade); they produced no commits and are queued for a clean
+re-run. WP10 completed and is integrated here. A concurrently launched imzML wave
+died the same way before its first stage committed.
+
+| Work package | Headers | Class-test sections | Rust |
+| --- | --- | --- | --- |
+| Map containers | FeatureMap, ConsensusMap, ConversionHelper | 74 ported | `src/kernel/map_operations.rs`, `src/kernel/conversion_helper.rs` |
+
+FeatureMap.h and ConsensusMap.h had never been reviewed member by member — both
+sat at `evidence_requires_review` with no entry in the reviewed-API ledger at all.
+All 74 upstream sections (32 + 39 + 3) are ported with transcribed literals, tier 3
+evidence under [the differential validation policy](DIFFERENTIAL_VALIDATION.md);
+none is merely mapped. Nine further C++ defects are recorded as CPP-111 to CPP-119.
+
+**The audit found three documentation defects, all fixed before merge.** Each was
+a claimed equivalence the code does not have: `isMapConsistent` was documented as
+a plain mapping to `validate_consistency()`, which is in fact strictly stricter —
+the source checks only duplicate column descriptions and unregistered handle map
+indices, while the Rust additionally rejects a bad `experiment_type`, non-finite
+coordinates, duplicate unique IDs and invalid attached records, so a map the
+source calls consistent can return `Err`. Both `updateRanges()` rows omitted that
+`ranges()` is fallible where the source cannot fail, because it opens with
+`self.validate()?`. And the five `FeatureMap` sorts are stable here but use
+`std::sort` upstream, which is not — a divergence the document was meticulous
+about elsewhere and silent about here. The range *content* was verified faithful
+in both maps.
+
+**One finding was a defect in the integrator's own instructions.** The package
+added four lines to `src/kernel.rs` where the rule allowed two. It registered two
+modules, and the rule had assumed one module per package; the wording is corrected
+for the re-run rather than charged against the package.
+
+Gates, independently re-run by the auditor at the package commit: MSRV
+`cargo +1.85.0 check --all-features --all-targets` clean, nextest all-features
+2,825 passed, no-default-features 2,309 passed, clippy `-D warnings` clean,
+rustdoc `-D warnings` clean, and 100% rustdoc on both new modules.
+
 ## Kernel wave 2: ion mobility, chromatogram merging, feature identification, MRM and indexed mzML (2026-09-12)
 
 Five work packages ported in parallel git worktrees, each followed by an

@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- Kernel WP10: `FeatureMap.h` and `ConsensusMap.h` audited member by member for the first
+  time and completed, and `ConversionHelper.h` ported. `kernel::map_operations` adds
+  `AnnotationStatistics` with the source stream layout, `merged`/`append` for
+  `operator+`/`operator+=` (caller-owned `UniqueIdGenerator`, returning the redraw count),
+  `swap`/`swap_features_only`, `find_protein_identification`, the primary MS run path trio
+  on both containers, the container-level `applyMemberFunction` walk,
+  `annotation_statistics`, `unassigned_id_matches`, `SplitMeta`/`split`, `append_rows`,
+  `append_columns`, the checked `set_experiment_type`,
+  `sort_peptide_identifications_by_map_index`, `ConsensusMap::with_size` and `Display` for
+  both maps; `kernel::conversion_helper` adds the three `MapConversion` overloads as named
+  functions returning the new container. Identification data attaches by reference, as for
+  the feature types. Source quirks preserved and documented: `swap` leaves the meta values
+  behind, `appendRows` pairs column headers positionally, `appendColumns` shifts by the
+  header count, `setPrimaryMSRunPath` writes by position through a default-inserting map,
+  `split` default-inserts for an unmatched `map_index` and tests `COPY_FIRST` against the
+  handle index. Two documented divergences: a map cleared with `clear(false)` compares
+  equal to a default map (no range cache), and the peak-map conversion clamps against the
+  points actually collected. All 74 class-test sections (FeatureMap 32, ConsensusMap 39,
+  ConversionHelper 3) are ported; nine further C++ defects recorded.
 - Kernel wave 2.
 - Ion mobility on `MSSpectrum`: drift-time accessors over the `-1` sentinel, ion-mobility
   data-array detection and retrieval (`contains_im_data`, `im_data`, `maybe_im_data`),

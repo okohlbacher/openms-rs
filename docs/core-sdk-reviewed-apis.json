@@ -924,6 +924,32 @@
    "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
    "scope": "All members covered except two: Ratio::description_ has no Rust field and operator<< has no Display. New and checked: add_ratio, set_ratios, ratios. Handles, the insert overloads, ranges and the three consensus computations existed. Handles are a sorted unique slice, so there is no mutable iterator; set_handles replaces one."
   },
+  "src/openms/include/OpenMS/KERNEL/ConsensusMap.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/features.rs",
+    "src/kernel/map_operations.rs"
+   ],
+   "tests": [
+    "tests/features.rs",
+    "tests/map_operations.rs"
+   ],
+   "documentation": "docs/MAP_OPERATIONS_SUPPORT.md",
+   "scope": "First member-by-member review; every public member tabled. New: SplitMeta and split, appendRows, appendColumns, ConsensusMap(size_type), checked setExperimentType, sortPeptideIdentificationsByMapIndex, swap, findProteinIdentification, the MS run path trio, applyMemberFunction, getUnassignedIDMatches, Display. isMapConsistent is validate_consistency returning Result; getIdentificationData is not ported."
+  },
+  "src/openms/include/OpenMS/KERNEL/ConversionHelper.h": {
+   "status": "complete",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/conversion_helper.rs"
+   ],
+   "tests": [
+    "tests/conversion_helper.rs"
+   ],
+   "documentation": "docs/CONVERSION_HELPER_SUPPORT.md",
+   "scope": "All three MapConversion overloads, as named functions returning the new container instead of filling an out-parameter. Option replaces the Size(-1) sentinel and a caller-owned generator the singleton. The peak-map clamp uses the points actually collected, because the source clamps against getSize() and partial-sorts past the end of the MS1-only vector."
+  },
   "src/openms/include/OpenMS/KERNEL/DPeak.h": {
    "status": "native_equivalent",
    "rust": [
@@ -962,6 +988,22 @@
    ],
    "documentation": "docs/FEATURE_SUPPORT.md",
    "scope": "Every public member reviewed; gap closures add the Peak2D and element-index constructor, Display, Hash with signed-zero normalisation and HasUniqueId. IndexLess is key-tuple ordering; asMutable and FeatureHandleMutable_ are replaced by &mut and set_handles. validate rejects the negative width the source stores."
+  },
+  "src/openms/include/OpenMS/KERNEL/FeatureMap.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/feature_identification.rs",
+    "src/kernel/features.rs",
+    "src/kernel/map_operations.rs"
+   ],
+   "tests": [
+    "tests/feature_identification.rs",
+    "tests/features.rs",
+    "tests/map_operations.rs"
+   ],
+   "documentation": "docs/MAP_OPERATIONS_SUPPORT.md",
+   "scope": "First member-by-member review; every public member tabled. New: AnnotationStatistics, operator+/+= as merged/append with a caller-owned generator, swap, swapFeaturesOnly, findProteinIdentification, the primary MS run path trio, applyMemberFunction, getAnnotationStatistics, getUnassignedIDMatches, Display. The exposed-vector interface is the public features field; getIdentificationData is not ported because the graph is caller-owned."
   },
   "src/openms/include/OpenMS/KERNEL/MRMFeature.h": {
    "status": "complete",

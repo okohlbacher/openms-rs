@@ -2201,3 +2201,111 @@ fraction. No upstream fix is claimed.
 **Proposed fix:** Delete the second c.updateRanges() at line 282, matching getMSSpectrumById.
 
 **Rust handling:** Does not arise. src/kernel.rs computes ranges on demand rather than caching them behind an updateRanges() call, so there is no range refresh to perform once, twice or not at all.
+
+## CPP-111 — MapConversion::convert(PeakMap) sorts and indexes past the end of its vector
+
+**Affected files:** src/openms/source/KERNEL/ConversionHelper.cpp:24-44, src/openms/source/KERNEL/MSExperiment.cpp:744, src/openms/include/OpenMS/KERNEL/MSExperiment.h:171
+
+**Issue and reproduction:** n is clamped against MSExperiment::getSize(), which sums the peaks of every spectrum plus every chromatogram point, but the vector that is then partially sorted comes from get2DData, which skips every spectrum whose MS level is not 1. With any MS2 spectrum or chromatogram present the middle iterator of std::partial_sort is past the end (undefined behaviour) and the following loop reads tmp[element_index] past the end. The default argument Size(-1) reaches this path on every call that does not pass n explicitly, so any DDA run converted with the default triggers it.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Clamp against tmp.size() after get2DData has filled it, not against getSize().
+
+**Rust handling:** MapConversion::peak_map_to_consensus clamps against the number of points actually collected; tests/conversion_helper.rs::peak_map_to_consensus_clamps_against_collected_points asserts 12 elements for a 12-MS1-peak run that also holds an MS2 spectrum and a chromatogram (getSize() would be 14).
+
+## CPP-112 — FeatureMap::swap and ConsensusMap::swap do not swap the meta values
+
+**Affected files:** src/openms/source/KERNEL/FeatureMap.cpp:323, src/openms/source/KERNEL/ConsensusMap.cpp:393
+
+**Issue and reproduction:** Both swap the elements, ranges, DocumentIdentifier, UniqueIdInterface, the UniqueIdIndexer, every record vector and id_data_, but never the inherited MetaInfoInterface. After a swap each map carries the other map's data with its own meta values. clear(true) and operator== both treat the meta values as part of the map, so the omission is inconsistent with the rest of the class rather than deliberate.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Add MetaInfoInterface::swap(from) (or std::swap on the meta pointer) to both swap bodies.
+
+**Rust handling:** FeatureMap::swap and ConsensusMap::swap reproduce the omission exactly and say so at the item, pointing callers at std::mem::swap for a complete exchange; tests/map_operations.rs::fm_swap and ::cm_swap assert that a meta value stays with its original map.
+
+## CPP-113 — ConsensusMap::split indexes its result vector with the map index
+
+**Affected files:** src/openms/source/KERNEL/ConsensusMap.cpp:702, 780, 801
+
+**Issue and reproduction:** fmaps is sized by column_description_.size() but indexed by the feature handle's and the identification's map_index. The two agree only when the column headers happen to be keyed 0..n-1. A consensusXML whose headers are keyed sparsely (which nothing forbids, and which setPrimaryMSRunPath can itself create) makes fmaps[it->first] read and write past the end of the vector.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Build a map index to position mapping from column_description_'s keys, or check the index against fmaps.size() and throw.
+
+**Rust handling:** ConsensusMap::split maps every index through check_column and returns Error::InvalidValue for one that does not name a column; tests/map_operations.rs::cm_split_error_paths covers it.
+
+## CPP-114 — ConsensusMap::split dereferences an empty map in the isobaric branch
+
+**Affected files:** src/openms/source/KERNEL/ConsensusMap.cpp:741
+
+**Issue and reproduction:** (*new_feats.begin()).second is taken without checking that the consensus feature had any feature handle. A consensus feature with peptide identifications but no handles — which nothing in the class prevents — dereferences end().
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Guard on new_feats.empty() before the dereference, or fold it into the existing min_index check.
+
+**Rust handling:** The min_index != Some(0) guard rejects an empty handle set before any identification is routed, and the isobaric target lookup is a checked Option.
+
+## CPP-115 — ConsensusMap::appendRows pairs column headers by position, not by column index
+
+**Affected files:** src/openms/source/KERNEL/ConsensusMap.cpp:85-92
+
+**Issue and reproduction:** After merging rhs's headers, the loop advances an iterator over the merged map and a second over rhs's map in lockstep and sets getColumnHeaders()[it->first].size = it->second.size + it2->second.size. The two iterators are at the same ordinal position, not at the same column index, so a merge adds the size of an unrelated column and renames only the first min(|merged|, |rhs|) headers to mergedConsensusXMLFile. The remaining headers keep a filename that no longer describes their contents.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Iterate rhs's headers and accumulate into the merged entry with the same key.
+
+**Rust handling:** ConsensusMap::append_rows reproduces the positional zip and documents it; tests/map_operations.rs::cm_append_rows asserts that header 0 is renamed while header 1 keeps "m2".
+
+## CPP-116 — ConsensusMap::setPrimaryMSRunPath writes by position through a default-inserting map
+
+**Affected files:** src/openms/source/KERNEL/ConsensusMap.cpp:518-536
+
+**Issue and reproduction:** The count check fires only when column_description_ is non-empty, and the write loop uses column_description_[i] with i counting from zero. std::map::operator[] default-inserts, so a map whose headers are keyed otherwise (say {5}) passes the count check for one path and then gains a second, empty column at key 0 instead of being renamed. An empty map silently accepts any number of paths and invents that many columns.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Write into the existing keys in order, or reject a map whose keys are not 0..n-1.
+
+**Rust handling:** ConsensusMap::set_primary_ms_run_path reproduces the behaviour into a temporary and documents it; tests/map_operations.rs::cm_primary_ms_run_path asserts the sparse-key case produces two columns.
+
+## CPP-117 — MSExperiment::getPrimaryMSRunPath joins using the unstripped file:/// path
+
+**Affected files:** src/openms/source/KERNEL/MSExperiment.cpp:922-925
+
+**Issue and reproduction:** actual_path strips a leading file:/// only to decide whether the separator should be a backslash or a slash; the location that is pushed is then built from the original path, so a source file whose path is file:///C:/data yields file:///C:/data/run.mzML. FeatureMap::setPrimaryMSRunPath and ConsensusMap::setPrimaryMSRunPath pass that string straight to File::exists, which cannot find it, so the fallback list is silently used instead of the experiment's own run path.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Build ms_run_location from actual_path.
+
+**Rust handling:** The private usable_experiment_run_path helper reproduces the spelling so the existence test sees what the source tests, and records the defect in its doc comment and in tests/data/map_operations_provenance.json.
+
+## CPP-118 — UniqueIdIndexer::resolveUniqueIdConflicts can loop forever
+
+**Affected files:** src/openms/include/OpenMS/CONCEPT/UniqueIdIndexer.h:138-163
+
+**Issue and reproduction:** while (uniqueid_to_index_.contains(unique_id)) { setUniqueId(); ... } has no bound. A UniqueIdGenerator that has been seeded identically in two places, or one whose state has been reset, can keep producing an already-used value and hang the merge. The counter invalid_uids also does not count the IDs it assigns to previously unassigned elements, so the number it returns (and that FeatureMap::operator+= logs) understates what changed.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Bound the redraw loop and either count every assignment or rename the return value.
+
+**Rust handling:** The private resolve_unique_id_conflicts bounds each element at MAX_UNIQUE_ID_REDRAWS (64) and returns Error::InvalidValue past it, while keeping the source's counting rule; documented in map_operations.rs.
+
+## CPP-119 — FeatureMap::getPrimaryMSRunPath does not clear its output argument
+
+**Affected files:** src/openms/source/KERNEL/FeatureMap.cpp:452-464
+
+**Issue and reproduction:** toFill is only assigned when the spectra_data meta value exists; otherwise the caller's previous contents survive, and the UNKNOWN placeholder is appended only when the result is empty. A caller that reuses one StringList across maps therefore reads the previous map's paths back as if they belonged to the current one, with no diagnostic.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Clear toFill on entry.
+
+**Rust handling:** FeatureMap::primary_ms_run_path returns a fresh Vec, so the question cannot arise; the source behaviour is stated in the item's rustdoc.

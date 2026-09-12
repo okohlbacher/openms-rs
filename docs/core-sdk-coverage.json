@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 20,
-      "evidence_requires_review": 162,
-      "native_equivalent": 73,
+      "complete": 21,
+      "evidence_requires_review": 163,
+      "native_equivalent": 75,
       "partial": 19,
-      "unmapped": 512
+      "unmapped": 508
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -4175,10 +4175,12 @@
       "header": "src/openms/include/OpenMS/CONCEPT/UniqueIdIndexer.h",
       "sha256": "c3481f999bfa5dde7b28ef959967eb7c0a5e5f6e6a758cf5e607857a200543e6",
       "domain": "CONCEPT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/map_operations_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -4644,6 +4646,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/map_operations_provenance.json",
         "tests/data/native_equivalents_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -5004,10 +5007,12 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/Utils/MapUtilities.h",
       "sha256": "c3c46515ae9f0c049369714224290c5f0d7858f9e33b9ed767ffd14f62b25d32",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/map_operations_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8487,8 +8492,10 @@
         "src/kernel/features.rs"
       ],
       "reference_manifests": [
+        "tests/data/conversion_helper_provenance.json",
         "tests/data/feature_identification_provenance.json",
-        "tests/data/featurexml_provenance.json"
+        "tests/data/featurexml_provenance.json",
+        "tests/data/map_operations_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -8623,6 +8630,7 @@
         "src/kernel/features.rs"
       ],
       "reference_manifests": [
+        "tests/data/conversion_helper_provenance.json",
         "tests/data/feature_identification_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -8631,13 +8639,27 @@
       "header": "src/openms/include/OpenMS/KERNEL/ConsensusMap.h",
       "sha256": "0659b12b4f03f3201da7be40a30d563a42671a0b0054ad2280061fa7ce6978e5",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel.rs",
+          "src/kernel/features.rs",
+          "src/kernel/map_operations.rs"
+        ],
+        "tests": [
+          "tests/features.rs",
+          "tests/map_operations.rs"
+        ],
+        "documentation": "docs/MAP_OPERATIONS_SUPPORT.md",
+        "scope": "First member-by-member review; every public member tabled. New: SplitMeta and split, appendRows, appendColumns, ConsensusMap(size_type), checked setExperimentType, sortPeptideIdentificationsByMapIndex, swap, findProteinIdentification, the MS run path trio, applyMemberFunction, getUnassignedIDMatches, Display. isMapConsistent is validate_consistency returning Result; getIdentificationData is not ported."
+      },
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
       "reference_manifests": [
-        "tests/data/consensusxml_provenance.json"
+        "tests/data/consensusxml_provenance.json",
+        "tests/data/map_operations_provenance.json"
       ],
       "direct_topp_consumers": [
         "AccurateMassSearch",
@@ -8686,10 +8708,23 @@
       "header": "src/openms/include/OpenMS/KERNEL/ConversionHelper.h",
       "sha256": "dd3785f8d8fbbd5b2f9cf3da395a9a7107b9c394e054f9fe5edbb27b9b1427fa",
       "domain": "KERNEL",
-      "status": "unmapped",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/kernel.rs",
+          "src/kernel/conversion_helper.rs"
+        ],
+        "tests": [
+          "tests/conversion_helper.rs"
+        ],
+        "documentation": "docs/CONVERSION_HELPER_SUPPORT.md",
+        "scope": "All three MapConversion overloads, as named functions returning the new container instead of filling an out-parameter. Option replaces the Size(-1) sentinel and a caller-owned generator the singleton. The peak-map clamp uses the points actually collected, because the source clamps against getSize() and partial-sorts past the end of the MS1-only vector."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/conversion_helper_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FeatureLinkerBase",
         "FileConverter",
@@ -8793,14 +8828,30 @@
       "header": "src/openms/include/OpenMS/KERNEL/FeatureMap.h",
       "sha256": "fb4c1f8e507b4416f6c03689b77f812535d6744d0ca0d7394acf625ef2f3ef43",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel.rs",
+          "src/kernel/feature_identification.rs",
+          "src/kernel/features.rs",
+          "src/kernel/map_operations.rs"
+        ],
+        "tests": [
+          "tests/feature_identification.rs",
+          "tests/features.rs",
+          "tests/map_operations.rs"
+        ],
+        "documentation": "docs/MAP_OPERATIONS_SUPPORT.md",
+        "scope": "First member-by-member review; every public member tabled. New: AnnotationStatistics, operator+/+= as merged/append with a caller-owned generator, swap, swapFeaturesOnly, findProteinIdentification, the primary MS run path trio, applyMemberFunction, getAnnotationStatistics, getUnassignedIDMatches, Display. The exposed-vector interface is the public features field; getIdentificationData is not ported because the graph is caller-owned."
+      },
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
       "reference_manifests": [
         "tests/data/feature_finding_metabo_provenance.json",
-        "tests/data/featurexml_provenance.json"
+        "tests/data/featurexml_provenance.json",
+        "tests/data/map_operations_provenance.json"
       ],
       "direct_topp_consumers": [
         "AccurateMassSearch",
@@ -8952,9 +9003,11 @@
       "reference_manifests": [
         "tests/data/area_iteration_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
+        "tests/data/conversion_helper_provenance.json",
         "tests/data/experiment_aggregation_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/experimental_settings_provenance.json",
+        "tests/data/map_operations_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/peak2d_provenance.json",
         "tests/data/peak_data_provenance.json",
@@ -9873,10 +9926,12 @@
       "header": "src/openms/include/OpenMS/METADATA/DataProcessingUtils.h",
       "sha256": "20f0ec11fc7df93f863241b0009b68e69dcf66b8adf60c270b8090ea6a981037",
       "domain": "METADATA",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/map_operations_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -12292,9 +12347,7 @@
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/MzTabMFile.h",
-        "OpenMS/FORMAT/OMSFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h"
+        "OpenMS/FORMAT/OMSFile.h"
       ],
       "workflow_validated": false
     },
@@ -12431,7 +12484,6 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": false
@@ -12451,7 +12503,6 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": false
@@ -12547,7 +12598,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -12575,8 +12625,7 @@
         "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h"
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
@@ -12710,8 +12759,6 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/SYSTEM/StopWatch.h"
       ],
       "workflow_validated": false
@@ -12826,7 +12873,6 @@
         "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
         "OpenMS/FORMAT/EDTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
         "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
@@ -12869,7 +12915,6 @@
         "OpenMS/ANALYSIS/ID/PeptideProteinResolution.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/SYSTEM/File.h",
@@ -13017,7 +13062,6 @@
         "OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/SYSTEM/File.h",
         "OpenMS/SYSTEM/StopWatch.h"
@@ -13052,7 +13096,6 @@
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/IONMOBILITY/IMTypes.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
         "OpenMS/SYSTEM/File.h"
@@ -13151,8 +13194,6 @@
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/IONMOBILITY/IMTypes.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/ML/CLUSTERING/GridBasedCluster.h",
         "OpenMS/ML/REGRESSION/LinearRegression.h",
@@ -13182,9 +13223,7 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/ConversionHelper.h"
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
@@ -13289,8 +13328,6 @@
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/MzXMLFile.h",
         "OpenMS/FORMAT/SqMassFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/ConversionHelper.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ID/IdentificationDataConverter.h"
       ],
@@ -13331,8 +13368,6 @@
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h"
@@ -13394,8 +13429,6 @@
         "OpenMS/FORMAT/PepXMLFile.h",
         "OpenMS/FORMAT/TransformationXMLFile.h",
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/MATH/StatisticFunctions.h",
@@ -13430,7 +13463,6 @@
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
         "OpenMS/CONCEPT/VersionInfo.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
@@ -13472,8 +13504,7 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/GNPSMGFFile.h",
         "OpenMS/FORMAT/GNPSMetaValueFile.h",
-        "OpenMS/FORMAT/GNPSQuantificationFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h"
+        "OpenMS/FORMAT/GNPSQuantificationFile.h"
       ],
       "workflow_validated": false
     },
@@ -13522,7 +13553,6 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/PeptideIdentification.h"
       ],
       "workflow_validated": false
@@ -13661,7 +13691,6 @@
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
@@ -13698,7 +13727,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzIdentMLFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
@@ -13834,8 +13862,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/METADATA/AnnotatedMSRun.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/ProteinIdentification.h"
@@ -13865,7 +13891,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/CalibrationData.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h",
@@ -13932,7 +13957,6 @@
         "OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": false
@@ -14003,7 +14027,6 @@
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
         "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h",
@@ -14101,8 +14124,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/MATH/StatisticFunctions.h"
       ],
       "workflow_validated": false
@@ -14136,7 +14157,6 @@
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
         "OpenMS/SYSTEM/File.h"
@@ -14242,7 +14262,6 @@
         "OpenMS/FORMAT/MSstatsFile.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "workflow_validated": false
@@ -14301,7 +14320,6 @@
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/OMSFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
@@ -14374,7 +14392,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
@@ -14398,8 +14415,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/StatisticFunctions.h"
       ],
@@ -14481,8 +14496,6 @@
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/SYSTEM/File.h"
@@ -14534,7 +14547,6 @@
         "OpenMS/FEATUREFINDER/GaussModel.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/SVOutStream.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MISC/CubicSpline2d.h",
         "OpenMS/MATH/StatisticFunctions.h",
@@ -14563,8 +14575,6 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/SYSTEM/StopWatch.h"
       ],
       "workflow_validated": false
@@ -14595,7 +14605,6 @@
         "OpenMS/FORMAT/MascotGenericFile.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/SYSTEM/File.h"
       ],
@@ -14627,7 +14636,6 @@
         "OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h",
         "OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/PeptideHit.h",
         "OpenMS/METADATA/PeptideIdentification.h"
@@ -14682,7 +14690,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
         "OpenMS/METADATA/ProteinHit.h",
@@ -15051,7 +15058,6 @@
         "OpenMS/CONCEPT/VersionInfo.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/XQuestResultXMLFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
@@ -15246,8 +15252,7 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
         "OpenMS/CONCEPT/Types.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/FeatureMap.h"
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
@@ -15350,8 +15355,7 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/FeatureMap.h"
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
@@ -15482,9 +15486,7 @@
         "OpenMS/FORMAT/ConsensusMapArrowIO.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FeatureMapArrowIO.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h"
+        "OpenMS/FORMAT/FeatureXMLFile.h"
       ],
       "workflow_validated": false
     },
@@ -15710,7 +15712,6 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/SYSTEM/StopWatch.h"
       ],
@@ -15753,7 +15754,6 @@
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
         "OpenMS/FORMAT/QPXFile.h",
         "OpenMS/FORMAT/SVOutStream.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/SYSTEM/File.h"
@@ -15848,8 +15848,6 @@
         "OpenMS/FORMAT/PeakTypeEstimator.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
         "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/ConversionHelper.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/METADATA/ProteinIdentification.h",
@@ -15882,8 +15880,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
@@ -16080,7 +16076,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
         "OpenMS/METADATA/PeptideIdentification.h",
@@ -16155,7 +16150,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": false
@@ -16249,7 +16243,6 @@
         "OpenMS/FEATUREFINDER/SeedListGenerator.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/SVOutStream.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/SYSTEM/File.h"
@@ -16553,8 +16546,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/FORMAT/XICParquetFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
@@ -16587,7 +16578,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "workflow_validated": false
