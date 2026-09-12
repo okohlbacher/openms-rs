@@ -56,7 +56,8 @@ use crate::format::imzml_handler::{
     IBD_UUID_BYTES, ImagingMode, ImzMLDataType, ImzMLMeta, ImzMLReadLimits, infer_ibd_path,
     uuid_bytes, write_float32_array, write_float64_array, write_mz_as_float32, write_mz_as_float64,
 };
-use crate::kernel::{MSExperiment, MSSpectrum, NumericRange};
+use crate::kernel::{DataArray, MSExperiment, MSSpectrum, NumericRange};
+use crate::metadata::{MetaValue, MetaValueData};
 use crate::{Error, Result};
 use sha1::{Digest, Sha1};
 use std::collections::{BTreeMap, BTreeSet};
@@ -402,23 +403,47 @@ pub fn resolve_float_array_cv(
 /// `"processed"` becomes `None`, which is how the source's later string
 /// comparisons treat it: neither branch matches and the mode is auto-detected.
 ///
+/// # Notes
+///
+/// The six vocabulary keys — `imzml:imaging_mode`, `imzml:uuid`,
+/// `imzml:scan_pattern`, `imzml:scan_direction`, `imzml:line_scan_direction`
+/// and `imzml:polarity` — are read with the source's *lenient*
+/// stringification. `extractMeta_` reads each of them through
+/// `DataValue::toString()`, which `StringUtils.h` documents in terms as the
+/// stringification that never throws: a number becomes its decimal text, a
+/// list is joined as `[a, b]`, an empty value becomes `""`, and a genuine
+/// string is returned verbatim. A private `meta_text` reproduces that, so an
+/// experiment whose `imzml:polarity` is an integer — which stores fine
+/// upstream — stores here too rather than being refused. None of the six is a
+/// number in practice; the leniency matters because none of them is *required*
+/// to be a string for the store to succeed.
+///
+/// The seven numeric keys keep the source's strictness, because the source is
+/// strict there: `imzml:max_count_x`, `imzml:max_count_y` and
+/// `imzml:max_count_z` go through `static_cast<UInt>`, which throws for
+/// anything but an integer and for a negative one, and `imzml:pixel_size_x`,
+/// `imzml:pixel_size_y`, `imzml:max_dim_x` and `imzml:max_dim_y` go through
+/// `static_cast<double>`, which accepts an integer and throws for an empty
+/// value. That `static_cast<double>` reads the `DataValue` union's `double`
+/// member unconditionally for every other type, so a *string* pixel size is
+/// undefined behaviour upstream rather than an error; refusing it here is the
+/// one place this function is deliberately stricter than the source, alongside
+/// the out-of-range count below.
+///
 /// # Errors
 ///
-/// [`Error::InvalidValue`] when a key is present with the wrong type — a count
-/// that is not an integer, a size that is not numeric, a vocabulary term that
-/// is not a string — or when a count is negative or above `2^32`. The source
+/// [`Error::InvalidValue`] when a count is not an integer, is negative or is
+/// above `2^32`, or when a size is neither an integer nor a float. The source
 /// reaches the same outcome for the wrong type through `DataValue`'s
 /// `static_cast`, which throws `Exception::ConversionError`; for an
-/// out-of-range count its `static_cast<UInt>` wraps silently instead.
+/// out-of-range count its `static_cast<UInt>` wraps silently instead. No
+/// vocabulary key can fail.
 pub fn dataset_meta(exp: &MSExperiment) -> Result<ImzMLMeta> {
     let metadata = &exp.settings.metadata;
-    let text = |key: &str| -> Result<String> {
+    let text = |key: &str| -> String {
         match metadata.get(key) {
-            Some(value) => Ok(value
-                .as_str()
-                .map_err(|_| meta_type(key, "a string"))?
-                .to_owned()),
-            None => Ok(String::new()),
+            Some(value) => meta_text(value),
+            None => String::new(),
         }
     };
     let count = |key: &str| -> Result<u32> {
@@ -443,7 +468,7 @@ pub fn dataset_meta(exp: &MSExperiment) -> Result<ImzMLMeta> {
     };
 
     Ok(ImzMLMeta {
-        imaging_mode: match text("imzml:imaging_mode")?.as_str() {
+        imaging_mode: match text("imzml:imaging_mode").as_str() {
             "continuous" => Some(ImagingMode::Continuous),
             "processed" => Some(ImagingMode::Processed),
             _ => None,
@@ -455,13 +480,59 @@ pub fn dataset_meta(exp: &MSExperiment) -> Result<ImzMLMeta> {
         pixel_size_y: size("imzml:pixel_size_y")?,
         max_dim_x: size("imzml:max_dim_x")?,
         max_dim_y: size("imzml:max_dim_y")?,
-        uuid: text("imzml:uuid")?,
-        scan_pattern: text("imzml:scan_pattern")?,
-        scan_direction: text("imzml:scan_direction")?,
-        line_scan_direction: text("imzml:line_scan_direction")?,
-        polarity: text("imzml:polarity")?,
+        uuid: text("imzml:uuid"),
+        scan_pattern: text("imzml:scan_pattern"),
+        scan_direction: text("imzml:scan_direction"),
+        line_scan_direction: text("imzml:line_scan_direction"),
+        polarity: text("imzml:polarity"),
         ..ImzMLMeta::default()
     })
+}
+
+/// The source's lenient `DataValue::toString()` over a [`MetaValue`].
+///
+/// `DataValue.cpp`'s `toString(full_precision = true)`, which is what
+/// `extractMeta_` reaches for and what `StringUtils::toStr(const DataValue&)`
+/// documents as the stringification that never throws:
+///
+/// * an empty value is the empty string,
+/// * a string is returned verbatim, with no quoting,
+/// * an integer is its decimal text,
+/// * a float is [`float_text`] — the same 15-digit rule every float this
+///   writer emits goes through, so `5.0` is `"5.0"` and not `"5"`,
+/// * a list is `[`, its elements joined with `", "`, then `]`, each element
+///   stringified as the corresponding scalar. That is the source's
+///   `operator<<(std::ostream&, const std::vector<T>&)`, which also writes the
+///   brackets and the `", "` separator, and stringifies each element with
+///   `StringUtils::toStr`.
+///
+/// A unit is not appended, matching `DataValue::toString`, which has no access
+/// to one.
+///
+/// This is deliberately not [`MetaValue`]'s own `Display`: that renders a float
+/// with Rust's shortest round-trip formatting, and the source renders it with
+/// `Internal::NumericFormatting::appendNumeric`.
+fn meta_text(value: &MetaValue) -> String {
+    fn joined<T>(values: &[T], element: impl Fn(&T) -> String) -> String {
+        let mut out = String::from("[");
+        for (index, value) in values.iter().enumerate() {
+            if index != 0 {
+                out.push_str(", ");
+            }
+            out.push_str(&element(value));
+        }
+        out.push(']');
+        out
+    }
+    match value.data() {
+        MetaValueData::Empty => String::new(),
+        MetaValueData::String(text) => text.clone(),
+        MetaValueData::Integer(number) => number.to_string(),
+        MetaValueData::Float(number) => float_text(*number),
+        MetaValueData::StringList(values) => joined(values, Clone::clone),
+        MetaValueData::IntegerList(values) => joined(values, i64::to_string),
+        MetaValueData::FloatList(values) => joined(values, |&number| float_text(number)),
+    }
 }
 
 /// Whether every spectrum carries the same m/z axis, within `tolerance`.
@@ -558,13 +629,31 @@ pub fn storage_mode(exp: &MSExperiment, meta: &ImzMLMeta, tolerance: f64) -> Res
 /// # Errors
 ///
 /// [`Error::InvalidValue`] when a spectrum carries a non-finite m/z or
-/// intensity, or a data array whose length is neither zero nor the peak count.
-/// Both are checked by [`MSSpectrum::sort_by_position`] and
-/// [`MSSpectrum::select`] before anything is mutated, so a rejected spectrum is
-/// left untouched. The source neither sorts safely nor checks array alignment,
-/// and would reorder peaks away from their annotations.
+/// intensity. That is checked by [`MSSpectrum::sort_by_position`] before
+/// anything is mutated, so a rejected spectrum is left untouched. The source
+/// does not sort safely and would reorder peaks away from their annotations.
 ///
 /// # Notes
+///
+/// A data array whose length is neither zero nor the peak count is **not** an
+/// error here, because it is not one in the writer: `store` skips such an array
+/// and reports it in [`StoreReport::skipped_float_arrays`], whatever `options`
+/// says. [`MSSpectrum::sort_by_position`] and [`MSSpectrum::select`] do reject
+/// one — they must, since reordering peaks under a mis-sized annotation array
+/// is exactly the corruption they exist to prevent — so a misaligned array is
+/// lifted off the spectrum for the duration of the sort and the peak filters
+/// and put back, at its original position, before this function returns. Both
+/// the array and its original length therefore survive into the report.
+///
+/// Without that, a store's treatment of one misaligned array turned on an
+/// unrelated option: with default `options` neither the sort nor
+/// [`MSSpectrum::select`] runs and the array is skipped, while any sort or
+/// trimming filter made the same experiment fail outright. The source diverges
+/// the same way — `applyStoreOptions_` reaches `MSSpectrum::sortByPosition` and
+/// `MSSpectrum::select`, both of which run `checkDataArraySizes_` and throw
+/// `Exception::Precondition` — but its writer's own explicit and commented
+/// policy, in `appendAndWriteFloatDataArrays_`, is to skip and warn. That is
+/// the behaviour made unconditional.
 ///
 /// The source ends with `exp.updateRanges()`. This crate computes ranges on
 /// demand in [`MSExperiment::ranges`], so there is no cache to refresh and the
@@ -609,26 +698,14 @@ pub fn apply_store_options(exp: &mut MSExperiment, options: &PeakFileOptions) ->
         .has_intensity_range()
         .then(|| options.intensity_range());
     for spectrum in &mut exp.spectra {
-        if options.sort_spectra_by_mz && !spectrum.peaks.is_empty() && !spectrum.is_sorted() {
-            spectrum.sort_by_position()?;
-        }
-        if mz_range.is_none() && intensity_range.is_none() {
-            continue;
-        }
-        let kept: Vec<usize> = spectrum
-            .peaks
-            .iter()
-            .enumerate()
-            .filter(|(_, peak)| {
-                mz_range.is_none_or(|range| encloses(range, peak.mz))
-                    && intensity_range
-                        .is_none_or(|range| encloses(range, f64::from(peak.intensity)))
-            })
-            .map(|(index, _)| index)
-            .collect();
-        if kept.len() != spectrum.peaks.len() {
-            spectrum.select(&kept)?;
-        }
+        // Neither the sort nor the peak filter may see a misaligned annotation
+        // array: both refuse one, and the writer's policy for one is to skip
+        // it, not to fail. Lifted off here, restored below whether the filters
+        // succeeded or not, so a rejected spectrum is left as it was found.
+        let misaligned = detach_misaligned_arrays(spectrum);
+        let filtered = filter_peaks(spectrum, options, mz_range, intensity_range);
+        restore_misaligned_arrays(spectrum, misaligned);
+        filtered?;
     }
 
     if options.metadata_only {
@@ -637,6 +714,99 @@ pub fn apply_store_options(exp: &mut MSExperiment, options: &PeakFileOptions) ->
         }
     }
     Ok(before - exp.spectra.len())
+}
+
+/// One spectrum's m/z sort and peak filters, source `applyStoreOptions_`'s
+/// per-spectrum body.
+///
+/// Split out of [`apply_store_options`] only so that its failure can be
+/// returned past the restoration of the arrays
+/// [`detach_misaligned_arrays`] lifted off.
+fn filter_peaks(
+    spectrum: &mut MSSpectrum,
+    options: &PeakFileOptions,
+    mz_range: Option<NumericRange>,
+    intensity_range: Option<NumericRange>,
+) -> Result<()> {
+    if options.sort_spectra_by_mz && !spectrum.peaks.is_empty() && !spectrum.is_sorted() {
+        spectrum.sort_by_position()?;
+    }
+    if mz_range.is_none() && intensity_range.is_none() {
+        return Ok(());
+    }
+    let kept: Vec<usize> = spectrum
+        .peaks
+        .iter()
+        .enumerate()
+        .filter(|(_, peak)| {
+            mz_range.is_none_or(|range| encloses(range, peak.mz))
+                && intensity_range.is_none_or(|range| encloses(range, f64::from(peak.intensity)))
+        })
+        .map(|(index, _)| index)
+        .collect();
+    if kept.len() != spectrum.peaks.len() {
+        spectrum.select(&kept)?;
+    }
+    Ok(())
+}
+
+/// The float, integer and string data arrays of one spectrum whose length is
+/// neither zero nor the peak count, with the position each held.
+///
+/// Only [`detach_misaligned_arrays`] builds one and only
+/// [`restore_misaligned_arrays`] consumes it, so it never outlives one
+/// spectrum's pass through the peak filters.
+struct MisalignedArrays {
+    float: Vec<(usize, DataArray<f32>)>,
+    integer: Vec<(usize, DataArray<i32>)>,
+    string: Vec<(usize, DataArray<String>)>,
+}
+
+/// Lift every data array that does not hold one value per peak off `spectrum`.
+///
+/// A zero-length array is left in place: that is the length
+/// [`MSSpectrum::validate_data_arrays`] accepts for an unpopulated array, and
+/// the one [`Plan::aux`] reports as [`FloatArraySkipReason::Empty`].
+fn detach_misaligned_arrays(spectrum: &mut MSSpectrum) -> MisalignedArrays {
+    fn detach<T>(arrays: &mut Vec<DataArray<T>>, peaks: usize) -> Vec<(usize, DataArray<T>)> {
+        let mut detached = Vec::new();
+        let mut aligned = Vec::with_capacity(arrays.len());
+        for (position, array) in std::mem::take(arrays).into_iter().enumerate() {
+            if array.data.is_empty() || array.data.len() == peaks {
+                aligned.push(array);
+            } else {
+                detached.push((position, array));
+            }
+        }
+        *arrays = aligned;
+        detached
+    }
+    let peaks = spectrum.peaks.len();
+    MisalignedArrays {
+        float: detach(&mut spectrum.float_data_arrays, peaks),
+        integer: detach(&mut spectrum.integer_data_arrays, peaks),
+        string: detach(&mut spectrum.string_data_arrays, peaks),
+    }
+}
+
+/// Put back what [`detach_misaligned_arrays`] lifted off, each array at the
+/// position it held.
+///
+/// `detached` is in ascending position order, so inserting in that order places
+/// each array back at its original index: every array that was before it is
+/// already present again. The insertion point is clamped to the current length,
+/// which no caller can reach — `restore` is only ever handed this function's own
+/// output — so that a future one cannot panic here either.
+fn restore_misaligned_arrays(spectrum: &mut MSSpectrum, detached: MisalignedArrays) {
+    fn restore<T>(arrays: &mut Vec<DataArray<T>>, detached: Vec<(usize, DataArray<T>)>) {
+        for (position, array) in detached {
+            let at = position.min(arrays.len());
+            arrays.insert(at, array);
+        }
+    }
+    restore(&mut spectrum.float_data_arrays, detached.float);
+    restore(&mut spectrum.integer_data_arrays, detached.integer);
+    restore(&mut spectrum.string_data_arrays, detached.string);
 }
 
 /// Lower-case hex RFC 1321 MD5 of `data`.
@@ -825,7 +995,10 @@ pub fn store(
 ///
 /// The retention time is written as `MS:1000016` "scan start time" in seconds
 /// for every spectrum, including the OpenMS unset default of `-1`, as the
-/// source does.
+/// source does. Every float `cvParam` this writer emits — that retention time,
+/// the pixel sizes and the image extents — is rendered by a private
+/// `float_text`, the source's 15-digit `NumericFormatting` rule, so the unset
+/// default reads `value="-1.0"` rather than `value="-1"`.
 ///
 /// `PeakFileOptions::metadata_only` over an experiment that declares
 /// `imzml:imaging_mode = "continuous"` is refused; see the warning on
@@ -1591,7 +1764,7 @@ impl Plan {
                     "IMS",
                     accession,
                     name,
-                    &value.to_string(),
+                    &float_text(value),
                     MICROMETER,
                 )?;
             }
@@ -1680,7 +1853,7 @@ impl Plan {
             "MS",
             "MS:1000016",
             "scan start time",
-            &spectrum.rt.to_string(),
+            &float_text(spectrum.rt),
             SECOND,
         )?;
         for (accession, name, value) in [
@@ -2064,6 +2237,37 @@ fn meta_type(key: &str, expected: &str) -> Error {
     Error::InvalidValue(format!(
         "imzML meta value '{key}' is not {expected}, which imzML export requires"
     ))
+}
+
+/// The text the source writes for a `double` `cvParam` value.
+///
+/// `StringConversions::toString(double)` → `StringUtils::appendToStr(double,
+/// std::string&)` → `Internal::NumericFormatting::appendNumeric(value, target,
+/// writtenDigits<double>() == 15, fixed_format = false)`. That rule is:
+///
+/// * `NaN` is `"NaN"`, an infinity is `"inf"` or `"-inf"`;
+/// * a non-zero `|v|` at or above `1e4`, or below `1e-2`, is written in
+///   scientific notation with the shortest round-tripping mantissa, and its
+///   exponent is rewritten from `std::to_chars`' `printf`-style `e+05` into
+///   the historical `e05` — the `'+'` dropped, the `'-'` and the two-digit
+///   zero padding kept;
+/// * everything else is written fixed with 15 fractional digits;
+/// * in both forms trailing zeros after the decimal point are trimmed, but at
+///   least one digit is kept, so `5.0` stays `"5.0"` and never becomes `"5"`.
+///
+/// The implementation is the port of that header already in this crate,
+/// [`crate::param::value`]'s `format_float` with `full_precision = true`, which
+/// is the same `appendNumeric` call with the same 15-digit precision. Sharing
+/// it is what keeps a pixel size written here byte-identical to the same value
+/// written through a `Param`.
+///
+/// The writer's own self-audit claimed the source used `std::ostringstream`
+/// here, i.e. six significant digits and no forced `.0`. It does not, and the
+/// difference is visible in every float `cvParam`: a retention time of `-1`
+/// is `"-1.0"`, a pixel size of `1e5` is `"1.0e05"`, and a pixel size of
+/// `9999.9` carries all 15 fractional digits of the nearest double.
+fn float_text(value: f64) -> String {
+    crate::param::value::format_float(value, true)
 }
 
 /// Source `XMLHandler::writeXMLEscape` plus the control-character entities
