@@ -78,12 +78,21 @@
       "role": "The indexed fixture of the precursor-m/z filter section: 4 spectra, index 1 is MS2 with precursor m/z 5.55. Committed by tests/data/mzml_schema_provenance.json."
     },
     {
-      "path": "tests/data/mzml_upstream_minimal.mzML",
-      "bytes": 1055,
-      "sha256": "01fdbc15e97c6ff2fb565fc5beea8e8e6d01474a2333da79b72f2440345ae6d3",
-      "source_path": "src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML",
+      "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+      "bytes": 37187,
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+      "source_path": "src/tests/class_tests/openms/data/MzMLFile_1.mzML",
       "unchanged": true,
-      "role": "Substitute for the class test's non-indexed MzMLFile_1.mzML, which this crate's mzML reader rejects with 'binary array count mismatch' for an unrelated reason. Both are plain mzML without an indexListOffset footer, which is the only property the failure sections use: the source records parsing_success_ == false and still loads the metadata. Committed by tests/data/mzml_provenance.json."
+      "role": "The fixture every failure section of OnDiscMSExperiment_test.cpp opens: plain mzML with no indexListOffset footer, so openFile returns false while loadMetaData_ still runs. It declares 4 spectra and 2 chromatograms, which is what distinguishes 'no records in the index' from 'no records at all'. Committed by tests/data/mzml_schema_provenance.json."
+    }
+  ],
+  "derived_fixtures": [
+    {
+      "derived_from": "tests/data/indexed_mzml/IndexedmzMLFile_1.mzML",
+      "written_to": "a temporary directory at test time; nothing is committed",
+      "derivation": "The second spectrum's native identifier 'controllerType=0 controllerNumber=1 scan=2' is rewritten to '...scan=1' at both of its two occurrences: the <spectrum> element's id attribute and the idRef of its <indexList> offset. The two identifiers are the same length, so every byte offset in the index stays correct; the test asserts the occurrence count and the preserved file length before using the file.",
+      "reason": "No START_SECTION of OnDiscMSExperiment_test.cpp uses a duplicate native identifier, and the upstream fixture's identifiers are unique, so the documented first-wins rule has no upstream input to assert it with.",
+      "used_by": "a_duplicate_native_identifier_resolves_to_the_first_record"
     }
   ],
   "native_implementation": [
@@ -267,10 +276,11 @@
     }
   ],
   "evidence_tier": 3,
-  "evidence": "Tier 3 (source review). Every expected value in tests/on_disc_experiment.rs is a literal transcribed from OnDiscMSExperiment_test.cpp and its unmodified fixtures - 2 spectra, 1 chromatogram, 19914 and 19800 peaks, 48 chromatogram points, instrument 'LTQ FT' with 1 mass analyzer, native ids 'controllerType=0 controllerNumber=1 scan=1' and '...scan=2' and 'TIC', m/z window 400-600, intensity window 1000-1000000, and from MzMLFile_4_indexed.mzML the MS2 at index 1 with precursor m/z 5.55 - or a value read from the same fixture through this crate's own metadata load (scan start times 0.2961 s and 0.4738 s, peak counts 15 and 10). No C++ was built or executed and no retained C++ output was used, so nothing here is tier 1 or tier 2. Tier 4 (independently derived) covers what the source does not check or does not have: the resource ceilings, the atomicity of a failed open_file, the half-open DRange endpoints exercised at a spectrum's own RT, load_experiment, try_clone resolving native identifiers where a source copy cannot, and the documented fact that the by-native-id fetches ignore the options. Class-test section accounting: 29 START_SECTION occurrences, of which 28 are live and 1 (line 53) is commented out upstream; 29 ported, 0 mapped-with-evidence, 0 unaccounted. The two Interfaces pointer sections are ported onto the single peak vector that replaces their two arrays, because the crate has no OpenSWATH Interfaces layer.",
+  "evidence": "Tier 3 (source review). Every expected value in tests/on_disc_experiment.rs is a literal transcribed from OnDiscMSExperiment_test.cpp and its unmodified fixtures - 2 spectra, 1 chromatogram, 19914 and 19800 peaks, 48 chromatogram points, instrument 'LTQ FT' with 1 mass analyzer, native ids 'controllerType=0 controllerNumber=1 scan=1' and '...scan=2' and 'TIC', m/z window 400-600, intensity window 1000-1000000, and from MzMLFile_4_indexed.mzML the MS2 at index 1 with precursor m/z 5.55 - or a value read from the same fixture through this crate's own metadata load (scan start times 0.2961 s and 0.4738 s, peak counts 15 and 10), or - for the failure sections, which open the unmodified non-indexed MzMLFile_1.mzML - the 4 spectra and 2 chromatograms that file's spectrumList and chromatogramList declare. No C++ was built or executed and no retained C++ output was used, so nothing here is tier 1 or tier 2. Tier 4 (independently derived) covers what the source does not check or does not have: the resource ceilings, the atomicity of a failed open_file, the half-open DRange endpoints exercised at a spectrum's own RT, load_experiment, try_clone resolving native identifiers where a source copy cannot, and the documented fact that the by-native-id fetches ignore the options. Class-test section accounting: 29 START_SECTION occurrences, of which 28 are live and 1 (line 53) is commented out upstream; 29 ported, 0 mapped-with-evidence, 0 unaccounted. The two Interfaces pointer sections are ported onto the single peak vector that replaces their two arrays, because the crate has no OpenSWATH Interfaces layer.",
   "gaps": [
     "No tier 1 differential: reaching it would need an oracle driver over OnDiscMSExperiment in ../oracle/drivers/, printing full-precision peak arrays and the filtered variants for each record of IndexedmzMLFile_1.mzML. Not built here.",
-    "The class test's non-indexed MzMLFile_1.mzML is replaced by the already-committed upstream MzMLFile_2_minimal.mzML, because this crate's mzML reader rejects MzMLFile_1.mzML with 'binary array count mismatch'. Only the absence of an index footer is load-bearing for those sections, but the substitute's metadata is empty where MzMLFile_1.mzML's is not, so the failed-open experiment's metadata content is not exercised.",
+    "The documented first-wins rule for duplicate native identifiers is only observable at the index layer. mzML requires unique record identifiers and this crate's reader enforces it, so a metadata load carrying a duplicate is refused before the facade's identifier_caches runs; its or_insert_with is defensive. a_duplicate_native_identifier_resolves_to_the_first_record asserts the refusal and, via skip_metadata, the index layer's first-wins. Reaching the facade cache's own branch would need a way to install metadata without the reader, which the public API does not offer.",
+    "This manifest is not listed in SOURCE_PROVENANCE.json, so tools/check_core_sdk.py does not verify the hashes recorded here. The MzMLFile_1.mzML hash was checked by hand against the pinned copy and against the second in-tree copy at tests/data/mzml_header/MzMLFile_1.original.mzML. Registering the manifest is the integrator's step.",
     "The source parallelises nothing in this class, but its own class documentation recommends copying it per OpenMP thread. This port is serial; every fetch takes &mut self and a second reader is a second open or try_clone. The performance gap is stated, not closed.",
     "setSkipXMLChecks is ported: it maps to the handler's options_mut().skip_xml_checks, which reaches the Base64 whitespace strip at src/format/mzml.rs:2386. The fixture's arrays carry no whitespace, so the test can assert that the flag is carried and the decode still succeeds, not that a whitespace-bearing array decodes differently.",
     "The Interfaces::Spectrum / Interfaces::Chromatogram pointer overloads are not ported; the crate has no OpenSWATH Interfaces layer (INTERFACES/DataStructures.h is unmapped in docs/core-sdk-coverage.json).",

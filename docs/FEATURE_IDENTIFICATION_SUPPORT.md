@@ -111,10 +111,10 @@ package adds are marked **new**.
 | `const_iterator`, `iterator`, `const_reverse_iterator`, `reverse_iterator` | `handles().iter()` and `.iter().rev()`; there is no mutable iterator, because editing a handle's identity in place would break the set invariant. Copy out, edit, `set_handles` |
 | `struct SizeLess` (4 `operator()` overloads) | `ConsensusFeature::len()` ordering; `ConsensusMap::sort_by_size()` is the container-level user (descending) |
 | `struct MapsLess` | lexicographic ordering of `handles().iter().map(FeatureHandle::key)`; `ConsensusMap::sort_by_maps()` |
-| `struct Ratio` | `Ratio { ratio_value, denominator_ref, numerator_ref }` |
+| `struct Ratio` | `Ratio { ratio_value, denominator_ref, numerator_ref, description }` |
 | `Ratio::Ratio()`, copy ctor, `operator=`, `~Ratio()` | `Default` (a defined `0.0`, where the source leaves `ratio_value_` uninitialised), `Clone`, assignment, `Drop`. The source's `virtual` destructor on a value type stored in a `std::vector` has no counterpart |
 | `Ratio::ratio_value_`, `denominator_ref_`, `numerator_ref_` | `ratio_value`, `denominator_ref`, `numerator_ref` |
-| `Ratio::description_` (`std::vector<std::string>`) | not ported: no field exists on the Rust record, which predates this work package and is frozen here. Nothing in the SDK reads it; recorded as a deferral |
+| `Ratio::description_` (`std::vector<std::string>`) | the public `Ratio::description` field (`src/kernel/features.rs`), with `Ratio::description()`, `add_description`, `set_description` and `validate_description` as the checked path over it (`src/kernel/consensus_display.rs`). This package left the field out and recorded the gap as a deferral; the residual-closure package added it. See [CONSENSUS_DISPLAY_SUPPORT.md](CONSENSUS_DISPLAY_SUPPORT.md) |
 | `ConsensusFeature()`, copy, move, `~ConsensusFeature()` | `new` / `Default`, `Clone`, move, `Drop` |
 | `explicit ConsensusFeature(const BaseFeature&)` | `From<BaseFeature>` |
 | `ConsensusFeature(UInt64 map_index, const Peak2D&, UInt64 element_index)` | `From<BaseFeature>` plus `insert(FeatureHandle::from_peak(map_index, point, element_index))` |
@@ -138,7 +138,7 @@ package adds are marked **new**.
 | `size()`, `empty()`, `clear()` | `len()`, `is_empty()`, `clear()` |
 | `begin()`, `end()`, `rbegin()`, `rend()` (const and non-const) | `handles()` slice as above |
 | private `handles_`, `ratios_` | private `handles`, public `ratios` |
-| `operator<<(std::ostream&, const ConsensusFeature&)` | not ported: no `Display`. `FeatureHandle`'s stream operator is ported in `gap_closures.rs`; recorded as a deferral |
+| `operator<<(std::ostream&, const ConsensusFeature&)` | `impl Display for ConsensusFeature` (`src/kernel/consensus_display.rs`). This package had no `Display` and recorded the gap as a deferral; the residual-closure package added it. `FeatureHandle`'s stream operator is ported in `gap_closures.rs`. See [CONSENSUS_DISPLAY_SUPPORT.md](CONSENSUS_DISPLAY_SUPPORT.md) |
 
 ## Preserved source conventions
 
