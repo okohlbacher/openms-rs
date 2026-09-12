@@ -2357,3 +2357,231 @@ fraction. No upstream fix is claimed.
 **Proposed fix:** n/a
 
 **Rust handling:** n/a
+
+## CPP-124 — .ibd array reads are sized from the declared count with no comparison against the file's length
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp:122-186 (readMzArray), :190-262 (readFloatVector_)
+
+**Issue and reproduction:** Both readers validate only the element count, against MAX_IBD_ARRAY_ELEMENTS = 100,000,000, and then size the output from that count. Nothing compares offset + count * element_width against the actual length of the .ibd, which is the one fact that makes the request answerable. A malformed or hostile IMS:1000103 therefore commits the memory first and discovers the truncation only when fread comes up short: 800 MB for a float64 array at the ceiling, and 1.2 GB for a float32 one, because readMzArray stages a std::vector<float> alongside the std::vector<double> it widens into. Offsets and lengths in imzML come from one file and index into another, so this is reachable from an untrusted dataset without any corruption of the XML being detectable first.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** In validateCount_, or in a new preflight beside it, stat or fseek/ftell the .ibd once when it is opened, keep its length on the handler, and reject offset + count * width > length before resize/fread. Two comparisons and no extra I/O.
+
+**Rust handling:** ImzMLBinaryIO::preflight rejects an unknown data type, a count above max_array_elements, a count above usize, a stored size above max_array_bytes, an offset + bytes that overflows u64, and any range that leaves the length measured when the .ibd was opened — all before allocating, and the allocation then uses try_reserve_exact. Covered by a_range_past_the_end_of_the_ibd_is_refused, an_element_count_above_the_ceiling_is_refused_before_allocating, an_offset_that_overflows_the_range_is_refused, a_byte_length_above_the_configured_limit_is_refused and a_truncated_ibd_fails_the_preflight.
+
+## CPP-125 — ImzMLMeta::mz_data_type and int_data_type stay empty on an index-only load
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp:248-252; src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h:64-70; src/openms/source/FORMAT/ImzMLFile.cpp (loadSpectraIndex path)
+
+**Issue and reproduction:** The two fields are assigned inside the `if (handler_.ibd_ && handler_.decode_ibd_ && ...)` decode branch of ImzMLInterceptConsumer::consumeSpectrum. ImzMLFile::loadSpectraIndex passes decode_ibd = false, so an index-only load returns an ImzMLMeta whose mz_data_type and int_data_type are empty strings even though every spectrum's XML declared MS:1000521. The header documents them as "first occurrence, dataset-level summary" with no caveat, and the value is available from the parse, not from the decode: ArrayMeta::dt is already set at endElement("binaryDataArray"). A caller that reads the index to decide how to allocate cannot learn the element width without decoding a spectrum it does not want.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Record the first non-UNKNOWN dt in ImzMLHandler::onEndElement("spectrum"), where cur_mz_meta_ and cur_int_meta_ are already snapshotted, instead of in the consumer's decode branch. The decode-branch assignment then becomes redundant and can go.
+
+**Rust handling:** read_index sets ImzMLMeta::mz_data_type / int_data_type from the first spectrum in document order that declares a type, so a metadata-only parse is informative; documented at the fields and under native difference 4 of docs/IMZML_HANDLER_SUPPORT.md. Both fixtures report Float32 either way, so this does not change any upstream expectation.
+
+## CPP-126 — An unnamed external auxiliary array vanishes from the index with no trace
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp:264-269 (warn at decode) and :374-390 (omit from the index entry)
+
+**Issue and reproduction:** An external binaryDataArray that carries neither MS:1000786 nor a child of MS:1000513 is warned about when a spectrum is decoded in memory, and is separately skipped when the ImzMLSpectrumIndex entry is built. The warning comes from spec_ims_, which OnDiscImzMLExperiment does not retain; the index it does retain simply has one fewer aux entry. So an on-disc consumer inspecting getIndex(i).aux cannot tell that an array was present in the file and discarded, and an index-only load emits no warning at all because consumeSpectrum's aux block is inside the decode guard. The file's array count and the index's disagree silently.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Keep a count of the dropped arrays on ImzMLSpectrumIndex, or log the skip from endElement("binaryDataArray") where the name is known, so the omission is visible to whoever holds the index.
+
+**Rust handling:** ImzMLSpectrumIndex::unnamed_aux counts them, ImzMLSpectrumIndex::aux still holds only named arrays so aux.len() matches the source, and ImzMLHandler::spectrum reports one AuxSkipReason::Unnamed per dropped array in DecodedSpectrum::skipped_aux. Covered by skippable_auxiliary_arrays_are_reported_and_the_spectrum_survives.
+
+## CPP-127 — verifyIbdUuid_ carries two contradictory doc comments, one describing behaviour the function does not have
+
+**Affected files:** src/openms/source/FORMAT/ImzMLFile.cpp:77-87
+
+**Issue and reproduction:** Two comment blocks sit immediately above the same function. The first says the .ibd "must begin with the 16-byte UUID declared in the .imzML XML" and that a mismatch means the files do not belong together, so it should "reject loudly instead of silently decoding garbage offsets". The second, added later, says the check is advisory and is "reported as a loud WARNING rather than a hard error so that legacy / non-conformant datasets still load". The code does the second. A reader who stops at the first comment will believe a mismatched pair is rejected and will not add the check their own caller needs.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Delete the superseded first block. The surviving comment already states the policy and the reason for it.
+
+**Rust handling:** ImzMLHandler::uuid_status returns UuidStatus::{Match, Mismatch, NotDeclared, IbdTooShort} and open* rejects none of them, which keeps the source's actual tolerance while making the verdict available; the rustdoc states that the source warns and loads anyway. Covered by both_fixtures_ibd_headers_match_their_declared_uuid and a_mismatched_or_missing_uuid_is_reported_not_rejected.
+
+## CPP-128 — The declared .ibd checksums are parsed and mirrored but never verified on any read path
+
+**Affected files:** src/openms/source/FORMAT/ImzMLFile.cpp:148-160 (attachImzMLMeta_); src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp:703-704
+
+**Issue and reproduction:** IMS:1000091 (SHA-1) and IMS:1000090 (MD5) are parsed into ImzMLMeta and copied onto the loaded MSExperiment as imzml:ibd_sha1 / imzml:ibd_md5 MetaValues, and no read path recomputes either digest. The UUID header check covers only the first 16 bytes, so a .ibd that is truncated after the header, or whose array region was corrupted in transfer, decodes into plausible-looking numbers with no indication that the file no longer matches what the .imzML describes. imzML declares these checksums precisely because the two files travel separately.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Add an opt-in verification — a PeakFileOptions flag or an explicit ImzMLFile method — that streams the .ibd through the declared digest. It is one sequential pass and it should not be automatic, but it should be reachable.
+
+**Rust handling:** ImzMLHandler::verify_ibd_sha1 re-hashes the .ibd in 64 KiB chunks and returns ChecksumStatus, bounded by max_checksum_bytes and never automatic. The upstream processed fixture's declared digest 7e8fdb93053915d3edb51b70aa0619ac209964df is reproduced in the_declared_ibd_sha1_is_reproducible_and_md5_is_only_parsed. MD5 is parsed only, because this crate has no MD5 implementation and adding a dependency is a Cargo.toml change outside this package's scope; ImzMLMeta::ibd_md5 preserves the declared string for a later stage.
+
+## CPP-129 — OnDiscImzMLExperiment::open re-derives the .ibd path in a branch that cannot be taken
+
+**Affected files:** src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp:238-246; src/openms/source/FORMAT/ImzMLFile.cpp:568-570
+
+**Issue and reproduction:** open() sets ibd_path_ from the override or from meta_.ibd_file_path, then re-implements ImzMLFile::inferIbdPath_ inline for the case where that string is empty. It is never empty: loadImpl_ resolves the path as override-or-inferIbdPath_ and assigns meta_.ibd_file_path unconditionally before parsing. The inline copy is unreachable duplicated logic; a future change to inferIbdPath_ would leave it silently behind.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Delete the `if (pimpl_->ibd_path_.empty())` block and keep `ibd_path_ = pimpl_->meta_.ibd_file_path`, which loadImpl_ already guarantees to be the file that was read.
+
+**Rust handling:** One derivation only: `infer_ibd_path` in src/format/imzml_handler.rs, called by `OnDiscImzMLExperiment::open`; `open_with_ibd`/`open_with_limits` take the path explicitly. Documented on `open` and in docs/ON_DISC_IMZML_SUPPORT.md.
+
+## CPP-130 — IonImage allocates width * height from unvalidated file-supplied image dimensions
+
+**Affected files:** src/openms/source/IMAGING/IonImage.cpp:21-28; src/openms/include/OpenMS/IMAGING/IonImageExtraction.h:89; src/openms/source/FORMAT/ImzMLFile.cpp:380-385
+
+**Issue and reproduction:** extractIonImage constructs IonImage(geom.getWidth(), geom.getHeight()), and resize() assigns width*height doubles plus a parallel std::vector<bool> with no ceiling. Both dimensions come from the imzML's IMS:1000042 / IMS:1000043 (raised to the largest observed coordinate), so a corrupt or hostile header sizes the allocation directly: a declared 100000 x 100000 grid asks for 80 GB of doubles before a single peak is read. The dataset need contain only one spectrum.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Bound the pixel product in MSImagingGeometry::setDimensions or IonImage::resize, e.g. against a MAX_IMAGE_PIXELS constant, and throw Exception::InvalidValue rather than attempting the allocation.
+
+**Rust handling:** MAX_IMAGE_PIXELS = 16,777,216 (4096 x 4096) is checked in `ImagingGeometry::set_dimensions`, `add_pixel`, `IonImage::new`/`resize` and `ImagingRegion::from_mask`, and the allocation uses try_reserve_exact. A file declaring a larger grid fails `open()` and commits nothing; tested by `a_declared_grid_above_the_ceiling_is_refused` and `an_image_above_the_pixel_ceiling_is_refused`.
+
+## CPP-131 — MSImagingRegion::fromMask computes the far corner in wrapping UInt arithmetic
+
+**Affected files:** src/openms/source/IMAGING/MSImagingRegion.cpp:52-53
+
+**Issue and reproduction:** max_x_ = origin_x + width - 1 and max_y_ = origin_y + height - 1 are evaluated in UInt. For an origin near the top of the range the sum wraps, producing a bounding box whose maximum is below its minimum — the exact state rectangle() rejects. contains() then answers false everywhere, intersects() reports no overlap with anything, and area() (bbox path) is not reached only because the shape is Mask; getBBoxWidth() underflows instead. The region is silently inert rather than rejected.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Check the sum for overflow before assigning, and throw Exception::InvalidValue as the sibling validations do.
+
+**Rust handling:** `ImagingRegion::from_mask` computes the corner with `checked_add` and returns `Error::InvalidRange` on overflow; tested by the `u32::MAX` origin case in `a_mask_covers_only_its_set_bits`.
+
+## CPP-132 — ImzMLWriter::store cannot write a metadata-only continuous dataset
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:485-491 (applyStoreOptions_ clear(false)), :692-754 (spectraShareMz_ / isContinuousMode_), :1410-1415 (store)
+
+**Issue and reproduction:** PeakFileOptions::setMetadataOnly(true) makes applyStoreOptions_ clear every peak with spectrum.clear(false). isContinuousMode_ then calls spectraShareMz_ over the emptied spectra, which cannot find a non-empty reference and returns false, so the explicit "continuous" branch throws Exception::InvalidParameter. Since loading any continuous imzML sets imzml:imaging_mode = "continuous" on the experiment, a metadata-only store of a continuous dataset is impossible, while the same store of a processed dataset succeeds. Source review only; not reproduced against running C++.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Skip the shared-axis check when every spectrum is empty, or honour the declared mode for a metadata-only store: with no peaks the two layouts are indistinguishable on disk.
+
+**Rust handling:** Reproduced deliberately rather than quietly downgrading the declared mode, and pinned by tests/imzml_writer.rs::metadata_only_over_a_declared_continuous_dataset_is_refused_as_in_the_source. Documented as a # Warning on apply_store_options and referenced from store_with_options; removing imzml:imaging_mode lets the same store succeed as processed.
+
+## CPP-133 — ImzMLWriter::store leaks the ProgressLogger recursion depth on every throw
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:1437 (startProgress), :1519 (endProgress)
+
+**Issue and reproduction:** logger.startProgress(0, work.size() + 2, ...) is called at line 1437 and logger.endProgress() only on the success path at line 1519. Every throw in between -- UnableToCreateFile on either path, ParseError from the array writers, the UUID header write or the fflush -- leaves ProgressLogger's recursion depth incremented, so later progress output in the same process is indented wrongly and, at the depth cap, suppressed. Source review only.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Guard the range with a scope object whose destructor calls endProgress, or wrap the body in try/catch and end the range before rethrowing.
+
+**Rust handling:** store_with_options ends the progress range before propagating, so the nesting depth is balanced on every path; stated in the # Arguments prose for the logger parameter.
+
+## CPP-134 — A failed ImzMLWriter::store leaves a truncated .ibd with no .imzML
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:1440-1511 (the fopen'd .ibd block), :1517 (the .imzML written last)
+
+**Issue and reproduction:** The .ibd is created and streamed before the .imzML, and before several failures can still occur: a ParseError from writeFloat32Array's MAX_IBD_ARRAY_ELEMENTS check, a short fwrite, a failed fflush, or an unwritable .imzML path. UniqueFile_'s destructor only closes the handle, so a partially written .ibd outlives the failure and a later run can mistake it for the companion of an older .imzML. Source review only.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Write to a temporary path and rename on success, or unlink the .ibd when store exits by exception.
+
+**Rust handling:** Every check that does not need the filesystem runs in a preflight before either file is created, so no rejected experiment leaves a file behind; tests/imzml_writer.rs asserts the absence of both files on every refusal path, including all eleven ceilings. A genuine I/O failure mid-write still leaves the partial files, as in the source, and that is stated in the # Errors section.
+
+## CPP-135 — ImzMLFile_1_Example_Continuous.imzML is not schema-valid mzML 1.1.0, so ImzMLFile::isValid would reject its own reference fixture
+
+**Affected files:** src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.imzML (sha256 a358a80751cfd014dc86d5a18ee04c21b98063d3523c0f03f29c375f49c6b0cc); consumed by src/tests/class_tests/openms/source/ImzMLFile_test.cpp and ImzMLFile_all_modes_test.cpp; validated by ImzMLFile::isValid -> Internal::XMLFile::isValid against resources/schemas/mzML_1_10.xsd
+
+**Issue and reproduction:** Validating the fixture against the mzML 1.1.0 schema that ImzMLFile's own constructor registers produces eleven errors: ten cvParam elements omit the required cvRef attribute, and scanSettingsList (line 35) precedes softwareList (line 57) while the schema sequence is softwareList, scanSettingsList, instrumentConfigurationList, dataProcessingList. The same misordering makes a single-pass mzML reader see the dataProcessing softwareRef="sw1" as a forward reference. The C++ suite never notices because its only isValid section validates a file it has just written, and Xerces validation is disabled on the read path (fgSAX2CoreValidation false, ImzMLFile.cpp:576).
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Add cvRef="MS" / cvRef="IMS" to the ten cvParam elements that lack it, and move softwareList before scanSettingsList so the top-level element order matches mzML_1_10.xsd. Optionally add a class-test section that calls isValid on the unmodified fixture, which would have caught both.
+
+**Rust handling:** Not a blocker: openms::format::imzml_file and imzml_handler scan only the IMS vocabulary and read the fixture correctly, and all ported sections pass against it unmodified. ImzMLFile::is_valid reports the eleven diagnostics faithfully, and the misordering is one of the three reasons format::mzml cannot currently read the fixture (recorded in docs/IMZML_FILE_SUPPORT.md under 'the mzML metadata gap'). The fixture was not modified.
+
+## CPP-136 — ImzMLFile_2_Example_Processed.imzML declares mzML version="1.1" instead of 1.1.0 and is ISO-8859-1 with Latin-1 bytes
+
+**Affected files:** src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.imzML (sha256 066671590f01d4820b7ac5bd1f669d23dca04a91e40c08a35f7d0c6d6c729480), line 2 root attribute version="1.1", XML declaration encoding="ISO-8859-1"; consumed by ImzMLFile_test.cpp and ImzMLFile_all_modes_test.cpp
+
+**Issue and reproduction:** The root mzML element declares version="1.1" where the schema and every other OpenMS fixture use the three-component 1.1.0, and the document is ISO-8859-1 carrying three Latin-1 bytes (0xFC for u-umlaut in an MS:1000590 contact affiliation, 0xDF twice for sharp-s in the contact address). A strict version check refuses the file; a UTF-8-only reader either refuses it or silently mis-decodes the three bytes into replacement characters, corrupting contact metadata. C++ tolerates both because MzMLHandler warns rather than failing on an unexpected version and Xerces transcodes ISO-8859-1, so the defect is invisible upstream.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Change version="1.1" to version="1.1.0" and re-save the file as UTF-8 with encoding="utf-8" in the declaration, preserving the three characters. Both are edits to the fixture, not to the library.
+
+**Rust handling:** Not a blocker for imzML: openms::format::imzml_handler accepts the non-UTF-8 declared encoding for the ASCII-only IMS values it reads and rejects a non-UTF-8 byte only inside a value it actually consumes, so every ported section passes against the fixture unmodified. It does block two other paths that are outside this package: format::mzml rejects the file as 'only mzML 1.1 is supported', and mzml_schema refuses it as 'requires UTF-8, UTF-16 or ASCII-compatible bytes'. The fixture was not modified.
+
+## CPP-137 — ImzMLFile's two buildImagingGeometry overloads, documented as the same source of truth, disagree on the pixel-size condition and on the skip-reason ordering
+
+**Affected files:** src/openms/source/FORMAT/ImzMLFile.cpp:240-369 (the MSExperiment overload) and :371-476 (the index overload); specifically :277 vs :397 and :363 vs :472. Both are declared static public in src/openms/include/OpenMS/FORMAT/ImzMLFile.h
+
+**Issue and reproduction:** The header calls the index overload 'the source-of-truth path' and says the MetaValue path exists for experiments already loaded, implying they agree. Two differences: (1) the MetaValue overload copies the pixel size when imzml:pixel_size_x and imzml:pixel_size_y merely exist (:363) where the index overload copies it only when both are strictly positive (:472), and MSImagingGeometry::setPixelSize validates nothing (MSImagingGeometry.cpp:28-33), so for a dataset declaring IMS:1000046/047 as 0 the two builders return geometries whose getPixelSizeX() differs (0 versus the default) and any physical-distance computation differs with it; (2) the MetaValue overload tests x<1||y<1 before reading imzml:z (:277) while the index overload tests z!=1 first (:397), so a spectrum at (0,0,2) is warned about as a non-conformant coordinate on one path and skipped silently on the other. The second is cosmetic; the first changes returned data.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Make :363 require pixel_size_x > 0 && pixel_size_y > 0, matching :472, and move the z!=1 test ahead of the coordinate test at :277 so both overloads report the same reason. Alternatively have the MetaValue overload build an ImzMLSpectrumIndex vector and delegate to the index overload, which removes the divergence by construction.
+
+**Rust handling:** Both differences are reproduced deliberately, because they are observable, and both are documented at build_imaging_geometry_from_experiment and in docs/IMZML_FILE_SUPPORT.md. The ordering difference is asserted in the_meta_value_geometry_builder_reports_every_kind_of_unplaceable_spectrum, which checks that the index builder reports other_plane_count 1 and non_positive_count 0 for the same entry the MetaValue builder reports as non-positive. the_geometry_builders_agree_on_the_upstream_fixtures pins that the two agree on width, height and every pixel for both real fixtures. ImagingGeometry::set_pixel_size rejects only a non-finite size, as the source rejects nothing.
+
+## CPP-138 — ClassTest::isRealSimilar reports any two infinities as similar, including +inf against -inf
+
+**Affected files:** src/testframework/source/CONCEPT/ClassTest.cpp:364-489 (quotient at :438, sign test at :439, ratio test at :467)
+
+**Issue and reproduction:** For two infinite arguments both `absdiff = number_1 - number_2` and `ratio = number_1 / number_2` evaluate to NaN. Every subsequent comparison against NaN is false, so `ratio < 0.`, `ratio < 1.` and `ratio > ratio_max_allowed` all fail to fire and control falls through to the final else, which sets fuzzy_message = "ratio of numbers is small" and returns true. TEST_REAL_SIMILAR(inf, -inf) therefore passes silently.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Reject non-finite arguments explicitly alongside the existing NaN guards at :374-385, e.g. `if (!std::isfinite(number_1) || !std::isfinite(number_2)) { fuzzy_message = "...not finite"; return false; }` — the existing NaN checks already establish the precedent and the message channel.
+
+**Rust handling:** is_real_similar (tests/imzml_file.rs:225-259) reproduces the quirk deliberately, because its contract is to be the C++ oracle, and the_oracle_reproduces_the_upstream_infinity_quirk pins it so it cannot be mistaken for a port bug. close(), the assertion the 38 call sites use, refuses it: it requires both operands to be finite before asserting anything.
+
+## CPP-139 — ClassTest::isRealSimilar is asymmetric — the quotient underflows to -0.0 and defeats its own opposite-sign branch
+
+**Affected files:** src/testframework/source/CONCEPT/ClassTest.cpp:438-451 (ratio = number_1 / number_2; if (ratio < 0.))
+
+**Issue and reproduction:** The opposite-sign test is `ratio < 0.`, read off the quotient rather than the operands. When the magnitudes are far enough apart the quotient underflows to negative zero, and `-0.0 < 0.` is false, so the branch is skipped. `-0.0 < 1.` is then true, so the reciprocal step sets ratio = 1. / -0.0 = -inf, and `-inf > ratio_max_allowed` is false — so the function returns true for two numbers of opposite sign that differ by 600 orders of magnitude. isRealSimilar(1e-300, -1e300) is true while isRealSimilar(-1e300, 1e-300) is false, and isRealSimilar(1.0, -inf) is true while isRealSimilar(-inf, 1.0) is false. The same-sign pair isRealSimilar(1e-300, 1e300) is correctly false, which shows this is a defect and not a deliberate tolerance. Confirmed by compiling and running the transcribed control flow, not by reading it.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Decide the sign case from the operands, not from the quotient: replace `if (ratio < 0.)` with a test such as `if (std::signbit(number_1) != std::signbit(number_2))`, placed before the quotient is taken. Both numbers are already known non-zero at that point, so signbit is unambiguous. That is what the branch's own message ("numbers have different signs") already claims it tests.
+
+**Rust handling:** is_real_similar reproduces the asymmetry faithfully and the_oracle_reproduces_the_upstream_negative_zero_asymmetry pins both directions. close() closes it the way the fix above would: it computes opposite_signs from left.is_sign_negative() != right.is_sign_negative() and requires the absolute difference to be within 1e-5 whenever the signs differ. Both close() guards only ever reject pairs upstream accepted, so no ported assertion is weaker than its C++ original.
+
+## CPP-140 — ImzMLHandler's non-external peak fill is dead code: MzMLHandler throws first on a mixed spectrum
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp:198-234 and :608-610; src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:407-413
+
+**Issue and reproduction:** ImzMLInterceptConsumer::consumeSpectrum is written to handle a spectrum with exactly one external peak array: it enters its decode block on `(ims->mz_meta.is_ext || ims->int_meta.is_ext)` (:198), reads the external side from the .ibd, and fills the non-external side from the peaks MzMLHandler decoded — `mz_vec[i] = s[i].getMZ()` (:214-218), `int_vec[i] = s[i].getIntensity()` (:228-232) — so the mismatch throw at :234 should be reachable only for genuine corruption. It never runs. For such a spectrum the inline side's <binary> decodes to N values while the external side's placeholder <binary/> decodes to none, and MzMLHandler::populateSpectraWithData_ compares those two DECODED sizes at :410 and calls fatalError(LOAD, "The length of m/z and integer values of spectrum '...' differ ... Not reading spectrum!"), which throws Exception::ParseError. ImzMLHandler::onEndElement's two mitigations do not help: zeroing default_array_length_ (:608-610) only affects the defaultArrayLength comparison at :415-429, which populateSpectraWithData_ repairs rather than throws on, and zeroing bin_data_.back().size (:550-553) touches the declared length, not the decoded vector. So the fill at :214-232 is latent in the in-memory loader. The on-disc loader cannot reach it either, for an unrelated reason: ImzMLSpectrumIndex carries no is_ext field (ImzMLHandlerHelper.h:102-139), so Impl::readMz_/readInt_ gate on `mz_length`/`int_length != 0` (OnDiscImzMLExperiment.cpp:180-199) and an inline array, having no IMS:1000103, is silently empty — which then trips the on-disc mismatch throw at :75. Not exploitable and not reachable from a conformant imzML 1.1.0, which stores both peak arrays externally; the cost is dead code that reads as a supported path and a confusing error (a base-class message about a spectrum length, for a file whose real problem is a missing IMS:1000101).
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Decide which behaviour is intended and make the code say so. Either (a) keep the fill and let it work: have ImzMLHandler suppress the base class's decoded-size comparison for a mixed spectrum the way it already suppresses the defaultArrayLength warning — e.g. drop the external array's BinaryData entry from bin_data_ instead of only zeroing its `size`, so computeDataProperties_ does not find it and populateSpectraWithData_ returns early at :386-394 — and add an is_ext pair to ImzMLSpectrumIndex so loadSpectraIndex and OnDiscImzMLExperiment can tell an inline array from a zero-length one; or (b) delete the fill at :214-232 and reject a mixed spectrum explicitly in ImzMLHandler with a message that names IMS:1000101, so the diagnosis is not left to a base-class array-length error. A class test for a single-external-array spectrum would have caught this at either end; ImzMLFile_test.cpp has none, because no fixture is non-conformant.
+
+**Rust handling:** The Rust port implements the interception layer, not MzMLHandler, so it follows option (a) as :214-232 describes it: src/format/imzml_handler.rs retains the inline base64 of a non-external peak array during the index scan (ImzMLSpectrumIndex::mz_inline / int_inline) and decodes it in spectrum() and in mz_array/intensity_array where the .ibd read would otherwise be, keeping the length check as the corruption guard. It also carries the is_ext pair the C++ index lacks (mz_external / int_external), which is what lets both Rust read paths agree. The consequence — Rust accepts a non-conformant file both C++ loaders reject, in a different class and with a different message — is stated in docs/IMZML_HANDLER_SUPPORT.md:340-355, in the DecodedSpectrum::inline_peaks and ImzMLHandler::spectrum rustdoc, and as a gap in tests/data/imzml_handler_provenance.json, with source anchors at ImzMLHandler.cpp:198/214/228/608, MzMLHandler.cpp:410 and ImzMLHandlerHelper.h:102.
+
+## CPP-141 — DataValue::operator double() reads the union's double member for a non-numeric value
+
+**Affected files:** src/openms/source/DATASTRUCTURES/DataValue.cpp:466-478 (operator double()), :480-491 (operator float()), :452-464 (operator long double()); reached from src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:356-378
+
+**Issue and reproduction:** operator double() throws only for EMPTY_VALUE and converts INT_VALUE; for STRING_VALUE and the three list types it falls through to `return data_.dou_;`. For a STRING_VALUE the live union member is a std::string*, so this reinterprets a pointer's bit pattern as a double — undefined behaviour, and in practice a garbage number rather than the Exception::ConversionError that operator int() and operator unsigned int() raise for the same input. extractMeta_ reaches it for all four of imzml:pixel_size_x, imzml:pixel_size_y, imzml:max_dim_x and imzml:max_dim_y, so `exp.setMetaValue("imzml:pixel_size_x", "wide")` followed by ImzMLFile::store writes an imzML carrying a nonsense pixel size and a nonsense IMS:1000044/45 extent computed from it.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Give operator double(), operator float() and operator long double() the type guard their integer siblings already have: throw Exception::ConversionError unless value_type_ is DOUBLE_VALUE or INT_VALUE. The INT_VALUE conversion and the EMPTY_VALUE throw stay as they are, so no caller that passes a number changes behaviour.
+
+**Rust handling:** Not reproducible in the port — MetaValue is a tagged enum and MetaValue::as_f64 returns Err for every non-numeric variant, so there is no union to misread. dataset_meta therefore returns Error::InvalidValue for a non-numeric size, which is the one place it is deliberately stricter than extractMeta_. Pinned by dataset_meta_reads_every_key_and_refuses_the_wrong_type and the_numeric_keys_stay_strict_and_a_size_accepts_an_integer, the latter also asserting that an integer size is still accepted because the source accepts one. Recorded as cpp_issue_candidate 4 in tests/data/imzml_writer_provenance.json and under Source findings in docs/IMZML_WRITER_SUPPORT.md; unconfirmed against running C++.
+
+## CPP-142 — ImzMLWriter::store treats one misaligned FloatDataArray as skippable or fatal depending on an unrelated PeakFileOptions flag
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:454, 468, 475, 522-531; src/openms/source/KERNEL/MSSpectrum.cpp:20-38, 40-66, 444-460; src/openms/include/OpenMS/KERNEL/MSSpectrum.h:364-376
+
+**Issue and reproduction:** appendAndWriteFloatDataArrays_ skips a FloatDataArray whose size() differs from the spectrum's and warns, under an explicit "Per-peak contract" comment — the writer's stated policy. But applyStoreOptions_ runs first and reaches MSSpectrum::sortByPosition (:454 inside the peak-filter branch and :475 in the else branch) and MSSpectrum::select (:468), all of which run checkDataArraySizes_ and throw Exception::Precondition for exactly such an array. So the same experiment with the same array stores with a warning under default options over an already-sorted spectrum, and aborts the whole store as soon as getSortSpectraByMZ() has an unsorted spectrum to sort or an m/z or intensity range actually trims a peak — decided by a flag that has nothing to do with the array.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Apply the per-peak-contract check before applyStoreOptions_ and drop the offending arrays there, warning once per array as appendAndWriteFloatDataArrays_ does, so skip-and-warn is the only outcome and neither sortByPosition nor select ever sees a misaligned array. The kernel preconditions stay as they are — they are correct to refuse a reorder under a mis-sized annotation array.
+
+**Rust handling:** Was reproduced in the port and is now fixed at this package's own call site, since src/kernel.rs is out of scope and is right to refuse: apply_store_options lifts every misaligned float, integer and string data array off the spectrum around the sort and the peak filters via detach_misaligned_arrays / restore_misaligned_arrays, restoring each at its original index with its original values, so the array and its original length still reach StoreReport::skipped_float_arrays. validate_data_arrays, select and sort_by_position are unchanged. Pinned by a_misaligned_array_is_skipped_whatever_the_peak_file_options_say (three option sets, one outcome) and apply_store_options_puts_a_misaligned_array_back_in_place. Recorded as cpp_issue_candidate 5; unconfirmed against running C++.

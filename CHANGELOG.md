@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+- Fixed (imzML reader): a spectrum whose m/z and intensity arrays are not both external
+  now decodes — the external side from the `.ibd`, the other from its inline base64, as
+  `ImzMLInterceptConsumer` does — instead of reporting a length mismatch;
+  `ImzMLHandler::mz_array` / `intensity_array` now apply that same `IMS:1000101` rule, so
+  `OnDiscImzMLExperiment::extract_ion_image` and `spectrum` can no longer disagree about
+  the same pixel; and `ImzMLReadLimits::max_xml_bytes` now caps the reader's input, so it
+  bounds the XML parser's peak buffer and not only its cumulative progress.
+- Fixed: the imzML writer now writes every float cvParam with the source's 15-digit
+  NumericFormatting rule (so an unset retention time is `-1.0` and a pixel size of 1e5 is
+  `1.0e05`), reads its six vocabulary meta keys with the source's lenient
+  `DataValue::toString()` instead of refusing a non-string value, and skips a misaligned
+  auxiliary data array under every `PeakFileOptions` rather than failing whenever a sort
+  or trimming filter happens to run.
+- Fixed: the imzML class-test suite's float oracle omitted the opposite-sign branch of
+  `ClassTest::isRealSimilar`, so it accepted any sign error whose magnitudes matched and
+  all 38 assertions resting on it were weaker than they read; the oracle is now ported
+  branch for branch, guarded against the two defects in upstream's own version, and pinned
+  by 13 tests.
+- imzML loads now charge inline peak arrays against `max_loaded_peaks`. The preflight only
+  sees the index, whose lengths come from the external-array CV params, so a spectrum
+  storing its peaks inline reached the caller uncounted once the reader learned to decode
+  inline arrays; the only other bound was the 512 MiB XML ceiling.
 - Fixed: mzML reading no longer rejects a list whose declared `count` attribute disagrees
   with the actual number of child elements. Upstream's `MzMLHandler` reads the attribute
   only for progress reporting and capacity hints and never compares it, and real files —

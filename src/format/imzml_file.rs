@@ -1146,8 +1146,10 @@ impl ImzMLFile {
         logger: &mut ProgressLogger,
         experiment: &mut MSExperiment,
     ) -> Result<()> {
+        let mut budget = PeakBudget::new(&self.limits);
         for position in 0..staged.index_entries.len() {
             let spectrum = self.decode_one(handler, staged, position)?;
+            budget.charge(&spectrum)?;
             experiment.spectra.push(spectrum);
             logger.next_progress()?;
         }
@@ -1162,8 +1164,10 @@ impl ImzMLFile {
         logger: &mut ProgressLogger,
         consumer: &mut dyn MSDataConsumer,
     ) -> Result<()> {
+        let mut budget = PeakBudget::new(&self.limits);
         for position in 0..staged.index_entries.len() {
             let mut spectrum = self.decode_one(handler, staged, position)?;
+            budget.charge(&spectrum)?;
             // The peak filters are per-spectrum, so a streaming load can honour
             // them without materialising the dataset. A spectrum the filters
             // empty is still delivered, as the source delivers it.
@@ -1523,6 +1527,41 @@ impl Staged {
             skipped_aux_count: self.skipped_aux_count,
             stopped_early: self.stopped_early,
         }
+    }
+}
+
+/// Running peak total for one load, so an inline peak array counts against the
+/// same ceiling as an external one.
+///
+/// [`preflight`] can only see the index, whose `mz_length` comes from the
+/// external-array CV params. A spectrum storing its peaks inline carries the
+/// length in the XML instead, so those peaks reached the caller uncounted. The
+/// gap was unreachable while the reader refused inline arrays; once it decodes
+/// them the only remaining bound is `max_text_bytes`, and 512 MiB of Base64 is
+/// roughly 96 million `f32` peaks. Charged per spectrum, so a load fails as
+/// soon as the ceiling is crossed rather than after materialising everything.
+struct PeakBudget {
+    seen: u64,
+    ceiling: usize,
+}
+
+impl PeakBudget {
+    fn new(limits: &ImzMLLoadLimits) -> Self {
+        Self {
+            seen: 0,
+            ceiling: limits.max_loaded_peaks,
+        }
+    }
+
+    fn charge(&mut self, spectrum: &MSSpectrum) -> Result<()> {
+        self.seen = self
+            .seen
+            .checked_add(spectrum.peaks.len() as u64)
+            .ok_or_else(|| load_ceiling("peaks", self.ceiling))?;
+        if self.seen > self.ceiling as u64 {
+            return Err(load_ceiling("peaks", self.ceiling));
+        }
+        Ok(())
     }
 }
 

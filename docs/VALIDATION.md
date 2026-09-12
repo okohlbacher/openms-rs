@@ -41,6 +41,77 @@ remote development loops only; every test still runs in both. nextest runs each
 test in its own process, which is stricter than `cargo test`'s shared-process
 threads, and all 2,506 tests pass under it.
 
+## imzML family: the five-header format, and what four audits found (2026-09-12)
+
+The user withdrew an earlier deferral of `KERNEL/OnDiscImzMLExperiment.h` and then
+set a standing rule that **all file formats stay in core**. The imzML family was
+ported as a staged DAG on that basis: the reader core, then the writer and the
+kernel-level facade in parallel, then `ImzMLFile` carrying the family's whole
+class-test suite. It is not five headers but nine — the facade pulls in
+`MSImagingGeometry`, `MSImagingRegion` and `IonImage`, and a tenth,
+`IonImageExtraction.h`, is outside the registered union and recorded separately.
+
+| Package | Headers | Class-test sections | Rust |
+| --- | --- | --- | --- |
+| Reader core | ImzMLHandlerHelper, ImzMLHandler | own tests; family suite is stage 3's | `src/format/imzml_handler.rs` |
+| Writer | ImzMLWriter | round-trip against the reader | `src/format/imzml_writer.rs` |
+| On-disc facade | OnDiscImzMLExperiment + 3 imaging headers | 17 ported, 22 mapped | `src/kernel/on_disc_imzml_experiment.rs` |
+| File adapter | ImzMLFile | **50 ported, 0 mapped, 0 unaccounted** | `src/format/imzml_file.rs` |
+
+All four audits returned zero blockers and `bounds_enforced: true`, which was the
+property that mattered: an imzML dataset is two files, and every array offset and
+length comes out of the XML and indexes into the companion `.ibd`.
+
+**One finding should have been a blocker and two auditors found it independently.**
+`infer_ibd_path` tested its suffix by byte-slicing `text[text.len() - 6..]`, which
+panics whenever the sixth-from-last byte is a UTF-8 continuation byte. Every public
+entry point in the family calls it first — `load`, `load_experiment`,
+`load_into_consumer`, `load_spectra_index`, `store` and the facade — so
+`dir/日本語.txt` aborted the process before a single validation ran. Reproduced,
+then fixed with a char-boundary-safe `str::get`. The same rewrite closed a second
+divergence: the suffix is now replaced by truncation, matching the source's
+`p.substr(0, p.size() - 6) + ".ibd"`, where `PathBuf::set_extension` had treated a
+name that is entirely `.imzML` as an extensionless hidden file and appended.
+
+**Eight further majors were fixed rather than carried.** The reader returned `Err`
+for a spectrum with exactly one external peak array, where ImzMLHandler.cpp:198-234
+fills the non-external side from the inline peaks and succeeds; `extract_ion_image`
+read arrays that `spectrum()` refused for the same pixel, because one path tested
+the externality flags and the other did not; and the writer's float cvParam text
+used Rust's `Display` where the source uses `std::to_chars` with `chars_format::fixed`
+precision 15 inside [1e-2, 1e4) and shortest-round-trip scientific outside it
+(`NumericFormatting.h:26-135`), its six vocabulary meta keys errored where
+`DataValue::toString()` is deliberately lenient, and a misaligned auxiliary array was
+skipped under default options but fatal under any sort or trimming filter.
+
+**The test oracle was weaker than it claimed, and the re-run cleared the port.**
+The ported `ClassTest::isRealSimilar` omitted the opposite-sign branch of
+ClassTest.cpp:439-451, so `close(-1.0, 1.0)` returned true where C++ returns false,
+and it backed 38 assertions. Ported faithfully, **all 38 still pass** — the weak
+oracle was not masking a defect. The same package checked the three sibling suites
+that carry a similar helper (`binned_spectrum`, `feature_handle`, `rich_peak2d`) and
+established that their `|1.0 - ratio| <= 1e-5` form rejects negative ratios, so they
+never had the defect; that was independently re-derived here before accepting it.
+
+**One bound was closed by the integrator because no package owned the file.**
+`ImzMLFile::preflight` sums `mz_length` from the index, but an inline array carries
+its length in the XML, so inline peaks reached the caller uncounted once the reader
+began decoding them — bounded only by the 512 MiB XML ceiling, roughly 96 million
+`f32` peaks. A `PeakBudget` now charges every decoded spectrum against
+`max_loaded_peaks` in both load loops, failing as soon as the ceiling is crossed.
+
+Nineteen further C++ defects are recorded as CPP-124 to CPP-142.
+
+Gates on the Linux node at the integration commit: nextest all-features **3,193
+passed**, no-default-features 2,376 passed, doctests 16 passed, clippy `-D warnings`
+clean, `cargo +1.85.0 check --all-features --all-targets` clean, rustdoc
+`-D warnings` clean, `cargo fmt --check` clean, all six Python gates green.
+
+A correction to the preceding checkpoint: the sweep it cites for kernel wave 3 was
+killed by an ssh disconnect after the all-features run, so its no-default-features,
+clippy, MSRV, rustdoc and Python gate results were never obtained. Those gates are
+verified here, on a tree that contains that work.
+
 ## Kernel wave 3 completion and its audit fixes (2026-09-12)
 
 The three packages a session limit had killed were re-run from the integrated

@@ -84,7 +84,7 @@ jobs:
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
       - run: cargo test --locked --no-default-features --test experimental_design --test fasta --test formats --test experiment_aggregation --test experiment_summary --test kernel_value_traits --test peak_file_options --test identification --test metadata_hash --test mass_decomposition --test mass_decomposition_algorithm --test ims_weights --test mobilogram --test data_array_descriptions
       - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml_handler --test mzml_typed_transport --test record_metadata --test mzml_normalization --test mzml_write_options --test mzml_isolation --test mzml_centroid --test mzml_consumer --test mzml_header --test mzml_numpress --test numpress_coder --test mzml_acquisition_guards --test mzml_settings --test mzml_acquisition --test mzml_counts
-      - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml --test mzml_product --test mzml_load_options --test mzml_paths --test data_array_xml --test mzml_list_counts
+      - run: cargo test --locked --no-default-features --features mzml --test indexed_mzml --test mzml_product --test mzml_load_options --test mzml_paths --test data_array_xml --test mzml_list_counts --test imzml_handler --test imzml_writer --test imzml_file --test imzml_all_modes --test on_disc_imzml_experiment
       - run: cargo test --locked --no-default-features --features proforma-json --test proforma_json
       - run: cargo test --locked --no-default-features --features idxml --test identification_paths --test data_array_xml
   cross-platform:
