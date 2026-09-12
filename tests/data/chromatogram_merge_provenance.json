@@ -1,0 +1,119 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+   "sha256": "3f9f2f06c2e259dd719b328b160874c846ae24c73294c61b36f1573f46984117"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSChromatogram_test.cpp",
+   "sha256": "8219f92bfe2d6f4a3ed7d32734e0c09b943f772de619e96d46a13db09f5ac90d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/Mobilogram.h",
+   "sha256": "bae1a28822f00108e4677bfae44bd97e49b2da054864f7802843d1608f6ead14"
+  },
+  {
+   "path": "src/openms/source/KERNEL/Mobilogram.cpp",
+   "sha256": "62bf89e3796337ec479eb2924ce883c39b7fecd1abe707cfa99a8a4f0fe6b84f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Mobilogram_test.cpp",
+   "sha256": "fc54775dffca1010534a187c61c60c509963820dce2f3b3c3bf6c19045a9afa2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ChromatogramSettings.h",
+   "sha256": "f1bc2c181cf2e2227973c7f9b1ac1c7bb2a63ecfb1fafa4c69a201be63a04025"
+  },
+  {
+   "path": "src/openms/source/METADATA/ChromatogramSettings.cpp",
+   "sha256": "2af3b20decd7a06a4546b60056f4a86f7ea42ef81df73534c646743080db849f"
+  }
+ ],
+ "native_implementation": [
+  "src/kernel/chromatogram_merge.rs",
+  "src/kernel.rs",
+  "src/kernel/acquisition_fields.rs",
+  "src/kernel/ranges.rs",
+  "src/kernel/mobilogram.rs"
+ ],
+ "native_tests": [
+  "tests/chromatogram_merge.rs"
+ ],
+ "support": "docs/CHROMATOGRAM_MERGE_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 495,
+   "operation": "merge key round(rt * 1000.0): a millisecond bucket, not a distance test"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 483,
+   "operation": "setSumSimilarUnion drains first1 before first2 when either side is exhausted"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 508,
+   "operation": "a tie keeps the destination point and sums the two f32 intensities"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 548,
+   "operation": "mergePeaks replaces only the point vector; data arrays, ranges and product m/z are untouched"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 556,
+   "operation": "add_meta appends other.getMZ() to the merged_chromatogram_mzs DoubleList, creating it when absent"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 63,
+   "operation": "operator== excludes name_ and the cached ranges"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 19,
+   "operation": "operator<< banner order, with the settings block delegated to ChromatogramSettings"
+  },
+  {
+   "path": "src/openms/source/METADATA/ChromatogramSettings.cpp",
+   "line": 149,
+   "operation": "the settings stream operator ignores its unnamed argument and writes only its two delimiters"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+   "line": 245,
+   "operation": "sort(Predicate) validates data-array sizes before the predicate is ever invoked"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+   "line": 472,
+   "operation": "mergePeaks @note: destination peak-level data arrays are not guaranteed correct afterwards"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "line": 232,
+   "operation": "RTBegin/RTEnd are lower_bound/upper_bound over PositionLess, with PosBegin/PosEnd as aliases"
+  },
+  {
+   "path": "src/openms/source/KERNEL/Mobilogram.cpp",
+   "line": 43,
+   "operation": "Mobilogram::updateRanges extends mobility and intensity from the peaks only"
+  }
+ ],
+ "evidence": "Tier 3, source review: every expected value in tests/chromatogram_merge.rs is a literal transcribed from MSChromatogram_test.cpp (43 sections) and Mobilogram_test.cpp (48 sections) at the pinned revision, or is derived from the implementation lines listed under source_anchors. No C++ was built, linked or executed, and no retained C++ output is claimed. Native-only expectations (the millisecond bucket demonstration, the annotation-array policies, the resource ceilings and the transactional rejections) are tier 4.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

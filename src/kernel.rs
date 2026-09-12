@@ -43,6 +43,8 @@ pub(crate) mod spectrum_type;
 pub use experiment_summary::SummaryLimits;
 pub use mobilogram::{MobilityPeak1D, Mobilogram, MobilogramLimits, MobilogramRanges};
 pub use spectrum_type::SpectrumTypeQueryLimits;
+/// Chromatogram point merging, subrange search and the remaining `MSChromatogram.h` members.
+pub mod chromatogram_merge;
 /// Feature, consensus and map containers: `BaseFeature`, `Feature`,
 /// `FeatureHandle`, `ConsensusFeature`, `FeatureMap` and `ConsensusMap`.
 pub mod features;
