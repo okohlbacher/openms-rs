@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 21,
-      "evidence_requires_review": 163,
-      "native_equivalent": 75,
-      "partial": 19,
-      "unmapped": 508
+      "complete": 24,
+      "evidence_requires_review": 162,
+      "native_equivalent": 76,
+      "partial": 18,
+      "unmapped": 506
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -4031,6 +4031,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/experiment_mobility_provenance.json",
         "tests/data/mrm_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -4043,6 +4044,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/consensus_display_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -4484,6 +4486,7 @@
         "src/data_structures/dposition.rs"
       ],
       "reference_manifests": [
+        "tests/data/consensus_display_provenance.json",
         "tests/data/dposition_provenance.json",
         "tests/data/peak2d_provenance.json",
         "tests/data/peak_file_options_provenance.json"
@@ -4517,6 +4520,7 @@
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_isolation_provenance.json",
         "tests/data/mzml_load_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json",
         "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -6623,13 +6627,14 @@
           "tests/indexed_mzml_handler.rs"
         ],
         "documentation": "docs/INDEXED_MZML_HANDLER_SUPPORT.md",
-        "scope": "Complete record-retrieval capability of the handler: index parse, counts, fetch by index and native id, raw record XML, PeakFileOptions filtering, and checked byte ranges. Records decode through the whole-file mzML reader, so all metadata survives. Not ported: the two Interfaces::Spectrum/Chromatogram pointer overloads, setSkipXMLChecks, the parsing-success flag and the copy constructor. Evidence is tier 3."
+        "scope": "Complete record-retrieval capability of the handler: index parse, counts, fetch by index and native id, raw record XML, PeakFileOptions filtering, and checked byte ranges. Records decode through the whole-file mzML reader, so all metadata survives. Not ported: the two Interfaces::Spectrum/Chromatogram pointer overloads, the parsing-success flag and the copy constructor. setSkipXMLChecks IS ported, as options_mut().skip_xml_checks: it reaches the Base64 whitespace strip in the mzML reader, which is the flag's whole effect in the source too. Evidence is tier 3."
       },
       "candidate_rust_files": [
         "src/format/indexed_mzml_handler.rs"
       ],
       "reference_manifests": [
-        "tests/data/indexed_mzml_handler_provenance.json"
+        "tests/data/indexed_mzml_handler_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json"
       ],
       "direct_topp_consumers": [
         "FileInfo"
@@ -6720,7 +6725,8 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/indexed_mzml_handler_provenance.json"
+        "tests/data/indexed_mzml_handler_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -6974,10 +6980,12 @@
       "header": "src/openms/include/OpenMS/FORMAT/IndexedMzMLFileLoader.h",
       "sha256": "4442f4d76e212447d4a02f14e870786cc27d307f6dae197a31b2a02e2a649061",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/on_disc_experiment_provenance.json"
+      ],
       "direct_topp_consumers": [
         "TICCalculator"
       ]
@@ -7531,6 +7539,7 @@
         "tests/data/mzml_numpress_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_writing_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json",
         "tests/data/peak_file_options_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -8402,6 +8411,8 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/experiment_mobility_provenance.json",
+        "tests/data/im_types_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/ranges_provenance.json",
         "tests/data/spectrum_mobility_provenance.json"
@@ -8416,6 +8427,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/im_types_provenance.json",
         "tests/data/spectrum_mobility_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8429,10 +8441,22 @@
       "header": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
       "sha256": "78234161bbea0fc48d21c1898451d75d98f1829ce313b9e7295ca96f3ac2fbc4",
       "domain": "IONMOBILITY",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/metadata/acquisition.rs",
+          "src/metadata/im_types.rs"
+        ],
+        "tests": [
+          "tests/im_types.rs"
+        ],
+        "documentation": "docs/IM_TYPES_SUPPORT.md",
+        "scope": "First port of this header. Three name tables, six string conversions, DRIFTTIME_NOT_SET, N2_BUFFER_GAS_MASS, both Mason-Schamp conversions in the source's multiplication order, and both determineIMFormat overloads; the per-spectrum one split so a caller supplies the stored format. Not ported: fromIMUnit, because DIM_UNIT is not ported. All 12 class-test sections ported."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/im_types_provenance.json",
         "tests/data/mobilogram_provenance.json",
         "tests/data/spectrum_mobility_provenance.json"
       ],
@@ -8450,21 +8474,23 @@
       "header": "src/openms/include/OpenMS/KERNEL/AreaIterator.h",
       "sha256": "ee0c62b7a97bacb035bc1a4084f753dbf37619e1410bdc7f5a8008af8bb00cb3",
       "domain": "KERNEL",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/kernel/area_iteration.rs"
         ],
         "tests": [
-          "tests/area_iteration.rs"
+          "tests/area_iteration.rs",
+          "tests/experiment_mobility.rs"
         ],
         "documentation": "docs/AREA_ITERATION_SUPPORT.md",
-        "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain."
+        "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain. Complete: the scalar RT/m/z traversal plus the closed residuals \u2014 Param's lowIM/highIM as AreaOptions::mobility, getDriftTime on both yielded items, and the RangeManager overloads through from_range_manager. Mobility filters the scalar drift time only, as nextScan_ does; empty or absent dimensions do not restrict and intensity is ignored. Checked ordering, finiteness and shared resource budgets."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/area_iteration_provenance.json",
+        "tests/data/experiment_mobility_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peak_data_provenance.json"
       ],
@@ -8612,24 +8638,27 @@
       "header": "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h",
       "sha256": "96d3732735a4f72d250cde236e8c75e65c5381f40cea3111e8513311da37177c",
       "domain": "KERNEL",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
+          "src/kernel/consensus_display.rs",
           "src/kernel/feature_identification.rs",
           "src/kernel/features.rs"
         ],
         "tests": [
+          "tests/consensus_display.rs",
           "tests/feature_identification.rs",
           "tests/features.rs"
         ],
         "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
-        "scope": "All members covered except two: Ratio::description_ has no Rust field and operator<< has no Display. New and checked: add_ratio, set_ratios, ratios. Handles, the insert overloads, ranges and the three consensus computations existed. Handles are a sorted unique slice, so there is no mutable iterator; set_handles replaces one."
+        "scope": "All members covered except two: Ratio::description_ has no Rust field and operator<< has no Display. New and checked: add_ratio, set_ratios, ratios. Handles, the insert overloads, ranges and the three consensus computations existed. Handles are a sorted unique slice, so there is no mutable iterator; set_handles replaces one. Both remaining members closed: Display reproduces operator<< exactly, and Ratio::description gains checked append, replace and validation under line and byte ceilings. Nothing is unported now. Neither member has a class-test section, so the layout is read off ConsensusFeature.cpp:391-418 and cross-checked against ConsensusMap's Display. See docs/CONSENSUS_DISPLAY_SUPPORT.md."
       },
       "candidate_rust_files": [
         "src/kernel/features.rs"
       ],
       "reference_manifests": [
+        "tests/data/consensus_display_provenance.json",
         "tests/data/conversion_helper_provenance.json",
         "tests/data/feature_identification_provenance.json"
       ],
@@ -8961,6 +8990,7 @@
         "tests/data/experiment_aggregation_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/feature_hypothesis_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json",
         "tests/data/ranges_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -8976,26 +9006,31 @@
         "status": "partial",
         "rust": [
           "src/kernel.rs",
-          "src/kernel/experiment_aggregation.rs",
-          "src/kernel/experiment_summary.rs",
           "src/kernel/area_iteration.rs",
+          "src/kernel/experiment_2d.rs",
+          "src/kernel/experiment_aggregation.rs",
+          "src/kernel/experiment_mobility.rs",
+          "src/kernel/experiment_summary.rs",
           "src/kernel/peak_data.rs",
           "src/kernel/peak_index.rs",
-          "src/kernel/experiment_2d.rs",
+          "src/kernel/ranges.rs",
           "src/metadata/experimental_settings.rs"
         ],
         "tests": [
-          "tests/kernel.rs",
-          "tests/experiment_aggregation.rs",
-          "tests/experiment_summary.rs",
           "tests/area_iteration.rs",
+          "tests/experiment_2d.rs",
+          "tests/experiment_aggregation.rs",
+          "tests/experiment_mobility.rs",
+          "tests/experiment_summary.rs",
+          "tests/experimental_settings.rs",
+          "tests/kernel.rs",
           "tests/peak_data.rs",
           "tests/peak_index.rs",
-          "tests/experiment_2d.rs",
-          "tests/experimental_settings.rs"
+          "tests/precursor_workflow.rs",
+          "tests/ranges.rs"
         ],
         "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate."
+        "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate. Whole header audited member by member. Adds scan-mobility IMBegin/IMEnd, isIMFrame, both mobility bulk exports, rasterizeRTMZ and the RangeManager area overloads to the scalar area, precursor, container, range, TIC, 2D and aggregation surfaces already present. Three members remain unported: set2DData's mass-trace specialization, getFirstProductSpectrum and operator<<; each is documented with the file that must own it. See docs/EXPERIMENT_MOBILITY_SUPPORT.md. Test accounting after the follow-up fix: 56 of the 81 class-test sections are ported, 21 are mapped with a named test function and a concrete asserted value, and 4 are unaccounted because their members are unported \u2014 set2DData<add_mass_traces=true> (section 11), both getFirstProductSpectrum overloads (42, 43) and operator<< (54). The header stays partial for exactly those four."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
@@ -9005,6 +9040,7 @@
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/conversion_helper_provenance.json",
         "tests/data/experiment_aggregation_provenance.json",
+        "tests/data/experiment_mobility_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/experimental_settings_provenance.json",
         "tests/data/map_operations_provenance.json",
@@ -9099,10 +9135,13 @@
           "src/kernel.rs",
           "src/kernel/acquisition_fields.rs",
           "src/kernel/spectrum_mobility.rs",
-          "src/kernel/spectrum_type.rs"
+          "src/kernel/spectrum_type.rs",
+          "src/metadata/acquisition.rs",
+          "src/metadata/im_types.rs"
         ],
         "tests": [
           "tests/chromatogram_tools.rs",
+          "tests/im_types.rs",
           "tests/kernel.rs",
           "tests/mzml_acquisition_guards.rs",
           "tests/processing_acquisition.rs",
@@ -9111,7 +9150,7 @@
           "tests/spectrum_type.rs"
         ],
         "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md. Adds the complete ion-mobility surface: drift time over the -1 sentinel, unit-as-string, name-based IM array detection with the nine pinned PSI-MS children and three UserParam prefixes, getIMData/maybeGetIMData, sortByIonMobility, isSortedByIM, sortByPositionPresorted with Chunk/Chunks, and rasterizeIMFrame. Not covered: setIMFormat/getIMFormat/getIMPeakType/setIMPeakType, which need MSSpectrum fields this package may not add. See docs/SPECTRUM_MOBILITY_SUPPORT.md."
+        "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md. Adds the complete ion-mobility surface: drift time over the -1 sentinel, unit-as-string, name-based IM array detection with the nine pinned PSI-MS children and three UserParam prefixes, getIMData/maybeGetIMData, sortByIonMobility, isSortedByIM, sortByPositionPresorted with Chunk/Chunks, and rasterizeIMFrame. The ion-mobility quartet setIMFormat/getIMFormat/getIMPeakType/setIMPeakType is now ported on its declaring class SpectrumSettings; see docs/IM_TYPES_SUPPORT.md. See docs/SPECTRUM_MOBILITY_SUPPORT.md."
       },
       "candidate_rust_files": [
         "src/kernel.rs"
@@ -9120,10 +9159,12 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/area_iteration_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
+        "tests/data/experiment_mobility_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/mzml_centroid_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json",
         "tests/data/peak_data_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/proforma_spectra_provenance.json",
@@ -9265,11 +9306,25 @@
       "header": "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h",
       "sha256": "345f204d382aac62551e93c4392a4400d093276b5b6a8200600d9ac4be8fca46",
       "domain": "KERNEL",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/kernel.rs",
+          "src/kernel/on_disc_experiment.rs"
+        ],
+        "tests": [
+          "tests/on_disc_experiment.rs"
+        ],
+        "documentation": "docs/ON_DISC_EXPERIMENT_SUPPORT.md",
+        "scope": "Complete facade over the ported IndexedMzMLHandler: openFile and its parsed flag, the fillData=false metadata load, counts, fetch by index and native id, PeakFileOptions filtering before and after peak I/O, setSkipXMLChecks, equality, isSortedByRT, a reopening clone, the OnDiscPeakMap alias and native load_experiment. Not ported: the two Interfaces pointer overloads and the private assignment operator. Tier 3."
+      },
+      "candidate_rust_files": [
+        "src/kernel/on_disc_experiment.rs"
+      ],
       "reference_manifests": [
-        "tests/data/indexed_mzml_handler_provenance.json"
+        "tests/data/indexed_mzml_handler_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json"
       ],
       "direct_topp_consumers": [
         "TICCalculator"
@@ -9381,6 +9436,7 @@
       ],
       "reference_manifests": [
         "tests/data/area_iteration_provenance.json",
+        "tests/data/experiment_mobility_provenance.json",
         "tests/data/experiment_summary_provenance.json",
         "tests/data/mobilogram_provenance.json",
         "tests/data/peak_data_provenance.json",
@@ -9851,7 +9907,8 @@
         "tests/data/chromatogram_merge_provenance.json",
         "tests/data/chromatogram_tools_provenance.json",
         "tests/data/mzml_acquisition_guards_provenance.json",
-        "tests/data/mzml_settings_provenance.json"
+        "tests/data/mzml_settings_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -10993,14 +11050,28 @@
       "header": "src/openms/include/OpenMS/METADATA/SpectrumSettings.h",
       "sha256": "adf1f2f327a7bc9149a61a90adf5db16970446fcf69f3397421a4bb0c38eddc6",
       "domain": "METADATA",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/metadata/acquisition.rs",
+          "src/metadata/im_types.rs"
+        ],
+        "tests": [
+          "tests/im_types.rs",
+          "tests/metadata.rs"
+        ],
+        "documentation": "docs/IM_TYPES_SUPPORT.md",
+        "scope": "First ledger entry. New and complete here: the four ion-mobility accessors over the existing fields, plus NamesOfSpectrumType, getAllNamesOfSpectrumType, spectrumTypeToString and toSpectrumType. The remaining members are implemented by the METADATA package and not audited here; std::hash and operator<< stay unported. One class-test section ported."
+      },
       "candidate_rust_files": [
         "src/metadata/acquisition.rs"
       ],
       "reference_manifests": [
         "tests/data/chromatogram_tools_provenance.json",
-        "tests/data/mzml_acquisition_guards_provenance.json"
+        "tests/data/im_types_provenance.json",
+        "tests/data/mzml_acquisition_guards_provenance.json",
+        "tests/data/on_disc_experiment_provenance.json"
       ],
       "direct_topp_consumers": [
         "NucleicAcidSearchEngine",
@@ -11379,10 +11450,12 @@
       "header": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h",
       "sha256": "e804532a555680e8739fd038207028c3024271752b8392098fdd832577f4e6e9",
       "domain": "PROCESSING",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/im_types_provenance.json"
+      ],
       "direct_topp_consumers": [
         "DIAPseudoSpectra",
         "PeakPickerIM"
@@ -12651,7 +12724,6 @@
         "OpenMS/FORMAT/BrukerTimsFile.h",
         "OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h"
       ],
@@ -13013,7 +13085,6 @@
         "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
-        "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
         "OpenMS/SYSTEM/File.h"
@@ -13095,7 +13166,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
-        "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
         "OpenMS/SYSTEM/File.h"
@@ -13193,7 +13263,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
-        "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/ML/CLUSTERING/GridBasedCluster.h",
         "OpenMS/ML/REGRESSION/LinearRegression.h",
@@ -15510,7 +15579,6 @@
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h"
       ],
@@ -15540,7 +15608,6 @@
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h"
       ],
@@ -16170,7 +16237,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/IONMOBILITY/IMTypes.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
         "OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h"
@@ -16488,7 +16554,6 @@
         "OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
         "OpenMS/FORMAT/IndexedMzMLFileLoader.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/KERNEL/OnDiscMSExperiment.h",
         "OpenMS/SYSTEM/SysInfo.h"
       ],
       "workflow_validated": false

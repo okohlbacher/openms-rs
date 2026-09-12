@@ -2309,3 +2309,51 @@ fraction. No upstream fix is claimed.
 **Proposed fix:** Clear toFill on entry.
 
 **Rust handling:** FeatureMap::primary_ms_run_path returns a fresh Vec, so the question cannot arise; the source behaviour is stated in the item's rustdoc.
+
+## CPP-120 — mzML list `count` attribute drives an unvalidated container reserve
+
+**Affected files:** src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:965, :978, :996, :1012, :1017; src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h:393-398, :538-543; src/openms/source/FORMAT/HANDLERS/StringManager.cpp:109-112; src/openms/source/KERNEL/MSExperiment.cpp:520-523
+
+**Issue and reproduction:** `attributeAsInt_` returns a signed `Int` straight from `xercesc::XMLString::parseInt` with no range or sign validation, and MzMLHandler passes that value directly into container reservations from an untrusted file: `bin_data_.reserve(attributeAsInt_(attributes, s_count))` (:1017), `exp_->reserveSpaceSpectra(scan_count_total_)` (:978) and `exp_->reserveSpaceChromatograms(chrom_count_total_)` (:1012), where `reserveSpaceSpectra(Size)` forwards to `spectra_.reserve(s)`. A `count="-1"` converts to `SIZE_MAX` on the unsigned parameter and raises `std::length_error` (not an OpenMS exception, so it escapes the format-error path callers expect); a plausible-looking `count="2000000000"` causes an immediate multi-gigabyte reservation before a single child element has been parsed. A one-line edit to a list attribute in an otherwise valid mzML is enough. Source-reviewed, not executed.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Clamp or validate the declared count before spending it: read it with `asUInt_`/a checked conversion, reject negatives, and cap the reserve at a configured ceiling (or at a bound derived from remaining input size) rather than at the attribute's face value — the attribute is only a capacity hint, so clamping costs nothing.
+
+**Rust handling:** The Rust reader parses the same attribute as `usize` (so negatives and non-numerics are rejected outright) and deliberately spends it on no allocation at all: records are bounded by `ReadOptions::max_records` and arrays by `max_total_arrays` as each child actually opens, and the productList/scanWindowList/scanList counts are checked against the remaining parameter budget before any parameter is allocated. `tests/mzml_list_counts.rs::declared_counts_remain_resource_ceilings_before_allocation` pins that a 1e9 declared spectrumList or binaryDataArrayList count is accepted while allocating nothing.
+
+## CPP-121 — rasterizeRTMZ's SUM aggregation is not reproducible across thread counts
+
+**Affected files:** src/openms/source/KERNEL/MSExperiment.cpp:355-518
+
+**Issue and reproduction:** rasterizeRTMZ chooses between a single-threaded branch (`if (num_threads <= 1)` at :355, writing straight into the output) and an OpenMP branch (:401-517) from a heuristic over omp_get_max_threads(), a 4 MB memory budget and sqrt(num_spectra) (:344-352). For RasterAggregation::MAX the two agree, because a maximum is associative and commutative. For SUM they do not: each thread accumulates its own f32 partial sum into a per-thread buffer (:460) and the merge adds those partials into the pixel (:499), so the f32 summation order — and the rounded pixel value — depends on how the spectra happened to be distributed. The same input therefore rasterizes to different SUM images on machines with different core counts, and differently again from the single-threaded branch. Nothing in the header's documentation warns of this, and the class test does not exercise the parallel branch's SUM output against the serial one.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Either document SUM as thread-count dependent, or make the merge deterministic — accumulate in f64 per thread and narrow once at the end, or partition spectra to threads by a fixed rule and merge in thread-id order with a fixed traversal. Accumulating in double costs one extra buffer's width but removes the nondeterminism entirely.
+
+**Rust handling:** The port is serial and reproduces the single-threaded branch exactly, so its SUM output is deterministic. The difference is stated rather than hidden: src/kernel/experiment_mobility.rs:41-50 and docs/EXPERIMENT_MOBILITY_SUPPORT.md:310-322 say the serial image matches the source only for Max, and name the two lines that make Sum order-dependent.
+
+## CPP-122 — rasterizeRTMZ's two negative-bin guards are dead code that mask an unchecked precondition
+
+**Affected files:** src/openms/source/KERNEL/MSExperiment.cpp:362, :376, :388, :425-428, :453, :472
+
+**Issue and reproduction:** rasterizeRTMZ skips a whole spectrum when rt_bin < 0 (:362 serial, :425-428 parallel) and one peak when mz_bin < 0 (the `mz_bin >= 0` tests at :376 and :388 serial, :453 and :472 parallel). Neither can fire on the input the function documents: the spectrum window comes from RTBegin(min_rt)/RTEnd(max_rt) and the peak window from MZBegin(min_mz)/MZEnd(max_mz), all lower_bound/upper_bound calls, and both scales are positive because min >= max is rejected at :288-295. They can fire only when the run is not sorted by RT or a spectrum is not sorted by m/z — exactly the case in which those binary searches return meaningless positions. So the guards do not protect against anything they can actually see, while the real precondition (the header's "@note should be sorted by RT and m/z") stays unchecked, and on unsorted input the function silently drops arbitrary spectra and peaks instead of reporting the violation.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** Check the precondition instead of guarding its symptom: verify the RT order of the visited range and the m/z order of each contributing spectrum up front and throw Exception::Precondition (or at least emit a warning), then drop the two unreachable branches. If the guards are kept as belt-and-braces, a comment should say they are unreachable on sorted input.
+
+**Rust handling:** rasterize_rt_mz calls rt_begin/mz_begin, which check_sorted and return Error::UnsortedData before any binning (src/kernel.rs:894-909 and :665-676), so the branch is unreachable in the port too — but for a stated reason rather than by accident, and unsorted input is reported rather than silently thinned. Recorded at src/kernel/experiment_mobility.rs:654-673 and docs/EXPERIMENT_MOBILITY_SUPPORT.md:323-338, with the note that Rust's saturating as-usize cast would clamp a negative bin to 0 rather than skip, were it ever reached.
+
+## CPP-123 — None found — no new C++ source defect
+
+**Affected files:** n/a
+
+**Issue and reproduction:** This was a documentation- and test-accuracy task; no upstream C++ behaviour was re-examined, so nothing new is reportable for OpenMS_CPP_ISSUES.md. The four defects docs/ON_DISC_EXPERIMENT_SUPPORT.md already records for OnDiscMSExperiment.h/.cpp are unchanged and were not re-litigated.
+
+**Evidence:** Source review at the pinned revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. No C++ execution, sanitizer run or upstream fix is claimed.
+
+**Proposed fix:** n/a
+
+**Rust handling:** n/a

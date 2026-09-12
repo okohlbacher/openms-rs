@@ -274,8 +274,14 @@ fn mixed_group_order_unicode_ids_names_and_empty_groups() {
 #[test]
 fn malformed_group_structures_and_dangling_header_refs_are_errors() {
     let good = doc(&group(""), reference());
+    // A declared count that merely disagrees with the actual number of children
+    // is advisory on reading: upstream has a handler for
+    // `referenceableParamGroup` (MzMLHandler.cpp:1055) and none for the
+    // enclosing list, so it never reads this count. `count="0"` below still
+    // fails, because zero is a configured-ceiling violation rather than a
+    // mismatch, and the duplicate-id case further down still fails too.
+    assert!(read(&good.replace("count=\"1\"", "count=\"2\"")).is_ok());
     let malformed = [
-        good.replace("count=\"1\"", "count=\"2\""),
         good.replace("count=\"1\"", "count=\"0\""),
         good.replace("id=\"g\"", "id=\"\""),
         good.replace("id=\"g\"", "id=\"1bad\""),

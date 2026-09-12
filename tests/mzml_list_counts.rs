@@ -285,22 +285,30 @@ fn declared_counts_remain_resource_ceilings_before_allocation() {
 }
 
 #[test]
-fn the_parameter_group_list_count_stays_strict_as_a_documented_divergence() {
-    // Upstream has no `referenceableParamGroupList` handler either, so this
-    // check is not source behaviour. It is kept so that `read` and `read_size`
-    // agree on the same document: `src/format/mzml_counts.rs` rejects the same
-    // mismatch and that reader is outside this fix. The fixture declares two
-    // groups and carries two, so both readers accept it unchanged.
+fn the_parameter_group_list_count_is_advisory_in_both_readers() {
+    // Upstream has a handler for `referenceableParamGroup` (MzMLHandler.cpp:1055)
+    // and none for the enclosing list, so it never reads this count. An earlier
+    // pass kept the comparison strict purely so `read` and `read_size` would
+    // agree; both are advisory now, which keeps them agreeing AND matches the
+    // source. The declared count remains a resource ceiling, which
+    // `declared_counts_remain_resource_ceilings_before_allocation` covers.
     assert!(read(SOURCE).is_ok());
     assert!(mzml::read_size(Cursor::new(SOURCE.as_bytes())).is_ok());
-    let broken = SOURCE.replacen(
+    let understated = SOURCE.replacen(
         "<referenceableParamGroupList count=\"2\">",
         "<referenceableParamGroupList count=\"3\">",
         1,
     );
-    assert_ne!(broken, SOURCE);
-    assert!(read(&broken).is_err());
-    assert!(mzml::read_size(Cursor::new(broken.as_bytes())).is_err());
+    assert_ne!(understated, SOURCE);
+    assert!(read(&understated).is_ok());
+    assert!(mzml::read_size(Cursor::new(understated.as_bytes())).is_ok());
+    // Both readers must still agree on the same document, which was the only
+    // reason the strict check existed.
+    assert_eq!(read(&understated).unwrap(), read(SOURCE).unwrap());
+    assert_eq!(
+        mzml::read_size(Cursor::new(understated.as_bytes())).unwrap(),
+        mzml::read_size(Cursor::new(SOURCE.as_bytes())).unwrap()
+    );
 }
 
 #[test]

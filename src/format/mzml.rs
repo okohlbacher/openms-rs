@@ -1393,10 +1393,12 @@ fn read_engine(
     // spent as resource ceilings before any allocation, and writing still emits
     // the true count.
     //
-    // `referenceableParamGroupList` is the single exception kept strict: its
-    // count is still compared here so that `read` and `mzml_counts::read_size`
-    // agree on the same file. Upstream has no handler for that list either, so
-    // this remains a documented divergence rather than source behavior.
+    // `referenceableParamGroupList` follows the same rule. An earlier pass kept
+    // it strict so that `read` and `mzml_counts::read_size` would agree on a
+    // file; both are advisory now, which keeps them agreeing and matches the
+    // source, since upstream has a handler for `referenceableParamGroup`
+    // (MzMLHandler.cpp:1055) and none for the enclosing list, so it never reads
+    // that count at all.
     // (depth of the group children, declared count, groups seen)
     let mut group_list: Option<(usize, usize, usize)> = None;
     let mut groups = BTreeMap::<String, Vec<Parameter>>::new();
@@ -2079,12 +2081,16 @@ fn read_engine(
                 stack.push(tag);
             }
             Event::End(_) => {
-                if let Some((depth, declared, actual)) = group_list {
+                if let Some((depth, _declared, _actual)) = group_list {
                     if depth == stack.len() {
+                        // The declared count stays a resource ceiling above, but a
+                        // mismatch with the actual number of children is advisory on
+                        // reading: upstream has a handler for `referenceableParamGroup`
+                        // (MzMLHandler.cpp:1055) and none for the enclosing list, so it
+                        // never reads this count at all. Writing still emits the true
+                        // count. Same rule as the record, binary-array and
+                        // precursor/scan list counts.
                         group_list = None;
-                        if declared != actual {
-                            return Err(invalid("parameter group count mismatch"));
-                        }
                     }
                 }
                 let tag = stack

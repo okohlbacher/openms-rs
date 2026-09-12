@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 3615,
-  "documented": 1978
+  "items": 3706,
+  "documented": 2099
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -598,8 +598,8 @@
    "documented": 1
   },
   "src/kernel/area_iteration.rs": {
-   "items": 17,
-   "documented": 17
+   "items": 22,
+   "documented": 22
   },
   "src/kernel/chromatogram_merge.rs": {
    "items": 16,
@@ -608,6 +608,10 @@
   "src/kernel/chromatogram_tools.rs": {
    "items": 5,
    "documented": 5
+  },
+  "src/kernel/consensus_display.rs": {
+   "items": 6,
+   "documented": 6
   },
   "src/kernel/conversion_helper.rs": {
    "items": 5,
@@ -624,6 +628,10 @@
   "src/kernel/experiment_aggregation.rs": {
    "items": 13,
    "documented": 13
+  },
+  "src/kernel/experiment_mobility.rs": {
+   "items": 21,
+   "documented": 21
   },
   "src/kernel/experiment_summary.rs": {
    "items": 17,
@@ -661,6 +669,10 @@
    "items": 67,
    "documented": 67
   },
+  "src/kernel/on_disc_experiment.rs": {
+   "items": 28,
+   "documented": 28
+  },
   "src/kernel/peak2d.rs": {
    "items": 27,
    "documented": 27
@@ -694,16 +706,16 @@
    "documented": 3
   },
   "src/kernel.rs": {
-   "items": 69,
-   "documented": 69
+   "items": 72,
+   "documented": 72
   },
   "src/lib.rs": {
    "items": 17,
    "documented": 4
   },
   "src/metadata/acquisition.rs": {
-   "items": 36,
-   "documented": 6
+   "items": 44,
+   "documented": 44
   },
   "src/metadata/document_identifier.rs": {
    "items": 4,
@@ -724,6 +736,10 @@
   "src/metadata/experimental_settings.rs": {
    "items": 10,
    "documented": 6
+  },
+  "src/metadata/im_types.rs": {
+   "items": 20,
+   "documented": 20
   },
   "src/metadata/value.rs": {
    "items": 49,

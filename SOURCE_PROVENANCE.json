@@ -564,7 +564,11 @@
   "tests/data/mrm_provenance.json",
   "tests/data/indexed_mzml_handler_provenance.json",
   "tests/data/map_operations_provenance.json",
-  "tests/data/conversion_helper_provenance.json"
+  "tests/data/conversion_helper_provenance.json",
+  "tests/data/on_disc_experiment_provenance.json",
+  "tests/data/experiment_mobility_provenance.json",
+  "tests/data/im_types_provenance.json",
+  "tests/data/consensus_display_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -622,7 +626,11 @@
   "tests/data/indexed_mzml_handler_provenance.json"
  ],
  "kernel_wave3_reference_manifests": [
+  "tests/data/consensus_display_provenance.json",
+  "tests/data/conversion_helper_provenance.json",
+  "tests/data/experiment_mobility_provenance.json",
+  "tests/data/im_types_provenance.json",
   "tests/data/map_operations_provenance.json",
-  "tests/data/conversion_helper_provenance.json"
+  "tests/data/on_disc_experiment_provenance.json"
  ]
 }

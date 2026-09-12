@@ -611,13 +611,11 @@ impl<'a> State<'a> {
                 .ok_or_else(|| invalid("missing parameter group"))?;
             self.groups.insert(id, parameters);
         } else if tag == "referenceableParamGroupList" {
-            let (declared, actual) = self
+            let (_declared, _actual) = self
                 .group_list
                 .take()
                 .ok_or_else(|| invalid("missing group list"))?;
-            if declared != actual {
-                return Err(invalid("parameter group count mismatch"));
-            }
+            // Advisory, matching `read`: upstream reads this count nowhere.
         }
         Ok(())
     }

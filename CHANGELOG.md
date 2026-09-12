@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- Fixed: mzML reading no longer rejects a list whose declared `count` attribute disagrees
+  with the actual number of child elements. Upstream's `MzMLHandler` reads the attribute
+  only for progress reporting and capacity hints and never compares it, and real files —
+  including OpenMS's own class-test input `MzMLFile_1.mzML`, which declares two binary
+  data arrays and carries four — carry wrong counts. The attribute is still required and
+  must be numeric, every declared count that bounds a resource still rejects hostile
+  values before allocation, and writing still emits the true count.
+- Ported the 22 `MSExperiment_test.cpp` sections that the kernel WP7 package had mapped
+  without naming a test or an asserted value — including copy and move assignment, which
+  had no Rust evidence at all — rewrote the class-test accounting so every remaining
+  mapped section cites a test function and one concrete value (81 sections: 56 ported, 21
+  mapped, 4 unaccounted), corrected the claim that a reversed ion-mobility range "silently
+  selects nothing" in the source (it throws `Exception::InvalidRange`), re-verified every
+  `MSExperiment.cpp` line anchor, limited the serial rasterizer's "same image" claim to
+  `RasterAggregation::Max`, and recorded the source's unreachable negative-bin skip
+  branch.
+- Fixed: support docs no longer disclaim ConsensusFeature's Display and Ratio::description
+  or SpectrumSettings' four ion-mobility accessors as unported; the on-disc failure-path
+  tests use the unmodified upstream MzMLFile_1.mzML again instead of a substitute, and the
+  documented duplicate-native-identifier rule is now covered by a test that actually
+  contains a duplicate.
 - Kernel WP10: `FeatureMap.h` and `ConsensusMap.h` audited member by member for the first
   time and completed, and `ConversionHelper.h` ported. `kernel::map_operations` adds
   `AnnotationStatistics` with the source stream layout, `merged`/`append` for

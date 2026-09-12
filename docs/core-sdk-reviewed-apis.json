@@ -645,7 +645,7 @@
     "tests/indexed_mzml_handler.rs"
    ],
    "documentation": "docs/INDEXED_MZML_HANDLER_SUPPORT.md",
-   "scope": "Complete record-retrieval capability of the handler: index parse, counts, fetch by index and native id, raw record XML, PeakFileOptions filtering, and checked byte ranges. Records decode through the whole-file mzML reader, so all metadata survives. Not ported: the two Interfaces::Spectrum/Chromatogram pointer overloads, setSkipXMLChecks, the parsing-success flag and the copy constructor. Evidence is tier 3."
+   "scope": "Complete record-retrieval capability of the handler: index parse, counts, fetch by index and native id, raw record XML, PeakFileOptions filtering, and checked byte ranges. Records decode through the whole-file mzML reader, so all metadata survives. Not ported: the two Interfaces::Spectrum/Chromatogram pointer overloads, the parsing-success flag and the copy constructor. setSkipXMLChecks IS ported, as options_mut().skip_xml_checks: it reaches the Base64 whitespace strip in the mzML reader, which is the flag's whole effect in the source too. Evidence is tier 3."
   },
   "src/openms/include/OpenMS/FORMAT/IdXMLFile.h": {
    "status": "partial",
@@ -839,16 +839,29 @@
    "documentation": "docs/MZML_CONSUMER_SUPPORT.md",
    "scope": "Complete four required callback operations as an unconditional object-safe trait. Exclusive mutable borrowed records and immutable settings, checked Result and explicit ControlFlow soft stop replace C++ pointer aliases/exceptions/destructor; no silent callback defaults. Format-independent no-default build verified. Source stop-before-current-retention, setup and transform integration tested; other concrete consumers remain separate."
   },
+  "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h": {
+   "status": "complete",
+   "rust": [
+    "src/metadata/acquisition.rs",
+    "src/metadata/im_types.rs"
+   ],
+   "tests": [
+    "tests/im_types.rs"
+   ],
+   "documentation": "docs/IM_TYPES_SUPPORT.md",
+   "scope": "First port of this header. Three name tables, six string conversions, DRIFTTIME_NOT_SET, N2_BUFFER_GAS_MASS, both Mason-Schamp conversions in the source's multiplication order, and both determineIMFormat overloads; the per-spectrum one split so a caller supplies the stored format. Not ported: fromIMUnit, because DIM_UNIT is not ported. All 12 class-test sections ported."
+  },
   "src/openms/include/OpenMS/KERNEL/AreaIterator.h": {
-   "status": "partial",
+   "status": "complete",
    "rust": [
     "src/kernel/area_iteration.rs"
    ],
    "tests": [
-    "tests/area_iteration.rs"
+    "tests/area_iteration.rs",
+    "tests/experiment_mobility.rs"
    ],
    "documentation": "docs/AREA_ITERATION_SUPPORT.md",
-   "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain."
+   "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain. Complete: the scalar RT/m/z traversal plus the closed residuals — Param's lowIM/highIM as AreaOptions::mobility, getDriftTime on both yielded items, and the RangeManager overloads through from_range_manager. Mobility filters the scalar drift time only, as nextScan_ does; empty or absent dimensions do not restrict and intensity is ignored. Checked ordering, finiteness and shared resource budgets."
   },
   "src/openms/include/OpenMS/KERNEL/BaseFeature.h": {
    "status": "native_equivalent",
@@ -912,17 +925,19 @@
    "scope": "Both complete concrete MSExperiment conversions: one MS2 record per chromatogram point, exact SRM/XIC grouping and source first-record metadata selection, native-ID/scan-mode construction, source-only SRM removal and skipped count diagnostics. Owned reports return all removed records; shared checked work/allocation and finite consumed scalars replace undefined maps or partial mutation. Arbitrary C++ experiment template ABI is not emulated."
   },
   "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h": {
-   "status": "partial",
+   "status": "complete",
    "rust": [
+    "src/kernel/consensus_display.rs",
     "src/kernel/feature_identification.rs",
     "src/kernel/features.rs"
    ],
    "tests": [
+    "tests/consensus_display.rs",
     "tests/feature_identification.rs",
     "tests/features.rs"
    ],
    "documentation": "docs/FEATURE_IDENTIFICATION_SUPPORT.md",
-   "scope": "All members covered except two: Ratio::description_ has no Rust field and operator<< has no Display. New and checked: add_ratio, set_ratios, ratios. Handles, the insert overloads, ranges and the three consensus computations existed. Handles are a sorted unique slice, so there is no mutable iterator; set_handles replaces one."
+   "scope": "All members covered except two: Ratio::description_ has no Rust field and operator<< has no Display. New and checked: add_ratio, set_ratios, ratios. Handles, the insert overloads, ranges and the three consensus computations existed. Handles are a sorted unique slice, so there is no mutable iterator; set_handles replaces one. Both remaining members closed: Display reproduces operator<< exactly, and Ratio::description gains checked append, replace and validation under line and byte ceilings. Nothing is unported now. Neither member has a class-test section, so the layout is read off ConsensusFeature.cpp:391-418 and cross-checked against ConsensusMap's Display. See docs/CONSENSUS_DISPLAY_SUPPORT.md."
   },
   "src/openms/include/OpenMS/KERNEL/ConsensusMap.h": {
    "status": "native_equivalent",
@@ -1050,26 +1065,31 @@
    "status": "partial",
    "rust": [
     "src/kernel.rs",
-    "src/kernel/experiment_aggregation.rs",
-    "src/kernel/experiment_summary.rs",
     "src/kernel/area_iteration.rs",
+    "src/kernel/experiment_2d.rs",
+    "src/kernel/experiment_aggregation.rs",
+    "src/kernel/experiment_mobility.rs",
+    "src/kernel/experiment_summary.rs",
     "src/kernel/peak_data.rs",
     "src/kernel/peak_index.rs",
-    "src/kernel/experiment_2d.rs",
+    "src/kernel/ranges.rs",
     "src/metadata/experimental_settings.rs"
    ],
    "tests": [
-    "tests/kernel.rs",
-    "tests/experiment_aggregation.rs",
-    "tests/experiment_summary.rs",
     "tests/area_iteration.rs",
+    "tests/experiment_2d.rs",
+    "tests/experiment_aggregation.rs",
+    "tests/experiment_mobility.rs",
+    "tests/experiment_summary.rs",
+    "tests/experimental_settings.rs",
+    "tests/kernel.rs",
     "tests/peak_data.rs",
     "tests/peak_index.rs",
-    "tests/experiment_2d.rs",
-    "tests/experimental_settings.rs"
+    "tests/precursor_workflow.rs",
+    "tests/ranges.rs"
    ],
    "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-   "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate."
+   "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate. Whole header audited member by member. Adds scan-mobility IMBegin/IMEnd, isIMFrame, both mobility bulk exports, rasterizeRTMZ and the RangeManager area overloads to the scalar area, precursor, container, range, TIC, 2D and aggregation surfaces already present. Three members remain unported: set2DData's mass-trace specialization, getFirstProductSpectrum and operator<<; each is documented with the file that must own it. See docs/EXPERIMENT_MOBILITY_SUPPORT.md. Test accounting after the follow-up fix: 56 of the 81 class-test sections are ported, 21 are mapped with a named test function and a concrete asserted value, and 4 are unaccounted because their members are unported — set2DData<add_mass_traces=true> (section 11), both getFirstProductSpectrum overloads (42, 43) and operator<< (54). The header stays partial for exactly those four."
   },
   "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
    "status": "partial",
@@ -1077,10 +1097,13 @@
     "src/kernel.rs",
     "src/kernel/acquisition_fields.rs",
     "src/kernel/spectrum_mobility.rs",
-    "src/kernel/spectrum_type.rs"
+    "src/kernel/spectrum_type.rs",
+    "src/metadata/acquisition.rs",
+    "src/metadata/im_types.rs"
    ],
    "tests": [
     "tests/chromatogram_tools.rs",
+    "tests/im_types.rs",
     "tests/kernel.rs",
     "tests/mzml_acquisition_guards.rs",
     "tests/processing_acquisition.rs",
@@ -1089,7 +1112,7 @@
     "tests/spectrum_type.rs"
    ],
    "documentation": "docs/CHROMATOGRAM_TOOLS_SUPPORT.md",
-   "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md. Adds the complete ion-mobility surface: drift time over the -1 sentinel, unit-as-string, name-based IM array detection with the nine pinned PSI-MS children and three UserParam prefixes, getIMData/maybeGetIMData, sortByIonMobility, isSortedByIM, sortByPositionPresorted with Chunk/Chunks, and rasterizeIMFrame. Not covered: setIMFormat/getIMFormat/getIMPeakType/setIMPeakType, which need MSSpectrum fields this package may not add. See docs/SPECTRUM_MOBILITY_SUPPORT.md."
+   "scope": "Native owned points and aligned arrays, existing container/search/selection operations, now attached InstrumentSettings, AcquisitionInfo, SourceFile, shared processing handles and spectrum Products/chromatogram type. Source-selected conversions and retained fields through processing are reviewed; partial XML transport rejects unrepresented settings. Comments, scan mobility, complete inherited metadata/settings bridges, generic ranges and remaining class APIs require implementation/review. Complete getType(bool) precedence now queries stored type, visited PeakPicking history and optional source shoulder estimation without mutation or unrelated graph validation. Borrowed finite scalar domain and explicit cumulative point/work/byte bounds; the existing processing estimator retains stricter validation. Original three DTA classifications and source getter assertions plus independent boundaries are verified; no whole-header completion or new generic template API is claimed. See docs/MZML_CENTROID_SUPPORT.md. Record metadata now uses shared typed MetaInfo with complete value/unit ownership, checked copying and explicit transport boundaries; existing strings retain their type. See docs/RECORD_METADATA_MIGRATION.md. Adds the complete ion-mobility surface: drift time over the -1 sentinel, unit-as-string, name-based IM array detection with the nine pinned PSI-MS children and three UserParam prefixes, getIMData/maybeGetIMData, sortByIonMobility, isSortedByIM, sortByPositionPresorted with Chunk/Chunks, and rasterizeIMFrame. The ion-mobility quartet setIMFormat/getIMFormat/getIMPeakType/setIMPeakType is now ported on its declaring class SpectrumSettings; see docs/IM_TYPES_SUPPORT.md. See docs/SPECTRUM_MOBILITY_SUPPORT.md."
   },
   "src/openms/include/OpenMS/KERNEL/MassTrace.h": {
    "status": "native_equivalent",
@@ -1138,6 +1161,18 @@
    ],
    "documentation": "docs/MOBILOGRAM_SUPPORT.md",
    "scope": "Own public value/container/search/selection/stable-sort/TIC/base-peak/clear/swap/equality operations are represented. Source partial swap and array-ignoring equality are explicit methods; on-demand native ranges replace caches. Inherited generic RangeManager algebra/cache mutation and broader ion-mobility dependencies remain. Every declared member is in the API table and all 48 class-test sections are ported. The inherited RangeManagerContainer surface maps onto the on-demand Mobilogram::range_manager(); the source's cached updateRanges and its cache-mutating members have no counterpart, a ratified divergence. selectUnchecked is deliberately absent."
+  },
+  "src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/kernel.rs",
+    "src/kernel/on_disc_experiment.rs"
+   ],
+   "tests": [
+    "tests/on_disc_experiment.rs"
+   ],
+   "documentation": "docs/ON_DISC_EXPERIMENT_SUPPORT.md",
+   "scope": "Complete facade over the ported IndexedMzMLHandler: openFile and its parsed flag, the fillData=false metadata load, counts, fetch by index and native id, PeakFileOptions filtering before and after peak I/O, setSkipXMLChecks, equality, isSortedByRT, a reopening clone, the OnDiscPeakMap alias and native load_experiment. Not ported: the two Interfaces pointer overloads and the private assignment operator. Tier 3."
   },
   "src/openms/include/OpenMS/KERNEL/Peak1D.h": {
    "status": "native_equivalent",
@@ -1463,6 +1498,19 @@
    ],
    "documentation": "docs/EXPERIMENT_VALUES_SUPPORT.md",
    "scope": "Complete Sample owned fields, defaults, source enum names/conversions, copy and equality operations through native records, public fields and standard containers. Source component Hash field selection is retained with native hasher-dependent values. IEEE scalar storage, existing typed MetaInfo semantics and ordinary recursive ownership costs are explicit. ExperimentalSettings aggregation and mzML header transport remain separate."
+  },
+  "src/openms/include/OpenMS/METADATA/SpectrumSettings.h": {
+   "status": "partial",
+   "rust": [
+    "src/metadata/acquisition.rs",
+    "src/metadata/im_types.rs"
+   ],
+   "tests": [
+    "tests/im_types.rs",
+    "tests/metadata.rs"
+   ],
+   "documentation": "docs/IM_TYPES_SUPPORT.md",
+   "scope": "First ledger entry. New and complete here: the four ion-mobility accessors over the existing fields, plus NamesOfSpectrumType, getAllNamesOfSpectrumType, spectrumTypeToString and toSpectrumType. The remaining members are implemented by the METADATA package and not audited here; std::hash and operator<< stay unported. One class-test section ported."
   },
   "src/openms/include/OpenMS/SYSTEM/File.h": {
    "status": "partial",

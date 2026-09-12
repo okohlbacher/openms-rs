@@ -8,11 +8,11 @@ Validated TOPP workflows: **5** of 146, each reproducing its upstream test again
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 21 |
-| evidence_requires_review | 163 |
-| native_equivalent | 75 |
-| partial | 19 |
-| unmapped | 508 |
+| complete | 24 |
+| evidence_requires_review | 162 |
+| native_equivalent | 76 |
+| partial | 18 |
+| unmapped | 506 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -47,7 +47,6 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/FORMAT/MzTab.h` | 7 | unmapped |
 | `OpenMS/FORMAT/PepXMLFile.h` | 7 | unmapped |
 | `OpenMS/FORMAT/SVOutStream.h` | 7 | unmapped |
-| `OpenMS/IONMOBILITY/IMTypes.h` | 7 | evidence_requires_review |
 | `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 6 | unmapped |
 | `OpenMS/CHEMISTRY/ProteaseDigestion.h` | 6 | evidence_requires_review |
 | `OpenMS/CONCEPT/VersionInfo.h` | 6 | unmapped |
@@ -55,6 +54,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/FORMAT/QcMLFile.h` | 6 | unmapped |
 | `OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h` | 6 | evidence_requires_review |
 | `OpenMS/PROCESSING/FILTERING/ThresholdMower.h` | 6 | evidence_requires_review |
+| `OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h` | 5 | unmapped |
 
 ## Completion requirements
 

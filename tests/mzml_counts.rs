@@ -271,12 +271,17 @@ fn parameter_references_validate_consumed_uses_and_forward_header_references() {
         )
         .is_err()
     );
+    // A declared count disagreeing with the actual number of children is
+    // advisory on reading, as it is in `read`: upstream has a handler for
+    // `referenceableParamGroup` (MzMLHandler.cpp:1055) and none for the
+    // enclosing list, so it never reads this count. This document declares two
+    // groups and carries one; it loads.
     assert!(
         count(
             &document(&group("").replace("count=\"1\"", "count=\"2\""), ""),
             &opt
         )
-        .is_err()
+        .is_ok()
     );
     let duplicate = "<referenceableParamGroupList count=\"2\"><referenceableParamGroup id=\"g\"/><referenceableParamGroup id=\"g\"/></referenceableParamGroupList>";
     assert!(count(&document(duplicate, ""), &opt).is_err());

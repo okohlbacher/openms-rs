@@ -41,6 +41,69 @@ remote development loops only; every test still runs in both. nextest runs each
 test in its own process, which is stricter than `cargo test`'s shared-process
 threads, and all 2,506 tests pass under it.
 
+## Kernel wave 3 completion and its audit fixes (2026-09-12)
+
+The three packages a session limit had killed were re-run from the integrated
+base and merged: MSExperiment/AreaIterator residuals, the MSSpectrum ion-mobility
+quartet with ConsensusFeature's last two members, and the OnDiscMSExperiment
+facade. Kernel headers closed or native-equivalent rise from 27 of 34 to 30 of 34,
+and `IMTypes.h` closed with a first entry for `SpectrumSettings.h` — the ion-mobility
+quartet turned out to be declared in METADATA, not KERNEL.
+
+Three audits returned, none with a blocker, and one reported
+`section_audit_honest: false`. Every finding was fixed in a follow-up wave rather
+than merged as-is. Three are worth recording because each was a claim the code did
+not support.
+
+**The test-mapping rule was circumvented.** The MSExperiment package reported "63
+sections mapped with a cited asserted value". Its support doc accounted for all 54
+mapped `MSExperiment_test.cpp` sections with a bare list of nine test *files* — no
+function, no value. The auditor counted assertion macros per section and found 22
+above the five-macro threshold that mandates porting, one of them with 64 macros;
+sections 5 and 6 (copy and move assignment, asserting `getMinMZ 5.0`, `getMaxMZ
+10.0` and a moved-from size of 0) had no Rust evidence anywhere in the repo. All 22
+are now ported. The honest accounting is 56 ported, 21 mapped with a named function
+and value, and **4 unaccounted** — `set2DData<add_mass_traces=true>`, both
+`getFirstProductSpectrum` overloads and `operator<<`, whose members are unported.
+`MSExperiment.h` stays `partial` for exactly those four.
+
+**A rustdoc claim misdescribed the C++ it cited.** `area_iteration.rs` said a
+reversed low/high ion-mobility pair "silently selects nothing" upstream.
+`AreaIterator.h:277` builds `RangeMobility{low_im_, high_im_}`, and
+`RangeBase(min,max)` (RangeManager.h:48-52) *throws* `InvalidRange` when `min > max`.
+The port's `Err` agreed with the source by accident, not by the stated reasoning.
+Several line anchors had drifted and an OpenMP note claimed the serial rasterizer
+"computes the same image" — true only for `Max`, since the parallel branch merges
+per-thread f32 buffers and so differs for `Sum`.
+
+**An audit found a defect in this port's own mzML reader.** A fixture substitution
+in the OnDisc package was documented as forced by an unavailable upstream file. The
+file is committed in-tree, byte-identical to the pinned copy; what blocked it was
+this reader rejecting `binaryDataArrayList count="2"` with four children. Checking
+every list handler in `MzMLHandler.cpp` showed upstream **never** compares a declared
+count against the actual number of children: `binaryDataArrayList` feeds only
+`bin_data_.reserve` (:1015), `selectedIonList`'s count only warns when above one
+(:1371), and `precursorList`, `productList`, `scanWindowList` and
+`referenceableParamGroupList` have no list handler at all. This port hard-errored at
+four sites. All are advisory on reading now, in both the reader and the `loadSize`
+counting path, while every declared count remains a **resource ceiling** enforced
+before allocation and writing still emits the true count. The earlier header-list fix
+(`src/format/mzml_header.rs:107-116`) had addressed only one instance of this defect
+class; this is the general case, and it had blocked real data twice.
+
+The last item cost a deliberate reversal. The count fix initially kept
+`referenceableParamGroupList` strict so `read` and `read_size` would agree, and pinned
+that with a test. Relaxing only the reader would have left `read` accepting a document
+`read_size` rejects, so both paths were relaxed together and the test rewritten to
+assert that the two readers still agree — the property the strict check had existed to
+protect.
+
+Gates at the integration commit, on the 384-core node: build 21 s, nextest
+all-features 2,917 passed, no-default-features 2,362 passed, doctests green, clippy
+`-D warnings` clean, `cargo +1.85.0 check --all-features --all-targets` clean, rustdoc
+`-D warnings` clean, `cargo fmt --check` clean, all six Python gates green. Four further
+C++ defects recorded as CPP-120 to CPP-123.
+
 ## Kernel wave 3, partial: the map containers (2026-09-12)
 
 Wave 3 launched four work packages. **Three were killed mid-run by an account
