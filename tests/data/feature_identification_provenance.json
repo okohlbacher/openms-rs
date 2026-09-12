@@ -1,0 +1,135 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/BaseFeature.h",
+      "sha256": "ac85e85810f04ed1c38f6709e1d9a390ec14b880e6896ec4e41c67a140ba8fb9"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "sha256": "b0166d47181ce74ced4937a112da94788cbc51eb57f88a426a1e62578458151d"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/BaseFeature_test.cpp",
+      "sha256": "ae454bba22390b1dfbd6c62effe3f23dd1b6b5fdc547e5d2403caa71b5c8bd13"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Feature.h",
+      "sha256": "5522050f5322ef2c84073724cc9a84ed45924d19dbc4118e656d5b6fa6145634"
+    },
+    {
+      "path": "src/openms/source/KERNEL/Feature.cpp",
+      "sha256": "5b6ea1b5ecb99d656213c02ebfe4e9a89f5216bd6c7b535ab8d24a0bd7579f72"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Feature_test.cpp",
+      "sha256": "ca2a8695e7d42b7c2253e725a85602aedcd256af82fb63acd416674d5936ec2b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h",
+      "sha256": "96d3732735a4f72d250cde236e8c75e65c5381f40cea3111e8513311da37177c"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "sha256": "d604cb44c4964c3f6d8526ebe95bbee10d1d9fb73115833d8a97c4aab7542c61"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ConsensusFeature_test.cpp",
+      "sha256": "f7cc1bc48b972d29eed135ecabed51d0e4d369fd4c949ecad816184c0f4e7d0d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/ID/IdentificationData.h",
+      "sha256": "3502df51b84731ecb8a0a5343d1ecda4249bb8e2376faa20779bcef730b28dff"
+    },
+    {
+      "path": "src/openms/source/METADATA/ID/IdentificationData.cpp",
+      "sha256": "434895912eccdc747a5bb3092d9785f09419b39fb28c118a0012efaaf6377ed0"
+    }
+  ],
+  "fixtures": [],
+  "native_implementation": [
+    "src/kernel/feature_identification.rs"
+  ],
+  "native_tests": [
+    "tests/feature_identification.rs"
+  ],
+  "support": [
+    "docs/FEATURE_IDENTIFICATION_SUPPORT.md"
+  ],
+  "source_anchors": [
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "line": 16,
+      "operation": "NamesOfAnnotationState literals \"no ID\", \"single ID\", \"multiple IDs (identical)\", \"multiple IDs (divergent)\"; native AnnotationState::NAMES"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "line": 25,
+      "operation": "BaseFeature(const BaseFeature&, UInt64 map_index) stamps meta value map_index on every peptide identification; native clone_with_map_index"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "line": 123,
+      "operation": "sortPeptideIdentifications sorts through reverse iterators with a mutating comparator that answers less for two empty identifications and reads isHigherScoreBetter from the left operand only"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "line": 146,
+      "operation": "getAnnotationState dispatches on id_matches_ emptiness; legacy branch collects best-hit sequences of a sorted copy, so two identifications of which one is empty yield MULTIPLE_SAME"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "line": 206,
+      "operation": "getPrimaryID throws Exception::MissingInformation when no ID was assigned; native Error::MissingInformation"
+    },
+    {
+      "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+      "line": 247,
+      "operation": "updateIDReferences swaps id_matches_ out before translating, so a throwing translate leaves a partially translated set; native two-phase update is atomic"
+    },
+    {
+      "path": "src/openms/source/METADATA/ID/IdentificationData.cpp",
+      "line": 1392,
+      "operation": "RefTranslator::translate(ObservationMatchRef) throws MissingInformation unless allow_missing; native ReferenceTranslator has no allow_missing mode"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/Feature.h",
+      "line": 136,
+      "operation": "applyMemberFunction applies a Size-returning member to the feature and recursively to every subordinate, accumulating the results; native for_each_unique_id / count_unique_ids"
+    },
+    {
+      "path": "src/openms/source/KERNEL/Feature.cpp",
+      "line": 209,
+      "operation": "updateAllIDReferences updates the feature then recurses into subordinates, leaving a partly translated tree on failure; native verify-then-apply"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h",
+      "line": 92,
+      "operation": "struct Ratio: user-provided default constructor leaves ratio_value_ uninitialised and description_ has no Rust field"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ConsensusFeature.h",
+      "line": 265,
+      "operation": "setRatios takes a non-const std::vector<Ratio>& and cannot be called with a temporary or a const vector; native set_ratios takes the vector by value"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 316,
+      "operation": "addRatio push_back, setRatios copy assignment and both getRatios overloads, none of which validate"
+    },
+    {
+      "path": "src/openms/source/KERNEL/ConsensusFeature.cpp",
+      "line": 264,
+      "operation": "computeDechargeConsensus subtracts Constants::PROTON_MASS_U while ConsensusFeature_test.cpp builds its m/z fixtures from the hydrogen atom mass; the port uses the proton constant on both sides"
+    }
+  ],
+  "evidence": "Tier 3 (source review): every expectation in tests/feature_identification.rs is transcribed from the pinned class tests (BaseFeature_test.cpp, Feature_test.cpp, ConsensusFeature_test.cpp) or derived from the pinned implementation; no C++ was built or executed and no retained C++ output exists for these headers. Class-test section accounting: BaseFeature.h 30 sections, 30 ported; Feature.h 23 sections, 23 ported; ConsensusFeature.h 39 sections, 39 ported; 92 ported, 0 mapped-with-evidence, 0 mapped-without-evidence, 0 unaccounted. Ten further test functions cover the identification surface the class tests never exercise (primary ID, observation matches, reference translation, ratios, bounded traversal); their expectations are independently derived from the cited source anchors and from the native resource and atomicity contract. The decharge section's neutral masses are exact because both the fixture and the implementation use PROTON_MASS_U, where the C++ test relies on its TEST_REAL_SIMILAR tolerance to absorb the electron masses.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  }
+}
