@@ -103,6 +103,14 @@ pub struct ReadOptions {
     pub max_protein_hits: usize,
     /// Maximum retained diagnostics; further ones are counted, not stored.
     pub max_warnings: usize,
+    /// Maximum total length in bytes of the retained diagnostics.
+    ///
+    /// A diagnostic quotes file-derived text, so counting messages alone bounds
+    /// the retained diagnostics only when every message is short. Once this
+    /// ceiling is reached further diagnostics are counted in
+    /// [`PepXmlDocument::suppressed_warnings`] rather than stored, exactly as
+    /// when [`ReadOptions::max_warnings`] is reached.
+    pub max_warning_bytes: usize,
     /// Name of the spectra file whose results are wanted, extension optional.
     ///
     /// Empty accepts every run, as the source's defaulted `experiment_name`.
@@ -131,6 +139,7 @@ impl Default for ReadOptions {
             max_modifications: 100_000,
             max_protein_hits: 5_000_000,
             max_warnings: 1_000,
+            max_warning_bytes: 1 << 20,
             experiment_name: String::new(),
             keep_native_spectrum_name: false,
             parse_unknown_scores: false,
@@ -400,6 +409,14 @@ fn extract_scan_number(native_id: &str) -> Option<u64> {
 // Bounded work accounting
 // ---------------------------------------------------------------------------
 
+/// Work units charged for one operation that rebuilds a peptide's chemistry.
+///
+/// Every [`AASequence`] setter clones the peptide and recomputes its formula and
+/// its mass from every residue, so one such call costs the peptide length. The
+/// per-residue factor is the one [`ReaderState::end_search_hit`] already charges
+/// for parsing a peptide, which performs exactly one such rebuild.
+const CHEMISTRY_REBUILD_WORK: usize = 64;
+
 struct Meter {
     work: usize,
     bytes: usize,
@@ -410,6 +427,18 @@ impl Meter {
             work: options.max_input_bytes.saturating_mul(32).max(1 << 24),
             bytes: options.max_input_bytes.saturating_mul(16).max(1 << 24),
         }
+    }
+    /// Lower the remaining budget to what the decoded input entitles it to.
+    ///
+    /// [`Meter::new`] can only scale the budget by
+    /// [`ReadOptions::max_input_bytes`], which is a ceiling and not a
+    /// measurement: a small document read with the default ceiling would be
+    /// allowed gigabytes of work. Reducing the budget once the input length is
+    /// known keeps the total work linear in that length, which is what bounds
+    /// the per-`search_hit` annotation work. This only ever lowers a budget.
+    fn tighten(&mut self, input_bytes: usize) {
+        self.work = self.work.min(input_bytes.saturating_mul(2048).max(1 << 24));
+        self.bytes = self.bytes.min(input_bytes.saturating_mul(512).max(1 << 24));
     }
     fn limit(&self) -> Error {
         bad("pepXML resource limit exceeded")
@@ -512,6 +541,31 @@ struct HeaderModification {
     resolved: Option<ResolvedModification>,
     /// Diagnostics the source collects in `AminoAcidModification::errors_`.
     warnings: Vec<String>,
+}
+
+/// Longest peptide a diagnostic quotes in full.
+const ELIDED_SEQUENCE_LENGTH: usize = 32;
+
+/// Peptide as a diagnostic quotes it: in full when short, abbreviated otherwise.
+///
+/// The source logs the whole sequence. A diagnostic identifies the offending hit
+/// and does not need every residue to do so, while a peptide is file-derived and
+/// of unbounded length: quoting it in full lets one input amplify into orders of
+/// magnitude more retained text, once per annotation.
+///
+/// Walking the whole sequence would restore the quadratic cost this avoids, so
+/// only the quoted head plus one character is inspected and the reported size is
+/// the byte length.
+fn elide(sequence: &str) -> String {
+    match sequence.char_indices().nth(ELIDED_SEQUENCE_LENGTH) {
+        None => sequence.to_owned(),
+        // `char_indices` reports character boundaries, so this cannot split one.
+        Some((boundary, _)) => format!(
+            "{}... ({} bytes)",
+            sequence.get(..boundary).unwrap_or_default(),
+            sequence.len()
+        ),
+    }
 }
 
 /// Signed decimal spelling of a mass difference.
@@ -1032,8 +1086,16 @@ struct ReaderState<'a> {
     current_peptide: PeptideIdentification,
     current_hit: PeptideHit,
     current_sequence: String,
+    /// Characters of `current_sequence`, walked once per `search_hit`.
+    ///
+    /// The annotations of one hit each address a position in the peptide, and
+    /// resolving a `char` boundary from a `usize` position by walking the string
+    /// would make one hit quadratic in its peptide length.
+    current_residues: Vec<char>,
     current_analysis: crate::identification::AnalysisResult,
     current_modifications: Vec<(ResolvedModification, usize)>,
+    /// Total length of the retained diagnostics, against `max_warning_bytes`.
+    warning_bytes: usize,
 }
 
 impl<'a> ReaderState<'a> {
@@ -1072,17 +1134,33 @@ impl<'a> ReaderState<'a> {
             current_peptide: PeptideIdentification::default(),
             current_hit: PeptideHit::default(),
             current_sequence: String::new(),
+            current_residues: Vec::new(),
             current_analysis: crate::identification::AnalysisResult::default(),
             current_modifications: Vec::new(),
+            warning_bytes: 0,
         })
     }
 
-    fn warn(&mut self, message: impl Into<String>) {
-        if self.document.warnings.len() < self.options.max_warnings {
-            self.document.warnings.push(message.into());
+    /// Record one non-fatal diagnostic, bounded in both count and total bytes.
+    ///
+    /// A message quotes file-derived text, so both building it and retaining it
+    /// are charged against the meter; the retained total is additionally bounded
+    /// by [`ReadOptions::max_warning_bytes`] so that a long peptide cannot turn
+    /// a bounded number of diagnostics into an unbounded amount of memory.
+    fn warn(&mut self, meter: &mut Meter, message: impl Into<String>) -> Result<()> {
+        let message = message.into();
+        let charge = message.len().saturating_add(32);
+        meter.spend(charge, charge)?;
+        let total = self.warning_bytes.saturating_add(message.len());
+        if self.document.warnings.len() < self.options.max_warnings
+            && total <= self.options.max_warning_bytes
+        {
+            self.warning_bytes = total;
+            self.document.warnings.push(message);
         } else {
             self.document.suppressed_warnings += 1;
         }
+        Ok(())
     }
 
     /// Index of the protein identification the current `search_id` refers to.
@@ -1107,7 +1185,7 @@ impl<'a> ReaderState<'a> {
             .ok_or_else(|| bad("no identification run is open"))
     }
 
-    fn read_rt_mz_charge(&mut self, attributes: &Attributes) -> Result<()> {
+    fn read_rt_mz_charge(&mut self, attributes: &Attributes, meter: &mut Meter) -> Result<()> {
         let mass = required_f64(attributes, "spectrum_query", "precursor_neutral_mass")?;
         self.charge = integer(
             required(attributes, "spectrum_query", "assumed_charge")?,
@@ -1134,9 +1212,10 @@ impl<'a> ReaderState<'a> {
             let end: u64 = integer(end, "end_scan")?;
             if end != self.scan_number {
                 self.warn(
+                    meter,
                     "endscan not equal to startscan. Merged spectrum queries not supported. \
                      Parsing start scan nr. only.",
-                );
+                )?;
             }
         }
         if let Some(rt) = optional_f64(attributes, "retention_time_sec")? {
@@ -1144,7 +1223,7 @@ impl<'a> ReaderState<'a> {
             return Ok(());
         }
         if self.options.lookup.is_empty() {
-            self.warn("Cannot get RT information - no spectra given");
+            self.warn(meter, "Cannot get RT information - no spectra given")?;
             return Ok(());
         }
         let index = if self.scan_number != 0 {
@@ -1155,14 +1234,17 @@ impl<'a> ReaderState<'a> {
         };
         match index.and_then(|index| self.options.lookup.get(index)) {
             Some(meta) if meta.ms_level == 2 => self.rt = Some(meta.rt),
-            _ => self.warn("Cannot get RT information - scan mapping is incorrect"),
+            _ => self.warn(
+                meter,
+                "Cannot get RT information - scan mapping is incorrect",
+            )?,
         }
         Ok(())
     }
 
     fn start(&mut self, element: &str, attributes: &Attributes, meter: &mut Meter) -> Result<()> {
         if element == "msms_run_summary" {
-            return self.start_run(attributes);
+            return self.start_run(attributes, meter);
         }
         if element == "analysis_summary" {
             // This element can nest "search_summary" elements, which are only
@@ -1177,7 +1259,7 @@ impl<'a> ReaderState<'a> {
             "search_score" => self.start_search_score(attributes),
             "search_hit" => self.start_search_hit(attributes, meter),
             "search_result" => self.start_search_result(attributes),
-            "spectrum_query" => self.start_spectrum_query(attributes),
+            "spectrum_query" => self.start_spectrum_query(attributes, meter),
             "analysis_result" => {
                 self.current_analysis = crate::identification::AnalysisResult::default();
                 self.current_analysis.score_type =
@@ -1215,7 +1297,7 @@ impl<'a> ReaderState<'a> {
             "aminoacid_modification" | "terminal_modification" => {
                 self.start_modification_declaration(element, attributes, meter)
             }
-            "search_summary" => self.start_search_summary(attributes),
+            "search_summary" => self.start_search_summary(attributes, meter),
             "sample_enzyme" => {
                 // Special case: a search parameter that occurs *before*
                 // "search_summary".
@@ -1238,7 +1320,7 @@ impl<'a> ReaderState<'a> {
                 self.run.parameters.digestion_regex = cut.to_owned();
                 Ok(())
             }
-            "enzymatic_search_constraint" => self.start_enzymatic_constraint(attributes),
+            "enzymatic_search_constraint" => self.start_enzymatic_constraint(attributes, meter),
             "search_database" => {
                 let path = required(attributes, "search_database", "local_path")?;
                 self.run.parameters.database = if path.is_empty() {
@@ -1259,9 +1341,10 @@ impl<'a> ReaderState<'a> {
                 let bytes = date.as_bytes();
                 if bytes.len() > 10 && bytes[4] == b':' && bytes[7] == b':' && bytes[10] == b':' {
                     self.warn(
+                        meter,
                         "Format of attribute 'date' in tag 'msms_pipeline_analysis' does not \
                          comply with standard 'xs:dateTime'",
-                    );
+                    )?;
                     date.replace_range(4..5, "-");
                     date.replace_range(7..8, "-");
                     date.replace_range(10..11, "T");
@@ -1276,13 +1359,16 @@ impl<'a> ReaderState<'a> {
         }
     }
 
-    fn start_run(&mut self, attributes: &Attributes) -> Result<()> {
+    fn start_run(&mut self, attributes: &Attributes, meter: &mut Meter) -> Result<()> {
         let base_name = attribute(attributes, "base_name").unwrap_or("").to_owned();
         self.run.ms_run_path.clear();
         if !self.experiment_name.is_empty() {
             if base_name.is_empty() {
                 // Really should not happen, but does for Mascot pepXML exports.
-                self.warn("'base_name' attribute of 'msms_run_summary' element is empty");
+                self.warn(
+                    meter,
+                    "'base_name' attribute of 'msms_run_summary' element is empty",
+                )?;
                 self.wrong_experiment = false;
                 self.checked_base_name = false;
             } else {
@@ -1431,6 +1517,18 @@ impl<'a> ReaderState<'a> {
         meter.cap(self.current_peptide.hits.len() + 1, self.options.max_hits)?;
         meter.spend(256, 512)?;
         self.current_sequence = required(attributes, "search_hit", "peptide")?.to_owned();
+        // Walked once here so that every annotation of this hit can address a
+        // position in constant time; see `ReaderState::current_residues`.
+        meter.spend(
+            self.current_sequence.len(),
+            self.current_sequence
+                .len()
+                .saturating_mul(size_of::<char>()),
+        )?;
+        let mut residues = std::mem::take(&mut self.current_residues);
+        residues.clear();
+        residues.extend(self.current_sequence.chars());
+        self.current_residues = residues;
         self.current_modifications.clear();
         self.current_hit = PeptideHit::default();
         let rank: u32 = integer(required(attributes, "search_hit", "hit_rank")?, "hit_rank")?;
@@ -1580,8 +1678,8 @@ impl<'a> ReaderState<'a> {
         Ok(())
     }
 
-    fn start_spectrum_query(&mut self, attributes: &Attributes) -> Result<()> {
-        self.read_rt_mz_charge(attributes)?;
+    fn start_spectrum_query(&mut self, attributes: &Attributes, meter: &mut Meter) -> Result<()> {
+        self.read_rt_mz_charge(attributes, meter)?;
         self.native_spectrum_name.clear();
         self.experiment_label.clear();
         self.swath_assay.clear();
@@ -1738,9 +1836,10 @@ impl<'a> ReaderState<'a> {
                 None => {
                     let terminus = if n_terminal { "N" } else { "C" };
                     let text = crate::param::value::format_float(mass, true);
-                    self.warn(format!(
-                        "Cannot find {terminus}-terminal modification with mass {text}."
-                    ));
+                    self.warn(
+                        meter,
+                        format!("Cannot find {terminus}-terminal modification with mass {text}."),
+                    )?;
                 }
             }
         }
@@ -1787,10 +1886,9 @@ impl<'a> ReaderState<'a> {
         let index = position
             .checked_sub(1)
             .ok_or_else(|| bad("'position' is 1-based and must not be zero"))?;
-        let origin = self
-            .current_sequence
-            .chars()
-            .nth(index)
+        let origin = *self
+            .current_residues
+            .get(index)
             .ok_or_else(|| bad("'position' is outside the peptide sequence"))?;
         // The source cannot infer fixed vs variable from pepXML reliably, so it
         // tries the fixed declarations first and then the variable ones.
@@ -1820,7 +1918,7 @@ impl<'a> ReaderState<'a> {
             if matches.is_empty() {
                 let terms: &[TermSpecificity] = if position == 1 {
                     &[TermSpecificity::NTerm, TermSpecificity::ProteinNTerm]
-                } else if position == self.current_sequence.chars().count() {
+                } else if position == self.current_residues.len() {
                     &[TermSpecificity::CTerm, TermSpecificity::ProteinCTerm]
                 } else {
                     &[]
@@ -1840,14 +1938,15 @@ impl<'a> ReaderState<'a> {
             match matches.first() {
                 Some(first) => {
                     if matches.len() > 1 {
-                        self.warn(format!(
+                        let message = format!(
                             "Modification '{}' of residue {origin} at position {position} in \
                              '{}' not registered in pepXML header nor uniquely defined in DB. \
                              Using {}",
                             crate::param::value::format_float(mass, true),
-                            self.current_sequence,
+                            elide(&self.current_sequence),
                             first.full_id()
-                        ));
+                        );
+                        self.warn(meter, message)?;
                     }
                     found = Some(ResolvedModification::Known(Arc::clone(first)));
                 }
@@ -1934,9 +2033,12 @@ impl<'a> ReaderState<'a> {
             self.registry,
         )?;
         if !modification.warnings.is_empty() {
-            self.warn("Errors during parsing of aminoacid/terminal modification element:");
+            self.warn(
+                meter,
+                "Errors during parsing of aminoacid/terminal modification element:",
+            )?;
             for warning in modification.warnings.clone() {
-                self.warn(warning);
+                self.warn(meter, warning)?;
             }
         }
         let Some(resolved) = modification.resolved.clone() else {
@@ -1953,7 +2055,7 @@ impl<'a> ReaderState<'a> {
         Ok(())
     }
 
-    fn start_search_summary(&mut self, attributes: &Attributes) -> Result<()> {
+    fn start_search_summary(&mut self, attributes: &Attributes, meter: &mut Meter) -> Result<()> {
         self.search_summary = true;
         self.run.base_name = attribute(attributes, "base_name").unwrap_or("").to_owned();
         if !self.checked_base_name {
@@ -1983,10 +2085,13 @@ impl<'a> ReaderState<'a> {
         } else {
             self.hydrogen_mass = self.hydrogen_average;
             if mass_type != "average" {
-                self.warn(format!(
-                    "'precursor_mass_type' attribute of 'search_summary' tag should be \
-                     'monoisotopic' or 'average', not '{mass_type}' (assuming 'average')"
-                ));
+                self.warn(
+                    meter,
+                    format!(
+                        "'precursor_mass_type' attribute of 'search_summary' tag should be \
+                         'monoisotopic' or 'average', not '{mass_type}' (assuming 'average')"
+                    ),
+                )?;
             }
         }
         // SearchParameters::mass_type is taken to refer to the fragment mass.
@@ -1994,10 +2099,13 @@ impl<'a> ReaderState<'a> {
         match mass_type {
             "monoisotopic" => self.run.parameters.mass_type = PeakMassType::Monoisotopic,
             "average" => self.run.parameters.mass_type = PeakMassType::Average,
-            other => self.warn(format!(
-                "'fragment_mass_type' attribute of 'search_summary' tag should be 'monoisotopic' \
-                 or 'average', not '{other}'"
-            )),
+            other => self.warn(
+                meter,
+                format!(
+                    "'fragment_mass_type' attribute of 'search_summary' tag should be \
+                     'monoisotopic' or 'average', not '{other}'"
+                ),
+            )?,
         }
         self.search_engine = required(attributes, "search_summary", "search_engine")?.to_owned();
         let version = attribute(attributes, "search_engine_version")
@@ -2057,7 +2165,11 @@ impl<'a> ReaderState<'a> {
         Ok(())
     }
 
-    fn start_enzymatic_constraint(&mut self, attributes: &Attributes) -> Result<()> {
+    fn start_enzymatic_constraint(
+        &mut self,
+        attributes: &Attributes,
+        meter: &mut Meter,
+    ) -> Result<()> {
         // Source note: the enzyme should not be overwritten here, but in most
         // files it is the same as in sample_enzyme or something useless such as
         // "default".
@@ -2071,9 +2183,10 @@ impl<'a> ReaderState<'a> {
                 && self.run.parameters.digestion_enzyme != enzyme.name()
             {
                 self.warn(
-                    "More than one enzyme found. This is currently not supported. Proceeding with \
-                     last encountered only.",
-                );
+                    meter,
+                    "More than one enzyme found. This is currently not supported. Proceeding \
+                     with last encountered only.",
+                )?;
             }
             self.run.parameters.digestion_enzyme = enzyme.name().into();
         }
@@ -2184,122 +2297,30 @@ impl<'a> ReaderState<'a> {
 
     fn end_search_hit(&mut self, meter: &mut Meter) -> Result<()> {
         meter.spend(
-            self.current_sequence.len().saturating_mul(64).max(1024),
-            self.current_sequence.len().saturating_mul(64).max(4096),
+            self.current_sequence
+                .len()
+                .saturating_mul(CHEMISTRY_REBUILD_WORK)
+                .max(1024),
+            self.current_sequence
+                .len()
+                .saturating_mul(CHEMISTRY_REBUILD_WORK)
+                .max(4096),
         )?;
-        let mut sequence = AASequence::parse_with_registry(&self.current_sequence, self.registry)?;
+        let sequence = AASequence::parse_with_registry(&self.current_sequence, self.registry)?;
         // Walked once rather than per residue, so annotating stays linear in the
         // peptide length even for a sequence of non-ASCII placeholders.
         let residues: Vec<char> = sequence.as_str().chars().collect();
-        meter.spend(residues.len(), residues.len().saturating_mul(4))?;
+        meter.spend(
+            residues.len(),
+            residues.len().saturating_mul(size_of::<char>()),
+        )?;
         // Applying AASequence parsing to the modification_info "modified_peptide"
         // attribute is not possible in general, because modifications may carry
         // symbols that would have to be stored and looked up separately.
-        //
-        // Modifications annotated on this search_hit take precedence over the
-        // implicit fixed modifications applied afterwards.
-        let modifications = std::mem::take(&mut self.current_modifications);
-        let mut diagnostics = Vec::new();
-        for (modification, position) in &modifications {
-            if modification.is_n_terminal() {
-                if sequence.n_terminal_modification().is_none() {
-                    diagnostics.push(set_terminal(
-                        &mut sequence,
-                        modification,
-                        true,
-                        self.registry,
-                    )?);
-                } else {
-                    self.warn(format!(
-                        "Multiple N-term mods specified for search_hit with sequence {} \
-                         proceeding with first.",
-                        self.current_sequence
-                    ));
-                }
-            } else if modification.is_c_terminal() {
-                if sequence.c_terminal_modification().is_none() {
-                    diagnostics.push(set_terminal(
-                        &mut sequence,
-                        modification,
-                        false,
-                        self.registry,
-                    )?);
-                } else {
-                    self.warn(format!(
-                        "Multiple C-term mods specified for search_hit with sequence {} \
-                         proceeding with first.",
-                        self.current_sequence
-                    ));
-                }
-            } else if sequence.residue_modification(*position)?.is_none() {
-                diagnostics.push(set_residue(
-                    &mut sequence,
-                    *position,
-                    modification,
-                    self.registry,
-                )?);
-            } else {
-                self.warn(format!(
-                    "Multiple mods for position {position} specified for search_hit with \
-                     sequence {} proceeding with first.",
-                    self.current_sequence
-                ));
-            }
-        }
-        // Apply the implicit fixed modifications wherever nothing is annotated.
-        for declaration in self.run.fixed.clone() {
-            let Some(modification) = declaration.resolved.as_ref() else {
-                continue;
-            };
-            if modification.is_n_terminal() {
-                if sequence.n_terminal_modification().is_none() {
-                    diagnostics.push(set_terminal(
-                        &mut sequence,
-                        modification,
-                        true,
-                        self.registry,
-                    )?);
-                }
-            } else if modification.is_c_terminal() {
-                // Source tests C_TERM || PROTEIN_N_TERM here, a copy/paste slip
-                // that leaves a fixed protein C-terminal modification to the
-                // residue branch below; this port tests both C-terminal forms.
-                if sequence.c_terminal_modification().is_none() {
-                    diagnostics.push(set_terminal(
-                        &mut sequence,
-                        modification,
-                        false,
-                        self.registry,
-                    )?);
-                } else {
-                    self.warn(format!(
-                        "Trying to add a fixed C-term modification from the search_summary to an \
-                         already annotated and modified C-terminus of {} ... skipping.",
-                        self.current_sequence
-                    ));
-                }
-            } else {
-                for index in 0..sequence.len() {
-                    if sequence.residue_modification(index)?.is_some() {
-                        continue;
-                    }
-                    let residue = residues
-                        .get(index)
-                        .copied()
-                        .ok_or_else(|| bad("peptide sequence changed while annotating"))?;
-                    if declaration.amino_acid.contains(residue) {
-                        diagnostics.push(set_residue(
-                            &mut sequence,
-                            index,
-                            modification,
-                            self.registry,
-                        )?);
-                    }
-                }
-            }
-        }
+        let plan = self.plan_annotations(&sequence, &residues, meter)?;
+        let (sequence, diagnostics) = self.apply_plan(sequence, &plan, &residues, meter)?;
         for diagnostic in diagnostics.into_iter().flatten() {
-            self.warn(diagnostic);
+            self.warn(meter, diagnostic)?;
         }
         self.current_hit.sequence = sequence;
         let hit = std::mem::take(&mut self.current_hit);
@@ -2307,6 +2328,349 @@ impl<'a> ReaderState<'a> {
         self.current_peptide.hits.push(hit);
         Ok(())
     }
+
+    /// Decide where every modification of this `search_hit` attaches, in the
+    /// order the source applies them, without touching the peptide.
+    ///
+    /// Every [`AASequence`] setter clones the peptide and recomputes its formula
+    /// and its mass from every residue, so consulting the peptide between two
+    /// annotations - which is all the source's loop does with the intermediate
+    /// states - costs the peptide length per annotation. The decision itself
+    /// needs only which slots are still free: an annotation is kept when its
+    /// slot is free and reported as a duplicate otherwise. Recording the
+    /// decisions first leaves them exactly as they were and lets
+    /// [`ReaderState::apply_plan`] install them in one pass.
+    ///
+    /// Modifications annotated on this hit take precedence over the implicit
+    /// fixed modifications planned afterwards.
+    fn plan_annotations(
+        &mut self,
+        sequence: &AASequence,
+        residues: &[char],
+        meter: &mut Meter,
+    ) -> Result<Vec<(PlannedSlot, ResolvedModification)>> {
+        let modifications = std::mem::take(&mut self.current_modifications);
+        let mut plan = Vec::new();
+        // Free slots of the peptide as parsed; a peptide attribute may carry
+        // annotations of its own, which the source's checks see as well.
+        let mut taken = Vec::new();
+        meter.spend(sequence.len(), sequence.len())?;
+        for index in 0..sequence.len() {
+            taken.push(sequence.residue_modification(index)?.is_some());
+        }
+        let mut n_taken = sequence.n_terminal_modification().is_some();
+        let mut c_taken = sequence.c_terminal_modification().is_some();
+        let entry_bytes = size_of::<(PlannedSlot, ResolvedModification)>();
+        for (modification, position) in &modifications {
+            meter.spend(64, entry_bytes)?;
+            if modification.is_n_terminal() {
+                if n_taken {
+                    let message = format!(
+                        "Multiple N-term mods specified for search_hit with sequence {} \
+                         proceeding with first.",
+                        elide(&self.current_sequence)
+                    );
+                    self.warn(meter, message)?;
+                } else {
+                    n_taken = true;
+                    plan.push((PlannedSlot::NTerm, modification.clone()));
+                }
+            } else if modification.is_c_terminal() {
+                if c_taken {
+                    let message = format!(
+                        "Multiple C-term mods specified for search_hit with sequence {} \
+                         proceeding with first.",
+                        elide(&self.current_sequence)
+                    );
+                    self.warn(meter, message)?;
+                } else {
+                    c_taken = true;
+                    plan.push((PlannedSlot::CTerm, modification.clone()));
+                }
+            } else {
+                // The source indexes the peptide with this position unchecked;
+                // an `Ok` here is also what proves it addresses a residue.
+                let free = sequence.residue_modification(*position)?.is_none()
+                    && taken.get(*position) == Some(&false);
+                if free {
+                    if let Some(slot) = taken.get_mut(*position) {
+                        *slot = true;
+                    }
+                    plan.push((PlannedSlot::Residue(*position), modification.clone()));
+                } else {
+                    let message = format!(
+                        "Multiple mods for position {position} specified for search_hit with \
+                         sequence {} proceeding with first.",
+                        elide(&self.current_sequence)
+                    );
+                    self.warn(meter, message)?;
+                }
+            }
+        }
+        // Plan the implicit fixed modifications wherever nothing is annotated.
+        for declaration in self.run.fixed.clone() {
+            let Some(modification) = declaration.resolved.as_ref() else {
+                continue;
+            };
+            if modification.is_n_terminal() {
+                if !n_taken {
+                    n_taken = true;
+                    meter.spend(64, entry_bytes)?;
+                    plan.push((PlannedSlot::NTerm, modification.clone()));
+                }
+            } else if modification.is_c_terminal() {
+                // Source tests C_TERM || PROTEIN_N_TERM here, a copy/paste slip
+                // that leaves a fixed protein C-terminal modification to the
+                // residue branch below; this port tests both C-terminal forms.
+                if c_taken {
+                    let message = format!(
+                        "Trying to add a fixed C-term modification from the search_summary to an \
+                         already annotated and modified C-terminus of {} ... skipping.",
+                        elide(&self.current_sequence)
+                    );
+                    self.warn(meter, message)?;
+                } else {
+                    c_taken = true;
+                    meter.spend(64, entry_bytes)?;
+                    plan.push((PlannedSlot::CTerm, modification.clone()));
+                }
+            } else {
+                for index in 0..residues.len() {
+                    if taken.get(index) != Some(&false) {
+                        continue;
+                    }
+                    let residue = residues
+                        .get(index)
+                        .copied()
+                        .ok_or_else(|| bad("peptide sequence changed while annotating"))?;
+                    if declaration.amino_acid.contains(residue) {
+                        if let Some(slot) = taken.get_mut(index) {
+                            *slot = true;
+                        }
+                        meter.spend(64, entry_bytes)?;
+                        plan.push((PlannedSlot::Residue(index), modification.clone()));
+                    }
+                }
+            }
+        }
+        Ok(plan)
+    }
+
+    /// Install a plan, reporting one optional diagnostic per plan entry.
+    fn apply_plan(
+        &self,
+        sequence: AASequence,
+        plan: &[(PlannedSlot, ResolvedModification)],
+        residues: &[char],
+        meter: &mut Meter,
+    ) -> Result<(AASequence, Vec<Option<String>>)> {
+        if plan.is_empty() {
+            return Ok((sequence, Vec::new()));
+        }
+        // A peptide attribute that carries no annotation of its own - which is
+        // every one a search engine writes - can be respelled with the planned
+        // annotations and parsed once, rebuilding the chemistry once instead of
+        // once per plan entry.
+        if self.current_sequence == sequence.as_str() {
+            if let Some(applied) = respell_plan(&sequence, plan, residues, self.registry, meter)? {
+                return Ok(applied);
+            }
+        }
+        let mut sequence = sequence;
+        let mut diagnostics = Vec::new();
+        meter.spend(
+            plan.len(),
+            plan.len().saturating_mul(size_of::<Option<String>>()),
+        )?;
+        diagnostics.resize(plan.len(), None);
+        for (entry, (slot, modification)) in plan.iter().enumerate() {
+            charge_rebuild(residues.len(), meter)?;
+            let diagnostic = match slot {
+                PlannedSlot::NTerm => {
+                    set_terminal(&mut sequence, modification, true, self.registry)?
+                }
+                PlannedSlot::CTerm => {
+                    set_terminal(&mut sequence, modification, false, self.registry)?
+                }
+                PlannedSlot::Residue(position) => {
+                    set_residue(&mut sequence, *position, modification, self.registry)?
+                }
+            };
+            if let Some(slot) = diagnostics.get_mut(entry) {
+                *slot = diagnostic;
+            }
+        }
+        Ok((sequence, diagnostics))
+    }
+}
+
+/// Slot one planned modification attaches to.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PlannedSlot {
+    /// The peptide's N-terminus.
+    NTerm,
+    /// The peptide's C-terminus.
+    CTerm,
+    /// The residue at this zero-based position.
+    Residue(usize),
+}
+
+/// Charge one operation that rebuilds the chemistry of an `n`-residue peptide.
+///
+/// What such an operation costs is time, so only work is charged: the peptide
+/// copy it makes is transient, and one peptide's worth of allocation is already
+/// charged per `search_hit`.
+fn charge_rebuild(residues: usize, meter: &mut Meter) -> Result<()> {
+    meter.spend(
+        residues
+            .saturating_mul(CHEMISTRY_REBUILD_WORK)
+            .max(CHEMISTRY_REBUILD_WORK),
+        0,
+    )
+}
+
+/// Whether a mass annotation can be spelled inside brackets verbatim.
+///
+/// `format_float` spells a mass in scientific notation outside `[1e-2, 1e4)`,
+/// and `AASequence` rejects an exponent in a mass tag. Only the plain decimal
+/// spellings are respelled; anything else is left to the setter that would have
+/// resolved it, which rejects it exactly as it did before.
+fn bracket_safe(text: &str) -> bool {
+    !text.is_empty()
+        && text
+            .bytes()
+            .all(|b| b.is_ascii_digit() || matches!(b, b'+' | b'-' | b'.'))
+}
+
+/// Install a plan on a peptide whose attribute carries no annotation of its own.
+///
+/// The planned residue annotations are respelled as bracket annotations on the
+/// peptide and parsed in one pass, which resolves a mass tag through the very
+/// function `AASequence::set_mass_tag_with_registry` would have called; the
+/// planned named modifications are resolved with the lookup
+/// `AASequence::set_modification_with_registry` performs and are installed
+/// together; and the at most two terminal annotations keep their own setters.
+/// One `search_hit` therefore costs its peptide length, rather than that length
+/// once per annotation.
+///
+/// Returns `Ok(None)`, with the peptide untouched, when a planned mass cannot be
+/// spelled inside brackets; the caller then falls back to one setter per entry.
+fn respell_plan(
+    sequence: &AASequence,
+    plan: &[(PlannedSlot, ResolvedModification)],
+    residues: &[char],
+    registry: &ModificationsDB,
+    meter: &mut Meter,
+) -> Result<Option<(AASequence, Vec<Option<String>>)>> {
+    let mut diagnostics = Vec::new();
+    meter.spend(
+        plan.len(),
+        plan.len().saturating_mul(size_of::<Option<String>>()),
+    )?;
+    diagnostics.resize(plan.len(), None);
+    let mut tags: Vec<Option<String>> = Vec::new();
+    meter.spend(
+        residues.len(),
+        residues.len().saturating_mul(size_of::<Option<String>>()),
+    )?;
+    tags.resize(residues.len(), None);
+    let mut handles: Vec<(usize, Arc<ResidueModification>)> = Vec::new();
+    let mut terminals: Vec<(usize, bool)> = Vec::new();
+    let mut tag_count = 0usize;
+    let mut length = residues.len().saturating_mul(size_of::<char>());
+    for (entry, (slot, modification)) in plan.iter().enumerate() {
+        let position = match slot {
+            PlannedSlot::NTerm => {
+                meter.spend(64, size_of::<(usize, bool)>())?;
+                terminals.push((entry, true));
+                continue;
+            }
+            PlannedSlot::CTerm => {
+                meter.spend(64, size_of::<(usize, bool)>())?;
+                terminals.push((entry, false));
+                continue;
+            }
+            PlannedSlot::Residue(position) => *position,
+        };
+        let residue = *residues
+            .get(position)
+            .ok_or_else(|| bad("peptide sequence changed while annotating"))?;
+        let text = match modification {
+            ResolvedModification::Mass { text, .. } => text.clone(),
+            ResolvedModification::Known(value) => {
+                let handle = registry.get_modification_handle(
+                    value.full_id(),
+                    Some(residue),
+                    Some(TermSpecificity::Anywhere),
+                );
+                match handle {
+                    Ok(handle) => {
+                        meter.spend(64, size_of::<(usize, Arc<ResidueModification>)>())?;
+                        handles.push((position, handle));
+                        continue;
+                    }
+                    Err(_) => {
+                        // Same fallback `set_residue` reports: the named record
+                        // is not valid here, so its mass difference is kept.
+                        let text = diff_mono_mass_string(value.diff_mono_mass());
+                        let message = format!(
+                            "modification '{}' is not valid at the annotated residue; retaining \
+                             its mass difference {text} instead",
+                            value.full_id()
+                        );
+                        meter.spend(message.len(), message.len())?;
+                        if let Some(slot) = diagnostics.get_mut(entry) {
+                            *slot = Some(message);
+                        }
+                        text
+                    }
+                }
+            }
+        };
+        if !bracket_safe(&text) {
+            return Ok(None);
+        }
+        length = length
+            .checked_add(text.len().saturating_add(2))
+            .ok_or_else(|| meter.limit())?;
+        meter.spend(text.len(), text.len())?;
+        let tag = tags
+            .get_mut(position)
+            .ok_or_else(|| bad("peptide sequence changed while annotating"))?;
+        *tag = Some(text);
+        tag_count += 1;
+    }
+    charge_rebuild(residues.len(), meter)?;
+    let mut result = if tag_count == 0 {
+        sequence.clone()
+    } else {
+        meter.spend(length, length)?;
+        let mut annotated = String::new();
+        for (index, residue) in residues.iter().enumerate() {
+            annotated.push(*residue);
+            if let Some(text) = tags.get(index).and_then(Option::as_ref) {
+                annotated.push('[');
+                annotated.push_str(text);
+                annotated.push(']');
+            }
+        }
+        AASequence::parse_with_registry(&annotated, registry)?
+    };
+    if !handles.is_empty() {
+        charge_rebuild(residues.len(), meter)?;
+        result = result.with_resolved_modifications(&handles, None, None)?;
+    }
+    for (entry, n_terminal) in terminals {
+        let (_, modification) = plan
+            .get(entry)
+            .ok_or_else(|| bad("planned modification disappeared while annotating"))?;
+        charge_rebuild(residues.len(), meter)?;
+        let diagnostic = set_terminal(&mut result, modification, n_terminal, registry)?;
+        if let Some(slot) = diagnostics.get_mut(entry) {
+            *slot = diagnostic;
+        }
+    }
+    Ok(Some((result, diagnostics)))
 }
 
 /// Attach a resolved modification to one residue.
@@ -2515,6 +2879,7 @@ pub fn read_with_registry(
     }
     let mut meter = Meter::new(options);
     let text = document(reader, options, &mut meter)?;
+    meter.tighten(text.len());
     let mut state = ReaderState::new(options, registry)?;
     meter.spend(text.len().saturating_mul(8), 0)?;
     let mut parser = Reader::from_str(&text);

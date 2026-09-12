@@ -264,10 +264,34 @@ Each of these is also stated at the item in `src/format/pepxml.rs`.
   build its retention-time lookup; here `mz_file` supplies only `base_name` and
   `raw_data`, and `WriteOptions::lookup` supplies the metadata. This keeps the
   module independent of the `mzml` feature.
-- **Diagnostics are returned.** Everything the source passes to
-  `XMLHandler::error`/`::warning` is collected in `PepXmlDocument::warnings`,
-  bounded by `ReadOptions::max_warnings` with the overflow counted in
-  `suppressed_warnings`. None of them is fatal, exactly as in the source.
+- **Diagnostics are returned, and are bounded in bytes.** Everything the
+  source passes to `XMLHandler::error`/`::warning` is collected in
+  `PepXmlDocument::warnings`, bounded by `ReadOptions::max_warnings` **and** by
+  `ReadOptions::max_warning_bytes`, with the overflow counted in
+  `suppressed_warnings`. None of them is fatal, exactly as in the source. A
+  message that quotes the peptide quotes at most its first 32 residues and then
+  its byte length, where the source logs the whole sequence: several of these
+  messages are emitted once per annotation, so quoting a file-derived peptide of
+  unbounded length in full let 114,941 bytes of input retain 64,091,000 bytes of
+  diagnostics. Building and retaining a message is charged against the meter.
+- **One `search_hit`'s annotations are planned and then installed in one pass.**
+  The source stores a resolved `ResidueModification*` per slot, so its loop over
+  `mod_aminoacid_mass` entries can consult and mutate the peptide as it goes;
+  every `AASequence` setter here clones the peptide and recomputes its formula
+  and its mass from every residue, which made one hit cost its peptide length
+  per annotation — measured at 121.2 s for a 946,785 byte document with one
+  17,400-residue peptide carrying 17,400 annotations. The annotations are now
+  decided first, against the free slots rather than against intermediate
+  peptides, and then installed together: the planned mass annotations are
+  respelled as bracket annotations on the peptide and parsed in one pass, which
+  resolves each of them through the same function the setter would have called;
+  the planned named modifications are resolved with the same lookup the setter
+  performs and installed in one call; and the at most two terminal annotations
+  keep their own setters. The same document now loads in 0.18 s. A `peptide`
+  attribute that carries an annotation of its own cannot be respelled and keeps
+  one setter per modification, which is charged its real cost, so a peptide long
+  enough for the product of sites and length to matter is refused rather than
+  run.
 - **Ambiguous residue codes have no monoisotopic mass.** The internal residue
   mass a `mass == massdiff` repair and a `mod_aminoacid_mass` difference need is
   computed from the crate's chemistry, which has no monoisotopic composition for
@@ -294,18 +318,35 @@ document and the input is untouched:
 | `max_modifications` | 100,000 | Header declarations per run, and annotations per hit |
 | `max_protein_hits` | 5,000,000 | `search_hit` plus `alternative_protein` references per run |
 | `max_warnings` | 1,000 | Retained diagnostics; the rest are counted |
+| `max_warning_bytes` | 1 MiB | Total length of the retained diagnostics |
 
 `WriteOptions::max_output_bytes` (512 MiB) and `max_identifications` bound
 serialization. Zero-valued or over-large limits are rejected before any input is
 read.
 
+The work and allocation budget is derived from `max_input_bytes`, which is a
+ceiling and not a measurement: with the default ceiling a small document would
+be entitled to gigabytes of work. Once the input is decoded the budget is
+lowered to what its length entitles it to — 2,048 work units and 512 allocation
+units per decoded byte, never below the 16 MiB floor the ceiling-derived budget
+already has, and never raised. Total work is therefore linear in the input
+length, which is what bounds the per-`search_hit` annotation work described
+above. Reading the upstream fixtures spends 13 to 22 work units per byte and 7
+to 15 allocation units per byte; a document that is almost entirely one long
+peptide spends an order of magnitude more, which is the headroom those two
+factors leave.
+
 No index, slice or arithmetic on file-derived data is unchecked. Positions and
-ranks are `checked_sub`; the sequence is indexed by `chars().nth`, never by
-byte; every number must parse and be finite; the isotope-error and nominal-mass
-conversions are range-checked before the `f64`-to-integer cast. No string this
-module did not construct is ever byte-sliced, and `tests/pepxml.rs` reads a
-pepXML whose accessions are Japanese, stores a document whose base name is
-Japanese and loads a Japanese path.
+ranks are `checked_sub`; an annotated position addresses the peptide through the
+`Vec<char>` walked once per `search_hit`, never a byte offset and never a fresh
+`chars().nth` walk per annotation; every number must parse and be finite; the
+isotope-error and nominal-mass conversions are range-checked before the
+`f64`-to-integer cast. No string this module did not construct is ever
+byte-sliced — the bracket annotations a plan is respelled into are built from
+the module's own numeric spellings, and a spelling that is not plain decimal is
+left to the setter instead — and `tests/pepxml.rs` reads a pepXML whose
+accessions are Japanese, stores a document whose base name is Japanese and loads
+a Japanese path.
 
 **Evidence.** Tier 1 on the writer and tier 3 on the reader; see
 `tests/data/pepxml_provenance.json` for the hashes, the 28 source anchors and
@@ -360,7 +401,12 @@ documents, non-ASCII input, the corrupted-date repair, unknown scores, the
 decoy-prefix annotation, the Mascot base-name roll-back, an unknown enzyme, a
 custom cleavage expression, the modification diagnostics, the preferred
 modification lists, the `SpectrumIndex` queries, the retention-time fallback,
-Percolator's missing posterior error probability, and the atomic store.
+Percolator's missing posterior error probability, the atomic store, and the four
+bounds on the annotation pass: that a densely annotated 946,804 byte peptide
+loads within a budget only linear in the input, that the diagnostics are bounded
+in bytes as well as in number, that a `peptide` attribute carrying its own
+annotation still annotates through the per-setter path, and that the work budget
+follows the decoded input rather than the declared ceiling.
 
 ## Not covered
 

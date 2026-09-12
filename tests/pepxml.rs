@@ -1155,3 +1155,222 @@ fn store_publishes_atomically_and_round_trips_through_a_file() {
     assert_eq!(std::fs::read_to_string(&path).unwrap(), text);
     std::fs::remove_dir_all(&directory).ok();
 }
+
+// ---------------------------------------------------------------------------
+// Bounded annotation work and bounded diagnostics
+// ---------------------------------------------------------------------------
+
+/// One `search_hit` with `residues` residues and `annotations` annotations.
+///
+/// `position` puts every annotation on that one position; `None` puts the n-th
+/// annotation on the n-th residue. The annotated mass is the carbamidomethyl
+/// mass of the upstream fixture, so an annotation on the cysteine of the
+/// repeating residue pattern resolves to a registry record while one on any
+/// other residue is retained as an anonymous mass; neither is declared in the
+/// run header. No `aminoacid_modification` is declared, so nothing is applied
+/// implicitly on top.
+fn annotated_hit(residues: usize, annotations: usize, position: Option<usize>) -> String {
+    let peptide: String = "ACDEFGHIKLMNPQRSTVWY"
+        .chars()
+        .cycle()
+        .take(residues)
+        .collect();
+    let mut modifications = String::new();
+    for index in 0..annotations {
+        let position = position.unwrap_or(index % residues.max(1) + 1);
+        modifications.push_str(&format!(
+            "<mod_aminoacid_mass position=\"{position}\" mass=\"160.0306\"/>"
+        ));
+    }
+    run_with_hit("", &peptide, &modifications)
+}
+
+/// One `search_hit` whose `peptide` attribute carries an annotation of its own,
+/// in a run that declares a fixed cysteine modification.
+///
+/// The attribute is not a plain residue string, so the annotations cannot be
+/// respelled on it and every one of them is installed by its own setter.
+fn self_annotated_hit(cysteines: usize) -> String {
+    let peptide = format!("M[+15.9949]{}", "C".repeat(cysteines));
+    run_with_hit(
+        "<aminoacid_modification aminoacid=\"C\" massdiff=\"57.0215\" mass=\"160.0306\" \
+         variable=\"N\"/>",
+        &peptide,
+        "",
+    )
+}
+
+/// A one-run, one-query, one-hit document around the given parts.
+fn run_with_hit(declarations: &str, peptide: &str, modifications: &str) -> String {
+    format!(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+         <msms_pipeline_analysis date=\"2009-05-25T12:33:22\" summary_xml=\"bounded.pepxml\">\n\
+         <msms_run_summary base_name=\"bounded\" raw_data_type=\"raw\" raw_data=\".mzXML\">\n\
+         <sample_enzyme name=\"trypsin\">\
+         <specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/></sample_enzyme>\n\
+         <search_summary base_name=\"bounded\" search_engine=\"X! Tandem\" \
+         precursor_mass_type=\"monoisotopic\" fragment_mass_type=\"monoisotopic\" search_id=\"1\">\n\
+         <search_database local_path=\"./current.fasta\" type=\"AA\"/>\n\
+         {declarations}\n\
+         </search_summary>\n\
+         <spectrum_query spectrum=\"bounded.00001.00001.2\" start_scan=\"1\" end_scan=\"1\" \
+         precursor_neutral_mass=\"1612.7918\" assumed_charge=\"2\" index=\"1\" \
+         retention_time_sec=\"1.0\">\n\
+         <search_result>\n\
+         <search_hit hit_rank=\"1\" peptide=\"{peptide}\" protein=\"P1\" massdiff=\"0.0\" \
+         is_rejected=\"0\">\n\
+         <modification_info>{modifications}</modification_info>\n\
+         </search_hit>\n\
+         </search_result>\n\
+         </spectrum_query>\n\
+         </msms_run_summary>\n\
+         </msms_pipeline_analysis>\n"
+    )
+}
+
+#[test]
+fn a_large_annotated_peptide_costs_the_peptide_length_not_its_square() {
+    // 17,400 annotations on a 17,400-residue peptide. Installing them one at a
+    // time rebuilt the whole peptide's chemistry per annotation, which took
+    // 121.2 s for this shape on the reference Linux node in release mode
+    // (6.60 s at 215,784 bytes and 14.6 s at 318,384 bytes - a quadratic);
+    // planning them and installing them in one pass takes 0.18 s.
+    let text = annotated_hit(17_400, 17_400, None);
+    assert_eq!(text.len(), 946_804);
+    // A work budget only linear in the input is what keeps it that way, and is
+    // what this pins independently of the machine: the reader charges every
+    // chemistry rebuild it performs, and one rebuild per annotation would want
+    // 1.9e10 work units where this input is entitled to 1.9e9.
+    let read = ReadOptions::default();
+    let start = std::time::Instant::now();
+    let document = pepxml::read_with_options(text.as_bytes(), &read).unwrap();
+    let elapsed = start.elapsed();
+    assert_eq!(document.warnings, Vec::<String>::new());
+    let hit = &document.peptide_identifications[0].hits[0];
+    assert_eq!(hit.sequence.len(), 17_400);
+    assert!(
+        (0..17_400).all(|index| hit.sequence.residue_modification(index).unwrap().is_some()),
+        "every annotated residue must carry its modification"
+    );
+    // The cysteines resolve to the registry record and the other residues keep
+    // the declared mass, which is what the respelled peptide has to reproduce.
+    let expected = "A[160.030599999999993]C(Carbamidomethyl)D[160.030599999999993]";
+    assert_eq!(
+        hit.sequence
+            .to_string()
+            .chars()
+            .take(expected.chars().count())
+            .collect::<String>(),
+        expected
+    );
+    // The measured regression itself: 121.2 s in release mode before, 0.18 s
+    // after. The bound is loose enough for an unoptimised build on a loaded
+    // machine and still an order of magnitude below the cost it replaces.
+    assert!(elapsed.as_secs() < 60, "{elapsed:?}");
+}
+
+#[test]
+fn diagnostics_are_bounded_in_bytes_as_well_as_in_number() {
+    // 1,001 annotations on one position of an 8,000-residue peptide: the first
+    // is applied and the other 1,000 are reported as duplicates. Quoting the
+    // whole peptide in each of them retained 8,091,000 bytes of diagnostics
+    // from this 58,960 byte input before the quote was elided, and grew with
+    // the peptide rather than with the input: 64,091,000 bytes from 114,941
+    // bytes of input once the peptide is 64,000 residues long.
+    let text = annotated_hit(8_000, 1_001, Some(2));
+    assert_eq!(text.len(), 58_960);
+    let document = pepxml::read_with_options(text.as_bytes(), &ReadOptions::default()).unwrap();
+    assert_eq!(document.warnings.len(), 1_000);
+    assert_eq!(document.suppressed_warnings, 0);
+    let retained: usize = document.warnings.iter().map(String::len).sum();
+    assert!(
+        retained < 200_000,
+        "{retained} bytes of diagnostics retained"
+    );
+    assert!(
+        document.warnings.iter().all(|warning| warning.len() < 256),
+        "a diagnostic must not grow with the peptide length"
+    );
+    assert!(
+        document.warnings[0].contains("(8000 bytes)"),
+        "{}",
+        document.warnings[0]
+    );
+    // The byte ceiling is enforced independently of the count, and reaching it
+    // suppresses rather than fails.
+    let read = ReadOptions {
+        max_warning_bytes: 4_096,
+        ..Default::default()
+    };
+    let document = pepxml::read_with_options(text.as_bytes(), &read).unwrap();
+    let retained: usize = document.warnings.iter().map(String::len).sum();
+    assert!(
+        retained <= 4_096,
+        "{retained} bytes of diagnostics retained"
+    );
+    assert!(document.warnings.len() < 1_000);
+    assert_eq!(
+        document.warnings.len() + document.suppressed_warnings,
+        1_000
+    );
+    assert_eq!(document.peptide_identifications[0].hits.len(), 1);
+}
+
+#[test]
+fn a_peptide_attribute_with_its_own_annotation_keeps_the_per_setter_path() {
+    let text = self_annotated_hit(4);
+    let document = pepxml::read_with_options(text.as_bytes(), &ReadOptions::default()).unwrap();
+    let hit = &document.peptide_identifications[0].hits[0];
+    assert_eq!(hit.sequence.as_str(), "MCCCC");
+    assert_eq!(
+        hit.sequence.to_string(),
+        "M(Oxidation)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)C(Carbamidomethyl)"
+    );
+    // That path costs the peptide length per modification, so it is charged
+    // that way. A peptide whose product of sites and length stays within the
+    // budget still loads, 200 sites on 201 residues here.
+    let text = self_annotated_hit(200);
+    let document = pepxml::read_with_options(text.as_bytes(), &ReadOptions::default()).unwrap();
+    assert_eq!(
+        document.peptide_identifications[0].hits[0].sequence.len(),
+        201
+    );
+    // A peptide long enough for that product to matter is refused instead of
+    // run: 5,000 fixed-modification sites on 5,001 residues used to load,
+    // taking the peptide length squared to do it.
+    let text = self_annotated_hit(5_000);
+    let error = pepxml::read_with_options(text.as_bytes(), &ReadOptions::default()).unwrap_err();
+    assert!(matches!(error, Error::Parse { .. }), "{error}");
+}
+
+#[test]
+fn the_work_budget_follows_the_decoded_input_and_not_only_the_ceiling() {
+    // `max_input_bytes` is a ceiling, not a measurement: the default 512 MiB
+    // would entitle a 6 KiB document to gigabytes of work, which is what let a
+    // quadratic annotation pass run to completion. The budget is lowered to
+    // what the decoded input entitles it to, so raising the declared ceiling
+    // buys no more work for the same input.
+    let text = self_annotated_hit(5_000);
+    for ceiling in [text.len(), 512 * 1024 * 1024] {
+        let read = ReadOptions {
+            max_input_bytes: ceiling,
+            ..Default::default()
+        };
+        let error = pepxml::read_with_options(text.as_bytes(), &read).unwrap_err();
+        assert!(matches!(error, Error::Parse { .. }), "{ceiling}: {error}");
+    }
+    // A ceiling below the input remains what rejects the input itself.
+    let text = annotated_hit(200, 200, None);
+    let read = ReadOptions {
+        max_input_bytes: text.len() - 1,
+        ..Default::default()
+    };
+    let error = pepxml::read_with_options(text.as_bytes(), &read).unwrap_err();
+    assert!(matches!(error, Error::Parse { .. }), "{error}");
+    let read = ReadOptions {
+        max_input_bytes: text.len(),
+        ..Default::default()
+    };
+    let document = pepxml::read_with_options(text.as_bytes(), &read).unwrap();
+    assert_eq!(document.peptide_identifications.len(), 1);
+}
