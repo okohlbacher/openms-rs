@@ -21,6 +21,13 @@ recorded; its own ledger entry belongs to a later stage. The handler in the
 owned header is the **write** path, plus a stream read path that is dead code
 (see the API table).
 
+The read path also finishes a cross-linking document with six functions from
+`ANALYSIS/XLMS/OPXLHelper.h` (1474 lines), another unowned header. Those six
+are reproduced as private helpers of this module — the read path is not
+meaningful without them — and the file is hashed in the manifest with that role
+recorded; the rest of `OPXLHelper.h` is a search algorithm and keeps its own
+ledger entry. Section 5 has the whole cross-linking picture.
+
 ---
 
 ## 1. API mapping
@@ -119,10 +126,11 @@ here too.
 | `getChildWithName_` | not ported | Declared in the header and not defined anywhere in the source (the DOM handler has its own copy). |
 | `writeEnzyme_` | `write_enzyme` | Same CV fallback chain: the enzyme name, then `NoEnzyme` for "no cleavage", then `cleavage agent details`. |
 | `writeModParam_` | `write_mod_params` | Emits protein-terminal specificity rules as well (section 3). |
-| `writeFragmentAnnotations_` | `write_fragmentation`, `split_annotation` | The regex is replaced by an explicit parser with the same accepted shape. |
+| `writeFragmentAnnotations_` | `write_fragmentation`, `split_annotation` | The regex is replaced by an explicit parser with the same accepted shape; the `is_ppxl` flag is the `crosslinking` parameter and writes the same `cross-link_chain` / `cross-link_ioncategory` arrays. |
 | `trimOpenMSfileURI` | `trim_file_uri` | |
 | `writePeptideHit` | `write_item`, `write_modifications`, `write_score` | |
-| `writeXLMSPeptideHit` | **not ported** | See the cross-linking deferral, section 5. |
+| `writeXLMSPeptideHit` | `plan_crosslinks`, `write_crosslink_peptide`, `write_crosslink_item`, `crosslinker_term`, `crosslink_skip` | Full port of the cross-linking output path (section 5). The heavy half of a labelled pair is built directly rather than by substituting strings in the light one, and the location of a terminal link follows the hit's specificity rather than whether `CrossLinksDB` happens to hold a terminal record of that mass. |
+| `is_ppxl` (local of `writeTo`) | `Plan::crosslinking`, `is_crosslinking_run` | Same test: `is_cross_linking_experiment` or `SpectrumIdentificationProtocol == MS:1002494` on a run. |
 | `initCvCaches_` | `WriteContext::details` | `getAllChildTerms("MS:1001143")`, descendants only. |
 | `pep_sequences_`, `pp_identifier_2_sil_`, `sil_2_sdb_`, `sil_2_sdat_`, `ph_2_sdat_`, `sil_2_sip_`, `peptide_result_details_` | `Plan`, `WriteContext` | The same id and reference bookkeeping, with positional ids. |
 | `actual_peptide_`, `current_mod_location_`, `actual_protein_` | not ported | State of the dead stream path. |
@@ -143,15 +151,35 @@ is reproduced unless stated.
 | `parseSpectrumIdentificationElements_` | `read_runs` |
 | `parseSpectrumIdentificationProtocolElements_` | `read_protocols`, `modification_params` |
 | `parseInputElements_` | `read_inputs` |
-| `parseSpectrumIdentificationListElements_` | `read_lists` |
-| `parseSpectrumIdentificationItemElement_` | `read_item`, `select_score`, `merge_target_decoy` |
+| `parseSpectrumIdentificationListElements_` | `read_lists`, `apply_result_params` |
+| `parseSpectrumIdentificationItemElement_` | `read_item`, `select_score`, `merge_target_decoy`, `attach_evidences` |
+| `parseSpectrumIdentificationItemSetXLMS` | `read_crosslink_result`, `read_crosslink_group`, `read_crosslink_fragmentation`, `crosslink_user_value` |
+| XL half of `parsePeptideSiblings_` | `read_crosslink_modification`, `apply_crosslink_residue_modification` |
 | `parseProteinDetectionListElements_`, `parseProteinAmbiguityGroupElement_`, `parseProteinDetectionHypothesisElement_` | `read_protein_detection` |
 | `inferModificationLocation_` | `infer_modification_location` |
 | `parsePeptideSiblings_` | `read_peptide`, `apply_modification` |
 | `findSearchParameters_` | `additional_search_params` |
 | `initScoreTermCaches_` | `ScoreTerms::new` |
 | `toDoubleOrNaN_`, `toDoubleOrZero_` | `optional_value`, `score_value` |
-| `parseSpectrumIdentificationItemSetXLMS`, `buildCvList_` and the other `build*` writers | not ported |
+| `buildCvList_` and the other `build*` writers | not ported (they belong to the commented-out DOM writer) |
+
+### `ANALYSIS/XLMS/OPXLHelper.h` (unowned header), post-processing only
+
+`readMzIdentMLFile` finishes a cross-linking document with six calls into this
+header. The functions are reproduced as private helpers of this module, because
+the read path is not meaningful without them; `OPXLHelper.h` as a whole - its
+candidate enumeration, database digestion and scoring - stays unported and
+keeps its own ledger entry.
+
+| C++ member | Rust counterpart |
+|---|---|
+| `addProteinPositionMetaValues` | `add_protein_position_meta_values` |
+| `addBetaAccessions` | `add_beta_accessions` |
+| `addXLTargetDecoyMV` | `add_crosslink_target_decoy` |
+| `removeBetaPeptideHits` | `merge_crosslink_hits` |
+| `computeDeltaScores` | `compute_delta_scores` |
+| `addPercolatorFeatureList` | `add_percolator_features`, `PERCOLATOR_FEATURES` |
+| every other member (`enumerateCrossLinksAndMasses`, `digestDatabase`, `buildCandidates`, `buildPeptideIDs`, `combineTopRanksFromPairs`, …) | not ported: not on the read or write path |
 
 ---
 
@@ -224,6 +252,42 @@ These are deliberate and observable, and several are surprising:
   normalisation.
 * **A missing spectrum reference** falls back to `MZ:<mz>@RT:<rt>`.
 
+### Cross-linking conventions
+
+* **`MS:1002494` anywhere in any `AdditionalSearchParams` switches the whole
+  document** to the cross-linking path, before anything else is read, and tags
+  every run with the term - which is also what the writer tests.
+* **Items of one result are grouped by the value of their `MS:1002511`
+  cvParam,** and each group is one match. A result with no such cvParam is one
+  group over its **first** item only ("fix for label-free mono-links").
+* **The light half is the item with the smallest experimental m/z**; a match
+  counts as labelled only when the m/z differ *and* the `spectrumID` names more
+  than one spectrum, so a single spectrum whose items merely disagree on m/z is
+  not mistaken for a label pair.
+* **The alpha chain is the peptide carrying the donor modification**; a match
+  with as many beta items as alpha ones is a `cross-link`, one whose alpha
+  peptide carries the donor and the acceptor of the same link is a
+  `loop-link`, anything else a `mono-link`.
+* **A group with no donor at all falls back to the linear item path,** so a
+  noncovalent association is read as ordinary candidates.
+* **`rank` and `chargeState` come from the first item of the group** that
+  declares a nonzero one; the score from the last `MS:1002681` or `MS:1003024`.
+* **Fragment annotations come from the first item of the group** that has a
+  `Fragmentation` block, and are rebuilt as
+  `[<chain>|<category>$<series><index><loss>]`.
+* **A cross-linker cvParam is not applied to the sequence.** `DSS` and the
+  other XLMOD names are not in `ModificationsDB`, so the source's `has` guard
+  skips them with a warning; the position and mass live on in the
+  `xl_pos1`/`xl_mass` user parameters instead.
+* **`userParam`s of an XL item are collected from its descendants,** which is
+  how the `cross-link_chain` and `cross-link_ioncategory` arrays of its own
+  `IonType`s become hit metadata.
+* **One identification per spectrum reference** comes out of the merge step,
+  with the beta chain folded into the alpha hit's `BetaPepEv:` values, and the
+  `OpenPepXL:score` score type.
+* **The first run gets the Percolator feature list** (`feature_extractor`,
+  `extra_features`) whether or not it carries a cross-link.
+
 ---
 
 ## 3. Native differences
@@ -232,7 +296,19 @@ Each one is documented at the item in the module as well.
 
 | Difference | Source | This port |
 |---|---|---|
-| **Cross-linking documents** | Read through a separate XL path plus six `OPXLHelper` post-processing steps | Refused with [`Error::Unsupported`] naming `MS:1002494`. Reading them as linear PSMs would split every cross-link into unrelated candidates. Section 5. |
+| **XML entity references and CDATA** | Xerces resolves both into the element's text | quick-xml reports each `&…;` as its own event and CDATA as another; both are resolved into the text, and an external entity - which would need the DTD this reader refuses anyway - is an [`Error::Unsupported`]. The sibling Mascot XML reader ignored those events and so deleted the character they stand for, turning a score of `1.5` into `15`. Pinned by `entity_references_and_cdata_are_character_data` and `an_external_entity_reference_is_refused`. |
+| **Cross-link group index** | Groups by an index that counts *every* element child of the result, then looks the item up in the result's item list, so a result with a non-item element child before its items groups the wrong item | Groups by the item's own ordinal |
+| **A result with no items** | Registers the group `(0 → item 0)` unconditionally and then dereferences a null `item(0)` | No identification, no crash |
+| **A cross-link group with no experimental m/z** | `min_element` over a vector of NaN, then `light[0]` on an empty index vector | The group is skipped. Pinned by `a_crosslink_group_without_an_experimental_mz_is_skipped` |
+| **The result's own parameters** | Applied to `pep_id_->back()`, so with several groups per result only the last one gets the retention time, and with no group at all they land on an unrelated earlier identification | Applied to every identification the result produced |
+| **A loop-link's second position** | Set from the acceptor and then overwritten with the mono-link placeholder `"-"` two branches later, which makes the source's own loop-link branch dead and drops the second half of every loop-link on a store | Kept, so a loop-link round-trips. Pinned by `a_loop_link_keeps_both_positions_on_one_chain`. `OpenMS_CPP_ISSUES.md` |
+| **`BetaPepEv:start` / `:end`** | Built with `std::string += Int`, which appends the *code point* of the position instead of its digits, so the writer's `toInt32` cannot read its own value back | Decimal numbers. `OpenMS_CPP_ISSUES.md` |
+| **Hits of a non-cross-linked identification** | `removeBetaPeptideHits` keeps only the first hit of every identification, so a spectrum read through the fallback path loses every candidate but the best | Only a folded beta chain is removed. Pinned by `noncovalent_association_resolves_every_sequence` |
+| **The merged identification's run link** | Left empty, so every cross-linking PSM ends up unlinked from its protein run and the writer has to fall back to the first list | Kept |
+| **A terminal cross-link's location** | Written at `location=0` (or the position plus two) only when `CrossLinksDB` also holds a terminal record of that mass, and otherwise emits an attribute list with no element name in front of it | The location follows the hit's terminal specificity, so `N_TERM` and `C_TERM` round-trip. Pinned by `terminal_crosslink_positions_round_trip` |
+| **The beta chain's C-terminal location** | Written at the peptide length plus two, which its own reader reads as an internal position one past the end | The position plus two, i.e. the schema's C-terminus. `OpenMS_CPP_ISSUES.md` |
+| **An ambiguous cross-linker mass** | Falls back to `getModification(one-letter code, full id, ANYWHERE)` - the name and residue arguments the wrong way round, which throws | The first record of that mass, as the intent reads |
+| **`xl_pos1_protein` / `xl_pos2_protein`** | `evidence start + link position + 1`, where the source's own reader stored the file's 1-based `start`, so the protein coordinate is one too high | The same formula on the 0-based start this reader stores, i.e. the coordinate the source's comment describes |
 | **XML ids** | `UniqueIdGenerator` values, so two stores of one document differ; elements are emitted from `std::set<std::string>`, i.e. sorted by their own XML text | Positional (`SIL_0`, `PEP_3`, `PEV_7`), emitted in a defined order. `store` is byte-reproducible, asserted in `store_and_reload`. The upstream FuzzyDiff whitelist exempts `id=` for exactly this reason. |
 | **Run identifier** | A fresh `UniqueIdGenerator` value per run (with the source's own `TODO setIdentifier to xml id?`) | The `SpectrumIdentification` element's `id`, so a load is reproducible and peptide-to-run links survive. |
 | **Wall-clock stamps** | An absent `activityDate` becomes `DateTime::now()` on read, an invalid run date becomes `DateTime::now()` on write, and the root `creationDate` is always `DateTime::now()` | An absent date stays `None` on read and the attribute is omitted on write; `WriteOptions::creation_date` sets one explicitly. The upstream `load` section asserts a nonzero date, which only holds because of the substitution; the Rust test asserts `None` and comments why. |
@@ -294,10 +370,13 @@ from one shared budget, so a refusal leaves the caller's document untouched:
 | `max_list_items` | 1,000,000 | One library, evidence, hit or parameter list |
 
 [`WriteOptions`] bounds the output (`max_output_bytes`, 64 MiB) and the element
-count (`max_records`, 1,000,000). The whole document is built in memory and
-handed to the writer only on success, so a refused write produces no bytes;
-`store` publishes atomically through `path_io::write_plain`. [`MAX_ITEMS`]
-(1,000,000) caps the identifications a single write accepts.
+count (`max_records`, 1,000,000). `max_records` is enforced twice: while the
+plan is still growing - every planned element becomes at least one emitted one,
+so the ceiling applies before the plan can outgrow it - and again on each
+element as it is written. The whole document is built in memory and handed to
+the writer only on success, so a refused write produces no bytes; `store`
+publishes atomically through `path_io::write_plain`. [`MAX_ITEMS`] (1,000,000)
+caps the identifications a single write accepts.
 
 ### No panics on file-derived data
 
@@ -309,12 +388,17 @@ handed to the writer only on success, so a refused write produces no bytes;
 * Non-ASCII input is tested: `non_ascii_text_survives_the_round_trip` reads and
   writes an accession containing `日本語`.
 * Every arithmetic step on a count is `checked_*` or `saturating_*`.
+* The cross-linking path adds no index into file-derived data either: a group's
+  item indices come from the item list's own range, a link position is compared
+  against the chain's length before it becomes a residue index, and the five
+  parallel `BetaPepEv:` lists are walked to the length of the shortest instead
+  of by the first one's length, which is what the source indexes them by.
 * `unsafe` is forbidden crate-wide; nothing here needs it.
 
 ### Test-to-section mapping
 
-`MzIdentMLFile_test.cpp` has 15 `START_SECTION`s. Nine are ported, six are
-unaccounted.
+`MzIdentMLFile_test.cpp` has 15 `START_SECTION`s. All 15 are ported; none is
+mapped and none is unaccounted.
 
 | # | Upstream section | Assertion macros | Status | Rust test |
 |---|---|---|---|---|
@@ -325,32 +409,34 @@ unaccounted.
 | 5 | `void store(...)` | 69 | ported | `store_round_trip_preserves_whole_document`, `store_round_trip_preserves_modified_peptides`, `store_rejects_a_foreign_extension` (`variable_modifications.back() == "Acetyl (N-term)"`) |
 | 6 | `[EXTRA] multiple runs` | 5 | ported | `three_runs_round_trip` (`precursor_tolerance == Ppm(20.0)` after the round trip) |
 | 7 | `[EXTRA] thresholds` | 9 | ported | `thresholds_round_trip` (`significance_threshold == 0.5`, `pass_threshold == "false"` for both hits of spectrum 17) |
-| 8 | `[EXTRA]` regression load of the example files | 0 | ported | `every_upstream_non_crosslinking_fixture_loads` |
+| 8 | `[EXTRA]` regression load of the example files | 0 | ported | `every_upstream_non_crosslinking_fixture_loads` plus the six cross-linking fixtures below |
 | 9 | `[EXTRA] compability issues` | 0 (entirely commented out) | ported | `misplaced_elements_in_a_param_group_are_ignored`, `a_psm_without_a_recognised_score_yields_no_hit`, `a_psm_without_peptide_evidence_still_loads`, `an_identification_without_rt_keeps_no_coordinate`, `evidence_without_positions_keeps_them_unknown` — one test per condition its comments enumerate |
-| 10 | `[EXTRA] XLMS data labeled cross-linker` | 40 | **unaccounted** | needs `OPXLHelper`; `crosslinking_documents_are_refused_explicitly` pins the refusal instead |
-| 11 | `[EXTRA] XLMS data unlabeled cross-linker` | 40 | **unaccounted** | as above |
-| 12 | `[EXTRA]` mzIdentML 1.3 crosslinking scores and thresholds | 8 | **unaccounted** | as above; this section's fixture is the one retained for the refusal test |
-| 13 | `[EXTRA]` mzIdentML 1.3 noncovalent association | 4 | **unaccounted** | the fixture declares `MS:1002494` |
-| 14 | `[EXTRA]` mzIdentML 1.3 EDC crosslinking | 3 | **unaccounted** | the fixture declares `MS:1002494` |
-| 15 | `[EXTRA]` mzIdentML 1.3 multiple spectra per identification | 3 | **unaccounted** | the fixture declares `MS:1002494` (three times) |
+| 10 | `[EXTRA] XLMS data labeled cross-linker` | 40 | ported | `labelled_crosslinks_load_and_round_trip` (`xl_pos1` 3 / `xl_pos2` 4, `sequence_beta == "SAVIKTSTR"`, `spec_heavy_RT == 2125.5966796875`, score `-0.190406834856118`, annotation `[alpha|xi$b4]` at index 8, ten identifications, the 32-feature `extra_features` list) |
+| 11 | `[EXTRA] XLMS data unlabeled cross-linker` | 40 | ported | `unlabelled_crosslinks_round_trip` (three identifications, `mono-link`/`cross-link`/`mono-link`, `KNVPIEFPVIDR` × `LGCKALHVLFER` at 0/3, `xl_mod == "DSS"`, five annotations with charges 1/1/1/1/2, `VEPSWLGPLFPDK(Xlink:DSS[156])TSNLR` at 12) |
+| 12 | `[EXTRA]` mzIdentML 1.3 crosslinking scores and thresholds | 8 | ported | `crosslinking_v1_3_round_trips_at_schema_version_1_3_0` (every identification has a spectrum reference and a sequence; the stored file declares `version="1.3.0"` and loads again) |
+| 13 | `[EXTRA]` mzIdentML 1.3 noncovalent association | 4 | ported | `noncovalent_association_resolves_every_sequence` (both candidates of the association, with their modifications resolved) |
+| 14 | `[EXTRA]` mzIdentML 1.3 EDC crosslinking | 3 | ported | `edc_crosslinking_reads_linked_and_linear_peptides` (16 identifications from a file that also carries a CDATA `SiteRegexp`) |
+| 15 | `[EXTRA]` mzIdentML 1.3 multiple spectra per identification | 3 | ported | `multiple_spectra_keep_distinct_references` |
 
-Sections 3, 4, 5, 7, 10, 11 and 12 exceed five assertion macros; the four of
-them that are ported (3, 4, 5, 7) are ported rather than mapped, with their
-literals transcribed into the Rust tests.
+Sections 3, 4, 5, 7, 10, 11 and 12 exceed five assertion macros; all seven are
+ported rather than mapped, with their literals transcribed into the Rust tests.
 
 Native tests beyond the upstream suite: the reference-resolution table above
 (six refusal tests plus `dangling_metadata_references_stay_tolerated`), the
 version-detection branches, the parser boundaries (non-ASCII, prefixed
-namespace, foreign namespace, every ceiling, empty `PeptideSequence`,
-out-of-range substitution location, negative rank), the score-order test, the
-C-terminal modification location, the `ProteinDetectionList` rule, the
-`Fragmentation` round trip, the three write refusals and the write ceilings.
-43 tests in total.
+namespace, foreign namespace, entity references, CDATA, an external entity, a
+`DOCTYPE`, every ceiling, empty `PeptideSequence`, out-of-range substitution
+location, negative rank), the score-order test, the C-terminal modification
+location, the `ProteinDetectionList` rule, the `Fragmentation` round trip, the
+three write refusals, the write ceilings including the planning-time record
+ceiling, and four cross-linking cases no fixture reaches (a terminal link, a
+loop-link, a group with no experimental m/z, a `userParam` typed by either
+attribute). 55 tests in total.
 
 ### Evidence tier
 
 Tier 3 (source review) for everything transcribed from the class test and the
-four upstream fixtures; tier 4 (independently derived) for the synthetic
+nine upstream fixtures; tier 4 (independently derived) for the synthetic
 documents, the ceilings and the error-variant choices. No C++ was built or
 executed and no C++ output was retained, so this is **not** a tier 1
 differential. Upgrading it needs an oracle driver under `../oracle/` that links
@@ -359,36 +445,69 @@ is `msgf_mini`, whose values are all pinned above.
 
 ---
 
-## 5. The cross-linking deferral
+## 5. The cross-linking path
 
 `MzIdentMLFile::load` takes a completely different path when any
-`AdditionalSearchParams` declares `MS:1002494` ("crosslinking search"):
+`AdditionalSearchParams` declares `MS:1002494` ("crosslinking search"), and so
+does this port.
 
-1. `parseSpectrumIdentificationItemSetXLMS` (643 lines) groups the two to four
-   `SpectrumIdentificationItem`s of one cross-link spectrum match by the value
-   of `MS:1002511`, and the XL half of `parsePeptideSiblings_` (about 200 more)
-   reads donor/acceptor positions, the cross-link mass and the reagent name
-   from `MS:1002509`/`MS:1002510`.
-2. It then post-processes the result with six `OPXLHelper` functions —
-   `addProteinPositionMetaValues`, `addBetaAccessions`, `addXLTargetDecoyMV`,
-   `removeBetaPeptideHits`, `computeDeltaScores` and
-   `addPercolatorFeatureList` — from `ANALYSIS/XLMS/OPXLHelper.h`, which is
-   **not ported**.
+### Reading
 
-`removeBetaPeptideHits` alone changes the hit counts that upstream sections 10
-and 11 assert (`peptide_ids2[1].getHits().size() == 1`), so even a complete port
-of the two handler branches could not reproduce those sections without
-`OPXLHelper`. Reading such a document through the linear path would instead
-produce one unrelated PSM per item, with the alpha and beta peptides as separate
-candidates: silent corruption of the result rather than a missing feature.
+1. The `Peptide` elements are read with the XL branch of
+   `parsePeptideSiblings_` (`read_crosslink_modification`): a `MS:1002509`
+   ("crosslink donor") cvParam registers the peptide as an alpha chain under
+   the link value the cvParam carries, together with the modification's
+   `monoisotopicMassDelta` and the first UNIMOD or XLMOD name beside it; a
+   `MS:1002510` ("crosslink acceptor") registers a beta chain. A peptide whose
+   only cross-linking evidence is an `Xlink…`/`XLMOD:…` modification is
+   registered as its own mono-link. Positions are `location - 1`, so an
+   N-terminal link is `-1` and a C-terminal one the peptide length.
+2. `parseSpectrumIdentificationItemSetXLMS` (`read_crosslink_result`,
+   `read_crosslink_group`) groups the two to four
+   `SpectrumIdentificationItem`s of one match by the value of `MS:1002511` and
+   builds one identification per group: the light item's m/z and retention
+   time, the alpha chain as the first `PeptideHit` and the beta chain as the
+   second, the OpenPepXL scores and user parameters, the fragment annotations,
+   and `xl_pos1`/`xl_pos2` with their terminal specificities.
+3. The six `OPXLHelper` steps then run in the source's order
+   (`finish_crosslinks`): protein-coordinate positions, the beta accessions,
+   the per-chain target/decoy state, the merge that folds the beta chain into
+   the alpha hit and collects the identifications of one spectrum, the delta
+   scores, and the Percolator feature list on the first run.
 
-So the reader refuses, with a message naming both the accession and what is
-missing, and the six sections are reported as unaccounted. Re-scoping this is a
-follow-up in two steps: port `ANALYSIS/XLMS/OPXLHelper.h` (and the
-`CrossLinksDB`/`ProteinCrossLink` surface it needs, both of which already exist
-in `src/chemistry/`), then the two XL branches and `writeXLMSPeptideHit`.
-Nothing else in this module needs to change: the refusal is one call in
-[`read_with_registry`], and the library, protocol and result readers are shared.
+The result is one identification per spectrum reference with one hit per
+cross-link, which is what upstream sections 10 and 11 assert.
+
+### Writing
+
+A run that declares the term (or `is_cross_linking_experiment`) selects the
+output path (`is_crosslinking_run`). Every chain of every hit becomes its own
+`Peptide` element with the cross-linker `Modification` and the donor or
+acceptor cvParam that pairs them — the source makes its peptide identity key
+unique per hit by appending the link id, which leaves its own de-duplication
+branch dead — the beta chain's `PeptideEvidence` elements are rebuilt from the
+`BetaPepEv:` values the merge step left behind, all items of one spectrum share
+a single `SpectrumIdentificationResult`, and a labelled match writes its heavy
+half as a second item at the heavy m/z, the heavy retention time and the
+calculated m/z shifted by `cross_link:mass_isoshift`.
+
+The cross-linker accession comes from the bundled XLMOD vocabulary through
+[`CrossLinksDB::global`] — the singleton the source uses too — searched by mass
+difference and preferring the record whose full id names the match's own
+`xl_mod`; when nothing matches, the source's `XLMOD:XXXXX` placeholder is
+written with the name the hit carries.
+
+### What is still not ported
+
+`ANALYSIS/XLMS/OPXLHelper.h` as a whole: its candidate enumeration, database
+digestion, spectrum matching and Percolator plumbing are a search algorithm,
+not a file format, and they keep their own ledger entry. Only the six
+post-processing functions `readMzIdentMLFile` calls are reproduced here, as
+private helpers, because the read path is not meaningful without them. The
+divergences that reproduction introduces are in section 3 — the loop-link
+position the source overwrites, the `BetaPepEv:` positions it writes as code
+points, and the first-hit-only merge — and each of them only keeps data the
+source drops.
 
 [`SCHEMA_VERSION`]: ../src/format/mzidentml.rs
 [`ReadOptions`]: ../src/format/mzidentml.rs
@@ -414,6 +533,7 @@ Nothing else in this module needs to change: the refusal is one call in
 [`detect_version`]: ../src/format/mzidentml.rs
 [`detect_version_from_reader`]: ../src/format/mzidentml.rs
 [`MetaInfo`]: ../src/metadata/value.rs
+[`CrossLinksDB::global`]: ../src/chemistry/cross_links.rs
 [`ControlledVocabulary::psi_ms`]: ../src/format/controlled_vocabulary.rs
 [`Error::Parse`]: ../src/error.rs
 [`Error::Unsupported`]: ../src/error.rs

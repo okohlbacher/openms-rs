@@ -5,25 +5,27 @@
 //! Coverage for `FORMAT/MzIdentMLFile.h` and
 //! `FORMAT/HANDLERS/MzIdentMLHandler.h`.
 //!
-//! Every literal taken from `MzIdentMLFile_test.cpp` or from one of the four
+//! Every literal taken from `MzIdentMLFile_test.cpp` or from one of the nine
 //! unmodified upstream fixtures is transcribed source review (tier 3): the
 //! counts, accessions, score types, scores, spectrum references, the
 //! `database.fasta`/`MSDB` search databases, `missed_cleavages` 1000, the
 //! `Carbamidomethyl (C)` / `Xlink:DTSSP[88] (Protein N-term)` fixed
 //! modifications, the `Acetyl (N-term)` variable modification, the 0.5
-//! significance threshold, and the modification inference cases of issue #5443.
-//! No C++ was built or run, so nothing here is a tier 1 differential.
+//! significance threshold, the modification inference cases of issue #5443 and
+//! the cross-linking positions, masses, chains and fragment annotations of the
+//! two XLMS fixtures. No C++ was built or run, so nothing here is a tier 1
+//! differential.
 //!
 //! The synthetic documents - duplicate ids, dangling references, an
 //! unreferenced `SpectrumIdentificationList`, a prefixed namespace, non-ASCII
-//! text, the resource ceilings, the C-terminal modification location and the
-//! `ProteinDetectionList` - are independently derived from the mzIdentML 1.3.0
-//! schema (tier 4), because no upstream fixture reaches them.
+//! text, entity references and CDATA, the resource ceilings, the C-terminal
+//! modification location and the `ProteinDetectionList` - are independently
+//! derived from the mzIdentML 1.3.0 schema (tier 4), because no upstream
+//! fixture reaches them.
 //!
-//! `docs/MZIDENTML_SUPPORT.md` records which upstream sections are ported here
-//! and which are not: the six cross-linking sections are not, because the read
-//! path they exercise needs `ANALYSIS/XLMS/OPXLHelper.h`, which is unported.
-//! What is pinned instead is that such a document is refused explicitly.
+//! All 15 upstream sections are covered, the six cross-linking ones included;
+//! `docs/MZIDENTML_SUPPORT.md` carries the section table and the divergences
+//! the cross-linking path documents.
 
 #![cfg(feature = "idxml")]
 
@@ -33,7 +35,9 @@ use openms::comparison::Tolerance;
 use openms::format::mzidentml::{
     self, MzIdentMLDocument, ReadOptions, SCHEMA_VERSION, WriteOptions,
 };
-use openms::identification::{EnzymeTermSpecificity, FlankingResidue};
+use openms::identification::{
+    EnzymeTermSpecificity, FlankingResidue, PeptideHit, PeptideIdentification,
+};
 use openms::system::file::TempDir;
 use std::path::PathBuf;
 
@@ -42,6 +46,11 @@ const MSGF: &str = "mzidentml_msgf_mini.mzid";
 const MISSING_LOCATION: &str = "mzidentml_missing_mod_location.mzid";
 const THREE_RUNS: &str = "mzidentml_3runs.mzid";
 const CROSSLINKING: &str = "mzidentml_crosslinking_v1_3.mzid";
+const XLMS_LABELLED: &str = "mzidentml_xlms_labelled.mzid";
+const XLMS_UNLABELLED: &str = "mzidentml_xlms_unlabelled.mzid";
+const NONCOVALENT: &str = "mzidentml_noncov_assoc_v1_3.mzid";
+const EDC: &str = "mzidentml_xlink_edc_v1_3.mzid";
+const MULTI_SPECTRA: &str = "mzidentml_multi_spectra_v1_3.mzid";
 
 fn data(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -649,28 +658,582 @@ fn evidence_without_positions_keeps_them_unknown() {
 }
 
 // ---------------------------------------------------------------------------
-// Cross-linking: the six upstream XL sections are not ported
+// Cross-linking (MS:1002494): the six upstream XL sections
 // ---------------------------------------------------------------------------
 
-#[test]
-fn crosslinking_documents_are_refused_explicitly() {
-    let error = mzidentml::load(data(CROSSLINKING)).unwrap_err();
-    match &error {
-        Error::Unsupported(message) => {
-            assert!(message.contains("MS:1002494"), "{message}");
-            assert!(message.contains("OpenPepXL"), "{message}");
-        }
-        other => panic!("expected Unsupported, got {other:?}"),
-    }
+/// A hit's metadata value as text, which is how the upstream sections compare
+/// the OpenPepXL user parameters.
+fn meta(hit: &PeptideHit, key: &str) -> String {
+    hit.metadata
+        .get(key)
+        .map(ToString::to_string)
+        .unwrap_or_default()
+}
+
+/// Panics unless the value at `key` parses as a number close to `expected`.
+fn meta_number(hit: &PeptideHit, key: &str, expected: f64) {
+    let text = meta(hit, key);
+    let value: f64 = text
+        .parse()
+        .unwrap_or_else(|_| panic!("{key} = {text:?} is not a number"));
+    assert!(
+        (value - expected).abs() < 1e-6,
+        "{key} = {value}, expected {expected}"
+    );
 }
 
 #[test]
-fn the_crosslinking_marker_is_detected_wherever_it_appears() {
+fn the_crosslinking_marker_selects_the_crosslinking_path() {
+    // The source scans every AdditionalSearchParams for MS:1002494 before it
+    // reads anything else; a document that declares it takes the XL path even
+    // when no peptide carries a cross-link, and every run is then tagged with
+    // the term the writer tests in turn.
     let library = r#"<Peptide id="PEP"><PeptideSequence>PEPTIDEK</PeptideSequence></Peptide>"#;
     let results = result_with("chargeState=\"2\" experimentalMassToCharge=\"500.5\"", "");
     let text = document(library, &results).replace(
         "<SearchType>",
         r#"<AdditionalSearchParams><cvParam accession="MS:1002494" cvRef="PSI-MS" name="crosslinking search"/></AdditionalSearchParams><SearchType>"#,
+    );
+    let document = read(&text).expect("a cross-linking document is read, not refused");
+    let run = &document.protein_identifications[0];
+    assert_eq!(
+        run.metadata
+            .get("SpectrumIdentificationProtocol")
+            .map(ToString::to_string)
+            .unwrap_or_default(),
+        "MS:1002494"
+    );
+    // OPXLHelper::addPercolatorFeatureList runs on the first run of every
+    // cross-linking document, whether or not it carries a cross-link.
+    assert_eq!(
+        run.search_parameters
+            .metadata
+            .get("feature_extractor")
+            .map(ToString::to_string)
+            .unwrap_or_default(),
+        "TOPP_PSMFeatureExtractor"
+    );
+    // No crosslink donor: the source falls back to the linear item path and
+    // then still collapses the result per spectrum.
+    let identification = &document.peptide_identifications[0];
+    assert_eq!(identification.hits.len(), 1);
+    assert_eq!(meta(&identification.hits[0], "accessions_beta"), "-");
+}
+
+/// A cross-linking document with `library` peptides and one result holding
+/// `items`, derived from the mzIdentML 1.3.0 schema rather than any fixture.
+fn crosslinking_document(library: &str, items: &str) -> String {
+    let results = format!(
+        r#"   <SpectrumIdentificationResult spectraData_ref="SDAT" spectrumID="scan=7" id="SIR">
+{items}
+   </SpectrumIdentificationResult>"#
+    );
+    document(library, &results).replace(
+        "<SearchType>",
+        r#"<AdditionalSearchParams><cvParam accession="MS:1002494" cvRef="PSI-MS" name="crosslinking search"/><userParam name="cross_link:mass" type="xsd:double" value="138.0680796"/></AdditionalSearchParams><SearchType>"#,
+    )
+}
+
+/// One `SpectrumIdentificationItem` of a cross-link group.
+fn crosslink_item(id: &str, peptide: &str) -> String {
+    format!(
+        r#"    <SpectrumIdentificationItem passThreshold="true" rank="1" peptide_ref="{peptide}" chargeState="3" experimentalMassToCharge="500.5" id="{id}">
+     <cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="7"/>
+     <cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="0.5"/>
+    </SpectrumIdentificationItem>"#
+    )
+}
+
+#[test]
+fn terminal_crosslink_positions_round_trip() {
+    // No upstream fixture carries a terminal cross-link: location 0 is the
+    // N-terminus and the peptide length plus one the C-terminus, which the
+    // reader reports as the adjacent residue plus a terminal specificity.
+    let library = r#"<DBSequence accession="P1" searchDatabase_ref="SDB" id="DBS"/>
+<Peptide id="PEPA"><PeptideSequence>PEPTIDEK</PeptideSequence>
+ <Modification location="0" monoisotopicMassDelta="138.0680796">
+  <cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+  <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="7"/>
+ </Modification>
+</Peptide>
+<Peptide id="PEPB"><PeptideSequence>KATSIDER</PeptideSequence>
+ <Modification location="9" monoisotopicMassDelta="0">
+  <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink acceptor" value="7"/>
+ </Modification>
+</Peptide>
+<PeptideEvidence id="PEVA" peptide_ref="PEPA" dBSequence_ref="DBS" start="1" end="8"/>
+<PeptideEvidence id="PEVB" peptide_ref="PEPB" dBSequence_ref="DBS" start="11" end="18"/>"#;
+    let items = format!(
+        "{}\n{}",
+        crosslink_item("SIIA", "PEPA"),
+        crosslink_item("SIIB", "PEPB")
+    );
+    let text = crosslinking_document(library, &items);
+    let document = read(&text).expect("a terminal cross-link is read");
+    let hit = &document.peptide_identifications[0].hits[0];
+    assert_eq!(meta(hit, "xl_type"), "cross-link");
+    assert_eq!(meta(hit, "xl_pos1"), "0");
+    assert_eq!(meta(hit, "xl_term_spec_alpha"), "N_TERM");
+    assert_eq!(meta(hit, "xl_pos2"), "7");
+    assert_eq!(meta(hit, "xl_term_spec_beta"), "C_TERM");
+    assert_eq!(meta(hit, "sequence_beta"), "KATSIDER");
+    // Both specificities survive a store and a load.
+    let reloaded = store_and_reload(&document, "terminal.mzid");
+    let hit = &reloaded.peptide_identifications[0].hits[0];
+    assert_eq!(meta(hit, "xl_pos1"), "0");
+    assert_eq!(meta(hit, "xl_term_spec_alpha"), "N_TERM");
+    assert_eq!(meta(hit, "xl_pos2"), "7");
+    assert_eq!(meta(hit, "xl_term_spec_beta"), "C_TERM");
+}
+
+#[test]
+fn a_loop_link_keeps_both_positions_on_one_chain() {
+    // A loop-link is one peptide carrying both halves of the same link, which
+    // the source recognises by the donor and the acceptor sharing a value.
+    let library = r#"<DBSequence accession="P1" searchDatabase_ref="SDB" id="DBS"/>
+<Peptide id="PEPA"><PeptideSequence>PEPTIDEK</PeptideSequence>
+ <Modification location="2" residues="E" monoisotopicMassDelta="138.0680796">
+  <cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+  <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="7"/>
+ </Modification>
+ <Modification location="8" residues="K" monoisotopicMassDelta="0">
+  <cvParam accession="MS:1002510" cvRef="PSI-MS" name="crosslink acceptor" value="7"/>
+ </Modification>
+</Peptide>
+<PeptideEvidence id="PEVA" peptide_ref="PEPA" dBSequence_ref="DBS" start="1" end="8"/>"#;
+    let text = crosslinking_document(library, &crosslink_item("SIIA", "PEPA"));
+    let document = read(&text).expect("a loop-link is read");
+    let hit = &document.peptide_identifications[0].hits[0];
+    assert_eq!(meta(hit, "xl_type"), "loop-link");
+    assert_eq!(meta(hit, "xl_pos1"), "1");
+    assert_eq!(meta(hit, "xl_pos2"), "7");
+    // Both link positions become protein coordinates, counting from 1:
+    // evidence start 0 plus the link position plus one.
+    assert_eq!(meta(hit, "xl_pos1_protein"), "2");
+    assert_eq!(meta(hit, "xl_pos2_protein"), "8");
+    let reloaded = store_and_reload(&document, "looplink.mzid");
+    let hit = &reloaded.peptide_identifications[0].hits[0];
+    assert_eq!(meta(hit, "xl_type"), "loop-link");
+    assert_eq!(meta(hit, "xl_pos1"), "1");
+    assert_eq!(meta(hit, "xl_pos2"), "7");
+}
+
+#[test]
+fn a_crosslink_group_without_an_experimental_mz_is_skipped() {
+    // The source guards the light/heavy split with an emptiness check and then
+    // indexes an empty vector when every item's m/z is absent; the group
+    // produces no identification here.
+    let library = r#"<Peptide id="PEPA"><PeptideSequence>PEPTIDEK</PeptideSequence>
+ <Modification location="2" residues="E" monoisotopicMassDelta="138.0680796">
+  <cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+  <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="7"/>
+ </Modification>
+</Peptide>"#;
+    let item = crosslink_item("SIIA", "PEPA").replace(
+        "experimentalMassToCharge=\"500.5\"",
+        "experimentalMassToCharge=\"\"",
+    );
+    let text = crosslinking_document(library, &item);
+    let document = read(&text).expect("the group is skipped, not refused");
+    assert!(document.peptide_identifications.is_empty());
+}
+
+#[test]
+fn a_crosslink_user_parameter_is_typed_by_either_attribute() {
+    // The source's XL path types a userParam from unitName and its linear path
+    // from type; this reader accepts either, so a value from an OpenMS-written
+    // file and one from this writer both keep their number.
+    let library = r#"<Peptide id="PEPA"><PeptideSequence>PEPTIDEK</PeptideSequence>
+ <Modification location="2" residues="E" monoisotopicMassDelta="138.0680796">
+  <cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+  <cvParam accession="MS:1002509" cvRef="PSI-MS" name="crosslink donor" value="7"/>
+ </Modification>
+</Peptide>"#;
+    let item = crosslink_item("SIIA", "PEPA").replace(
+        "</SpectrumIdentificationItem>",
+        r#"     <userParam name="unit_typed" unitName="xsd:double" value="1.5"/>
+     <userParam name="type_typed" type="xsd:double" value="2.5"/>
+    </SpectrumIdentificationItem>"#,
+    );
+    let text = crosslinking_document(library, &item);
+    let document = read(&text).expect("a typed cross-linking userParam is read");
+    let hit = &document.peptide_identifications[0].hits[0];
+    for (key, expected) in [("unit_typed", 1.5), ("type_typed", 2.5)] {
+        let value = hit
+            .metadata
+            .get(key)
+            .unwrap_or_else(|| panic!("{key} is present"))
+            .as_f64()
+            .unwrap_or_else(|_| panic!("{key} is typed as a number"));
+        assert!((value - expected).abs() < 1e-12, "{key} = {value}");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Upstream section: [EXTRA] XLMS data labeled cross-linker
+// ---------------------------------------------------------------------------
+
+#[test]
+fn labelled_crosslinks_load_and_round_trip() {
+    let original = load(XLMS_LABELLED);
+    let hit = &original.peptide_identifications[1].hits[0];
+    assert_eq!(meta(hit, "xl_pos1"), "3");
+    assert_eq!(meta(hit, "xl_pos2"), "4");
+    assert_eq!(meta(hit, "xl_term_spec_alpha"), "ANYWHERE");
+    assert_eq!(meta(hit, "sequence_beta"), "SAVIKTSTR");
+    assert_eq!(hit.sequence.to_string(), "FIVKASSGPR");
+    assert_eq!(
+        original.protein_identifications[0]
+            .metadata
+            .get("SpectrumIdentificationProtocol")
+            .map(ToString::to_string)
+            .unwrap_or_default(),
+        "MS:1002494"
+    );
+
+    let reloaded = store_and_reload(&original, "xlms_labelled.mzid");
+    let parameters = &reloaded.protein_identifications[0].search_parameters;
+    assert_eq!(parameters.fragment_tolerance, Tolerance::Absolute(0.2));
+    assert!(matches!(parameters.precursor_tolerance, Tolerance::Ppm(_)));
+    for key in ["cross_link:residue1", "cross_link:residue2"] {
+        assert_eq!(
+            parameters
+                .metadata
+                .get(key)
+                .map(ToString::to_string)
+                .unwrap_or_default(),
+            "[K, N-term]"
+        );
+    }
+    let mass: f64 = parameters
+        .metadata
+        .get("cross_link:mass")
+        .map(ToString::to_string)
+        .unwrap_or_default()
+        .parse()
+        .expect("cross_link:mass is a number");
+    assert!((mass - 138.0680796).abs() < 1e-6);
+    let shift: f64 = parameters
+        .metadata
+        .get("cross_link:mass_isoshift")
+        .map(ToString::to_string)
+        .unwrap_or_default()
+        .parse()
+        .expect("cross_link:mass_isoshift is a number");
+    assert!((shift - 12.075321).abs() < 1e-6);
+    assert_eq!(
+        parameters
+            .metadata
+            .get("extra_features")
+            .map(ToString::to_string)
+            .unwrap_or_default(),
+        concat!(
+            "precursor_mz_error_ppm,OpenPepXL:score,isotope_error,",
+            "OpenPepXL:xquest_score,OpenPepXL:xcorr xlink,OpenPepXL:xcorr common,",
+            "OpenPepXL:match-odds,OpenPepXL:intsum,OpenPepXL:wTIC,OpenPepXL:TIC,",
+            "OpenPepXL:prescore,OpenPepXL:log_occupancy,OpenPepXL:log_occupancy_alpha,",
+            "OpenPepXL:log_occupancy_beta,matched_xlink_alpha,matched_xlink_beta,",
+            "matched_linear_alpha,matched_linear_beta,ppm_error_abs_sum_linear_alpha,",
+            "ppm_error_abs_sum_linear_beta,ppm_error_abs_sum_xlinks_alpha,",
+            "ppm_error_abs_sum_xlinks_beta,ppm_error_abs_sum_linear,",
+            "ppm_error_abs_sum_xlinks,ppm_error_abs_sum_alpha,ppm_error_abs_sum_beta,",
+            "ppm_error_abs_sum,precursor_total_intensity,precursor_target_intensity,",
+            "precursor_signal_proportion,precursor_target_peak_count,",
+            "precursor_residual_peak_count"
+        )
+    );
+
+    // One identification per spectrum reference, in the order the merge step's
+    // map produces.
+    assert_eq!(reloaded.peptide_identifications.len(), 10);
+    let identifications = &reloaded.peptide_identifications;
+    assert_eq!(identifications[1].rt, identifications[2].rt);
+    let rt = identifications[1].rt.expect("a light retention time");
+    assert!((rt - 2132.4757).abs() < 1e-3, "{rt}");
+    let mz = identifications[1].mz.expect("a light precursor m/z");
+    assert!((mz - 721.0845).abs() < 1e-3, "{mz}");
+    assert_eq!(
+        identifications[1].spectrum_reference(),
+        "spectrum=131,spectrum=113"
+    );
+
+    assert_eq!(identifications[0].hits.len(), 1);
+    assert_eq!(identifications[1].hits.len(), 1);
+    assert_eq!(identifications[3].hits.len(), 1);
+    let hit = &identifications[1].hits[0];
+    assert_eq!(meta(hit, "xl_type"), "cross-link");
+    meta_number(hit, "spec_heavy_RT", 2125.5966796875);
+    // The upstream literal is 725.109252929687841, the exact decimal
+    // expansion of the same double.
+    meta_number(hit, "spec_heavy_MZ", 725.109_252_929_687_8);
+    assert!((hit.score - -0.190406834856118).abs() < 1e-12);
+    assert_eq!(hit.sequence.to_string(), "FIVKASSGPR");
+    assert_eq!(meta(hit, "sequence_beta"), "SAVIKTSTR");
+    assert_eq!(meta(hit, "xl_pos1"), "3");
+    assert_eq!(meta(hit, "xl_pos2"), "4");
+    assert_eq!(meta(hit, "xl_term_spec_alpha"), "ANYWHERE");
+    assert_eq!(meta(hit, "xl_term_spec_beta"), "ANYWHERE");
+    meta_number(hit, "xl_mass", 138.0680796);
+    assert_eq!(meta(hit, "xl_mod"), "DSS");
+    assert_eq!(hit.peak_annotations[0].annotation, "[alpha|ci$b2]");
+    assert_eq!(hit.peak_annotations[0].charge, 1);
+    assert_eq!(hit.peak_annotations[1].annotation, "[beta|ci$y2]");
+    assert_eq!(hit.peak_annotations[8].annotation, "[alpha|xi$b4]");
+    let mono = &identifications[0].hits[0];
+    assert_eq!(meta(mono, "xl_type"), "mono-link");
+    assert_eq!(meta(mono, "xl_pos1"), "5");
+    assert_eq!(meta(mono, "xl_pos2"), "-");
+}
+
+// ---------------------------------------------------------------------------
+// Upstream section: [EXTRA] XLMS data unlabeled cross-linker
+// ---------------------------------------------------------------------------
+
+#[test]
+fn unlabelled_crosslinks_round_trip() {
+    let original = load(XLMS_UNLABELLED);
+    let reloaded = store_and_reload(&original, "xlms_unlabelled.mzid");
+    let parameters = &reloaded.protein_identifications[0].search_parameters;
+    assert!(matches!(parameters.fragment_tolerance, Tolerance::Ppm(_)));
+    assert!(matches!(parameters.precursor_tolerance, Tolerance::Ppm(_)));
+    for key in ["cross_link:residue1", "cross_link:residue2"] {
+        assert_eq!(
+            parameters
+                .metadata
+                .get(key)
+                .map(ToString::to_string)
+                .unwrap_or_default(),
+            "[K, N-term]"
+        );
+    }
+    let mass: f64 = parameters
+        .metadata
+        .get("cross_link:mass")
+        .map(ToString::to_string)
+        .unwrap_or_default()
+        .parse()
+        .expect("cross_link:mass is a number");
+    assert!((mass - 138.0680796).abs() < 1e-6);
+    assert_eq!(
+        original.protein_identifications[0]
+            .metadata
+            .get("SpectrumIdentificationProtocol")
+            .map(ToString::to_string)
+            .unwrap_or_default(),
+        "MS:1002494"
+    );
+
+    let identifications = &reloaded.peptide_identifications;
+    assert_eq!(identifications.len(), 3);
+    let rt = identifications[0].rt.expect("a retention time");
+    assert!((rt - 2175.3003).abs() < 1e-3, "{rt}");
+    let mz = identifications[0].mz.expect("a precursor m/z");
+    assert!((mz - 787.740356445313).abs() < 1e-9, "{mz}");
+    assert_eq!(
+        identifications[0].spectrum_reference(),
+        "controllerType=0 controllerNumber=1 scan=2395"
+    );
+
+    for identification in identifications {
+        assert_eq!(identification.hits.len(), 1);
+    }
+    assert_eq!(meta(&identifications[0].hits[0], "xl_type"), "mono-link");
+    assert_eq!(meta(&identifications[1].hits[0], "xl_type"), "cross-link");
+    assert_eq!(meta(&identifications[2].hits[0], "xl_type"), "mono-link");
+
+    let mono = &identifications[0].hits[0];
+    assert_eq!(meta(mono, "xl_pos1"), "5");
+    assert_eq!(meta(mono, "xl_pos2"), "-");
+    assert_eq!(meta(mono, "xl_term_spec_alpha"), "ANYWHERE");
+    assert_eq!(meta(mono, "xl_term_spec_beta"), "ANYWHERE");
+
+    let cross = &identifications[1].hits[0];
+    assert_eq!(cross.sequence.to_string(), "KNVPIEFPVIDR");
+    assert_eq!(meta(cross, "sequence_beta"), "LGCKALHVLFER");
+    assert_eq!(meta(cross, "xl_pos1"), "0");
+    assert_eq!(meta(cross, "xl_pos2"), "3");
+    meta_number(cross, "xl_mass", 138.0680796);
+    assert_eq!(meta(cross, "xl_mod"), "DSS");
+    assert_eq!(meta(cross, "xl_term_spec_alpha"), "ANYWHERE");
+    assert_eq!(meta(cross, "xl_term_spec_beta"), "ANYWHERE");
+    assert_eq!(cross.peak_annotations.len(), 5);
+    assert_eq!(cross.peak_annotations[0].annotation, "[alpha|ci$y5]");
+    assert_eq!(cross.peak_annotations[0].charge, 1);
+    assert_eq!(cross.peak_annotations[1].annotation, "[alpha|ci$y7]");
+    assert_eq!(cross.peak_annotations[2].annotation, "[beta|ci$y7]");
+    assert_eq!(cross.peak_annotations[3].annotation, "[alpha|ci$y8]");
+    assert_eq!(cross.peak_annotations[2].charge, 1);
+    assert_eq!(cross.peak_annotations[4].charge, 2);
+
+    let loop_free = &identifications[2].hits[0];
+    assert_eq!(
+        loop_free.sequence.to_string(),
+        "VEPSWLGPLFPDK(Xlink:DSS[156])TSNLR"
+    );
+    assert_eq!(meta(loop_free, "sequence_beta"), "-");
+    assert_eq!(meta(loop_free, "xl_pos1"), "12");
+    assert_eq!(meta(loop_free, "xl_pos2"), "-");
+}
+
+// ---------------------------------------------------------------------------
+// Upstream section: [EXTRA] mzIdentML 1.3 crosslinking scores_and_thresholds
+// ---------------------------------------------------------------------------
+
+#[test]
+fn crosslinking_v1_3_round_trips_at_schema_version_1_3_0() {
+    let document = load(CROSSLINKING);
+    assert!(!document.protein_identifications.is_empty());
+    assert!(!document.peptide_identifications.is_empty());
+    let mut total = 0usize;
+    for identification in &document.peptide_identifications {
+        // Every parsed identification carries a spectrum reference.
+        assert!(!identification.spectrum_reference().is_empty());
+        total += identification.hits.len();
+        if let Some(hit) = identification.hits.first() {
+            assert!(!hit.sequence.is_empty());
+        }
+    }
+    assert!(total > 0, "no hits parsed");
+
+    let directory = TempDir::new(false).expect("temporary directory");
+    let path = directory.path().join("crosslinking.mzid");
+    mzidentml::store(&path, &document).expect("store writes mzIdentML");
+    let text = std::fs::read_to_string(&path).expect("the stored document is readable");
+    assert!(
+        text.lines().any(|line| line.contains("version=\"1.3.0\"")),
+        "the default writer path emits version 1.3.0"
+    );
+    let reloaded = mzidentml::load(&path).expect("the stored document loads");
+    assert!(!reloaded.peptide_identifications.is_empty());
+    assert!(!reloaded.protein_identifications.is_empty());
+}
+
+// ---------------------------------------------------------------------------
+// Upstream section: [EXTRA] mzIdentML 1.3 noncovalent association
+// ---------------------------------------------------------------------------
+
+#[test]
+fn noncovalent_association_resolves_every_sequence() {
+    let document = load(NONCOVALENT);
+    assert!(!document.protein_identifications.is_empty());
+    assert!(!document.peptide_identifications.is_empty());
+    let mut total = 0usize;
+    for identification in &document.peptide_identifications {
+        total += identification.hits.len();
+        if let Some(hit) = identification.hits.first() {
+            // The modification and cvParam fallbacks resolved.
+            assert!(!hit.sequence.is_empty());
+        }
+    }
+    assert!(total > 0, "no hits parsed");
+    // Noncovalently associated peptides carry no crosslink donor, so the
+    // source reads each item of the result through the linear path. Both
+    // candidates of the association survive: the source's merge step keeps
+    // only the first hit of every identification, which would drop one.
+    let identification = &document.peptide_identifications[0];
+    assert_eq!(identification.hits.len(), 2);
+    let hit = &identification.hits[0];
+    assert_eq!(
+        hit.sequence.to_string(),
+        "AYALM(Oxidation)TDIHWDDC(Carbamidomethyl)FC(Carbamidomethyl)R"
+    );
+    assert_eq!(meta(hit, "xl_type"), "");
+    assert_eq!(
+        identification.hits[1].sequence.to_string(),
+        "VHTEC(Carbamidomethyl)C(Carbamidomethyl)HGDLLEC(Carbamidomethyl)ADDR"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Upstream section: [EXTRA] mzIdentML 1.3 EDC crosslinking
+// ---------------------------------------------------------------------------
+
+#[test]
+fn edc_crosslinking_reads_linked_and_linear_peptides() {
+    // EDC files mix crosslinked and standalone peptides; both must parse.
+    let document = load(EDC);
+    assert!(!document.protein_identifications.is_empty());
+    assert!(!document.peptide_identifications.is_empty());
+    let total: usize = document
+        .peptide_identifications
+        .iter()
+        .map(|identification| identification.hits.len())
+        .sum();
+    assert!(total > 0, "no hits parsed");
+    // The fixture embeds its enzyme site pattern in a CDATA section, which is
+    // ordinary character data and must not fail the parse.
+    let text = std::fs::read_to_string(data(EDC)).expect("the fixture is readable");
+    assert!(
+        text.contains("<![CDATA["),
+        "the fixture still carries CDATA"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Upstream section: [EXTRA] mzIdentML 1.3 multiple spectra per identification
+// ---------------------------------------------------------------------------
+
+#[test]
+fn multiple_spectra_keep_distinct_references() {
+    let document = load(MULTI_SPECTRA);
+    assert!(!document.protein_identifications.is_empty());
+    assert!(!document.peptide_identifications.is_empty());
+    let references: std::collections::BTreeSet<String> = document
+        .peptide_identifications
+        .iter()
+        .map(PeptideIdentification::spectrum_reference)
+        .collect();
+    assert!(references.len() > 1, "{references:?}");
+}
+
+// ---------------------------------------------------------------------------
+// XML character data: entity references and CDATA
+// ---------------------------------------------------------------------------
+
+#[test]
+fn entity_references_and_cdata_are_character_data() {
+    // quick-xml reports every "&...;" as its own event. An arm that ignores
+    // them deletes the character they stand for, which is how the sibling
+    // Mascot XML reader turned a score of 1.5 into 15.
+    let library = r#"<DBSequence accession="P1" searchDatabase_ref="SDB" id="DBS"><Seq>PEP&#84;IDEK<![CDATA[AC]]></Seq></DBSequence>
+<Peptide id="PEP"><PeptideSequence>PEPTIDEK</PeptideSequence></Peptide>
+<PeptideEvidence id="PEV" peptide_ref="PEP" dBSequence_ref="DBS" start="1" end="8"/>"#;
+    let results = r#"   <SpectrumIdentificationResult spectraData_ref="SDAT" spectrumID="scan=1" id="SIR">
+    <SpectrumIdentificationItem passThreshold="true" rank="1" peptide_ref="PEP" chargeState="2" experimentalMassToCharge="500.5" id="SII">
+     <PeptideEvidenceRef peptideEvidence_ref="PEV"/>
+     <cvParam accession="MS:1001171" cvRef="PSI-MS" name="Mascot:score" value="1&#46;5"/>
+    </SpectrumIdentificationItem>
+   </SpectrumIdentificationResult>"#;
+    let document = read(&document(library, results)).expect("entities are character data");
+    let hit = &document.peptide_identifications[0].hits[0];
+    // 1.5, not 15: the entity reference in the attribute is resolved, not cut.
+    assert!((hit.score - 1.5).abs() < 1e-12, "{}", hit.score);
+    // Element text keeps both the resolved entity and the CDATA section.
+    assert_eq!(
+        document.protein_identifications[0].hits[0].sequence,
+        "PEPTIDEKAC"
+    );
+}
+
+#[test]
+fn an_external_entity_reference_is_refused() {
+    let library = r#"<DBSequence accession="P1" searchDatabase_ref="SDB" id="DBS"><Seq>PEP&external;K</Seq></DBSequence>
+<Peptide id="PEP"><PeptideSequence>PEPTIDEK</PeptideSequence></Peptide>"#;
+    let results = result_with("chargeState=\"2\" experimentalMassToCharge=\"500.5\"", "");
+    let error = read(&document(library, &results)).unwrap_err();
+    match &error {
+        Error::Unsupported(message) => assert!(message.contains("external"), "{message}"),
+        other => panic!("expected Unsupported, got {other:?}"),
+    }
+}
+
+#[test]
+fn a_doctype_declaration_is_still_refused() {
+    let library = r#"<Peptide id="PEP"><PeptideSequence>PEPTIDEK</PeptideSequence></Peptide>"#;
+    let results = result_with("chargeState=\"2\" experimentalMassToCharge=\"500.5\"", "");
+    let text = document(library, &results).replace(
+        "<MzIdentML",
+        "<!DOCTYPE MzIdentML [<!ENTITY x \"y\">]>\n<MzIdentML",
     );
     assert!(matches!(read(&text), Err(Error::Unsupported(_))));
 }
@@ -957,6 +1520,17 @@ fn resource_ceilings_refuse_before_allocating() {
         mzidentml::read_with_options(text.as_bytes(), &invalid),
         Err(Error::InvalidValue(_))
     ));
+    // The cross-linking path is metered by the same budget: one item may belong
+    // to several groups, so the work of re-scanning its parameters is counted
+    // rather than the item alone.
+    let options = ReadOptions {
+        max_work: 4096,
+        ..Default::default()
+    };
+    assert!(
+        mzidentml::load_with_options(data(XLMS_UNLABELLED), &options).is_err(),
+        "the cross-linking read draws from the shared work budget"
+    );
 }
 
 #[test]
@@ -1160,6 +1734,22 @@ fn write_ceilings_refuse_before_any_output_is_produced() {
     };
     assert!(mzidentml::write_with_options(&mut text, &document, &options).is_err());
     assert!(text.is_empty());
+    // The record ceiling stops the plan as it grows, not only the emission, so
+    // a document far above it is refused without building the whole plan
+    // first. A cross-linking document plans two peptides per hit and takes the
+    // same ceiling.
+    for name in [WHOLE, XLMS_UNLABELLED] {
+        let document = load(name);
+        let options = WriteOptions {
+            max_records: 1,
+            ..Default::default()
+        };
+        assert!(
+            mzidentml::write_with_options(&mut text, &document, &options).is_err(),
+            "{name}"
+        );
+        assert!(text.is_empty(), "{name}");
+    }
 }
 
 #[test]
