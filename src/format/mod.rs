@@ -33,6 +33,8 @@ pub mod experimental_design_file;
 pub mod fasta;
 pub mod file_handler;
 pub mod file_types;
+/// Mascot generic format (MGF) peak lists and search header (`MascotGenericFile.h`).
+pub mod mascot_generic;
 pub mod mgf;
 pub mod ms2;
 pub mod peak_options;
@@ -54,6 +56,9 @@ pub mod modification_definitions;
 
 #[cfg(feature = "idxml")]
 pub mod idxml;
+/// Mascot XML search-result reader and its title lookup (`MascotXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod mascot_xml;
 
 /// imzML file adapter: load, store and the imaging geometry (`ImzMLFile.h`).
 #[cfg(feature = "mzml")]

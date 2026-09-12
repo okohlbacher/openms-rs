@@ -1,0 +1,258 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "sha256": "1760bddee993898af23866a5a5558b19f8e658180adcae568584cbfc77001256"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "sha256": "ba8d16b22034f0a7f0f257469f7437e0e3e4589b48bb9ecb80caf2fe8df5c67e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MascotGenericFile_test.cpp",
+   "sha256": "e183131859fae5d7ea21c6ed965e5bc43a2a6e97c37779efcd6093b8fb72dac7",
+   "role": "The oracle. All eight START_SECTIONs are ported; every transcribed literal in tests/mascot_generic.rs comes from this file."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Not ported here. Read for the exact semantics of trim, simplify, substitute, split, hasPrefix, substr, prefix, suffix and remove, on which every reader branch depends."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "role": "Not ported here. Read for toDouble/toInt32 (leading whitespace, one optional '+', complete token, nan accepted) and for the appendNumeric formatting precisionWrapper uses."
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a",
+   "role": "Not ported here. The 15/6-significant-digit rule with one retained fractional digit that this crate's crate::param::value::format_float already reproduces, and which the MGF writer's precisionWrapper calls."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumLookup.h",
+   "sha256": "ef733def587a9043ac2a368e8e9560499b193c1566b16c0dd24ce6897d524b2b",
+   "role": "Not ported here. Read for extractScanNumber, which the writer needs to fill SCANS=; only the accession table is reproduced locally."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumNativeIDParser.h",
+   "sha256": "04253d21d6dd3268451502ec0b8d085e982d6264f2719686782fac97822d4df3",
+   "role": "Not ported here. Declares the accession-to-pattern table extractScanNumber dispatches on."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "sha256": "a27025952c9d2e8bbdc535f96abd409b1d9e6c37bcc197a125e10661b142e49b",
+   "role": "Not ported here. Source of the ten accession patterns, the index+1 rule and the WIFF cycle*1000+experiment encoding reproduced in mascot_generic.rs."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+   "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715",
+   "role": "Not ported here. Read for getAllSearchModifications: full IDs of records with a UniMod record ID, sorted case-insensitively with the shorter string first, which is the valid-string list of both modification parameters."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/MascotInfile_test.mascot_in",
+   "source_path": "src/tests/class_tests/openms/data/MascotInfile_test.mascot_in",
+   "sha256": "7f2765f1852ff51814838187c05b8be487ec66ed994ad7bb951c1713b6452698",
+   "bytes": 197,
+   "role": "Unmodified upstream MGF input, still carrying its historical MascotInfile name: one block, TITLE=Testtitle, PEPMASS=1998 with no decimal point, RTINSECONDS=25.379, a blank line, and nine peaks whose fifth and seventh lines carry a trailing comment in a third whitespace field (one uses two spaces, one a tab). The comments survive the reader only because the source parses a third field as the optional per-peak charge and discards it."
+  },
+  {
+   "path": "tests/data/MascotGenericFile_GNPS.mgf",
+   "source_path": "src/tests/class_tests/openms/data/MascotGenericFile_GNPS.mgf",
+   "sha256": "f4501242e6ef27dca90e11fde93bc76b7a2dfdff6530ec76dcb83fbb5f0ff2b3",
+   "bytes": 1153,
+   "role": "Unmodified upstream GNPS library spectrum: PEPMASS=981.54, CHARGE=1 with no sign, SPECTRUMID and COMPOUND_NAME, a SMILES string, SCANS=1, MSLEVEL=2 and 43 peaks. Its ADDUCT= and ION_MODE= lines match no source prefix and are silently dropped, which is what makes it the fixture that pins that behaviour."
+  }
+ ],
+ "native_implementation": [
+  "src/format/mascot_generic.rs"
+ ],
+ "native_tests": [
+  "tests/mascot_generic.rs"
+ ],
+ "support_document": "docs/MASCOT_GENERIC_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 92,
+   "operation": "load declares one spectrum outside the read loop and reuses it for every block, which is what makes the carry-over below observable"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 143,
+   "operation": "getNextSpectrum_ resets only the peak list, the native ID, TITLE and SEQ; retention time, precursor m/z, precursor intensity, precursor charge, MS level and every other meta value survive into the next block"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 175,
+   "operation": "isdigit(line[0]) decides where the peak list starts; the argument is a possibly negative char, which is undefined behaviour for non-ASCII input"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 185,
+   "operation": "simplify merges runs of whitespace before splitting, explicitly because double spaces are allowed by the MGF standard; the following substitute of tab for space is then redundant"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 187,
+   "operation": "split(line, ' ', split, false) returns false only when the line holds no separator at all, so that is the sole condition reported as 'does not contain m/z and intensity values'"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 191,
+   "operation": "only split[0] and split[1] are used; a third field is the optional per-peak charge named in the error text and is discarded"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 205,
+   "operation": "the do/while condition trims each line before comparing it with END IONS, so the terminator tolerates surrounding whitespace"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 213,
+   "operation": "end of file after the peak list started is a ParseError; end of file before it leaves the inner and outer loops and returns false, dropping the block silently"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 222,
+   "operation": "PEPMASS accepts exactly one or two whitespace-separated entries; three or more is a ParseError naming the count"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 239,
+   "operation": "CHARGE removes every '+' and then requires a complete int32, so '2+' and '+2' parse while '2-' and a charge list raise an uncaught ConversionError"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 250,
+   "operation": "a TITLE containing 'min' anywhere is read as a Bruker export: the retention time comes from the first whitespace token of every comma chunk containing 'min', in minutes, and no TITLE meta value is stored at all"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 277,
+   "operation": "the catch branch stores only the text between the first and second '=', truncating a title that contains a second '='"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 289,
+   "operation": "the native ID is appended to the title unless the already stored title contains it, so a second TITLE= line in one block replaces the first without the suffix"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 300,
+   "operation": "NAME and COMPOUND_NAME both map to Constants::UserParam::MSM_METABOLITE_NAME"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 320,
+   "operation": "the ion-mode branch tests the prefix IONMODE, so the GNPS spelling ION_MODE matches nothing and is dropped"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 325,
+   "operation": "MSLEVEL is read with std::stoi: a numeric prefix wins, invalid_argument falls back to MS2 and records MSLEVEL=2 as a meta value, out_of_range falls back silently"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 379,
+   "operation": "SEQ is always stored as a StringList, even for a single line, and accumulates across repeated lines in one query"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h",
+   "line": 395,
+   "operation": "the header loop has no END IONS branch, so a block with no peak line does not end there: the loop keeps reading and the block merges into the following one"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 64,
+   "operation": "special_modifications defaults to the Mascot 2.4 specificity groups; the comment notes Phospho (STY) is deliberately absent because Phospho (ST) plus Phospho (Y) covers it"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 106,
+   "operation": "updateMembers_ builds mod_group_map_ from prefix(mod, ' ') and the residues between the last '(' and the first ')' after it, one entry per residue"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 118,
+   "operation": "store to a path requires the MGF extension and a writable destination before the stream is opened"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 139,
+   "operation": "internal:content selects header, peak list or both"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 167,
+   "operation": "writeModifications_ maps each entry through mod_group_map_ and collects into a std::set, so output is sorted by identifier and a group named twice appears once"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 209,
+   "operation": "FORMAT must stay within the first five lines, because it is how OpenMS recognises its own MGF files when the suffix is not MGF"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 303,
+   "operation": "a spectrum with 10,000 peaks or more raises IllegalArgument, with a message attributing it to profile data"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 312,
+   "operation": "a precursor m/z of exactly zero prints to cout and writes nothing at all for that spectrum"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 326,
+   "operation": "a stored TITLE meta value is written verbatim, because it was either parsed from an MGF or set to be written to one"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 337,
+   "operation": "SCANS is the text after the native ID's last '=' for the UNKNOWN accession sentinel and SpectrumLookup::extractScanNumber otherwise, whose -1 failure sentinel is streamed verbatim"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 379,
+   "operation": "the charge sign is written after the signed magnitude, so a charge of -3 becomes CHARGE=-3-, which the reader at MascotGenericFile.h:239 cannot read back"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 403,
+   "operation": "the compact writer skips zero-intensity peaks and uses five fixed decimals for m/z and three for intensity; the default writer uses precisionWrapper for both"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 435,
+   "operation": "the file name recorded in generated titles is the path stem with every non-alphanumeric character removed"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotGenericFile.cpp",
+   "line": 462,
+   "operation": "only MS level 2 is written; level 0 warns and every other level is dropped in silence"
+  }
+ ],
+ "evidence": "Tier 3 source review. Every expectation is either a transcribed literal from MascotGenericFile_test.cpp or read off MascotGenericFile.cpp/.h; the transcribed literals are therefore tier-3 evidence and are labelled as such. No C++ was built or executed and no C++ output was retained, so this is not a tier 1 differential: the upstream suite retains no MGF output at all -- its two store sections compare substrings of an in-memory stringstream, and both committed fixtures are inputs. Transcribed and reproduced: one spectrum of nine peaks from MascotInfile_test.mascot_in; the written block TITLE=Testtitle_index=0 / PEPMASS=1998.0 / RTINSECONDS=25.379000000000001 / SCANS=0 with peak lines 1.0 1.0 through 9.0 81.0; the generated title 1998.0_25.379000000000001_index=0_test; MODS=Carbamidomethyl (C), MODS=Phospho (ST), IT_MODS=Deamidated (NQ), IT_MODS=Oxidation (M); the compact block TITLE=901.23457_234.568_index=250_test / PEPMASS=901.23457 / RTINSECONDS=234.568 / SCANS=250 / 890.12346 2345.679; Caffeine under Metabolite_Name with two peaks, precursor 500.0 and charge 1; and the GNPS spectrum's CCMSLIB00000001547, 3-Des-Microcystein_LR, precursor 981.54, charge 1, 43 peaks and base peak 599.352783 at intensity 764523.0, plus the four SEQ cases. The resource ceilings, the non-ASCII inputs, the multi-byte-offset refusal, the carry-over comparison, the block-merge and truncation asymmetry, the CHARGE rejection set, the range filters, the consumer interface, the native-ID accession table and the parameter-header line order are independently derived (tier 4).",
+ "target_verification": {
+  "sections_total": 8,
+  "sections_ported": 8,
+  "sections_mapped": 0,
+  "sections_unaccounted": 0,
+  "tests": 39,
+  "rustdoc_coverage": "41/41 public items in src/format/mascot_generic.rs"
+ },
+ "gaps": [
+  "ProgressLogger is a base class of the source file adapter and is not threaded through this port, so a large file reports no progress.",
+  "SpectrumLookup::extractScanNumber is reproduced only as the accession table the MGF writer reaches, with hand-coded scanning instead of Boost regular expressions. When METADATA/SpectrumLookup.h is ported, the local subset in mascot_generic.rs should be deleted in favour of it.",
+  "ModificationsDB has no all_search_modifications accessor in this crate, so the equivalent filter (a UniMod record ID, case-insensitive sort, shorter string first) lives in mascot_generic.rs. It belongs on the database once that module is revisited.",
+  "The three range filters and the MSDataConsumer interface are native additions; MascotGenericFile consumes no PeakFileOptions and has no consumer API upstream.",
+  "docs/doc-coverage.json was not rewritten: src/format/mascot_generic.rs measures 100.0% (41/41) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
+  "CI wiring was not added: append '--test mascot_generic' to the no-default-features line of the minimum-rust job in .github/workflows/rust.yml. The test passes under --no-default-features and under cargo +1.85.0.",
+  "The ledger entry and the following 'python3 tools/core_sdk_coverage.py --write' are left to the integrator; without them core_sdk_coverage.py reports docs/core-sdk-coverage.json stale, because its heuristic now finds src/format/mascot_generic.rs as a candidate for MascotGenericFile.h."
+ ]
+}

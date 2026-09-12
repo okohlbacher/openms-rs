@@ -1,0 +1,261 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MascotXMLFile.h",
+   "sha256": "9c82a6ff15552ce1bc0dbb7c055d117ff2fa3e121688cafe7e705e157b14345e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+   "sha256": "fd873728ec7a4e98084403a765e085b5345cb88b16d6ed9be5b05ac7f7b3a64c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h",
+   "sha256": "9092ecd6bce4f54da27ae78a9373286880271e2e9f11478914f2bf8455a6a9bc",
+   "role": "Not a header this package owns, and still unmapped in the ledger. MascotXMLFile::load is a thin shell around it, so its element dispatch is reproduced element for element; its XMLHandler base, its fatalError/error/warning contract and its reuse by other handlers are not ported."
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "sha256": "b036f099844b6a4e54c081f3a1a6cf08b3f2e02acddcb5636de48f9be06ca480",
+   "role": "The behaviour this port actually reproduces: the character-buffer contract, every element branch, the fixed and variable modification application, and splitModificationBySpecifiedAA."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MascotXMLFile_test.cpp",
+   "sha256": "762a377044c6451ab8ac6d3f520d310736bfe4ee0fa23a031fc0046163861d9f",
+   "role": "The oracle. All four START_SECTIONs are ported. Its last block writes the parsed MascotXMLFile_test_3 through IdXMLFile::store and fuzzy-compares against MascotXMLFile_test_out_3.idXML with setAcceptableAbsolute(0.0001), which is the retained C++ output this package's differential uses."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumLookup.h",
+   "sha256": "ef733def587a9043ac2a368e8e9560499b193c1566b16c0dd24ce6897d524b2b",
+   "role": "Not ported here. Read for empty(), readSpectra, addReferenceFormat, findByScanNumber/findByNativeID/findByRT/findByIndex, findByRegExpMatch_, the rt_tolerance default of 0.01 and the default scan expression '=(?<SCAN>\\d+)$'. Only the subset MascotXMLFile reaches is reproduced as SpectrumTitleLookup."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumLookup.cpp",
+   "sha256": "380dbdff4c92a2f1bcceda2cb23ae4143193b5f7ba00ecafcff2c474c9acfcff",
+   "role": "Not ported here. Source of the look-up order in findByRegExpMatch_ (INDEX0, INDEX1, SCAN, ID, RT) and of the nearest-within-tolerance rule in findByRT."
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumMetaDataLookup.h",
+   "sha256": "54fffc86be75095032e25e433a006c6f6c607557c6e7701e9e27157e3a4d5ccc",
+   "role": "Not ported here. Read for SpectrumMetaData, whose rt, precursor_rt and precursor_mz default to a quiet NaN -- the reason an unresolved pep_scan_title leaves the retention time unset instead of storing zero, and the reason the retained idXML carries no RT attribute."
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumMetaDataLookup.cpp",
+   "sha256": "e150427f8e76173fe4a3b2865121960625723943ce41a8010ece697e86c30b93",
+   "role": "Not ported here. Source of getSpectrumMetaData(ref, meta, flags): first matching format wins, directly matched groups clear their flags, remaining flags fall back to a spectrum look-up, and a title matching no format returns silently."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Not ported here. Read for the trim, split, prefix and hasSubstring semantics every handler branch depends on."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "role": "Not ported here. Read for toInt32 and toDouble, which decide that <prot_score> rejects a fractional value and that <NumQueries> accepts a negative one."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ModificationsDB.cpp",
+   "sha256": "b4881cf9e0b8eb3ca79757cd7e796fde2e9fd5a2359df2d8acf4cde78e8ca715",
+   "role": "Not ported here. Read for has(), which splitModificationBySpecifiedAA calls on each expanded identifier and whose multimap matches any registered name, full ID, accession or synonym."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/MascotXMLFile_test_1.mascotXML",
+   "source_path": "src/tests/class_tests/openms/data/MascotXMLFile_test_1.mascotXML",
+   "sha256": "a51040d808475a92092611f88b4a7425578987a41ff19c0c8f3ec61270fae53d",
+   "bytes": 5015,
+   "role": "Unmodified upstream Mascot XML 1.0, majorVersion 1: NumQueries 3, flat <MODS>/<IT_MODS> with no <fixed_mods>/<variable_mods> sections, two protein hits, two <u_peptide> entries and a <queries> section whose <StringTitle> elements hold a bare m/z with no underscore, so no retention time is recovered. The only fixture that exercises the version-1 <name> rule and the fixed-modification application to <pep_seq>."
+  },
+  {
+   "path": "tests/data/MascotXMLFile_test_2.mascotXML",
+   "source_path": "src/tests/class_tests/openms/data/MascotXMLFile_test_2.mascotXML",
+   "sha256": "e4afd2a4f25e150e3612f46b9ac8349472cfb76f049a66b4e080fb7441ae508a",
+   "bytes": 571974,
+   "role": "Unmodified upstream Mascot XML 2.1 from Mascot Server 2.3: NumQueries 1120 collapsing to 1112 identifications, <fixed_mods> and <variable_mods> sections, 66 protein hits, <pep_scan_title> in the m/z-underscore-RT form that the class test's empty lookup deliberately cannot resolve, and the N-terminal and internal variable modifications that pin <pep_var_mod_pos>. Also the only fixture using Mascot's '-' protein-terminus marker in <pep_res_before>/<pep_res_after>."
+  },
+  {
+   "path": "tests/data/MascotXMLFile_test_3.mascotXML",
+   "source_path": "src/tests/class_tests/openms/data/MascotXMLFile_test_3.mascotXML",
+   "sha256": "551d133acac9cc38d19a25f998d968345c869af1afe2aada079d3b5d25c2d2b2",
+   "bytes": 520644,
+   "role": "Unmodified upstream Mascot XML 2.2: NumQueries 17169, a <warning> element, 98 <user_parameter> entries in <search_parameters>, SILAC label modifications, no <pep_homol>/<pep_ident> (so every significance threshold stays 0) and 849 <peptide> elements collapsing to 577 identifications with 586 hits. The input half of the tier-1 differential."
+  },
+  {
+   "path": "tests/data/MascotXMLFile_test_out_3.idXML",
+   "source_path": "src/tests/class_tests/openms/data/MascotXMLFile_test_out_3.idXML",
+   "sha256": "e43714f74cc3eaa15914a77f2eed01ad8ccee3eb446ccb55dd12a1e55343e9b3",
+   "bytes": 207362,
+   "role": "Retained C++ output: what the pinned MascotXMLFile::load produced from MascotXMLFile_test_3.mascotXML, written by IdXMLFile::store. 7 ProteinHits, 577 PeptideIdentifications, 586 PeptideHits, 586 EValue UserParams, one FixedModification and five VariableModifications, no RT attribute anywhere. This is the oracle for the tier-1 differential and is compared record by record."
+  }
+ ],
+ "native_implementation": [
+  "src/format/mascot_xml.rs"
+ ],
+ "native_tests": [
+  "tests/mascot_xml.rs"
+ ],
+ "support_document": "docs/MASCOT_XML_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+   "line": 51,
+   "operation": "an identification survives only when it has at least one hit and either more than one hit or a non-empty first sequence; one with exactly one sequence-less hit is counted as missing_sequence, and the padding entries NumQueries created are dropped without being counted"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+   "line": 84,
+   "operation": "a non-empty lookup that resolved no retention time at all raises MissingInformation; the comparison no_rt_count == id_data.size() also holds when both are zero, so a document with no surviving identifications is refused as well"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+   "line": 103,
+   "operation": "the Mascot 2.2 duplicate-hit removal erases the element at index 1, although the comment above it says 'erase first hit'"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MascotXMLFile.cpp",
+   "line": 115,
+   "operation": "initializeLookup registers the scan-number and DTA-file-name formats only when spectra were read, and the m/z-underscore-RT format always, because it needs no spectrum to resolve"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 57,
+   "operation": "peptide_identification_index_ is an unsigned member set to query - 1 and checked with '>' against id_data_.size(), so query == size + 1 indexes one past the end, query 0 underflows, and a document without <NumQueries> indexes an empty vector because 0 > 0 is false"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 80,
+   "operation": "id_data_.resize(toInt32(trim(buffer))) sizes the identification vector straight from the document, with no ceiling and no sign check"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 84,
+   "operation": "prot_score is converted with toInt32, so a fractional protein score is a conversion error rather than a rounded value"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 96,
+   "operation": "pep_scan_title always requests the retention time and requests the precursor m/z only when the identification has none; the flag word is passed by value, so the later m/z test re-reads the original request"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 117,
+   "operation": "the 'could not extract RT' guard is if (!getRT()), which is false for the NaN just assigned, so an unresolved title reports nothing while a title legitimately encoding retention time 0 reports an error"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 155,
+   "operation": "per Matrix Science the homology threshold counts only when it exists and is smaller than the identity threshold, so the identity value replaces it when homology is larger or exactly zero; both are also recorded as hit meta values"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 171,
+   "operation": "the fixed-modification pass over <pep_seq> runs only when the modified-peptide map is empty"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 197,
+   "operation": "the '(C-term X)' branch dereferences end() - 1 and the '(N-term X)' branch begin(), neither guarded against an empty sequence"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 250,
+   "operation": "pep_var_mod_pos is three '.'-separated fields and its digits index variable_modifications one-based, which is why that list must keep its document order until the file ends"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 263,
+   "operation": "the internal modification index is only precondition-checked (debug builds) before vector::at, and the residue index i is not range-checked against the sequence at all"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 324,
+   "operation": "Date is split on 'T' and any trailing 'Z' dropped; the identifier becomes 'Mascot_' plus that date and time"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 339,
+   "operation": "StringTitle replaces hit sequences from the modified-peptide map, matching every Mascot hit against every supplied modified sequence by unmodified string, and warns when the two counts disagree"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 365,
+   "operation": "StringTitle supplies a retention time only when the query has none, and only when the title splits into exactly two underscore-separated parts"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 418,
+   "operation": "MODS is read only when fixed_modifications is still empty, i.e. when no <fixed_mods> section was present; IT_MODS likewise for variable_modifications, because Mascot sometimes forces a user-set fixed modification to be variable"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 483,
+   "operation": "a <name> element belongs to the variable list for majorVersion 1 or when the enclosing element is <variable_mods>, and to the fixed list when it is <fixed_mods>; the enclosing element is tags_open_[size - 2] after the closing tag has been popped"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 516,
+   "operation": "a <warning> containing 'can only be used as a variable modification' has its first single-quoted name added to remove_fixed_mods_, which then suppresses that entry in the fixed list"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 546,
+   "operation": "</peptide> looks for an already stored hit with the same sequence; a match receives only another peptide evidence, otherwise the hit is inserted and the identification's identifier and score type are set"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 587,
+   "operation": "variable modifications are expanded by specificity group only at </mascot_search_results>, after every pep_var_mod_pos has been resolved against their original order"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 607,
+   "operation": "onCharacters returns early when tag_ is empty, and onEndElement clears tag_ and the buffer, so text following a child element's end tag is dropped while a parent's own text is prepended to its first child's"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp",
+   "line": 621,
+   "operation": "splitModificationBySpecifiedAA leaves anything that is not exactly two space-separated parts alone, leaves '(N-term...'/'(C-term...' alone, and otherwise expands one identifier per residue, throwing ElementNotFound for an expansion the database does not know"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumMetaDataLookup.cpp",
+   "line": 148,
+   "operation": "getSpectrumMetaData falls back to a spectrum look-up only when the match itself did not supply every requested field, and returns after the first matching format; a title matching no format leaves the meta data at its NaN defaults and raises nothing"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumMetaDataLookup.h",
+   "line": 147,
+   "operation": "SpectrumMetaData's constructor sets rt, precursor_rt and precursor_mz to a quiet NaN, scan_number to -1 and precursor_charge and ms_level to 0"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumLookup.h",
+   "line": 19,
+   "operation": "the default scan expression is '=(?<SCAN>\\d+)$', so readSpectra derives a scan number from the digits after the last '=' at the end of a native ID"
+  }
+ ],
+ "evidence": "Tier 1 executed differential for MascotXMLFile_test_3, tier 3 source review for _1 and _2, tier 4 for the resource and robustness checks. tests/data/MascotXMLFile_test_out_3.idXML is output the pinned C++ produced: the upstream section loads MascotXMLFile_test_3.mascotXML through MascotXMLFile::load, writes it with IdXMLFile::store and fuzzy-compares the two with setAcceptableAbsolute(0.0001). That retained file is committed here and compared record by record against this port's own load of the same input -- search parameters (database, version, taxonomy, charges, mass type, missed cleavages, both tolerances with their ppm flags, one fixed and five variable modifications, enzyme case-insensitively), run date, search engine and version, 7 protein hits with accession and score in document order, 577 peptide identifications with score type, higher-score-better, significance threshold, precursor m/z to 1e-4 and the absence of a retention time, and 586 peptide hits with score, charge, the rendered modified sequence, every peptide evidence's accession and both flanking residues in order, and the EValue user parameter. The retained file is read by a line-oriented attribute extractor in the test rather than by crate::format::idxml, whose fixed 50,000,000-unit work budget is exhausted after roughly forty modified peptides; IdXMLFile::store writes one element per line with plain double-quoted attributes, so the extractor is exact for this fixture. The _1 and _2 expectations are transcribed class-test literals and are therefore tier-3 evidence: for 1.0 the four fixed and three variable modifications, three identifications at m/z 789.83/135.29/982.58, protein hits AAN17824 (619) and GN1736 (293), date 2006-03-09 11:31:52, significance threshold 31.8621, hit scores 33.85/33.12/43.9, the accession sets and the three modified sequences; for 2.1 seven missed cleavages, the modification lists, 1112 identifications with m/z 304.6967/314.1815/583.7948 at indices 0/1/1111, 66 protein hits, IPI00745872 and IPI00908876 at score 122, date 2011-06-24 19:34:54, significance threshold 5, the five accessions of query 35, hit scores 5.34/14.83/17.5 and the sequences VVFIK, LASYLDK, (Acetyl)AAFESDK, (Acetyl)GALM(Oxidation)NEIQAAK and SHY(Phospho)GGSR. The class test's PSI-MOD renderings MOD:00565 and MOD:00445 are asserted as residue-and-name pairs plus this crate's UniMod:7 and UniMod:52 forms, which name the same two modifications. The resource ceilings, the bound checks, the malformed and non-ASCII documents, the '-' flanking mapping, the title-lookup format tests and the threshold table are independently derived (tier 4).",
+ "target_verification": {
+  "sections_total": 4,
+  "sections_ported": 4,
+  "sections_mapped": 0,
+  "sections_unaccounted": 0,
+  "tests": 21,
+  "differential_records": "7 protein hits, 577 peptide identifications, 586 peptide hits",
+  "tolerance": "1e-4 absolute, the upstream FuzzyStringComparator setting; exact for counts, charges, accessions, flanking residues and sequences",
+  "rustdoc_coverage": "28/28 public items in src/format/mascot_xml.rs"
+ },
+ "gaps": [
+  "src/format/identification_xml.rs's fixed 50,000,000-unit work budget (XmlLimits::default) cannot read an idXML with more than roughly forty modified peptides, so idxml::load on the retained output fails with 'peptide parent parsing resource limit exceeded'. AASequence::parse_with_budget charges about 1.3 million units per annotated sequence because the estimate scales with the whole modification database. That file is outside this package's scope; until the budget is raised, the differential uses its own extractor.",
+  "A caller-supplied scan_regex is refused: the source compiles a Boost regular expression with named groups and this crate has no regular-expression engine, so the three default formats are hand-coded as TitleReferenceFormat variants and a fourth needs a new variant.",
+  "METADATA/SpectrumLookup.h, METADATA/SpectrumMetaDataLookup.h and METADATA/SpectrumNativeIDParser.h stay unported; only the subset MascotXMLFile reaches is reproduced.",
+  "FORMAT/XMLFile.h and FORMAT/HANDLERS/XMLHandler.h stay unported; the handler's fatalError/error/warning contract becomes Result plus a warning list.",
+  "FORMAT/HANDLERS/MascotXMLHandler.h is reproduced behaviourally but stays unmapped in the ledger, because its XMLHandler base and reporting contract are not ported.",
+  "Mascot's '-' protein-terminus marker in pep_res_before/pep_res_after is mapped to FlankingResidue::NTerminus/CTerminus, because the crate's FlankingResidue has no verbatim variant. The source stores the character itself and idXML then carries aa_before=\"-\", which this crate's idXML reader would also refuse.",
+  "No writer: Mascot XML is a search-engine output and the source has no store method.",
+  "docs/doc-coverage.json was not rewritten: src/format/mascot_xml.rs measures 100.0% (28/28) and check_doc_coverage.py reports an improvement, but recording the new floor with --write touches a file outside this package's scope.",
+  "CI wiring was not added: append '--test mascot_xml' to the '--features idxml' line of the minimum-rust job in .github/workflows/rust.yml. The test carries #![cfg(feature = \"idxml\")] so it is inert under --no-default-features, and it passes under cargo +1.85.0."
+ ]
+}
