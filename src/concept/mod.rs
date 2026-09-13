@@ -6,6 +6,9 @@
 
 pub mod constants;
 pub mod log_stream;
+/// General numeric helpers: ppm and Dalton tolerances, rounding, binning,
+/// interval transforms and binomial statistics, from `MATH/MathFunctions.h`.
+pub mod math_functions;
 pub mod progress_logger;
 pub mod unique_id;
 pub use unique_id::{HasUniqueId, UniqueId, UniqueIdGenerator};

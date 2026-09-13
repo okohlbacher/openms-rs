@@ -52,5 +52,123 @@
       "sha256": "332b78ee225c4135d71eabf1c7f711458f91b2e57ab82e57cb0856a6a72c45a6"
     }
   ],
-  "derived_training_oracles": "emg_training.tsv records ordered indices, initial mean and initial raw loss from an independent Python translation of source helper rules; source test directly asserts four training counts and four means. emg_gradient_review.json records independent derivative checks, not upstream test assertions."
+  "derived_training_oracles": "emg_training.tsv records ordered indices, initial mean and initial raw loss from an independent Python translation of source helper rules; source test directly asserts four training counts and four means. emg_gradient_review.json records independent derivative checks, not upstream test assertions.",
+  "native_implementation": [
+    "src/analysis/emg.rs"
+  ],
+  "native_tests": [
+    "tests/emg.rs",
+    "tests/emg_reference.rs",
+    "tests/emg_integration.rs",
+    "tests/emg_sections.rs"
+  ],
+  "support_document": "docs/EMG_SUPPORT.md",
+  "reference_review": "docs/EMG_REFERENCE_REVIEW.md",
+  "class_test_review": {
+    "path": "src/tests/class_tests/openms/source/EmgGradientDescent_test.cpp",
+    "lines": "1-609",
+    "sections": 13,
+    "sections_mapped": 13,
+    "literal_extraction": "All seven literal traces, the four fit parameter sets per trace, the four output counts, the four Loss_function goldens, the four training counts, the four initial means, the three iRprop+ update cases, the three compute_z values, the six emg_point values and the applyEstimatedParameters endpoint are reproduced. docs/EMG_SUPPORT.md cites the Rust test and one asserted value per section."
+  },
+  "source_anchors": [
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 52,
+      "operation": "compute_z is (1/sqrt(2)) * (sigma/tau - (x-mu)/sigma); its sign and the constant 6.71e7 select which of the three EMG expressions is evaluated, and the comparison z <= 6.71e7 is inclusive"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 437,
+      "operation": "the middle emg_point branch evaluates exp(z*z) * erfc(z) directly up to z == 6.71e7; it overflows to infinity near z == 27, long before that threshold. The port preserves the expression and reports the non-finite result instead of substituting a scaled complementary error function"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 248,
+      "operation": "Loss_function divides each squared residual by xs.size() before accumulating, rather than summing and dividing once; the per-point division order is preserved"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 392,
+      "operation": "iRpropPlus caps the learning rate at 2000.0 where the iRprop+ paper recommends 50, grows it by 1.2 and shrinks it by 0.5; the source comment records the deviation"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 407,
+      "operation": "on a zero gradient with a zero previous gradient the update is -param_lr, so an exactly zero gradient still decreases the parameter by the learning rate; the class test asserts this case explicitly"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 563,
+      "operation": "sigma is initialised to mu * 1e-2 and tau to sigma * 2, both derived from the absolute initial mean, which is why the same peak in minutes and in seconds fits to different parameters"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 596,
+      "operation": "every learning rate starts at 0.0125, the value the iRprop+ paper recommends"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 599,
+      "operation": "computeMuMaxDistance is called with the training positions TrX, not the input; training always keeps both input endpoints, so for strictly increasing input the two spans are equal"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 609,
+      "operation": "the termination criterion is the population standard deviation of the last ten sampled losses falling below 1.0, sampled every 50th iteration into a ring initially filled with zeros; both magic values are carried over literally"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 617,
+      "operation": "the loop is while (++iter_idx <= max_gd_iter_) and the function returns iter_idx afterwards, so exhausting the limit reports one more than the number of evaluated iterations; the native estimate reports the evaluated count"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 620,
+      "operation": "a non-finite parameter or loss breaks out of the loop and the function returns the best iterate reached so far; the native API returns an error instead, because a silently truncated fit is indistinguishable from a converged one"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 700,
+      "operation": "after each update h is clamped below by the observed maximum intensity, mu to the initial mean plus or minus 0.35 of the training span, sigma to [1e-4, 20] and tau to [sigma, 15*sigma]; the last three are marked NOTE: magic value in the source"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 291,
+      "operation": "applyEstimatedParameters divides by xs.size() - 1 to get the average sampling step, so a single-point input divides by zero; the port requires two points whenever extrapolation is enabled"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 305,
+      "operation": "extrapolation extends only the side with the higher modelled endpoint, stopping at the opposite endpoint's intensity, at 1e-3, or once the added side exceeds three times the opposite side's distance from the apex"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 365,
+      "operation": "computeInitialMean advances one shared pair of indices across all six intensity percentages, so each level continues from where the previous one stopped rather than rescanning"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 483,
+      "operation": "extractTrainingSet computes derivatives only when i > 1, so a second sample already above the 80% threshold suppresses the whole derivative pass and leaves only the two endpoints in training"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 763,
+      "operation": "fitEMGPeakModel narrows each modelled intensity to float with a static_cast and appends a four-element emg_parameters FloatDataArray regardless of the peak count; the port checks the narrowing and returns the parameters typed instead"
+    },
+    {
+      "path": "src/openms/source/MATH/MISC/EmgGradientDescent.cpp",
+      "line": 737,
+      "operation": "left_pos and right_pos are used as ternary conditions, so 0.0 means 'no bound' and a literal zero boundary cannot be expressed; the port uses Option<f64>"
+    }
+  ],
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "7c029e8cdba6abab503708ecdd56f6ab55e38ce4"
+    ],
+    "source_changes": [],
+    "note": "The header, implementation and class test are byte-identical at both revisions; their sha256 values were recomputed from the pinned bc9cc12 checkout and match the values recorded here."
+  }
 }

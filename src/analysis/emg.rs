@@ -5,10 +5,31 @@
 
 //! Exponentially modified Gaussian fitting with the OpenMS iRprop+ optimizer.
 //!
-//! Ported from `MATH/MISC/EmgGradientDescent` at revision `7c029e8`.
+//! Ported from `MATH/MISC/EmgGradientDescent` at revision `7c029e8`. Header,
+//! implementation and class test are byte-identical at the current target
+//! revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`, so the port carries
+//! forward unchanged; `tests/data/emg_provenance.json` records both pins and
+//! the verifying hashes.
+//!
+//! The EMG model combines a Gaussian with an exponential decay and has four
+//! parameters: amplitude `h`, mean `mu`, standard deviation `sigma` and the
+//! exponential relaxation time `tau` which controls tailing. Fitting uses
+//! iRprop+ (Igel and Hüsken, *Improving the Rprop Learning Algorithm*, NC 2000,
+//! 115-121), a resilient-backpropagation variant with an independent step size
+//! per parameter: a consistent gradient sign accelerates, a sign change halves
+//! the step and reverts. The model follows Kalambet, Kozmin, Mikhailova, Nagaev
+//! and Tikhonov, "Reconstruction of chromatographic peaks using the
+//! exponentially modified Gaussian function", *Journal of Chemometrics* 25
+//! (2011) 352-356, including its three numerically distinct `z` regimes.
+//!
+//! Every optimizer hyper-parameter is hard coded, as in the source: the source
+//! exposes only `print_debug`, `max_gd_iter` and `compute_additional_points`
+//! through `DefaultParamHandler`.
+//!
 //! Coordinates are not rescaled: the source initialization and constraints depend
-//! on their absolute units. Numerical failures return errors, including overflow
-//! in the source's exponential expressions. See `docs/EMG_SUPPORT.md`.
+//! on their absolute units, so the same peak in minutes and in seconds fits to
+//! different parameters by design. Numerical failures return errors, including
+//! overflow in the source's exponential expressions. See `docs/EMG_SUPPORT.md`.
 
 use crate::kernel::{ChromatogramPeak, MSChromatogram, MSSpectrum, Peak1D};
 use crate::{Error, Result};
@@ -17,11 +38,20 @@ use std::f64::consts::PI;
 use std::ops::Range;
 
 /// EMG amplitude, location, Gaussian width and exponential decay parameter.
+///
+/// The source transports these four values in the order `h`, `mu`, `sigma`,
+/// `tau` through a `FloatDataArray` named `emg_parameters`; this port keeps them
+/// typed and in `f64`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct EmgParameters {
+    /// Amplitude: peak height.
     pub h: f64,
+    /// Mean: the Gaussian centre position, in the input coordinate's own units.
     pub mu: f64,
+    /// Standard deviation: the Gaussian width. Must be positive.
     pub sigma: f64,
+    /// Exponential relaxation time, which controls the degree of tailing. Must
+    /// be positive.
     pub tau: f64,
 }
 
@@ -45,12 +75,19 @@ impl EmgParameters {
 /// Best training loss and the parameters at which it was observed.
 #[derive(Clone, Debug, PartialEq)]
 pub struct EmgEstimate {
+    /// Parameters of the first iteration which achieved the best loss.
     pub parameters: EmgParameters,
     /// Number of evaluated iterations, without the C++ exhaustion off-by-one.
+    /// `estimateEmgParameters` returns `iter_idx` after the `while (++iter_idx
+    /// <= max_gd_iter_)` test has already incremented it past the limit.
     pub iterations: usize,
     /// One-based iteration which first achieved the reported best loss.
     pub best_iteration: usize,
+    /// Mean squared error of the model over the extracted training set, at
+    /// `parameters`. This is the source's `Loss_function` on the selected
+    /// points, not on the whole input.
     pub loss: f64,
+    /// Number of points the source's training-set extraction selected.
     pub training_points: usize,
     /// Scalar model/gradient evaluations during parameter estimation only.
     pub evaluations: usize,
@@ -58,31 +95,58 @@ pub struct EmgEstimate {
     pub converged: bool,
 }
 
+/// Positions and modelled intensities produced by evaluating the EMG.
+///
+/// The source writes these through the `out_xs` and `out_ys` out-parameters of
+/// `applyEstimatedParameters`. Both vectors always have the same length, and
+/// the original input positions appear unchanged; any extrapolated points are
+/// prepended or appended, never interleaved.
 #[derive(Clone, Debug, PartialEq)]
 pub struct EmgCurve {
+    /// Positions, ascending, in the input coordinate's own units.
     pub positions: Vec<f64>,
+    /// Modelled intensities, one per position, in `f64`.
     pub intensities: Vec<f64>,
 }
 
+/// A fitted spectrum together with its estimate and the arrays that were dropped.
 #[derive(Clone, Debug, PartialEq)]
 pub struct EmgSpectrumFit {
+    /// The reconstructed peak. Record metadata is preserved; the peak list is
+    /// replaced by the modelled samples, which are usually more numerous than
+    /// the input because the truncated side is extrapolated.
     pub spectrum: MSSpectrum,
+    /// Parameters and diagnostics of the fit.
     pub estimate: EmgEstimate,
+    /// Names of the input data arrays that were not carried over.
     /// Input arrays have no defined aggregation/extrapolation rule.
     pub omitted_arrays: Vec<String>,
 }
 
+/// A fitted chromatogram together with its estimate and the arrays that were dropped.
 #[derive(Clone, Debug, PartialEq)]
 pub struct EmgChromatogramFit {
+    /// The reconstructed peak, with record metadata preserved.
     pub chromatogram: MSChromatogram,
+    /// Parameters and diagnostics of the fit.
     pub estimate: EmgEstimate,
+    /// Names of the input data arrays that were not carried over.
     pub omitted_arrays: Vec<String>,
 }
 
 /// Checked source fitting options and explicit per-call resource limits.
+///
+/// [`Default`] reproduces the source's `getDefaultParameters`: `max_gd_iter` is
+/// 100,000 and `compute_additional_points` is `"true"`. The source's third
+/// parameter, `print_debug` (0 to 2), has no counterpart; the information it
+/// prints is returned in [`EmgEstimate`] instead.
 #[derive(Clone, Debug, PartialEq)]
 pub struct EmgGradientDescent {
+    /// Maximum number of gradient-descent iterations. Must be positive; the
+    /// source accepts zero, which makes its loop body unreachable.
     pub max_iterations: usize,
+    /// Whether to extrapolate the cutoff side of the peak when applying the
+    /// estimated parameters.
     pub compute_additional_points: bool,
     /// Maximum whole-input and generated point count. Must be positive.
     pub max_points: usize,
@@ -104,6 +168,14 @@ impl Default for EmgGradientDescent {
 }
 
 impl EmgGradientDescent {
+    /// Check that every configured limit is usable before any work starts.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when `max_iterations`, `max_points` or
+    /// `max_evaluations` is zero. The source has no equivalent: `max_gd_iter`
+    /// declares a minimum of zero in its `Param`, and a zero there silently
+    /// returns the `DBL_MAX` sentinels the optimizer initialises its bests with.
     pub fn validate(&self) -> Result<()> {
         if self.max_iterations == 0 || self.max_points == 0 || self.max_evaluations == 0 {
             return Err(bad(
@@ -113,23 +185,98 @@ impl EmgGradientDescent {
         Ok(())
     }
 
+    /// Run the gradient-descent estimation of the four EMG parameters.
+    ///
+    /// Source `estimateEmgParameters`, whose four out-parameters `best_h`,
+    /// `best_mu`, `best_sigma` and `best_tau` and whose `UInt` return value -
+    /// the number of iterations needed - are returned together in
+    /// [`EmgEstimate`].
+    ///
+    /// # Arguments
+    ///
+    /// * `xs` - positions; at least two, finite and strictly increasing
+    /// * `ys` - intensities, one per position and finite
+    ///
     /// Estimate from finite intensities and at least two strictly increasing positions.
     /// Signed intensities are retained. The source's initial mean must be positive
     /// because it initializes sigma as one percent of that absolute coordinate.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when `xs` descends, and
+    /// [`Error::InvalidValue`] when a value is not finite, when the slice
+    /// lengths differ, when positions repeat, when the point or evaluation
+    /// ceiling is exceeded, or when any model, gradient or loss evaluation
+    /// leaves the finite range. The source's `extractTrainingSet` throws
+    /// `Exception::SizeUnderflow` for fewer than two points, and its optimizer
+    /// instead breaks out of the loop on a non-finite parameter or loss and
+    /// returns whatever best it had reached.
     pub fn estimate_parameters(&self, xs: &[f64], ys: &[f64]) -> Result<EmgEstimate> {
         self.validate()?;
         self.estimate(xs, ys, &mut Budget::new(self.max_evaluations))
     }
 
+    /// Compute the EMG function on a set of points.
+    ///
+    /// Source `applyEstimatedParameters`. When
+    /// [`compute_additional_points`](Self::compute_additional_points) is set,
+    /// the algorithm detects which side of the peak is cut off and extends it.
+    ///
+    /// # Arguments
+    ///
+    /// * `xs` - positions, ascending
+    /// * `parameters` - amplitude, mean, standard deviation and relaxation time
+    ///
     /// Evaluate supplied parameters and optionally extend the truncated side.
     /// With additional points disabled, empty or single-position inputs are valid.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] or [`Error::InvalidValue`] as
+    /// [`estimate_parameters`](Self::estimate_parameters) does, and additionally
+    /// [`Error::InvalidValue`] when extrapolation is requested for fewer than
+    /// two points - the source would divide by `xs.size() - 1` - or when the
+    /// generated points would exceed the point ceiling.
     pub fn apply_parameters(&self, xs: &[f64], parameters: EmgParameters) -> Result<EmgCurve> {
         self.validate()?;
         self.apply(xs, parameters, &mut Budget::new(self.max_evaluations))
     }
 
-    /// Fit inclusive optional m/z bounds. `Some(0.0)` is a literal bound.
-    /// The returned copy preserves record metadata and omits all input data arrays.
+    /// Fit a spectrum to the EMG peak model, optionally over an m/z sub-range.
+    ///
+    /// Source `fitEMGPeakModel<MSSpectrum>`. The method recapitulates the actual
+    /// peak area of saturated or cut-off peaks and fine tunes well acquired
+    /// ones. The output is a reconstruction of the input peak; additional points
+    /// are often added so that the boundary intensities match.
+    ///
+    /// A *cutoff peak* is one whose left and right baseline intensities are not
+    /// equal. A *saturated peak* is one whose maximum intensity is lower than
+    /// expected because the detector saturated.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - the peak to fit; never modified, including on failure
+    /// * `left` - m/z of the first point of interest, or `None` for the first peak
+    /// * `right` - m/z of the last point of interest, or `None` for the last peak
+    ///
+    /// Fit inclusive optional m/z bounds. `Some(0.0)` is a literal bound: the
+    /// source uses `0.0` as the "no bound given" sentinel through
+    /// `left_pos ? PosBegin(left_pos) : begin()`, so it cannot express a
+    /// boundary at zero.
+    ///
+    /// The returned copy preserves record metadata and omits all input data
+    /// arrays. The source instead appends a four-element `FloatDataArray` named
+    /// `emg_parameters` holding `h`, `mu`, `sigma` and `tau`; those values are
+    /// in [`EmgSpectrumFit::estimate`] here, because an array of four entries
+    /// beside a peak list of a different length violates this crate's data-array
+    /// alignment invariant.
+    ///
+    /// # Errors
+    ///
+    /// As [`estimate_parameters`](Self::estimate_parameters), plus
+    /// [`Error::InvalidValue`] when a bound is not finite, when `left` exceeds
+    /// `right`, or when a fitted intensity is not representable as the `f32` a
+    /// peak stores. The source casts to `float` unchecked.
     pub fn fit_spectrum(
         &self,
         input: &MSSpectrum,
@@ -176,7 +323,26 @@ impl EmgGradientDescent {
         })
     }
 
-    /// Fit inclusive optional retention-time bounds, in the input coordinate units.
+    /// Fit a chromatogram to the EMG peak model, optionally over an RT sub-range.
+    ///
+    /// Source `fitEMGPeakModel<MSChromatogram>`, the second of the source's two
+    /// explicit template instantiations. Behaves exactly as
+    /// [`fit_spectrum`](Self::fit_spectrum), which documents the cutoff and
+    /// saturation cases, the `emg_parameters` array and the error conditions.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - the peak to fit; never modified, including on failure
+    /// * `left` - RT of the first point of interest, or `None` for the first peak
+    /// * `right` - RT of the last point of interest, or `None` for the last peak
+    ///
+    /// Fit inclusive optional retention-time bounds, in the input coordinate
+    /// units: the source never converts minutes to seconds, and the two give
+    /// different fits because initialization scales with the absolute mean.
+    ///
+    /// # Errors
+    ///
+    /// As [`fit_spectrum`](Self::fit_spectrum).
     pub fn fit_chromatogram(
         &self,
         input: &MSChromatogram,
@@ -270,7 +436,10 @@ impl EmgGradientDescent {
         };
         p.validate()?;
         let (tx, ty) = training_set(xs, ys)?;
-        let radius = finite((xs[xs.len() - 1] - xs[0]) * 0.35)?;
+        // Source: computeMuMaxDistance(TrX), over the training positions rather
+        // than the input. Training always keeps both endpoints, so for the
+        // strictly increasing input this port requires the two spans are equal.
+        let radius = finite(mu_max_distance(&tx))?;
         let mu_left = finite(mu - radius)?;
         let mu_right = finite(mu + radius)?;
         let mut previous_gradient = [0.0; 4];
@@ -487,6 +656,29 @@ fn sqrt(x: f64) -> f64 {
 }
 fn z(x: f64, p: EmgParameters) -> f64 {
     (1.0 / sqrt(2.0)) * (p.sigma / p.tau - (x - p.mu) / p.sigma)
+}
+
+/// Source `computeMuMaxDistance`: 35% of the span of the given positions.
+///
+/// Together with the initial mean this bounds how far `mu` may travel during
+/// gradient descent. The source takes `std::minmax_element` over the *training*
+/// positions, which are not sorted, and returns `0.0` when the container is
+/// empty because both returned iterators then equal `end()`.
+fn mu_max_distance(xs: &[f64]) -> f64 {
+    let mut min = f64::INFINITY;
+    let mut max = f64::NEG_INFINITY;
+    for &x in xs {
+        if x < min {
+            min = x;
+        }
+        if x > max {
+            max = x;
+        }
+    }
+    if xs.is_empty() {
+        return 0.0;
+    }
+    (max - min) * 0.35
 }
 
 fn initial_mean(xs: &[f64], ys: &[f64]) -> Result<f64> {
@@ -899,6 +1091,69 @@ fn model(x: f64, p: EmgParameters) -> Result<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn source_mu_max_distance_uses_the_unsorted_span_and_tolerates_an_empty_set() {
+        // START_SECTION(double computeMuMaxDistance(const std::vector<double>& xs))
+        // The source's own literal vector is not sorted; minmax_element still
+        // gives (2, 9), so the answer is (9 - 2) * 0.35.
+        let xs = [3.0, 2.0, 4.0, 2.0, 4.0, 5.0, 7.0, 9.0, 3.0];
+        assert!((mu_max_distance(&xs) - 2.45).abs() < 1e-14);
+        assert_eq!(mu_max_distance(&[]), 0.0); // empty vector case
+        assert_eq!(mu_max_distance(&[7.0]), 0.0);
+        // Training always keeps both input endpoints, so for the sorted input
+        // this port accepts, the training span equals the input span. That is
+        // why estimating over the training set is equivalent here.
+        let sorted = [1.0, 2.0, 3.0, 4.0, 5.0];
+        let (tx, _) = training_set(&sorted, &[1.0, 5.0, 9.0, 5.0, 1.0]).unwrap();
+        assert_eq!(mu_max_distance(&tx), mu_max_distance(&sorted));
+        assert_eq!(mu_max_distance(&sorted), 4.0 * 0.35);
+    }
+
+    #[test]
+    fn source_compute_z_selects_the_three_documented_regimes() {
+        // START_SECTION(double compute_z(x, mu, sigma, tau))
+        // `compute_z` is private in C++ too and is reachable only through the
+        // EmgGradientDescent_friend shim; this is that shim's equivalent.
+        let p = EmgParameters {
+            h: 15_515_900.0,
+            mu: 14.3453,
+            sigma: 0.0344277,
+            tau: 0.188507,
+        };
+        // The three source literals, for the section's own parameters.
+        let close = |a: f64, b: f64| assert!((a - b).abs() <= 1e-9 * b.abs().max(1.0), "{a} {b}");
+        close(z(p.mu - 1.0 / 60.0, p), 0.471456263584609);
+        close(z(p.mu + 1.0 / 60.0, p), -0.213173439809831);
+        close(z(-3_333_333.0, p), 68_463_258.2588395);
+        // Each literal selects a different EMG expression: the first is in
+        // [0, 6.71e7], the second below zero, the third above the threshold.
+        assert!((0.0..=6.71e7).contains(&z(p.mu - 1.0 / 60.0, p)));
+        assert!(z(p.mu + 1.0 / 60.0, p) < 0.0);
+        assert!(z(-3_333_333.0, p) > 6.71e7);
+        // z changes sign at mu + sigma^2 / tau, which is where the source
+        // switches from the negative-z expression to the middle one.
+        let crossing = p.mu + p.sigma * p.sigma / p.tau;
+        assert!(z(crossing, p).abs() < 1e-9);
+        assert!(z(crossing - 1e-6, p) > 0.0);
+        assert!(z(crossing + 1e-6, p) < 0.0);
+        // The threshold is inclusive: z == 6.71e7 still takes the middle
+        // expression, which overflows, while the next step takes the
+        // asymptotic one and underflows to zero.
+        let unit = EmgParameters {
+            h: 1.0,
+            mu: 0.0,
+            sigma: 1.0,
+            tau: 1.0,
+        };
+        assert_eq!(z(1.0, unit), 0.0);
+        let at_threshold = 1.0 - 2.0_f64.sqrt() * 6.709e7;
+        let past_threshold = 1.0 - 2.0_f64.sqrt() * 6.711e7;
+        assert!(z(at_threshold, unit) <= 6.71e7);
+        assert!(z(past_threshold, unit) > 6.71e7);
+        assert!(model(at_threshold, unit).is_err());
+        assert_eq!(model(past_threshold, unit).unwrap(), 0.0);
+    }
 
     #[test]
     fn training_preserves_source_collection_order_and_plateau_exclusion() {
