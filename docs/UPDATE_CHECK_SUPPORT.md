@@ -148,6 +148,17 @@ the source might have succeeded — and both warn and continue.
 **The response body is bounded at 64 KiB.** The answer is a version string. The
 source accepts whatever the server sends into an unbounded buffer.
 
+**The transport's own divergences are inherited.** The query goes through
+whatever `HttpTransport` the caller supplies; with the shipped `UreqTransport`
+that means everything under *Behavioural divergences* in
+[NETWORK_GET_REQUEST_SUPPORT.md](NETWORK_GET_REQUEST_SUPPORT.md#behavioural-divergences).
+Only one of the four can change the outcome of a check: the endpoint is plain
+HTTP, so the TLS trust-anchor difference cannot apply, and a partial body would
+fail to parse either way — but a `gzip`-encoded answer is decompressed here and
+is not by the source, which would make the source's copy unparseable and this
+one's parse correctly. The port's request no longer offers `gzip`, so reaching
+that needs a server compressing unasked.
+
 **A non-UTF-8 response is `ServerVersionUnusable`.** The source hands the raw
 bytes to `create`, where any non-numeric byte fails the integer conversion and
 yields `EMPTY` — the same branch. Nothing is decoded lossily.
@@ -185,7 +196,7 @@ exists but is unreadable, the source's `std::ofstream` truncates it, because
 | Tool name | 1–256 bytes, a plain file-name component | unchecked concatenation into a path |
 | Version string | ≤ 256 bytes | unbounded |
 | Response body | ≤ 64 KiB | unbounded |
-| Redirects | inherited: 10 | unlimited |
+| Redirects | inherited: 10 | `CURLOPT_MAXREDIRS` never set; the bound is the linked libcurl's |
 
 The **one** `START_SECTION` of `UpdateCheck_test.cpp` is mapped by
 `tests/update_check.rs::an_uncreatable_config_directory_warns_and_makes_no_request`.
@@ -207,8 +218,9 @@ for the independently derived expectations, which are the more interesting half:
 
 * `to_int32`'s boundary cases — `"+-12"` is `-12` (the `+` is stripped, then
   `from_chars` reads a negative), `"+ 12"` fails, `"2147483648"` is out of
-  `Int32` range — follow from `StringUtils.cpp` lines 136–163 rather than from
-  any test;
+  `Int32` range — follow from `StringUtilsHelper::toInt32`, `StringUtils.cpp`
+  lines 136–166, together with the whitespace set of `skipWS` at line 61 of the
+  same file, rather than from any test;
 * `"1.2-alpha"` failing while `"1.2.3-alpha"` succeeds follows from where the
   `-` is searched for, not from a literal;
 * the non-transitivity of `operator<` on two pre-release identifiers is derived

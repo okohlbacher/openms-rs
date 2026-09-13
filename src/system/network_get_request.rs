@@ -19,7 +19,12 @@
 //!
 //! The trait exists for one concrete reason: a test that reaches the internet is
 //! flaky, slow and a privacy problem in a scientific SDK, so the crate's own
-//! tests drive recorded responses through the trait and never open a socket.
+//! tests drive recorded responses through the trait and never open a socket. How
+//! that was checked rather than assumed — which entry points can open one, which
+//! URLs the real transport is given, and which test pins the refusal to the
+//! offline preflight — is the *No test reaches the network* section of
+//! `docs/NETWORK_GET_REQUEST_SUPPORT.md`.
+//!
 //! `CurlInit` has no counterpart at all — `ureq` needs no global
 //! initialisation, so there is nothing for an RAII guard to own. See
 //! `docs/NETWORK_GET_REQUEST_SUPPORT.md` and `docs/CURL_INIT_SUPPORT.md`.
@@ -34,14 +39,68 @@
 //!   still holds the server's explanation while
 //!   [`has_error`](crate::system::network_get_request::NetworkGetRequest::has_error)
 //!   is `true`.
-//! * Redirects are followed, but a bounded number of times. The source leaves
-//!   `CURLOPT_MAXREDIRS` at libcurl's unlimited default; this port caps the
-//!   chain at [`DEFAULT_MAX_REDIRECTS`](crate::system::network_get_request::DEFAULT_MAX_REDIRECTS)
+//! * Redirects are followed, but a bounded number of times. The source sets
+//!   `CURLOPT_FOLLOWLOCATION` and never sets `CURLOPT_MAXREDIRS`, so its ceiling
+//!   is whatever the libcurl it links chose — a value that is not knowable from
+//!   the SDK, which ships no libcurl. This port pins its own,
+//!   [`DEFAULT_MAX_REDIRECTS`](crate::system::network_get_request::DEFAULT_MAX_REDIRECTS),
 //!   and reports [`TransportError::TooManyRedirects`](crate::system::network_get_request::TransportError::TooManyRedirects)
 //!   beyond it.
 //! * The response body is bounded. The source streams into an unbounded
 //!   `std::vector<char>`; this port refuses beyond
 //!   [`DEFAULT_MAX_RESPONSE_BYTES`](crate::system::network_get_request::DEFAULT_MAX_RESPONSE_BYTES).
+//! * A transfer that fails part-way discards what had arrived. The source's
+//!   write callback appends as the bytes come in, so a transfer that dies
+//!   mid-body leaves those bytes in `getResponseBinary()` while `hasError()` is
+//!   `true`; here
+//!   [`response_binary`](crate::system::network_get_request::NetworkGetRequest::response_binary)
+//!   is empty whenever the transport failed. See *Divergences from the source*
+//!   below.
+//!
+//! # Divergences from the source
+//!
+//! Four differences are visible to a caller and are not configuration this
+//! module can undo. They are stated here rather than left to be discovered, and
+//! `docs/NETWORK_GET_REQUEST_SUPPORT.md` carries the same list with the reasons.
+//!
+//! 1. **A partial body is not kept.** Input: a transfer that fails after the
+//!    peer has sent part of the body — a `CURLOPT_TIMEOUT` that expires mid-body,
+//!    or a connection reset. Source: `curl_easy_perform` returns non-`CURLE_OK`,
+//!    but the write callback has already appended what arrived, so
+//!    `getResponseBinary()` returns a truncated body next to `hasError() ==
+//!    true`. Here: [`HttpTransport::get`](crate::system::network_get_request::HttpTransport::get)
+//!    yields either a whole response or a [`TransportError`](crate::system::network_get_request::TransportError),
+//!    never both, so a failed run has no body at all. Reproducing the source
+//!    would mean handing every caller a buffer of unknowable truncation, which
+//!    the source's own callers — `Network::downloadFile` and `UpdateCheck::run`,
+//!    both of which test `hasError()` first — never look at.
+//! 2. **A `Content-Encoding` response body is decompressed.** Input: a response
+//!    carrying `Content-Encoding: gzip`. Source: libcurl decompresses only when
+//!    `CURLOPT_ACCEPT_ENCODING` was set, and this source never sets it, so the
+//!    compressed bytes reach `getResponseBinary()` verbatim. Here: `ureq`
+//!    decompresses on the strength of the response header alone. The request
+//!    never advertises `gzip` — see [`UreqTransport`](crate::system::network_get_request::UreqTransport)
+//!    — so only a server compressing unasked reaches this, but the decompression
+//!    itself cannot be switched off without dropping `ureq`'s `gzip` feature.
+//! 3. **TLS trust anchors are compiled in, not the operating system's.** Input:
+//!    an `https` URL whose certificate chains to a CA the machine trusts but the
+//!    Mozilla root program does not — an enterprise inspection proxy, an
+//!    institutional CA. Source: libcurl verifies against the platform store.
+//!    Here: `ureq`'s default `rustls` backend verifies against a compiled-in
+//!    copy of the Mozilla roots, so that request fails with
+//!    [`TransportError::Tls`](crate::system::network_get_request::TransportError::Tls)
+//!    — and, the other way round, a CA an administrator distrusted locally is
+//!    still trusted. `SSL_CERT_FILE` and `CURL_CA_BUNDLE` are not read either.
+//! 4. **A SOCKS proxy in the environment is ignored.** `HTTP_PROXY`,
+//!    `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY` are honoured by both, but only
+//!    for an HTTP proxy; libcurl also speaks `socks5://`, and this build of
+//!    `ureq` does not.
+//!
+//! Items 2 to 4 are properties of the transport crate and its enabled features,
+//! so changing them would mean changing the crate's dependencies. Item 1 is a
+//! deliberate contract choice. A caller needing any of the four can implement
+//! [`HttpTransport`](crate::system::network_get_request::HttpTransport) itself,
+//! which is the seam the source does not have.
 
 use crate::{Error, Result};
 use std::fmt;
@@ -49,11 +108,16 @@ use std::time::Duration;
 
 /// Redirects followed before a request is refused, unless the caller changes it.
 ///
-/// The source sets `CURLOPT_FOLLOWLOCATION` and leaves `CURLOPT_MAXREDIRS` at
-/// libcurl's default of unlimited, so a server that redirects to itself makes
-/// the source spin. Following a chain is unbounded work driven by untrusted
-/// input, so this port bounds it; ten is `ureq`'s own default and is far past
-/// anything a well-behaved service needs.
+/// The source sets `CURLOPT_FOLLOWLOCATION` to `1` and never sets
+/// `CURLOPT_MAXREDIRS`, so how long a redirect chain it will walk is decided by
+/// the libcurl it was linked against rather than by OpenMS. That value is not
+/// determinable from the SDK — the pinned checkout contains no libcurl source or
+/// header — and it has not been constant across libcurl's own history, so this
+/// port makes no claim about it and states only what OpenMS configures: nothing.
+///
+/// What this port does is fixed and knowable: following a chain is unbounded
+/// work driven by untrusted input, so the chain is bounded here. Ten is `ureq`'s
+/// own default and is far past anything a well-behaved service needs.
 pub const DEFAULT_MAX_REDIRECTS: u32 = 10;
 
 /// Largest redirect chain a caller may request.
@@ -370,8 +434,9 @@ impl NetworkGetRequest {
 
     /// Set how many redirects [`run`](Self::run) may follow.
     ///
-    /// Native addition; the source leaves `CURLOPT_MAXREDIRS` unlimited. `0`
-    /// stops the transport at the first redirect and returns it as the response.
+    /// Native addition; the source never sets `CURLOPT_MAXREDIRS` and so leaves
+    /// the ceiling to its libcurl. `0` stops the transport at the first redirect
+    /// and returns it as the response.
     ///
     /// # Errors
     ///
@@ -424,6 +489,18 @@ impl NetworkGetRequest {
     /// test, reproduced including its consequence that a 3xx response which was
     /// not followed is *not* an error. A body received alongside an error status
     /// is kept, because the source's write callback has already stored it.
+    ///
+    /// A body received before a *transport* failure is **not** kept, and this is
+    /// the one place where the observable contract differs from the source. A
+    /// transfer that dies mid-body — a deadline that expires while the body is
+    /// still arriving, a reset connection — leaves the bytes that did arrive in
+    /// the source's `response_bytes_`, so `getResponseBinary()` returns a
+    /// truncated body while `hasError()` is `true`. Here the transport reports
+    /// either a response or a [`TransportError`], so
+    /// [`response_binary`](Self::response_binary) is empty after any transport
+    /// failure. The difference matters only to a caller that reads the body
+    /// without checking [`has_error`](Self::has_error) first, which neither
+    /// in-tree caller of the source does.
     pub fn run(&mut self, transport: &dyn HttpTransport) {
         self.response_bytes.clear();
         self.headers.clear();
@@ -467,7 +544,9 @@ impl NetworkGetRequest {
     /// Raw response body, valid until the next [`run`](Self::run).
     ///
     /// The counterpart of `getResponseBinary`, whose `std::vector<char>` becomes
-    /// a byte slice.
+    /// a byte slice. Empty before the first run, and empty after a run whose
+    /// transport failed — where the source can hold a truncated body; see
+    /// [`run`](Self::run).
     pub fn response_binary(&self) -> &[u8] {
         &self.response_bytes
     }
@@ -533,15 +612,38 @@ impl NetworkGetRequest {
 /// | libcurl option | value in the source | this transport |
 /// |---|---|---|
 /// | `CURLOPT_FOLLOWLOCATION` | `1` | `max_redirects` from the request, default [`DEFAULT_MAX_REDIRECTS`] |
-/// | `CURLOPT_MAXREDIRS` | unset, so unlimited | bounded, and exceeding it is an error |
+/// | `CURLOPT_MAXREDIRS` | never set, so its libcurl's choice | bounded here, and exceeding it is an error |
 /// | `CURLOPT_TIMEOUT` | the request's seconds when `> 0` | `timeout_global`, same meaning |
 /// | `CURLOPT_NOSIGNAL` | `1` | no counterpart needed; `ureq` never installs a signal handler |
+/// | `CURLOPT_USERAGENT` | never set, so no `User-Agent` is sent | `user_agent("")`, which suppresses `ureq`'s own |
+/// | `CURLOPT_ACCEPT_ENCODING` | never set, so no `Accept-Encoding` is sent | `accept_encoding("")`, which suppresses `ureq`'s `gzip` |
+/// | `Accept` | libcurl's default `*/*` | `ureq`'s default `*/*` |
 /// | status handling | body captured, status checked afterwards | `http_status_as_error(false)`, status checked afterwards |
+///
+/// The two suppressed headers matter because the source's request is what the
+/// OpenMS REST server sees: `ureq` would otherwise announce itself in
+/// `User-Agent` and offer `gzip` in `Accept-Encoding`, neither of which libcurl
+/// sends unless asked.
+///
+/// # What this transport cannot match
 ///
 /// `ureq` speaks HTTP and HTTPS only. libcurl is normally built with the `FILE`
 /// protocol as well, which the upstream `Network` class test relies on; that
 /// difference is recorded in `docs/NETWORK_SUPPORT.md` and surfaces here as
 /// [`TransportError::UnsupportedScheme`].
+///
+/// Three more differences follow from the transport crate and its enabled
+/// features rather than from anything this module configures, and are set out in
+/// full in the module documentation:
+///
+/// * a response carrying `Content-Encoding: gzip` is decompressed here and is
+///   not by the source, even though neither request asks for compression;
+/// * TLS certificates are verified against a compiled-in copy of the Mozilla
+///   root program, where libcurl uses the platform's trust store and honours
+///   `SSL_CERT_FILE` / `CURL_CA_BUNDLE`;
+/// * a `socks5://` proxy named in the environment is used by libcurl and
+///   ignored here, while an HTTP proxy from `HTTP_PROXY` / `HTTPS_PROXY` /
+///   `ALL_PROXY` and the exceptions in `NO_PROXY` are honoured by both.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct UreqTransport {
     _private: (),
@@ -566,6 +668,12 @@ impl HttpTransport for UreqTransport {
             // the body of a 4xx/5xx is already captured. Letting ureq turn the
             // status into an error would discard it.
             .http_status_as_error(false)
+            // The source sets neither CURLOPT_USERAGENT nor
+            // CURLOPT_ACCEPT_ENCODING, so libcurl sends neither header. An
+            // empty value tells ureq to send neither either, which keeps the
+            // request the REST server sees the one the source would have made.
+            .user_agent("")
+            .accept_encoding("")
             .max_redirects(request.max_redirects)
             .max_redirects_will_error(true)
             .timeout_global(request.timeout)
@@ -791,7 +899,9 @@ mod tests {
     #[test]
     fn a_malformed_url_fails_offline_through_the_real_transport() {
         // Both cases are refused by the preflight, so no socket, no DNS lookup
-        // and no dependence on the machine's connectivity.
+        // and no dependence on the machine's connectivity. The error carries the
+        // URL verbatim, which is `check_http_url`'s signature and not anything
+        // ureq produces, so this pins *where* the refusal happened.
         for url in ["", "http://"] {
             let mut request = NetworkGetRequest::new();
             request.set_url(url);
@@ -799,6 +909,12 @@ mod tests {
             assert!(request.has_error());
             assert!(!request.error_string().is_empty());
             assert!(request.response_binary().is_empty());
+            assert_eq!(
+                request.error(),
+                Some(&RequestError::Transport(TransportError::MalformedUrl(
+                    url.to_owned()
+                )))
+            );
         }
     }
 

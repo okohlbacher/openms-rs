@@ -139,7 +139,7 @@
   {
    "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
    "line": 61,
-   "operation": "CURLOPT_FOLLOWLOCATION is set to 1 and CURLOPT_MAXREDIRS is never set, so the redirect chain is libcurl's unlimited default; the port caps it at 10 and reports TooManyRedirects"
+   "operation": "CURLOPT_FOLLOWLOCATION is set to 1 and CURLOPT_MAXREDIRS is never set anywhere in NetworkGetRequest.cpp, so whatever bound applies to the redirect chain comes from the libcurl the build links and not from OpenMS. That value is not determinable from this checkout, which ships no libcurl source, header or version pin, so no default is asserted here; the port sets its own bound of 10, raisable to 64, and reports TooManyRedirects beyond it"
   },
   {
    "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
@@ -283,7 +283,8 @@
   "An empty response body still produces a zero-length file, since the write is unconditional"
  ],
  "native_boundaries": [
-  "network_get_request: redirects capped at DEFAULT_MAX_REDIRECTS = 10, caller-settable up to MAX_REDIRECTS = 64, where libcurl's CURLOPT_MAXREDIRS default is unlimited",
+  "network_get_request: redirects capped at DEFAULT_MAX_REDIRECTS = 10, caller-settable up to MAX_REDIRECTS = 64, where the source sets CURLOPT_FOLLOWLOCATION and never sets CURLOPT_MAXREDIRS, leaving its ceiling to the linked libcurl and outside what this checkout can establish",
+  "network_get_request: UreqTransport sends neither User-Agent nor Accept-Encoding, because the source sets neither CURLOPT_USERAGENT nor CURLOPT_ACCEPT_ENCODING; ureq would otherwise send both by default",
   "network_get_request: response body capped at DEFAULT_MAX_RESPONSE_BYTES = 64 MiB, caller-settable up to MAX_RESPONSE_BYTES = 4 GiB, where the source's write callback appends without a ceiling",
   "network_get_request: at most MAX_HEADERS = 1024 response headers, a bound on a native addition since the source captures no headers at all",
   "network_get_request: UreqTransport refuses a URL without '://', with an empty host, or with a scheme other than http/https before any socket is opened, reproducing libcurl's offline CURLE_URL_MALFORMAT and CURLE_UNSUPPORTED_PROTOCOL",
@@ -297,13 +298,33 @@
   "update_check: SemanticVersion::parse returns Option rather than the EMPTY sentinel, while should_report_update reproduces the source's `!= EMPTY` branch so the decision is unchanged",
   "update_check: PartialOrd is deliberately not implemented, because the source's operator< disagrees with its own operator== for two distinct pre-release identifiers"
  ],
- "network_isolation": "No test in this group opens a socket. The two malformed-URL cases of NetworkGetRequest_test.cpp go through the real UreqTransport, whose URL preflight refuses them before any connection is attempted; every other case uses a recorded HttpTransport implemented in the test file. In particular nothing queries http://openms-update.cs.uni-tuebingen.de, which would report the build machine's usage to an upstream server.",
+ "network_isolation": "No test in this group opens a socket. Every case that would need a peer uses a recorded HttpTransport implemented in the test file; only the two malformed-URL cases of NetworkGetRequest_test.cpp go through the real UreqTransport, whose URL preflight refuses them before any connection is attempted. In particular nothing queries http://openms-update.cs.uni-tuebingen.de, which would report the build machine's platform, architecture and tool version to an upstream server.",
+ "network_isolation_verification": [
+  "Enumerated the entry points that can open a socket: UreqTransport::get and network::download_file, which wraps it. 'grep -rn UreqTransport src/ tests/ examples/' and the same for download_file give the complete list - download_file is called from no test, doctest or example, and UreqTransport is constructed only in src/system/network.rs::download_file, one unit test in src/system/network_get_request.rs and three tests in tests/network_get_request.rs.",
+  "Enumerated the URLs those tests hand it: exactly two, \"\" and \"http://\".",
+  "Established that the refusal precedes ureq: check_http_url is the first statement of UreqTransport::get, takes &str, returns Result<(), TransportError> and calls nothing, so it cannot perform I/O; both URLs fail it and ureq::get is never reached.",
+  "Pinned that path against regression: the preflight reports TransportError::MalformedUrl(<the URL verbatim>), a value nothing inside ureq produces, so asserting the exact error identifies which code path ran. tests/network_get_request.rs::the_real_transport_refuses_every_url_this_suite_gives_it asserts it for both URLs, and the three class-test cases using the real transport assert it too.",
+  "Confirmed dynamically: the suite was run with the operating system refusing every network operation - sandbox-exec -p '(version 1)(allow default)(deny network*)' over 'cargo nextest run --locked --all-features --offline' and over 'cargo test --locked --all-features --offline --doc' on macOS. All 57 tests of tests/network.rs, tests/network_get_request.rs, tests/update_check.rs and the network unit tests passed, as did every doctest. The only failures in the whole --all-features run were two that fail identically without the sandbox and belong to other modules: a system::file test writing a non-UTF-8 directory entry, which APFS refuses with EILSEQ, and a load-sensitive system::stop_watch CPU-time assertion that passes when run alone. This is evidence gathered on the development machine, not a gate; steps 1 to 4 are what holds the property and step 4 runs on every build."
+ ],
+ "source_defects_observed": [
+  "UpdateCheck.cpp:142 - the update announcement prints the local `version` argument rather than the server's, so a user on 2.0.0 told that 3.0.0 exists reads 'Version 2.0.0 of X is available at www.OpenMS.de'. Reproduced verbatim. Source-reviewed.",
+  "UpdateCheck.cpp:38-43 - a `revision` string is built from VersionInfo::getRevision(), substituting 'UNKNOWN' for an empty or 'exported' value, and is never read. Not ported. Source-reviewed.",
+  "Network.cpp:41-45 - the collision-suffix loop `while (fs::exists(dest / (basename + \".\" + std::to_string(i)))) ++i;` has no upper bound, so a directory already holding every candidate probes the filesystem without terminating, and `++i` on an int is signed-overflow UB in the limit. The port stops at MAX_NAME_SUFFIX = 10000 with an error. Source-reviewed.",
+  "Network.cpp:36-46 and 60-62 - saveFileName_ probes with fs::exists and downloadFile opens the chosen name afterwards, so two concurrent downloads of one URL into one folder can be given the same name and the second truncates the first. Network.h states without qualification that existing files are never overwritten. The port reproduces the sequence and therefore the race, and returns the written path so a caller can notice. Source-reviewed."
+ ],
+ "behavioural_divergences": [
+  "A partial body is discarded where the source keeps it. Input: a transfer that fails after part of the body arrived - a CURLOPT_TIMEOUT expiring mid-body, or a reset connection. Source: curl_easy_perform returns non-CURLE_OK but writeCallback has already appended the bytes that arrived and run() does not clear them, so getResponseBinary() returns a truncated body next to hasError() == true. Port: HttpTransport::get returns a response or a TransportError and never both, so response_binary() is empty after any transport failure. Not changed because reproducing it would widen the trait so that every failure carries a buffer of unknowable truncation; neither in-tree consumer of the source (Network::downloadFile, UpdateCheck::run) reads the body without testing hasError() first. Pinned by tests/network_get_request.rs::a_transport_failure_leaves_no_body_at_all.",
+  "A Content-Encoding: gzip response is decompressed where the source hands back the compressed bytes. Source: libcurl decompresses only when CURLOPT_ACCEPT_ENCODING was set, which this source never sets. Port: ureq decompresses on the response header alone. The request side was corrected - accept_encoding(\"\") stops the port advertising gzip - but the decompression is ureq's gzip feature and disabling it is a Cargo.toml change, not a module one.",
+  "TLS certificates are verified against webpki-roots, a compiled-in copy of the Mozilla root program, where libcurl uses the platform trust store and honours CURL_CA_BUNDLE / SSL_CERT_FILE. Input: an https URL whose certificate chains to a CA the machine trusts and Mozilla does not (an enterprise inspection proxy, an institutional CA), or the reverse. Not changed because using the platform verifier means enabling ureq's platform-verifier feature, which adds rustls-platform-verifier to the dependency graph.",
+  "A socks5:// proxy named in ALL_PROXY / HTTP_PROXY / HTTPS_PROXY is ignored. Both sides read those variables and NO_PROXY, but this build has ureq's socks-proxy feature off, so only an HTTP proxy is used. Not changed for the same reason.",
+  "The download-failure message stops one character short of the source's. Source: Network.cpp builds \"Download of '\" + url + \"' failed!. Error: \" + query.getErrorString() + '\\n' and throws it, so the IOException's what() ends in a line feed. Port: the Error::Io message is byte for byte the same text without that newline, because a Rust error is rendered inside a line the caller owns and no other error message in this crate terminates itself. Asserted by tests/network.rs::a_failed_request_is_an_io_error_naming_the_url."
+ ],
  "openmp": "None of the four headers or their implementations carries a #pragma omp, so there is no parallel behaviour to match and no performance gap to record for this group.",
  "external_dependency": {
   "crate": "ureq",
   "version": "3.4.1",
   "feature": "network",
-  "note": "Already a declared, non-default dependency of the crate before this port; no dependency was added. Its default features (rustls, gzip) are in effect. Nothing outside src/system/network_get_request.rs names it."
+  "note": "Already a declared, non-default dependency of the crate before this port; no dependency was added. Its default features (rustls, gzip) are in effect, and no feature was added or removed here. Those two features are the origin of three of the five behavioural divergences: rustls pulls webpki-roots rather than a platform verifier, and gzip enables transparent decompression; socks-proxy and platform-verifier are off. Nothing outside src/system/network_get_request.rs names the crate."
  },
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",

@@ -63,6 +63,14 @@ pub const MAX_NAME_SUFFIX: u32 = 10_000;
 /// The result is a bare file name, never a path: join it onto `dest_folder`
 /// yourself, as [`download_file`] does.
 ///
+/// The answer is only as fresh as the probe that produced it. The source has the
+/// same shape — `saveFileName_` asks `fs::exists`, and `downloadFile` opens the
+/// result afterwards — so two callers racing on one folder can be handed the
+/// same name and the second will truncate the first, notwithstanding the
+/// header's flat claim that existing files are never overwritten. That race is
+/// reproduced rather than repaired; [`download_file_with`] returns the path it
+/// wrote, which is what lets a caller notice.
+///
 /// ```
 /// use openms::system::network::save_file_name;
 /// use std::path::Path;
@@ -172,7 +180,7 @@ pub fn download_file(url: &str, download_folder: impl AsRef<Path>) -> Result<Pat
 ///
 /// * [`Error::Io`] when the request fails — a transport error or an HTTP status
 ///   of 400 or above — carrying the source's message,
-///   `Download of '<url>' failed!. Error: <error>`.
+///   `Download of '<url>' failed!. Error: <error>`, `!.` and all.
 /// * [`Error::Io`] when the destination cannot be opened or written.
 /// * [`Error::InvalidValue`] from [`save_file_name`].
 ///
@@ -182,6 +190,21 @@ pub fn download_file(url: &str, download_folder: impl AsRef<Path>) -> Result<Pat
 /// says so in its documentation. This port removes it, so a failed download
 /// leaves the directory as it found it; a removal that itself fails is not
 /// allowed to mask the write error.
+///
+/// The download-failure message stops one character short of the source's. The
+/// source builds `"Download of '" + url + "' failed!. Error: " +
+/// query.getErrorString() + '\n'` and hands that to `Exception::IOException`, so
+/// its `what()` ends in a newline. This message does not, because a Rust error
+/// is rendered inside someone else's line — `eprintln!("error: {e}")`, a `?`
+/// chain, a test assertion — and no other error in this crate terminates itself.
+/// Everything before that newline is byte for byte the source's.
+///
+/// The error string embedded in the message inherits
+/// [`NetworkGetRequest`]'s divergences: for a transport failure it names the
+/// condition rather than reproducing libcurl's `curl_easy_strerror` text, and
+/// nothing is written to disk in that case even where the source's request would
+/// have held a truncated body — `downloadFile` tests `hasError()` first, so the
+/// source does not write it either.
 pub fn download_file_with(
     transport: &dyn HttpTransport,
     url: &str,

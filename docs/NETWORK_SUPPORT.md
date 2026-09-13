@@ -38,9 +38,20 @@ of what remains is taken, and an empty basename becomes the literal `"download"`
 **Percent escapes are not decoded**, by either side, so `%20` reaches the file
 name as three characters.
 
-**Existing files are never overwritten.** `.0`, `.1`, `.2`, … are tried in order
-until one is free. `tests/network.rs::repeated_downloads_never_overwrite`
-downloads the same URL three times and gets `run.tsv`, `run.tsv.0`, `run.tsv.1`.
+**Existing files are never overwritten**, for one writer at a time. `.0`, `.1`,
+`.2`, … are tried in order until one is free.
+`tests/network.rs::repeated_downloads_never_overwrite` downloads the same URL
+three times and gets `run.tsv`, `run.tsv.0`, `run.tsv.1`.
+
+The qualifier is the source's, not an addition: `saveFileName_` probes with
+`fs::exists` and `downloadFile` opens the result afterwards, so two concurrent
+downloads of one URL into one folder can both be told the same name and the
+second truncates the first. The header states the guarantee without it. This port
+reproduces the sequence — `save_file_name`, then `File::create` — and so
+reproduces the race; `download_file` is documented as returning the path it
+wrote, which is what a caller needs to notice a collision. It is logged as an
+upstream defect rather than repaired here, because repairing it changes
+observable behaviour that no finding asked to change.
 
 **An empty destination folder means the current directory.** The source maps
 `""` to `"./"`.
@@ -53,8 +64,9 @@ downloads the same URL three times and gets `run.tsv`, `run.tsv.0`, `run.tsv.1`.
 `data.data()` for `data.size()` bytes with no emptiness test.
 
 **The failure message is the source's**: `Download of '<url>' failed!. Error:
-<error>` — including the `!.`, which is a typo upstream and is kept so the two
-messages match.
+<error>` — including the `!.`, which is a typo upstream and is reproduced rather
+than tidied. One character of it is deliberately not reproduced; see *The failure
+message stops before the source's newline* below.
 
 ## Native differences
 
@@ -105,6 +117,40 @@ anything is allocated or a socket opened. The source bounds nothing.
 **Path joining, not string concatenation.** The source builds `folder + "/" +
 name`, so an empty folder yields `".//name"`. `Path::join` yields `"./name"`,
 which names the same file.
+
+**The failure message stops before the source's newline.** The source builds
+
+```cpp
+std::string error = "Download of '" + url + "' failed!. Error: " + query.getErrorString() + '\n';
+throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+```
+
+so the `what()` of the thrown `IOException` ends in a line feed. `download_file`
+and `download_file_with` return an `Error::Io` whose message is byte for byte the
+same text up to but not including that `'\n'`.
+
+* *Input*: any failing download — a transport error or an HTTP status of 400 or
+  above.
+* *Source*: `…failed!. Error: <error>\n`.
+* *This port*: `…failed!. Error: <error>`.
+
+A Rust error is rendered inside a line the caller owns — `eprintln!("error:
+{e}")`, a `?` chain that prefixes context, an assertion message — so an error
+that terminates its own line inserts a blank one wherever it is used. No other
+error message in this crate ends in a newline, and adding the only one would make
+this function's diagnostics worse in exchange for a byte that carries no
+information. The rest of the message, including the `!.`, is exact, and
+`tests/network.rs::a_failed_request_is_an_io_error_naming_the_url` asserts on it.
+
+**The transport's own divergences are inherited.** `download_file` runs through
+`UreqTransport`, so everything under *Behavioural divergences* in
+[NETWORK_GET_REQUEST_SUPPORT.md](NETWORK_GET_REQUEST_SUPPORT.md#behavioural-divergences)
+applies to a download too: a `gzip`-encoded response is written to disk
+decompressed, an `https` URL is verified against a compiled-in root set rather
+than the machine's, and a SOCKS proxy in the environment is ignored. The
+partial-body difference is not observable here — `downloadFile` tests
+`hasError()` before it opens the destination, so neither side writes a file from
+a failed transfer.
 
 ## Checked boundaries and evidence
 
