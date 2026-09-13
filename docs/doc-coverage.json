@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5290,
-  "documented": 3779
+  "items": 5296,
+  "documented": 3784
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -20,6 +20,10 @@
   "src/analysis/false_discovery_rate.rs": {
    "items": 23,
    "documented": 16
+  },
+  "src/analysis/feature_finder_picked.rs": {
+   "items": 1,
+   "documented": 1
   },
   "src/analysis/feature_finding_metabo.rs": {
    "items": 15,
@@ -46,7 +50,7 @@
    "documented": 7
   },
   "src/analysis/mod.rs": {
-   "items": 17,
+   "items": 18,
    "documented": 0
   },
   "src/analysis/peak_integrator.rs": {
@@ -441,6 +445,10 @@
    "items": 22,
    "documented": 11
   },
+  "src/format/file_info.rs": {
+   "items": 1,
+   "documented": 1
+  },
   "src/format/file_types.rs": {
    "items": 20,
    "documented": 17
@@ -490,8 +498,8 @@
    "documented": 4
   },
   "src/format/mod.rs": {
-   "items": 46,
-   "documented": 46
+   "items": 48,
+   "documented": 48
   },
   "src/format/modification_definitions.rs": {
    "items": 23,
@@ -802,8 +810,8 @@
    "documented": 3
   },
   "src/kernel.rs": {
-   "items": 73,
-   "documented": 73
+   "items": 74,
+   "documented": 74
   },
   "src/lib.rs": {
    "items": 18,

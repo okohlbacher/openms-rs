@@ -45,10 +45,10 @@ pub mod experimental_design_file;
 pub mod fasta;
 /// File-type-based dispatch to implemented native format adapters.
 pub mod file_handler;
-/// File-type identities, properties, extensions and filter labels.
-pub mod file_types;
 /// File summaries for the FileInfo tool (`FileInfo.h`).
 pub mod file_info;
+/// File-type identities, properties, extensions and filter labels.
+pub mod file_types;
 /// Mascot generic format (MGF) peak lists and search header (`MascotGenericFile.h`).
 pub mod mascot_generic;
 /// Streaming MGF peak lists and their supported text metadata.
