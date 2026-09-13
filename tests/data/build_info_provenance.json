@@ -1,0 +1,107 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "35f3fd28aaa1e90041288cc7e62a8d3d4750756b",
+ "method": "Direct header, implementation and class-test audit; no C++ build or execution. The class test's own expectations are platform-derived, so the same derivations are reproduced rather than pinned to one host.",
+ "evidence_tier": "tier 3 (source review, transcribed class-test expectations) and tier 4 (independently derived name tables, pointer-width derivation and build-configuration constants)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
+   "sha256": "409ac83106ef54f3000839aeae562dc001a5c11d1929881f2c37547552431dbf"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/BuildInfo.cpp",
+   "sha256": "4140f7801571646345cb733efe2e4bc48a8348cb8161b45c1a9e38388b565fca"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BuildInfo_test.cpp",
+   "sha256": "846f5f1cc780f6aae0be94a2728b0f88bca8b8a387818aa9060ecd86f26c6ccd"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtils.h",
+   "sha256": "3d3beaed797a88573fcaf9b9ee7fd01fb9c218ad0d615079b02fa7d054f13885"
+  }
+ ],
+ "native_implementation": [
+  "src/system/build_info.rs"
+ ],
+ "native_tests": [
+  "tests/build_info.rs",
+  "src/system/build_info.rs::tests"
+ ],
+ "support_document": "docs/BUILD_INFO_SUPPORT.md",
+ "source_surface": {
+  "public_enums": 2,
+  "public_name_tables": 2,
+  "public_function_names": 9,
+  "public_overloads": 9,
+  "class_test_sections": 8
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
+   "line": 37,
+   "operation": "OpenMS_OS and OpenMS_Architecture each end in a SIZE_OF_* sentinel that exists only to size the parallel inline name array indexed by the enum value"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
+   "line": 56,
+   "operation": "getOSVersionString_ uses RtlGetVersion from ntdll.dll on Windows, sysctlbyname(\"kern.osproductversion\") on macOS and VERSION_ID from /etc/os-release on other Unix, returning \"unknown\" on any failure"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
+   "line": 91,
+   "operation": "the Unix branch prefix-matches \"VERSION_ID=\" and strips one surrounding pair of double quotes only when the value is at least two characters long"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
+   "line": 160,
+   "operation": "getBinaryArchitecture switches on sizeof(size_t) and can return \"unknown\", unlike getOSInfo"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
+   "line": 191,
+   "operation": "getOSInfo sets the OS from WIN32 / (__MACH__ && __APPLE__) / __unix__ in that order, so every non-macOS Unix reports Linux, and derives the architecture from sizeof(void*) with 4 meaning 32-bit and everything else 64-bit"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
+   "line": 234,
+   "operation": "isOpenMPEnabled, getOpenMPMaxNumThreads and setOpenMPNumThreads compile to false, 1 and a no-op when _OPENMP is not defined"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
+   "line": 244,
+   "operation": "getBuildType returns the configure-time OPENMS_BUILD_TYPE macro from build_config.h"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/BuildInfo.cpp",
+   "line": 21,
+   "operation": "getActiveSIMDExtensions pushes neon, SSE, SSE2, SSE3, SSE4.1, SSE4.2, AVX, AVX2 and FMA in that order from the SIMDe arch probes and joins them with \", \""
+  }
+ ],
+ "class_test_review": {
+  "path": "src/tests/class_tests/openms/source/BuildInfo_test.cpp",
+  "lines": "21-106",
+  "sections": 8,
+  "literal_extraction": "The three \"unknown\" defaults and the seven name-table labels are transcribed. The binary-architecture and OS-probe sections are derived exactly as the source test derives them, from sizeof(size_t) and from the accepted set {Windows, MacOS, Linux}; the SIMD section asserts only the determinism the source test asserts, plus that every emitted label is one of the nine the source can emit."
+ },
+ "native_boundaries": [
+  "The SIZE_OF_* enum sentinels and both inline name arrays have no counterpart: OperatingSystem::as_str and Architecture::as_str replace the array and the index into it",
+  "OsInfo exposes public fields where the source keeps private members behind get*AsString accessors; the labels remain available through the enums",
+  "os_version_string reads /etc/os-release on Linux and reports \"unknown\" on macOS and Windows, because RtlGetVersion and sysctlbyname need a platform binding this crate does not take; /etc/os-release reads are capped at 64 KiB",
+  "active_simd_extensions reads Rust target features instead of the SIMDe build macros, keeping the source's order and labels; the port has no hand-written SIMD, so the value reports only what the compiler was allowed to emit",
+  "openmp_enabled is always false and openmp_max_num_threads always 1, matching the source's non-OpenMP build exactly",
+  "setOpenMPNumThreads is not ported: it is a no-op in a non-OpenMP build and there is no thread pool here to size",
+  "build_type is derived from debug_assertions, since Cargo bakes no profile name into a library; it separates the stock dev and release profiles but follows the setting rather than the profile's name",
+  "OsInfo::detect reproduces the source's pointer-width rule verbatim, including that anything other than four bytes is reported as 64-bit"
+ ],
+ "openmp_gap": "This header is the port's only place where OpenMP is visible at all, and it is visible as its absence: the port is deliberately serial, so the two reported values are the source's own non-OpenMP answers and the setter is dropped.",
+ "license": "BSD-3-Clause for source-derived code and literals",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
