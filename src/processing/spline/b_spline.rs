@@ -86,9 +86,16 @@ impl BoundaryCondition {
 /// Reads and writes outside the band are silently ignored and read back as
 /// zero. That is not a convenience: the C++ `BandedMatrix::element` returns a
 /// shared `out_of_bounds` scratch reference for such coordinates, so a write
-/// lands nowhere and a read yields whatever was written there last. Every
-/// access the ported algorithms make is provably inside the band, so the two
-/// behaviours coincide; see `docs/BSPLINE2D_SUPPORT.md`.
+/// lands nowhere and a read yields whatever was written there last. The two
+/// behaviours are indistinguishable here because no value the C++ leaves in
+/// that scratch element is ever read back into an in-band coordinate: every
+/// `Q[i][j] += q` that lands outside also stores its result outside. See
+/// `docs/BSPLINE2D_SUPPORT.md`.
+///
+/// For `n >= 3` the slot test below is exactly the C++ `check_bounds` for a
+/// `setup(n, -3, 3)` matrix. Smaller `n` is the degenerate two-node grid, where
+/// the C++ `setup` call fails and leaves a 1x1 matrix; [`Domain::band_rows`]
+/// reproduces that by asking for `n = 1`.
 #[derive(Clone, Debug)]
 struct Band {
     n: i64,
@@ -145,6 +152,20 @@ struct Domain {
 }
 
 impl Domain {
+    /// Number of rows the source's banded matrix actually ends up with.
+    ///
+    /// `calculateQ` opens with `Q.setup(M + 1, 3)`, and `BandedMatrix::setup`
+    /// refuses any dimension below its bandwidth (`N_ < abs(first)`). Its
+    /// return value is ignored, so for `M + 1 < 3` the matrix silently keeps
+    /// the 1x1 shape its default constructor gave it, and everything the
+    /// algorithm writes outside that single element goes to the discarded
+    /// scratch. The only node count that reaches this is `num_nodes == 2`; see
+    /// the type documentation of [`BSpline2d`] for what the resulting object is
+    /// worth.
+    fn band_rows(&self) -> i64 {
+        if self.m + 1 < 3 { 1 } else { self.m + 1 }
+    }
+
     /// `BSplineBase<T>::Beta`.
     fn beta(&self, m: i64) -> f64 {
         if m > 1 && m < self.m - 1 {
@@ -231,7 +252,7 @@ impl Domain {
 
     /// `BSplineBase<T>::calculateQ`: the derivative-constraint matrix.
     fn calculate_q(&self) -> Band {
-        let mut q = Band::new(self.m + 1);
+        let mut q = Band::new(self.band_rows());
         if self.alpha == 0.0 {
             return q;
         }
@@ -362,9 +383,15 @@ fn lu_factor_banded(a: &mut Band) -> bool {
 }
 
 /// `LU_solve_banded`: forward then backward substitution, in place on `b`.
+///
+/// `b` may be longer than the matrix is wide, and then only its first `a.n`
+/// entries are touched. That is not slack: the C++ takes the right-hand side as
+/// a `std::vector` sized `M + 1` and the matrix size from `A.num_rows()`, and on
+/// the two-node grid those disagree, which leaves the trailing entry of the
+/// solution vector holding the raw right-hand side the caller accumulated.
 fn lu_solve_banded(a: &Band, b: &mut [f64]) -> bool {
     let n = a.n;
-    if n <= 0 || b.len() != n as usize {
+    if n <= 0 || (b.len() as i64) < n {
         return false;
     }
     for i in 2..=n {
@@ -415,6 +442,32 @@ fn lu_solve_banded(a: &Band, b: &mut [f64]) -> bool {
 /// This is the source's behaviour, reproduced deliberately: contrast
 /// [`CubicSpline2d`](crate::processing::spline::CubicSpline2d), which rejects
 /// any query outside its knot range.
+///
+/// # The two-node grid
+///
+/// `num_nodes == 2` is the one input for which the source's own bookkeeping
+/// comes apart, and it is reproduced rather than refused. `calculateQ` opens
+/// with `Q.setup(M + 1, 3)`, which for two nodes refuses the dimension because
+/// it is smaller than the bandwidth, and the return value is ignored; the
+/// penalty matrix therefore stays at the 1x1 shape of its default constructor.
+/// Everything the algorithm then writes outside that single element is
+/// discarded, the factorisation and the back-substitution run on a 1x1 system,
+/// and the second coefficient is never solved for at all — it keeps the raw
+/// right-hand side `sum_j (y_j - mean) * Basis(1, x_j)` that
+/// [`BSpline2d::solve`] accumulated into it.
+///
+/// The result is finite, deterministic, reports `ok()`, and is not a fit: its
+/// second coefficient is in the units of the right-hand side rather than of the
+/// curve. For `y = x^2` on `x = 0..7` it evaluates to `23.71` at `x = 3.5`,
+/// where the data is `12.25`. Ask for two nodes only if you are reproducing
+/// that; three is the smallest node count the algorithm actually solves.
+///
+/// Two further consequences are worth stating. The C++ reaches this state only
+/// with `NDEBUG` set: on the two-node grid `Beta` is called outside the range
+/// its own `assert(0 <= m && m <= 3)` allows, so a build with assertions
+/// enabled aborts instead. And the values above do not depend on what those
+/// out-of-range reads returned, because every one of them is consumed by a
+/// write that the banded storage discards.
 ///
 /// # Differences from the source
 ///
@@ -474,7 +527,9 @@ impl BSpline2d {
     ///   because it does not.
     /// * `boundary_condition` — the constraint at the two ends of the node grid.
     /// * `num_nodes` — the number of nodes for the cubic B-spline. Below two, a
-    ///   node count is derived from the data and the cutoff wavelength.
+    ///   node count is derived from the data and the cutoff wavelength. Exactly
+    ///   two is the degenerate grid described on the type; it is accepted and
+    ///   reproduces the source, but it does not fit anything.
     ///
     /// # Notes
     ///
@@ -505,10 +560,9 @@ impl BSpline2d {
     /// empty, when a value is not finite, when `wavelength` is negative or not
     /// finite, when all abscissae are equal so the node spacing would be zero,
     /// when the wavelength exceeds the span of `x` or the node search cannot
-    /// keep one point per interval (both `setDomain` failures in C++), when
-    /// fewer than three nodes result — the banded matrix refuses to be shaped
-    /// and the C++ leaves `ok()` false — when the matrix cannot be factored, or
-    /// when [`BSpline2d::MAX_POINTS`] or [`BSpline2d::MAX_NODES`] is exceeded.
+    /// keep one point per interval (both `setDomain` failures in C++), when the
+    /// matrix cannot be factored, or when [`BSpline2d::MAX_POINTS`] or
+    /// [`BSpline2d::MAX_NODES`] is exceeded.
     pub fn with_options(
         x: &[f64],
         y: &[f64],
@@ -884,11 +938,12 @@ fn setup(
         }
     }
 
-    if ni < 2 {
-        // M + 1 < 3 leaves the banded matrix unshaped in C++, after which
-        // factoring fails and ok() stays false.
+    if ni < 1 {
+        // Unreachable: the explicit branch above needs `num_nodes >= 2`, and
+        // both automatic branches leave `ni` at two or more. Kept so the node
+        // spacing below cannot be formed from a non-positive interval count.
         return Err(Error::InvalidValue(
-            "B-spline needs at least three nodes".into(),
+            "B-spline needs at least one node interval".into(),
         ));
     }
     if ni + 1 > BSpline2d::MAX_NODES as i64 {
@@ -1018,6 +1073,44 @@ mod tests {
     }
 
     #[test]
+    fn a_two_node_grid_reproduces_the_source_instead_of_being_refused() {
+        let (x, y) = squares();
+        // The C++ `Q.setup(2, 3)` fails and is not checked, so the penalty
+        // matrix stays 1x1, the second coefficient is never solved for, and the
+        // object still reports ok(). Every number here is from the executed
+        // probe; see tests/spline_math.rs for the full comparison.
+        let s = BSpline2d::with_options(&x, &y, 0.0, BoundaryCondition::ZeroSecond, 2).unwrap();
+        assert!(s.ok());
+        assert_eq!(s.node_count(), 2);
+        assert_eq!(s.domain(), (0.0, 7.0));
+        assert_eq!(s.node_spacing(), 7.0);
+        assert_eq!(s.alpha(), 2.6723192544913614e-07);
+        assert_eq!(s.coefficient(0), -8.011010956384775);
+        assert_eq!(s.coefficient(1), 15.00000000000001);
+        assert_eq!(s.eval(0.0).unwrap(), 22.741741782711426);
+        assert_eq!(s.eval(3.5).unwrap(), 23.711179967485478);
+        assert_eq!(s.derivative(3.5).unwrap(), 2.063679745326941);
+
+        // The second coefficient is the unsolved right-hand side, so it is
+        // exactly what `solve` accumulated into it. Derived here rather than
+        // transcribed: with M = 1 the window clamps to the two nodes and the
+        // basis at node 1 is evaluated on the mean-subtracted ordinates.
+        let mean = y.iter().sum::<f64>() / y.len() as f64;
+        let domain = setup(&x, 0.0, 2, BoundaryCondition::ZeroSecond).unwrap();
+        let mut rhs = 0.0;
+        for (j, &xj) in x.iter().enumerate() {
+            rhs += (y[j] - mean) * domain.basis(1, xj);
+        }
+        assert_eq!(s.coefficient(1), rhs);
+
+        // Three nodes is the smallest grid the algorithm actually solves, and
+        // it is a different object entirely.
+        let three = BSpline2d::with_options(&x, &y, 0.0, BoundaryCondition::ZeroSecond, 3).unwrap();
+        assert_eq!(three.node_count(), 3);
+        assert_eq!(three.eval(3.5).unwrap(), 11.676270573337504);
+    }
+
+    #[test]
     fn setup_failures_the_source_reports_through_ok() {
         let x = [0.0, 1.0, 2.0, 3.0];
         let y = [0.0, 1.0, 4.0, 9.0];
@@ -1061,8 +1154,6 @@ mod tests {
         assert!(
             BSpline2d::with_options(&x, &y, f64::NAN, BoundaryCondition::ZeroSecond, 0).is_err()
         );
-        // Two nodes leave the C++ banded matrix unshaped and ok() false.
-        assert!(BSpline2d::with_options(&x, &y, 0.0, BoundaryCondition::ZeroSecond, 2).is_err());
         let s = BSpline2d::new(&x, &y).unwrap();
         assert!(s.eval(f64::NAN).is_err());
         assert!(s.derivative(f64::INFINITY).is_err());

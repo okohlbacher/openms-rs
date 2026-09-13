@@ -48,10 +48,22 @@ Native additions, all documented at the item:
 * **The natural boundary condition.** Confirmed from the source, not assumed:
   `CubicSpline2d.cpp:152` sets `c_.back() = 0`, and the forward sweep never
   writes `mu[0]` or `z[0]`, so `c_[0] = z[0] - mu[0]*c_[1] = 0`. The second
-  derivative is `2*c_[i] + 6*d_[i]*t`, which is exactly `2*c_[0] = 0` at the
-  first knot and, at the last, `2*c_[n-1] + 2*(c_[n] - c_[n-1]) = 2*c_[n] = 0`.
-  Both are *exactly* zero, and the Rust test asserts equality with `0.0` rather
-  than a tolerance.
+  derivative is `2*c_[i] + 6*d_[i]*t`.
+
+  The two ends differ, and the difference is measurable rather than cosmetic. At
+  the first knot `t` is zero, so the value is `2*c_[0]`, which is **exactly**
+  `0.0` for every input. At the last knot the evaluation falls on the last
+  segment at its right end, `2*c_[n-1] + 6*d_[n-1]*h` with
+  `d_[n-1] = (c_[n] - c_[n-1]) / (3*h)`. Algebraically that is `2*c_[n] = 0`,
+  but three roundings stand between the two, so it is zero only up to rounding.
+  The probe shows both outcomes: `cubic_sine d2_last` is exactly `0` on the
+  class test's uniform grid, while `cubic_upstream d2@486.811` is
+  `-3.814697265625e-06` against interior second derivatives of order `1e11` —
+  about `3e-17` relative. The C++ behaves identically, and its own class test
+  uses `TEST_REAL_SIMILAR(sp5.derivatives(x[n], 2), 0)` rather than an equality.
+  The Rust test `the_natural_boundary_condition_holds_at_both_ends` asserts
+  exact `0.0` at the first knot of both fixtures and the probe's non-zero value
+  at the last knot of the peak, so the distinction cannot silently rot.
 * **Segment selection at a knot.** `lower_bound` followed by
   `if (x_[i] > x || x_.back() == x) --i` picks the segment *starting* at an
   interior knot, so `eval(x_i)` returns `y_i` with `t = 0`; at the last knot it
@@ -113,8 +125,11 @@ Unaccounted sections: none.
 
 These do not come from the probe and would survive it being wrong:
 
-* `derivative(x_first, 2)` and `derivative(x_last, 2)` are compared with exact
-  `0.0`, which the natural boundary condition forces algebraically.
+* `derivative(x_first, 2)` is compared with exact `0.0`, which the recurrence
+  forces bit for bit on every input: `c_[0]` is never written and the offset into
+  the first segment is zero. The same is *not* claimed at the last knot, where
+  the algebraic zero passes through three roundings; that end is pinned against
+  the probe instead.
 * The first and second derivatives are compared just left and right of every
   interior knot; a cubic spline is `C^2`, so a discontinuity there would mean the
   tridiagonal solve is wrong even if every probe value matched.

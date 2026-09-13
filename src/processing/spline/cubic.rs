@@ -45,9 +45,18 @@ fn checked(value: f64) -> Result<f64> {
 ///
 /// The spline is *natural*: the second derivative vanishes at both ends. The
 /// source sets the trailing quadratic coefficient `c_.back()` to zero and its
-/// recurrence leaves `c_[0]` at zero as well, so `f''(x_first)` and
-/// `f''(x_last)` are both exactly zero. `CubicSpline2d_test.cpp` asserts this
-/// directly, and [`CubicSpline2d::derivative`] reproduces it.
+/// recurrence leaves `c_[0]` at zero as well.
+///
+/// The two ends are not equally exact, and the difference is observable.
+/// `f''(x_first)` is `2*c_[0] + 6*d_[0]*0`, which is exactly `0.0` for every
+/// input. `f''(x_last)` is evaluated on the *last segment* at its right end, as
+/// `2*c_[n-1] + 6*d_[n-1]*h`, and although `d_[n-1]` is
+/// `(c_[n] - c_[n-1]) / (3*h)` with `c_[n]` exactly zero, three roundings stand
+/// between that and `2*c_[n]`. It is therefore zero only up to rounding: the
+/// probe records exactly `0` for the class test's uniform sine grid but
+/// `-3.814697265625e-06` for the upstream peak, whose interior second
+/// derivatives are of order `1e11`. The C++ has the same behaviour, and
+/// `CubicSpline2d_test.cpp` asserts the condition with a tolerance.
 ///
 /// # Differences from the source
 ///
@@ -396,10 +405,24 @@ mod tests {
             .collect();
         let y: Vec<f64> = x.iter().map(|v| v.sin()).collect();
         let s = CubicSpline2d::new(&x, &y).unwrap();
-        // Independently derived: the natural condition makes these exactly zero,
-        // not merely small.
+        // The first knot is exact for every input: `mu[0]` and `z[0]` are never
+        // written, so `c[0]` is exactly zero and the reported value is `2*c[0]`.
         assert_eq!(s.derivative(x[0], 2).unwrap(), 0.0);
+        // The last knot is evaluated on the last segment at its right end, so it
+        // is only zero up to rounding. On this uniform grid it lands on exact
+        // zero, which the probe also records.
         assert_eq!(s.derivative(x[n], 2).unwrap(), 0.0);
+
+        // On the non-uniform upstream peak it does not, and the value the probe
+        // records is asserted here rather than hidden behind a tolerance: it is
+        // 3e-17 of the interior second derivatives, but it is not zero.
+        let (ux, uy) = upstream();
+        let peak = CubicSpline2d::new(&ux, &uy).unwrap();
+        assert_eq!(peak.derivative(ux[0], 2).unwrap(), 0.0);
+        assert_eq!(
+            peak.derivative(ux[ux.len() - 1], 2).unwrap(),
+            -3.814697265625e-06
+        );
     }
 
     #[test]

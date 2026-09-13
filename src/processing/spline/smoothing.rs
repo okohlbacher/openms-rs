@@ -52,9 +52,13 @@ enum Fit {
 ///   and [`BSplineSmoothingSpline::eval`] therefore never returns the source's
 ///   `NaN`.
 /// * The source sorts its candidate fits with `std::sort` under a comparator
-///   that is not a strict weak ordering. With at most six candidates libstdc++
-///   uses insertion sort, so the outcome is the stable one; this port sorts
-///   stably and so agrees, but the comparator is reproduced verbatim.
+///   that is not a strict weak ordering, so which candidate ends up first is
+///   left to the standard library and genuinely differs between
+///   implementations. The comparator is reproduced verbatim and the sort is a
+///   stable insertion sort; the agreement with the C++ is established by the
+///   executed probe, which was built against libc++, rather than argued from
+///   the size of the candidate list. `docs/BSPLINE_SMOOTHING_SPLINE_SUPPORT.md`
+///   has the detail and `tests/spline_math.rs` the cases that pin it.
 #[derive(Clone, Debug)]
 pub struct BSplineSmoothingSpline {
     fit: Fit,
@@ -109,10 +113,13 @@ impl BSplineSmoothingSpline {
     /// partial pivoting and accepts it when its residual sum of squares is
     /// within ten percent of the budget — the source's margin — reporting zero
     /// interior knots. Failing that it builds one B-spline per entry of the node
-    /// list `4, 6, 8, n/2, 3n/4, n` (each clamped up to four, then sorted and
-    /// deduplicated), keeps those that fit, and picks the one whose residual sum
+    /// list `4, 6, 8, max(4, n/2), max(4, 3n/4), n` — only the two middle terms
+    /// are clamped, the divisions truncate, and the list is then sorted and
+    /// deduplicated — keeps those that fit, and picks the one whose residual sum
     /// of squares is closest to the budget, preferring fewer interior knots when
-    /// two are within `0.001` of each other and both under budget.
+    /// two are within `0.001` of each other and both under budget. That last
+    /// rule is not a tiebreak on an otherwise total order; see the note on the
+    /// type.
     ///
     /// # Errors
     ///
@@ -214,26 +221,11 @@ impl BSplineSmoothingSpline {
             ));
         }
 
-        // The source's comparator, verbatim. It is not a strict weak ordering,
-        // so the sort algorithm is part of the observable behaviour; a stable
-        // insertion sort is what libstdc++ runs for this many elements.
-        let precedes = |a: &Candidate, b: &Candidate| -> bool {
-            let err_a = (a.rss - s_target).abs();
-            let err_b = (b.rss - s_target).abs();
-            if a.rss <= s_target && b.rss <= s_target && (err_a - err_b).abs() < 0.001 {
-                return a.num_interior_knots < b.num_interior_knots;
-            }
-            err_a < err_b
-        };
-        for i in 1..candidates.len() {
-            let mut j = i;
-            while j > 0 && precedes(&candidates[j], &candidates[j - 1]) {
-                candidates.swap(j, j - 1);
-                j -= 1;
-            }
-        }
-
-        let best = candidates.swap_remove(0);
+        let keys: Vec<(f64, i32)> = candidates
+            .iter()
+            .map(|c| (c.rss, c.num_interior_knots))
+            .collect();
+        let best = candidates.swap_remove(best_candidate(&keys, s_target));
         Ok(Self {
             fit: Fit::Spline(Box::new(best.spline)),
             num_interior_knots: best.num_interior_knots,
@@ -314,6 +306,57 @@ impl BSplineSmoothingSpline {
     pub fn is_polynomial(&self) -> bool {
         matches!(self.fit, Fit::Polynomial(_))
     }
+}
+
+/// The source's candidate comparator, transcribed. `a` and `b` are
+/// `(rss, num_interior_knots)`.
+///
+/// It is not a strict weak ordering: when two candidates are both inside the
+/// budget and their distances to it differ by less than `0.001`, the knot count
+/// decides instead of the distance, and that rule can contradict the distance
+/// rule applied to a third candidate. See [`best_candidate`].
+fn candidate_precedes(a: (f64, i32), b: (f64, i32), s_target: f64) -> bool {
+    let err_a = (a.0 - s_target).abs();
+    let err_b = (b.0 - s_target).abs();
+    if a.0 <= s_target && b.0 <= s_target && (err_a - err_b).abs() < 0.001 {
+        return a.1 < b.1;
+    }
+    err_a < err_b
+}
+
+/// Index of the candidate the source's `std::sort` leaves at position zero,
+/// which is the only position it then reads.
+///
+/// The source sorts the candidates with `std::sort` under
+/// [`candidate_precedes`], which is not a strict weak ordering, so the standard
+/// library is free to produce any permutation and different implementations do.
+/// The candidate list holds one to six entries; in libc++'s `__algorithm/sort.h`
+/// that range is dispatched by a `switch (__len)` to the `__sort3`, `__sort4`
+/// and `__sort5` comparison networks, and only a length of six or more reaches
+/// `__insertion_sort` — and libstdc++'s insertion sort is a different algorithm
+/// again, so it is not obliged to agree with either. Which library ran is
+/// therefore part of the answer, and no argument about "small ranges use
+/// insertion sort" settles it.
+///
+/// This port does a stable insertion sort — element `j` walks left while it
+/// precedes its neighbour — and the agreement with the C++ is established by
+/// measurement, not by that argument: the executed probe was built against
+/// libc++ and `tests/spline_math.rs` reproduces its selection for every probed
+/// dataset, including `smooth_tie_break`, where the knot-count branch overrides
+/// the distance rule, and `smooth_cycle`, where the comparator is cyclic over
+/// the three leading candidates so the winner depends on the sort algorithm
+/// itself. Against another standard library the C++ may well select a different
+/// candidate there; this port's choice is the one pinned by those tests.
+fn best_candidate(keys: &[(f64, i32)], s_target: f64) -> usize {
+    let mut order: Vec<usize> = (0..keys.len()).collect();
+    for i in 1..order.len() {
+        let mut j = i;
+        while j > 0 && candidate_precedes(keys[order[j]], keys[order[j - 1]], s_target) {
+            order.swap(j, j - 1);
+            j -= 1;
+        }
+    }
+    order.first().copied().unwrap_or(0)
 }
 
 /// `BSplineSmoothingSpline::eval_polynomial`, in its original accumulation
@@ -546,6 +589,47 @@ mod tests {
         assert!(BSplineSmoothingSpline::new(&[0.0, 2.0, 1.0, 3.0], &[1.0, 2.0, 3.0, 4.0]).is_err());
         assert!(BSplineSmoothingSpline::new(&[1.0, 1.0, 2.0, 3.0], &[1.0, 2.0, 3.0, 4.0]).is_err());
         assert!(BSplineSmoothingSpline::with_smoothing(&x, &x, f64::NAN, 3).is_err());
+    }
+
+    #[test]
+    fn the_candidate_comparator_is_not_a_strict_weak_ordering() {
+        // Three candidates, budget 1.0, listed the way the search builds them:
+        // ascending node count, so ascending interior-knot count. The finer
+        // grids fit worse here, which is what makes the relation cyclic and is
+        // exactly the shape the `smooth_cycle` probe case has.
+        let a = (0.9975, 2); // furthest from the budget, fewest knots
+        let b = (0.9983, 4);
+        let c = (0.9991, 6); // closest to the budget, most knots
+        let s = 1.0;
+        // Neighbours are within 0.001 of each other, so the knot count decides
+        // and the coarser candidate wins each pair.
+        assert!(candidate_precedes(a, b, s));
+        assert!(candidate_precedes(b, c, s));
+        // The outer pair is 0.0016 apart, so closeness decides instead, and it
+        // reverses the relation the other two imply. That is the cycle.
+        assert!(!candidate_precedes(a, c, s));
+        assert!(candidate_precedes(c, a, s));
+        // Position zero is therefore a property of the sort, not of the
+        // comparator. This port's insertion sort leaves the first element that
+        // nothing displaces.
+        assert_eq!(best_candidate(&[a, b, c], s), 0);
+        // And it depends on the order the candidates arrive in, which is why
+        // the node-count list is sorted before the splines are built.
+        assert_eq!(best_candidate(&[c, b, a], s), 1);
+    }
+
+    #[test]
+    fn the_knot_count_branch_overrides_closeness_only_inside_the_budget() {
+        // Both inside the budget and 0.0004 apart: the coarser candidate wins
+        // even though the finer one is nearer the budget.
+        let coarse = (0.9990, 2);
+        let fine = (0.9994, 6);
+        assert_eq!(best_candidate(&[coarse, fine], 1.0), 0);
+        // Move the budget below the finer candidate's residual and the branch
+        // can no longer fire, so plain closeness takes over and it wins.
+        assert_eq!(best_candidate(&[coarse, fine], 0.9993), 1);
+        // Inside the budget but more than 0.001 apart: closeness again.
+        assert_eq!(best_candidate(&[(0.9980, 2), (0.9995, 6)], 1.0), 1);
     }
 
     #[test]

@@ -13,10 +13,13 @@
 //! build flags are recorded in `tests/data/spline_math_provenance.json`.
 //!
 //! Every comparison here is bit-for-bit. The probe is built with
-//! `-ffp-contract=off` so no multiply-add is fused; the same sources built with
-//! clang's default contraction on arm64 differ in the last one or two units in
-//! the last place, which is a portability property of the C++ and is recorded in
-//! the support documents rather than papered over with a tolerance.
+//! `-ffp-contract=off` so no multiply-add is fused, and two strict builds at
+//! `-O0` and `-O2` agree byte for byte. The same sources built with clang's
+//! default contraction on arm64 differ in 1 234 of the 1 828 recorded values,
+//! by a median of `8.9e-15` relative and by order unity on the dozen or so that
+//! are numerically zero; that is a portability property of the C++ and is
+//! measured in `docs/BSPLINE2D_SUPPORT.md` rather than papered over with a
+//! tolerance.
 
 use openms::processing::spline::{
     BSpline2d, BSplineSmoothingSpline, BoundaryCondition, CubicSpline2d, SplineFunction,
@@ -442,6 +445,74 @@ fn bspline_node_counts_wavelengths_and_boundary_conditions_match_the_probe() {
     );
 }
 
+/// `num_nodes == 2` makes `BSplineBase::calculateQ`'s `Q.setup(M + 1, 3)` fail —
+/// the dimension is below the bandwidth — and the C++ ignores the return value,
+/// so the penalty matrix keeps the 1x1 shape of its default constructor, the
+/// second coefficient is never solved for, and the object still reports `ok()`.
+/// The port reproduces that rather than refusing it; these are the probe's own
+/// numbers for the release (`NDEBUG`) build the oracle records. With assertions
+/// enabled the same C++ aborts in `Beta`, because this path reads outside
+/// `BoundaryConditions`; every one of those reads is consumed by a write the
+/// banded storage discards, which is why the values below are reproducible at
+/// all.
+#[test]
+fn bspline_two_node_grids_reproduce_the_degenerate_source_fit() {
+    let probe = Probe::load();
+    let (x, y) = squares(8);
+    let two = check_bspline(
+        &probe,
+        "bspline_small_n2",
+        &x,
+        &y,
+        0.0,
+        BoundaryCondition::ZeroSecond,
+        2,
+    );
+    assert!(two.ok());
+    assert_eq!(two.node_count(), 2);
+    assert_eq!(two.node_spacing(), 7.0);
+    check_bspline(
+        &probe,
+        "bspline_small_n2_bc0",
+        &x,
+        &y,
+        0.0,
+        BoundaryCondition::ZeroEndpoints,
+        2,
+    );
+    check_bspline(
+        &probe,
+        "bspline_small_n2_bc1",
+        &x,
+        &y,
+        0.0,
+        BoundaryCondition::ZeroFirst,
+        2,
+    );
+    // Three nodes is the smallest grid whose matrix the C++ does shape, and it
+    // is a fit rather than an artefact: at 3.5 the two-node curve reports 23.7
+    // where the data is 12.25, the three-node one 11.68.
+    let three = check_bspline(
+        &probe,
+        "bspline_small_n3",
+        &x,
+        &y,
+        0.0,
+        BoundaryCondition::ZeroSecond,
+        3,
+    );
+    assert!(three.eval(3.5).unwrap() < two.eval(3.5).unwrap());
+
+    // The unsolved second coefficient is the raw right-hand side, so negating
+    // the ordinates negates it exactly like the solved one. Derived from the
+    // linearity of the accumulation, not transcribed.
+    let mut flipped = two;
+    let negated: Vec<f64> = y.iter().map(|v| -v).collect();
+    flipped.solve(&negated).unwrap();
+    assert_eq!(flipped.coefficient(0), 8.011010956384775);
+    assert_eq!(flipped.coefficient(1), -15.00000000000001);
+}
+
 #[test]
 fn bspline_setup_failures_become_errors() {
     let probe = Probe::load();
@@ -562,6 +633,61 @@ fn smoothing_spline_reproduces_every_probe_case() {
     );
     check_smoothing(&probe, "smooth_size_mismatch", &ramp5, &[1.0, 2.0], -1.0, 3);
     check_smoothing(&probe, "smooth_single_point", &[0.0], &[1.0], -1.0, 3);
+}
+
+/// The candidate `std::sort`'s comparator is not a strict weak ordering, so
+/// which candidate survives at position zero is not settled by the comparator
+/// alone. These four cases pin it against the executed C++ instead of against an
+/// argument about what a standard library does with a short range — the oracle
+/// was built with Apple clang and therefore libc++, whose `std::sort` sends
+/// three-, four- and five-element ranges through the `__sort3`/`__sort4`/
+/// `__sort5` networks rather than through an insertion sort, and libstdc++ would
+/// not be obliged to agree.
+///
+/// * `smooth_tie_break` — eight samples of `exp(-x^2)`, budget `6e-4`. The
+///   six- and eight-node grids are both inside the budget and 3.9e-4 apart, so
+///   the "prefer fewer knots" branch takes the six-node fit even though the
+///   eight-node fit is nearer the budget.
+/// * `smooth_tie_break_off` — the same data at `5.5e-4`, which puts the
+///   eight-node fit over budget so the branch cannot fire and it wins instead.
+/// * `smooth_cycle` — nine samples of `6*sin(x)` on abscissae around 1000, so
+///   the polynomial branch's normal equations are useless and the node search
+///   always runs. At `4.24e-3` the relation over the three leading candidates is
+///   a cycle: six beats eight and eight beats nine on knot count, while nine
+///   beats six on closeness.
+/// * `smooth_cycle_off` — the same data at `4.20e-3`, where the nine-node fit
+///   is over budget and the cycle disappears.
+#[test]
+fn smoothing_spline_candidate_selection_is_pinned_where_the_comparator_is_not() {
+    let probe = Probe::load();
+
+    let gauss_x: Vec<f64> = (0..8).map(|i| f64::from(i) * 0.25).collect();
+    let gauss_y: Vec<f64> = gauss_x.iter().map(|v| (-v * v).exp()).collect();
+    check_smoothing(&probe, "smooth_tie_break", &gauss_x, &gauss_y, 0.0006, 3);
+    check_smoothing(
+        &probe,
+        "smooth_tie_break_off",
+        &gauss_x,
+        &gauss_y,
+        0.00055,
+        3,
+    );
+    // The two budgets differ by 5e-5 and select different fits, which is the
+    // whole point: the knot-count branch, not closeness, decided the first.
+    let tight = BSplineSmoothingSpline::with_smoothing(&gauss_x, &gauss_y, 0.0006, 3).unwrap();
+    let loose = BSplineSmoothingSpline::with_smoothing(&gauss_x, &gauss_y, 0.00055, 3).unwrap();
+    assert_eq!(tight.num_interior_knots(), 4);
+    assert_eq!(loose.num_interior_knots(), 6);
+    assert!(tight.rss() < loose.rss());
+
+    let shift_x: Vec<f64> = (0..9).map(|i| 1000.0 + f64::from(i) * 0.25).collect();
+    let shift_y: Vec<f64> = (0..9).map(|i| 6.0 * (f64::from(i) * 0.25).sin()).collect();
+    check_smoothing(&probe, "smooth_cycle", &shift_x, &shift_y, 0.00424, 3);
+    check_smoothing(&probe, "smooth_cycle_off", &shift_x, &shift_y, 0.0042, 3);
+    let cyclic = BSplineSmoothingSpline::with_smoothing(&shift_x, &shift_y, 0.00424, 3).unwrap();
+    assert_eq!(cyclic.num_interior_knots(), 4);
+    let acyclic = BSplineSmoothingSpline::with_smoothing(&shift_x, &shift_y, 0.0042, 3).unwrap();
+    assert_eq!(acyclic.num_interior_knots(), 7);
 }
 
 // ------------------------------------------------------------- SplineBisection

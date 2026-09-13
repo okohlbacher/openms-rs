@@ -33,8 +33,10 @@ is:
 4. Otherwise fit a cubic **polynomial** by normal equations. If its residual sum
    of squares is within ten percent of the budget, keep it and report zero
    interior knots.
-5. Otherwise build a `BSpline2d` for each of the node counts `4, 6, 8, n/2,
-   3n/4, n` (each raised to at least four, then sorted and deduplicated), keep
+5. Otherwise build a `BSpline2d` for each of the node counts `4, 6, 8,
+   max(4, n/2), max(4, 3n/4), n` — only the two middle terms are clamped, `n`
+   itself is not, and it is at least four on this branch anyway; the integer
+   divisions truncate, and the list is then sorted and deduplicated. Keep
    those that fit, and choose the one whose residual sum of squares is closest to
    the budget, preferring fewer interior knots when two are within `0.001` of
    each other and both under budget.
@@ -96,10 +98,8 @@ Native additions:
 * **The candidate node counts** `4, 6, 8, max(4, n/2), max(4, 3n/4), n` with the
   integer divisions as written, then `sort` and `unique`.
 * **The candidate comparator, verbatim** — including that it is not a strict weak
-  ordering. `std::sort` on at most six elements runs libstdc++'s insertion sort,
-  which is stable, so the selection is well defined in practice; the port uses an
-  explicit stable insertion sort with the same comparator rather than
-  `sort_by`, so the agreement does not depend on a library's internal choice.
+  ordering. See the section below for why that is not settled by an argument
+  about what `std::sort` does with a short range.
 * **`k` is ignored.** The header's comment says the member is retained for object
   layout compatibility. The probe confirms it: `smooth_degrees_k1`, `k2` and `k3`
   produce identical residuals and identical values.
@@ -121,16 +121,57 @@ Native additions:
 | Copying | Deleted. | `Clone` implemented. | The deletion exists only because of the `unique_ptr`. |
 | Error logging | `OPENMS_LOG_ERROR` on each failure path. | The `Err` message names the condition. | The crate does not log; the message carries the same information to the caller instead of to a stream. |
 | Point count | Unbounded. | `MAX_POINTS`, checked before anything is allocated. | Bounded work. |
-| Candidate sort | `std::sort` with a comparator that is not a strict weak ordering. | Explicit stable insertion sort with the same comparator. | Same result for the at-most-six candidates libstdc++ insertion-sorts, without depending on that implementation detail. |
+| Candidate sort | `std::sort` with a comparator that is not a strict weak ordering, so the permutation is whatever the standard library produces. | Explicit stable insertion sort with the same comparator, reading position zero as the C++ does. | The behaviour cannot be derived from the comparator, so it is measured instead: see "The candidate sort is not settled by an argument" below. |
 
 No OpenMP in `BSplineSmoothingSpline.cpp`; nothing to record.
 
+## The candidate sort is not settled by an argument
+
+`std::sort(candidates.begin(), candidates.end(), cmp)` is called with a
+comparator that is **not** a strict weak ordering, which makes the resulting
+permutation unspecified, and the source then reads `candidates[0]`. An earlier
+version of this document argued the point away: it said that with at most six
+elements `std::sort` runs libstdc++'s insertion sort, which is stable, so the
+stable answer is the right one. Both halves of that are wrong.
+
+* **The oracle is not libstdc++.** `tests/data/spline_math_provenance.json`
+  records `Apple clang version 21.0.0`, target `arm64-apple-darwin25.6.0`. That
+  is libc++, and its `__algorithm/sort.h` opens `__introsort` with a
+  `switch (__len)` that sends a length of three, four or five to the `__sort3`,
+  `__sort4` and `__sort5` comparison networks; only six or more reaches
+  `__insertion_sort` (and then only below the file's `__limit`, 24 in this
+  toolchain). The candidate list holds between one and six entries, so the
+  networks are the usual path, not an insertion sort.
+* **Which implementation ran therefore matters.** libstdc++'s insertion sort is
+  a different algorithm again and is not obliged to agree with either the
+  networks or a plain backward-walking insertion sort. With a comparator that
+  can contradict itself, three implementations can leave three different
+  elements first.
+
+So the port does not argue. It transcribes the comparator into
+`candidate_precedes`, sorts with a stable insertion sort in `best_candidate`,
+and pins the outcome with tests:
+
+| Case | What it fixes |
+|---|---|
+| `smooth_tie_break` (probe) | Eight samples of `exp(-x^2)`, budget `6e-4`. The six- and eight-node fits are both inside the budget and 3.9e-4 apart, so the "prefer fewer knots" branch overrides closeness and takes the six-node fit — the C++ reports `num_interior_knots = 4`, `rss = 1.9064899501838864e-04`. |
+| `smooth_tie_break_off` (probe) | The same data at `5.5e-4`, which puts the eight-node fit over budget so the branch cannot fire and it wins instead: `num_interior_knots = 6`. |
+| `smooth_cycle` (probe) | Nine samples of `6*sin(x)` on abscissae around 1000, budget `4.24e-3`. Six beats eight and eight beats nine on knot count, while nine beats six on closeness: the relation over the three leading candidates is a **cycle**, so position zero is a property of the sort algorithm alone. The C++ reports `num_interior_knots = 4`, and the port's insertion sort agrees. |
+| `smooth_cycle_off` (probe) | The same data at `4.20e-3`, where the nine-node fit is over budget, the cycle disappears, and the selection moves to `num_interior_knots = 7`. |
+| `the_candidate_comparator_is_not_a_strict_weak_ordering` (unit) | A constructed three-candidate key set showing the cycle directly, and that `best_candidate` depends on the order the candidates arrive in — which is why the node-count list is sorted before the splines are built. |
+| `the_knot_count_branch_overrides_closeness_only_inside_the_budget` (unit) | The three regimes of the comparator: inside the budget and within `0.001`, inside but further apart, and one candidate over budget. |
+
+What this does **not** claim: that a C++ build against libstdc++ would select the
+same candidate for `smooth_cycle`. It might not. That is a property of the
+source, recorded here rather than hidden; the port's choice is the one those
+tests pin, and it is the one the recorded oracle makes.
+
 ## Checked boundaries and evidence
 
-Evidence tier 2 (executed probe), bit-for-bit, against 27 fits of the
+Evidence tier 2 (executed probe), bit-for-bit, against 31 fits of the
 unmodified C++ covering every branch: the polynomial branch, the interpolating
-branch at `n = 2`, `3`, `5` and `6`, the node-count search, and the four failure
-paths. Flags and hashes are in `tests/data/spline_math_provenance.json`; the
+branch at `n = 2`, `3`, `5` and `6`, the node-count search including the four
+candidate-sort cases of the section above, and the four failure paths. Flags and hashes are in `tests/data/spline_math_provenance.json`; the
 contraction caveat in `docs/BSPLINE2D_SUPPORT.md` applies here too, since this
 class is built on `BSpline2d`.
 

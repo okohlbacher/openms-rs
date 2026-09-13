@@ -112,11 +112,11 @@
   },
   {
    "path": "tests/data/spline_math_cpp_probe.tsv",
-   "sha256": "5be8b1aeccbbbd150a918bf44055074883578981a9b6e3cca5de7682e47b06e9",
-   "bytes": 76195,
-   "rows": 1693,
+   "sha256": "8db7798a77984df139c28a6fae810801bc54de9bfe25dbf6594ec6f1e1fdad71",
+   "bytes": 82056,
+   "rows": 1828,
    "kind": "executed C++ probe output",
-   "role": "stdout of ../oracle/msc_splines/probe_strict, one `case<TAB>key<TAB>value` row per observation at %.17g. Covers 12 CubicSpline2d positions with all three derivative orders, the class test's sine grid, seven error paths, 13 BSpline2d configurations with every node coefficient, the class test's mean-squared-error assertions, 27 BSplineSmoothingSpline fits and 10 spline_bisection brackets."
+   "role": "stdout of the probe built from ../oracle/msc_splines/main.cpp with the recorded flags, one `case<TAB>key<TAB>value` row per observation at %.17g. Covers 12 CubicSpline2d positions with all three derivative orders, the class test's sine grid, seven error paths, 17 BSpline2d configurations with every node coefficient (including the degenerate two-node grid under all three boundary conditions and the three-node grid), the class test's mean-squared-error assertions, 31 BSplineSmoothingSpline fits (including the four that pin the candidate sort) and 10 spline_bisection brackets. The first 1693 rows are byte-identical to the output recorded at a965767; the 135 rows after them were appended by calling the two new case groups at the end of main()."
   }
  ],
  "cpp_probe": {
@@ -134,27 +134,29 @@
    "-DNDEBUG",
    "-ffp-contract=off"
   ],
-  "binary_sha256": "759c26fd874681a1c97c027216146ce0ab404ffe0322793298b0ebc155acc822",
+  "binary_sha256": "63863989b5d683a9ac1e491de745057de453e6e776207125634b41b4be4e57b0",
   "stderr_empty": true,
-  "cases": 1693,
+  "cases": 1828,
   "adaptations": [
    "OpenMS/config.h, OpenMS/OpenMSConfig.h, CONCEPT/Types.h, CONCEPT/Macros.h, CONCEPT/Exception.h and CONCEPT/LogStream.h are shims: an empty OPENMS_DLLAPI, Size/UInt typedefs, an inert OPENMS_PRECONDITION as in a release build, a std::runtime_error-derived Exception::IllegalArgument, and an OPENMS_LOG_ERROR that writes to a discarded ostringstream so stdout stays machine readable.",
    "No MATH/MISC translation unit and no eol-bspline file is modified; BSplineLib.cpp instantiates the templates exactly as the OpenMS build does.",
-   "The driver additionally constructs eol_bspline::BSpline<double> alongside each OpenMS BSpline2d so the node count, node domain, penalty weight and basis coefficients that the PIMPL wrapper hides are observable."
+   "The driver additionally constructs eol_bspline::BSpline<double> alongside each OpenMS BSpline2d so the node count, node domain, penalty weight and basis coefficients that the PIMPL wrapper hides are observable.",
+   "The driver was extended at this commit with degenerate_cases() and candidate_sort_cases(), called after the original four groups so every row printed before them is unchanged. They probe num_nodes == 2 and the BSplineSmoothingSpline candidate sort; the scientific translation units are still unmodified."
   ],
   "determinism": {
    "optimisation_independent": true,
-   "note": "A second build at -O0 with the same -ffp-contract=off produced byte-identical output (sha256 5be8b1aeccbbbd150a918bf44055074883578981a9b6e3cca5de7682e47b06e9)."
+   "note": "A second build at -O0 with the same -ffp-contract=off produced byte-identical output (sha256 8db7798a77984df139c28a6fae810801bc54de9bfe25dbf6594ec6f1e1fdad71)."
   },
   "floating_point_contraction": {
-   "default_build_sha256": "841e05623c4e4e7643f57f5ae16ca3b6620a0aa3c9611bf01ee5285d526bf595",
-   "note": "The same sources built without -ffp-contract=off, which is clang's default, differ from the strict output in 2 638 of the printed digits' last one or two units in the last place, because clang fuses multiply-adds into FMA on arm64. The strict build is the recorded oracle because it is what a compiler without FMA contraction produces and is therefore reproducible on any target; the difference is a portability property of the C++ and is documented in docs/BSPLINE2D_SUPPORT.md."
-  }
+   "default_build_sha256": "f48e7817161807394b9eda76dc28346cbdb794e73566f081a859ea983d10c227",
+   "note": "The same sources built without -ffp-contract=off, which is clang's default on arm64, differ in 1234 of the 1828 recorded values because multiply-adds are fused into FMA. The earlier description of that difference as 'one or two units in the last place' was wrong and is replaced by the measured distribution: median relative difference 8.9e-15, 300 values above 1e-13 relative, 35 above 1e-12, with the largest gaps on values of ordinary magnitude being 9.7e-9 relative (bspline_ramp_asc eval@0) and 1.7e-10 (bspline_solve eval@0). Fourteen rows differ by order unity and every one of them is numerically zero - the residual sum of squares of an exactly fitted line or parabola, or the curve's value at a zero crossing. The banded normal equations amplify a fused rounding into a coefficient difference around the fourteenth digit. The strict build is the recorded oracle because it is what a compiler without FMA contraction produces and is therefore reproducible on any target; see docs/BSPLINE2D_SUPPORT.md."
+  },
+  "assertions_disabled": "-DNDEBUG is load-bearing for the num_nodes == 2 cases: on the two-node grid BSplineBase::Beta is called outside the range its own assert(0 <= m && m <= 3) permits, and the same sources built without -DNDEBUG abort there instead of returning a spline. A release build is what OpenMS ships, and the values the probe records do not depend on what those out-of-range reads returned, because every one of them is consumed by a write the banded storage discards."
  },
  "class_test_review": {
   "sections": 28,
   "mapped": 28,
-  "note": "Every START_SECTION of the four class tests is reproduced by a named Rust test; docs/*_SUPPORT.md name the test and one concrete asserted value per section."
+  "note": "Every START_SECTION of the four class tests is reproduced by a named Rust test; docs/*_SUPPORT.md name the test and one concrete asserted value per section. Two groups of probe cases go beyond the class tests: the degenerate two- and three-node BSpline2d grids, and the four BSplineSmoothingSpline fits that pin the candidate sort."
  },
  "source_anchors": [
   {
@@ -230,7 +232,7 @@
   {
    "path": "src/openms/source/MATH/MISC/BSplineSmoothingSpline.cpp",
    "line": 346,
-   "operation": "the candidate comparator is not a strict weak ordering; with at most six candidates libstdc++ runs insertion sort, so the result is the stable one"
+   "operation": "the candidate comparator is not a strict weak ordering, so which candidate std::sort leaves at position zero is unspecified and differs between standard libraries; the oracle is libc++, whose __introsort switches on the range length and sends three, four or five elements to the __sort3/__sort4/__sort5 networks rather than to an insertion sort. The port's stable insertion sort is pinned against the executed libc++ result by the smooth_tie_break and smooth_cycle probe cases."
   },
   {
    "path": "src/openms/include/OpenMS/MATH/MISC/SplineBisection.h",
@@ -241,6 +243,16 @@
    "path": "src/openms/include/OpenMS/MATH/MISC/SplineBisection.h",
    "line": 66,
    "operation": "the do/while has no iteration cap and does not terminate when the midpoint stops moving"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.cpp",
+   "line": 420,
+   "operation": "calculateQ calls Q.setup(M+1, 3) and ignores the result; BandedMatrix::setup refuses N_ < abs(first), so for two nodes the matrix keeps its default 1x1 shape and the fit proceeds on a one-row system, leaving the second coefficient unsolved"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSpline.cpp",
+   "line": 87,
+   "operation": "the right-hand side and the solution are the same vector, sized M+1, while LU_solve_banded takes its dimension from A.num_rows(); on the two-node grid those disagree and A[1] keeps the accumulated right-hand side"
   }
  ],
  "native_boundaries": [
@@ -249,13 +261,14 @@
   "BSpline2d caps input at 250 000 points and 500 001 nodes, so the banded matrix never exceeds 28 MiB; the source bounds neither.",
   "spline_bisection caps the loop at 4 096 halvings and requires a finite positive threshold; the source can loop forever.",
   "Every evaluation and every recurrence intermediate is checked for finiteness, so a non-finite result is an error rather than a silently propagated NaN.",
-  "calculateQ skips the (i, j) pairs the C++ computes from an out-of-range Beta and then discards; the discarded-write argument is in docs/BSPLINE2D_SUPPORT.md and the result is numerically identical.",
-  "No OpenMP: the source carries no pragma in these four files, so there is no parallelism gap to record."
+  "calculateQ skips the (i, j) pairs the C++ computes from an out-of-range Beta and then discards; the discarded-write argument is in docs/BSPLINE2D_SUPPORT.md and the result is numerically identical, on the two-node grid as well as for M <= 3.",
+  "No OpenMP: the source carries no pragma in these four files, so there is no parallelism gap to record.",
+  "num_nodes == 2 is reproduced, not refused: the source's failed Q.setup leaves a 1x1 matrix and still returns a finite spline whose second coefficient is an unsolved right-hand side, and the port returns the same numbers. The type documentation states plainly that it is not a fit."
  ],
  "external_reference_artifacts": [
   {
    "path": "../oracle/msc_splines/main.cpp",
-   "sha256": "e2d6ee1044a64c17f4ca0e4c261db9460fa8bc8bf666d273061310fe7297e4bb",
+   "sha256": "6982b0b16a94e7bb08a1ed2ca3e5aa6a4607f699b1fde641ca6dd693544f8987",
    "location": "outside this repository",
    "origin_key": "cpp_probe"
   },
@@ -296,7 +309,7 @@
    "origin_key": "cpp_probe"
   }
  ],
- "external_reference_note": "The probe driver and its shim headers live outside this repository under ../oracle/msc_splines/ so that no C++ is committed here. The unmodified scientific translation units and the vendored eol-bspline files are copied there from the pinned checkout at build time; their sha256 values are the ones listed under `sources`, so the chain from the pinned revision to the committed probe output is complete. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
+ "external_reference_note": "The probe driver and its shim headers live outside this repository under ../oracle/msc_splines/ so that no C++ is committed here. The unmodified scientific translation units and the vendored eol-bspline files are copied there from the pinned checkout at build time; their sha256 values are the ones listed under `sources`, so the chain from the pinned revision to the committed probe output is complete. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate. The driver was extended at this commit; the sha256 above is the extended file, and the committed probe output is the stdout of a binary built from it with the recorded flags.",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "source_revisions": [

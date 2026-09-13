@@ -132,14 +132,49 @@ reproduced deliberately.
    returns a shared `out_of_bounds` scratch reference for any coordinate outside
    the band or outside `[0, N)`, so a write there lands nowhere and a read
    returns whatever was written last. `Band` ignores such writes and reads them
-   back as zero. Every access the ported algorithms make is provably inside the
-   band (the LU loops bound `|i - j| <= 3` and both indices to `[1, N]`), so the
-   two behaviours coincide — see the next section for the one place where the
-   C++ does go outside.
-9. **Fewer than three nodes leaves the matrix unshaped.** `Q.setup(M+1, 3)`
-   returns `false` when `M + 1 < 3` and its return value is ignored, so `Q` keeps
-   the default 1x1 shape, `LU_factor_banded` finds `A(1,1) == 0` and `ok()` stays
-   false. `with_options` returns `Err` for `num_nodes == 2`.
+   back as zero. The two are indistinguishable because no value the C++ leaves
+   in that scratch element ever reaches an in-band coordinate: every
+   `Q[i][j] += q` that lands outside also stores its result outside, and both
+   `LU_factor_banded` and `LU_solve_banded` touch only `|i - j| <= 3` with both
+   indices in `[1, N]`. For `N >= 3` the `Band::slot` test is literally the
+   C++ `check_bounds` for a `setup(N, -3, 3)` matrix; the two-node grid of the
+   next item is the one case where `N` is not `M + 1`.
+9. **Two nodes leave the matrix at its default 1x1 shape, and the fit proceeds
+   anyway.** `calculateQ` opens with `Q.setup(M+1, 3)`, which returns `false`
+   for `M + 1 < 3` because the dimension is below the bandwidth, and the return
+   value is ignored. `Q` therefore keeps the 1x1 shape its default constructor
+   gave it. `calculateQ` still writes `qDelta(0, 0)` and both boundary
+   corrections into that one element and `addP` still adds the normal-matrix
+   entry to it, so it is not zero, `LU_factor_banded` succeeds on the 1x1
+   system, `LU_solve_banded` divides the first right-hand-side entry by it, and
+   `BSpline<T>::solve` sets `OK`. The second coefficient is never solved for:
+   the right-hand side and the solution are the same `std::vector`, sized
+   `M + 1 = 2`, while the matrix reports one row, so `A[1]` is left holding the
+   raw `sum_j (y_j - mean) * Basis(1, x_j)` the solve accumulated.
+
+   **The port reproduces this**, because it is what the source does and it is
+   deterministic. For `x = 0..7`, `y = x^2`, `BC_ZERO_SECOND` and two nodes the
+   probe records `ok = 1`, `alpha = 2.6723192544913614e-07`,
+   `coeff0 = -8.0110109563847747`, `coeff1 = 15.000000000000011`,
+   `eval(0) = 22.741741782711426`, `eval(3.5) = 23.711179967485478` and
+   `derivative(3.5) = 2.0636797453269411`; `tests/spline_math.rs`
+   (`bspline_two_node_grids_reproduce_the_degenerate_source_fit`) reproduces all
+   of those bit-for-bit under three boundary conditions. It is not a fit — at
+   3.5 the data is 12.25 and the second coefficient is in the units of the
+   right-hand side rather than of the curve — and the type documentation says
+   so, but a port does not get to decide that on the caller's behalf.
+
+   Two caveats belong with those numbers. First, the C++ only reaches this state
+   with `NDEBUG` set: on the two-node grid `Beta` is called outside the range its
+   own `assert(0 <= m && m <= 3)` permits, and a build with assertions enabled
+   aborts there instead of returning a spline. The oracle is a release build, as
+   OpenMS ships. Second, the values do not depend on what those out-of-range
+   reads returned, because each one is consumed by a write the banded storage
+   discards — which is also why the port can skip the reads and still agree.
+
+   Three nodes is the smallest grid whose matrix the C++ actually shapes
+   (`setup(3, -3, 3)` is accepted, its outermost bands having length zero), and
+   it is a real fit: `eval(3.5) = 11.676270573337504` for the same data.
 10. **The LU code is transcribed one-based.** `lu_factor_banded` and
     `lu_solve_banded` keep the source's `A(i, j)` indexing, its band-limited
     inner loops and its accumulation order, including the unchecked
@@ -154,7 +189,7 @@ reproduced deliberately.
 | `solve` length mismatch | Inert precondition, then reads `NX` elements from a shorter array. | `Err` before anything is touched. | Out-of-bounds read. |
 | Non-finite `x` in `eval` / `derivative` | `(int)((x - xmin)/DX)` on a `NaN` is undefined behaviour; in practice it yields node 0 and the function returns the fitted mean. | `Err(Error::InvalidValue)`. | Undefined behaviour, and a mean returned for a `NaN` query is worse than an error. |
 | Non-finite coefficients | `LU_solve_banded` can divide by a zero pivot at `b[M-1] /= A(M,M)`, which it does not check; `OK` is then set true and every evaluation is `NaN`. | The solution is checked for finiteness; a non-finite coefficient is an `Err` and leaves the spline not `ok`. | No silent `NaN` propagation. |
-| Out-of-range `Beta` | `calculateQ`'s lower-right loop calls `Beta(M-4)`, negative when `M < 4`, and its upper-left loop calls `Beta(j)` for `j` up to 4, out of range when `M == 3`. With `NDEBUG` both read outside `BoundaryConditions`. | Those `(i, j)` pairs are skipped. | **Numerically identical**, and this is the load-bearing part of the argument: in every such case the pair also lies outside the banded matrix (`min(i, j) < 0` or `max(i, j) > M`), so both the `Q[i][j] += q` and the `Q[j][i] = ...` that follow write into the discarded scratch element. The correction is computed and thrown away. Skipping it removes the out-of-bounds read and changes nothing. `BSplineSmoothingSpline` reaches this on every dataset, because its candidate list always tries four nodes. |
+| Out-of-range `Beta` | `calculateQ`'s lower-right loop calls `Beta(M-4)`, negative when `M < 4`, and its upper-left loop calls `Beta(j)` for `j` up to `4`, out of range whenever `M <= 3`. With `NDEBUG` both read outside `BoundaryConditions`; with assertions enabled they abort. | Those `(i, j)` pairs are skipped. | **Numerically identical**, and this is the load-bearing part of the argument: in every such case the pair also lies outside the banded matrix (`min(i, j) < 0`, or `max(i, j) > M`, or — on the two-node grid — outside the 1x1 shape the failed `setup` left behind), so both the `Q[i][j] += q` and the `Q[j][i] = ...` that follow write into the discarded scratch element. The correction is computed and thrown away. Skipping it removes the out-of-bounds read and changes nothing. `BSplineSmoothingSpline` reaches this on every dataset, because its candidate list always tries four nodes. |
 | Point and node counts | Unbounded. | `MAX_POINTS = 250 000`, `MAX_NODES = 500 001`, checked before allocation. The automatic node count for a wavelength-free fit is `2n + 1`, so the two ceilings are consistent. | Bounded work: the banded matrix is seven `f64` per node, so the cap is 28 MiB. |
 | Degenerate abscissae | All `x` equal gives `DX = 0` and `NaN` everywhere. | `Err`. | Division by zero. |
 | `debug(bool)` | Process-global mutable flag gating `std::cerr`. | Not ported. | See the API table. |
@@ -189,13 +224,29 @@ are observable. Flags, compiler, platform and sha256 values are in
 `tests/data/spline_math_provenance.json`.
 
 **Floating-point contraction.** The probe is built with `-ffp-contract=off`.
-Built with clang's default contraction on arm64, the same sources differ in the
-last one or two units in the last place across 2 638 printed values, because
-multiply-adds are fused into FMA. Two strict builds at `-O0` and `-O2` produced
-byte-identical output, so the recorded oracle is optimisation-independent. The
-port matches the strict oracle exactly; it will differ from an FMA-contracted
-C++ build by those same one or two ulp. That is a property of the C++, recorded
-here rather than hidden behind a tolerance.
+Two strict builds at `-O0` and `-O2` produce byte-identical output, so the
+recorded oracle is optimisation-independent, and the port matches it exactly.
+
+Built with clang's default contraction on arm64, which fuses multiply-adds into
+FMA, the same sources produce a different number in 1 234 of the 1 828 recorded
+values. An earlier version of this document called that difference "one or two
+units in the last place"; it is not, and the measured figures are these. The
+median relative difference is `8.9e-15`, 300 values differ by more than `1e-13`
+relative and 35 by more than `1e-12`; the largest gaps on values of ordinary
+magnitude are `9.7e-9` relative on `bspline_ramp_asc eval@0` and `1.7e-10` on
+`bspline_solve eval@0`. Fourteen rows differ by order unity, and every one of
+them is a quantity that is numerically zero — the residual sum of squares of an
+exactly fitted line or parabola, or its value at a point where the curve crosses
+zero; for instance `smooth_linear5_auto rss` is `0` strict and `5.1e-31`
+contracted. The banded normal equations are the amplifier: the ill-conditioned
+solve turns a fused rounding into a coefficient difference in the fourteenth
+digit, and `BSplineSmoothingSpline` inherits it.
+
+That is a property of the C++, recorded here rather than hidden behind a
+tolerance. The consequence for a consumer is that the port agrees bit-for-bit
+with a strict C++ build and to about thirteen significant digits with a
+contracted one — and that a residual sum of squares near zero should not be
+compared exactly across the two.
 
 ### Class-test sections
 
@@ -216,11 +267,13 @@ Unaccounted sections: none.
 
 ### Beyond the class test
 
-The probe covers thirteen configurations, all compared coefficient by
+The probe covers seventeen configurations, all compared coefficient by
 coefficient: the fixture at five wavelength and boundary-condition combinations,
 an eight-point quadratic at automatic, four- and six-node grids under two
 boundary conditions, a 21-point quadratic at two cutoff wavelengths, the ramp
-forwards and backwards at 100 nodes, and two setups that fail.
+forwards and backwards at 100 nodes, the same eight-point quadratic on the
+degenerate two-node grid under all three boundary conditions and on the
+three-node grid, and two setups that fail.
 
 ### Independently derived checks
 
@@ -232,14 +285,19 @@ forwards and backwards at 100 nodes, and two setups that fail.
 * Negating every ordinate negates the fitted mean and every value, because the
   normal equations are linear in `y`.
 * A rejected `solve` leaves the previous curve bit-identical.
+* On the two-node grid the unsolved second coefficient equals the right-hand
+  side the solve accumulated, recomputed in the test from the basis and the
+  mean-subtracted ordinates rather than transcribed, and negating the ordinates
+  negates it.
 
 ### Boundaries the port checks
 
 * `x` and `y` the same length, non-empty, all finite, at most `MAX_POINTS`.
 * `wavelength` finite and non-negative; `num_nodes` at most `MAX_NODES`.
 * At least two distinct abscissae, so the node spacing is positive and finite.
-* At least three nodes; the derived node count at most `MAX_NODES`, with the
-  search loop bounded by the same ceiling.
+* The derived node count at most `MAX_NODES`, with the search loop bounded by
+  the same ceiling. There is no lower bound on the node count: two nodes is the
+  degenerate grid of item 9 and is accepted, exactly as the source accepts it.
 * The penalty weight finite.
 * The banded factorisation succeeding, and the solution finite.
 * Query positions finite; results finite.
