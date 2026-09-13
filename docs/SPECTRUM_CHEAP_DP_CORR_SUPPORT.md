@@ -64,9 +64,29 @@ registered with the source's own defaults and description strings:
   at `posa - posb` (`SpectrumCheapDPCorr.cpp:320-327`). The port transcribes
   Boost's pdf statement by statement - `exponent = x - mean`,
   `exponent *= -exponent`, `exponent /= 2 * sd * sd`, `result = exp(exponent)`,
-  `result /= sd * root_two_pi` - and takes `root_two_pi` from Boost's own decimal
-  literal rather than computing `(2 pi).sqrt()`, because the last bit of that
-  constant enters every matched pair.
+  `result /= sd * sqrt(2 * constants::pi<RealType>())`
+  (`boost/math/distributions/normal.hpp:157-162`, Boost 1.92). The last divisor
+  is a square root Boost takes at run time. The port holds it as the constant
+  `SQRT_TWO_PI`, equal to `(2.0 * PI).sqrt()`, the same `f64` the `GaussFitter`
+  port divides by. The last bit of that constant enters every matched pair.
+
+  **Corrected.** An earlier revision of the port, and of this document, said
+  Boost divides by its `constants::root_two_pi` and carried that decimal
+  literal. It rounds to `2.5066282746310007`, one unit in the last place above
+  the value Boost computes, so every match term was one or two units in the last
+  place off. Measured on x86_64 Linux before and after the fix:
+
+  | Value | Before | After |
+  | --- | --- | --- |
+  | class-test cross score, `operator()(spec1, spec2)` | `10145.449278148695` | `10145.449278148699` (2 ulp, `3.6e-12`) |
+  | class-test self score, `operator()(spec1, spec1)` | `12295.522100159595` | identical bits |
+  | a lone unit pair at m/z 100, 150 and 1000 | the literal's bits | 2, 1 and 1 ulp higher |
+  | a unit pair at m/z 100 and 100.03 | the literal's bits | 1 ulp higher |
+
+  Both upstream literals still pass at `TOLERANCE_ABSOLUTE(0.1)`, and the
+  full-precision values at `1e-6`. No assertion or tolerance changed. The fix
+  does not make results depend on the machine: the divisor is a constant, and
+  `exp`, the only platform math call in the term, was already there.
 - **The scan's addition order.** `score` accumulates `dynprog_` results and
   `comparepeaks_` results in encounter order, which is the order reproduced here.
 - **The consensus precursor.** One precursor, its m/z the mean of the two inputs'
@@ -180,14 +200,26 @@ The transcribed literals `10145.4`, `12295.5` and `121` are tier 3. All four wer
 reproduced to full precision, before any Rust existed, by an independent Python
 model of the scan, of `dynprog_` and of Boost's pdf - `10145.449278148695` and
 `12295.522100159595` - which is what makes the tight tolerances above
-defensible. `121` is additionally derived: the fixture has 121 peaks, a
+defensible. That model divided by the same `root_two_pi` literal the port then
+carried. With Boost's run-time `sqrt(2 pi)`, the port's cross score is
+`10145.449278148699`, 2 ulp from the model's value and far inside `1e-6`.
+`121` is additionally derived: the fixture has 121 peaks, a
 self-alignment pairs all of them, and with `keeppeaks` cleared only paired peaks
 enter the consensus, so both the consensus length and the peak-map size must
 equal the input length. The Rust test asserts that identity, not just the number.
 
-Three further tests cover behaviour the class test never exercises:
-`cheap_dp_corr_intensity_terms_and_kept_peaks` pins all four `int_cnt` branches
-against closed forms and the `keeppeaks` consensus,
-`cheap_dp_corr_refuses_undefined_input` pins the guards, and
-`cheap_dp_corr_bounds_its_dynamic_programming_block` pins the cell ceiling and
-the untouched recorded state after a refusal.
+Four further tests cover behaviour the class test never exercises:
+
+- `cheap_dp_corr_intensity_terms_and_kept_peaks` pins all four `int_cnt`
+  branches against closed forms, and the `keeppeaks` consensus.
+- `cheap_dp_corr_refuses_undefined_input` pins the guards.
+- `cheap_dp_corr_bounds_its_dynamic_programming_block` pins the cell ceiling and
+  the untouched recorded state after a refusal.
+- `cheap_dp_corr_gaussian_divisor_is_the_square_root_boost_evaluates` pins the
+  Gaussian's divisor to the bit (tier 4, derived). It asserts three things:
+  - `(2.0 * PI).sqrt()` is one ulp below the `root_two_pi` literal.
+  - A lone unit pair at m/z 100, 150 and 1000 scores exactly
+    `1 / (sd * sqrt(2 pi))`, and not the literal's value. This is exact on every
+    machine, because `exp(-0.0)` is 1.
+  - A unit pair at m/z 100 and 100.03 matches Boost's statement order bit for
+    bit.

@@ -135,6 +135,13 @@ Every public member of the header appears here.
 - **`adj` and `eps` are validated**: both must be finite and positive, and `eps`
   below `0.5`. The source checks neither, and a non-positive `eps` would push
   clipped p-values outside `[0, 1]`.
+- **The probit quantile comes from a crate and has infinite limits.** Boost's
+  `quantile(normal_distribution(0, 1), p)` is reproduced in Boost's own four
+  statements over `statrs::function::erf::erfc_inv`, a port of Boost's inverse
+  error function, rather than by a hand-written approximation. At `p = 0` and
+  `p = 1` it returns the quantile's infinite limits, where Boost raises
+  `std::overflow_error`. Its last bits can differ from Boost's, and for rare
+  inputs between machines. See "The probit quantile".
 - **Ordering uses `f64::total_cmp`** where the source uses `<` inside a
   `std::stable_sort`. The two differ only on `NaN` — which is filtered out
   before every sort in this module — and on `-0.0` versus `0.0`, which `<`
@@ -196,10 +203,98 @@ Evidence:
   `computeModelFDR` value `0.5/3 = 1/6`; the lambda grid's
   `0.15000000000000002`; monotonicity of the q-values in p.
 
-`standard_normal_quantile` replaces `boost::math::quantile(normal(0,1), p)` with
-Acklam's rational approximation plus one Halley step against `erfc`; its
-accuracy is a few units in the last place, which the 3,170-row PyProphet
-comparison exercises across the whole range.
+- **Tier 4** for the probit quantile. The private `standard_normal_quantile` is
+  asserted within four machine epsilons relative of correctly rounded quantiles
+  at 40 values of `p`. It is also asserted to be exactly antisymmetric at every
+  dyadic `p = 2^-k` with `2 <= k <= 53`, and exactly `+0.0` at the median. See
+  "The probit quantile" below.
 
 No retained C++ output and no oracle driver exists for this header, so no tier 1
 or tier 2 claim is made.
+
+## The probit quantile
+
+`lfdr`'s probit branch calls
+`boost::math::quantile(boost::math::normal_distribution<double>(0.0, 1.0), p)`
+(`MultipleTesting.cpp:452-453`). Boost evaluates that in four statements,
+`boost/math/distributions/normal.hpp:251-254` in Boost 1.92:
+`result = erfc_inv(2 * p)`, `result = -result`, `result *= sd * root_two` and
+`result += mean`.
+
+`standard_normal_quantile` keeps those four statements with `sd = 1` and
+`mean = 0`. `erfc_inv` comes from `statrs =0.18.0` with default features off,
+as `statrs::function::erf::erfc_inv`, a port of Boost's inverse error function
+approximations. Multiplying by an `sd` of one is exact. Boost's `root_two`
+literal rounds to the same `f64` as `std::f64::consts::SQRT_2`. The closing
+`+ 0.0` changes only the sign of a zero: `p = 0.5` gives `+0.0`, as Boost does,
+and as the replaced code also did.
+
+The crate decision and its survey evidence are recorded in
+[`THIRD_PARTY_CRATE_DECISIONS.md`](THIRD_PARTY_CRATE_DECISIONS.md).
+
+### What this replaced
+
+Until this change the port used Acklam's rational approximation with one
+Halley step against `libm::erfc`. This document claimed that was accurate to "a
+few units in the last place". Measured, it was not:
+
+| Implementation | Worst distance from the correctly rounded quantile, 40 points |
+| --- | --- |
+| `statrs` `erfc_inv` in Boost's statement order (now) | 1.55 ulp, `2.9e-16` relative |
+| Acklam plus one Halley step (before) | `1.1e-9` relative at `p = 1 - 1e-13`; `2.7e-14` at `p = 0.499` |
+| `statistics.NormalDist` (AS241), cross-check only | 3.42 ulp |
+
+The measurements ran on x86_64 Linux. The reference quantiles were computed to
+110 significant digits by `../oracle/quantile-lane/derive_normal_quantiles.py`,
+standard-library Python whose sha256 is in
+[`math_kde_provenance.json`](../tests/data/math_kde_provenance.json). The 40
+points reach every branch of Boost's `erf_inv` that a binary64 `p` can, both
+tails down to `f64::MIN_POSITIVE` and `1 - 1e-15`, and the neighbourhood of the
+median. At four epsilons relative, the unit test's bound, the old code fails at
+12 of them.
+
+### Output bits changed
+
+These counts compare `lfdr` outputs before and after the change, on x86_64
+Linux:
+
+| Input set | Values | Bits changed | Largest change |
+| --- | --- | --- | --- |
+| Clipped fixture p-values fed to the quantile, `eps = 1e-8` | 3,170 | 2,097 | 934 ulp, `1.6e-13` relative |
+| Clipped fixture p-values fed to the quantile, `eps = 1e-2` | 3,170 | 2,237 | 934 ulp, `1.6e-13` relative |
+| `lfdr`, default options | 3,170 | 2,237 | `2.1e-15` |
+| `lfdr`, `monotone = false` | 3,170 | 2,734 | `3.0e-14` (`8.6e-14` relative) |
+| `lfdr`, `eps = 1e-2` | 3,170 | 1,415 | `4.4e-16` |
+| `lfdr`, the six-value basic check | 6 | 3 | `2.2e-16` |
+| `lfdr`, logit (does not call the quantile) | 3,170 | 0 | none |
+
+Every assertion passes unchanged, including the class test's `1e-2` against
+the PyProphet reference.
+
+### Machines
+
+`statrs` has no SIMD and no runtime CPU dispatch; `erf_inv` is scalar Horner
+evaluation. It does take `ln` and `sqrt` from the platform's math library, as
+the crate's own `.ln()` call sites already do.
+
+Two survey evaluations measured quantiles on aarch64 macOS and x86_64 Linux.
+One found 14 of 109,361 inputs differing by one or two ulp, the other 1 of
+24,430. None of the differing inputs is a fixture input. The replaced code
+differed in none; the survey attributes that to its final Halley step against
+the pure-Rust `libm::erfc`. So **`lfdr` results can now differ between machines
+in the last place for rare inputs**.
+
+Boost itself is not one bit pattern either. It promotes `double` to 80-bit
+`long double` on x86_64 Linux, and its quantile differs between those two
+platforms in 31% of the survey's grid.
+
+### Limits
+
+At `p <= 0` and `p >= 1` the function returns the quantile's infinite limits.
+Under its default policy, Boost raises `std::overflow_error` at `p = 0` and
+`p = 1` instead (`boost/math/special_functions/detail/erf_inv.hpp:363-366`).
+
+`lfdr` never passes `p <= 0`, because it clips to `eps` and validates `eps` as
+positive. It passes `p = 1` only when `eps` is at most `2^-54` (about
+`5.6e-17`), where `1 - eps` rounds to one. There the source would throw and the
+port returns `+inf`, exactly as it did before this change.

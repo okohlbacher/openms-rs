@@ -1954,21 +1954,27 @@ impl PeakSpectrumCompareFunctor for SteinScottImproveScore {
 //   COMPARISON/SpectraSTSimilarityScore.h
 // ---------------------------------------------------------------------------
 
-/// `boost::math::constants::root_two_pi<double>()`, the divisor in Boost's
-/// normal density.
+/// `sqrt(2 * pi)`, the divisor Boost's normal density actually forms.
 ///
-/// Transcribed from Boost's own decimal literal rather than computed as
-/// `(2.0 * PI).sqrt()`: the two need not agree in the last bit, and
-/// [`SpectrumCheapDPCorr`] inherits this constant's rounding on every matched
-/// peak pair.
-const ROOT_TWO_PI: f64 = 2.506628274631000502415765284811045253e0;
+/// `boost/math/distributions/normal.hpp:162` ends `pdf` with
+/// `result /= sd * sqrt(2 * constants::pi<RealType>())`. It takes the square
+/// root of the rounded `2 * pi` at run time and does **not** use
+/// `constants::root_two_pi`, whose decimal literal rounds to
+/// `2.506_628_274_631_000_7`, one unit in the last place above this value. The
+/// port used to carry that literal, which moved every [`SpectrumCheapDPCorr`]
+/// match term by one or two units in the last place. This is
+/// `(2.0 * PI).sqrt()`, the value Boost computes, and the same `f64` as the
+/// divisor of `src/math/fitters/gauss.rs`. `tests/comparison_scorers.rs` asserts
+/// the bits it produces.
+const SQRT_TWO_PI: f64 = 2.506_628_274_631_000_2;
 
 /// `boost::math::pdf(boost::math::normal_distribution<double>(0, sd), x)`,
 /// reproduced statement by statement so that the rounding order matches.
 ///
 /// Boost computes `exponent = x - mean`, `exponent *= -exponent`,
 /// `exponent /= 2 * sd * sd`, `result = exp(exponent)` and finally
-/// `result /= sd * root_two_pi`. Mean is fixed at zero here because the only
+/// `result /= sd * sqrt(2 * constants::pi<RealType>())`, whose divisor is
+/// [`SQRT_TWO_PI`]. Mean is fixed at zero here because the only
 /// caller, `SpectrumCheapDPCorr::comparepeaks_`, constructs
 /// `normal_distribution<double>(0., variation)`.
 ///
@@ -1997,7 +2003,7 @@ fn normal_pdf(sd: f64, x: f64) -> Result<f64> {
     exponent *= -exponent;
     exponent /= 2.0 * sd * sd;
     let mut result = exponent.exp();
-    result /= sd * ROOT_TWO_PI;
+    result /= sd * SQRT_TWO_PI;
     Ok(result)
 }
 
