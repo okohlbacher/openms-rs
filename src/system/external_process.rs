@@ -141,7 +141,10 @@ pub struct Invocation {
     /// Extra arguments, passed as a vector and never as one shell string.
     pub arguments: Vec<String>,
     /// Directory to execute in. `None` means the source's `"."`, which is the
-    /// current working directory.
+    /// current working directory, and so does `Some` of an empty path: the
+    /// source spells that rule `working_dir.empty() ? "." : working_dir` in
+    /// both of its branches (`ExternalProcess.cpp:131`, `:233`), so an empty
+    /// directory must run rather than fail to start.
     pub working_directory: Option<PathBuf>,
     /// Environment variables added on top of the inherited environment, as the
     /// source's `env` map. A [`BTreeMap`] keeps the application order
@@ -152,6 +155,11 @@ pub struct Invocation {
     /// Optional budget after which the child is killed. `None` — the default,
     /// and what [`ExternalProcess`] uses — reproduces the source, which waits
     /// indefinitely; the interpreter probes set [`PROBE_TIMEOUT`].
+    ///
+    /// The budget bounds the whole call, not only the child: a child that exits
+    /// promptly but leaves a descendant holding its output pipes stops being
+    /// drained once the budget elapses, and the call returns with the child's
+    /// own outcome rather than waiting for the descendant.
     pub timeout: Option<Duration>,
 }
 
@@ -175,7 +183,8 @@ impl Invocation {
         self
     }
 
-    /// Run in `directory` rather than the current working directory.
+    /// Run in `directory` rather than the current working directory. An empty
+    /// `directory` means the current one, as it does in the source.
     pub fn with_working_directory(mut self, directory: impl Into<PathBuf>) -> Self {
         self.working_directory = Some(directory.into());
         self
@@ -294,7 +303,10 @@ pub struct RunReport {
     pub exit_code: Option<i32>,
     /// Unix signal that terminated the child, when one did.
     pub terminating_signal: Option<i32>,
-    /// Whether [`Invocation::timeout`] elapsed and the child was killed.
+    /// Whether [`Invocation::timeout`] elapsed *while the child was still
+    /// running*, so that it was killed. A budget that runs out after the child
+    /// has already exited only stops the drain of pipes a descendant still
+    /// holds; the child's own outcome is reported and this stays `false`.
     pub timed_out: bool,
 }
 
@@ -394,10 +406,15 @@ fn pump<R: Read + Send + 'static>(
 fn spawn(invocation: &Invocation) -> std::io::Result<Child> {
     let mut command = Command::new(&invocation.program);
     command.args(&invocation.arguments);
+    // `working_dir.empty() ? "." : working_dir`, the rule the source applies in
+    // both its reading and its non-reading branch. An empty directory reaches
+    // `Command::current_dir` as a path that cannot be changed into, so it has to
+    // be folded into `"."` here rather than passed through.
     command.current_dir(
         invocation
             .working_directory
             .as_deref()
+            .filter(|directory| !directory.as_os_str().is_empty())
             .unwrap_or_else(|| Path::new(".")),
     );
     for (key, value) in &invocation.environment {
@@ -411,14 +428,31 @@ fn spawn(invocation: &Invocation) -> std::io::Result<Child> {
     command.spawn()
 }
 
+/// How the run loop ended.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Completion {
+    /// The child exited and both pipes reached end of file, so every byte it
+    /// wrote has been delivered. This is the only ending in which the reader
+    /// threads are known to have finished.
+    Drained,
+    /// [`Invocation::timeout`] elapsed while the child was still running.
+    TimedOut,
+    /// The child exited, but the budget elapsed before its pipes closed: a
+    /// descendant it left behind inherited them and is still holding the write
+    /// ends. Draining stops there, because waiting for that descendant is
+    /// exactly what the budget exists to prevent.
+    Abandoned,
+}
+
 fn poll_loop(
     child: &mut Child,
     receiver: &Receiver<(Stream, Vec<u8>)>,
     deadline: Option<Instant>,
     idle: &mut Option<&mut dyn FnMut()>,
     sink: &mut dyn FnMut(Stream, &[u8]) -> Result<()>,
-) -> Result<bool> {
+) -> Result<Completion> {
     let mut connected = true;
+    let mut last_idle = Instant::now();
     loop {
         if connected {
             match receiver.recv_timeout(POLL_INTERVAL) {
@@ -429,16 +463,28 @@ fn poll_loop(
         } else {
             thread::sleep(POLL_INTERVAL);
         }
+        // Once per POLL_INTERVAL, not once per chunk: the source services its
+        // reads for the whole of `io_ctx.run_for(milliseconds(50))` and only
+        // then reaches `idle_callback`, so a chatty child does not turn the
+        // callback into a busy loop.
         if let Some(callback) = idle.as_deref_mut() {
-            callback();
+            let now = Instant::now();
+            if now.duration_since(last_idle) >= POLL_INTERVAL {
+                last_idle = now;
+                callback();
+            }
         }
         let finished = child.try_wait()?.is_some();
         if finished && !connected {
-            return Ok(false);
+            return Ok(Completion::Drained);
         }
         if let Some(limit) = deadline {
-            if Instant::now() >= limit && !finished {
-                return Ok(true);
+            if Instant::now() >= limit {
+                return Ok(if finished {
+                    Completion::Abandoned
+                } else {
+                    Completion::TimedOut
+                });
             }
         }
     }
@@ -482,7 +528,7 @@ fn execute(
     if let Some(error) = refused {
         let _ = child.kill();
         let _ = child.wait();
-        join_all(pumps);
+        drop(pumps);
         return Err(error.into());
     }
 
@@ -492,20 +538,30 @@ fn execute(
     let deadline = invocation
         .timeout
         .and_then(|budget| Instant::now().checked_add(budget));
-    let timed_out = match poll_loop(&mut child, &receiver, deadline, &mut idle, sink) {
+    let completion = match poll_loop(&mut child, &receiver, deadline, &mut idle, sink) {
         Ok(value) => value,
         Err(error) => {
             let _ = child.kill();
             let _ = child.wait();
-            join_all(pumps);
+            drop(pumps);
             return Err(error);
         }
     };
-    if timed_out {
+    if completion == Completion::TimedOut {
         let _ = child.kill();
     }
     let status = child.wait()?;
-    join_all(pumps);
+    // A reader thread is joined only where the loop saw both pipes reach end of
+    // file, which is the one ending that proves the thread has left its `read`.
+    // Everywhere else a descendant may still hold the write end, and joining
+    // would block for as long as it does; the threads own nothing borrowed and
+    // end by themselves once the pipe closes.
+    if completion == Completion::Drained {
+        join_all(pumps);
+    } else {
+        drop(pumps);
+    }
+    let timed_out = completion == Completion::TimedOut;
 
     let (exit_code, terminating_signal) = status_parts(status);
     let state = if crashed(exit_code, terminating_signal) {

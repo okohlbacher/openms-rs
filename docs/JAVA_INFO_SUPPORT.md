@@ -61,7 +61,10 @@ Two behavioural consequences, both improvements, both documented at the item:
 `static std::string path; if (path.empty()) path = getenv("PATH");`
 (`JavaInfo.cpp:98`), which constructs a `std::string` from a null pointer when
 `PATH` is unset — undefined behaviour — and caches the first value it ever saw.
-See `OpenMS_CPP_ISSUES.md` entry *`getenv("PATH")` assigned into `std::string`*.
+Reported for the shared [C++ issue ledger](../OpenMS_CPP_ISSUES.md) as
+*`getenv("PATH")` assigned into `std::string`*; the integrator owns that file
+and assigns the `CPP-` number, so this package cites the defect by title rather
+than by an identifier it cannot mint.
 
 **The message is returned, not printed.** Nothing in this crate writes to a
 global log stream.

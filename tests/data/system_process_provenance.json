@@ -2,8 +2,8 @@
  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "rust_base_revision": "3b8ca94",
- "method": "Direct header, implementation and class-test audit; no C++ build or execution. The four class tests are structured so that every expectation either holds with no external interpreter installed (absence, message text, banner parsing) or is derived from the source's own control flow and exercised against a recorded stand-in script written by the test.",
- "evidence_tier": "tier 3 (source review, transcribed class-test literals and message text) and tier 4 (independently derived: the Windows crash-predicate simplification, crash classification under non-reading IO modes, the getline/trim banner rule applied to recorded strings, the argument vectors exercised against stand-in interpreters, and all resource ceilings)",
+ "method": "Direct header, implementation and class-test audit; no C++ build or execution. Three corrections to this port were established by executing the Rust suite against the unfixed code, not by argument: an empty working directory returned FailedToStart where ExternalProcess_test.cpp:151 expects SUCCESS; the idle callback fired 607 times in 316 ms where the source's 50 ms poll allows about six; and a call whose child had left a descendant holding the pipes had not returned after 20 s with a 250 ms budget set. The four class tests are structured so that every expectation either holds with no external interpreter installed (absence, message text, banner parsing) or is derived from the source's own control flow and exercised against a recorded stand-in script written by the test.",
+ "evidence_tier": "tier 3 (source review, transcribed class-test literals and message text) and tier 4 (independently derived: the Windows crash-predicate simplification, crash classification under non-reading IO modes, the getline/trim banner rule applied to recorded strings, the argument vectors exercised against stand-in interpreters, all resource ceilings, the idle-callback cadence bound, and the budget rule for pipes a descendant still holds)",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/SYSTEM/ExternalProcess.h",
@@ -97,7 +97,7 @@
   {
    "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
    "line": 106,
-   "operation": "bp::search_path resolves the executable and the code keeps the unresolved string when it returns empty; std::process::Command performs the platform lookup instead, which also succeeds for an absolute path when PATH is empty"
+   "operation": "bp::search_path resolves the executable and the code keeps the unresolved string when it returns empty (lines 106-110), so a separator-bearing path still launches here; std::process::Command performs the platform's execvp lookup instead. ExternalProcess is therefore not affected by the empty-PATH defect recorded against JavaInfo.cpp:51, PythonInfo.cpp:82 and RWrapper.cpp:79/144, which pass search_path's result straight to bp::child with no fallback"
   },
   {
    "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
@@ -112,7 +112,17 @@
   {
    "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
    "line": 131,
-   "operation": "an empty working_dir becomes \".\", in both the reading and the non-reading branch (also line 233)"
+   "operation": "an empty working_dir becomes \".\", in both the reading and the non-reading branch (also line 233); ExternalProcess_test.cpp:151 exercises exactly that, passing \"\" and asserting SUCCESS, so the rule is transcribed rather than derived"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 189,
+   "operation": "io_ctx.run_for(milliseconds(50)) services the outstanding reads for the whole interval and only then is idle_callback reached, so the callback's cadence is set by the clock and not by how much the child writes; the port calls it only once a POLL_INTERVAL has elapsed since the previous call"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 196,
+   "operation": "io_ctx.run() drains both pipes to end of file after the child has exited, which blocks for as long as a descendant the child left behind holds the write ends; Internal::waitForProcess cannot bound that, because it polls child.running() on a child that has already exited"
   },
   {
    "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
@@ -183,7 +193,7 @@
    {
     "path": "src/tests/class_tests/openms/source/ExternalProcess_test.cpp",
     "sections": 7,
-    "literal_extraction": "The three NOT_TESTABLE sections (default constructor, callback constructor, destructor, setCallbacks) are ported as the observable properties the class test says are 'tested below'. The run section's asserted pairs are reproduced: SUCCESS with error_msg.size() == 0, FAILED_TO_START with a non-empty message, NONZERO_EXIT with a non-empty message, and the callback split where a successful run fills only the stdout buffer and a failing one only the stderr buffer, before and after setCallbacks swaps them. The [EXTRA] section's two literals, MARKER_STDOUT_OK and arg=[one two three], are reproduced verbatim. The class test's 'ls -l' / 'ls -0' commands are replaced by scripts in a private temporary directory: upstream issue #9948 records that 'ls -l' on a shared directory exits non-zero under ctest --parallel, and the substitution removes the host dependency while keeping every asserted shape."
+    "literal_extraction": "The three NOT_TESTABLE sections (default constructor, callback constructor, destructor, setCallbacks) are ported as the observable properties the class test says are 'tested below'. The run section's asserted pairs are reproduced: SUCCESS with error_msg.size() == 0, FAILED_TO_START with a non-empty message, NONZERO_EXIT with a non-empty message, and the callback split where a successful run fills only the stdout buffer and a failing one only the stderr buffer, before and after setCallbacks swaps them. The [EXTRA] section's two literals, MARKER_STDOUT_OK and arg=[one two three], are reproduced verbatim, and so is its call shape: it passes \"\" as the working directory (line 151) and asserts SUCCESS, which is the source's working_dir.empty() ? \".\" : working_dir rule observed from the class test rather than derived. The class test's 'ls -l' / 'ls -0' commands are replaced by scripts in a private temporary directory: upstream issue #9948 records that 'ls -l' on a shared directory exits non-zero under ctest --parallel, and the substitution removes the host dependency while keeping every asserted shape."
    },
    {
     "path": "src/tests/class_tests/openms/source/JavaInfo_test.cpp",
@@ -204,15 +214,16 @@
  },
  "native_boundaries": [
   "std::process::Command replaces boost::process and boost::asio entirely; no dependency is added for this group",
-  "PATH resolution for ExternalProcess comes from the standard library's own lookup rather than an explicit search_path call, which additionally succeeds for an absolute path when PATH is empty",
+  "PATH resolution for ExternalProcess comes from the standard library's execvp lookup rather than an explicit search_path call; the source's fallback to the unresolved string means a separator-bearing path launches in both, so this is a change of mechanism and not of outcome there. The empty-PATH defect belongs to the three probes, which have no such fallback",
   "the three interpreter probes take a &FileContext and resolve through FileContext::find_executable, which is what lets their tests run with no Java, Python or R installed",
   "a signalled child is classified as CRASH in every IO_MODE, where the source only asks in its reading branch",
   "PythonInfo::isPackageInstalled validates the package name as a dotted ASCII identifier path before interpolating it into python -c, and answers false without spawning when it is not one; the source executes the caller's string as Python source",
   "every diagnosis the source writes to OPENMS_LOG_ERROR or OPENMS_LOG_INFO is returned in a struct field instead, so the source's verbose / verbose_on_error parameters have no counterpart",
   "Invocation::preflight rejects argument counts, command-line size, environment entry counts, malformed environment keys and interior NUL bytes before anything is spawned; capture caps each stream at MAX_CAPTURED_BYTES",
   "Invocation::timeout generalises the source's private Internal::waitForProcess; ExternalProcess itself stays unbounded, as the source is, and RWrapper stays unbounded too",
+  "Invocation::timeout bounds the whole call rather than only the child: once the child has exited, expiry stops the drain instead of killing, the child's own outcome is reported with timed_out false, and the reader threads are left to end with the descendant that still holds the pipes; a reader thread is joined only where both pipes reached end of file",
   "findR's failure message interpolates the requested interpreter name where the source hardcodes the literal 'Rscript'",
-  "SIMDe.h has no counterpart: the port contains no hand-written SIMD, forbids unsafe crate-wide and targets Rust 1.85, so there is nothing for a SIMD portability shim to make portable"
+  "SIMDe.h has no counterpart: the port contains no hand-written SIMD, forbids unsafe crate-wide and targets Rust 1.85, so there is nothing for a SIMD portability shim to make portable. No complete/partial/native_equivalent review is claimed for it, because each of those has to cite a Rust file and a test and this package produced neither for that header; docs/SIMDE_SUPPORT.md records the decision"
  ],
  "openmp_gap": "None of the four implementation files carries a #pragma omp; there is no data parallelism to mirror and the port introduces none. The source's boost::asio loop and RWrapper's single std::thread exist to drain two pipes without deadlocking, and the port spawns one reader thread per pipe for the same reason. Callbacks are still invoked from the calling thread only. Within one stream, chunk order is deterministic; between the two streams it is not, exactly as in the source.",
  "license": "BSD-3-Clause for source-derived code and literals",
