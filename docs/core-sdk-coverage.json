@@ -11,7 +11,7 @@
       "partial": 49,
       "unmapped": 432
     },
-    "topp_sources": 146,
+    "topp_sources": 124,
     "validated_topp_workflows": 5
   },
   "headers": [
@@ -58,7 +58,6 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "OpenNuXL",
         "PhosphoScoring"
       ]
     },
@@ -100,9 +99,7 @@
       ],
       "direct_topp_consumers": [
         "IsobaricWorkflow",
-        "ProSE",
-        "ProteinInference",
-        "ProteomicsLFQ"
+        "ProteinInference"
       ]
     },
     {
@@ -115,8 +112,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "Epifany",
-        "IsobaricWorkflow",
-        "ProteomicsLFQ"
+        "IsobaricWorkflow"
       ]
     },
     {
@@ -127,9 +123,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "CometAdapter"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h",
@@ -245,8 +239,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "Epifany",
-        "ProteinInference",
-        "ProteomicsLFQ"
+        "ProteinInference"
       ]
     },
     {
@@ -280,15 +273,10 @@
       ],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "DatabaseSuitability",
         "Epifany",
         "FalseDiscoveryRate",
         "IsobaricWorkflow",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
-        "ProSE",
-        "ProteinInference",
-        "ProteomicsLFQ"
+        "ProteinInference"
       ]
     },
     {
@@ -311,9 +299,7 @@
         "src/analysis/psm_scoring.rs"
       ],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/ID/IDBoostGraph.h",
@@ -325,9 +311,7 @@
       "reference_manifests": [
         "tests/data/protein_inference_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "ProteomicsLFQ"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
@@ -341,7 +325,7 @@
       ],
       "direct_topp_consumers": [
         "IDConflictResolver",
-        "ProteomicsLFQ",
+        "IsobaricWorkflow",
         "QualityControl"
       ]
     },
@@ -382,7 +366,6 @@
         "Epifany",
         "IDMerger",
         "IsobaricWorkflow",
-        "ProSE",
         "ProteinInference"
       ]
     },
@@ -423,8 +406,7 @@
         "Epifany",
         "IDFilter",
         "IDScoreSwitcher",
-        "LuciphorAdapter",
-        "ProteomicsLFQ"
+        "LuciphorAdapter"
       ]
     },
     {
@@ -448,8 +430,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "MetaboliteSpectralMatcher",
-        "NucleicAcidSearchEngine"
+        "MetaboliteSpectralMatcher"
       ]
     },
     {
@@ -462,9 +443,7 @@
         "src/analysis/psm_scoring.rs"
       ],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/ID/NeighborSeq.h",
@@ -513,12 +492,9 @@
         "tests/data/peptide_indexing_matcher_reference_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
         "MSFraggerAdapter",
         "MSGFPlusAdapter",
-        "OpenNuXL",
         "PeptideIndexer",
-        "ProteomicsLFQ",
         "SageAdapter"
       ]
     },
@@ -543,7 +519,9 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": []
+      "direct_topp_consumers": [
+        "PercolatorAdapter"
+      ]
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
@@ -554,10 +532,8 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "CometAdapter",
         "MSFraggerAdapter",
         "MSGFPlusAdapter",
-        "MascotAdapterOnline",
         "PSMFeatureExtractor",
         "PercolatorAdapter"
       ]
@@ -585,8 +561,7 @@
         "tests/data/precursor_purity_provenance.json"
       ],
       "direct_topp_consumers": [
-        "IsobaricWorkflow",
-        "OpenNuXL"
+        "IsobaricWorkflow"
       ]
     },
     {
@@ -597,7 +572,9 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": []
+      "direct_topp_consumers": [
+        "PercolatorAdapter"
+      ]
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h",
@@ -608,7 +585,6 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "OpenNuXL",
         "SimpleSearchEngine"
       ]
     },
@@ -665,8 +641,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "ConsensusMapNormalizer",
-        "ProteomicsLFQ"
+        "ConsensusMapNormalizer"
       ]
     },
     {
@@ -749,8 +724,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "ConsensusID",
-        "FeatureLinkerUnlabeledQT",
-        "ProteomicsLFQ"
+        "FeatureLinkerUnlabeledQT"
       ]
     },
     {
@@ -773,7 +747,9 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": []
+      "direct_topp_consumers": [
+        "FeatureLinkerWNet"
+      ]
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h",
@@ -804,8 +780,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "MapAlignerIdentification",
-        "ProteomicsLFQ"
+        "MapAlignerIdentification"
       ]
     },
     {
@@ -839,8 +814,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "MapAlignerTreeGuided",
-        "ProteomicsLFQ"
+        "MapAlignerTreeGuided"
       ]
     },
     {
@@ -887,7 +861,9 @@
       ],
       "direct_topp_consumers": [
         "FileMerger",
-        "ProteomicsLFQ"
+        "MapAlignerIdentification",
+        "MapAlignerPoseClustering",
+        "MapRTTransformer"
       ]
     },
     {
@@ -953,7 +929,8 @@
         "tests/data/transformation_xml_provenance.json"
       ],
       "direct_topp_consumers": [
-        "FileMerger"
+        "FileMerger",
+        "QualityControl"
       ]
     },
     {
@@ -1054,9 +1031,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/NUXL/NuXLReport.h",
@@ -1066,9 +1041,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h",
@@ -1078,9 +1051,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
@@ -1091,9 +1062,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FeatureFinderMetaboIdent",
-        "OpenSwathChromatogramExtractor",
-        "OpenSwathWorkflow"
+        "FeatureFinderMetaboIdent"
       ]
     },
     {
@@ -1114,9 +1083,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathConfidenceScoring"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
@@ -1127,15 +1094,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FileConverter",
-        "MRMTransitionGroupPicker",
-        "OpenSwathAnalyzer",
-        "OpenSwathAssayGenerator",
-        "OpenSwathDIAPreScoring",
-        "OpenSwathDecoyGenerator",
-        "OpenSwathRTNormalizer",
-        "OpenSwathWorkflow",
-        "TargetedFileConverter"
+        "FileConverter"
       ]
     },
     {
@@ -1157,13 +1116,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FeatureFinderMetaboIdent",
-        "MRMTransitionGroupPicker",
-        "OpenSwathAnalyzer",
-        "OpenSwathChromatogramExtractor",
-        "OpenSwathDIAPreScoring",
-        "OpenSwathRTNormalizer",
-        "OpenSwathWorkflow"
+        "FeatureFinderMetaboIdent"
       ]
     },
     {
@@ -1174,9 +1127,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h",
@@ -1196,9 +1147,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h",
@@ -1228,9 +1177,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h",
@@ -1250,9 +1197,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathDIAPreScoring"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h",
@@ -1294,8 +1239,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "AssayGeneratorMetabo",
-        "AssayGeneratorMetaboSirius",
-        "OpenSwathAssayGenerator"
+        "AssayGeneratorMetaboSirius"
       ]
     },
     {
@@ -1317,8 +1261,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "DecoyDatabase",
-        "OpenSwathDecoyGenerator"
+        "DecoyDatabase"
       ]
     },
     {
@@ -1340,10 +1283,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FeatureFinderMetaboIdent",
-        "OpenSwathAnalyzer",
-        "OpenSwathRTNormalizer",
-        "OpenSwathWorkflow"
+        "FeatureFinderMetaboIdent"
       ]
     },
     {
@@ -1394,10 +1334,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathRTNormalizer",
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h",
@@ -1417,10 +1354,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "MRMTransitionGroupPicker",
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
@@ -1473,13 +1407,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathAnalyzer",
-        "OpenSwathChromatogramExtractor",
-        "OpenSwathDIAPreScoring",
-        "OpenSwathRTNormalizer",
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceConfig.h",
@@ -1539,9 +1467,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h",
@@ -1551,9 +1477,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathParquetExporter.h",
@@ -1647,9 +1571,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h",
@@ -1730,9 +1652,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
@@ -1742,10 +1662,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathFileSplitter",
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
@@ -1755,11 +1672,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathAssayGenerator",
-        "OpenSwathFileSplitter",
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h",
@@ -1792,12 +1705,7 @@
       "direct_topp_consumers": [
         "AssayGeneratorMetabo",
         "AssayGeneratorMetaboSirius",
-        "FileConverter",
-        "FileInfo",
-        "OpenSwathAssayGenerator",
-        "OpenSwathDecoyGenerator",
-        "OpenSwathWorkflow",
-        "TargetedFileConverter"
+        "FileConverter"
       ]
     },
     {
@@ -1808,11 +1716,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathAssayGenerator",
-        "OpenSwathDecoyGenerator",
-        "TargetedFileConverter"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
@@ -1825,11 +1729,7 @@
       "direct_topp_consumers": [
         "AssayGeneratorMetabo",
         "AssayGeneratorMetaboSirius",
-        "FileConverter",
-        "OpenSwathAssayGenerator",
-        "OpenSwathDecoyGenerator",
-        "OpenSwathWorkflow",
-        "TargetedFileConverter"
+        "FileConverter"
       ]
     },
     {
@@ -1951,10 +1851,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer",
-        "IsobaricWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h",
@@ -1964,10 +1861,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer",
-        "IsobaricWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h",
@@ -1978,8 +1872,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "AssayGeneratorMetaboSirius",
-        "OpenNuXL"
+        "AssayGeneratorMetaboSirius"
       ]
     },
     {
@@ -2002,8 +1895,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "IsobaricWorkflow",
-        "ProteinQuantifier",
-        "ProteomicsLFQ"
+        "ProteinQuantifier"
       ]
     },
     {
@@ -2014,10 +1906,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer",
-        "IsobaricWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h",
@@ -2027,10 +1916,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer",
-        "IsobaricWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h",
@@ -2040,10 +1926,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer",
-        "IsobaricWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h",
@@ -2053,10 +1936,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer",
-        "IsobaricWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h",
@@ -2066,10 +1946,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer",
-        "IsobaricWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h",
@@ -2079,9 +1956,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h",
@@ -2091,9 +1966,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "IsobaricAnalyzer"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/SEQUENCE/NeedlemanWunsch.h",
@@ -2174,8 +2047,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "MRMMapper",
-        "OpenSwathWorkflow"
+        "MRMMapper"
       ]
     },
     {
@@ -2214,9 +2086,7 @@
       "direct_topp_consumers": [
         "FeatureFinderMetaboIdent",
         "FileMerger",
-        "MRMMapper",
-        "MRMTransitionGroupPicker",
-        "OpenSwathFeatureXMLToTSV"
+        "MRMMapper"
       ]
     },
     {
@@ -2237,9 +2107,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "FLASHDeconv"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h",
@@ -2315,9 +2183,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h",
@@ -2403,8 +2269,8 @@
       ],
       "direct_topp_consumers": [
         "IDFilter",
-        "MassCalculator",
-        "OpenSwathAssayGenerator"
+        "IsobaricWorkflow",
+        "MassCalculator"
       ]
     },
     {
@@ -2457,9 +2323,7 @@
       "reference_manifests": [
         "tests/data/decoy_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzyme.h",
@@ -2561,9 +2425,7 @@
       ],
       "direct_topp_consumers": [
         "DigestorMotif",
-        "MetaProSIP",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL"
+        "MetaProSIP"
       ]
     },
     {
@@ -3069,15 +2931,12 @@
         "tests/data/tagger_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
         "IDFilter",
         "LuciphorAdapter",
         "MSGFPlusAdapter",
         "MetaProSIP",
         "MzTabExporter",
         "OpenMSDatabasesInfo",
-        "OpenNuXL",
-        "OpenSwathAssayGenerator",
         "SageAdapter",
         "StaticModification"
       ]
@@ -3095,9 +2954,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/rna_processing_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "NucleicAcidSearchEngine"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h",
@@ -3113,7 +2970,6 @@
       ],
       "direct_topp_consumers": [
         "MSFraggerAdapter",
-        "OpenNuXL",
         "SageAdapter"
       ]
     },
@@ -3180,7 +3036,6 @@
         "tests/data/rna_provenance.json"
       ],
       "direct_topp_consumers": [
-        "NucleicAcidSearchEngine",
         "RNAMassCalculator"
       ]
     },
@@ -3197,9 +3052,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/rna_processing_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "NucleicAcidSearchEngine"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/OBODataProvider.h",
@@ -3274,7 +3127,6 @@
       ],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "CometAdapter",
         "ConsensusID",
         "DecoyDatabase",
         "Digestor",
@@ -3285,7 +3137,6 @@
         "MSGFPlusAdapter",
         "NovorAdapter",
         "OpenMSDatabasesInfo",
-        "OpenNuXL",
         "SageAdapter"
       ]
     },
@@ -3306,8 +3157,7 @@
         "Digestor",
         "DigestorMotif",
         "IDFileConverter",
-        "IDFilter",
-        "OpenNuXL"
+        "IDFilter"
       ]
     },
     {
@@ -3324,7 +3174,6 @@
         "tests/data/rna_processing_provenance.json"
       ],
       "direct_topp_consumers": [
-        "NucleicAcidSearchEngine",
         "RNADigestor"
       ]
     },
@@ -3343,7 +3192,6 @@
         "tests/data/rna_processing_provenance.json"
       ],
       "direct_topp_consumers": [
-        "NucleicAcidSearchEngine",
         "RNADigestor"
       ]
     },
@@ -3392,9 +3240,7 @@
         "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
         "DecoyDatabase",
-        "OpenNuXL",
         "SageAdapter",
         "StaticModification"
       ]
@@ -3421,8 +3267,6 @@
         "tests/data/registry_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
-        "OpenNuXL",
         "SageAdapter"
       ]
     },
@@ -3455,9 +3299,7 @@
         "SOURCE_PROVENANCE.json",
         "tests/data/rna_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "NucleicAcidSearchEngine"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/RibonucleotideDataProvider.h",
@@ -3571,9 +3413,7 @@
         "tests/data/tagger_provenance.json",
         "tests/data/theoretical_extension_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h",
@@ -3661,9 +3501,7 @@
       "reference_manifests": [
         "tests/data/comparison_functors_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/BinnedSpectrumCompareFunctor.h",
@@ -3813,9 +3651,7 @@
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
-        "MetaProSIP",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL"
+        "MetaProSIP"
       ]
     },
     {
@@ -4004,7 +3840,6 @@
         "tests/data/xlms_provenance.json"
       ],
       "direct_topp_consumers": [
-        "DIAPseudoSpectra",
         "FeatureFinderCentroided",
         "FeatureFinderMetabo",
         "FeatureFinderMetaboIdent",
@@ -4016,7 +3851,6 @@
         "MassTraceExtractor",
         "MetaProSIP",
         "MultiplexResolver",
-        "OpenNuXL",
         "PSMFeatureExtractor",
         "PercolatorAdapter",
         "RNPxlXICFilter"
@@ -4050,14 +3884,8 @@
       "direct_topp_consumers": [
         "AssayGeneratorMetaboSirius",
         "FeatureLinkerUnlabeledKD",
-        "MRMTransitionGroupPicker",
-        "OpenSwathAnalyzer",
-        "OpenSwathAssayGenerator",
-        "OpenSwathChromatogramExtractor",
-        "OpenSwathDIAPreScoring",
-        "OpenSwathDecoyGenerator",
-        "QualityControl",
-        "TargetedFileConverter"
+        "INIUpdater",
+        "QualityControl"
       ]
     },
     {
@@ -4144,17 +3972,16 @@
         "AssayGeneratorMetaboSirius",
         "BaselineFilter",
         "CVInspector",
-        "CometAdapter",
         "ConsensusID",
         "ConsensusMapNormalizer",
         "DatabaseFilter",
-        "DatabaseSuitability",
         "Digestor",
         "EICExtractor",
         "Epifany",
         "FalseDiscoveryRate",
         "FeatureFinderCentroided",
         "FeatureFinderIdentification",
+        "FeatureFinderLFQ",
         "FeatureFinderMetabo",
         "FeatureFinderMetaboIdent",
         "FeatureFinderMultiplex",
@@ -4170,17 +3997,17 @@
         "IDRTCalibration",
         "IDRipper",
         "IDScoreSwitcher",
+        "INIUpdater",
         "InternalCalibration",
         "IsobaricWorkflow",
         "LuciphorAdapter",
-        "MRMTransitionGroupPicker",
         "MSFraggerAdapter",
         "MSGFPlusAdapter",
         "MSstatsConverter",
         "MaRaClusterAdapter",
         "MapAlignerIdentification",
+        "MapAlignerPoseClustering",
         "MapAlignerTreeGuided",
-        "MascotAdapterOnline",
         "MassCalculator",
         "MassTraceExtractor",
         "MetaProSIP",
@@ -4190,13 +4017,7 @@
         "NoiseFilterGaussian",
         "NoiseFilterSGolay",
         "NovorAdapter",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "OpenPepXL",
-        "OpenSwathAssayGenerator",
-        "OpenSwathConfidenceScoring",
-        "OpenSwathDecoyGenerator",
-        "OpenSwathWorkflow",
         "PSMFeatureExtractor",
         "ParquetConverter",
         "PeakPickerHiRes",
@@ -4205,16 +4026,16 @@
         "PercolatorAdapter",
         "ProteinInference",
         "ProteinQuantifier",
-        "ProteomicsLFQ",
-        "QPXConverter",
         "QualityControl",
+        "RNADigestor",
         "RNAMassCalculator",
         "SeedListGenerator",
         "SequenceCoverageCalculator",
+        "SiriusExport",
         "SpectraSTSearchAdapter",
         "StaticModification",
         "TICCalculator",
-        "TriqlerConverter",
+        "UniPEFF",
         "XFDR"
       ]
     },
@@ -4273,19 +4094,8 @@
         "FeatureLinkerBase",
         "FeatureLinkerUnlabeledKD",
         "MRMMapper",
-        "MRMTransitionGroupPicker",
         "MaRaClusterAdapter",
-        "OpenSwathAnalyzer",
-        "OpenSwathAssayGenerator",
-        "OpenSwathChromatogramExtractor",
-        "OpenSwathDIAPreScoring",
-        "OpenSwathDecoyGenerator",
-        "OpenSwathFileSplitter",
-        "OpenSwathMzMLFileCacher",
-        "OpenSwathRTNormalizer",
-        "OpenSwathWorkflow",
-        "PSMFeatureExtractor",
-        "TargetedFileConverter"
+        "PSMFeatureExtractor"
       ]
     },
     {
@@ -4339,9 +4149,7 @@
         "tests/data/param_value_provenance.json",
         "tests/data/peak_data_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "OpenSwathFeatureXMLToTSV"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/CONCEPT/UniqueIdGenerator.h",
@@ -4424,7 +4232,6 @@
         "ConsensusID",
         "FileMerger",
         "OpenMSInfo",
-        "OpenNuXL",
         "OpenPepXL",
         "ProteinInference"
       ]
@@ -4566,8 +4373,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "InternalCalibration",
-        "ProteomicsLFQ"
+        "InternalCalibration"
       ]
     },
     {
@@ -4816,11 +4622,9 @@
         "tests/data/default_param_handler_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
         "FeatureLinkerUnlabeledKD",
         "MSFraggerAdapter",
         "MSGFPlusAdapter",
-        "MascotAdapterOnline",
         "SageAdapter"
       ]
     },
@@ -4949,16 +4753,110 @@
         "tests/data/list_utils_provenance.json"
       ],
       "direct_topp_consumers": [
+        "AccurateMassSearch",
+        "AssayGeneratorMetabo",
+        "AssayGeneratorMetaboSirius",
+        "BaselineFilter",
+        "CVInspector",
+        "ClusterMassTraces",
+        "ClusterMassTracesByPrecursor",
+        "ConsensusID",
+        "ConsensusMapNormalizer",
+        "DTAExtractor",
+        "DeMeanderize",
+        "Decharger",
+        "DecoyDatabase",
+        "DigestorMotif",
+        "EICExtractor",
+        "Epifany",
+        "ExternalCalibration",
+        "FalseDiscoveryRate",
+        "FeatureFinderCentroided",
+        "FeatureFinderLFQ",
+        "FeatureFinderMetabo",
+        "FeatureFinderMetaboIdent",
         "FeatureFinderMultiplex",
         "FeatureLinkerBase",
+        "FeatureLinkerLabeled",
+        "FileConverter",
+        "FileFilter",
+        "FileInfo",
+        "FileMerger",
         "FuzzyDiff",
+        "GNPSExport",
+        "HighResPrecursorMassCorrector",
+        "IDConflictResolver",
+        "IDDecoyProbability",
+        "IDExtractor",
+        "IDFileConverter",
+        "IDFilter",
+        "IDMapper",
+        "IDPosteriorErrorProbability",
+        "IDRTCalibration",
+        "IDRipper",
+        "IDScoreSwitcher",
+        "IDSplitter",
+        "INIUpdater",
+        "IsobaricWorkflow",
+        "LuciphorAdapter",
+        "MRMMapper",
+        "MRMPairFinder",
+        "MSFraggerAdapter",
+        "MSGFPlusAdapter",
+        "MSstatsConverter",
+        "MaRaClusterAdapter",
+        "MapAlignerIdentification",
+        "MapNormalizer",
+        "MapRTTransformer",
+        "MapStatistics",
         "MassCalculator",
-        "NucleicAcidSearchEngine",
-        "OpenSwathAssayGenerator",
-        "OpenSwathDecoyGenerator",
+        "MassTraceExtractor",
+        "MetaProSIP",
+        "MetaboliteAdductDecharger",
+        "MetaboliteSpectralMatcher",
+        "MultiplexResolver",
+        "MzMLSplitter",
+        "MzTabExporter",
+        "NoiseFilterGaussian",
+        "NoiseFilterSGolay",
+        "NovorAdapter",
+        "OpenMSDatabasesInfo",
+        "OpenPepXL",
+        "PSMFeatureExtractor",
+        "PeakPickerHiRes",
+        "PeakPickerIterative",
+        "PeptideIndexer",
+        "PercolatorAdapter",
+        "PhosphoScoring",
+        "ProteinInference",
+        "ProteinQuantifier",
+        "QCCalculator",
+        "QCEmbedder",
+        "QCExporter",
+        "QCExtractor",
+        "QCImporter",
+        "QCMerger",
+        "QCShrinker",
+        "QualityControl",
+        "RNADigestor",
         "RNAMassCalculator",
+        "RNPxlXICFilter",
+        "SageAdapter",
+        "SeedListGenerator",
+        "SemanticValidator",
+        "SequenceCoverageCalculator",
+        "SimpleSearchEngine",
         "SiriusExport",
-        "TargetedFileConverter"
+        "SpectraFilterNLargest",
+        "SpectraFilterNormalizer",
+        "SpectraFilterThresholdMower",
+        "SpectraFilterWindowMower",
+        "SpectraMerger",
+        "SpectraSTSearchAdapter",
+        "TICCalculator",
+        "TextExporter",
+        "XFDR",
+        "XMLValidator"
       ]
     },
     {
@@ -4975,9 +4873,7 @@
         "tests/data/mztab_provenance.json"
       ],
       "direct_topp_consumers": [
-        "EICExtractor",
-        "FileInfo",
-        "OpenNuXL"
+        "EICExtractor"
       ]
     },
     {
@@ -5061,9 +4957,7 @@
         "tests/data/param_provenance.json"
       ],
       "direct_topp_consumers": [
-        "MetaProSIP",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL"
+        "MetaProSIP"
       ]
     },
     {
@@ -5136,7 +5030,6 @@
         "CVInspector",
         "EICExtractor",
         "FileFilter",
-        "FileInfo",
         "FileMerger",
         "MaRaClusterAdapter",
         "MapStatistics",
@@ -5187,7 +5080,20 @@
         "tests/data/text_csv_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
-      "direct_topp_consumers": []
+      "direct_topp_consumers": [
+        "FileFilter",
+        "LuciphorAdapter",
+        "MSGFPlusAdapter",
+        "NovorAdapter",
+        "OpenMSInfo",
+        "QCCalculator",
+        "QCEmbedder",
+        "QCExporter",
+        "QCExtractor",
+        "QCImporter",
+        "QCMerger",
+        "QCShrinker"
+      ]
     },
     {
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/ToolDescription.h",
@@ -5294,8 +5200,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FeatureFinderLFQ",
-        "ProteomicsLFQ"
+        "FeatureFinderLFQ"
       ]
     },
     {
@@ -5343,7 +5248,6 @@
         "tests/data/elution_peak_detection_provenance.json"
       ],
       "direct_topp_consumers": [
-        "DIAPseudoSpectra",
         "FeatureFinderMetabo",
         "MassTraceExtractor"
       ]
@@ -5463,9 +5367,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FeatureFinderIdentification",
-        "OpenNuXL",
-        "ProteomicsLFQ"
+        "FeatureFinderIdentification"
       ]
     },
     {
@@ -5477,9 +5379,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FeatureFinderMultiplex",
-        "OpenNuXL",
-        "ProteomicsLFQ"
+        "FeatureFinderMultiplex"
       ]
     },
     {
@@ -5512,8 +5412,7 @@
         "tests/data/metabo_predictor_provenance.json"
       ],
       "direct_topp_consumers": [
-        "FeatureFinderMetabo",
-        "ProteomicsLFQ"
+        "FeatureFinderMetabo"
       ]
     },
     {
@@ -5621,10 +5520,8 @@
         "tests/data/mass_trace_detection_provenance.json"
       ],
       "direct_topp_consumers": [
-        "DIAPseudoSpectra",
         "FeatureFinderMetabo",
-        "MassTraceExtractor",
-        "ProteomicsLFQ"
+        "MassTraceExtractor"
       ]
     },
     {
@@ -5834,9 +5731,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "ProSE"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/ArrowSchemaRegistry.h",
@@ -5874,11 +5769,8 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "CometAdapter",
-        "DIAPseudoSpectra",
         "FileConverter",
-        "PeakPickerIM",
-        "ProteomicsLFQ"
+        "PeakPickerIM"
       ]
     },
     {
@@ -5941,7 +5833,6 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "OpenSwathMzMLFileCacher",
         "TICCalculator"
       ]
     },
@@ -5965,8 +5856,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "IsobaricWorkflow",
-        "ProteinQuantifier",
-        "ProteomicsLFQ"
+        "ProteinQuantifier"
       ]
     },
     {
@@ -6006,11 +5896,9 @@
       "direct_topp_consumers": [
         "ConsensusMapNormalizer",
         "FileFilter",
-        "FileInfo",
         "IDMapper",
         "IsobaricAnalyzer",
         "IsobaricWorkflow",
-        "MapAlignerIdentification",
         "ParquetConverter",
         "XMLValidator"
       ]
@@ -6119,8 +6007,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FileConverter",
-        "OpenSwathMzMLFileCacher"
+        "FileConverter"
       ]
     },
     {
@@ -6141,10 +6028,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathMzMLFileCacher",
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h",
@@ -6167,9 +6051,7 @@
         "tests/data/mzml_consumer_provenance.json"
       ],
       "direct_topp_consumers": [
-        "NovorAdapter",
-        "OpenSwathFileSplitter",
-        "OpenSwathWorkflow"
+        "NovorAdapter"
       ]
     },
     {
@@ -6195,12 +6077,9 @@
         "tests/data/ms_data_writing_consumer_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
         "FileConverter",
         "NoiseFilterGaussian",
         "NoiseFilterSGolay",
-        "OpenSwathMzMLFileCacher",
-        "OpenSwathWorkflow",
         "PeakPickerHiRes",
         "PeakPickerIM",
         "SageAdapter",
@@ -6215,9 +6094,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/DATAACCESS/NoopMSDataConsumer.h",
@@ -6249,9 +6126,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "DIAPseudoSpectra"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/DATAACCESS/XIPMParquetConsumer.h",
@@ -6321,13 +6196,10 @@
       ],
       "direct_topp_consumers": [
         "Epifany",
-        "FeatureLinkerBase",
         "IsobaricWorkflow",
         "MSstatsConverter",
         "MapAlignerIdentification",
-        "ProteinQuantifier",
-        "ProteomicsLFQ",
-        "TriqlerConverter"
+        "ProteinQuantifier"
       ]
     },
     {
@@ -6358,15 +6230,11 @@
         "DecoyDatabase",
         "Digestor",
         "DigestorMotif",
-        "FileInfo",
         "FileMerger",
         "IDExtractor",
         "IDFilter",
         "MetaProSIP",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "OpenPepXL",
-        "ProSE",
         "QualityControl",
         "RNADigestor",
         "SequenceCoverageCalculator"
@@ -6380,9 +6248,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "FLASHDeconv"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/FLASHDeconvSpectrumFile.h",
@@ -6392,9 +6258,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "FLASHDeconv"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/FeatureMapArrowIO.h",
@@ -6434,13 +6298,10 @@
         "FeatureFinderLFQ",
         "FeatureLinkerUnlabeled",
         "FileFilter",
-        "FileInfo",
         "HighResPrecursorMassCorrector",
         "IDMapper",
-        "MapAlignerIdentification",
         "MapAlignerPoseClustering",
         "ParquetConverter",
-        "ProteomicsLFQ",
         "XMLValidator"
       ]
     },
@@ -6480,13 +6341,10 @@
         "BaselineFilter",
         "ClusterMassTraces",
         "ClusterMassTracesByPrecursor",
-        "CometAdapter",
         "ConsensusID",
         "ConsensusMapNormalizer",
-        "DIAPseudoSpectra",
         "DTAExtractor",
         "DatabaseFilter",
-        "DatabaseSuitability",
         "DeMeanderize",
         "Decharger",
         "Digestor",
@@ -6496,10 +6354,12 @@
         "FalseDiscoveryRate",
         "FeatureFinderCentroided",
         "FeatureFinderIdentification",
+        "FeatureFinderLFQ",
         "FeatureFinderMetabo",
         "FeatureFinderMetaboIdent",
         "FeatureFinderMultiplex",
         "FeatureLinkerBase",
+        "FeatureLinkerUnlabeled",
         "FileConverter",
         "FileFilter",
         "FileInfo",
@@ -6518,6 +6378,7 @@
         "IDRipper",
         "IDScoreSwitcher",
         "IDSplitter",
+        "INIUpdater",
         "InternalCalibration",
         "IonMobilityBinning",
         "IsobaricAnalyzer",
@@ -6525,17 +6386,16 @@
         "LuciphorAdapter",
         "MRMMapper",
         "MRMPairFinder",
-        "MRMTransitionGroupPicker",
         "MSFraggerAdapter",
         "MSGFPlusAdapter",
         "MSstatsConverter",
         "MaRaClusterAdapter",
         "MapAlignerIdentification",
+        "MapAlignerPoseClustering",
         "MapAlignerTreeGuided",
         "MapNormalizer",
         "MapRTTransformer",
         "MapStatistics",
-        "MascotAdapterOnline",
         "MassTraceExtractor",
         "MetaProSIP",
         "MetaboliteAdductDecharger",
@@ -6546,36 +6406,21 @@
         "NoiseFilterGaussian",
         "NoiseFilterSGolay",
         "NovorAdapter",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "OpenPepXL",
-        "OpenSwathAnalyzer",
-        "OpenSwathAssayGenerator",
-        "OpenSwathChromatogramExtractor",
-        "OpenSwathConfidenceScoring",
-        "OpenSwathDIAPreScoring",
-        "OpenSwathDecoyGenerator",
-        "OpenSwathFeatureXMLToTSV",
-        "OpenSwathFileSplitter",
-        "OpenSwathMzMLFileCacher",
-        "OpenSwathRTNormalizer",
-        "OpenSwathRewriteToFeatureXML",
-        "OpenSwathWorkflow",
         "PSMFeatureExtractor",
         "PeakPickerHiRes",
         "PeakPickerIM",
         "PeakPickerIterative",
         "PeptideIndexer",
         "PercolatorAdapter",
-        "ProSE",
+        "PhosphoScoring",
         "ProteinInference",
         "ProteinQuantifier",
-        "ProteomicsLFQ",
         "QCCalculator",
-        "QPXConverter",
         "QualityControl",
         "RNPxlXICFilter",
         "Resampler",
+        "SageAdapter",
         "SeedListGenerator",
         "SemanticValidator",
         "SequenceCoverageCalculator",
@@ -6587,9 +6432,7 @@
         "SpectraMerger",
         "SpectraSTSearchAdapter",
         "StaticModification",
-        "TargetedFileConverter",
         "TextExporter",
-        "TriqlerConverter",
         "XFDR",
         "XMLValidator"
       ]
@@ -6602,7 +6445,9 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": []
+      "direct_topp_consumers": [
+        "FileInfo"
+      ]
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/FileNameUtils.h",
@@ -6654,7 +6499,6 @@
         "ConsensusMapNormalizer",
         "DatabaseFilter",
         "Epifany",
-        "FLASHDeconv",
         "FalseDiscoveryRate",
         "FeatureLinkerBase",
         "FileConverter",
@@ -6667,22 +6511,14 @@
         "LuciphorAdapter",
         "MaRaClusterAdapter",
         "MapStatistics",
-        "MascotAdapterOnline",
         "MzTabExporter",
-        "OpenSwathAssayGenerator",
-        "OpenSwathDecoyGenerator",
-        "OpenSwathMzMLFileCacher",
-        "OpenSwathWorkflow",
         "PeakPickerIM",
         "PercolatorAdapter",
-        "ProSE",
         "ProteinQuantifier",
-        "QPXConverter",
         "QualityControl",
         "SeedListGenerator",
         "SemanticValidator",
         "TICCalculator",
-        "TargetedFileConverter",
         "TextExporter",
         "XMLValidator"
       ]
@@ -6752,7 +6588,6 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "OpenSwathMzMLFileCacher",
         "TICCalculator"
       ]
     },
@@ -6897,7 +6732,6 @@
         "tests/data/mzml_typed_transport_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
         "SageAdapter"
       ]
     },
@@ -6924,9 +6758,7 @@
         "tests/data/indexed_mzml_handler_provenance.json",
         "tests/data/on_disc_experiment_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "FileInfo"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h",
@@ -7317,11 +7149,8 @@
       "direct_topp_consumers": [
         "DigestorMotif",
         "FileFilter",
-        "FileInfo",
         "IDFileConverter",
         "IDMapper",
-        "OpenNuXL",
-        "QPXConverter",
         "SageAdapter",
         "XMLValidator"
       ]
@@ -7562,8 +7391,7 @@
         "tests/data/msstats_provenance.json"
       ],
       "direct_topp_consumers": [
-        "MSstatsConverter",
-        "ProteomicsLFQ"
+        "MSstatsConverter"
       ]
     },
     {
@@ -7590,7 +7418,6 @@
       ],
       "direct_topp_consumers": [
         "FileConverter",
-        "MascotAdapterOnline",
         "MetaboliteSpectralMatcher",
         "NovorAdapter"
       ]
@@ -7616,8 +7443,7 @@
         "tests/data/mascot_xml_provenance.json"
       ],
       "direct_topp_consumers": [
-        "IDFileConverter",
-        "MascotAdapterOnline"
+        "IDFileConverter"
       ]
     },
     {
@@ -7677,7 +7503,6 @@
         "tests/data/mzdata_provenance.json"
       ],
       "direct_topp_consumers": [
-        "FileInfo",
         "XMLValidator"
       ]
     },
@@ -7702,7 +7527,6 @@
         "tests/data/mzidentml_provenance.json"
       ],
       "direct_topp_consumers": [
-        "FileInfo",
         "IDFileConverter",
         "IDMapper",
         "XMLValidator"
@@ -7785,20 +7609,13 @@
         "tests/data/mzml_writing_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
-        "FLASHDeconv",
-        "FeatureFinderLFQ",
         "FileConverter",
-        "FileInfo",
         "IDFileConverter",
         "IsobaricWorkflow",
         "MSGFPlusAdapter",
         "NoiseFilterGaussian",
         "NoiseFilterSGolay",
         "NovorAdapter",
-        "OpenNuXL",
-        "OpenSwathFileSplitter",
-        "OpenSwathMzMLFileCacher",
         "PeakPickerHiRes",
         "PeakPickerIM",
         "SageAdapter",
@@ -7846,8 +7663,7 @@
         "MetaboliteSpectralMatcher",
         "MzTabExporter",
         "ProteinQuantifier",
-        "QualityControl",
-        "TriqlerConverter"
+        "QualityControl"
       ]
     },
     {
@@ -7899,16 +7715,12 @@
       ],
       "direct_topp_consumers": [
         "AccurateMassSearch",
-        "FileInfo",
         "IsobaricWorkflow",
         "MSstatsConverter",
         "MetaboliteSpectralMatcher",
         "MzTabExporter",
-        "NucleicAcidSearchEngine",
         "ProteinQuantifier",
-        "ProteomicsLFQ",
-        "QualityControl",
-        "TriqlerConverter"
+        "QualityControl"
       ]
     },
     {
@@ -7985,7 +7797,6 @@
       ],
       "direct_topp_consumers": [
         "FileConverter",
-        "FileInfo",
         "XMLValidator"
       ]
     },
@@ -8002,8 +7813,7 @@
         "IDFileConverter",
         "IDMerger",
         "JSONExporter",
-        "MapAlignerIdentification",
-        "NucleicAcidSearchEngine"
+        "MapAlignerIdentification"
       ]
     },
     {
@@ -8184,6 +7994,7 @@
         "tests/data/paramxml_provenance.json"
       ],
       "direct_topp_consumers": [
+        "INIUpdater",
         "XMLValidator"
       ]
     },
@@ -8195,9 +8006,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/ParquetFilter.h",
@@ -8220,10 +8029,7 @@
         "tests/data/mzml_centroid_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "FileInfo",
-        "ProteomicsLFQ"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/PepNovoInfile.h",
@@ -8266,8 +8072,6 @@
         "tests/data/pepxml_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
-        "FileInfo",
         "IDFileConverter",
         "LuciphorAdapter",
         "MSFraggerAdapter",
@@ -8307,7 +8111,6 @@
       ],
       "direct_topp_consumers": [
         "PercolatorAdapter",
-        "ProSE",
         "SageAdapter"
       ]
     },
@@ -8345,9 +8148,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "IsobaricWorkflow",
-        "ProSE",
-        "ProteinQuantifier",
-        "ProteomicsLFQ"
+        "ProteinQuantifier"
       ]
     },
     {
@@ -8358,9 +8159,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "ProSE"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/QPXCollectionExport.h",
@@ -8370,7 +8169,10 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": []
+      "direct_topp_consumers": [
+        "IsobaricWorkflow",
+        "ProteinQuantifier"
+      ]
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/QPXFile.h",
@@ -8382,10 +8184,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "IsobaricWorkflow",
-        "ProSE",
-        "ProteinQuantifier",
-        "ProteomicsLFQ",
-        "QPXConverter"
+        "ProteinQuantifier"
       ]
     },
     {
@@ -8396,7 +8195,10 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": []
+      "direct_topp_consumers": [
+        "IsobaricWorkflow",
+        "ProteinQuantifier"
+      ]
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/QPXValueValidation.h",
@@ -8474,7 +8276,6 @@
       "direct_topp_consumers": [
         "MassCalculator",
         "MetaProSIP",
-        "NucleicAcidSearchEngine",
         "ProteinQuantifier",
         "RNAMassCalculator",
         "SeedListGenerator",
@@ -8522,8 +8323,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "FileConverter",
-        "OpenSwathMzMLFileCacher"
+        "FileConverter"
       ]
     },
     {
@@ -8559,10 +8359,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathFileSplitter",
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/TargetedDataFileLoader.h",
@@ -8602,9 +8399,7 @@
         "IDFileConverter",
         "InternalCalibration",
         "MSstatsConverter",
-        "MetaProSIP",
-        "OpenNuXL",
-        "TriqlerConverter"
+        "MetaProSIP"
       ]
     },
     {
@@ -8660,9 +8455,7 @@
         "tests/data/transformation_xml_provenance.json"
       ],
       "direct_topp_consumers": [
-        "ExternalCalibration",
-        "FileInfo",
-        "OpenSwathWorkflow"
+        "ExternalCalibration"
       ]
     },
     {
@@ -8673,7 +8466,9 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": []
+      "direct_topp_consumers": [
+        "UniPEFF"
+      ]
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/UnimodXMLFile.h",
@@ -8901,9 +8696,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/ZipIfstream.h",
@@ -9066,7 +8859,6 @@
       "direct_topp_consumers": [
         "FeatureFinderMetabo",
         "FeatureFinderMultiplex",
-        "FileInfo",
         "IonMobilityBinning"
       ]
     },
@@ -9128,7 +8920,6 @@
         "tests/data/spectrum_mobility_provenance.json"
       ],
       "direct_topp_consumers": [
-        "DIAPseudoSpectra",
         "FeatureFinderCentroided",
         "FeatureFinderMetabo",
         "FeatureFinderMultiplex",
@@ -9218,9 +9009,7 @@
         "tests/data/comparison_scorers_provenance.json",
         "tests/data/kernel_gap_closures_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/KERNEL/ChromatogramPeak.h",
@@ -9394,12 +9183,10 @@
         "ParquetConverter",
         "ProteinInference",
         "ProteinQuantifier",
-        "ProteomicsLFQ",
         "QCCalculator",
         "QualityControl",
         "SeedListGenerator",
-        "TextExporter",
-        "TriqlerConverter"
+        "TextExporter"
       ]
     },
     {
@@ -9425,8 +9212,7 @@
       ],
       "direct_topp_consumers": [
         "FeatureLinkerBase",
-        "FileConverter",
-        "ProteomicsLFQ"
+        "FileConverter"
       ]
     },
     {
@@ -9488,11 +9274,8 @@
         "tests/data/featurexml_provenance.json"
       ],
       "direct_topp_consumers": [
-        "FileInfo",
         "MRMPairFinder",
-        "MetaProSIP",
-        "OpenSwathFeatureXMLToTSV",
-        "OpenSwathRewriteToFeatureXML"
+        "MetaProSIP"
       ]
     },
     {
@@ -9558,18 +9341,14 @@
         "FeatureFinderMetabo",
         "FeatureFinderMultiplex",
         "FileFilter",
-        "FileInfo",
         "IDSplitter",
         "InternalCalibration",
         "MRMPairFinder",
-        "MRMTransitionGroupPicker",
         "MapStatistics",
         "MassTraceExtractor",
         "MetaProSIP",
         "MetaboliteAdductDecharger",
         "MetaboliteSpectralMatcher",
-        "OpenSwathFeatureXMLToTSV",
-        "OpenSwathRewriteToFeatureXML",
         "ParquetConverter",
         "QCCalculator",
         "RNPxlXICFilter",
@@ -9622,9 +9401,7 @@
       "reference_manifests": [
         "tests/data/mrm_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "MRMTransitionGroupPicker"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
@@ -9725,10 +9502,7 @@
         "BaselineFilter",
         "ClusterMassTraces",
         "ClusterMassTracesByPrecursor",
-        "CometAdapter",
-        "DIAPseudoSpectra",
         "DTAExtractor",
-        "DatabaseSuitability",
         "DeMeanderize",
         "EICExtractor",
         "ExternalCalibration",
@@ -9740,7 +9514,6 @@
         "FeatureFinderMultiplex",
         "FileConverter",
         "FileFilter",
-        "FileInfo",
         "FileMerger",
         "HighResPrecursorMassCorrector",
         "IDFileConverter",
@@ -9751,13 +9524,11 @@
         "IsobaricWorkflow",
         "LuciphorAdapter",
         "MRMMapper",
-        "MRMTransitionGroupPicker",
         "MSGFPlusAdapter",
         "MaRaClusterAdapter",
         "MapNormalizer",
         "MapRTTransformer",
         "MapStatistics",
-        "MascotAdapterOnline",
         "MassTraceExtractor",
         "MetaProSIP",
         "MetaboliteSpectralMatcher",
@@ -9766,20 +9537,11 @@
         "NoiseFilterGaussian",
         "NoiseFilterSGolay",
         "NovorAdapter",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "OpenPepXL",
-        "OpenSwathAnalyzer",
-        "OpenSwathChromatogramExtractor",
-        "OpenSwathDIAPreScoring",
-        "OpenSwathMzMLFileCacher",
-        "OpenSwathRTNormalizer",
-        "OpenSwathWorkflow",
         "PeakPickerHiRes",
         "PeakPickerIM",
         "PeakPickerIterative",
         "PhosphoScoring",
-        "ProteomicsLFQ",
         "QCCalculator",
         "QualityControl",
         "RNPxlXICFilter",
@@ -9845,11 +9607,7 @@
         "tests/data/text_peak_lists_provenance.json",
         "tests/data/xlms_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "CometAdapter",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/KERNEL/MassTrace.h",
@@ -9878,10 +9636,8 @@
         "tests/data/mass_trace_provenance.json"
       ],
       "direct_topp_consumers": [
-        "DIAPseudoSpectra",
         "FeatureFinderMetabo",
-        "MassTraceExtractor",
-        "ProteomicsLFQ"
+        "MassTraceExtractor"
       ]
     },
     {
@@ -10048,9 +9804,7 @@
         "tests/data/precursor_purity_provenance.json",
         "tests/data/rna_processing_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "NucleicAcidSearchEngine"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/KERNEL/Peak2D.h",
@@ -10264,11 +10018,7 @@
         "HighResPrecursorMassCorrector",
         "IDDecoyProbability",
         "LuciphorAdapter",
-        "MascotAdapterOnline",
         "MultiplexResolver",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
-        "ProSE",
         "QCEmbedder",
         "QCExporter",
         "QCExtractor",
@@ -10439,13 +10189,10 @@
       "direct_topp_consumers": [
         "DecoyDatabase",
         "FeatureFinderMetaboIdent",
-        "FileInfo",
         "HighResPrecursorMassCorrector",
         "IDExtractor",
         "MassTraceExtractor",
         "MzTabExporter",
-        "OpenNuXL",
-        "OpenSwathAssayGenerator",
         "QCMerger",
         "TextExporter"
       ]
@@ -10722,13 +10469,9 @@
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
-        "FileInfo",
         "MRMPairFinder",
         "MapStatistics",
         "MetaProSIP",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
-        "ProteomicsLFQ",
         "QCMerger"
       ]
     },
@@ -10972,12 +10715,9 @@
       ],
       "direct_topp_consumers": [
         "Epifany",
-        "FeatureLinkerBase",
         "MSstatsConverter",
         "MapAlignerIdentification",
-        "ProteinQuantifier",
-        "ProteomicsLFQ",
-        "TriqlerConverter"
+        "ProteinQuantifier"
       ]
     },
     {
@@ -11005,9 +10745,7 @@
       "reference_manifests": [
         "tests/data/experimental_settings_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "OpenSwathFileSplitter"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/METADATA/Gradient.h",
@@ -11103,9 +10841,7 @@
         "tests/data/identification_graph_provenance.json",
         "tests/data/identification_groups_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "NucleicAcidSearchEngine"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/METADATA/ID/IdentificationDataConverter.h",
@@ -11121,8 +10857,7 @@
       ],
       "direct_topp_consumers": [
         "FileConverter",
-        "IDFileConverter",
-        "NucleicAcidSearchEngine"
+        "IDFileConverter"
       ]
     },
     {
@@ -11352,7 +11087,8 @@
         "tests/data/run_mapping_provenance.json"
       ],
       "direct_topp_consumers": [
-        "QualityControl"
+        "QualityControl",
+        "TextExporter"
       ]
     },
     {
@@ -11616,7 +11352,6 @@
       ],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "CometAdapter",
         "DatabaseFilter",
         "IDConflictResolver",
         "IDExtractor",
@@ -11657,10 +11392,8 @@
         "tests/data/native_equivalents_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
         "ConsensusID",
         "DatabaseFilter",
-        "DatabaseSuitability",
         "Digestor",
         "Epifany",
         "FalseDiscoveryRate",
@@ -11686,22 +11419,16 @@
         "MaRaClusterAdapter",
         "MapAlignerIdentification",
         "MapRTTransformer",
-        "MascotAdapterOnline",
         "MetaProSIP",
         "MzTabExporter",
         "NovorAdapter",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "OpenPepXL",
         "PSMFeatureExtractor",
         "PeptideIndexer",
         "PercolatorAdapter",
-        "ProSE",
         "ProteinInference",
         "ProteinQuantifier",
-        "ProteomicsLFQ",
         "QCCalculator",
-        "QPXConverter",
         "QualityControl",
         "SeedListGenerator",
         "SequenceCoverageCalculator",
@@ -11801,10 +11528,8 @@
       ],
       "direct_topp_consumers": [
         "AssayGeneratorMetabo",
-        "CometAdapter",
         "ConsensusID",
         "DatabaseFilter",
-        "DatabaseSuitability",
         "DecoyDatabase",
         "Digestor",
         "DigestorMotif",
@@ -11833,22 +11558,15 @@
         "MaRaClusterAdapter",
         "MapAlignerIdentification",
         "MapRTTransformer",
-        "MascotAdapterOnline",
         "MzTabExporter",
         "NovorAdapter",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "OpenPepXL",
-        "OpenSwathAnalyzer",
         "PSMFeatureExtractor",
         "PeptideIndexer",
         "PercolatorAdapter",
-        "ProSE",
         "ProteinInference",
         "ProteinQuantifier",
-        "ProteomicsLFQ",
         "QCCalculator",
-        "QPXConverter",
         "QualityControl",
         "SeedListGenerator",
         "SequenceCoverageCalculator",
@@ -11952,7 +11670,7 @@
       ],
       "direct_topp_consumers": [
         "NovorAdapter",
-        "OpenNuXL"
+        "PercolatorAdapter"
       ]
     },
     {
@@ -11967,10 +11685,8 @@
         "tests/data/pepxml_provenance.json"
       ],
       "direct_topp_consumers": [
-        "CometAdapter",
         "MSGFPlusAdapter",
-        "PhosphoScoring",
-        "ProteomicsLFQ"
+        "PhosphoScoring"
       ]
     },
     {
@@ -12014,10 +11730,7 @@
         "tests/data/mzml_acquisition_guards_provenance.json",
         "tests/data/on_disc_experiment_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "NucleicAcidSearchEngine",
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/METADATA/USI.h",
@@ -12301,10 +12014,7 @@
         "tests/data/feature_finding_metabo_provenance.json",
         "tests/data/metabo_predictor_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "OpenNuXL",
-        "ProteomicsLFQ"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h",
@@ -12330,9 +12040,7 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "ExternalCalibration",
-        "InternalCalibration",
-        "OpenNuXL",
-        "ProteomicsLFQ"
+        "InternalCalibration"
       ]
     },
     {
@@ -12344,8 +12052,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "InternalCalibration",
-        "ProteomicsLFQ"
+        "InternalCalibration"
       ]
     },
     {
@@ -12359,9 +12066,7 @@
       "direct_topp_consumers": [
         "AssayGeneratorMetabo",
         "AssayGeneratorMetaboSirius",
-        "HighResPrecursorMassCorrector",
-        "OpenNuXL",
-        "ProteomicsLFQ"
+        "HighResPrecursorMassCorrector"
       ]
     },
     {
@@ -12383,8 +12088,7 @@
         "FeatureFinderMultiplex",
         "HighResPrecursorMassCorrector",
         "MetaProSIP",
-        "PeakPickerHiRes",
-        "ProteomicsLFQ"
+        "PeakPickerHiRes"
       ]
     },
     {
@@ -12398,7 +12102,6 @@
         "tests/data/im_types_provenance.json"
       ],
       "direct_topp_consumers": [
-        "DIAPseudoSpectra",
         "PeakPickerIM"
       ]
     },
@@ -12460,8 +12163,6 @@
       ],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "SpectraFilterNLargest"
       ]
     },
@@ -12480,9 +12181,6 @@
       ],
       "direct_topp_consumers": [
         "MetaProSIP",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
-        "ProteomicsLFQ",
         "Resampler",
         "SpectraFilterThresholdMower"
       ]
@@ -12500,8 +12198,6 @@
         "tests/data/window_mower_provenance.json"
       ],
       "direct_topp_consumers": [
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "SpectraFilterWindowMower"
       ]
     },
@@ -12516,19 +12212,14 @@
         "tests/data/registry_provenance.json"
       ],
       "direct_topp_consumers": [
-        "DatabaseSuitability",
         "Epifany",
         "FalseDiscoveryRate",
         "IDFilter",
         "IsobaricWorkflow",
         "LuciphorAdapter",
         "MzTabExporter",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "PercolatorAdapter",
-        "ProSE",
         "ProteinQuantifier",
-        "ProteomicsLFQ",
         "SageAdapter"
       ]
     },
@@ -12644,8 +12335,6 @@
       "reference_manifests": [],
       "direct_topp_consumers": [
         "MetaProSIP",
-        "NucleicAcidSearchEngine",
-        "OpenNuXL",
         "SpectraFilterNormalizer"
       ]
     },
@@ -12671,9 +12360,7 @@
         "src/processing.rs"
       ],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenNuXL"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/FastLowessSmoothing.h",
@@ -12878,7 +12565,6 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "DatabaseSuitability",
         "QualityControl"
       ]
     },
@@ -12915,7 +12601,6 @@
       "candidate_rust_files": [],
       "reference_manifests": [],
       "direct_topp_consumers": [
-        "DatabaseSuitability",
         "QualityControl"
       ]
     },
@@ -13044,6 +12729,7 @@
         "tests/data/system_process_provenance.json"
       ],
       "direct_topp_consumers": [
+        "INIUpdater",
         "MetaProSIP"
       ]
     },
@@ -13072,7 +12758,6 @@
       ],
       "direct_topp_consumers": [
         "AssayGeneratorMetaboSirius",
-        "CometAdapter",
         "ConsensusID",
         "DecoyDatabase",
         "EICExtractor",
@@ -13086,31 +12771,23 @@
         "IDFilter",
         "IDMerger",
         "IDRipper",
+        "INIUpdater",
         "LuciphorAdapter",
-        "MRMTransitionGroupPicker",
         "MSFraggerAdapter",
         "MSGFPlusAdapter",
         "MSstatsConverter",
         "MaRaClusterAdapter",
-        "MascotAdapterOnline",
         "MassCalculator",
         "MassTraceExtractor",
         "MetaProSIP",
         "MetaboliteSpectralMatcher",
         "MzMLSplitter",
         "NovorAdapter",
-        "NucleicAcidSearchEngine",
         "OpenMSDatabasesInfo",
         "OpenMSInfo",
-        "OpenNuXL",
-        "OpenSwathDIAPreScoring",
-        "OpenSwathFileSplitter",
-        "OpenSwathWorkflow",
         "PeptideIndexer",
         "PercolatorAdapter",
-        "ProSE",
         "ProteinQuantifier",
-        "ProteomicsLFQ",
         "QCEmbedder",
         "QCExporter",
         "QCExtractor",
@@ -13123,7 +12800,7 @@
         "SimpleSearchEngine",
         "SpectraSTSearchAdapter",
         "TextExporter",
-        "TriqlerConverter"
+        "UniPEFF"
       ]
     },
     {
@@ -13342,7 +13019,6 @@
         "tests/data/sys_info_provenance.json"
       ],
       "direct_topp_consumers": [
-        "FileInfo",
         "TICCalculator"
       ]
     },
@@ -13397,9 +13073,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "OpenSwathDIAPreScoring"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h",
@@ -13419,9 +13093,7 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [],
-      "direct_topp_consumers": [
-        "MRMTransitionGroupPicker"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h",
@@ -13463,9 +13135,7 @@
       "reference_manifests": [
         "tests/data/mzml_sqlite_swath_provenance.json"
       ],
-      "direct_topp_consumers": [
-        "OpenSwathWorkflow"
-      ]
+      "direct_topp_consumers": []
     },
     {
       "header": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h",
@@ -13501,9 +13171,10 @@
   "tools": [
     {
       "name": "AccurateMassSearch",
-      "source_sha256": "796bbff664b3a91848dde9c647d6dc9361e27f8892fe36cf54e42b2a4b6a397b",
+      "source_sha256": "aad5d3e9346e9a02c40112e081840bdfb49943c219582c86b6999ff766e63423",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
         "OpenMS/FORMAT/MzTab.h",
@@ -13527,7 +13198,7 @@
     },
     {
       "name": "AssayGeneratorMetabo",
-      "source_sha256": "cf31ac5bec8325407811de60269330541f106fe3a5bb95ce5b8ff055eeb0f30d",
+      "source_sha256": "5c7d6856664cca9fb6b02e7bfcdcb3e9301d847e2844e234e0784ca1950c03e8",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h",
         "OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h",
@@ -13535,6 +13206,7 @@
         "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
         "OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/KERNEL/RangeUtils.h",
@@ -13562,7 +13234,7 @@
     },
     {
       "name": "AssayGeneratorMetaboSirius",
-      "source_sha256": "cc3c1948b3993c29bc4871fcafb82522418063f03bf598ea70742e7706f4790f",
+      "source_sha256": "8999f88dcd88920144a97e4fa08495da9f09c7e86d7be1867a92ea4a7eab9a03",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h",
         "OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h",
@@ -13573,6 +13245,7 @@
         "OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h",
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -13603,9 +13276,10 @@
     },
     {
       "name": "BaselineFilter",
-      "source_sha256": "9d4364e3e6c512589b3d6eaa9131d5be0bbabe408f9218a7f6a57e425b5e1bbd",
+      "source_sha256": "5742cc6e325e71f164e22c22c77bc171240006f9b1d506e46f6d1537e9e0f1d2",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h"
@@ -13624,11 +13298,12 @@
     },
     {
       "name": "CVInspector",
-      "source_sha256": "d12e902d6b58810794416ffaf6cf2663b8597f488390bfe71d103316ac534715",
+      "source_sha256": "193866f798094bd5ecdcd4366776711a78a13f56aad0c365d0c230442fb9bca2",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/CVMappingTerm.h",
         "OpenMS/DATASTRUCTURES/CVMappings.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/CVMappingFile.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
@@ -13644,9 +13319,10 @@
     },
     {
       "name": "ClusterMassTraces",
-      "source_sha256": "aac4268ad08b0f84377ff972139d727518dbd21384626f139588931ce2d17110",
+      "source_sha256": "e903aa02c1a0be64dff853678706506c94fbd1df1bb0f329f21e65043f18269a",
       "sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h"
@@ -13663,9 +13339,10 @@
     },
     {
       "name": "ClusterMassTracesByPrecursor",
-      "source_sha256": "d168a549714ae7a7d2d6d3d031761d44beb10ed55279496cd979c47c954f2e9d",
+      "source_sha256": "5657bf5206ca8a5d2aa773dc33e771042b84035a9eab7f1616511272ef37fb4d",
       "sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h"
@@ -13681,60 +13358,8 @@
       "workflow_validated": false
     },
     {
-      "name": "CometAdapter",
-      "source_sha256": "ae7b1ae0d52f199bdc0556c4d37d342936e5340fa67f8ebcd7765ff6ebb45a71",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/ID/CometModification.h",
-        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
-        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
-        "OpenMS/CHEMISTRY/ModificationsDB.h",
-        "OpenMS/CHEMISTRY/ProteaseDB.h",
-        "OpenMS/CHEMISTRY/ResidueDB.h",
-        "OpenMS/CHEMISTRY/ResidueModification.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
-        "OpenMS/FORMAT/BrukerTimsFile.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/PepXMLFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MSSpectrum.h",
-        "OpenMS/METADATA/PeptideIdentification.h",
-        "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumMetaDataLookup.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/SearchEngineBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/ID/CometModification.h",
-        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
-        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
-        "OpenMS/CHEMISTRY/ModificationsDB.h",
-        "OpenMS/CHEMISTRY/ProteaseDB.h",
-        "OpenMS/CHEMISTRY/ResidueDB.h",
-        "OpenMS/CHEMISTRY/ResidueModification.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/BrukerTimsFile.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/PepXMLFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MSSpectrum.h",
-        "OpenMS/METADATA/PeptideIdentification.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumMetaDataLookup.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "ConsensusID",
-      "source_sha256": "a4fc8298627ef0a8e96027659ce5fa43e185c8f9051c2f7dda5d832a0a4d6052",
+      "source_sha256": "1bd8a466646f4138489848aac7a352d6f8a2e591affcc1e1e78610a250a1462c",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h",
         "OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h",
@@ -13747,6 +13372,7 @@
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
         "OpenMS/KERNEL/ConsensusMap.h",
@@ -13776,12 +13402,13 @@
     },
     {
       "name": "ConsensusMapNormalizer",
-      "source_sha256": "3633cd99513699f963eb6e88f9a29feca2ee509db028a58eb0fe80b480fc74ae",
+      "source_sha256": "4ad6f54de07650ba9f25cec50d103086ea4ee6ad63fca36c9fe8707adcc07bfc",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h",
         "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h",
         "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -13801,36 +13428,10 @@
       "workflow_validated": false
     },
     {
-      "name": "DIAPseudoSpectra",
-      "source_sha256": "b460deb1b17e137bad4cb6fc74342d7b6ecd07f4a09ca274024c6865e3291d0f",
-      "sdk_headers": [
-        "OpenMS/CONCEPT/Constants.h",
-        "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
-        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
-        "OpenMS/FORMAT/BrukerTimsFile.h",
-        "OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/IONMOBILITY/IMTypes.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MassTrace.h",
-        "OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/FORMAT/BrukerTimsFile.h",
-        "OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "DTAExtractor",
-      "source_sha256": "dbca2d499887a43091891e7d599e70bb1c075986c2cf54dfaa0e6be747854df9",
+      "source_sha256": "0450b63576ec4916a0a0bdace902e43e40373a663ef5edb5b58e44480a1c8d3f",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
@@ -13846,7 +13447,7 @@
     },
     {
       "name": "DatabaseFilter",
-      "source_sha256": "cb51ff262ae8b2e4dd4ac34b8a05d1e702d8a8341be9374d7d46ed07398a002d",
+      "source_sha256": "10ff116f94da39425a22bbf1c4aea8e8d79a6b641323c607b78e644f5842103a",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FASTAFile.h",
@@ -13868,39 +13469,10 @@
       "workflow_validated": false
     },
     {
-      "name": "DatabaseSuitability",
-      "source_sha256": "72fea1bed3be0d8745a265fcb489245940d7708280928d69f5342e0fb31ca8c3",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/QC/Ms2IdentificationRate.h",
-        "OpenMS/QC/PSMExplainedIonCurrent.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/QC/DBSuitability.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/QC/Ms2IdentificationRate.h",
-        "OpenMS/QC/PSMExplainedIonCurrent.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "DeMeanderize",
-      "source_sha256": "20f5cf81939f4ca134c69ee142aa5f96da81bd9aa507e4d4794d48d8830093dd",
+      "source_sha256": "25dab4102fbd01576093f13f0157fb9fedc2f1afc22d14a22e283f1680296a17",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
@@ -13915,9 +13487,10 @@
     },
     {
       "name": "Decharger",
-      "source_sha256": "3f4b762a00f4af47d5f4a0e036c8d80071041378b56e37674ddb779ded78a747",
+      "source_sha256": "095bb9c8db969a8f998f53e4a35e352ab6357b482c60b42e48890a538094095a",
       "sdk_headers": [
         "OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
@@ -13935,7 +13508,7 @@
     },
     {
       "name": "DecoyDatabase",
-      "source_sha256": "8543de7ebdf7aa2d8a6d0a43d49bafff5e7011aaf775ff9e09d959143198c1de",
+      "source_sha256": "b8e2ecda1c3e43f40e4e0d0c144b82a2a423d1d64cca08ed85c8bd8409aa4441",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/NeighborSeq.h",
         "OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h",
@@ -13943,6 +13516,7 @@
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
         "OpenMS/CHEMISTRY/ResidueDB.h",
         "OpenMS/DATASTRUCTURES/FASTAContainer.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/METADATA/ProteinIdentification.h",
@@ -13965,7 +13539,7 @@
     },
     {
       "name": "Digestor",
-      "source_sha256": "5972a30fdd34f56a469269dac1ea23dbb7ae80b44a5cad9851263c0028ec7286",
+      "source_sha256": "8eb1dfb5d556895aef2fee0f5cb3ae235306dc87622d77e557958b8dd3d91564",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
         "OpenMS/CHEMISTRY/ProteaseDB.h",
@@ -13991,12 +13565,13 @@
     },
     {
       "name": "DigestorMotif",
-      "source_sha256": "9af9b7d5fbf17e4f3d2a0ae3c949a9ed1694a01adcb49f6bae05006d0ac62297",
+      "source_sha256": "e12525bc160f6629e17efae799645db681ab1b4ee8e4f99744441d2f4cba396b",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/Element.h",
         "OpenMS/CHEMISTRY/ElementDB.h",
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/METADATA/ProteinIdentification.h"
@@ -14016,10 +13591,11 @@
     },
     {
       "name": "EICExtractor",
-      "source_sha256": "56646fe5c87a320df5af3fe56b3c842648275fe98acb7199c70a5bb7f3290006",
+      "source_sha256": "b588a536f50ad412c5383b956682449bc0e646cbe23d02333cb7ecc8e2f574eb",
       "sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/EDTAFile.h",
@@ -14051,7 +13627,7 @@
     },
     {
       "name": "Epifany",
-      "source_sha256": "578e1fef5c8dbaeaab3b85dd19192ac70025a15d525bcd61acec3995ef8ac9b7",
+      "source_sha256": "7db38b275aadfff2b709ba36c5c139553869b0a4e7ba3f2580d476f58ad0d062",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h",
         "OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h",
@@ -14060,6 +13636,7 @@
         "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
         "OpenMS/ANALYSIS/ID/PeptideProteinResolution.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -14091,8 +13668,9 @@
     },
     {
       "name": "ExternalCalibration",
-      "source_sha256": "13aa627a126df86b3d0f85864e3d2809439e6b1822d19f16cdc39f2a848a7852",
+      "source_sha256": "7ca46a4be0d76b3f436a845c1714b9b046cce785627fb5142d7239a5cff89661",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/TransformationXMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -14106,37 +13684,16 @@
         "OpenMS/FORMAT/TransformationXMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "FLASHDeconv",
-      "source_sha256": "715d85ea15f3c18a94ad80729b78c59e9ae334d3436316ad9aef8d4f7e5f9e81",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h",
-        "OpenMS/FORMAT/FLASHDeconvFeatureFile.h",
-        "OpenMS/FORMAT/FLASHDeconvSpectrumFile.h",
-        "OpenMS/FORMAT/FileTypes.h",
-        "OpenMS/FORMAT/MzMLFile.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h",
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h",
-        "OpenMS/FORMAT/FLASHDeconvFeatureFile.h",
-        "OpenMS/FORMAT/FLASHDeconvSpectrumFile.h",
-        "OpenMS/FORMAT/MzMLFile.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "FalseDiscoveryRate",
-      "source_sha256": "bd9837cc9bac44f4431074f67712eef5a980661ec109e528c0692b7d72e24d1c",
+      "source_sha256": "97ecc1ab94a5fe429d6bdfc78f9c74dc0dc6728b365bd095f7ea63fd28674449",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
         "OpenMS/KERNEL/StandardTypes.h",
@@ -14158,10 +13715,11 @@
     },
     {
       "name": "FeatureFinderCentroided",
-      "source_sha256": "ac17738623b953862e6d31e5398291b140dbf839e97dfcadbf27f4ccb2c8d90f",
+      "source_sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
@@ -14187,7 +13745,7 @@
     },
     {
       "name": "FeatureFinderIdentification",
-      "source_sha256": "6b40a762ef3c4cb0325722c7dcdb50dd8db5697e4533eae17706645276d98038",
+      "source_sha256": "2d3cd4dc48c3b613d2308b3d003c1534dce42a2c7d325a47cca9c29c005330a9",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
@@ -14210,11 +13768,13 @@
     },
     {
       "name": "FeatureFinderLFQ",
-      "source_sha256": "f3b714eb3086ae7433665347a55f8341c3e944b9cfa3c4588aae7ad5a0b3e280",
+      "source_sha256": "5da50924a7c3f1ad7cd8a9b101eeb98966e0a379ed8219e67d67e3b9020bf31a",
       "sdk_headers": [
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
-        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/SYSTEM/File.h",
@@ -14224,9 +13784,10 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
-        "OpenMS/FORMAT/MzMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/SYSTEM/StopWatch.h"
       ],
@@ -14234,10 +13795,11 @@
     },
     {
       "name": "FeatureFinderMetabo",
-      "source_sha256": "c252c9f0bd1b5caf0773f4217ecbfd227b4aefb6ec6a5232dd2f42ee294f7a79",
+      "source_sha256": "ef3d93f5962901068d8ab80d17e1591bb9cc58ddf01acc2cdba6a9671ff0e4d8",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
         "OpenMS/FEATUREFINDER/MassTraceDetection.h",
@@ -14266,7 +13828,7 @@
     },
     {
       "name": "FeatureFinderMetaboIdent",
-      "source_sha256": "1f785c98448256311482ad90700fe662a9c35127504c1f4969a6a1a452f51b14",
+      "source_sha256": "bdef4a377fb9ea44ca223f2ae8e1b43ea8698f1d934a8884054c5b09656e866b",
       "sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
         "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
@@ -14275,6 +13837,7 @@
         "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FEATUREFINDER/ElutionModelFitter.h",
         "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h",
         "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h",
@@ -14284,8 +13847,7 @@
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/FORMAT/OMSFileLoad.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
@@ -14305,7 +13867,7 @@
     },
     {
       "name": "FeatureFinderMultiplex",
-      "source_sha256": "fbd0a16db685320cfd0f9e772aa048a16ab27de7bf15a92bc938684def830b8b",
+      "source_sha256": "a08ada00f64875ac5306cbf0ddbb06a4bcac5c3b205f9e18f0f9dc7c2a954034",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
@@ -14364,18 +13926,16 @@
     },
     {
       "name": "FeatureLinkerBase",
-      "source_sha256": "fbede853815d10fe0e483912e22e8e3914f1fd21efe9b5215029d2e4caef1e43",
+      "source_sha256": "8d336e3235f74f0cfa02cbcde2fd221d6535f132bda8edb948d5afbd89fd1d55",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/ProgressLogger.h",
         "OpenMS/DATASTRUCTURES/ListUtils.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/ConversionHelper.h",
-        "OpenMS/METADATA/ExperimentalDesign.h"
+        "OpenMS/KERNEL/ConversionHelper.h"
       ],
       "outside_registered_sdk": [
         "OpenMS/APPLICATIONS/TOPPBase.h"
@@ -14389,9 +13949,10 @@
     },
     {
       "name": "FeatureLinkerLabeled",
-      "source_sha256": "fb7a67e497250f9a94355d0711f46a277f2d20650ea869201d094339205ef195",
+      "source_sha256": "dee1de0701aee282cdef2d1b7fad4139d2a2c2310210578caacba70329b207a2",
       "sdk_headers": [
-        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h"
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h"
       ],
       "outside_registered_sdk": [],
       "open_sdk_headers": [
@@ -14401,21 +13962,23 @@
     },
     {
       "name": "FeatureLinkerUnlabeled",
-      "source_sha256": "587d826c3aea5515be782ffb2578cfe858b30c42bd16f91183bfc63fea76e4c2",
+      "source_sha256": "91160a08733b4e7ffeda780aeca8416465928d01aa16c94229748393dbfb59b3",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h"
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "outside_registered_sdk": [],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h"
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "FeatureLinkerUnlabeledKD",
-      "source_sha256": "4b1ed0434ccfef66f84e277e16ad69ae08060c2a2569e963ff5d1b6de940027e",
+      "source_sha256": "cf225de26c67cbc5fd28bff657f50db2ae35d43afd8fdec2710edf091f35319d",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
         "OpenMS/CONCEPT/Exception.h",
@@ -14433,7 +13996,7 @@
     },
     {
       "name": "FeatureLinkerUnlabeledQT",
-      "source_sha256": "66f3849feb993976932ee130dd68c543ef3e742dc11fd7bdd1c8c428beee394f",
+      "source_sha256": "0a347eab8dc01de23cfcc53488eef2c3f28598c372350fbf9883ff3d9f52e2ca",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h"
       ],
@@ -14444,13 +14007,26 @@
       "workflow_validated": false
     },
     {
+      "name": "FeatureLinkerWNet",
+      "source_sha256": "582b0e9e81b6c1849ae6360e3ae3c407acabc0d9139a0d4116570ab9a1889d1b",
+      "sdk_headers": [
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h"
+      ],
+      "outside_registered_sdk": [],
+      "open_sdk_headers": [
+        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h"
+      ],
+      "workflow_validated": false
+    },
+    {
       "name": "FileConverter",
-      "source_sha256": "eeb2c786fe43c13b10dd06815503e190be0ec8d3b3072b6ff605e06f9e52150a",
+      "source_sha256": "cf13431ddab5d161f4861c1a79a99568a5341e89bbe4bc2a2e499c50a58a1f8c",
       "sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
         "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
         "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/BrukerTimsFile.h",
         "OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h",
@@ -14470,7 +14046,7 @@
         "OpenMS/METADATA/ID/IdentificationDataConverter.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
+        "OpenMS/APPLICATIONS/TOPPExternalToolBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
@@ -14495,12 +14071,14 @@
     },
     {
       "name": "FileFilter",
-      "source_sha256": "8b0a5436310eb198fa2cf9308e04a17cbc9dcdf412ddfd45f2314a178a9fbf03",
+      "source_sha256": "bb8aad0f712ec237f7d034c69a72310df478bc40ccad6f86b15f82f67b325bd6",
       "sdk_headers": [
         "OpenMS/COMPARISON/ZhangSimilarityScore.h",
         "OpenMS/CONCEPT/EnumHelpers.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -14517,12 +14095,12 @@
         "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/EnumHelpers.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -14535,74 +14113,38 @@
     },
     {
       "name": "FileInfo",
-      "source_sha256": "96446d82dfd4b67c1b23a2c5f452366ac2006a9c57197ce41d7cb733bb92646c",
+      "source_sha256": "3f02bbc6aaaa358596a56c54bcad6f597c982a1b5a5ada58e2df322f107f03e3",
       "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
-        "OpenMS/DATASTRUCTURES/StringListUtils.h",
-        "OpenMS/FORMAT/ConsensusXMLFile.h",
-        "OpenMS/FORMAT/FASTAFile.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/FileInfo.h",
         "OpenMS/FORMAT/FileTypes.h",
-        "OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h",
-        "OpenMS/FORMAT/IdXMLFile.h",
-        "OpenMS/FORMAT/MzDataFile.h",
-        "OpenMS/FORMAT/MzIdentMLFile.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/FORMAT/MzXMLFile.h",
-        "OpenMS/FORMAT/PeakTypeEstimator.h",
-        "OpenMS/FORMAT/PepXMLFile.h",
-        "OpenMS/FORMAT/TransformationXMLFile.h",
-        "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/Feature.h",
-        "OpenMS/KERNEL/FeatureMap.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/SysInfo.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "outside_registered_sdk": [
         "OpenMS/APPLICATIONS/TOPPBase.h",
         "OpenMS/config.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
-        "OpenMS/FORMAT/ConsensusXMLFile.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/IdXMLFile.h",
-        "OpenMS/FORMAT/MzDataFile.h",
-        "OpenMS/FORMAT/MzIdentMLFile.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/FORMAT/MzXMLFile.h",
-        "OpenMS/FORMAT/PeakTypeEstimator.h",
-        "OpenMS/FORMAT/PepXMLFile.h",
-        "OpenMS/FORMAT/TransformationXMLFile.h",
-        "OpenMS/IONMOBILITY/FAIMSHelper.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/SysInfo.h"
+        "OpenMS/FORMAT/FileInfo.h",
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "FileMerger",
-      "source_sha256": "285edee9ae504d9bb2c3e3fa058c6701b83aff6e95d73de04858373ff20459ed",
+      "source_sha256": "b86476f269228a84329a9badbb9fd356facf572e2421fcb8d218984c1db262ce",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
         "OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h",
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
         "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -14628,7 +14170,7 @@
     },
     {
       "name": "FuzzyDiff",
-      "source_sha256": "540f83fefd7821618bea3ec76d6e192eb076a42e376c28b16fb58cffe64eae37",
+      "source_sha256": "3809921f8e67d5b9491d6f58a45ae4c62bd7722d3b84e7dc085c3575c59c66ac",
       "sdk_headers": [
         "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/SYSTEM/File.h"
@@ -14643,9 +14185,10 @@
     },
     {
       "name": "GNPSExport",
-      "source_sha256": "ac9dcef515828f8a599d58e2b241fea7cca36ba8a4f7c4029928b72b329a7eac",
+      "source_sha256": "47f042a6a9c4092b531c33149b4cf5390990044487a0860e086ff71bec0ca566",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/GNPSMGFFile.h",
         "OpenMS/FORMAT/GNPSMetaValueFile.h",
@@ -14666,11 +14209,12 @@
     },
     {
       "name": "HighResPrecursorMassCorrector",
-      "source_sha256": "447e94acd61668e12d791cf3cf35290594cbfcbf04426da0900e392cf0e1d716",
+      "source_sha256": "442244eb96ada659d620928489070158c38c508ddd495d2417d093dcc543dd31",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/DataValue.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -14696,9 +14240,10 @@
     },
     {
       "name": "IDConflictResolver",
-      "source_sha256": "2ee29feb4926aeae8fc4d03ec53e5611d119459964d981c610d12ace31d90ea8",
+      "source_sha256": "c61544e5ce3a50d898541908c73c1876c78050e7275f6ca0ab890614a1760f7b",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/PeptideIdentification.h"
@@ -14715,9 +14260,10 @@
     },
     {
       "name": "IDDecoyProbability",
-      "source_sha256": "e2314aba88747d2882a5d2aacd3491738439e93cccb3d318460aec1ad0675166",
+      "source_sha256": "2532a4f186180d3bdfb8623cbd6beedb59652d2441b57d58b96189dd2c0353a8",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDDecoyProbability.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/StandardTypes.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -14735,9 +14281,10 @@
     },
     {
       "name": "IDExtractor",
-      "source_sha256": "ffe3f46555a622a0b17dd862558cfcd261b19fa78f6c04e98224439d3a5304eb",
+      "source_sha256": "5aad9ea5b3b0cf7802b6989d09a65bcd9aeafec2c18df540f13b3f2080dd8805",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/EnzymaticDigestion.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/MATH/MathFunctions.h",
@@ -14759,13 +14306,14 @@
     },
     {
       "name": "IDFileConverter",
-      "source_sha256": "8c7eb31f8dcd2082129ef26f03bde5144abe1c2ee4ac56722432ab91184f20e5",
+      "source_sha256": "c488e25d19f4b3298596622849a03ada90c8eda0e835db3aaeef4608044716e1",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
         "OpenMS/CHEMISTRY/SpectrumAnnotator.h",
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
         "OpenMS/FORMAT/IdXMLFile.h",
@@ -14816,7 +14364,7 @@
     },
     {
       "name": "IDFilter",
-      "source_sha256": "f69d1be726fcc067ddf05f105774b9505e0df67a239cead233f5838b9664957b",
+      "source_sha256": "dbaa902eb0b2994580cc9e4463fe3212bd08975f27a37445f33081168340fc22",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDRipper.h",
         "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
@@ -14825,6 +14373,7 @@
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CHEMISTRY/ProteaseDigestion.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
@@ -14854,10 +14403,11 @@
     },
     {
       "name": "IDMapper",
-      "source_sha256": "322aea8da3718f1d5c866b7f12a2839f596ce9fa7134fe4c0f6fe37045c1ced4",
+      "source_sha256": "00c6cd43e465da07e22d006dd6a6701d1cff21aabb9c0ff152fb7ba76bbf8f5f",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDMapper.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -14888,7 +14438,7 @@
     },
     {
       "name": "IDMerger",
-      "source_sha256": "195d6f1852931345e3d97ac9efd8cb0a9bc386a2d1033acebccf6a94560435a9",
+      "source_sha256": "0d0eefe872d165deb31184fc49b05887a5d66aab7cd9b9b23f2cc2aadd1bfebd",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
@@ -14912,8 +14462,9 @@
     },
     {
       "name": "IDPosteriorErrorProbability",
-      "source_sha256": "363bd1a5c947cbfa6ed1b4c13d0421acaa3b47689c30d8eadd844c46e48ba2df",
+      "source_sha256": "8f513c1e146419543075fda64aac4d19d0732a92737127c62ba2744fd2d7509b",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -14931,9 +14482,10 @@
     },
     {
       "name": "IDRTCalibration",
-      "source_sha256": "7aaedf8161c830f8bb920e7b5feaed1fc481699b64730a92def97aceeadc5882",
+      "source_sha256": "d323af06fc884284a7997b1d8e46d1d9e9b79dcaa7bfc95a90ee65e4de197447",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -14952,10 +14504,11 @@
     },
     {
       "name": "IDRipper",
-      "source_sha256": "cd0fdfb4f6b7e96478733a3006253a5cf60be7576399183fcd72a2f26b6d110d",
+      "source_sha256": "a00db7640b0795254518ee60f2e8a8f415d923238a0f4ca27fbb2e12df84fb25",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDRipper.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
         "OpenMS/METADATA/ProteinIdentification.h",
@@ -14975,10 +14528,11 @@
     },
     {
       "name": "IDScoreSwitcher",
-      "source_sha256": "224fbb81905a15f1cbaaeef490964e080dc3b52d69767f17916f7d5f879a9dae",
+      "source_sha256": "a77152a9e8fca903345cb882869e0f7591e3f9d48b22ed8f754eff65882bf36b",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -14998,8 +14552,9 @@
     },
     {
       "name": "IDSplitter",
-      "source_sha256": "17be610ebcbc697fbaa3516a7133067d4364d45165c0986e5d9133d9c3a0793e",
+      "source_sha256": "b4aee5203af1e0226f5446ba01206055f782baf559fea032c9cf7adbde0fbc79",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
@@ -15020,8 +14575,32 @@
       "workflow_validated": false
     },
     {
+      "name": "INIUpdater",
+      "source_sha256": "b2c87a6bb9932a872bd831d43ac7c8938e5da7071ec6b07576fce3227131f2a8",
+      "sdk_headers": [
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/ParamXMLFile.h",
+        "OpenMS/SYSTEM/ExternalProcess.h",
+        "OpenMS/SYSTEM/File.h"
+      ],
+      "outside_registered_sdk": [
+        "OpenMS/APPLICATIONS/INIUpdater.h",
+        "OpenMS/APPLICATIONS/TOPPBase.h"
+      ],
+      "open_sdk_headers": [
+        "OpenMS/CONCEPT/Exception.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FileHandler.h",
+        "OpenMS/FORMAT/ParamXMLFile.h"
+      ],
+      "workflow_validated": false
+    },
+    {
       "name": "InternalCalibration",
-      "source_sha256": "2b3b7c77b3882bee73cf754dc6d473db040a2a179ca3ff6b5b9d52a93485a712",
+      "source_sha256": "834c9d4cff38e5caa5d713b0979dc8d90105d986b3656b34a7e5f88266c8b7d3",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/CalibrationData.h",
@@ -15051,7 +14630,7 @@
     },
     {
       "name": "IonMobilityBinning",
-      "source_sha256": "605b0e275f951d6d5d2187a44aee95870ae78c2d5117cacf2e4c311d92adfa7f",
+      "source_sha256": "cb0e8fd7c70ed5980316958a5359a3331c391371e254d73bd4e53f93e1247a73",
       "sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
@@ -15071,20 +14650,11 @@
     },
     {
       "name": "IsobaricAnalyzer",
-      "source_sha256": "0c198e8cb53203170886c18a86de95ae57e58b8a188bd85fb3c1cc5b5f30eb19",
+      "source_sha256": "4e9a02038eecf4e280eeba93654839fe8bdd6056134bb7700b6bb13a4255409e",
       "sdk_headers": [
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
@@ -15097,15 +14667,6 @@
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
@@ -15114,26 +14675,22 @@
     },
     {
       "name": "IsobaricWorkflow",
-      "source_sha256": "95848d445225a17f817a9e9060a397c3389c3ec6d98c18ec17092d968edddf75",
+      "source_sha256": "20e7cf4e601c70d9162c18f50026f018373027dc674c6cc2ca106a4e5d3da6be",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
         "OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h",
         "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
         "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
         "OpenMS/ANALYSIS/ID/PrecursorPurity.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h",
         "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h",
+        "OpenMS/CHEMISTRY/AASequence.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/ExperimentalDesignFile.h",
@@ -15141,7 +14698,9 @@
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
+        "OpenMS/FORMAT/QPXCollectionExport.h",
         "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/FORMAT/QPXIdentity.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -15156,20 +14715,15 @@
         "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
         "OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h",
         "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+        "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
         "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
         "OpenMS/ANALYSIS/ID/PrecursorPurity.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h",
         "OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h",
         "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h",
-        "OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h",
+        "OpenMS/CHEMISTRY/AASequence.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
@@ -15177,7 +14731,9 @@
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
+        "OpenMS/FORMAT/QPXCollectionExport.h",
         "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/FORMAT/QPXIdentity.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h",
@@ -15187,7 +14743,7 @@
     },
     {
       "name": "JSONExporter",
-      "source_sha256": "b049931f29c67fdac5647d1a898c88b1838afd7e7278751b3df335adfef25f5d",
+      "source_sha256": "6f7ab8fe7e032af542776e6287e3beaf3dac8625983c1562eb6b8d588ad76e95",
       "sdk_headers": [
         "OpenMS/FORMAT/OMSFile.h"
       ],
@@ -15201,12 +14757,14 @@
     },
     {
       "name": "LuciphorAdapter",
-      "source_sha256": "38437fd365e5224128cefd00ee0fb37ca3adb9ca426f558d5a6f8a02c34a8d7b",
+      "source_sha256": "c13ffa78f9cfeb05ab2b3bca1f944cf9f10f9d67b9f639aacd68bb1fedea6e21",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
         "OpenMS/CHEMISTRY/ModificationDefinitionsSet.h",
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -15220,14 +14778,14 @@
         "OpenMS/SYSTEM/JavaInfo.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPExternalToolBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
         "OpenMS/CHEMISTRY/ModificationDefinitionsSet.h",
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/PepXMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -15239,11 +14797,12 @@
     },
     {
       "name": "MRMMapper",
-      "source_sha256": "506880747aaca4cf57c1c6f9016e70e948af1701a541dfd8584a63a41d861242",
+      "source_sha256": "22ce6a72a68e4cb2fdad0a8a2290ae63664abe3295517d7c34588d140baa4d68",
       "sdk_headers": [
         "OpenMS/ANALYSIS/TARGETED/MRMMapping.h",
         "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
         "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
@@ -15260,9 +14819,10 @@
     },
     {
       "name": "MRMPairFinder",
-      "source_sha256": "506109b2da90ff08b4b16a6751a12cc87cdecfb60674a059e98e91a88766507a",
+      "source_sha256": "b630e8fb9aefc67c440a27040b4da313e959fb27589782a2b0ff0cc7e7a846c0",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/Feature.h",
@@ -15278,42 +14838,8 @@
       "workflow_validated": false
     },
     {
-      "name": "MRMTransitionGroupPicker",
-      "source_sha256": "47d5cb07d6f86c9607f90cb781e437de0fce7561143772e639764319f8159b8b",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h",
-        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/FeatureMap.h",
-        "OpenMS/KERNEL/MRMTransitionGroup.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h",
-        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "MSFraggerAdapter",
-      "source_sha256": "df2a6d51fa092d987d90a1e5b8a9d32edd5a8ba72a86f89b239a37adf0cefb7a",
+      "source_sha256": "5b798a5949d5014ac00100e0018f140a3023253e0440feb430c005527b613cab",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
         "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
@@ -15321,6 +14847,7 @@
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/PepXMLFile.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -15347,7 +14874,7 @@
     },
     {
       "name": "MSGFPlusAdapter",
-      "source_sha256": "352a43fdd8e72309867dc85fd9e65f937672ec88c456d9cafccd339d475b38f6",
+      "source_sha256": "ebd9689465f71b7a46d51f0f5363b5988c7fe006f1fb87678e1d9335827d00bb",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
         "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
@@ -15355,6 +14882,8 @@
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
@@ -15366,8 +14895,7 @@
         "OpenMS/SYSTEM/JavaInfo.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/SearchEngineBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/SearchEngineBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
@@ -15375,6 +14903,7 @@
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -15386,9 +14915,10 @@
     },
     {
       "name": "MSstatsConverter",
-      "source_sha256": "2a050c3b9ba6fd98d28d85f61f6d9937a514f677c29fe9ced6d4c0d3edf32300",
+      "source_sha256": "9877c01fc47c8a7860ec17214574c42e2586b785dd56c623f632135d4d840c8f",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MSstatsFile.h",
@@ -15412,11 +14942,12 @@
     },
     {
       "name": "MaRaClusterAdapter",
-      "source_sha256": "1291edbbc70b68a34fe9426ca5162ac83a91e1a3297581201b15faddc618b68c",
+      "source_sha256": "b16b29af3c62947cab0534c2d739e996be32c03b09e88ccb96fd6fa41f87eea5",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -15427,7 +14958,7 @@
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
+        "OpenMS/APPLICATIONS/TOPPExternalToolBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
@@ -15439,13 +14970,13 @@
     },
     {
       "name": "MapAlignerIdentification",
-      "source_sha256": "3ced1d46db8ca7ba4b00fbe8630126922585ebb9586c82b593bcdfe1b1cd20ec",
+      "source_sha256": "7b149bf0840cb84db7ba92ad6470ae0bd97367553f18f64f8c052af6db191214",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/ConsensusXMLFile.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ExperimentalDesignFile.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/OMSFile.h",
         "OpenMS/KERNEL/ConsensusMap.h",
@@ -15458,9 +14989,8 @@
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/ConsensusXMLFile.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/OMSFile.h",
         "OpenMS/METADATA/ProteinIdentification.h"
@@ -15469,23 +14999,29 @@
     },
     {
       "name": "MapAlignerPoseClustering",
-      "source_sha256": "e82d4d272ddd613b24236ae986e91ea5627aded425509486e71ffeebcb066457",
+      "source_sha256": "d5ab62d59566c4a9da9b1e8143b3083b80fcd63e5390f0740df83a3f2db290ba",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h"
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "outside_registered_sdk": [
         "OpenMS/APPLICATIONS/MapAlignerBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h"
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/FORMAT/FeatureXMLFile.h",
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "MapAlignerTreeGuided",
-      "source_sha256": "46d956496a1f01e2778001c69b178e11e8b61720e33b5126ad24a51e6026f1c9",
+      "source_sha256": "01e41c9e550a7a2973ed7b6a22e8476b333c5db91469102b340e84df5dd4a176",
       "sdk_headers": [
         "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h",
         "OpenMS/CONCEPT/LogStream.h",
@@ -15505,8 +15041,9 @@
     },
     {
       "name": "MapNormalizer",
-      "source_sha256": "9a91a8a9fdb94767558d20faba2c93e4903629f9507aeb0fa5bd2934f422e526",
+      "source_sha256": "e53887be24df66273bb9a9e70b66e32f951085717b9eae3001591557b7c4c36f",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],
@@ -15522,8 +15059,10 @@
     },
     {
       "name": "MapRTTransformer",
-      "source_sha256": "3776d1d49ea29aeacfbe72c8ccd36569c92775a88bd56d31236f315afda77c55",
+      "source_sha256": "f6e12c6662f0f8d759b9607579ba6bd9556ab158ba7838fb60df816fb00a23e0",
       "sdk_headers": [
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -15534,6 +15073,7 @@
         "OpenMS/APPLICATIONS/MapAlignerBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h"
@@ -15542,8 +15082,9 @@
     },
     {
       "name": "MapStatistics",
-      "source_sha256": "c143ef0bf2efcb2bf8fb45ddf2d2017699cf133354c72c9a725939c47c9a9e88",
+      "source_sha256": "55f3d41b58f90dc1337cb61db4fef4f677584782a651bbbefa36ea3643774e36",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -15563,40 +15104,8 @@
       "workflow_validated": false
     },
     {
-      "name": "MascotAdapterOnline",
-      "source_sha256": "63d6b9c5789219c8074f80b1aada832173c323a3411fcd6ed10c1bca26a6b4e5",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/FileTypes.h",
-        "OpenMS/FORMAT/MascotGenericFile.h",
-        "OpenMS/FORMAT/MascotXMLFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/StandardTypes.h",
-        "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/SearchEngineBase.h",
-        "OpenMS/FORMAT/MascotRemoteQuery.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MascotGenericFile.h",
-        "OpenMS/FORMAT/MascotXMLFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "MassCalculator",
-      "source_sha256": "9bf1524c0d6141ce2b0e1e354f7c17353caf4a467719fa70e9eccecadec78006",
+      "source_sha256": "4d906f40ad929756b9ddd1bac60b49326957ad7ef3ebc872f4f2882af6dbf59d",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/AASequence.h",
         "OpenMS/CONCEPT/LogStream.h",
@@ -15615,10 +15124,11 @@
     },
     {
       "name": "MassTraceExtractor",
-      "source_sha256": "1526d5e07069ad472d5cee9d474998e9891150e384439cd9669e3a4420f07d20",
+      "source_sha256": "ed9128c2acd0ffec03f87af22852a882fd457dac40f82afeefed6302af223915",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FEATUREFINDER/ElutionPeakDetection.h",
         "OpenMS/FEATUREFINDER/MassTraceDetection.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -15642,7 +15152,7 @@
     },
     {
       "name": "MetaProSIP",
-      "source_sha256": "ff921d8d53787d99e9b753279b3d23c997ed6316f03879a5ac86b0493690f6c0",
+      "source_sha256": "da8cfcf2baea93cd5128b2c6b910effcb86129cb35305cbd45d7818938ed5e33",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/Element.h",
         "OpenMS/CHEMISTRY/ElementDB.h",
@@ -15653,6 +15163,7 @@
         "OpenMS/COMPARISON/SpectrumAlignment.h",
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/Param.h",
         "OpenMS/FEATUREFINDER/GaussModel.h",
         "OpenMS/FORMAT/FASTAFile.h",
@@ -15693,9 +15204,10 @@
     },
     {
       "name": "MetaboliteAdductDecharger",
-      "source_sha256": "fa2b6f2def7fa3933f634e44c998f74c274e04013e85c84103246e0ae09f2270",
+      "source_sha256": "75dae5220a0b5aaf4f62a5c82c2f700e1ebe9841708cc20d1027c98c2e150bb9",
       "sdk_headers": [
         "OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
@@ -15713,10 +15225,11 @@
     },
     {
       "name": "MetaboliteSpectralMatcher",
-      "source_sha256": "bdd97e0ba5e03002992b0d829f0ef31859fe0a75459caa130bf94166a2d75a8a",
+      "source_sha256": "a61db2714cf0361902517cdff6ed89744848a7cda0e4db018c2d49bdaa9552aa",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MSPGenericFile.h",
         "OpenMS/FORMAT/MascotGenericFile.h",
@@ -15743,10 +15256,11 @@
     },
     {
       "name": "MultiplexResolver",
-      "source_sha256": "0af3fac02355df58c12523e355d045b3bf20b65beba4c820fa85dbb17503aea8",
+      "source_sha256": "31fca75a7c0d1ef30d7c0bd77443e5d9a80b4a1576d45a35818a9caf78317692",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h",
         "OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h",
         "OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h",
@@ -15775,8 +15289,9 @@
     },
     {
       "name": "MzMLSplitter",
-      "source_sha256": "52b31912d8c2f5f6fe070510f7fd366bfeb41779a0279835d8cccca5d9a46b65",
+      "source_sha256": "63c9599132be0479ebd48ca9f50046a0c73981b969e68413bde3e763d258d55d",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/SYSTEM/File.h"
@@ -15793,10 +15308,11 @@
     },
     {
       "name": "MzTabExporter",
-      "source_sha256": "be3aae6681cc872fc6a35a23a6d0eb2d7eab6ad59e3da1e7d8efda1d38569112",
+      "source_sha256": "57c5dd8a9b992aeb6f86fb62713fe8c9fd1ff279acdb3b6c9624de814a93f731",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -15830,9 +15346,10 @@
     },
     {
       "name": "NoiseFilterGaussian",
-      "source_sha256": "38662bf62e0fdc7426d5b7b3d48f521bcf4a427418c2bd5cc9e8bda9d68ca081",
+      "source_sha256": "bd31b1d32bcf92a197491229b530f11d4b57420a442d01222fc31461ad87cf82",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -15856,9 +15373,10 @@
     },
     {
       "name": "NoiseFilterSGolay",
-      "source_sha256": "f1796fd876aa553d19b57456d48362e0c81b8490150e0624bad85709015d9c31",
+      "source_sha256": "c30571526932a3d71db451f40ef45d10e34fdeb10bd29560ce0fe28de523cb3a",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -15882,10 +15400,12 @@
     },
     {
       "name": "NovorAdapter",
-      "source_sha256": "1b28ce4945801eb6ad9df74f45f1c9639931968e56cc7af0894a2da0b672c7f4",
+      "source_sha256": "fc99a1373e856002ffe6f44321c91682b50403d7d32cb38e808bdb1dcae7e931",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -15901,12 +15421,12 @@
         "OpenMS/SYSTEM/JavaInfo.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPExternalToolBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/ProteaseDB.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MascotGenericFile.h",
@@ -15921,83 +15441,13 @@
       "workflow_validated": false
     },
     {
-      "name": "NucleicAcidSearchEngine",
-      "source_sha256": "444dd87bb9841d23c5d8718763e16bfcb0678fc89fe2be29fb07b499c251d32f",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h",
-        "OpenMS/CHEMISTRY/ElementDB.h",
-        "OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h",
-        "OpenMS/CHEMISTRY/NASequence.h",
-        "OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h",
-        "OpenMS/CHEMISTRY/RNaseDB.h",
-        "OpenMS/CHEMISTRY/RNaseDigestion.h",
-        "OpenMS/CHEMISTRY/RibonucleotideDB.h",
-        "OpenMS/COMPARISON/SpectrumAlignment.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/DATASTRUCTURES/ListUtils.h",
-        "OpenMS/DATASTRUCTURES/Param.h",
-        "OpenMS/FORMAT/FASTAFile.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/FORMAT/OMSFile.h",
-        "OpenMS/FORMAT/SVOutStream.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MSSpectrum.h",
-        "OpenMS/KERNEL/Peak1D.h",
-        "OpenMS/KERNEL/StandardTypes.h",
-        "OpenMS/MATH/StatisticFunctions.h",
-        "OpenMS/METADATA/ID/IdentificationData.h",
-        "OpenMS/METADATA/ID/IdentificationDataConverter.h",
-        "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumSettings.h",
-        "OpenMS/PROCESSING/FILTERING/NLargest.h",
-        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
-        "OpenMS/PROCESSING/FILTERING/WindowMower.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/PROCESSING/SCALING/Normalizer.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h",
-        "OpenMS/CHEMISTRY/ElementDB.h",
-        "OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h",
-        "OpenMS/CHEMISTRY/NASequence.h",
-        "OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h",
-        "OpenMS/CHEMISTRY/RNaseDB.h",
-        "OpenMS/CHEMISTRY/RNaseDigestion.h",
-        "OpenMS/CHEMISTRY/RibonucleotideDB.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/FORMAT/OMSFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MSSpectrum.h",
-        "OpenMS/METADATA/ID/IdentificationData.h",
-        "OpenMS/METADATA/ID/IdentificationDataConverter.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumSettings.h",
-        "OpenMS/PROCESSING/FILTERING/NLargest.h",
-        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
-        "OpenMS/PROCESSING/FILTERING/WindowMower.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/PROCESSING/SCALING/Normalizer.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "OpenMSDatabasesInfo",
-      "source_sha256": "8416227406bfe302b8f36af6c49cf16f91baf1f042ee01a9b2740d4ab4570896",
+      "source_sha256": "70affb8a2ccb5323343d96c2be082603ce7f8279bab6fc7d20cbb6433fab9f72",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/DigestionEnzymeProtein.h",
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/CHEMISTRY/ProteaseDB.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
@@ -16012,154 +15462,37 @@
     },
     {
       "name": "OpenMSInfo",
-      "source_sha256": "dbf1a7d165c7319f54b612d6fedaf79ef6dcdd90ebc772bfcfe86111656a84b9",
+      "source_sha256": "bba46357c8f96fcaaded4c9a2d885cdb42f8807ae73f1eff719a91fac49392f7",
       "sdk_headers": [
         "OpenMS/CONCEPT/Colorizer.h",
         "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/IndentedStream.h",
         "OpenMS/SYSTEM/BuildInfo.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
         "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h",
         "OpenMS/config.h",
         "OpenMS/openms_data_path.h"
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/Colorizer.h",
         "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/IndentedStream.h",
         "OpenMS/SYSTEM/BuildInfo.h"
       ],
       "workflow_validated": false
     },
     {
-      "name": "OpenNuXL",
-      "source_sha256": "3e954f3cb7db64fa745ef53f99053c125900059ca88f94b1de38e36b85e68ea8",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/ID/AScore.h",
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/ANALYSIS/ID/HyperScore.h",
-        "OpenMS/ANALYSIS/ID/MorpheusScore.h",
-        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
-        "OpenMS/ANALYSIS/ID/PrecursorPurity.h",
-        "OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLReport.h",
-        "OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h",
-        "OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h",
-        "OpenMS/CHEMISTRY/DecoyGenerator.h",
-        "OpenMS/CHEMISTRY/ElementDB.h",
-        "OpenMS/CHEMISTRY/ModificationsDB.h",
-        "OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h",
-        "OpenMS/CHEMISTRY/ProteaseDB.h",
-        "OpenMS/CHEMISTRY/ProteaseDigestion.h",
-        "OpenMS/CHEMISTRY/ResidueDB.h",
-        "OpenMS/CHEMISTRY/ResidueModification.h",
-        "OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
-        "OpenMS/COMPARISON/BinnedSpectralContrastAngle.h",
-        "OpenMS/COMPARISON/SpectrumAlignment.h",
-        "OpenMS/CONCEPT/Constants.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/VersionInfo.h",
-        "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
-        "OpenMS/DATASTRUCTURES/Param.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
-        "OpenMS/FORMAT/FASTAFile.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/IdXMLFile.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/TextFile.h",
-        "OpenMS/KERNEL/BinnedSpectrum.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MSSpectrum.h",
-        "OpenMS/KERNEL/StandardTypes.h",
-        "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/MATH/StatisticFunctions.h",
-        "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumLookup.h",
-        "OpenMS/METADATA/SpectrumSettings.h",
-        "OpenMS/ML/SVM/SimpleSVM.h",
-        "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h",
-        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
-        "OpenMS/PROCESSING/FILTERING/NLargest.h",
-        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
-        "OpenMS/PROCESSING/FILTERING/WindowMower.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/PROCESSING/SCALING/Normalizer.h",
-        "OpenMS/PROCESSING/SCALING/SqrtScaler.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLConstants.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLDeisotoper.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLFDR.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLPresets.h",
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/ID/AScore.h",
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/ANALYSIS/ID/HyperScore.h",
-        "OpenMS/ANALYSIS/ID/MorpheusScore.h",
-        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
-        "OpenMS/ANALYSIS/ID/PrecursorPurity.h",
-        "OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h",
-        "OpenMS/ANALYSIS/NUXL/NuXLReport.h",
-        "OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h",
-        "OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h",
-        "OpenMS/CHEMISTRY/DecoyGenerator.h",
-        "OpenMS/CHEMISTRY/ElementDB.h",
-        "OpenMS/CHEMISTRY/ModificationsDB.h",
-        "OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h",
-        "OpenMS/CHEMISTRY/ProteaseDB.h",
-        "OpenMS/CHEMISTRY/ProteaseDigestion.h",
-        "OpenMS/CHEMISTRY/ResidueDB.h",
-        "OpenMS/CHEMISTRY/ResidueModification.h",
-        "OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/VersionInfo.h",
-        "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/IdXMLFile.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MSSpectrum.h",
-        "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumLookup.h",
-        "OpenMS/METADATA/SpectrumSettings.h",
-        "OpenMS/ML/SVM/SimpleSVM.h",
-        "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h",
-        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
-        "OpenMS/PROCESSING/FILTERING/NLargest.h",
-        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
-        "OpenMS/PROCESSING/FILTERING/WindowMower.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/PROCESSING/SCALING/Normalizer.h",
-        "OpenMS/PROCESSING/SCALING/SqrtScaler.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "OpenPepXL",
-      "source_sha256": "46c70427be2356353558a19d86d9867a80943f6d66dc96be25b8986087dcc23c",
+      "source_sha256": "bd8f180f6022ed7c1483c4ac28a178fee0c54f2d336c0365e55a880e94d8817b",
       "sdk_headers": [
         "OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/XQuestResultXMLFile.h",
@@ -16183,388 +15516,14 @@
       "workflow_validated": false
     },
     {
-      "name": "OpenSwathAnalyzer",
-      "source_sha256": "dc735d62e70c4d488080d91eabe9dbf5996515188df5a542f60b2a75f76287f9",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathAssayGenerator",
-      "source_sha256": "b8db90d79ffab3f074b8cee39cdaec95865f4b1bcb5faf9c91e301eb84ca8128",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
-        "OpenMS/CHEMISTRY/AASequence.h",
-        "OpenMS/CHEMISTRY/ModificationsDB.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/DATASTRUCTURES/ListUtils.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/FileTypes.h",
-        "OpenMS/MATH/MathFunctions.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
-        "OpenMS/CHEMISTRY/AASequence.h",
-        "OpenMS/CHEMISTRY/ModificationsDB.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/MATH/MathFunctions.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathChromatogramExtractor",
-      "source_sha256": "0ef47ea9646b53636aab15e65c79a282cd3e66bd4d8a4bb48b25e4026d56d3f9",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathConfidenceScoring",
-      "source_sha256": "976d1fab767ee0562baf8ac956306f0cf1c999796c3bd91bfcf6e1bf45f19943",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathDIAPreScoring",
-      "source_sha256": "54f94d03353a7350b8952cd05a8f8465e3e2991c1a2cf591ca31b23f36598278",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathDecoyGenerator",
-      "source_sha256": "5501a6530a865821af58749d54595900030bcd9a4ad4a46d95c208186d6cebb7",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/DATASTRUCTURES/ListUtils.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/FileTypes.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathFeatureXMLToTSV",
-      "source_sha256": "1005b6cb4958b661ed2d70af0dc999c0c84ef7518d618b84bd848a87ea7db38e",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
-        "OpenMS/CONCEPT/Types.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/Feature.h",
-        "OpenMS/KERNEL/FeatureMap.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
-        "OpenMS/CONCEPT/Types.h",
-        "OpenMS/FORMAT/FileHandler.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathFileSplitter",
-      "source_sha256": "ea662b9d0e31663425dbadcf1a726920c420ab2c011a76ec31138c0c3aa59ea9",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/SwathFile.h",
-        "OpenMS/METADATA/ExperimentalSettings.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/SwathFile.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathMzMLFileCacher",
-      "source_sha256": "0ab2dc7ba550b4a4097ff3b367813e1a46526fe8f9499a0ace5ac416a600b754",
-      "sdk_headers": [
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/FORMAT/CachedMzML.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/FileTypes.h",
-        "OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/SqMassFile.h",
-        "OpenMS/KERNEL/MSExperiment.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/FORMAT/CachedMzML.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
-        "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/SqMassFile.h",
-        "OpenMS/KERNEL/MSExperiment.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathRTNormalizer",
-      "source_sha256": "fb32a8af9bef5b689d0441390878fe0a25a23d9a147316f767a727d6dd0ad946",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathRewriteToFeatureXML",
-      "source_sha256": "ad0880a9a794e17c7e452552a418421a95cd2aa2f4bab8aecdbaabb891757b64",
-      "sdk_headers": [
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/Feature.h",
-        "OpenMS/KERNEL/FeatureMap.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/FORMAT/FileHandler.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "OpenSwathWorkflow",
-      "source_sha256": "bf2a811db9c98d1799bead8623ac1cc6b59401df546f6febdec74dd79dbfcc1c",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h",
-        "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
-        "OpenMS/ANALYSIS/TARGETED/MRMMapping.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/FileTypes.h",
-        "OpenMS/FORMAT/ParquetFile.h",
-        "OpenMS/FORMAT/SwathFile.h",
-        "OpenMS/FORMAT/TransformationXMLFile.h",
-        "OpenMS/FORMAT/ZipArchiveFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/OpenSwathBase.h",
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/config.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/CalibrationWorkflow.h",
-        "OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h",
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h",
-        "OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h",
-        "OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
-        "OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
-        "OpenMS/ANALYSIS/TARGETED/MRMMapping.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
-        "OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/ParquetFile.h",
-        "OpenMS/FORMAT/SwathFile.h",
-        "OpenMS/FORMAT/TransformationXMLFile.h",
-        "OpenMS/FORMAT/ZipArchiveFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "PSMFeatureExtractor",
-      "source_sha256": "c7c7b8e637e9c0974d2ab542ea17d16a5c235e15bf6ab9df676b24b3904ade76",
+      "source_sha256": "e88472b0dfd5f35c33aca2801db85afc75ba5518bc99e9a9dd7bf10fce14fc75",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/ProgressLogger.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -16584,7 +15543,7 @@
     },
     {
       "name": "ParquetConverter",
-      "source_sha256": "84b83d940cc05eb24ccba69cf2e03de510f5e3458983928a749f535fd1cf8cf7",
+      "source_sha256": "d492be49f5281effdebf87bfddd7c117553f131e0765e42e2186ca29c96009d1",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/ConsensusMapArrowIO.h",
@@ -16608,9 +15567,10 @@
     },
     {
       "name": "PeakPickerHiRes",
-      "source_sha256": "fb9822da610772ebb0f86a4e6651a5a85210b45ed2735f3bd6d0f8316fd454fe",
+      "source_sha256": "e253bb0822fffbdd0839db649d2b548916bc227c2d306af5514dc445557f5184",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
@@ -16633,7 +15593,7 @@
     },
     {
       "name": "PeakPickerIM",
-      "source_sha256": "bda077bcf80025b6b60e964f4986b41f96628b06e9b74c8e639032a5fdd6d016",
+      "source_sha256": "406aba102922c98f9ca956b11b5f7674aada08b0f13b7f72c631fde4c4e830d7",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/BrukerTimsFile.h",
@@ -16662,8 +15622,9 @@
     },
     {
       "name": "PeakPickerIterative",
-      "source_sha256": "60b24b59f7be850a54b1bcab32ddbaa555037b5f7acea6454cf122e269b609a6",
+      "source_sha256": "47d433efa30f70939a9c92ddc20cbade846fa70fe38cf56396a69141a302d149",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h"
@@ -16680,10 +15641,11 @@
     },
     {
       "name": "PeptideIndexer",
-      "source_sha256": "32990d20addcb19d3ad51f7448f95de7e6f02144570687dc4d5ea2e12a3a0b18",
+      "source_sha256": "d12319f877b32128eb20569b4b13725d8ed378e07c3034971d8556f8dcad9a83",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -16704,12 +15666,15 @@
     },
     {
       "name": "PercolatorAdapter",
-      "source_sha256": "b79776a1169563303b474246834e04bb137a968b25a7f2935618f2ece4dde739",
+      "source_sha256": "9bb674a1f5d64836a90b6c9d07db5521792a1b55078bf200c84277c2b72caa65",
       "sdk_headers": [
+        "OpenMS/ANALYSIS/ID/Percolator.h",
         "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+        "OpenMS/ANALYSIS/ID/Scores.h",
         "OpenMS/CONCEPT/Constants.h",
         "OpenMS/CONCEPT/EnumHelpers.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -16717,30 +15682,36 @@
         "OpenMS/FORMAT/PercolatorInfile.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
         "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/SpectrumLookup.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
+        "OpenMS/APPLICATIONS/TOPPExternalToolBase.h",
         "OpenMS/config.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/ANALYSIS/ID/Percolator.h",
         "OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+        "OpenMS/ANALYSIS/ID/Scores.h",
         "OpenMS/CONCEPT/EnumHelpers.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/OSWFile.h",
         "OpenMS/METADATA/ProteinIdentification.h",
+        "OpenMS/METADATA/SpectrumLookup.h",
         "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "PhosphoScoring",
-      "source_sha256": "c5b58e8f26a105456501b8bacfaacb3a3a08ef71121ee01ec87f1d645b4342de",
+      "source_sha256": "aff84b3667d5ff1ade2b29838fcb5593f393aee07b08aecebf559771a08dc555",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/AScore.h",
         "OpenMS/ANALYSIS/ID/IDMapper.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/SpectrumMetaDataLookup.h"
       ],
@@ -16750,53 +15721,15 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/ID/AScore.h",
         "OpenMS/ANALYSIS/ID/IDMapper.h",
+        "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/SpectrumMetaDataLookup.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "ProSE",
-      "source_sha256": "4b2ac8344163ffb684528b9004cab4d3af1bf94dd6600e598a689b2bc7eb3383",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
-        "OpenMS/FORMAT/ArrowIOHelpers.h",
-        "OpenMS/FORMAT/FASTAFile.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/FileTypes.h",
-        "OpenMS/FORMAT/PercolatorInfile.h",
-        "OpenMS/FORMAT/ProteinGroupArrowExport.h",
-        "OpenMS/FORMAT/ProteinIdentificationArrowIO.h",
-        "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/KERNEL/StandardTypes.h",
-        "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/ANALYSIS/ID/ProSEAlgorithm.h",
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
-        "OpenMS/FORMAT/ArrowIOHelpers.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/ProteinGroupArrowExport.h",
-        "OpenMS/FORMAT/ProteinIdentificationArrowIO.h",
-        "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "ProteinInference",
-      "source_sha256": "ec1c929174490241b2d9cbdc1a4f75d1d69a385bbea16815c77a1e9456c33443",
+      "source_sha256": "0f0bd550a86416f46a7808027d6dee74db43a5e58304f30e769961ccd0b197f5",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
         "OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h",
@@ -16804,6 +15737,7 @@
         "OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -16828,11 +15762,12 @@
     },
     {
       "name": "ProteinQuantifier",
-      "source_sha256": "79fffcf6b8cda1f98298226aad287670a553760b4307c866ee2ffb14e93e5ef5",
+      "source_sha256": "37f7ade48df57f367d572c5be8956cc52fd8954770da6c7d425e98216a18b7fe",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/PeptideProteinResolution.h",
         "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ConsensusMapArrowExport.h",
         "OpenMS/FORMAT/ExperimentalDesignFile.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -16840,7 +15775,9 @@
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
+        "OpenMS/FORMAT/QPXCollectionExport.h",
         "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/FORMAT/QPXIdentity.h",
         "OpenMS/FORMAT/SVOutStream.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/METADATA/ExperimentalDesign.h",
@@ -16861,116 +15798,20 @@
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
+        "OpenMS/FORMAT/QPXCollectionExport.h",
         "OpenMS/FORMAT/QPXFile.h",
+        "OpenMS/FORMAT/QPXIdentity.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h"
-      ],
-      "workflow_validated": false
-    },
-    {
-      "name": "ProteomicsLFQ",
-      "source_sha256": "ef8d5505a813737af8e35601a503106056addab45b13a575e7f520dbabf97dc2",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/ANALYSIS/ID/IDBoostGraph.h",
-        "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
-        "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/DATASTRUCTURES/CalibrationData.h",
-        "OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
-        "OpenMS/FEATUREFINDER/FeatureFindingMetabo.h",
-        "OpenMS/FEATUREFINDER/MassTraceDetection.h",
-        "OpenMS/FORMAT/BrukerTimsFile.h",
-        "OpenMS/FORMAT/ConsensusMapArrowExport.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MSstatsFile.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/FORMAT/PeakTypeEstimator.h",
-        "OpenMS/FORMAT/ProteinGroupArrowExport.h",
-        "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/KERNEL/ConversionHelper.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/KERNEL/MassTrace.h",
-        "OpenMS/MATH/StatisticFunctions.h",
-        "OpenMS/METADATA/ExperimentalDesign.h",
-        "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumMetaDataLookup.h",
-        "OpenMS/ML/SVM/SimpleSVM.h",
-        "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h",
-        "OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h",
-        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
-        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
-        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/ANALYSIS/QUANTITATION/DDAWorkflowCommons.h",
-        "OpenMS/APPLICATIONS/MapAlignerBase.h",
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/FORMAT/TriqlerFile.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
-        "OpenMS/ANALYSIS/ID/IDBoostGraph.h",
-        "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
-        "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h",
-        "OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h",
-        "OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/DATASTRUCTURES/CalibrationData.h",
-        "OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
-        "OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
-        "OpenMS/FORMAT/BrukerTimsFile.h",
-        "OpenMS/FORMAT/ConsensusMapArrowExport.h",
-        "OpenMS/FORMAT/FeatureXMLFile.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/FORMAT/PeakTypeEstimator.h",
-        "OpenMS/FORMAT/ProteinGroupArrowExport.h",
-        "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumMetaDataLookup.h",
-        "OpenMS/ML/SVM/SimpleSVM.h",
-        "OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h",
-        "OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h",
-        "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
-        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
-        "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
         "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "QCCalculator",
-      "source_sha256": "09633eeb9131a283f45187047958dabc4052816e22a7ebb9bdb7dd24613224b0",
+      "source_sha256": "7d4feed86bc700acdf7c7c3bceae6e4a0dca2661447611f6def0e6e3e2697356",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/ConsensusMap.h",
         "OpenMS/KERNEL/FeatureMap.h",
@@ -16979,10 +15820,10 @@
         "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h"
@@ -16991,9 +15832,11 @@
     },
     {
       "name": "QCEmbedder",
-      "source_sha256": "07b63c2556d0f895aa65fcfdcc28236a054776d6a249bbd8d88b0cde16936d40",
+      "source_sha256": "29d3135515d2f698975fb01f322ddb2f8832c9a6fd6bcff4d7e56e2f4414ae7a",
       "sdk_headers": [
         "OpenMS/CONCEPT/UniqueIdGenerator.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/Base64.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/CsvFile.h",
@@ -17002,10 +15845,10 @@
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/Base64.h",
         "OpenMS/FORMAT/QcMLFile.h"
       ],
@@ -17013,8 +15856,10 @@
     },
     {
       "name": "QCExporter",
-      "source_sha256": "8742cd8ce66fe714c88b6cb25aba9ea1d17288c3324ce08b94a58dd959a200ba",
+      "source_sha256": "e934028ecdcecb9a8facd83b66b6761ad4e47ed5e3ae2bb0a89289dc6d515b53",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/QcMLFile.h",
@@ -17022,37 +15867,41 @@
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "QCExtractor",
-      "source_sha256": "659a14470271b298dd8ba90e4a67d54a1cbb1999aec474c3169f422205c2a7d9",
+      "source_sha256": "ca9ed2d3532d9d969faad71c6b0fb99aaedb3e218ad7f8623eba5420a165f880",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/QcMLFile.h",
         "OpenMS/KERNEL/StandardTypes.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "QCImporter",
-      "source_sha256": "15c97d0abb80c70959961fdf755feeed2e7e1f006dd3b44a92dbb240202bbc45",
+      "source_sha256": "6811b1f9e59b34d21248c4752d27a35ce66da8975717482c159d3009029466a7",
       "sdk_headers": [
         "OpenMS/CONCEPT/UniqueIdGenerator.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/QcMLFile.h",
@@ -17060,18 +15909,20 @@
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "QCMerger",
-      "source_sha256": "f948661d6e2c9de466889d8e6b44ff9a168e1967d14d716b576477be62c69473",
+      "source_sha256": "b82c8b07c0c0e29754602a001e96d6b6506f759b0896cc076c411101c4017350",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/QcMLFile.h",
         "OpenMS/KERNEL/StandardTypes.h",
@@ -17079,10 +15930,10 @@
         "OpenMS/MATH/StatisticFunctions.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/QcMLFile.h",
         "OpenMS/MATH/MathFunctions.h"
       ],
@@ -17090,53 +15941,33 @@
     },
     {
       "name": "QCShrinker",
-      "source_sha256": "e6aaaa7a5d7dc28109babf856b745a9216e99dd250d5a1aea3372078f3c02e9d",
+      "source_sha256": "edae3a1d36cf272b8368b69dd138bff951407a11c59808a3a02c7bcf0b0ee884",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/CsvFile.h",
         "OpenMS/FORMAT/QcMLFile.h",
         "OpenMS/KERNEL/StandardTypes.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/DATASTRUCTURES/String.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
+        "OpenMS/DATASTRUCTURES/StringUtils.h",
         "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
     {
-      "name": "QPXConverter",
-      "source_sha256": "7ac8469e8fa85357f04c4a8095e6e27ed55868266ac8e057eebc2b92c84a6a14",
-      "sdk_headers": [
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/FileTypes.h",
-        "OpenMS/FORMAT/IdXMLFile.h",
-        "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/METADATA/PeptideIdentificationList.h",
-        "OpenMS/METADATA/ProteinIdentification.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/IdXMLFile.h",
-        "OpenMS/FORMAT/QPXFile.h",
-        "OpenMS/METADATA/ProteinIdentification.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "QualityControl",
-      "source_sha256": "4a668e8d70e901064215b2ea165f613a8db6590fef5e6f3c3528385b9ca83f61",
+      "source_sha256": "86e8f2dbbdfb192344baa6af9919f2f3f50992adc44453920279afb9cd5b18a9",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h",
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -17169,6 +16000,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h",
+        "OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h",
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -17197,10 +16029,12 @@
     },
     {
       "name": "RNADigestor",
-      "source_sha256": "364545a596ed418fb7b38e73aed35863cd7c2ffa66de3bd92d99925a5d6e3e6b",
+      "source_sha256": "b699b074e779ad08f2c3e1ca9433f03f4ebe10259d2951658128d708d149e08c",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/RNaseDB.h",
         "OpenMS/CHEMISTRY/RNaseDigestion.h",
+        "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h"
       ],
       "outside_registered_sdk": [
@@ -17208,13 +16042,14 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/RNaseDB.h",
-        "OpenMS/CHEMISTRY/RNaseDigestion.h"
+        "OpenMS/CHEMISTRY/RNaseDigestion.h",
+        "OpenMS/CONCEPT/LogStream.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "RNAMassCalculator",
-      "source_sha256": "3b5cb6708fe7de08c5f2523ee0e497f16c891ae8776020fb0c33d065fd10bf69",
+      "source_sha256": "3a9546d8ee58077083f06134fa037e62685ad6886f35609b17258d2edfd876fe",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/NASequence.h",
         "OpenMS/CONCEPT/LogStream.h",
@@ -17233,9 +16068,10 @@
     },
     {
       "name": "RNPxlXICFilter",
-      "source_sha256": "7627128308d0cfe7f0c94d7a4653e40f85026e54ab6949120daecf1d569ffd4e",
+      "source_sha256": "3230efe0a7eab8d38d9b6dd995b2701620b59050b567b574c8bd34727e994217",
       "sdk_headers": [
         "OpenMS/CONCEPT/Constants.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
@@ -17252,7 +16088,7 @@
     },
     {
       "name": "Resampler",
-      "source_sha256": "825c7a0e32df5a9f75c55e317a7b6b35c113104ad5aac1f90f99891d1df81d20",
+      "source_sha256": "44408206bd3a461bff29a68dfad393c306227e8679fdc2f65e2d7fb42e1092e8",
       "sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/IMTypes.h",
@@ -17274,7 +16110,7 @@
     },
     {
       "name": "SageAdapter",
-      "source_sha256": "41076b37b8193d406f3fbdadc11e17f2b3a2e3feb4f2899f4372fa28d5b265dc",
+      "source_sha256": "04df94ea0b0a0b48ae9023de72fec657277469faefdf6315c9691f9844132326",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h",
         "OpenMS/ANALYSIS/ID/PeptideIndexing.h",
@@ -17284,8 +16120,10 @@
         "OpenMS/CHEMISTRY/ResidueDB.h",
         "OpenMS/CHEMISTRY/ResidueModification.h",
         "OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
@@ -17306,6 +16144,7 @@
         "OpenMS/CHEMISTRY/ResidueDB.h",
         "OpenMS/CHEMISTRY/ResidueModification.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
+        "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/PepXMLFile.h",
@@ -17315,9 +16154,10 @@
     },
     {
       "name": "SeedListGenerator",
-      "source_sha256": "95e22b2e185e9c64713faec2b95b2cb70173aa6a2e738fe7f07a3000e49d7fe3",
+      "source_sha256": "1d920c91d227fd898f44ca883206999c0440fdf054933c1b9660a557ad12f7d3",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FEATUREFINDER/SeedListGenerator.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -17342,9 +16182,10 @@
     },
     {
       "name": "SemanticValidator",
-      "source_sha256": "a018f505fcf22d122db543fd67f88b1599546f6009bbbea087a9b92e311ad65d",
+      "source_sha256": "312e7461c7e9840f6f0b7f59d1c23b4b28ee6b56079fab4e6b1ca7decc4dbad2",
       "sdk_headers": [
         "OpenMS/DATASTRUCTURES/CVMappings.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/CVMappingFile.h",
         "OpenMS/FORMAT/ControlledVocabulary.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -17363,10 +16204,11 @@
     },
     {
       "name": "SequenceCoverageCalculator",
-      "source_sha256": "46b7ff46aaac42de2afd3cb799af2361e61378e82519a018d097bb0c185ba677",
+      "source_sha256": "1566f72eadd7a7b74dbb3b3b9a3a94462b64d66ee4e664f076f4e27e5042be53",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/SequenceCoverage.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FASTAFile.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -17384,9 +16226,10 @@
     },
     {
       "name": "SimpleSearchEngine",
-      "source_sha256": "d68a8c7af18c4a1bae59e264e1136ab458d6d809ef6355bd83a31a547b6d31db",
+      "source_sha256": "a62c57cdf317a62c6ebe56f9a2d8e05dc5036d4da63e7849b4dbefdefd039b04",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/StandardTypes.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
@@ -17405,23 +16248,26 @@
     },
     {
       "name": "SiriusExport",
-      "source_sha256": "27b24dfea2be68ceb904282571e78714bd61d4b42ab7802cd5d89cfeace0d46e",
+      "source_sha256": "7ac33c7e9138d0c31e86da016505c901e89d84d2f90d6f4f9f111bb28d552476",
       "sdk_headers": [
         "OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h",
+        "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/DATASTRUCTURES/ListUtils.h"
       ],
       "outside_registered_sdk": [
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h"
+        "OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h",
+        "OpenMS/CONCEPT/LogStream.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "SpectraFilterNLargest",
-      "source_sha256": "0a10451573af8b4e034cf5a36afa21636ca619171fae86ac96330d85f86af98e",
+      "source_sha256": "ee39ea7a243d4788cd470ddf131d5ca4d7c918555ada99e9867a5d3da5a68452",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FILTERING/NLargest.h"
@@ -17438,8 +16284,9 @@
     },
     {
       "name": "SpectraFilterNormalizer",
-      "source_sha256": "d7c8953115555ca83dca79e95e3a1b0e7034a863bf3c50279051804bd093153f",
+      "source_sha256": "27a4a16c66d0f57b3c21dead3e945d55b6b05aa9a60957f5f02d02c767de1d3b",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/SCALING/Normalizer.h"
@@ -17456,8 +16303,9 @@
     },
     {
       "name": "SpectraFilterThresholdMower",
-      "source_sha256": "4ad8bb5536f3864dd7cd3c509b8130577cae7044967d4d0a5dfe8649df9c4262",
+      "source_sha256": "f515886320cb4e271f8e30d42cb33d8bb07c1f3d6c267142130382abe5c850f0",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FILTERING/ThresholdMower.h"
@@ -17474,8 +16322,9 @@
     },
     {
       "name": "SpectraFilterWindowMower",
-      "source_sha256": "f009c51ecf0f5b83a71709066fccbd3106865e408eae85055750bceef653b2c0",
+      "source_sha256": "70391f052226f5b365f5d1680a1ab0a0005f1cbe2c4234e43c4994959e23c683",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FILTERING/WindowMower.h"
@@ -17493,8 +16342,9 @@
     },
     {
       "name": "SpectraMerger",
-      "source_sha256": "b74401b368f2384cb18f92cc640bb78aea2369b7bbb3e614bfa88d1a494ca4f2",
+      "source_sha256": "98aed225b617939047e2566cbedfc581f7ff13db958577450cdbe40a36a89de6",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h"
@@ -17511,14 +16361,15 @@
     },
     {
       "name": "SpectraSTSearchAdapter",
-      "source_sha256": "c99d93f5c8c6c93dd4204bc04626bafa99a9982dd67c120eb74fa51272d87dc8",
+      "source_sha256": "2ed65748624e9352f845f536a5a56f1503154b0cf3989e3346dfabe9bd6e51e6",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
+        "OpenMS/APPLICATIONS/TOPPExternalToolBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
@@ -17528,7 +16379,7 @@
     },
     {
       "name": "StaticModification",
-      "source_sha256": "dbc2aefc48cf6ebe3e38b32a472fc1f09bbbb3be80a68b54068b6135b764a61b",
+      "source_sha256": "403444921884bf4cfb06686590e01e74c9ea0d678144e3d43f9ebc637dea043a",
       "sdk_headers": [
         "OpenMS/CHEMISTRY/ModificationsDB.h",
         "OpenMS/CHEMISTRY/ResidueDB.h",
@@ -17551,9 +16402,10 @@
     },
     {
       "name": "TICCalculator",
-      "source_sha256": "83eeb34f66776aaa95c881bb49fee24dd795ebd3514c08c9a1e8860f12c81102",
+      "source_sha256": "58d23eadd8d412e767bd5af09df1e30c31b6ba40f4bb2735f929c8c6cb7734ae",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/CachedMzML.h",
         "OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -17581,36 +16433,10 @@
       "workflow_validated": false
     },
     {
-      "name": "TargetedFileConverter",
-      "source_sha256": "ce296dec1d39bc68b92e5ca4f415bbf68863efae1a908f9c533abc4e38d4e9b6",
-      "sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/CONCEPT/ProgressLogger.h",
-        "OpenMS/DATASTRUCTURES/ListUtils.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/FileTypes.h"
-      ],
-      "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h"
-      ],
-      "open_sdk_headers": [
-        "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
-        "OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
-        "OpenMS/CONCEPT/Exception.h",
-        "OpenMS/FORMAT/FileHandler.h"
-      ],
-      "workflow_validated": false
-    },
-    {
       "name": "TextExporter",
-      "source_sha256": "b2847aacde7b7d819d0549a00a76c99726dc42bfda35aa15278fef81bbc9073e",
+      "source_sha256": "8d8b27d632c46506d5b571dd73b9ef55a21612f1bce7efa7eb8de0e132ff1f12",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/DATASTRUCTURES/StringListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/FileTypes.h",
@@ -17620,6 +16446,7 @@
         "OpenMS/KERNEL/FeatureMap.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MathFunctions.h",
+        "OpenMS/METADATA/IdentifierMSRunMapper.h",
         "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
         "OpenMS/METADATA/PeptideIdentificationList.h",
         "OpenMS/METADATA/ProteinIdentification.h",
@@ -17641,37 +16468,29 @@
       "workflow_validated": false
     },
     {
-      "name": "TriqlerConverter",
-      "source_sha256": "112afd2a450ea13e279f50761e6295aa7fdf112934bddff3b0359a2fb7a334da",
+      "name": "UniPEFF",
+      "source_sha256": "152926b477b359752460e9b8fe7b870703c6e80c8d0ff45b6941c74dfd415bff",
       "sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/ExperimentalDesignFile.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MzTab.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/FORMAT/TextFile.h",
-        "OpenMS/KERNEL/ConsensusMap.h",
-        "OpenMS/METADATA/ExperimentalDesign.h",
+        "OpenMS/FORMAT/UniProtXMLFile.h",
         "OpenMS/SYSTEM/File.h"
       ],
       "outside_registered_sdk": [
-        "OpenMS/APPLICATIONS/TOPPBase.h",
-        "OpenMS/FORMAT/TriqlerFile.h"
+        "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/FORMAT/MzTab.h",
-        "OpenMS/FORMAT/MzTabFile.h"
+        "OpenMS/FORMAT/UniProtXMLFile.h"
       ],
       "workflow_validated": false
     },
     {
       "name": "XFDR",
-      "source_sha256": "3a3954379fe44d7bf1c5334645a4d551cb4e7f0c6a8c182aac42042c98b38f01",
+      "source_sha256": "70d23a9381efa78e34655dafefaecfc9b51a36ff2d3fef31cc903b62c4954a29",
       "sdk_headers": [
         "OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h",
         "OpenMS/CONCEPT/LogStream.h",
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/HANDLERS/XMLHandler.h",
         "OpenMS/FORMAT/XMLFile.h",
@@ -17695,8 +16514,9 @@
     },
     {
       "name": "XMLValidator",
-      "source_sha256": "ca1cc8ed25e9bccd2a329ca2557add8fa163e7d7e41225e0a882ed3799686a28",
+      "source_sha256": "d11451ebe877faea6b32c5ee561b323c19b7769760a7ecbd47fd5c77ea759525",
       "sdk_headers": [
+        "OpenMS/DATASTRUCTURES/ListUtils.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/FileHandler.h",

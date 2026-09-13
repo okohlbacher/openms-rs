@@ -1,10 +1,10 @@
 # Core SDK completion ledger
 
-Target: `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. This ledger covers all **786 registered public headers** and direct includes from **146 TOPP source files**.
+Target: `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. This ledger covers all **786 registered public headers** and direct includes from **124 TOPP source files**.
 
 This is a work inventory, not a completion percentage. Matching declarations and source references remain unverified until each API and its behavior are reviewed. A TOPP workflow counts as validated only when an executed differential comparison against retained C++ output is recorded in its provenance manifest. Physical unregistered headers and product backends are tracked separately by the SDK source inventory.
 
-Validated TOPP workflows: **5** of 146, each reproducing its upstream test against retained C++ output.
+Validated TOPP workflows: **5** of 124, each reproducing its upstream test against retained C++ output.
 
 | Review state | Headers |
 | --- | ---: |
@@ -20,41 +20,41 @@ These counts show direct consumers; they do not establish full dependency closur
 
 | Header | Direct TOPP consumers | State |
 | --- | ---: | --- |
-| `OpenMS/FORMAT/FileHandler.h` | 118 | partial |
-| `OpenMS/CONCEPT/LogStream.h` | 76 | partial |
-| `OpenMS/KERNEL/MSExperiment.h` | 70 | partial |
-| `OpenMS/METADATA/ProteinIdentification.h` | 56 | partial |
-| `OpenMS/FORMAT/MzMLFile.h` | 19 | partial |
-| `OpenMS/PROCESSING/ID/IDFilter.h` | 14 | evidence_requires_review |
-| `OpenMS/CHEMISTRY/ProteaseDB.h` | 13 | evidence_requires_review |
-| `OpenMS/METADATA/PeptideIdentification.h` | 12 | evidence_requires_review |
-| `OpenMS/CHEMISTRY/ModificationsDB.h` | 11 | evidence_requires_review |
-| `OpenMS/FORMAT/FeatureXMLFile.h` | 11 | partial |
-| `OpenMS/FORMAT/MzTabFile.h` | 11 | partial |
-| `OpenMS/MATH/MathFunctions.h` | 11 | partial |
-| `OpenMS/CONCEPT/Exception.h` | 10 | evidence_requires_review |
-| `OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h` | 10 | partial |
-| `OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h` | 9 | evidence_requires_review |
-| `OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h` | 9 | unmapped |
-| `OpenMS/FORMAT/ConsensusXMLFile.h` | 9 | partial |
-| `OpenMS/FORMAT/IdXMLFile.h` | 9 | partial |
-| `OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h` | 8 | unmapped |
-| `OpenMS/ANALYSIS/ID/PeptideIndexing.h` | 7 | evidence_requires_review |
-| `OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h` | 7 | unmapped |
-| `OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h` | 7 | unmapped |
-| `OpenMS/FORMAT/MzTab.h` | 7 | partial |
-| `OpenMS/FORMAT/PepXMLFile.h` | 7 | partial |
-| `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 6 | unmapped |
-| `OpenMS/CHEMISTRY/ProteaseDigestion.h` | 6 | evidence_requires_review |
-| `OpenMS/CONCEPT/VersionInfo.h` | 6 | evidence_requires_review |
-| `OpenMS/FORMAT/OMSFile.h` | 6 | unmapped |
+| `OpenMS/FORMAT/FileHandler.h` | 100 | partial |
+| `OpenMS/CONCEPT/LogStream.h` | 69 | partial |
+| `OpenMS/KERNEL/MSExperiment.h` | 55 | partial |
+| `OpenMS/METADATA/ProteinIdentification.h` | 47 | partial |
+| `OpenMS/DATASTRUCTURES/StringUtils.h` | 12 | evidence_requires_review |
+| `OpenMS/FORMAT/MzMLFile.h` | 12 | partial |
+| `OpenMS/CHEMISTRY/ProteaseDB.h` | 11 | evidence_requires_review |
+| `OpenMS/METADATA/PeptideIdentification.h` | 11 | evidence_requires_review |
+| `OpenMS/PROCESSING/ID/IDFilter.h` | 9 | evidence_requires_review |
+| `OpenMS/CHEMISTRY/ModificationsDB.h` | 8 | evidence_requires_review |
+| `OpenMS/FORMAT/FeatureXMLFile.h` | 8 | partial |
+| `OpenMS/MATH/MathFunctions.h` | 8 | partial |
+| `OpenMS/FORMAT/ConsensusXMLFile.h` | 7 | partial |
+| `OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h` | 7 | partial |
+| `OpenMS/FORMAT/MzTabFile.h` | 7 | partial |
+| `OpenMS/FORMAT/IdXMLFile.h` | 6 | partial |
+| `OpenMS/FORMAT/MzTab.h` | 6 | partial |
 | `OpenMS/FORMAT/QcMLFile.h` | 6 | partial |
-| `OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h` | 6 | evidence_requires_review |
-| `OpenMS/PROCESSING/FILTERING/ThresholdMower.h` | 6 | evidence_requires_review |
-| `OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h` | 5 | unmapped |
-| `OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h` | 5 | unmapped |
-| `OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h` | 5 | unmapped |
-| `OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h` | 5 | unmapped |
+| `OpenMS/CHEMISTRY/ProteaseDigestion.h` | 5 | evidence_requires_review |
+| `OpenMS/CONCEPT/VersionInfo.h` | 5 | evidence_requires_review |
+| `OpenMS/FORMAT/OMSFile.h` | 5 | unmapped |
+| `OpenMS/FORMAT/PepXMLFile.h` | 5 | partial |
+| `OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h` | 5 | evidence_requires_review |
+| `OpenMS/SYSTEM/StopWatch.h` | 5 | partial |
+| `OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h` | 4 | evidence_requires_review |
+| `OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h` | 4 | unmapped |
+| `OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h` | 4 | unmapped |
+| `OpenMS/ANALYSIS/ID/PeptideIndexing.h` | 4 | evidence_requires_review |
+| `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 4 | unmapped |
+| `OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h` | 4 | evidence_requires_review |
+| `OpenMS/CONCEPT/Exception.h` | 4 | evidence_requires_review |
+| `OpenMS/IONMOBILITY/IMDataConverter.h` | 4 | evidence_requires_review |
+| `OpenMS/SYSTEM/JavaInfo.h` | 4 | partial |
+| `OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h` | 3 | evidence_requires_review |
+| `OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h` | 3 | unmapped |
 
 ## Completion requirements
 

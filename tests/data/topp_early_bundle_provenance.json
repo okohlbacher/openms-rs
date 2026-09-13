@@ -1,0 +1,68 @@
+{
+  "purpose": "Source and test-data pins for the early TOPP bundle (FileInfo, FeatureFinderCentroided, PeakPickerHiRes). Work packages read these files with git show at the pinned revisions because the package checkouts keep moving.",
+  "pins": {
+    "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+    "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+    "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+    "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  },
+  "sources": [
+    {
+      "package": "topp",
+      "revision": "174b576",
+      "path": "src/FileInfo.cpp",
+      "sha256": "3f02bbc6aaaa358596a56c54bcad6f597c982a1b5a5ada58e2df322f107f03e3"
+    },
+    {
+      "package": "topp",
+      "revision": "174b576",
+      "path": "src/FeatureFinderCentroided.cpp",
+      "sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68"
+    },
+    {
+      "package": "topp",
+      "revision": "174b576",
+      "path": "src/PeakPickerHiRes.cpp",
+      "sha256": "e253bb0822fffbdd0839db649d2b548916bc227c2d306af5514dc445557f5184"
+    },
+    {
+      "package": "test-data",
+      "revision": "0cb15f2",
+      "path": "topp/CMakeLists.txt",
+      "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb"
+    }
+  ],
+  "registration_line_ranges_at_test_data_pin": {
+    "TOPP_FileInfo": [
+      880,
+      933
+    ],
+    "TOPP_FeatureFinderCentroided": [
+      426,
+      428
+    ],
+    "TOPP_PeakPickerHiRes": [
+      2523,
+      2549
+    ],
+    "TOPPWRITEINI_OVERWRITE": [
+      104,
+      106
+    ],
+    "parameter_failure_tests": [
+      107,
+      131
+    ],
+    "TOPP_FuzzyDiff": [
+      138,
+      144
+    ]
+  },
+  "checkout_drift_when_recorded": {
+    "topp_head": "35997ef2a0efbab5e08b6af2dab7130f800417dd",
+    "test_data_head": "f91e6a17bb2ed2f418eeee1c432d743f1b1a5720",
+    "cli_head": "1f32325d320918e16bdd8db7f7fc7da5e30fa988",
+    "note": "Checkouts had moved past the pins; FileInfo, FeatureFinderCentroided and FuzzyDiff registration lines are unchanged at the pin, and the PeakPickerHiRes lines were verified at the pin itself."
+  },
+  "ledger_refresh": "docs/topp-source-inventory.json regenerated from a detached topp worktree at 174b576 (the split package, 124 sources), replacing the pre-split monolith snapshot at d0234cca (146 sources)."
+}
