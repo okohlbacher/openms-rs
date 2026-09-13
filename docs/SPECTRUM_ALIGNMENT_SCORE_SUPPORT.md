@@ -6,7 +6,7 @@ Port of `src/openms/include/OpenMS/COMPARISON/SpectrumAlignmentScore.h` and
 (header sha256 `25ebe09fe97a7503923968842ce5939fbcb1ab9894165d58255bd11370632404`,
 `.cpp` sha256 `2e08a1e8650f3b071068ab0094682ad5b01f2ac0dddcad8cc8c98d97cf8ea111`).
 
-Rust: [`comparison::SpectrumAlignmentScorer`](../src/comparison.rs), implementing
+Rust: [`comparison::SpectrumAlignmentScore`](../src/comparison.rs), implementing
 [`PeakSpectrumCompareFunctor`](PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md).
 Tests: [`tests/comparison_scorers.rs`](../tests/comparison_scorers.rs).
 Provenance: [`tests/data/comparison_scorers_provenance.json`](../tests/data/comparison_scorers_provenance.json).
@@ -15,15 +15,15 @@ Provenance: [`tests/data/comparison_scorers_provenance.json`](../tests/data/comp
 
 | Source member | Rust counterpart | Difference |
 | --- | --- | --- |
-| `class SpectrumAlignmentScore : public PeakSpectrumCompareFunctor` | `pub struct SpectrumAlignmentScorer` implementing `PeakSpectrumCompareFunctor` | composition of a `DefaultParamHandler` instead of inheritance. This is the first implementor of that trait in the crate |
-| `SpectrumAlignmentScore()` | `SpectrumAlignmentScorer::new() -> Result<Self>` | reproduces `SpectrumAlignmentScore.cpp:15-27`: base handler `"PeakSpectrumCompareFunctor"`, `setName("SpectrumAlignmentScore")` at `:18`, four defaults, `defaultsToParam_()` |
+| `class SpectrumAlignmentScore : public PeakSpectrumCompareFunctor` | `pub struct SpectrumAlignmentScore` implementing `PeakSpectrumCompareFunctor` | composition of a `DefaultParamHandler` instead of inheritance. This is the crate's **only** implementation of this header |
+| `SpectrumAlignmentScore()` | `SpectrumAlignmentScore::new() -> Result<Self>` | reproduces `SpectrumAlignmentScore.cpp:15-27`: base handler `"PeakSpectrumCompareFunctor"`, `setName("SpectrumAlignmentScore")` at `:18`, four defaults, `defaultsToParam_()` |
 | `SpectrumAlignmentScore(const SpectrumAlignmentScore& source)` | `Clone` | C++ copy constructor is `= default` |
 | `~SpectrumAlignmentScore() override` | drop glue | C++ destructor is `= default` |
 | `SpectrumAlignmentScore& operator=(const SpectrumAlignmentScore& source)` | assignment of a clone | C++ body is the self-assignment guard plus the base assignment |
 | `double operator()(const PeakSpectrum& spec1, const PeakSpectrum& spec2) const override` | `PeakSpectrumCompareFunctor::score` | `Result<f64>`; see below |
 | `double operator()(const PeakSpectrum& spec) const override` | `PeakSpectrumCompareFunctor::self_score`, the trait default | the C++ override at `:42-45` is `return operator()(spec, spec)` |
 | inherited `getParameters` / `setParameters` / `getName` | `handler()`, `handler_mut()`, `name()` | |
-| - | `SpectrumAlignmentScorer::max_cells` | native resource ceiling forwarded to the alignment |
+| - | `SpectrumAlignmentScore::max_cells` | native resource ceiling forwarded to the alignment |
 | `@htmlinclude OpenMS_SpectrumAlignmentScore.parameters` | the parameter table in the rustdoc | |
 
 Parameters: `tolerance` `0.3`, `is_relative_tolerance` `"false"`,
@@ -80,19 +80,27 @@ restricted to `{"true","false"}`.
   returns NaN upstream; it is reachable through the ppm window mismatch above
   and is reported as `Error::InvalidValue`.
 - **A zero `mz_tolerance` under a weighting flag is an error** rather than a
-  `0/0` NaN. With `tolerance = 0` only exactly-coincident peaks align, so the
-  source evaluates `(0 - 0) / 0`.
+  NaN score. `diff_align <= tolerance` in `SpectrumAlignment.h` is inclusive, so
+  with `tolerance = 0` exactly-coincident peaks still align; the source then
+  evaluates `(0.0 - 0.0) / 0.0` for the linear factor and
+  `erfc(0.0 / (3.0 * 0.0 * sqrt(2)))` for the Gaussian one, and both are NaN, so
+  `sqrt(I1 * I2 * NaN)` and the whole score are NaN. A statement-for-statement
+  C++ transcription of the alignment and of `:66-101`, run on
+  `s1 == s2 == {(100.0, 1.0f)}` at tolerance `0`, prints `factor = nan` and
+  `score = nan` under either flag and `score = 1` under neither. The result is
+  therefore **not** the unweighted score, and a port that returned `1` here
+  would report a number the source produces only for a different configuration.
 - **Unsorted peaks, non-finite values and negative intensities are refused.**
   The source checks sortedness inside the alignment only; negative intensities
   would make the radicand negative.
 - **`max_cells`** bounds the delegated alignment; the source has no ceiling.
-- The wave-A `Copy` struct `comparison::SpectrumAlignmentScore` remains a
-  separate, parameter-free `f64` convenience: it accumulates the intensity
-  product in `f64` and divides by `sqrt(sum1) * sqrt(sum2)`. It is *not* this
-  port and its own documentation says so. Collapsing the two onto one
-  implementation is the obvious follow-up and is deferred here only because the
-  merge would change values asserted in `tests/comparison.rs`, which this
-  package may not edit.
+- **One implementation, under the header's name.** A typed `Copy` struct
+  called `comparison::SpectrumAlignmentScore` used to ship beside this functor,
+  accumulating the intensity product in `f64`, dividing by
+  `sqrt(sum1) * sqrt(sum2)` and returning a factor of `1` at a zero tolerance.
+  It has been deleted and this functor carries the name; `examples/identify_peptides.rs`
+  and `tests/comparison.rs` were migrated onto it. Nothing in the crate can now
+  disagree with this port about what `SpectrumAlignmentScore.h` computes.
 
 ## Checked boundaries and evidence
 
