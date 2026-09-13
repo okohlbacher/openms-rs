@@ -4,8 +4,13 @@
 provides a native equivalent for the **numerical** surface of core SDK
 `bc9cc12514c768385ce121d6ca4bb710fe1983c4`
 `MATH/STATISTICS/PosteriorErrorProbabilityModel.h` and
-`source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp`. Seven members of
-the header are not ported here; each is named below with its reason.
+`source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp`. **Five public
+members** of the header are not ported here — `extractAndTransformScores`
+(`:72`), `updateScores` (`:95`), `initPlots` (`:216`),
+`plotTargetDecoyEstimation` (`:228`) and `tryGnuplot` (`:237`), the last public
+member before `private:` at `:239` — together with the two private helpers of
+the first pair, `transformScore_` (`:247`) and `getScore_` (`:253`). Each is
+named below with its reason.
 
 Tests: [`tests/posterior_error_probability.rs`](../tests/posterior_error_probability.rs).
 Manifest: [`tests/data/math_kde_provenance.json`](../tests/data/math_kde_provenance.json).
@@ -50,7 +55,8 @@ Every public member of the header appears here.
 | `void tryGnuplot(const std::string&)` | **not ported**: calls `system("gnuplot ...")` |
 | Not in source but added | `MAX_ITEMS`, `SCORE_SHIFT`, `PepParameters`, `IncorrectComponent`, `OutlierHandling`, `NegativeFormula` |
 
-The seven unported members are all identification-, file- or process-facing.
+The five unported public members, and the two private helpers that serve them,
+are all identification-, file- or process-facing.
 `tools/check_module_cycles.py` freezes the crate's cross-module edge set and
 `math` reaches no other top-level module today; `extractAndTransformScores` and
 `updateScores` would need `metadata` and `identification`, `initPlots` and
@@ -113,8 +119,8 @@ reimplement.
   `quantile1st`/`quantile3rd` with `sorted = true`**, not the interpolating
   `Math::quantile`. The IQR rule drops outside `Q1 - 3 IQR .. Q3 + 3 IQR`; the
   clamp rule rewrites them to the nearest inside value; the percentile rule
-  drops everything `<= x[n/100 + 1]` or `>= x[floor(n * 99.9 / 100)]` — note
-  `99.9`, not the `99` the parameter description promises, and inclusive
+  drops everything `<= x[floor(n / 100) + 1]` or `>= x[floor(n * 99.9 / 100)]`
+  — note `99.9`, not the `99` the parameter description promises, and inclusive
   comparisons, so equal values at either end go too.
 - **The gnuplot expressions**, character for character, including the space in
   `exp(( ` and the number format — see below.
@@ -144,9 +150,14 @@ reimplement.
 - **Degenerate inputs are refused** rather than indexed: an outlier rule that
   removes every score, a `set_iqr_to_closest_valid` where nothing is inside the
   fence (the source decrements an `upper_bound` unconditionally and dereferences
-  a `lower_bound`), and `ignore_extreme_percentiles` on fewer than a hundred
-  scores (the source reads `x_scores[n/100 + 1]`, which is out of range for
-  small `n`). A non-finite score is refused before the sort.
+  a `lower_bound`), and `ignore_extreme_percentiles` on a **single** score,
+  which is the only length for which the source's unchecked
+  `x_scores[floor(n / 100) + 1]` reads past the end — at `n = 1` that index is
+  `1` on a one-element vector, and for every larger `n` both indices are in
+  range. A sample of fewer than a hundred scores is *not* refused for being
+  small: it is accepted whenever the rule leaves something behind, and refused
+  by the "removed every score" guard above when it does not. A non-finite score
+  is refused before the sort.
 - **`gumbel_density` refuses a non-positive or non-finite scale**, where the
   source divides by it twice.
 - **A single score is refused by `fit`**, because `sd` with one degree of
@@ -176,8 +187,10 @@ reimplement.
    Reproduced.
 3. **`ignore_extreme_percentiles` uses `99.9 / 100` where its own parameter
    description says "99th and 1st percentile"**, and indexes
-   `x_scores[x_scores.size() / 100 + 1]` without a bounds check, which is out of
-   range for fewer than a hundred scores.
+   `x_scores[x_scores.size() / 100 + 1]` without a bounds check. Working the
+   two index expressions out, `floor(n / 100) + 1` and `floor(n * 99.9 / 100)`,
+   the read is out of range for exactly one length, `n = 1`; the missing bounds
+   check is still a defect, but a narrower one than "small samples".
 
 All three are reported in the work package's C++ issue list.
 

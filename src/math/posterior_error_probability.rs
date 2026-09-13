@@ -32,9 +32,11 @@
 //!
 //! # Not ported here
 //!
-//! The header's identification-facing half —
-//! `extractAndTransformScores`, `updateScores`, `transformScore_`,
-//! `getScore_` — and its plotting half — `initPlots`,
+//! Five public members are unported. The header's identification-facing half
+//! — `extractAndTransformScores` and `updateScores`, with their two *private*
+//! helpers `transformScore_` and `getScore_`, which sit below the `private:`
+//! at `PosteriorErrorProbabilityModel.h:239` and are not part of the public
+//! surface — and its plotting half — `initPlots`,
 //! `plotTargetDecoyEstimation`, `tryGnuplot` — need `METADATA`,
 //! `FORMAT/TextFile` and `SYSTEM/File`, which are the crate's `metadata`,
 //! `format` and `system` modules. This crate ratchets its cross-module
@@ -145,8 +147,9 @@ pub enum OutlierHandling {
     IgnoreIqrOutliers,
     /// Clamp everything outside that range to the nearest value inside it.
     SetIqrToClosestValid,
-    /// Drop everything at or below the value at index `n/100 + 1` and at or
-    /// above the value at index `n * 0.999` of the sorted scores. The parameter
+    /// Drop everything at or below the value at index `floor(n / 100) + 1` and
+    /// at or above the value at index `floor(n * 99.9 / 100)` of the sorted
+    /// scores. The parameter
     /// description says "99th and 1st percentile"; the code uses `99.9 / 100`
     /// for the upper index, and the comparisons are inclusive, so equal values
     /// at either end — censored maxima, for instance — go too.
@@ -1061,10 +1064,15 @@ fn process_outliers(x_scores: &mut Vec<f64>, handling: OutlierHandling) -> Resul
             let upper_index = ((n as f64) * 99.9 / 100.0) as usize;
             let lower_index = ((n as f64) / 100.0) as usize + 1;
             if upper_index >= n || lower_index >= n {
-                // `x_scores[first_idx]` is an unchecked index in the source and
-                // reads past the end for fewer than 100 scores.
+                // `x_scores[first_idx]` is an unchecked index in the source.
+                // `first_idx = floor(n / 100) + 1` and
+                // `ninetyninth_idx = floor(n * 99.9 / 100)`, so the only length
+                // that reads past the end is `n == 1`, where `first_idx == 1`;
+                // the guard is written against both indices rather than against
+                // that one length so it stays correct if either expression
+                // changes.
                 return Err(bad(
-                    "too few scores for percentile-based outlier handling; the source indexes out of range here",
+                    "percentile-based outlier handling needs more than one score; the source indexes out of range here",
                 ));
             }
             let upper_value = x_scores[upper_index];

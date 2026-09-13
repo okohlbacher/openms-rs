@@ -71,7 +71,9 @@ Every public member of the header appears here.
   drives that bin's response to the largest finite value instead of flipping its
   sign. The packed second half mirrors bins `1 .. M/2 - 1`.
 - **`gridKdeFFT`'s grid.** `M = bit_ceil(max(gridsize, n, 512))`, so a caller's
-  `gridsize` is a lower bound and never the answer; `a = min(x) - cut*bw`,
+  `gridsize` is a lower bound rather than the value — it is the answer only
+  when it is itself a power of two at or above `max(n, 512)`, which the default
+  `512` is whenever the sample is no larger; `a = min(x) - cut*bw`,
   `b = max(x) + cut*bw`, and an empty sample centres on zero. The binned counts
   are divided by `spacing * n`, the transform multiplied by the kernel, and the
   result **renormalised so that `sum(density) * spacing == 1`** — the source's

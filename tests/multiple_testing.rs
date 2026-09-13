@@ -377,7 +377,9 @@ fn section_pi0_est_pyprophet_checks() {
     assert!(log_smoothed.pi0_smooth);
 
     // Without a smoother the source's `!spl.ok()` fallback is taken, which is
-    // the conservative min over the per-lambda estimates.
+    // the *smallest* of the per-lambda estimates — not a conservative cap on
+    // the smoothed value. Derived: the minimum of `#{p >= l} / (m (1-l))` over
+    // the default grid, recomputed independently below from the same fixture.
     let fallback = pi0_est(&p, &[], Pi0Method::Smoother, DEFAULT_SMOOTH_DF, false, None).unwrap();
     assert!(!fallback.pi0_smooth);
     let minimum = smoothed
@@ -387,6 +389,24 @@ fn section_pi0_est_pyprophet_checks() {
         .fold(f64::INFINITY, f64::min)
         .min(1.0);
     assert_eq!(fallback.pi0, minimum);
+    // The seam's direction, pinned rather than described: omitting the
+    // smoother returns a strictly *lower* pi0 than the source's default call,
+    // and `q = pi0 * m * p / rank` is linear in pi0, so it makes q-values and
+    // local FDRs smaller — the permissive direction.
+    assert!(
+        fallback.pi0 < smoothed.pi0,
+        "fallback pi0 {} is not below the smoothed {}",
+        fallback.pi0,
+        smoothed.pi0
+    );
+    assert_eq!(fallback.pi0, 0.640_378_548_895_900_6);
+    // The same q-value threshold therefore admits at least as many hypotheses
+    // under the fallback as under the smoother, at every p-value.
+    let q_smooth = q_value(&p, smoothed.pi0, false).unwrap();
+    let q_fallback = q_value(&p, fallback.pi0, false).unwrap();
+    for (loose, tight) in q_fallback.iter().zip(q_smooth.iter()) {
+        assert!(loose <= tight, "{loose} > {tight}");
+    }
 
     // Bootstrap needs no spline; it must land on one of the per-lambda values.
     let bootstrap = pi0_est(

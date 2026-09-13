@@ -461,14 +461,37 @@ fn section_parameters_and_outlier_handling() {
         clamped.correctly_assigned_fit_result().x0
     );
 
-    // Percentile handling needs at least a hundred scores; below that the
-    // source indexes past the end of its vector.
+    // Percentile handling refuses two distinct small samples, for two distinct
+    // reasons. Derived from the source's own index expressions,
+    // `first_idx = floor(n / 100) + 1` and `ninetyninth_idx = floor(n * 99.9 /
+    // 100)`: the only length for which either reads past the end is n == 1,
+    // where `first_idx == 1` on a one-element vector.
+    let mut one = vec![1.0];
+    let mut model = PosteriorErrorProbabilityModel::new();
+    assert!(matches!(
+        model.fit(&mut one, OutlierHandling::IgnoreExtremePercentiles),
+        Err(Error::InvalidValue(_))
+    ));
+    // For n == 3 both indices are in range — 1 and 2 — so the source computes
+    // happily and its inclusive comparisons then discard every score, which is
+    // the second refusal. A sample below a hundred scores is therefore not
+    // refused for being small; it is refused only when nothing survives.
     let mut tiny = vec![1.0, 2.0, 3.0];
     let mut model = PosteriorErrorProbabilityModel::new();
     assert!(matches!(
         model.fit(&mut tiny, OutlierHandling::IgnoreExtremePercentiles),
         Err(Error::InvalidValue(_))
     ));
+    // And a sample of fewer than a hundred scores where something does survive
+    // is accepted, not refused: with n == 50 the rule keeps the open interval
+    // between x[1] and x[49].
+    let mut fifty: Vec<f64> = (0..50).map(f64::from).collect();
+    let mut model = PosteriorErrorProbabilityModel::new();
+    assert!(
+        model
+            .fit(&mut fifty, OutlierHandling::IgnoreExtremePercentiles)
+            .is_ok()
+    );
 }
 
 /// Native: the gnuplot number formatter must match `printf("%g")` with six

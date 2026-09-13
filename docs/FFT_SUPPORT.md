@@ -128,8 +128,10 @@ Both are reported in the work package's C++ issue list.
 Evidence is **tier 4** throughout — there is no evergreen class test in the
 OpenMS suite and nothing to transcribe. `tests/fft.rs` asserts:
 
-- the forward transform against a naive `O(n^2)` DFT for every length `1` to
-  `1024`, on a deterministic pseudo-random stream;
+- the forward transform against a naive `O(n^2)` DFT at every **power-of-two**
+  length from `1` to `1024` — the eleven lengths the transform accepts in that
+  range, since `check_length` refuses the rest — on a deterministic
+  pseudo-random stream;
 - a forward/inverse round trip over the same lengths;
 - the packed real transform against the naive DFT of the same signal, plus its
   own round trip;

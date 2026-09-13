@@ -25,7 +25,9 @@
 //! [`crate::math::kernel_density::kde_fft_eval`], and the smoothing spline that
 //! [`crate::math::multiple_testing::pi0_est`] needs is supplied by the caller
 //! through [`crate::math::multiple_testing::Pi0Smoother`] — see that trait for
-//! why.
+//! why, and for why passing `None` there is a different answer rather than a
+//! safe one: it lowers `pi0`, and a lower `pi0` lowers every q-value and local
+//! FDR derived from it.
 //!
 //! # Non-finite p-values
 //!
@@ -228,8 +230,13 @@ impl Default for LfdrOptions {
 /// The outcome of [`pi0_est`], the source's `Math::Pi0Result`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pi0Result {
-    /// Estimated proportion of true null hypotheses, in `[0, 1]`. `1.0` is the
-    /// most conservative answer and is what the fallbacks produce.
+    /// Estimated proportion of true null hypotheses, in `[0, 1]`.
+    ///
+    /// `1.0` is the most conservative value this can take — it is what
+    /// `Default` carries, not what the fallbacks produce. Every fallback path
+    /// returns `min(min(pi0_lambda), 1)`, which is the **smallest** of the
+    /// per-lambda estimates and therefore *less* conservative than the
+    /// smoothed answer, not more. See [`Pi0Smoother`].
     pub pi0: f64,
     /// The per-lambda estimates, one per entry of [`Pi0Result::lambda`].
     ///
@@ -242,8 +249,13 @@ pub struct Pi0Result {
     /// default `0.05, 0.10, ..., 0.95`.
     pub lambda: Vec<f64>,
     /// Whether the smoothing spline was fitted and read successfully. `false`
-    /// means [`Pi0Result::pi0`] is the conservative `min(pi0_lambda, 1)`
-    /// fallback, or that the bootstrap method was used.
+    /// means [`Pi0Result::pi0`] is the `min(min(pi0_lambda), 1)` fallback, or
+    /// that the bootstrap method was used.
+    ///
+    /// A caller that treats this flag as cosmetic gets a different, and
+    /// systematically smaller, `pi0` than the source's default call; see
+    /// [`Pi0Smoother`] for the measured size of the difference and what it
+    /// does to downstream q-values.
     pub pi0_smooth: bool,
 }
 
@@ -274,6 +286,28 @@ impl Default for Pi0Result {
 /// `tests/multiple_testing.rs` implements it with the ported
 /// `BSplineSmoothingSpline` and reproduces the class test's pi0 literals, so
 /// the seam is exercised rather than merely declared.
+///
+/// # Passing `None` is not a safe default
+///
+/// In the source the `!spl.ok()` fallback is a pathology; here it is whatever
+/// a caller who omits the smoother gets, and it returns a **different number**.
+/// Measured on `tests/data/test_lfdr_ref_data.csv`, the 3,170 PyProphet
+/// p-values the class test ships, with the default lambda grid:
+///
+/// | call | `pi0` |
+/// | --- | --- |
+/// | `pi0_est(p, &[], Smoother, 3, false, Some(spline))` | `0.6685639` |
+/// | `pi0_est(p, &[], Smoother, 3, false, None)` | `0.6403785` |
+///
+/// The first matches the C++ default call's literal `0.6685638`. The second is
+/// `min(min(pi0_lambda), 1)`, and it is **lower**. Since
+/// [`q_value`] computes `q = pi0 * m * p / rank(p)` and [`lfdr`] computes
+/// `pi0 * f0 / y`, both scale linearly in `pi0`: a lower `pi0` makes every
+/// q-value and every local FDR **smaller**, so more hypotheses clear any fixed
+/// threshold. Omitting the smoother therefore loosens the multiple-testing
+/// correction rather than tightening it, and a caller who wants the source's
+/// behaviour must supply the spline. [`Pi0Result::pi0_smooth`] reports which
+/// path was taken.
 pub trait Pi0Smoother {
     /// Fit a smoothing spline through `(x, y)` and evaluate it at `at`.
     ///
@@ -405,8 +439,9 @@ pub fn q_value(p_values: &[f64], pi0: f64, pfdr: bool) -> Result<Vec<f64>> {
 /// * [`Pi0Method::Smoother`] fits a smoothing spline through the per-lambda
 ///   estimates and reads it at the largest lambda, clamped to `[0, 1]`. Fewer
 ///   than four lambdas, fewer than two distinct ones, no `smoother`, a spline
-///   that does not fit, or a `NaN` prediction all fall back to
-///   `min(pi0_lambda, 1)`.
+///   that does not fit, or a `NaN` prediction all fall back to the smallest
+///   per-lambda estimate, `min(min(pi0_lambda), 1)` — which is lower than the
+///   smoothed value, not a conservative cap on it.
 /// * [`Pi0Method::Bootstrap`] picks the lambda minimising
 ///   `W / (m^2 (1-lambda)^2) * (1 - W/m) + (pi0_lambda - minpi0)^2`, with
 ///   `minpi0` the 10th percentile of the per-lambda estimates - by the source's
@@ -428,7 +463,11 @@ pub fn q_value(p_values: &[f64], pi0: f64, pfdr: bool) -> Result<Vec<f64>> {
 ///   in the source. With this set, a non-finite prediction is *not* a fallback
 ///   trigger, because `exp` of `-inf` is a legitimate `0`.
 /// * `smoother` — see [`Pi0Smoother`]. `None` behaves as a spline that refused
-///   to fit.
+///   to fit, which returns `min(min(pi0_lambda), 1)` instead of the smoothed
+///   estimate. That is a *lower* `pi0` than the source's default call — on the
+///   class test's own fixture, `0.6403785` against `0.6685638` — and a lower
+///   `pi0` makes downstream q-values and local FDRs smaller, not larger. It is
+///   a different answer, not a safe one.
 ///
 /// # Errors
 ///
@@ -506,7 +545,11 @@ pub fn pi0_est(
         pi0s.push((count / m_f) / (1.0 - *l));
     }
 
-    let conservative = |pi0s: &[f64], lambda_v: Vec<f64>, pi0_lambda: Vec<f64>| Pi0Result {
+    // The source's `min(*min_element(pi0s), 1.0)` fallback. Named for what it
+    // computes, not for a risk direction: it is the *smallest* per-lambda
+    // estimate, so it yields a smaller pi0 than the smoother and hence smaller
+    // q-values downstream. See `Pi0Smoother`.
+    let min_fallback = |pi0s: &[f64], lambda_v: Vec<f64>, pi0_lambda: Vec<f64>| Pi0Result {
         pi0: pi0s.iter().copied().fold(f64::INFINITY, f64::min).min(1.0),
         pi0_lambda,
         lambda: lambda_v,
@@ -516,7 +559,7 @@ pub fn pi0_est(
     match method {
         Pi0Method::Smoother => {
             if ll < 4 {
-                return Ok(conservative(&pi0s, lambda_v, pi0s.clone()));
+                return Ok(min_fallback(&pi0s, lambda_v, pi0s.clone()));
             }
             let mut y = pi0s.clone();
             if smooth_log_pi0 {
@@ -539,7 +582,7 @@ pub fn pi0_est(
                 }
             }
             if xy.len() < 2 {
-                return Ok(conservative(&pi0s, lambda_v, pi0s.clone()));
+                return Ok(min_fallback(&pi0s, lambda_v, pi0s.clone()));
             }
             let xs: Vec<f64> = xy.iter().map(|pair| pair.0).collect();
             let ys: Vec<f64> = xy.iter().map(|pair| pair.1).collect();
@@ -547,16 +590,16 @@ pub fn pi0_est(
 
             let predicted = smoother.and_then(|s| s.smooth_eval(&xs, &ys, smooth_df, max_lambda));
             let Some(mut pred) = predicted else {
-                return Ok(conservative(&pi0s, lambda_v, pi0s.clone()));
+                return Ok(min_fallback(&pi0s, lambda_v, pi0s.clone()));
             };
             if pred.is_nan() || (!smooth_log_pi0 && !pred.is_finite()) {
-                return Ok(conservative(&pi0s, lambda_v, pi0s.clone()));
+                return Ok(min_fallback(&pi0s, lambda_v, pi0s.clone()));
             }
             if smooth_log_pi0 {
                 pred = pred.exp();
             }
             if pred.is_nan() {
-                return Ok(conservative(&pi0s, lambda_v, pi0s.clone()));
+                return Ok(min_fallback(&pi0s, lambda_v, pi0s.clone()));
             }
             Ok(Pi0Result {
                 pi0: pred.clamp(0.0, 1.0),
