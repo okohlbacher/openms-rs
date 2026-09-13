@@ -32,6 +32,9 @@ pub mod format;
 pub mod identification;
 pub mod interfaces;
 pub mod kernel;
+/// Numerical routines from the `MATH` domain, starting with the distribution
+/// fitters of `MATH/STATISTICS`.
+pub mod math;
 pub mod metadata;
 pub mod processing;
 
