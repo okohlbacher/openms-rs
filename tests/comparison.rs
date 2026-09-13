@@ -4,6 +4,7 @@
 
 use openms::comparison::*;
 use openms::format::dta;
+use openms::param::{Param, ParamValue};
 use openms::processing::{Normalizer, SpectrumFilter};
 use openms::{Error, MSSpectrum, Peak1D, Precursor};
 
@@ -23,6 +24,25 @@ fn close(a: f64, b: f64, tolerance: f64) {
 }
 fn golden() -> MSSpectrum {
     dta::read(include_bytes!("data/comparison_dfpianger.dta").as_slice()).unwrap()
+}
+fn with_float(handler_parameters: &Param, key: &str, value: f64) -> Param {
+    let mut parameters = handler_parameters.clone();
+    parameters
+        .set_value(key, ParamValue::Float(value), "", &[])
+        .unwrap();
+    parameters
+}
+fn with_flag(handler_parameters: &Param, key: &str, value: bool) -> Param {
+    let mut parameters = handler_parameters.clone();
+    parameters
+        .set_value(
+            key,
+            ParamValue::String(if value { "true" } else { "false" }.into()),
+            "",
+            &[],
+        )
+        .unwrap();
+    parameters
 }
 fn config() -> BinConfig {
     BinConfig {
@@ -121,15 +141,28 @@ fn weighted_ppm_rejects_matches_rounded_outside_exact_tolerance() {
         ..Default::default()
     };
     assert_eq!(alignment.align(&a, &b).unwrap(), [(0, 0)]);
-    let mut score = SpectrumAlignmentScore {
-        alignment,
-        weighting: DistanceWeighting::None,
-    };
+    // The alignment's f32 ppm window matched the pair; SpectrumAlignmentScore
+    // recomputes the window as `tolerance * mz * 1e-6` in f64, which the
+    // 0.01000000002 difference exceeds. The linear factor is then negative and
+    // the source takes its square root, so the port refuses instead of
+    // returning NaN. `erfc` of the same overshoot stays finite, which is why
+    // only the linear arm fails; tests/comparison_scorers.rs asserts both arms.
+    let mut score = SpectrumAlignmentScore::new().unwrap();
+    let relative = with_float(
+        &with_flag(score.handler().parameters(), "is_relative_tolerance", true),
+        "tolerance",
+        10.0,
+    );
+    score.handler_mut().set_parameters(&relative).unwrap();
     assert!(score.score(&a, &b).unwrap().is_finite());
-    for weighting in [DistanceWeighting::Linear, DistanceWeighting::Gaussian] {
-        score.weighting = weighting;
-        assert!(score.score(&a, &b).is_err());
-    }
+    let mut linear = score.clone();
+    let flagged = with_flag(linear.handler().parameters(), "use_linear_factor", true);
+    linear.handler_mut().set_parameters(&flagged).unwrap();
+    assert!(matches!(linear.score(&a, &b), Err(Error::InvalidValue(_))));
+    let mut gaussian = score.clone();
+    let flagged = with_flag(gaussian.handler().parameters(), "use_gaussian_factor", true);
+    gaussian.handler_mut().set_parameters(&flagged).unwrap();
+    assert!(gaussian.score(&a, &b).unwrap() < 1.0);
     let absolute = BinnedSpectrum::new(&unit(&[100.0]), config()).unwrap();
     assert!(absolute.bin_intensity(-1e-100).is_err());
     let ppm = BinnedSpectrum::new(
@@ -201,11 +234,15 @@ fn alignment_empty_exact_boundary_and_validation() {
 fn upstream_alignment_score_retains_noncosine_normalization() {
     let mut a = golden();
     Normalizer::default().filter_spectrum(&mut a).unwrap();
-    let score = SpectrumAlignmentScore::default();
-    // The historical source literal uses absolute tolerance 0.01. Independently
-    // summing this fixture's normalized intensities gives the tight expectation.
+    let score = SpectrumAlignmentScore::new().unwrap();
+    // The historical source literal uses absolute tolerance 0.01. The tight
+    // expectation is the source's own arithmetic: `s1[i].getIntensity() *
+    // s2[j].getIntensity()` is a float multiply and the denominator is one
+    // sqrt of the product of the two squared-intensity sums. Computing that
+    // product in f64 instead gives 1.4845010143546342, which the class test's
+    // own band cannot tell apart from this value.
     close(score.score(&a, &a).unwrap(), 1.48268, 0.01);
-    close(score.score(&a, &a).unwrap(), 1.4845010143546342, 1e-14);
+    close(score.score(&a, &a).unwrap(), 1.484501010820065, 1e-14);
     let mut b = a.clone();
     b.peaks.truncate(100);
     close(score.score(&a, &b).unwrap(), 3.82472, 1e-5);
@@ -219,26 +256,60 @@ fn upstream_alignment_score_retains_noncosine_normalization() {
 }
 
 #[test]
-fn alignment_weighting_linear_and_gaussian_reference_values() {
+fn alignment_weighting_factors_and_the_zero_tolerance_nan() {
     let a = unit(&[10.0]);
     let b = unit(&[10.5]);
-    let mut score = SpectrumAlignmentScore {
-        alignment: SpectrumAlignment {
-            tolerance: Tolerance::Absolute(1.0),
-            ..Default::default()
-        },
-        weighting: DistanceWeighting::Linear,
-    };
+    let mut score = SpectrumAlignmentScore::new().unwrap();
+    let linear = with_float(
+        &with_flag(score.handler().parameters(), "use_linear_factor", true),
+        "tolerance",
+        1.0,
+    );
+    score.handler_mut().set_parameters(&linear).unwrap();
     close(score.score(&a, &b).unwrap(), 0.5_f64.sqrt(), 1e-15);
-    score.weighting = DistanceWeighting::Gaussian;
+    let gaussian = with_flag(
+        &with_flag(score.handler().parameters(), "use_linear_factor", false),
+        "use_gaussian_factor",
+        true,
+    );
+    score.handler_mut().set_parameters(&gaussian).unwrap();
     // Python math.erfc(0.5/(3*sqrt(2))) = 0.8676323347781927.
     close(
         score.score(&a, &b).unwrap(),
         0.8676323347781927_f64.sqrt(),
         1e-15,
     );
-    score.alignment.tolerance = Tolerance::Absolute(0.0);
-    close(score.score(&a, &a).unwrap(), 1.0, 1e-15);
+
+    // Zero tolerance. `diff_align <= tolerance` in SpectrumAlignment.h is
+    // inclusive, so two peaks at the same m/z are still aligned; the linear
+    // factor is then `(0.0 - 0.0) / 0.0` and the Gaussian argument is
+    // `0.0 / (3.0 * 0.0 * sqrt(2))`, both NaN, and the source's score is NaN.
+    // A statement-for-statement C++ transcription of the two source files, run
+    // on s1 == s2 == {(100.0, 1.0f)} at tolerance 0, prints `factor = nan` and
+    // `score = nan` under either flag and `score = 1` under neither. An earlier
+    // port here special-cased a zero distance inside a zero window to a factor
+    // of one, which silently returned the *unweighted* score - a number the
+    // source produces only for a different configuration.
+    let single = spectrum(&[100.0], &[1.0]);
+    for flag in ["use_linear_factor", "use_gaussian_factor"] {
+        let mut zero = SpectrumAlignmentScore::new().unwrap();
+        let parameters = with_float(
+            &with_flag(zero.handler().parameters(), flag, true),
+            "tolerance",
+            0.0,
+        );
+        zero.handler_mut().set_parameters(&parameters).unwrap();
+        assert!(
+            matches!(zero.score(&single, &single), Err(Error::InvalidValue(_))),
+            "{flag} at a zero tolerance must not return a number"
+        );
+    }
+    // Unweighted, the same configuration is the source's `score = 1`.
+    let mut plain = SpectrumAlignmentScore::new().unwrap();
+    let exact = with_float(plain.handler().parameters(), "tolerance", 0.0);
+    plain.handler_mut().set_parameters(&exact).unwrap();
+    assert_eq!(plain.score(&single, &single).unwrap(), 1.0);
+
     assert_eq!(score.score(&a, &MSSpectrum::default()).unwrap(), 0.0);
     assert_eq!(score.score(&spectrum(&[10.0], &[0.0]), &a).unwrap(), 0.0);
     assert!(score.score(&spectrum(&[10.0], &[-1.0]), &a).is_err());
@@ -458,7 +529,7 @@ fn upstream_precursor_comparison_and_missing_convention() {
 fn upstream_zhang_golden_and_stein_scott_formula() {
     let mut a = golden();
     Normalizer::default().filter_spectrum(&mut a).unwrap();
-    let zhang = ZhangSimilarityScore::default();
+    let zhang = ZhangSimilarityScore::new().unwrap();
     close(zhang.score(&a, &a).unwrap(), 1.82682, 1e-5);
     let mut b = a.clone();
     b.peaks.truncate(100);
@@ -467,9 +538,15 @@ fn upstream_zhang_golden_and_stein_scott_formula() {
         &[500.0, 600.0, 700.0, 800.0, 900.0],
         &[500.0, 600.0, 700.0, 800.0, 900.0],
     );
-    let expected = 1.0 - (0.2 / 10000.0) * 3500.0_f64.powi(2) / 2550000.0;
+    // (sum - z) / sqrt(sum1 * sum2), with z grouped as the source groups it:
+    // `constant * (sum3 * sum4)`. The five peaks are 100 Th apart and the
+    // window is 2 * 0.2, so only the self pairs count and sum == sum1 == sum2.
+    let expected = (2550000.0 - (0.2 / 10000.0) * (3500.0 * 3500.0)) / 2550000.0;
     close(
-        SteinScottImproveScore::default().score(&a, &a).unwrap(),
+        SteinScottImproveScore::new()
+            .unwrap()
+            .score(&a, &a)
+            .unwrap(),
         expected,
         1e-15,
     );
@@ -479,34 +556,27 @@ fn upstream_zhang_golden_and_stein_scott_formula() {
 fn many_to_many_strict_vs_inclusive_boundaries_and_limits() {
     let a = unit(&[1.0]);
     let b = unit(&[2.0]);
-    let z = ZhangSimilarityScore {
-        tolerance: 1.0,
-        ..Default::default()
-    };
+    let mut z = ZhangSimilarityScore::new().unwrap();
+    let one = with_float(z.handler().parameters(), "tolerance", 1.0);
+    z.handler_mut().set_parameters(&one).unwrap();
+    // Zhang's window is strict, so a distance of exactly the tolerance is no pair.
     assert_eq!(z.score(&a, &b).unwrap(), 0.0);
-    let s = SteinScottImproveScore {
-        tolerance: 0.5,
-        threshold: 0.0,
-        ..Default::default()
-    };
+    let mut s = SteinScottImproveScore::new().unwrap();
+    let inclusive = with_float(
+        &with_float(s.handler().parameters(), "tolerance", 0.5),
+        "threshold",
+        0.0,
+    );
+    s.handler_mut().set_parameters(&inclusive).unwrap();
+    // Stein/Scott's window is 2 * tolerance and inclusive, so the same pair counts.
     close(s.score(&a, &b).unwrap(), 0.99995, 1e-15);
     let repeated = unit(&[1.0, 1.0, 1.0]);
-    assert!(
-        ZhangSimilarityScore {
-            max_pairs: 2,
-            ..Default::default()
-        }
-        .score(&repeated, &repeated)
-        .is_err()
-    );
-    assert!(
-        SteinScottImproveScore {
-            max_pairs: 2,
-            ..Default::default()
-        }
-        .score(&repeated, &repeated)
-        .is_err()
-    );
+    let mut bounded_zhang = ZhangSimilarityScore::new().unwrap();
+    bounded_zhang.max_pairs = 2;
+    assert!(bounded_zhang.score(&repeated, &repeated).is_err());
+    let mut bounded_stein = SteinScottImproveScore::new().unwrap();
+    bounded_stein.max_pairs = 2;
+    assert!(bounded_stein.score(&repeated, &repeated).is_err());
     assert_eq!(z.score(&MSSpectrum::default(), &a).unwrap(), 0.0);
     assert!(z.score(&spectrum(&[1.0], &[-1.0]), &a).is_err());
 }
@@ -515,15 +585,18 @@ fn many_to_many_strict_vs_inclusive_boundaries_and_limits() {
 fn gaussian_scale_is_instance_specific_instead_of_upstream_static_cache() {
     let a = unit(&[1.0]);
     let b = unit(&[1.1]);
-    let narrow = ZhangSimilarityScore {
-        tolerance: 0.2,
-        weighting: DistanceWeighting::Gaussian,
-        ..Default::default()
+    let build = |tolerance: f64| {
+        let mut scorer = ZhangSimilarityScore::new().unwrap();
+        let parameters = with_flag(
+            &with_float(scorer.handler().parameters(), "tolerance", tolerance),
+            "use_gaussian_factor",
+            true,
+        );
+        scorer.handler_mut().set_parameters(&parameters).unwrap();
+        scorer
     };
-    let broad = ZhangSimilarityScore {
-        tolerance: 2.0,
-        ..narrow
-    };
+    let narrow = build(0.2);
+    let broad = build(2.0);
     let n = narrow.score(&a, &b).unwrap();
     let wide = broad.score(&a, &b).unwrap();
     assert!(n < wide && wide <= 1.0);
@@ -625,11 +698,10 @@ fn compact_banded_dp_matches_source_map_oracle_across_boundaries() {
 #[test]
 fn pair_resource_bound_includes_rejected_strict_boundary_candidates() {
     let a = unit(&[1.0, 1.0, 1.0]);
-    let comparison = ZhangSimilarityScore {
-        tolerance: 0.0,
-        max_pairs: 2,
-        ..Default::default()
-    };
+    let mut comparison = ZhangSimilarityScore::new().unwrap();
+    let exact = with_float(comparison.handler().parameters(), "tolerance", 0.0);
+    comparison.handler_mut().set_parameters(&exact).unwrap();
+    comparison.max_pairs = 2;
     assert!(comparison.score(&a, &a).is_err());
 }
 

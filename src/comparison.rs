@@ -26,9 +26,9 @@
 //! All seven `PeakSpectrumCompareFunctor` derivatives and the alignment
 //! primitive they share are ported as parameterised functors:
 //! [`SpectrumAligner`] (`COMPARISON/SpectrumAlignment.h`),
-//! [`SpectrumAlignmentScorer`] (`COMPARISON/SpectrumAlignmentScore.h`),
-//! [`ZhangSimilarityScorer`] (`COMPARISON/ZhangSimilarityScore.h`),
-//! [`SteinScottImproveScorer`] (`COMPARISON/SteinScottImproveScore.h`),
+//! [`SpectrumAlignmentScore`] (`COMPARISON/SpectrumAlignmentScore.h`),
+//! [`ZhangSimilarityScore`] (`COMPARISON/ZhangSimilarityScore.h`),
+//! [`SteinScottImproveScore`] (`COMPARISON/SteinScottImproveScore.h`),
 //! [`SpectrumPrecursorComparator`] (`COMPARISON/SpectrumPrecursorComparator.h`),
 //! [`SpectrumCheapDPCorr`] (`COMPARISON/SpectrumCheapDPCorr.h`),
 //! [`PeakAlignment`] (`COMPARISON/PeakAlignment.h`) and
@@ -44,10 +44,24 @@
 //! Those functors reproduce the source's arithmetic exactly, including the
 //! `float` intensity products the C++ computes before widening to `double`, and
 //! read every setting from a [`DefaultParamHandler`] on each call, as the source
-//! `operator()` reads `param_`. The earlier `Copy` configuration structs
-//! [`SpectrumAlignmentScore`], [`ZhangSimilarityScore`] and
-//! [`SteinScottImproveScore`] remain as `f64` conveniences with no parameter
-//! surface; each functor's support document states the divergence in full.
+//! `operator()` reads `param_`.
+//!
+//! **Each header has exactly one implementation here, under the header's own
+//! name.** An earlier wave shipped `SpectrumAlignmentScore`,
+//! `ZhangSimilarityScore`, `SteinScottImproveScore` and
+//! `SpectrumPrecursorComparator` as typed `Copy` configuration structs with no
+//! `DefaultParamHandler`, whose arithmetic diverged from the source -
+//! `sqrt(sum1) * sqrt(sum2)` where
+//! the source writes `sqrt(sum1 * sum2)`, `f64` intensity products where the
+//! source multiplies two `float`s, a re-derived pair cursor where the source
+//! carries a sticky one. Those four structs are gone and the names now belong
+//! to the faithful functors, so no two types in this module can disagree about
+//! what a header computes.
+//!
+//! [`SpectrumAlignment`] is the one deliberate two-surface pair and not a second
+//! implementation: it is the alignment itself, a typed `Copy` configuration that
+//! [`SpectrumAligner`] and [`SpectrumAlignmentScore`] both call, so the
+//! parameterised functor and the direct entry point cannot diverge.
 
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, MSSpectrum, Peak1D, Precursor, Result};
@@ -77,12 +91,6 @@ impl Tolerance {
             return Err(bad("ppm tolerance exceeds upstream f32 range"));
         }
         Ok(())
-    }
-    fn at(self, mz: f64) -> f64 {
-        match self {
-            Self::Absolute(v) => v,
-            Self::Ppm(v) => v * mz * 1e-6,
-        }
     }
 }
 
@@ -359,95 +367,6 @@ pub(crate) fn matched_alignment(
     Ok(pairs)
 }
 
-/// Distance weighting used by aligned and Zhang scores.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum DistanceWeighting {
-    #[default]
-    None,
-    Linear,
-    Gaussian,
-}
-impl DistanceWeighting {
-    fn factor(self, distance: f64, tolerance: f64) -> Result<f64> {
-        if self == Self::None {
-            return Ok(1.0);
-        }
-        if tolerance == 0.0 && distance == 0.0 {
-            return Ok(1.0);
-        }
-        if !tolerance.is_finite() || tolerance <= 0.0 || distance > tolerance {
-            return Err(bad(
-                "distance weighting requires a finite in-window tolerance",
-            ));
-        }
-        Ok(match self {
-            Self::None => 1.0,
-            Self::Linear => (tolerance - distance) / tolerance,
-            Self::Gaussian => erfc_small((distance / tolerance) / (3.0 * std::f64::consts::SQRT_2)),
-        })
-    }
-}
-// Convergent erf power series: inputs are [0, 1/(3 sqrt(2))], not a general erfc.
-fn erfc_small(x: f64) -> f64 {
-    let mut term = x;
-    let mut sum = x;
-    for n in 1..24 {
-        term *= -x * x / f64::from(n);
-        let add = term / f64::from(2 * n + 1);
-        sum += add;
-        if add.abs() < 1e-18 {
-            break;
-        }
-    }
-    1.0 - 2.0 / std::f64::consts::PI.sqrt() * sum
-}
-
-/// OpenMS alignment score: sum sqrt(I1 I2 factor) / sqrt(sum I1² sum I2²).
-/// This is not a cosine: a self-score need not equal one and scores can exceed one.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct SpectrumAlignmentScore {
-    pub alignment: SpectrumAlignment,
-    pub weighting: DistanceWeighting,
-}
-impl SpectrumAlignmentScore {
-    /// Similarity of `reference` and `target`, as `SpectrumAlignmentScore::operator()`.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::UnsortedData`] when either spectrum is not sorted by m/z,
-    /// and [`Error::InvalidValue`] for a negative or non-finite intensity, an
-    /// invalid tolerance, an alignment that exceeds
-    /// [`SpectrumAlignment::max_cells`], or a non-finite score. A zero intensity
-    /// norm on either side yields `Ok(0.0)` rather than a division by zero.
-    pub fn score(&self, reference: &MSSpectrum, target: &MSSpectrum) -> Result<f64> {
-        validate_spectrum(reference, true)?;
-        validate_spectrum(target, true)?;
-        let pairs = self.alignment.align(reference, target)?;
-        let denominator = norm(reference) * norm(target);
-        if denominator == 0.0 {
-            return Ok(0.0);
-        }
-        let mut sum = 0.0;
-        for (i, j) in pairs {
-            let p = reference.peaks[i];
-            let q = target.peaks[j];
-            let factor = self
-                .weighting
-                .factor((p.mz - q.mz).abs(), self.alignment.tolerance.at(p.mz))?;
-            sum += (f64::from(p.intensity) * f64::from(q.intensity) * factor).sqrt();
-        }
-        finite_score(sum / denominator)
-    }
-}
-fn norm(spectrum: &MSSpectrum) -> f64 {
-    spectrum
-        .peaks
-        .iter()
-        .map(|p| f64::from(p.intensity).powi(2))
-        .sum::<f64>()
-        .sqrt()
-}
-
 /// Sparse bin-coordinate convention.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum BinUnit {
@@ -699,141 +618,6 @@ pub fn binned_sum_agreeing_intensities(a: &BinnedSpectrum, b: &BinnedSpectrum) -
     sum_agreeing_intensities(a, b)
 }
 
-/// Zhang many-to-many score. Uses a strict absolute tolerance boundary.
-/// The per-instance Gaussian scale corrects upstream's static-first-call cache.
-#[derive(Clone, Copy, Debug)]
-pub struct ZhangSimilarityScore {
-    pub tolerance: f64,
-    pub weighting: DistanceWeighting,
-    pub max_pairs: usize,
-}
-impl Default for ZhangSimilarityScore {
-    fn default() -> Self {
-        Self {
-            tolerance: 0.2,
-            weighting: DistanceWeighting::None,
-            max_pairs: 5_000_000,
-        }
-    }
-}
-impl ZhangSimilarityScore {
-    /// Similarity of `a` and `b`, as `ZhangSimilarityScore::operator()`.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::UnsortedData`] for unsorted peaks and
-    /// [`Error::InvalidValue`] for a negative or non-finite intensity, an
-    /// invalid tolerance, more than [`ZhangSimilarityScore::max_pairs`]
-    /// candidate pairs, or a non-finite score. A zero total intensity on either
-    /// side yields `Ok(0.0)`.
-    pub fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
-        let mut sum = 0.0;
-        for_each_pair(a, b, self.tolerance, false, self.max_pairs, |i, j| {
-            let p = a.peaks[i];
-            let q = b.peaks[j];
-            let weight = self.weighting.factor((p.mz - q.mz).abs(), self.tolerance)?;
-            sum += (f64::from(p.intensity) * f64::from(q.intensity) * weight).sqrt();
-            Ok(())
-        })?;
-        let denominator = (total(a) * total(b)).sqrt();
-        if denominator == 0.0 {
-            Ok(0.0)
-        } else {
-            finite_score(sum / denominator)
-        }
-    }
-}
-/// Stein/Scott improved score, including all pairs within twice the tolerance.
-#[derive(Clone, Copy, Debug)]
-pub struct SteinScottImproveScore {
-    pub tolerance: f64,
-    pub threshold: f32,
-    pub max_pairs: usize,
-}
-impl Default for SteinScottImproveScore {
-    fn default() -> Self {
-        Self {
-            tolerance: 0.2,
-            threshold: 0.2,
-            max_pairs: 5_000_000,
-        }
-    }
-}
-impl SteinScottImproveScore {
-    /// Similarity of `a` and `b`, as `SteinScottImproveScore::operator()`.
-    ///
-    /// Scores below [`SteinScottImproveScore::threshold`] are reported as zero.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::UnsortedData`] for unsorted peaks and
-    /// [`Error::InvalidValue`] for a negative or non-finite intensity, a
-    /// non-finite threshold, an invalid tolerance, more than
-    /// [`SteinScottImproveScore::max_pairs`] candidate pairs, or a non-finite
-    /// score. A zero intensity norm on either side yields `Ok(0.0)`.
-    pub fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
-        if !self.threshold.is_finite() {
-            return Err(bad("score threshold must be finite"));
-        }
-        Tolerance::Absolute(self.tolerance).validate()?;
-        let mut sum = 0.0;
-        for_each_pair(a, b, 2.0 * self.tolerance, true, self.max_pairs, |i, j| {
-            sum += f64::from(a.peaks[i].intensity) * f64::from(b.peaks[j].intensity);
-            Ok(())
-        })?;
-        let denominator = norm(a) * norm(b);
-        if denominator == 0.0 {
-            return Ok(0.0);
-        }
-        let score =
-            finite_score((sum - self.tolerance / 10000.0 * total(a) * total(b)) / denominator)?;
-        Ok(if score < f64::from(self.threshold) {
-            0.0
-        } else {
-            score
-        })
-    }
-}
-fn total(spectrum: &MSSpectrum) -> f64 {
-    spectrum.peaks.iter().map(|p| f64::from(p.intensity)).sum()
-}
-fn for_each_pair(
-    a: &MSSpectrum,
-    b: &MSSpectrum,
-    tolerance: f64,
-    inclusive: bool,
-    max_pairs: usize,
-    mut visit: impl FnMut(usize, usize) -> Result<()>,
-) -> Result<()> {
-    Tolerance::Absolute(tolerance).validate()?;
-    validate_spectrum(a, true)?;
-    validate_spectrum(b, true)?;
-    if max_pairs == 0 {
-        return Err(bad("pair limit must be positive"));
-    }
-    let mut first = 0;
-    let mut used = 0;
-    for (i, p) in a.peaks.iter().enumerate() {
-        while first < b.len() && b.peaks[first].mz < p.mz && p.mz - b.peaks[first].mz > tolerance {
-            first += 1;
-        }
-        for j in first..b.len() {
-            let distance = (p.mz - b.peaks[j].mz).abs();
-            if b.peaks[j].mz > p.mz && distance > tolerance {
-                break;
-            }
-            if used == max_pairs {
-                return Err(bad("comparison exceeds configured pair limit"));
-            }
-            used += 1;
-            if distance < tolerance || (inclusive && distance == tolerance) {
-                visit(i, j)?;
-            }
-        }
-    }
-    Ok(())
-}
-
 // ---------------------------------------------------------------------------
 // The spectrum-similarity functor hierarchy:
 //   COMPARISON/PeakSpectrumCompareFunctor.h
@@ -888,11 +672,13 @@ fn functor_handler(base: &str, name: &str) -> Result<DefaultParamHandler> {
 /// implementor only overrides it to record a cheaper closed form.
 ///
 /// **All seven derivatives implement this trait:**
-/// [`SpectrumAlignmentScorer`], [`ZhangSimilarityScorer`],
-/// [`SteinScottImproveScorer`], [`SpectrumPrecursorComparator`],
+/// [`SpectrumAlignmentScore`], [`ZhangSimilarityScore`],
+/// [`SteinScottImproveScore`], [`SpectrumPrecursorComparator`],
 /// [`SpectrumCheapDPCorr`], [`PeakAlignment`] and
 /// [`SpectraSTSimilarityScore`], each carrying the parameter tree its own
-/// header registers. See `docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md`. Its
+/// header registers, and each the only implementation of its header in this
+/// crate. The header's port is therefore no longer `partial` for want of an
+/// implementor; see `docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md`. Its
 /// sibling [`BinnedSpectrumCompareFunctor`] has all three of its source
 /// derivatives shipped here.
 ///
@@ -1384,7 +1170,7 @@ fn sum_agreeing_intensities(spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> R
 ///
 /// The source's banded alignment allocates a `std::map` row per reference peak
 /// and has no ceiling at all, so two large spectra are an unbounded allocation.
-/// [`SpectrumAligner::max_cells`] and [`SpectrumAlignmentScorer::max_cells`]
+/// [`SpectrumAligner::max_cells`] and [`SpectrumAlignmentScore::max_cells`]
 /// start here and are checked before the matrix is built.
 pub const DEFAULT_ALIGNMENT_CELLS: usize = 5_000_000;
 
@@ -1393,8 +1179,8 @@ pub const DEFAULT_ALIGNMENT_CELLS: usize = 5_000_000;
 ///
 /// [`ZhangSimilarityScore`] and [`SteinScottImproveScore`] walk a sliding window
 /// whose worst case is `|s1| * |s2|` comparisons; the source has no ceiling.
-/// [`ZhangSimilarityScorer::max_pairs`] and
-/// [`SteinScottImproveScorer::max_pairs`] start here. Candidates are counted as
+/// [`ZhangSimilarityScore::max_pairs`] and
+/// [`SteinScottImproveScore::max_pairs`] start here. Candidates are counted as
 /// they are examined, including those the match predicate then rejects, because
 /// examining them is the cost being bounded.
 pub const DEFAULT_SCORED_PAIRS: usize = 5_000_000;
@@ -1657,14 +1443,14 @@ impl SpectrumAligner {
 ///
 /// See `docs/SPECTRUM_ALIGNMENT_SCORE_SUPPORT.md`.
 #[derive(Clone, Debug, PartialEq)]
-pub struct SpectrumAlignmentScorer {
+pub struct SpectrumAlignmentScore {
     handler: DefaultParamHandler,
     /// Ceiling on dynamic-programming cells, defaulting to
     /// [`DEFAULT_ALIGNMENT_CELLS`]. Native: the source has no ceiling.
     pub max_cells: usize,
 }
 
-impl SpectrumAlignmentScorer {
+impl SpectrumAlignmentScore {
     /// Construct with the source's registered name and its four defaults.
     ///
     /// Reproduces `SpectrumAlignmentScore.cpp:15-27`: the base constructor names
@@ -1710,7 +1496,7 @@ impl SpectrumAlignmentScorer {
     }
 }
 
-impl PeakSpectrumCompareFunctor for SpectrumAlignmentScorer {
+impl PeakSpectrumCompareFunctor for SpectrumAlignmentScore {
     fn handler(&self) -> &DefaultParamHandler {
         &self.handler
     }
@@ -1751,6 +1537,17 @@ impl PeakSpectrumCompareFunctor for SpectrumAlignmentScorer {
     /// spectra and one empty spectrum, and the module's binned scorers make the
     /// same choice. Two spectra with no peak inside the tolerance align to no
     /// pairs and score an unremarkable `0.0` in both the source and here.
+    ///
+    /// A zero `tolerance` under a weighting flag is the one case where the
+    /// window that selects a pair and the window that weights it are both zero.
+    /// The alignment's `diff_align <= tolerance` is inclusive, so two peaks at
+    /// the same m/z *are* aligned; the source then evaluates
+    /// `(0.0 - 0.0) / 0.0` for the linear factor, or
+    /// `erfc(0.0 / (3.0 * 0.0 * sqrt(2)))` for the Gaussian one, and both are
+    /// NaN, so `sqrt(I1 * I2 * NaN)` is NaN and the whole score is NaN. It is
+    /// **not** an unweighted score: a factor of one is what `use_linear_factor`
+    /// being unset would give, and that is a different configuration. This port
+    /// reports [`Error::InvalidValue`] rather than returning either number.
     fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
         let tolerance = parameter_float(&self.handler, "tolerance")?;
         let relative = parameter_bool(&self.handler, "is_relative_tolerance")?;
@@ -1785,6 +1582,10 @@ impl PeakSpectrumCompareFunctor for SpectrumAlignmentScorer {
             };
             let mz_difference = (p.mz - q.mz).abs();
             let factor = if linear || gaussian {
+                // Source: both factors divide by `mz_tolerance`, and the
+                // alignment's inclusive `diff_align <= tolerance` lets a pair
+                // reach this line with a zero window. `0.0 / 0.0` is NaN in the
+                // source, not the unweighted factor of one.
                 if mz_tolerance == 0.0 {
                     return Err(bad("distance weighting divides by a zero m/z tolerance"));
                 }
@@ -1814,7 +1615,7 @@ impl PeakSpectrumCompareFunctor for SpectrumAlignmentScorer {
 ///
 /// Every peak pair closer than `tolerance` contributes `sqrt(I1 * I2 * factor)`,
 /// and the total is divided by `sqrt(sum1 * sum2)` where `sum1` and `sum2` are
-/// the two spectra's total intensities. Unlike [`SpectrumAlignmentScorer`] this
+/// the two spectra's total intensities. Unlike [`SpectrumAlignmentScore`] this
 /// is a many-to-many comparison: no alignment restricts a peak to one partner.
 ///
 /// Parameters, all registered by `ZhangSimilarityScore.cpp:22-31`:
@@ -1828,14 +1629,14 @@ impl PeakSpectrumCompareFunctor for SpectrumAlignmentScorer {
 ///
 /// See `docs/ZHANG_SIMILARITY_SCORE_SUPPORT.md`.
 #[derive(Clone, Debug, PartialEq)]
-pub struct ZhangSimilarityScorer {
+pub struct ZhangSimilarityScore {
     handler: DefaultParamHandler,
     /// Ceiling on examined candidate pairs, defaulting to
     /// [`DEFAULT_SCORED_PAIRS`]. Native: the source has no ceiling.
     pub max_pairs: usize,
 }
 
-impl ZhangSimilarityScorer {
+impl ZhangSimilarityScore {
     /// Construct with the source's registered name and its four defaults.
     ///
     /// Reproduces `ZhangSimilarityScore.cpp:20-32`.
@@ -1909,7 +1710,7 @@ impl ZhangSimilarityScorer {
     }
 }
 
-impl PeakSpectrumCompareFunctor for ZhangSimilarityScorer {
+impl PeakSpectrumCompareFunctor for ZhangSimilarityScore {
     fn handler(&self) -> &DefaultParamHandler {
         &self.handler
     }
@@ -1921,7 +1722,7 @@ impl PeakSpectrumCompareFunctor for ZhangSimilarityScorer {
     /// `sum / sqrt(sum1 * sum2)` over every peak pair closer than `tolerance`.
     ///
     /// `sum1` and `sum2` are total intensities, not squared ones - that is the
-    /// difference from [`SpectrumAlignmentScorer`], together with the
+    /// difference from [`SpectrumAlignmentScore`], together with the
     /// many-to-many pairing.
     ///
     /// # Errors
@@ -1945,7 +1746,7 @@ impl PeakSpectrumCompareFunctor for ZhangSimilarityScorer {
     ///
     /// Setting both weighting flags is accepted upstream and the Gaussian wins,
     /// because `getFactor_` takes `use_gaussian_factor` as its switch. The
-    /// sibling [`SpectrumAlignmentScorer`] resolves the same clash the other way
+    /// sibling [`SpectrumAlignmentScore`] resolves the same clash the other way
     /// and its debug-only precondition rejects it. The port refuses it in both.
     fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
         let tolerance = parameter_float(&self.handler, "tolerance")?;
@@ -2028,14 +1829,14 @@ impl PeakSpectrumCompareFunctor for ZhangSimilarityScorer {
 /// Neither carries a valid-string or range restriction upstream, so neither does
 /// here. See `docs/STEIN_SCOTT_IMPROVE_SCORE_SUPPORT.md`.
 #[derive(Clone, Debug, PartialEq)]
-pub struct SteinScottImproveScorer {
+pub struct SteinScottImproveScore {
     handler: DefaultParamHandler,
     /// Ceiling on examined candidate pairs, defaulting to
     /// [`DEFAULT_SCORED_PAIRS`]. Native: the source has no ceiling.
     pub max_pairs: usize,
 }
 
-impl SteinScottImproveScorer {
+impl SteinScottImproveScore {
     /// Construct with the source's registered name and its two defaults.
     ///
     /// Reproduces `SteinScottImproveScore.cpp:17-24`.
@@ -2069,7 +1870,7 @@ impl SteinScottImproveScorer {
     }
 }
 
-impl PeakSpectrumCompareFunctor for SteinScottImproveScorer {
+impl PeakSpectrumCompareFunctor for SteinScottImproveScore {
     fn handler(&self) -> &DefaultParamHandler {
         &self.handler
     }

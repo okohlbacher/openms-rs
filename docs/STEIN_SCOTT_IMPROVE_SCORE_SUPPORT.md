@@ -6,7 +6,7 @@ Port of `src/openms/include/OpenMS/COMPARISON/SteinScottImproveScore.h` and
 (header sha256 `b1a807a03f0d6c4242b5dd3d3e42b4b764146dda83c3b573a2283806ec06c52c`,
 `.cpp` sha256 `a6f2b273987ef23d86a12f70cfb2c45cf3ad7c616b57a1d623af07684bfeb84d`).
 
-Rust: [`comparison::SteinScottImproveScorer`](../src/comparison.rs), implementing
+Rust: [`comparison::SteinScottImproveScore`](../src/comparison.rs), implementing
 [`PeakSpectrumCompareFunctor`](PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md).
 Tests: [`tests/comparison_scorers.rs`](../tests/comparison_scorers.rs).
 Provenance: [`tests/data/comparison_scorers_provenance.json`](../tests/data/comparison_scorers_provenance.json).
@@ -15,15 +15,15 @@ Provenance: [`tests/data/comparison_scorers_provenance.json`](../tests/data/comp
 
 | Source member | Rust counterpart | Difference |
 | --- | --- | --- |
-| `class SteinScottImproveScore : public PeakSpectrumCompareFunctor` | `pub struct SteinScottImproveScorer` implementing `PeakSpectrumCompareFunctor` | composition instead of inheritance |
-| `SteinScottImproveScore()` | `SteinScottImproveScorer::new() -> Result<Self>` | reproduces `SteinScottImproveScore.cpp:17-24`: base handler, `setName("SteinScottImproveScore")` at `:20`, two defaults, `defaultsToParam_()` |
+| `class SteinScottImproveScore : public PeakSpectrumCompareFunctor` | `pub struct SteinScottImproveScore` implementing `PeakSpectrumCompareFunctor` | composition instead of inheritance |
+| `SteinScottImproveScore()` | `SteinScottImproveScore::new() -> Result<Self>` | reproduces `SteinScottImproveScore.cpp:17-24`: base handler, `setName("SteinScottImproveScore")` at `:20`, two defaults, `defaultsToParam_()` |
 | `SteinScottImproveScore(const SteinScottImproveScore& source)` | `Clone` | C++ copy constructor is `= default` |
 | `~SteinScottImproveScore() override` | drop glue | C++ destructor is `= default` |
 | `SteinScottImproveScore& operator=(const SteinScottImproveScore& source)` | assignment of a clone | |
 | `double operator()(const PeakSpectrum& spec1, const PeakSpectrum& spec2) const override` | `PeakSpectrumCompareFunctor::score` | `Result<f64>`. The `@brief` "Similarity pairwise score" and its body text are carried into the rustdoc |
 | `double operator()(const PeakSpectrum& spec) const override` | `PeakSpectrumCompareFunctor::self_score`, the trait default | the C++ override at `:51-54` is `return operator()(spec, spec)`. Its `@param[in] spec` and `@see SteinScottImproveScore()` are folded into the trait method's prose |
 | inherited `getParameters` / `setParameters` / `getName` | `handler()`, `handler_mut()`, `name()` | |
-| - | `SteinScottImproveScorer::max_pairs` | native resource ceiling, default [`DEFAULT_SCORED_PAIRS`](../src/comparison.rs) = 5000000 |
+| - | `SteinScottImproveScore::max_pairs` | native resource ceiling, default [`DEFAULT_SCORED_PAIRS`](../src/comparison.rs) = 5000000 |
 | `@htmlinclude OpenMS_SteinScottImproveScore.parameters` | the parameter table in the rustdoc | |
 
 Parameters: `tolerance` `0.2` ("defines the absolute error of the mass
@@ -83,11 +83,15 @@ package, and the reason `parameters.valid_strings("tolerance")` is an error.
 - **`max_pairs`** bounds the walk, counting candidates as they are examined.
   Nothing is allocated, so a refusal leaves both inputs untouched. The source
   has no ceiling and its worst case is `|s1| * |s2|`.
-- The wave-A `Copy` struct `comparison::SteinScottImproveScore` remains a
-  separate, parameter-free `f64` convenience with a different traversal and a
-  different grouping of `z`; it is not this port. Unifying them is deferred
-  because the merge would change values asserted in `tests/comparison.rs`, which
-  this package may not edit.
+- **One implementation, under the header's name.** A typed `Copy` struct
+  called `comparison::SteinScottImproveScore` used to ship beside this functor,
+  dividing by `sqrt(sum1) * sqrt(sum2)` where `SteinScottImproveScore.cpp:113`
+  writes `sqrt(sum1 * sum2)`, grouping `z` as
+  `tolerance / 10000 * total1 * total2` rather than `constant * (sum3 * sum4)`,
+  and forming the intensity product in `f64`. It has been deleted and this
+  functor carries the name; `tests/comparison.rs` was migrated onto it. Nothing
+  in the crate can now disagree with this port about what
+  `SteinScottImproveScore.h` computes.
 
 ## Checked boundaries and evidence
 

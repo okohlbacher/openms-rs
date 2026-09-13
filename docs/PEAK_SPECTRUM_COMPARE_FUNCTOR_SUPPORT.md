@@ -7,8 +7,11 @@ revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`
 `.cpp` sha256 `85dae27b1795883060ea044e49e14d530736ae97b8c485f3f6437b3227b74aa9`).
 
 Rust: [`comparison::PeakSpectrumCompareFunctor`](../src/comparison.rs).
-Tests: [`tests/comparison_functors.rs`](../tests/comparison_functors.rs).
-Provenance: [`tests/data/comparison_functors_provenance.json`](../tests/data/comparison_functors_provenance.json).
+Tests: [`tests/comparison_functors.rs`](../tests/comparison_functors.rs) for the
+base itself, [`tests/comparison_scorers.rs`](../tests/comparison_scorers.rs) for
+the seven derivatives.
+Provenance: [`tests/data/comparison_functors_provenance.json`](../tests/data/comparison_functors_provenance.json),
+[`tests/data/comparison_scorers_provenance.json`](../tests/data/comparison_scorers_provenance.json).
 
 The C++ class is an abstract `DefaultParamHandler` subclass with two pure
 virtual call operators and nothing else: the whole header is 6 members, and the
@@ -18,14 +21,18 @@ trait, not a struct with a registry; the `#include`s of six derived classes at
 the top of the `.cpp` are OpenMS's factory-registration pattern and not a
 dependency of the base on its derivatives.
 
-## Port status: partial
+## Port status: complete
 
-**Every member of the header is ported and no type in this crate implements the
-trait.** An abstract base exists to be derived from, so a trait with no shipped
-implementor is the shape of the port and not the whole of it; the header is
-therefore ledgered `partial`, not `complete`. Its sibling
-`BinnedSpectrumCompareFunctor.h` is `complete`: all three of *its* source
-derivatives ship here.
+**Every member of the header is ported and all seven source derivatives
+implement the trait.** The header was previously ledgered `partial` for exactly
+one reason: an abstract base exists to be derived from, and this crate shipped
+no implementor, so the trait was the *shape* of the port and not the whole of
+it. That reason has expired. `SpectrumAlignmentScore`, `ZhangSimilarityScore`,
+`SteinScottImproveScore`, `SpectrumPrecursorComparator`, `SpectrumCheapDPCorr`,
+`PeakAlignment` and `SpectraSTSimilarityScore` all ship here, each carrying the
+parameter tree its own header registers, and each is the only implementation of
+its header in this crate. The status is now `complete`, matching its sibling
+`BinnedSpectrumCompareFunctor.h`.
 
 ### The seven derivatives, and where each stands
 
@@ -36,25 +43,31 @@ PeakSpectrumCompareFunctor" src/openms/include/OpenMS/COMPARISON/*.h` at
 missing from the include list. All seven define the one-spectrum overload as
 `operator()(spec, spec)`.
 
-| Derivative | In this crate | Implements the trait | Note |
-| --- | --- | --- | --- |
-| `SpectrumAlignmentScore` | `comparison::SpectrumAlignmentScore` | no | ported in an earlier wave as a typed `Copy` struct |
-| `ZhangSimilarityScore` | `comparison::ZhangSimilarityScore` | no | same |
-| `SteinScottImproveScore` | `comparison::SteinScottImproveScore` | no | same |
-| `SpectrumPrecursorComparator` | `comparison::SpectrumPrecursorComparator` | no | same |
-| `SpectrumCheapDPCorr` | not ported | - | wave B |
-| `PeakAlignment` | not ported | - | wave B; the only functor in `COMPARISON/` that registers a `normalized` parameter (`PeakAlignment.cpp:24`) |
-| `SpectraSTSimilarityScore` | not ported | - | wave B; not in the `.cpp` include list, and its constructor calls `setName` **without** the `defaultsToParam_()` that the other derivatives call |
+| Derivative | In this crate | Implements the trait | Handler name | Note |
+| --- | --- | --- | --- | --- |
+| `SpectrumAlignmentScore` | `comparison::SpectrumAlignmentScore` | yes | `SpectrumAlignmentScore` | four parameters |
+| `ZhangSimilarityScore` | `comparison::ZhangSimilarityScore` | yes | `ZhangSimilarityScore` | four parameters; `is_relative_tolerance` throws upstream |
+| `SteinScottImproveScore` | `comparison::SteinScottImproveScore` | yes | `SteinScottImproveScore` | two parameters |
+| `SpectrumPrecursorComparator` | `comparison::SpectrumPrecursorComparator` | yes | `SpectrumPrecursorComparator` | one parameter, registered as the integer `2` |
+| `SpectrumCheapDPCorr` | `comparison::SpectrumCheapDPCorr` | yes | `SpectrumCheapDPCorr` | `score` is read-only; `compare` also records the consensus and peak map |
+| `PeakAlignment` | `comparison::PeakAlignment` | yes | `PeakSpectrumCompareFunctor` | the only derivative that never calls `setName` (`PeakAlignment.cpp:21`), and the only functor in `COMPARISON/` that registers a `normalized` parameter (`PeakAlignment.cpp:24`), which the source never reads |
+| `SpectraSTSimilarityScore` | `comparison::SpectraSTSimilarityScore` | yes | `SpectraSTSimilarityScore` | not in the `.cpp` include list, and its constructor calls `setName` **without** the `defaultsToParam_()` that the other derivatives call - harmless only because it registers no defaults |
 
-The four that exist keep their configuration in typed `Copy` fields rather than
-a `DefaultParamHandler`. Giving them one is not a mechanical change: each
-registers a real parameter tree upstream, so a handler that carried only the
-functor's name would make `handler_mut().set_parameters(...)` silently
-ineffective - a second way to configure the functor that the scoring code does
-not read. That is the incoherence this wave's fix commit removed from the binned
-scores, and it is not worth reintroducing here; wiring the parameters correctly
-belongs to the wave that ports those four headers. See the deferrals in the
-work-package report.
+Each derivative carries a real `DefaultParamHandler` holding the parameter tree
+its own header registers, and every scoring path reads that handler on each
+call, as the source's `operator()` reads `param_`. There is no second, typed way
+to configure any of them that the scoring code would not read.
+
+**One implementation per header.** An earlier wave shipped the first four as
+typed `Copy` configuration structs with no `DefaultParamHandler`, whose
+arithmetic diverged from the source - `sqrt(sum1) * sqrt(sum2)` where
+`SpectrumAlignmentScore.cpp:99` and `SteinScottImproveScore.cpp:113` write
+`sqrt(sum1 * sum2)`, an `f64` intensity product where the source multiplies two
+`float`s, a re-derived pair cursor in place of the source's sticky `j_left`. For
+a while both the struct and the faithful functor shipped, under the header's
+name and an `-er` suffix respectively. The structs are gone and the names belong
+to the functors, so no two types in `comparison` can disagree about what one of
+these headers computes.
 
 ## API mapping
 
@@ -98,8 +111,11 @@ No member of this header is unported.
   a Rust functor that derives typed state from parameters recomputes it in its
   own setter. That is the same decision `DEFAULT_PARAM_HANDLER_SUPPORT.md`
   records for `set_parameters_with`.
-- No shipped implementor; see **Port status** above for the seven derivatives
-  and why the four that exist in `comparison` do not implement the trait yet.
+- `Default` is not a trait requirement, although every source derivative is
+  default-constructible: construction registers a parameter tree and is
+  therefore fallible in this crate, so each implementor offers `new() ->
+  Result<Self>` and only those whose tree cannot exceed the handler's limits
+  also offer `Default`.
 
 ## Checked boundaries and evidence
 

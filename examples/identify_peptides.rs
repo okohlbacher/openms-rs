@@ -9,12 +9,15 @@
 use openms::chemistry::{
     AASequence, ModifiedPeptideGenerator, ProteaseDigestion, TheoreticalSpectrumGenerator,
 };
-use openms::comparison::{SpectrumAlignment, SpectrumAlignmentScore, Tolerance};
+use openms::comparison::{
+    PeakSpectrumCompareFunctor, SpectrumAlignment, SpectrumAlignmentScore, Tolerance,
+};
 use openms::format::fasta::FastaReader;
 use openms::identification::{
     EnzymeTermSpecificity, FlankingResidue, PeakAnnotation, PeptideEvidence, PeptideHit,
     PeptideIdentification, ProteinHit, ProteinIdentification, SearchParameters,
 };
+use openms::param::ParamValue;
 use openms::{Error, MSSpectrum, Peak1D, Precursor, Result};
 use std::collections::BTreeSet;
 use std::io::Cursor;
@@ -62,13 +65,24 @@ pub fn identify_demo() -> Result<DemoIdentification> {
         add_metainfo: true,
         ..Default::default()
     };
-    let scorer = SpectrumAlignmentScore {
-        alignment: SpectrumAlignment {
-            tolerance: Tolerance::Absolute(0.02),
-            ..Default::default()
-        },
+    // One fragment window, used twice: SpectrumAlignmentScore reads it from its
+    // parameter tree, exactly as the C++ functor reads `param_`, and the
+    // alignment below applies the same window directly to recover which peaks
+    // the score paired.
+    let fragment_tolerance = Tolerance::Absolute(0.02);
+    let alignment = SpectrumAlignment {
+        tolerance: fragment_tolerance,
         ..Default::default()
     };
+    let mut scorer = SpectrumAlignmentScore::new()?;
+    let mut scorer_parameters = scorer.handler().parameters().clone();
+    scorer_parameters.set_value(
+        "tolerance",
+        ParamValue::Float(0.02),
+        "Defines the absolute (in Da) or relative (in ppm) tolerance",
+        &[],
+    )?;
+    scorer.handler_mut().set_parameters(&scorer_parameters)?;
     let mut candidates = PeptideIdentification {
         identifier: "synthetic-run".into(),
         score_type: "SpectrumAlignmentScore".into(),
@@ -88,7 +102,7 @@ pub fn identify_demo() -> Result<DemoIdentification> {
             enzyme_specificity: EnzymeTermSpecificity::Full,
             fixed_modifications: vec!["Carbamidomethyl (C)".into()],
             charges: "2".into(),
-            fragment_tolerance: scorer.alignment.tolerance,
+            fragment_tolerance,
             ..Default::default()
         },
         ..Default::default()
@@ -107,7 +121,7 @@ pub fn identify_demo() -> Result<DemoIdentification> {
         for peptide in digest.digest(&protein)? {
             let theoretical = generator.generate(&peptide.sequence, 1, 1, Some(2))?;
             let score = scorer.score(&theoretical, &spectrum)?;
-            let matches = scorer.alignment.align(&theoretical, &spectrum)?;
+            let matches = alignment.align(&theoretical, &spectrum)?;
             let names = &theoretical
                 .string_data_arrays
                 .iter()

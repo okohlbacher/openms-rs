@@ -6,7 +6,7 @@ Port of `src/openms/include/OpenMS/COMPARISON/ZhangSimilarityScore.h` and
 (header sha256 `b55d2021fc4cea74dea52e27c97e2f8ca2a3620b856f374aeeaa0f594045fa12`,
 `.cpp` sha256 `66aa29df1e5a4ce270a8b2e69aa2849b190fe6071c71f2c4a05b70183929c7d3`).
 
-Rust: [`comparison::ZhangSimilarityScorer`](../src/comparison.rs), implementing
+Rust: [`comparison::ZhangSimilarityScore`](../src/comparison.rs), implementing
 [`PeakSpectrumCompareFunctor`](PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md).
 Tests: [`tests/comparison_scorers.rs`](../tests/comparison_scorers.rs).
 Provenance: [`tests/data/comparison_scorers_provenance.json`](../tests/data/comparison_scorers_provenance.json).
@@ -15,16 +15,16 @@ Provenance: [`tests/data/comparison_scorers_provenance.json`](../tests/data/comp
 
 | Source member | Rust counterpart | Difference |
 | --- | --- | --- |
-| `class ZhangSimilarityScore : public PeakSpectrumCompareFunctor` | `pub struct ZhangSimilarityScorer` implementing `PeakSpectrumCompareFunctor` | composition instead of inheritance |
-| `ZhangSimilarityScore()` | `ZhangSimilarityScorer::new() -> Result<Self>` | reproduces `ZhangSimilarityScore.cpp:20-32`: base handler, `setName("ZhangSimilarityScore")` at `:23`, four defaults, `defaultsToParam_()` |
+| `class ZhangSimilarityScore : public PeakSpectrumCompareFunctor` | `pub struct ZhangSimilarityScore` implementing `PeakSpectrumCompareFunctor` | composition instead of inheritance |
+| `ZhangSimilarityScore()` | `ZhangSimilarityScore::new() -> Result<Self>` | reproduces `ZhangSimilarityScore.cpp:20-32`: base handler, `setName("ZhangSimilarityScore")` at `:23`, four defaults, `defaultsToParam_()` |
 | `ZhangSimilarityScore(const ZhangSimilarityScore& source)` | `Clone` | C++ copy constructor is `= default` |
 | `~ZhangSimilarityScore() override` | drop glue | C++ destructor is `= default` |
 | `ZhangSimilarityScore& operator=(const ZhangSimilarityScore& source)` | assignment of a clone | |
 | `double operator()(const PeakSpectrum& spec1, const PeakSpectrum& spec2) const override` | `PeakSpectrumCompareFunctor::score` | `Result<f64>` |
 | `double operator()(const PeakSpectrum& spec) const override` | `PeakSpectrumCompareFunctor::self_score`, the trait default | the C++ override at `:47-50` is `return operator()(spec, spec)` |
-| `protected: double getFactor_(double mz_tolerance, double mz_difference, bool is_gaussian = false) const` | `ZhangSimilarityScorer::factor(mz_tolerance, mz_difference, is_gaussian) -> Result<f64>` | promoted from protected to a public associated function: it is a pure function of its three arguments, the port has no subclasses to protect it for, and exposing it lets the weighting be tested directly. Returns `Result` because a non-positive tolerance divides by zero upstream. The C++ default argument `is_gaussian = false` has no Rust equivalent; the only call site passes it explicitly |
+| `protected: double getFactor_(double mz_tolerance, double mz_difference, bool is_gaussian = false) const` | `ZhangSimilarityScore::factor(mz_tolerance, mz_difference, is_gaussian) -> Result<f64>` | promoted from protected to a public associated function: it is a pure function of its three arguments, the port has no subclasses to protect it for, and exposing it lets the weighting be tested directly. Returns `Result` because a non-positive tolerance divides by zero upstream. The C++ default argument `is_gaussian = false` has no Rust equivalent; the only call site passes it explicitly |
 | inherited `getParameters` / `setParameters` / `getName` | `handler()`, `handler_mut()`, `name()` | |
-| - | `ZhangSimilarityScorer::max_pairs` | native resource ceiling, default [`DEFAULT_SCORED_PAIRS`](../src/comparison.rs) = 5000000 |
+| - | `ZhangSimilarityScore::max_pairs` | native resource ceiling, default [`DEFAULT_SCORED_PAIRS`](../src/comparison.rs) = 5000000 |
 | `@htmlinclude OpenMS_ZhangSimilarityScore.parameters` | the parameter table in the rustdoc | |
 
 Parameters: `tolerance` `0.2`, `is_relative_tolerance` `"false"`,
@@ -98,10 +98,13 @@ the files does not think something was dropped.
   including those the strict `<` then rejects, because examining them is the cost
   being bounded. Nothing is allocated, so a refusal leaves both inputs untouched.
   The source has no ceiling and its worst case is `|s1| * |s2|`.
-- The wave-A `Copy` struct `comparison::ZhangSimilarityScore` remains a separate,
-  parameter-free `f64` convenience with a different windowed traversal; it is not
-  this port. Unifying them is deferred because the merge would change values
-  asserted in `tests/comparison.rs`, which this package may not edit.
+- **One implementation, under the header's name.** A typed `Copy` struct
+  called `comparison::ZhangSimilarityScore` used to ship beside this functor,
+  with an `f64` intensity product and a pair cursor re-derived per reference
+  peak instead of the source's sticky `j_left`. It has been deleted and this
+  functor carries the name; `tests/comparison.rs` was migrated onto it. Nothing
+  in the crate can now disagree with this port about what
+  `ZhangSimilarityScore.h` computes.
 
 ## Checked boundaries and evidence
 
