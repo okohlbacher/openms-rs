@@ -305,6 +305,36 @@ fn xml_attribute_normalization_preserves_character_references() {
     assert_eq!(parse(&encoded(&doc)).unwrap(), doc);
 }
 
+/// A character reference in element text is resolved by quick-xml, so only the
+/// XML 1.0 `CharRef` forms are accepted. The references here expand to
+/// whitespace, which idXML allows between elements, so an accepted one leaves
+/// the document unchanged and a refused one is refused for its spelling alone.
+#[test]
+fn text_character_references_follow_the_xml_1_0_grammar() {
+    let expected = parse(WHOLE).unwrap();
+    let with = |reference: &str| WHOLE.replace("</IdXML>", &format!("{reference}</IdXML>"));
+    let mut wrong = Vec::new();
+    for reference in ["&#32;", "&#x20;", "&#x9;", "&#0010;", "&#xD;"] {
+        match parse(&with(reference)) {
+            Ok(doc) if doc == expected => {}
+            Ok(_) => wrong.push(format!("{reference}: changed the document")),
+            Err(error) => wrong.push(format!("{reference}: {error:?}")),
+        }
+    }
+    for reference in ["&#X20;", "&#+32;", "&#x+20;", "&#0;", "&#x0;"] {
+        match parse(&with(reference)) {
+            Err(openms::Error::Parse { .. }) => {}
+            Err(error) => wrong.push(format!("{reference}: {error:?}")),
+            Ok(_) => wrong.push(format!("{reference}: accepted")),
+        }
+    }
+    match parse(&with("&bogus;")) {
+        Err(openms::Error::Unsupported(_)) => {}
+        other => wrong.push(format!("&bogus;: {:?}", other.err())),
+    }
+    assert!(wrong.is_empty(), "{wrong:#?}");
+}
+
 #[test]
 fn reader_limits_apply_to_bytes_elements_and_lists() {
     for options in [

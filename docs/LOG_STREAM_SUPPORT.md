@@ -93,6 +93,20 @@ that destruction can only ignore. Counter overflow and invalid injected calendar
 fields are checked. Calendar years are restricted to 0000–9999; leap seconds up
 to 60 can be supplied by a clock.
 
+Whether an injected day exists is decided by `chrono::NaiveDate::from_ymd_opt`,
+which uses the proleptic Gregorian calendar, so year 0000 is a leap year. The
+time fields are checked in this crate, because
+`chrono::NaiveTime::from_hms_opt` refuses the leap second 60. The chrono call
+replaced a hand-written month-length table on 2026-09-13 without changing which
+fields are accepted. The crate survey found no difference over years 0–9999,
+months 0–13 and days 0–32. The unit test
+`injected_calendar_days_follow_the_proleptic_gregorian_calendar` checks the same
+against an independent leap-year rule. It tries every month and day in 14
+years, including 10000 and 65535, which the year ceiling refuses, plus the
+February and 30/31-day boundaries of every year through 10000. It passed before
+and after the change. The check is integer arithmetic, so results are the same
+on every machine.
+
 The Windows C++ Colorizer also enables virtual-terminal console mode and resets
 console state at process exit. This module emits the same per-record ANSI bytes
 but does not alter host console mode; a Windows terminal must already support

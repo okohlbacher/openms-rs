@@ -154,10 +154,36 @@ up to `MAX_RESPONSE_BYTES` (4 GiB).
 protocol handler before connecting, so `CURLE_URL_MALFORMAT` and
 `CURLE_UNSUPPORTED_PROTOCOL` are offline outcomes there. `ureq` reaches the same
 conclusions later, so `UreqTransport` reproduces the early rejection: a URL
-without `://`, with an empty host, or with a scheme other than `http`/`https` is
-refused without touching the network. This is what keeps the class test's first
-two `run()` cases genuinely offline, and it is where `file://` — which libcurl
-normally does handle — surfaces as `TransportError::UnsupportedScheme`.
+without `://`, with a scheme other than `http`/`https`, that `http::Uri` cannot
+parse, or whose authority names no host is refused without touching the network.
+This is what keeps the class test's first two `run()` cases genuinely offline,
+and it is where `file://` — which libcurl normally does handle — surfaces as
+`TransportError::UnsupportedScheme`.
+
+The scheme is split off and compared by hand, because `http::Uri` refuses
+`file:///tmp/x.txt` as malformed and the gate must still call that an
+unsupported scheme. The host comes from `ureq::http::Uri` (`http` 1.5.0), the
+parser `ureq` runs on the URL it requests. Until 2026-09-13 a hand-written strip
+of userinfo, port and IPv6 brackets stood here. The two were compared on
+2,000,000 generated URLs: `http://` or `HTTPS://` followed by 0–11 characters
+from `ab1:@[]/?#%. `, from a fixed xorshift seed. No URL the strip refused is
+accepted now. Every URL the strip accepted and this check refuses is in one of
+two groups:
+
+* 275 have an empty host by `http::Uri`, for example `HTTPS://:[:]` and
+  `http://:[::1]:80/`. `ureq` would have sent an empty name to the resolver.
+  They are now `MalformedUrl`, offline.
+* 866,415 do not parse at all, for example `http://ho st/` and `http://[::1/`.
+  `ureq` refused those offline too: `RequestBuilder::call` builds the request
+  before any I/O and returns `ureq::Error::Http`, which maps to the same
+  `MalformedUrl`. Only the payload changes, from `ureq`'s rendering to the URL
+  verbatim.
+
+The nine cases of `the_url_preflight_refuses_before_any_socket` pass unchanged.
+`the_host_is_the_one_the_http_uri_parser_finds` pins the changed cases, and
+`an_empty_host_fails_offline_through_the_real_transport` sends `http://:8080/x`
+through the real transport. URI parsing is byte-table code with no CPU-dependent
+path, so the check gives the same answer on every machine.
 
 **Error classification is structured; libcurl's message text is not
 reproduced.** The source forwards `curl_easy_strerror(res)` verbatim. Those
@@ -271,22 +297,26 @@ The claim is checkable, and this is how it was checked rather than assumed.
    over it. `grep -rn 'UreqTransport' src/ tests/ examples/` and the same for
    `download_file` give the complete list: `download_file` is never called from
    any test, doctest or example, and `UreqTransport` is constructed in exactly
-   five places — `src/system/network.rs::download_file`, one unit test in
-   `src/system/network_get_request.rs`, and three tests in
+   eight places — `src/system/network.rs::download_file`, two unit tests in
+   `src/system/network_get_request.rs`, and five tests in
    `tests/network_get_request.rs`.
-2. **Enumerate the URLs those tests hand it.** Two: `""` and `"http://"`.
+2. **Enumerate the URLs those tests hand it.** Three: `""`, `"http://"` and
+   `"http://:8080/x"`.
 3. **Show the refusal happens before `ureq` is reached.** `check_http_url` is the
-   first statement of `UreqTransport::get`, takes `&str`, returns
-   `Result<(), TransportError>`, and calls nothing — it is a pure string parse, so
-   it cannot perform I/O. Both URLs fail it, so `ureq::get` is never called.
+   first statement of `UreqTransport::get`, takes `&str` and returns
+   `Result<(), TransportError>`. Apart from string comparison it calls only
+   `ureq::http::Uri::try_from`, the `http` crate's in-memory URI parser, so it
+   cannot perform I/O. All three URLs fail it, so `ureq::get` is never called.
 4. **Pin step 3 so it cannot regress.** The preflight reports
    `TransportError::MalformedUrl(<the URL verbatim>)`. Nothing inside `ureq`
    produces that value — its own `BadUri` and `Http` errors carry `ureq`'s
    rendering, not the input string — so asserting the exact error proves which
    code path ran.
    `tests/network_get_request.rs::the_real_transport_refuses_every_url_this_suite_gives_it`
-   asserts it for both URLs, and the three class-test cases that use the real
-   transport assert it too.
+   asserts it for `""` and `"http://"`, and the three class-test cases that use
+   the real transport assert it too. The unit test
+   `an_empty_host_fails_offline_through_the_real_transport` asserts it for
+   `"http://:8080/x"`.
 5. **Confirm dynamically.** The suite was additionally run with the operating
    system refusing every network operation, which turns a socket this reasoning
    missed into a failure rather than a silent request:
@@ -305,6 +335,11 @@ The claim is checkable, and this is how it was checked rather than assumed.
    `system::file` test that writes a non-UTF-8 directory entry, which APFS
    refuses with `EILSEQ`, and a `system::stop_watch` CPU-time assertion that is
    sensitive to load and passes when run alone. Neither involves a socket.
+
+   That sandboxed run predates the 2026-09-13 switch of the host check to
+   `http::Uri` and the two unit tests added with it, and was not repeated. The
+   one URL added to the real transport since, `http://:8080/x`, fails the
+   preflight before `ureq::get`, which step 4 pins.
 
    This step is evidence, not a gate: it was run on the development machine, and
    the CI gates do not sandbox. Steps 1 to 4 are what holds the property, and
@@ -325,6 +360,7 @@ and hands it only to recorded transports.
 | Response headers | ≤ 1024 | not captured at all |
 | Response header block | `ureq`'s own limit, reported as `ResponseHeaderTooLarge` | unbounded |
 | URL scheme | `http` / `https` only, checked offline | libcurl's full protocol set |
+| URL host | non-empty host from `ureq::http::Uri`, checked offline | libcurl's own URL parser |
 
 All **nine** `START_SECTION`s of `NetworkGetRequest_test.cpp` are mapped in
 `tests/network_get_request.rs`; the four sub-cases of the `run()` section have a

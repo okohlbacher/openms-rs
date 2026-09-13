@@ -10,7 +10,7 @@
 //! destructor cannot replay a partially delivered record. Use [`LogStream::finish`]
 //! to observe final flush errors; destruction can only make a best-effort flush.
 
-use chrono::{Datelike, Timelike};
+use chrono::{Datelike, NaiveDate, Timelike};
 use std::cell::RefCell;
 use std::fmt;
 use std::io::{self, IsTerminal, Write};
@@ -129,23 +129,17 @@ pub struct LogTime {
     pub second: u8,
 }
 impl LogTime {
+    /// Refuse fields that name no wall-clock instant.
+    ///
+    /// Whether the day exists is decided by `chrono::NaiveDate::from_ymd_opt`
+    /// (proleptic Gregorian). The time is checked here, because a clock may
+    /// report the leap second 60, which `chrono::NaiveTime::from_hms_opt`
+    /// refuses.
     fn validate(self) -> io::Result<Self> {
-        let leap = self.year % 4 == 0 && (self.year % 100 != 0 || self.year % 400 == 0);
-        let days = match self.month {
-            2 => {
-                if leap {
-                    29
-                } else {
-                    28
-                }
-            }
-            4 | 6 | 9 | 11 => 30,
-            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-            _ => 0,
-        };
+        let calendar_day =
+            NaiveDate::from_ymd_opt(self.year.into(), self.month.into(), self.day.into()).is_some();
         if self.year > 9999
-            || self.day == 0
-            || self.day > days
+            || !calendar_day
             || self.hour > 23
             || self.minute > 59
             || self.second > 60
@@ -898,4 +892,79 @@ macro_rules! openms_log_debug {
 #[macro_export]
 macro_rules! openms_log_debug_nofile {
     ($($arg:tt)*) => { $crate::concept::log_stream::log_message($crate::concept::log_stream::LogLevel::Debug, format_args!($($arg)*)) };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LogTime;
+
+    /// An injected calendar is accepted for exactly the proleptic Gregorian days
+    /// of years 0000-9999. Only February depends on the year, so every month and
+    /// day from 0 to 13 and 0 to 32 is tried in years that exercise each leap
+    /// rule and both sides of the year ceiling, and the February and 30/31-day
+    /// boundaries in every year.
+    #[test]
+    fn injected_calendar_days_follow_the_proleptic_gregorian_calendar() {
+        fn days_in_month(year: u16, month: u8) -> u8 {
+            let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+            match month {
+                1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+                4 | 6 | 9 | 11 => 30,
+                2 if leap => 29,
+                2 => 28,
+                _ => 0,
+            }
+        }
+        let at = |year, month, day, second| LogTime {
+            year,
+            month,
+            day,
+            hour: 23,
+            minute: 59,
+            second,
+        };
+        let mut wrong = Vec::new();
+        let mut check = |year: u16, month: u8, day: u8| {
+            let expected = year <= 9999 && day != 0 && day <= days_in_month(year, month);
+            if at(year, month, day, 0).validate().is_ok() != expected {
+                wrong.push((year, month, day));
+            }
+        };
+        for year in [
+            0,
+            1,
+            4,
+            100,
+            400,
+            1900,
+            2000,
+            2023,
+            2024,
+            2100,
+            9996,
+            9999,
+            10_000,
+            u16::MAX,
+        ] {
+            for month in 0..=13 {
+                for day in 0..=32 {
+                    check(year, month, day);
+                }
+            }
+        }
+        for year in 0..=10_000 {
+            for (month, day) in [(2, 28), (2, 29), (2, 30), (4, 30), (4, 31), (12, 31)] {
+                check(year, month, day);
+            }
+        }
+        assert!(
+            wrong.is_empty(),
+            "{} disagreements, first {:?}",
+            wrong.len(),
+            &wrong[..wrong.len().min(8)]
+        );
+        // A clock may report a leap second; one past it is still refused.
+        assert!(at(2016, 12, 31, 60).validate().is_ok());
+        assert!(at(2016, 12, 31, 61).validate().is_err());
+    }
 }

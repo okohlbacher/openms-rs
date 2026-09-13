@@ -128,7 +128,7 @@
  ],
  "native_boundaries": [
   "Owned writer/callback handles replace raw pointers; standard io errors and explicit finish expose failure.",
-  "Default chrono local calendar; injected provider for deterministic tests. Calendar years0000..9999; invalid fields rejected.",
+  "Default chrono local calendar; injected provider for deterministic tests. Calendar years 0000..9999; invalid fields rejected. Whether an injected day exists is chrono::NaiveDate::from_ymd_opt (proleptic Gregorian), which replaced a hand-written month-length table on 2026-09-13 with no change to the accepted set (crate survey: 0 differences over years 0-9999, months 0-13, days 0-32; concept::log_stream::tests::injected_calendar_days_follow_the_proleptic_gregorian_calendar passes before and after). Seconds up to 60 stay a hand-written check, because chrono::NaiveTime::from_hms_opt refuses 60.",
   "Bounded line, sink count, prefix storage and cumulative operation allocation/work; output errors disable replay.",
   "No numeric filters or history APIs: prose mentions them but retained implementation does not provide them.",
   "Macros complete and flush one line; raw Write retains incremental buffering.",
@@ -142,7 +142,7 @@
   ],
   "default_features": false,
   "crate_sha256": "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327",
-  "purpose": "Safe host-local calendar fields without native unsafe code"
+  "purpose": "Safe host-local calendar fields without native unsafe code, and the proleptic Gregorian day check of injected calendar fields (NaiveDate::from_ymd_opt)"
  },
  "validation_method": "Rust source-derived and independent tests only; no C++ build, runtime differential, or production-generated expectation.",
  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",

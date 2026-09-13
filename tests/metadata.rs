@@ -435,6 +435,52 @@ fn completion_time_calendar_validation_does_not_guess_timezones() {
     }
 }
 
+/// Native: the accepted days are exactly those of the proleptic Gregorian
+/// calendar in years 0001-9999. Only February depends on the year, so every
+/// month and day from 0 to 13 and 0 to 32 is tried in years that exercise each
+/// leap rule, and the February and 30/31-day boundaries in every year.
+#[test]
+fn completion_time_days_follow_the_proleptic_gregorian_calendar() {
+    fn days_in_month(year: u16, month: u8) -> u8 {
+        let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+        match month {
+            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+            4 | 6 | 9 | 11 => 30,
+            2 if leap => 29,
+            2 => 28,
+            _ => 0,
+        }
+    }
+    let mut wrong = Vec::new();
+    let mut check = |year: u16, month: u8, day: u8| {
+        let text = format!("{year:04}-{month:02}-{day:02}T12:34:56");
+        let expected = year != 0 && day != 0 && day <= days_in_month(year, month);
+        if text.parse::<CompletionTime>().is_ok() != expected {
+            wrong.push(text);
+        }
+    };
+    for year in [
+        0, 1, 4, 100, 400, 1582, 1600, 1700, 1900, 2000, 2023, 2024, 2100, 9600, 9996, 9999,
+    ] {
+        for month in 0..=13 {
+            for day in 0..=32 {
+                check(year, month, day);
+            }
+        }
+    }
+    for year in 0..=9999 {
+        for (month, day) in [(2, 28), (2, 29), (2, 30), (4, 30), (4, 31), (12, 31)] {
+            check(year, month, day);
+        }
+    }
+    assert!(
+        wrong.is_empty(),
+        "{} disagreements, first {:?}",
+        wrong.len(),
+        &wrong[..wrong.len().min(8)]
+    );
+}
+
 #[test]
 fn spectrum_settings_unify_preserves_source_overwrite_append_rules() {
     let mut left = SpectrumSettings {

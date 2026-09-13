@@ -510,35 +510,29 @@ pub(crate) fn parse_xml_with_budget(
                 }
             }
             Event::GeneralRef(reference) => {
+                // quick-xml resolves the reference, as in the mzML readers.
+                // `resolve_char_ref` applies the XML 1.0 CharRef grammar, so
+                // `&#X2E;`, a signed number and `&#0;` are refused. Without a
+                // DTD, which this reader refuses, only the five predefined
+                // entities exist. `resolve_predefined_entity` is avoided because
+                // quick-xml's `escape-html` feature would switch it to HTML5.
                 let name = reference.decode().map_err(|e| bad(e.to_string()))?;
-                let c = match name.as_ref() {
-                    "amp" => '&',
-                    "lt" => '<',
-                    "gt" => '>',
-                    "apos" => '\'',
-                    "quot" => '"',
-                    value => {
-                        let (digits, base) = if let Some(v) = value.strip_prefix("#x") {
-                            (v, 16)
-                        } else if let Some(v) = value.strip_prefix('#') {
-                            (v, 10)
-                        } else {
-                            return Err(unsupported("external XML entity"));
-                        };
-                        u32::from_str_radix(digits, base)
-                            .ok()
-                            .and_then(char::from_u32)
-                            .ok_or_else(|| bad("invalid XML character reference"))?
-                    }
+                let mut utf8 = [0u8; 4];
+                let text: &str = match reference
+                    .resolve_char_ref()
+                    .map_err(|e| bad(e.to_string()))?
+                {
+                    Some(c) => c.encode_utf8(&mut utf8),
+                    None => quick_xml::escape::resolve_xml_entity(&name)
+                        .ok_or_else(|| unsupported("external XML entity"))?,
                 };
-                let mut buffer = [0u8; 4];
-                xml_text(c.encode_utf8(&mut buffer))?;
+                xml_text(text)?;
                 meter.add(8, name.len())?;
                 stack
                     .last_mut()
                     .ok_or_else(|| bad("entity outside XML root"))?
                     .text
-                    .push(c);
+                    .push_str(text);
             }
             Event::CData(text) => {
                 let text = text.decode().map_err(|e| bad(e.to_string()))?;
@@ -1843,5 +1837,64 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    fn root_text(xml: &str) -> Result<String> {
+        parse_xml_with_budget(
+            xml.as_bytes(),
+            &ReadOptions::default(),
+            8,
+            None,
+            &mut 1_000_000,
+            &mut 1_000_000,
+        )
+        .map(|root| root.text)
+    }
+
+    /// References in element text follow the XML 1.0 `CharRef` and predefined
+    /// entity rules: a lowercase `x` for hexadecimal, no sign, and no NUL.
+    #[test]
+    fn text_references_follow_the_xml_1_0_grammar() {
+        let mut wrong = Vec::new();
+        for (xml, expected) in [
+            ("<r>1&#46;5</r>", "1.5"),
+            ("<r>1&#x2E;5</r>", "1.5"),
+            ("<r>1&#x2e;5</r>", "1.5"),
+            ("<r>&#0046;&#x0002E;</r>", ".."),
+            ("<r>&amp;&lt;&gt;&apos;&quot;</r>", "&<>'\""),
+            ("<r>&#9;&#xA;&#13;&#x10FFFF;</r>", "\t\n\r\u{10FFFF}"),
+        ] {
+            match root_text(xml) {
+                Ok(text) if text == expected => {}
+                other => wrong.push(format!("{xml}: {other:?}")),
+            }
+        }
+        for xml in [
+            "<r>1&#X2E;5</r>",
+            "<r>1&#+46;5</r>",
+            "<r>1&#x+2E;5</r>",
+            "<r>1&#-46;5</r>",
+            "<r>&#0;</r>",
+            "<r>&#x0;</r>",
+            "<r>&#;</r>",
+            "<r>&#x;</r>",
+            "<r>&#xD800;</r>",
+            "<r>&#x110000;</r>",
+            "<r>&#1;</r>",
+            "<r>&#xFFFE;</r>",
+            "<r/>&#46;",
+        ] {
+            match root_text(xml) {
+                Err(Error::Parse { .. }) => {}
+                other => wrong.push(format!("{xml}: {other:?}")),
+            }
+        }
+        for xml in ["<r>&bogus;</r>", "<r>&x2E;</r>", "<r>&AMP;</r>"] {
+            match root_text(xml) {
+                Err(Error::Unsupported(_)) => {}
+                other => wrong.push(format!("{xml}: {other:?}")),
+            }
+        }
+        assert!(wrong.is_empty(), "{wrong:#?}");
     }
 }
