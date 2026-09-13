@@ -18,6 +18,51 @@
 //! Accumulation order is the source's throughout. Where the source's divisor
 //! can be zero the port either refuses or returns the source's value
 //! explicitly; each such place is documented at the item.
+//!
+//! # NaN
+//!
+//! A NaN has no place in a total order, and the source's `std::sort` has a
+//! strict-weak-ordering precondition that a NaN violates outright, so a C++
+//! call that sorts a NaN-bearing range has no defined answer at all. Every
+//! function here that **orders** values therefore refuses a NaN input rather
+//! than producing a plausible number from an arbitrary permutation:
+//!
+//! - [`median`](crate::math::statistic_functions::median),
+//!   [`quantile1st`](crate::math::statistic_functions::quantile1st),
+//!   [`quantile3rd`](crate::math::statistic_functions::quantile3rd),
+//!   [`mad`](crate::math::statistic_functions::mad),
+//!   [`compute_rank`](crate::math::statistic_functions::compute_rank),
+//!   [`rank_correlation_coefficient`](crate::math::statistic_functions::rank_correlation_coefficient)
+//!   and [`SummaryStatistics::new`](crate::math::statistic_functions::SummaryStatistics::new)
+//!   sort or stage a buffer themselves and return
+//!   [`Error::InvalidValue`](crate::Error::InvalidValue).
+//! - [`median_sorted`](crate::math::statistic_functions::median_sorted),
+//!   [`quantile1st_sorted`](crate::math::statistic_functions::quantile1st_sorted),
+//!   [`quantile3rd_sorted`](crate::math::statistic_functions::quantile3rd_sorted)
+//!   and [`quantile`](crate::math::statistic_functions::quantile) require the
+//!   caller to have sorted already, and a NaN makes that claim false; they
+//!   return [`Error::UnsortedData`](crate::Error::UnsortedData), as they do for
+//!   any other order violation. The check is explicit, so a one-element `[NaN]`
+//!   range — which has no adjacent pair to compare — is refused too.
+//! - [`tukey_upper_fence`](crate::math::statistic_functions::tukey_upper_fence),
+//!   [`tail_fraction_above`](crate::math::statistic_functions::tail_fraction_above),
+//!   [`winsorized_quantile`](crate::math::statistic_functions::winsorized_quantile)
+//!   and [`adaptive_quantile`](crate::math::statistic_functions::adaptive_quantile)
+//!   **drop** non-finite values before ordering anything, exactly as the
+//!   source's `std::isfinite` filter does, and so never see a NaN at all.
+//!
+//! An infinity is *not* refused anywhere: it is ordered consistently by both
+//! `std::sort` and `f64::total_cmp`, so the source's answer is well defined and
+//! is reproduced. The functions that neither sort nor buffer — `sum`, `mean`,
+//! `variance`, `covariance`, `mean_square_error`, `mean_absolute_deviation`,
+//! `pearson_correlation_coefficient` — let a NaN propagate into the result,
+//! which is what the source does and is honest about the input. The two label
+//! functions are the exception and are documented at the item:
+//! [`classification_rate`](crate::math::statistic_functions::classification_rate)
+//! and
+//! [`matthews_correlation_coefficient`](crate::math::statistic_functions::matthews_correlation_coefficient)
+//! classify by comparison, and every comparison against a NaN is false, so a
+//! NaN pair silently falls through — source behaviour, reproduced.
 
 use crate::{Error, Result};
 
@@ -67,16 +112,42 @@ fn preflight(count: usize, width: usize) -> Result<()> {
     Ok(())
 }
 
+/// True when no value is NaN.
+fn is_free_of_nan(values: &[f64]) -> bool {
+    !values.iter().any(|value| value.is_nan())
+}
+
 /// True when every adjacent pair is non-decreasing and no value is NaN.
+///
+/// The NaN test is written out rather than left to the pairwise comparison: a
+/// NaN does make `pair[0] <= pair[1]` false for every pair it takes part in,
+/// but a one-element range has no pair at all, and `[NaN]` would otherwise pass
+/// for "sorted" the way `std::is_sorted` passes it.
 fn is_ascending(values: &[f64]) -> bool {
-    values.windows(2).all(|pair| pair[0] <= pair[1])
+    is_free_of_nan(values) && values.windows(2).all(|pair| pair[0] <= pair[1])
+}
+
+/// Fail when any value is NaN, for a function that orders values itself.
+///
+/// See the module's NaN section: the source sorts such a range with
+/// `std::sort`, whose strict-weak-ordering precondition a NaN violates, so
+/// there is no source answer to reproduce. Returning a statistic computed from
+/// an arbitrary permutation would be a plausible wrong number, which is worse
+/// than a refusal.
+fn check_no_nan(values: &[f64]) -> Result<()> {
+    if !is_free_of_nan(values) {
+        return Err(bad("statistics input must not contain NaN"));
+    }
+    Ok(())
 }
 
 /// Sort in place by the IEEE-754 total order.
 ///
 /// The source calls `std::sort`, whose strict-weak-ordering precondition a NaN
-/// violates; this port orders NaN deterministically instead, so a NaN cannot
-/// make the result depend on the sort implementation.
+/// violates. Every caller here has already refused a NaN input, so the total
+/// order and `std::sort`'s comparison agree on everything that reaches this
+/// function; `total_cmp` is kept because it also orders `-0.0` before `0.0`
+/// deterministically.
 fn sort_ascending(values: &mut [f64]) {
     values.sort_by(f64::total_cmp);
 }
@@ -163,7 +234,8 @@ pub fn mean(values: &[f64]) -> Result<f64> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::UnsortedData`] when `values` is not ascending or contains NaN.
+/// [`Error::UnsortedData`] when `values` is not ascending or contains a NaN,
+/// including the single-value range `[NaN]`.
 pub fn median_sorted(values: &[f64]) -> Result<f64> {
     check_not_empty(values)?;
     if !is_ascending(values) {
@@ -189,9 +261,13 @@ fn median_of_sorted(values: &[f64]) -> f64 {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range.
+/// Returns [`Error::InvalidRange`] for an empty range and
+/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
+/// The refusal happens before the sort, so a rejected call leaves the caller's
+/// range in its original order.
 pub fn median(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
+    check_no_nan(values)?;
     sort_ascending(values);
     Ok(median_of_sorted(values))
 }
@@ -211,13 +287,23 @@ pub fn median(values: &mut [f64]) -> Result<f64> {
 /// Returns [`Error::InvalidRange`] for an empty range, and also when the range
 /// exceeds [`MAX_ITEMS`] or [`MAX_BYTES`]; the ceiling is checked before the
 /// buffer is allocated, and the source has no such ceiling.
+///
+/// Returns [`Error::InvalidValue`] when any value, or `median_of_numbers`
+/// itself, is NaN, and also when the staged differences contain a NaN that
+/// neither input had — `inf - inf` is the only way that happens. The buffer is
+/// sorted, so the module's NaN section applies to it.
 pub fn mad(values: &[f64], median_of_numbers: f64) -> Result<f64> {
     check_not_empty(values)?;
+    check_no_nan(values)?;
+    if median_of_numbers.is_nan() {
+        return Err(bad("median absolute deviation median must not be NaN"));
+    }
     preflight(values.len(), size_of::<f64>())?;
     let mut diffs = Vec::with_capacity(values.len());
     for value in values {
         diffs.push((value - median_of_numbers).abs());
     }
+    check_no_nan(&diffs)?;
     sort_ascending(&mut diffs);
     Ok(median_of_sorted(&diffs))
 }
@@ -281,7 +367,8 @@ pub fn absdev_with_mean(values: &[f64], mean_of_numbers: f64) -> Result<f64> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::UnsortedData`] when `values` is not ascending or contains NaN.
+/// [`Error::UnsortedData`] when `values` is not ascending or contains a NaN,
+/// including the single-value range `[NaN]`.
 pub fn quantile1st_sorted(values: &[f64]) -> Result<f64> {
     check_not_empty(values)?;
     if !is_ascending(values) {
@@ -303,9 +390,13 @@ pub fn quantile1st_sorted(values: &[f64]) -> Result<f64> {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range.
+/// Returns [`Error::InvalidRange`] for an empty range and
+/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
+/// The refusal happens before the sort, so a rejected call leaves the caller's
+/// range in its original order.
 pub fn quantile1st(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
+    check_no_nan(values)?;
     sort_ascending(values);
     let size = values.len();
     if size < 3 {
@@ -328,7 +419,8 @@ pub fn quantile1st(values: &mut [f64]) -> Result<f64> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidRange`] for an empty range and
-/// [`Error::UnsortedData`] when `values` is not ascending or contains NaN.
+/// [`Error::UnsortedData`] when `values` is not ascending or contains a NaN,
+/// including the single-value range `[NaN]`.
 pub fn quantile3rd_sorted(values: &[f64]) -> Result<f64> {
     check_not_empty(values)?;
     if !is_ascending(values) {
@@ -347,9 +439,13 @@ pub fn quantile3rd_sorted(values: &[f64]) -> Result<f64> {
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidRange`] for an empty range.
+/// Returns [`Error::InvalidRange`] for an empty range and
+/// [`Error::InvalidValue`] when any value is NaN; see the module's NaN section.
+/// The refusal happens before the sort, so a rejected call leaves the caller's
+/// range in its original order.
 pub fn quantile3rd(values: &mut [f64]) -> Result<f64> {
     check_not_empty(values)?;
+    check_no_nan(values)?;
     sort_ascending(values);
     let size = values.len();
     if size < 3 {
@@ -385,9 +481,11 @@ pub fn quantile3rd(values: &mut [f64]) -> Result<f64> {
 ///
 /// Returns [`Error::InvalidRange`] for an empty range, [`Error::InvalidValue`]
 /// when `q` is outside `[0, 1]` or is NaN, and [`Error::UnsortedData`] when
-/// `values` is not ascending. The source states the sortedness precondition as
-/// `@pre` and checks it only through `OPENMS_PRECONDITION`, which is compiled
-/// out of a release build; this port always checks.
+/// `values` is not ascending **or contains a NaN**, including the single-value
+/// range `[NaN]`, which has no adjacent pair to disagree. The source states the
+/// sortedness precondition as `@pre` and checks it only through
+/// `OPENMS_PRECONDITION`, which is compiled out of a release build; this port
+/// always checks.
 pub fn quantile(values: &[f64], q: f64) -> Result<f64> {
     check_not_empty(values)?;
     if !(0.0..=1.0).contains(&q) {
@@ -772,6 +870,12 @@ pub fn root_mean_square_error(a: &[f64], b: &[f64]) -> Result<f64> {
 /// zero counts as non-negative on both sides. The result is the number of
 /// agreeing positions divided by `n`.
 ///
+/// A NaN on either side makes both of the source's comparisons false, so the
+/// position is counted as *agreeing*. That is the source's arithmetic, not a
+/// substitution — the comparisons are well defined in C++ and produce the same
+/// answer — so it is reproduced rather than refused; nothing here sorts, and
+/// the module's NaN section says why that is the dividing line.
+///
 /// # Errors
 ///
 /// Returns [`Error::InvalidRange`] for an empty range or ranges of different
@@ -800,6 +904,12 @@ pub fn classification_rate(a: &[f64], b: &[f64]) -> Result<f64> {
 /// forces two of the four counts to zero, which makes the numerator exactly
 /// zero as well, so the source's unchecked `0 / 0` is NaN in every case. The
 /// port returns it explicitly rather than dividing.
+///
+/// A NaN on either side of a pair fails all four comparisons, so that pair
+/// increments none of the counts and is silently excluded from the confusion
+/// matrix. As in [`classification_rate`] the comparisons are well defined in
+/// C++ and give the same answer, so the behaviour is reproduced rather than
+/// refused.
 ///
 /// # Errors
 ///
@@ -912,10 +1022,17 @@ pub const COMPUTE_RANK_TIE_TOLERANCE: f64 = 0.000_000_1;
 /// empty slice is a no-op: the source computes `w.size() - 1` in unsigned
 /// arithmetic and wraps to `SIZE_MAX` on an empty vector, which this port
 /// cannot and does not reproduce.
+///
+/// Returns [`Error::InvalidValue`] when any value is NaN. The ranking sorts,
+/// and a NaN would additionally make the tie test — whose two comparisons are
+/// both false against a NaN — split every block that touches it; see the
+/// module's NaN section. The refusal happens before anything is written, so a
+/// rejected call leaves `w` unchanged.
 pub fn compute_rank(w: &mut [f64]) -> Result<()> {
     if w.is_empty() {
         return Ok(());
     }
+    check_no_nan(w)?;
     preflight(w.len(), size_of::<(usize, f64)>())?;
     let mut w_idx: Vec<(usize, f64)> = Vec::with_capacity(w.len());
     for (index, &value) in w.iter().enumerate() {
@@ -970,12 +1087,17 @@ pub fn compute_rank(w: &mut [f64]) -> Result<()> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidRange`] for an empty range, for ranges of different
-/// length, and when a range exceeds [`MAX_ITEMS`] or [`MAX_BYTES`].
+/// length, and when a range exceeds [`MAX_ITEMS`] or [`MAX_BYTES`]; and
+/// [`Error::InvalidValue`] when either range contains a NaN, which
+/// [`compute_rank`] cannot order. Both ranges are checked before either is
+/// copied.
 pub fn rank_correlation_coefficient(a: &[f64], b: &[f64]) -> Result<f64> {
     check_not_empty(a)?;
     if a.len() != b.len() {
         return Err(empty("rank correlation ranges must have the same length"));
     }
+    check_no_nan(a)?;
+    check_no_nan(b)?;
     preflight(a.len(), size_of::<f64>())?;
     let mut ranks_model = a.to_vec();
     let mut ranks_data = b.to_vec();
@@ -1036,14 +1158,20 @@ impl SummaryStatistics {
     ///
     /// # Errors
     ///
+    /// Returns [`Error::InvalidValue`] when the sample contains a NaN, which
+    /// the summary would otherwise sort to one end and report quartiles around;
+    /// see the module's NaN section. The refusal happens before the sort, so a
+    /// rejected call leaves the caller's sample in its original order.
+    ///
     /// Returns [`Error::InvalidRange`] only when an internal quantile refuses,
-    /// which the sort makes unreachable for a non-empty sample; the signature
-    /// keeps the error path rather than asserting the impossibility.
+    /// which the sort makes unreachable for a non-empty, NaN-free sample; the
+    /// signature keeps the error path rather than asserting the impossibility.
     pub fn new(data: &mut [f64]) -> Result<Self> {
         let count = data.len();
         if data.is_empty() {
             return Ok(Self::default());
         }
+        check_no_nan(data)?;
         sort_ascending(data);
         let mean_value = mean(data)?;
         let variance_value = if count > 1 {

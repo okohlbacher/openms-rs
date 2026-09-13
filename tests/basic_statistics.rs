@@ -399,23 +399,44 @@ fn section_normal_approximation_at_coordinates() {
 fn normal_approximation_refuses_a_degenerate_density() {
     let mut stats = BasicStatistics::new();
     stats.set_sum(1.0);
-    stats.set_mean(0.0);
-    // A zero variance makes every density zero away from the mean, so the
-    // normalising sum is NaN at the mean and zero elsewhere; the source divides
-    // by it anyway.
-    assert!(matches!(
-        stats.normal_approximation(0).unwrap_err(),
-        Error::InvalidValue(_)
-    ));
     stats.set_mean(-1.0);
+    // A zero variance makes every density zero away from the mean, so the
+    // normalising sum is zero and the source's `density / gaussSum` is 0/0.
     assert!(matches!(
         stats.normal_approximation(4).unwrap_err(),
         Error::InvalidValue(_)
     ));
     assert!(matches!(
-        stats.normal_approximation_at(&[]).unwrap_err(),
+        stats.normal_approximation_at(&[1.0, 2.0]).unwrap_err(),
         Error::InvalidValue(_)
     ));
+}
+
+// Derived from `normalApproximationHelper_` (BasicStatistics.h:236-252): for
+// `size == 0` both `for (i = 0; i < size; ++i)` loops run zero times, so
+// `gaussSum` stays 0 but nothing ever divides by it and `probability` is left
+// empty. The source returns normally, and so must this — an empty request is
+// not a degenerate density.
+#[test]
+fn normal_approximation_of_nothing_is_empty_not_an_error() {
+    let mut stats = BasicStatistics::new();
+    stats.update(&[0.0, 1.0, 3.0, 2.0, 0.0]).unwrap();
+    assert!(stats.normal_approximation(0).unwrap().is_empty());
+    assert!(stats.normal_approximation_at(&[]).unwrap().is_empty());
+
+    // The same holds when the density itself is degenerate: the source never
+    // reaches the division, so there is nothing to refuse.
+    let mut degenerate = BasicStatistics::new();
+    degenerate.set_sum(1.0);
+    degenerate.set_mean(0.0);
+    assert!(degenerate.normal_approximation(0).unwrap().is_empty());
+    assert!(degenerate.normal_approximation_at(&[]).unwrap().is_empty());
+
+    // And on a default-constructed instance, which is the source's own
+    // `normalApproximation(probability)` on an empty container.
+    let fresh = BasicStatistics::new();
+    assert!(fresh.normal_approximation(0).unwrap().is_empty());
+    assert!(fresh.normal_approximation_at(&[]).unwrap().is_empty());
 }
 
 // Native: the debugging stream operator.

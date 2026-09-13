@@ -119,16 +119,47 @@ whole content is a length question and the class test calls one of them on
 | `Result` instead of exceptions | `Exception::InvalidRange` maps to `Error::InvalidRange` (empty range, mismatched lengths); `Exception::InvalidValue` to `Error::InvalidValue` (`q` outside `[0, 1]`). |
 | The `sorted` boolean becomes two functions | The `false` case mutates the caller's range. `&mut [f64]` states that in the signature; `&[f64]` proves the other does not. |
 | The `mean = DBL_MAX` sentinel becomes two functions | A caller that genuinely wants the deviation about `DBL_MAX` cannot express it in the source. |
-| Sortedness is always checked | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted` and `quantile` return `Error::UnsortedData` for a non-ascending input. The source states the precondition as `@pre` and checks it only through `OPENMS_PRECONDITION`, compiled out of a release build. The check also rejects NaN, which `std::is_sorted` accepts (`!(NaN < x)` is true). |
+| Sortedness is always checked | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted` and `quantile` return `Error::UnsortedData` for a non-ascending input. The source states the precondition as `@pre` and checks it only through `OPENMS_PRECONDITION`, compiled out of a release build. A NaN also fails this check, including in a one-element range, which has no adjacent pair to disagree and which `std::is_sorted` accepts. |
+| A NaN is refused by everything that orders values | See "NaN policy" below. The four functions above report `Error::UnsortedData`, because a NaN makes the caller's sortedness claim false; the seven that sort or stage a buffer themselves — `median`, `quantile1st`, `quantile3rd`, `mad`, `compute_rank`, `rank_correlation_coefficient`, `SummaryStatistics::new` — report `Error::InvalidValue`. |
 | `variance`, `sd` and `covariance` refuse `n < 2` | The `n - 1` divisor is zero there and the source returns NaN. A NaN variance is exactly what this layer would propagate into everything built on it. `SummaryStatistics` keeps the source's `0.0` for `n <= 1`, because the source's own comment fixes that value. |
 | A zero correlation denominator returns NaN explicitly instead of dividing | For both Matthews and Pearson a zero denominator forces a zero numerator (proved below), so `0 / 0 = NaN` is the source's value in every reachable case. The one divergence is a denominator that *underflows* to zero from non-zero deviations, where the source yields an infinity and the port yields NaN. |
 | `adaptive_quantile` rejects non-finite `k`, `r_sparse`, `r_dense` | The source accepts a NaN threshold and lets it decide the blend weight through comparisons that are all false. |
-| Sorting uses `f64::total_cmp` | `std::sort`'s strict-weak-ordering precondition is violated by NaN; the total order makes the result deterministic instead of implementation-defined. |
+| Sorting uses `f64::total_cmp` | Every sorting entry point has already refused a NaN, so the total order and `std::sort`'s `<` agree on everything that reaches the sort; `total_cmp` is kept because it also orders `-0.0` before `0.0` deterministically. |
 | `compute_rank` on an empty slice is a no-op | The source computes `w.size() - 1` in unsigned arithmetic, which wraps to `SIZE_MAX`. |
-| `MAX_ITEMS` / `MAX_BYTES` preflight | Every function that stages an owned buffer (`mad`, `tukey_upper_fence`, `winsorized_quantile`, `adaptive_quantile`, `compute_rank`, `rank_correlation_coefficient`) checks the ceiling before allocating, so a refusal leaves the input unchanged. The source has no ceiling. |
+| `MAX_ITEMS` / `MAX_BYTES` preflight | Every function that stages an owned buffer (`mad`, `tukey_upper_fence`, `winsorized_quantile`, `adaptive_quantile`, `compute_rank`, `rank_correlation_coefficient`) checks the ceiling before allocating, so a refusal leaves the input unchanged. The source has no ceiling. Each preflight is stated per buffer, not per call: `rank_correlation_coefficient` checks one `f64` buffer and then copies two, and `compute_rank` runs its own, wider preflight for the `(usize, f64)` pairs it stages, so the widest single buffer is what `MAX_BYTES` actually bounds. |
 | Lengths are compared up front | `covariance` checks its second range only by re-testing the two *begin* iterators inside the loop — a test whose value never changes — and by comparing the second iterator to its end afterwards, so a short second range is dereferenced out of bounds before the mismatch is noticed. |
 | `matthews_correlation_coefficient` compares each range with itself | The source's emptiness check is `checkIteratorsNotNULL(begin_a, end_b)`: iterators into two different containers, which is undefined behaviour and is not the check it intends. |
 | Serial only | The header carries no `#pragma omp`, so there is no OpenMP gap to record for this file. |
+
+### NaN policy
+
+The source sorts with `std::sort`, whose strict-weak-ordering precondition a
+NaN violates outright, so a C++ call that sorts a NaN-bearing range has no
+defined answer to reproduce — the permutation, and therefore the statistic, is
+whatever the library's introsort happens to do. The port draws the line at
+*ordering*:
+
+| Group | Functions | NaN input |
+| --- | --- | --- |
+| Sorts or stages a buffer it then sorts | `median`, `quantile1st`, `quantile3rd`, `mad`, `compute_rank`, `rank_correlation_coefficient`, `SummaryStatistics::new` | `Error::InvalidValue`, raised before the sort, so the caller's range is left in its original order |
+| Requires the caller to have sorted | `median_sorted`, `quantile1st_sorted`, `quantile3rd_sorted`, `quantile` | `Error::UnsortedData`, the same error any other order violation gets |
+| Drops non-finite values first | `tukey_upper_fence`, `tail_fraction_above`, `winsorized_quantile`, `adaptive_quantile` | filtered out, exactly as the source's `std::isfinite` filter does; never reaches an ordering |
+| Neither sorts nor buffers | `sum`, `mean`, `variance`, `sd`, `covariance`, `mean_square_error`, `root_mean_square_error`, `absdev`, `mean_absolute_deviation`, `pearson_correlation_coefficient` | propagates to a NaN result, as in the source |
+| Classifies by comparison | `classification_rate`, `matthews_correlation_coefficient` | every comparison against a NaN is false, so the pair counts as agreeing (`classification_rate`) or increments none of the four confusion counts (`matthews`). Well defined in C++ and identical there, so it is reproduced rather than refused, and documented at both items |
+
+`mad` additionally refuses a NaN `median_of_numbers`, and refuses the staged
+differences when they contain a NaN neither input had — `inf - inf` is the only
+way that happens.
+
+An infinity is refused nowhere. Both `std::sort` and `f64::total_cmp` order it
+consistently, so the source's answer is well defined and is the port's answer.
+
+This policy is what makes the resource-ceiling and sortedness claims above
+total rather than partial. Before it, five entry points accepted a NaN, sorted
+it to one end by `total_cmp` and returned a plausible finite number:
+`median(&mut [1.0, NaN, 3.0])` answered `3.0` where the median of the real
+values is `2.0`, and `quantile1st(&mut [1.0, NaN, 3.0, 4.0, 5.0])` answered
+`2.0`. `tests/statistic_functions.rs` pins every group in the table.
 
 ### Why a zero denominator implies a zero numerator
 
@@ -149,8 +180,11 @@ Resource boundaries: `MAX_ITEMS = 50_000_000` values per staged buffer and
 allocation. `usize` arithmetic in the preflight is `checked_mul`.
 
 Numeric boundaries: empty and single-element ranges; mismatched lengths;
-`q` outside `[0, 1]` and NaN `q`; non-ascending and NaN-bearing input where
-sortedness is required; non-finite values, which `tukey_upper_fence`,
+`q` outside `[0, 1]` and NaN `q`; a NaN input at every entry point that orders
+values, in both of the groups of the NaN-policy table, and the one-element
+`[NaN]` range that has no adjacent pair; infinities, which are ordered rather
+than refused, including the `inf - inf` NaN that `mad` can manufacture from two
+non-NaN inputs; non-finite values, which `tukey_upper_fence`,
 `tail_fraction_above`, `winsorized_quantile` and `adaptive_quantile` drop as the
 source does; constant ranges in all three correlation coefficients.
 
@@ -173,7 +207,13 @@ Evidence, per `docs/DIFFERENTIAL_VALIDATION.md`:
   Matthews values `1`, `-1` and `2/sqrt(12)`; and the zero-denominator
   equivalence above.
 - **Tier 4 (Rust-only)** for the resource ceilings, the sortedness and NaN
-  refusals, and the `n < 2` variance refusal.
+  refusals, and the `n < 2` variance refusal. The NaN refusals are three tests —
+  `the_sorting_entry_points_refuse_a_nan`,
+  `the_buffering_entry_points_refuse_a_nan` and
+  `the_sorted_entry_points_reject_a_lone_nan` — which together cover every
+  function in the first two rows of the NaN-policy table, assert that a refused
+  call leaves the caller's range unmodified, and assert that an infinity is
+  still ordered.
 
 No tier 1 or tier 2 evidence exists for this group: no retained C++ output
 corresponds to these free functions, and no oracle driver was built.

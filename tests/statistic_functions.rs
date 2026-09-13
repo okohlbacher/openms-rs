@@ -768,3 +768,117 @@ fn bounded_work_refuses_before_allocating() {
         Error::UnsortedData
     ));
 }
+
+fn invalid_value(error: &Error) -> bool {
+    matches!(error, Error::InvalidValue(_))
+}
+
+// Native: every entry point that sorts refuses a NaN instead of answering from
+// an arbitrary permutation. The source's `std::sort` has a strict-weak-ordering
+// precondition that a NaN violates, so there is no C++ answer to reproduce.
+// Each case below returned a plausible *finite* number before this check:
+// `median([1, NaN, 3])` gave 3.0 where the median of the real values is 2.0,
+// and `quantile1st([1, NaN, 3, 4, 5])` gave 2.0.
+#[test]
+fn the_sorting_entry_points_refuse_a_nan() {
+    let mut m = [1.0, f64::NAN, 3.0];
+    assert!(invalid_value(&median(&mut m).unwrap_err()));
+    // Refused before the sort, so the caller's range is untouched.
+    assert_eq!(m[0], 1.0);
+    assert!(m[1].is_nan());
+    assert_eq!(m[2], 3.0);
+
+    let mut q1 = [1.0, f64::NAN, 3.0, 4.0, 5.0];
+    assert!(invalid_value(&quantile1st(&mut q1).unwrap_err()));
+    assert_eq!(q1[0], 1.0);
+    assert!(q1[1].is_nan());
+
+    let mut q3 = [1.0, 2.0, 3.0, f64::NAN, 5.0, 6.0, 7.0];
+    assert!(invalid_value(&quantile3rd(&mut q3).unwrap_err()));
+    assert!(q3[3].is_nan());
+
+    let mut s = [1.0, f64::NAN, 3.0];
+    assert!(invalid_value(&SummaryStatistics::new(&mut s).unwrap_err()));
+    assert!(s[1].is_nan());
+    // A one-value sample too, which sorts trivially and so slipped through a
+    // check phrased as "is it ascending".
+    let mut lone = [f64::NAN];
+    assert!(invalid_value(
+        &SummaryStatistics::new(&mut lone).unwrap_err()
+    ));
+
+    // An infinity is *not* refused: both `std::sort` and `total_cmp` order it,
+    // so the source's answer is well defined and is reproduced.
+    let mut inf = [1.0, f64::INFINITY, 3.0];
+    close(median(&mut inf).unwrap(), 3.0);
+    let mut inf2 = [1.0, f64::NEG_INFINITY, 3.0];
+    close(median(&mut inf2).unwrap(), 1.0);
+}
+
+// Native: the staged-buffer entry points refuse a NaN for the same reason —
+// they sort the buffer they build.
+#[test]
+fn the_buffering_entry_points_refuse_a_nan() {
+    // MAD sorts the absolute differences.
+    assert!(invalid_value(&mad(&[1.0, f64::NAN, 3.0], 2.0).unwrap_err()));
+    // A NaN median poisons every difference, so it is refused as well.
+    assert!(invalid_value(&mad(&[1.0, 2.0, 3.0], f64::NAN).unwrap_err()));
+    // `inf - inf` is a NaN neither input had; the differences are checked too.
+    assert!(invalid_value(
+        &mad(&[f64::INFINITY, 1.0, 2.0], f64::INFINITY).unwrap_err()
+    ));
+    // Two infinities of the same sign subtract to a NaN only against each
+    // other; a finite median leaves them as `inf`, which sorts.
+    close(mad(&[f64::INFINITY, 1.0, 2.0], 1.0).unwrap(), 1.0);
+
+    // computeRank sorts values with their origins, and its tie test is two
+    // comparisons that are both false against a NaN.
+    let mut w = [3.0, f64::NAN, 1.0];
+    assert!(invalid_value(&compute_rank(&mut w).unwrap_err()));
+    // Refused before anything is written back.
+    assert_eq!(w[0], 3.0);
+    assert!(w[1].is_nan());
+    assert_eq!(w[2], 1.0);
+
+    // Spearman ranks both ranges, so a NaN in either is refused, and the
+    // refusal happens before either range is copied.
+    let clean = [1.0, 2.0, 3.0];
+    let dirty = [1.0, f64::NAN, 3.0];
+    assert!(invalid_value(
+        &rank_correlation_coefficient(&dirty, &clean).unwrap_err()
+    ));
+    assert!(invalid_value(
+        &rank_correlation_coefficient(&clean, &dirty).unwrap_err()
+    ));
+}
+
+// Native: the four functions that require a sorted input already rejected a NaN
+// through the ordering test, except in the one range too short to have an
+// adjacent pair. `[NaN]` is "sorted" to `std::is_sorted` and was accepted here
+// too, returning NaN; now the NaN test is explicit and independent of length.
+#[test]
+fn the_sorted_entry_points_reject_a_lone_nan() {
+    assert!(matches!(
+        median_sorted(&[f64::NAN]).unwrap_err(),
+        Error::UnsortedData
+    ));
+    assert!(matches!(
+        quantile1st_sorted(&[f64::NAN]).unwrap_err(),
+        Error::UnsortedData
+    ));
+    assert!(matches!(
+        quantile3rd_sorted(&[f64::NAN]).unwrap_err(),
+        Error::UnsortedData
+    ));
+    assert!(matches!(
+        quantile(&[f64::NAN], 0.5).unwrap_err(),
+        Error::UnsortedData
+    ));
+    // A longer NaN-bearing range keeps the error it always had.
+    assert!(matches!(
+        median_sorted(&[1.0, f64::NAN, 3.0]).unwrap_err(),
+        Error::UnsortedData
+    ));
+    // An ascending range that ends at an infinity is still sorted.
+    close(median_sorted(&[1.0, 2.0, f64::INFINITY]).unwrap(), 2.0);
+}

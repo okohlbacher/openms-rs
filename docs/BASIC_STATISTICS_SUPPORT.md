@@ -75,6 +75,16 @@ caller that wanted "same size as before" passes that length.
 - **`normalApproximation` scales by `sum()`.** Each entry is
   `density(i) / gauss_sum * sum()`, evaluated left to right, so the entries
   carry the distribution's own mass rather than integrating to one.
+- **An empty approximation succeeds and is empty.**
+  `normalApproximationHelper_` (`BasicStatistics.h:236-252`) runs
+  `for (i = 0; i < size; ++i)` twice; for `size == 0` neither loop executes, so
+  `gaussSum` stays `0` but nothing ever divides by it and `probability` is
+  returned empty with no exception. Both `normalApproximation(probability, 0)`
+  and the size-less overload on an empty container therefore succeed, and both
+  `normal_approximation(0)` and `normal_approximation_at(&[])` return
+  `Ok(vec![])` — including on a degenerate or default-constructed distribution,
+  where the zero-sum refusal would otherwise fire on a sum the source never
+  uses.
 - **`sqrt2pi()` is the source's literal**, `2.50662827463100050240`. That
   literal parses to the `f64` `2.5066282746310007`, which is **one unit in the
   last place above** the correctly rounded `sqrt(2 * pi)` = `2.5066282746310002`.
@@ -92,7 +102,7 @@ caller that wanted "same size as before" passes that length.
 | `update_with_coordinates` requires equal lengths | The source takes only a coordinate *begin* iterator and advances it once per probability, so a short coordinate range is read out of bounds. |
 | Both refuse before clearing | A rejected call leaves the previous state intact; the source has nothing to reject. |
 | `normal_density_sqrt2pi` branches on a zero variance | The source divides by it. The branch returns exactly what the division produces — `0.0` away from the mean, NaN at it — so this is a spelled-out equivalence, not a behaviour change, and it satisfies the crate's rule that every division is checked. |
-| `normal_approximation*` refuse a zero or non-finite normalising sum | The source divides by it and fills the output with NaN or infinities. |
+| `normal_approximation*` refuse a zero or non-finite normalising sum | The source divides by it and fills the output with NaN or infinities. The refusal applies only where the source would actually divide: an empty request never reaches the division and succeeds — see the convention below. |
 | `normal_approximation*` return a new `Vec` | The source writes into a caller-supplied container and resizes it. |
 | `Display` prints full `f64` precision | The source's `operator<<` inherits the stream's default six significant digits. This is a debugging helper on both sides; no caller parses it. |
 | `MAX_ITEMS` ceiling | The source resizes to whatever it is handed. |
@@ -107,7 +117,9 @@ allocated.
 Numeric boundaries: an empty probability vector (all three parameters end at
 zero, through the same guard as an all-zero vector); a zero probability mass
 with and without coordinates; a zero variance in both density functions; a
-normalising density sum that is zero or non-finite; mismatched probability and
+normalising density sum that is zero or non-finite, at a non-zero size; an
+approximation of size zero and at an empty coordinate vector, which succeed and
+return empty because the source never divides there; mismatched probability and
 coordinate lengths.
 
 Evidence, per `docs/DIFFERENTIAL_VALIDATION.md`:
@@ -130,6 +142,10 @@ Evidence, per `docs/DIFFERENTIAL_VALIDATION.md`:
   `sqrt(2 * pi)`.
 - **Tier 4 (Rust-only)** for the length check, the ceiling, and the two
   refusals above.
+- **Tier 3 (source review)** for the empty approximation:
+  `normal_approximation_of_nothing_is_empty_not_an_error` is read directly off
+  the two loop bounds of `normalApproximationHelper_`, not off a class-test
+  literal — the class test never calls the helper with a zero size.
 
 No tier 1 or tier 2 evidence exists for this group.
 

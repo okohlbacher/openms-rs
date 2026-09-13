@@ -248,17 +248,28 @@ impl BasicStatistics {
     /// takes an explicit `size` and resizes, and the one that reuses
     /// `probability.size()`. Pass the existing length for the latter.
     ///
+    /// A `size` of zero succeeds and returns an empty vector. The source's
+    /// `normalApproximationHelper_` runs two `for (i = 0; i < size; ++i)` loops,
+    /// neither of which executes: `gaussSum` stays zero but nothing ever divides
+    /// by it, and the container is left empty without an exception. Both
+    /// position-based overloads therefore succeed on an empty request, and so
+    /// does this. The zero-sum refusal below applies only where the source would
+    /// actually have divided.
+    ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when `size` exceeds [`MAX_ITEMS`], and
-    /// when the densities sum to zero or to a non-finite value, which would
-    /// otherwise make every entry NaN or infinite. The source divides
-    /// unchecked.
+    /// when `size` is non-zero and the densities sum to zero or to a non-finite
+    /// value, which would otherwise make every entry NaN or infinite. The source
+    /// divides unchecked.
     pub fn normal_approximation(&self, size: usize) -> Result<Vec<f64>> {
         if size > MAX_ITEMS {
             return Err(bad(
                 "normal approximation size exceeds the supported length",
             ));
+        }
+        if size == 0 {
+            return Ok(Vec::new());
         }
         let mut gauss_sum = 0.0;
         for index in 0..size {
@@ -279,6 +290,10 @@ impl BasicStatistics {
     /// As [`BasicStatistics::normal_approximation`], with `coordinates` in
     /// place of `0, 1, ..., size-1`; the result has one entry per coordinate.
     ///
+    /// An empty coordinate vector succeeds and returns an empty vector, for the
+    /// same reason as a zero `size` there: the source's helper never reaches a
+    /// division.
+    ///
     /// # Errors
     ///
     /// As [`BasicStatistics::normal_approximation`].
@@ -287,6 +302,9 @@ impl BasicStatistics {
             return Err(bad(
                 "normal approximation size exceeds the supported length",
             ));
+        }
+        if coordinates.is_empty() {
+            return Ok(Vec::new());
         }
         let mut gauss_sum = 0.0;
         for &coordinate in coordinates {
