@@ -1,0 +1,292 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "3b8ca94",
+ "license": "BSD-3-Clause for source-derived code, literals and the retained DTA fixtures",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
+   "sha256": "e38817397c8f34619b0231887d0b493928f8889163da88ab6eee275e8313e021"
+  },
+  {
+   "path": "src/openms/source/COMPARISON/SpectrumAlignment.cpp",
+   "sha256": "34c39c22df3d5cb7d5d2781a39959023d80084277c40db9431d6ca8a4f3af008"
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignmentScore.h",
+   "sha256": "25ebe09fe97a7503923968842ce5939fbcb1ab9894165d58255bd11370632404"
+  },
+  {
+   "path": "src/openms/source/COMPARISON/SpectrumAlignmentScore.cpp",
+   "sha256": "2e08a1e8650f3b071068ab0094682ad5b01f2ac0dddcad8cc8c98d97cf8ea111"
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/ZhangSimilarityScore.h",
+   "sha256": "b55d2021fc4cea74dea52e27c97e2f8ca2a3620b856f374aeeaa0f594045fa12"
+  },
+  {
+   "path": "src/openms/source/COMPARISON/ZhangSimilarityScore.cpp",
+   "sha256": "66aa29df1e5a4ce270a8b2e69aa2849b190fe6071c71f2c4a05b70183929c7d3"
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/SteinScottImproveScore.h",
+   "sha256": "b1a807a03f0d6c4242b5dd3d3e42b4b764146dda83c3b573a2283806ec06c52c"
+  },
+  {
+   "path": "src/openms/source/COMPARISON/SteinScottImproveScore.cpp",
+   "sha256": "a6f2b273987ef23d86a12f70cfb2c45cf3ad7c616b57a1d623af07684bfeb84d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SpectrumAlignment_test.cpp",
+   "sha256": "7c31d94741ffd71086ad2dccf4f214c1d8692c1b3033dff6c7759e6f119a0bc1",
+   "role": "Oracle. Five sections; the getSpectrumAlignment section has 14 assertion macros and is the source of every index pair asserted here."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SpectrumAlignmentScore_test.cpp",
+   "sha256": "ca3f64a1af4cce8944224e9b22a2d6cdcf42aa85a1fa018ee98dee4534ab560d",
+   "role": "Oracle for 1.48268 and 3.82472 under TOLERANCE_ABSOLUTE(0.01). Six sections."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ZhangSimilarityScore_test.cpp",
+   "sha256": "6bd7d6311306518df08ffd6690aa8e7938b9806d5de55fa936fb49f5297264c2",
+   "role": "Oracle for 1.82682 and 0.328749. Six sections."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SteinScottImproveScore_test.cpp",
+   "sha256": "e385fde342aaedf136d08e59c2a97249487c6d1a1acc625177b7e438b72b1a62",
+   "role": "Oracle. Six sections; its only numeric assertion is 'if (score > 0.99) score = 1' followed by TEST_REAL_SIMILAR(score, 1), which the Rust test replaces with an exact derived value."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/MatchedIterator.h",
+   "sha256": "79941c1975151fcb2b98228295fcdbad0c8aca966266fc20b053ee27aeeab0d3",
+   "role": "Not ported as its own header. SpectrumAlignment.h:286 instantiates MatchedIterator<PpmTrait> for the relative-tolerance path; read for advanceTarget_'s equal-distance stop and for PpmTrait::allowedTol, which instantiates Math::ppmToMass at float."
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e",
+   "role": "Not ported here; already ledgered. Read for ppmToMass, (ppm / T(1e6)) * mz_ref, whose float instantiation is the alignment's ppm window and whose f64 counterpart crate::concept::math_functions::ppm_to_mass shares the direction convention but not the precision."
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h",
+   "sha256": "3e5d1af32c7704e4368398ac5742603ac876405494bb13899216a9f6c1c77fcc",
+   "role": "Not ported here; ported in wave A as the trait PeakSpectrumCompareFunctor and ledgered partial because nothing implemented it. Three of this package's four types are its first implementors."
+  },
+  {
+   "path": "src/openms/source/COMPARISON/PeakSpectrumCompareFunctor.cpp",
+   "sha256": "85dae27b1795883060ea044e49e14d530736ae97b8c485f3f6437b3227b74aa9",
+   "role": "Not ported here. Read for the base constructor's handler name, which each derivative renames with setName."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/comparison_dfpianger.dta",
+   "sha256": "0175e395630673e3f0a7e44ba9b450aae2af316c18d18587509fddb8e64ae4bb",
+   "upstream_path": "src/tests/class_tests/openms/data/PILISSequenceDB_DFPIANGER_1.dta",
+   "kind": "byte-identical retained upstream class-test input; already in the repository and reused unchanged"
+  },
+  {
+   "path": "tests/data/comparison_alignment_1.dta",
+   "sha256": "10986501b97f6c6de9a37808c97134c9572a5a179465e7034795cb724395933e",
+   "upstream_path": "src/tests/class_tests/openms/data/SpectrumAlignment_in1.dta",
+   "kind": "byte-identical retained upstream class-test input; already in the repository and reused unchanged"
+  },
+  {
+   "path": "tests/data/comparison_alignment_2.dta",
+   "sha256": "9aea8ed6847a47918ecc906b156cf50f75605a02d4284cd1de454e1845090a3f",
+   "upstream_path": "src/tests/class_tests/openms/data/SpectrumAlignment_in2.dta",
+   "kind": "byte-identical retained upstream class-test input; already in the repository and reused unchanged"
+  }
+ ],
+ "native_implementation": [
+  "src/comparison.rs"
+ ],
+ "native_tests": [
+  "tests/comparison_scorers.rs"
+ ],
+ "support_document": "docs/SPECTRUM_ALIGNMENT_SUPPORT.md",
+ "support_documents": [
+  "docs/SPECTRUM_ALIGNMENT_SUPPORT.md",
+  "docs/SPECTRUM_ALIGNMENT_SCORE_SUPPORT.md",
+  "docs/ZHANG_SIMILARITY_SCORE_SUPPORT.md",
+  "docs/STEIN_SCOTT_IMPROVE_SCORE_SUPPORT.md"
+ ],
+ "evidence_tier": "3 (source review: class-test literals transcribed) for the five alignment index pairs, the three alignment sizes and the four fixture scores 1.48268, 3.82472, 1.82682 and 0.328749; 4 (independently derived) for the full-precision values that accompany them, for the Stein/Scott self score, and for every boundary, weighting factor, degenerate denominator and resource ceiling. No tier 1 or tier 2 evidence: these four headers have no retained C++ output and no oracle driver was built for them.",
+ "class_test_review": {
+  "sections_declared": 23,
+  "sections_ported": 23,
+  "sections_also_covered_by_a_pre_existing_rust_test": 5,
+  "sections_unaccounted": 0,
+  "assertion_macros_above_five": "SpectrumAlignment_test.cpp's getSpectrumAlignment section, with 14; it is ported in full rather than mapped.",
+  "literals_transcribed": [
+   {
+    "value": "[(0,0),(1,1),(3,3),(4,5),(6,6)] at tolerance 1.01",
+    "source": "SpectrumAlignment_test.cpp, getSpectrumAlignment section",
+    "independent_derivation": "a Python transcription of the SpectrumAlignment.h banded DP, written from the C++ before the Rust, produces the same five pairs"
+   },
+   {
+    "value": "[(6,6)] at 10 ppm and seven pairs at 10000 ppm",
+    "source": "SpectrumAlignment_test.cpp, getSpectrumAlignment section",
+    "independent_derivation": "the same model's transcription of MatchedIterator<PpmTrait>, in float, produces both"
+   },
+   {
+    "value": 1.48268,
+    "source": "SpectrumAlignmentScore_test.cpp, pairwise and self sections, TOLERANCE_ABSOLUTE(0.01)",
+    "independent_derivation": "the model gives 1.484501010820065 with the source's float intensity product, which the Rust asserts exactly; in f64 it gives 1.4845010143546342, still inside the class test's band, so the class test alone cannot tell the two apart"
+   },
+   {
+    "value": 3.82472,
+    "source": "SpectrumAlignmentScore_test.cpp, pairwise section",
+    "independent_derivation": "the model gives 3.8247227487373805"
+   },
+   {
+    "value": 1.82682,
+    "source": "ZhangSimilarityScore_test.cpp, self and pairwise sections",
+    "independent_derivation": "the model gives 1.8268153570547176"
+   },
+   {
+    "value": 0.328749,
+    "source": "ZhangSimilarityScore_test.cpp, pairwise section",
+    "independent_derivation": "the model gives 0.32874865683513527"
+   },
+   {
+    "value": "score > 0.99, rounded to 1",
+    "source": "SteinScottImproveScore_test.cpp, both operator() sections",
+    "independent_derivation": "closed form: the five peaks are 100 Th apart and the window is +-0.4, so sum = sum1 = sum2 = 2550000 exactly and the score is (2550000 - (0.2/10000) * 3500^2) / 2550000 = 0.9999039215686274, which the Rust asserts as the expression and as the literal"
+   }
+  ],
+  "independent_reimplementation": "A throwaway Python model of SpectrumAlignment.h (banded DP and MatchedIterator<PpmTrait>), SpectrumAlignmentScore.cpp, ZhangSimilarityScore.cpp and SteinScottImproveScore.cpp, using numpy float32 for the intensity products, reproduces all seven class-test literals above. It was written from the C++ before the Rust and is what identified the float intensity product as observable. It is a derivation aid, not committed code, and raises nothing above evidence tier 4."
+ },
+ "source_anchors": {
+  "alignment_unsorted_exception": {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
+   "line": 66,
+   "operation": "throw Exception::IllegalArgument, 'Input to SpectrumAlignment is not sorted!'; the only precondition the source checks in this package"
+  },
+  "alignment_matrix_initialisation": {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
+   "line": 79,
+   "operation": "matrix[0][0] = 0 then matrix[i][0] = i * tolerance and matrix[0][j] = j * tolerance; gap cost is the tolerance, and cells the sparse map never stored fall back to (i - 1 + j - 1) * tolerance"
+  },
+  "alignment_band_tightening": {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
+   "line": 119,
+   "operation": "++left_ptr when pos1 > pos2, diff > tolerance and j > left_ptr + 1; left_ptr is read once when the row's loop is initialised, so the increment takes effect on the next row"
+  },
+  "alignment_off_band_break": {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
+   "line": 112,
+   "operation": "off_band = true when the target peak has run past the reference peak and the next reference peak is still below it; the row ends there"
+  },
+  "alignment_tie_rules": {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
+   "line": 157,
+   "operation": "score_align <= score_up && score_align <= score_left && diff_align <= tolerance; the diagonal wins ties, and the tolerance boundary is inclusive"
+  },
+  "alignment_traceback_start": {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
+   "line": 241,
+   "operation": "Size i = last_i; the traceback starts at the last cell that chose the diagonal, not at the bottom-right corner, so trailing gaps are discarded"
+  },
+  "alignment_ppm_branch": {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
+   "line": 286,
+   "operation": "MatchedIterator<SpectrumType1, PpmTrait> it(s1, s2, tolerance); a float tolerance, a float window from ppmToMass, and a forward cursor that stops at the first equal adjacent distance"
+  },
+  "alignment_score_precondition": {
+   "path": "src/openms/source/COMPARISON/SpectrumAlignmentScore.cpp",
+   "line": 54,
+   "operation": "OPENMS_PRECONDITION(!(use_linear_factor && use_gaussian_factor), ...); compiled out of a release build, after which the linear factor silently wins"
+  },
+  "alignment_score_ppm_window": {
+   "path": "src/openms/source/COMPARISON/SpectrumAlignmentScore.cpp",
+   "line": 81,
+   "operation": "mz_tolerance = is_relative_tolerance ? tolerance * s1[ap.first].getMZ() * 1e-6 : tolerance; a double window with a different grouping from the float ppmToMass window that selected the pair, so a matched pair can fall outside it and give a negative linear factor"
+  },
+  "alignment_score_gaussian": {
+   "path": "src/openms/source/COMPARISON/SpectrumAlignmentScore.cpp",
+   "line": 91,
+   "operation": "epsilon = mz_difference / (3.0 * mz_tolerance * sqrt(2)), then std::erfc(epsilon)"
+  },
+  "alignment_score_float_product": {
+   "path": "src/openms/source/COMPARISON/SpectrumAlignmentScore.cpp",
+   "line": 96,
+   "operation": "sum += sqrt(s1[..].getIntensity() * s2[..].getIntensity() * factor); float * float is a single-precision multiply and only the result meets the double factor"
+  },
+  "alignment_score_denominator": {
+   "path": "src/openms/source/COMPARISON/SpectrumAlignmentScore.cpp",
+   "line": 99,
+   "operation": "score = sum / (sqrt(sum1 * sum2)); one sqrt of a product, not the product of two sqrts, and unguarded against a zero denominator"
+  },
+  "zhang_not_implemented": {
+   "path": "src/openms/source/COMPARISON/ZhangSimilarityScore.cpp",
+   "line": 62,
+   "operation": "throw Exception::NotImplemented when is_relative_tolerance is set, next to a 'TODO remove parameter' comment; the parameter is still registered"
+  },
+  "zhang_pair_walk": {
+   "path": "src/openms/source/COMPARISON/ZhangSimilarityScore.cpp",
+   "line": 144,
+   "operation": "Size j_left(0) then for (Size j = j_left; ...); j_left is read at loop initialisation and written at line 169, so a write applies from the next reference peak, and a matched pair never advances it"
+  },
+  "zhang_strict_window": {
+   "path": "src/openms/source/COMPARISON/ZhangSimilarityScore.cpp",
+   "line": 150,
+   "operation": "if (fabs(pos1 - pos2) < tolerance); strict, unlike SteinScottImproveScore's inclusive <= 2 * epsilon"
+  },
+  "zhang_static_gaussian_denominator": {
+   "path": "src/openms/source/COMPARISON/ZhangSimilarityScore.cpp",
+   "line": 200,
+   "operation": "static const double denominator = mz_tolerance * 3.0 * sqrt(2.0); a function-local static, so the first call in a process fixes the Gaussian scale for every later call, instance and tolerance. Upstream defect; the port evaluates it per call"
+  },
+  "zhang_total_intensity_denominator": {
+   "path": "src/openms/source/COMPARISON/ZhangSimilarityScore.cpp",
+   "line": 188,
+   "operation": "score = sum / (sqrt(sum1 * sum2)) where sum1 and sum2 are total intensities, not squared ones; unguarded against zero"
+  },
+  "stein_scott_constant": {
+   "path": "src/openms/source/COMPARISON/SteinScottImproveScore.cpp",
+   "line": 67,
+   "operation": "const double constant = epsilon / 10000, then z = constant * (sum3 * sum4) at line 88; the two totals are multiplied first"
+  },
+  "stein_scott_inclusive_window": {
+   "path": "src/openms/source/COMPARISON/SteinScottImproveScore.cpp",
+   "line": 95,
+   "operation": "if (std::abs(pos1 - pos2) <= 2 * epsilon); twice the tolerance and inclusive"
+  },
+  "stein_scott_float_product": {
+   "path": "src/openms/source/COMPARISON/SteinScottImproveScore.cpp",
+   "line": 97,
+   "operation": "sum += s1[i].getIntensity() * s2[j].getIntensity(); a float multiply widened on addition to the double accumulator"
+  },
+  "stein_scott_threshold_narrowing": {
+   "path": "src/openms/source/COMPARISON/SteinScottImproveScore.cpp",
+   "line": 115,
+   "operation": "if (score < (float)param_.getValue(\"threshold\")); the threshold narrows to float and is widened again for the comparison, so the default 0.2 compares as 0.20000000298023224"
+  },
+  "functor_naming": {
+   "path": "src/openms/source/COMPARISON/SpectrumAlignmentScore.cpp",
+   "line": 18,
+   "operation": "setName(<derived>) after the base names the handler PeakSpectrumCompareFunctor, then defaults_.setValue(...) and defaultsToParam_(); identical at ZhangSimilarityScore.cpp:23 and SteinScottImproveScore.cpp:20. SpectrumAlignment.cpp:17 instead names its own handler directly"
+  }
+ },
+ "native_boundaries": [
+  "A zero denominator yields a defined score of 0 in all three scorers, where the source divides by zero and returns NaN; this follows the convention the wave-A binned scorers already set in this module",
+  "Both weighting flags at once is Error::InvalidValue in SpectrumAlignmentScorer, whose upstream precondition is a release-build no-op, and in ZhangSimilarityScorer, which upstream silently prefers the Gaussian",
+  "ZhangSimilarityScorer's is_relative_tolerance is Error::Unsupported, the mapping of Exception::NotImplemented",
+  "A negative radicand under a weighting factor is a checked error instead of a NaN score; it is reachable through the disagreement between the alignment's float ppm window and the score's double one",
+  "Unsorted peaks are Error::UnsortedData everywhere, including in Zhang and Stein/Scott where the source does not check although its j_left cursor requires sorted input",
+  "Negative and non-finite intensities and non-finite coordinates, tolerances and thresholds are refused; for SteinScottImproveScorer the negative-intensity check is stricter than the formula needs and is a deliberate module-wide consistency choice",
+  "A negative tolerance is refused by the alignment, where the source silently produces an empty alignment",
+  "max_cells bounds the dynamic program and max_pairs the many-to-many walks. The alignment charges |s1| + |s2| + 1 before the matrix exists and each cell as it is filled; the walks allocate nothing at all, so a refusal leaves both inputs untouched. The source has no ceiling in either case",
+  "All intensity products are computed in f32 exactly as the source computes them, and every reduction is a sequential f64 accumulation in source order. No reduction is parallel or reassociated",
+  "The wave-A Copy structs SpectrumAlignment, SpectrumAlignmentScore, ZhangSimilarityScore and SteinScottImproveScore remain in the module. SpectrumAlignment is this package's alignment implementation, called by SpectrumAligner, so there is one alignment. The three scorers are not: they are parameter-free f64 conveniences with different traversals, groupings and degenerate-case policies. Collapsing each onto its faithful functor is the intended follow-up and was not done here because the merge changes values asserted in tests/comparison.rs, which this package is not permitted to edit"
+ ],
+ "openmp": "No #pragma omp in any of the four headers, their implementation files or MatchedIterator.h; no parallelism gap to record and the port is serial.",
+ "module_layout": "All four ports live in src/comparison.rs rather than a src/comparison/ directory. tools/check_module_cycles.py derives its module set from the directories under src/, so creating src/comparison/ would make 'comparison' a tracked module and introduce seven edges that do not exist in docs/module-cycles.json (analysis, chemistry, format, identification, kernel and processing all name crate::comparison, and comparison names crate::param). The ratchet forbids widening, so the split is deferred rather than forced.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

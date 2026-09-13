@@ -22,8 +22,27 @@
 //! `docs/BINNED_SHARED_PEAK_COUNT_SUPPORT.md`,
 //! `docs/BINNED_SPECTRAL_CONTRAST_ANGLE_SUPPORT.md` and
 //! `docs/BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md`.
+//!
+//! Four of the seven `PeakSpectrumCompareFunctor` derivatives and the
+//! alignment primitive they share are ported as the parameterised functors
+//! [`SpectrumAligner`] (`COMPARISON/SpectrumAlignment.h`),
+//! [`SpectrumAlignmentScorer`] (`COMPARISON/SpectrumAlignmentScore.h`),
+//! [`ZhangSimilarityScorer`] (`COMPARISON/ZhangSimilarityScore.h`) and
+//! [`SteinScottImproveScorer`] (`COMPARISON/SteinScottImproveScore.h`). Their
+//! support documents are `docs/SPECTRUM_ALIGNMENT_SUPPORT.md`,
+//! `docs/SPECTRUM_ALIGNMENT_SCORE_SUPPORT.md`,
+//! `docs/ZHANG_SIMILARITY_SCORE_SUPPORT.md` and
+//! `docs/STEIN_SCOTT_IMPROVE_SCORE_SUPPORT.md`.
+//!
+//! Those four reproduce the source's arithmetic exactly, including the `float`
+//! intensity products the C++ computes before widening to `double`, and read
+//! every setting from a [`DefaultParamHandler`] on each call, as the source
+//! `operator()` reads `param_`. The earlier `Copy` configuration structs
+//! [`SpectrumAlignmentScore`], [`ZhangSimilarityScore`] and
+//! [`SteinScottImproveScore`] remain as `f64` conveniences with no parameter
+//! surface; each functor's support document states the divergence in full.
 
-use crate::param::DefaultParamHandler;
+use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, MSSpectrum, Precursor, Result};
 use std::collections::BTreeMap;
 
@@ -1376,6 +1395,780 @@ fn sum_agreeing_intensities(spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> R
         return Ok(0.0);
     }
     finite_score((f64::from(agreeing) / denominator).min(1.0))
+}
+
+// ---------------------------------------------------------------------------
+// The shared alignment primitive and four of the seven
+// `PeakSpectrumCompareFunctor` derivatives:
+//   COMPARISON/SpectrumAlignment.h
+//   COMPARISON/SpectrumAlignmentScore.h
+//   COMPARISON/ZhangSimilarityScore.h
+//   COMPARISON/SteinScottImproveScore.h
+// ---------------------------------------------------------------------------
+
+/// Default ceiling on the dynamic-programming cells one alignment may fill.
+///
+/// The source's banded alignment allocates a `std::map` row per reference peak
+/// and has no ceiling at all, so two large spectra are an unbounded allocation.
+/// [`SpectrumAligner::max_cells`] and [`SpectrumAlignmentScorer::max_cells`]
+/// start here and are checked before the matrix is built.
+pub const DEFAULT_ALIGNMENT_CELLS: usize = 5_000_000;
+
+/// Default ceiling on the candidate peak pairs one many-to-many score may
+/// examine.
+///
+/// [`ZhangSimilarityScore`] and [`SteinScottImproveScore`] walk a sliding window
+/// whose worst case is `|s1| * |s2|` comparisons; the source has no ceiling.
+/// [`ZhangSimilarityScorer::max_pairs`] and
+/// [`SteinScottImproveScorer::max_pairs`] start here. Candidates are counted as
+/// they are examined, including those the match predicate then rejects, because
+/// examining them is the cost being bounded.
+pub const DEFAULT_SCORED_PAIRS: usize = 5_000_000;
+
+/// Read a `double` parameter, as the source's `(double)param_.getValue(key)`.
+fn parameter_float(handler: &DefaultParamHandler, key: &str) -> Result<f64> {
+    handler.parameters().value(key)?.to_f64()
+}
+
+/// Read a flag, as the source's `param_.getValue(key).toBool()`.
+fn parameter_bool(handler: &DefaultParamHandler, key: &str) -> Result<bool> {
+    handler.parameters().value(key)?.to_bool()
+}
+
+/// Register a `"true"`/`"false"` flag with the source's valid-string restriction.
+fn flag_default(defaults: &mut Param, key: &str, description: &str) -> Result<()> {
+    defaults.set_value(key, ParamValue::String("false".into()), description, &[])?;
+    defaults.set_valid_strings(key, &["true".to_string(), "false".to_string()])
+}
+
+/// The `float` product of two peak intensities, widened afterwards.
+///
+/// `Peak1D::getIntensity` returns `float`, so `s1[i].getIntensity() *
+/// s2[j].getIntensity()` is a single-precision multiply in every one of these
+/// scorers and only the *result* is promoted when it meets a `double`. Computing
+/// the same product in `f64` would be exact - an `f32` product needs at most 48
+/// mantissa bits - and would therefore *not* match the source. This rounding is
+/// worth about 3.5e-9 relative on the upstream `DFPIANGER` fixture.
+fn source_intensity_product(a: &crate::Peak1D, b: &crate::Peak1D) -> f64 {
+    f64::from(a.intensity * b.intensity)
+}
+
+/// Walk the candidate peak pairs exactly as `ZhangSimilarityScore::operator()`
+/// and `SteinScottImproveScore::operator()` do.
+///
+/// Both bodies are the same loop over a persistent `j_left` cursor that is only
+/// advanced when a target peak lies at least the window below the current
+/// reference peak, and they differ solely in `matches`: `fabs(d) < tolerance`
+/// for Zhang, `fabs(d) <= 2 * epsilon` for Stein/Scott. `j_left` is read when a
+/// reference peak's inner loop starts and written during it, so a write takes
+/// effect on the *next* reference peak, never the current one - that is the
+/// source's `for (Size j = j_left; ...)` initialisation, reproduced here.
+///
+/// Nothing is allocated, so exceeding `max_pairs` leaves both inputs and every
+/// accumulator untouched by construction.
+fn source_pair_walk(
+    spec1: &MSSpectrum,
+    spec2: &MSSpectrum,
+    max_pairs: usize,
+    matches: impl Fn(f64) -> bool,
+    mut visit: impl FnMut(usize, usize) -> Result<()>,
+) -> Result<()> {
+    if max_pairs == 0 {
+        return Err(bad("pair limit must be positive"));
+    }
+    let mut j_left = 0;
+    let mut used = 0;
+    for (i, peak1) in spec1.peaks.iter().enumerate() {
+        let mut j = j_left;
+        while j < spec2.len() {
+            let pos2 = spec2.peaks[j].mz;
+            if used == max_pairs {
+                return Err(bad("comparison exceeds configured pair limit"));
+            }
+            used += 1;
+            let distance = (peak1.mz - pos2).abs();
+            if matches(distance) {
+                visit(i, j)?;
+            } else if pos2 > peak1.mz {
+                break;
+            } else {
+                j_left = j;
+            }
+            j += 1;
+        }
+    }
+    Ok(())
+}
+
+/// Sum of squared intensities, the source's `sum1`/`sum2` accumulation.
+///
+/// `pow(p.getIntensity(), 2)` resolves to the `double` overload, so each `float`
+/// intensity is widened first and the square is exact; the running total is
+/// `double`. `powi(2)` is the same single multiplication.
+fn squared_intensity_sum(spectrum: &MSSpectrum) -> f64 {
+    spectrum
+        .peaks
+        .iter()
+        .map(|p| f64::from(p.intensity).powi(2))
+        .sum()
+}
+
+/// Aligns the peaks of two sorted spectra.
+///
+/// **Method 1**: a banded alignment - the band width comes from the `tolerance`
+/// parameter - when an absolute tolerance is given. The scoring function is the
+/// m/z distance between peaks; intensity plays no role.
+///
+/// **Method 2**: when a relative tolerance (ppm) is specified, a simple matching
+/// of peaks is performed. Peaks from `s1` - usually the theoretical spectrum -
+/// are assigned to the closest peak in `s2` if it lies inside the tolerance
+/// window.
+///
+/// A peak in `s2` can be matched to none, one or several peaks in `s1`; a peak
+/// in `s1` is matched to none or one peak in `s2`. Intensity is ignored. The
+/// source carries a `TODO` about the `O(|s1| * log(|s2|))` complexity of this
+/// second method; the port's ppm path is a single forward merge, so it is
+/// `O(|s1| + |s2|)`, and the `TODO` is discharged rather than carried over.
+///
+/// This is the source `SpectrumAlignment` class: a `DefaultParamHandler` whose
+/// only member is the parameter tree, wrapped here by composition instead of
+/// inheritance. The alignment itself is [`SpectrumAlignment`], which this type
+/// configures from its parameters; the two cannot disagree because there is one
+/// implementation. See `docs/SPECTRUM_ALIGNMENT_SUPPORT.md`.
+///
+/// ```
+/// use openms::comparison::SpectrumAligner;
+/// use openms::{MSSpectrum, Peak1D};
+///
+/// let reference = MSSpectrum::from_peaks(vec![Peak1D::new(100.0, 1.0), Peak1D::new(200.0, 1.0)]);
+/// let target = MSSpectrum::from_peaks(vec![Peak1D::new(100.1, 1.0)]);
+/// let aligner = SpectrumAligner::new()?;
+/// assert_eq!(aligner.spectrum_alignment(&reference, &target)?, [(0, 0)]);
+/// # Ok::<(), openms::Error>(())
+/// ```
+#[derive(Clone, Debug, PartialEq)]
+pub struct SpectrumAligner {
+    handler: DefaultParamHandler,
+    /// Ceiling on dynamic-programming cells, defaulting to
+    /// [`DEFAULT_ALIGNMENT_CELLS`]. Native: the source has no ceiling.
+    pub max_cells: usize,
+}
+
+impl SpectrumAligner {
+    /// Construct with the source's registered name and defaults: `tolerance`
+    /// `0.3` and `is_relative_tolerance` `"false"`.
+    ///
+    /// Reproduces `SpectrumAlignment.cpp:17-22`, which names the handler
+    /// `"SpectrumAlignment"`, registers both defaults with the `"true"`/`"false"`
+    /// restriction on the flag, and finishes with `defaultsToParam_()`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed name or defaults, which cannot happen for these literals.
+    pub fn new() -> Result<Self> {
+        let mut handler = DefaultParamHandler::new("SpectrumAlignment")?;
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "tolerance",
+            ParamValue::Float(0.3),
+            "Defines the absolute (in Da) or relative (in ppm) tolerance",
+            &[],
+        )?;
+        flag_default(
+            &mut defaults,
+            "is_relative_tolerance",
+            "If true, the 'tolerance' is interpreted as ppm-value",
+        )?;
+        handler.set_defaults(defaults)?;
+        handler.defaults_to_parameters()?;
+        Ok(Self {
+            handler,
+            max_cells: DEFAULT_ALIGNMENT_CELLS,
+        })
+    }
+
+    /// The parameter surface the source inherits from `DefaultParamHandler`.
+    /// Change settings through [`DefaultParamHandler::set_parameters`] on
+    /// [`handler_mut`](Self::handler_mut), as the source's `setParameters` does.
+    pub fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    /// Mutable parameter surface, for `setParameters` and `setName`.
+    pub fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// Registered name, as `DefaultParamHandler::getName`.
+    pub fn name(&self) -> &str {
+        self.handler.name()
+    }
+
+    /// Current `tolerance` and `is_relative_tolerance` as the matching window
+    /// [`SpectrumAlignment`] applies.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when either parameter is missing or has
+    /// the wrong type, which `set_parameters` prevents.
+    pub fn tolerance(&self) -> Result<Tolerance> {
+        let value = parameter_float(&self.handler, "tolerance")?;
+        Ok(if parameter_bool(&self.handler, "is_relative_tolerance")? {
+            Tolerance::Ppm(value)
+        } else {
+            Tolerance::Absolute(value)
+        })
+    }
+
+    /// Ordered zero-based `(reference, target)` index pairs for `s1` and `s2`.
+    ///
+    /// The source signature is `void getSpectrumAlignment(vector<pair<Size,
+    /// Size>>& alignment, const SpectrumType1& s1, const SpectrumType2& s2)`,
+    /// which clears the out-parameter first; the port returns the vector.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when either spectrum is not sorted by
+    /// m/z - the source's `Exception::IllegalArgument`, "Input to
+    /// SpectrumAlignment is not sorted!" - and [`Error::InvalidValue`] for a
+    /// non-finite coordinate, a negative or non-finite tolerance, a ppm
+    /// coordinate outside the `f32` range the source's `MatchedIterator`
+    /// narrows to, or an alignment needing more than
+    /// [`max_cells`](Self::max_cells) cells. Two empty spectra, or one empty
+    /// spectrum, yield an empty alignment, as upstream: the matrix is
+    /// initialised, neither loop body runs, and the traceback starts at `(0, 0)`.
+    pub fn spectrum_alignment(
+        &self,
+        s1: &MSSpectrum,
+        s2: &MSSpectrum,
+    ) -> Result<Vec<(usize, usize)>> {
+        SpectrumAlignment {
+            tolerance: self.tolerance()?,
+            max_cells: self.max_cells,
+        }
+        .align(s1, s2)
+    }
+}
+
+/// Similarity score via spectra alignment.
+///
+/// This class implements a simple scoring based on the alignment of spectra.
+/// The alignment is implemented in [`SpectrumAligner`] and performs a dynamic
+/// programming alignment of the peaks, minimising the distances between the
+/// aligned peaks and maximising the number of peak pairs.
+///
+/// The scoring is done via the simple formula `score = sum / sqrt(sum1 * sum2)`.
+/// `sum` accumulates `sqrt(I1 * I2 * factor)` over the aligned peak pairs, and
+/// `sum1` and `sum2` are the sums of the squared intensities of the two spectra.
+/// The class comment's "with the given exponent (default is 2)" describes a
+/// parameter this class has never registered; the exponent is fixed at two by
+/// the `pow(getIntensity(), 2)` in the body.
+///
+/// A binned version of this scoring is implemented in the
+/// [`BinnedSpectralContrastAngle`] family.
+///
+/// **This is not a cosine**: the numerator sums square roots of intensity
+/// products while the denominator sums squares, so a self-score is generally
+/// greater than one - `1.4845` on the upstream `DFPIANGER` fixture.
+///
+/// Parameters, all registered by `SpectrumAlignmentScore.cpp:18-26`:
+///
+/// | Key | Default | Meaning |
+/// | --- | --- | --- |
+/// | `tolerance` | `0.3` | absolute (Da) or relative (ppm) tolerance |
+/// | `is_relative_tolerance` | `"false"` | interpret `tolerance` as ppm |
+/// | `use_linear_factor` | `"false"` | weight intensities by the relative m/z difference |
+/// | `use_gaussian_factor` | `"false"` | weight them by a Gaussian of that difference |
+///
+/// See `docs/SPECTRUM_ALIGNMENT_SCORE_SUPPORT.md`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SpectrumAlignmentScorer {
+    handler: DefaultParamHandler,
+    /// Ceiling on dynamic-programming cells, defaulting to
+    /// [`DEFAULT_ALIGNMENT_CELLS`]. Native: the source has no ceiling.
+    pub max_cells: usize,
+}
+
+impl SpectrumAlignmentScorer {
+    /// Construct with the source's registered name and its four defaults.
+    ///
+    /// Reproduces `SpectrumAlignmentScore.cpp:15-27`: the base constructor names
+    /// the handler `"PeakSpectrumCompareFunctor"`, `setName` renames it, the four
+    /// defaults are registered and `defaultsToParam_()` copies them into the
+    /// current parameters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed name or defaults, which cannot happen for these literals.
+    pub fn new() -> Result<Self> {
+        let mut handler = DefaultParamHandler::new("PeakSpectrumCompareFunctor")?;
+        handler.set_name("SpectrumAlignmentScore")?;
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "tolerance",
+            ParamValue::Float(0.3),
+            "Defines the absolute (in Da) or relative (in ppm) tolerance",
+            &[],
+        )?;
+        flag_default(
+            &mut defaults,
+            "is_relative_tolerance",
+            "if true, the tolerance value is interpreted as ppm",
+        )?;
+        flag_default(
+            &mut defaults,
+            "use_linear_factor",
+            "if true, the intensities are weighted with the relative m/z difference",
+        )?;
+        flag_default(
+            &mut defaults,
+            "use_gaussian_factor",
+            "if true, the intensities are weighted with the relative m/z difference using a gaussian",
+        )?;
+        handler.set_defaults(defaults)?;
+        handler.defaults_to_parameters()?;
+        Ok(Self {
+            handler,
+            max_cells: DEFAULT_ALIGNMENT_CELLS,
+        })
+    }
+}
+
+impl PeakSpectrumCompareFunctor for SpectrumAlignmentScorer {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// `sum / sqrt(sum1 * sum2)` over the alignment of `a` and `b`.
+    ///
+    /// The denominator grouping is the source's: one `sqrt` of the product of
+    /// the two squared-intensity sums, not the product of two `sqrt`s.
+    ///
+    /// With `is_relative_tolerance` the per-pair window is recomputed here as
+    /// `tolerance * mz1 * 1e-6` in `double`, which is **not** the window that
+    /// selected the pair: the alignment's `MatchedIterator` instantiates
+    /// `Math::ppmToMass` at `float` and evaluates `(tolerance / 1e6) * mz` there.
+    /// A pair can therefore be matched and then carry `mz_difference >
+    /// mz_tolerance`, making a linear factor negative. The source takes the
+    /// square root of that negative product and returns NaN; this port reports
+    /// [`Error::InvalidValue`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks and
+    /// [`Error::InvalidValue`] for a non-finite coordinate or intensity, a
+    /// negative intensity, a negative or non-finite tolerance, an alignment
+    /// exceeding [`max_cells`](Self::max_cells), both weighting flags set at
+    /// once, a zero m/z tolerance under a weighting flag, a negative weighted
+    /// product, or a non-finite score.
+    ///
+    /// Both weighting flags set is `OPENMS_PRECONDITION(!(use_linear_factor &&
+    /// use_gaussian_factor), ...)` upstream, which is compiled out of a release
+    /// build and then silently lets the linear factor win; here it is an error.
+    ///
+    /// A zero squared-intensity sum on either side yields `Ok(0.0)`. The source
+    /// computes `0.0 / sqrt(0.0)` and returns NaN. That covers two empty
+    /// spectra and one empty spectrum, and the module's binned scorers make the
+    /// same choice. Two spectra with no peak inside the tolerance align to no
+    /// pairs and score an unremarkable `0.0` in both the source and here.
+    fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
+        let tolerance = parameter_float(&self.handler, "tolerance")?;
+        let relative = parameter_bool(&self.handler, "is_relative_tolerance")?;
+        let linear = parameter_bool(&self.handler, "use_linear_factor")?;
+        let gaussian = parameter_bool(&self.handler, "use_gaussian_factor")?;
+        if linear && gaussian {
+            return Err(bad(
+                "use either 'use_linear_factor' or 'use_gaussian_factor', not both",
+            ));
+        }
+        validate_spectrum(a, true)?;
+        validate_spectrum(b, true)?;
+        let aligner = SpectrumAlignment {
+            tolerance: if relative {
+                Tolerance::Ppm(tolerance)
+            } else {
+                Tolerance::Absolute(tolerance)
+            },
+            max_cells: self.max_cells,
+        };
+        let alignment = aligner.align(a, b)?;
+        let sum1 = squared_intensity_sum(a);
+        let sum2 = squared_intensity_sum(b);
+        let mut sum = 0.0;
+        for (i, j) in alignment {
+            let (p, q) = (a.peaks[i], b.peaks[j]);
+            // Source: `tolerance * s1[ap.first].getMZ() * 1e-6`, in this order.
+            let mz_tolerance = if relative {
+                tolerance * p.mz * 1e-6
+            } else {
+                tolerance
+            };
+            let mz_difference = (p.mz - q.mz).abs();
+            let factor = if linear || gaussian {
+                if mz_tolerance == 0.0 {
+                    return Err(bad("distance weighting divides by a zero m/z tolerance"));
+                }
+                if linear {
+                    (mz_tolerance - mz_difference) / mz_tolerance
+                } else {
+                    libm::erfc(mz_difference / (3.0 * mz_tolerance * std::f64::consts::SQRT_2))
+                }
+            } else {
+                1.0
+            };
+            sum += checked_sqrt(source_intensity_product(&p, &q) * factor)?;
+        }
+        let denominator = checked_sqrt(sum1 * sum2)?;
+        if denominator == 0.0 {
+            return Ok(0.0);
+        }
+        finite_score(sum / denominator)
+    }
+}
+
+/// Similarity score of Zhang.
+///
+/// The details of the score can be found in: Z. Zhang, Prediction of Low-Energy
+/// Collision-Induced Dissociation Spectra of Peptides, Anal. Chem., 76 (14),
+/// 3908-3922, 2004.
+///
+/// Every peak pair closer than `tolerance` contributes `sqrt(I1 * I2 * factor)`,
+/// and the total is divided by `sqrt(sum1 * sum2)` where `sum1` and `sum2` are
+/// the two spectra's total intensities. Unlike [`SpectrumAlignmentScorer`] this
+/// is a many-to-many comparison: no alignment restricts a peak to one partner.
+///
+/// Parameters, all registered by `ZhangSimilarityScore.cpp:22-31`:
+///
+/// | Key | Default | Meaning |
+/// | --- | --- | --- |
+/// | `tolerance` | `0.2` | absolute (Da) or relative (ppm) tolerance |
+/// | `is_relative_tolerance` | `"false"` | **unimplemented upstream**; see [`score`](PeakSpectrumCompareFunctor::score) |
+/// | `use_linear_factor` | `"false"` | weight intensities by the relative m/z difference |
+/// | `use_gaussian_factor` | `"false"` | weight them by a Gaussian of that difference |
+///
+/// See `docs/ZHANG_SIMILARITY_SCORE_SUPPORT.md`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ZhangSimilarityScorer {
+    handler: DefaultParamHandler,
+    /// Ceiling on examined candidate pairs, defaulting to
+    /// [`DEFAULT_SCORED_PAIRS`]. Native: the source has no ceiling.
+    pub max_pairs: usize,
+}
+
+impl ZhangSimilarityScorer {
+    /// Construct with the source's registered name and its four defaults.
+    ///
+    /// Reproduces `ZhangSimilarityScore.cpp:20-32`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed name or defaults, which cannot happen for these literals.
+    pub fn new() -> Result<Self> {
+        let mut handler = DefaultParamHandler::new("PeakSpectrumCompareFunctor")?;
+        handler.set_name("ZhangSimilarityScore")?;
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "tolerance",
+            ParamValue::Float(0.2),
+            "defines the absolute (in Da) or relative (in ppm) tolerance",
+            &[],
+        )?;
+        flag_default(
+            &mut defaults,
+            "is_relative_tolerance",
+            "If set to true, the tolerance is interpreted as relative",
+        )?;
+        flag_default(
+            &mut defaults,
+            "use_linear_factor",
+            "if true, the intensities are weighted with the relative m/z difference",
+        )?;
+        flag_default(
+            &mut defaults,
+            "use_gaussian_factor",
+            "if true, the intensities are weighted with the relative m/z difference using a gaussian",
+        )?;
+        handler.set_defaults(defaults)?;
+        handler.defaults_to_parameters()?;
+        Ok(Self {
+            handler,
+            max_pairs: DEFAULT_SCORED_PAIRS,
+        })
+    }
+
+    /// The source's protected `getFactor_(mz_tolerance, mz_difference,
+    /// is_gaussian)`.
+    ///
+    /// Gaussian: `erfc(mz_difference / (mz_tolerance * 3 * sqrt(2)))`. Linear:
+    /// `(mz_tolerance - mz_difference) / mz_tolerance`.
+    ///
+    /// **The source caches the Gaussian denominator in a function-local
+    /// `static const double`**, so the very first call in a process fixes
+    /// `mz_tolerance * 3 * sqrt(2)` for every later call, whatever tolerance or
+    /// instance it belongs to. This port evaluates it per call. Reproducing the
+    /// cache would mean carrying a process-global whose value depends on which
+    /// score ran first, which is not a behaviour a caller can rely on; it is
+    /// recorded as an upstream defect instead.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a non-positive or non-finite
+    /// `mz_tolerance`, which divides by zero upstream. The scoring loop cannot
+    /// reach it: a pair exists only when `mz_difference < mz_tolerance` and
+    /// `mz_difference` is a non-negative absolute value.
+    pub fn factor(mz_tolerance: f64, mz_difference: f64, is_gaussian: bool) -> Result<f64> {
+        if !mz_tolerance.is_finite() || mz_tolerance <= 0.0 {
+            return Err(bad("Zhang weighting requires a positive m/z tolerance"));
+        }
+        Ok(if is_gaussian {
+            libm::erfc(mz_difference / (mz_tolerance * 3.0 * 2.0_f64.sqrt()))
+        } else {
+            (mz_tolerance - mz_difference) / mz_tolerance
+        })
+    }
+}
+
+impl PeakSpectrumCompareFunctor for ZhangSimilarityScorer {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// `sum / sqrt(sum1 * sum2)` over every peak pair closer than `tolerance`.
+    ///
+    /// `sum1` and `sum2` are total intensities, not squared ones - that is the
+    /// difference from [`SpectrumAlignmentScorer`], together with the
+    /// many-to-many pairing.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Unsupported`] when `is_relative_tolerance` is set: the
+    /// source throws `Exception::NotImplemented` and carries a `TODO` to remove
+    /// the parameter. The parameter is still registered here so that a `Param`
+    /// tree round-trips between the two.
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks and
+    /// [`Error::InvalidValue`] for a non-finite coordinate or intensity, a
+    /// negative intensity, a non-finite tolerance, more than
+    /// [`max_pairs`](Self::max_pairs) examined candidates, both weighting flags
+    /// set at once, or a non-finite score. The source does not check
+    /// sortedness, although its sliding `j_left` cursor requires it.
+    ///
+    /// A zero total intensity on either side yields `Ok(0.0)`, covering two
+    /// empty spectra and one empty spectrum; the source computes `0.0 /
+    /// sqrt(0.0)` and returns NaN. Two spectra with no peak inside the tolerance
+    /// produce no pairs and score `0.0` in both.
+    ///
+    /// Setting both weighting flags is accepted upstream and the Gaussian wins,
+    /// because `getFactor_` takes `use_gaussian_factor` as its switch. The
+    /// sibling [`SpectrumAlignmentScorer`] resolves the same clash the other way
+    /// and its debug-only precondition rejects it. The port refuses it in both.
+    fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
+        let tolerance = parameter_float(&self.handler, "tolerance")?;
+        if parameter_bool(&self.handler, "is_relative_tolerance")? {
+            return Err(Error::Unsupported(
+                "ZhangSimilarityScore does not implement a relative tolerance".into(),
+            ));
+        }
+        let linear = parameter_bool(&self.handler, "use_linear_factor")?;
+        let gaussian = parameter_bool(&self.handler, "use_gaussian_factor")?;
+        if linear && gaussian {
+            return Err(bad(
+                "use either 'use_linear_factor' or 'use_gaussian_factor', not both",
+            ));
+        }
+        if !tolerance.is_finite() {
+            return Err(bad("Zhang tolerance must be finite"));
+        }
+        validate_spectrum(a, true)?;
+        validate_spectrum(b, true)?;
+        let sum1: f64 = a.peaks.iter().map(|p| f64::from(p.intensity)).sum();
+        let sum2: f64 = b.peaks.iter().map(|p| f64::from(p.intensity)).sum();
+        let mut sum = 0.0;
+        source_pair_walk(
+            a,
+            b,
+            self.max_pairs,
+            |distance| distance < tolerance,
+            |i, j| {
+                let (p, q) = (a.peaks[i], b.peaks[j]);
+                let factor = if linear || gaussian {
+                    Self::factor(tolerance, (p.mz - q.mz).abs(), gaussian)?
+                } else {
+                    1.0
+                };
+                sum += checked_sqrt(source_intensity_product(&p, &q) * factor)?;
+                Ok(())
+            },
+        )?;
+        let denominator = checked_sqrt(sum1 * sum2)?;
+        if denominator == 0.0 {
+            return Ok(0.0);
+        }
+        finite_score(sum / denominator)
+    }
+}
+
+/// Similarity score based on Stein and Scott.
+///
+/// This is a pairwise score function. The spectrum contains peaks, and each peak
+/// is defined by two values, m/z and intensity. The score function takes the sum
+/// of the products of the peak intensities from spectrum 1 and spectrum 2, but
+/// only where the m/z distance between the two peaks is smaller than a given
+/// window size; by default the window is the accuracy of the mass spectrometer.
+/// That sum is normalised by dividing it by a distance function,
+/// `sqrt(sum of squared intensities of spectrum 1 * the same for spectrum 2)`.
+///
+/// To distinguish close from distant spectra an additional term is subtracted.
+/// It denotes the expected value of both spectra under random placement of all
+/// peaks within the given mass-to-charge range. The probability that two peaks
+/// with randomised intensity values lie within two epsilon of each other is a
+/// constant proportional to epsilon, so the additional term is that constant
+/// times the product of the two spectra's total intensities.
+///
+/// The details of the score can be found in: Signal Maps for Mass
+/// Spectrometry-based Comparative Proteomics; Amol Prakash, Parag Mallick,
+/// Jeffrey Whiteaker, Heidi Zhang, Amanda Paulovich, Mark Flory, Hookeun Lee,
+/// Ruedi Aebersold and Benno Schwikowski.
+///
+/// Note that the window actually applied is `2 * tolerance` and that its
+/// boundary is inclusive, while the constant subtracted is `tolerance / 10000`.
+///
+/// Parameters, both registered by `SteinScottImproveScore.cpp:21-23`:
+///
+/// | Key | Default | Meaning |
+/// | --- | --- | --- |
+/// | `tolerance` | `0.2` | the absolute error of the mass spectrometer |
+/// | `threshold` | `0.2` | a score below this is reported as zero |
+///
+/// Neither carries a valid-string or range restriction upstream, so neither does
+/// here. See `docs/STEIN_SCOTT_IMPROVE_SCORE_SUPPORT.md`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SteinScottImproveScorer {
+    handler: DefaultParamHandler,
+    /// Ceiling on examined candidate pairs, defaulting to
+    /// [`DEFAULT_SCORED_PAIRS`]. Native: the source has no ceiling.
+    pub max_pairs: usize,
+}
+
+impl SteinScottImproveScorer {
+    /// Construct with the source's registered name and its two defaults.
+    ///
+    /// Reproduces `SteinScottImproveScore.cpp:17-24`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed name or defaults, which cannot happen for these literals.
+    pub fn new() -> Result<Self> {
+        let mut handler = DefaultParamHandler::new("PeakSpectrumCompareFunctor")?;
+        handler.set_name("SteinScottImproveScore")?;
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "tolerance",
+            ParamValue::Float(0.2),
+            "defines the absolute error of the mass spectrometer",
+            &[],
+        )?;
+        defaults.set_value(
+            "threshold",
+            ParamValue::Float(0.2),
+            "if the calculated score is smaller than the threshold, a zero is given back",
+            &[],
+        )?;
+        handler.set_defaults(defaults)?;
+        handler.defaults_to_parameters()?;
+        Ok(Self {
+            handler,
+            max_pairs: DEFAULT_SCORED_PAIRS,
+        })
+    }
+}
+
+impl PeakSpectrumCompareFunctor for SteinScottImproveScorer {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// `(sum - z) / sqrt(sum1 * sum2)`, reported as zero below `threshold`.
+    ///
+    /// `sum` adds `I1 * I2` over every peak pair no further apart than
+    /// `2 * tolerance`, `sum1` and `sum2` are squared-intensity sums, and
+    /// `z = tolerance / 10000 * (total1 * total2)` with that exact grouping.
+    ///
+    /// `threshold` is compared after a narrowing to `f32`, because the source
+    /// writes `score < (float)param_.getValue("threshold")` and the `float` is
+    /// then widened again for the comparison. The default `0.2` therefore
+    /// compares against `0.20000000298023224`, not against `0.2`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks and
+    /// [`Error::InvalidValue`] for a non-finite coordinate or intensity, a
+    /// negative intensity, a non-finite tolerance or threshold, more than
+    /// [`max_pairs`](Self::max_pairs) examined candidates, or a non-finite
+    /// score. The source does not check sortedness, although its sliding
+    /// `j_left` cursor requires it.
+    ///
+    /// A zero squared-intensity sum on either side yields `Ok(0.0)`, covering
+    /// two empty spectra and one empty spectrum; the source divides zero by
+    /// zero, gets NaN, finds `NaN < threshold` false and returns the NaN. Two
+    /// spectra with no peak inside the window give `sum == 0`, so the score is
+    /// `-z / sqrt(sum1 * sum2)`, a negative number that the default threshold
+    /// then reports as `0.0` - in the source and here alike.
+    fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
+        let epsilon = parameter_float(&self.handler, "tolerance")?;
+        let threshold = self.handler.parameters().value("threshold")?.to_f32()?;
+        if !epsilon.is_finite() {
+            return Err(bad("Stein/Scott tolerance must be finite"));
+        }
+        if !threshold.is_finite() {
+            return Err(bad("Stein/Scott threshold must be finite"));
+        }
+        validate_spectrum(a, true)?;
+        validate_spectrum(b, true)?;
+        let constant = epsilon / 10000.0;
+        let sum1 = squared_intensity_sum(a);
+        let sum2 = squared_intensity_sum(b);
+        let sum3: f64 = a.peaks.iter().map(|p| f64::from(p.intensity)).sum();
+        let sum4: f64 = b.peaks.iter().map(|p| f64::from(p.intensity)).sum();
+        let z = constant * (sum3 * sum4);
+        let mut sum = 0.0;
+        source_pair_walk(
+            a,
+            b,
+            self.max_pairs,
+            |distance| distance <= 2.0 * epsilon,
+            |i, j| {
+                sum += source_intensity_product(&a.peaks[i], &b.peaks[j]);
+                Ok(())
+            },
+        )?;
+        let denominator = checked_sqrt(sum1 * sum2)?;
+        if denominator == 0.0 {
+            return Ok(0.0);
+        }
+        let score = finite_score((sum - z) / denominator)?;
+        Ok(if score < f64::from(threshold) {
+            0.0
+        } else {
+            score
+        })
+    }
 }
 
 #[cfg(test)]
