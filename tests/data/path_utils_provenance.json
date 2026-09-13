@@ -1,0 +1,73 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "35f3fd28aaa1e90041288cc7e62a8d3d4750756b",
+ "method": "Direct header and class-test audit; no C++ build or execution. The header is inline-only and has no .cpp.",
+ "evidence_tier": "tier 3 (source review, transcribed class-test literals) and tier 4 (independently derived lexical cases and native bounds)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
+   "sha256": "bb67911e8e75e1a97243e859296b5b18d3e46f90e0db2fa138b36d3343356040"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PathUtils_test.cpp",
+   "sha256": "34d04073216a04902952fda0fed33b3a50fe03314a78a7d0ef7fe08b16e6057d"
+  }
+ ],
+ "native_implementation": [
+  "src/system/path_utils.rs"
+ ],
+ "native_tests": [
+  "tests/path_utils.rs",
+  "src/system/path_utils.rs::tests"
+ ],
+ "support_document": "docs/PATH_UTILS_SUPPORT.md",
+ "source_surface": {
+  "public_function_names": 2,
+  "public_overloads": 2,
+  "class_test_sections": 1,
+  "implementation_files": 0
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
+   "line": 23,
+   "operation": "basename returns file.substr(file.find_last_of(\"\\\\/\") + 1); the header's own comment records that it preserves File::basename's unsigned npos + 1 wraparound to zero, which is what makes a separator-free path return itself"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
+   "line": 38,
+   "operation": "to_path constructs std::filesystem::path from std::u8string because the std::string constructor uses the active Windows code page rather than UTF-8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
+   "line": 45,
+   "operation": "Windows-only catch of std::system_error falls back to the ANSI code-page constructor for bytes that are not valid UTF-8, for example an argv filename"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PathUtils_test.cpp",
+   "line": 30,
+   "operation": "single class-test section: byte-exact u8string round trip for ASCII, U+00E4, CJK, embedded spaces, a 300-character name and mixed CJK plus diacritics"
+  }
+ ],
+ "class_test_review": {
+  "path": "src/tests/class_tests/openms/source/PathUtils_test.cpp",
+  "lines": "28-131",
+  "sections": 1,
+  "literal_extraction": "All six cross-platform round-trip literals are transcribed into tests/path_utils.rs. The three _WIN32-only cases (PathUtils_test.cpp:74-127) are not ported: two of them exercise the ANSI fallback for the byte 0xE4, which a Rust &str cannot represent - once on a bare filename and once inside a UNC path - and the third is a plain ASCII UNC path that the port accepts with no special handling."
+ },
+ "native_boundaries": [
+  "basename delegates to system::file::basename rather than duplicating the source's second copy of File::basename",
+  "to_path returns Result and refuses a path above 1 MiB or containing NUL; the source checks neither",
+  "The source's Windows ANSI fallback is unreachable: a Rust &str is valid UTF-8 by construction and PathBuf stores it losslessly on every platform",
+  "Both entry points stay purely lexical: no filesystem access, no normalisation of dot segments or repeated separators, no symlink resolution"
+ ],
+ "license": "BSD-3-Clause for source-derived code and literals",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

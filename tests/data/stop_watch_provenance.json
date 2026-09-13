@@ -1,0 +1,145 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "35f3fd28aaa1e90041288cc7e62a8d3d4750756b",
+ "method": "Direct header, implementation and class-test audit; no C++ build or execution. The formatting literals are transcribed from the class test and independently re-derived from the source expression.",
+ "evidence_tier": "tier 3 (source review, transcribed class-test literals) and tier 4 (independently derived normalisation and formatting boundaries, native state-machine tests)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/StopWatch.h",
+   "sha256": "3b4af741005190fe4edfa126fa06d6107b8bf4ed36e0f46b0cfbd94f71bf83a5"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "sha256": "c928fab2492d7be3e530ee639245f675ff7d799e069e2a5836e03d471cf4441b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/StopWatch_test.cpp",
+   "sha256": "c029279048630c273edffe2ee050777d5911b2fcb86cde8999b36131c7b72d0b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+  }
+ ],
+ "native_implementation": [
+  "src/system/stop_watch.rs"
+ ],
+ "native_tests": [
+  "tests/stop_watch.rs",
+  "src/system/stop_watch.rs::tests"
+ ],
+ "support_document": "docs/STOP_WATCH_SUPPORT.md",
+ "source_surface": {
+  "public_function_names": 17,
+  "public_overloads": 18,
+  "class_test_sections": 21,
+  "private_helper_type": "TimeDiff_",
+  "counting_rule": "Public function declarations in the header, constructors and destructors excluded (StopWatch declares none): start, stop, resume, reset, clear, getClockTime, getUserTime, getSystemTime, getCPUTime, isRunning, operator==, operator!=, operator<, operator<=, operator>=, operator> and toString - 17 names, 18 overloads, because toString is declared twice (const member and static double)."
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 39,
+   "operation": "start() throws Precondition when already running, then calls clear() before sampling, so start/stop/start cannot resume"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 76,
+   "operation": "reset() clears and, when the watch was running, calls start() again; the clear is what keeps that start from throwing"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 89,
+   "operation": "snapShot_() samples gettimeofday for wall time and times() for user and kernel ticks on POSIX; the wall clock is CLOCK_REALTIME and can be stepped"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 138,
+   "operation": "getClockTime() adds the accumulated total and the running interval as two separately converted doubles, in that order"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 197,
+   "operation": "operator== compares accumulated_times_, last_start_ and is_running_, so equality is state equality and not elapsed-time equality"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 205,
+   "operation": "toString(double) truncates to an integer type, splits into days/hours/minutes/seconds, zero-pads only hours, minutes and seconds, and falls back to StringUtils::number(value, 2) which is snprintf %.2f"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 248,
+   "operation": "getCPUTime() is literally getUserTime() + getSystemTime(), each taking its own clock sample"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 263,
+   "operation": "operator< compares getCPUTime() only, although the header documents all three timings; <=, >= and > are all defined in terms of it"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 304,
+   "operation": "ticksToSeconds_ divides by sysconf(_SC_CLK_TCK) on POSIX, with an in-source comment that turbo-boost makes the conversion inexact"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 324,
+   "operation": "operator- borrows one second per negative microsecond remainder: while (diff.start_time_usec < 0L)"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/StopWatch.cpp",
+   "line": 339,
+   "operation": "operator+= carries with a strict comparison, while (start_time_usec > 1000000L), so exactly one million microseconds is left unnormalised and is visible through TimeDiff_::operator=="
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "line": 526,
+   "operation": "StringUtils::number(d, n) is snprintf(\"%.*f\", n, d), which fixes the two-decimal seconds form"
+  }
+ ],
+ "class_test_review": {
+  "path": "src/tests/class_tests/openms/source/StopWatch_test.cpp",
+  "lines": "31-233",
+  "sections": 21,
+  "literal_extraction": "The seven toString literals are transcribed verbatim. Fourteen of the 21 sections are NOT_TESTABLE or deferred in the source test; each is still covered here by the behaviour the source test says is 'tested below', and the two ordering sections the source calls untestable are covered by the one property that does not depend on host CPU scheduling: the relation reads CPU time alone, so two cleared watches compare equal.",
+  "cpu_scale_assertions": "The source's wait() is a busy loop (StopWatch_test.cpp:21-29), not a sleep, and its bool stop() section bounds four scale-sensitive quantities against t_wait = 0.2 s: getCPUTime() > t_wait/2 (line 144), getUserTime() > t_wait/2 (line 152), getUserTime() < t_wait*2 (line 154) and getSystemTime() < t_wait*2 (line 156). All four are transcribed in tests/stop_watch.rs with the source's own half-to-double factors, together with getClockTime() > 0.1, > t_wait*0.95 and < t_wait*3, the component-wise user/system <= against the watch that never stopped (lines 164-165) and s_resume.getCPUTime() > (t_wait + t_wait_more)/2 (line 175). They are the only coverage that the USER_HZ tick scale is applied correctly, and they hold only because the port's wait helper busy-loops as the source's does: a sleeping thread accrues no CPU time and would make all four vacuous. CPU time is a whole-process property and cargo test runs a binary's tests as threads of one process, so every test in the file that burns CPU on purpose holds a process-wide lock.",
+  "not_transcribed": "StopWatch_test.cpp:126, TEST_EQUAL(s.getClockTime() < 0.3, true). Line 146 bounds the same value at t_wait*3 = 0.6 with the comment 'be a bit more loose if e.g. a VM is busy', so the effective wall-clock ceiling is the looser of the two; that one is asserted instead. See cpp_defect_candidates."
+ },
+ "native_boundaries": [
+  "Wall time is sampled from std::time::Instant, so a measured interval is monotonic; the source samples gettimeofday and a backwards clock step shortens or reverses its measurement",
+  "Absolute wall readings are expressed relative to a process-wide monotonic origin rather than the Unix epoch; only differences are reported, so the origin is not observable",
+  "User and kernel time are read from /proc/self/stat in USER_HZ ticks on Linux and reported as None on every other platform; the source uses the POSIX times() call, which this port cannot reach without a libc dependency",
+  "On non-Linux Unix and on Windows the aggregate process CPU clock (the cpu-time crate, already a dependency) answers cpu_time(), while user_time() and system_time() stay None rather than fabricating a split",
+  "Tick-to-second conversion multiplies integer ticks by 10 000 microseconds and divides once by 1e6; that is the same rational value, correctly rounded, as the source's single division by sysconf(_SC_CLK_TCK) = 100",
+  "The carry and borrow loops are expressed as one division each instead of one iteration per second, with the source's strict '>' preserved so the unnormalised 1 000 000 microsecond state still exists",
+  "All sample arithmetic saturates at the i64 bounds rather than wrapping; reaching them needs about 292 billion years",
+  "format_seconds refuses non-finite input and magnitudes above 9e18 seconds, where the source's cast to an integer type is undefined behaviour",
+  "The day count keeps i64 width; the source narrows it to int",
+  "PartialOrd is deliberately not implemented, because the source's operator< compares only CPU time and would then disagree with its own operator==; cpu_time_cmp exposes the source relation explicitly",
+  "Precondition throws become Error::InvalidValue; reset() cannot fail here because the clear always precedes the restart",
+  "The source's wait() is reproduced as a busy loop rather than a sleep, because the four CPU, user and kernel bounds of its bool stop() section only hold for a thread that is actually running; tests that burn CPU serialise on a process-wide lock, since /proc/self/stat aggregates over the whole process and cargo test runs a binary's tests as threads of one process"
+ ],
+ "openmp_gap": "StopWatch itself carries no #pragma omp. Its documented contract that CPU time sums over all threads is preserved: /proc/self names the thread group, so utime and stime already aggregate over every thread, exactly as times() does.",
+ "license": "BSD-3-Clause for source-derived code and literals; existing cpu-time dependency unchanged",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ },
+ "cpp_defect_candidates": [
+  {
+   "path": "src/tests/class_tests/openms/source/StopWatch_test.cpp",
+   "lines": "126, 146",
+   "issue": "The bool stop() section bounds getClockTime() twice on the same value: < 0.3 at line 126 and < t_wait*3 = 0.6 at line 146, the latter commented 'be a bit more loose if e.g. a VM is busy'. The intended loosening has no effect while the stricter line 126 stands, so the section is still as tight as 1.5x t_wait on a busy VM.",
+   "suggested_fix": "Drop line 126, or raise it to the same t_wait*3 bound as line 146."
+  }
+ ]
+}

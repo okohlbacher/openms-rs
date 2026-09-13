@@ -1,0 +1,123 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "35f3fd28aaa1e90041288cc7e62a8d3d4750756b",
+ "method": "Direct header, implementation and class-test audit; no C++ build or execution. The six formatting literals are transcribed from the class test and independently re-derived from the source's std::setprecision(4) general format.",
+ "evidence_tier": "tier 3 (source review, transcribed class-test literals) and tier 4 (independently derived formatting boundaries, native /proc readings and report assembly)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/SysInfo.h",
+   "sha256": "1a32bff6d8e2d99343824b0a48ab0e5f13f06977f5308fb59e544d7aa1a8448c"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "sha256": "4f3e9606fc9bdc7c4e103953404310088df3edf68354097bf04d423f0ebf8905"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SysInfo_test.cpp",
+   "sha256": "b568d0818b1da321bb5c6f0023fa3336b2fbeabde5020dc452969dfd31be1ab5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  }
+ ],
+ "native_implementation": [
+  "src/system/sys_info.rs"
+ ],
+ "native_tests": [
+  "tests/sys_info.rs",
+  "src/system/sys_info.rs::tests"
+ ],
+ "support_document": "docs/SYS_INFO_SUPPORT.md",
+ "source_surface": {
+  "public_function_names": 5,
+  "public_struct_members": 10,
+  "public_overloads": 5,
+  "class_test_sections": 2
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 40,
+   "operation": "bytesToHumanReadable divides by 1024 through a six-entry unit table and prints with std::setprecision(4) in the general format, so trailing zeros are dropped and no value below 1024 reaches scientific notation"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 57,
+   "operation": "exhausting the unit table returns the literal string \"Congrats. That's a lot of bytes: \" followed by the count; reachable from 2^60 bytes upwards"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 185,
+   "operation": "the Linux working-set reading is statm.resident * sysconf(_SC_PAGESIZE) / 1024, the same counter /proc/self/status publishes as VmRSS already in kibibytes"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 122,
+   "operation": "read_available_memory_linux opens /proc/meminfo, scans for the key MemAvailable: and returns on the first match, so reading that file and that key is the source's own primary path and not a substitution the port makes"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 137,
+   "operation": "only when the MemAvailable: key is absent does the source fall back to sysconf(_SC_AVPHYS_PAGES) * sysconf(_SC_PAGESIZE) / 1024; this port falls back to MemFree in the same /proc/meminfo instead, which answers the same narrower question without the libc call"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 254,
+   "operation": "the Linux peak reading is getrusage(...).ru_maxrss, already in kibibytes, which is the counter /proc/self/status publishes as VmHWM"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 296,
+   "operation": "delta() and usage() call after() when mem_after == 0, so a genuine zero reading is indistinguishable from an unrecorded one and is resampled on every print"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 302,
+   "operation": "the peak part of a report is emitted only when mem_after_peak > 0, which is the source's own test for platform support"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 324,
+   "operation": "diff_str_ appends \"-\" to a local string and then assigns over that string instead of appending, so the minus sign is discarded and every reported delta reads as an increase"
+  }
+ ],
+ "class_test_review": {
+  "path": "src/tests/class_tests/openms/source/SysInfo_test.cpp",
+  "lines": "27-66",
+  "sections": 2,
+  "literal_extraction": "All six bytesToHumanReadable literals are transcribed. The memory section's shape is reproduced without its 20 MB mzML fixture: a 64 MiB allocation is made resident page by page and the same 'grew by more than 10 000 KB' assertion is made, which removes a format dependency from a SYSTEM test."
+ },
+ "cpp_issues": [
+  {
+   "id": "candidate",
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "lines": "324-334",
+   "summary": "SysInfo::MemUsage::diff_str_ builds the minus sign into a local string and then overwrites that string with the magnitude, so a shrinking working set is reported as an increase.",
+   "trigger": "MemUsage u; /* free memory */ u.delta(\"release\") with mem_after < mem_before prints \"3 MB\" where it means \"-3 MB\".",
+   "proposed_fix": "Change the assignment on the following line to an append, or build the sign into the same expression.",
+   "rust_handling": "Not reproduced. system::sys_info emits the sign, and the divergence is documented at the item and in docs/SYS_INFO_SUPPORT.md."
+  }
+ ],
+ "native_boundaries": [
+  "Every memory reading is Option<u64>: Linux answers from /proc, and every other platform answers None rather than a fabricated zero",
+  "The source's Windows PROCESS_MEMORY_COUNTERS_EX and macOS Mach task_info / host_statistics64 branches have no counterpart, because both need a platform binding this crate does not take",
+  "The working set is read from /proc/self/status VmRSS and the peak from VmHWM, which the kernel derives from the same counters the source reaches through statm and getrusage, already in kibibytes and without a sysconf call",
+  "Free memory reads MemAvailable from /proc/meminfo, which is the source's own primary path - same file, same key - and falls back to MemFree in the same file where the source falls back to sysconf(_SC_AVPHYS_PAGES); both fallbacks report physically free pages rather than available ones, but no bit-identity between them is claimed, since _SC_AVPHYS_PAGES is answered by whichever libc the source was linked against",
+  "/proc reads are capped at 256 KiB and require the kB unit on the matched line, which the source does not check",
+  "MemUsage models 'not recorded' as None rather than the source's 0 sentinel, so a genuine zero reading is not resampled",
+  "MemUsage::delta refuses an event label above 1 MiB; the source applies no bound",
+  "A negative working-set delta keeps its sign, which the source discards",
+  "process_id returns u32 from std::process::id rather than the source's Int64, because no platform identifier needs the sign or the width"
+ ],
+ "openmp_gap": "SysInfo carries no #pragma omp; there is no parallel behaviour to reproduce.",
+ "license": "BSD-3-Clause for source-derived code and literals",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
