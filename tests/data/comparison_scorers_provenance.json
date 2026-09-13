@@ -1,8 +1,8 @@
 {
  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
- "rust_base_revision": "3b8ca94",
- "license": "BSD-3-Clause for source-derived code, literals and the retained DTA fixtures",
+ "rust_base_revision": "1bf8b8d",
+ "license": "BSD-3-Clause for source-derived code, literals and the retained DTA and MSP fixtures",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
@@ -69,12 +69,74 @@
   {
    "path": "src/openms/include/OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h",
    "sha256": "3e5d1af32c7704e4368398ac5742603ac876405494bb13899216a9f6c1c77fcc",
-   "role": "Not ported here; ported in wave A as the trait PeakSpectrumCompareFunctor and ledgered partial because nothing implemented it. Three of this package's four types are its first implementors."
+   "role": "Not ported here; ported in wave A as the trait PeakSpectrumCompareFunctor and ledgered partial because nothing implemented it. All seven of this module's derivatives now implement it, so that reason has expired. Read for the abstract base: its constructor is DefaultParamHandler(\"PeakSpectrumCompareFunctor\"), which is the name PeakAlignment keeps because it never calls setName."
   },
   {
    "path": "src/openms/source/COMPARISON/PeakSpectrumCompareFunctor.cpp",
    "sha256": "85dae27b1795883060ea044e49e14d530736ae97b8c485f3f6437b3227b74aa9",
-   "role": "Not ported here. Read for the base constructor's handler name, which each derivative renames with setName."
+   "role": "Not ported here. Read for the base constructor's handler name, which each derivative renames with setName. Lines 11-16 include six of the seven derivatives for factory registration; SpectraSTSimilarityScore is the one it omits."
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumPrecursorComparator.h",
+   "sha256": "bae8cbf781b217b6405853f4d82ec7d4ebcfcb633b4250c1987bd19c42514e48"
+  },
+  {
+   "path": "src/openms/source/COMPARISON/SpectrumPrecursorComparator.cpp",
+   "sha256": "eec1ce3b572a00631f3198c1c6717928c136cc93a2c4d1aff3621508d32b2527"
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumCheapDPCorr.h",
+   "sha256": "02ed71fa5cc9080fb6e2651cc1b097022f6047211d1df10165da879f64d06607"
+  },
+  {
+   "path": "src/openms/source/COMPARISON/SpectrumCheapDPCorr.cpp",
+   "sha256": "5bad4274f5b7bc69cbc9e8696535f4e718529d987367b9695760a839ea2bff4f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/PeakAlignment.h",
+   "sha256": "88b7056ccddfc491436078fd0a0123ab2b736e8389dd3c3a6661944fe877696e"
+  },
+  {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "sha256": "a621dee886979eba7771ddbe52cc8c450d108e872971baef395542e04979a053"
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectraSTSimilarityScore.h",
+   "sha256": "131d8833334424c80faaf1d2f33569f259f9bfe7cd29773161d0826cc533b727"
+  },
+  {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "sha256": "f017f2adcfeab5edf829641066ad636cd6c378e397d55531f1588126aa7f93a5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/BinnedSpectrum.h",
+   "sha256": "e734cfa2a84c79d5a41e3376ad85696b9e48adb58c87f71564e5722896b5d49f",
+   "role": "Not ported here; already ledgered complete. Read for DEFAULT_BIN_OFFSET_LOWRES = 0.4f at line 83, the offset SpectraSTSimilarityScore hard-codes, and for the Eigen SparseVector<float> storage whose norm and dot the score inherits."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/Matrix.h",
+   "sha256": "195bd7dd42f46dc78a28b7034754cc4085703bcd633e94e1c14166eee0596280",
+   "role": "Not ported here. Read to establish that Matrix(rows, cols) value-initialises to Value(), so PeakAlignment's direction matrix starts at 0 and its documented tie case is deterministic rather than undefined."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SpectrumPrecursorComparator_test.cpp",
+   "sha256": "15c1c5e6054344e0d2f54c6fe06f5898a3e71bc795f72d3eccf153b029f30a03",
+   "role": "Oracle for 1.7685 and 2.0. Six sections, four assertion macros."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SpectrumCheapDPCorr_test.cpp",
+   "sha256": "a45c2b84a8437604f94e1b690f1d33ebb9718b021f501290b47601811a83dde0",
+   "role": "Oracle for 10145.4, 12295.5, the 121-peak consensus, the 121-entry peak map and the setFactor OutOfRange case. Nine sections."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakAlignment_test.cpp",
+   "sha256": "ec9f506ac9fb62a54ae0121cda0fa057e07e132ac09ab2b02a5775fedfe2743e",
+   "role": "Oracle for 0.997477, the exact self-similarity of 1 and the 127 diagonal traceback pairs. Seven sections."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SpectraSTSimilarityScore_test.cpp",
+   "sha256": "fff8b7cde10809ee390d4d8673cc57bd8e07056b791fb8deb28876d91965c8f0",
+   "role": "Oracle for 98.585, the transform coefficients 0.1205/0.3614/0.602/0.602, the preprocess survivor counts 6/8, delta_D 0.2 and 0.96, and the DivisionByZero case. Twelve sections."
   }
  ],
  "fixtures": [
@@ -95,6 +157,24 @@
    "sha256": "9aea8ed6847a47918ecc906b156cf50f75605a02d4284cd1de454e1845090a3f",
    "upstream_path": "src/tests/class_tests/openms/data/SpectrumAlignment_in2.dta",
    "kind": "byte-identical retained upstream class-test input; already in the repository and reused unchanged"
+  },
+  {
+   "path": "tests/data/Transformers_tests.dta",
+   "sha256": "69d552ec11db33256f09c1e403aecc45018f3d4c2553ba27112d8ebecd6d5297",
+   "upstream_path": "src/tests/class_tests/openms/data/Transformers_tests.dta",
+   "kind": "byte-identical retained upstream class-test input; already present in the repository and reused unchanged"
+  },
+  {
+   "path": "tests/data/comparison_transformers_2.dta",
+   "sha256": "a21f79a751c8ac69a2c3e35a26da2f77bfd9647a7baefc85a4ee5516257adae5",
+   "upstream_path": "src/tests/class_tests/openms/data/Transformers_tests_2.dta",
+   "kind": "byte-identical retained upstream class-test input; already present in the repository and reused unchanged"
+  },
+  {
+   "path": "tests/data/comparison_spectrast_1.msp",
+   "sha256": "3136cf6ab0eda25d2ade5d746a76b33a326662caf19dec69ed8c7efea6024ebb",
+   "upstream_path": "src/tests/class_tests/openms/data/SpectraSTSimilarityScore_1.msp",
+   "kind": "byte-identical retained upstream class-test input, added by this package. MSPFile is not ported, so tests/comparison_scorers.rs reads only the 'Num peaks:' blocks and the tab-separated peak lines that follow them; that is a fixture reader, not an MSP format port."
   }
  ],
  "native_implementation": [
@@ -103,20 +183,35 @@
  "native_tests": [
   "tests/comparison_scorers.rs"
  ],
- "support_document": "docs/SPECTRUM_ALIGNMENT_SUPPORT.md",
+ "support_document": "docs/COMPARISON_SUPPORT.md",
  "support_documents": [
   "docs/SPECTRUM_ALIGNMENT_SUPPORT.md",
   "docs/SPECTRUM_ALIGNMENT_SCORE_SUPPORT.md",
   "docs/ZHANG_SIMILARITY_SCORE_SUPPORT.md",
-  "docs/STEIN_SCOTT_IMPROVE_SCORE_SUPPORT.md"
+  "docs/STEIN_SCOTT_IMPROVE_SCORE_SUPPORT.md",
+  "docs/SPECTRUM_PRECURSOR_COMPARATOR_SUPPORT.md",
+  "docs/SPECTRUM_CHEAP_DP_CORR_SUPPORT.md",
+  "docs/PEAK_ALIGNMENT_SUPPORT.md",
+  "docs/SPECTRAST_SIMILARITY_SCORE_SUPPORT.md"
  ],
- "evidence_tier": "3 (source review: class-test literals transcribed) for the five alignment index pairs, the three alignment sizes and the four fixture scores 1.48268, 3.82472, 1.82682 and 0.328749; 4 (independently derived) for the full-precision values that accompany them, for the Stein/Scott self score, and for every boundary, weighting factor, degenerate denominator and resource ceiling. No tier 1 or tier 2 evidence: these four headers have no retained C++ output and no oracle driver was built for them.",
+ "evidence_tier": "3 (source review: class-test literals transcribed) for every upstream literal - the five alignment index pairs, the three alignment sizes, 1.48268, 3.82472, 1.82682, 0.328749, 1.7685, 10145.4, 12295.5, 0.997477, 98.585 and the SpectraST transform, preprocess and delta_D values - each strengthened by an independent Python reimplementation that reproduced it to full precision; 4 (independently derived) for the full-precision values that accompany them, the Stein/Scott self score, PeakAlignment's exact 1.0 self-similarity and diagonal traceback, the disjoint-bin SpectraST zero, and every boundary, weighting factor, degenerate denominator and resource ceiling. No tier 1 or tier 2 evidence: none of these headers has retained C++ output and no oracle driver was built for them.",
  "class_test_review": {
-  "sections_declared": 23,
-  "sections_ported": 23,
+  "sections_declared": 57,
+  "sections_ported": 57,
   "sections_also_covered_by_a_pre_existing_rust_test": 5,
   "sections_unaccounted": 0,
-  "assertion_macros_above_five": "SpectrumAlignment_test.cpp's getSpectrumAlignment section, with 14; it is ported in full rather than mapped.",
+  "not_testable_sections": 1,
+  "per_header": {
+   "SpectrumAlignment_test.cpp": 5,
+   "SpectrumAlignmentScore_test.cpp": 6,
+   "ZhangSimilarityScore_test.cpp": 6,
+   "SteinScottImproveScore_test.cpp": 6,
+   "SpectrumPrecursorComparator_test.cpp": 6,
+   "SpectrumCheapDPCorr_test.cpp": 9,
+   "PeakAlignment_test.cpp": 7,
+   "SpectraSTSimilarityScore_test.cpp": 12
+  },
+  "assertion_macros_above_five": "SpectrumAlignment_test.cpp's getSpectrumAlignment section, with 14; it is ported in full rather than mapped. PeakAlignment's getAlignmentTraceback section, whose loop asserts 127 indices; it is ported in full by peak_alignment_traceback_is_the_diagonal_for_a_self_alignment, which checks all 127 pairs.",
   "literals_transcribed": [
    {
     "value": "[(0,0),(1,1),(3,3),(4,5),(6,6)] at tolerance 1.01",
@@ -152,9 +247,64 @@
     "value": "score > 0.99, rounded to 1",
     "source": "SteinScottImproveScore_test.cpp, both operator() sections",
     "independent_derivation": "closed form: the five peaks are 100 Th apart and the window is +-0.4, so sum = sum1 = sum2 = 2550000 exactly and the score is (2550000 - (0.2/10000) * 3500^2) / 2550000 = 0.9999039215686274, which the Rust asserts as the expression and as the literal"
+   },
+   {
+    "value": 1.7685,
+    "source": "SpectrumPrecursorComparator_test.cpp, pairwise operator() section",
+    "independent_derivation": "DTA converts MH+ 739.771 and 739.308 at charge 2 to 370.3891382333855 and 370.1576382333855; 2 - 0.2315 = 1.7685, asserted against the loaded precursors as well as against the literal"
+   },
+   {
+    "value": 10145.4,
+    "source": "SpectrumCheapDPCorr_test.cpp, pairwise operator() section, TOLERANCE_ABSOLUTE(0.1)",
+    "independent_derivation": "the Python model gives 10145.449278148695, asserted here to 1e-6"
+   },
+   {
+    "value": 12295.5,
+    "source": "SpectrumCheapDPCorr_test.cpp, pairwise and single operator() sections",
+    "independent_derivation": "the Python model gives 12295.522100159595, asserted here to 1e-6"
+   },
+   {
+    "value": 121,
+    "source": "SpectrumCheapDPCorr_test.cpp, lastconsensus() and getPeakMap() sections",
+    "independent_derivation": "Transformers_tests.dta has 121 peaks and a self-alignment pairs all of them, so the consensus length equals the input length and every peak maps to itself; both are asserted structurally"
+   },
+   {
+    "value": 0.997477,
+    "source": "PeakAlignment_test.cpp, pairwise operator() section",
+    "independent_derivation": "the Python model gives 0.9974770186204426, asserted here to 1e-12"
+   },
+   {
+    "value": 1.0,
+    "source": "PeakAlignment_test.cpp, single operator() section",
+    "independent_derivation": "a self-alignment's diagonal is the self-alignment sum, so the quotient is exactly one; asserted with assert_eq, not a tolerance"
+   },
+   {
+    "value": 127,
+    "source": "PeakAlignment_test.cpp, getAlignmentTraceback section",
+    "independent_derivation": "PILISSequenceDB_DFPIANGER_1.dta has 127 peaks and every diagonal step of a self-alignment beats both gaps; all 127 pairs are asserted to be (i, i)"
+   },
+   {
+    "value": 98.585,
+    "source": "SpectraSTSimilarityScore_test.cpp, dot_bias section",
+    "independent_derivation": "the two raw binned vectors are (1, 1, 3, 5, 5, 3) and (0, 4, 9, 15, 11, 6, 0); their shared-index products are 0, 4, 27, 75, 55, 18 and the sum of squares is 9719, so the value is the f32 sqrt(9719), asserted exactly"
+   },
+   {
+    "value": 0.602,
+    "source": "SpectraSTSimilarityScore_test.cpp, transform section, TOLERANCE_ABSOLUTE(0.01)",
+    "independent_derivation": "floor(mz + 0.4) with spread 1 gives stored bins 1, 3, 5, 5, 3, whose norm is sqrt(69); every coefficient is asserted exactly against raw / sqrt(69) as well as against the literal"
+   },
+   {
+    "value": 6,
+    "source": "SpectraSTSimilarityScore_test.cpp, preprocess section",
+    "independent_derivation": "the ten MSP intensities are 2, 2, 5, 2, 3, 4, 5, 5, 2, 3 and the relative floor at cut_peaks_below 10000 is 5e-4, so exactly the six peaks above intensity 2 survive"
+   },
+   {
+    "value": 0.96,
+    "source": "SpectraSTSimilarityScore_test.cpp, delta_D section",
+    "independent_derivation": "(25 - 1) / 25"
    }
   ],
-  "independent_reimplementation": "A throwaway Python model of SpectrumAlignment.h (banded DP and MatchedIterator<PpmTrait>), SpectrumAlignmentScore.cpp, ZhangSimilarityScore.cpp and SteinScottImproveScore.cpp, using numpy float32 for the intensity products, reproduces all seven class-test literals above. It was written from the C++ before the Rust and is what identified the float intensity product as observable. It is a derivation aid, not committed code, and raises nothing above evidence tier 4."
+  "independent_reimplementation": "A throwaway Python model of SpectrumAlignment.h (banded DP and MatchedIterator<PpmTrait>), SpectrumAlignmentScore.cpp, ZhangSimilarityScore.cpp and SteinScottImproveScore.cpp, using numpy float32 for the intensity products, reproduces all seven class-test literals above. It was written from the C++ before the Rust and is what identified the float intensity product as observable. It is a derivation aid, not committed code, and raises nothing above evidence tier 4. A throwaway Python model of SpectrumCheapDPCorr (the pairable-run scan, dynprog_ and Boost's normal pdf statement by statement) and of PeakAlignment (the matrix fill, the DBL_MIN-seeded border scan and peakPairScore_'s mis-parenthesised exponent) reproduced 10145.449278148695, 12295.522100159595, the 121-peak consensus, the 121-entry peak map, 0.9974770186204426, the exact 1.0 self-score and the 127 diagonal traceback pairs before any Rust was written; a numpy float32 model of the SpectraST binning reproduced the transform coefficients and the 98.585 dot bias. It is a derivation aid, not committed code, and it raises these values no higher than evidence tier 3 plus 4."
  },
  "source_anchors": {
   "alignment_unsorted_exception": {
@@ -266,6 +416,111 @@
    "path": "src/openms/source/COMPARISON/SpectrumAlignmentScore.cpp",
    "line": 18,
    "operation": "setName(<derived>) after the base names the handler PeakSpectrumCompareFunctor, then defaults_.setValue(...) and defaultsToParam_(); identical at ZhangSimilarityScore.cpp:23 and SteinScottImproveScore.cpp:20. SpectrumAlignment.cpp:17 instead names its own handler directly"
+  },
+  "precursor_window_default": {
+   "path": "src/openms/source/COMPARISON/SpectrumPrecursorComparator.cpp",
+   "line": 22,
+   "operation": "defaults_.setValue(\"window\", 2, ...) registers an INTEGER 2, which param_.getValue then casts to double on every call"
+  },
+  "precursor_missing_convention": {
+   "path": "src/openms/source/COMPARISON/SpectrumPrecursorComparator.cpp",
+   "line": 47,
+   "operation": "a spectrum with no precursor contributes m/z 0.0, so two spectra without precursors score the whole window"
+  },
+  "cheap_dp_keeppeaks_shadow": {
+   "path": "src/openms/source/COMPARISON/SpectrumCheapDPCorr.cpp",
+   "line": 82,
+   "operation": "bool keeppeaks_ = (int)param_.getValue(\"keeppeaks\") declares a LOCAL that shadows the member of the same name; the member is never initialised in either constructor and dynprog_ at lines 275 and 286 reads it"
+  },
+  "cheap_dp_consensus_weight_swap": {
+   "path": "src/openms/source/COMPARISON/SpectrumCheapDPCorr.cpp",
+   "line": 177,
+   "operation": "the one-to-one branch weights x by (1 - factor_) and y by factor_; the dynprog_ traceback at line 256 weights y by (1 - factor_) and x by factor_"
+  },
+  "cheap_dp_peak_map_else": {
+   "path": "src/openms/source/COMPARISON/SpectrumCheapDPCorr.cpp",
+   "line": 187,
+   "operation": "the else branch compares the two INDICES rather than the stored value, unlike the otherwise identical dynprog_ code at line 265; both branches are unreachable because each key is written at most once per call"
+  },
+  "cheap_dp_boost_pdf": {
+   "path": "src/openms/source/COMPARISON/SpectrumCheapDPCorr.cpp",
+   "line": 321,
+   "operation": "boost::math::normal_distribution<double> normal(0., variation); a variation of zero is a domain error under Boost's default policy, and pdf's statement order fixes the rounding the score inherits"
+  },
+  "cheap_dp_int_cnt_minus_one": {
+   "path": "src/openms/source/COMPARISON/SpectrumCheapDPCorr.cpp",
+   "line": 352,
+   "operation": "an int_cnt outside 0..3 returns -1 behind a '// TODO exception', which a caller accumulating scores cannot distinguish from a real contribution"
+  },
+  "peak_alignment_no_setname": {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "line": 21,
+   "operation": "the constructor never calls setName, so getName() reports the base's \"PeakSpectrumCompareFunctor\"; every sibling renames itself"
+  },
+  "peak_alignment_normalized_unread": {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "line": 25,
+   "operation": "defaults_.setValue(\"normalized\", 1, ...) is registered and never read; line 217 normalises unconditionally"
+  },
+  "peak_alignment_gap_is_epsilon": {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "line": 99,
+   "operation": "const double gap = param_.getValue(\"epsilon\"), under a '//TODO gapcost dependence on distance ?'; the match window and the gap cost are the same number"
+  },
+  "peak_alignment_sigma_guard": {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "line": 149,
+   "operation": "(var == 0) ? numeric_limits<double>::min() : sqrt(var); getAlignmentTraceback at line 283 computes sqrt(var) with no such guard, so the two entry points disagree on degenerate input"
+  },
+  "peak_alignment_best_score_seed": {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "line": 186,
+   "operation": "double best_score(numeric_limits<double>::min()) seeds the border scan with the smallest positive normal, not the most negative double, so an all-negative border reports 2.2e-308"
+  },
+  "peak_alignment_score_exponent": {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "line": 401,
+   "operation": "exp(-(fabs(pos1 - pos2)) / 2 * sigma * sigma) parses as exp(((-|d|)/2) * sigma * sigma): the distance enters linearly and sigma multiplies rather than divides the exponent"
+  },
+  "peak_alignment_traceback_ties": {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "line": 306,
+   "operation": "'// TODO the cases where all or two values are equal'; with no strict winner the cell keeps the zero Matrix<Size> value-initialised it to, which the traceback reads as 'from the left'"
+  },
+  "spectrast_no_defaults_to_param": {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "line": 21,
+   "operation": "setName(\"SpectraSTSimilarityScore\") without the defaultsToParam_() every sibling calls; harmless only because the class registers no defaults"
+  },
+  "spectrast_binning": {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "line": 96,
+   "operation": "BinnedSpectrum(spec, 1, false, 1, DEFAULT_BIN_OFFSET_LOWRES) under a '// TODO: resolution seems rather low'; bin width 1 Th, absolute units, spread 1, offset 0.4"
+  },
+  "spectrast_intensity_exponent": {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "line": 81,
+   "operation": "peak.setIntensity(sqrt(k->getIntensity())) is the whole of SpectraST's scaling: intensity exponent 0.5 computed in float, m/z exponent 0"
+  },
+  "spectrast_preprocess_prefix": {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "line": 76,
+   "operation": "the loop counter s advances on every examined peak after sortByPosition(), so max_peak_number caps an m/z prefix and not the header's 'max_peak_number most intense peaks'"
+  },
+  "spectrast_preprocess_replaces_spectrum": {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "line": 88,
+   "operation": "spec = tmp assigns a default-constructed PeakSpectrum over the argument, discarding precursors, retention time, native id and every data array"
+  },
+  "spectrast_dot_bias_sentinel": {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "line": 109,
+   "operation": "(dot_product > 0) ? dot_product : (*this)(bin1, bin2) treats the documented -1 and the legacy 0 alike as 'recompute'; the following <= 0.0 guard lets a NaN denominator through"
+  },
+  "spectrast_compute_f_bands": {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "line": 132,
+   "operation": "the bias penalty is 0.12 both below 0.1 and on (0.35, 0.4], 0.18 on (0.4, 0.45] and 0.24 above 0.45, leaving [0.1, 0.35] unpenalised"
   }
  },
  "native_boundaries": [
@@ -278,9 +533,22 @@
   "A negative tolerance is refused by the alignment, where the source silently produces an empty alignment",
   "max_cells bounds the dynamic program and max_pairs the many-to-many walks. The alignment charges |s1| + |s2| + 1 before the matrix exists and each cell as it is filled; the walks allocate nothing at all, so a refusal leaves both inputs untouched. The source has no ceiling in either case",
   "All intensity products are computed in f32 exactly as the source computes them, and every reduction is a sequential f64 accumulation in source order. No reduction is parallel or reassociated",
-  "The wave-A Copy structs SpectrumAlignment, SpectrumAlignmentScore, ZhangSimilarityScore and SteinScottImproveScore remain in the module. SpectrumAlignment is this package's alignment implementation, called by SpectrumAligner, so there is one alignment. The three scorers are not: they are parameter-free f64 conveniences with different traversals, groupings and degenerate-case policies. Collapsing each onto its faithful functor is the intended follow-up and was not done here because the merge changes values asserted in tests/comparison.rs, which this package is not permitted to edit"
+  "The wave-A Copy structs SpectrumAlignment, SpectrumAlignmentScore, ZhangSimilarityScore and SteinScottImproveScore remain in the module. SpectrumAlignment is this package's alignment implementation, called by SpectrumAligner, so there is one alignment. The three scorers are not: they are parameter-free f64 conveniences with different traversals, groupings and degenerate-case policies. Collapsing each onto its faithful functor is the intended follow-up and was not done here because the merge changes values asserted in tests/comparison.rs, which this package is not permitted to edit",
+  "SpectrumPrecursorComparator was reshaped from the earlier wave's Copy struct with a public `window` field into a DefaultParamHandler-carrying functor implementing PeakSpectrumCompareFunctor; `Default` and the `score` entry point are preserved, the public field is replaced by the read-only `window()` accessor over the registered parameter, and a negative window is now refused instead of producing negative scores",
+  "SpectrumCheapDPCorr::operator() writes three mutable members from a const method. `PeakSpectrumCompareFunctor::score` is genuinely read-only here and returns only the number; `compare(&mut self, ..)` returns the same number and records the consensus, the peak map and the factor reset. Neither the consensus nor the factor feeds back into the score, so the two entry points cannot disagree, and a test asserts their equality",
+  "SpectrumCheapDPCorr's `keeppeaks_` member is read by dynprog_ and never initialised by either constructor, because operator() declares a local of the same name that shadows it. This port reads the registered parameter in both places, which is the only defined reading",
+  "MAX_DP_CORR_CELLS = 1000000 bounds the dynamic-programming cells of one comparison, summed over every pairable run; the source has no ceiling and a variation near its documented maximum of 1 makes one run span both spectra",
+  "MAX_ALIGNMENT_MATRIX_CELLS = 4000000 bounds PeakAlignment's score matrix; the source allocates it plus a second direction matrix unchecked",
+  "Both scorers refuse unsorted peaks with Error::UnsortedData. The source checks neither and mis-aligns silently",
+  "Every division by a value the source does not check is a checked error: a zero Gaussian scale in SpectrumCheapDPCorr, a zero pair count or a zero self-alignment product in PeakAlignment, a zero norm in SpectraSTSimilarityScore::transform and a zero cut_peaks_below in preprocess. Every sqrt goes through checked_sqrt, which refuses a negative radicand instead of yielding NaN",
+  "PeakAlignment's zero-variance guard substitutes numeric_limits<double>::min() for sigma, which makes the position term about 1.8e307; the product of the two self-alignment scores then overflows for every nonzero f32 intensity and the source silently returns 0 for a spectrum compared with itself. That overflow is Error::InvalidValue here",
+  "PeakAlignment::getAlignmentTraceback has no zero-variance guard at all, so a zero sigma divides by zero upstream; this port refuses it rather than returning infinities",
+  "SpectraSTSimilarityScore::preprocess still replaces the whole spectrum, discarding its metadata exactly as `spec = tmp` does. This is the one deliberately preserved lossy behaviour in the package; it is documented at the item because a SpectraST workflow's numbers depend on which peaks survive, and quietly keeping more state would be a different function",
+  "SpectraSTSimilarityScore::dot rejects incompatible binning, which the source hands straight to Eigen, and charges the pair against MAX_COMPARED_BINS before traversing anything",
+  "The f32 reductions reuse the wave-A helpers: sparse_dot is Eigen's scalar sparse-dot merge and is reproduced exactly; sparse_norm and the dot-bias numerator sum in ascending bin order, which reproduces the f32 precision of Eigen's vectorised dense redux rather than its bit pattern on every build",
+  "Boost's normal pdf is transcribed statement by statement, including root_two_pi as Boost's own decimal literal rather than (2 pi).sqrt(), so the Gaussian match term inherits the same rounding"
  ],
- "openmp": "No #pragma omp in any of the four headers, their implementation files or MatchedIterator.h; no parallelism gap to record and the port is serial.",
+ "openmp": "No #pragma omp in any of the four headers, their implementation files or MatchedIterator.h; no parallelism gap to record and the port is serial. No #pragma omp in any of the four headers or their implementation files, so the port stays serial and there is no parallelism gap to record. Both dynamic programs are inherently sequential in their recurrence; only PeakAlignment's O(n*m) mid/var passes and its matrix diagonals would parallelise, and the source does neither.",
  "module_layout": "All four ports live in src/comparison.rs rather than a src/comparison/ directory. tools/check_module_cycles.py derives its module set from the directories under src/, so creating src/comparison/ would make 'comparison' a tracked module and introduce seven edges that do not exist in docs/module-cycles.json (analysis, chemistry, format, identification, kernel and processing all name crate::comparison, and comparison names crate::param). The ratchet forbids widening, so the split is deferred rather than forced.",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
