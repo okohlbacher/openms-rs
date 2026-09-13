@@ -596,7 +596,16 @@
   "tests/data/sqlite_s1_review.json",
   "tests/data/mzml_sqlite_handler_provenance.json",
   "tests/data/mzml_sqlite_swath_provenance.json",
-  "tests/data/sqlite_s2_review.json"
+  "tests/data/sqlite_s2_review.json",
+  "tests/data/build_info_provenance.json",
+  "tests/data/comparison_functors_provenance.json",
+  "tests/data/distribution_fitters_provenance.json",
+  "tests/data/math_functions_provenance.json",
+  "tests/data/math_statistics_provenance.json",
+  "tests/data/path_utils_provenance.json",
+  "tests/data/spline_math_provenance.json",
+  "tests/data/stop_watch_provenance.json",
+  "tests/data/sys_info_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -692,5 +701,16 @@
   "tests/data/sqlite_connector_provenance.json"
  ],
  "sqlite_s1_source_review": "tests/data/sqlite_s1_review.json",
- "sqlite_s0_validation": "tests/data/sqlite_connector_validation/summary.json"
+ "sqlite_s0_validation": "tests/data/sqlite_connector_validation/summary.json",
+ "math_system_comparison_reference_manifests": [
+  "tests/data/build_info_provenance.json",
+  "tests/data/comparison_functors_provenance.json",
+  "tests/data/distribution_fitters_provenance.json",
+  "tests/data/math_functions_provenance.json",
+  "tests/data/math_statistics_provenance.json",
+  "tests/data/path_utils_provenance.json",
+  "tests/data/spline_math_provenance.json",
+  "tests/data/stop_watch_provenance.json",
+  "tests/data/sys_info_provenance.json"
+ ]
 }

@@ -8,11 +8,11 @@ Validated TOPP workflows: **5** of 146, each reproducing its upstream test again
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 26 |
-| evidence_requires_review | 172 |
-| native_equivalent | 83 |
-| partial | 39 |
-| unmapped | 466 |
+| complete | 38 |
+| evidence_requires_review | 168 |
+| native_equivalent | 88 |
+| partial | 45 |
+| unmapped | 447 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -32,7 +32,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/CHEMISTRY/ModificationsDB.h` | 11 | evidence_requires_review |
 | `OpenMS/FORMAT/FeatureXMLFile.h` | 11 | partial |
 | `OpenMS/FORMAT/MzTabFile.h` | 11 | partial |
-| `OpenMS/MATH/MathFunctions.h` | 11 | evidence_requires_review |
+| `OpenMS/MATH/MathFunctions.h` | 11 | partial |
 | `OpenMS/CONCEPT/Exception.h` | 10 | evidence_requires_review |
 | `OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h` | 10 | partial |
 | `OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h` | 9 | evidence_requires_review |
@@ -40,7 +40,6 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/FORMAT/ConsensusXMLFile.h` | 9 | partial |
 | `OpenMS/FORMAT/IdXMLFile.h` | 9 | partial |
 | `OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h` | 8 | unmapped |
-| `OpenMS/MATH/StatisticFunctions.h` | 8 | evidence_requires_review |
 | `OpenMS/ANALYSIS/ID/PeptideIndexing.h` | 7 | evidence_requires_review |
 | `OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h` | 7 | unmapped |
 | `OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h` | 7 | unmapped |
@@ -55,6 +54,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/PROCESSING/FILTERING/ThresholdMower.h` | 6 | evidence_requires_review |
 | `OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h` | 5 | unmapped |
 | `OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h` | 5 | unmapped |
+| `OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h` | 5 | unmapped |
 
 ## Completion requirements
 

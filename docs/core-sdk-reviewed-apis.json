@@ -128,8 +128,8 @@
   "src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/chemistry/mass_decomposition_algorithm.rs",
-    "src/chemistry/mass_decomposition.rs"
+    "src/chemistry/mass_decomposition.rs",
+    "src/chemistry/mass_decomposition_algorithm.rs"
    ],
    "tests": [
     "tests/mass_decomposition_algorithm.rs"
@@ -151,27 +151,27 @@
   "src/openms/include/OpenMS/CHEMISTRY/ProForma.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/chemistry/proforma.rs",
-    "src/chemistry/proforma_parser.rs",
-    "src/chemistry/proforma_json.rs",
-    "src/chemistry/proforma_resolution.rs",
     "src/chemistry/modifications.rs",
-    "src/chemistry/proforma_mass.rs",
+    "src/chemistry/proforma.rs",
     "src/chemistry/proforma_conversion.rs",
+    "src/chemistry/proforma_json.rs",
+    "src/chemistry/proforma_mass.rs",
+    "src/chemistry/proforma_parser.rs",
+    "src/chemistry/proforma_resolution.rs",
     "src/chemistry/proforma_spectra.rs",
     "src/chemistry/theoretical_proforma_budget.rs",
     "src/chemistry/theoretical_xlms.rs"
    ],
    "tests": [
     "tests/proforma.rs",
-    "tests/proforma_writer_probe.rs",
+    "tests/proforma_conversion.rs",
+    "tests/proforma_json.rs",
+    "tests/proforma_mass.rs",
     "tests/proforma_parser.rs",
     "tests/proforma_parser_probe.rs",
-    "tests/proforma_json.rs",
     "tests/proforma_resolution.rs",
-    "tests/proforma_mass.rs",
-    "tests/proforma_conversion.rs",
     "tests/proforma_spectra.rs",
+    "tests/proforma_writer_probe.rs",
     "tests/theoretical_xlms.rs"
    ],
    "documentation": "docs/PROFORMA_SUPPORT.md",
@@ -195,18 +195,73 @@
     "src/chemistry/theoretical_xlms_helpers.rs"
    ],
    "tests": [
-    "tests/theoretical_xlms.rs",
     "tests/protein_cross_link.rs",
-    "tests/sequence_fragment_mass.rs"
+    "tests/sequence_fragment_mass.rs",
+    "tests/theoretical_xlms.rs"
    ],
    "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
    "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers are implemented separately; other XLMS algorithms remain outstanding."
   },
+  "src/openms/include/OpenMS/COMPARISON/BinnedSharedPeakCount.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_functors.rs"
+   ],
+   "documentation": "docs/BINNED_SHARED_PEAK_COUNT_SUPPORT.md",
+   "scope": "Every public and protected member reviewed. BinnedSharedPeakCount::new reproduces setName + defaultsToParam_ over an empty defaults tree; score is the stored-bin intersection over max(stored bins), with 'stored' meaning Eigen's nonZeros() so an explicit zero bin counts on both sides. The only floating-point operation is the final f64 division of two counts, so this scorer is bit-identical to the source wherever the source does not divide by zero. Deliberately not ported: the empty updateMembers_ override, and precursor_mass_tolerance_, which no constructor initialises, no copy constructor copies and nothing reads. Native: two empty spectra yield 0.0 where the source returns NaN; incompatible binning is Error::InvalidValue; MAX_COMPARED_BINS bounds the comparison."
+  },
+  "src/openms/include/OpenMS/COMPARISON/BinnedSpectralContrastAngle.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_functors.rs"
+   ],
+   "documentation": "docs/BINNED_SPECTRAL_CONTRAST_ANGLE_SUPPORT.md",
+   "scope": "Every public and protected member reviewed. Returns the cosine, not the angle - no acos appears in the source. The f32 reduction of Eigen's SparseVector<float>::dot is reproduced exactly (ascending index order, widened once), as is the sqrt(sum1 * sum2) grouping, which is what makes self-similarity exactly 1.0. The source's own empty/all-zero guard (sum1 * sum2 == 0 returns 0.0) is kept verbatim, and the score is not clamped, so a spectrum against its negation scores -1.0. Deliberately not ported: the empty updateMembers_ and the dead precursor_mass_tolerance_. Native: incompatible binning is a checked Error::InvalidValue where the source only asserts through OPENMS_PRECONDITION, a release-build no-op unlike both siblings; f32 dot-product overflow is a checked error; MAX_COMPARED_BINS bounds the comparison."
+  },
+  "src/openms/include/OpenMS/COMPARISON/BinnedSpectrumCompareFunctor.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_functors.rs"
+   ],
+   "documentation": "docs/BINNED_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md",
+   "scope": "All six public members plus the header's empty private access block reviewed. Object-safe trait BinnedSpectrumCompareFunctor over BinnedSpectrum with the same shape as the peak base; implemented by all three binned scorers and exercised through &dyn. The class comment's claim that normalised functors are identifiable by a set 'normalized' parameter does not hold for this hierarchy - only PeakAlignment registers one - and the trait documentation says so rather than repeating it. The .cpp's includes of its three derived classes are factory registration, not a base-on-derivative dependency, and produce no Rust module edge."
+  },
+  "src/openms/include/OpenMS/COMPARISON/BinnedSumAgreeingIntensities.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_functors.rs"
+   ],
+   "documentation": "docs/BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md",
+   "scope": "Every public and protected member reviewed. The agreement rule is ported literally: per bin (a + b) * 0.5 - |a - b|, truncated at zero, summed, over the mean of the two totals, capped at 1.0. The walk spans the union of the stored bins because sparse addition does, the arithmetic stays f32 (Eigen promotes the scalar 0.5 down to float), and cwiseMax(0) semantics are written out rather than using f32::max. Deliberately not ported: the empty updateMembers_ and the dead precursor_mass_tolerance_. Native: a zero mean total yields 0.0 where the source returns NaN or 1.0; incompatible binning is Error::InvalidValue; f32 overflow is checked; MAX_COMPARED_BINS bounds the comparison. Negative bins are accepted as upstream, which makes an all-negative spectrum score 0 against itself - documented, because the class comment's 'perfect agreement results in 1.0' holds only for nonnegative bins."
+  },
+  "src/openms/include/OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h": {
+   "status": "partial",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_functors.rs"
+   ],
+   "documentation": "docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md",
+   "scope": "All six public members reviewed. The abstract DefaultParamHandler base becomes the object-safe trait PeakSpectrumCompareFunctor: the two pure virtual operator() overloads are score and self_score (the latter provided, defaulting to score(a, a), which is what all six source derivatives implement), and the inherited parameter surface is handler()/handler_mut()/name(). Default constructor, copy constructor, destructor and operator= are the implementor's own construction, Clone, drop glue and assignment; the C++ bodies are defaulted or forward to DefaultParamHandler. score returns Result<f64> where the source returns double. No shipped type implements the trait yet: the four source descendants already in comparison (SpectrumAlignmentScore, ZhangSimilarityScore, SteinScottImproveScore, SpectrumPrecursorComparator) were ported in an earlier wave as typed Copy structs without a DefaultParamHandler, so wiring them on belongs to the wave that ports their own headers; a test functor in tests/comparison_functors.rs implements and exercises the trait, including through &dyn. Held at partial rather than complete: the crate ships no type implementing the trait, its only implementor being a test type, and the seven source derivatives belong to the next wave."
+  },
   "src/openms/include/OpenMS/CONCEPT/Constants.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/concept/constants.rs",
-    "src/chemistry/mod.rs"
+    "src/chemistry/mod.rs",
+    "src/concept/constants.rs"
    ],
    "tests": [
     "tests/constants.rs"
@@ -240,8 +295,8 @@
    "status": "partial",
    "rust": [
     "src/kernel.rs",
-    "src/metadata/value.rs",
-    "src/metadata/acquisition.rs"
+    "src/metadata/acquisition.rs",
+    "src/metadata/value.rs"
    ],
    "tests": [
     "tests/kernel.rs",
@@ -253,12 +308,12 @@
   "src/openms/include/OpenMS/CONCEPT/UniqueIdGenerator.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/concept/unique_id.rs",
-    "src/chemistry/decoy_random.rs"
+    "src/chemistry/decoy_random.rs",
+    "src/concept/unique_id.rs"
    ],
    "tests": [
-    "tests/unique_id.rs",
-    "tests/decoy_generator.rs"
+    "tests/decoy_generator.rs",
+    "tests/unique_id.rs"
    ],
    "documentation": "docs/UNIQUE_ID_SUPPORT.md",
    "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
@@ -266,12 +321,12 @@
   "src/openms/include/OpenMS/CONCEPT/UniqueIdInterface.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/concept/unique_id.rs",
-    "src/chemistry/decoy_random.rs"
+    "src/chemistry/decoy_random.rs",
+    "src/concept/unique_id.rs"
    ],
    "tests": [
-    "tests/unique_id.rs",
-    "tests/decoy_generator.rs"
+    "tests/decoy_generator.rs",
+    "tests/unique_id.rs"
    ],
    "documentation": "docs/UNIQUE_ID_SUPPORT.md",
    "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
@@ -282,8 +337,8 @@
     "src/data_structures/cv_mapping.rs"
    ],
    "tests": [
-    "tests/cv_mapping_values.rs",
-    "tests/cv_mapping_file.rs"
+    "tests/cv_mapping_file.rs",
+    "tests/cv_mapping_values.rs"
    ],
    "documentation": "docs/CV_MAPPING_SUPPORT.md",
    "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
@@ -294,8 +349,8 @@
     "src/data_structures/cv_mapping.rs"
    ],
    "tests": [
-    "tests/cv_mapping_values.rs",
-    "tests/cv_mapping_file.rs"
+    "tests/cv_mapping_file.rs",
+    "tests/cv_mapping_values.rs"
    ],
    "documentation": "docs/CV_MAPPING_SUPPORT.md",
    "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
@@ -306,8 +361,8 @@
     "src/data_structures/cv_mapping.rs"
    ],
    "tests": [
-    "tests/cv_mapping_values.rs",
-    "tests/cv_mapping_file.rs"
+    "tests/cv_mapping_file.rs",
+    "tests/cv_mapping_values.rs"
    ],
    "documentation": "docs/CV_MAPPING_SUPPORT.md",
    "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
@@ -318,8 +373,8 @@
     "src/data_structures/cv_mapping.rs"
    ],
    "tests": [
-    "tests/cv_mapping_values.rs",
-    "tests/cv_mapping_file.rs"
+    "tests/cv_mapping_file.rs",
+    "tests/cv_mapping_values.rs"
    ],
    "documentation": "docs/CV_MAPPING_SUPPORT.md",
    "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
@@ -327,12 +382,12 @@
   "src/openms/include/OpenMS/DATASTRUCTURES/ConstRefVector.h": {
    "status": "partial",
    "rust": [
-    "src/kernel.rs",
-    "src/analysis/id_filter.rs"
+    "src/analysis/id_filter.rs",
+    "src/kernel.rs"
    ],
    "tests": [
-    "tests/kernel.rs",
-    "tests/id_filter.rs"
+    "tests/id_filter.rs",
+    "tests/kernel.rs"
    ],
    "documentation": "docs/NATIVE_EQUIVALENTS.md",
    "scope": "Native borrowed/indirect views represent its primary use, but custom base-container/type-aware equality, size-only ordering, cached capacity, swap retaining identity/cache, null slots and custom iterator state are not represented. Do not classify the full header as Vec<&T> equivalence."
@@ -395,13 +450,13 @@
   "src/openms/include/OpenMS/DATASTRUCTURES/ExposedVector.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/kernel.rs",
     "src/analysis/id_filter.rs",
-    "src/analysis/protein_inference.rs"
+    "src/analysis/protein_inference.rs",
+    "src/kernel.rs"
    ],
    "tests": [
-    "tests/kernel.rs",
     "tests/id_filter.rs",
+    "tests/kernel.rs",
     "tests/protein_inference.rs"
    ],
    "documentation": "docs/NATIVE_EQUIVALENTS.md",
@@ -422,9 +477,9 @@
    "status": "complete",
    "rust": [
     "src/param.rs",
-    "src/param/tree.rs",
+    "src/param/iteration.rs",
     "src/param/operations.rs",
-    "src/param/iteration.rs"
+    "src/param/tree.rs"
    ],
    "tests": [
     "tests/param.rs"
@@ -487,9 +542,9 @@
     "src/chemistry/metabo_elements.rs"
    ],
    "tests": [
+    "src/analysis/feature_finding_metabo/predictor_tests.rs",
     "tests/feature_finding_metabo.rs",
-    "tests/feature_hypothesis.rs",
-    "src/analysis/feature_finding_metabo/predictor_tests.rs"
+    "tests/feature_hypothesis.rs"
    ],
    "documentation": "docs/FEATURE_FINDING_METABO_SUPPORT.md",
    "scope": "Complete class-specific public feature-finding operation, all19 typed options, grouped chromatograms, both fixed isotope models and FeatureHypothesis subgroup. Source83/81/80 counts and all81 golden feature values/hulls match;488 actual LIBSVM reference rows validate predictors. Native ownership, stable serial ties, bounded atomic publication and inherited f64 coarse-isotope precision are documented. General SimpleSVM and inherited generic Param wrappers remain separate, and no complete TOPP workflow is certified."
@@ -508,8 +563,8 @@
   "src/openms/include/OpenMS/FORMAT/CVMappingFile.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/format/cv_mapping.rs",
-    "src/data_structures/cv_mapping.rs"
+    "src/data_structures/cv_mapping.rs",
+    "src/format/cv_mapping.rs"
    ],
    "tests": [
     "tests/cv_mapping_file.rs",
@@ -554,6 +609,17 @@
    "documentation": "docs/TEXT_CSV_SUPPORT.md",
    "scope": "Complete source operations with literal text/CSV semantics, source construction/load differences and native checked UTF-8/resource/I/O adaptations. No RFC CSV parsing promise."
   },
+  "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/ms_data_writing_consumer.rs"
+   ],
+   "tests": [
+    "tests/ms_data_writing_consumer.rs"
+   ],
+   "documentation": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
+   "scope": "Streaming consumer hooks, settings/counts/processing and Plain/Noop variants mapped. Indexed footer output, per-record semantic validation and progress are not supplied; changing source-file or processing header dependencies can be refused. Whole-header equivalence not established."
+  },
   "src/openms/include/OpenMS/FORMAT/ExperimentalDesignFile.h": {
    "status": "complete",
    "rust": [
@@ -581,8 +647,8 @@
    "status": "partial",
    "rust": [
     "src/format/featurexml.rs",
-    "src/format/map_xml.rs",
-    "src/format/identification_xml.rs"
+    "src/format/identification_xml.rs",
+    "src/format/map_xml.rs"
    ],
    "tests": [
     "tests/featurexml.rs"
@@ -687,18 +753,62 @@
    "documentation": "docs/INDEXED_MZML_HANDLER_SUPPORT.md",
    "scope": "Complete record-retrieval capability of the handler: index parse, counts, fetch by index and native id, raw record XML, PeakFileOptions filtering, and checked byte ranges. Records decode through the whole-file mzML reader, so all metadata survives. Not ported: the two Interfaces::Spectrum/Chromatogram pointer overloads, the parsing-success flag and the copy constructor. setSkipXMLChecks IS ported, as options_mut().skip_xml_checks: it reaches the Base64 whitespace strip in the mzML reader, which is the flag's whole effect in the source too. Evidence is tier 3."
   },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mascot_xml.rs"
+   ],
+   "tests": [
+    "tests/mascot_xml.rs"
+   ],
+   "documentation": "docs/MASCOT_XML_SUPPORT.md",
+   "scope": "Private handler implements the Mascot XML reader behavior and callbacks through typed parser state, but generic XMLHandler/reporting/inheritance contract and arbitrary lookup regex surface are not ported. No separate direct SAX interface is exposed."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzDataHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzdata.rs"
+   ],
+   "tests": [
+    "tests/mzdata.rs"
+   ],
+   "documentation": "docs/MZDATA_SUPPORT.md",
+   "scope": "Native parser/writer covers mzData callbacks and metadata/array behavior; source progress callback contract is absent. Bounds and loss policies explicit, but no exported SAX handler/inherited XMLHandler contract; keep conservative partial until scope owner reviews."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzidentml.rs"
+   ],
+   "tests": [
+    "tests/mzidentml.rs"
+   ],
+   "documentation": "docs/MZIDENTML_SUPPORT.md",
+   "scope": "Write path including XLMS fragments and three public analysisXML value types mapped. Public read-mode constructor and SAX callback stream path deliberately not implemented because source fails to publish parsed identifications; a separate DOM-equivalent parser supplies file loads. No generic XMLHandler/ProgressLogger contract."
+  },
+  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzXMLHandler.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzxml.rs"
+   ],
+   "tests": [
+    "tests/mzxml.rs"
+   ],
+   "documentation": "docs/MZXML_SUPPORT.md",
+   "scope": "Native nested-scan parser/writer implements recorded callbacks, array transport and metadata, serial rather than source parallel batch decoding. Generic SAX and progress-logger constructor contract are not exposed; keep partial pending full boundary acceptance."
+  },
   "src/openms/include/OpenMS/FORMAT/IdXMLFile.h": {
    "status": "partial",
    "rust": [
-    "src/format/idxml.rs",
     "src/format/identification_xml.rs",
+    "src/format/idxml.rs",
     "src/format/modification_definitions.rs",
     "src/format/path_io.rs"
    ],
    "tests": [
+    "tests/identification_paths.rs",
     "tests/idxml.rs",
-    "tests/idxml_definitions.rs",
-    "tests/identification_paths.rs"
+    "tests/idxml_definitions.rs"
    ],
    "documentation": "docs/IDENTIFICATION_PATH_SUPPORT.md",
    "scope": "Native idXML document read/write and direct path load/store, document identifier, registry/options overloads, bounded plain/gzip/bzip2 input and source plain output regardless of suffix. Checked output extension and atomic file/destination replacement. Existing metadata/sequence encoding boundaries, source hit-order/rank differences, ZIP and inherited logger/schema/CV APIs remain."
@@ -739,72 +849,193 @@
    "documentation": "docs/MSNUMPRESS_CODER_SUPPORT.md",
    "scope": "Complete source wrapper operations and existing configuration/name mapping: raw/base64/zlib encode/decode, exact f32 promotion, estimation and maximal-factor fallback, reverse-order tolerance checks, PIC absolute-error policy and source raw/text skip destination distinctions. Native checked atomic errors and explicit diagnostics replace stderr; strict long-form Base64/single-zlib-frame validation is a documented correction. Safe remains raw-only. Reviewed mzML transport now reuses crate-private codec counters and helpers; full MzMLFile remains incomplete."
   },
+  "src/openms/include/OpenMS/FORMAT/MSstatsFile.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/msstats.rs"
+   ],
+   "tests": [
+    "tests/msstats.rs"
+   ],
+   "documentation": "docs/MSSTATS_SUPPORT.md",
+   "scope": "Both public storeLFQ/storeISO operations and all member helper/line mappings covered. Retained TOPP output compares complete LFQ and two ISO outputs under tighter numeric tolerance. Reports replace logging; source set-based intensity deduplication preserved. MSstats TOPP tool itself is not ported by this header group."
+  },
+  "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mascot_generic.rs"
+   ],
+   "tests": [
+    "tests/mascot_generic.rs"
+   ],
+   "documentation": "docs/MASCOT_GENERIC_SUPPORT.md",
+   "scope": "MGF peak reading, stream/path storing, header/default-parameter options, native-ID parsing subset and sequence-query fields mapped. Source ProgressLogger base is not wired; generic base/template/API behavior should be reviewed before whole-header promotion."
+  },
+  "src/openms/include/OpenMS/FORMAT/MascotXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mascot_xml.rs"
+   ],
+   "tests": [
+    "tests/mascot_xml.rs"
+   ],
+   "documentation": "docs/MASCOT_XML_SUPPORT.md",
+   "scope": "Both load overloads and default title-lookup initialization implemented; custom scan_regex accepted by source initializeLookup is refused. Retained C++ idXML fixture provides load comparison, with dedicated fixture extractor due current idXML budget limitation. No writer exists upstream."
+  },
   "src/openms/include/OpenMS/FORMAT/ModificationDefinitionIO.h": {
    "status": "complete",
    "rust": [
-    "src/format/modification_definitions.rs",
-    "src/chemistry/modification_records.rs"
+    "src/chemistry/modification_records.rs",
+    "src/format/modification_definitions.rs"
    ],
    "tests": [
-    "tests/modification_definition_io.rs",
-    "tests/idxml_definitions.rs"
+    "tests/idxml_definitions.rs",
+    "tests/modification_definition_io.rs"
    ],
    "documentation": "docs/MODIFICATION_DEFINITION_IO_SUPPORT.md",
    "scope": "All nine public declarations: definition selection, per-run collection from slices/iterators and both feature-map overloads including recursive subordinates, deterministic codec/union, run encoding and registration. Owned registries, checked conflicts/portable representation, recovery diagnostics and cumulative budgets replace raw-pointer/global-mutation semantics. Full ResidueModification and ProForma parsing remain separate."
   },
+  "src/openms/include/OpenMS/FORMAT/MzDataFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzdata.rs"
+   ],
+   "tests": [
+    "tests/mzdata.rs"
+   ],
+   "documentation": "docs/MZDATA_SUPPORT.md",
+   "scope": "Options, load/store, version, legacy precision/endian handling and reports mapped. isSemanticallyValid unsupported; inherited XSD isValid and ProgressLogger absent. Structural tests are weaker than schema validation; FileHandler dispatch still missing."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzIdentMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzidentml.rs"
+   ],
+   "tests": [
+    "tests/mzidentml.rs"
+   ],
+   "documentation": "docs/MZIDENTML_SUPPORT.md",
+   "scope": "Linear and cross-link load/store plus detectVersion mapped. isValid XSD and isSemanticallyValid remain unimplemented; no certification from structural round-trip checks."
+  },
   "src/openms/include/OpenMS/FORMAT/MzMLFile.h": {
    "status": "partial",
    "rust": [
-    "src/format/mzml.rs",
-    "src/format/mzml_precursor.rs",
     "src/format/indexed_mzml.rs",
-    "src/format/mzml_load.rs",
-    "src/format/mzml_paths.rs",
-    "src/format/mzml_numpress.rs",
-    "src/format/mzml_settings.rs",
+    "src/format/mzml.rs",
     "src/format/mzml_acquisition.rs",
+    "src/format/mzml_centroid.rs",
+    "src/format/mzml_consumer.rs",
     "src/format/mzml_counts.rs",
     "src/format/mzml_header.rs",
     "src/format/mzml_header/read.rs",
     "src/format/mzml_header/write.rs",
-    "src/format/mzml_consumer.rs",
-    "src/interfaces.rs",
-    "src/format/mzml_centroid.rs",
-    "src/kernel/spectrum_type.rs",
+    "src/format/mzml_load.rs",
+    "src/format/mzml_numpress.rs",
+    "src/format/mzml_paths.rs",
+    "src/format/mzml_precursor.rs",
+    "src/format/mzml_record.rs",
+    "src/format/mzml_schema.rs",
+    "src/format/mzml_settings.rs",
     "src/format/mzml_validator.rs",
     "src/format/mzml_write_options.rs",
-    "src/format/mzml_record.rs",
-    "src/format/mzml_schema.rs"
+    "src/interfaces.rs",
+    "src/kernel/spectrum_type.rs"
    ],
    "tests": [
-    "tests/mzml.rs",
-    "tests/mzml_product.rs",
-    "tests/indexed_mzml.rs",
-    "tests/mzml_load_options.rs",
-    "tests/mzml_paths.rs",
     "tests/data_array_xml.rs",
-    "tests/mzml_numpress.rs",
-    "tests/mzml_settings.rs",
-    "tests/mzml_acquisition_guards.rs",
-    "tests/mzml_acquisition.rs",
-    "tests/mzml_counts.rs",
     "tests/experimental_settings.rs",
-    "tests/mzml_header.rs",
-    "tests/mzml_consumer.rs",
+    "tests/indexed_mzml.rs",
     "tests/interfaces.rs",
+    "tests/mzml.rs",
+    "tests/mzml_acquisition.rs",
+    "tests/mzml_acquisition_guards.rs",
     "tests/mzml_centroid.rs",
-    "tests/spectrum_type.rs",
+    "tests/mzml_consumer.rs",
+    "tests/mzml_counts.rs",
+    "tests/mzml_header.rs",
     "tests/mzml_isolation.rs",
+    "tests/mzml_load_options.rs",
+    "tests/mzml_normalization.rs",
+    "tests/mzml_numpress.rs",
+    "tests/mzml_paths.rs",
+    "tests/mzml_product.rs",
+    "tests/mzml_schema.rs",
+    "tests/mzml_schema_offline.rs",
+    "tests/mzml_settings.rs",
+    "tests/mzml_typed_transport.rs",
     "tests/mzml_validator.rs",
     "tests/mzml_write_options.rs",
-    "tests/mzml_normalization.rs",
-    "tests/mzml_typed_transport.rs",
     "tests/record_metadata.rs",
-    "tests/mzml_schema.rs",
-    "tests/mzml_schema_offline.rs"
+    "tests/spectrum_type.rs"
    ],
    "documentation": "docs/MZML_SUPPORT.md",
    "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array scalar metadata and units, all source record CV routes, optical/pressure/flow primary roles and independent f64 noise grids are transported with source merge order and checked ownership. Generic lists/Empty, ambiguous primaries and independent primary-array history remain checked errors; CPP-053/058 are corrected. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. Complete centroid inspection/SpecInfo uses one consumer pass, a global recognized quota with Unknown bookkeeping, exact history/type/estimator precedence and cumulative query/map limits. Local fill_data override and pre-input zero-quota errors correct CPP-018/048. Isolation-target loading now preserves immediate sticky target filtering and differing first-selected-ion Float metadata across stream/path/consumer/count APIs; source count RT-event order remains distinct. Default selected-ion multiple/duplicate boundaries remain explicit. Every writer now consumes differing selected-ion metadata and preserves its separate effective isolation target; TPP intentionally suppresses precursor windows. Optional complete MzMLValidator specialization and file semantic convenience use shared bounded CV/XML logic and exact mapping; CPP-051 cross-document group state is corrected. Complete represented writer PeakFileOptions execution adds primary precision, all three Numpress configurations, zlib, TPP and indexed UTF-8 output with actual SHA-1 and byte offsets. One prepared payload supports two precharged markup passes and atomic path publication; ignored read options are not cloned. CPP-049/050 are corrected. skip_xml_checks executes only source four-character binary whitespace-normalization bypass, preserving checked XML/Base64/length/resource behavior and all no-decode modes; CPP-055 malformed-source behavior is rejected. Optional mzML-schema provides original fixed ordinary/indexed XSD validation through unmodified libxml0.3.14 with owned diagnostics, checked root/namespaces and UTF-16 input. Native limits do not bound opaque C allocations/time. CPP-052 schema selection is corrected; original CPP-054 schema defect remains explicit with separate integrity checks. MzMLFile remains partial: spectrum mobility/IMPeakType, remaining precursor activation metadata/unit routes and adapter progress hooks remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTab.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mztab.rs"
+   ],
+   "tests": [
+    "tests/mztab.rs"
+   ],
+   "documentation": "docs/MZTAB_SUPPORT.md",
+   "scope": "All seven row families, modification cells, document storage/accessors and optional metadata mapping. Missing exportFeatureMapToMzTab, exportIdentificationsToMzTab, exportConsensusMapToMzTab, extractModificationList and nested IDMzTabStream/CMMzTabStream. Two upstream exporter test sections remain unported; no whole-header completion."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTabBase.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/mztab.rs"
+   ],
+   "tests": [
+    "tests/mztab.rs"
+   ],
+   "documentation": "docs/MZTAB_SUPPORT.md",
+   "scope": "Full shared cell vocabulary, cell states, metadata records and optional-column collection mapped. Native checked parsing, typed state-aware equality and explicit source comparison operations replace unchecked C++ behavior. Source-review and independently derived evidence only; no executed C++ claim."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTabFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mztab_file.rs"
+   ],
+   "tests": [
+    "tests/mztab_file.rs"
+   ],
+   "documentation": "docs/MZTAB_FILE_SUPPORT.md",
+   "scope": "Load/store MzTab records, seven section column families, flags and defined row/header generators. Identification-list and ConsensusMap store overloads require unported MzTab exporters; undefined protected statics explicitly accounted for. Retained upstream inputs are not executed output evidence."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTabM.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mztab_m.rs"
+   ],
+   "tests": [
+    "tests/mztab_m.rs"
+   ],
+   "documentation": "docs/MZTAB_M_SUPPORT.md",
+   "scope": "Metabolomics records and FeatureMap exporter are implemented, but end-to-end exporter reproduction from the OMS input remains absent and default CV identity differs. Retained output comparisons cover metadata, selected rows and writer grammar; counts copied from expected output do not certify exporter row construction. Promote only after these documented fidelity/validation gaps close."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzTabMFile.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/mztab_m.rs"
+   ],
+   "tests": [
+    "tests/mztab_m.rs"
+   ],
+   "documentation": "docs/MZTAB_M_SUPPORT.md",
+   "scope": "Full constructor/store and all seven metadata/header/row generators mapped. Retained C++ output grammar and selected rows verified in package tests; explicit source flags preserve known faulty spellings where requested. No mzTab-M reader is required by this source header; exporter validation is tracked separately under MzTabM.h."
+  },
+  "src/openms/include/OpenMS/FORMAT/MzXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/mzxml.rs"
+   ],
+   "tests": [
+    "tests/mzxml.rs"
+   ],
+   "documentation": "docs/MZXML_SUPPORT.md",
+   "scope": "Options, load/store and both transform overloads mapped, including source serial behavior and explicit source flags. XSD isValid and ProgressLogger inherited operations absent; structural checks do not validate XSD. FileHandler dispatch missing."
   },
   "src/openms/include/OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h": {
    "status": "native_equivalent",
@@ -839,6 +1070,61 @@
    "documentation": "docs/PARAMXML_SUPPORT.md",
    "scope": "Source plain/gzip/bzip2 load and atomic load-into, plain file/stdout store and stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. ZIP input remains unsupported. Native encoding/precision/loss validation adaptations documented; inherited XMLFile schema APIs remain separate."
   },
+  "src/openms/include/OpenMS/FORMAT/PepXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/pepxml.rs"
+   ],
+   "tests": [
+    "tests/pepxml.rs"
+   ],
+   "documentation": "docs/PEPXML_SUPPORT.md",
+   "scope": "Load/store, preferred modifications, native spectrum names and unknown-score policy mapped with retained output writer comparisons. Caller-built SpectrumIndex replaces source store loading mz_file; arbitrary SpectrumMetaDataLookup behaviors are a subset. Do not close whole header until integration review resolves/documentedly accepts this public store convenience gap and validates final scaling fixes."
+  },
+  "src/openms/include/OpenMS/FORMAT/PercolatorInfile.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/percolator_infile.rs"
+   ],
+   "tests": [
+    "tests/percolator_infile.rs"
+   ],
+   "documentation": "docs/PERCOLATOR_INFILE_SUPPORT.md",
+   "scope": "All six public operations including both stampPinFeaturesOnHits overloads mapped to typed API, plus PIN row preparation and enzyme helpers. Native bounds and explicit ambiguous-charge/error policies; source-review plus Rust-only tests, not executed C++ evidence."
+  },
+  "src/openms/include/OpenMS/FORMAT/QcMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/qcml.rs"
+   ],
+   "tests": [
+    "tests/qcml.rs"
+   ],
+   "documentation": "docs/QCML_SUPPORT.md",
+   "scope": "QualityParameter/Attachment values, run/set registration, lookup, removal, merge, export and XML file I/O mapped. collectQCData and its metric computation are explicitly unported. Stylesheet is caller supplied; source bugs and native compatibility policies remain documented."
+  },
+  "src/openms/include/OpenMS/FORMAT/SVOutStream.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/sv_out_stream.rs"
+   ],
+   "tests": [
+    "tests/sv_out_stream.rs"
+   ],
+   "documentation": "docs/SV_OUT_STREAM_SUPPORT.md",
+   "scope": "Public stream constructors, field/char/numeric/display writing, raw writes, newline/flush and modifyStrings mapped. Rust Display and explicit end_line replace arbitrary C++ stream manipulators; documented native contract with source spelling for arithmetic types. No C++ execution."
+  },
+  "src/openms/include/OpenMS/FORMAT/SqliteConnector.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/format/sqlite_connector.rs"
+   ],
+   "tests": [
+    "tests/sqlite_connector.rs"
+   ],
+   "documentation": "docs/SQLITE_CONNECTOR_SUPPORT.md",
+   "scope": "All public connector operations and three distinct modes mapped; all eight upstream class-test sections represented. Owned cleanup, bound names, quoted identifiers and checked query errors correct source defects. Raw SQL batches and first-statement-only BLOB binding preserve source transaction/tail conventions; explicit native NUL-SQL rejection and error mapping documented. Does not close private helpers or SqMass/OSW/OMS/SQLite handlers; adapted C++ probes and native test evidence are scoped separately."
+  },
   "src/openms/include/OpenMS/FORMAT/TextFile.h": {
    "status": "complete",
    "rust": [
@@ -850,6 +1136,17 @@
    "documentation": "docs/TEXT_CSV_SUPPORT.md",
    "scope": "Complete source operations with literal text/CSV semantics, source construction/load differences and native checked UTF-8/resource/I/O adaptations. No RFC CSV parsing promise."
   },
+  "src/openms/include/OpenMS/FORMAT/TransformationXMLFile.h": {
+   "status": "partial",
+   "rust": [
+    "src/format/transformation_xml.rs"
+   ],
+   "tests": [
+    "tests/transformation_xml.rs"
+   ],
+   "documentation": "docs/TRANSFORMATION_XML_SUPPORT.md",
+   "scope": "Load/store/version and record-level persistence mapped. b_spline cannot be resolved to a native transformation; inherited XSD isValid unsupported. Four fixture structural verdicts are useful evidence but do not implement schema validation."
+  },
   "src/openms/include/OpenMS/FORMAT/VALIDATORS/MzMLValidator.h": {
    "status": "native_equivalent",
    "rust": [
@@ -857,9 +1154,9 @@
     "src/format/semantic_validator.rs"
    ],
    "tests": [
+    "tests/cv_mapping_file.rs",
     "tests/mzml_validator.rs",
-    "tests/semantic_validator.rs",
-    "tests/cv_mapping_file.rs"
+    "tests/semantic_validator.rs"
    ],
    "documentation": "docs/MZML_VALIDATOR_SUPPORT.md",
    "scope": "Complete class-specific specialization plus inherited options/locate behavior and MzMLFile semantic convenience. Borrowed providers, full owned report, default units, exact literal indexed paths, definition-time diagnostics, duplicate/forward/missing/nested groups, GO/BTO exemptions and repeated binary-role/type checks. Per-document XML/group/rule state corrects CPP-051 successful-call contamination, retaining inherited documented corrections and CPP-046 scalar syntax. One cumulative meter covers all repeated references and diagnostics; exact pinned mapping/provider initialization has separate fixed bounds. Three unchanged original inputs retain source0/0,0/0,8/1 diagnostics; two unavailable source-written inputs are not assigned native golden outputs. Optional mzml-validation feature, no new dependency; no XSD, index integrity or C++ execution claim."
@@ -867,14 +1164,14 @@
   "src/openms/include/OpenMS/FORMAT/VALIDATORS/SemanticValidator.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/format/semantic_validator.rs",
-    "src/format/cv_xml.rs"
+    "src/format/cv_xml.rs",
+    "src/format/semantic_validator.rs"
    ],
    "tests": [
-    "tests/semantic_validator.rs",
+    "tests/controlled_vocabulary.rs",
     "tests/cv_mapping_file.rs",
     "tests/cv_mapping_values.rs",
-    "tests/controlled_vocabulary.rs"
+    "tests/semantic_validator.rs"
    ],
    "documentation": "docs/SEMANTIC_VALIDATOR_SUPPORT.md",
    "scope": "Complete class-specific general CV/mapping validation, ParsedCVTerm value, configurable qnames/attributes/switches, borrowed providers, owned error/warning report and selection-only locate_term. Source order/count collisions, MUST/MAY/SHOULD logic and value conversions retained, including documented non-XSD date behavior CPP-046. Unit descendant target, failed-parse state and history-dependent absent-path lookup corrected (CPP-039/040/044). Exact historical 738-term CV, valid/corrupt XML and all nine diagnostic literals; independent branch/resource/transport tests. Shared private XML extraction preserves CVMapping behavior; optional semantic-validation feature. Inherited XMLFile, C++ subclass extension points, derived format validators and full XSD lexical/schema validation are separate."
@@ -946,7 +1243,7 @@
     "tests/experiment_mobility.rs"
    ],
    "documentation": "docs/AREA_ITERATION_SUPPORT.md",
-   "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain. Complete: the scalar RT/m/z traversal plus the closed residuals \u2014 Param's lowIM/highIM as AreaOptions::mobility, getDriftTime on both yielded items, and the RangeManager overloads through from_range_manager. Mobility filters the scalar drift time only, as nextScan_ does; empty or absent dimensions do not restrict and intensity is ignored. Checked ordering, finiteness and shared resource budgets."
+   "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain. Complete: the scalar RT/m/z traversal plus the closed residuals — Param's lowIM/highIM as AreaOptions::mobility, getDriftTime on both yielded items, and the RangeManager overloads through from_range_manager. Mobility filters the scalar drift time only, as nextScan_ does; empty or absent dimensions do not restrict and intensity is ignored. Checked ordering, finiteness and shared resource budgets."
   },
   "src/openms/include/OpenMS/KERNEL/BaseFeature.h": {
    "status": "native_equivalent",
@@ -1000,8 +1297,8 @@
   "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/kernel/chromatogram_tools.rs",
-    "src/kernel/acquisition_fields.rs"
+    "src/kernel/acquisition_fields.rs",
+    "src/kernel/chromatogram_tools.rs"
    ],
    "tests": [
     "tests/chromatogram_tools.rs"
@@ -1078,9 +1375,9 @@
   "src/openms/include/OpenMS/KERNEL/FeatureHandle.h": {
    "status": "complete",
    "rust": [
+    "src/concept/unique_id.rs",
     "src/kernel/features.rs",
-    "src/kernel/gap_closures.rs",
-    "src/concept/unique_id.rs"
+    "src/kernel/gap_closures.rs"
    ],
    "tests": [
     "tests/feature_handle.rs",
@@ -1174,7 +1471,7 @@
     "tests/ranges.rs"
    ],
    "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-   "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate. Whole header audited member by member. Adds scan-mobility IMBegin/IMEnd, isIMFrame, both mobility bulk exports, rasterizeRTMZ and the RangeManager area overloads to the scalar area, precursor, container, range, TIC, 2D and aggregation surfaces already present. Three members remain unported: set2DData's mass-trace specialization, getFirstProductSpectrum and operator<<; each is documented with the file that must own it. See docs/EXPERIMENT_MOBILITY_SUPPORT.md. Test accounting after the follow-up fix: 56 of the 81 class-test sections are ported, 21 are mapped with a named test function and a concrete asserted value, and 4 are unaccounted because their members are unported \u2014 set2DData<add_mass_traces=true> (section 11), both getFirstProductSpectrum overloads (42, 43) and operator<< (54). The header stays partial for exactly those four."
+   "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate. Whole header audited member by member. Adds scan-mobility IMBegin/IMEnd, isIMFrame, both mobility bulk exports, rasterizeRTMZ and the RangeManager area overloads to the scalar area, precursor, container, range, TIC, 2D and aggregation surfaces already present. Three members remain unported: set2DData's mass-trace specialization, getFirstProductSpectrum and operator<<; each is documented with the file that must own it. See docs/EXPERIMENT_MOBILITY_SUPPORT.md. Test accounting after the follow-up fix: 56 of the 81 class-test sections are ported, 21 are mapped with a named test function and a concrete asserted value, and 4 are unaccounted because their members are unported — set2DData<add_mass_traces=true> (section 11), both getFirstProductSpectrum overloads (42, 43) and operator<< (54). The header stays partial for exactly those four."
   },
   "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
    "status": "partial",
@@ -1332,12 +1629,12 @@
   "src/openms/include/OpenMS/KERNEL/RichPeak2D.h": {
    "status": "complete",
    "rust": [
-    "src/kernel/peak2d.rs",
-    "src/concept/unique_id.rs"
+    "src/concept/unique_id.rs",
+    "src/kernel/peak2d.rs"
    ],
    "tests": [
-    "tests/rich_peak2d.rs",
     "tests/peak2d.rs",
+    "tests/rich_peak2d.rs",
     "tests/unique_id.rs"
    ],
    "documentation": "docs/PEAK2D_SUPPORT.md",
@@ -1377,6 +1674,175 @@
    "documentation": "docs/NATIVE_EQUIVALENTS.md",
    "scope": "Four forward declarations and three typedefs: PeakSpectrum, PeakMap and Chromatogram are MSSpectrum, MSExperiment and MSChromatogram. No second Rust name is introduced; consumers take the MS* type."
   },
+  "src/openms/include/OpenMS/MATH/MISC/BSpline2d.h": {
+   "status": "complete",
+   "rust": [
+    "src/processing/spline.rs",
+    "src/processing/spline/b_spline.rs"
+   ],
+   "tests": [
+    "tests/spline_math.rs"
+   ],
+   "documentation": "docs/BSPLINE2D_SUPPORT.md",
+   "scope": "All eight public members reviewed and documented; seven ported, static debug(bool) deliberately not (a process-global mutable flag gating std::cerr; the class test marks it NOT_TESTABLE). The C++ is a PIMPL wrapper around the vendored eol-bspline library, which this crate cannot depend on, so the library's Setup, Ratiod, Alpha, Beta, Basis, DBasis, qDelta, calculateQ, addP, BandedMatrix, LU_factor_banded, LU_solve_banded, solve, evaluate, slope and coefficient are reimplemented from the pinned vendored source. This is an independent implementation, not a wrapper, and the support document says so first. Preserved: the truncated PI 3.1415927, the float accumulators in calculateQ and addP, the rewrite of a zero cutoff wavelength to 1.0, the ten-interval start of the node search, the four-term clamped evaluation window and the mean subtraction that makes evaluation far outside the domain return the fitted mean. Construction failure is an Err rather than a not-ok object; ok() survives for the post-construction solve failure. MAX_POINTS 250,000 and MAX_NODES 500,001 bound the banded matrix at 28 MiB. Evidence tier 2, bit-for-bit across 13 configurations including all 405 basis coefficients of the 202-point class-test fixture; all 7 class-test sections mapped."
+  },
+  "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h": {
+   "status": "complete",
+   "rust": [
+    "src/processing/spline.rs",
+    "src/processing/spline/smoothing.rs"
+   ],
+   "tests": [
+    "tests/spline_math.rs"
+   ],
+   "documentation": "docs/BSPLINE_SMOOTHING_SPLINE_SUPPORT.md",
+   "scope": "All public members reviewed and documented. eval, num_interior_knots, rss and smoothing_param are ported; ok() is expressed as the Result from the constructors rather than as a method that could only return true. The class does not solve the penalised problem its own header describes: it tries a cubic polynomial first, accepts it within a ten-percent margin of the residual budget, and only then searches the fixed node list 4, 6, 8, n/2, 3n/4, n. That algorithm is ported as written, including the margin, the integer divisions, and the candidate comparator that is not a strict weak ordering (sorted with an explicit stable insertion sort, which is what libstdc++ runs for at most six candidates). The deleted copy constructor is deliberately diverged: the Rust value owns its fit by value, so Clone is implemented. k is confirmed unused by the probe and surfaced read-only as degree(). Evidence tier 2, bit-for-bit across 27 fits covering every branch including the node search, which the upstream class test never reaches; all 16 class-test sections mapped."
+  },
+  "src/openms/include/OpenMS/MATH/MISC/CubicSpline2d.h": {
+   "status": "complete",
+   "rust": [
+    "src/processing/spline.rs",
+    "src/processing/spline/cubic.rs"
+   ],
+   "tests": [
+    "tests/spline_math.rs"
+   ],
+   "documentation": "docs/CUBIC_SPLINE2D_SUPPORT.md",
+   "scope": "All five public members reviewed and documented. Both constructors, eval and derivatives are ported; the C++ derivative(x) and derivatives(x, order) overloads collapse into one derivative(x, order) because the former's body is literally the latter. The map constructor becomes from_pairs, reproducing std::map's sort and first-value-wins key collapse so the deduplicated size check matches. The Burden/Faires recurrence is transcribed term by term in its original evaluation order. The natural boundary condition was confirmed from CubicSpline2d.cpp:152 and the recurrence, and is asserted as exact zero at both ends. Port is stricter in two documented places: it rejects repeated and non-finite abscissae, which the C++ accepts (its check is only non-decreasing) and then turns into NaN coefficients, and it rejects non-finite query positions, which the C++ indexes one past the end of its knot vector. MAX_POINTS is a native ceiling. Native peak_maximum is retained for the peak picker and marked as not a port of this header. Evidence tier 2, bit-for-bit against an executed probe; all 4 class-test sections mapped."
+  },
+  "src/openms/include/OpenMS/MATH/MISC/EmgGradientDescent.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/analysis/emg.rs"
+   ],
+   "tests": [
+    "tests/emg.rs",
+    "tests/emg_integration.rs",
+    "tests/emg_reference.rs",
+    "tests/emg_sections.rs"
+   ],
+   "documentation": "docs/EMG_SUPPORT.md",
+   "scope": "Complete native mapping of every public, protected and private member, reviewed member by member at bc9cc12, where header, implementation and class test are byte-identical to the original 7c029e8 pin. Gradient-descent hyper-parameters are literal: initial learning rate 0.0125, growth 1.2, decay 0.5, rate cap 2000, sigma = mu*1e-2 and tau = 2*sigma from the absolute initial mean, the every-50th-iteration ten-value loss ring with a population-standard-deviation-below-1 stop, the max_gd_iter cap, and the h/mu/sigma/tau clamps. All twelve gradient branch expressions, the three emg_point branches and the 6.71e7 z threshold are transcribed with their original grouping and per-point normalization. computeMuMaxDistance now takes the training positions as the source does. Out-parameters become typed returns (EmgEstimate, EmgCurve, EmgSpectrumFit, EmgChromatogramFit); DefaultParamHandler, print_debug_, updateMembers_ and the EmgGradientDescent_friend test shim are deliberately not ported, each with a stated reason. One behavioural divergence: where the source breaks out of the optimizer on a non-finite parameter or loss and returns its earlier best, this port returns an error. The emg_parameters FloatDataArray becomes the typed estimate because a four-element array beside a differently sized peak list violates the crate's alignment invariant. All 13 class-test sections are mapped, each citing a Rust test and one asserted value. Module is at 100% rustdoc."
+  },
+  "src/openms/include/OpenMS/MATH/MISC/SplineBisection.h": {
+   "status": "complete",
+   "rust": [
+    "src/processing/spline.rs",
+    "src/processing/spline/bisection.rs"
+   ],
+   "tests": [
+    "tests/spline_math.rs"
+   ],
+   "documentation": "docs/SPLINE_BISECTION_SUPPORT.md",
+   "scope": "The header's single function template is ported in full. Its duck-typed requirement becomes the SplineFunction trait, implemented for both types the header names. The termination condition is transcribed literally: do/while so the body always runs once (a reversed bracket returns its own midpoint), lefthand_sign fixed at true so the exclusive-or reduces to the sign of the midpoint derivative, the early exit spelled so a NaN derivative also stops it, and the reported position taken from the bracket before the midpoint that triggered the break. Out-parameters become the returned (position, value) tuple. One native addition: MAX_BISECTION_STEPS = 4096, because the C++ loop does not terminate once the bracket collapses to two adjacent f64 values whose midpoint ties back to the end the derivative selects; the unit test constructs that case exactly. Evidence tier 2, bit-for-bit on 10 brackets: the class test's four plus an apex outside on the left, an apex on the bracket edge, a reversed bracket, a coarse threshold and two runs over a real CubicSpline2d. The 1 class-test section is mapped."
+  },
+  "src/openms/include/OpenMS/MATH/MathFunctions.h": {
+   "status": "partial",
+   "rust": [
+    "src/concept/math_functions.rs"
+   ],
+   "tests": [
+    "tests/math_functions.rs"
+   ],
+   "documentation": "docs/MATH_FUNCTIONS_SUPPORT.md",
+   "scope": "Complete native port of every free function in the OpenMS::Math namespace: extendRange, contains, zoomIn, createBins, ceilDecimal, roundDecimal, intervalTransformation, linear2log, log2linear, isOdd, round, roundTo, percentOf, approximatelyEqual, both gcd overloads, getPPM, getPPMAbs, ppmToMass, ppmToMassAbs, getTolWindow, quantile, log_binomial_coef, log_sum_exp and binomial_cdf_complement. Source spellings preserved where a rewrite would change the double: roundTo's factor loop, pow(10.0, decPow) with a promoted int, roundDecimal's negative-zero branch, log_binomial_coef's integer-division symmetry swap, std::max semantics in log_sum_exp, ppmToMass's divide-before-multiply, getTolWindow's asymmetric ppm right edge and quantile's max(0, n*q-1) index. Every unchecked division, logarithm and float-derived index is now checked; debug-only OPENMS_PRECONDITIONs become unconditional errors; four explicit ceilings bound the input-scaled operations. binomial_cdf_complement replaces Boost's incomplete beta with a log-domain sum of the same probability-mass definition, agreeing with an exact rational oracle to 2.5e-14 relative over every class-test case. createBins returns a native Bin (two coordinates) rather than kernel RangeBase, to avoid a concept->kernel module edge. Status is partial only because Math::RandomShuffler and its six members are not exposed from this module: their exact semantics already exist as the crate-private chemistry::decoy_random::DecoyRandom, and promoting that type belongs to a package that owns both files. No C++ was built or executed; transcribed expected values are tier 3, the derived invariants tier 4."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/BasicStatistics.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/math/basic_statistics.rs",
+    "src/math/mod.rs"
+   ],
+   "tests": [
+    "tests/basic_statistics.rs"
+   ],
+   "documentation": "docs/BASIC_STATISTICS_SUPPORT.md",
+   "scope": "Complete public and protected surface over f64: clear, both update overloads with the source's two-pass accumulation order and its asymmetric zero-mass guard, all six accessors/setters, sqrt2pi as the source's one-ulp-high literal, normalDensity_sqrt2pi and normalDensity, all three normalApproximation overloads as two functions, and the debugging stream operator as Display. The RealT template parameter is fixed to f64, the only instantiation in the library. Native: equal probability/coordinate lengths are required, a zero or non-finite normalising density sum is refused, and MAX_ITEMS bounds every allocation."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/GammaDistributionFitter.h": {
+   "status": "complete",
+   "rust": [
+    "src/math/fitters/gamma.rs",
+    "src/math/fitters/levenberg_marquardt.rs"
+   ],
+   "tests": [
+    "tests/math_distribution_fitters.rs"
+   ],
+   "documentation": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+   "scope": "Every public member reviewed and documented: GammaDistributionFitResult (its only constructor, b, p), GammaDistributionFitter (constructor, setInitialParameters, fit) and the protected init_param_. The header's @note about the customized density that is zero for b<=0 or p<=0 is carried into rustdoc and both the residual and Jacobian branches are reproduced. digamma is reimplemented because Boost is not available; agreement with the closed forms is better than 1e-14. All 4 START_SECTION blocks are mapped; b=7.2527 and p=3.1169 against the published 7.25/3.11 at TOLERANCE_ABSOLUTE(0.01)."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/GaussFitter.h": {
+   "status": "complete",
+   "rust": [
+    "src/math/fitters/gauss.rs",
+    "src/math/fitters/levenberg_marquardt.rs"
+   ],
+   "tests": [
+    "tests/math_distribution_fitters.rs"
+   ],
+   "documentation": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+   "scope": "Every public member reviewed and documented: GaussFitResult (both constructors, A/x0/sigma, eval, log_eval_no_normalize, the private halflogtwopi member), GaussFitter (constructor, setInitialParameters, fit, static eval) and the protected init_param_. The destructor and the two undefined private copy members are not ported and are recorded as such in the support document's API table. All 5 START_SECTION blocks of GaussFitter_test.cpp are mapped; the published parameters are reproduced to 4.1e-11 relative (first case) and 6.7e-16/exact/4.4e-15 (second case), and the seven eval intensities to 1.8e-16 relative with four of seven bit-identical."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h": {
+   "status": "partial",
+   "rust": [
+    "src/math/fitters/gumbel.rs",
+    "src/math/fitters/levenberg_marquardt.rs"
+   ],
+   "tests": [
+    "tests/math_distribution_fitters.rs"
+   ],
+   "documentation": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+   "scope": "Constructor, setInitialParameters, fit, the result struct's defaulted constructor, a, b and log_eval_no_normalize are all ported, documented and tested; all 10 START_SECTION blocks are mapped and both published fits are reproduced inside TOLERANCE_ABSOLUTE(0.1). Status is partial and not complete because two declared public members have no definition anywhere in the SDK and therefore cannot be ported: GumbelDistributionFitResult::eval (GumbelDistributionFitter.h:51) and GumbelDistributionFitter::fitWeighted (GumbelDistributionFitter.h:81, with a full Doxygen block including an @exception). The Rust GumbelDistributionFitResult::eval exposes the residual model the functor uses and is labelled native, not a port of the undefined declaration. Promote to complete once upstream either defines or removes those two members."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h": {
+   "status": "complete",
+   "rust": [
+    "src/math/fitters/gumbel_max_likelihood.rs",
+    "src/math/fitters/levenberg_marquardt.rs"
+   ],
+   "tests": [
+    "tests/math_distribution_fitters.rs"
+   ],
+   "documentation": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+   "scope": "Every public member reviewed and documented: the nested GumbelDistributionFitResult (constructor, a, b, log_eval_no_normalize), both constructors, setInitialParameters, fitWeighted and the protected init_param_ including its write-back after a successful fit. All 6 START_SECTION blocks are mapped, including the three that read the initial parameters back through an empty fitWeighted. The source's two-residual formulation and Eigen::NumericalDiff forward-difference Jacobian are reproduced; an independent test verifies the result is a local minimum of the source's own weighted negative log-likelihood."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/math/histogram.rs",
+    "src/math/mod.rs"
+   ],
+   "tests": [
+    "tests/histogram.rs"
+   ],
+   "documentation": "docs/HISTOGRAM_SUPPORT.md",
+   "scope": "Complete public and protected surface: both constructors and the data-iterator constructor, the bounds/size/extrema accessors, indexed and value-keyed bin lookup, centerOfBin/leftBorderOfBin/rightBorderOfBin with the last bin's nextafter border, inc/incUntil/incFrom and getCumulativeHistogram as a method, reset, equality, iteration, applyLogTransformation and valueToBin. Both template parameters are fixed to f64, which keeps the class test's Histogram<float,float> expressible and removes the default UInt instantiation's truncation in applyLogTransformation. Native: inverted ranges, non-finite bounds/values/increments, NaN lookups and bins at or below -1 are refused; MAX_BINS bounds the bin count; reset and applyLogTransformation commit atomically; minValue/maxValue return Option instead of dereferencing an empty vector's end iterator."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/RankData.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/math/mod.rs",
+    "src/math/rank_data.rs"
+   ],
+   "tests": [
+    "tests/rank_data.rs"
+   ],
+   "documentation": "docs/RANK_DATA_SUPPORT.md",
+   "scope": "Complete public surface: RankMethod and NanPolicy with the source's defaults, the generic rankdata over a public Rankable trait, and the f64/f32/i32 forwarders that replace both the static members and the by-value free overloads. SciPy semantics preserved: one-based ranks, a stable sort, exact-equality ties, all five tie rules, Propagate's all-NaN vector, Omit's per-position NaN and Raise's rejection. The sort comparator is the source's `<` rather than the IEEE-754 total order, so signed zeros stay interchangeable under Ordinal. Native: MAX_ITEMS bounds the two staged buffers."
+  },
+  "src/openms/include/OpenMS/MATH/StatisticFunctions.h": {
+   "status": "native_equivalent",
+   "rust": [
+    "src/math/mod.rs",
+    "src/math/statistic_functions.rs"
+   ],
+   "tests": [
+    "tests/statistic_functions.rs"
+   ],
+   "documentation": "docs/STATISTIC_FUNCTIONS_SUPPORT.md",
+   "scope": "Complete public surface as free functions over &[f64]: the three checkIterators helpers, sum/mean/median, both quantile conventions (median-of-halves quantile1st/quantile3rd including the even-count element drop, and Hyndman-Fan type 7 quantile), MAD/MeanAbsoluteDeviation/absdev, variance/sd/covariance at n-1 and meanSquareError/rootMeanSquareError at n, classificationRate, Matthews/Pearson/Spearman coefficients, computeRank with the source's relative 1e-7 tie tolerance, the Tukey/winsorized/adaptive quantile family with AdaptiveQuantileResult, and SummaryStatistics. The iterator templates are narrowed to f64 slices and each `bool sorted` / `mean = DBL_MAX` default argument becomes two named functions. Native: sortedness and NaN are always checked, variance/sd/covariance refuse n < 2 instead of returning NaN, and every staged buffer preflights MAX_ITEMS/MAX_BYTES."
+  },
   "src/openms/include/OpenMS/METADATA/ContactPerson.h": {
    "status": "native_equivalent",
    "rust": [
@@ -1404,8 +1870,8 @@
   "src/openms/include/OpenMS/METADATA/DocumentIdentifier.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/metadata/document_identifier.rs",
-    "src/format/file_handler.rs"
+    "src/format/file_handler.rs",
+    "src/metadata/document_identifier.rs"
    ],
    "tests": [
     "tests/document_identifier.rs",
@@ -1417,8 +1883,8 @@
   "src/openms/include/OpenMS/METADATA/ExperimentalDesign.h": {
    "status": "complete",
    "rust": [
-    "src/metadata/experimental_design.rs",
-    "src/kernel/features.rs"
+    "src/kernel/features.rs",
+    "src/metadata/experimental_design.rs"
    ],
    "tests": [
     "tests/experimental_design.rs"
@@ -1429,8 +1895,8 @@
   "src/openms/include/OpenMS/METADATA/ExperimentalSettings.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/metadata/experimental_settings.rs",
     "src/kernel.rs",
+    "src/metadata/experimental_settings.rs",
     "src/processing.rs"
    ],
    "tests": [
@@ -1544,16 +2010,16 @@
   "src/openms/include/OpenMS/METADATA/PeptideIdentificationList.h": {
    "status": "native_equivalent",
    "rust": [
-    "src/identification.rs",
-    "src/kernel.rs",
     "src/analysis/id_filter.rs",
-    "src/analysis/protein_inference.rs"
+    "src/analysis/protein_inference.rs",
+    "src/identification.rs",
+    "src/kernel.rs"
    ],
    "tests": [
-    "tests/identification.rs",
     "tests/id_filter.rs",
-    "tests/protein_inference.rs",
-    "tests/identification_pipeline.rs"
+    "tests/identification.rs",
+    "tests/identification_pipeline.rs",
+    "tests/protein_inference.rs"
    ],
    "documentation": "docs/NATIVE_EQUIVALENTS.md",
    "scope": "Vec<PeptideIdentification> supplies all container data operations, constructors and assignment. Rust ownership, checked access and std::mem replace C++ moved-from-object/iterator observability; no C++ ABI or exact allocator capacity parity. Underlying PeptideIdentification and downstream algorithm completeness remain separate reviews."
@@ -1561,15 +2027,15 @@
   "src/openms/include/OpenMS/METADATA/Product.h": {
    "status": "partial",
    "rust": [
-    "src/metadata/acquisition.rs",
     "src/kernel.rs",
+    "src/metadata/acquisition.rs",
     "src/metadata/value.rs"
    ],
    "tests": [
-    "tests/metadata.rs",
     "tests/experiment_aggregation.rs",
-    "tests/mzml_product.rs",
-    "tests/metadata_hash.rs"
+    "tests/metadata.rs",
+    "tests/metadata_hash.rs",
+    "tests/mzml_product.rs"
    ],
    "documentation": "docs/METADATA_HASH_SUPPORT.md",
    "scope": "All own Product operations now have native equivalents, including equality-compatible Hash with signed-zero normalization, scalar mutation and cloning. Attached CV/ordinary metadata use native owned string-keyed records; inherited full source state remains limited by CVTerm/DataValue independent units and numeric registry identity. mzML transports represented fields and rejects arbitrary CV/list/Empty metadata before output. Full inherited source-model equivalence remains under review."
@@ -1611,6 +2077,18 @@
    "documentation": "docs/IM_TYPES_SUPPORT.md",
    "scope": "First ledger entry. New and complete here: the four ion-mobility accessors over the existing fields, plus NamesOfSpectrumType, getAllNamesOfSpectrumType, spectrumTypeToString and toSpectrumType. The remaining members are implemented by the METADATA package and not audited here; std::hash and operator<< stay unported. One class-test section ported."
   },
+  "src/openms/include/OpenMS/SYSTEM/BuildInfo.h": {
+   "status": "partial",
+   "rust": [
+    "src/system/build_info.rs"
+   ],
+   "tests": [
+    "src/system/build_info.rs",
+    "tests/build_info.rs"
+   ],
+   "documentation": "docs/BUILD_INFO_SUPPORT.md",
+   "scope": "All eight class-test sections are mapped and every public member appears in the API table. Partial for three stated reasons: getOSVersionString_ reads /etc/os-release on Linux but reports 'unknown' on macOS and Windows, because sysctlbyname and RtlGetVersion need platform bindings; getBuildType is derived from debug_assertions rather than CMake's OPENMS_BUILD_TYPE string, which Cargo does not bake into a library; and setOpenMPNumThreads is not ported, being a no-op in the source's own non-OpenMP build. isOpenMPEnabled (false) and getOpenMPMaxNumThreads (1) are exactly the source's non-OpenMP answers. getActiveSIMDExtensions re-bases the SIMDe probes onto Rust target features with the source's order and labels."
+  },
   "src/openms/include/OpenMS/SYSTEM/File.h": {
    "status": "partial",
    "rust": [
@@ -1622,247 +2100,41 @@
    "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
    "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
   },
-  "src/openms/include/OpenMS/FORMAT/MzTabBase.h": {
-   "status": "native_equivalent",
+  "src/openms/include/OpenMS/SYSTEM/PathUtils.h": {
+   "status": "complete",
    "rust": [
-    "src/format/mztab.rs"
+    "src/system/path_utils.rs"
    ],
    "tests": [
-    "tests/mztab.rs"
+    "src/system/path_utils.rs",
+    "tests/path_utils.rs"
    ],
-   "documentation": "docs/MZTAB_SUPPORT.md",
-   "scope": "Full shared cell vocabulary, cell states, metadata records and optional-column collection mapped. Native checked parsing, typed state-aware equality and explicit source comparison operations replace unchecked C++ behavior. Source-review and independently derived evidence only; no executed C++ claim."
+   "documentation": "docs/PATH_UTILS_SUPPORT.md",
+   "scope": "Both public members ported with identical behaviour on every platform. basename reproduces all three outcomes of substr(find_last_of(\"\\\\/\") + 1), including the trailing-separator and bare-separator cases, and delegates to system::file::basename rather than repeating the source's second copy of File::basename. to_path is PathBuf::from behind a length and NUL check; the source's Windows u8string re-encoding is a no-op in Rust and its ANSI std::system_error fallback is unreachable because a &str is UTF-8 by construction. The one class-test section is mapped with all six cross-platform round-trip literals; the four _WIN32 cases are unrepresentable here and are recorded as such."
   },
-  "src/openms/include/OpenMS/FORMAT/MzTab.h": {
+  "src/openms/include/OpenMS/SYSTEM/StopWatch.h": {
    "status": "partial",
    "rust": [
-    "src/format/mztab.rs"
+    "src/system/stop_watch.rs"
    ],
    "tests": [
-    "tests/mztab.rs"
+    "src/system/stop_watch.rs",
+    "tests/stop_watch.rs"
    ],
-   "documentation": "docs/MZTAB_SUPPORT.md",
-   "scope": "All seven row families, modification cells, document storage/accessors and optional metadata mapping. Missing exportFeatureMapToMzTab, exportIdentificationsToMzTab, exportConsensusMapToMzTab, extractModificationList and nested IDMzTabStream/CMMzTabStream. Two upstream exporter test sections remain unported; no whole-header completion."
+   "documentation": "docs/STOP_WATCH_SUPPORT.md",
+   "scope": "Every public member and the private TimeDiff_ surface have a documented Rust counterpart, and all 21 class-test sections are mapped. Partial, not complete, for one reason: the source reaches the per-process user/kernel split through POSIX times() on every Unix, while this port reads /proc/self/stat on Linux and reports user_time/system_time as None on macOS, other Unix and Windows (cpu_time still answers there from the aggregate process CPU clock). Restoring the split needs a libc dependency, which is the integrator's decision. Wall time is monotonic (Instant) where the source samples gettimeofday; the seconds-plus-microseconds representation, the strict '> 1000000' carry, the reading order of getClockTime and getCPUTime, and the whole of toString are reproduced. PartialOrd is deliberately not implemented because the source's operator< compares CPU time alone and would disagree with its own operator==."
   },
-  "src/openms/include/OpenMS/FORMAT/MzTabFile.h": {
+  "src/openms/include/OpenMS/SYSTEM/SysInfo.h": {
    "status": "partial",
    "rust": [
-    "src/format/mztab_file.rs"
+    "src/system/sys_info.rs"
    ],
    "tests": [
-    "tests/mztab_file.rs"
+    "src/system/sys_info.rs",
+    "tests/sys_info.rs"
    ],
-   "documentation": "docs/MZTAB_FILE_SUPPORT.md",
-   "scope": "Load/store MzTab records, seven section column families, flags and defined row/header generators. Identification-list and ConsensusMap store overloads require unported MzTab exporters; undefined protected statics explicitly accounted for. Retained upstream inputs are not executed output evidence."
-  },
-  "src/openms/include/OpenMS/FORMAT/MzTabM.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mztab_m.rs"
-   ],
-   "tests": [
-    "tests/mztab_m.rs"
-   ],
-   "documentation": "docs/MZTAB_M_SUPPORT.md",
-   "scope": "Metabolomics records and FeatureMap exporter are implemented, but end-to-end exporter reproduction from the OMS input remains absent and default CV identity differs. Retained output comparisons cover metadata, selected rows and writer grammar; counts copied from expected output do not certify exporter row construction. Promote only after these documented fidelity/validation gaps close."
-  },
-  "src/openms/include/OpenMS/FORMAT/MzTabMFile.h": {
-   "status": "native_equivalent",
-   "rust": [
-    "src/format/mztab_m.rs"
-   ],
-   "tests": [
-    "tests/mztab_m.rs"
-   ],
-   "documentation": "docs/MZTAB_M_SUPPORT.md",
-   "scope": "Full constructor/store and all seven metadata/header/row generators mapped. Retained C++ output grammar and selected rows verified in package tests; explicit source flags preserve known faulty spellings where requested. No mzTab-M reader is required by this source header; exporter validation is tracked separately under MzTabM.h."
-  },
-  "src/openms/include/OpenMS/FORMAT/PepXMLFile.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/pepxml.rs"
-   ],
-   "tests": [
-    "tests/pepxml.rs"
-   ],
-   "documentation": "docs/PEPXML_SUPPORT.md",
-   "scope": "Load/store, preferred modifications, native spectrum names and unknown-score policy mapped with retained output writer comparisons. Caller-built SpectrumIndex replaces source store loading mz_file; arbitrary SpectrumMetaDataLookup behaviors are a subset. Do not close whole header until integration review resolves/documentedly accepts this public store convenience gap and validates final scaling fixes."
-  },
-  "src/openms/include/OpenMS/FORMAT/QcMLFile.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/qcml.rs"
-   ],
-   "tests": [
-    "tests/qcml.rs"
-   ],
-   "documentation": "docs/QCML_SUPPORT.md",
-   "scope": "QualityParameter/Attachment values, run/set registration, lookup, removal, merge, export and XML file I/O mapped. collectQCData and its metric computation are explicitly unported. Stylesheet is caller supplied; source bugs and native compatibility policies remain documented."
-  },
-  "src/openms/include/OpenMS/FORMAT/PercolatorInfile.h": {
-   "status": "native_equivalent",
-   "rust": [
-    "src/format/percolator_infile.rs"
-   ],
-   "tests": [
-    "tests/percolator_infile.rs"
-   ],
-   "documentation": "docs/PERCOLATOR_INFILE_SUPPORT.md",
-   "scope": "All six public operations including both stampPinFeaturesOnHits overloads mapped to typed API, plus PIN row preparation and enzyme helpers. Native bounds and explicit ambiguous-charge/error policies; source-review plus Rust-only tests, not executed C++ evidence."
-  },
-  "src/openms/include/OpenMS/FORMAT/MascotXMLFile.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mascot_xml.rs"
-   ],
-   "tests": [
-    "tests/mascot_xml.rs"
-   ],
-   "documentation": "docs/MASCOT_XML_SUPPORT.md",
-   "scope": "Both load overloads and default title-lookup initialization implemented; custom scan_regex accepted by source initializeLookup is refused. Retained C++ idXML fixture provides load comparison, with dedicated fixture extractor due current idXML budget limitation. No writer exists upstream."
-  },
-  "src/openms/include/OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mascot_xml.rs"
-   ],
-   "tests": [
-    "tests/mascot_xml.rs"
-   ],
-   "documentation": "docs/MASCOT_XML_SUPPORT.md",
-   "scope": "Private handler implements the Mascot XML reader behavior and callbacks through typed parser state, but generic XMLHandler/reporting/inheritance contract and arbitrary lookup regex surface are not ported. No separate direct SAX interface is exposed."
-  },
-  "src/openms/include/OpenMS/FORMAT/MascotGenericFile.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mascot_generic.rs"
-   ],
-   "tests": [
-    "tests/mascot_generic.rs"
-   ],
-   "documentation": "docs/MASCOT_GENERIC_SUPPORT.md",
-   "scope": "MGF peak reading, stream/path storing, header/default-parameter options, native-ID parsing subset and sequence-query fields mapped. Source ProgressLogger base is not wired; generic base/template/API behavior should be reviewed before whole-header promotion."
-  },
-  "src/openms/include/OpenMS/FORMAT/MzIdentMLFile.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mzidentml.rs"
-   ],
-   "tests": [
-    "tests/mzidentml.rs"
-   ],
-   "documentation": "docs/MZIDENTML_SUPPORT.md",
-   "scope": "Linear and cross-link load/store plus detectVersion mapped. isValid XSD and isSemanticallyValid remain unimplemented; no certification from structural round-trip checks."
-  },
-  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mzidentml.rs"
-   ],
-   "tests": [
-    "tests/mzidentml.rs"
-   ],
-   "documentation": "docs/MZIDENTML_SUPPORT.md",
-   "scope": "Write path including XLMS fragments and three public analysisXML value types mapped. Public read-mode constructor and SAX callback stream path deliberately not implemented because source fails to publish parsed identifications; a separate DOM-equivalent parser supplies file loads. No generic XMLHandler/ProgressLogger contract."
-  },
-  "src/openms/include/OpenMS/FORMAT/MzDataFile.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mzdata.rs"
-   ],
-   "tests": [
-    "tests/mzdata.rs"
-   ],
-   "documentation": "docs/MZDATA_SUPPORT.md",
-   "scope": "Options, load/store, version, legacy precision/endian handling and reports mapped. isSemanticallyValid unsupported; inherited XSD isValid and ProgressLogger absent. Structural tests are weaker than schema validation; FileHandler dispatch still missing."
-  },
-  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzDataHandler.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mzdata.rs"
-   ],
-   "tests": [
-    "tests/mzdata.rs"
-   ],
-   "documentation": "docs/MZDATA_SUPPORT.md",
-   "scope": "Native parser/writer covers mzData callbacks and metadata/array behavior; source progress callback contract is absent. Bounds and loss policies explicit, but no exported SAX handler/inherited XMLHandler contract; keep conservative partial until scope owner reviews."
-  },
-  "src/openms/include/OpenMS/FORMAT/MSstatsFile.h": {
-   "status": "native_equivalent",
-   "rust": [
-    "src/format/msstats.rs"
-   ],
-   "tests": [
-    "tests/msstats.rs"
-   ],
-   "documentation": "docs/MSSTATS_SUPPORT.md",
-   "scope": "Both public storeLFQ/storeISO operations and all member helper/line mappings covered. Retained TOPP output compares complete LFQ and two ISO outputs under tighter numeric tolerance. Reports replace logging; source set-based intensity deduplication preserved. MSstats TOPP tool itself is not ported by this header group."
-  },
-  "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/ms_data_writing_consumer.rs"
-   ],
-   "tests": [
-    "tests/ms_data_writing_consumer.rs"
-   ],
-   "documentation": "docs/MS_DATA_WRITING_CONSUMER_SUPPORT.md",
-   "scope": "Streaming consumer hooks, settings/counts/processing and Plain/Noop variants mapped. Indexed footer output, per-record semantic validation and progress are not supplied; changing source-file or processing header dependencies can be refused. Whole-header equivalence not established."
-  },
-  "src/openms/include/OpenMS/FORMAT/MzXMLFile.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mzxml.rs"
-   ],
-   "tests": [
-    "tests/mzxml.rs"
-   ],
-   "documentation": "docs/MZXML_SUPPORT.md",
-   "scope": "Options, load/store and both transform overloads mapped, including source serial behavior and explicit source flags. XSD isValid and ProgressLogger inherited operations absent; structural checks do not validate XSD. FileHandler dispatch missing."
-  },
-  "src/openms/include/OpenMS/FORMAT/HANDLERS/MzXMLHandler.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/mzxml.rs"
-   ],
-   "tests": [
-    "tests/mzxml.rs"
-   ],
-   "documentation": "docs/MZXML_SUPPORT.md",
-   "scope": "Native nested-scan parser/writer implements recorded callbacks, array transport and metadata, serial rather than source parallel batch decoding. Generic SAX and progress-logger constructor contract are not exposed; keep partial pending full boundary acceptance."
-  },
-  "src/openms/include/OpenMS/FORMAT/SVOutStream.h": {
-   "status": "native_equivalent",
-   "rust": [
-    "src/format/sv_out_stream.rs"
-   ],
-   "tests": [
-    "tests/sv_out_stream.rs"
-   ],
-   "documentation": "docs/SV_OUT_STREAM_SUPPORT.md",
-   "scope": "Public stream constructors, field/char/numeric/display writing, raw writes, newline/flush and modifyStrings mapped. Rust Display and explicit end_line replace arbitrary C++ stream manipulators; documented native contract with source spelling for arithmetic types. No C++ execution."
-  },
-  "src/openms/include/OpenMS/FORMAT/TransformationXMLFile.h": {
-   "status": "partial",
-   "rust": [
-    "src/format/transformation_xml.rs"
-   ],
-   "tests": [
-    "tests/transformation_xml.rs"
-   ],
-   "documentation": "docs/TRANSFORMATION_XML_SUPPORT.md",
-   "scope": "Load/store/version and record-level persistence mapped. b_spline cannot be resolved to a native transformation; inherited XSD isValid unsupported. Four fixture structural verdicts are useful evidence but do not implement schema validation."
-  },
-  "src/openms/include/OpenMS/FORMAT/SqliteConnector.h": {
-   "status": "native_equivalent",
-   "rust": [
-    "src/format/sqlite_connector.rs"
-   ],
-   "tests": [
-    "tests/sqlite_connector.rs"
-   ],
-   "documentation": "docs/SQLITE_CONNECTOR_SUPPORT.md",
-   "scope": "All public connector operations and three distinct modes mapped; all eight upstream class-test sections represented. Owned cleanup, bound names, quoted identifiers and checked query errors correct source defects. Raw SQL batches and first-statement-only BLOB binding preserve source transaction/tail conventions; explicit native NUL-SQL rejection and error mapping documented. Does not close private helpers or SqMass/OSW/OMS/SQLite handlers; adapted C++ probes and native test evidence are scoped separately."
+   "documentation": "docs/SYS_INFO_SUPPORT.md",
+   "scope": "Every public member has a documented Rust counterpart and both class-test sections are mapped. bytesToHumanReadable and getProcessId are exact on every platform; the three memory readings answer from /proc on Linux and return None — never a fabricated zero — elsewhere, because the source's Windows PROCESS_MEMORY_COUNTERS_EX and macOS Mach task_info/host_statistics64 branches need a platform binding this crate does not take. That platform gap is why this is partial. MemUsage models 'not recorded' as Option instead of the source's 0 sentinel and emits the sign that the source's diff_str_ discards; both divergences are documented at the item."
   }
  },
  "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md",

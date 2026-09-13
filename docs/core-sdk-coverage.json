@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 26,
-      "evidence_requires_review": 172,
-      "native_equivalent": 83,
-      "partial": 39,
-      "unmapped": 466
+      "complete": 38,
+      "evidence_requires_review": 168,
+      "native_equivalent": 88,
+      "partial": 45,
+      "unmapped": 447
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -2981,8 +2981,8 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/chemistry/mass_decomposition_algorithm.rs",
-          "src/chemistry/mass_decomposition.rs"
+          "src/chemistry/mass_decomposition.rs",
+          "src/chemistry/mass_decomposition_algorithm.rs"
         ],
         "tests": [
           "tests/mass_decomposition_algorithm.rs"
@@ -3223,27 +3223,27 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/chemistry/proforma.rs",
-          "src/chemistry/proforma_parser.rs",
-          "src/chemistry/proforma_json.rs",
-          "src/chemistry/proforma_resolution.rs",
           "src/chemistry/modifications.rs",
-          "src/chemistry/proforma_mass.rs",
+          "src/chemistry/proforma.rs",
           "src/chemistry/proforma_conversion.rs",
+          "src/chemistry/proforma_json.rs",
+          "src/chemistry/proforma_mass.rs",
+          "src/chemistry/proforma_parser.rs",
+          "src/chemistry/proforma_resolution.rs",
           "src/chemistry/proforma_spectra.rs",
           "src/chemistry/theoretical_proforma_budget.rs",
           "src/chemistry/theoretical_xlms.rs"
         ],
         "tests": [
           "tests/proforma.rs",
-          "tests/proforma_writer_probe.rs",
+          "tests/proforma_conversion.rs",
+          "tests/proforma_json.rs",
+          "tests/proforma_mass.rs",
           "tests/proforma_parser.rs",
           "tests/proforma_parser_probe.rs",
-          "tests/proforma_json.rs",
           "tests/proforma_resolution.rs",
-          "tests/proforma_mass.rs",
-          "tests/proforma_conversion.rs",
           "tests/proforma_spectra.rs",
+          "tests/proforma_writer_probe.rs",
           "tests/theoretical_xlms.rs"
         ],
         "documentation": "docs/PROFORMA_SUPPORT.md",
@@ -3587,9 +3587,9 @@
           "src/chemistry/theoretical_xlms_helpers.rs"
         ],
         "tests": [
-          "tests/theoretical_xlms.rs",
           "tests/protein_cross_link.rs",
-          "tests/sequence_fragment_mass.rs"
+          "tests/sequence_fragment_mass.rs",
+          "tests/theoretical_xlms.rs"
         ],
         "documentation": "docs/THEORETICAL_XLMS_SUPPORT.md",
         "scope": "Complete class-specific three append overloads, LossIndex and all 25 source options, with direct native options replacing inherited Param/cache lifecycle. Source series/charge/order/loss/isotope/K-linked/precursor behavior, annotations and append semantics retained. Finite CPP-042/043 outputs preserved beside independent chemical expectations. Atomic aligned publication and cumulative resource limits; checked unsafe source indices/zero division/nonfinite results. 52 unchanged source mass values and 113 annotation strings plus independent branch/resource tests; no executed C++ spectrum oracle. ProForma wrappers are implemented separately; other XLMS algorithms remain outstanding."
@@ -3619,20 +3619,48 @@
       "header": "src/openms/include/OpenMS/COMPARISON/BinnedSharedPeakCount.h",
       "sha256": "6bd5773e7fa00ea42fd8720bc85639552c3d01075b9ed927861d1d774eb09211",
       "domain": "COMPARISON",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_functors.rs"
+        ],
+        "documentation": "docs/BINNED_SHARED_PEAK_COUNT_SUPPORT.md",
+        "scope": "Every public and protected member reviewed. BinnedSharedPeakCount::new reproduces setName + defaultsToParam_ over an empty defaults tree; score is the stored-bin intersection over max(stored bins), with 'stored' meaning Eigen's nonZeros() so an explicit zero bin counts on both sides. The only floating-point operation is the final f64 division of two counts, so this scorer is bit-identical to the source wherever the source does not divide by zero. Deliberately not ported: the empty updateMembers_ override, and precursor_mass_tolerance_, which no constructor initialises, no copy constructor copies and nothing reads. Native: two empty spectra yield 0.0 where the source returns NaN; incompatible binning is Error::InvalidValue; MAX_COMPARED_BINS bounds the comparison."
+      },
+      "candidate_rust_files": [
+        "src/comparison.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/BinnedSpectralContrastAngle.h",
       "sha256": "020ad7a63c27bdc711e9c71dcf22c80b2ddf065961a241d4a18c8422041e6a81",
       "domain": "COMPARISON",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_functors.rs"
+        ],
+        "documentation": "docs/BINNED_SPECTRAL_CONTRAST_ANGLE_SUPPORT.md",
+        "scope": "Every public and protected member reviewed. Returns the cosine, not the angle - no acos appears in the source. The f32 reduction of Eigen's SparseVector<float>::dot is reproduced exactly (ascending index order, widened once), as is the sqrt(sum1 * sum2) grouping, which is what makes self-similarity exactly 1.0. The source's own empty/all-zero guard (sum1 * sum2 == 0 returns 0.0) is kept verbatim, and the score is not clamped, so a spectrum against its negation scores -1.0. Deliberately not ported: the empty updateMembers_ and the dead precursor_mass_tolerance_. Native: incompatible binning is a checked Error::InvalidValue where the source only asserts through OPENMS_PRECONDITION, a release-build no-op unlike both siblings; f32 dot-product overflow is a checked error; MAX_COMPARED_BINS bounds the comparison."
+      },
+      "candidate_rust_files": [
+        "src/comparison.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json"
+      ],
       "direct_topp_consumers": [
         "OpenNuXL"
       ]
@@ -3641,50 +3669,96 @@
       "header": "src/openms/include/OpenMS/COMPARISON/BinnedSpectrumCompareFunctor.h",
       "sha256": "9842d1cb14dc7d168bd411e06a4b480d769979d50181b8292bd1daba5c62aa6a",
       "domain": "COMPARISON",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_functors.rs"
+        ],
+        "documentation": "docs/BINNED_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md",
+        "scope": "All six public members plus the header's empty private access block reviewed. Object-safe trait BinnedSpectrumCompareFunctor over BinnedSpectrum with the same shape as the peak base; implemented by all three binned scorers and exercised through &dyn. The class comment's claim that normalised functors are identifiable by a set 'normalized' parameter does not hold for this hierarchy - only PeakAlignment registers one - and the trait documentation says so rather than repeating it. The .cpp's includes of its three derived classes are factory registration, not a base-on-derivative dependency, and produce no Rust module edge."
+      },
+      "candidate_rust_files": [
+        "src/comparison.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/BinnedSumAgreeingIntensities.h",
       "sha256": "5677ec6390ab092c608358df8dfa75830417a3a942d5eb01632384134c7aabd2",
       "domain": "COMPARISON",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_functors.rs"
+        ],
+        "documentation": "docs/BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md",
+        "scope": "Every public and protected member reviewed. The agreement rule is ported literally: per bin (a + b) * 0.5 - |a - b|, truncated at zero, summed, over the mean of the two totals, capped at 1.0. The walk spans the union of the stored bins because sparse addition does, the arithmetic stays f32 (Eigen promotes the scalar 0.5 down to float), and cwiseMax(0) semantics are written out rather than using f32::max. Deliberately not ported: the empty updateMembers_ and the dead precursor_mass_tolerance_. Native: a zero mean total yields 0.0 where the source returns NaN or 1.0; incompatible binning is Error::InvalidValue; f32 overflow is checked; MAX_COMPARED_BINS bounds the comparison. Negative bins are accepted as upstream, which makes an all-negative spectrum score 0 against itself - documented, because the class comment's 'perfect agreement results in 1.0' holds only for nonnegative bins."
+      },
+      "candidate_rust_files": [
+        "src/comparison.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/PeakAlignment.h",
       "sha256": "88b7056ccddfc491436078fd0a0123ab2b736e8389dd3c3a6661944fe877696e",
       "domain": "COMPARISON",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h",
       "sha256": "3e5d1af32c7704e4368398ac5742603ac876405494bb13899216a9f6c1c77fcc",
       "domain": "COMPARISON",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_functors.rs"
+        ],
+        "documentation": "docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md",
+        "scope": "All six public members reviewed. The abstract DefaultParamHandler base becomes the object-safe trait PeakSpectrumCompareFunctor: the two pure virtual operator() overloads are score and self_score (the latter provided, defaulting to score(a, a), which is what all six source derivatives implement), and the inherited parameter surface is handler()/handler_mut()/name(). Default constructor, copy constructor, destructor and operator= are the implementor's own construction, Clone, drop glue and assignment; the C++ bodies are defaulted or forward to DefaultParamHandler. score returns Result<f64> where the source returns double. No shipped type implements the trait yet: the four source descendants already in comparison (SpectrumAlignmentScore, ZhangSimilarityScore, SteinScottImproveScore, SpectrumPrecursorComparator) were ported in an earlier wave as typed Copy structs without a DefaultParamHandler, so wiring them on belongs to the wave that ports their own headers; a test functor in tests/comparison_functors.rs implements and exercises the trait, including through &dyn. Held at partial rather than complete: the crate ships no type implementing the trait, its only implementor being a test type, and the seven source derivatives belong to the next wave."
+      },
+      "candidate_rust_files": [
+        "src/comparison.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/SpectraSTSimilarityScore.h",
       "sha256": "131d8833334424c80faaf1d2f33569f259f9bfe7cd29773161d0826cc533b727",
       "domain": "COMPARISON",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -3721,10 +3795,12 @@
       "header": "src/openms/include/OpenMS/COMPARISON/SpectrumCheapDPCorr.h",
       "sha256": "02ed71fa5cc9080fb6e2651cc1b097022f6047211d1df10165da879f64d06607",
       "domain": "COMPARISON",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -3799,8 +3875,8 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/concept/constants.rs",
-          "src/chemistry/mod.rs"
+          "src/chemistry/mod.rs",
+          "src/concept/constants.rs"
         ],
         "tests": [
           "tests/constants.rs"
@@ -3867,7 +3943,9 @@
       "review": null,
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/datetime_provenance.json"
+        "tests/data/datetime_provenance.json",
+        "tests/data/math_functions_provenance.json",
+        "tests/data/math_statistics_provenance.json"
       ],
       "direct_topp_consumers": [
         "AssayGeneratorMetaboSirius",
@@ -4049,6 +4127,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/experiment_mobility_provenance.json",
+        "tests/data/math_functions_provenance.json",
         "tests/data/mrm_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -4138,8 +4217,8 @@
         "status": "partial",
         "rust": [
           "src/kernel.rs",
-          "src/metadata/value.rs",
-          "src/metadata/acquisition.rs"
+          "src/metadata/acquisition.rs",
+          "src/metadata/value.rs"
         ],
         "tests": [
           "tests/kernel.rs",
@@ -4154,6 +4233,8 @@
         "tests/data/datetime_provenance.json",
         "tests/data/imzml_writer_provenance.json",
         "tests/data/mass_decomposition_provenance.json",
+        "tests/data/math_functions_provenance.json",
+        "tests/data/math_statistics_provenance.json",
         "tests/data/native_equivalents_provenance.json",
         "tests/data/param_value_provenance.json",
         "tests/data/peak_data_provenance.json"
@@ -4170,12 +4251,12 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/concept/unique_id.rs",
-          "src/chemistry/decoy_random.rs"
+          "src/chemistry/decoy_random.rs",
+          "src/concept/unique_id.rs"
         ],
         "tests": [
-          "tests/unique_id.rs",
-          "tests/decoy_generator.rs"
+          "tests/decoy_generator.rs",
+          "tests/unique_id.rs"
         ],
         "documentation": "docs/UNIQUE_ID_SUPPORT.md",
         "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
@@ -4211,12 +4292,12 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/concept/unique_id.rs",
-          "src/chemistry/decoy_random.rs"
+          "src/chemistry/decoy_random.rs",
+          "src/concept/unique_id.rs"
         ],
         "tests": [
-          "tests/unique_id.rs",
-          "tests/decoy_generator.rs"
+          "tests/decoy_generator.rs",
+          "tests/unique_id.rs"
         ],
         "documentation": "docs/UNIQUE_ID_SUPPORT.md",
         "scope": "Complete own generator/value-interface operation mapping through owned MT19937-64 state, native-endian UUID construction and shared HasUniqueId defaults. Source zero draws and wrapping suffix parsing retained; caller-owned synchronization replaces process singleton, and checked string length bounds native work. Other records require their own trait implementation; no complete inherited class coverage claim."
@@ -4277,8 +4358,8 @@
           "src/data_structures/cv_mapping.rs"
         ],
         "tests": [
-          "tests/cv_mapping_values.rs",
-          "tests/cv_mapping_file.rs"
+          "tests/cv_mapping_file.rs",
+          "tests/cv_mapping_values.rs"
         ],
         "documentation": "docs/CV_MAPPING_SUPPORT.md",
         "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
@@ -4303,8 +4384,8 @@
           "src/data_structures/cv_mapping.rs"
         ],
         "tests": [
-          "tests/cv_mapping_values.rs",
-          "tests/cv_mapping_file.rs"
+          "tests/cv_mapping_file.rs",
+          "tests/cv_mapping_values.rs"
         ],
         "documentation": "docs/CV_MAPPING_SUPPORT.md",
         "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
@@ -4331,8 +4412,8 @@
           "src/data_structures/cv_mapping.rs"
         ],
         "tests": [
-          "tests/cv_mapping_values.rs",
-          "tests/cv_mapping_file.rs"
+          "tests/cv_mapping_file.rs",
+          "tests/cv_mapping_values.rs"
         ],
         "documentation": "docs/CV_MAPPING_SUPPORT.md",
         "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
@@ -4360,8 +4441,8 @@
           "src/data_structures/cv_mapping.rs"
         ],
         "tests": [
-          "tests/cv_mapping_values.rs",
-          "tests/cv_mapping_file.rs"
+          "tests/cv_mapping_file.rs",
+          "tests/cv_mapping_values.rs"
         ],
         "documentation": "docs/CV_MAPPING_SUPPORT.md",
         "scope": "Complete owned public fields, defaults, copy/equality, enum and vector operations. Private presence index preserves reachable reference queries/equality. Bulk references preserve source append/duplicate semantics; owned input avoids alias invalidation and explicit replacement is separately named."
@@ -4415,12 +4496,12 @@
       "review": {
         "status": "partial",
         "rust": [
-          "src/kernel.rs",
-          "src/analysis/id_filter.rs"
+          "src/analysis/id_filter.rs",
+          "src/kernel.rs"
         ],
         "tests": [
-          "tests/kernel.rs",
-          "tests/id_filter.rs"
+          "tests/id_filter.rs",
+          "tests/kernel.rs"
         ],
         "documentation": "docs/NATIVE_EQUIVALENTS.md",
         "scope": "Native borrowed/indirect views represent its primary use, but custom base-container/type-aware equality, size-only ordering, cached capacity, swap retaining identity/cache, null slots and custom iterator state are not represented. Do not classify the full header as Vec<&T> equivalence."
@@ -4629,6 +4710,7 @@
         "src/param/handler.rs"
       ],
       "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json",
         "tests/data/default_param_handler_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4658,13 +4740,13 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/kernel.rs",
           "src/analysis/id_filter.rs",
-          "src/analysis/protein_inference.rs"
+          "src/analysis/protein_inference.rs",
+          "src/kernel.rs"
         ],
         "tests": [
-          "tests/kernel.rs",
           "tests/id_filter.rs",
+          "tests/kernel.rs",
           "tests/protein_inference.rs"
         ],
         "documentation": "docs/NATIVE_EQUIVALENTS.md",
@@ -4761,6 +4843,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/build_info_provenance.json",
         "tests/data/list_utils_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -4854,9 +4937,9 @@
         "status": "complete",
         "rust": [
           "src/param.rs",
-          "src/param/tree.rs",
+          "src/param/iteration.rs",
           "src/param/operations.rs",
-          "src/param/iteration.rs"
+          "src/param/tree.rs"
         ],
         "tests": [
           "tests/param.rs"
@@ -4977,6 +5060,7 @@
         "tests/data/mascot_generic_provenance.json",
         "tests/data/mascot_xml_provenance.json",
         "tests/data/mass_decomposition_provenance.json",
+        "tests/data/math_functions_provenance.json",
         "tests/data/ms_data_writing_consumer_provenance.json",
         "tests/data/mzidentml_provenance.json",
         "tests/data/mzml_counts_provenance.json",
@@ -4990,7 +5074,9 @@
         "tests/data/protein_run_provenance.json",
         "tests/data/sdk_numeric_formatting_provenance.json",
         "tests/data/semantic_validator_provenance.json",
+        "tests/data/stop_watch_provenance.json",
         "tests/data/sv_out_stream_provenance.json",
+        "tests/data/sys_info_provenance.json",
         "tests/data/text_csv_provenance.json",
         "tests/data/text_peak_lists_provenance.json"
       ],
@@ -5303,9 +5389,9 @@
           "src/chemistry/metabo_elements.rs"
         ],
         "tests": [
+          "src/analysis/feature_finding_metabo/predictor_tests.rs",
           "tests/feature_finding_metabo.rs",
-          "tests/feature_hypothesis.rs",
-          "src/analysis/feature_finding_metabo/predictor_tests.rs"
+          "tests/feature_hypothesis.rs"
         ],
         "documentation": "docs/FEATURE_FINDING_METABO_SUPPORT.md",
         "scope": "Complete class-specific public feature-finding operation, all19 typed options, grouped chromatograms, both fixed isotope models and FeatureHypothesis subgroup. Source83/81/80 counts and all81 golden feature values/hulls match;488 actual LIBSVM reference rows validate predictors. Native ownership, stable serial ties, bounded atomic publication and inherited f64 coarse-isotope precision are documented. General SimpleSVM and inherited generic Param wrappers remain separate, and no complete TOPP workflow is certified."
@@ -5716,8 +5802,8 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/format/cv_mapping.rs",
-          "src/data_structures/cv_mapping.rs"
+          "src/data_structures/cv_mapping.rs",
+          "src/format/cv_mapping.rs"
         ],
         "tests": [
           "tests/cv_mapping_file.rs",
@@ -6224,8 +6310,8 @@
         "status": "partial",
         "rust": [
           "src/format/featurexml.rs",
-          "src/format/map_xml.rs",
-          "src/format/identification_xml.rs"
+          "src/format/identification_xml.rs",
+          "src/format/map_xml.rs"
         ],
         "tests": [
           "tests/featurexml.rs"
@@ -7079,15 +7165,15 @@
       "review": {
         "status": "partial",
         "rust": [
-          "src/format/idxml.rs",
           "src/format/identification_xml.rs",
+          "src/format/idxml.rs",
           "src/format/modification_definitions.rs",
           "src/format/path_io.rs"
         ],
         "tests": [
+          "tests/identification_paths.rs",
           "tests/idxml.rs",
-          "tests/idxml_definitions.rs",
-          "tests/identification_paths.rs"
+          "tests/idxml_definitions.rs"
         ],
         "documentation": "docs/IDENTIFICATION_PATH_SUPPORT.md",
         "scope": "Native idXML document read/write and direct path load/store, document identifier, registry/options overloads, bounded plain/gzip/bzip2 input and source plain output regardless of suffix. Checked output extension and atomic file/destination replacement. Existing metadata/sequence encoding boundaries, source hit-order/rank differences, ZIP and inherited logger/schema/CV APIs remain."
@@ -7411,12 +7497,12 @@
       "review": {
         "status": "complete",
         "rust": [
-          "src/format/modification_definitions.rs",
-          "src/chemistry/modification_records.rs"
+          "src/chemistry/modification_records.rs",
+          "src/format/modification_definitions.rs"
         ],
         "tests": [
-          "tests/modification_definition_io.rs",
-          "tests/idxml_definitions.rs"
+          "tests/idxml_definitions.rs",
+          "tests/modification_definition_io.rs"
         ],
         "documentation": "docs/MODIFICATION_DEFINITION_IO_SUPPORT.md",
         "scope": "All nine public declarations: definition selection, per-run collection from slices/iterators and both feature-map overloads including recursive subordinates, deterministic codec/union, run encoding and registration. Owned registries, checked conflicts/portable representation, recovery diagnostics and cumulative budgets replace raw-pointer/global-mutation semantics. Full ResidueModification and ProForma parsing remain separate."
@@ -7499,53 +7585,53 @@
       "review": {
         "status": "partial",
         "rust": [
-          "src/format/mzml.rs",
-          "src/format/mzml_precursor.rs",
           "src/format/indexed_mzml.rs",
-          "src/format/mzml_load.rs",
-          "src/format/mzml_paths.rs",
-          "src/format/mzml_numpress.rs",
-          "src/format/mzml_settings.rs",
+          "src/format/mzml.rs",
           "src/format/mzml_acquisition.rs",
+          "src/format/mzml_centroid.rs",
+          "src/format/mzml_consumer.rs",
           "src/format/mzml_counts.rs",
           "src/format/mzml_header.rs",
           "src/format/mzml_header/read.rs",
           "src/format/mzml_header/write.rs",
-          "src/format/mzml_consumer.rs",
-          "src/interfaces.rs",
-          "src/format/mzml_centroid.rs",
-          "src/kernel/spectrum_type.rs",
+          "src/format/mzml_load.rs",
+          "src/format/mzml_numpress.rs",
+          "src/format/mzml_paths.rs",
+          "src/format/mzml_precursor.rs",
+          "src/format/mzml_record.rs",
+          "src/format/mzml_schema.rs",
+          "src/format/mzml_settings.rs",
           "src/format/mzml_validator.rs",
           "src/format/mzml_write_options.rs",
-          "src/format/mzml_record.rs",
-          "src/format/mzml_schema.rs"
+          "src/interfaces.rs",
+          "src/kernel/spectrum_type.rs"
         ],
         "tests": [
-          "tests/mzml.rs",
-          "tests/mzml_product.rs",
-          "tests/indexed_mzml.rs",
-          "tests/mzml_load_options.rs",
-          "tests/mzml_paths.rs",
           "tests/data_array_xml.rs",
-          "tests/mzml_numpress.rs",
-          "tests/mzml_settings.rs",
-          "tests/mzml_acquisition_guards.rs",
-          "tests/mzml_acquisition.rs",
-          "tests/mzml_counts.rs",
           "tests/experimental_settings.rs",
-          "tests/mzml_header.rs",
-          "tests/mzml_consumer.rs",
+          "tests/indexed_mzml.rs",
           "tests/interfaces.rs",
+          "tests/mzml.rs",
+          "tests/mzml_acquisition.rs",
+          "tests/mzml_acquisition_guards.rs",
           "tests/mzml_centroid.rs",
-          "tests/spectrum_type.rs",
+          "tests/mzml_consumer.rs",
+          "tests/mzml_counts.rs",
+          "tests/mzml_header.rs",
           "tests/mzml_isolation.rs",
+          "tests/mzml_load_options.rs",
+          "tests/mzml_normalization.rs",
+          "tests/mzml_numpress.rs",
+          "tests/mzml_paths.rs",
+          "tests/mzml_product.rs",
+          "tests/mzml_schema.rs",
+          "tests/mzml_schema_offline.rs",
+          "tests/mzml_settings.rs",
+          "tests/mzml_typed_transport.rs",
           "tests/mzml_validator.rs",
           "tests/mzml_write_options.rs",
-          "tests/mzml_normalization.rs",
-          "tests/mzml_typed_transport.rs",
           "tests/record_metadata.rs",
-          "tests/mzml_schema.rs",
-          "tests/mzml_schema_offline.rs"
+          "tests/spectrum_type.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
         "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array scalar metadata and units, all source record CV routes, optical/pressure/flow primary roles and independent f64 noise grids are transported with source merge order and checked ownership. Generic lists/Empty, ambiguous primaries and independent primary-array history remain checked errors; CPP-053/058 are corrected. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. Complete centroid inspection/SpecInfo uses one consumer pass, a global recognized quota with Unknown bookkeeping, exact history/type/estimator precedence and cumulative query/map limits. Local fill_data override and pre-input zero-quota errors correct CPP-018/048. Isolation-target loading now preserves immediate sticky target filtering and differing first-selected-ion Float metadata across stream/path/consumer/count APIs; source count RT-event order remains distinct. Default selected-ion multiple/duplicate boundaries remain explicit. Every writer now consumes differing selected-ion metadata and preserves its separate effective isolation target; TPP intentionally suppresses precursor windows. Optional complete MzMLValidator specialization and file semantic convenience use shared bounded CV/XML logic and exact mapping; CPP-051 cross-document group state is corrected. Complete represented writer PeakFileOptions execution adds primary precision, all three Numpress configurations, zlib, TPP and indexed UTF-8 output with actual SHA-1 and byte offsets. One prepared payload supports two precharged markup passes and atomic path publication; ignored read options are not cloned. CPP-049/050 are corrected. skip_xml_checks executes only source four-character binary whitespace-normalization bypass, preserving checked XML/Base64/length/resource behavior and all no-decode modes; CPP-055 malformed-source behavior is rejected. Optional mzML-schema provides original fixed ordinary/indexed XSD validation through unmodified libxml0.3.14 with owned diagnostics, checked root/namespaces and UTF-16 input. Native limits do not bound opaque C allocations/time. CPP-052 schema selection is corrected; original CPP-054 schema defect remains explicit with separate integrity checks. MzMLFile remains partial: spectrum mobility/IMPeakType, remaining precursor activation metadata/unit routes and adapter progress hooks remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration."
@@ -8499,9 +8585,9 @@
           "src/format/semantic_validator.rs"
         ],
         "tests": [
+          "tests/cv_mapping_file.rs",
           "tests/mzml_validator.rs",
-          "tests/semantic_validator.rs",
-          "tests/cv_mapping_file.rs"
+          "tests/semantic_validator.rs"
         ],
         "documentation": "docs/MZML_VALIDATOR_SUPPORT.md",
         "scope": "Complete class-specific specialization plus inherited options/locate behavior and MzMLFile semantic convenience. Borrowed providers, full owned report, default units, exact literal indexed paths, definition-time diagnostics, duplicate/forward/missing/nested groups, GO/BTO exemptions and repeated binary-role/type checks. Per-document XML/group/rule state corrects CPP-051 successful-call contamination, retaining inherited documented corrections and CPP-046 scalar syntax. One cumulative meter covers all repeated references and diagnostics; exact pinned mapping/provider initialization has separate fixed bounds. Three unchanged original inputs retain source0/0,0/0,8/1 diagnostics; two unavailable source-written inputs are not assigned native golden outputs. Optional mzml-validation feature, no new dependency; no XSD, index integrity or C++ execution claim."
@@ -8523,14 +8609,14 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/format/semantic_validator.rs",
-          "src/format/cv_xml.rs"
+          "src/format/cv_xml.rs",
+          "src/format/semantic_validator.rs"
         ],
         "tests": [
-          "tests/semantic_validator.rs",
+          "tests/controlled_vocabulary.rs",
           "tests/cv_mapping_file.rs",
           "tests/cv_mapping_values.rs",
-          "tests/controlled_vocabulary.rs"
+          "tests/semantic_validator.rs"
         ],
         "documentation": "docs/SEMANTIC_VALIDATOR_SUPPORT.md",
         "scope": "Complete class-specific general CV/mapping validation, ParsedCVTerm value, configurable qnames/attributes/switches, borrowed providers, owned error/warning report and selection-only locate_term. Source order/count collisions, MUST/MAY/SHOULD logic and value conversions retained, including documented non-XSD date behavior CPP-046. Unit descendant target, failed-parse state and history-dependent absent-path lookup corrected (CPP-039/040/044). Exact historical 738-term CV, valid/corrupt XML and all nine diagnostic literals; independent branch/resource/transport tests. Shared private XML extraction preserves CVMapping behavior; optional semantic-validation feature. Inherited XMLFile, C++ subclass extension points, derived format validators and full XSD lexical/schema validation are separate."
@@ -8996,6 +9082,7 @@
         "src/comparison.rs"
       ],
       "reference_manifests": [
+        "tests/data/comparison_functors_provenance.json",
         "tests/data/kernel_gap_closures_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -9060,8 +9147,8 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/kernel/chromatogram_tools.rs",
-          "src/kernel/acquisition_fields.rs"
+          "src/kernel/acquisition_fields.rs",
+          "src/kernel/chromatogram_tools.rs"
         ],
         "tests": [
           "tests/chromatogram_tools.rs"
@@ -9283,9 +9370,9 @@
       "review": {
         "status": "complete",
         "rust": [
+          "src/concept/unique_id.rs",
           "src/kernel/features.rs",
-          "src/kernel/gap_closures.rs",
-          "src/concept/unique_id.rs"
+          "src/kernel/gap_closures.rs"
         ],
         "tests": [
           "tests/feature_handle.rs",
@@ -9905,6 +9992,7 @@
         "tests/data/area_iteration_provenance.json",
         "tests/data/experiment_mobility_provenance.json",
         "tests/data/experiment_summary_provenance.json",
+        "tests/data/math_functions_provenance.json",
         "tests/data/mobilogram_provenance.json",
         "tests/data/peak_data_provenance.json",
         "tests/data/ranges_provenance.json"
@@ -9947,12 +10035,12 @@
       "review": {
         "status": "complete",
         "rust": [
-          "src/kernel/peak2d.rs",
-          "src/concept/unique_id.rs"
+          "src/concept/unique_id.rs",
+          "src/kernel/peak2d.rs"
         ],
         "tests": [
-          "tests/rich_peak2d.rs",
           "tests/peak2d.rs",
+          "tests/rich_peak2d.rs",
           "tests/unique_id.rs"
         ],
         "documentation": "docs/PEAK2D_SUPPORT.md",
@@ -10062,33 +10150,75 @@
       "header": "src/openms/include/OpenMS/MATH/MISC/BSpline2d.h",
       "sha256": "5220e21736c9c4060758be638b0591b22068972e83a1f0798cde7738309e408f",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/processing/spline.rs",
+          "src/processing/spline/b_spline.rs"
+        ],
+        "tests": [
+          "tests/spline_math.rs"
+        ],
+        "documentation": "docs/BSPLINE2D_SUPPORT.md",
+        "scope": "All eight public members reviewed and documented; seven ported, static debug(bool) deliberately not (a process-global mutable flag gating std::cerr; the class test marks it NOT_TESTABLE). The C++ is a PIMPL wrapper around the vendored eol-bspline library, which this crate cannot depend on, so the library's Setup, Ratiod, Alpha, Beta, Basis, DBasis, qDelta, calculateQ, addP, BandedMatrix, LU_factor_banded, LU_solve_banded, solve, evaluate, slope and coefficient are reimplemented from the pinned vendored source. This is an independent implementation, not a wrapper, and the support document says so first. Preserved: the truncated PI 3.1415927, the float accumulators in calculateQ and addP, the rewrite of a zero cutoff wavelength to 1.0, the ten-interval start of the node search, the four-term clamped evaluation window and the mean subtraction that makes evaluation far outside the domain return the fitted mean. Construction failure is an Err rather than a not-ok object; ok() survives for the post-construction solve failure. MAX_POINTS 250,000 and MAX_NODES 500,001 bound the banded matrix at 28 MiB. Evidence tier 2, bit-for-bit across 13 configurations including all 405 basis coefficients of the 202-point class-test fixture; all 7 class-test sections mapped."
+      },
+      "candidate_rust_files": [
+        "src/processing/spline/b_spline.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/spline_math_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h",
       "sha256": "1fb266f3fd996fcc0a7bea6f93eb3ee96a7733419ad1791f03917665f80f58cc",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/processing/spline.rs",
+          "src/processing/spline/smoothing.rs"
+        ],
+        "tests": [
+          "tests/spline_math.rs"
+        ],
+        "documentation": "docs/BSPLINE_SMOOTHING_SPLINE_SUPPORT.md",
+        "scope": "All public members reviewed and documented. eval, num_interior_knots, rss and smoothing_param are ported; ok() is expressed as the Result from the constructors rather than as a method that could only return true. The class does not solve the penalised problem its own header describes: it tries a cubic polynomial first, accepts it within a ten-percent margin of the residual budget, and only then searches the fixed node list 4, 6, 8, n/2, 3n/4, n. That algorithm is ported as written, including the margin, the integer divisions, and the candidate comparator that is not a strict weak ordering (sorted with an explicit stable insertion sort, which is what libstdc++ runs for at most six candidates). The deleted copy constructor is deliberately diverged: the Rust value owns its fit by value, so Clone is implemented. k is confirmed unused by the probe and surfaced read-only as degree(). Evidence tier 2, bit-for-bit across 27 fits covering every branch including the node search, which the upstream class test never reaches; all 16 class-test sections mapped."
+      },
+      "candidate_rust_files": [
+        "src/processing/spline/smoothing.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/spline_math_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/MISC/CubicSpline2d.h",
       "sha256": "494c38a0d5413616c9e8d0f81d2808efaaeb180a1b113b41c7a69c8ea7ce294e",
       "domain": "MATH",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/processing/spline.rs",
+          "src/processing/spline/cubic.rs"
+        ],
+        "tests": [
+          "tests/spline_math.rs"
+        ],
+        "documentation": "docs/CUBIC_SPLINE2D_SUPPORT.md",
+        "scope": "All five public members reviewed and documented. Both constructors, eval and derivatives are ported; the C++ derivative(x) and derivatives(x, order) overloads collapse into one derivative(x, order) because the former's body is literally the latter. The map constructor becomes from_pairs, reproducing std::map's sort and first-value-wins key collapse so the deduplicated size check matches. The Burden/Faires recurrence is transcribed term by term in its original evaluation order. The natural boundary condition was confirmed from CubicSpline2d.cpp:152 and the recurrence, and is asserted as exact zero at both ends. Port is stricter in two documented places: it rejects repeated and non-finite abscissae, which the C++ accepts (its check is only non-decreasing) and then turns into NaN coefficients, and it rejects non-finite query positions, which the C++ indexes one past the end of its knot vector. MAX_POINTS is a native ceiling. Native peak_maximum is retained for the peak picker and marked as not a port of this header. Evidence tier 2, bit-for-bit against an executed probe; all 4 class-test sections mapped."
+      },
       "candidate_rust_files": [
-        "src/processing/peak_picking/spline.rs"
+        "src/processing/spline/cubic.rs"
       ],
       "reference_manifests": [
-        "tests/data/chromatogram_processing_provenance.json"
+        "tests/data/chromatogram_processing_provenance.json",
+        "tests/data/spline_math_provenance.json"
       ],
       "direct_topp_consumers": [
         "MetaProSIP"
@@ -10098,8 +10228,21 @@
       "header": "src/openms/include/OpenMS/MATH/MISC/EmgGradientDescent.h",
       "sha256": "91586579fd7e311fe56479a1397b1870ffd0c84aa634b135ac4fd27129dc9303",
       "domain": "MATH",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/analysis/emg.rs"
+        ],
+        "tests": [
+          "tests/emg.rs",
+          "tests/emg_integration.rs",
+          "tests/emg_reference.rs",
+          "tests/emg_sections.rs"
+        ],
+        "documentation": "docs/EMG_SUPPORT.md",
+        "scope": "Complete native mapping of every public, protected and private member, reviewed member by member at bc9cc12, where header, implementation and class test are byte-identical to the original 7c029e8 pin. Gradient-descent hyper-parameters are literal: initial learning rate 0.0125, growth 1.2, decay 0.5, rate cap 2000, sigma = mu*1e-2 and tau = 2*sigma from the absolute initial mean, the every-50th-iteration ten-value loss ring with a population-standard-deviation-below-1 stop, the max_gd_iter cap, and the h/mu/sigma/tau clamps. All twelve gradient branch expressions, the three emg_point branches and the 6.71e7 z threshold are transcribed with their original grouping and per-point normalization. computeMuMaxDistance now takes the training positions as the source does. Out-parameters become typed returns (EmgEstimate, EmgCurve, EmgSpectrumFit, EmgChromatogramFit); DefaultParamHandler, print_debug_, updateMembers_ and the EmgGradientDescent_friend test shim are deliberately not ported, each with a stated reason. One behavioural divergence: where the source breaks out of the optimizer on a non-finite parameter or loss and returns its earlier best, this port returns an error. The emg_parameters FloatDataArray becomes the typed estimate because a four-element array beside a differently sized peak list violates the crate's alignment invariant. All 13 class-test sections are mapped, each citing a Rust test and one asserted value. Module is at 100% rustdoc."
+      },
       "candidate_rust_files": [
         "src/analysis/emg.rs"
       ],
@@ -10112,24 +10255,48 @@
       "header": "src/openms/include/OpenMS/MATH/MISC/SplineBisection.h",
       "sha256": "88b7edea047e47ae98e256c4f253846d5a0c879f6a56e230e38bf803e90665cb",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/processing/spline.rs",
+          "src/processing/spline/bisection.rs"
+        ],
+        "tests": [
+          "tests/spline_math.rs"
+        ],
+        "documentation": "docs/SPLINE_BISECTION_SUPPORT.md",
+        "scope": "The header's single function template is ported in full. Its duck-typed requirement becomes the SplineFunction trait, implemented for both types the header names. The termination condition is transcribed literally: do/while so the body always runs once (a reversed bracket returns its own midpoint), lefthand_sign fixed at true so the exclusive-or reduces to the sign of the midpoint derivative, the early exit spelled so a NaN derivative also stops it, and the reported position taken from the bracket before the midpoint that triggered the break. Out-parameters become the returned (position, value) tuple. One native addition: MAX_BISECTION_STEPS = 4096, because the C++ loop does not terminate once the bracket collapses to two adjacent f64 values whose midpoint ties back to the end the derivative selects; the unit test constructs that case exactly. Evidence tier 2, bit-for-bit on 10 brackets: the class test's four plus an apex outside on the left, an apex on the bracket edge, a reversed bracket, a coarse threshold and two runs over a real CubicSpline2d. The 1 class-test section is mapped."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/spline_math_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/MathFunctions.h",
       "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e",
       "domain": "MATH",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/concept/math_functions.rs"
+        ],
+        "tests": [
+          "tests/math_functions.rs"
+        ],
+        "documentation": "docs/MATH_FUNCTIONS_SUPPORT.md",
+        "scope": "Complete native port of every free function in the OpenMS::Math namespace: extendRange, contains, zoomIn, createBins, ceilDecimal, roundDecimal, intervalTransformation, linear2log, log2linear, isOdd, round, roundTo, percentOf, approximatelyEqual, both gcd overloads, getPPM, getPPMAbs, ppmToMass, ppmToMassAbs, getTolWindow, quantile, log_binomial_coef, log_sum_exp and binomial_cdf_complement. Source spellings preserved where a rewrite would change the double: roundTo's factor loop, pow(10.0, decPow) with a promoted int, roundDecimal's negative-zero branch, log_binomial_coef's integer-division symmetry swap, std::max semantics in log_sum_exp, ppmToMass's divide-before-multiply, getTolWindow's asymmetric ppm right edge and quantile's max(0, n*q-1) index. Every unchecked division, logarithm and float-derived index is now checked; debug-only OPENMS_PRECONDITIONs become unconditional errors; four explicit ceilings bound the input-scaled operations. binomial_cdf_complement replaces Boost's incomplete beta with a log-domain sum of the same probability-mass definition, agreeing with an exact rational oracle to 2.5e-14 relative over every class-test case. createBins returns a native Bin (two coordinates) rather than kernel RangeBase, to avoid a concept->kernel module edge. Status is partial only because Math::RandomShuffler and its six members are not exposed from this module: their exact semantics already exist as the crate-private chemistry::decoy_random::DecoyRandom, and promoting that type belongs to a package that owns both files. No C++ was built or executed; transcribed expected values are tier 3, the derived invariants tier 4."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
         "tests/data/decoy_provenance.json",
         "tests/data/ims_weights_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json",
+        "tests/data/math_functions_provenance.json",
         "tests/data/precursor_purity_provenance.json",
         "tests/data/tagger_provenance.json"
       ],
@@ -10151,60 +10318,150 @@
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/BasicStatistics.h",
       "sha256": "2a969d3ed5a57fee2082559e9b462f20abd9854327818f8dc4494dcdfc3efc0a",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/math/basic_statistics.rs",
+          "src/math/mod.rs"
+        ],
+        "tests": [
+          "tests/basic_statistics.rs"
+        ],
+        "documentation": "docs/BASIC_STATISTICS_SUPPORT.md",
+        "scope": "Complete public and protected surface over f64: clear, both update overloads with the source's two-pass accumulation order and its asymmetric zero-mass guard, all six accessors/setters, sqrt2pi as the source's one-ulp-high literal, normalDensity_sqrt2pi and normalDensity, all three normalApproximation overloads as two functions, and the debugging stream operator as Display. The RealT template parameter is fixed to f64, the only instantiation in the library. Native: equal probability/coordinate lengths are required, a zero or non-finite normalising density sum is refused, and MAX_ITEMS bounds every allocation."
+      },
+      "candidate_rust_files": [
+        "src/math/basic_statistics.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/math_statistics_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/GammaDistributionFitter.h",
       "sha256": "786362d8b18dfed2636dfd4d6144b0e3b09a7c33a54cc71c46b1607e8b28898a",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/math/fitters/gamma.rs",
+          "src/math/fitters/levenberg_marquardt.rs"
+        ],
+        "tests": [
+          "tests/math_distribution_fitters.rs"
+        ],
+        "documentation": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+        "scope": "Every public member reviewed and documented: GammaDistributionFitResult (its only constructor, b, p), GammaDistributionFitter (constructor, setInitialParameters, fit) and the protected init_param_. The header's @note about the customized density that is zero for b<=0 or p<=0 is carried into rustdoc and both the residual and Jacobian branches are reproduced. digamma is reimplemented because Boost is not available; agreement with the closed forms is better than 1e-14. All 4 START_SECTION blocks are mapped; b=7.2527 and p=3.1169 against the published 7.25/3.11 at TOLERANCE_ABSOLUTE(0.01)."
+      },
+      "candidate_rust_files": [
+        "src/math/fitters/gamma.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/distribution_fitters_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/GaussFitter.h",
       "sha256": "beaffb49900242e01c7afdb129997f88f90c728545de422dd39060b39b0c36b7",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/math/fitters/gauss.rs",
+          "src/math/fitters/levenberg_marquardt.rs"
+        ],
+        "tests": [
+          "tests/math_distribution_fitters.rs"
+        ],
+        "documentation": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+        "scope": "Every public member reviewed and documented: GaussFitResult (both constructors, A/x0/sigma, eval, log_eval_no_normalize, the private halflogtwopi member), GaussFitter (constructor, setInitialParameters, fit, static eval) and the protected init_param_. The destructor and the two undefined private copy members are not ported and are recorded as such in the support document's API table. All 5 START_SECTION blocks of GaussFitter_test.cpp are mapped; the published parameters are reproduced to 4.1e-11 relative (first case) and 6.7e-16/exact/4.4e-15 (second case), and the seven eval intensities to 1.8e-16 relative with four of seven bit-identical."
+      },
+      "candidate_rust_files": [
+        "src/math/fitters/gauss.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/distribution_fitters_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h",
       "sha256": "2286b85fd84c9a37fd4eb8107e6fd342c42f05b0e120bd4c1eb5739edd44c7c8",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/math/fitters/gumbel.rs",
+          "src/math/fitters/levenberg_marquardt.rs"
+        ],
+        "tests": [
+          "tests/math_distribution_fitters.rs"
+        ],
+        "documentation": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+        "scope": "Constructor, setInitialParameters, fit, the result struct's defaulted constructor, a, b and log_eval_no_normalize are all ported, documented and tested; all 10 START_SECTION blocks are mapped and both published fits are reproduced inside TOLERANCE_ABSOLUTE(0.1). Status is partial and not complete because two declared public members have no definition anywhere in the SDK and therefore cannot be ported: GumbelDistributionFitResult::eval (GumbelDistributionFitter.h:51) and GumbelDistributionFitter::fitWeighted (GumbelDistributionFitter.h:81, with a full Doxygen block including an @exception). The Rust GumbelDistributionFitResult::eval exposes the residual model the functor uses and is labelled native, not a port of the undefined declaration. Promote to complete once upstream either defines or removes those two members."
+      },
+      "candidate_rust_files": [
+        "src/math/fitters/gumbel.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/distribution_fitters_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h",
       "sha256": "66789b0ed5889e844c58e5f9166ba8a92e2908fbd7000740dafe0b935177d31f",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/math/fitters/gumbel_max_likelihood.rs",
+          "src/math/fitters/levenberg_marquardt.rs"
+        ],
+        "tests": [
+          "tests/math_distribution_fitters.rs"
+        ],
+        "documentation": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+        "scope": "Every public member reviewed and documented: the nested GumbelDistributionFitResult (constructor, a, b, log_eval_no_normalize), both constructors, setInitialParameters, fitWeighted and the protected init_param_ including its write-back after a successful fit. All 6 START_SECTION blocks are mapped, including the three that read the initial parameters back through an empty fitWeighted. The source's two-residual formulation and Eigen::NumericalDiff forward-difference Jacobian are reproduced; an independent test verifies the result is a local minimum of the source's own weighted negative log-likelihood."
+      },
+      "candidate_rust_files": [
+        "src/math/fitters/gumbel_max_likelihood.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/distribution_fitters_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h",
       "sha256": "002733b1c1873c8205ae245f9a6bd73cda95d1b15ae9ef58794ba3a02831a29e",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/math/histogram.rs",
+          "src/math/mod.rs"
+        ],
+        "tests": [
+          "tests/histogram.rs"
+        ],
+        "documentation": "docs/HISTOGRAM_SUPPORT.md",
+        "scope": "Complete public and protected surface: both constructors and the data-iterator constructor, the bounds/size/extrema accessors, indexed and value-keyed bin lookup, centerOfBin/leftBorderOfBin/rightBorderOfBin with the last bin's nextafter border, inc/incUntil/incFrom and getCumulativeHistogram as a method, reset, equality, iteration, applyLogTransformation and valueToBin. Both template parameters are fixed to f64, which keeps the class test's Histogram<float,float> expressible and removes the default UInt instantiation's truncation in applyLogTransformation. Native: inverted ranges, non-finite bounds/values/increments, NaN lookups and bins at or below -1 are refused; MAX_BINS bounds the bin count; reset and applyLogTransformation commit atomically; minValue/maxValue return Option instead of dereferencing an empty vector's end iterator."
+      },
+      "candidate_rust_files": [
+        "src/math/histogram.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/math_statistics_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -10243,21 +10500,46 @@
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/RankData.h",
       "sha256": "3c64cd52f51a696aaa0b109ea0e32afccbe9d18cc5eaca69ffd8d77de4d9e2a7",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/math/mod.rs",
+          "src/math/rank_data.rs"
+        ],
+        "tests": [
+          "tests/rank_data.rs"
+        ],
+        "documentation": "docs/RANK_DATA_SUPPORT.md",
+        "scope": "Complete public surface: RankMethod and NanPolicy with the source's defaults, the generic rankdata over a public Rankable trait, and the f64/f32/i32 forwarders that replace both the static members and the by-value free overloads. SciPy semantics preserved: one-based ranks, a stable sort, exact-equality ties, all five tie rules, Propagate's all-NaN vector, Omit's per-position NaN and Raise's rejection. The sort comparator is the source's `<` rather than the IEEE-754 total order, so signed zeros stay interchangeable under Ordinal. Native: MAX_ITEMS bounds the two staged buffers."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/math_statistics_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
       "sha256": "61c80a040673e0bca53086d2947b5bcd100c046c6024c8c99f5da6237b98ec7d",
       "domain": "MATH",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/math/mod.rs",
+          "src/math/statistic_functions.rs"
+        ],
+        "tests": [
+          "tests/statistic_functions.rs"
+        ],
+        "documentation": "docs/STATISTIC_FUNCTIONS_SUPPORT.md",
+        "scope": "Complete public surface as free functions over &[f64]: the three checkIterators helpers, sum/mean/median, both quantile conventions (median-of-halves quantile1st/quantile3rd including the even-count element drop, and Hyndman-Fan type 7 quantile), MAD/MeanAbsoluteDeviation/absdev, variance/sd/covariance at n-1 and meanSquareError/rootMeanSquareError at n, classificationRate, Matthews/Pearson/Spearman coefficients, computeRank with the source's relative 1e-7 tie tolerance, the Tukey/winsorized/adaptive quantile family with AdaptiveQuantileResult, and SummaryStatistics. The iterator templates are narrowed to f64 slices and each `bool sorted` / `mean = DBL_MAX` default argument becomes two named functions. Native: sortedness and NaN are always checked, variance/sd/covariance refuse n < 2 instead of returning NaN, and every staged buffer preflights MAX_ITEMS/MAX_BYTES."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/mass_trace_detection_provenance.json",
+        "tests/data/math_statistics_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -10466,8 +10748,8 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/metadata/document_identifier.rs",
-          "src/format/file_handler.rs"
+          "src/format/file_handler.rs",
+          "src/metadata/document_identifier.rs"
         ],
         "tests": [
           "tests/document_identifier.rs",
@@ -10493,8 +10775,8 @@
       "review": {
         "status": "complete",
         "rust": [
-          "src/metadata/experimental_design.rs",
-          "src/kernel/features.rs"
+          "src/kernel/features.rs",
+          "src/metadata/experimental_design.rs"
         ],
         "tests": [
           "tests/experimental_design.rs"
@@ -10527,8 +10809,8 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/metadata/experimental_settings.rs",
           "src/kernel.rs",
+          "src/metadata/experimental_settings.rs",
           "src/processing.rs"
         ],
         "tests": [
@@ -11177,16 +11459,16 @@
       "review": {
         "status": "native_equivalent",
         "rust": [
-          "src/identification.rs",
-          "src/kernel.rs",
           "src/analysis/id_filter.rs",
-          "src/analysis/protein_inference.rs"
+          "src/analysis/protein_inference.rs",
+          "src/identification.rs",
+          "src/kernel.rs"
         ],
         "tests": [
-          "tests/identification.rs",
           "tests/id_filter.rs",
-          "tests/protein_inference.rs",
-          "tests/identification_pipeline.rs"
+          "tests/identification.rs",
+          "tests/identification_pipeline.rs",
+          "tests/protein_inference.rs"
         ],
         "documentation": "docs/NATIVE_EQUIVALENTS.md",
         "scope": "Vec<PeptideIdentification> supplies all container data operations, constructors and assignment. Rust ownership, checked access and std::mem replace C++ moved-from-object/iterator observability; no C++ ABI or exact allocator capacity parity. Underlying PeptideIdentification and downstream algorithm completeness remain separate reviews."
@@ -11274,15 +11556,15 @@
       "review": {
         "status": "partial",
         "rust": [
-          "src/metadata/acquisition.rs",
           "src/kernel.rs",
+          "src/metadata/acquisition.rs",
           "src/metadata/value.rs"
         ],
         "tests": [
-          "tests/metadata.rs",
           "tests/experiment_aggregation.rs",
-          "tests/mzml_product.rs",
-          "tests/metadata_hash.rs"
+          "tests/metadata.rs",
+          "tests/metadata_hash.rs",
+          "tests/mzml_product.rs"
         ],
         "documentation": "docs/METADATA_HASH_SUPPORT.md",
         "scope": "All own Product operations now have native equivalents, including equality-compatible Hash with signed-zero normalization, scalar mutation and cloning. Attached CV/ordinary metadata use native owned string-keyed records; inherited full source state remains limited by CVTerm/DataValue independent units and numeric registry identity. mzML transports represented fields and rejects arbitrary CV/list/Empty metadata before output. Full inherited source-model equivalence remains under review."
@@ -12518,10 +12800,23 @@
       "header": "src/openms/include/OpenMS/SYSTEM/BuildInfo.h",
       "sha256": "409ac83106ef54f3000839aeae562dc001a5c11d1929881f2c37547552431dbf",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/system/build_info.rs"
+        ],
+        "tests": [
+          "src/system/build_info.rs",
+          "tests/build_info.rs"
+        ],
+        "documentation": "docs/BUILD_INFO_SUPPORT.md",
+        "scope": "All eight class-test sections are mapped and every public member appears in the API table. Partial for three stated reasons: getOSVersionString_ reads /etc/os-release on Linux but reports 'unknown' on macOS and Windows, because sysctlbyname and RtlGetVersion need platform bindings; getBuildType is derived from debug_assertions rather than CMake's OPENMS_BUILD_TYPE string, which Cargo does not bake into a library; and setOpenMPNumThreads is not ported, being a no-op in the source's own non-OpenMP build. isOpenMPEnabled (false) and getOpenMPMaxNumThreads (1) are exactly the source's non-OpenMP answers. getActiveSIMDExtensions re-bases the SIMDe probes onto Rust target features with the source's order and labels."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/build_info_provenance.json"
+      ],
       "direct_topp_consumers": [
         "OpenMSInfo"
       ]
@@ -12665,11 +12960,23 @@
       "header": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
       "sha256": "bb67911e8e75e1a97243e859296b5b18d3e46f90e0db2fa138b36d3343356040",
       "domain": "SYSTEM",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/system/path_utils.rs"
+        ],
+        "tests": [
+          "src/system/path_utils.rs",
+          "tests/path_utils.rs"
+        ],
+        "documentation": "docs/PATH_UTILS_SUPPORT.md",
+        "scope": "Both public members ported with identical behaviour on every platform. basename reproduces all three outcomes of substr(find_last_of(\"\\\\/\") + 1), including the trailing-separator and bare-separator cases, and delegates to system::file::basename rather than repeating the source's second copy of File::basename. to_path is PathBuf::from behind a length and NUL check; the source's Windows u8string re-encoding is a no-op in Rust and its ANSI std::system_error fallback is unreachable because a &str is UTF-8 by construction. The one class-test section is mapped with all six cross-platform round-trip literals; the four _WIN32 cases are unrepresentable here and are recorded as such."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/mzml_acquisition_provenance.json",
+        "tests/data/path_utils_provenance.json",
         "tests/data/system_file_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -12710,11 +13017,25 @@
       "header": "src/openms/include/OpenMS/SYSTEM/StopWatch.h",
       "sha256": "3b4af741005190fe4edfa126fa06d6107b8bf4ed36e0f46b0cfbd94f71bf83a5",
       "domain": "SYSTEM",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/system/stop_watch.rs"
+        ],
+        "tests": [
+          "src/system/stop_watch.rs",
+          "tests/stop_watch.rs"
+        ],
+        "documentation": "docs/STOP_WATCH_SUPPORT.md",
+        "scope": "Every public member and the private TimeDiff_ surface have a documented Rust counterpart, and all 21 class-test sections are mapped. Partial, not complete, for one reason: the source reaches the per-process user/kernel split through POSIX times() on every Unix, while this port reads /proc/self/stat on Linux and reports user_time/system_time as None on macOS, other Unix and Windows (cpu_time still answers there from the aggregate process CPU clock). Restoring the split needs a libc dependency, which is the integrator's decision. Wall time is monotonic (Instant) where the source samples gettimeofday; the seconds-plus-microseconds representation, the strict '> 1000000' carry, the reading order of getClockTime and getCPUTime, and the whole of toString are reproduced. PartialOrd is deliberately not implemented because the source's operator< compares CPU time alone and would disagree with its own operator==."
+      },
+      "candidate_rust_files": [
+        "src/system/stop_watch.rs"
+      ],
       "reference_manifests": [
-        "tests/data/progress_logger_provenance.json"
+        "tests/data/progress_logger_provenance.json",
+        "tests/data/stop_watch_provenance.json"
       ],
       "direct_topp_consumers": [
         "Decharger",
@@ -12728,11 +13049,23 @@
       "header": "src/openms/include/OpenMS/SYSTEM/SysInfo.h",
       "sha256": "1a32bff6d8e2d99343824b0a48ab0e5f13f06977f5308fb59e544d7aa1a8448c",
       "domain": "SYSTEM",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/system/sys_info.rs"
+        ],
+        "tests": [
+          "src/system/sys_info.rs",
+          "tests/sys_info.rs"
+        ],
+        "documentation": "docs/SYS_INFO_SUPPORT.md",
+        "scope": "Every public member has a documented Rust counterpart and both class-test sections are mapped. bytesToHumanReadable and getProcessId are exact on every platform; the three memory readings answer from /proc on Linux and return None \u2014 never a fabricated zero \u2014 elsewhere, because the source's Windows PROCESS_MEMORY_COUNTERS_EX and macOS Mach task_info/host_statistics64 branches need a platform binding this crate does not take. That platform gap is why this is partial. MemUsage models 'not recorded' as Option instead of the source's 0 sentinel and emits the sign that the source's diff_str_ discards; both divergences are documented at the item."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/progress_logger_provenance.json"
+        "tests/data/progress_logger_provenance.json",
+        "tests/data/sys_info_provenance.json"
       ],
       "direct_topp_consumers": [
         "FileInfo",
@@ -13981,7 +14314,6 @@
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/SYSTEM/SysInfo.h"
       ],
@@ -14367,8 +14699,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h",
-        "OpenMS/SYSTEM/PathUtils.h"
+        "OpenMS/SYSTEM/File.h"
       ],
       "workflow_validated": false
     },
@@ -14673,8 +15004,7 @@
         "OpenMS/APPLICATIONS/TOPPBase.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/MATH/StatisticFunctions.h"
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
@@ -14964,8 +15294,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/MATH/StatisticFunctions.h"
+        "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": false
     },
@@ -15095,8 +15424,6 @@
         "OpenMS/FEATUREFINDER/GaussModel.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/MATH/MISC/CubicSpline2d.h",
-        "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
         "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
@@ -15398,7 +15725,6 @@
         "OpenMS/FORMAT/OMSFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/KERNEL/MSSpectrum.h",
-        "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/METADATA/ID/IdentificationData.h",
         "OpenMS/METADATA/ID/IdentificationDataConverter.h",
         "OpenMS/METADATA/ProteinIdentification.h",
@@ -15550,7 +15876,6 @@
         "OpenMS/CHEMISTRY/ResidueDB.h",
         "OpenMS/CHEMISTRY/ResidueModification.h",
         "OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
-        "OpenMS/COMPARISON/BinnedSpectralContrastAngle.h",
         "OpenMS/COMPARISON/SpectrumAlignment.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
@@ -15563,7 +15888,6 @@
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/KERNEL/MSSpectrum.h",
         "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/METADATA/SpectrumLookup.h",
         "OpenMS/METADATA/SpectrumSettings.h",
@@ -16389,7 +16713,6 @@
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
         "OpenMS/FORMAT/QPXFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/MATH/StatisticFunctions.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/METADATA/SpectrumMetaDataLookup.h",
         "OpenMS/ML/SVM/SimpleSVM.h",
@@ -16524,8 +16847,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/QcMLFile.h",
-        "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/MATH/StatisticFunctions.h"
+        "OpenMS/MATH/MathFunctions.h"
       ],
       "workflow_validated": false
     },
