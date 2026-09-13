@@ -66,6 +66,13 @@ those in the table above. Results:
 - `statrs` brings in no `nalgebra`.
 - None of `matrixmultiply`, `wide` or `safe_arch`, the crates that pick CPU
   kernels at runtime, is in the graph.
+- The committed `Cargo.lock` gains 19 packages. Five of them (`ellip`,
+  `lambert_w`, `num-lazy`, `numeric_literals` and `syn` 1) are optional
+  dependencies behind features this crate does not enable. The lockfile records
+  them, but they are never compiled: `cargo tree --target all -e all -i` finds
+  no path to any of them.
+- With that lockfile, `cargo +1.85.0 check --locked` passes with all features
+  and with no default features, and the feature-boundary gate passes.
 
 ## Constraints that would reopen a decision
 

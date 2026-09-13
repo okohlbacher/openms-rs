@@ -81,6 +81,24 @@ rayon = { version = "=1.12.0", optional = true }
 # scalar path in 92-99% of output components for at most a 1.1x speedup on the
 # power-of-two lengths KDE uses, so results would depend on the CPU.
 rustfft = "=6.4.1"
+# Crates that replace third-party C++ libraries, each chosen by measurement;
+# see docs/THIRD_PARTY_CRATE_DECISIONS.md. Exact pins throughout: several newer
+# releases need a Rust newer than 1.85.
+# Eigen's NonLinearOptimization Levenberg-Marquardt, for the distribution and
+# FEATUREFINDER trace fitters. 0.15 needs nalgebra 0.34 and Rust 1.87. nalgebra
+# without `std` keeps matrixmultiply's runtime CPU dispatch out of the graph.
+levenberg-marquardt = "=0.14.0"
+nalgebra = { version = "=0.33.3", default-features = false, features = ["alloc", "libm"] }
+# Boost.Math normal quantile via erfc_inv, for MultipleTesting's lfdr. 0.19 needs Rust 1.89.
+statrs = { version = "=0.18.0", default-features = false }
+# Boost.Math digamma. `no_std` routes ln through libm, which keeps results the
+# same on every machine: never enable `special/std`.
+special = { version = "=0.14.1", default-features = false, features = ["no_std"] }
+# Boost.Random's mt19937_64 engine, for DecoyGenerator and UniqueIdGenerator.
+rand_mt = { version = "=6.0.3", default-features = false }
+# Boost.Regex semantics (lookaround, duplicate group names), used only through
+# one Boost-compatible facade.
+fancy-regex = { version = "=0.19.2", default-features = false, features = ["std", "unicode", "perf"] }
 # HTTP for SYSTEM/NetworkGetRequest and the update check. Pure Rust, blocking,
 # no async runtime. Its MSRV is exactly ours, so the pin is load-bearing.
 ureq = { version = "=3.4.1", optional = true }
