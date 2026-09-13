@@ -367,7 +367,12 @@ pub(super) fn write_file_content(w: &mut impl Write, experiment: &MSExperiment) 
 pub(super) fn write_scan(w: &mut impl Write, spectrum: &MSSpectrum) -> Result<()> {
     let settings = &spectrum.instrument_settings;
     let info = &spectrum.acquisition_info;
+    // MzMLHandler.cpp:5412-5440 writes a FAIMS voltage even at the -1 sentinel,
+    // and every other mobility unit only for a set drift time.
+    let mobility = spectrum.has_drift_time()
+        || spectrum.drift_time_unit == crate::metadata::DriftTimeUnit::FaimsCompensationVoltage;
     if spectrum.rt == -1.0
+        && !mobility
         && !settings.zoom_scan
         && settings.scan_windows.is_empty()
         && info.acquisitions.is_empty()
@@ -408,6 +413,14 @@ pub(super) fn write_scan(w: &mut impl Write, spectrum: &MSSpectrum) -> Result<()
                 &spectrum.rt.to_string(),
                 SECOND,
             )?;
+        }
+        if index == 0 && mobility {
+            let Some((accession, name, unit)) =
+                precursor_metadata::mobility_cv(spectrum.drift_time_unit)
+            else {
+                return Err(invalid("spectrum mobility unit missing after preflight"));
+            };
+            cv(w, accession, name, &spectrum.drift_time.to_string(), unit)?;
         }
         // ParamGroupType requires all CVs before userParams. The source emits
         // zoom later, producing invalid XML when acquisition metadata is present.

@@ -1,0 +1,202 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "package_revisions": {
+    "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "topp": "174b576",
+    "test-data": "0cb15f2",
+    "oracle_core": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85"
+  },
+  "source_files": [
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+      "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/FileHandler.h",
+      "sha256": "aab489c2dcc5669cfec17357adaef9c2863dcb0927b27f2eff37c1817f89ee86"
+    },
+    {
+      "path": "src/openms/source/FORMAT/FileHandler.cpp",
+      "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h",
+      "sha256": "113c4b4e1b035022776dbc837dd080840dd4313e408da7a7c36588f49bb4762f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h",
+      "sha256": "3e459554651865c58b174d0d80f89ca877aee6fb62bfc570c66fa48cf5434e40"
+    },
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+      "sha256": "787ed51ddf700a472a09dcaed4eb738c50ab8353e0b212f0a6a8a3171615b495"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DTA2DFile.h",
+      "sha256": "2bb5d1ce9785fcd4b476a503dcc9e29a9f2b127d2d7f63b7b61d59c2aa8e3802"
+    },
+    {
+      "path": "src/openms/source/FORMAT/FileInfo.cpp",
+      "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+    },
+    {
+      "package": "topp",
+      "revision": "174b576",
+      "path": "src/FeatureFinderCentroided.cpp",
+      "sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68"
+    },
+    {
+      "package": "test-data",
+      "revision": "0cb15f2",
+      "path": "topp/CMakeLists.txt",
+      "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb"
+    }
+  ],
+  "scope": "Narrow mzML and FileHandler routes for the early TOPP bundle: spectrum-level MS:1001581 and scan-level MS:1002476/MS:1002815/MS:1001581/MS:1002954 on the reader and scan writer, the MS:1000525 representation reset, unit_accession on ion-mobility data arrays, FileHandler::getType, and loadExperiment/loadFeatures with PeakFileOptions/FeatureFileOptions. Not the complete MzMLFile, MzMLHandler or FileHandler API.",
+  "evidence_tier": "tier_1_executed_differential_oracle_generated_plus_source_review_and_rust_only",
+  "method": "Oracle-generated (tier 1 executed differential): the unmodified product-sdk libOpenMS (Debug, core 4fdec46, traced sources unchanged against bc9cc12) loads the same bytes through FileHandler; tests compare every spectrum's native id, MS level, stored type, drift time bits, unit, determineIMFormat, peak count, precursor drift times and array units, the getType result of 13 paths, the FeatureFinderCentroided-option totals per spectrum, intensity-edge peaks bit for bit, and featureXML feature/hull/subordinate counts with and without hulls and subordinates. Source review: MzMLFile_test.cpp:368-369, 451-452, 464-465 literals; DTA2DFile.h:208-243 and FileHandler.cpp:869-936 option routing. Rust-only: writer round trips and lossy-write refusals.",
+  "upstream_test_definition": {
+    "file": "topp/CMakeLists.txt",
+    "revision": "0cb15f2",
+    "registrations": "TOPP_FeatureFinderCentroided_1 input (426-428); TOPP_FileInfo_5 .mzDat and FileInfo_8 .notype inputs (893-895 and neighbours); TOPP_FileInfo_19 input FAIMS_test_data.mzML (928-930)",
+    "note": "Inputs only; the registered tool comparisons belong to the FileInfo and FeatureFinderCentroided packages."
+  },
+  "fixtures": [
+    {
+      "path": "tests/data/mzml_mobility/FAIMS_CV-60C_V-45_Interleaved.mzML",
+      "origin": "test-data 0cb15f2 topp/FAIMS_CV-60C_V-45_Interleaved.mzML",
+      "sha256": "718775f365167f5b61a00a7bf851a7397db258317ae6a09afa860e5ad5470ea7"
+    },
+    {
+      "path": "tests/data/mzml_mobility/FAIMS_test_data.mzML",
+      "origin": "test-data 0cb15f2 topp/FAIMS_test_data.mzML",
+      "sha256": "ad028d77045e07b773b9423f1c1f58baa1a0856b9d420155c8881d452c175301"
+    },
+    {
+      "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_input.mzML",
+      "origin": "test-data 0cb15f2 topp/FeatureFinderCentroided_1_input.mzML",
+      "sha256": "a3dfae633502bc457fb3efeddb5d5006af935a51bd99d9a5974e24232885f9d3"
+    },
+    {
+      "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_1_output.featureXML",
+      "origin": "test-data 0cb15f2 topp/FeatureFinderCentroided_1_1_output.featureXML",
+      "sha256": "4eaa53c822be1cf304728b51fc8d45ff1e725659aa0aad9a3f62560d718fc473"
+    },
+    {
+      "path": "tests/data/mzml_mobility/FileInfo_5_input.mzDat",
+      "origin": "test-data 0cb15f2 topp/FileInfo_5_input.mzDat",
+      "sha256": "2fc37f2443aa31ce887d82ed912d54ae45deb516d3ee06d39777b01cb68c495e"
+    },
+    {
+      "path": "tests/data/mzml_mobility/FileInfo_8_input.notype",
+      "origin": "test-data 0cb15f2 topp/FileInfo_8_input.notype",
+      "sha256": "0cb5622d29ae38dd9c53512a19276c6aceb7a389bbe05fb9e23298e1a007714a"
+    },
+    {
+      "path": "tests/data/mzml_mobility/spectrum_representation.mzML",
+      "origin": "../oracle/a3-format-io/make_cases.py",
+      "sha256": "5ee3cc02e9b8111c79e55da63ceac68e6ab52dfd97c31a35496ebbf25dcb34bb"
+    },
+    {
+      "path": "tests/data/mzml_mobility/scan_mobility.mzML",
+      "origin": "../oracle/a3-format-io/make_cases.py",
+      "sha256": "8c8b8b6007e9dbe03405ac8d6a745e8d297b807da90b56e54bd0fc99e19e6a34"
+    },
+    {
+      "path": "tests/data/mzml_mobility/scan_mobility_conflict.mzML",
+      "origin": "../oracle/a3-format-io/make_cases.py",
+      "sha256": "eabd727992cc8fc58f6c2cdb7bc9a4af84ad9c66c0c9339f6ddef3afa8a25d08"
+    },
+    {
+      "path": "tests/data/mzml_mobility/scan_mobility_unit_mismatch.mzML",
+      "origin": "../oracle/a3-format-io/make_cases.py",
+      "sha256": "7b305bde8dc35323c5934e116a3c0150b6ab171a2374fe949e6102746e24c248"
+    },
+    {
+      "path": "tests/data/mzml_mobility/im_arrays.mzML",
+      "origin": "../oracle/a3-format-io/make_cases.py",
+      "sha256": "80ea00a0d92f891468a68cfba0a5532acfe557ef70be8cd9ead710a149de5720"
+    },
+    {
+      "path": "tests/data/mzml_mobility/im_arrays_non_mobility_unit.mzML",
+      "origin": "../oracle/a3-format-io/make_cases.py",
+      "sha256": "997a0bb6f586d07ce50c7bddaf1cff20662bb4b374c991b4b36a7070064f224e"
+    },
+    {
+      "path": "tests/data/mzml_mobility/intensity_bounds.mzML",
+      "origin": "../oracle/a3-format-io/make_cases.py",
+      "sha256": "ac123020e0b69a084e502395d8a19b852e199660223060aef44553be548f80e5"
+    },
+    {
+      "path": "tests/data/mzml_mobility/a3_format_io_oracle.tsv",
+      "origin": "oracle-generated (tier 1 executed differential): ../oracle/a3-format-io/results/a3_format_io_oracle.tsv",
+      "sha256": "1a7009ed1d5cd048669d67e93ba30bdbb4c2d3030c51bc869d79e6f04709772a"
+    },
+    {
+      "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+      "origin": "core bc9cc12 src/tests/class_tests/openms/data/MzMLFile_1.mzML (existing fixture, reused)",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+    },
+    {
+      "path": "tests/data/featurexml_source_1.featureXML",
+      "origin": "existing fixture, reused",
+      "sha256": "f3e6a6c6fb14a22a457b94fd8465c1e3847f094555bd7798f11b446e5823993a"
+    }
+  ],
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/a3-format-io/manifest.json",
+      "sha256": "af576d57639f409a00a7ed914e3c83497d1ffa34a17d0f2436cb1ab0bce99e40",
+      "label": "oracle-generated (tier 1 executed differential)",
+      "debug_only": []
+    }
+  ],
+  "native_implementation": [
+    "src/format/mzml.rs",
+    "src/format/mzml_precursor.rs",
+    "src/format/mzml_settings.rs",
+    "src/format/file_handler.rs"
+  ],
+  "native_tests": [
+    "tests/mzml_mobility.rs",
+    "tests/file_handler_type_detection.rs"
+  ],
+  "support_document": "docs/MZML_MOBILITY_SUPPORT.md",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "native_validation": {
+    "host": "kim",
+    "checks": [
+      {"command": "cargo test --locked --all-features --no-fail-fast (69 existing mzML/featureXML/FileHandler/mobility targets + mzml_mobility + file_handler_type_detection)", "toolchain": "stable", "result": "71 binaries, 1177 passed, 0 failed"},
+      {"command": "cargo +1.85.0 test --locked --all-features --no-fail-fast (same 71 targets)", "toolchain": "1.85.0", "result": "71 binaries, 1177 passed, 0 failed"},
+      {"command": "cargo test --locked --no-default-features --features mzml --test mzml_mobility --test file_handler_type_detection", "toolchain": "stable and 1.85.0", "result": "19 passed on each"},
+      {"command": "cargo +1.85.0 test --locked --no-default-features --features mzml,featurexml --test file_handler_type_detection", "toolchain": "1.85.0", "result": "8 passed"},
+      {"command": "cargo clippy --locked --all-features --lib --tests -- -D warnings", "toolchain": "stable", "result": "clean"},
+      {"command": "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps", "toolchain": "stable", "result": "clean"},
+      {"command": "cargo check --locked --no-default-features --lib --tests", "toolchain": "stable", "result": "clean"}
+    ]
+  },
+  "cpp_issue_candidates": [
+    "FeatureFinderCentroided.cpp:182-184 intensity filter keeps zero intensities: numeric_limits<DPosition<1>>::min() is DPosition() = 0 (executed).",
+    "A FAIMS compensation voltage of -1 V equals IMTypes::DRIFTTIME_NOT_SET and is reported as no ion mobility (executed).",
+    "MzMLHandler.cpp:4607-4628 precursor writer has no FAIMS case and writes a precursor FAIMS voltage as milliseconds (source review).",
+    "Upstream FAIMS fixtures spell the volt unit UO:000218 (fixture defect)."
+  ]
+}
