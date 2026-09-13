@@ -97,7 +97,7 @@
   {
    "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
    "line": 106,
-   "operation": "bp::search_path resolves the executable and the code keeps the unresolved string when it returns empty; std::process::Command performs the platform lookup instead, which also succeeds for an absolute path when PATH is empty"
+   "operation": "bp::search_path resolves the executable and the code keeps the unresolved string when it returns empty (lines 106-110), so a separator-bearing path still launches here; std::process::Command performs the platform's execvp lookup instead. ExternalProcess is therefore not affected by the empty-PATH defect recorded against JavaInfo.cpp:51, PythonInfo.cpp:82 and RWrapper.cpp:79/144, which pass search_path's result straight to bp::child with no fallback"
   },
   {
    "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
@@ -214,7 +214,7 @@
  },
  "native_boundaries": [
   "std::process::Command replaces boost::process and boost::asio entirely; no dependency is added for this group",
-  "PATH resolution for ExternalProcess comes from the standard library's own lookup rather than an explicit search_path call, which additionally succeeds for an absolute path when PATH is empty",
+  "PATH resolution for ExternalProcess comes from the standard library's execvp lookup rather than an explicit search_path call; the source's fallback to the unresolved string means a separator-bearing path launches in both, so this is a change of mechanism and not of outcome there. The empty-PATH defect belongs to the three probes, which have no such fallback",
   "the three interpreter probes take a &FileContext and resolve through FileContext::find_executable, which is what lets their tests run with no Java, Python or R installed",
   "a signalled child is classified as CRASH in every IO_MODE, where the source only asks in its reading branch",
   "PythonInfo::isPackageInstalled validates the package name as a dotted ASCII identifier path before interpolating it into python -c, and answers false without spawning when it is not one; the source executes the caller's string as Python source",

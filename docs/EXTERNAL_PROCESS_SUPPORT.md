@@ -111,13 +111,22 @@ wires the child's standard input, so `WRITE_ONLY` is indistinguishable from
 ## Native differences
 
 **`PATH` resolution comes from the standard library.** The source calls
-`bp::search_path(exe)` and falls back to the unresolved string when that returns
-empty (`ExternalProcess.cpp:106`); `Command::new` performs the platform's own
-lookup, which also handles an absolute or separator-bearing path when `PATH` is
-empty. The observable difference is confined to that last case, where the source
-would fail to start; reported for the shared
-[C++ issue ledger](../OpenMS_CPP_ISSUES.md) as *empty `PATH` defeats an absolute
-executable*, which the integrator owns and numbers.
+`bp::search_path(exe)` and **keeps the unresolved string when that returns
+empty** (`ExternalProcess.cpp:106`–`110`), then hands the result to a `bp::child`
+that does no searching of its own, as its own comment on line 104 says.
+`Command::new` performs the platform's `execvp` lookup instead: a name carrying a
+separator is used as given, a bare name is searched on `PATH`.
+
+The two agree wherever it matters — a separator-bearing path runs in both (the
+source's fallback is what saves it), and a bare name on a populated `PATH` runs
+in both. `ExternalProcess` is therefore *not* affected by the empty-`PATH`
+defect recorded against the three interpreter probes, which pass
+`bp::search_path`'s result straight into `bp::child` with no such fallback; see
+`docs/JAVA_INFO_SUPPORT.md` and `docs/PYTHON_INFO_SUPPORT.md`. What is left is a
+bare name with `PATH` unset, where `execvp` falls back to the C library's default
+search path and `bp::search_path` returns empty. That corner is reasoned from the
+two libraries' documented semantics and was not established by executing C++, so
+no behaviour is claimed for it beyond the reasoning here.
 
 **A crash is detected in every `IO_MODE`.** The source asks `WIFSIGNALED` only
 inside its reading branch (`ExternalProcess.cpp:209`); the non-reading branch
