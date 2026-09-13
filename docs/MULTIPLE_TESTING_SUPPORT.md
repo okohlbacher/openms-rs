@@ -57,7 +57,8 @@ Every public member of the header appears here.
   Nineteen entries, `0.05` to `0.95`.
 - **A single lambda short-circuits**: `min(#{p >= l} / (m (1-l)), 1)`, with
   `pi0_smooth = false`.
-- **The smoother's fallbacks**, all producing `min(pi0_lambda, 1)` with
+- **The smoother's fallbacks**, all producing `min(min(pi0_lambda), 1)` — the
+  *smallest* per-lambda estimate, not a cap — with
   `pi0_smooth = false`: fewer than four lambdas, fewer than two distinct
   lambdas, a spline that does not fit, a `NaN` prediction, and — only when
   `smooth_log_pi0` is off — a non-finite prediction. With `smooth_log_pi0` on, a
@@ -106,6 +107,25 @@ Every public member of the header appears here.
   literals through it, so the seam carries the source's behaviour rather than
   merely declaring it. Removing the seam needs a restructuring of the module
   graph and is recorded as a deferral.
+
+  **Passing `None` is a different answer, and the less safe one.** In the
+  source `!spl.ok()` is a pathology; here it is what a caller who omits the
+  smoother gets. Measured on `tests/data/test_lfdr_ref_data.csv`, the 3,170
+  PyProphet p-values the class test ships, with the default lambda grid:
+
+  | call | `pi0` |
+  | --- | --- |
+  | `pi0_est(p, &[], Smoother, 3, false, Some(spline))` | `0.6685639` |
+  | `pi0_est(p, &[], Smoother, 3, false, None)` | `0.6403785` |
+
+  The first reproduces the C++ default call's literal `0.6685638`; the second
+  is `min(min(pi0_lambda), 1)` and is **lower**. `qValue` computes
+  `q = pi0 * m * p / rank(p)` and `lfdr` computes `pi0 * f0 / y`, both linear
+  in `pi0`, so the lower estimate makes every q-value and every local FDR
+  *smaller* — more hypotheses clear any fixed threshold. Omitting the smoother
+  loosens the correction rather than tightening it. `tests/multiple_testing.rs`
+  pins both numbers and the direction between them, so the claim is a test and
+  not a sentence. `Pi0Result::pi0_smooth` reports which path was taken.
 - **`lfdr`'s six trailing parameters become `LfdrOptions`.** Nine positional
   arguments, six of them defaulted, is not a Rust signature.
 - **`computeModelFDR` and `pEmp` take `f64` rather than a generic.** Only the

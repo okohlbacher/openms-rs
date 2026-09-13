@@ -471,8 +471,9 @@ pub struct GridKde {
 ///
 /// The grid spans `min(x) - cut * bw` to `max(x) + cut * bw` in `M` equally
 /// spaced points, where `M` is the next power of two at or above
-/// `max(gridsize, n, 512)`; a caller's `gridsize` is therefore a lower bound,
-/// not the answer. An empty sample centres the grid on zero.
+/// `max(gridsize, n, 512)`; a caller's `gridsize` is therefore a lower bound
+/// rather than the value, and is the answer only when it is itself a power of
+/// two at or above `max(n, 512)`. An empty sample centres the grid on zero.
 ///
 /// The sample is linearly binned onto the grid, divided by `spacing * n`,
 /// transformed, multiplied by [`silverman_kernel_fft`], transformed back and
