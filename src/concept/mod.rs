@@ -6,6 +6,9 @@
 
 pub mod constants;
 pub mod log_stream;
+/// General numeric helpers: ppm and Dalton tolerances, rounding, binning,
+/// interval transforms and binomial statistics, from `MATH/MathFunctions.h`.
+pub mod math_functions;
 /// Data parallelism with a determinism contract: a parallel result must be
 /// bit-identical to the serial one.
 pub mod parallel;

@@ -1,0 +1,229 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "method": "Source review only (evidence tier 3 for transcribed literals, tier 4 for independently derived values). No C++ was built or executed and no prebuilt reference output exercises this header. Expected values are either transcribed from the pinned MathFunctions_test.cpp or computed independently from a closed form, an exact rational evaluation or an algebraic invariant; tests/math_functions.rs labels each assertion with which of the two it is.",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e",
+   "role": "The ported header. Header-only: every member is an inline definition or a template, so this file is both interface and implementation."
+  },
+  {
+   "path": "src/openms/source/MATH/MathFunctions.cpp",
+   "sha256": "70efd2e43461466e2207b3f9f892aa54445d9a3a025b25cafe512751556c8f8c",
+   "role": "The header's paired translation unit. It opens and closes namespace OpenMS and defines nothing; hashed so that a later revision adding a definition here is visible."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MathFunctions_test.cpp",
+   "sha256": "8a88ad42767a9093754d6e7a6d1a4d9d7fed71063160fa3240537a9cab0a4f52",
+   "role": "The oracle. 16 START_SECTION blocks; every transcribed literal in tests/math_functions.rs comes from this file. Nine public members have no section here at all."
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/RangeManager.h",
+   "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d",
+   "role": "Not ported here. Read for RangeBase's constructor, isEmpty, contains, setMin, setMax and extendLeftRight, which are the behaviours createBins depends on and which the native Bin type reproduces."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Exception.h",
+   "sha256": "620da10fdd42133622a159cca1b7b45328dd36f34496d8f6de965ee89f9bebda",
+   "role": "Not ported here. Read for Exception::InvalidValue and Exception::InvalidParameter, which percentOf and quantile throw."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Macros.h",
+   "sha256": "90d8f9cd59f9248df8df8b60d2c2f71e415f0688a31b6fd7f5d3fd9b9590ed82",
+   "role": "Not ported here. Read for OPENMS_PRECONDITION, which zoomIn and createBins use and which is compiled out of release builds."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+   "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6",
+   "role": "Not ported here. Read for UInt, which isOdd takes."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "Not ported here. Read for StringUtils::toStr, which percentOf uses only to build its exception message."
+  }
+ ],
+ "fixtures": [],
+ "native_implementation": [
+  "src/concept/math_functions.rs"
+ ],
+ "native_tests": [
+  "tests/math_functions.rs"
+ ],
+ "support": "docs/MATH_FUNCTIONS_SUPPORT.md",
+ "support_document": "docs/MATH_FUNCTIONS_SUPPORT.md",
+ "direct_topp_consumers": [
+  "DecoyDatabase",
+  "FeatureFinderMetaboIdent",
+  "FileInfo",
+  "HighResPrecursorMassCorrector",
+  "IDExtractor",
+  "MassTraceExtractor",
+  "MzTabExporter",
+  "OpenNuXL",
+  "OpenSwathAssayGenerator",
+  "QCMerger",
+  "TextExporter"
+ ],
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 103,
+   "operation": "zoomIn computes (1.0f - factor) as a single-precision subtraction before widening, because factor and align are float; the port keeps f32 parameters so the low bit matches"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 129,
+   "operation": "createBins sizes std::vector<RangeBase> res directly from the caller's number_of_bins with no ceiling; the port preflights against MAX_BINS before allocating"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 136,
+   "operation": "res.front().setMin(min) and res.back().setMax(max) run unconditionally; with OPENMS_PRECONDITION compiled out, number_of_bins == 0 makes both calls undefined behaviour on an empty vector"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 134,
+   "operation": "res[i].extendLeftRight(extend_margin) is a no-op on an already empty range and can itself make a bin empty for a negative margin; both are reproduced by Bin::is_empty"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 156,
+   "operation": "ceilDecimal scales with pow(10.0, decPow), an int promoted to double, so std::pow(double,double) is selected; the port uses f64::powf, not powi"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 173,
+   "operation": "roundDecimal takes the negating branch for x == 0 because zero is not > 0, so roundDecimal(0.0, p) is negative zero; reproduced rather than normalised"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 183,
+   "operation": "intervalTransformation divides by right1 - left1 with no check and multiplies before dividing; the order is preserved and the zero span is now an error"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 195,
+   "operation": "linear2log calls log10(x + 1) unguarded, giving -inf at x == -1 and NaN below; the port refuses instead"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 252,
+   "operation": "roundTo builds its scaling factor by repeated multiplication or division by ten rather than by pow, which is a different double; the loop is transcribed literally and bounded by MAX_DECIMAL_DIGITS"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 285,
+   "operation": "percentOf compares total <= 0 rather than == 0 to avoid a float equality test, and returns 0.0 instead of dividing"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 316,
+   "operation": "gcd evaluates a % b with no overflow check; INT_MIN % -1 is undefined behaviour and traps on x86. The port uses checked_rem"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 348,
+   "operation": "the extended gcd evaluates u3 / v3 and u - v * q unchecked; the port checks every division, multiplication and subtraction"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 377,
+   "operation": "getPPM divides by mz_ref, the reference, never by the observed value; the conversion is therefore not antisymmetric in its arguments and a swapped call site is a silent mass-dependent error"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 407,
+   "operation": "ppmToMass divides by 1e6 before multiplying by mz_ref; the order is preserved because the regrouped expression rounds differently"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 410,
+   "operation": "ppmToMassAbs's documentation block opens with /* instead of /**, so the member is missing from generated Doxygen; its content is carried into the rustdoc regardless"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 445,
+   "operation": "getTolWindow's ppm right edge is val / (1 - tol*1e-6), not val * (1 + tol*1e-6), which makes the window asymmetric on purpose and divides by zero at tol == 1e6"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 467,
+   "operation": "quantile's index is max(0., n*q - 1), not (n-1)*q, so the median of a five-element sample is the midpoint of the second and third values; sortedness is stated in the @brief and never checked"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 530,
+   "operation": "log_binomial_coef replaces k with n - k when k > n / 2 using integer division, before the log-gammas, which makes C(n,k) and C(n,n-k) bit-identical"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 552,
+   "operation": "log_sum_exp selects its maximum with std::max, which returns its first argument when the comparison is false and so propagates a NaN x; f64::max would discard it. Positive infinity is not guarded and yields NaN"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 570,
+   "operation": "binomial_cdf_complement's range test p < 0.0 || p > 1.0 is false for a NaN, which then reaches Boost's distribution constructor; the port refuses a non-finite p"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 584,
+   "operation": "the tail is Boost's regularized incomplete beta function via cdf(complement(binomial_distribution(N,p), n-1)); the port sums the probability-mass definition in the log domain instead, because Boost is not a dependency and none may be added. Agreement against an exact rational oracle is within 2.5e-14 relative over every case in the class test"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "line": 521,
+   "operation": "log_binomial_coef and binomial_cdf_complement throw std::invalid_argument, not an OpenMS exception, so a caller catching Exception::BaseException misses them"
+  }
+ ],
+ "class_test_review": {
+  "path": "src/tests/class_tests/openms/source/MathFunctions_test.cpp",
+  "lines": "1-222",
+  "sections": 16,
+  "sections_mapped": 16,
+  "members_without_a_section": [
+   "extendRange",
+   "contains",
+   "zoomIn",
+   "createBins",
+   "gcd(T, T)",
+   "gcd(T, T, T&, T&)",
+   "ppmToMass",
+   "ppmToMassAbs",
+   "quantile",
+   "RandomShuffler"
+  ],
+  "literal_extraction": "Every TEST_REAL_SIMILAR / TEST_TRUE / TEST_FALSE / TEST_EXCEPTION expectation in the 16 sections is reproduced in tests/math_functions.rs, with the source's default TOLERANCE_RELATIVE(1.0 + 1e-5) unless the value is exactly representable, in which case equality is asserted."
+ },
+ "independent_oracles": [
+  "binomial_cdf_complement against an exact rational evaluation of the same probability-mass sum (Python fractions.Fraction with math.comb); maximum relative deviation 2.5e-14 over the nine numeric cases in the class test",
+  "log_binomial_coef against ln(252) and ln(184756), the closed forms of C(10,5) and C(20,10)",
+  "log_sum_exp(x, x) == x + ln 2 as an exact identity",
+  "the ppm round trip ppm(mz_ref + ppm_to_mass(t, mz_ref), mz_ref) == t",
+  "the zoomIn round trip from the header's own @code block",
+  "create_bins adjacency, union and 2*margin overlap invariants",
+  "the Bezout identity a*u1 + b*u2 == gcd for five argument pairs",
+  "endpoint invariance of interval_transformation for arbitrary spans"
+ ],
+ "native_boundaries": [
+  "MAX_BINS bounds create_bins before the vector is allocated",
+  "MAX_BINOMIAL_TRIALS bounds the binomial tail sum before its term vector is allocated",
+  "MAX_QUANTILE_ITEMS bounds quantile's ordering scan",
+  "MAX_DECIMAL_DIGITS bounds round_to's factor loop, which the source will run |INT_MIN| times",
+  "every division by a caller-controlled denominator is checked; every logarithm argument is checked",
+  "quantile checks ascending order and returns Error::UnsortedData",
+  "both gcd overloads check integer overflow",
+  "no unsafe, no threads; the header carries no #pragma omp so there is no parallelism gap to record"
+ ],
+ "external_reference_artifacts": [],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
