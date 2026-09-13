@@ -11,14 +11,16 @@ TOPP tools and the heavy optional adapters - cannot happen while they exist.
 The count has already grown from 12 two-cycles to 14 while porting continued.
 
 This does not break the existing cycles; unpicking them is its own project. It
-freezes the module-pair edges that exist today and fails on a NEW one, so the
-graph can only improve. An edge is a pair of top-level `src/` modules, so adding
-a file to an existing module costs nothing as long as it reaches for modules
-that module already reaches for.
+records the module-pair edges that exist today and fails on any new edge that
+closes a cycle, that is, whenever the target module already reaches the source.
+A new edge that closes no cycle cannot block the split and is allowed; record it
+with --write, which refuses to record a cycle-closing edge. An edge is a pair of
+top-level `src/` modules, so adding a file to an existing module costs nothing
+as long as it reaches for modules that module already reaches for.
 
   python3 tools/check_module_cycles.py            # gate
   python3 tools/check_module_cycles.py --report   # show the graph and its cycles
-  python3 tools/check_module_cycles.py --write    # re-record, only ever narrowing
+  python3 tools/check_module_cycles.py --write    # re-record; refuses cycle-closing edges
 """
 
 import argparse
@@ -57,6 +59,19 @@ def two_cycles(graph):
     )
 
 
+def reaches(graph, start, goal):
+    """Whether `goal` can be reached from `start` along recorded edges."""
+    seen, stack = set(), [start]
+    while stack:
+        node = stack.pop()
+        if node == goal:
+            return True
+        if node not in seen:
+            seen.add(node)
+            stack.extend(graph.get(node, ()))
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true", help="Re-record the baseline")
@@ -80,8 +95,9 @@ def main():
         if BASELINE.exists():
             before = json.loads(BASELINE.read_text())
             was = {(a, b) for a, t in before["edges"].items() for b in t}
-            if flat - was:
-                print(f"Refusing to widen the baseline with {sorted(flat - was)}")
+            closing = [(a, b) for a, b in sorted(flat - was) if reaches(graph, b, a)]
+            if closing:
+                print(f"Refusing to record edges that close a cycle: {closing}")
                 return 1
         BASELINE.write_text(json.dumps(recorded, indent=1) + "\n")
         print(f"Recorded {len(flat)} edges and {len(pairs)} mutually-dependent pairs.")
@@ -90,17 +106,22 @@ def main():
     before = json.loads(BASELINE.read_text())
     was = {(a, b) for a, t in before["edges"].items() for b in t}
     added = sorted(flat - was)
-    if added:
-        print("New cross-module dependencies introduce or deepen cycles:")
-        for a, b in added:
-            note = " (creates a mutual dependency)" if (a in graph.get(b, ())) else ""
+    closing = [(a, b) for a, b in added if reaches(graph, b, a)]
+    if closing:
+        print("New cross-module dependencies close a cycle (the target already reaches the source):")
+        for a, b in closing:
+            note = " (mutual dependency)" if a in graph.get(b, ()) else ""
             print(f"  {a} -> {b}{note}")
-        print("\nEither route the call through an existing edge, or - if the new edge is")
-        print("deliberate - record it with: python3 tools/check_module_cycles.py --write")
+        print("\nRoute the call through an existing edge instead.")
         return 1
-    removed = len(was) - len(flat)
+    notes = []
+    if added:
+        notes.append(f"new acyclic edge(s) {added} not yet recorded - record with --write")
+    removed = len(was - flat)
+    if removed:
+        notes.append(f"{removed} edge(s) removed since the baseline - re-record with --write")
     print(f"{len(flat)} cross-module edges, {len(pairs)} mutually-dependent pairs"
-          + (f"; {removed} edge(s) removed since the baseline - re-record with --write." if removed > 0 else "."))
+          + ("; " + "; ".join(notes) if notes else "."))
     return 0
 
 

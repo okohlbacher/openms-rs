@@ -51,6 +51,8 @@ pub mod consensus_display;
 pub mod conversion_helper;
 /// Experiment ion mobility and rasterization (`MSExperiment.h`): scan-mobility search, IM frames, mobility exports, RT/m/z raster.
 pub mod experiment_mobility;
+/// FAIMS compensation-voltage queries (`FAIMSHelper.h`).
+pub mod faims_helper;
 /// Identification surface of the feature containers: annotation state, primary IDs, match sets and reference updates.
 pub mod feature_identification;
 /// Feature, consensus and map containers: `BaseFeature`, `Feature`,

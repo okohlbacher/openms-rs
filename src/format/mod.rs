@@ -47,6 +47,8 @@ pub mod fasta;
 pub mod file_handler;
 /// File-type identities, properties, extensions and filter labels.
 pub mod file_types;
+/// File summaries for the FileInfo tool (`FileInfo.h`).
+pub mod file_info;
 /// Mascot generic format (MGF) peak lists and search header (`MascotGenericFile.h`).
 pub mod mascot_generic;
 /// Streaming MGF peak lists and their supported text metadata.
@@ -57,6 +59,8 @@ pub mod ms2;
 pub mod msstats;
 /// Scientific peak-file filters, precision, compression and loading options.
 pub mod peak_options;
+/// Spectrum peak-type estimation (`PeakTypeEstimator.h`).
+pub mod peak_type_estimator;
 /// Percolator tab-separated input: writing, reading and the PIN feature set
 /// (`PercolatorInfile.h`).
 pub mod percolator_infile;

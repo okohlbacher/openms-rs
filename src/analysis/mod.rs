@@ -24,4 +24,6 @@ pub mod elution_peak_detection;
 
 pub mod feature_hypothesis;
 
+pub mod feature_finder_picked;
+
 pub mod feature_finding_metabo;
