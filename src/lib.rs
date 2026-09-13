@@ -32,7 +32,8 @@ pub mod format;
 pub mod identification;
 pub mod interfaces;
 pub mod kernel;
-/// Descriptive statistics: summary measures, ranks and binned counts.
+/// Numerical routines from the `MATH` domain: statistics, ranks, binned
+/// counts and distribution fitters.
 pub mod math;
 pub mod metadata;
 pub mod processing;

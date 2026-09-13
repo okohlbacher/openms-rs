@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Descriptive statistics: summary measures, ranks, binned counts.
-//!
-//! This is the port of the C++ `OpenMS::Math` statistics namespace, which the
-//! rest of the library builds on:
+//! Numerical routines ported from the OpenMS `MATH` domain.
 //!
 //! - `MATH/StatisticFunctions.h` — the free-function library
 //!   ([`crate::math::statistic_functions`]).
@@ -15,11 +12,14 @@
 //!   ([`crate::math::rank_data::rankdata`]).
 //! - `MATH/STATISTICS/Histogram.h` — a binned counter
 //!   ([`crate::math::histogram::Histogram`]).
+//! - `MATH/STATISTICS/{Gauss,GammaDistribution,GumbelDistribution,GumbelMaxLikelihood}Fitter.h`
+//!   — parameter estimation for named distributions ([`crate::math::fitters`]).
 //!
-//! Every function computes in `f64`, as the source does, and reproduces the
-//! source's accumulation order rather than a mathematically equivalent
-//! rearrangement: floating-point addition is not associative, so a "cleaner"
-//! fold would silently change results that other ported code compares against.
+//! Everything here computes in `f64`, as the source does — the fitter headers
+//! use `double` throughout and never `float` — and reproduces the source's
+//! accumulation order rather than a mathematically equivalent rearrangement:
+//! floating-point addition is not associative, so a "cleaner" fold would
+//! silently change results that other ported code compares against.
 //!
 //! Degrees of freedom are **not** uniform in the source and are preserved
 //! exactly as written: [`crate::math::statistic_functions::variance`] and
@@ -33,6 +33,8 @@
 
 /// An accumulating weighted distribution with a normal approximation.
 pub mod basic_statistics;
+/// Parameter estimation for named distributions.
+pub mod fitters;
 /// A binned counter over a closed value range.
 pub mod histogram;
 /// SciPy-compatible ranking with selectable tie and NaN handling.

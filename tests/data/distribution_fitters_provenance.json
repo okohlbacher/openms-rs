@@ -1,0 +1,356 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "group": "MATH/STATISTICS distribution fitters",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GaussFitter.h",
+   "sha256": "beaffb49900242e01c7afdb129997f88f90c728545de422dd39060b39b0c36b7"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "sha256": "dd82e450d43e59e9ee75d3f8f8a0af30023184594db13c2d8ab1fea0f6fbb456"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GammaDistributionFitter.h",
+   "sha256": "786362d8b18dfed2636dfd4d6144b0e3b09a7c33a54cc71c46b1607e8b28898a"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GammaDistributionFitter.cpp",
+   "sha256": "4a3f59ea48c78763d719c8d20580a5efdd63aa5793b36ab0994f09569e15953f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h",
+   "sha256": "2286b85fd84c9a37fd4eb8107e6fd342c42f05b0e120bd4c1eb5739edd44c7c8"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelDistributionFitter.cpp",
+   "sha256": "8b1b22f15937577d519e841ea90774d1f15e046c2716b4a276be4f7c0441c2ac"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h",
+   "sha256": "66789b0ed5889e844c58e5f9166ba8a92e2908fbd7000740dafe0b935177d31f"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "sha256": "a0f2ae82e0eddc0c12bfa08ed33479e472c3564910bcfc9312ab888121c7e454"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GaussFitter_test.cpp",
+   "sha256": "370890603a3ee13c68a9121ec25e36244635eae65402dfbcd06cb6a3f83458c8"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GammaDistributionFitter_test.cpp",
+   "sha256": "f81931c11ec9ff6947f8b30048a1b39069d4fc588543c294c25db4de8128609d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GumbelDistributionFitter_test.cpp",
+   "sha256": "f071de3566a917e17d7c945674726b983679f375560b63d09febe4120649a71d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GumbelMaxLikelihoodFitter_test.cpp",
+   "sha256": "c2a4032420981a750a382bcd65db08f837dca483c7f9927bbdef820cecb445e1"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/gumbel_1d.csv",
+   "source_path": "src/tests/class_tests/openms/data/Gumbel_1D.csv",
+   "sha256": "232d26c8fc881252b07c0d80769c5ce041a6808dea437846765dbcfae756f0f9",
+   "bytes": 20282,
+   "role": "Unmodified upstream fixture: one comma-separated row of 1200 doubles, a mixture of a Gumbel and a Gaussian component, used by the MLE section of GumbelDistributionFitter_test.cpp with unit weights and the initial guess (4.0, 2.0)."
+  }
+ ],
+ "native_implementation": [
+  "src/math/mod.rs",
+  "src/math/fitters/mod.rs",
+  "src/math/fitters/levenberg_marquardt.rs",
+  "src/math/fitters/gauss.rs",
+  "src/math/fitters/gamma.rs",
+  "src/math/fitters/gumbel.rs",
+  "src/math/fitters/gumbel_max_likelihood.rs"
+ ],
+ "native_tests": [
+  "tests/math_distribution_fitters.rs"
+ ],
+ "support": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "line": 23,
+   "operation": "The default initial guess is init_param_(0.06, 3.0, 0.5); the first class-test fit case uses it and converges from x0 = 3.0 to x0 = 0.3"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "line": 56,
+   "operation": "Residual A * exp(-(x - x0) * (x - x0) / sig2) - y with sig2 = 2 * sig * sig hoisted out of the loop"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "line": 77,
+   "operation": "Centre derivative written as A * j0 * (-(-2 * x + 2.0 * x0) / sig2), a double negation kept verbatim"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "line": 94,
+   "operation": "Eigen::LevenbergMarquardt<GaussFunctor> with default Parameters: factor 100, maxfev 400, ftol = xtol = sqrt(eps), gtol 0"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "line": 101,
+   "operation": "Throws UnableToFit only for ImproperInputParameters (0) and TooManyFunctionEvaluation (5); the source comment records that every other state is a good termination"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "line": 107,
+   "operation": "x_init(2) = fabs(x_init(2)); the comment says a negative sigma is reachable and |sigma| is the correct solution"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "line": 124,
+   "operation": "int0 = A / pdf(ndf, x0) with the comment that multiplying the CDF by A is wrong; both eval overloads use this two-step normalization"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GaussFitter.cpp",
+   "line": 144,
+   "operation": "log_eval_no_normalize = -log(sigma) - halflogtwopi - 0.5 * pow((x - x0) / sigma, 2.0); no guard on a non-positive sigma"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GaussFitter.h",
+   "line": 30,
+   "operation": "Class documentation promises getGnuplotFormula(); no such member exists on this class"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GaussFitter.h",
+   "line": 76,
+   "operation": "halflogtwopi is a private non-static data member with an initializer, so every GaussFitResult carries its own copy of the constant"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GammaDistributionFitter.h",
+   "line": 28,
+   "operation": "@note: the fitted function is a customized gamma distribution that is 0.0 when b or p is <= 0, so an unconstrained optimizer can be used"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GammaDistributionFitter.cpp",
+   "line": 27,
+   "operation": "The default initial guess is init_param_(1.0, 5.0); the class test overrides it with (1.0, 3.0)"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GammaDistributionFitter.cpp",
+   "line": 60,
+   "operation": "Residual branches on b > 0.0 && p > 0.0; otherwise every residual is -y, the customized density's zero branch"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GammaDistributionFitter.cpp",
+   "line": 89,
+   "operation": "Jacobian branches the same way and is set to all zeros outside the positive quadrant"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GammaDistributionFitter.cpp",
+   "line": 101,
+   "operation": "Shape derivative uses boost::math::digamma(p) and tgamma(p) twice, once squared through std::pow(tgamma(p), 2)"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GammaDistributionFitter.cpp",
+   "line": 132,
+   "operation": "Throws UnableToFit for status <= ImproperInputParameters; after a completed minimize only ImproperInputParameters is reachable"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h",
+   "line": 51,
+   "operation": "GumbelDistributionFitResult::eval is declared and defined nowhere in the SDK; any C++ caller fails to link"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h",
+   "line": 81,
+   "operation": "GumbelDistributionFitter::fitWeighted is declared with a full Doxygen block including @exception and defined nowhere; the class test uses GumbelMaxLikelihoodFitter instead"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelDistributionFitter.cpp",
+   "line": 32,
+   "operation": "The constructor assigns GumbelDistributionFitResult(0.25, 0.1) over the default-constructed member, so the fitter's guess is not the result type's default (1.0, 2.0)"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelDistributionFitter.cpp",
+   "line": 65,
+   "operation": "Residual forms z = exp((a - x) / b) first, then (z * exp(-z)) / b - y"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelDistributionFitter.cpp",
+   "line": 81,
+   "operation": "Analytic Jacobian; no fabs is applied to the scale, so fit can report a negative b"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelDistributionFitter.cpp",
+   "line": 109,
+   "operation": "Throws UnableToFit for status <= ImproperInputParameters"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "line": 48,
+   "operation": "Functor<double>(2, 2): two residuals for a one-dimensional objective, because Eigen rejects values() < inputs()"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "line": 56,
+   "operation": "sigma = fabs(x(1)): the scale enters through its absolute value so the search stays unconstrained"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "line": 58,
+   "operation": "The weight iterator is advanced in lockstep with the sample iterator and the two sizes are never compared; a short weight vector is read past its end"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "line": 62,
+   "operation": "Running sum of w * (-logsigma - diff - exp(-diff)) in index order, negated once at the end into fvec(0); fvec(1) stays 0, so Levenberg-Marquardt minimizes the square of the weighted negative log-likelihood"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "line": 80,
+   "operation": "Eigen::NumericalDiff wraps the functor: the Jacobian is a forward difference at step sqrt(eps) * |x_j|, and its n + 1 evaluations are charged against maxfev"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "line": 87,
+   "operation": "Throws UnableToFit for status <= ImproperInputParameters"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "line": 98,
+   "operation": "init_param_ is overwritten with the fit result, so a second fitWeighted continues from the first; the returned scale is fabs(x_init(1))"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp",
+   "line": 112,
+   "operation": "The default initial guess is init_param_({0.25, 0.1}); with no samples the objective is identically zero, the gradient vanishes and the solver returns the guess unchanged"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GaussFitter_test.cpp",
+   "line": 95,
+   "operation": "Published case-one parameters A = 1.01898275662372, x0 = 0.300612870901173, sigma = 0.136316330927453 at the default tolerance"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GaussFitter_test.cpp",
+   "line": 117,
+   "operation": "Published case-two parameters A = 175011.893006749, x0 = 240.1007246725147, sigma = 0.00046642320683761701, the case the source comment says needs fabs"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GaussFitter_test.cpp",
+   "line": 138,
+   "operation": "Published static eval intensities at the seven m/z values of the initial guess"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GammaDistributionFitter_test.cpp",
+   "line": 92,
+   "operation": "TOLERANCE_ABSOLUTE(0.01), expected b = 7.25 and p = 3.11"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GumbelDistributionFitter_test.cpp",
+   "line": 82,
+   "operation": "TOLERANCE_ABSOLUTE(0.1) set here and still in force for the MLE section at line 154, since ClassTest tolerances persist for the rest of the file"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GumbelMaxLikelihoodFitter_test.cpp",
+   "line": 38,
+   "operation": "fitWeighted({}, {}) is asserted to return the initial parameters; three sections depend on the empty-input path"
+  }
+ ],
+ "evidence": "Tier 3 source review for every parameter value: the expected numbers are transcribed from the four _test.cpp files, which are the only oracle available without building C++. One exception is flagged rather than folded in: GaussFitResult's (-1,-1,-1) default has no START_SECTION in GaussFitter_test.cpp and is read from GaussFitter.h:42-43, not from a class test. Tier 4 independent checks that depend on no transcribed literal: the maximum-likelihood result is verified to be a local minimum of the source's own weighted negative log-likelihood by recomputing it at the fit and at eight neighbours, with the objective strictly positive (1310.76) so that minimizing its square is minimizing it; the solver is driven onto a zero-residual linear problem with the exact solution y = 1 + 2x; the four Blue's-algorithm constants are asserted against 2.0f64.powi(e) (this caught two wrong literals); the density divisor is asserted to be (2.0*PI).sqrt(), the expression boost/math/distributions/normal.hpp evaluates, and to be one ulp below Boost's unused root_two_pi literal; the two differently-associated scalings of Eigen's lmpar.h:198 and :241 are asserted to be distinct in binary64; both norms are exercised at 1e200 and 1e-200; digamma is checked against psi(1) = -gamma, psi(1/2) = -gamma - 2 ln 2 and the recurrence at eleven integer points; and each density is checked against its closed-form mode and symmetry. No tier 1 or tier 2 evidence exists: no retained C++ output exists for a MATH/STATISTICS fitter and no oracle driver was built. A cross-check against a Python re-implementation that an earlier revision of this manifest cited has been withdrawn: it re-implemented the same transcription, so agreement with it was evidence about language portability and not about fidelity to Eigen.",
+ "achieved_agreement": [
+  {
+   "case": "GaussFitter::fit case 1 (A, x0, sigma)",
+   "expected": "1.01898275662372, 0.300612870901173, 0.136316330927453",
+   "obtained": "1.0189827566259613, 0.30061287090144295, 0.13631633092189843",
+   "deviation": "2.2e-12, 9.0e-13, 4.1e-11 relative",
+   "cpp_tolerance": "TEST_REAL_SIMILAR default (1e-5 relative or absolute)"
+  },
+  {
+   "case": "GaussFitter::fit case 2 (A, x0, sigma)",
+   "expected": "175011.893006749, 240.1007246725147, 0.00046642320683761701",
+   "obtained": "175011.8930067491, 240.1007246725147, 0.00046642320683761495",
+   "deviation": "6.7e-16 relative, exact, 4.4e-15 relative",
+   "cpp_tolerance": "TEST_REAL_SIMILAR default"
+  },
+  {
+   "case": "GaussFitter::eval, seven points",
+   "expected": "78670.515322697669 .. 12184.248044493703",
+   "obtained": "identical for all seven",
+   "deviation": "exact, 7 of 7",
+   "cpp_tolerance": "TEST_REAL_SIMILAR default"
+  },
+  {
+   "case": "GammaDistributionFitter::fit (b, p)",
+   "expected": "7.25, 3.11",
+   "obtained": "7.2527011185365495, 3.1168754039854303",
+   "deviation": "2.7e-3, 6.9e-3 absolute",
+   "cpp_tolerance": "TOLERANCE_ABSOLUTE(0.01)"
+  },
+  {
+   "case": "GumbelDistributionFitter::fit case 1 (a, b)",
+   "expected": "0.5, 2.0",
+   "obtained": "0.5015861406501456, 1.9973893576789812",
+   "deviation": "1.6e-3, 2.6e-3 absolute",
+   "cpp_tolerance": "TOLERANCE_ABSOLUTE(0.1)"
+  },
+  {
+   "case": "GumbelDistributionFitter::fit case 2 (a, b)",
+   "expected": "1.0, 1.0",
+   "obtained": "0.9955965893616037, 0.9992689602371769",
+   "deviation": "4.4e-3, 7.3e-4 absolute",
+   "cpp_tolerance": "TOLERANCE_ABSOLUTE(0.1)"
+  },
+  {
+   "case": "GumbelMaxLikelihoodFitter on Gumbel_1D.csv (a, b)",
+   "expected": "2, 0.6",
+   "obtained": "2.001561295066307, 0.6230114376387215",
+   "deviation": "1.6e-3, 2.3e-2 absolute",
+   "cpp_tolerance": "TOLERANCE_ABSOLUTE(0.1), inherited from the fit section above"
+  },
+  {
+   "case": "GumbelMaxLikelihoodFitter on the synthetic grid (a, b)",
+   "expected": "2.0, 0.8",
+   "obtained": "1.998676827272269, 0.7979922456575415",
+   "deviation": "1.3e-3, 2.0e-3 absolute",
+   "cpp_tolerance": "TOLERANCE_ABSOLUTE(0.05)"
+  }
+ ],
+ "class_test_sections": {
+  "total": 25,
+  "mapped": 25,
+  "unaccounted": 0,
+  "note": "Every START_SECTION of the four _test.cpp files has a named Rust test and one concrete reproduced value; the per-section table is in docs/DISTRIBUTION_FITTERS_SUPPORT.md section 6."
+ },
+ "cpp_issues": [
+  "GumbelDistributionFitter.h:51 declares GumbelDistributionFitResult::eval and no definition exists anywhere in the SDK; a C++ caller fails to link.",
+  "GumbelDistributionFitter.h:81 declares fitWeighted, with a full Doxygen block, and no definition exists; the class test reaches a weighted fit through GumbelMaxLikelihoodFitter instead.",
+  "GaussFitter.h:30, GumbelDistributionFitter.h:28-29 and GumbelMaxLikelihoodFitter.h:26-27 all document a getGnuplotFormula() member that none of the three classes has.",
+  "GumbelMaxLikelihoodFitter.cpp:58-63 advances a weight iterator in lockstep with the sample iterator without comparing the two sizes, reading past the end of a short weight vector.",
+  "GumbelMaxLikelihoodFitter.cpp:62-66 places the weighted negative log-likelihood in fvec(0) of a two-element residual vector, so Levenberg-Marquardt minimizes its square. On data where the objective stays strictly positive this is the maximum-likelihood estimate, verified independently here; where the objective can reach zero the iteration is attracted to that contour instead."
+ ],
+ "gaps": [
+  "No tier-1 differential evidence: no retained C++ output exists for these fitters and no oracle driver linking the prebuilt libOpenMS was built.",
+  "digamma is the recurrence plus the asymptotic series through B14, not Boost's rational minimax approximation; agreement is better than 1e-14 absolute against closed forms. It enters the Gamma Jacobian, which in Levenberg-Marquardt also sets diag, the trust-region radius and every termination test, so it can move the reported parameters; what bounds the risk is the class test's 0.01 absolute tolerance against a 2.7e-3 / 6.9e-3 margin, not an absence of effect.",
+  "tgamma comes from the already-vendored libm crate rather than the platform's std::tgamma; both are accurate to about one unit in the last place.",
+  "Eigen's squaredNorm() and dot() are vectorized reductions whose summation order depends on the build; this port accumulates sequentially. At most one unit in the last place per reduction, not reproducible across builds of the C++ itself, and the leading candidate for the residual 4e-11 in the first GaussFitter case. Measured amplification on that case: a deliberately injected one-ulp change inside lmpar moved the fitted sigma by 810 ulp.",
+  "src/math had to be declared in src/lib.rs because the MATH domain root did not exist; that is the only edit outside this package's own files."
+ ],
+ "openmp": "None. Neither the four .cpp files nor Eigen's NonLinearOptimization module carries a #pragma omp, so the port's serial execution matches the source's.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ },
+ "audit_corrections": [
+  "Solver deviation, corrected: lmpar had been transcribed with diag*(wa2/dxnorm) at both of Eigen's two scaling sites, but Eigen's lmpar.h:198 (the parl lower bound) spells it (diag*wa2)/dxnorm while lmpar.h:241 (the Newton correction) spells it diag*(wa2/dxnorm). Verified identical in Eigen 3.4.0 and 5.0.1. One f64 rounding per parameter per lmpar call; it compounds through the iteration. Correcting it moved GaussFitter case 1 by up to 810 ulp (1.7e-13 relative) and left every other case bit-identical. Pinned by the_two_lmpar_scalings_are_not_the_same_association.",
+  "Constant, corrected: boost/math/distributions/normal.hpp divides by sd * sqrt(2 * constants::pi<RealType>()), not by constants::root_two_pi. The port had carried the root_two_pi literal, one ulp too high. GaussFitter::eval now reproduces all seven published C++ intensities bit for bit instead of four of seven.",
+  "Documentation, corrected: an earlier revision said the solver uses 'both of Eigen's norms'; this path uses three (stableNorm, blueNorm and the plain MatrixBase::norm() inside ColPivHouseholderQR), and the port always implemented all three.",
+  "Documentation, corrected: an earlier revision said both result-struct defaults are asserted by class tests; only GumbelDistributionFitResult()'s (1.0, 2.0) is.",
+  "Documentation, corrected: the digamma justification 'the value enters only the Jacobian, which does not define the optimum' contradicted the document's own argument for reproducing Eigen's stopping rule and has been replaced by a slack-based argument.",
+  "Documentation, withdrawn: the Python re-implementation cross-check, which could not support the fidelity conclusion it was attached to.",
+  "Documentation, corrected: the stated test tolerance for eval was 1e-11; the test file asserts 1e-14."
+ ]
+}
