@@ -14,7 +14,9 @@ Native [spectrum–chromatogram conversion](docs/CHROMATOGRAM_TOOLS_SUPPORT.md) 
 
 The [FORMAT wave](docs/FORMAT_WAVE_SUPPORT.md) adds mzTab/mzTab-M, mzXML, mzData, pepXML, mzIdentML, Mascot, qcML, Percolator, MSstats and transformation XML adapters. Its remaining exporter, validator and lookup gaps are recorded individually.
 
-The optional [SQLite connector](docs/SQLITE_CONNECTOR_SUPPORT.md) supplies connection modes, table queries, SQL batches and BLOB binding. The sqMass, OSW and OMS adapters remain in the [next storage stages](docs/PORTING_WAVES.md).
+The optional `sqlite` feature supplies the [connector](docs/SQLITE_CONNECTOR_SUPPORT.md) and [SWATH lookups](docs/MZML_SQLITE_SWATH_SUPPORT.md). The `sqmass` feature adds the [SQLite spectrum/chromatogram handler](docs/MZML_SQLITE_HANDLER_SUPPORT.md), including bounded reads and transactional writes. SqMassFile, streaming/access adapters, OSW and OMS remain in the [next storage stages](docs/PORTING_WAVES.md).
+
+Recent integrations add numerical fitters, scalar rustfft transforms, spectrum comparisons and system/process utilities. HTTP support uses optional `network`; the default `parallel` feature retains the documented serial/parallel bitwise contract. See the [porting status](docs/PORTING_STATUS.md) and per-header ledger for evidence and remaining API gaps.
 
 ## What works
 

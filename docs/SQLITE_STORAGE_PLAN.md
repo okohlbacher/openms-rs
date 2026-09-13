@@ -1,6 +1,6 @@
 # S1 sqMass handler plan (read-only preparation)
 
-Prepared 2026-09-13 against OpenMS4-core bc9cc12514c768385ce121d6ca4bb710fe1983c4, after Rust checkpoint a477773. No Rust implementation, C++ execution, or repository changes made by this preparation. Source paths below are relative to `.reference/openms4-core-bc9cc12`; source hashes and issue details are in [`the S1 source-review manifest`](../tests/data/sqlite_s1_review.json).
+Prepared 2026-09-13 against OpenMS4-core bc9cc12514c768385ce121d6ca4bb710fe1983c4, after Rust checkpoint a477773. This historical preparation did not implement Rust or execute C++. The handler and SWATH ports were subsequently integrated; see [current waves](PORTING_WAVES.md), [handler support](MZML_SQLITE_HANDLER_SUPPORT.md) and [SWATH support](MZML_SQLITE_SWATH_SUPPORT.md). Source paths below are relative to `.reference/openms4-core-bc9cc12`; source hashes and issue details are in [`the S1 source-review manifest`](../tests/data/sqlite_s1_review.json).
 
 ## Minimum dependency closure
 

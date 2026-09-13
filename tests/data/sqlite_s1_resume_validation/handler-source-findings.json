@@ -1,0 +1,33 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "evidence": "Source review and independent arithmetic plus executed Rust regression; no new C++ reproduction for these cases.",
+  "source_files": [
+    {
+      "path": "src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp",
+      "sha256": "c459046d039bfcdb90d8ba8eade83a6750c416bee5e4d110baa73ffd557a4538"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
+      "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334"
+    }
+  ],
+  "extend_CPP_218": {
+    "trigger": "Encode three coordinates [1e12,1e12,1e12] at accuracy0.0001 or0.05.",
+    "issue": "The maximal linear estimator floors(INT_MAX / 1e12) to0. Positive-accuracy estimate first returns-1 then MSNumpressCoder falls back to that0. Zero quantizes everycoordinate to0 and decode divides by0. Current raw42case probe did not include this case; do not extend its executedcasecount.",
+    "source_locations": "MSNumpress.cpp optimalLinearFixedPointMass237+,optimalLinearFixedPoint262+; MSNumpressCoder.cpp encodeNPRaw131-151; handler1078-1085/1319-1326.",
+    "fix": "Reject nonpositive/nonfinite factor for every nonempty length, or use explicitly lossless supported compression.",
+    "rust": "Handler nonemptyfactor guard rejects with transaction rollback. Regression invalid_lossy_coordinate_quantization_rolls_back_without_advancing_ids tests bothspectrum/chrom and lossless retry."
+  },
+  "negative_initial_candidate": {
+    "trigger": "Negative initial coordinates [-100,-99,-98], positive accuracy0.0001, as accepted finite coordinate input.",
+    "issue": "Estimatedfactor5000 is positive, but initial quantized integers -499999/-494999 are serialized low32bits and decoded as unsigned values. They cannot recover negative initial coordinates. Subsequent residuals inherit the displacement. Source sqMass disables error verification and can commit the corrupted array.",
+    "affected_functions": "MSNumpress.cpp encodeLinearfirsttwo values326-341, decodeLinearfirsttwo443-458; MSNumpressCoder::encodeNPRaw and MzMLSqliteHandler::writeSpectra/writeChromatograms configurations.",
+    "fix": "Require the firsttwo truncated quantized values to be in[0,UINT32_MAX], or use an explicit lossless fallback. A data-domain check should report negative unsupported values before committing.",
+    "rust": "The storage adapter checks initial2 quantizedcoordinates fitu32, raisescheckederror, leavesrows/countersunchanged; explicitlosslessretry preservesfinitecoords. Publicrawcodecsourcebehavior remainsdocumented unchanged.",
+    "status": "Unexecuted C++ source-reviewed defect candidate; native regression executes independently."
+  }
+}

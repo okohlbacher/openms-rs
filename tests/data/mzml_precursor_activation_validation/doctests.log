@@ -1,0 +1,64 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+   Doc-tests openms
+
+running 49 tests
+test src/comparison.rs - comparison::SpectrumAligner (line 1299) ... ok
+test src/concept/math_functions.rs - concept::math_functions::extended_gcd (line 613) ... ok
+test src/concept/math_functions.rs - concept::math_functions::log_binomial_coef (line 868) ... ok
+test src/comparison.rs - comparison::BinnedSpectralContrastAngle (line 954) ... ok
+test src/concept/math_functions.rs - concept::math_functions::log_sum_exp (line 913) ... ok
+test src/concept/math_functions.rs - concept::math_functions::extend_range (line 150) ... ok
+test src/concept/math_functions.rs - concept::math_functions::round_to (line 479) ... ok
+test src/concept/math_functions.rs - concept::math_functions::binomial_cdf_complement (line 949) ... ok
+test src/concept/math_functions.rs - concept::math_functions::create_bins (line 253) ... ok
+test src/concept/math_functions.rs - concept::math_functions::tolerance_window (line 753) ... ok
+test src/concept/math_functions.rs - concept::math_functions::quantile (line 802) ... ok
+test src/concept/math_functions.rs - concept::math_functions::percent_of (line 529) ... ok
+test src/concept/math_functions.rs - concept::math_functions::zoom_in (line 185) ... ok
+test src/concept/math_functions.rs - concept::math_functions::ppm (line 668) ... ok
+test src/format/mascot_generic.rs - format::mascot_generic::read (line 725) ... ok
+test src/format/mod.rs - format::mztab (line 162) ... ok
+test src/kernel.rs - kernel::range_utils (line 105) ... ok
+test src/kernel.rs - kernel::range_utils (line 124) ... ok
+test src/format/mzdata.rs - format::mzdata::MzDataFile (line 454) ... ok
+test src/format/mod.rs - format::mztab_file (line 176) ... ok
+test src/kernel/map_operations.rs - kernel::map_operations::FeatureMap::for_each_unique_id (line 480) ... ok
+test src/format/sv_out_stream.rs - format::sv_out_stream::SVOutStream (line 344) ... ok
+test src/math/rank_data.rs - math::rank_data::rankdata (line 131) ... ok
+test src/kernel/mrm.rs - kernel::mrm::MRMTransitionGroup (line 1019) ... ok
+test src/system/build_info.rs - system::build_info::OsInfo (line 98) ... ok
+test src/system/path_utils.rs - system::path_utils::basename (line 40) ... ok
+test src/system/external_process.rs - system::external_process::ExternalProcess (line 682) ... ok
+test src/system/java_info.rs - system::java_info::can_run (line 110) ... ok
+test src/kernel/map_operations.rs - kernel::map_operations::ConsensusMap::for_each_unique_id (line 1011) ... ok
+test src/format/mod.rs - format::mztab_m (line 179) ... ok
+test src/kernel/spectrum_helper.rs - kernel::spectrum_helper::make_peak_position_unique (line 335) ... ok
+test src/kernel/feature_identification.rs - kernel::feature_identification::Feature::for_each_unique_id (line 486) ... ok
+test src/system/sys_info.rs - system::sys_info::MemUsage (line 138) ... ok
+test src/system/stop_watch.rs - system::stop_watch::StopWatch (line 294) ... ok
+test src/system/stop_watch.rs - system::stop_watch::StopWatch::format_seconds (line 503) ... ok
+test src/system/sys_info.rs - system::sys_info::bytes_to_human_readable (line 48) ... ok
+test src/system/path_utils.rs - system::path_utils::to_path (line 75) ... ok
+test src/system/r_wrapper.rs - system::r_wrapper::reassemble_lines (line 90) ... ok
+test src/system/python_info.rs - system::python_info::version_from_output (line 278) ... ok
+test src/lib.rs - (line 10) ... ok
+test src/chemistry/sequence.rs - chemistry::sequence::AASequence (line 252) ... ok
+test src/format/imzml_handler.rs - format::imzml_handler::ImzMLHandler (line 1012) ... ok
+test src/format/imzml_file.rs - format::imzml_file::ImzMLFile (line 562) ... ok
+test src/format/imzml_writer.rs - format::imzml_writer::store (line 874) ... ok
+test src/format/ms_data_writing_consumer.rs - format::ms_data_writing_consumer::MSDataWritingConsumer (line 210) ... ok
+test src/kernel/on_disc_imzml_experiment.rs - kernel::on_disc_imzml_experiment::OnDiscImzMLExperiment::geometry_mut (line 1403) ... ok
+test src/kernel/on_disc_imzml_experiment.rs - kernel::on_disc_imzml_experiment::OnDiscImzMLExperiment (line 1129) ... ok
+test src/format/indexed_mzml_handler.rs - format::indexed_mzml_handler::IndexedMzMLHandler (line 162) ... ok
+test src/kernel/on_disc_experiment.rs - kernel::on_disc_experiment::OnDiscMSExperiment (line 111) ... ok
+
+test result: ok. 49 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+
+running 2 tests
+test src/analysis/feature_hypothesis.rs - analysis::feature_hypothesis::FeatureHypothesis (line 45) - compile fail ... ok
+test src/chemistry/mod.rs - chemistry::Element (line 132) - compile fail ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+all doctests ran in 1.47s; merged doctests compilation took 0.93s

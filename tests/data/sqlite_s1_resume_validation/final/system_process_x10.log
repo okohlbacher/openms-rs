@@ -1,0 +1,410 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.49s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.49s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.49s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/system_process.rs (target/debug/deps/system_process-616dab5d95a1ccea)
+
+running 34 tests
+test a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes ... ok
+test a_default_constructed_process_swallows_output_and_still_reports_state ... ok
+test a_child_that_overruns_its_budget_is_terminated ... ok
+test a_child_killed_by_a_signal_is_a_crash_in_every_io_mode ... ok
+test an_empty_working_directory_is_the_current_one ... ok
+test captured_output_is_reassembled_the_way_the_source_drains_it ... ok
+test a_missing_program_is_a_state_and_never_an_error ... ok
+test constructed_callbacks_receive_the_two_streams_separately ... ok
+test every_ceiling_is_checked_before_a_child_exists ... ok
+test find_r_reports_a_bogus_interpreter_cleanly ... ok
+test find_r_accepts_a_recorded_stand_in_interpreter ... ok
+test find_script_reports_a_missing_script_as_not_found ... ok
+test find_script_resolves_a_bundled_script_under_the_scripts_directory ... ok
+test java_cannot_run_from_an_empty_executable_name ... ok
+test java_is_probed_through_a_recorded_stand_in_on_the_search_path ... ok
+test one_report_carries_both_overloads_outputs ... ok
+test python_can_run_reproduces_the_two_message_literals ... ok
+test python_can_run_resolves_a_bare_name_to_an_absolute_path ... ok
+test python_package_detection_answers_the_class_tests_two_values ... ok
+test python_package_detection_uses_the_stand_in_interpreter ... ok
+test python_version_is_read_from_the_stand_in_and_empty_when_absent ... ok
+test python_version_parsing_follows_the_sources_concatenate_then_trim ... ok
+test run_reports_success_failure_to_start_and_a_nonzero_exit ... ok
+test run_script_degrades_to_false_without_raising ... ok
+test run_script_passes_the_sources_argument_vector_intact ... ok
+test run_script_refuses_an_oversized_argument_list ... ok
+test set_callbacks_swaps_which_buffer_receives_standard_error ... ok
+test spaces_in_the_executable_path_and_in_one_argument_survive ... ok
+test the_environment_overlay_is_added_to_the_inherited_environment ... ok
+test the_idle_cadence_is_set_by_the_clock_and_not_by_the_output ... ok
+test the_idle_callback_runs_while_the_child_runs ... ok
+test the_working_directory_is_where_relative_paths_resolve ... ok
+test verbose_mode_brackets_the_call_with_the_sources_two_banners ... ok
+test what_the_callbacks_collected_outlives_the_process_value ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.49s
+

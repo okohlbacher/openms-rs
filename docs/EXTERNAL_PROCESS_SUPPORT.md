@@ -225,3 +225,12 @@ about six; and a call whose child had left a descendant holding the pipes had
 still not returned after 20 seconds, with a 250 ms budget set.
 
 Tests: `tests/system_process.rs` and `src/system/external_process.rs::tests`.
+
+The integration tests in `tests/system_process.rs` run one at a time, behind a
+shared lock. Run in parallel, one test's forked child inherits the write handle
+another test holds while writing a stand-in script, and executing that script
+then fails with `ETXTBSY` ("Text file busy"), reported as `FailedToStart`. With
+the spawn error printed, 18 of 25 parallel runs failed that way on the Linux
+build node under both Rust 1.85 and 1.96; single-threaded runs never did. The
+race is in the harness: `ExternalProcess` behaves as the source does when it
+executes a file that another process still holds open for writing.

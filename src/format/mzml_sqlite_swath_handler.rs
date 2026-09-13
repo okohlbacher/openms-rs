@@ -229,7 +229,7 @@ impl MzMLSqliteSwathHandler {
 
 fn require_table(connection: &Connection, name: &str) -> Result<()> {
     let ordinary: bool = connection.query_row(
-        "SELECT EXISTS(SELECT 1 FROM pragma_table_list WHERE schema='main' AND name=?1 COLLATE NOCASE AND type='table')",
+        "SELECT EXISTS(SELECT 1 FROM pragma_table_list() WHERE schema='main' AND name=?1 COLLATE NOCASE AND type='table')",
         [name], |row| row.get(0),
     ).map_err(sql_error)?;
     if !ordinary {

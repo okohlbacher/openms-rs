@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 //! Typed precursor acquisition CV terms from the pinned MzMLHandler.
+//!
+//! Activation and intensity-unit transport: `docs/MZML_PRECURSOR_ACTIVATION_SUPPORT.md`.
 
 use super::{
     BTreeMap, Error, Precursor, Result, Write, cv, escape, finite, invalid, number, xml_string,
@@ -73,6 +75,7 @@ pub(super) fn read_metadata_cv(
             "precursor intensity",
         )?)?;
         if let Some(unit) = attrs.get("unitAccession") {
+            record.precursor_fields.insert("intensity_explicit_unit");
             super::record_transport::slot(budget, INTENSITY_UNIT_KEY)?;
             intensity_unit(unit)?;
             if attrs
@@ -83,13 +86,13 @@ pub(super) fn read_metadata_cv(
                     "precursor intensity unit reference conflicts with accession",
                 ));
             }
-            if unit != "MS:1000132"
-                && p.cv_terms
-                    .metadata
-                    .insert(INTENSITY_UNIT_KEY.into(), unit.as_str().into())
-                    .is_some()
-            {
+            if p.cv_terms.metadata.contains_key(INTENSITY_UNIT_KEY) {
                 return Err(invalid("duplicate precursor intensity unit metadata"));
+            }
+            if unit != "MS:1000132" {
+                p.cv_terms
+                    .metadata
+                    .insert(INTENSITY_UNIT_KEY.into(), unit.as_str().into());
             }
         } else if attrs.contains_key("unitCvRef") || attrs.contains_key("unitName") {
             return Err(invalid(
@@ -172,7 +175,14 @@ pub(super) fn write_intensity(w: &mut impl Write, p: &Precursor) -> Result<()> {
     )
 }
 
-fn promoted(value: &crate::metadata::MetaValue, id: &str, kind: &str) -> bool {
+fn promoted(p: &Precursor, value: &crate::metadata::MetaValue, id: &str, kind: &str) -> bool {
+    // These CVs derive a combined activation method on read. Keep a metadata-only
+    // caller value as userParam instead of silently adding a method on reload.
+    if (id == "MS:1002679" && !p.activation_methods.contains(&A::Etcid))
+        || (id == "MS:1002678" && !p.activation_methods.contains(&A::Ethcd))
+    {
+        return false;
+    }
     use crate::metadata::MetaValueData;
     match (kind, value.data()) {
         ("xsd:double", MetaValueData::Float(_)) => true,
@@ -435,12 +445,12 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
             && p.cv_terms
                 .metadata
                 .get("supplemental collision-induced dissociation")
-                .is_some_and(|v| promoted(v, "MS:1002679", "xsd:string")))
+                .is_some_and(|v| promoted(p, v, "MS:1002679", "xsd:string")))
             || (*method == A::Ethcd
                 && p.cv_terms
                     .metadata
                     .get("supplemental beam-type collision-induced dissociation")
-                    .is_some_and(|v| promoted(v, "MS:1002678", "xsd:string")))
+                    .is_some_and(|v| promoted(p, v, "MS:1002678", "xsd:string")))
         {
             continue;
         }
@@ -451,12 +461,6 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
             method.name().to_lowercase()
         };
         cv(w, accession, &name, "", "")?;
-    }
-    if p.activation_methods.is_empty() && p.activation_energy == 0.0 {
-        writeln!(
-            w,
-            "<userParam name=\"activation information unavailable\"/>"
-        )?;
     }
     let mut skip = [""; 12];
     skip[..3].copy_from_slice(&[
@@ -470,7 +474,7 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
             .cv_terms
             .metadata
             .get(key)
-            .filter(|v| promoted(v, id, kind))
+            .filter(|v| promoted(p, v, id, kind))
         {
             let term = crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?
                 .get_term(id)?;
@@ -494,6 +498,14 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
             skip[used] = key;
             used += 1;
         }
+    }
+    // After every cvParam: `activation` is a ParamGroupType, whose schema
+    // sequence puts all cvParams before any userParam.
+    if p.activation_methods.is_empty() && p.activation_energy == 0.0 {
+        writeln!(
+            w,
+            "<userParam name=\"activation information unavailable\"/>"
+        )?;
     }
     super::write_scalar_metadata_skipping(w, &p.cv_terms.metadata, &skip[..used])?;
     writeln!(w, "</activation></precursor>")?;

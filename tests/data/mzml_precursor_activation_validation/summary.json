@@ -1,0 +1,127 @@
+{
+  "host": "kim",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "features": "--no-default-features --features mzml",
+  "runtime_files": [
+    {
+      "path": "src/format/mzml.rs",
+      "sha256": "eac00a23dcfcf63a78fcce7d2a7055c485f54c9a45c9d55cc6835d46c2df21bc"
+    },
+    {
+      "path": "src/format/mzml_precursor.rs",
+      "sha256": "bafdfcadc1ac841f730a976847408fcbaffac7bb2a17056b741af1fe2e2311bd"
+    },
+    {
+      "path": "src/format/mzml_record.rs",
+      "sha256": "43ffe38d5321eb989043bdbc83fa1188c269d18ad03afce0053e6e1cc2d21533"
+    },
+    {
+      "path": "tests/mzml_precursor_activation.rs",
+      "sha256": "69373d1d8c466e147977fa0247c26e1416b2372765f2bb9aadf1a477ee3dde93"
+    }
+  ],
+  "checks": [
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 1,
+      "seconds": 2.42
+    },
+    {
+      "name": "focused",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--test",
+        "mzml_precursor_activation",
+        "--test",
+        "mzml_isolation",
+        "--test",
+        "mzml_acquisition"
+      ],
+      "exit_code": 0,
+      "seconds": 6.68
+    },
+    {
+      "name": "minimum",
+      "command": [
+        "cargo",
+        "+1.85.0",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--test",
+        "mzml_precursor_activation"
+      ],
+      "exit_code": 0,
+      "seconds": 27.03
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 101,
+      "seconds": 23.1
+    },
+    {
+      "name": "rustdoc",
+      "command": [
+        "cargo",
+        "doc",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--no-deps"
+      ],
+      "exit_code": 0,
+      "seconds": 3.93
+    },
+    {
+      "name": "doctests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--no-default-features",
+        "--features",
+        "mzml",
+        "--doc"
+      ],
+      "exit_code": 0,
+      "seconds": 2.85
+    }
+  ],
+  "focused_clippy": {
+    "command": "cargo clippy --locked --no-default-features --features mzml --lib --test mzml_precursor_activation --test mzml_acquisition --test mzml_isolation -- -D warnings",
+    "exit_code": 0
+  },
+  "scope_notes": [
+    "All35 focused tests,10 minimum Rust1.85 activation tests,51 doctests and strict rustdoc passed.",
+    "Whole-tree fmt snapshot failed only for concurrently edited SQLite handler and test formatting; no activation formatting differences. Root combined gate owns final whole-tree validation.",
+    "mzml-only all-targets clippy failed on preexisting dead-code helpers NoOutput and unsupported in tests/data_array_xml.rs. Focused library and three test clippy passed.",
+    "No C++ oracle execution or Claude transfer/review for this closure."
+  ]
+}

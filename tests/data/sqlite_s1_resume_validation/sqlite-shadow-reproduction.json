@@ -1,0 +1,8 @@
+{
+  "evidence": "Python sqlite3 independent SQL reproduction; not C++ or Rust execution",
+  "sqlite": "3.53.4",
+  "results": {
+    "pragma_table_list": 1,
+    "pragma_table_list()": "'pragma_table_list' is not a function"
+  }
+}

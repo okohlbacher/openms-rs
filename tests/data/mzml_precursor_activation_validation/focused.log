@@ -1,0 +1,55 @@
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/codex-resume-activation)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.43s
+     Running tests/mzml_acquisition.rs (/scratch/kohlbach/targets/codex-resume-activation/debug/deps/mzml_acquisition-83ed864838fd1f7c)
+
+running 10 tests
+test canonical_and_source_modes_distinguish_only_the_implicit_singleton ... ok
+test descriptor_and_reference_expansion_budgets_apply_to_excluded_records ... ok
+test source_file_locations_follow_source_lexical_repairs_without_filesystem_probes ... ok
+test source_mode_reaches_scientific_and_file_loading_and_preserves_rollback ... ok
+test scalar_metadata_all_nine_typed_cv_paths_and_units ... ok
+test header_reference_resolution_and_additional_instrument_writer_are_checked ... ok
+test source_literal_acquisitions_and_metadata_projection ... ok
+test source_writer_normalization_and_first_scan_placement ... ok
+test unsupported_combination_list_metadata_and_missing_instrument_fail_before_output ... ok
+test ordinary_and_numpress_acquisition_output_validate_against_the_source_xsd ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/mzml_isolation.rs (/scratch/kohlbach/targets/codex-resume-activation/debug/deps/mzml_isolation-d87eca4efae07960)
+
+running 15 tests
+test repeated_group_expansion_respects_cumulative_parameter_limits ... ok
+test selection_and_parameter_limits_remain_cumulative_and_retained_failure_is_atomic ... ok
+test raw_attribute_guard_applies_to_group_definitions_but_escaped_less_than_is_valid ... ok
+test repeated_selected_events_update_only_on_difference_and_target_order_is_literal ... ok
+test count_reader_preserves_source_early_rt_count_while_full_reader_filters_later_target ... ok
+test later_selected_ions_are_ignored_but_markup_groups_and_counts_are_checked ... ok
+test chromatogram_precursors_choose_target_without_whole_record_filtering ... ok
+test literal_source_precursor_values_and_absent_equal_cases ... ok
+test reference_groups_share_event_order_and_every_precursor_can_exclude_the_spectrum ... ok
+test consumer_pools_and_population_modes_reuse_the_same_target_selection ... ok
+test repeated_target_events_are_sticky_even_when_the_final_value_passes ... ok
+test plain_and_compressed_path_load_count_and_transform_use_target_mode ... ok
+test target_events_alone_filter_with_half_open_endpoints_and_missing_cv_gating ... ok
+test selected_metadata_storage_is_precharged_and_filtered_records_remain_validated ... ok
+test every_writer_preserves_isolation_and_selected_values_without_activation_shadow ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+     Running tests/mzml_precursor_activation.rs (/scratch/kohlbach/targets/codex-resume-activation/debug/deps/mzml_precursor_activation-d6de7c85b721315e)
+
+running 10 tests
+test retained_metadata_obeys_parameter_count_and_byte_budgets ... ok
+test invalid_units_numbers_and_unitless_flag_conflicts_are_rejected ... ok
+test duplicate_metadata_and_intensity_units_fail_in_both_orders ... ok
+test noncanonical_metadata_remains_user_param_without_type_or_method_changes ... ok
+test typed_activation_energy_is_distinct_from_collision_metadata ... ok
+test referenceable_activation_and_unit_parameters_share_direct_routes ... ok
+test source_class_energy_intensity_and_supplemental_literals_roundtrip ... ok
+test invalid_native_unit_metadata_fails_before_writing_bytes ... ok
+test intensity_default_normalizes_and_nondefault_identity_survives ... ok
+test all_nine_activation_metadata_routes_preserve_scalar_types ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+

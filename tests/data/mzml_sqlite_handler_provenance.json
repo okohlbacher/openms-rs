@@ -58,6 +58,41 @@
       "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
       "bytes": 94208,
       "role": "Exact retained source binary sqMass reader input; its presence upstream is retained-file evidence, not proof it was produced by executing the current pin."
+    },
+    {
+      "path": "tests/data/mzml_sqlite_handler/resume-first.log",
+      "sha256": "cc1ae5579745e06d635531202cad24234159a98e2cbf94e9e28eee8e0fe264b4",
+      "role": "Intermediate30test currentRust execution onkim before final schema-shadow guard and assertion audit."
+    },
+    {
+      "path": "tests/data/mzml_sqlite_handler/resume-review.log",
+      "sha256": "3d8a3dbd24ed9dbc492a06d8f72d2618dec69600a3e9d71cf3196299d93e4f4d",
+      "role": "Intermediate30test and strictclippy pass followed by failed feature-only rustdoc on inherited links; no MSRV execution in this log."
+    },
+    {
+      "path": "tests/data/mzml_sqlite_handler/resume-final.log",
+      "sha256": "e3b452e29da28be44e9bd81e17c39de3738a105c7d889ad2c19fd45ff34afd17",
+      "role": "Final31native tests oncurrentRust andMSRV1.85, plus strictfocusedclippy. Runtime source/test hashes are recorded separately."
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/sqmass_only.log",
+      "sha256": "b487fdd6b106a2d02cbf01442dcd3def0c112bcd8ed7f862ea2ae37be0037a9f"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/sqmass_only_extra_check.log",
+      "sha256": "546afb8b63297c166e10ad073283adaf00a3a914bb98dfe2ce1bfb40cac35a96"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/msrv_sqmass_only.log",
+      "sha256": "ae99544cb61cd87fcc2063fccf17c981fb23b411d1a4d2bdbf7e4dec09a5247a"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/msrv_sqmass_only_extra_check.log",
+      "sha256": "60b0cc663077718ea25f9398d17dd422ffbf1f63b73046e640888265aa812c35"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/sqmass_clippy.log",
+      "sha256": "3d337609d7b2c5207e27ffe2e5f03d45359d78bbaf2cdc826867b52e8cd02cb1"
     }
   ],
   "native_implementation": [
@@ -76,7 +111,7 @@
       "native_tests": [
         "constructor_defaults_and_drop_do_not_create_a_file"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "construction": "non-null handler"
       }
@@ -89,7 +124,7 @@
       "native_tests": [
         "constructor_defaults_and_drop_do_not_create_a_file"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "destruction": "delete; no literal assertions"
       }
@@ -102,7 +137,7 @@
       "native_tests": [
         "retained_run_id_and_counts"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "run_id": 12345
       }
@@ -115,7 +150,7 @@
       "native_tests": [
         "retained_experiment_metadata_and_all_numeric_values"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "spectrum_count": 2,
         "chromatogram_count": 1,
@@ -145,7 +180,7 @@
       "native_tests": [
         "retained_run_id_and_counts"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "count": 2
       }
@@ -158,7 +193,7 @@
       "native_tests": [
         "retained_run_id_and_counts"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "count": 1
       }
@@ -171,7 +206,7 @@
       "native_tests": [
         "selected_spectrum_class_test_literals"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "selected_ids": [
           [
@@ -219,7 +254,7 @@
       "native_tests": [
         "selected_chromatogram_class_test_literals"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "existing_native_id": "TIC",
         "metadata_only_sizes": 0,
@@ -258,7 +293,7 @@
       "native_tests": [
         "retention_time_class_test_literals_and_stable_nearest"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "cases": [
           {
@@ -339,7 +374,7 @@
       "native_tests": [
         "full_experiment_write_recreate_and_lossy_source_tolerances"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "before_create": "IllegalArgument",
         "after_write_spectrum_count": 2,
@@ -360,7 +395,7 @@
       "native_tests": [
         "run_level_loaded_file_path_is_bound_and_masked"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "loaded_file_path": "/tmp/o'brien'; DROP TABLE RUN;--/run.mzML",
         "run_rows_after_write": 1,
@@ -375,7 +410,7 @@
       "native_tests": [
         "repeated_spectrum_appends_preserve_source_literals"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "before_create": "IllegalArgument",
         "append_spectrum_counts": [
@@ -412,7 +447,7 @@
       "native_tests": [
         "repeated_chromatogram_appends_lossless_and_lossy"
       ],
-      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "status": "All assertion families reviewed and mapped; current remote native focused tests passed. Not an executed C++ class-test run.",
       "source_expectations": {
         "compression_modes": [
           "lossless zlib",
@@ -536,24 +571,6 @@
       "operation": "endSectionPostProcess does not restore numeric tolerances."
     }
   ],
-  "source_public_api_mapping_pending": {
-    "constructor": "new(path,run_id)",
-    "implicit_destructor": "Rust ownership/drop",
-    "setConfig": "set_config(full_meta,lossy,accuracy,batch_size)",
-    "setRunId": "set_run_id",
-    "getRunID": "run_id",
-    "getNrSpectra": "nr_spectra",
-    "getNrChromatograms": "nr_chromatograms",
-    "readExperiment": "read_experiment(meta_only)",
-    "readSpectra": "read_spectra(ids,meta_only)",
-    "readChromatograms": "read_chromatograms(ids,meta_only)",
-    "getSpectraIndicesbyRT": "spectra_indices_by_rt(rt,delta,ids)",
-    "createTables": "create_tables",
-    "writeExperiment": "write_experiment",
-    "writeSpectra": "write_spectra",
-    "writeChromatograms": "write_chromatograms",
-    "writeRunLevelInformation": "write_run_level_information"
-  },
   "source_compression_contract": {
     "documented_numeric_codes": [
       0,
@@ -583,8 +600,84 @@
     "numpress_error_tolerance": -1.0,
     "raw_double_note": "Source uses host double byte representation. Native endian and validation policy require explicit review."
   },
-  "evidence": "Tier3 pinned source/API/class-literal review plus retained exact upstream fixture inputs. Native source and named test mappings reviewed; final assertion-family review and remote execution pending. No MzMLSqliteHandler C++ execution or regenerated C++ output. The independently executed SQL source-review artifact remains tier4; the separate adapted SWATH C++ probe does not execute this handler.",
-  "external_reference_artifacts": [],
+  "evidence": "Tier3 pinned source/API/all13class-section assertion-family review plus retained exact upstream fixture inputs; tier4 remote native focused regression tests. Tier2 standalone exact raw Numpress42case execution attached separately, supporting CPP218 short-array defect only. No MzMLSqliteHandler C++ execution or full SDK differential. Independent SQL source-review and separate SWATH probe do not execute this handler.",
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/MSNumpress.cpp",
+      "sha256": "c459046d039bfcdb90d8ba8eade83a6750c416bee5e4d110baa73ffd557a4538",
+      "origin_key": "sqlite_short_numpress_s1_probe/MSNumpress.cpp"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/build.log",
+      "sha256": "9f2fbe1b61aec39fa9d701129e000f14e993a38b312960e98d079e2215b1fb09",
+      "origin_key": "sqlite_short_numpress_s1_probe/build.log"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/checks.json",
+      "sha256": "d3d4a61497dad907387a6e996c5b31a9d16f201b89cebd09f0c76108956cbf2a",
+      "origin_key": "sqlite_short_numpress_s1_probe/checks.json"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h",
+      "sha256": "d2001437121ad2f05540ea7553a357a9411f7f8eb4d62c600f2efadeb96608bd",
+      "origin_key": "sqlite_short_numpress_s1_probe/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/manifest.json",
+      "sha256": "557d180815965704b4fde9f62586095c0ba82b975cc43ddb50943acfa8ec60a3",
+      "origin_key": "sqlite_short_numpress_s1_probe/manifest.json"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/probe",
+      "sha256": "8395f9497fb9cf26f3059028b1ec544ecc93ccb58fc47f69a447602dd9e61a26",
+      "origin_key": "sqlite_short_numpress_s1_probe/probe"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/probe-sanitized",
+      "sha256": "dfcf23dadcb28b731a5fdb9fdd2bd594215baceb13c6df68a47a201a1fad35a8",
+      "origin_key": "sqlite_short_numpress_s1_probe/probe-sanitized"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/probe.cpp",
+      "sha256": "3ca54ad23bef963b9b1ba4bd0c271ebf702de627770644da0fc4c1bb38c68bc2",
+      "origin_key": "sqlite_short_numpress_s1_probe/probe.cpp"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/result.log",
+      "sha256": "c52efc448cd422b31351d0e286df671b7f96773dfe657fd9d9ffd1f23ff6e9e1",
+      "origin_key": "sqlite_short_numpress_s1_probe/result.log"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/results.jsonl",
+      "sha256": "41ad22a7d0f607fa8affe9f4fea786d4cf35716d9df6189f9226d3d2e1439e14",
+      "origin_key": "sqlite_short_numpress_s1_probe/results.jsonl"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/run.sh",
+      "sha256": "8b4642395b2d888745970e5b5ceee625fe9be57fce1c69249cf8f10ba7c6a89e",
+      "origin_key": "sqlite_short_numpress_s1_probe/run.sh"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/run.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin_key": "sqlite_short_numpress_s1_probe/run.stderr"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/validate.py",
+      "sha256": "7eb626e8eb3224bac00ceec7ce690caa798e72a9c83c57c8a32a975cdb4aad18",
+      "origin_key": "sqlite_short_numpress_s1_probe/validate.py"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/zero-sanitizer-exit.txt",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "origin_key": "sqlite_short_numpress_s1_probe/zero-sanitizer-exit.txt"
+    },
+    {
+      "path": "../oracle/sqlite-short-numpress-s1-probe/zero-sanitizer.log",
+      "sha256": "9c4933c7d7f085844a65ebb0ca01b0d92cfbf136f3e1c2296af0760272ad2457",
+      "origin_key": "sqlite_short_numpress_s1_probe/zero-sanitizer.log"
+    }
+  ],
   "cpp_issue_log_entries": [
     "CPP-190",
     "CPP-191",
@@ -595,15 +688,15 @@
     "CPP-198",
     "CPP-199",
     "CPP-201",
-    "CPP-202"
+    "CPP-202",
+    "CPP-218",
+    "CPP-220"
   ],
   "gaps": [
-    "Final native assertion-family review and remote integration execution pending; no complete-header claim yet.",
-    "No executed C++ handler/class-test differential.",
-    "Native metadata and auxiliary-array policy require final code and tests; fullmetadata source flag does not imply lossless preservation of all input fields.",
-    "Compression codes listed in source comments exceed implemented C++ decoder scope; support must enumerate actual codecs.",
-    "Protected SQL helpers and private connector implementation are source context, not separate public API closure.",
-    "Focused inherited mzML activation metadata closure pending: collision energy/supplemental metadata from source-supported full snapshots was ignored on native read."
+    "No executed C++ MzMLSqliteHandler or upstream handler class-test differential.",
+    "Full-metadata preservation is limited to the documented native mzML serializer subset; unsupported inputs return errors rather than silently lose metadata.",
+    "Nested mzML header registry retains independent fixed256MiB/50million limits; HandlerLimits are not a process-wide memory/time cap.",
+    "Integration-wide validation and separate external reviewer signoff are owned by the integrating agent."
   ],
   "native_policy_reviewed": {
     "feature": "sqmass (requires sqlite and mzml codec closure)",
@@ -613,9 +706,11 @@
     "metadata": "Full snapshot uses native mzML subset; auxiliary arrays defaultReject or explicitSource drop; peptide IDs and unsupported mzML fields still fail; SQL-only metadata loss requires Source policy.",
     "transactions": "One read transaction per public operation; atomic writes, counters aftercommit; builder run snapshot can precede records and is validated at read.",
     "numeric": "Compression1/5/6; raw little-endianf64; finite checked f32 intensities; distinct paired roles and lengths.",
-    "limits": "Materialization/scans/codec budgets; no hard SQLite virtual-machine timeout or totalprocessRSS guarantee.",
-    "short_coordinates": "Native lossy writer falls back to supported lossless code1 for coordinate arrays with fewer than3values; nonempty Numpress output must have finite positive fixedpoint.",
-    "run_id_owner": "Dedicated MSExperiment.sql_run_id; pairedmzML fixture settings comparison removes legacy sqMassRunID metadata key from expectation."
+    "limits": "ID/result vectors, metadata copies, snapshot record slots, codec work, and nested parameter/array allowances charged to operation budgets. Fixed ordinary-table schema checks before reads/writes and before each commit; create_tables validates staged database. Nested mzML header registry retains independent256MiB/50million fixed limits; no hard SQLite VM time or totalRSS guarantee.",
+    "short_coordinates": "Lossy mode uses code1 for fewer than3coordinates. Longer arrays reject nonfinite/nonpositive Numpress factors and initial2coordinates outsideu32 quantization; caller can select lossless mode for these finite inputs.",
+    "run_id_owner": "Dedicated MSExperiment.sql_run_id; pairedmzML fixture settings comparison removes legacy sqMassRunID metadata key from expectation.",
+    "parallelism": "Pinned C++ uses OpenMP in spectrum/chromatogram array encoding; native handler serial. SQL batching is retained; each native public write has one transaction.",
+    "ordinary_table_guard": "Parameterized pragma_table_list() queries reject required views/virtual tables; a shadowing ordinary table named pragma_table_list causes query failure rather than forged-table acceptance."
   },
   "native_cpp_issue_handling_source_review": {
     "CPP-190": "Initialized batch500 and validated configuration.",
@@ -627,7 +722,9 @@
     "CPP-198": "Successful database recreation resets counters.",
     "CPP-199": "Activation lookup validates nonnegative in-range enum indices.",
     "CPP-201": "DefaultReject for auxiliary arrays; Source deliberatelydrops; fullsnapshot still constrained bymzML serializer.",
-    "CPP-202": "ReadOnly opens existingfiles; missingpath errors beforeSQLitecreation."
+    "CPP-202": "ReadOnly opens existingfiles; missingpath errors beforeSQLitecreation.",
+    "CPP-218": "Supported code1 lossless fallback for short coordinates; nonempty Numpress requires finite positive factor, and linear initial coordinates must quantize into u32 without wrapping.",
+    "CPP-220": "Reject initial linear coordinates whose truncated quantization is outside u32; write error rolls back rows and counters, and explicit lossless retry preserves values. Source-reviewed negative-coordinate case, not included in prior42case C++ probe."
   },
   "source_tolerance_state": {
     "mechanism": "TOLERANCE_ABSOLUTE/RELATIVE assign global TEST::absdiff_max_allowed/ratio_max_allowed; START_SECTION/END_SECTION do not reset. Values below follow sequential successful source control flow, not a C++ run.",
@@ -659,5 +756,283 @@
       "relative": 1.00001
     },
     "comparison": "Absolute OR multiplicative-relative acceptance, including source sign rules. Helpers temporarily set globals; their final values remain afterward. Native tests may deliberately strengthen individual comparisons; do not describe stricter values as exact source thresholds."
+  },
+  "external_reference_note": "Exact pinned raw Numpress sources and standalone driver/binaries/logs remain outside this repository under ../oracle/sqlite-short-numpress-s1-probe/. Tier2 executed raw translation-unit probe; no full SDK, MSNumpressCoder, MzMLSqliteHandler or upstream class-test execution. Main probe skips encoding nonfinite estimates; a separate already-completed sanitizer diagnostic is explicitly segregated and not used to infer decoded output.",
+  "short_numpress_cpp_probe": {
+    "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+    "evidence_tier": 2,
+    "method": "Standalone driver compiled and ran exact pinned raw MSNumpress.cpp/.h without source adaptations. No SDK configuration/dependency shim, full SDK, MSNumpressCoder, MzMLSqliteHandler or upstream class-test execution. Caller relationships are source-reviewed only.",
+    "source_files": [
+      {
+        "path": "src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp",
+        "sha256": "c459046d039bfcdb90d8ba8eade83a6750c416bee5e4d110baa73ffd557a4538",
+        "role": "Exact compiled raw codec translation unit"
+      },
+      {
+        "path": "src/openms/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h",
+        "sha256": "d2001437121ad2f05540ea7553a357a9411f7f8eb4d62c600f2efadeb96608bd",
+        "role": "Exact compiled declaration header"
+      },
+      {
+        "path": "src/openms/source/FORMAT/MSNumpressCoder.cpp",
+        "sha256": "066c0a7eb8fe4b20252956f15605b22f222c9d3f6c4c09476245f39850546348",
+        "role": "Caller-only source review: positive accuracy estimate at131-144, fallback only if factor<0, then encode"
+      },
+      {
+        "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+        "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+        "role": "Caller-only source review: source lossy coordinates use positive absolute m/z/RT accuracy and disable error verification"
+      }
+    ],
+    "execution": {
+      "host": "kim",
+      "workdir": "/scratch/kohlbach/agents/codex-sqlite-short-numpress-s1-probe",
+      "compiler": "g++ (Ubuntu13.3.0-6ubuntu2~24.04.1)13.3.0",
+      "language": "C++20",
+      "compile_exit": 0,
+      "main_probe_exit": 0,
+      "load_average_at_start": [
+        35.55,
+        37.18,
+        39.55
+      ],
+      "parallelism": "Two small compiler invocations run serially, within the requested32-job ceiling; no full build or performance benchmark."
+    },
+    "observations": {
+      "case_count": 42,
+      "counts": {
+        "requested_short_nan": 12,
+        "finite_control": 26,
+        "ordinary_zero_nonfinite_skipped": 4,
+        "explicit_zero_controls": 6
+      },
+      "status": "passed",
+      "scope": "Checks executed main C++ raw-codec outputs. The independent sanitizer diagnostic is not used to infer any encoded/decoded value."
+    },
+    "source_defect": {
+      "suggested_issue": "CPP-218 (integrator assigned)",
+      "functions": [
+        {
+          "name": "optimalLinearFixedPointMass",
+          "line": 237,
+          "behavior": "Returns zero for dataSize<3, based on incorrect comment that first two points are encoded as floats."
+        },
+        {
+          "name": "encodeLinear",
+          "line": 326,
+          "behavior": "First and second values are integer-quantized by fixedPoint, so factor0 discards finite coordinates."
+        },
+        {
+          "name": "decodeLinear",
+          "line": 443,
+          "behavior": "Divides integer0 by fixedPoint0, producing NaN for each short coordinate."
+        }
+      ],
+      "trigger": "[100], [100,101], [1], [1,2], [0], [0,0] at requested accuracy0.0001 or0.05",
+      "proposed_cpp_fix": "For nonempty one/two-value arrays, select a positive finite factor that meets requested accuracy and first-value integer range, rather than zero. Reject nonfinite/zero factors for nonempty raw linear encoding/decoding. Handle all-zero arrays explicitly; ordinary optimalLinearFixedPoint returns infinity for length1/2 and is not by itself a safe fallback. No upstream patch applied."
+    },
+    "native_handler_guidance": "Explicit lossless code1 for all short coordinate arrays avoids both defects, including zeros and empty arrays, while preserving source-reader supported encodings. Source intensity SLOF need not change. Explicit factor1 zero controls also round-trip, but general lossless fallback is simpler and does not alter public raw-codec source semantics.",
+    "main_probe_cases": "results.jsonl includes42 cases: requested accuracy and ordinary estimate for9 arrays at2 accuracies, plus6 explicit factor1 zero controls. Ordinary nonfinite factors are recorded and encoding skipped.",
+    "additional_diagnostic": {
+      "description": "A separate sanitizer-only run completed before the integrating agent asked to skip nonfinite encoding entirely. It intentionally calls exact encodeLinear with the infinite ordinary zero estimate and halts on float-cast-overflow at source326. This diagnostic is retained honestly but no resulting encoded/decoded value is used, and it is not needed for the factor0->NaN conclusion.",
+      "flags": "-fsanitize=float-cast-overflow -fno-sanitize-recover=float-cast-overflow",
+      "exit_code": 1,
+      "log": "zero-sanitizer.log",
+      "result": "Sanitizer caught NaN outside representable long long range; no further execution of this path."
+    },
+    "files": [
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/MSNumpress.cpp",
+        "sha256": "c459046d039bfcdb90d8ba8eade83a6750c416bee5e4d110baa73ffd557a4538",
+        "bytes": 18093
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/build.log",
+        "sha256": "9f2fbe1b61aec39fa9d701129e000f14e993a38b312960e98d079e2215b1fb09",
+        "bytes": 593
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/checks.json",
+        "sha256": "d3d4a61497dad907387a6e996c5b31a9d16f201b89cebd09f0c76108956cbf2a",
+        "bytes": 338
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/include/OpenMS/FORMAT/MSNUMPRESS/MSNumpress.h",
+        "sha256": "d2001437121ad2f05540ea7553a357a9411f7f8eb4d62c600f2efadeb96608bd",
+        "bytes": 13973
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/probe",
+        "sha256": "8395f9497fb9cf26f3059028b1ec544ecc93ccb58fc47f69a447602dd9e61a26",
+        "bytes": 48232
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/probe-sanitized",
+        "sha256": "dfcf23dadcb28b731a5fdb9fdd2bd594215baceb13c6df68a47a201a1fad35a8",
+        "bytes": 446800
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/probe.cpp",
+        "sha256": "3ca54ad23bef963b9b1ba4bd0c271ebf702de627770644da0fc4c1bb38c68bc2",
+        "bytes": 4441
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/result.log",
+        "sha256": "c52efc448cd422b31351d0e286df671b7f96773dfe657fd9d9ffd1f23ff6e9e1",
+        "bytes": 59
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/results.jsonl",
+        "sha256": "41ad22a7d0f607fa8affe9f4fea786d4cf35716d9df6189f9226d3d2e1439e14",
+        "bytes": 13272
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/run.sh",
+        "sha256": "8b4642395b2d888745970e5b5ceee625fe9be57fce1c69249cf8f10ba7c6a89e",
+        "bytes": 1008
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/run.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/validate.py",
+        "sha256": "7eb626e8eb3224bac00ceec7ce690caa798e72a9c83c57c8a32a975cdb4aad18",
+        "bytes": 1389
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/zero-sanitizer-exit.txt",
+        "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+        "bytes": 2
+      },
+      {
+        "path": "../oracle/sqlite-short-numpress-s1-probe/zero-sanitizer.log",
+        "sha256": "9c4933c7d7f085844a65ebb0ca01b0d92cfbf136f3e1c2296af0760272ad2457",
+        "bytes": 168
+      }
+    ]
+  },
+  "source_public_api_mapping": {
+    "constructor": "new(path,run_id)",
+    "implicit_destructor": "Rust ownership/drop",
+    "setConfig": "set_config(full_meta,lossy,accuracy,batch_size)",
+    "setRunId": "set_run_id",
+    "getRunID": "run_id",
+    "getNrSpectra": "nr_spectra",
+    "getNrChromatograms": "nr_chromatograms",
+    "readExperiment": "read_experiment(meta_only)",
+    "readSpectra": "read_spectra(ids,meta_only)",
+    "readChromatograms": "read_chromatograms(ids,meta_only)",
+    "getSpectraIndicesbyRT": "spectra_indices_by_rt(rt,delta,ids)",
+    "createTables": "create_tables",
+    "writeExperiment": "write_experiment",
+    "writeSpectra": "write_spectra",
+    "writeChromatograms": "write_chromatograms",
+    "writeRunLevelInformation": "write_run_level_information"
+  },
+  "native_precision_policy": "RT selection bounds (rt-delta, rt+delta, and rt for nonpositive delta) are bound as full binary f64, without the source formatter's 15-fractional-digit SQL rounding. small_rt_boundaries_use_full_binary_precision documents the divergence.",
+  "native_validation_superseded": {
+    "status": "passed_focused",
+    "host": "kim",
+    "workdir": "/scratch/kohlbach/agents/codex-resume-handler",
+    "target_directory": "/scratch/kohlbach/targets/codex-resume-handler",
+    "jobs": 32,
+    "checks": [
+      {
+        "command": "cargo test --locked --no-default-features --features sqmass --test mzml_sqlite_handler",
+        "toolchain": "1.96.0",
+        "test_count": 31,
+        "exit_code": 0
+      },
+      {
+        "command": "cargo clippy --locked --no-default-features --features sqmass --test mzml_sqlite_handler -- -D warnings",
+        "toolchain": "1.96.0",
+        "exit_code": 0
+      },
+      {
+        "command": "cargo +1.85.0 test --locked --no-default-features --features sqmass --test mzml_sqlite_handler",
+        "toolchain": "1.85.0",
+        "test_count": 31,
+        "exit_code": 0
+      },
+      {
+        "command": "python3 tools/check_doc_coverage.py --report",
+        "scope": "handler module only",
+        "documented_public_items": 21,
+        "total_public_items": 21
+      }
+    ],
+    "scope_note": "All31native tests and strict focusedclippy passed; this is not an executed C++ handler/class-test differential. Root owns combined integration gates and external review. The intermediate strictsqmass rustdoc attempt failed on unrelated feature-disabled links in imzml_file.rs and mzdata.rs; integrator corrected those separately and owns final combined rustdoc verification.",
+    "tested_runtime_files": [
+      {
+        "path": "src/format/mzml_sqlite_handler.rs",
+        "sha256": "790834fd70414ed07c2edca3316449621aefa725e8cdb0d65a79f682a44195d1"
+      },
+      {
+        "path": "tests/mzml_sqlite_handler.rs",
+        "sha256": "3e114e03bd9b78c80828673e8304cf63bd617d7ed6510ff7b51885b0a4cc9511"
+      }
+    ]
+  },
+  "native_validation": {
+    "status": "passed",
+    "host": "kim",
+    "run": {
+      "remote_results": "/ceph/ibmi/abi/oliver/openms-rs/results/s1-resume-final-20260913-165118/results.json",
+      "retained_results": "tests/data/sqlite_s1_resume_validation/final/results.json",
+      "snapshot_sha256": "7811316fb1153a3c3ebccd13f4bbd2493632495c2089b5af53a8fbc8448db744",
+      "snapshot_rule": "sha256 over sorted sha256sum lines of every file except target/"
+    },
+    "checks": [
+      {
+        "command": "cargo  test --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation",
+        "exit_code": 0,
+        "toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+        "test_count": 33
+      },
+      {
+        "command": "cargo  test --locked --no-default-features --features 'sqmass rusqlite/extra_check' --test mzml_sqlite_handler --test mzml_precursor_activation",
+        "exit_code": 0,
+        "toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+        "test_count": 33
+      },
+      {
+        "command": "cargo +1.85.0 test --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation",
+        "exit_code": 0,
+        "toolchain": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+        "test_count": 33
+      },
+      {
+        "command": "cargo +1.85.0 test --locked --no-default-features --features 'sqmass rusqlite/extra_check' --test mzml_sqlite_handler --test mzml_precursor_activation",
+        "exit_code": 0,
+        "toolchain": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+        "test_count": 33
+      },
+      {
+        "command": "cargo clippy --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation -- -D warnings",
+        "exit_code": 0,
+        "toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)"
+      }
+    ],
+    "tested_runtime_files": [
+      {
+        "path": "src/format/mzml_sqlite_handler.rs",
+        "sha256": "802d9b52448d468f437010b182fdd7e15ce64ab655cfdd313b825a43affdb824"
+      },
+      {
+        "path": "tests/mzml_sqlite_handler.rs",
+        "sha256": "513201e6169352cbce1fa0a909665e4c80fb927bc6553499fa0ff3b5daea13cb"
+      }
+    ],
+    "retained_logs": [
+      "tests/data/sqlite_s1_resume_validation/final/sqmass_only.log",
+      "tests/data/sqlite_s1_resume_validation/final/sqmass_only_extra_check.log",
+      "tests/data/sqlite_s1_resume_validation/final/msrv_sqmass_only.log",
+      "tests/data/sqlite_s1_resume_validation/final/msrv_sqmass_only_extra_check.log",
+      "tests/data/sqlite_s1_resume_validation/final/sqmass_clippy.log"
+    ],
+    "scope_note": "Native tests, extra_check variants and strict focused clippy on the final snapshot; not an executed C++ handler differential."
   }
 }

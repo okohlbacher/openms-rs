@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- Resumed the integrated Claude checkpoint with sqMass handler hardening: invalid
+  Numpress quantization fails atomically, writes recheck database limits before
+  commit, snapshot/selection allocations are charged, and schema-name shadowing
+  cannot authorize views. SWATH endpoints retain documented full binary precision.
+- Added nine precursor activation metadata routes and selected-ion intensity-unit
+  transport, with spectrum/chromatogram regressions and explicit source differences.
+- Reconciled retained worktrees, source evidence and C++ defect reports. The next
+  storage stage remains SqMassFile, streaming consumers and spectrum access;
+  this checkpoint does not complete the SDK.
+- Fixed intermittent `FailedToStart` results in `tests/system_process.rs`. Tests
+  running in parallel raced on `ETXTBSY`: a child forked by one test held the
+  write handle of a script another test was about to execute. It reproduced
+  under Rust 1.85 and 1.96 alike (18 of 25 parallel runs). The binary's tests now
+  run serially, and 0 of 25 parallel runs fail under either toolchain.
+- Ran the requested Fable review of the resume checkpoint and fixed its
+  confirmed findings. Metadata-only mzML `<activation>` blocks now put every
+  cvParam before the fallback userParam, as the schema requires; a database
+  storing more than the 512 MiB allocation budget of array data now opens, with
+  its stored size bounded by the 2 GiB database limit instead; the main sqMass
+  handler's full-precision RT bounds are documented and pinned by a test. Also
+  corrected CPP-219's CV accessions and a wrong feature name in the ImzMLFile
+  docs. The review record is in `tests/data/sqlite_s1_resume_validation/`.
+
 - Added the optional SQLite connector: three open modes, checked table/column queries and row counts, SQL batches and binary bindings. Names are treated as literal identifiers, statements use owned cleanup, and operational errors retain their SQLite cause. SQL transaction control remains with the caller; sqMass, OSW and OMS adapters are subsequent work.
 
 - Integrated the fifteen-module FORMAT wave: mzTab records and file adapters,

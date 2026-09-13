@@ -614,7 +614,7 @@ impl MzDataFile {
     /// the comment that this "is not officially supported - the mapping file
     /// was hand-crafted", and neither resource ships with this crate. The
     /// generic machinery exists in
-    /// [`crate::format::semantic_validator`] behind the
+    /// `crate::format::semantic_validator` behind the
     /// `semantic-validation` feature and can be pointed at an mzData mapping
     /// by a caller that has one. Its two `@param[out]` lists, `errors` and
     /// `warnings`, would be returned rather than filled in; the source's

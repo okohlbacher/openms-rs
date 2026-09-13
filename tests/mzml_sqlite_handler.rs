@@ -148,6 +148,7 @@ fn retained_experiment_metadata_and_all_numeric_values() {
     assert_eq!(meta.spectra.len(), 2);
     assert_eq!(meta.chromatograms.len(), 1);
     assert_eq!(meta.sql_run_id, 12345);
+    assert_ne!(meta.spectra[0], original.spectra[0]);
     assert!(meta.spectra.iter().all(|s| s.is_empty()));
     assert!(meta.chromatograms.iter().all(|c| c.is_empty()));
     let mut source_settings = original.settings.clone();
@@ -164,6 +165,7 @@ fn retained_experiment_metadata_and_all_numeric_values() {
     assert_eq!(meta.settings, source_settings);
     let all = h.read_experiment(false).unwrap();
     compare_data(&all, &original);
+    assert_ne!(all.spectra[0], original.spectra[0]);
     assert_eq!(all.sql_run_id, 12345);
     assert_eq!(all.settings, source_settings);
 }
@@ -176,6 +178,10 @@ fn selected_spectrum_class_test_literals() {
         assert_eq!(s[0].len(), n);
         assert_eq!(s[0].rt, 0.4738);
     }
+    let single = h.read_spectra(&[0], false).unwrap();
+    assert_eq!(single.len(), 1);
+    assert_eq!(single[0].len(), 19914);
+    assert!(similar(single[0].rt, 0.2961, 0.05, 1.000001));
     let s = h.read_spectra(&[1, 0], false).unwrap();
     assert_eq!(s[0].len(), 19914);
     assert_eq!(s[1].len(), 19800);
@@ -192,6 +198,7 @@ fn selected_spectrum_class_test_literals() {
 fn selected_chromatogram_class_test_literals() {
     let h = MzMLSqliteHandler::new(fixture(), 0);
     let c = h.read_chromatograms(&[0], true).unwrap();
+    assert_eq!(c.len(), 1);
     assert_eq!(c[0].native_id, "TIC");
     assert!(c[0].is_empty());
     for ids in [&[0, 1][..], &[5][..], &[-1][..], &[0, 0][..], &[][..]] {
@@ -248,12 +255,24 @@ fn full_experiment_write_recreate_and_lossy_source_tolerances() {
     assert!(h.write_experiment(&input).is_err());
     for _ in 0..2 {
         h.create_tables().unwrap();
+        h.create_tables().unwrap();
+        assert_eq!(h.nr_spectra().unwrap(), 0);
         h.write_experiment(&input).unwrap();
         assert_eq!(h.nr_spectra().unwrap(), 2);
-        compare_data(&h.read_experiment(false).unwrap(), &input);
+        assert_eq!(h.nr_chromatograms().unwrap(), 1);
+        let all = h.read_experiment(false).unwrap();
+        compare_data(&all, &input);
+        assert_ne!(all.spectra[0], input.spectra[0]);
         let mut settings = input.settings.clone();
         settings.metadata.remove("sqMassRunID");
-        assert_eq!(h.read_experiment(true).unwrap().settings, settings);
+        assert_eq!(all.settings, settings);
+        let meta = h.read_experiment(true).unwrap();
+        assert_eq!(meta.settings, settings);
+        assert_eq!(meta.spectra.len(), 2);
+        assert_eq!(meta.chromatograms.len(), 1);
+        assert!(meta.spectra.iter().all(MSSpectrum::is_empty));
+        assert!(meta.chromatograms.iter().all(MSChromatogram::is_empty));
+        assert_ne!(meta.spectra[0], input.spectra[0]);
     }
 }
 #[test]
@@ -325,14 +344,15 @@ fn repeated_chromatogram_appends_lossless_and_lossy() {
         h.write_run_level_information(&e, false).unwrap();
         let out = h.read_experiment(false).unwrap();
         assert_eq!(out.chromatograms.len(), 3);
+        let relative = if lossy { 1.0002 } else { 1.000001 };
         for c in &out.chromatograms {
             assert_eq!(c.len(), 48);
-            assert!(similar(c.peaks[20].rt, 0.200695, 0.05, 1.0002));
+            assert!(similar(c.peaks[20].rt, 0.200695, 0.05, relative));
             assert!(similar(
                 c.peaks[20].intensity as f64,
                 147414.578125,
                 0.05,
-                1.0002
+                relative
             ));
         }
         h.create_tables().unwrap();
@@ -674,4 +694,166 @@ fn reserved_legacy_run_key_cannot_conflict_with_native_owner() {
         out.settings.metadata["scientific annotation"],
         e.settings.metadata["scientific annotation"]
     );
+}
+
+#[test]
+fn invalid_lossy_coordinate_quantization_rolls_back_without_advancing_ids() {
+    for values in [vec![1e12; 3], vec![-100.0, -99.0, -98.0]] {
+        for chrom in [false, true] {
+            let (_d, p) = temporary();
+            let mut h = writer(&p);
+            h.set_config(false, true, 0.0001, 500).unwrap();
+            h.set_loss_policy(LossPolicy::Source);
+            let mut e = sample();
+            let result = if chrom {
+                e.chromatograms[0].peaks = values
+                    .iter()
+                    .map(|&rt| ChromatogramPeak { rt, intensity: 1.0 })
+                    .collect();
+                h.write_chromatograms(&e.chromatograms)
+            } else {
+                e.spectra[0].peaks = values
+                    .iter()
+                    .map(|&mz| Peak1D { mz, intensity: 1.0 })
+                    .collect();
+                h.write_spectra(&e.spectra)
+            };
+            assert!(result.is_err(), "{values:?}, chromatogram={chrom}");
+            assert_eq!(h.nr_spectra().unwrap(), 0);
+            assert_eq!(h.nr_chromatograms().unwrap(), 0);
+            // Retrying with lossless encoding preserves these finite coordinates
+            // and uses the original SQL IDs after the rejected transaction.
+            h.set_config(false, false, 0.0001, 500).unwrap();
+            if chrom {
+                h.write_chromatograms(&e.chromatograms).unwrap();
+                assert_eq!(
+                    h.read_chromatograms(&[0], false).unwrap()[0].peaks,
+                    e.chromatograms[0].peaks
+                );
+            } else {
+                h.write_spectra(&e.spectra).unwrap();
+                assert_eq!(
+                    h.read_spectra(&[0], false).unwrap()[0].peaks,
+                    e.spectra[0].peaks
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn database_growth_limit_is_checked_before_every_write_commit() {
+    for operation in 0..4 {
+        let (_d, p) = temporary();
+        let mut h = writer(&p);
+        h.set_config(false, false, 0.0001, 500).unwrap();
+        h.set_loss_policy(LossPolicy::Source);
+        h.limits.max_database_bytes = std::fs::metadata(&p).unwrap().len();
+        let mut e = sample();
+        e.spectra[0].native_id = "s".repeat(32768);
+        e.chromatograms[0].native_id = "c".repeat(32768);
+        e.settings.document.loaded_file_path = "f".repeat(32768);
+        let result = match operation {
+            0 => h.write_experiment(&e),
+            1 => h.write_spectra(&e.spectra),
+            2 => h.write_chromatograms(&e.chromatograms),
+            _ => h.write_run_level_information(&e, false),
+        };
+        assert!(result.is_err(), "operation {operation}");
+        assert_eq!(h.nr_spectra().unwrap(), 0);
+        assert_eq!(h.nr_chromatograms().unwrap(), 0);
+        assert!(h.run_id().is_err());
+        h.limits.max_database_bytes *= 100;
+        h.write_experiment(&e).unwrap();
+        assert_eq!(
+            h.read_spectra(&[0], true).unwrap()[0].native_id,
+            e.spectra[0].native_id
+        );
+    }
+    let (_d, p) = temporary();
+    let mut h = writer(&p);
+    h.write_experiment(&sample()).unwrap();
+    let before = std::fs::read(&p).unwrap();
+    h.limits.max_database_bytes = 1;
+    assert!(h.create_tables().is_err());
+    assert_eq!(std::fs::read(&p).unwrap(), before);
+}
+
+#[test]
+fn selection_and_metadata_copy_budgets_fail_before_materialization() {
+    let mut h = MzMLSqliteHandler::new(fixture(), 0);
+    h.limits.max_total_bytes = 0;
+    assert!(h.read_spectra(&[0], true).is_err());
+    assert!(h.read_chromatograms(&[0], true).is_err());
+    assert!(h.spectra_indices_by_rt(0.0, 1.0, &[0]).is_err());
+    let (_d, p) = temporary();
+    let mut h = writer(&p);
+    let mut e = sample();
+    e.spectra[0].name = "large descriptive metadata".repeat(1000);
+    h.limits.max_total_bytes = 4096;
+    assert!(h.write_run_level_information(&e, true).is_err());
+    assert!(h.run_id().is_err());
+    h.limits.max_total_bytes = 512 * 1024 * 1024;
+    h.write_run_level_information(&e, true).unwrap();
+    h.write_spectra(&e.spectra).unwrap();
+    h.write_chromatograms(&e.chromatograms).unwrap();
+    assert_eq!(
+        h.read_experiment(false).unwrap().spectra[0].name,
+        e.spectra[0].name
+    );
+}
+
+#[test]
+fn forged_pragma_table_cannot_disguise_a_required_view() {
+    let (_d, p) = copied_fixture();
+    sql(
+        &p,
+        "CREATE TABLE pragma_table_list AS SELECT * FROM pragma_table_list(); DROP TABLE DATA; CREATE VIEW DATA AS SELECT NULL AS SPECTRUM_ID,NULL AS CHROMATOGRAM_ID,1 AS COMPRESSION,0 AS DATA_TYPE,X'' AS DATA;",
+    );
+    let h = MzMLSqliteHandler::new(&p, 0);
+    // The forged table records DATA as ordinary even after its replacement.
+    // Calling the actual pragma function must still reject the view.
+    assert!(h.nr_spectra().is_err());
+    assert!(h.read_spectra(&[0], true).is_err());
+}
+
+#[test]
+fn small_rt_boundaries_use_full_binary_precision() {
+    let (_d, p) = copied_fixture();
+    let center = 0.123_456_789_012_345_67_f64;
+    let lower = center - 0.01;
+    let conn = rusqlite::Connection::open(&p).unwrap();
+    conn.execute("UPDATE SPECTRUM SET RETENTION_TIME=?1 WHERE ID=0", [lower])
+        .unwrap();
+    drop(conn);
+    sql(&p, "UPDATE SPECTRUM SET RETENTION_TIME=9 WHERE ID<>0");
+    let h = MzMLSqliteHandler::new(&p, 0);
+    assert_eq!(h.spectra_indices_by_rt(center, 0.01, &[]).unwrap(), [0]);
+    assert_eq!(h.spectra_indices_by_rt(lower, 0.0, &[]).unwrap(), [0]);
+    // The source writes `center - 0.01` into its SQL with 15 fractional digits,
+    // rounding it above the stored value; the native lookup binds the exact bound.
+    assert!(lower < 0.113_456_789_012_346);
+}
+
+#[test]
+fn stored_payload_beyond_the_allocation_budget_still_opens() {
+    let (_d, p) = temporary();
+    let mut e = sample();
+    e.spectra[0].peaks = (0..50_000_u32)
+        .map(|i| Peak1D {
+            mz: 100.0 + f64::from(i) * 0.001,
+            intensity: 1.0,
+        })
+        .collect();
+    let mut w = writer(&p);
+    w.write_experiment(&e).unwrap();
+    let mut h = MzMLSqliteHandler::new(&p, 0);
+    // 50,000 lossless peaks store far more array bytes than this budget allows;
+    // only what an operation materializes is charged to it.
+    h.limits.max_total_bytes = 64 * 1024;
+    assert_eq!(h.nr_spectra().unwrap(), 1);
+    assert_eq!(h.nr_chromatograms().unwrap(), 1);
+    assert!(h.run_id().is_ok());
+    assert_eq!(h.read_spectra(&[0], true).unwrap()[0].native_id, "scan=1");
+    assert!(h.read_spectra(&[0], false).is_err());
 }

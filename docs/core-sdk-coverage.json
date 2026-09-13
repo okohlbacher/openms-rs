@@ -6,9 +6,9 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 53,
-      "evidence_requires_review": 164,
-      "native_equivalent": 89,
-      "partial": 48,
+      "evidence_requires_review": 162,
+      "native_equivalent": 90,
+      "partial": 49,
       "unmapped": 432
     },
     "topp_sources": 146,
@@ -7018,6 +7018,7 @@
         "tests/data/mzml_load_provenance.json",
         "tests/data/mzml_numpress_provenance.json",
         "tests/data/mzml_param_groups_provenance.json",
+        "tests/data/mzml_precursor_activation_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_provenance.json",
         "tests/data/mzml_settings_provenance.json",
@@ -7061,8 +7062,18 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
       "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e",
       "domain": "FORMAT",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/mzml_sqlite_handler.rs"
+        ],
+        "tests": [
+          "tests/mzml_sqlite_handler.rs"
+        ],
+        "documentation": "docs/MZML_SQLITE_HANDLER_SUPPORT.md",
+        "scope": "All installed public operations and all 13 source class-test sections mapped; checked native configuration, reads, writes, counts and RT lookup with atomic errors and explicit limits. Full RUN_EXTRA uses the existing native mzML subset and rejects unsupported source metadata, so complete source metadata persistence remains open. No full-handler C++ differential or Fable review is claimed."
+      },
       "candidate_rust_files": [
         "src/format/mzml_sqlite_handler.rs"
       ],
@@ -7075,8 +7086,18 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
       "sha256": "de45201a11fce98dfd88f5c9c0bacf661963ff803abbd8b3ade202972ebc03c4",
       "domain": "FORMAT",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [
+          "src/format/mzml_sqlite_swath_handler.rs"
+        ],
+        "tests": [
+          "tests/mzml_sqlite_swath_handler.rs"
+        ],
+        "documentation": "docs/MZML_SQLITE_SWATH_SUPPORT.md",
+        "scope": "Complete constructor/destructor and three lookup operations; all five source class-test sections mapped. Native corrections include read-only access, checked SQL failures, NULL handling, bounded ordinary-table scans, sorted 64-bit IDs and full binary endpoint precision. Output maps populated window bounds only, not full SwathMap. Adapted C++ probe is limited to CPP196/197/202; independent Codex source review, requested Fable review pending."
+      },
       "candidate_rust_files": [
         "src/format/mzml_sqlite_swath_handler.rs"
       ],
@@ -7219,6 +7240,7 @@
         "tests/data/mzml_acquisition_provenance.json",
         "tests/data/mzml_counts_provenance.json",
         "tests/data/mzml_header_provenance.json",
+        "tests/data/mzml_precursor_activation_provenance.json",
         "tests/data/mzml_product_provenance.json",
         "tests/data/mzml_settings_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json",
@@ -7458,6 +7480,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/mzml_numpress_provenance.json",
+        "tests/data/mzml_sqlite_handler_provenance.json",
         "tests/data/numpress_coder_provenance.json",
         "tests/data/numpress_provenance.json"
       ],
@@ -7486,6 +7509,7 @@
       ],
       "reference_manifests": [
         "tests/data/mzml_numpress_provenance.json",
+        "tests/data/mzml_sqlite_handler_provenance.json",
         "tests/data/mzml_writing_provenance.json",
         "tests/data/numpress_coder_provenance.json",
         "tests/data/numpress_provenance.json",
@@ -7754,6 +7778,7 @@
         "tests/data/mzml_isolation_provenance.json",
         "tests/data/mzml_normalization_provenance.json",
         "tests/data/mzml_paths_provenance.json",
+        "tests/data/mzml_precursor_activation_provenance.json",
         "tests/data/mzml_schema_provenance.json",
         "tests/data/mzml_typed_transport_provenance.json",
         "tests/data/mzml_validator_provenance.json",

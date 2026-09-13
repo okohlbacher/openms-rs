@@ -1,0 +1,71 @@
+{
+  "review": "swath-review.json",
+  "dispositions": [
+    {
+      "finding": "swath-review-ordinary-table-shadow",
+      "status": "fixed",
+      "evidence": "sqlite-shadow-reproduction.json independently executes SQL via Python, not C++/Rust; new forged_pragma_table_list_cannot_authorize_views regression covers all three SWATH operations. Both handlers invoke pragma_table_list() so shadowing fails closed."
+    },
+    {
+      "finding": "small-coordinate endpoint rounding",
+      "status": "documented native precision policy",
+      "evidence": "small_coordinate_boundaries_use_full_binary_precision regression retains binary endpoints; source formatter may round tiny boundaries. No original-formatter C++ run."
+    }
+  ],
+  "fable_review": {
+    "status": "executed",
+    "record": "fable-review.json",
+    "executed_by": "Claude, resuming GPT's plan, 2026-09-13",
+    "method": "four Claude Fable 5.1 reviewers (sqlite, mzml, issues, evidence) over the uncommitted diff; each finding re-checked by an independent agent instructed to refute it",
+    "counts": {
+      "confirmed": 8,
+      "distinct_confirmed": 7,
+      "uncertain": 0,
+      "refuted": 1
+    },
+    "dispositions": [
+      {
+        "finding": "activation block writes the unavailable-information userParam before promoted cvParams (schema-invalid)",
+        "severity": "major",
+        "status": "fixed",
+        "evidence": "src/format/mzml_precursor.rs writes the fallback userParam after every cvParam; regression metadata_only_activation_puts_every_cv_param_before_user_params checks element order and validates spectrum and chromatogram output with xmllint against tests/data/mzml_1_10.xsd; 11/11 activation tests pass on kim under the current toolchain and 1.85.0, clippy -D warnings clean."
+      },
+      {
+        "finding": "SWATH native_validation records the HEAD source/test hashes and 18 tests, not the changed files",
+        "severity": "major",
+        "status": "fixed",
+        "evidence": "tests/data/mzml_sqlite_swath_provenance.json native_validation now records the final snapshot: 20 tests per selection on rustc 1.96.0 (ac68faa20 2026-05-25) and rustc 1.85.0 (4d91de4e4 2025-02-17), with and without rusqlite/extra_check, strict clippy and rustdoc; logs in tests/data/sqlite_s1_resume_validation/final/."
+      },
+      {
+        "finding": "schema() rejects any database whose stored payload exceeds max_total_bytes (512 MiB) despite the 2 GiB database default",
+        "severity": "minor",
+        "status": "fixed",
+        "evidence": "schema() no longer sums stored payload; stored size stays bounded by the page-count check against max_database_bytes and materialization by the allocation budget. Regression stored_payload_beyond_the_allocation_budget_still_opens; docs/MZML_SQLITE_HANDLER_SUPPORT.md limits paragraph states the distinction; 33/33 handler tests pass on kim, current and 1.85.0."
+      },
+      {
+        "finding": "spectra_indices_by_rt binds exact f64 bounds where the source formats 15 fractional digits; undocumented for the main handler",
+        "severity": "minor",
+        "status": "documented native precision policy",
+        "evidence": "docs/MZML_SQLITE_HANDLER_SUPPORT.md paragraph, native_precision_policy in tests/data/mzml_sqlite_handler_provenance.json, regression small_rt_boundaries_use_full_binary_precision covering both the BETWEEN and the >= branch."
+      },
+      {
+        "finding": "docs/PORTING_WAVES.md claimed resume validation was recorded in VALIDATION.md",
+        "severity": "minor",
+        "status": "fixed",
+        "evidence": "Sentence now points to the resume assessment and states that the VALIDATION.md checkpoint is added only after the full gates run on the final snapshot."
+      },
+      {
+        "finding": "CPP-219 trigger swaps MS:1002678 and MS:1002679 names",
+        "severity": "minor",
+        "status": "fixed",
+        "evidence": "OpenMS_CPP_ISSUES.md CPP-219 now pairs MS:1002678 with supplemental beam-type CID and MS:1002679 with supplemental CID, matching psi-ms.obo and MzMLHandler.cpp."
+      },
+      {
+        "finding": "ImzMLFile doc names a nonexistent xml-validation feature",
+        "severity": "minor",
+        "status": "fixed",
+        "evidence": "src/format/imzml_file.rs names the real mzml-schema feature."
+      }
+    ]
+  }
+}

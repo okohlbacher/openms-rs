@@ -1,0 +1,19 @@
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/claude-s1-final)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.50s
+     Running tests/mzml_precursor_activation.rs (target/debug/deps/mzml_precursor_activation-d6de7c85b721315e)
+
+running 11 tests
+test retained_metadata_obeys_parameter_count_and_byte_budgets ... ok
+test invalid_units_numbers_and_unitless_flag_conflicts_are_rejected ... ok
+test duplicate_metadata_and_intensity_units_fail_in_both_orders ... ok
+test noncanonical_metadata_remains_user_param_without_type_or_method_changes ... ok
+test typed_activation_energy_is_distinct_from_collision_metadata ... ok
+test referenceable_activation_and_unit_parameters_share_direct_routes ... ok
+test invalid_native_unit_metadata_fails_before_writing_bytes ... ok
+test intensity_default_normalizes_and_nondefault_identity_survives ... ok
+test source_class_energy_intensity_and_supplemental_literals_roundtrip ... ok
+test metadata_only_activation_puts_every_cv_param_before_user_params ... ok
+test all_nine_activation_metadata_routes_preserve_scalar_types ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+

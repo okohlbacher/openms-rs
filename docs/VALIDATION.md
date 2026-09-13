@@ -1,5 +1,68 @@
 # Validation of the ongoing Rust port
 
+## SQLite S1 resume checkpoint (2026-09-13, final snapshot)
+
+GPT's uncommitted S1 resume, with the fixes from its Fable review and the
+process-test harness fix, was validated on IBMI `kim` using node-local
+`/scratch` sources, 32 compile jobs, rustc 1.96.0 and minimum
+rustc 1.85.0. The run validated a snapshot hashed as
+`7811316fb1153a3c3ebccd13f4bbd2493632495c2089b5af53a8fbc8448db744` (every file except `target/`); only this record and
+the provenance manifests were edited afterwards.
+
+| Check | Executed result |
+|---|---|
+| All features/all targets, current Rust | 4,437 passed |
+| All features/all targets, Rust 1.85 | 4,437 passed |
+| No default features, current Rust | 3,144 passed |
+| All-feature doctests, each compiler | 57 and 57 passed |
+| SQLite-only, both compilers, with and without `rusqlite/extra_check` | 20 SWATH tests in each of four selections |
+| sqMass, both compilers, with and without `rusqlite/extra_check` | 33 handler and 11 activation tests in each of four selections |
+| `tests/system_process.rs`, ten consecutive parallel runs per compiler | 10 and 10 of 10 runs passed |
+| Formatting, full strict Clippy, rustdoc, focused SQLite/sqMass Clippy and rustdoc | passed |
+| Provenance, coverage, documentation, module-cycle and feature-boundary gates | passed |
+
+All 29 steps exited 0:
+
+| Step | Exit | Seconds |
+|---|---:|---:|
+| `fmt` | 0 | 2.56 |
+| `clippy` | 0 | 29.96 |
+| `cargo_all_targets` | 0 | 109.25 |
+| `portable` | 0 | 59.09 |
+| `doctests` | 0 | 3.38 |
+| `rustdoc` | 0 | 14.5 |
+| `msrv_all_targets` | 0 | 130.25 |
+| `msrv_doctests` | 0 | 8.04 |
+| `sqlite_only` | 0 | 17.8 |
+| `sqlite_only_extra_check` | 0 | 18.04 |
+| `sqmass_only` | 0 | 21.95 |
+| `sqmass_only_extra_check` | 0 | 21.88 |
+| `msrv_sqlite_only` | 0 | 19.23 |
+| `msrv_sqlite_only_extra_check` | 0 | 19.73 |
+| `msrv_sqmass_only` | 0 | 23.96 |
+| `msrv_sqmass_only_extra_check` | 0 | 23.88 |
+| `swath_clippy` | 0 | 13.27 |
+| `swath_rustdoc` | 0 | 3.48 |
+| `sqmass_clippy` | 0 | 16.91 |
+| `mzml_only_activation` | 0 | 20.96 |
+| `msrv_system_process_x10` | 0 | 16.04 |
+| `system_process_x10` | 0 | 15.99 |
+| `check_core_sdk` | 0 | 0.11 |
+| `test_core_sdk` | 0 | 0.05 |
+| `core_sdk_coverage` | 0 | 0.2 |
+| `test_core_sdk_coverage` | 0 | 0.22 |
+| `check_doc_coverage` | 0 | 0.09 |
+| `check_module_cycles` | 0 | 0.16 |
+| `check_schema_feature_graph` | 0 | 47.71 |
+
+The focused logs and `results.json` are retained in
+[`tests/data/sqlite_s1_resume_validation/final`](../tests/data/sqlite_s1_resume_validation/final), each checked against the sha256 the run recorded;
+the whole-tree logs remain at `/ceph/ibmi/abi/oliver/openms-rs/results/s1-resume-final-20260913-165118` and are identified by the sha256 values in
+`results.json`. The review record and dispositions are in
+[`tests/data/sqlite_s1_resume_validation`](../tests/data/sqlite_s1_resume_validation).
+No macOS or Windows execution and no C++ differential is claimed.
+
+
 ## SQLite S0 checkpoint (2026-09-13)
 
 The [public SQLite connector](SQLITE_CONNECTOR_SUPPORT.md) was validated on

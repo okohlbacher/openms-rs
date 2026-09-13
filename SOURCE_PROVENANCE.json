@@ -609,7 +609,8 @@
   "tests/data/comparison_scorers_provenance.json",
   "tests/data/math_kde_provenance.json",
   "tests/data/network_provenance.json",
-  "tests/data/system_process_provenance.json"
+  "tests/data/system_process_provenance.json",
+  "tests/data/mzml_precursor_activation_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,

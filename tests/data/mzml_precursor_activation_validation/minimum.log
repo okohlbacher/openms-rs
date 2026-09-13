@@ -1,0 +1,50 @@
+   Compiling autocfg v1.5.1
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling crc32fast v1.5.1
+   Compiling libc v0.2.189
+   Compiling cfg-if v1.0.4
+   Compiling strength_reduce v0.2.4
+   Compiling simd-adler32 v0.3.10
+   Compiling libm v0.2.16
+   Compiling adler2 v2.0.1
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/codex-resume-activation)
+   Compiling memchr v2.8.3
+   Compiling iana-time-zone v0.1.65
+   Compiling cpufeatures v0.2.17
+   Compiling libbz2-rs-sys v0.2.5
+   Compiling base64 v0.22.1
+   Compiling miniz_oxide v0.8.9
+   Compiling generic-array v0.14.7
+   Compiling num-traits v0.2.19
+   Compiling bzip2 v0.6.1
+   Compiling quick-xml v0.39.4
+   Compiling flate2 v1.1.9
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling cpu-time v1.0.0
+   Compiling digest v0.10.7
+   Compiling num-integer v0.1.47
+   Compiling num-complex v0.4.6
+   Compiling chrono v0.4.45
+   Compiling sha1 v0.10.7
+   Compiling transpose v0.2.3
+   Compiling primal-check v0.3.4
+   Compiling rustfft v6.4.1
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.53s
+     Running tests/mzml_precursor_activation.rs (/scratch/kohlbach/targets/codex-resume-activation/debug/deps/mzml_precursor_activation-18f05444c4b9f346)
+
+running 10 tests
+test retained_metadata_obeys_parameter_count_and_byte_budgets ... ok
+test duplicate_metadata_and_intensity_units_fail_in_both_orders ... ok
+test invalid_units_numbers_and_unitless_flag_conflicts_are_rejected ... ok
+test noncanonical_metadata_remains_user_param_without_type_or_method_changes ... ok
+test referenceable_activation_and_unit_parameters_share_direct_routes ... ok
+test source_class_energy_intensity_and_supplemental_literals_roundtrip ... ok
+test typed_activation_energy_is_distinct_from_collision_metadata ... ok
+test invalid_native_unit_metadata_fails_before_writing_bytes ... ok
+test intensity_default_normalizes_and_nondefault_identity_survives ... ok
+test all_nine_activation_metadata_routes_preserve_scalar_types ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+

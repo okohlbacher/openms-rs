@@ -950,31 +950,6 @@
     "same snapshot across table validation/scans; duplicate matching precursor IDs preserved",
     "CPP203: fallible SQLite row iteration rejects a step error after a valid row; generated-column native regression executed, original C++ consequence source-reviewed only."
   ],
-  "native_validation": {
-    "status": "passed",
-    "host": "kim",
-    "slot": "codex-sqlite-s1-swath",
-    "build_jobs": 32,
-    "rust_versions": [
-      "current toolchain",
-      "1.85.0"
-    ],
-    "tests_per_selection": 18,
-    "commands_passed": [
-      "cargo test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler",
-      "cargo +1.85.0 test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler",
-      "cargo clippy --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler -- -D warnings",
-      "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --no-default-features --features sqlite --no-deps"
-    ],
-    "native_source_sha256": "0c5225d336708f31b335cfe156a1184d5ec2417ea33e73d64a7e510f74cea1e7",
-    "native_tests_sha256": "6efe53eafbb99d6ec48794cc295faea2114d16cefc3394dfceab947dc1a52d1d",
-    "retained_logs": [
-      "tests/data/sqlite_s1_validation/swath-tests-current.log",
-      "tests/data/sqlite_s1_validation/swath-tests-minimum.log",
-      "tests/data/sqlite_s1_validation/swath-clippy.log",
-      "tests/data/sqlite_s1_validation/swath-rustdoc.log"
-    ]
-  },
   "external_reference_artifacts": [
     {
       "path": "../oracle/sqlite-swath-s1-probe/MzMLSqliteSwathHandler.cpp",
@@ -1226,6 +1201,99 @@
       "path": "tests/data/sqlite_s1_validation/swath-rustdoc.log",
       "sha256": "b823eea98dfde98feef0886638856325751aa3282089a5131581b0c96d2f97df",
       "role": "Executed SWATH-focused remote validation log"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/sqlite_only.log",
+      "sha256": "4ac8dfaa4ee94a65794cba10d57fe683957575edfa520883e94eb57a672c107e"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/sqlite_only_extra_check.log",
+      "sha256": "160fea3e0b5bfc62330d6849b7a7c3426dc23a0778cb85cf6e8622b3c6cf7a1d"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/msrv_sqlite_only.log",
+      "sha256": "de39e4c62357adc00b7115ef272dcb829bcb71ee82d1d94402c5b6560788b435"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/msrv_sqlite_only_extra_check.log",
+      "sha256": "6ce95ab4474220fe5cb077082ddfadc81a2b35ecf7b8fc8a0104cb7a03068c83"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/swath_clippy.log",
+      "sha256": "0b8198a9ca0d35bb0be3fccca522a69f5632b9438d98130dbf6e379b62299bf5"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/swath_rustdoc.log",
+      "sha256": "9b3e633546ca749d050819a69aec6a10240d9231f3dd453deee47ae28a0136f4"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/results.json",
+      "sha256": "6aeae82705e46fd465b04679e4891b6076ea5063cbc7fcdf4331e11ad0da6941"
     }
-  ]
+  ],
+  "resume_review": {
+    "report": "tests/data/sqlite_s1_resume_validation/swath-review.json",
+    "disposition": "tests/data/sqlite_s1_resume_validation/review-dispositions.json",
+    "type": "Codex independent source review, not Fable or C++ execution"
+  },
+  "native_precision_policy": "Center endpoints use full binary f64; no source decimal SQL-formatter rounding. Small-coordinate boundary regression documents divergence.",
+  "native_validation_superseded": {
+    "status": "passed",
+    "host": "kim",
+    "slot": "codex-sqlite-s1-swath",
+    "build_jobs": 32,
+    "rust_versions": [
+      "current toolchain",
+      "1.85.0"
+    ],
+    "tests_per_selection": 18,
+    "commands_passed": [
+      "cargo test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler",
+      "cargo +1.85.0 test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler",
+      "cargo clippy --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler -- -D warnings",
+      "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --no-default-features --features sqlite --no-deps"
+    ],
+    "native_source_sha256": "0c5225d336708f31b335cfe156a1184d5ec2417ea33e73d64a7e510f74cea1e7",
+    "native_tests_sha256": "6efe53eafbb99d6ec48794cc295faea2114d16cefc3394dfceab947dc1a52d1d",
+    "retained_logs": [
+      "tests/data/sqlite_s1_validation/swath-tests-current.log",
+      "tests/data/sqlite_s1_validation/swath-tests-minimum.log",
+      "tests/data/sqlite_s1_validation/swath-clippy.log",
+      "tests/data/sqlite_s1_validation/swath-rustdoc.log"
+    ]
+  },
+  "native_validation": {
+    "status": "passed",
+    "host": "kim",
+    "run": {
+      "remote_results": "/ceph/ibmi/abi/oliver/openms-rs/results/s1-resume-final-20260913-165118/results.json",
+      "retained_results": "tests/data/sqlite_s1_resume_validation/final/results.json",
+      "snapshot_sha256": "7811316fb1153a3c3ebccd13f4bbd2493632495c2089b5af53a8fbc8448db744",
+      "snapshot_rule": "sha256 over sorted sha256sum lines of every file except target/"
+    },
+    "rust_versions": [
+      "rustc 1.96.0 (ac68faa20 2026-05-25)",
+      "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+    ],
+    "tests_per_selection": 20,
+    "commands_passed": [
+      "cargo  test --locked --no-default-features --features sqlite --test sqlite_connector --test mzml_sqlite_swath_handler",
+      "cargo  test --locked --no-default-features --features 'sqlite rusqlite/extra_check' --test sqlite_connector --test mzml_sqlite_swath_handler",
+      "cargo +1.85.0 test --locked --no-default-features --features sqlite --test sqlite_connector --test mzml_sqlite_swath_handler",
+      "cargo +1.85.0 test --locked --no-default-features --features 'sqlite rusqlite/extra_check' --test sqlite_connector --test mzml_sqlite_swath_handler",
+      "cargo clippy --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler -- -D warnings",
+      "RUSTDOCFLAGS='-D warnings' cargo doc --locked --no-default-features --features sqlite --no-deps"
+    ],
+    "native_source_sha256": "389bd84b1fa153905769f6c8d9ae9b943dc7b9c731000dd99e92d79cd08eec59",
+    "native_tests_sha256": "3ee9a57218567a2c81477913730cc9c23ea58060bfc592913f9c7b0880b8a7b6",
+    "retained_logs": [
+      "tests/data/sqlite_s1_resume_validation/final/sqlite_only.log",
+      "tests/data/sqlite_s1_resume_validation/final/sqlite_only_extra_check.log",
+      "tests/data/sqlite_s1_resume_validation/final/msrv_sqlite_only.log",
+      "tests/data/sqlite_s1_resume_validation/final/msrv_sqlite_only_extra_check.log",
+      "tests/data/sqlite_s1_resume_validation/final/swath_clippy.log",
+      "tests/data/sqlite_s1_resume_validation/final/swath_rustdoc.log"
+    ],
+    "note": "Final-snapshot rerun replacing the HEAD-era record the resume review found stale."
+  }
 }

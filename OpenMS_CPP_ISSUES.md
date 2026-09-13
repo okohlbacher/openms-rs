@@ -3838,3 +3838,199 @@ implementation. They do not count as completed Rust functionality.
 **Evidence:** A standalone driver compiled the exact pinned raw translation unit/header on kim with GCC 13.3/C++20. All 42 cases were checked: 12 short positive-accuracy cases decoded to NaN, four short all-zero ordinary estimates were infinite and skipped before encoding, and 26 finite controls passed (including six explicit-factor-one zero controls). A separate sanitizer diagnostic stopped at the invalid floating-point-to-integer conversion for the infinite zero estimate; no resulting encoded/decoded values are used. Sources, driver, binary and logs are hashed in [handler provenance](tests/data/mzml_sqlite_handler_provenance.json) and retained under `../oracle/sqlite-short-numpress-s1-probe/`. This is tier 2 raw-codec execution; no full handler or upstream class-test run is claimed.
 
 **Rust handling:** The sqMass handler writes one- and two-point coordinate arrays using source-supported lossless code 1, including all-zero inputs. Intensity SLOF behavior remains unchanged. The public raw codec's documented source semantics remain separate. Native short-array tests check stored compression tags and finite exact coordinate round trips.
+
+**Additional source-reviewed trigger (resume):** Three coordinates `[1e12,1e12,1e12]` also yield a zero maximal linear factor after the positive-accuracy estimator falls back. This case was not in the executed 42-case C++ probe. The native handler rejects the invalid factor atomically and permits an explicit lossless retry; the new regression covers spectra and chromatograms. The executed probe count above remains unchanged.
+
+## CPP-219 — Chromatogram precursor reload drops supplemental activation metadata
+
+**Status and source:** Source-reviewed read/write mismatch at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; no executed C++ reproduction.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, spectrum activation CV branch (1990–2009), chromatogram activation CV branch (2033–2158), shared `writePrecursor_` (4736 onward).
+
+**Trigger:** Store a chromatogram precursor carrying supplemental beam-type collision-induced dissociation (MS:1002678), supplemental collision-induced dissociation (MS:1002679), or supplemental collision energy (MS:1002680), then reload it.
+
+**Issue:** The shared writer emits these values as CV parameters. The spectrum reader handles them, but the chromatogram branch has no corresponding routes, losing supplemental metadata and its derived activation methods on reload.
+
+**Proposed C++ fix:** Share the activation CV decoder between spectrum and chromatogram precursors, preserving supplemental values and derived methods consistently. Add chromatogram round-trip cases for all three accessions. No upstream fix is claimed.
+
+**Evidence:** Exact source hashes, CV definitions and native test mapping are recorded in [activation provenance](tests/data/mzml_precursor_activation_provenance.json). This conclusion follows source review; native regressions cannot establish executed C++ behavior.
+
+**Rust handling:** The common precursor decoder handles these accessions for both spectrum and chromatogram records. Native writing preserves the documented typed metadata subset, with explicit handling of supplemental-method combinations; see [support](docs/MZML_PRECURSOR_ACTIVATION_SUPPORT.md).
+
+## CPP-220 — Negative initial linear-Numpress coordinates can wrap during sqMass writing
+
+**Status and source:** Unconfirmed C++ defect candidate from source review and independent arithmetic at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; no executed C++ reproduction for this trigger.
+
+**Affected files and functions:** `src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp` (`encodeLinear`, first two values at 326–341, and `decodeLinear` at 443–458); `src/openms/source/FORMAT/MSNumpressCoder.cpp` (`encodeNPRaw`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp` (`writeSpectra`, `writeChromatograms`).
+
+**Trigger:** Write finite coordinate values `[-100,-99,-98]` with positive accuracy 0.0001 and lossy compression.
+
+**Issue:** The estimated factor is positive, but the first two negative quantized integers are serialized using their low 32 bits and decoded as unsigned values. They cannot recover the original negative coordinates. The sqMass writer disables error verification and can therefore commit a shifted array. This candidate concerns missing storage-domain validation; the raw codec's supported input domain should also be clarified.
+
+**Proposed C++ fix:** Require the first two truncated quantized values to fit `[0, UINT32_MAX]` before committing, or explicitly choose a supported lossless representation. No upstream fix is claimed.
+
+**Evidence:** Source hashes and the separately executed native regression `invalid_lossy_coordinate_quantization_rolls_back_without_advancing_ids` are recorded in [handler provenance](tests/data/mzml_sqlite_handler_provenance.json). The earlier C++ short-array probe does not reproduce this negative-coordinate case.
+
+**Rust handling:** The storage adapter checks the initial quantized values, returns an error without changing rows or counters, and allows explicit lossless retry. The public raw codec's documented source behavior is unchanged.
+
+## CPP-221 — Gumbel result declares eval without defining it
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed missing public definition; C++ link failure inferred, not executed.
+
+**Affected files/functions:** `src/openms/include/OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h:51`, `GumbelDistributionFitter::GumbelDistributionFitResult::eval(double) const`; `src/openms/source/MATH/STATISTICS/GumbelDistributionFitter.cpp`.
+
+**Trigger:** A client constructs `GumbelDistributionFitter::GumbelDistributionFitResult(0.0, 1.0)` and calls `eval(0.0)`.
+
+**Issue:** The public header declares the non-inline member but the implementation defines only `log_eval_no_normalize`, constructors/configuration and fitting. A source-tree search found no definition of this class's `eval`. A conventional linked client therefore references an undefined symbol; this is distinct from a member omitted by the Rust port.
+
+**Proposed C++ fix:** Define and export the result member using the existing residual's Gumbel density `(z * exp(-z)) / b`, where `z = exp((a-x)/b)`, and add a public-client link/evaluation test. Ensure the symbol is visible in shared-library builds, since the nested result currently lacks its own export annotation. No fix has been applied upstream.
+
+**Evidence:** Exact declaration and absence of a definition in the pinned source search; `GumbelDistributionFitter.cpp:56–66` supplies the already-used residual model. `tests/data/distribution_fitters_provenance.json` records the original finding. No executed C++ reproduction.
+
+**Rust handling:** `src/math/fitters/gumbel.rs::GumbelDistributionFitResult::eval` exposes that residual model as a native extension with finite/positive-scale checks; existing unit tests compare its peak and log-density consistency. The module preamble says the declaration is “not ported,” while the method documentation accurately explains the extension. Rust's evaluation is present; `fit_weighted` on this least-squares class remains absent.
+
+## CPP-222 — Gumbel least-squares fitter advertises an undefined weighted fit
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed missing public definition; C++ link failure inferred, not executed.
+
+**Affected files/functions:** `src/openms/include/OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h:72–81`, `GumbelDistributionFitter::fitWeighted`; corresponding `.cpp`.
+
+**Trigger:** Invoke `GumbelDistributionFitter().fitWeighted(x, w)` with ordinary equally sized nonempty samples and weights.
+
+**Issue:** The public declaration and Doxygen promise a weighted histogram followed by a fit, but no method definition exists. The identically named method on **GumbelMaxLikelihoodFitter** is a different class and scientific operation. The source Gumbel class test calls that other fitter and therefore does not exercise this missing public symbol.
+
+**Proposed C++ fix:** Implement the documented weighted-histogram fitting contract, including explicit binning and weight validation, and test it through this class; alternatively remove/deprecate the unsupported declaration through an explicit API decision. Do not silently substitute maximum likelihood for the documented histogram fit. No upstream fix claimed.
+
+**Evidence:** Header/implementation/source symbol search and the source class test's `gmlf.fitWeighted` calls; `tests/data/distribution_fitters_provenance.json`. No C++ link probe executed.
+
+**Rust handling:** `src/math/fitters/gumbel.rs` explicitly documents this missing source operation; the separate `gumbel_max_likelihood` module supplies the separately defined maximum-likelihood class. The weighted-histogram public contract remains unimplemented, not fulfilled by that other module.
+
+## CPP-223 — Distribution-fitter documentation names nonexistent gnuplot members
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed documentation defect.
+
+**Affected files/functions:** Class Doxygen in `src/openms/include/OpenMS/MATH/STATISTICS/GaussFitter.h:29–30`, `GumbelDistributionFitter.h:28–29`, and `GumbelMaxLikelihoodFitter.h:26–27`; claimed `getGnuplotFormula` member.
+
+**Trigger:** Follow the class documentation and call `getGnuplotFormula()` after a fit.
+
+**Issue:** None of those three classes declares the advertised member. Client compilation would fail at member lookup. The source may print a formula under verbose compilation flags; that is not a public getter. Other unrelated trace-fitters' real methods do not satisfy these class promises.
+
+**Proposed C++ fix:** Remove the obsolete promise and document constructing a formula from returned parameters, or implement a deliberate public getter with tests. Review debug-only call sites in `ANALYSIS/ID/IDDecoyProbability.cpp`, which still mention the missing methods, when enabling that optional debug macro. No enabled-debug compile was run here.
+
+**Evidence:** Complete public headers and implementation search; distribution-fitters provenance. No compilation attempted.
+
+**Rust handling:** The native fitter APIs expose parameter/result values and do not invent the missing getter; `docs/DISTRIBUTION_FITTERS_SUPPORT.md` explicitly records the stale claim. No native gnuplot getter or executed C++ compatibility is claimed.
+
+## CPP-224 — Gumbel maximum-likelihood fitting reads beyond a short weight vector
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed memory-safety defect; out-of-bounds access not executed.
+
+**Affected files/functions:** `src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp:47–66`, anonymous `GumbelDistributionFunctor::operator()`, and public `fitWeighted` at 74–83; corresponding public header.
+
+**Trigger:** `fitWeighted({1.0, 2.0}, {1.0})` with the ordinary finite default initial parameters.
+
+**Issue:** The objective iterates until `m_data.cend()` while dereferencing and incrementing `wit` without checking the weight length. The second sample dereferences the weight end iterator. Public `fitWeighted` validates neither length before passing the vectors to the optimizer. Longer weights are ignored rather than diagnosed; only shorter weights cause this specific read past end.
+
+**Proposed C++ fix:** Require `x.size() == w.size()` before constructing the objective, return a documented fitting/argument error otherwise, and add short/long-weight regressions. No upstream change claimed.
+
+**Evidence:** Direct loop and public entry-point source trace, recorded in distribution-fitters provenance. No sanitizer or C++ execution.
+
+**Rust handling:** `src/math/fitters/gumbel_max_likelihood.rs::fit_weighted` rejects unequal lengths with `Error::InvalidValue` before iteration and leaves initial parameters unchanged. Existing `mismatched_weights_are_refused` unit coverage is present; not rerun here.
+
+## CPP-225 — Memory-usage delta overwrites its minus sign
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed reporting defect.
+
+**Affected file/function:** `src/openms/source/SYSTEM/SysInfo.cpp:324–334`, `SysInfo::MemUsage::diff_str_`, used by `delta`.
+
+**Trigger:** A recorded working set falls from 4096 KiB to 1024 KiB before `delta("release")` formats the difference.
+
+**Issue:** The function appends `"-"` when memory decreases, then overwrites the entire string with the absolute whole-MiB magnitude plus `" MB"`. The result is `"3 MB"` instead of `"-3 MB"`, so a decrease is indistinguishable from growth. The trigger is an independently derived example, not a sampled process reproduction.
+
+**Proposed C++ fix:** Append the magnitude to the existing sign (`s += ...`) or construct sign and magnitude together. Add a deterministic unit test for decreasing sampled counters, avoiding dependence on allocator release behavior. No upstream fix claimed.
+
+**Evidence:** Exact assignment following the sign branch; `tests/data/sys_info_provenance.json`. Source-only.
+
+**Rust handling:** `src/system/sys_info.rs::difference_string` computes a signed i128 difference and preserves the minus sign. Existing unit coverage and `tests/sys_info.rs::a_negative_delta_keeps_its_sign` assert the `-3 MB` report with deterministic sample values. No fresh test execution here.
+
+## CPP-226 — Update notification announces the local version instead of the offered update
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed user-visible reporting defect.
+
+**Affected file/function:** `src/openms/source/SYSTEM/UpdateCheck.cpp:136–142`, `UpdateCheck::run` update-available notice.
+
+**Trigger:** Running library/tool version 2.0.0, a successfully parsed server response 3.0.0, and a check that reaches the update-available branch.
+
+**Issue:** The branch correctly determines that `server_version` is newer, but concatenates the local `version` argument into “Version ... is available”. The user is told that 2.0.0 is available rather than 3.0.0. The local tool version and running library version can differ; neither is necessarily the offered update.
+
+**Proposed C++ fix:** Render the validated server version in the notice, retaining the tool name and URL. Add a fake-response test with different local/server values. No upstream fix claimed.
+
+**Evidence:** Direct source branch/string construction; `tests/data/network_provenance.json`. Its phrase “reproduced verbatim” concerns native behavior, not an executed C++ oracle.
+
+**Rust handling:** `src/system/update_check.rs::run` deliberately preserves the local-version notice, documents it, and returns the server response for callers. Existing `tests/update_check.rs` assertions pin local-version messages. This defect is **not corrected in the native notice**; neither a fix nor C++ execution is claimed.
+
+## CPP-227 — Download filename selection does not prevent concurrent overwrite
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed race violating the documented no-overwrite promise; no concurrent C++ reproduction executed.
+
+**Affected files/functions:** `src/openms/source/SYSTEM/Network.cpp:36–45`, `saveFileName_`, and 60–62, `Network::downloadFile`; `src/openms/include/OpenMS/SYSTEM/Network.h:36–39`.
+
+**Trigger:** Two successful downloads choose the same absent basename. Both finish the `exists` check before either opens the destination; one opens/writes it, then the other opens the same path.
+
+**Issue:** Existence checking and file creation are separate. `std::ofstream(filename, std::ios::binary)` opens for output and truncates an existing file. The second writer can destroy or replace the first result despite the unconditional public promise that existing files are never overwritten. Returning/logging the chosen path does not prevent or reliably detect this race.
+
+**Proposed C++ fix:** Reserve each candidate atomically with exclusive creation, retry an already-existing candidate, and write through the reserved handle. Preserve the guarantee for dangling symlinks and concurrent creators too; do not add another pre-open existence check. Add a controlled concurrent-candidate test. No upstream change claimed.
+
+**Evidence:** Header promise plus source check/open sequence; `tests/data/network_provenance.json`. Interleaving is source-derived, not executed.
+
+**Rust handling:** `src/system/network.rs::download_file_with` also calls `save_file_name` then `fs::File::create`, retaining the race. Its prose currently repeats the no-overwrite promise, while the provenance correctly admits the race. On subsequent write failure, native cleanup can also remove that raced destination. This needs a native correction/documentation disposition; it is **not already fixed** by returning `PathBuf`.
+
+## CPP-228 — Squaring Gumbel negative log likelihood can change the optimum
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** **Unconfirmed scientific-defect candidate.** Objective structure is source-reviewed; an actual failed fit versus a valid independent MLE remains to be demonstrated.
+
+**Affected file/functions:** `src/openms/source/MATH/STATISTICS/GumbelMaxLikelihoodFitter.cpp:53–66`, objective residuals, and 74–83, Levenberg–Marquardt invocation.
+
+**Candidate trigger:** A narrow-scale, finite, nondegenerate sample (for example two separated observations near zero with positive weights) whose weighted negative log likelihood can be negative around its optimum and zero on another parameter contour. Exact optimizer outcome depends on initial parameters and termination and has not been executed here.
+
+**Concern:** The residual vector is `[NLL, 0]`; least squares minimizes `NLL²`. This has the same ordering as NLL while NLL stays nonnegative, but favors a zero contour over a negative minimum when one is reachable. Continuous probability densities can exceed 1, so negative log likelihood is not intrinsically nonnegative. The existing provenance's definite attraction statement overstates demonstrated behavior without an actual fitted counterexample.
+
+**Proposed investigation/fix:** Compare a narrow-scale sample against an independently implemented scalar-NLL optimizer and check stationarity/likelihood. If confirmed, minimize NLL directly using a suitable solver with a positive-scale parameterization rather than squaring it. Keep any behavior change explicit because source-matching downstream results may move.
+
+**Evidence:** Source residual construction and independent mathematical reasoning only. No C++ fit, numerical experiment or new native test executed in this reconciliation.
+
+**Rust handling:** `src/math/fitters/gumbel_max_likelihood.rs` deliberately retains the `[NLL, 0]` residual with the native LM solver. Its API documents driving NLL toward zero. The suspected optimization issue remains shared, not fixed.
+
+## CPP-229 — Download collision-suffix counter lacks an overflow guard
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** **Unconfirmed extreme-input robustness candidate.** Unbounded suffix probing and signed increment are source-reviewed; overflow reachability under a real filesystem has not been reproduced.
+
+**Affected file/function:** `src/openms/source/SYSTEM/Network.cpp:41–45`, `saveFileName_`.
+
+**Candidate trigger:** The basename and every successive suffix through `INT_MAX` already exist, or concurrent creators keep occupying candidates until the signed counter reaches its limit.
+
+**Concern:** A signed `int` is incremented without checking overflow; if reached, increment beyond `INT_MAX` is undefined behavior. Even below that extreme, scan work scales with existing collisions without a caller-visible bound. A normal finite directory with a gap terminates: the previous wording that the loop simply “does not terminate” should not be copied as a general claim.
+
+**Proposed C++ fix:** Add a documented finite collision limit with an I/O error, using checked counter arithmetic; combine with atomic exclusive creation from the separate race entry.
+
+**Evidence:** Source loop only; no huge-directory experiment or C++ overflow reproduction.
+
+**Rust handling:** `src/system/network.rs::save_file_name` checks suffixes 0 through `MAX_NAME_SUFFIX` (10,000) inclusively and then returns `Error::InvalidValue`. This bounds suffix probing; it does not fix the separate selection/open race.

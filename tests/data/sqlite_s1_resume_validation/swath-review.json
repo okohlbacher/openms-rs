@@ -1,0 +1,115 @@
+{
+  "reviewer": "Codex independent subagent resume_audit",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "base_commit": "45c424a97b504295645e33b77b3e7dcec74461e5",
+  "scope": "Read-only review of all SWATH handler public operations, implementation, native tests, support document and provenance against exact pinned source/header/class test. No native/C++/SQL execution, remote actions or Claude invocation by this reviewer.",
+  "status": "actionable source-review findings; runtime reproduction and disposition assigned to integrator",
+  "reviewed_files": [
+    {
+      "path": "src/format/mzml_sqlite_swath_handler.rs",
+      "sha256": "0c5225d336708f31b335cfe156a1184d5ec2417ea33e73d64a7e510f74cea1e7"
+    },
+    {
+      "path": "tests/mzml_sqlite_swath_handler.rs",
+      "sha256": "6efe53eafbb99d6ec48794cc295faea2114d16cefc3394dfceab947dc1a52d1d"
+    },
+    {
+      "path": "docs/MZML_SQLITE_SWATH_SUPPORT.md",
+      "sha256": "8a55e4a1a9f21dbce01ac9368b3f1c365cbeecd53935e9d6c88acfdb28489cb5"
+    },
+    {
+      "path": "tests/data/mzml_sqlite_swath_provenance.json",
+      "sha256": "26b1c12b35afae84abc23a757117e44a7b8343887620f2564057517f9db1481e"
+    },
+    {
+      "path": "src/format/sqlite_connector.rs",
+      "sha256": "b1bb75c30af49dadbc5f8731d8b327cd69cc8766cf5d8983bf0202609c30d4eb"
+    },
+    {
+      "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
+      "sha256": "de45201a11fce98dfd88f5c9c0bacf661963ff803abbd8b3ade202972ebc03c4"
+    },
+    {
+      "path": ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+      "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597"
+    },
+    {
+      "path": ".reference/openms4-core-bc9cc12/src/tests/class_tests/openms/source/MzMLSqliteSwathHandler_test.cpp",
+      "sha256": "ef3bb012e1bd9630af2e8e51b25be276b0739e42499446dfd29e458b3d9bb9f4"
+    },
+    {
+      "path": ".reference/openms4-core-bc9cc12/src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+      "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+    },
+    {
+      "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/CONCEPT/Types.h",
+      "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
+    },
+    {
+      "path": ".reference/openms4-core-bc9cc12/src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+      "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a"
+    }
+  ],
+  "verification": {
+    "source_and_external_reference_hashes_checked": 27,
+    "missing_or_mismatched": [],
+    "runtime_source_and_test_hashes_match_retained_leaf_validation": true,
+    "retained_leaf_validation": "18 tests each current/MSRV sqlite-only and clippy/rustdoc, from existing manifest/logs; not rerun by this reviewer",
+    "fable": "Existing blocked_not_executed record remains unchanged. This review does not fulfill Fable review."
+  },
+  "findings": [
+    {
+      "id": "swath-review-ordinary-table-shadow",
+      "priority": 1,
+      "status": "source-reviewed candidate awaiting parent SQL/native reproduction",
+      "files": [
+        "src/format/mzml_sqlite_swath_handler.rs:232",
+        "src/format/mzml_sqlite_handler.rs:734"
+      ],
+      "issue": "Ordinary-table check can resolve an attacker-defined table named pragma_table_list instead of the built-in table-valued pragma. The guard then trusts attacker-supplied schema/name/type rows and can admit a view, contradicting the documented rejection-before-evaluation boundary.",
+      "trigger": "Create main.pragma_table_list(schema,name,type) and insert ('main','SPECTRUM','table'); define SPECTRUM as a view. Calling read_ms1_spectra uses FROM pragma_table_list with no parentheses, then SELECT ID,MSLEVEL FROM main.SPECTRUM. An aggregate over a nonterminating recursive CTE in the view can prevent the first result row, before the row budget can stop work.",
+      "evidence": "Read source guard and subsequent scan. SQLite name-resolution consequence not executed by this reviewer; integrator notified for reproduction. Both handler modules use the same unqualified non-call spelling.",
+      "proposed_fix": "Use the table-valued pragma call spelling pragma_table_list() or another non-shadowable schema-inspection mechanism, verify actual ordinary tables still work, and add a harmless shadow-table+view regression before considering nonterminating views. Do not execute an unbounded trigger.",
+      "impact": "Malformed or adversarial databases; ordinary source-produced sqMass files unaffected."
+    },
+    {
+      "id": "swath-review-endpoint-rounding",
+      "priority": 3,
+      "status": "confirmed different arithmetic path; concrete boundary candidate awaiting parent reproduction",
+      "files": [
+        "src/format/mzml_sqlite_swath_handler.rs:192",
+        ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:104",
+        "docs/MZML_SQLITE_SWATH_SUPPORT.md",
+        "tests/data/mzml_sqlite_swath_provenance.json"
+      ],
+      "issue": "The source routes center +/-0.01 through decimal formatting and SQL parsing; Rust compares raw f64 endpoints. This intentional-or-accidental precision difference is absent from native_differences and boundary tests.",
+      "trigger": "Small accepted center0.12345678901234567; source lower endpoint is formatted to0.113456789012346 while native lower retains approximately0.11345678901234568. A target equal to the native lower boundary is included by Rust but excluded after source endpoint rounding. Numerical values are source-derived candidate, not executed here.",
+      "evidence": "Followed through StringUtils::toStr -> appendToStr -> NumericFormatting::appendNumeric. Contrary to StringUtils header/comments claiming15 significant digits, the actual formatter uses15 fixed fractional digits for0.01<=abs(value)<1e4 and shortest scientific round-trip outside. Thus an earlier suggested100m/z example was withdrawn; normal100m/z boundaries round-trip. Existing boundary test uses100.0 only.",
+      "proposed_fix": "Add an explicit native-difference statement and tiny-coordinate boundary regression if retaining direct f64 bounds, or reproduce source formatting where exact compatibility is required. Keep this as native API difference, not automatically a C++ bug.",
+      "impact": "Extremely small boundary shifts for low coordinate values; no demonstrated effect on ordinary SWATH window centers."
+    }
+  ],
+  "coverage_review": {
+    "public_api": "All source constructor and three accessor operations represented. Rust ownership covers destruction; SwathWindow explicitly maps only populated fields, not full SwathMap.",
+    "class_tests": "All five source sections accounted for. Literal count/window/MS1/center selection assertions transcribed; absent ms1 field assertion explicitly mapped to value-subset design. Full114-record source projection retained, not mislabeled writer parity.",
+    "selection": "Discovery filters MS2 IDs, joins precursor membership, deduplicates full finite coordinate tuples. Center lookup ignores other window fields, does not join SPECTRUM or filter MSlevel, preserves duplicate precursor IDs, skips NULL IDs/targets. MS1 preserves matching record IDs, sorted.",
+    "types": "Integer IDs and MS levels checked via i64; coordinate numeric types accepted; NULL/negative/nonfinite policies match docs. More permissive C++ SQLite coercions intentionally replaced. Negative-zero canonicalization makes dedup equality consistent with total sorting.",
+    "bounds": "One aggregate scanned-row budget across discovery tables; all scanned rows count, including nonmatches. One extra step detects overflow before extracting fields. Native allocations/sorting bounded by scanned rows. The source table-shadow candidate undermines the pre-evaluation guard; generated-column/schema/page work separately and honestly excluded from a wall-clock budget.",
+    "errors_and_snapshot": "Read-only connection per accessor, same transaction across required-table validation and scans, fallible step iteration, no partial vectors; drop releases statements/transactions on errors. Missing paths not created. Existing lock/generated-column step-error tests cover failure and recovery.",
+    "remaining_findings": "No other actionable SWATH correctness issue found in this bounded source review; this is not proof of absence or replacement for fresh remote tests."
+  },
+  "unlogged_claude_candidate_file_inventory_only": [
+    "tests/data/distribution_fitters_provenance.json",
+    "tests/data/sys_info_provenance.json",
+    "tests/data/stop_watch_provenance.json",
+    "tests/data/network_provenance.json",
+    "tests/data/system_process_provenance.json",
+    "tests/data/comparison_scorers_provenance.json",
+    "tests/data/comparison_functors_provenance.json",
+    "tests/data/math_functions_provenance.json",
+    "tests/data/math_statistics_provenance.json",
+    "tests/data/math_kde_provenance.json",
+    "docs/FFT_SUPPORT.md"
+  ],
+  "candidate_inventory_note": "Filename triage only. These newly added/changed Claude wave files contain explicit cpp_issues/candidate/defect language or source anchors; shared issue log did not change in waves A/B. Integrator must review each claim and deduplicate before assigning issue IDs."
+}

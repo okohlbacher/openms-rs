@@ -1,7 +1,9 @@
 # MzMLSqliteHandler support
 
-Status: source inventory complete; native code and test review in progress.
-Remote validation is pending; this document does not yet claim a complete Rust port. The source is
+Status: the installed public handler API is implemented with the checked native
+policies below. All 13 source class-test sections have an assertion-family mapping
+and focused remote native tests. Integration-wide validation is tracked separately;
+there is no executed full-handler C++ differential. The source is
 `OpenMS4-core` revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 The exact files, fixture hashes, source sections and literal expectations are in
 [`mzml_sqlite_handler_provenance.json`](../tests/data/mzml_sqlite_handler_provenance.json).
@@ -11,10 +13,10 @@ The exact files, fixture hashes, source sections and literal expectations are in
 `FORMAT/HANDLERS/MzMLSqliteHandler.h` is installed even though its class lives in
 `OpenMS::Internal`. Its protected SQL helpers and stored counters are
 implementation context, not additional public API targets. The public mapping
-below is present in the native implementation. The final coverage assessment
-remains pending the test and integration review.
+below is present in the native implementation. Metadata transport still has the
+explicit native mzML subset boundary described below.
 
-| Pinned C++ operation | Native operation | Contract to verify |
+| Pinned C++ operation | Native operation | Contract |
 | --- | --- | --- |
 | Constructor `(filename, run_id)` | `new(path, run_id)` | Store path and writing run ID; source masks the sign bit. Reading uses the database run ID. |
 | Implicit destructor | Rust ownership/drop | No persistent borrowed SQLite handle is exposed. |
@@ -56,6 +58,15 @@ RT windows return IDs in ascending ID order. Nonpositive delta chooses the
 earliest RT at or above the target, with ID as a tie-breaker, fixing the source's
 unspecified LIMIT 1 ordering.
 
+RT bounds (`rt - delta`, `rt + delta`, and `rt` itself for a nonpositive delta)
+are bound as full binary `f64`. The source instead writes them into the SQL text
+through its numeric formatter: 15 fractional digits with trailing zeros trimmed
+for 0.01 <= |v| < 1e4, and the shortest round-trip scientific form otherwise. A
+row whose retention time lies within that rounding of a bound can therefore be
+selected differently, including in databases the source wrote. This is the same
+deliberate precision correction the SWATH handler makes;
+`small_rt_boundaries_use_full_binary_precision` pins it.
+
 Each write operation commits atomically, and counters advance only after commit.
 `create_tables` stages the seven-table schema and correct indexes in a sibling
 file, then replaces the destination and resets counters. Existing SQLite sidecar
@@ -64,7 +75,13 @@ at zero; reopening an already populated file does not resume appending.
 Run-level information can precede record writes in a builder sequence. Such an
 intermediate database can have an incomplete snapshot; a full read rejects
 snapshot/SQL identity or count disagreement until the sequence is finished.
-Individual low-level writes remain separate transactions.
+With Reject policy, each append checks its descriptive metadata against the
+corresponding expected snapshot records, allowing rich metadata only when that
+snapshot preserves it. A mismatch leaves both rows and writer IDs unchanged.
+Individual low-level writes remain separate transactions. The source uses OpenMP
+for spectrum/chromatogram array encoding; the native handler is serial. Batch
+calls are recommended, as in the source header, with a normal chunk size of at
+least 500 records; smaller positive chunks remain supported.
 
 SQL values are bound, so record IDs and peptide strings containing punctuation
 are literal data. Raw arrays use explicit little-endian f64 bytes; intensities
@@ -78,11 +95,25 @@ separate from aligned auxiliary arrays.
 Default limits allow one million combined records, ten million values per array,
 twenty million combined values, 64 MiB per array BLOB or metadata snapshot,
 512 MiB of logical allocation, a 2 GiB database and 500 million metered work
-units. These are configurable materialization and traversal ceilings, not a hard
+units. The allocation budget bounds what one operation materializes, not what
+the file stores: stored payload is bounded by the database size limit, so a
+database holding more than 512 MiB of array data still opens, counts and serves
+metadata-only reads. These are configurable materialization and traversal ceilings, not a hard
 process-memory or SQLite execution-time guarantee. Reads and writes check the
-physical file and logical page size; fixed-schema scans reject views and virtual
-tables. A per-connection SQLite row-length limit supplements the native byte
-checks. Final validation of resource-boundary tests remains pending.
+physical input file and logical page size; every write rechecks logical database
+size and schema before committing, and recreation checks the staged database
+before replacement. Fixed-schema scans reject views and virtual tables. A forged
+ordinary table named `pragma_table_list` causes a checked query error instead of
+bypassing these checks. A per-connection SQLite row-length limit supplements the
+native byte checks; it applies to an entire row as well as individual fields.
+
+Selections, native output records, metadata copies, array codec temporaries, and
+snapshot record slots are charged before their allocations. Nested mzML parameter
+and array allowances are reserved separately from the operation budget. The mzML
+header registry retains its own fixed 256 MiB and 50 million work-unit limits;
+these are separate from `HandlerLimits`, so the aggregate budget does not claim
+to cover every nested parser allocation. SQLite's own allocations and query
+planning are likewise outside that logical allocation counter.
 
 ## Source storage and metadata scope
 
@@ -132,8 +163,13 @@ accepts only 1, 5 and 6:
 
 The native writer uses lossless code 1 for coordinate arrays shorter than three
 values, even in lossy mode, to avoid an unusable linear fixed point. Nonempty
-encoded arrays must have a finite positive fixed point. This is an explicit
-native correction, not an additional source compression code.
+encoded arrays must have a finite positive fixed point. Linear encoding also
+requires that its first two quantized coordinates fit unsigned 32-bit storage;
+the raw source codec otherwise keeps only their low bits. Longer arrays with
+unusable factors (for example three coordinates of 1e12) and negative initial
+coordinates that would wrap fail atomically. Callers can explicitly select
+lossless mode for those finite inputs. These are native corrections, not
+additional source compression codes.
 
 Other listed codes are rejected by the pinned decoder. Raw-double source I/O
 uses host memory representation, so endian and byte-length behavior must be
@@ -196,15 +232,20 @@ these counts are not runtime assertion counts.
 | Spectrum append and recreation | 14 | `repeated_spectrum_appends_preserve_source_literals` |
 | Chromatogram append, recreation and compression | 22 | `repeated_chromatogram_appends_lossless_and_lossy` |
 
-`setConfig`, `setRunId`, `createTables` and run-level writing need explicit public
-API accounting even where the upstream test exercises them within another
-section. Mapping all sections alone does not prove header completeness.
+`setConfig`, `setRunId`, `createTables` and run-level writing are additionally
+covered by configuration atomicity, run-ID masking, destructive-recreation,
+metadata-builder and rollback regressions. The source tolerance-state ledger is
+applied separately to lossless and lossy chromatogram literals.
 
 The mzML and sqMass files are exact retained upstream inputs. The existing sqMass
 copy in `sqlite_s1_source_review` is referenced rather than duplicated. No handler
-C++ class test or full SDK differential has been executed in this wave. Native test names are mapped in the table; final assertion-family review and remote
-test results are pending. Independent SQL observations in
-the separate S1 review manifest are not an executed C++ handler oracle.
+C++ class test or full SDK differential has been executed in this wave. Native
+test names are mapped in the table. The separate exact raw Numpress probe ran 42
+cases on kim and supports CPP-218's short-coordinate defect; it did not execute
+MSNumpressCoder or this SQL handler. All probe sources, binaries and logs are
+retained outside this repository and hashed in the manifest. Independent SQL
+observations in the separate S1 review manifest are not an executed C++ handler
+oracle.
 
 ## C++ findings
 
@@ -212,19 +253,20 @@ The shared [issue log](../OpenMS_CPP_ISSUES.md) owns stable entries. Relevant
 handler findings are CPP-190 (uninitialized batching), CPP-191 (array pairing),
 CPP-192 (hydration order), CPP-193 (unescaped record metadata), CPP-194 (partial
 writes and counters), CPP-195 (wrong index tables), CPP-198 (recreation counters),
-CPP-199 (negative activation value), CPP-201 (auxiliary-array loss), and CPP-202
-(reads create missing files). Native handling is recorded from source review in the provenance manifest;
-remote regression execution remains pending. Source findings alone do not
-establish native runtime behavior.
+CPP-199 (negative activation value), CPP-201 (auxiliary-array loss), CPP-202
+(reads create missing files), CPP-218 (unusable linear fixed points), and CPP-220
+(negative initial coordinate quantization). Native handling and focused remote
+regressions are recorded in the provenance manifest. The long-array extension to
+CPP-218 and the negative-coordinate finding remain source-reviewed C++ cases;
+the earlier 42-case raw-codec probe does not execute those triggers.
 The loaded-path injection source regression tests an existing upstream fix and
 must not be reported as an unpatched C++ path-injection defect.
 
 ## Integration review still in progress
 
-A concrete inherited mzML gap is being closed separately: source-supported
-precursor collision-energy and supplemental-activation metadata in RUN_EXTRA
-was ignored by the native mzML reader. The final handler coverage status must
-account for the focused activation-metadata fix and its tests. This is separate
-from unrelated MzMLFile progress or loading options. Native test execution has
-passed an intermediate 25-test run; final source/test hashes and the completed
-review record remain pending.
+The accompanying [precursor-activation update](MZML_PRECURSOR_ACTIVATION_SUPPORT.md)
+handles source-supported collision-energy and supplemental-activation metadata
+in RUN_EXTRA. That inherited mzML correction has its own source mapping and
+focused tests. Combined feature-graph, full-suite and external-review status is
+owned by the integrating wave record; passing these handler-focused checks is
+not a claim of complete SDK or TOPP-tool validation.

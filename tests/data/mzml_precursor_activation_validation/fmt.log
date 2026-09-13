@@ -1,0 +1,84 @@
+Diff in /scratch/kohlbach/agents/codex-resume-activation/src/format/mzml_sqlite_handler.rs:1242:
+                     b"chromatogram" => std::mem::size_of::<MSChromatogram>(),
+                     _ => continue,
+                 };
+-                records = records.checked_add(1).ok_or_else(|| invalid("snapshot record overflow"))?;
++                records = records
++                    .checked_add(1)
++                    .ok_or_else(|| invalid("snapshot record overflow"))?;
+                 check(records, budget.limits.max_records, "snapshot records")?;
+                 budget.work.allocate(bytes)?;
+             }
+Diff in /scratch/kohlbach/agents/codex-resume-activation/tests/mzml_sqlite_handler.rs:706:
+             h.set_loss_policy(LossPolicy::Source);
+             let mut e = sample();
+             let result = if chrom {
+-                e.chromatograms[0].peaks = values.iter().map(|&rt| ChromatogramPeak { rt, intensity: 1.0 }).collect();
++                e.chromatograms[0].peaks = values
++                    .iter()
++                    .map(|&rt| ChromatogramPeak { rt, intensity: 1.0 })
++                    .collect();
+                 h.write_chromatograms(&e.chromatograms)
+             } else {
+-                e.spectra[0].peaks = values.iter().map(|&mz| Peak1D { mz, intensity: 1.0 }).collect();
++                e.spectra[0].peaks = values
++                    .iter()
++                    .map(|&mz| Peak1D { mz, intensity: 1.0 })
++                    .collect();
+                 h.write_spectra(&e.spectra)
+             };
+             assert!(result.is_err(), "{values:?}, chromatogram={chrom}");
+Diff in /scratch/kohlbach/agents/codex-resume-activation/tests/mzml_sqlite_handler.rs:720:
+             h.set_config(false, false, 0.0001, 500).unwrap();
+             if chrom {
+                 h.write_chromatograms(&e.chromatograms).unwrap();
+-                assert_eq!(h.read_chromatograms(&[0], false).unwrap()[0].peaks, e.chromatograms[0].peaks);
++                assert_eq!(
++                    h.read_chromatograms(&[0], false).unwrap()[0].peaks,
++                    e.chromatograms[0].peaks
++                );
+             } else {
+                 h.write_spectra(&e.spectra).unwrap();
+-                assert_eq!(h.read_spectra(&[0], false).unwrap()[0].peaks, e.spectra[0].peaks);
++                assert_eq!(
++                    h.read_spectra(&[0], false).unwrap()[0].peaks,
++                    e.spectra[0].peaks
++                );
+             }
+         }
+     }
+Diff in /scratch/kohlbach/agents/codex-resume-activation/tests/mzml_sqlite_handler.rs:753:
+         assert!(h.run_id().is_err());
+         h.limits.max_database_bytes *= 100;
+         h.write_experiment(&e).unwrap();
+-        assert_eq!(h.read_spectra(&[0], true).unwrap()[0].native_id, e.spectra[0].native_id);
++        assert_eq!(
++            h.read_spectra(&[0], true).unwrap()[0].native_id,
++            e.spectra[0].native_id
++        );
+     }
+     let (_d, p) = temporary();
+     let mut h = writer(&p);
+Diff in /scratch/kohlbach/agents/codex-resume-activation/tests/mzml_sqlite_handler.rs:782:
+     h.write_run_level_information(&e, true).unwrap();
+     h.write_spectra(&e.spectra).unwrap();
+     h.write_chromatograms(&e.chromatograms).unwrap();
+-    assert_eq!(h.read_experiment(false).unwrap().spectra[0].name, e.spectra[0].name);
++    assert_eq!(
++        h.read_experiment(false).unwrap().spectra[0].name,
++        e.spectra[0].name
++    );
+ }
+ 
+ #[test]
+Diff in /scratch/kohlbach/agents/codex-resume-activation/tests/mzml_sqlite_handler.rs:789:
+ fn forged_pragma_table_cannot_disguise_a_required_view() {
+     let (_d, p) = copied_fixture();
+-    sql(&p, "CREATE TABLE pragma_table_list AS SELECT * FROM pragma_table_list(); DROP TABLE DATA; CREATE VIEW DATA AS SELECT NULL AS SPECTRUM_ID,NULL AS CHROMATOGRAM_ID,1 AS COMPRESSION,0 AS DATA_TYPE,X'' AS DATA;");
++    sql(
++        &p,
++        "CREATE TABLE pragma_table_list AS SELECT * FROM pragma_table_list(); DROP TABLE DATA; CREATE VIEW DATA AS SELECT NULL AS SPECTRUM_ID,NULL AS CHROMATOGRAM_ID,1 AS COMPRESSION,0 AS DATA_TYPE,X'' AS DATA;",
++    );
+     let h = MzMLSqliteHandler::new(&p, 0);
+     // The forged table records DATA as ordinary even after its replacement.
+     // Calling the actual pragma function must still reject the view.

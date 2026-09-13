@@ -1,7 +1,7 @@
 # Resumed porting waves
 
-Resume from the existing kernel and imzML integrations, then finish the FORMAT
-branches. Use core revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4` until an
+Prioritize working FileInfo and FeatureFinderCentroided executables, followed
+by PeakPickerHiRes, using the existing core and five TOPP integrations. Use core revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4` until an
 explicit source-refresh checkpoint updates the inventory and manifests.
 The [completion ledger](CORE_SDK_COMPLETION.md), not a module-name list, remains
 the record of outstanding public operations.
@@ -15,7 +15,36 @@ The [validation record](VALIDATION.md) identifies executed checks. Known gaps
 remain work for subsequent waves, including mzTab exporters, format-specific
 validators, qcML metrics and missing FileHandler dispatch.
 
-## Current wave: SQLite family
+## Recovered Claude checkpoints (2026-09-13)
+
+The resume began at clean `45c424a`, with all 42 retained Claude worktree heads
+already merged. `068a1f5` preserved interrupted SQLite S1 work; `3b8ca94` and
+`4e8934b` integrated numerical, comparison and system waves A/B. `d396f42` adopted
+rustfft with the scalar planner; `45c424a` records the crate-first dependency
+policy. Default Rayon parallelism and the serial/parallel bitwise contract remain.
+These commits are preserved; their reported test counts are historical author
+reports. The resume's whole-tree remote run is summarised in the
+[resume assessment](RESUME_ASSESSMENT_2026-09-13.md); its four
+`tests/system_process.rs` failures were a test-harness `ETXTBSY` race, since
+fixed. The final resume snapshot's full gates are recorded in
+[VALIDATION](VALIDATION.md).
+
+## Current priority: early TOPP bundle
+
+The [early TOPP plan](EARLY_TOPP_BUILD_PLAN.md) supersedes the previous
+storage-first sequence. Build FileInfo for mzML/featureXML while porting the
+FeatureFinderAlgorithmPicked helper and trace-fitting chain in parallel.
+FeatureFinderCentroided is the principal scientific target; PeakPickerHiRes
+follows to enable profile mzML -> centroided mzML -> featureXML. Keep the five
+existing tools building throughout.
+
+Preserve and validate the current SQLite checkpoint. Its process-test failures
+are diagnosed and fixed: an `ETXTBSY` race between parallel tests. Neither the complete SDK nor SQLite S2/OSW/OMS is a gate for
+the early tools. Build real supported paths early, explicitly label preview
+limitations, and expand toward full tool contracts using the source test matrix.
+The detailed plan defines dependencies, ownership and acceptance cases.
+
+## Queued storage waves: SQLite family
 
 The optional `sqlite` feature and pinned `rusqlite` dependency are already in
 Cargo. Keeping SQLite optional is a dependency boundary, not a scope exclusion.
@@ -23,8 +52,10 @@ Cargo. Keeping SQLite optional is a dependency boundary, not a scope exclusion.
 S0 now has a [native connector](SQLITE_CONNECTOR_SUPPORT.md), all eight source
 class-test sections mapped, nineteen native regression tests and an adapted
 C++ defect probe. The [validation record](VALIDATION.md) records the executed
-integration checks. S1 is in progress: the handler and SWATH query ports are
-under remote testing and review; no database file adapter is closed by S0 alone.
+integration checks. S1 code is integrated. The current closeout adds precursor metadata transport,
+write-limit rollback and schema-guard regressions, with fresh remote tests and
+source review. The requested Fable review remains pending authorization; no
+review approval or full database-file adapter closure is inferred from S1.
 
 | Stage | Work | Dependency and verification boundary |
 |---|---|---|
@@ -44,7 +75,7 @@ Rust. The shared issue log distinguishes native handling from proposed C++
 fixes; no upstream fixes are claimed.
 
 The [S2 consumer and spectrum-access plan](SQLITE_CONSUMER_PLAN.md) inventories
-the next public APIs, Parquet and OpenSwath prerequisites, and streaming tests.
+the queued public APIs, Parquet and OpenSwath prerequisites, and streaming tests.
 Its [source-review manifest](../tests/data/sqlite_s2_review.json) records
 CPP-204 through CPP-217 with explicit defect/candidate labels. No S2 runtime
 implementation or execution is claimed by that preparation.
@@ -55,7 +86,7 @@ prerequisite; do not silently omit its methods. Distinct agents may own leaf
 modules in parallel, while the integrator owns shared registration, provenance,
 coverage and the C++ issue log.
 
-## Following waves: remaining core, CLI and TOPP
+## Following waves: full core, CLI and TOPP closure
 
 Finish open FORMAT contracts and remaining scientific/core dependencies in the
 ledger, prioritizing dependencies used by multiple TOPP tools. All vendor,

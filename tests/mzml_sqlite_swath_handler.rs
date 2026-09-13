@@ -539,3 +539,33 @@ fn sql_step_error_after_a_valid_row_is_not_mistaken_for_end_of_results() {
     ));
     conn.execute_batch("BEGIN EXCLUSIVE; ROLLBACK").unwrap();
 }
+
+#[test]
+fn forged_pragma_table_list_cannot_authorize_views() {
+    let (_dir, path, conn) = database();
+    conn.execute_batch("DROP TABLE SPECTRUM; DROP TABLE PRECURSOR; CREATE VIEW SPECTRUM AS SELECT 0 AS ID, 1 AS MSLEVEL; CREATE VIEW PRECURSOR AS SELECT 0 AS SPECTRUM_ID, 10.0 AS ISOLATION_TARGET; CREATE TABLE pragma_table_list(schema, name, type); INSERT INTO pragma_table_list VALUES('main','SPECTRUM','table'),('main','PRECURSOR','table')").unwrap();
+    let handler = MzMLSqliteSwathHandler::new(path);
+    assert!(handler.read_ms1_spectra().is_err());
+    assert!(handler.read_swath_windows().is_err());
+    assert!(handler.read_spectra_for_window(&window(10.0)).is_err());
+}
+
+#[test]
+fn small_coordinate_boundaries_use_full_binary_precision() {
+    let (_dir, path, conn) = database();
+    let center = 0.123_456_789_012_345_67_f64;
+    let lower = center - 0.01;
+    conn.execute(
+        "INSERT INTO PRECURSOR(SPECTRUM_ID, ISOLATION_TARGET) VALUES(1,?1)",
+        [lower],
+    )
+    .unwrap();
+    let handler = MzMLSqliteSwathHandler::new(path);
+    assert_eq!(
+        handler.read_spectra_for_window(&window(center)).unwrap(),
+        vec![1]
+    );
+    // The source formats this endpoint with 15 fractional decimal digits.
+    // Native lookup deliberately avoids that decimal quantization.
+    assert!(lower < 0.113_456_789_012_346);
+}

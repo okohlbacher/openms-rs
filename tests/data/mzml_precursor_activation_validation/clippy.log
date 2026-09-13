@@ -1,0 +1,48 @@
+    Checking num-traits v0.2.19
+    Checking typenum v1.20.1
+    Checking cfg-if v1.0.4
+    Checking simd-adler32 v0.3.10
+    Checking strength_reduce v0.2.4
+    Checking adler2 v2.0.1
+    Checking iana-time-zone v0.1.65
+    Checking memchr v2.8.3
+    Checking libbz2-rs-sys v0.2.5
+    Checking cpufeatures v0.2.17
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/codex-resume-activation)
+    Checking base64 v0.22.1
+    Checking libc v0.2.189
+    Checking libm v0.2.16
+    Checking crc32fast v1.5.1
+    Checking miniz_oxide v0.8.9
+    Checking bzip2 v0.6.1
+    Checking quick-xml v0.39.4
+    Checking num-integer v0.1.47
+    Checking num-complex v0.4.6
+    Checking chrono v0.4.45
+    Checking flate2 v1.1.9
+    Checking generic-array v0.14.7
+    Checking primal-check v0.3.4
+    Checking transpose v0.2.3
+    Checking cpu-time v1.0.0
+    Checking rustfft v6.4.1
+    Checking crypto-common v0.1.7
+    Checking block-buffer v0.10.4
+    Checking digest v0.10.7
+    Checking sha1 v0.10.7
+error: struct `NoOutput` is never constructed
+  --> tests/data_array_xml.rs:16:8
+   |
+16 | struct NoOutput {
+   |        ^^^^^^^^
+   |
+   = note: `-D dead-code` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: function `unsupported` is never used
+  --> tests/data_array_xml.rs:41:4
+   |
+41 | fn unsupported<T>(result: openms::Result<T>, output: &NoOutput) {
+   |    ^^^^^^^^^^^
+
+error: could not compile `openms` (test "data_array_xml") due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

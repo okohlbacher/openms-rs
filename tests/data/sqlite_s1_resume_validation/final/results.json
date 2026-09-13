@@ -1,0 +1,222 @@
+{
+ "environment": {
+  "host": "kim",
+  "timestamp_utc": "20260913-165118",
+  "cpu_count": 384,
+  "loadavg_end": [
+   6.61572265625,
+   9.67919921875,
+   15.00439453125
+  ],
+  "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+  "msrv": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+  "snapshot_sha256": "7811316fb1153a3c3ebccd13f4bbd2493632495c2089b5af53a8fbc8448db744",
+  "snapshot_rule": "sha256 over sorted sha256sum lines of every file except target/"
+ },
+ "steps": [
+  {
+   "name": "fmt",
+   "command": "cargo fmt --all -- --check",
+   "exit": 0,
+   "seconds": 2.56,
+   "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "name": "clippy",
+   "command": "cargo clippy --locked --all-features --all-targets -- -D warnings",
+   "exit": 0,
+   "seconds": 29.96,
+   "log_sha256": "38c2debcd20cb33efb13e9ed8ad412b966321ed7add4c3f0bc47101236a6657e"
+  },
+  {
+   "name": "cargo_all_targets",
+   "command": "cargo test --locked --all-features --all-targets",
+   "exit": 0,
+   "seconds": 109.25,
+   "log_sha256": "65e79f71b85246b5f0e3674baf0b23b5b302d6b7dc52b567042174d288afd4c1"
+  },
+  {
+   "name": "portable",
+   "command": "cargo test --locked --no-default-features",
+   "exit": 0,
+   "seconds": 59.09,
+   "log_sha256": "bea00af55197de310b1fa6d8ab3060bfeda53aca0cf1602ce34693a9e6a444f4"
+  },
+  {
+   "name": "doctests",
+   "command": "cargo test --locked --all-features --doc",
+   "exit": 0,
+   "seconds": 3.38,
+   "log_sha256": "89dcb85732d6f9dc7d14bc3f14e55efaab29c28ec6a4f91c12bd919635909620"
+  },
+  {
+   "name": "rustdoc",
+   "command": "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+   "exit": 0,
+   "seconds": 14.5,
+   "log_sha256": "395ad591e489d7894234b4db7437883527afad848b918ff03b3a307c585d7c7b"
+  },
+  {
+   "name": "msrv_all_targets",
+   "command": "cargo +1.85.0 test --locked --all-features --all-targets",
+   "exit": 0,
+   "seconds": 130.25,
+   "log_sha256": "7368e7a76dbe1370de7daa418c3938dfcd4a0bd3f7f59419c1d99bd328d17ade"
+  },
+  {
+   "name": "msrv_doctests",
+   "command": "cargo +1.85.0 test --locked --all-features --doc",
+   "exit": 0,
+   "seconds": 8.04,
+   "log_sha256": "c63158271df871555c0eabc257d9f65d60c79f81035c16d95c1488515633ad26"
+  },
+  {
+   "name": "sqlite_only",
+   "command": "cargo  test --locked --no-default-features --features sqlite --test sqlite_connector --test mzml_sqlite_swath_handler",
+   "exit": 0,
+   "seconds": 17.8,
+   "log_sha256": "4ac8dfaa4ee94a65794cba10d57fe683957575edfa520883e94eb57a672c107e"
+  },
+  {
+   "name": "sqlite_only_extra_check",
+   "command": "cargo  test --locked --no-default-features --features 'sqlite rusqlite/extra_check' --test sqlite_connector --test mzml_sqlite_swath_handler",
+   "exit": 0,
+   "seconds": 18.04,
+   "log_sha256": "160fea3e0b5bfc62330d6849b7a7c3426dc23a0778cb85cf6e8622b3c6cf7a1d"
+  },
+  {
+   "name": "sqmass_only",
+   "command": "cargo  test --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation",
+   "exit": 0,
+   "seconds": 21.95,
+   "log_sha256": "b487fdd6b106a2d02cbf01442dcd3def0c112bcd8ed7f862ea2ae37be0037a9f"
+  },
+  {
+   "name": "sqmass_only_extra_check",
+   "command": "cargo  test --locked --no-default-features --features 'sqmass rusqlite/extra_check' --test mzml_sqlite_handler --test mzml_precursor_activation",
+   "exit": 0,
+   "seconds": 21.88,
+   "log_sha256": "546afb8b63297c166e10ad073283adaf00a3a914bb98dfe2ce1bfb40cac35a96"
+  },
+  {
+   "name": "msrv_sqlite_only",
+   "command": "cargo +1.85.0 test --locked --no-default-features --features sqlite --test sqlite_connector --test mzml_sqlite_swath_handler",
+   "exit": 0,
+   "seconds": 19.23,
+   "log_sha256": "de39e4c62357adc00b7115ef272dcb829bcb71ee82d1d94402c5b6560788b435"
+  },
+  {
+   "name": "msrv_sqlite_only_extra_check",
+   "command": "cargo +1.85.0 test --locked --no-default-features --features 'sqlite rusqlite/extra_check' --test sqlite_connector --test mzml_sqlite_swath_handler",
+   "exit": 0,
+   "seconds": 19.73,
+   "log_sha256": "6ce95ab4474220fe5cb077082ddfadc81a2b35ecf7b8fc8a0104cb7a03068c83"
+  },
+  {
+   "name": "msrv_sqmass_only",
+   "command": "cargo +1.85.0 test --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation",
+   "exit": 0,
+   "seconds": 23.96,
+   "log_sha256": "ae99544cb61cd87fcc2063fccf17c981fb23b411d1a4d2bdbf7e4dec09a5247a"
+  },
+  {
+   "name": "msrv_sqmass_only_extra_check",
+   "command": "cargo +1.85.0 test --locked --no-default-features --features 'sqmass rusqlite/extra_check' --test mzml_sqlite_handler --test mzml_precursor_activation",
+   "exit": 0,
+   "seconds": 23.88,
+   "log_sha256": "60b0cc663077718ea25f9398d17dd422ffbf1f63b73046e640888265aa812c35"
+  },
+  {
+   "name": "swath_clippy",
+   "command": "cargo clippy --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler -- -D warnings",
+   "exit": 0,
+   "seconds": 13.27,
+   "log_sha256": "0b8198a9ca0d35bb0be3fccca522a69f5632b9438d98130dbf6e379b62299bf5"
+  },
+  {
+   "name": "swath_rustdoc",
+   "command": "RUSTDOCFLAGS='-D warnings' cargo doc --locked --no-default-features --features sqlite --no-deps",
+   "exit": 0,
+   "seconds": 3.48,
+   "log_sha256": "9b3e633546ca749d050819a69aec6a10240d9231f3dd453deee47ae28a0136f4"
+  },
+  {
+   "name": "sqmass_clippy",
+   "command": "cargo clippy --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation -- -D warnings",
+   "exit": 0,
+   "seconds": 16.91,
+   "log_sha256": "3d337609d7b2c5207e27ffe2e5f03d45359d78bbaf2cdc826867b52e8cd02cb1"
+  },
+  {
+   "name": "mzml_only_activation",
+   "command": "cargo test --locked --no-default-features --features mzml --test mzml_precursor_activation",
+   "exit": 0,
+   "seconds": 20.96,
+   "log_sha256": "8b8332b3e5b0928042b5066988991180ff6aaabee2d105c0351ea19740b9d86f"
+  },
+  {
+   "name": "msrv_system_process_x10",
+   "command": "for i in 1 2 3 4 5 6 7 8 9 10; do cargo +1.85.0 test --locked --all-features --test system_process || exit 1; done",
+   "exit": 0,
+   "seconds": 16.04,
+   "log_sha256": "af61612a4a9ba4ef82e274eb4902ce211f9e4ca9c834abb682978f4c8d33cfee"
+  },
+  {
+   "name": "system_process_x10",
+   "command": "for i in 1 2 3 4 5 6 7 8 9 10; do cargo test --locked --all-features --test system_process || exit 1; done",
+   "exit": 0,
+   "seconds": 15.99,
+   "log_sha256": "83a746e018788754f44d229d363180876f3cd2cb2eb7f2121e88b4a20f509701"
+  },
+  {
+   "name": "check_core_sdk",
+   "command": "python3 tools/check_core_sdk.py",
+   "exit": 0,
+   "seconds": 0.11,
+   "log_sha256": "a626df96205070777d0651f62010400df08646b90939e151b3298db0c17f1e20"
+  },
+  {
+   "name": "test_core_sdk",
+   "command": "python3 tools/test_core_sdk.py",
+   "exit": 0,
+   "seconds": 0.05,
+   "log_sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4"
+  },
+  {
+   "name": "core_sdk_coverage",
+   "command": "python3 tools/core_sdk_coverage.py",
+   "exit": 0,
+   "seconds": 0.2,
+   "log_sha256": "2be06bbc2dcdcdc6676a876c204f1c2c555be59066c142ebd89ee4ad8800eb4a"
+  },
+  {
+   "name": "test_core_sdk_coverage",
+   "command": "python3 tools/test_core_sdk_coverage.py",
+   "exit": 0,
+   "seconds": 0.22,
+   "log_sha256": "d6383b13a4eb2ffd96733ab1bd87818f09f147421aa768b45d08401be5180335"
+  },
+  {
+   "name": "check_doc_coverage",
+   "command": "python3 tools/check_doc_coverage.py",
+   "exit": 0,
+   "seconds": 0.09,
+   "log_sha256": "1eec31ae3a5ae77a8ff8cdac8f9bcb530146ea8e2e5374da737fcaf47c8cca31"
+  },
+  {
+   "name": "check_module_cycles",
+   "command": "python3 tools/check_module_cycles.py",
+   "exit": 0,
+   "seconds": 0.16,
+   "log_sha256": "f244d20e55e6cad6abedf444733368b62c5e4558901ef3854f2701353f902e28"
+  },
+  {
+   "name": "check_schema_feature_graph",
+   "command": "env RUSTUP_TOOLCHAIN=1.85.0 python3 tools/check_schema_feature_graph.py",
+   "exit": 0,
+   "seconds": 47.71,
+   "log_sha256": "675da3dd6fa45ccded3f2ca7a4017966cf62cce2df766a84f6aa904b17a0ba1e"
+  }
+ ],
+ "all_passed": true
+}

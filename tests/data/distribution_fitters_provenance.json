@@ -352,5 +352,12 @@
   "Documentation, corrected: the digamma justification 'the value enters only the Jacobian, which does not define the optimum' contradicted the document's own argument for reproducing Eigen's stopping rule and has been replaced by a slack-based argument.",
   "Documentation, withdrawn: the Python re-implementation cross-check, which could not support the fidelity conclusion it was attached to.",
   "Documentation, corrected: the stated test tolerance for eval was 1e-11; the test file asserts 1e-14."
+ ],
+ "central_cpp_issue_ids": [
+  "CPP-221",
+  "CPP-222",
+  "CPP-223",
+  "CPP-224",
+  "CPP-228"
  ]
 }

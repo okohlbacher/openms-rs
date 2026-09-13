@@ -21,7 +21,6 @@ use crate::kernel::{
 use crate::metadata::{ActivationMethod, MetaValue, Polarity, Product};
 use crate::{Error, Result};
 use rusqlite::{Connection, OptionalExtension, Row, params};
-use std::collections::BTreeSet;
 use std::io::{Cursor, Write};
 use std::path::{Path, PathBuf};
 
@@ -51,7 +50,7 @@ pub struct HandlerLimits {
     pub max_total_bytes: usize,
     /// Maximum compressed or expanded RUN_EXTRA mzML bytes.
     pub max_metadata_bytes: usize,
-    /// Maximum database file bytes before opening it for a read or write.
+    /// Maximum physical input and logical database bytes, also checked before commit.
     pub max_database_bytes: u64,
     /// Shared metadata/codec traversal budget.
     pub max_work: usize,
@@ -206,8 +205,8 @@ impl MzMLSqliteHandler {
                 return Err(invalid("record RUN_ID does not match the experiment RUN"));
             }
         }
-        let spectra_ids = ids(&tx, "SPECTRUM")?;
-        let chrom_ids = ids(&tx, "CHROMATOGRAM")?;
+        let spectra_ids = ids(&tx, "SPECTRUM", &mut budget)?;
+        let chrom_ids = ids(&tx, "CHROMATOGRAM", &mut budget)?;
         let mut spectra = self.spectra(&tx, &spectra_ids, true, &mut budget)?;
         let mut chromatograms = self.chromatograms(&tx, &chrom_ids, true, &mut budget)?;
         let mut experiment = MSExperiment::default();
@@ -248,14 +247,15 @@ impl MzMLSqliteHandler {
     /// Read a nonempty set of unique nonnegative SQL IDs, in increasing ID order.
     /// Selected reads reconstruct SQL metadata only; they never consult RUN_EXTRA.
     pub fn read_spectra(&self, indices: &[i64], meta_only: bool) -> Result<Vec<MSSpectrum>> {
-        let selected = selection(indices, self.limits.max_records, false)?;
+        let mut budget = Budget::new(self.limits);
+        let selected = selection(indices, false, &mut budget)?;
         let connector = self.open(false)?;
         let tx = connector
             .connection()
             .unchecked_transaction()
             .map_err(sql_error)?;
         self.schema(&tx)?;
-        let result = self.spectra(&tx, &selected, meta_only, &mut Budget::new(self.limits))?;
+        let result = self.spectra(&tx, &selected, meta_only, &mut budget)?;
         tx.commit().map_err(sql_error)?;
         Ok(result)
     }
@@ -266,15 +266,15 @@ impl MzMLSqliteHandler {
         indices: &[i64],
         meta_only: bool,
     ) -> Result<Vec<MSChromatogram>> {
-        let selected = selection(indices, self.limits.max_records, false)?;
+        let mut budget = Budget::new(self.limits);
+        let selected = selection(indices, false, &mut budget)?;
         let connector = self.open(false)?;
         let tx = connector
             .connection()
             .unchecked_transaction()
             .map_err(sql_error)?;
         self.schema(&tx)?;
-        let result =
-            self.chromatograms(&tx, &selected, meta_only, &mut Budget::new(self.limits))?;
+        let result = self.chromatograms(&tx, &selected, meta_only, &mut budget)?;
         tx.commit().map_err(sql_error)?;
         Ok(result)
     }
@@ -284,9 +284,8 @@ impl MzMLSqliteHandler {
     pub fn spectra_indices_by_rt(&self, rt: f64, delta: f64, indices: &[i64]) -> Result<Vec<i64>> {
         finite(rt)?;
         finite(delta)?;
-        let selected: BTreeSet<_> = selection(indices, self.limits.max_records, true)?
-            .into_iter()
-            .collect();
+        let mut budget = Budget::new(self.limits);
+        let selected = selection(indices, true, &mut budget)?;
         let lower = if delta > 0.0 { rt - delta } else { rt };
         let upper = if delta > 0.0 { rt + delta } else { f64::MAX };
         finite(lower)?;
@@ -300,11 +299,17 @@ impl MzMLSqliteHandler {
         let result = {
             let mut stmt = tx.prepare("SELECT ID, RETENTION_TIME FROM SPECTRUM WHERE RETENTION_TIME BETWEEN ?1 AND ?2 ORDER BY RETENTION_TIME, ID").map_err(sql_error)?;
             let mut rows = stmt.query(params![lower, upper]).map_err(sql_error)?;
-            let mut result = Vec::new();
+            let capacity = if delta > 0.0 {
+                count(&tx, "SPECTRUM")?
+            } else {
+                1
+            };
+            let mut result = budget.work.vector(capacity)?;
             while let Some(row) = rows.next().map_err(sql_error)? {
+                budget.work.spend(1)?;
                 let id = nonnegative_id(row.get(0).map_err(sql_error)?)?;
                 finite(row.get(1).map_err(sql_error)?)?;
-                if selected.is_empty() || selected.contains(&id) {
+                if selected.is_empty() || selected.binary_search(&id).is_ok() {
                     result.push(id);
                     if delta <= 0.0 {
                         break;
@@ -341,6 +346,7 @@ impl MzMLSqliteHandler {
         let stage = directory.path().join("sqmass.sqlite");
         let connector = SqliteConnector::new(&stage)?;
         connector.execute_statement(SCHEMA)?;
+        self.schema(connector.connection())?;
         drop(connector);
         std::fs::rename(stage, &self.filename)?;
         self.spectrum_id = 0;
@@ -365,6 +371,7 @@ impl MzMLSqliteHandler {
         self.write_run(&tx, experiment, self.config.write_full_meta, &mut budget)?;
         self.store_chromatograms(&tx, &experiment.chromatograms, 0, &mut budget)?;
         self.store_spectra(&tx, &experiment.spectra, 0, &mut budget)?;
+        self.schema(&tx)?;
         tx.commit().map_err(sql_error)?;
         self.spectrum_id = experiment.spectra.len() as i64;
         self.chromatogram_id = experiment.chromatograms.len() as i64;
@@ -409,6 +416,7 @@ impl MzMLSqliteHandler {
             }
         }
         self.store_spectra(&tx, spectra, self.spectrum_id, &mut budget)?;
+        self.schema(&tx)?;
         tx.commit().map_err(sql_error)?;
         self.spectrum_id += spectra.len() as i64;
         Ok(())
@@ -456,6 +464,7 @@ impl MzMLSqliteHandler {
             }
         }
         self.store_chromatograms(&tx, chromatograms, self.chromatogram_id, &mut budget)?;
+        self.schema(&tx)?;
         tx.commit().map_err(sql_error)?;
         self.chromatogram_id += chromatograms.len() as i64;
         Ok(())
@@ -477,6 +486,7 @@ impl MzMLSqliteHandler {
             .map_err(sql_error)?;
         self.schema(&tx)?;
         self.write_run(&tx, experiment, full_meta, &mut budget)?;
+        self.schema(&tx)?;
         tx.commit().map_err(sql_error)?;
         Ok(())
     }
@@ -515,23 +525,28 @@ fn count(conn: &Connection, table: &str) -> Result<usize> {
         .map_err(sql_error)?;
     usize::try_from(value).map_err(|_| invalid("row count exceeds usize"))
 }
-fn ids(conn: &Connection, table: &str) -> Result<Vec<i64>> {
+fn ids(conn: &Connection, table: &str, budget: &mut Budget) -> Result<Vec<i64>> {
     let mut stmt = conn
         .prepare(&format!("SELECT ID FROM {table} ORDER BY ID"))
         .map_err(sql_error)?;
     let mut rows = stmt.query([]).map_err(sql_error)?;
-    let mut result = Vec::new();
+    let mut result = budget.work.vector(count(conn, table)?)?;
     while let Some(row) = rows.next().map_err(sql_error)? {
+        budget.work.spend(1)?;
         result.push(nonnegative_id(row.get(0).map_err(sql_error)?)?);
     }
     Ok(result)
 }
-fn selection(ids: &[i64], maximum: usize, empty: bool) -> Result<Vec<i64>> {
-    check(ids.len(), maximum, "selection")?;
+fn selection(ids: &[i64], empty: bool, budget: &mut Budget) -> Result<Vec<i64>> {
+    check(ids.len(), budget.limits.max_records, "selection")?;
     if ids.is_empty() && !empty {
         return Err(invalid("selection must not be empty"));
     }
-    let mut values = ids.to_vec();
+    let mut values = budget.work.vector(ids.len())?;
+    budget
+        .work
+        .spend(ids.len().saturating_mul(usize::BITS as usize))?;
+    values.extend_from_slice(ids);
     values.sort_unstable();
     if values.first().is_some_and(|id| *id < 0) || values.windows(2).any(|p| p[0] == p[1]) {
         return Err(invalid("negative or duplicate selected IDs"));
@@ -627,13 +642,17 @@ impl MzMLSqliteHandler {
                 budget.work.limits.raw.max_encoded_bytes = self.limits.max_metadata_bytes;
                 let xml = codec::zlib_decode(blob, &mut budget.work)?;
                 budget.work.limits.raw.max_encoded_bytes = old;
-                // Reserve the embedded reader's entire parameter allowance
-                // from the remaining operation budget before parsing.
+                // Count borrowed XML start events before the full parser can
+                // allocate record structures. Declared mzML list counts are
+                // advisory and cannot safely size this allowance.
+                let snapshot_records = snapshot_record_slots(&xml, budget)?;
+                // Reserve the embedded reader's parameter and array allowances
+                // separately from the remaining operation budget before parsing.
                 let parser_bytes = self
                     .limits
                     .max_metadata_bytes
-                    .min(budget.work.remaining_bytes() / 2);
-                budget.work.allocate(parser_bytes)?;
+                    .min(budget.work.remaining_bytes() / 4);
+                budget.work.allocate(parser_bytes * 2)?;
                 let parser_work = xml
                     .len()
                     .checked_mul(64)
@@ -642,7 +661,7 @@ impl MzMLSqliteHandler {
                 budget.work.spend(parser_work)?;
                 let options = super::mzml::ReadOptions {
                     max_xml_bytes: self.limits.max_metadata_bytes as u64,
-                    max_records: self.limits.max_records,
+                    max_records: snapshot_records,
                     max_array_bytes: self.limits.max_blob_bytes,
                     max_total_peaks: 0,
                     max_total_array_bytes: parser_bytes,
@@ -702,7 +721,6 @@ impl MzMLSqliteHandler {
             return Err(invalid("logical database size limit"));
         }
         let mut records = 0usize;
-        let mut bytes = 0usize;
         for table in [
             "RUN",
             "RUN_EXTRA",
@@ -712,7 +730,7 @@ impl MzMLSqliteHandler {
             "PRECURSOR",
             "PRODUCT",
         ] {
-            let kind: Option<String> = conn.query_row("SELECT type FROM pragma_table_list WHERE schema='main' AND name=?1 COLLATE NOCASE", [table], |r| r.get(0)).optional().map_err(sql_error)?;
+            let kind: Option<String> = conn.query_row("SELECT type FROM pragma_table_list() WHERE schema='main' AND name=?1 COLLATE NOCASE", [table], |r| r.get(0)).optional().map_err(sql_error)?;
             if kind.as_deref() != Some("table") {
                 return Err(invalid(
                     "required ordinary main table missing (views/virtual tables are unsupported)",
@@ -729,26 +747,12 @@ impl MzMLSqliteHandler {
                     .checked_add(n)
                     .ok_or_else(|| invalid("SQL record count overflow"))?;
             }
-            let expression = match table {
-                "RUN" => "length(CAST(FILENAME AS BLOB))+length(CAST(NATIVE_ID AS BLOB))",
-                "RUN_EXTRA" | "DATA" => "length(DATA)",
-                "SPECTRUM" | "CHROMATOGRAM" => "length(CAST(NATIVE_ID AS BLOB))",
-                "PRECURSOR" => "coalesce(length(CAST(PEPTIDE_SEQUENCE AS BLOB)),0)",
-                _ => "0",
-            };
-            let n: i64 = conn
-                .query_row(
-                    &format!("SELECT coalesce(sum({expression}),0) FROM {table}"),
-                    [],
-                    |r| r.get(0),
-                )
-                .map_err(sql_error)?;
-            bytes = bytes
-                .checked_add(usize::try_from(n).map_err(|_| invalid("SQL payload size overflow"))?)
-                .ok_or_else(|| invalid("SQL payload sum overflow"))?;
         }
+        // Stored payload is bounded by the page-count check against
+        // `max_database_bytes` above. `max_total_bytes` is an allocation budget,
+        // charged where an operation materializes values, so it must not reject a
+        // file merely for storing more than one operation may load.
         check(records, self.limits.max_records, "SQL records")?;
-        check(bytes, self.limits.max_total_bytes, "SQL payload bytes")?;
         for table in ["SPECTRUM", "CHROMATOGRAM"] {
             let bad: bool = conn.query_row(&format!("SELECT EXISTS(SELECT 1 FROM {table} WHERE ID IS NULL OR typeof(ID)!='integer' OR ID<0 OR NATIVE_ID IS NULL)"), [], |r| r.get(0)).map_err(sql_error)?;
             if bad {
@@ -1116,12 +1120,24 @@ impl MzMLSqliteHandler {
                     NumpressEncodeStatus::Encoded | NumpressEncodeStatus::EmptyInput => {}
                     _ => return Err(invalid("Numpress encoding rejected; no DATA row written")),
                 }
-                if !values.is_empty()
-                    && report
+                if !values.is_empty() {
+                    let factor = report
                         .fixed_point
-                        .is_some_and(|factor| !factor.is_finite() || factor <= 0.0)
-                {
-                    return Err(invalid("Numpress produced an unusable fixed point"));
+                        .filter(|v| v.is_finite() && *v > 0.0)
+                        .ok_or_else(|| invalid("Numpress produced an unusable fixed point"))?;
+                    // Linear stores its first two values as unsigned 32-bit
+                    // integers. The raw source-compatible codec retains their
+                    // low bits, so this storage adapter must reject wrapping.
+                    if role != 1
+                        && values.iter().take(2).any(|value| {
+                            let quantized = (value * factor + 0.5).trunc();
+                            !(0.0..4294967296.0).contains(&quantized)
+                        })
+                    {
+                        return Err(invalid(
+                            "Numpress initial coordinates exceed unsigned 32-bit quantization",
+                        ));
+                    }
                 }
                 (if role == 1 { 6 } else { 5 }, report.output)
             } else {
@@ -1193,6 +1209,33 @@ impl MzMLSqliteHandler {
             .map_err(sql_error)?;
         }
         Ok(())
+    }
+}
+
+// The nested mzML parser has its own fixed header registry limits. This
+// preflight meters record slots against the enclosing operation, in addition
+// to the parameter/array allowances passed through its public ReadOptions.
+fn snapshot_record_slots(xml: &[u8], budget: &mut Budget) -> Result<usize> {
+    budget.work.spend(xml.len())?;
+    let mut reader = quick_xml::Reader::from_reader(xml);
+    let mut records = 0usize;
+    loop {
+        match reader.read_event().map_err(|e| invalid(&e.to_string()))? {
+            quick_xml::events::Event::Start(tag) | quick_xml::events::Event::Empty(tag) => {
+                let bytes = match tag.local_name().as_ref() {
+                    b"spectrum" => std::mem::size_of::<MSSpectrum>(),
+                    b"chromatogram" => std::mem::size_of::<MSChromatogram>(),
+                    _ => continue,
+                };
+                records = records
+                    .checked_add(1)
+                    .ok_or_else(|| invalid("snapshot record overflow"))?;
+                check(records, budget.limits.max_records, "snapshot records")?;
+                budget.work.allocate(bytes)?;
+            }
+            quick_xml::events::Event::Eof => return Ok(records),
+            _ => {}
+        }
     }
 }
 

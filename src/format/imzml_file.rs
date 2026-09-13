@@ -528,7 +528,7 @@ impl MetaGeometryReport {
 /// File adapter for imzML 1.1.0 mass spectrometry imaging data.
 ///
 /// Source `ImzMLFile`, which derives from `Internal::XMLFile` — contributing
-/// the mzML 1.1.0 schema and [`is_valid`](Self::is_valid) — and from
+/// the mzML 1.1.0 schema and `is_valid` (available with the `mzml-schema` feature) — and from
 /// `ProgressLogger`, contributing [`log_type`](Self::log_type) and
 /// [`set_log_type`](Self::set_log_type). Rust has no implementation
 /// inheritance, so both are members here.

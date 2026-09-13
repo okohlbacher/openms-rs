@@ -130,6 +130,7 @@ impl Default for ReadOptions {
 /// Writer stores f64 coordinates and f32 intensities; compression changes only encoding.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WriteOptions {
+    /// Compress binary arrays with zlib; false writes uncompressed arrays.
     pub zlib_compression: bool,
 }
 
@@ -1094,7 +1095,13 @@ fn apply_parameter(
                 return Ok(());
             }
             let value = product_user_value(attrs)?;
-            let p = record.as_mut().unwrap().precursor.as_mut().unwrap();
+            let r = record.as_mut().unwrap();
+            if name == "peak intensity unit accession"
+                && r.precursor_fields.contains("intensity_explicit_unit")
+            {
+                return Err(invalid("duplicate precursor intensity unit metadata"));
+            }
+            let p = r.precursor.as_mut().unwrap();
             if p.cv_terms.metadata.insert(name.into(), value).is_some() {
                 return Err(invalid("duplicate precursor metadata key"));
             }
@@ -1298,6 +1305,10 @@ pub fn read_with_load_options(
 pub fn read_metadata(reader: impl BufRead) -> Result<crate::metadata::ExperimentalSettings> {
     read_metadata_with_options(reader, &ReadOptions::default())
 }
+/// Read run metadata with caller-supplied XML and parameter limits.
+///
+/// Like [`read_metadata`], stops at the first record-list opening tag. Invalid
+/// header metadata, unresolved references, and exceeded limits return an error.
 pub fn read_metadata_with_options(
     reader: impl BufRead,
     options: &ReadOptions,

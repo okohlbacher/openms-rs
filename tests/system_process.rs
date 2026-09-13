@@ -22,6 +22,18 @@
 //!   therefore tested directly on every platform, and the "interpreter present"
 //!   half is exercised against a recorded stand-in script on Unix. Banner
 //!   parsing is tested on recorded strings alone.
+//!
+//! The tests in this binary run one at a time. On Linux a child forked by one
+//! test inherits every descriptor open at that instant, including the write
+//! handle another test holds while it writes a stand-in script, and keeps it
+//! until its own `exec`. Executing that script in the meantime fails with
+//! `ETXTBSY` ("Text file busy"), which the port reports as
+//! `ReturnState::FailedToStart`, as the source would. Measured on the Linux
+//! build node with the spawn error printed: 18 of 25 parallel runs failed that
+//! way under both Rust 1.85 and 1.96, and 0 of 20 single-threaded runs did. The
+//! race is in the harness, not in `ExternalProcess`, so every test here takes
+//! `serial` first; a test that only spawns can still hand a write handle to its
+//! child, so the guard covers spawning tests as well as script writers.
 
 use openms::system::external_process::{
     self, ExternalProcess, Invocation, IoMode, ReturnState, capture,
@@ -35,6 +47,16 @@ use std::time::Duration;
 
 fn temp() -> TempDir {
     TempDir::new_in(std::env::temp_dir(), false).unwrap()
+}
+
+/// Holds the lock that keeps this binary's tests from running concurrently.
+///
+/// A panicking test poisons the mutex; the next test takes the lock anyway,
+/// because the guarded state is `()` and the failure is already reported.
+fn serial() -> std::sync::MutexGuard<'static, ()> {
+    static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    LOCK.lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 /// A context that reaches nothing outside `base`: no `PATH`, no shared data.
@@ -76,6 +98,7 @@ const FAIL_SCRIPT: &str = "#!/bin/sh\necho MARKER_STDERR_FAIL 1>&2\nexit 2\n";
 #[cfg(unix)]
 #[test]
 fn a_default_constructed_process_swallows_output_and_still_reports_state() {
+    let _serial = serial();
     let directory = temp();
     let ok = script(directory.path(), "ok.sh", OK_SCRIPT);
     let mut process = ExternalProcess::default();
@@ -94,6 +117,7 @@ fn a_default_constructed_process_swallows_output_and_still_reports_state() {
 #[cfg(unix)]
 #[test]
 fn constructed_callbacks_receive_the_two_streams_separately() {
+    let _serial = serial();
     let directory = temp();
     let ok = script(directory.path(), "ok.sh", OK_SCRIPT);
     let fail = script(directory.path(), "fail.sh", FAIL_SCRIPT);
@@ -129,6 +153,7 @@ fn constructed_callbacks_receive_the_two_streams_separately() {
 #[cfg(unix)]
 #[test]
 fn what_the_callbacks_collected_outlives_the_process_value() {
+    let _serial = serial();
     let directory = temp();
     let ok = script(directory.path(), "ok.sh", OK_SCRIPT);
     let mut collected = String::new();
@@ -148,6 +173,7 @@ fn what_the_callbacks_collected_outlives_the_process_value() {
 #[cfg(unix)]
 #[test]
 fn set_callbacks_swaps_which_buffer_receives_standard_error() {
+    let _serial = serial();
     let directory = temp();
     let fail = script(directory.path(), "fail.sh", FAIL_SCRIPT);
     let mut first = String::new();
@@ -174,6 +200,7 @@ fn set_callbacks_swaps_which_buffer_receives_standard_error() {
 #[cfg(unix)]
 #[test]
 fn run_reports_success_failure_to_start_and_a_nonzero_exit() {
+    let _serial = serial();
     let directory = temp();
     let ok = script(directory.path(), "ok.sh", OK_SCRIPT);
     let fail = script(directory.path(), "fail.sh", FAIL_SCRIPT);
@@ -222,6 +249,7 @@ fn run_reports_success_failure_to_start_and_a_nonzero_exit() {
 #[cfg(unix)]
 #[test]
 fn one_report_carries_both_overloads_outputs() {
+    let _serial = serial();
     let directory = temp();
     let fail = script(directory.path(), "fail.sh", FAIL_SCRIPT);
     let mut process = ExternalProcess::new();
@@ -245,6 +273,7 @@ fn one_report_carries_both_overloads_outputs() {
 #[cfg(unix)]
 #[test]
 fn spaces_in_the_executable_path_and_in_one_argument_survive() {
+    let _serial = serial();
     let directory = temp();
     let spaced = directory.path().join("open ms space dir");
     let path = script(
@@ -279,6 +308,7 @@ fn spaces_in_the_executable_path_and_in_one_argument_survive() {
 #[cfg(unix)]
 #[test]
 fn a_child_killed_by_a_signal_is_a_crash_in_every_io_mode() {
+    let _serial = serial();
     let directory = temp();
     let path = script(directory.path(), "crash.sh", "#!/bin/sh\nkill -9 $$\n");
     for mode in [IoMode::ReadWrite, IoMode::NoIo] {
@@ -296,6 +326,7 @@ fn a_child_killed_by_a_signal_is_a_crash_in_every_io_mode() {
 #[cfg(unix)]
 #[test]
 fn a_child_that_overruns_its_budget_is_terminated() {
+    let _serial = serial();
     let directory = temp();
     let path = script(directory.path(), "sleep.sh", "#!/bin/sh\nsleep 30\n");
     let run = capture(
@@ -314,6 +345,7 @@ fn a_child_that_overruns_its_budget_is_terminated() {
 #[cfg(unix)]
 #[test]
 fn the_environment_overlay_is_added_to_the_inherited_environment() {
+    let _serial = serial();
     let directory = temp();
     let path = script(
         directory.path(),
@@ -332,6 +364,7 @@ fn the_environment_overlay_is_added_to_the_inherited_environment() {
 #[cfg(unix)]
 #[test]
 fn the_working_directory_is_where_relative_paths_resolve() {
+    let _serial = serial();
     let directory = temp();
     let path = script(directory.path(), "cat.sh", "#!/bin/sh\ncat ./marker.txt\n");
     fs::write(
@@ -356,6 +389,7 @@ fn the_working_directory_is_where_relative_paths_resolve() {
 #[cfg(unix)]
 #[test]
 fn an_empty_working_directory_is_the_current_one() {
+    let _serial = serial();
     let directory = temp();
     let path = script(directory.path(), "pwd.sh", "#!/bin/sh\npwd\n");
 
@@ -371,6 +405,7 @@ fn an_empty_working_directory_is_the_current_one() {
 #[cfg(unix)]
 #[test]
 fn the_idle_callback_runs_while_the_child_runs() {
+    let _serial = serial();
     let directory = temp();
     let path = script(directory.path(), "slow.sh", "#!/bin/sh\nsleep 0.4\n");
     let mut ticks = 0_usize;
@@ -396,6 +431,7 @@ fn the_idle_callback_runs_while_the_child_runs() {
 #[cfg(unix)]
 #[test]
 fn the_idle_cadence_is_set_by_the_clock_and_not_by_the_output() {
+    let _serial = serial();
     let directory = temp();
     let path = script(
         directory.path(),
@@ -433,6 +469,7 @@ fn the_idle_cadence_is_set_by_the_clock_and_not_by_the_output() {
 #[cfg(unix)]
 #[test]
 fn a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes() {
+    let _serial = serial();
     let directory = temp();
     let path = script(
         directory.path(),
@@ -463,6 +500,7 @@ fn a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes() {
 #[cfg(unix)]
 #[test]
 fn verbose_mode_brackets_the_call_with_the_sources_two_banners() {
+    let _serial = serial();
     let directory = temp();
     let ok = script(directory.path(), "ok.sh", OK_SCRIPT);
     let mut out = String::new();
@@ -480,6 +518,7 @@ fn verbose_mode_brackets_the_call_with_the_sources_two_banners() {
 /// the branch the class test reaches with `"this_exe_does_not_exist"`.
 #[test]
 fn a_missing_program_is_a_state_and_never_an_error() {
+    let _serial = serial();
     let mut process = ExternalProcess::new();
     let report = process
         .run(&Invocation::new("this_exe_does_not_exist_@@"), false)
@@ -494,6 +533,7 @@ fn a_missing_program_is_a_state_and_never_an_error() {
 /// oversized request leaves the system untouched.
 #[test]
 fn every_ceiling_is_checked_before_a_child_exists() {
+    let _serial = serial();
     let too_many = Invocation::new("true")
         .with_arguments(vec!["x".to_owned(); external_process::MAX_ARGUMENTS + 1]);
     assert!(too_many.preflight().is_err());
@@ -534,6 +574,7 @@ fn every_ceiling_is_checked_before_a_child_exists() {
 /// every platform, together with the diagnosis the source would have logged.
 #[test]
 fn java_cannot_run_from_an_empty_executable_name() {
+    let _serial = serial();
     let directory = temp();
     let check = java_info::can_run(&context(directory.path()), "").unwrap();
     assert!(!check.can_run);
@@ -550,6 +591,7 @@ fn java_cannot_run_from_an_empty_executable_name() {
 #[cfg(unix)]
 #[test]
 fn java_is_probed_through_a_recorded_stand_in_on_the_search_path() {
+    let _serial = serial();
     let directory = temp();
     let good = directory.path().join("good");
     let bad = directory.path().join("bad");
@@ -597,6 +639,7 @@ const FAKE_PYTHON: &str = "#!/bin/sh\ncase \"$1\" in\n  --version) echo 'Python 
 /// on Unix.
 #[test]
 fn python_can_run_reproduces_the_two_message_literals() {
+    let _serial = serial();
     let directory = temp();
     let context = context(directory.path());
 
@@ -615,6 +658,7 @@ fn python_can_run_reproduces_the_two_message_literals() {
 #[cfg(unix)]
 #[test]
 fn python_can_run_resolves_a_bare_name_to_an_absolute_path() {
+    let _serial = serial();
     let directory = temp();
     let bin = directory.path().join("bin_python");
     script(&bin, "python", FAKE_PYTHON);
@@ -643,6 +687,7 @@ fn python_can_run_resolves_a_bare_name_to_an_absolute_path() {
 /// route, and `math` is answered by the stand-in interpreter.
 #[test]
 fn python_package_detection_answers_the_class_tests_two_values() {
+    let _serial = serial();
     let directory = temp();
     let context = context(directory.path());
     assert!(
@@ -660,6 +705,7 @@ fn python_package_detection_answers_the_class_tests_two_values() {
 #[cfg(unix)]
 #[test]
 fn python_package_detection_uses_the_stand_in_interpreter() {
+    let _serial = serial();
     let directory = temp();
     let bin = directory.path().join("bin_python");
     script(&bin, "python", FAKE_PYTHON);
@@ -679,6 +725,7 @@ fn python_package_detection_uses_the_stand_in_interpreter() {
 /// recorded strings pin the source's concatenate-then-trim rule independently.
 #[test]
 fn python_version_parsing_follows_the_sources_concatenate_then_trim() {
+    let _serial = serial();
     assert_eq!(
         python_info::version_from_output("Python 3.11.4\n", ""),
         "Python 3.11.4"
@@ -701,6 +748,7 @@ fn python_version_parsing_follows_the_sources_concatenate_then_trim() {
 #[cfg(unix)]
 #[test]
 fn python_version_is_read_from_the_stand_in_and_empty_when_absent() {
+    let _serial = serial();
     let directory = temp();
     let bin = directory.path().join("bin_python");
     script(&bin, "python", FAKE_PYTHON);
@@ -731,6 +779,7 @@ const FAKE_RSCRIPT: &str = "#!/bin/sh\nfor a in \"$@\"; do echo \"[$a]\"; done\n
 /// clean answer either way, which here is `Ok` rather than a panic.
 #[test]
 fn find_r_reports_a_bogus_interpreter_cleanly() {
+    let _serial = serial();
     let directory = temp();
     let context = context(directory.path());
     let check = r_wrapper::find_r(&context, "this_is_not_a_real_R_interpreter_xyz").unwrap();
@@ -747,6 +796,7 @@ fn find_r_reports_a_bogus_interpreter_cleanly() {
 #[cfg(unix)]
 #[test]
 fn find_r_accepts_a_recorded_stand_in_interpreter() {
+    let _serial = serial();
     let directory = temp();
     let bin = directory.path().join("bin_r");
     script(&bin, "Rscript", FAKE_RSCRIPT);
@@ -769,6 +819,7 @@ fn find_r_accepts_a_recorded_stand_in_interpreter() {
 /// loudly; `runScript` swallows it.
 #[test]
 fn find_script_reports_a_missing_script_as_not_found() {
+    let _serial = serial();
     let directory = temp();
     let error = r_wrapper::find_script(
         &context(directory.path()),
@@ -785,6 +836,7 @@ fn find_script_reports_a_missing_script_as_not_found() {
 /// `share/OpenMS/SCRIPTS`.
 #[test]
 fn find_script_resolves_a_bundled_script_under_the_scripts_directory() {
+    let _serial = serial();
     let directory = temp();
     let share = directory.path().join("share");
     fs::create_dir_all(share.join("CHEMISTRY")).unwrap();
@@ -807,6 +859,7 @@ fn find_script_resolves_a_bundled_script_under_the_scripts_directory() {
 /// an error.
 #[test]
 fn run_script_degrades_to_false_without_raising() {
+    let _serial = serial();
     let directory = temp();
     let context = context(directory.path());
 
@@ -840,6 +893,7 @@ fn run_script_degrades_to_false_without_raising() {
 #[cfg(unix)]
 #[test]
 fn run_script_passes_the_sources_argument_vector_intact() {
+    let _serial = serial();
     let directory = temp();
     let share = directory.path().join("share");
     fs::create_dir_all(share.join("CHEMISTRY")).unwrap();
@@ -878,6 +932,7 @@ fn run_script_passes_the_sources_argument_vector_intact() {
 /// ones the C++ assembled.
 #[test]
 fn captured_output_is_reassembled_the_way_the_source_drains_it() {
+    let _serial = serial();
     assert_eq!(r_wrapper::reassemble_lines("a\nb\n"), "a\nb\n");
     assert_eq!(r_wrapper::reassemble_lines("a\nb"), "a\nb\n");
     assert_eq!(r_wrapper::reassemble_lines("\n"), "\n");
@@ -888,6 +943,7 @@ fn captured_output_is_reassembled_the_way_the_source_drains_it() {
 /// interpreter is looked up.
 #[test]
 fn run_script_refuses_an_oversized_argument_list() {
+    let _serial = serial();
     let directory = temp();
     let many = vec![String::from("x"); r_wrapper::MAX_SCRIPT_ARGUMENTS + 1];
     assert!(

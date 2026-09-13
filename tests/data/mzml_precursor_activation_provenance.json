@@ -1,0 +1,180 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
+      "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLHandler.h",
+      "sha256": "c15c097047358e3e2c3208c767d523f25e95fd18f6b1aba67a8b6383374b0287"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+      "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+      "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+    },
+    {
+      "path": "share/OpenMS/CV/psi-ms.obo",
+      "sha256": "1623792d5fd37ab305bc7228ab6b51839cfde06130f9b8727bd8ce99993a27d3"
+    },
+    {
+      "path": "share/OpenMS/CV/unit.obo",
+      "sha256": "f87734299c881fc03e7e143d35f7ab7607ac5a1f2a8cad07603e1673ad5a15df"
+    }
+  ],
+  "scope": "Narrow mzML precursor activation metadata and selected-ion intensity-unit transport; not complete MzMLFile/MzMLHandler API.",
+  "evidence_tier": "source_review_and_rust_only",
+  "method": "Source-reviewed MzMLFile_test literals at 1420-1434 and 1484-1485; exact canonical native precursor comparisons and independently derived boundary tests. No C++ run or Claude review for this closure.",
+  "fixtures": [
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/sqmass_only.log",
+      "sha256": "b487fdd6b106a2d02cbf01442dcd3def0c112bcd8ed7f862ea2ae37be0037a9f"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/msrv_sqmass_only.log",
+      "sha256": "ae99544cb61cd87fcc2063fccf17c981fb23b411d1a4d2bdbf7e4dec09a5247a"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/mzml_only_activation.log",
+      "sha256": "8b8332b3e5b0928042b5066988991180ff6aaabee2d105c0351ea19740b9d86f"
+    },
+    {
+      "path": "tests/data/sqlite_s1_resume_validation/final/sqmass_clippy.log",
+      "sha256": "3d337609d7b2c5207e27ffe2e5f03d45359d78bbaf2cdc826867b52e8cd02cb1"
+    }
+  ],
+  "native_implementation": [
+    "src/format/mzml_precursor.rs",
+    "src/format/mzml_record.rs",
+    "src/format/mzml.rs"
+  ],
+  "native_tests": [
+    "tests/mzml_precursor_activation.rs"
+  ],
+  "support_document": "docs/MZML_PRECURSOR_ACTIVATION_SUPPORT.md",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "cpp_issues": [
+    "CPP-219"
+  ],
+  "native_validation_superseded": {
+    "status": "focused_checks_passed_whole_tree_integration_pending",
+    "host": "kim",
+    "features": "--no-default-features --features mzml",
+    "summary": "tests/data/mzml_precursor_activation_validation/summary.json",
+    "artifacts": [
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/clippy.log",
+        "sha256": "8b40a83b6c584aae27a949adae7612ea63532464748c7596a6503480980c8458"
+      },
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/doctests.log",
+        "sha256": "1c4c4d9a748b758ecae084498d7eec4187dc0f26a053c01cfd01a352ec202efe"
+      },
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/fmt.log",
+        "sha256": "fa7860331df7c5acac7fc839ad7e4d62e88457c309147c6a596b62a7c71904a7"
+      },
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/focused-clippy.log",
+        "sha256": "4f27ac380b22e1d975eee20ce727fa8cbc09061177f6253af0777fd4de7b7506"
+      },
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/focused.log",
+        "sha256": "ca70d2d4d146a42b8dc14ee039bfd2273744b35c538a92b25a46eebcc94a89e6"
+      },
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/minimum.log",
+        "sha256": "4797a35410fd5bb4f915742c1cec83d2f1b2b6b6ffdc4d31845c92cfb28fa022"
+      },
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/results.json",
+        "sha256": "9528f1599401f9eaf15e51f5184a115eae31aa8e6e6d7eb32463da86577d11de"
+      },
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/rustdoc.log",
+        "sha256": "599253be4018148ddde96921f0001abb027c846c96e27e14f4072fd48acbb069"
+      },
+      {
+        "path": "tests/data/mzml_precursor_activation_validation/summary.json",
+        "sha256": "9c61110454276a26e525fa664290f229624da7ee1395898505d3fda4e87b9e73"
+      }
+    ]
+  },
+  "native_validation": {
+    "status": "passed_final_snapshot",
+    "host": "kim",
+    "run": {
+      "remote_results": "/ceph/ibmi/abi/oliver/openms-rs/results/s1-resume-final-20260913-165118/results.json",
+      "retained_results": "tests/data/sqlite_s1_resume_validation/final/results.json",
+      "snapshot_sha256": "7811316fb1153a3c3ebccd13f4bbd2493632495c2089b5af53a8fbc8448db744",
+      "snapshot_rule": "sha256 over sorted sha256sum lines of every file except target/"
+    },
+    "checks": [
+      {
+        "command": "cargo  test --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation",
+        "exit_code": 0,
+        "toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+        "test_count": 11
+      },
+      {
+        "command": "cargo +1.85.0 test --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation",
+        "exit_code": 0,
+        "toolchain": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+        "test_count": 11
+      },
+      {
+        "command": "cargo test --locked --no-default-features --features mzml --test mzml_precursor_activation",
+        "exit_code": 0,
+        "toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+        "test_count": 11
+      },
+      {
+        "command": "cargo clippy --locked --no-default-features --features sqmass --test mzml_sqlite_handler --test mzml_precursor_activation -- -D warnings",
+        "exit_code": 0,
+        "toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)"
+      }
+    ],
+    "runtime_files": [
+      {
+        "path": "src/format/mzml.rs",
+        "sha256": "eac00a23dcfcf63a78fcce7d2a7055c485f54c9a45c9d55cc6835d46c2df21bc"
+      },
+      {
+        "path": "src/format/mzml_precursor.rs",
+        "sha256": "79b4bf5b78d92b0ca4d72597be90856488b7a191f19ccf6428c5d0d514e92723"
+      },
+      {
+        "path": "src/format/mzml_record.rs",
+        "sha256": "43ffe38d5321eb989043bdbc83fa1188c269d18ad03afce0053e6e1cc2d21533"
+      },
+      {
+        "path": "tests/mzml_precursor_activation.rs",
+        "sha256": "7842d4c92ba33726b8d023002ba9de7f938b27a2c2fc8483f3055d0b30334103"
+      }
+    ],
+    "retained_logs": [
+      "tests/data/sqlite_s1_resume_validation/final/sqmass_only.log",
+      "tests/data/sqlite_s1_resume_validation/final/msrv_sqmass_only.log",
+      "tests/data/sqlite_s1_resume_validation/final/mzml_only_activation.log",
+      "tests/data/sqlite_s1_resume_validation/final/sqmass_clippy.log"
+    ]
+  }
+}

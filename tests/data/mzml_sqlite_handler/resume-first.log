@@ -1,0 +1,88 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+ssh_askpass: exec(/usr/X11R6/bin/ssh-askpass): No such file or directory
+ 14:09:32 up 88 days,  3:09, 63 users,  load average: 7.66, 8.09, 17.74
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   14T  9.2T  4.1T  70% /scratch
+   Compiling autocfg v1.5.1
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.12
+   Compiling pkg-config v0.3.34
+   Compiling vcpkg v0.2.15
+   Compiling cfg-if v1.0.4
+   Compiling crc32fast v1.5.1
+   Compiling libc v0.2.189
+   Compiling libm v0.2.16
+   Compiling simd-adler32 v0.3.10
+   Compiling strength_reduce v0.2.4
+   Compiling adler2 v2.0.1
+   Compiling memchr v2.8.3
+   Compiling fallible-iterator v0.3.0
+   Compiling smallvec v1.16.1
+   Compiling iana-time-zone v0.1.65
+   Compiling libbz2-rs-sys v0.2.5
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling cpufeatures v0.2.17
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/codex-resume-handler)
+   Compiling bitflags v2.13.2
+   Compiling base64 v0.22.1
+   Compiling miniz_oxide v0.8.9
+   Compiling cc v1.4.5
+   Compiling num-traits v0.2.19
+   Compiling generic-array v0.14.7
+   Compiling quick-xml v0.39.4
+   Compiling bzip2 v0.6.1
+   Compiling flate2 v1.1.9
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling libsqlite3-sys v0.38.2
+   Compiling num-integer v0.1.47
+   Compiling num-complex v0.4.6
+   Compiling chrono v0.4.45
+   Compiling cpu-time v1.0.0
+   Compiling sha1 v0.10.7
+   Compiling transpose v0.2.3
+   Compiling primal-check v0.3.4
+   Compiling rustfft v6.4.1
+   Compiling rusqlite v0.40.2
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.93s
+
+running 30 tests
+test comparison_policy_rejects_opposite_signs_except_within_absolute_tolerance ... ok
+test constructor_defaults_and_drop_do_not_create_a_file ... ok
+     Running tests/mzml_sqlite_handler.rs (/scratch/kohlbach/targets/codex-resume-handler/debug/deps/mzml_sqlite_handler-cfaeb1f9ed0821af)
+test retained_run_id_and_counts ... ok
+test lossless_raw_blob_limit_is_checked_before_write ... ok
+test source_loss_policy_preserves_sql_text_nul_and_punctuation ... ok
+test missing_reads_do_not_create_files_and_existing_append_is_rejected ... ok
+test limits_views_and_sidecars_fail_without_mutation ... ok
+test retention_time_class_test_literals_and_stable_nearest ... ok
+test invalid_ownership_run_and_activation_are_errors ... ok
+test selected_spectrum_class_test_literals ... ok
+test invalid_lossy_coordinate_quantization_rolls_back_without_advancing_ids ... ok
+test unsupported_or_corrupt_array_encodings_are_errors ... ok
+test gapped_ids_and_shuffled_data_use_record_identity ... ok
+test run_id_relationship_and_snapshot_acquisition_mismatch_are_rejected ... ok
+test sampled_noise_metadata_grids_survive_full_snapshot ... ok
+test reserved_legacy_run_key_cannot_conflict_with_native_owner ... ok
+test run_level_loaded_file_path_is_bound_and_masked ... ok
+test database_growth_limit_is_checked_before_every_write_commit ... ok
+test builder_can_write_snapshot_before_records ... ok
+test selection_and_metadata_copy_budgets_fail_before_materialization ... ok
+test lossless_empty_arrays_and_empty_experiment_roundtrip ... ok
+test rich_metadata_builder_matches_snapshot_and_rejects_disagreement ... ok
+test loss_policy_is_explicit_and_configuration_is_atomic ... ok
+test every_public_write_rolls_back_and_reuses_counters ... ok
+test selected_chromatogram_class_test_literals ... ok
+test short_lossy_coordinate_arrays_use_readable_lossless_fallback ... ok
+test retained_experiment_metadata_and_all_numeric_values ... ok
+test repeated_chromatogram_appends_lossless_and_lossy ... ok
+test full_experiment_write_recreate_and_lossy_source_tolerances ... ok
+test repeated_spectrum_appends_preserve_source_literals ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+

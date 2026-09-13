@@ -6,21 +6,28 @@ annotation parsing, writing, resolution, [mass calculation](PROFORMA_MASS_SUPPOR
 [spectrum generation](PROFORMA_SPECTRA_SUPPORT.md) are native. The [completion ledger](CORE_SDK_COMPLETION.md) records reviewed
 operation groups and remaining work. Full SDK/TOPP certification remains open.
 
+The immediate delivery priority is an [early TOPP bundle](EARLY_TOPP_BUILD_PLAN.md):
+FileInfo and FeatureFinderCentroided first, then PeakPickerHiRes, alongside the
+five existing tools. This changes implementation order, not full SDK scope.
+
 The target is a feature-complete reduced Core SDK suitable for porting TOPP tools, with an idiomatic Rust API. Spectra, chemistry and common processing were the starting priorities. This document describes the implemented surface rather than claiming parity for every method of a similarly named C++ class. The [completion ledger](CORE_SDK_COMPLETION.md) tracks all registered public headers and direct TOPP dependencies.
 
 The current target is SDK 4.0.0 at `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; the [SDK update](CORE_SDK_UPDATE.md) records the exact source inventory and extracted product backends excluded from this port’s remainder. Historical scientific fixtures retain their original pins.
 
 **All file formats stay in core.** No file-format header may be re-scoped out of the port or deferred to a separate project, including vendor and binary formats (`ThermoRawFile`, `BrukerTimsFile`, `BrukerTimsImagingFile`), container and database formats (`HDF5Connector`, `SqliteConnector`, `SqMassFile`, `OSWFile`, the Arrow/Parquet family), the `MzTab` family and the imzML family (`ImzMLFile`, `ImzMLHandler`, `ImzMLHandlerHelper`, `ImzMLWriter`, `OnDiscImzMLExperiment`). Where a format needs an external dependency or a helper process, that is a dependency decision to record, not a reason to narrow scope. An unported format remains a backlog item, recorded as `unmapped` or `evidence_requires_review` according to the ledger; a partly implemented format is `partial`, never a scope exclusion. The only classes outside the remaining backlog are the tool backends upstream itself moved out of the Core package, listed in [the SDK update](CORE_SDK_UPDATE.md); none of those is a file format.
 
-**Third-party dependencies are replaced by crates, not by our own code.** Wherever OpenMS relies on an external library — Boost, Eigen, evergreen, libcurl and similar — the port first looks for a suitable replacement crate, and writes its own implementation only when none is suitable. Code OpenMS implements itself is ported as before. A crate is suitable when it builds under the crate's MSRV of 1.85, is pure Rust (or C with a stated reason), is maintained and widely used, reproduces the upstream class-test expectations, and gives the same results on every machine. The last two are checked by measurement: a numerical crate whose algorithm lands outside a class test's asserted tolerance is not suitable, and a crate that picks SIMD code by CPU is used in its deterministic mode if it has one. `rustfft` is the worked example — its default planner was measured to differ from its scalar planner in 92-99% of output components for at most a 1.1x speedup on the lengths used here, so the port uses `FftPlannerScalar`. This reverses earlier practice, under which the port reimplemented an HTTP client and an FFT that `ureq` and `rustfft` provide.
+**Third-party dependencies are replaced by crates, not by our own code.** Wherever OpenMS relies on an external library — Boost, Eigen, evergreen, libcurl and similar — the port first looks for a suitable replacement crate, and writes its own implementation only when none is suitable. Code OpenMS implements itself is ported as before. A crate is suitable when it builds under the crate's MSRV of 1.85, is pure Rust (or C with a stated reason), is maintained and widely used, reproduces the upstream class-test expectations, and gives the same results on every machine. The last two are checked by measurement: a numerical crate whose algorithm lands outside a class test's asserted tolerance is not suitable, and a crate that picks SIMD code by CPU is used in its deterministic mode if it has one. `rustfft` is the worked example — its default planner was measured to differ from its scalar planner in 92-99% of output components for at most a 1.1x speedup on the lengths used here, so the port uses `FftPlannerScalar`. This reverses earlier practice, under which the port reimplemented an HTTP client and an FFT that `ureq` and `rustfft` provide. Every decision, including those where no crate was suitable, is recorded with its measurements in [THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md).
 
 **The core is multithreaded.** `rayon` is a default dependency behind the `parallel` feature, with the contract in `src/concept/parallel.rs` that a parallel result is bit-identical to the serial one; `tests/parallel_determinism.rs` enforces it by comparing raw bits across thread counts.
 
 [CV mapping records and XML loading](CV_MAPPING_SUPPORT.md) cover all five class-specific source APIs, with atomic loads and explicit compatibility corrections. [General semantic validation](SEMANTIC_VALIDATOR_SUPPORT.md) now supplies the complete class-specific mapping/term validator with ordered diagnostics and bounded, reusable operations. [MzMLValidator](MZML_VALIDATOR_SUPPORT.md) is also implemented; other derived validators and XSD validation remain separate.
 
 The [FORMAT wave](FORMAT_WAVE_SUPPORT.md) integrates fifteen modules with
-per-header status, feature requirements and evidence limitations. SQLite-family
-formats remain the next planned wave.
+per-header status, feature requirements and evidence limitations. SQLite S1 handler
+and SWATH implementations are integrated; resumed work closes metadata, bounds
+and validation gaps. SqMassFile, streaming/access, OSW and OMS remain outstanding.
+The [wave plan](PORTING_WAVES.md) records the preserved Claude numerical/system
+integrations and the next storage dependencies.
 
 ## Mass traces and additional SDK values
 

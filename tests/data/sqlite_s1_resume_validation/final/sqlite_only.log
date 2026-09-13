@@ -1,0 +1,53 @@
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/claude-s1-final)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.44s
+     Running tests/mzml_sqlite_swath_handler.rs (target/debug/deps/mzml_sqlite_swath_handler-3f2ce9f02b402b21)
+
+running 20 tests
+test constructor_defers_io_and_source_defaults_map_to_value_subset ... ok
+test missing_paths_are_not_created_and_non_database_input_is_unchanged ... ok
+test original_retained_sqmass_has_no_swath_windows_and_two_ms1_records ... ok
+test destruction_and_queries_leave_no_connection_or_file_lock ... ok
+test locked_reads_report_errors_and_recover_after_unlock ... ok
+test center_lookup_skips_null_rows_preserves_duplicates_and_ignores_other_fields ... ok
+test finite_negative_offsets_and_signed_zero_follow_source_arithmetic ... ok
+test small_coordinate_boundaries_use_full_binary_precision ... ok
+test discovery_deduplicates_tuples_and_sorts_independently_of_insertion_order ... ok
+test center_lookup_includes_both_exact_tolerance_boundaries ... ok
+test ids_are_checked_sorted_signed_64_bit_record_keys ... ok
+test null_and_incorrect_sql_types_fail_without_returning_partial_results ... ok
+test sql_step_error_after_a_valid_row_is_not_mistaken_for_end_of_results ... ok
+test forged_pragma_table_list_cannot_authorize_views ... ok
+test row_budget_counts_nonmatches_and_both_discovery_tables ... ok
+test views_are_rejected_before_evaluation_and_missing_columns_report_errors ... ok
+test nonfinite_input_and_selected_sql_values_are_rejected ... ok
+test source_read_ms1_spectra_section ... ok
+test source_read_spectra_for_window_section ... ok
+test source_read_swath_windows_section ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/sqlite_connector.rs (target/debug/deps/sqlite_connector-401ede8946de1cff)
+
+running 19 tests
+test batch_failures_preserve_prior_effects_and_caller_transactions ... ok
+test batch_execution_observes_errors_after_the_first_result_row ... ok
+test binding_steps_transactions_and_returning_statements_once ... ok
+test count_table_rows_preserves_the_source_zero_and_two_counts ... ok
+test binding_ignores_the_tail_without_preparing_its_pragma ... ok
+test failed_bindings_and_constraints_do_not_poison_the_connection ... ok
+test execute_statement_inserts_and_reports_malformed_sql ... ok
+test column_exists_matches_exact_column_names ... ok
+test nul_sql_is_rejected_before_running_any_prefix ... ok
+test quoted_identifiers_are_literal_and_cannot_change_the_query ... ok
+test sqlite_temporary_filename_is_supported ... ok
+test table_exists_matches_exact_main_table_names ... ok
+test construction_creates_a_usable_database ... ok
+test destruction_closes_the_connection ... ok
+test execute_bind_statement_inserts_the_source_bound_value ... ok
+test blobs_preserve_empty_nul_and_non_utf8_bytes_and_missing_bindings ... ok
+test external_non_utf8_column_names_do_not_hide_valid_columns ... ok
+test locked_query_errors_are_not_reported_as_absence ... ok
+test open_modes_preserve_read_only_and_missing_file_behavior ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

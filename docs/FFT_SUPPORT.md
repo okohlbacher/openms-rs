@@ -47,9 +47,12 @@ on the Linux build node:
 | 997 (prime) | 99.8% | 1.3e-9 | 1.3x |
 | 100,003 (prime) | 99.9% | 2.2e-7 | 1.8x |
 
-The SIMD planner makes a kernel density estimate depend on the CPU it runs on,
-and on the power-of-two lengths kernel density estimation uses it buys almost
-nothing. The scalar planner gives the same bits on every machine.
+The scalar planner avoids runtime selection of CPU-specific SIMD kernels. The
+measurements above compare scalar and SIMD execution on the same Linux node;
+they do not establish bit-identical results across machines. Cross-machine
+bitwise reproducibility remains the intended contract, pending comparisons
+across the supported architectures and toolchains. On the measured power-of-two
+lengths used by kernel density estimation, SIMD improved speed by at most 1.1x.
 
 ## API mapping
 
@@ -58,7 +61,7 @@ nothing. The scalar planner gives the same bits on every machine.
 | `cpx` (`src/openms/extern/evergreen/src/FFT/cpx.hpp`) | `Complex`, a type alias for `rustfft::num_complex::Complex<f64>`; construct a real value with `Complex::new(re, 0.0)`, and the modulus is `norm` |
 | `cpx::operator*` | `num_complex`'s `Mul` |
 | `cpx::conj` | `num_complex`'s `conj` |
-| `DIFButterfly<N>::apply` + `RecursiveShuffle<cpx, LOG_N>::apply` | `fft_in_place` / `fft`; the recursion is flattened into the equivalent stage loop |
+| `DIFButterfly<N>::apply` + `RecursiveShuffle<cpx, LOG_N>::apply` | `fft_in_place` / `fft`, delegated to a transform selected by `rustfft::FftPlannerScalar` |
 | `NDFFTEnvironment::SingleIFFT1D::apply` | `ifft_in_place` / `ifft` — conjugate, forward transform, conjugate, scale by `1/N`, in that order |
 | `real_fft<DIF, false, false, true>(Tensor<double>)` | `real_fft(&[f64]) -> Result<Vec<Complex>>`, returning the `N/2 + 1` distinct bins |
 | `real_ifft<DIF, false, false>(Tensor<cpx>)` | `real_ifft(&[Complex], length) -> Result<Vec<f64>>` |
