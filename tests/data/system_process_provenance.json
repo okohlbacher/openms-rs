@@ -1,0 +1,226 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "3b8ca94",
+ "method": "Direct header, implementation and class-test audit; no C++ build or execution. The four class tests are structured so that every expectation either holds with no external interpreter installed (absence, message text, banner parsing) or is derived from the source's own control flow and exercised against a recorded stand-in script written by the test.",
+ "evidence_tier": "tier 3 (source review, transcribed class-test literals and message text) and tier 4 (independently derived: the Windows crash-predicate simplification, crash classification under non-reading IO modes, the getline/trim banner rule applied to recorded strings, the argument vectors exercised against stand-in interpreters, and all resource ceilings)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/ExternalProcess.h",
+   "sha256": "1ef32f5c6c3d9f6c8b7f2991e532f28111d969ed109938bfbcba70d95c2733b7"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "sha256": "895e7bd93cd38802234840bfc8046c4b9780cb3b1d52df3c91015ac518b6b282"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/JavaInfo.h",
+   "sha256": "53259c2d838a1237e5f4cc90020a4ff7ad8dd4d130410b5ac0ccf588fe826dd5"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/JavaInfo.cpp",
+   "sha256": "373949a9a80e25ce4aee16cdcdc39381d862f02aa0cf27d849e6e2997c6471c8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/PythonInfo.h",
+   "sha256": "f9eaf5f16955f3bd1d63e917f6f0dd6d9086393c26e47071438c25a3f95bd8dd"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/PythonInfo.cpp",
+   "sha256": "231dd358e00e1e87ae0480b39ea16b7d5b26036d4d1f6e259bb1bacc8553d12b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/RWrapper.h",
+   "sha256": "409b0fba11e7e7b690e188afc825fa8bee4c86a3f0c03e99ef616afe12dd4c8c"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/RWrapper.cpp",
+   "sha256": "0e340ee840aa8db0e01740b22c5cfa05e143a065eb4956fe9c6ccb87eff9e164"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/SIMDe.h",
+   "sha256": "f3e1180f0bfb78b34a2d88559a6b7f4d0ac1d7759405cac7ae60aba9679c7aab"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ProcessWait.h",
+   "sha256": "0ddec12524a6ad825334f5ac5ae31a8f7c95a5ef0281e2c2a46f0477b9b9547f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ExternalProcess_test.cpp",
+   "sha256": "55496f8fdbb6c83295290030f347295732e0902873d1d5ca43cfa44bbff7f862"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/JavaInfo_test.cpp",
+   "sha256": "1f2d30a505e1369d1eb44df7951170b0dcfd36896954158227dd1addc7599117"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PythonInfo_test.cpp",
+   "sha256": "9543dc469b3ea267cfee9aef60483ae19297d749840dd7a2d87d31c9a59246c8"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RWrapper_test.cpp",
+   "sha256": "60dafa376f99ebcf50854ff981b6ad4f46d0b4c8e38419823ab586c4b464a8bf"
+  }
+ ],
+ "fixtures": [],
+ "native_implementation": [
+  "src/system/external_process.rs",
+  "src/system/java_info.rs",
+  "src/system/python_info.rs",
+  "src/system/r_wrapper.rs"
+ ],
+ "native_tests": [
+  "tests/system_process.rs",
+  "src/system/external_process.rs::tests",
+  "src/system/java_info.rs::tests",
+  "src/system/python_info.rs::tests",
+  "src/system/r_wrapper.rs::tests"
+ ],
+ "support_document": "docs/EXTERNAL_PROCESS_SUPPORT.md",
+ "support_documents": [
+  "docs/EXTERNAL_PROCESS_SUPPORT.md",
+  "docs/JAVA_INFO_SUPPORT.md",
+  "docs/PYTHON_INFO_SUPPORT.md",
+  "docs/R_WRAPPER_SUPPORT.md",
+  "docs/SIMDE_SUPPORT.md"
+ ],
+ "source_surface": {
+  "public_enums": 2,
+  "public_function_names": 8,
+  "public_overloads": 9,
+  "explicit_constructors": 2,
+  "explicit_destructors": 1,
+  "class_test_sections": 14,
+  "counting_rule": "Public declarations in the five headers. ExternalProcess: two enums (RETURNSTATE, IO_MODE), two constructors, one destructor, setCallbacks (1) and run (1 name, 2 overloads). JavaInfo: canRun (1). PythonInfo: canRun, isPackageInstalled, getVersion (3). RWrapper: findScript, findR, runScript (3). SIMDe.h declares no member, only three MSVC-only free operators over a third-party type, and carries no class test. ProcessWait.h is a private implementation header of the SDK, counted as a source but not as public surface. Class-test sections: ExternalProcess 7, JavaInfo 1, PythonInfo 3, RWrapper 3."
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 106,
+   "operation": "bp::search_path resolves the executable and the code keeps the unresolved string when it returns empty; std::process::Command performs the platform lookup instead, which also succeeds for an absolute path when PATH is empty"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 113,
+   "operation": "the environment is the inherited one plus the supplied overlay, applied in std::map order"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 122,
+   "operation": "IO_MODE collapses to one predicate, can_read = (READ_ONLY || READ_WRITE); neither branch ever wires the child's standard input, so WRITE_ONLY is indistinguishable from NO_IO"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 131,
+   "operation": "an empty working_dir becomes \".\", in both the reading and the non-reading branch (also line 233)"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 205,
+   "operation": "the Windows crash predicate is exit_code < 0 || (unsigned)exit_code > 0x80000000u; the second disjunct can never decide the outcome for an i32, so the port writes exit_code < 0"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 209,
+   "operation": "WIFSIGNALED is asked only inside the reading branch, so a signalled child under NO_IO or WRITE_ONLY is reported as NONZERO_EXIT carrying the signal number; the port classifies identically in every mode"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ExternalProcess.cpp",
+   "line": 289,
+   "operation": "the verbose success banner is \"Executed '<exe>' successfully!\\n\" on the stdout callback; the pre-run banner is \"Running: <exe> <arg>...\\n\""
+  },
+  {
+   "path": "src/openms/source/SYSTEM/ProcessWait.h",
+   "line": 13,
+   "operation": "waitForProcess polls child.running() against a steady_clock deadline in 10 ms steps and returns false on expiry, after which the callers terminate() and wait(); the 30 s budget is PROBE_TIMEOUT here"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/JavaInfo.cpp",
+   "line": 98,
+   "operation": "path = getenv(\"PATH\") assigns a possibly null pointer into a std::string and caches the first value in a function-local static; the port reads the variable on every call and treats unset as empty"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/PythonInfo.cpp",
+   "line": 50,
+   "operation": "canRun resolves with File::findExecutable first, rewriting the caller's string to an absolute path, and only then executes --version"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/PythonInfo.cpp",
+   "line": 117,
+   "operation": "isPackageInstalled concatenates the caller's package_name into the Python program passed to -c, so the argument is executed as source code; the port validates it as a dotted ASCII identifier path and answers false without spawning when it is not one"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/PythonInfo.cpp",
+   "line": 155,
+   "operation": "getVersion appends each std::getline result without a separator, standard output first then standard error, and finishes with StringUtils::trim, which strips space, tab, newline and carriage return from both ends"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/RWrapper.cpp",
+   "line": 66,
+   "operation": "a script run is --vanilla --quiet <script> <cmd_args...>, and the interpreter probe is --vanilla -e sessionInfo() (line 136)"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/RWrapper.cpp",
+   "line": 90,
+   "operation": "both pipes are drained line by line with line + \"\\n\" appended, stderr on a separate thread to avoid a pipe-buffer deadlock; findR then merges stdout followed by stderr to imitate Qt MergedChannels (line 158)"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/RWrapper.cpp",
+   "line": 213,
+   "operation": "findScript resolves File::getOpenMSDataPath() before File::find, so a locatable script still fails when the shared data cannot be found; runScript catches that and returns false"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/SIMDe.h",
+   "line": 24,
+   "operation": "the header exists to centralise the <simde/x86/ssse3.h> include and to define three operators that MSVC lacks for simde__m128i; it declares no OpenMS member and has no class test"
+  }
+ ],
+ "class_test_review": {
+  "sections_total": 14,
+  "sections_ported": 14,
+  "sections_mapped_with_evidence": 14,
+  "per_test": [
+   {
+    "path": "src/tests/class_tests/openms/source/ExternalProcess_test.cpp",
+    "sections": 7,
+    "literal_extraction": "The three NOT_TESTABLE sections (default constructor, callback constructor, destructor, setCallbacks) are ported as the observable properties the class test says are 'tested below'. The run section's asserted pairs are reproduced: SUCCESS with error_msg.size() == 0, FAILED_TO_START with a non-empty message, NONZERO_EXIT with a non-empty message, and the callback split where a successful run fills only the stdout buffer and a failing one only the stderr buffer, before and after setCallbacks swaps them. The [EXTRA] section's two literals, MARKER_STDOUT_OK and arg=[one two three], are reproduced verbatim. The class test's 'ls -l' / 'ls -0' commands are replaced by scripts in a private temporary directory: upstream issue #9948 records that 'ls -l' on a shared directory exits non-zero under ctest --parallel, and the substitution removes the host dependency while keeping every asserted shape."
+   },
+   {
+    "path": "src/tests/class_tests/openms/source/JavaInfo_test.cpp",
+    "sections": 1,
+    "literal_extraction": "The single literal, JavaInfo::canRun(\"\") == false, is transcribed and asserted on every platform, together with the transcribed diagnosis text. The interpreter-present branches are exercised against a recorded stand-in script on the context's search path, so no JVM is required."
+   },
+   {
+    "path": "src/tests/class_tests/openms/source/PythonInfo_test.cpp",
+    "sections": 3,
+    "literal_extraction": "Both unconditional literals are transcribed: canRun of 'does_not_exist_@@' is false with error_msg containing 'Python not found at', and canRun of an existing but non-executable temporary file is false with error_msg containing 'failed to run'. The class test's three conditional blocks run only where a real Python exists; their assertions (File::exists(py), the resolved path is absolute, isPackageInstalled false for 'veryWeirdPackage___@@__@' and true for 'math', getVersion non-empty) are reproduced unconditionally against a recorded stand-in interpreter, and the banner rule is additionally pinned on recorded strings alone."
+   },
+   {
+    "path": "src/tests/class_tests/openms/source/RWrapper_test.cpp",
+    "sections": 3,
+    "literal_extraction": "The class test asserts a graceful-degradation contract rather than values: no exception escapes findR, findScript or runScript; findR of a bogus interpreter is false; findScript of a missing script raises FileNotFound; runScript returns false both for a bogus interpreter with find_R and for a missing script. All five are reproduced, with FileNotFound mapped to Error::Io / ErrorKind::NotFound. The R-present block, which the class test skips where Rscript is absent, is reproduced against a recorded stand-in interpreter that echoes its argument vector, which additionally pins the exact --vanilla --quiet <script> <args> vector."
+   }
+  ]
+ },
+ "native_boundaries": [
+  "std::process::Command replaces boost::process and boost::asio entirely; no dependency is added for this group",
+  "PATH resolution for ExternalProcess comes from the standard library's own lookup rather than an explicit search_path call, which additionally succeeds for an absolute path when PATH is empty",
+  "the three interpreter probes take a &FileContext and resolve through FileContext::find_executable, which is what lets their tests run with no Java, Python or R installed",
+  "a signalled child is classified as CRASH in every IO_MODE, where the source only asks in its reading branch",
+  "PythonInfo::isPackageInstalled validates the package name as a dotted ASCII identifier path before interpolating it into python -c, and answers false without spawning when it is not one; the source executes the caller's string as Python source",
+  "every diagnosis the source writes to OPENMS_LOG_ERROR or OPENMS_LOG_INFO is returned in a struct field instead, so the source's verbose / verbose_on_error parameters have no counterpart",
+  "Invocation::preflight rejects argument counts, command-line size, environment entry counts, malformed environment keys and interior NUL bytes before anything is spawned; capture caps each stream at MAX_CAPTURED_BYTES",
+  "Invocation::timeout generalises the source's private Internal::waitForProcess; ExternalProcess itself stays unbounded, as the source is, and RWrapper stays unbounded too",
+  "findR's failure message interpolates the requested interpreter name where the source hardcodes the literal 'Rscript'",
+  "SIMDe.h has no counterpart: the port contains no hand-written SIMD, forbids unsafe crate-wide and targets Rust 1.85, so there is nothing for a SIMD portability shim to make portable"
+ ],
+ "openmp_gap": "None of the four implementation files carries a #pragma omp; there is no data parallelism to mirror and the port introduces none. The source's boost::asio loop and RWrapper's single std::thread exist to drain two pipes without deadlocking, and the port spawns one reader thread per pipe for the same reason. Callbacks are still invoked from the calling thread only. Within one stream, chunk order is deterministic; between the two streams it is not, exactly as in the source.",
+ "license": "BSD-3-Clause for source-derived code and literals",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
