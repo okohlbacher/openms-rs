@@ -19,6 +19,8 @@ pub mod iterative;
 pub mod mean_noise;
 pub mod peak_picking;
 pub mod smoothing;
+/// Spline interpolation and smoothing ported from OpenMS `MATH/MISC`.
+pub mod spline;
 pub mod window_mower;
 
 /// A spectrum transformation with an atomic experiment convenience method.

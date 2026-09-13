@@ -1,0 +1,307 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "35f3fd2",
+ "license": "BSD-3-Clause for the OpenMS sources; the vendored eol-bspline library is BSD-3-Clause, Copyright 1998-2009 University Corporation for Atmospheric Research",
+ "group": "MATH/MISC splines",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/MATH/MISC/CubicSpline2d.h",
+   "sha256": "494c38a0d5413616c9e8d0f81d2808efaaeb180a1b113b41c7a69c8ea7ce294e"
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/CubicSpline2d.cpp",
+   "sha256": "c1494d069c0aaae074b1c3ebd8b87228ab96a65b3edc8f09e0fe7a8413b0dc04"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MISC/BSpline2d.h",
+   "sha256": "5220e21736c9c4060758be638b0591b22068972e83a1f0798cde7738309e408f"
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/BSpline2d.cpp",
+   "sha256": "584474bf366ca581f4e1e47e42ce84650ecadb0a470bca2ccffe8b508ff46dae"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h",
+   "sha256": "1fb266f3fd996fcc0a7bea6f93eb3ee96a7733419ad1791f03917665f80f58cc"
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/BSplineSmoothingSpline.cpp",
+   "sha256": "78066a26f5a4ad05faeecb71e1e2265c5b63c49517f8224f1be653210c1330bf"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MISC/SplineBisection.h",
+   "sha256": "88b7edea047e47ae98e256c4f253846d5a0c879f6a56e230e38bf803e90665cb"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/CubicSpline2d_test.cpp",
+   "sha256": "b2ca0d7344d47983dcfe12ae3c747025e0b1f022416219ec7c7e2a63b758767f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BSpline2d_test.cpp",
+   "sha256": "e4fb34175c9723760d171ed227c4a225b9b5166f271b3047ef1dae5ea20527ad"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BSplineSmoothingSpline_test.cpp",
+   "sha256": "50385c10a4e52c07a7388e624f258ad54692782c7bc05e972dd3e39f45ebcb64"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SplineBisection_test.cpp",
+   "sha256": "52b175031876bce09de8bc4b9e14bb3f49d5ce82c8afb554226215fbeeaf23a4"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSpline.h",
+   "sha256": "1e182dfa488d6448fe7a8f3d40638f864e5ec6105e1cc689058d3e953b6f5906",
+   "role": "Not an OpenMS header. BSpline2d is a PIMPL wrapper around this vendored library, so the library is the real implementation this port had to reproduce."
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.h",
+   "sha256": "3d999c080462984a20f5357fc81d3afa7ab8bafeca0990fe80bcb4e40e9784fb",
+   "role": "Domain, boundary-condition and basis declarations; documents the Ooyama formulation and the node-count heuristic."
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSpline.cpp",
+   "sha256": "19cd942812f8bc9c84ae8cf44be8dd9263da971fd1ff89a0632e1dd706f63f10",
+   "role": "solve/evaluate/slope; the mean-subtraction and the evaluation window are ported from here."
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.cpp",
+   "sha256": "f0b3cfe606a302a7a4e666454f8b7ba7523e0a856f89ad9a563b6e47bc88bbc2",
+   "role": "Setup, Alpha, Beta, Basis, DBasis, qDelta, calculateQ, addP. Holds the truncated PI, the float accumulators and the out-of-range Beta reads."
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineLib.cpp",
+   "sha256": "b5b408be8f1556dc1e4d26438a9318037b58cdd0c29ed994f5189beee0fd1abe",
+   "role": "Explicit template instantiation for float and double; fixes T = double for OpenMS."
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BandedMatrix.h",
+   "sha256": "092e4ec234f5ea358d5711cb413ade6d2c363f422d21e113295938484dc2c2b2",
+   "role": "Banded storage plus LU_factor_banded and LU_solve_banded; the out-of-band scratch element and the pre-update zero-pivot check come from here."
+  }
+ ],
+ "native_implementation": [
+  "src/processing/spline.rs",
+  "src/processing/spline/cubic.rs",
+  "src/processing/spline/b_spline.rs",
+  "src/processing/spline/smoothing.rs",
+  "src/processing/spline/bisection.rs"
+ ],
+ "native_tests": [
+  "tests/spline_math.rs",
+  "src/processing/spline/cubic.rs (unit tests)",
+  "src/processing/spline/b_spline.rs (unit tests)",
+  "src/processing/spline/smoothing.rs (unit tests)",
+  "src/processing/spline/bisection.rs (unit tests)"
+ ],
+ "support_document": [
+  "docs/CUBIC_SPLINE2D_SUPPORT.md",
+  "docs/BSPLINE2D_SUPPORT.md",
+  "docs/BSPLINE_SMOOTHING_SPLINE_SUPPORT.md",
+  "docs/SPLINE_BISECTION_SUPPORT.md"
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/BSpline2d_test_sinus.txt",
+   "source_path": "src/tests/class_tests/openms/data/BSpline2d_test_sinus.txt",
+   "sha256": "50ada0e175951c46c442217c05135af8a9307a148c40c8b6f77d61e15359fa8e",
+   "bytes": 4658,
+   "rows": 202,
+   "kind": "unmodified upstream fixture",
+   "role": "The BSpline2d class test's data: x = seq(-5,5,0.1) plus Gaussian noise, y = 10*sin(x) plus noise, resampled with replacement and re-ordered by x, so abscissae repeat. Used for the 202-point fit whose 405 coefficients are compared one by one."
+  },
+  {
+   "path": "tests/data/spline_math_cpp_probe.tsv",
+   "sha256": "5be8b1aeccbbbd150a918bf44055074883578981a9b6e3cca5de7682e47b06e9",
+   "bytes": 76195,
+   "rows": 1693,
+   "kind": "executed C++ probe output",
+   "role": "stdout of ../oracle/msc_splines/probe_strict, one `case<TAB>key<TAB>value` row per observation at %.17g. Covers 12 CubicSpline2d positions with all three derivative orders, the class test's sine grid, seven error paths, 13 BSpline2d configurations with every node coefficient, the class test's mean-squared-error assertions, 27 BSplineSmoothingSpline fits and 10 spline_bisection brackets."
+  }
+ ],
+ "cpp_probe": {
+  "execution": true,
+  "evidence_tier": "2 (executed probe: unmodified scientific translation units compiled and run against shims for the build-configuration headers)",
+  "scientific_source_modified": false,
+  "driver": "../oracle/msc_splines/main.cpp",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "architecture": "arm64",
+  "locale": "C",
+  "flags": [
+   "-std=c++20",
+   "-O2",
+   "-DNDEBUG",
+   "-ffp-contract=off"
+  ],
+  "binary_sha256": "759c26fd874681a1c97c027216146ce0ab404ffe0322793298b0ebc155acc822",
+  "stderr_empty": true,
+  "cases": 1693,
+  "adaptations": [
+   "OpenMS/config.h, OpenMS/OpenMSConfig.h, CONCEPT/Types.h, CONCEPT/Macros.h, CONCEPT/Exception.h and CONCEPT/LogStream.h are shims: an empty OPENMS_DLLAPI, Size/UInt typedefs, an inert OPENMS_PRECONDITION as in a release build, a std::runtime_error-derived Exception::IllegalArgument, and an OPENMS_LOG_ERROR that writes to a discarded ostringstream so stdout stays machine readable.",
+   "No MATH/MISC translation unit and no eol-bspline file is modified; BSplineLib.cpp instantiates the templates exactly as the OpenMS build does.",
+   "The driver additionally constructs eol_bspline::BSpline<double> alongside each OpenMS BSpline2d so the node count, node domain, penalty weight and basis coefficients that the PIMPL wrapper hides are observable."
+  ],
+  "determinism": {
+   "optimisation_independent": true,
+   "note": "A second build at -O0 with the same -ffp-contract=off produced byte-identical output (sha256 5be8b1aeccbbbd150a918bf44055074883578981a9b6e3cca5de7682e47b06e9)."
+  },
+  "floating_point_contraction": {
+   "default_build_sha256": "841e05623c4e4e7643f57f5ae16ca3b6620a0aa3c9611bf01ee5285d526bf595",
+   "note": "The same sources built without -ffp-contract=off, which is clang's default, differ from the strict output in 2 638 of the printed digits' last one or two units in the last place, because clang fuses multiply-adds into FMA on arm64. The strict build is the recorded oracle because it is what a compiler without FMA contraction produces and is therefore reproducible on any target; the difference is a portability property of the C++ and is documented in docs/BSPLINE2D_SUPPORT.md."
+  }
+ },
+ "class_test_review": {
+  "sections": 28,
+  "mapped": 28,
+  "note": "Every START_SECTION of the four class tests is reproduced by a named Rust test; docs/*_SUPPORT.md name the test and one concrete asserted value per section."
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/source/MATH/MISC/CubicSpline2d.cpp",
+   "line": 33,
+   "operation": "adjacent_find with std::greater accepts equal neighbouring abscissae, which then divide by a zero interval width in init_"
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/CubicSpline2d.cpp",
+   "line": 73,
+   "operation": "eval steps back one knot when lower_bound overshoots or when x is the last knot, so the last segment is evaluated at its right end"
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/CubicSpline2d.cpp",
+   "line": 152,
+   "operation": "c_.back() = 0 and the recurrence leaving c_[0] = 0 are the natural boundary condition"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.cpp",
+   "line": 109,
+   "operation": "PI is the truncated literal 3.1415927, which feeds Alpha"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.cpp",
+   "line": 560,
+   "operation": "Setup rewrites a zero cutoff wavelength to 1.0, so the derivative constraint is never actually disabled"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.cpp",
+   "line": 581,
+   "operation": "the node search starts at ten intervals, so an automatic node count with a positive wavelength needs at least eleven points"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.cpp",
+   "line": 436,
+   "operation": "calculateQ holds b1, b2 and the accumulator in float, rounding the boundary correction to single precision"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.cpp",
+   "line": 455,
+   "operation": "the lower-right boundary loop calls Beta(M-4), which reads BoundaryConditions[bc][-1] when M < 4; the result is written to a banded coordinate that discards it"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSplineBase.cpp",
+   "line": 485,
+   "operation": "addP holds every basis value and every product in a float before accumulating into the double normal matrix"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSpline.cpp",
+   "line": 101,
+   "operation": "the ordinate mean is subtracted before the fit and added back in evaluate, which is why evaluation far outside the domain returns the mean"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BSpline.cpp",
+   "line": 154,
+   "operation": "evaluate sums only the four basis functions around the query node and clamps the window to [0, M], so the sum is empty beyond two node intervals"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BandedMatrix.h",
+   "line": 299,
+   "operation": "LU_factor_banded tests the pre-update diagonal for zero, then divides by the post-update one"
+  },
+  {
+   "path": "src/openms/extern/eol-bspline/BSpline/BandedMatrix.h",
+   "line": 360,
+   "operation": "LU_solve_banded divides by A(M, M) without the zero check the rest of the loop performs"
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/BSplineSmoothingSpline.cpp",
+   "line": 210,
+   "operation": "a polynomial fit is accepted when its residual sum of squares is within ten percent of the budget, which is why a coarse fit can beat an exact one"
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/BSplineSmoothingSpline.cpp",
+   "line": 346,
+   "operation": "the candidate comparator is not a strict weak ordering; with at most six candidates libstdc++ runs insertion sort, so the result is the stable one"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MISC/SplineBisection.h",
+   "line": 40,
+   "operation": "lefthand_sign is seeded true and never updated, reducing the exclusive-or to the sign of the midpoint derivative"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MISC/SplineBisection.h",
+   "line": 66,
+   "operation": "the do/while has no iteration cap and does not terminate when the midpoint stops moving"
+  }
+ ],
+ "native_boundaries": [
+  "CubicSpline2d requires strictly increasing finite abscissae; the source accepts non-decreasing ones and then produces NaN coefficients.",
+  "BSpline2d and BSplineSmoothingSpline return Err where the source leaves an object whose ok() is false; BSpline2d::ok stays for the post-construction solve failure the source can still reach.",
+  "BSpline2d caps input at 250 000 points and 500 001 nodes, so the banded matrix never exceeds 28 MiB; the source bounds neither.",
+  "spline_bisection caps the loop at 4 096 halvings and requires a finite positive threshold; the source can loop forever.",
+  "Every evaluation and every recurrence intermediate is checked for finiteness, so a non-finite result is an error rather than a silently propagated NaN.",
+  "calculateQ skips the (i, j) pairs the C++ computes from an out-of-range Beta and then discards; the discarded-write argument is in docs/BSPLINE2D_SUPPORT.md and the result is numerically identical.",
+  "No OpenMP: the source carries no pragma in these four files, so there is no parallelism gap to record."
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/msc_splines/main.cpp",
+   "sha256": "e2d6ee1044a64c17f4ca0e4c261db9460fa8bc8bf666d273061310fe7297e4bb",
+   "location": "outside this repository",
+   "origin_key": "cpp_probe"
+  },
+  {
+   "path": "../oracle/msc_splines/include/OpenMS/config.h",
+   "sha256": "66aaeb649d998193c86d11b0d4af8eacdb3da5eb06b752b2d728c953a64be6ce",
+   "location": "outside this repository",
+   "origin_key": "cpp_probe"
+  },
+  {
+   "path": "../oracle/msc_splines/include/OpenMS/OpenMSConfig.h",
+   "sha256": "48d6068d405df274b68a516dbc6f701ac0c1e08236d1d585f2712906a4f44e8b",
+   "location": "outside this repository",
+   "origin_key": "cpp_probe"
+  },
+  {
+   "path": "../oracle/msc_splines/include/OpenMS/CONCEPT/Types.h",
+   "sha256": "638761553b6c6248a163b9734d55e0670dbe1f401303fc801b5595b8c36b6328",
+   "location": "outside this repository",
+   "origin_key": "cpp_probe"
+  },
+  {
+   "path": "../oracle/msc_splines/include/OpenMS/CONCEPT/Macros.h",
+   "sha256": "7931219f5876e3b7eaa432904157b5209c608305ab26c2609249e7ee90a2bc9f",
+   "location": "outside this repository",
+   "origin_key": "cpp_probe"
+  },
+  {
+   "path": "../oracle/msc_splines/include/OpenMS/CONCEPT/Exception.h",
+   "sha256": "e6af391d04c9aae1237129c8b37806ee6676706bbe0668a697b1b7fde770f054",
+   "location": "outside this repository",
+   "origin_key": "cpp_probe"
+  },
+  {
+   "path": "../oracle/msc_splines/include/OpenMS/CONCEPT/LogStream.h",
+   "sha256": "ff8880fc1fe243ea421e3b132ca2920e495fca706a9108af11d6edbc89f93106",
+   "location": "outside this repository",
+   "origin_key": "cpp_probe"
+  }
+ ],
+ "external_reference_note": "The probe driver and its shim headers live outside this repository under ../oracle/msc_splines/ so that no C++ is committed here. The unmodified scientific translation units and the vendored eol-bspline files are copied there from the pinned checkout at build time; their sha256 values are the ones listed under `sources`, so the chain from the pinned revision to the committed probe output is complete. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

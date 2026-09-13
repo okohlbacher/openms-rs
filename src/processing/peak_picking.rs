@@ -6,9 +6,11 @@
 //! See `docs/PEAK_PICKING_SUPPORT.md` for source behavior and deliberate limits.
 
 mod noise;
-mod spline;
 pub use noise::{NoiseEstimates, NoiseHistogramRange, SignalToNoiseEstimatorMedian};
-pub use spline::CubicSpline2d;
+// The natural cubic spline now lives with the rest of the MATH/MISC splines in
+// `crate::processing::spline`; this re-export keeps its original path, which the
+// peak picker and the retention-time transformations import.
+pub use super::spline::CubicSpline2d;
 
 use super::{SpectrumFilter, checked_intensity};
 use crate::kernel::{
