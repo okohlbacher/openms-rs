@@ -1,0 +1,349 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/KernelDensityEstimation.h",
+   "sha256": "4155b0e56bb28f111d6075d0c9de1248293929ae2a84a5cf22299106e2151076",
+   "role": "Ported in full: bwNrd0, both linBin overloads, forRt, revRt, silvermanKernelFFT, gridKdeFFT and kdeFFTEval."
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "sha256": "ac599ffe8f3bc4d54686916d48273e0f01b960b95fca6c118d50c19960b2d9bc",
+   "role": "Ported in full, including the file-static fast_linbin that gridKdeFFT uses and that the public linBin is not."
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/MultipleTesting.h",
+   "sha256": "994269d4d76657c3e8fd661b32fb8488bc3ccd31cdb3b9d5eccc7e5b669b5ed6",
+   "role": "Ported in full: Pi0Result, the two enums and their four string conversions, qValue, pi0Est, lfdr, pNorm, and the header-inline templates computeModelFDR and pEmp. The six backward-compatible free-function wrappers forward to the same code and are not reproduced as separate functions."
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+   "sha256": "cc1c69596ffd443a343c4b5ff1d88a6de55dcf660db1b872780f30b0ad9edd5e",
+   "role": "Ported in full, including the file-static argsort_asc and percentile. The BSplineSmoothingSpline call in pi0Est's smoother branch is supplied through the Pi0Smoother trait; see the support document."
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h",
+   "sha256": "0e12fe38dadcd282ea915bcdf17a203b3f5093c24501ce94a3fdc00cd154a77c",
+   "role": "Numerical surface ported. Seven members are not ported and each is named in docs/POSTERIOR_ERROR_PROBABILITY_SUPPORT.md: extractAndTransformScores, updateScores, transformScore_, getScore_, initPlots, plotTargetDecoyEstimation and tryGnuplot, all of which need METADATA, FORMAT/TextFile, SYSTEM/File or a process launcher."
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "sha256": "4d80dc519a93a523a94be6c1c9aa7260a17a25a5d5adf7e536c4377eaa802746",
+   "role": "Both EM loops, the density and posterior helpers, computeProbability, processOutliers_ and the three gnuplot formula builders ported; the plotting and identification halves are not."
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/FFT.hpp",
+   "sha256": "10a023deeb7a564824bb69d02154ec825b1b69b9fb497bcba302473b60fcdf6a",
+   "role": "Vendored third-party FFT umbrella. Only real_fft<DIF,false,false,true> and real_ifft<DIF,false,false> are reached from ported code; both are replaced natively by src/math/fft.rs. Hashed because its dispatch limit is a source defect this port documents."
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/DIF.hpp",
+   "sha256": "2e3062ea75476897f7652c872d8b6c16e4e75028625888ed3e3c7093a591d94b",
+   "role": "The decimation-in-frequency 1-D transform and its packed real forms, replaced by src/math/fft.rs."
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/DIFButterfly.hpp",
+   "sha256": "3154f7d158da072fe5c582287f94c8c145999942b3279e66e048c2cba63b645c",
+   "role": "The butterfly cascade whose per-butterfly operation order the port reproduces."
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/RealFFTPostprocessor.hpp",
+   "sha256": "3b89b93c2828cdc84f4dad40047923049606ca05e5b1432e66775dcd72ff1696",
+   "role": "The packing and unpacking identities of the real transform, reproduced term by term including the k == N/4 store order."
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/Twiddles.hpp",
+   "sha256": "d5eb410f589a2d8ced869d89f813575970bdb61ca66cf74bbff3572af4d64456",
+   "role": "The incremental twiddle recurrence. Deliberately NOT reproduced: the port evaluates cos/sin per butterfly, which is more accurate and not bit-identical. Hashed to record what was read and rejected."
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/shape_to_log_shape.hpp",
+   "sha256": "5cdd8afb027269b71494bf762ced7b25cda4a201d1ffacbe984fc36289821a29",
+   "role": "integer_log2 rounds log2 and guards its power-of-two assertion behind SHAPE_CHECK, which OpenMS does not define; the source of the non-power-of-two defect."
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/Tensor/TemplateSearch.hpp",
+   "sha256": "8a119bc2f2d2df57407279308959df140bbd744d038d2381eadf37d4236939d2",
+   "role": "LinearTemplateSearch, whose terminal case asserts and then runs the maximum-size transform anyway; the source of the log2 N > 16 defect."
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MISC/CubicSpline2d.h",
+   "sha256": "494c38a0d5413616c9e8d0f81d2808efaaeb180a1b113b41c7a69c8ea7ce294e",
+   "role": "Already ported as src/processing/spline/cubic.rs. Re-read here because kdeFFTEval depends on it and the module-cycle ratchet forbids a math -> processing edge; src/math/kernel_density.rs carries a private term-by-term copy whose agreement with the ported class is asserted in tests/kernel_density.rs."
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/CubicSpline2d.cpp",
+   "sha256": "c1494d069c0aaae074b1c3ebd8b87228ab96a65b3edc8f09e0fe7a8413b0dc04",
+   "role": "The init_ recurrence and the eval segment lookup that the private copy reproduces."
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/MISC/BSplineSmoothingSpline.h",
+   "sha256": "1fb266f3fd996fcc0a7bea6f93eb3ee96a7733419ad1791f03917665f80f58cc",
+   "role": "Already ported as src/processing/spline/smoothing.rs. Read for pi0Est's smoother branch, which reaches it through the Pi0Smoother trait rather than a direct dependency."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/KernelDensityEstimation_test.cpp",
+   "sha256": "97d12be5ce01588cbfe088233dbd3fd02f4341f55a9077fd9bb54ff7854e34dc",
+   "role": "Oracle for KernelDensityEstimation.h: 10 START_SECTIONs, all mapped in tests/kernel_density.rs."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultipleTesting_test.cpp",
+   "sha256": "d12a616c37709e34d19c128c06f94be253e4772be513bf8cabbb86ca83b05530",
+   "role": "Oracle for MultipleTesting.h: 18 START_SECTIONs, all mapped in tests/multiple_testing.rs. Five of them exercise KernelDensityEstimation rather than MultipleTesting and are mapped there as well."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PosteriorErrorProbabilityModel_test.cpp",
+   "sha256": "5838dca6078bd99548dffab587f8588005d7158a1f2b6f57753c68cd222266c5",
+   "role": "Oracle for PosteriorErrorProbabilityModel.h: 19 START_SECTIONs, of which 12 are NOT_TESTABLE upstream. All 19 are mapped in tests/posterior_error_probability.rs, and the 12 NOT_TESTABLE ones are given real assertions there rather than left empty."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/kde_reference_data.csv",
+   "sha256": "efc4970d4016a55c0267d4070ff6bb8f34ccd47e6758c504905b14afa5f59e12",
+   "upstream": "src/tests/class_tests/openms/data/kde_reference_data.csv",
+   "role": "statsmodels reference: per-dataset sample values, the Silverman bandwidth and the KDE density at each point. Reproduced by tests/kernel_density.rs to the class test's 5% relative or 0.005 absolute tolerance."
+  },
+  {
+   "path": "tests/data/test_qvalue_ref_data.csv",
+   "sha256": "6a122300ea70fba42affbaa9a8d9c2d4f9584e339352324722c68a54538e022a",
+   "upstream": "src/tests/class_tests/openms/data/test_qvalue_ref_data.csv",
+   "role": "R qvalue package reference over 3170 p-values, both the FDR and the positive-FDR column. Reproduced by tests/multiple_testing.rs to 1e-4."
+  },
+  {
+   "path": "tests/data/test_lfdr_ref_data.csv",
+   "sha256": "bd458626145ae727cdd0516481a51f9841d593364e06e5fd91c12069d20be514",
+   "upstream": "src/tests/class_tests/openms/data/test_lfdr_ref_data.csv",
+   "role": "PyProphet reference over 3170 p-values for four lfdr settings: default, monotone=false, logit and eps=1e-2. Reproduced by tests/multiple_testing.rs to 1e-2, the class test's own tolerance. Also the p-value column pi0Est is checked against."
+  },
+  {
+   "path": "tests/data/GaussMix_2_1D.csv",
+   "sha256": "02f4907bbf935b8a0c531552a83e7020b319f6b18fa2988a51f3cb22390ca795",
+   "upstream": "src/tests/class_tests/openms/data/GaussMix_2_1D.csv",
+   "role": "2000 draws from a mixture of N(1.5, 0.5) and N(3.5, 1.0), semicolon-separated on one line. The EM fit must recover those parameters to 0.5."
+  },
+  {
+   "path": "tests/data/GumbelGaussMix_2_1D.csv",
+   "sha256": "652d52023e438a7009a12e06482f240da3cf7103846df1eb0f0c8b8086e2cd59",
+   "upstream": "src/tests/class_tests/openms/data/GumbelGaussMix_2_1D.csv",
+   "role": "2000 draws from a Gumbel/Gaussian mixture, comma-separated on one line. The weighted maximum-likelihood fit must recover a = 2 - smallest, b = 0.6 and a Gaussian at 8 - smallest with sigma 3.5, to 0.5."
+  }
+ ],
+ "native_implementation": [
+  "src/math/mod.rs",
+  "src/math/fft.rs",
+  "src/math/kernel_density.rs",
+  "src/math/multiple_testing.rs",
+  "src/math/posterior_error_probability.rs"
+ ],
+ "native_tests": [
+  "tests/fft.rs",
+  "tests/kernel_density.rs",
+  "tests/multiple_testing.rs",
+  "tests/posterior_error_probability.rs"
+ ],
+ "support": [
+  "docs/FFT_SUPPORT.md",
+  "docs/KERNEL_DENSITY_SUPPORT.md",
+  "docs/MULTIPLE_TESTING_SUPPORT.md",
+  "docs/POSTERIOR_ERROR_PROBABILITY_SUPPORT.md"
+ ],
+ "source_anchors": [
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "line": 91,
+   "operation": "bwNrd0's fallback chain runs after the sort, so PyProphet's x[0] is the minimum of the sample rather than its first input; ten zeros therefore yield 0.9 * 10^(-1/5) instead of a zero-width grid"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "line": 127,
+   "operation": "linBin bins with width (xmax - xmin) / nbins and adds the whole weight to one bin, which is histogram binning and not the proportional allocation the header documents; the real linear binning is the file-static fast_linbin at line 37"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "line": 43,
+   "operation": "fast_linbin's delta is (b - a) / (M - 1) because linspace with M points has M - 1 intervals; using M would shift every estimate"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "line": 147,
+   "operation": "forRt hands the raw length to evergreen, contradicting the header's claim that a non-power-of-two M is rounded up"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "line": 180,
+   "operation": "revRt is the exact inverse of forRt; the header's claim that it is scaled by M describes statsmodels' revrt, and the class test's own round trip would fail if it were true"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "line": 225,
+   "operation": "silvermanKernelFFT replaces a non-positive binning correction with numeric_limits<double>::min(), driving that bin's response to the largest finite value rather than flipping its sign"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "line": 250,
+   "operation": "gridKdeFFT raises the grid to bit_ceil(max(gridsize, n, 512)), so a caller's gridsize is a lower bound and never the answer"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/KernelDensityEstimation.cpp",
+   "line": 296,
+   "operation": "gridKdeFFT renormalises the inverse transform so that sum(density) * spacing is one, which pulls the estimate away from the unrenormalised convolution"
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/shape_to_log_shape.hpp",
+   "line": 8,
+   "operation": "integer_log2 is round(log2(val)) with its power-of-two assertion behind SHAPE_CHECK, which OpenMS never defines, so a non-power-of-two length silently transforms a different number of points"
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/Tensor/TemplateSearch.hpp",
+   "line": 38,
+   "operation": "LinearTemplateSearch's terminal case asserts v == MAXIMUM and then applies WORKER<MAXIMUM> regardless; with NDEBUG a transform longer than 2^16 runs the length-65536 transform over the caller's buffer"
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/DIF.hpp",
+   "line": 44,
+   "operation": "real_ifft1d_packed scales by 1/N_PACKED = 2/N, the inverse normalisation of the half-length complex transform, so the packed real pair composes to the identity"
+  },
+  {
+   "path": "src/openms/extern/evergreen/src/FFT/RealFFTPostprocessor.hpp",
+   "line": 71,
+   "operation": "the inverse postprocessor stores data[N/2-k] before data[k] so that the k version wins when both indices coincide at k = N/4; the forward one stores them the other way round"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+   "line": 198,
+   "operation": "pi0Est's default lambda grid is built by repeated += 0.05, so its third entry is 0.15000000000000002 and the smoothing spline is fitted through those exact abscissae"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+   "line": 175,
+   "operation": "the file-static percentile is nearest-rank, floor(p * (n-1) + 0.5), which neither interpolates nor matches Math::quantile; only the bootstrap branch uses it"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+   "line": 154,
+   "operation": "qValue enforces monotonicity by capping the largest p-value's q at 1, replacing a NaN there with 1.0, and then sweeping the p-ordering right to left with a running minimum"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+   "line": 256,
+   "operation": "pi0Est builds a std::map keyed by lambda, whose operator[] assignment lets a repeated lambda's last value win"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+   "line": 281,
+   "operation": "a non-finite spline prediction is a fallback trigger only when smooth_log_pi0 is off, because exp(-inf) is a legitimate zero"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+   "line": 446,
+   "operation": "lfdr's probit branch clips p in place, so the clipped values are also what the null density is evaluated at and what the monotone sort orders by; the logit branch does not clip and puts eps inside the log-odds instead"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+   "line": 537,
+   "operation": "the monotone step's assigned flags are indexed by the original position rather than by the value, so every position is visited once and the claimed rankdata('min') mapping is really the inverse permutation; tied p-values keep distinct lfdr values"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "line": 266,
+   "operation": "the incorrect component starts at mean(lower half) + x[0] and its width is sd about that location rather than about the sample mean; a different start lands the EM on a different local optimum"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "line": 281,
+   "operation": "the correct component starts at index min(n-1, ceil(0.7 n)) with a comment that ceil would otherwise be an invalid index for a single score"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "line": 371,
+   "operation": "the convergence test compares the natural-log likelihood increase against pow(10, -neg_log_delta) and tests itns >= max_nr_iterations before incrementing, so the body runs at most max_nr_iterations + 1 times"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "line": 342,
+   "operation": "the impossible-standard-deviation branch breaks out of the loop with good_fit still true, so an aborted fit reports success"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "line": 508,
+   "operation": "computeLogLikelihood accumulates base-ten logarithms while the EM loop's computeLLAndIncorrectPosteriorsFromLogDensities accumulates natural ones; the threshold is compared against the latter, and nothing calls the former"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "line": 585,
+   "operation": "computeProbability evaluates getGumbel_ in every branch, reading the Gaussian parameter set's x0 and sigma as a Gumbel location and scale even when Gauss was selected; the source's own TODO calls this confusing at best"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "line": 408,
+   "operation": "fitGumbelGauss computes max_incorrectly_ from incorrectly_assigned_fit_param_, a Gaussian parameter set it never writes; on a fresh model that is (-1,-1,-1) and the expression yields a negative peak density of -0.3679"
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp",
+   "line": 849,
+   "operation": "ignore_extreme_percentiles uses 99.9/100 for the upper index where the parameter description says 99th percentile, and indexes x_scores[size/100 + 1] with no bounds check"
+  },
+  {
+   "path": "src/openms/source/MATH/MISC/CubicSpline2d.cpp",
+   "line": 73,
+   "operation": "eval steps back from lower_bound when the hit is above x or is the final knot, because the coefficient vectors are one element shorter than the abscissae"
+  }
+ ],
+ "evidence": {
+  "tier": "3 and 4",
+  "executed_cpp": false,
+  "description": "Tier 3 is the transcription of the class-test literals, section by section, with the source line above each Rust test, plus the five reference fixtures the upstream tests ship. Three of those fixtures are third-party output - statsmodels, scipy and the R qvalue package - retained by the upstream test rather than produced by the C++ under test, so they check this port against an independent implementation; they still reach the port through a transcription of file bytes, so no tier 1 claim is made. Tier 4 covers the expectations derived here from a closed form, a symmetry or an invariant, and the Rust-only guards. No retained C++ output and no oracle driver exists for these headers.",
+  "sections": {
+   "KernelDensityEstimation_test.cpp": 10,
+   "MultipleTesting_test.cpp": 18,
+   "PosteriorErrorProbabilityModel_test.cpp": 19,
+   "total": 47,
+   "mapped": 47,
+   "unaccounted": 0,
+   "mapped_with_a_reproduced_asserted_value": 33,
+   "not_testable_upstream": 12,
+   "note": "The 12 NOT_TESTABLE sections of PosteriorErrorProbabilityModel_test.cpp carry no asserted value upstream; tests/posterior_error_probability.rs gives them assertions of its own rather than leaving them empty, but they are counted separately because there is no upstream value to reproduce. Two further sections - the fitGumbelGauss probability loop and the destructor - assert nothing numeric."
+  },
+  "independently_derived": [
+   "the forward FFT of every length 1 to 1024 against a naive O(n^2) DFT on a deterministic pseudo-random stream, and the packed real transform against the same",
+   "fft([1,2,3,4]) == [10, -2+2i, -2, -2-2i] exactly, an impulse transforming to a constant, and a constant transforming to an impulse of height N with exactly zero elsewhere",
+   "the circular convolution theorem, which is the identity the kernel density estimator depends on",
+   "bw_nrd0 of the symmetric nine-point ladder is 0.9 sqrt(15/8) 9^(-1/5), against the class test's bracket of (0.3, 1.0)",
+   "bw_nrd0 of 0..=4 is 0.9 (2/1.34) 5^(-1/5), against the class test's transcribed 0.9735846228506357",
+   "bw_nrd0 with NaN and infinity present equals bw_nrd0 of the surviving finite values",
+   "linBin of [0.1, 0.4, 0.9] over five bins is exactly [1,0,1,0,1], which proportional allocation could not produce",
+   "the Silverman kernel evaluated from its closed form at every bin of an eight-point grid",
+   "the KDE estimate's integral is exactly one, because gridKdeFFT renormalises it",
+   "kde_fft_eval agrees bit for bit with the crate's ported CubicSpline2d evaluated on the same grid, for a 3-point and a 64-point sample",
+   "the q-values of [0.01, 0.02, 0.03] at pi0 = 1 are all exactly 0.03 from the closed form, so the monotone sweep changes nothing",
+   "q-values are non-decreasing in p and never exceed one over the whole 3170-row R fixture",
+   "the pNorm tail at the null mean is exactly 0.5 by symmetry, equal statistics receive bit-identical tails, and the tails are strictly ordered",
+   "pEmp never returns a p-value below 1/|stat0|",
+   "computeModelFDR of [0.1, 0.2, 0.2, 0.3] gives the tied pair 0.5/3 = 1/6 from the max-rank rule",
+   "the default lambda grid's third entry is 0.15000000000000002, which is what repeated addition produces",
+   "the Gumbel density at its own location is exactly exp(-1)/sigma",
+   "the posterior-weighted moment helpers against hand-computed sums",
+   "the posterior error probabilities lie in [0, 1] and never rise along the sorted scores, over both 2000-draw fixtures",
+   "ten printf(\"%g\") formatting cases applied by hand, including both switches to scientific notation"
+  ]
+ },
+ "native_boundaries": [
+  "fft: MAX_LEN = 2^24 points; the length must be a positive power of two; real_ifft's bin count must be exactly length/2 + 1; every input must be finite",
+  "kernel_density: MAX_ITEMS = 50,000,000 sample values and MAX_GRID = 2^22 grid points, both checked before allocation; lin_bin needs nbins > 0, finite bounds and xmax > xmin; silverman_kernel_fft needs a finite bandwidth and a finite non-zero range; grid_kde_fft needs a finite sample, finite bandwidth and cut, and a positive grid width and spacing; the private cubic spline needs strictly increasing finite abscissae, finite coefficients and a query inside the grid",
+  "multiple_testing: MAX_ITEMS = 50,000,000 at every entry point; p-values and pi0 in [0,1]; lambda in [0,1); a non-empty stat0 with at least one finite value; non-empty samples for p_emp; a finite positive adj and an eps in (0, 0.5)",
+  "posterior_error_probability: MAX_ITEMS = 50,000,000 scores; every score finite; outlier handling must leave at least one score; set_iqr_to_closest_valid needs a value inside the fence; ignore_extreme_percentiles needs both of its indices in range; the Gumbel scale must be finite and positive; compute_probability refuses an unfitted model and a vanishing mixture density",
+  "Every division by a caller-influenced denominator is either checked or replaced by the value the division would have produced, with the equivalence stated at the item",
+  "The not_greater helper in three modules spells !(a > b) through partial_cmp so that the source's NaN-takes-the-guarded-branch semantics survive the clippy lint that forbids the negated comparison"
+ ],
+ "openmp": "None of the three translation units carries a #pragma omp, and neither does the vendored FFT, so the port is serial and there is no parallel behaviour to match and no performance gap to record for this group.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

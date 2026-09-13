@@ -14,6 +14,13 @@
 //!   ([`crate::math::histogram::Histogram`]).
 //! - `MATH/STATISTICS/{Gauss,GammaDistribution,GumbelDistribution,GumbelMaxLikelihood}Fitter.h`
 //!   — parameter estimation for named distributions ([`crate::math::fitters`]).
+//! - `MATH/STATISTICS/KernelDensityEstimation.h` — FFT-based kernel density
+//!   estimation ([`crate::math::kernel_density`]), on the radix-2 transform in
+//!   [`crate::math::fft`] that replaces the vendored evergreen FFT.
+//! - `MATH/STATISTICS/MultipleTesting.h` — q-values, pi0 and local FDR
+//!   ([`crate::math::multiple_testing`]).
+//! - `MATH/STATISTICS/PosteriorErrorProbabilityModel.h` — the EM-fitted score
+//!   mixture ([`crate::math::posterior_error_probability`]).
 //!
 //! Everything here computes in `f64`, as the source does — the fitter headers
 //! use `double` throughout and never `float` — and reproduces the source's
@@ -33,10 +40,18 @@
 
 /// An accumulating weighted distribution with a normal approximation.
 pub mod basic_statistics;
+/// A radix-2 decimation-in-frequency FFT and its packed real transform.
+pub mod fft;
 /// Parameter estimation for named distributions.
 pub mod fitters;
 /// A binned counter over a closed value range.
 pub mod histogram;
+/// FFT-based Gaussian kernel density estimation.
+pub mod kernel_density;
+/// q-values, pi0 estimation and local false discovery rates.
+pub mod multiple_testing;
+/// An EM-fitted two-component mixture of search-engine scores.
+pub mod posterior_error_probability;
 /// SciPy-compatible ranking with selectable tie and NaN handling.
 pub mod rank_data;
 /// Means, medians, quantiles, deviations and correlation coefficients.
