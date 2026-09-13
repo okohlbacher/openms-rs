@@ -27,7 +27,7 @@ fn naive_dft(data: &[Complex]) -> Vec<Complex> {
             for (index, value) in data.iter().enumerate() {
                 let angle = -2.0 * PI * (k as f64) * (index as f64) / (n as f64);
                 let (sin, cos) = angle.sin_cos();
-                acc = acc + *value * Complex::new(cos, sin);
+                acc += *value * Complex::new(cos, sin);
             }
             acc
         })
@@ -103,7 +103,7 @@ fn known_small_transforms_are_exact() {
     // definition; every term is a quarter-turn so the answer is exact.
     let input: Vec<Complex> = [1.0, 2.0, 3.0, 4.0]
         .iter()
-        .map(|v| Complex::real(*v))
+        .map(|v| Complex::new(*v, 0.0))
         .collect();
     let out = fft(&input).unwrap();
     assert_eq!(out[0], Complex::new(10.0, 0.0));
@@ -113,14 +113,14 @@ fn known_small_transforms_are_exact() {
 
     // A unit impulse at the origin transforms to the constant 1.
     let mut impulse = vec![Complex::ZERO; 16];
-    impulse[0] = Complex::real(1.0);
+    impulse[0] = Complex::new(1.0, 0.0);
     for bin in fft(&impulse).unwrap() {
         assert_eq!(bin, Complex::new(1.0, 0.0));
     }
 
     // A constant transforms to an impulse of height N at bin 0. The vanishing
     // bins are exact because every butterfly difference is exactly zero.
-    let constant = vec![Complex::real(2.5); 32];
+    let constant = vec![Complex::new(2.5, 0.0); 32];
     let out = fft(&constant).unwrap();
     assert_eq!(out[0], Complex::new(80.0, 0.0));
     for bin in &out[1..] {
@@ -138,7 +138,7 @@ fn real_transform_matches_the_complex_one() {
         let packed = real_fft(&values).expect("power-of-two length");
         assert_eq!(packed.len(), n / 2 + 1);
 
-        let as_complex: Vec<Complex> = values.iter().map(|v| Complex::real(*v)).collect();
+        let as_complex: Vec<Complex> = values.iter().map(|v| Complex::new(*v, 0.0)).collect();
         let full = naive_dft(&as_complex);
         for (k, bin) in packed.iter().enumerate() {
             assert_close(*bin, full[k], n as f64, &format!("n = {n}, real bin {k}"));
@@ -178,7 +178,7 @@ fn single_point_transforms_are_the_identity() {
     // evergreen's `DIF<0>` specialisations do nothing, so a one-point transform
     // returns its input; the port reproduces that rather than erroring.
     let packed = real_fft(&[3.25]).unwrap();
-    assert_eq!(packed, vec![Complex::real(3.25)]);
+    assert_eq!(packed, vec![Complex::new(3.25, 0.0)]);
     assert_eq!(real_ifft(&packed, 1).unwrap(), vec![3.25]);
     assert_eq!(
         fft(&[Complex::new(1.0, -2.0)]).unwrap()[0],
@@ -187,14 +187,12 @@ fn single_point_transforms_are_the_identity() {
 }
 
 #[test]
-fn lengths_that_are_not_powers_of_two_are_refused() {
-    // evergreen rounds `log2(len)` and its shape assertion is compiled out of a
-    // release build, so it transforms a different number of points in silence.
+fn the_packed_real_transform_still_requires_a_power_of_two() {
+    // Its N/4 unpacking loop needs one, so this refusal is a property of the
+    // algorithm and survives the move to rustfft.
     for bad_length in [3usize, 5, 6, 7, 100, 1000] {
         let values = vec![1.0; bad_length];
         assert!(matches!(real_fft(&values), Err(Error::InvalidValue(_))));
-        let complex = vec![Complex::ZERO; bad_length];
-        assert!(matches!(fft(&complex), Err(Error::InvalidValue(_))));
         assert!(matches!(
             real_ifft(&[Complex::ZERO], bad_length),
             Err(Error::InvalidValue(_))
@@ -202,6 +200,32 @@ fn lengths_that_are_not_powers_of_two_are_refused() {
     }
     assert!(matches!(fft(&[]), Err(Error::InvalidValue(_))));
     assert!(matches!(real_fft(&[]), Err(Error::InvalidValue(_))));
+}
+
+/// The complex transform used to refuse these lengths. That refusal guarded
+/// against evergreen, which rounds `log2(len)` with its shape assertion compiled
+/// out of release builds and so transforms a different number of points in
+/// silence. rustfft transforms any length correctly, so the guard is gone and
+/// the answer is checked against the naive DFT instead - including prime
+/// lengths, which rustfft handles through Bluestein's algorithm.
+#[test]
+fn complex_transforms_of_any_length_match_the_naive_dft() {
+    let mut rng = Rng::new(0x5eed_f00d);
+    for n in [1usize, 2, 3, 5, 6, 7, 97, 100, 257, 1000] {
+        let input: Vec<Complex> = (0..n)
+            .map(|_| Complex::new(rng.next_f64(), rng.next_f64()))
+            .collect();
+        let expected = naive_dft(&input);
+        let got = fft(&input).unwrap();
+        for (k, (a, b)) in got.iter().zip(&expected).enumerate() {
+            assert_close(*a, *b, n as f64, &format!("n={n} bin {k}"));
+        }
+        // And the inverse returns the input.
+        let back = ifft(&got).unwrap();
+        for (j, (a, b)) in back.iter().zip(&input).enumerate() {
+            assert_close(*a, *b, 1.0, &format!("n={n} round trip {j}"));
+        }
+    }
 }
 
 #[test]
@@ -221,7 +245,11 @@ fn oversized_and_malformed_transforms_are_refused() {
     ));
     assert!(matches!(
         real_ifft(
-            &[Complex::real(f64::INFINITY), Complex::ZERO, Complex::ZERO],
+            &[
+                Complex::new(f64::INFINITY, 0.0),
+                Complex::ZERO,
+                Complex::ZERO
+            ],
             4
         ),
         Err(Error::InvalidValue(_))

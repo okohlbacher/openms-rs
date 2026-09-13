@@ -1,7 +1,7 @@
 # FFT: native replacement for the vendored evergreen transform
 
-[`src/math/fft.rs`](../src/math/fft.rs) provides a native, dependency-free
-one-dimensional FFT in place of the vendored `evergreen` library that core SDK
+[`src/math/fft.rs`](../src/math/fft.rs) provides a one-dimensional FFT, backed by
+the `rustfft` crate, in place of the vendored `evergreen` library that core SDK
 `bc9cc12514c768385ce121d6ca4bb710fe1983c4` pulls into
 `MATH/STATISTICS/KernelDensityEstimation.cpp` and
 `MATH/STATISTICS/MultipleTesting.cpp`.
@@ -23,40 +23,62 @@ machinery. Reading the call sites shows what is actually used:
 | `evergreen::real_fft<DIF, false, false, true>` | forward real transform, called once in `forRt` |
 | `evergreen::real_ifft<DIF, false, false>` | inverse real transform, called once in `revRt` |
 
-Nothing else. The port is therefore a radix-2 complex FFT and the packed real
-transform built on it, not a tensor library.
+Nothing else. The port is therefore a complex FFT and the packed real transform
+built on it, not a tensor library.
+
+## Why the transform comes from a crate
+
+The project's policy is that where the C++ takes something from a third-party
+library, the port looks for a suitable crate before writing its own. evergreen is
+exactly that case. The complex transform is `rustfft` 6.4.1 — pure Rust, MSRV
+1.61, and widely used — and `Complex` is its `num_complex::Complex<f64>`. An
+earlier version of this module hand-rolled a radix-2 decimation-in-frequency
+cascade and a complex type; both were removed.
+
+It is always used through **`FftPlannerScalar`**, never the default `FftPlanner`.
+The default picks AVX, SSE or NEON code at runtime. Measured on identical inputs
+on the Linux build node:
+
+| length | components differing in the bits | max relative difference | SIMD speedup |
+| --- | --- | --- | --- |
+| 1,024 | 92% | 1.4e-11 | 1.0x |
+| 65,536 | 98% | 9.0e-9 | 1.1x |
+| 1,048,576 | 99% | 4.5e-6 | 1.1x |
+| 997 (prime) | 99.8% | 1.3e-9 | 1.3x |
+| 100,003 (prime) | 99.9% | 2.2e-7 | 1.8x |
+
+The SIMD planner makes a kernel density estimate depend on the CPU it runs on,
+and on the power-of-two lengths kernel density estimation uses it buys almost
+nothing. The scalar planner gives the same bits on every machine.
 
 ## API mapping
 
 | Source construct | Native representation |
 | --- | --- |
-| `cpx` (`src/openms/extern/evergreen/src/FFT/cpx.hpp`) | `Complex { re, im }`, with `Add`, `Sub`, `Mul<Complex>`, `Mul<f64>`, `conj`, `modulus`, `is_finite`, `ZERO`, `new`, `real` |
-| `cpx::operator*` | `Mul for Complex`, the same four-multiply schoolbook product |
-| `cpx::conj` | `Complex::conj` |
+| `cpx` (`src/openms/extern/evergreen/src/FFT/cpx.hpp`) | `Complex`, a type alias for `rustfft::num_complex::Complex<f64>`; construct a real value with `Complex::new(re, 0.0)`, and the modulus is `norm` |
+| `cpx::operator*` | `num_complex`'s `Mul` |
+| `cpx::conj` | `num_complex`'s `conj` |
 | `DIFButterfly<N>::apply` + `RecursiveShuffle<cpx, LOG_N>::apply` | `fft_in_place` / `fft`; the recursion is flattened into the equivalent stage loop |
 | `NDFFTEnvironment::SingleIFFT1D::apply` | `ifft_in_place` / `ifft` — conjugate, forward transform, conjugate, scale by `1/N`, in that order |
 | `real_fft<DIF, false, false, true>(Tensor<double>)` | `real_fft(&[f64]) -> Result<Vec<Complex>>`, returning the `N/2 + 1` distinct bins |
 | `real_ifft<DIF, false, false>(Tensor<cpx>)` | `real_ifft(&[Complex], length) -> Result<Vec<f64>>` |
 | `DIF::real_fft1d_packed` + `RealFFTPostprocessor<LOG_N>::apply` | the unpacking half of `real_fft` |
 | `RealFFTPostprocessor<LOG_N>::apply_inverse` + `DIF::real_ifft1d_packed` | the repacking half of `real_ifft` |
-| `Twiddles<N>::advance`, `Twiddles<N>::delta` | `twiddle(k, n)`, evaluated rather than recurred — see differences |
+| `Twiddles<N>::advance`, `Twiddles<N>::delta` | `twiddle(k, n)` inside the packed real transform only, evaluated rather than recurred; the complex transform's twiddles are `rustfft`'s own |
 | `integer_log2`, `real_length_to_packed_length`, `packed_length_to_real_length` | folded into `check_length` and the `N/2 + 1` arithmetic |
 | `shape_to_log_shape`, `Tensor`, `Vector`, `MatrixTranspose`, `LinearTemplateSearch`, the N-dimensional paths, `apply_fft`, `execute_fft`, `fft_convolve` | **not ported**: no ported call site is multidimensional, and a `Vec<Complex>` is the 1-D tensor |
 | `DIT` (decimation in time) | **not ported**: `KernelDensityEstimation.cpp` instantiates `DIF` |
 | `FFT1D_MAX_LOG_N = 16` | `MAX_LEN = 2^24`, a real ceiling rather than a dispatch limit |
 
-`Complex` is deliberately small. The crate has no complex-number dependency and
-needs none: the FFT is the only consumer.
+`Complex` is no longer the crate's own type: `rustfft` already depends on
+`num_complex`, and re-exporting its type means values cross into the transform
+without conversion.
 
 ## Preserved source conventions
 
 - **Unnormalised forward transform, `1/N` on the inverse.** `DIFButterfly`
   applies no scale, and `SingleIFFT1D` divides once by the transform length. The
   pair composes to the identity.
-- **Decimation in frequency.** Butterflies first over the whole range, halving
-  each stage, then one bit-reversal permutation. The per-butterfly order — sum
-  into the low half, then difference times twiddle into the high half — is the
-  source's `DIFButterfly::apply` written out.
 - **The real transform's packing.** A length-`N` real signal is read as `N/2`
   complex values `x[2j] + i x[2j+1]`, transformed at half length, and split by
   the `RealFFTPostprocessor` identities
@@ -72,19 +94,23 @@ needs none: the FFT is the only consumer.
 
 ## Native differences
 
-- **Twiddle factors are evaluated, not recurred.** evergreen advances a running
+- **The complex transform is `rustfft`'s, not evergreen's.** evergreen advances a running
   twiddle by `w += w * delta`, with `delta = (cos(t) - 1, -sin(t))` written as
-  `-2 sin^2(t/2)` so the increment stays near zero for large `N`. That is a
-  clever way to *reduce* the error of a recurrence, not to remove it: the error
-  still accumulates along a stage. This port evaluates `cos`/`sin` per butterfly
-  and returns exact values at the four quarter-turns. The results are therefore
-  **not bit-identical** to evergreen's in the last places. No oracle for
+  `-2 sin^2(t/2)` so the increment stays near zero for large `N`. That reduces a
+  recurrence's error without removing it. `rustfft` plans its own algorithms, so
+  the results are **not bit-identical** to evergreen's in the last places — nor
+  were the earlier hand-rolled kernel's. No oracle for
   evergreen's bit pattern exists in this repository, so matching it was not
   attempted; the port is pinned against a naive `O(n^2)` DFT instead, which
   checks the answer rather than a previous implementation's arithmetic order.
-- **Lengths are checked.** See the defects below. `check_length` returns
-  `Error::InvalidValue` for a length that is zero or not a power of two, and
-  `Error::InvalidRange` above `MAX_LEN`.
+- **The complex transform accepts any length.** evergreen silently transforms
+  the wrong number of points for a non-power-of-two length (see the defects
+  below), so the earlier hand-rolled kernel refused one. `rustfft` transforms
+  arbitrary lengths correctly — prime lengths through Bluestein's algorithm — so
+  `fft` and `ifft` now accept any length from 1 to `MAX_LEN`, and refuse only zero
+  (`Error::InvalidValue`) or an oversized length (`Error::InvalidRange`). The
+  packed real transform still requires a power of two, because its `N/4`
+  unpacking loop does.
 - **Non-finite inputs are refused** by `real_fft` and `real_ifft`, where the
   source propagates `NaN` through every bin.
 - **`real_ifft` takes the output length explicitly** and verifies the bin count
@@ -120,18 +146,20 @@ Both are reported in the work package's C++ issue list.
 
 | Boundary | Where |
 | --- | --- |
-| `MAX_LEN = 2^24` points per transform | `check_length`, before any allocation |
-| length must be a positive power of two | `check_length` |
+| `MAX_LEN = 2^24` points per transform | `check_complex_length`, before any allocation |
+| complex transform length must be positive | `check_complex_length` |
+| packed real transform length must be a power of two | `check_length` |
 | `real_ifft` bin count must be `length / 2 + 1` | `real_ifft` |
 | every input value must be finite | `real_fft`, `real_ifft` |
 
 Evidence is **tier 4** throughout — there is no evergreen class test in the
 OpenMS suite and nothing to transcribe. `tests/fft.rs` asserts:
 
-- the forward transform against a naive `O(n^2)` DFT at every **power-of-two**
-  length from `1` to `1024` — the eleven lengths the transform accepts in that
-  range, since `check_length` refuses the rest — on a deterministic
-  pseudo-random stream;
+- the forward transform against a naive `O(n^2)` DFT at every power-of-two
+  length from `1` to `1024`, on a deterministic pseudo-random stream;
+- the forward transform and its round trip against the naive DFT at lengths the
+  earlier kernel refused — 3, 5, 6, 7, 97, 100, 257 and 1000 — including primes,
+  which exercise `rustfft`'s Bluestein path;
 - a forward/inverse round trip over the same lengths;
 - the packed real transform against the naive DFT of the same signal, plus its
   own round trip;
@@ -143,6 +171,10 @@ OpenMS suite and nothing to transcribe. `tests/fft.rs` asserts:
   estimator depends on;
 - `fft` and `fft_in_place` agreeing bit for bit;
 - every refusal above.
+
+`tests/kernel_density.rs` is the fidelity check that decided the swap: its
+upstream class-test expectations pass unchanged on `rustfft`'s scalar planner,
+exactly as they did on the hand-rolled kernel.
 
 `tests/kernel_density.rs` adds an indirect check: `for_rt`'s Munro packing is
 compared entry by entry against `real_fft`'s output.

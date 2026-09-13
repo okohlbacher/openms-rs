@@ -75,6 +75,12 @@ rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled
 # Default-on, because a multithreaded core is the point; disabling the feature
 # gives a reproducible single-threaded build for debugging and comparison.
 rayon = { version = "=1.12.0", optional = true }
+# Complex FFT for MATH/STATISTICS/KernelDensityEstimation, replacing the
+# evergreen FFT the C++ uses. Always used through FftPlannerScalar: its SIMD
+# planner picks AVX/SSE/NEON at runtime and was measured to differ from the
+# scalar path in 92-99% of output components for at most a 1.1x speedup on the
+# power-of-two lengths KDE uses, so results would depend on the CPU.
+rustfft = "=6.4.1"
 # HTTP for SYSTEM/NetworkGetRequest and the update check. Pure Rust, blocking,
 # no async runtime. Its MSRV is exactly ours, so the pin is load-bearing.
 ureq = { version = "=3.4.1", optional = true }
