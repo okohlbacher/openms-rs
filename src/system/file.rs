@@ -355,7 +355,8 @@ pub fn readable(file: impl AsRef<Path>) -> bool {
 ///
 /// The probe has no single fixed name. [`TempFile`] walks a ladder of
 /// progressively shorter candidates, ending at the bare decimal probe counter,
-/// and the first that can be created exclusively answers the question. The
+/// and the first that can be created exclusively answers the question; when
+/// none can, one-byte names are tried before the answer is `false`. The
 /// ladder stands in for the source's own fallback: the source tries one
 /// descriptive probe name and, when the create fails for a reason that is about
 /// the *name* rather than about the directory — `ENAMETOOLONG`, or the
@@ -370,13 +371,14 @@ pub fn readable(file: impl AsRef<Path>) -> bool {
 ///
 /// Three divergences from the source remain.
 ///
-/// * `access(2)` needs no filename at all, while the shortest rung of the
-///   ladder is still a name: the decimal counter, one byte until the process
-///   has handed out ten unique names and two thereafter. A directory whose path
-///   sits within that many bytes of the platform's limit — close enough that
-///   the caller's own one-character name fits and the counter does not — is
-///   answered `false` where the source answers `true`. Safe Rust has no
-///   `access(2)`, so the band is narrowed rather than closed.
+/// * `access(2)` needs no filename at all, while every probe is still a name.
+///   The last resort is a one-byte name, which fits wherever any caller's name
+///   does, so the band next to the path limit is closed except in a directory
+///   that already holds every one-byte name the probe tries; there the answer
+///   is `false` where the source answers `true`. The decimal counter alone did
+///   not close it: its width grows with the number of unique names the process
+///   has handed out, and a six-digit counter was measured on Linux to miss five
+///   path lengths below the 4095-byte limit.
 /// * The ladder is walked on *any* failed create, not on a decoded
 ///   `ENAMETOOLONG`, because `io::ErrorKind::InvalidFilename` is unstable at
 ///   this crate's minimum Rust version. A directory that refuses the first
@@ -407,13 +409,31 @@ fn parent(p: &Path) -> &Path {
         .unwrap_or_else(|| Path::new("."))
 }
 fn probe_directory(p: &Path, avoid: Option<&Path>) -> bool {
-    TempFile::create_in(p, avoid)
-        .and_then(|(guard, file)| {
-            drop(file);
-            guard.close()
-        })
-        .is_ok()
+    let close = |(guard, file): (TempFile, File)| {
+        drop(file);
+        guard.close()
+    };
+    if TempFile::create_in(p, avoid).and_then(close).is_ok() {
+        return true;
+    }
+    // The ladder ends at the decimal counter, which widens as the process hands
+    // out unique names. A directory within that many bytes of the path limit
+    // still accepts the caller's name when that name is short, so try one-byte
+    // probes before answering false: no caller's name is shorter. The source asks
+    // access(2) here, which safe Rust cannot call. A refusal that is not a
+    // collision is about the directory, not the name, and ends the search.
+    for name in ONE_BYTE_PROBE_NAMES.chars() {
+        match TempFile::create_candidate(p, name.encode_utf8(&mut [0; 4]), avoid) {
+            Ok(Some(created)) => return close(created).is_ok(),
+            Ok(None) => (),
+            Err(_) => return false,
+        }
+    }
+    false
 }
+/// One-byte probe names, lower case only so that a case-insensitive filesystem
+/// cannot report two of them as the same file.
+const ONE_BYTE_PROBE_NAMES: &str = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 /// The final component of `file`, without any directory part.
 ///

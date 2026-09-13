@@ -24,6 +24,13 @@
   handler's full-precision RT bounds are documented and pinned by a test. Also
   corrected CPP-219's CV accessions and a wrong feature name in the ImzMLFile
   docs. The review record is in `tests/data/sqlite_s1_resume_validation/`.
+- Fixed `File::writable` reporting a file unwritable when it could be created
+  within a few bytes of the platform path limit. The probe's shortest name was
+  the unique-name counter, whose width grows with use: a six-digit counter
+  missed five path lengths below Linux's 4095-byte limit, which made
+  `writable_agrees_with_the_operating_system_at_every_path_depth` fail
+  intermittently in CI. One-byte probe names now close the band, and the test
+  sweeps every length one byte apart with a six-digit counter.
 
 - Added the optional SQLite connector: three open modes, checked table/column queries and row counts, SQL batches and binary bindings. Names are treated as literal identifiers, statements use owned cleanup, and operational errors retain their SQLite cause. SQL transaction control remains with the caller; sqMass, OSW and OMS adapters are subsequent work.
 

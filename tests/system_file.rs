@@ -902,8 +902,17 @@ fn source_temporary_registry_equivalent_child_parent_and_alternative() {
 /// caller's file still fits and the probe does not. Reporting "not writable"
 /// there is the false negative the function exists to avoid, so at every depth
 /// the answer is compared against whether the OS will in fact create the file.
+/// Every tail length is tried, one byte apart, with the unique-name counter at
+/// six digits or more: stepping several bytes at a time, with a short counter,
+/// let the band hide on most runs.
 #[test]
 fn writable_agrees_with_the_operating_system_at_every_path_depth() {
+    while openms::system::file::get_unique_name(false)
+        .unwrap()
+        .rsplit('_')
+        .next()
+        .is_some_and(|counter| counter.len() < 6)
+    {}
     let d = temp();
     let mut deep = d.path().to_owned();
     // Capped below the recursive-removal depth ceiling, so that a filesystem
@@ -917,10 +926,8 @@ fn writable_agrees_with_the_operating_system_at_every_path_depth() {
         deep = next;
     }
     let (mut checked, mut agreed) = (0, 0);
-    let mut tail = 1;
-    while tail < 60 {
+    for tail in 1..60 {
         let leaf = deep.join("e".repeat(tail));
-        tail += 6;
         if fs::create_dir(&leaf).is_err() || !leaf.is_dir() {
             continue;
         }
