@@ -60,7 +60,15 @@ section that is empty, because the class registers no defaults.
 - This score involves no floating-point accumulation at all: the numerator and
   denominator are counts, and the single division is in `f64`. It is therefore
   the one functor of the three whose result is bit-identical to the source for
-  every input on which the source does not divide by zero.
+  every input on which the source does not divide by zero - the reduction
+  caveats in `BINNED_SPECTRAL_CONTRAST_ANGLE_SUPPORT.md` and
+  `BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md` do not apply here.
+- **`comparison::binned_shared_peak_count` is now this implementation, not a
+  second one.** The two agreed on every value already - both count the stored
+  index intersection over the larger stored-bin count - but they were separate
+  code with separate resource policies, and only this one enforces
+  `MAX_COMPARED_BINS`. The function is now the same code path, so the ceiling
+  applies to both.
 
 ## Checked boundaries and evidence
 

@@ -407,7 +407,13 @@ fn binned_compatibility_signed_cosine_and_symmetric_scores() {
     let a = BinnedSpectrum::new(&spectrum(&[1.0, 2.0], &[1.0, 2.0]), cfg).unwrap();
     let neg = BinnedSpectrum::new(&spectrum(&[1.0, 2.0], &[-1.0, -2.0]), cfg).unwrap();
     close(binned_cosine(&a, &neg).unwrap(), -1.0, 1e-15);
-    assert!(binned_sum_agreeing_intensities(&a, &neg).is_err());
+    // binned_sum_agreeing_intensities is now the BinnedSumAgreeingIntensities
+    // implementation itself rather than a second one, and the source accepts
+    // negative bins: it truncates every coefficient of
+    // (a + b)/2 - |a - b| that falls below zero. Here that is every bin, and the
+    // mean total intensity (3 + -3)/2 is zero, so the score is the guarded 0.0
+    // instead of the error the separate f64 implementation used to return.
+    assert_eq!(binned_sum_agreeing_intensities(&a, &neg).unwrap(), 0.0);
     let incompatible =
         BinnedSpectrum::new(&unit(&[1.0]), BinConfig { offset: 0.5, ..cfg }).unwrap();
     assert!(binned_cosine(&a, &incompatible).is_err());

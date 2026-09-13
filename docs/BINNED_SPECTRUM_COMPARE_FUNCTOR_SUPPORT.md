@@ -16,6 +16,20 @@ but over [`BinnedSpectrum`](COMPARISON_SUPPORT.md) rather than `PeakSpectrum`.
 Its `.cpp` includes its three derived classes for factory registration; that is
 not a dependency of the base on them.
 
+## Port status: complete
+
+Unlike its sibling
+[`PeakSpectrumCompareFunctor`](PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md), which
+is ledgered `partial` because no type in this crate implements it, this base has
+all three of its source derivatives shipped here -
+[`BinnedSharedPeakCount`](BINNED_SHARED_PEAK_COUNT_SUPPORT.md),
+[`BinnedSpectralContrastAngle`](BINNED_SPECTRAL_CONTRAST_ANGLE_SUPPORT.md) and
+[`BinnedSumAgreeingIntensities`](BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md) -
+and each is exercised through `&dyn BinnedSpectrumCompareFunctor`.
+`grep "public BinnedSpectrumCompareFunctor"
+src/openms/include/OpenMS/COMPARISON/*.h` at `bc9cc12` returns exactly those
+three headers, so the derivative set is closed.
+
 ## API mapping
 
 | Source member | Rust counterpart | Difference |
@@ -49,7 +63,7 @@ No member of this header is unported.
   states that "Functors normalized in the range [0,1] are identifiable at the set
   `normalized` parameter of the ParameterHandler". No binned functor in the
   pinned revision registers a `normalized` parameter - the only functor that does
-  is `PeakAlignment` (`PeakAlignment.cpp:25`), which derives from the *other*
+  is `PeakAlignment` (`PeakAlignment.cpp:24`), which derives from the *other*
   base. All three binned functors are in fact normalised for nonnegative bins,
   and each states that in its own documentation instead.
 - The header declares no nested exception type. The class test still has two

@@ -53,6 +53,15 @@ parameter section.
   relative difference of `2.9e-8`. That is small, and it is exactly the kind of
   difference that accumulates silently through a scoring pipeline, so the source
   precision is what the port reproduces.
+
+  Two limits on that fidelity claim, both now stated at `sparse_dot` in the
+  source file. Eigen's sparse `dot` is a scalar merge of the two inner iterators,
+  so the *association* reproduced here is the one it uses - unlike
+  `SparseVector::sum()`, which goes through the vectorised dense reduction; see
+  `BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md`. And a C++ build that contracts
+  `res += a * b` into an FMA, which is the default at `-ffp-contract=fast`,
+  rounds once where this rounds twice, so bit-for-bit agreement is a property of
+  the C++ build as well as of the port.
 - **The degenerate guard is the source's own.** `if (sum1 * sum2 == 0.0) return
   0.0;` (`BinnedSpectralContrastAngle.cpp:61-64`), with the source's comment
   naming it a regression fix for `0.0 / 0.0 = NaN`. The port keeps the guard, the
@@ -80,10 +89,19 @@ parameter section.
   be negative; the helper's reachable branch is the non-finite one.
 - The comparison is refused above [`MAX_COMPARED_BINS`](../src/comparison.rs)
   combined stored bins. The source has no ceiling.
-- The pre-existing free function `comparison::binned_cosine` computes the same
-  score in `f64` with a `sqrt(sum1) * sqrt(sum2)` denominator and a clamp to
-  `[-1, 1]`. It is retained unchanged for its existing callers; this functor is
-  the faithful port of the header, and collapsing the two is a follow-up.
+- **`comparison::binned_cosine` is now this implementation, not a second one.**
+  It used to be a separate `f64` port with a `sqrt(sum1) * sqrt(sum2)`
+  denominator and a clamp to `[-1, 1]`, so the module exported two public items
+  that answered the same question differently - they disagree by `2.9e-8`
+  relative on the class-test fixture, and the `f64` grouping does not give an
+  exact self-similarity. This functor is the faithful port and is authoritative;
+  the function is the same code path for a caller that wants neither a parameter
+  handler nor a `&dyn BinnedSpectrumCompareFunctor`.
+  `tests/comparison_functors.rs::the_parameter_free_functions_are_the_functor_implementations`
+  asserts the two agree bit for bit, and
+  `the_surviving_contrast_angle_policy_is_the_source_one` asserts that the
+  retained value genuinely differs from the `f64` one it replaced, so the choice
+  cannot silently revert.
 
 ## Checked boundaries and evidence
 

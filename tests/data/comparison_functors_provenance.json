@@ -88,6 +88,36 @@
    "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
    "sha256": "20a4f3386a4fd3b9a203ed36008d7dccb35d2b7c5f0e42b556b4bc8995eecb53",
    "role": "Not ported here. Read for the defaultsToParam_ ordering the functor constructors rely on."
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectraSTSimilarityScore.h",
+   "sha256": "131d8833334424c80faaf1d2f33569f259f9bfe7cd29773161d0826cc533b727",
+   "role": "Not ported here. Read for the derivative census of PeakSpectrumCompareFunctor: it is the seventh derivative and the one the base's .cpp does not #include, and its constructor calls setName without defaultsToParam_()."
+  },
+  {
+   "path": "src/openms/source/COMPARISON/SpectraSTSimilarityScore.cpp",
+   "sha256": "f017f2adcfeab5edf829641066ad636cd6c378e397d55531f1588126aa7f93a5",
+   "role": "Not ported here. Line 37 is its operator()(spec) = operator()(spec, spec)."
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/SpectrumCheapDPCorr.h",
+   "sha256": "02ed71fa5cc9080fb6e2651cc1b097022f6047211d1df10165da879f64d06607",
+   "role": "Not ported here. Read for the derivative census."
+  },
+  {
+   "path": "src/openms/source/COMPARISON/SpectrumCheapDPCorr.cpp",
+   "sha256": "5bad4274f5b7bc69cbc9e8696535f4e718529d987367b9695760a839ea2bff4f",
+   "role": "Not ported here. Line 69 is its operator()(spec) = operator()(spec, spec)."
+  },
+  {
+   "path": "src/openms/include/OpenMS/COMPARISON/PeakAlignment.h",
+   "sha256": "88b7056ccddfc491436078fd0a0123ab2b736e8389dd3c3a6661944fe877696e",
+   "role": "Not ported here. Read for the derivative census."
+  },
+  {
+   "path": "src/openms/source/COMPARISON/PeakAlignment.cpp",
+   "sha256": "a621dee886979eba7771ddbe52cc8c450d108e872971baef395542e04979a053",
+   "role": "Not ported here. Line 24 registers the only 'normalized' parameter in COMPARISON/, which the BinnedSpectrumCompareFunctor class comment wrongly attributes to the binned hierarchy; line 44 is its operator()(spec) = operator()(spec, spec)."
   }
  ],
  "fixtures": [
@@ -201,9 +231,10 @@
   "f32 overflow of a dot product or of an intensity sum is a checked error instead of an infinity carried into the score",
   "sqrt is taken through a helper that refuses a negative or non-finite radicand",
   "MAX_COMPARED_BINS = 4000000 combined stored bins is checked before any traversal; no scorer allocates, so a refusal leaves both inputs untouched",
-  "All reductions accumulate in f32 in ascending bin-index order, matching Eigen's scalar sparse walk; Eigen's dense redux may reassociate a large sum() under SIMD, so agreement there is to f32 reduction rounding rather than bit-exact",
+  "All reductions accumulate in f32 sequentially in ascending bin-index order. That is the association of Eigen's sparse dot (a scalar merge of two inner iterators), so BinnedSpectralContrastAngle reproduces it; it is NOT the association of SparseVector::sum() or of s.coeffs().cwiseMax(0).sum(), both of which map the stored-value array to a dense vector and use the vectorised dense redux, whose packet association depends on target and Eigen version. For the two BinnedSumAgreeingIntensities reductions the port therefore reproduces the f32 precision, and agreement with a vectorised C++ build is to f32 reduction rounding rather than bit-exact. A C++ build contracting res += a * b into an FMA (default at -ffp-contract=fast) can also differ in the last bit of the dot product. The sequential association is pinned by binned_reductions_are_sequential_f32_in_ascending_bin_order and is what a parallel reduction would have to reproduce under src/concept/parallel.rs.",
   "The protected precursor_mass_tolerance_ member of all three scorers is uninitialised, unwritten and unread upstream and has no counterpart",
-  "The pre-existing free functions binned_cosine, binned_shared_peak_count and binned_sum_agreeing_intensities are retained unchanged; they compute the same three scores in f64 with different degenerate-case and negative-bin policies and are not the header port"
+  "The free functions binned_cosine, binned_shared_peak_count and binned_sum_agreeing_intensities are entry points into these three functor implementations, not second implementations. They were separate f64 ports with a different denominator grouping, a clamp and a negative-bin rejection; the fix commit collapsed each pair onto the faithful header port, so the module no longer exports two public items that answer the same question differently. Visible consequences: binned_cosine no longer clamps and now reduces in f32, and binned_sum_agreeing_intensities no longer rejects negative bins.",
+  "PeakSpectrumCompareFunctor.h is ledgered partial, not complete: every member is ported but no type in this crate implements the trait. The base has seven source derivatives, not the six that PeakSpectrumCompareFunctor.cpp:11-16 includes - SpectraSTSimilarityScore is the seventh - of which four exist here as typed Copy structs from an earlier wave and three are unported."
  ],
  "openmp": "No #pragma omp in any of the five headers or their implementation files; no parallelism gap to record.",
  "target_verification": {

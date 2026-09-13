@@ -12,6 +12,7 @@
 use openms::comparison::{
     BinConfig, BinUnit, BinnedSharedPeakCount, BinnedSpectralContrastAngle, BinnedSpectrum,
     BinnedSpectrumCompareFunctor, BinnedSumAgreeingIntensities, PeakSpectrumCompareFunctor,
+    binned_cosine, binned_shared_peak_count, binned_sum_agreeing_intensities,
 };
 use openms::format::dta;
 use openms::param::DefaultParamHandler;
@@ -583,5 +584,202 @@ fn binned_comparisons_are_bounded_and_never_return_a_nonfinite_score() {
             .score(&huge, &huge)
             .unwrap(),
         1.0
+    );
+}
+
+// ---------------------------------------------------------------------------
+// One implementation per score
+//
+// `comparison` used to export, side by side, three parameter-free functions and
+// three functors that answered the same three questions differently: `f64`
+// against Eigen's `f32` reduction, `sqrt(sum1) * sqrt(sum2)` against
+// `sqrt(sum1 * sum2)`, a clamp against none, and a negative-bin rejection
+// against the source's truncation. The functor is the port of the header and is
+// authoritative; the function is now an entry point into it. These tests hold
+// that together and record which of the two policies survived.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn the_parameter_free_functions_are_the_functor_implementations() {
+    let s1 = golden();
+    let mut s2 = s1.clone();
+    s2.peaks.pop();
+    let layout = BinConfig {
+        size: 1.0,
+        unit: BinUnit::Absolute,
+        spread: 0,
+        offset: 0.0,
+        ..Default::default()
+    };
+    let cases = [
+        (binned(&s1, 0.0), binned(&s2, 0.0)),
+        (binned(&s1, 0.4), binned(&s2, 0.4)),
+        (binned(&s1, 0.4), binned(&s1, 0.4)),
+        (binned(&MSSpectrum::default(), 0.4), binned(&s1, 0.4)),
+        (
+            binned(&MSSpectrum::default(), 0.4),
+            binned(&MSSpectrum::default(), 0.4),
+        ),
+        (
+            BinnedSpectrum::new(&peaks(&[1.0, 2.0], &[3.0, 4.0]), layout).unwrap(),
+            BinnedSpectrum::new(&peaks(&[1.0, 2.0], &[-3.0, -4.0]), layout).unwrap(),
+        ),
+        (
+            BinnedSpectrum::new(&peaks(&[1.0], &[0.0]), layout).unwrap(),
+            BinnedSpectrum::new(&peaks(&[1.0], &[0.0]), layout).unwrap(),
+        ),
+        // Incompatible layouts, where both shapes must refuse.
+        (binned(&s1, 0.0), binned(&s1, 0.4)),
+    ];
+    for (left, right) in &cases {
+        for (a, b) in [(left, right), (right, left)] {
+            assert_eq!(
+                binned_shared_peak_count(a, b).ok(),
+                BinnedSharedPeakCount::new().unwrap().score(a, b).ok()
+            );
+            assert_eq!(
+                binned_cosine(a, b).ok(),
+                BinnedSpectralContrastAngle::new().unwrap().score(a, b).ok()
+            );
+            assert_eq!(
+                binned_sum_agreeing_intensities(a, b).ok(),
+                BinnedSumAgreeingIntensities::new()
+                    .unwrap()
+                    .score(a, b)
+                    .ok()
+            );
+        }
+    }
+
+    // Two of the collapsed disagreements, asserted rather than described. A
+    // negative bin used to be an error from the free function and is now the
+    // source's truncation, and the empty-spectrum guard used to be a zero-norm
+    // test rather than the source's `sum1 * sum2 == 0.0`.
+    let (a, negated) = (&cases[5].0, &cases[5].1);
+    assert_eq!(binned_sum_agreeing_intensities(a, negated).unwrap(), 0.0);
+    assert_eq!(binned_cosine(a, negated).unwrap(), -1.0);
+    assert_eq!(binned_cosine(&cases[4].0, &cases[4].1).unwrap(), 0.0);
+
+    // The last case is a refusal from both shapes, not an agreement on a number.
+    let (left, right) = &cases[cases.len() - 1];
+    assert!(matches!(
+        binned_cosine(left, right),
+        Err(Error::InvalidValue(_))
+    ));
+    assert!(matches!(
+        binned_shared_peak_count(left, right),
+        Err(Error::InvalidValue(_))
+    ));
+    assert!(matches!(
+        binned_sum_agreeing_intensities(left, right),
+        Err(Error::InvalidValue(_))
+    ));
+}
+
+#[test]
+fn the_surviving_contrast_angle_policy_is_the_source_one() {
+    let s1 = golden();
+    let mut s2 = s1.clone();
+    s2.peaks.pop();
+    let bs1 = binned(&s1, 0.4);
+    let bs2 = binned(&s2, 0.4);
+
+    // What the separate `f64` implementation of `binned_cosine` used to compute:
+    // `f64` accumulation of the products and of the two norms, with a
+    // `sqrt(sum1) * sqrt(sum2)` denominator and a clamp. Keeping the source's
+    // `f32` reduction and grouping is a visible choice, not a rounding accident,
+    // so the two are asserted to differ and to differ only slightly.
+    let norm = |spectrum: &BinnedSpectrum| -> f64 {
+        spectrum
+            .bins()
+            .values()
+            .map(|&v| f64::from(v) * f64::from(v))
+            .sum::<f64>()
+            .sqrt()
+    };
+    let dot_f64: f64 = bs1
+        .bins()
+        .iter()
+        .map(|(index, &v)| f64::from(v) * f64::from(*bs2.bins().get(index).unwrap_or(&0.0)))
+        .sum();
+    let former = (dot_f64 / (norm(&bs1) * norm(&bs2))).clamp(-1.0, 1.0);
+    let current = binned_cosine(&bs1, &bs2).unwrap();
+    assert_ne!(current, former);
+    assert!((current - former).abs() < 1e-6, "{current} vs {former}");
+    close(current, 0.999985);
+
+    // And the reason the source's grouping is the one kept: `s / sqrt(s * s)` is
+    // exactly one for every `f32`-valued sum, because a 24-bit significand
+    // squares into 48 bits and stays exact in `f64`, while
+    // `s / (sqrt(s) * sqrt(s))` is not. This fixture happens to land on a sum
+    // where both give one, so the counterexamples are produced directly.
+    let mut ungrouped_misses = 0_usize;
+    for step in 1..2000_u32 {
+        let s = f64::from(step as f32 * 1.37e5_f32);
+        if s / (s.sqrt() * s.sqrt()) != 1.0 {
+            ungrouped_misses += 1;
+        }
+        assert_eq!(s / (s * s).sqrt(), 1.0);
+    }
+    assert!(ungrouped_misses > 0, "the two groupings never differed");
+    assert_eq!(
+        BinnedSpectralContrastAngle::new()
+            .unwrap()
+            .self_score(&bs1)
+            .unwrap(),
+        1.0
+    );
+}
+
+#[test]
+fn binned_reductions_are_sequential_f32_in_ascending_bin_order() {
+    // Eigen reduces `SparseVector::sum()` and `s.coeffs().cwiseMax(0).sum()`
+    // through the dense redux, which spreads the stored-value array over several
+    // packet accumulators; the port sums the same `f32` values sequentially in
+    // ascending bin order instead. The two associations are different functions,
+    // as the ascending-versus-reversed folds below show, so this test pins the
+    // one the port uses - against a future "optimisation", and against a parallel
+    // reduction, which `src/concept/parallel.rs` requires to stay bit-identical.
+    let layout = BinConfig {
+        size: 1.0,
+        unit: BinUnit::Absolute,
+        spread: 0,
+        offset: 0.0,
+        ..Default::default()
+    };
+    let fold = |values: &[f32]| values.iter().fold(0.0_f32, |sum, &v| sum + v);
+    let huge = 16_777_216.0_f32; // 2^24; the f32 spacing is 2 from here on.
+    assert_ne!(fold(&[huge, 1.0, 1.0]), fold(&[1.0, 1.0, huge]));
+
+    // Contrast angle: the second spectrum is all ones, so the products are the
+    // first spectrum's own coefficients and the numerator is their sequential
+    // `f32` sum, which drops both trailing ones.
+    let a = BinnedSpectrum::new(&peaks(&[1.0, 2.0, 3.0], &[huge, 1.0, 1.0]), layout).unwrap();
+    let b = BinnedSpectrum::new(&peaks(&[1.0, 2.0, 3.0], &[1.0, 1.0, 1.0]), layout).unwrap();
+    let numerator = fold(&[huge, 1.0, 1.0]);
+    assert_eq!(numerator, huge);
+    let sum1 = fold(&[huge * huge, 1.0, 1.0]);
+    let sum2 = fold(&[1.0, 1.0, 1.0]);
+    assert_eq!(
+        BinnedSpectralContrastAngle::new()
+            .unwrap()
+            .score(&a, &b)
+            .unwrap(),
+        f64::from(numerator) / (f64::from(sum1) * f64::from(sum2)).sqrt()
+    );
+
+    // Agreeing intensities: per bin the kept weight is (v + w)/2 - |v - w|, so
+    // the numerator folds [2^24, 1, 1] and each denominator folds its own bins.
+    let left = BinnedSpectrum::new(&peaks(&[1.0, 2.0, 3.0], &[huge, 4.0, 4.0]), layout).unwrap();
+    let right = BinnedSpectrum::new(&peaks(&[1.0, 2.0, 3.0], &[huge, 2.0, 2.0]), layout).unwrap();
+    let agreeing = fold(&[huge, 1.0, 1.0]);
+    let total_left = fold(&[huge, 4.0, 4.0]);
+    let total_right = fold(&[huge, 2.0, 2.0]);
+    assert_eq!(
+        BinnedSumAgreeingIntensities::new()
+            .unwrap()
+            .score(&left, &right)
+            .unwrap(),
+        f64::from(agreeing) / ((f64::from(total_left) + f64::from(total_right)) / 2.0)
     );
 }

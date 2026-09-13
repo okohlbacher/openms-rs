@@ -54,6 +54,24 @@ parameter section.
   spread 2 and offset 0.0 gives `0.9970718147928658` for the `f32` arithmetic
   against `0.9970718210319204` for an `f64` rewrite, a relative difference of
   `6.3e-9`; at offset 0.4 the difference is `2.8e-8`.
+- **The reduction *association* is not the source's, and the fidelity claim is
+  bounded accordingly.** Both reductions in this functor go through Eigen's
+  *dense* redux, not a sparse walk: `SparseVector::sum()` maps the stored-value
+  array to a dense vector and reduces that, and `s.coeffs()` is likewise a dense
+  `Map` over the stored-value array, so `s.coeffs().cwiseMax(0).sum()` is a dense
+  reduction too. Eigen vectorises those into several packet accumulators combined
+  at the end, an association that depends on the target's packet width and on the
+  Eigen version, and that is not the sequential one. The port sums the same `f32`
+  values in the same bin order sequentially: what it reproduces is the `f32`
+  *precision* of the reduction, and agreement with a vectorised C++ build is to
+  `f32` reduction rounding rather than bit for bit. Sequential order is the
+  choice because it is deterministic, is what a scalar build produces, and is the
+  association a parallel reduction would have to reproduce under
+  `src/concept/parallel.rs`.
+  `tests/comparison_functors.rs::binned_reductions_are_sequential_f32_in_ascending_bin_order`
+  pins it on an input where the two associations differ by one `f32` ulp. The
+  sibling `BinnedSpectralContrastAngle` is not affected: Eigen's sparse `dot` is
+  a scalar merge whose association the port does reproduce.
 - **`cwiseMax(0)` semantics.** Eigen's `numext::maxi(a, 0)` keeps `a` unless
   `a < 0`, so `-0.0` survives; the port writes `if value < 0.0 { 0.0 } else { value }`
   for the same reason rather than `f32::max`, whose NaN handling differs.
@@ -75,15 +93,23 @@ parameter section.
 - `f32` overflow in either total or in the agreeing sum is
   `Error::InvalidValue`, not an infinity carried into the division.
 - Refused above [`MAX_COMPARED_BINS`](../src/comparison.rs) combined stored bins.
-- **Negative bins are accepted here and rejected by the pre-existing free
-  function** `comparison::binned_sum_agreeing_intensities`, which returns an
-  error for them. The source accepts them, so the functor does. The consequence
-  is worth stating: a wholly negative spectrum scores `0` against *itself*,
-  because `(v + v)/2 - 0 = v` is below zero and is truncated, so the class
-  comment's "Perfect agreement results in a similarity score of 1.0" holds only
-  for nonnegative bins. That is source behaviour, reproduced, not a port choice.
-  The free function is retained unchanged for its existing callers; collapsing
-  the two is a follow-up.
+- **Negative bins are accepted, as upstream.** The consequence is worth stating:
+  a wholly negative spectrum scores `0` against *itself*, because
+  `(v + v)/2 - 0 = v` is below zero and is truncated, so the class comment's
+  "Perfect agreement results in a similarity score of 1.0" holds only for
+  nonnegative bins. That is source behaviour, reproduced, not a port choice.
+- **`comparison::binned_sum_agreeing_intensities` is now this implementation, not
+  a second one.** It used to be a separate `f64` port that walked the
+  intersection and *rejected* negative bins, so the module exported two public
+  items that answered the same question differently and disagreed both in the
+  last bits and on whether a negative bin is an error at all. This functor is the
+  faithful port and is authoritative; the function is the same code path for a
+  caller that wants neither a parameter handler nor a
+  `&dyn BinnedSpectrumCompareFunctor`. The visible consequence of the collapse is
+  that a negative bin is no longer an error from either shape - the source
+  truncates it away - which
+  `tests/comparison.rs::binned_compatibility_signed_cosine_and_symmetric_scores`
+  now asserts as `Ok(0.0)` where it previously asserted `Err`.
 
 ## Checked boundaries and evidence
 
@@ -94,7 +120,7 @@ parameter section.
 | both spectra empty | `Ok(0.0)`; source returns NaN |
 | all-zero bins | `Ok(0.0)`; source returns NaN |
 | bins that cancel to a zero mean total | `Ok(0.0)`; source returns NaN or `1.0` |
-| negative bins | accepted, as upstream; truncation can make self-similarity `0` |
+| negative bins | accepted, as upstream; truncation can make self-similarity `0`. Not an error from the functor or from the parameter-free function |
 | `f32` overflow of a total or of the agreeing sum | `Err(Error::InvalidValue)` |
 | combined stored bins above `MAX_COMPARED_BINS` | `Err(Error::InvalidValue)` before any traversal |
 
