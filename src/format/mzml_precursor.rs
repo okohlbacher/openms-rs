@@ -29,6 +29,161 @@ const METHODS: [(A, &str); 19] = [
     (A::InSource, "MS:1001880"),
     (A::Lift, "MS:1002000"),
 ];
+// Only explicit pinned activation routes are retained here; unknown CVs keep
+// the established reader policy. The source calls MS:1000138 metadata by its
+// historical key even though its current CV name is normalized collision energy.
+const ACTIVATION_METADATA: [(&str, &str, &str); 9] = [
+    ("MS:1000245", "charge stripping", "xsd:string"),
+    ("MS:1000045", "collision energy", "xsd:double"),
+    ("MS:1000412", "buffer gas", "xsd:string"),
+    ("MS:1000419", "collision gas", "xsd:string"),
+    ("MS:1000138", "percent collision energy", "xsd:double"),
+    ("MS:1000869", "collision gas pressure", "xsd:double"),
+    (
+        "MS:1002679",
+        "supplemental collision-induced dissociation",
+        "xsd:string",
+    ),
+    (
+        "MS:1002678",
+        "supplemental beam-type collision-induced dissociation",
+        "xsd:string",
+    ),
+    ("MS:1002680", "supplemental collision energy", "xsd:double"),
+];
+const INTENSITY_UNIT_KEY: &str = "peak intensity unit accession";
+
+pub(super) fn read_metadata_cv(
+    record: &mut super::Record,
+    parent: &str,
+    attrs: &BTreeMap<String, String>,
+    budget: &mut super::ParameterBudget,
+) -> Result<bool> {
+    if record.precursor.is_none() {
+        return Ok(false);
+    }
+    let id = super::required(attrs, "accession")?;
+    if parent == "selectedIon" && id == "MS:1000042" {
+        if !record.precursor_fields.insert("precursor_intensity") {
+            return Err(invalid("duplicate precursor intensity"));
+        }
+        let p = record.precursor.as_mut().expect("checked precursor");
+        p.intensity = super::intensity(finite(
+            super::required(attrs, "value")?,
+            "precursor intensity",
+        )?)?;
+        if let Some(unit) = attrs.get("unitAccession") {
+            super::record_transport::slot(budget, INTENSITY_UNIT_KEY)?;
+            intensity_unit(unit)?;
+            if attrs
+                .get("unitCvRef")
+                .is_some_and(|prefix| !unit.starts_with(&format!("{prefix}:")))
+            {
+                return Err(invalid(
+                    "precursor intensity unit reference conflicts with accession",
+                ));
+            }
+            if unit != "MS:1000132"
+                && p.cv_terms
+                    .metadata
+                    .insert(INTENSITY_UNIT_KEY.into(), unit.as_str().into())
+                    .is_some()
+            {
+                return Err(invalid("duplicate precursor intensity unit metadata"));
+            }
+        } else if attrs.contains_key("unitCvRef") || attrs.contains_key("unitName") {
+            return Err(invalid(
+                "precursor intensity unit attributes require an accession",
+            ));
+        }
+        return Ok(true);
+    }
+    if parent != "activation" {
+        return Ok(false);
+    }
+    let Some(&(_, key, kind)) = ACTIVATION_METADATA.iter().find(|row| row.0 == id) else {
+        return Ok(false);
+    };
+    super::record_transport::slot(budget, key)?;
+    let value = if id == "MS:1000245" {
+        if attrs.contains_key("unitAccession")
+            || attrs.contains_key("unitCvRef")
+            || attrs.contains_key("unitName")
+        {
+            return Err(invalid(
+                "charge stripping flag cannot preserve unit metadata",
+            ));
+        }
+        crate::metadata::MetaValue::from("true")
+    } else {
+        super::scalar_user_value(attrs, kind)?
+    };
+    let p = record.precursor.as_mut().expect("checked precursor");
+    if p.cv_terms.metadata.insert(key.into(), value).is_some() {
+        return Err(invalid("duplicate precursor activation metadata"));
+    }
+    match id {
+        "MS:1002679" => {
+            p.activation_methods.insert(A::Etcid);
+        }
+        "MS:1002678" => {
+            p.activation_methods.insert(A::Ethcd);
+        }
+        _ => {}
+    }
+    Ok(true)
+}
+
+fn intensity_unit(
+    accession: &str,
+) -> Result<&'static crate::format::controlled_vocabulary::CVTermDefinition> {
+    if !accession.starts_with("MS:") && !accession.starts_with("UO:") {
+        return Err(Error::Unsupported(
+            "precursor intensity unit must have MS or UO identity".into(),
+        ));
+    }
+    crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?.get_term(accession)
+}
+
+pub(super) fn write_intensity(w: &mut impl Write, p: &Precursor) -> Result<()> {
+    let Some(value) = p.cv_terms.metadata.get(INTENSITY_UNIT_KEY) else {
+        return cv(
+            w,
+            "MS:1000042",
+            "peak intensity",
+            &p.intensity.to_string(),
+            "",
+        );
+    };
+    let term = intensity_unit(value.as_str()?)?;
+    let prefix = term.id.split_once(':').expect("validated unit prefix").0;
+    let unit = format!(
+        " unitAccession=\"{}\" unitCvRef=\"{}\" unitName=\"{}\"",
+        escape(&term.id),
+        escape(prefix),
+        escape(&term.name)
+    );
+    cv(
+        w,
+        "MS:1000042",
+        "peak intensity",
+        &p.intensity.to_string(),
+        &unit,
+    )
+}
+
+fn promoted(value: &crate::metadata::MetaValue, id: &str, kind: &str) -> bool {
+    use crate::metadata::MetaValueData;
+    match (kind, value.data()) {
+        ("xsd:double", MetaValueData::Float(_)) => true,
+        ("xsd:string", MetaValueData::String(text)) if id == "MS:1000245" => {
+            text == "true" && value.unit().is_none()
+        }
+        ("xsd:string", MetaValueData::String(_)) => true,
+        _ => false,
+    }
+}
+
 const MZ_UNIT: &str = " unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"";
 
 pub(super) fn field(parent: &str, accession: &str) -> Option<&'static str> {
@@ -145,6 +300,20 @@ pub(super) fn validate_write(p: &Precursor) -> Result<()> {
         ));
     }
     super::validate_scalar_metadata(&p.cv_terms.metadata)?;
+    if let Some(value) = p.cv_terms.metadata.get(INTENSITY_UNIT_KEY) {
+        if value.unit().is_some() {
+            return Err(invalid(
+                "intensity unit accession metadata cannot itself have a unit",
+            ));
+        }
+        let accession = value.as_str()?;
+        intensity_unit(accession)?;
+        if accession == "MS:1000132" {
+            return Err(invalid(
+                "explicit default intensity unit metadata would normalize away",
+            ));
+        }
+    }
     if let Some(value) = p.cv_terms.metadata.get("external_spectrum_id") {
         if value.unit().is_some() {
             return Err(invalid("external_spectrum_id cannot have a unit"));
@@ -262,6 +431,19 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
         )?;
     }
     for method in &p.activation_methods {
+        if (*method == A::Etcid
+            && p.cv_terms
+                .metadata
+                .get("supplemental collision-induced dissociation")
+                .is_some_and(|v| promoted(v, "MS:1002679", "xsd:string")))
+            || (*method == A::Ethcd
+                && p.cv_terms
+                    .metadata
+                    .get("supplemental beam-type collision-induced dissociation")
+                    .is_some_and(|v| promoted(v, "MS:1002678", "xsd:string")))
+        {
+            continue;
+        }
         let accession = METHODS.iter().find(|(m, _)| m == method).unwrap().1;
         let name = if *method == A::Lift {
             "LIFT".into()
@@ -276,11 +458,44 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
             "<userParam name=\"activation information unavailable\"/>"
         )?;
     }
-    super::write_scalar_metadata_skipping(
-        w,
-        &p.cv_terms.metadata,
-        &["external_spectrum_id", "selected ion m/z"],
-    )?;
+    let mut skip = [""; 12];
+    skip[..3].copy_from_slice(&[
+        "external_spectrum_id",
+        "selected ion m/z",
+        INTENSITY_UNIT_KEY,
+    ]);
+    let mut used = 3;
+    for (id, key, kind) in ACTIVATION_METADATA {
+        if let Some(value) = p
+            .cv_terms
+            .metadata
+            .get(key)
+            .filter(|v| promoted(v, id, kind))
+        {
+            let term = crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?
+                .get_term(id)?;
+            let text = if id == "MS:1000245" {
+                String::new()
+            } else {
+                value.to_string()
+            };
+            let unit = value
+                .unit()
+                .map(|u| {
+                    format!(
+                        " unitAccession=\"{}\" unitCvRef=\"{}\" unitName=\"{}\"",
+                        escape(u.accession()),
+                        escape(u.cv_ref()),
+                        escape(u.name())
+                    )
+                })
+                .unwrap_or_default();
+            cv(w, id, &term.name, &text, &unit)?;
+            skip[used] = key;
+            used += 1;
+        }
+    }
+    super::write_scalar_metadata_skipping(w, &p.cv_terms.metadata, &skip[..used])?;
     writeln!(w, "</activation></precursor>")?;
     Ok(())
 }

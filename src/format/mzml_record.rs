@@ -195,6 +195,9 @@ pub(super) fn read_cv(
     attrs: &BTreeMap<String, String>,
     budget: &mut ParameterBudget,
 ) -> Result<bool> {
+    if precursor_metadata::read_metadata_cv(record, parent, attrs, budget)? {
+        return Ok(true);
+    }
     let id = required(attrs, "accession")?;
     let row = match parent {
         "spectrum" => SPECTRUM_CV,

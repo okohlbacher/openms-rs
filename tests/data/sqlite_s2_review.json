@@ -1,0 +1,579 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "evidence": "Pinned source review only. None of these S2 issues has been executed in C++ or tested through a native S2 implementation. Class-test counts are static active macro occurrences, not runtime assertion counts.",
+  "proposals": [
+    {
+      "title": "MSDataSqlConsumer owning raw pointer leaks during failed construction and can be shallow-copied",
+      "status": "source-reviewed defect",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
+          "functions": [
+            "MSDataSqlConsumer implicit copy constructor/assignment",
+            "handler_ ownership"
+          ]
+        },
+        {
+          "path": "src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp",
+          "line": 16,
+          "functions": [
+            "MSDataSqlConsumer::MSDataSqlConsumer"
+          ]
+        }
+      ],
+      "trigger": "Construct with a path whose createTables throws after handler allocation, or copy a successfully constructed consumer and destroy both copies.",
+      "incorrect_behavior": "Constructor allocates handler before throwing operations and no RAII owner releases it on failure. Public class does not disable copy; implicit copy duplicates owning pointer, leading to two destructors using/deleting it.",
+      "proposed_cpp_fix": "Use std::unique_ptr<MzMLSqliteHandler>, initialize safely, and delete copy operations or implement ownership-preserving copy semantics.",
+      "evidence": "Header raw pointer; allocation line18 precedes reserve/create lines22\u201326; delete line42. Full header and source reviewed. No C++ allocation/leak probe.",
+      "rust_handling": "Not implemented yet; recommend owned Rust handler, no Clone for mutable consumer.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-204"
+    },
+    {
+      "title": "MSDataSqlConsumer destructor lets I/O exceptions escape noexcept destruction",
+      "status": "source-reviewed defect",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp",
+          "line": 29,
+          "functions": [
+            "MSDataSqlConsumer::~MSDataSqlConsumer",
+            "flush",
+            "writeRunLevelInformation"
+          ]
+        },
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
+          "functions": [
+            "~MSDataSqlConsumer override"
+          ]
+        }
+      ],
+      "trigger": "Leave buffered records or unwritten RUN metadata, then encounter SQLite/disk failure at destruction.",
+      "incorrect_behavior": "Destructor calls throwing flush/write methods without catch. Its implicit noexcept override terminates the process on escape; explicit handler deletion is skipped.",
+      "proposed_cpp_fix": "Add an explicit checked finalize operation; keep destructor nonthrowing and make ownership RAII. Report persistent failures through finalize, not destruction.",
+      "evidence": "Lines31 and38 call operations known to throw, inherited IMSDataConsumer destructor is nonthrowing. No executed termination reproduction.",
+      "rust_handling": "Not implemented yet; propose finish()->Result and nonthrowing Drop.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-205"
+    },
+    {
+      "title": "MSDataSqlConsumer changes buffered records to the next run ID",
+      "status": "unconfirmed buffered-run ownership contract candidate",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp",
+          "line": 45,
+          "functions": [
+            "MSDataSqlConsumer::addRun",
+            "MSDataSqlConsumer::setRunId",
+            "MSDataSqlConsumer::flush"
+          ]
+        }
+      ],
+      "trigger": "Consume a spectrum under runA while below flush threshold, call setRunId(B) or addRun(...,B), then flush.",
+      "incorrect_behavior": "Buffers contain only records, not their original run IDs; flush writes using the handler current ID B. Records accepted before the run switch are reassigned to the later run. The header says the ID applies to subsequent writes, so deferred flush semantics may be intentional; review caller expectations before changing behavior.",
+      "proposed_cpp_fix": "Flush both buffers successfully before changing run ID, or retain per-record run ownership and flush grouped by original run.",
+      "evidence": "Lines48/57 change handler ID with no flush; lines64/71 later call handler writers that bind its current run_id_. Header says setRunId applies to subsequent writes; buffered consumption ambiguity should be stated in fix rationale.",
+      "rust_handling": "Not implemented yet; require run-transition tests and deliberate per-run behavior.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-206"
+    },
+    {
+      "title": "SpectrumAccessSqMass unchecked view positions permit out-of-bounds access",
+      "status": "source-reviewed defect",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp",
+          "line": 27,
+          "functions": [
+            "SpectrumAccessSqMass(parent,indices)",
+            "getSpectrumById",
+            "getSpectrumMetaById"
+          ]
+        }
+      ],
+      "trigger": "Parent subset contains one entry; construct child with position -1, or call getSpectrumById/getSpectrumMetaById with -1 or >=subset length.",
+      "incorrect_behavior": "Nested constructor checks upper bound only, then indexes with negative int converted to size_t. Individual getters index the subset with no bounds check. Undefined behavior precedes checked SQL access.",
+      "proposed_cpp_fix": "Validate 0 <= id < visible count before every vector access; use checked at() or explicit validation for all constructors and accessors.",
+      "evidence": "Lines43\u201345,75,106 show the unchecked accesses. Public header documents out-of-range parent selection throws. No UB execution attempted.",
+      "rust_handling": "Not implemented yet; use checked usize view positions/Result and validate SQL ID mapping.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-207"
+    },
+    {
+      "title": "SpectrumAccessSqMass bulk read does not preserve the configured view order or duplicates",
+      "status": "source-reviewed defect; ordering additionally lacks SQL guarantee",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp",
+          "line": 121,
+          "functions": [
+            "getAllSpectra",
+            "getSpectrumById",
+            "SpectrumAccessSqMass(handler,indices)"
+          ]
+        }
+      ],
+      "trigger": "Configure subset [1,0] or [1,1] and compare individual visible getters with getAllSpectra.",
+      "incorrect_behavior": "Individual access honors vector position, but bulk passes it to SQL IN without ORDER BY. SQL order is not guaranteed to match view order. Duplicate IDs collapse in SQL, then handler size mismatch throws despite individual accesses and reported subset count permitting duplicates.",
+      "proposed_cpp_fix": "Fetch unique underlying IDs once, map records by SQL ID, then reconstruct configured ordered view including repeated positions; alternatively reject duplicate views explicitly at construction if API changed.",
+      "evidence": "Constructor stores input unchanged, getter uses sidx_[id], bulk forwards sidx_; handler uses WHERE ID IN(...) and compares unique returned count to original index count. No current C++ SQL-order execution.",
+      "rust_handling": "Not implemented yet; S1 sorted unique read API requires wrapper reordering and duplicate handling.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-208"
+    },
+    {
+      "title": "SpectrumAccessSqMass metadata index stays zero for every spectrum",
+      "status": "source-reviewed defect",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp",
+          "line": 114,
+          "functions": [
+            "getSpectrumMetaById",
+            "getAllSpectra"
+          ]
+        },
+        {
+          "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h",
+          "line": 156,
+          "functions": [
+            "OSSpectrumMeta::index/default constructor"
+          ]
+        }
+      ],
+      "trigger": "Request metadata for visible spectrum1 or later, or bulk-read several spectra.",
+      "incorrect_behavior": "Source fills id,RT,ms_level but leaves index at default0, contradicting SpectrumMeta index documentation as zero-based consecutive spectrum-list index.",
+      "proposed_cpp_fix": "Assign the visible position to index in individual and bulk metadata results.",
+      "evidence": "Assignments at114\u2013117/153\u2013156 omit index; constructor initializes index0. No executed reproduction.",
+      "rust_handling": "Not implemented yet; add exact metadata-index assertions for full and subset views.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-209"
+    },
+    {
+      "title": "SpectrumAccessSqMass class test repeats one out-of-range index instead of testing 50",
+      "status": "source-reviewed test defect",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/tests/class_tests/openms/source/SpectrumAccessSqMass_test.cpp",
+          "line": 97,
+          "functions": [
+            "parent-subset constructor START_SECTION"
+          ]
+        }
+      ],
+      "trigger": "The second out-of-range parent-subset test constructs indices2=[50].",
+      "incorrect_behavior": "TEST_EXCEPTION passes indices ([1]) again rather than indices2, so the alleged50 case is never tested.",
+      "proposed_cpp_fix": "Pass indices2 to the second constructor invocation; also add negative-index coverage.",
+      "evidence": "Source lines97\u2013103 show separate indices2 creation then old indices passed. No class-test execution.",
+      "rust_handling": "Not implemented yet; native independent tests should check both1 and50 and negative values.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-210"
+    },
+    {
+      "title": "SpectrumAccessSqMass installed example omits required handler run ID",
+      "status": "source-reviewed documentation defect",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h",
+          "functions": [
+            "SpectrumAccessSqMass_example documentation"
+          ]
+        },
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
+          "functions": [
+            "MzMLSqliteHandler(filename,run_id)"
+          ]
+        }
+      ],
+      "trigger": "Compile the installed example constructing MzMLSqliteHandler handler(file).",
+      "incorrect_behavior": "Pinned handler constructor requires two arguments and has no default run_id, so example cannot compile.",
+      "proposed_cpp_fix": "Pass handler(file,0) for reading.",
+      "evidence": "Exact public header signature compared with example. No compiler run.",
+      "rust_handling": "Native documentation should use its actual new(path,run_id) signature.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-211"
+    },
+    {
+      "title": "OpenSwath drift filtering dereferences missing or misaligned mobility arrays",
+      "status": "source-reviewed defect",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
+          "functions": [
+            "ISpectrumAccess::filterByDrift",
+            "ISpectrumAccess::getSpectrumById(id,drift_start,drift_end)"
+          ]
+        },
+        {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp",
+          "functions": [
+            "SpectrumAccessSqMass::getSpectrumById"
+          ]
+        }
+      ],
+      "trigger": "Call base drift-filtered access on SqMass spectrum (which supplies only m/z and intensity), or filter a spectrum whose drift/intensity arrays are shorter than m/z.",
+      "incorrect_behavior": "All guards are commented out. filterByDrift dereferences null mobility pointer and advances drift/intensity iterators to m/z length without checking lengths. Every normal SqMass-returned spectrum lacks mobility arrays.",
+      "proposed_cpp_fix": "Validate all primary/mobility arrays and equal lengths; return a checked missing-mobility error and reject malformed ranges/arrays.",
+      "evidence": "ISpectrumAccess header obtains nullable getDriftTimeArray then directly reads im_arr->data; source SqMass constructs only two primary arrays. No unsafe execution attempted.",
+      "rust_handling": "Shared interface not implemented yet; missing mobility must be an explicit Result error, never a panic/null dereference.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-212"
+    },
+    {
+      "title": "SqMassFile store documentation hides unconditional replacement of an existing database",
+      "status": "unconfirmed replacement-documentation candidate",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/SqMassFile.h",
+          "functions": [
+            "SqMassFile::store documentation"
+          ]
+        },
+        {
+          "path": "src/openms/source/FORMAT/SqMassFile.cpp",
+          "line": 27,
+          "functions": [
+            "SqMassFile::store"
+          ]
+        }
+      ],
+      "trigger": "Store to an existing sqMass path expecting the documented create-if-necessary behavior.",
+      "incorrect_behavior": "Documentation says creating file/tables if necessary, but implementation always calls createTables which removes the existing database before write. Overwriting is common for store APIs; this wording alone does not prove append/preservation was promised. The candidate is the lack of explicit replacement/failure documentation, not overwrite semantics by themselves.",
+      "proposed_cpp_fix": "Explicitly document replacement/destructive behavior and failure consequences, or implement deliberate atomic replacement/append semantics.",
+      "evidence": "store calls createTables unconditionally; handler createTables removes file. No current C++ write execution.",
+      "rust_handling": "Not implemented yet; stage whole output and atomically replace only after successful store if native chooses safer behavior.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-213"
+    },
+    {
+      "title": "MSDataSqlConsumer full metadata discards supplied experimental settings and addRun suppresses accumulated snapshot",
+      "status": "source-reviewed loss; contract candidate",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp",
+          "line": 45,
+          "functions": [
+            "addRun",
+            "setExperimentalSettings",
+            "~MSDataSqlConsumer",
+            "consumeSpectrum",
+            "consumeChromatogram"
+          ]
+        }
+      ],
+      "trigger": "Use full_meta=true, send nondefault experimental settings and record-level metadata, call addRun, consume records, finish/destroy.",
+      "incorrect_behavior": "setExperimentalSettings is a no-op. addRun writes an empty snapshot and sets wrote_any_run, so destructor never writes accumulated peak_meta. Full read falls back from empty snapshot to SQL projection, losing metadata outside that projection.",
+      "proposed_cpp_fix": "Persist supplied settings and final per-run metadata snapshot; separate RUN existence from snapshot finalization, or document full_meta limitation for explicit/multiple-run workflow.",
+      "evidence": "Line107 no-op; addRun empty meta lines49\u201352; destructor skip lines36\u201340; source handler fallback readExperiment empty snapshot. No execution; full-meta contract needs explicit policy review.",
+      "rust_handling": "Not implemented yet; preserve settings, distinguish add-run registration from final snapshot, and state multi-run compatibility limits.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-214"
+    },
+    {
+      "title": "MSDataSqlConsumer accepts negative signed buffer size before unsigned allocation",
+      "status": "unconfirmed input-validation candidate",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp",
+          "line": 16,
+          "functions": [
+            "MSDataSqlConsumer constructor"
+          ]
+        },
+        {
+          "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
+          "functions": [
+            "constructor buffer_size argument"
+          ]
+        }
+      ],
+      "trigger": "Pass buffer_size=-1.",
+      "incorrect_behavior": "Signed argument becomes size_t maximum and reserve attempts an excessive allocation/throws rather than a clear invalid-size error; ctor raw-pointer leak separately confirmed. Zero immediately flushes rather than buffering.",
+      "proposed_cpp_fix": "Validate positive buffer size before allocation; decide and document whether0 is supported immediate-flush mode.",
+      "evidence": "Source conversion/reserve reviewed; header has no documented negative semantics. No allocation probe.",
+      "rust_handling": "Not implemented yet; validate before any file replacement or allocation.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-215"
+    },
+    {
+      "title": "SpectrumAccessSqMass zero-width RT documentation differs from delegated first-at-or-after behavior",
+      "status": "source-reviewed documentation mismatch candidate",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h",
+          "functions": [
+            "getSpectraByRT documentation"
+          ]
+        },
+        {
+          "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp",
+          "line": 166,
+          "functions": [
+            "getSpectraByRT"
+          ]
+        },
+        {
+          "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+          "functions": [
+            "getSpectraIndicesbyRT"
+          ]
+        }
+      ],
+      "trigger": "Call getSpectraByRT(0.3,0) against source fixture with spectrumRTs0.2961 and0.4738.",
+      "incorrect_behavior": "Header describes exact interval[RT-delta,RT+delta], but delegated nonpositive branch returns firstRT>=target, potentially0.4738. This behavior is needed by base nearest-spectrum convenience.",
+      "proposed_cpp_fix": "Document special delta0 semantics and preserve them deliberately, or change base nearest-search contract together.",
+      "evidence": "Source header and delegation read; source handler source test confirms nonpositive behavior for delta-.1 but no exactzero accessor test. No current accessor execution.",
+      "rust_handling": "Not implemented yet; native RT boundary tests and explicit zero semantics required.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-216"
+    },
+    {
+      "title": "OpenSwath getMultipleSpectra count parameter can return more than requested",
+      "status": "source-reviewed algorithm/documentation candidate",
+      "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "affected_files_and_functions": [
+        {
+          "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.cpp",
+          "functions": [
+            "ISpectrumAccess::getMultipleSpectra both overloads"
+          ]
+        }
+      ],
+      "trigger": "Request n=0 or n=2 around an interior valid closest spectrum.",
+      "incorrect_behavior": "Always pushes closest once; then adds left+right for i<=n/2. n0 yields1; n2 canyield3 despite comment describing n as sequence length. Negative requests also return one.",
+      "proposed_cpp_fix": "Validate positive odd n and document odd-window semantics, or cap selection to requested count and define even tie policy.",
+      "evidence": "Both full implementation overloads read; no class-test expectation checked yet and no execution.",
+      "rust_handling": "Shared interface not implemented yet; choose explicit bounded count contract after interface test audit.",
+      "executed_cpp": false,
+      "stable_issue_id": "CPP-217"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/SqMassFile.h",
+      "sha256": "71112ee38702282f264ba27ba92ebd611fbbfc7f23f4c16a4400b396f3ff3684"
+    },
+    {
+      "path": "src/openms/source/FORMAT/SqMassFile.cpp",
+      "sha256": "19e64020e62911174ab90a58ff9e8c008fe311d7faf74dc79906536066784e65"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SqMassFile_test.cpp",
+      "sha256": "ff7d4ba11c74746599c4f3d11b2a1a5679bfce56072d60d3accf2f8edc179652"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
+      "sha256": "e43bf7460af223a83b3d186d3997bf8ebe968506d3f4b684914cb7011be20513"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp",
+      "sha256": "8c06d139c17b2c6b5e39ccc217837ef0f19a856137a6193539b74f3e3eb3cf3d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h",
+      "sha256": "36dd136a48ce4b2a54e44ff35ef670f62f169ef4031cc089bf19d52bae684440"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp",
+      "sha256": "92ef1299c98208d08eb8454ca5bdecad304deaf81f63345d74d9112fcf2b1c4c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumAccessSqMass_test.cpp",
+      "sha256": "3c79e765b446f769202ddea7a5cabf09fce67a36e38fcb99390e4c9940072abe"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
+      "sha256": "ef458af6d8d8eb0bfb779d56c918016800e78cffb87a8087d43b57bafeb89e50"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.cpp",
+      "sha256": "546f50e8fe74525885a88779c9e498590e275246d130665b2e87c9bebad1d9cd"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h",
+      "sha256": "b3f7174a877cbe978338af1ba509c22c0de4759f74adca4bcde806b8222c0073"
+    },
+    {
+      "path": "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h",
+      "sha256": "513bd99bffa60b542ab3ae892eafead238c4714c1ca748f08bcaa7569b54ea9a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h",
+      "sha256": "513bd99bffa60b542ab3ae892eafead238c4714c1ca748f08bcaa7569b54ea9a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
+      "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334"
+    }
+  ],
+  "class_test_accounting": {
+    "SqMassFile": {
+      "sections": [
+        [
+          "(SqMassFile())",
+          127,
+          1
+        ],
+        [
+          "(~SqMassFile())",
+          132,
+          0
+        ],
+        [
+          "void load(const std::string& filename, MapType& map)",
+          138,
+          7
+        ],
+        [
+          "void store(const std::string& filename, MapType& map)",
+          177,
+          6
+        ],
+        [
+          "[EXTRA_LOSSY] void store(const std::string& filename, MapType& map)",
+          232,
+          36
+        ],
+        [
+          "[EXTRA_FULL_META] void store(const std::string& filename, MapType& map)",
+          347,
+          37
+        ]
+      ],
+      "in_section_macros": 87,
+      "all_active_macros": 95
+    },
+    "SpectrumAccessSqMass": {
+      "sections": [
+        [
+          "SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler)",
+          35,
+          1
+        ],
+        [
+          "SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices)",
+          47,
+          2
+        ],
+        [
+          "SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices)",
+          61,
+          8
+        ],
+        [
+          "~SpectrumAccessSqMass()",
+          108,
+          0
+        ],
+        [
+          "size_t getNrSpectra() const",
+          114,
+          1
+        ],
+        [
+          "std::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const",
+          124,
+          2
+        ],
+        [
+          "void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta)",
+          137,
+          25
+        ]
+      ],
+      "in_section_macros": 39,
+      "all_active_macros": 39
+    },
+    "MzMLSqliteHandler": {
+      "sections": [
+        [
+          "(MzMLSqliteHandler(const std::string& filename, const UInt64 run_id))",
+          129,
+          1
+        ],
+        [
+          "(~MzMLSqliteHandler())",
+          134,
+          0
+        ],
+        [
+          "UInt64 getRunID() const",
+          140,
+          1
+        ],
+        [
+          "void readExperiment(MSExperiment & exp, bool meta_only = false) const",
+          145,
+          16
+        ],
+        [
+          "Size getNrSpectra() const",
+          198,
+          1
+        ],
+        [
+          "Size getNrChromatograms() const",
+          205,
+          1
+        ],
+        [
+          "void readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only = false) const",
+          212,
+          21
+        ],
+        [
+          "void readChromatograms(std::vector<MSChromatogram> & exp, const std::vector<int> & indices, bool meta_only = false) const",
+          283,
+          15
+        ],
+        [
+          "std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const",
+          368,
+          16
+        ],
+        [
+          "void writeExperiment(const MSExperiment & exp)",
+          433,
+          18
+        ],
+        [
+          "[EXTRA] writeRunLevelInformation is safe against SQL injection via the loaded file path",
+          508,
+          2
+        ],
+        [
+          "void writeSpectra(const std::vector<MSSpectrum>& spectra)",
+          539,
+          14
+        ],
+        [
+          "void writeChromatograms(const std::vector<MSChromatogram>& chroms)",
+          587,
+          22
+        ]
+      ],
+      "in_section_macros": 128,
+      "all_active_macros": 136
+    }
+  }
+}

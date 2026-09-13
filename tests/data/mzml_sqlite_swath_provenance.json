@@ -1,0 +1,1231 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
+      "sha256": "de45201a11fce98dfd88f5c9c0bacf661963ff803abbd8b3ade202972ebc03c4",
+      "role": "Complete installed public API and Doxygen"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+      "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597",
+      "role": "All three SQL lookups"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLSqliteSwathHandler_test.cpp",
+      "sha256": "ef3bb012e1bd9630af2e8e51b25be276b0739e42499446dfd29e458b3d9bb9f4",
+      "role": "All five class-test sections; source review only"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/sources.cmake",
+      "sha256": "0ef956966c6225f901d79c7f399a150f28bb9bc5d31d628703c3370b47266463",
+      "role": "Installed-header registration"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
+      "sha256": "a2e370ab9f8b152a8047d18c813ab9a8c9225e1956e84e95e7de0256b49f637b",
+      "role": "Output value subset/default fields; not a full header coverage claim"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SwathFile.mzML",
+      "sha256": "a92df088d6e4b3d6c750da6aae179baedf085a88bbe97a51020dc7159cd65675",
+      "role": "Retained input projected below; no C++ execution"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SqliteMassFile_1.sqMass",
+      "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
+      "role": "Retained original database input"
+    }
+  ],
+  "native_implementation": [
+    "src/format/mzml_sqlite_swath_handler.rs"
+  ],
+  "native_tests": [
+    "tests/mzml_sqlite_swath_handler.rs"
+  ],
+  "support": "docs/MZML_SQLITE_SWATH_SUPPORT.md",
+  "evidence_tier": 3,
+  "method": "Source class-test literals and projected retained input (tier3), independent Rust regressions (tier4), and an adapted exact-source C++ probe for CPP196/197/202 (tier2). No full SDK, SqMassFile writer, or upstream class-test execution.",
+  "fixtures": [
+    {
+      "path": "tests/data/sqlite_s1_source_review/SqliteMassFile_1.sqMass",
+      "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
+      "role": "Retained source-repository input; expected SWATH subset derived from schema inspection (not newly executed C++)."
+    }
+  ],
+  "source_fixture_projection": {
+    "source_path": "src/tests/class_tests/openms/data/SwathFile.mzML",
+    "source_sha256": "a92df088d6e4b3d6c750da6aae179baedf085a88bbe97a51020dc7159cd65675",
+    "method": "Python ElementTree extracted all 114 spectrum rows in source order. SQL IDs equal source writer zero-based spectrum order. CV accessions: MS:1000511 level, MS:1000827 target, MS:1000828 lower offset, MS:1000829 upper offset. No peak binary payload is used by these queries.",
+    "columns": [
+      "id",
+      "ms_level",
+      "isolation_target",
+      "isolation_lower_offset",
+      "isolation_upper_offset"
+    ],
+    "rows": [
+      [
+        0,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        1,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        2,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        3,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        4,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        5,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        6,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        7,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        8,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        9,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        10,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        11,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        12,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        13,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        14,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        15,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        16,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        17,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        18,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        19,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        20,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        21,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        22,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        23,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        24,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        25,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        26,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        27,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        28,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        29,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        30,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        31,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        32,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        33,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        34,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        35,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        36,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        37,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        38,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        39,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        40,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        41,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        42,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        43,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        44,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        45,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        46,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        47,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        48,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        49,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        50,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        51,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        52,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        53,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        54,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        55,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        56,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        57,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        58,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        59,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        60,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        61,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        62,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        63,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        64,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        65,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        66,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        67,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        68,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        69,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        70,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        71,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        72,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        73,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        74,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        75,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        76,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        77,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        78,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        79,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        80,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        81,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        82,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        83,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        84,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        85,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        86,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        87,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        88,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        89,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        90,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        91,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        92,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        93,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        94,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        95,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        96,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        97,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        98,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        99,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        100,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        101,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        102,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        103,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        104,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        105,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        106,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        107,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ],
+      [
+        108,
+        1,
+        null,
+        null,
+        null
+      ],
+      [
+        109,
+        2,
+        412.5,
+        12.5,
+        12.5
+      ],
+      [
+        110,
+        2,
+        437.5,
+        12.5,
+        12.5
+      ],
+      [
+        111,
+        2,
+        462.5,
+        12.5,
+        12.5
+      ],
+      [
+        112,
+        2,
+        487.5,
+        12.5,
+        12.5
+      ],
+      [
+        113,
+        2,
+        512.5,
+        12.5,
+        12.5
+      ]
+    ]
+  },
+  "class_test_sections": [
+    {
+      "ordinal": 1,
+      "line": 45,
+      "title": "START_SECTION((MzMLSqliteSwathHandler()))",
+      "native_test": "constructor_defers_io_and_source_defaults_map_to_value_subset",
+      "evidence_tier": 3
+    },
+    {
+      "ordinal": 2,
+      "line": 50,
+      "title": "START_SECTION((~MzMLSqliteSwathHandler()))",
+      "native_test": "destruction_and_queries_leave_no_connection_or_file_lock",
+      "evidence_tier": 3
+    },
+    {
+      "ordinal": 3,
+      "line": 56,
+      "title": "START_SECTION(std::vector<OpenSwath::SwathMap> readSwathWindows())",
+      "native_test": "source_read_swath_windows_section",
+      "evidence_tier": 3
+    },
+    {
+      "ordinal": 4,
+      "line": 74,
+      "title": "START_SECTION(std::vector<int> readMS1Spectra())",
+      "native_test": "source_read_ms1_spectra_section",
+      "evidence_tier": 3
+    },
+    {
+      "ordinal": 5,
+      "line": 84,
+      "title": "START_SECTION(std::vector<int> readSpectraForWindow(const OpenSwath::SwathMap& swath_map))",
+      "native_test": "source_read_spectra_for_window_section",
+      "evidence_tier": 3
+    }
+  ],
+  "source_expectations": {
+    "windows": {
+      "count": 5,
+      "first": [
+        412.5,
+        400.0,
+        425.0
+      ],
+      "second_bounds": [
+        425.0,
+        450.0
+      ],
+      "last_bounds": [
+        500.0,
+        525.0
+      ],
+      "source_ms1_false": "Unpopulated SwathMap default; minimal SwathWindow output has no ms1 field."
+    },
+    "ms1_ids": {
+      "count": 19,
+      "first": 0,
+      "last": 108
+    },
+    "first_window_ids": {
+      "count": 19,
+      "first": 1,
+      "last": 109
+    },
+    "second_window_ids": {
+      "count": 19,
+      "first": 2,
+      "last": 110
+    },
+    "source_relative_tolerance": 1.0005,
+    "native_comparison": "Exact values; half-integer centers/offsets are exactly representable."
+  },
+  "native_differences": [
+    "CPP196: skip NULL chromatogram precursor IDs instead of terminating scan",
+    "CPP197: document distinct complete boundary tuples",
+    "CPP202: explicit read-only connection; missing path not created",
+    "checked SQL stepping and finite values; negative IDs rejected; i64 IDs retained without source int32 narrowing",
+    "ordinary main tables only, bounded scans, deterministic ID/tuple ordering",
+    "SwathWindow only populated center/lower/upper; no full SwathMap claim",
+    "same snapshot across table validation/scans; duplicate matching precursor IDs preserved",
+    "CPP203: fallible SQLite row iteration rejects a step error after a valid row; generated-column native regression executed, original C++ consequence source-reviewed only."
+  ],
+  "native_validation": {
+    "status": "passed",
+    "host": "kim",
+    "slot": "codex-sqlite-s1-swath",
+    "build_jobs": 32,
+    "rust_versions": [
+      "current toolchain",
+      "1.85.0"
+    ],
+    "tests_per_selection": 18,
+    "commands_passed": [
+      "cargo test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler",
+      "cargo +1.85.0 test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler",
+      "cargo clippy --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler -- -D warnings",
+      "RUSTDOCFLAGS=\"-D warnings\" cargo doc --locked --no-default-features --features sqlite --no-deps"
+    ],
+    "native_source_sha256": "0c5225d336708f31b335cfe156a1184d5ec2417ea33e73d64a7e510f74cea1e7",
+    "native_tests_sha256": "6efe53eafbb99d6ec48794cc295faea2114d16cefc3394dfceab947dc1a52d1d",
+    "retained_logs": [
+      "tests/data/sqlite_s1_validation/swath-tests-current.log",
+      "tests/data/sqlite_s1_validation/swath-tests-minimum.log",
+      "tests/data/sqlite_s1_validation/swath-clippy.log",
+      "tests/data/sqlite_s1_validation/swath-rustdoc.log"
+    ]
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/MzMLSqliteSwathHandler.cpp",
+      "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597",
+      "origin_key": "sqlite_swath_s1_adapted_probe/MzMLSqliteSwathHandler.cpp"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/SqliteConnector.cpp",
+      "sha256": "d15e067d6f51fd4b35ffa197e7cfb3a3fbd79257cf59a149f6c65f46c86d62bd",
+      "origin_key": "sqlite_swath_s1_adapted_probe/SqliteConnector.cpp"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/build.log",
+      "sha256": "e8876ff5423b48284e0e7a4a9d25007a7f318a38a2b8d697f9efc17f160822b4",
+      "origin_key": "sqlite_swath_s1_adapted_probe/build.log"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/CONCEPT/Exception.h",
+      "sha256": "fe8ea68ca9357a2ca424a372e292216507f369db5677070b73c7d72d30d01643",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/CONCEPT/Exception.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/CONCEPT/Types.h",
+      "sha256": "a3f347c6face23777c6cdebdf3c831f4f28893c1d6317d09317f510be48e1889",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/CONCEPT/Types.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "4989eb149512cceeb1d393467da93d263c908e147d20d7eb0fce8eaf98fe9b12",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/DATASTRUCTURES/StringUtils.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
+      "sha256": "de45201a11fce98dfd88f5c9c0bacf661963ff803abbd8b3ade202972ebc03c4",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/FORMAT/SqliteConnector.h",
+      "sha256": "e8045bfae45e9f244951ceacedfb895f386de6fce7c2a4dffad8770dcc3156ee",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/FORMAT/SqliteConnector.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/FORMAT/SqliteConnector_impl.h",
+      "sha256": "93379fbf9940bd766be91716222d2ab09938e0deffd3acf47482ca1964b175cf",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/FORMAT/SqliteConnector_impl.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/KERNEL/StandardTypes.h",
+      "sha256": "a0a4ca29ea67b0877a9e9d1d5aa7dc3a59506b7cae44bd56d94479756910d77a",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/KERNEL/StandardTypes.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
+      "sha256": "61b3209bc8ecb7385562e48dbd13ab07b6d4deb3b5ed17d87478071b931caeba",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
+      "sha256": "a2e370ab9f8b152a8047d18c813ab9a8c9225e1956e84e95e7de0256b49f637b",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/include/sqlite3.h",
+      "sha256": "2198c66d4c59ae86421590c27fd53309ec14a595ae31c0c7143247444018a0bd",
+      "origin_key": "sqlite_swath_s1_adapted_probe/include/sqlite3.h"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/manifest.json",
+      "sha256": "1b8b3c3b2d866753b4fc10556a26becd2c3623d16f6003ec7d594d26f60af05a",
+      "origin_key": "sqlite_swath_s1_adapted_probe/manifest.json"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/missing_probe.sqlite",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin_key": "sqlite_swath_s1_adapted_probe/missing_probe.sqlite"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/probe",
+      "sha256": "280a7ffede14123146c9441b8bce97cb5dcd3fef5ca25949a99fd2663687f439",
+      "origin_key": "sqlite_swath_s1_adapted_probe/probe"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/probe.cpp",
+      "sha256": "2d1e64d8eb7474230ed3b5ddd7a6325a3e74c19b09f32a3287b8fcc24265c07d",
+      "origin_key": "sqlite_swath_s1_adapted_probe/probe.cpp"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/result.log",
+      "sha256": "792d2506c10b59e5900518c1afe191e37eed72402a715c7ce03838268f0a4bcb",
+      "origin_key": "sqlite_swath_s1_adapted_probe/result.log"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/run.sh",
+      "sha256": "f3cf5b5db70cc406604bc2fe12bc7382361337960978f5043bff779b61b32fdb",
+      "origin_key": "sqlite_swath_s1_adapted_probe/run.sh"
+    },
+    {
+      "path": "../oracle/sqlite-swath-s1-probe/swath_probe.sqlite",
+      "sha256": "d733cb785441506e92555f475090616ab63df9a954cdf960f8a87bdb0472d910",
+      "origin_key": "sqlite_swath_s1_adapted_probe/swath_probe.sqlite"
+    }
+  ],
+  "adapted_cpp_probe": {
+    "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "scope": "Adapted C++ probe of exact pinned MzMLSqliteSwathHandler implementation, exact SwathMap declaration and exact SqliteConnector implementation; no full SDK closure, no handler mzML/Numpress implementation compiled.",
+    "source_files": [
+      {
+        "source_path": "src/openms/source/FORMAT/SqliteConnector.cpp",
+        "path": "SqliteConnector.cpp",
+        "sha256": "d15e067d6f51fd4b35ffa197e7cfb3a3fbd79257cf59a149f6c65f46c86d62bd"
+      },
+      {
+        "source_path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp",
+        "path": "MzMLSqliteSwathHandler.cpp",
+        "sha256": "8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597"
+      },
+      {
+        "source_path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
+        "path": "include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
+        "sha256": "de45201a11fce98dfd88f5c9c0bacf661963ff803abbd8b3ade202972ebc03c4"
+      },
+      {
+        "source_path": "src/openms/include/OpenMS/FORMAT/SqliteConnector.h",
+        "path": "include/OpenMS/FORMAT/SqliteConnector.h",
+        "sha256": "e8045bfae45e9f244951ceacedfb895f386de6fce7c2a4dffad8770dcc3156ee"
+      },
+      {
+        "source_path": "src/openms/include/OpenMS/FORMAT/SqliteConnector_impl.h",
+        "path": "include/OpenMS/FORMAT/SqliteConnector_impl.h",
+        "sha256": "93379fbf9940bd766be91716222d2ab09938e0deffd3acf47482ca1964b175cf"
+      },
+      {
+        "source_path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
+        "path": "include/OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
+        "sha256": "a2e370ab9f8b152a8047d18c813ab9a8c9225e1956e84e95e7de0256b49f637b"
+      },
+      {
+        "source_path": "src/openms/extern/SQLiteCpp/sqlite3/sqlite3.h",
+        "path": "include/sqlite3.h",
+        "sha256": "2198c66d4c59ae86421590c27fd53309ec14a595ae31c0c7143247444018a0bd"
+      }
+    ],
+    "adapters": [
+      {
+        "path": "include/OpenMS/CONCEPT/Exception.h",
+        "sha256": "fe8ea68ca9357a2ca424a372e292216507f369db5677070b73c7d72d30d01643"
+      },
+      {
+        "path": "include/OpenMS/CONCEPT/Types.h",
+        "sha256": "a3f347c6face23777c6cdebdf3c831f4f28893c1d6317d09317f510be48e1889"
+      },
+      {
+        "path": "include/OpenMS/DATASTRUCTURES/StringUtils.h",
+        "sha256": "4989eb149512cceeb1d393467da93d263c908e147d20d7eb0fce8eaf98fe9b12"
+      },
+      {
+        "path": "include/OpenMS/KERNEL/StandardTypes.h",
+        "sha256": "a0a4ca29ea67b0877a9e9d1d5aa7dc3a59506b7cae44bd56d94479756910d77a"
+      },
+      {
+        "path": "include/OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
+        "sha256": "61b3209bc8ecb7385562e48dbd13ab07b6d4deb3b5ed17d87478071b931caeba"
+      }
+    ],
+    "adapter_boundaries": {
+      "StandardTypes": "size_t and fixed width numeric aliases; export/function macros only.",
+      "Types": "Includes StandardTypes and vector; Int=int.",
+      "Exception": "Two distinct runtime_error subclasses preserve catch branches; source exception ABI/inheritance/metadata formatting not exercised.",
+      "StringUtils": "std::to_string for numeric values instead of source formatting; integer-centered 500 +/- 0.01 query uses exactly representable decimal endpoints after formatting. No arbitrary rounding boundary claimed.",
+      "ISpectrumAccess": "Forward declaration and std::shared_ptr alias; pointer never dereferenced. Exact SwathMap defaults and numeric fields retained."
+    },
+    "sqlite": "Exact pinned declaration header, host shared libsqlite3.so.0 implementation.",
+    "input": "Fresh synthetic database created by driver; no source fixture needed.",
+    "expected_cases": [
+      "CPP196 matching chromatogram precursor first or between spectrum precursor rows stops iteration at NULL; no-null control returns both spectrum IDs.",
+      "CPP197 same center but differing offsets returns two distinct tuples despite header wording one map per center.",
+      "CPP202 missing database is absent after constructor but created by failed readMS1Spectra query."
+    ],
+    "execution": {
+      "host": "kim",
+      "workdir": "/scratch/kohlbach/codex-sqlite-swath-s1-probe-20260913",
+      "compiler": "g++13.3.0",
+      "language": "C++20",
+      "compile_exit": 0,
+      "run_exit": 0,
+      "sqlite_runtime_version": "3.45.1",
+      "linkage": "Host libsqlite3.so.0; exact pinned SQLite declaration header.",
+      "logs": [
+        {
+          "path": "build.log",
+          "sha256": "e8876ff5423b48284e0e7a4a9d25007a7f318a38a2b8d697f9efc17f160822b4"
+        },
+        {
+          "path": "result.log",
+          "sha256": "792d2506c10b59e5900518c1afe191e37eed72402a715c7ce03838268f0a4bcb"
+        }
+      ],
+      "executable": {
+        "path": "probe",
+        "sha256": "280a7ffede14123146c9441b8bce97cb5dcd3fef5ca25949a99fd2663687f439"
+      }
+    },
+    "observations": {
+      "CPP-196": [
+        "Matching chromatogram precursor first: zero returned IDs.",
+        "Matching chromatogram precursor between two spectrum precursors: only ID1 returned.",
+        "Delete NULL-spectrum precursor control: IDs1,2 returned."
+      ],
+      "CPP-197": [
+        "Two spectrum precursor records share center500, but offsets10 and20 produce two returned windows:490\u2013510 and480\u2013520.",
+        "Both returned exact SwathMap defaults imLower/imUpper=-1 and ms1=false."
+      ],
+      "CPP-202": [
+        "Missing file remains absent after construction.",
+        "readMS1Spectra throws adapted IllegalArgument for absent SPECTRUM table and leaves a zero-byte SQLite file."
+      ]
+    },
+    "limitations": [
+      "No full SDK or MzMLSqliteHandler execution; no upstream class-test execution.",
+      "Synthetic database is independently designed, not an upstream fixture.",
+      "No SQL step-lock error reproduction attempted.",
+      "std::to_string adapter can differ from source StringUtils rounding; tested integral center500 produces intended endpoint SQL499.990000/500.010000.",
+      "Original exception ABI/inheritance and spectrum access implementation not exercised."
+    ]
+  },
+  "independent_review": {
+    "model": "claude-fable-5-1",
+    "status": "blocked_not_executed",
+    "reason": "Local CLI had no available login in sandbox; remote OAuth expired; local escalation rejected pending explicit concrete packet/destination approval. No review conclusion claimed."
+  },
+  "external_reference_note": "All C++ probe sources, dependency adapters, executable, build/run logs, and synthetic probe database artifacts are retained outside this repository under ../oracle/sqlite-swath-s1-probe/ with SHA-256 hashes. This is an adapted exact-translation-unit probe (tier2), not execution of the full SDK, MzMLSqliteHandler, SqMassFile writer, or upstream class-test binary. See adapted_cpp_probe for substitutions and endpoint-rounding limitations.",
+  "files": [
+    {
+      "path": "tests/data/sqlite_s1_validation/swath-tests-current.log",
+      "sha256": "bf842faa1cbf3a77baac5297d6393be970a33797495caad96ae77b2c71e6ba4c",
+      "role": "Executed SWATH-focused remote validation log"
+    },
+    {
+      "path": "tests/data/sqlite_s1_validation/swath-tests-minimum.log",
+      "sha256": "0f71812814a58368ad0f995bff35e981e784f72ba7c2e1df112a7ec54d2e7571",
+      "role": "Executed SWATH-focused remote validation log"
+    },
+    {
+      "path": "tests/data/sqlite_s1_validation/swath-clippy.log",
+      "sha256": "8273c3227b1069ea78ced4a4024f8ab648031d1255bb4baea22f8cb06878a221",
+      "role": "Executed SWATH-focused remote validation log"
+    },
+    {
+      "path": "tests/data/sqlite_s1_validation/swath-rustdoc.log",
+      "sha256": "b823eea98dfde98feef0886638856325751aa3282089a5131581b0c96d2f97df",
+      "role": "Executed SWATH-focused remote validation log"
+    }
+  ]
+}

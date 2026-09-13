@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Keep native libraries outside portable builds and libxml outside SQLite-only builds."""
+"""Keep native libraries outside portable builds and libxml outside SQLite and sqMass builds."""
 import os
 import subprocess
 
 xml_dependencies = {"libxml", "bindgen", "clang-sys"}
 sqlite_dependencies = {"rusqlite", "libsqlite3-sys"}
-for flags in [[], ["--no-default-features"], ["--no-default-features", "--features", "sqlite"]]:
+for flags in [[], ["--no-default-features"], ["--no-default-features", "--features", "sqlite"], ["--no-default-features", "--features", "sqmass"]]:
     result = subprocess.run(
         ["cargo", "tree", "--locked", "--edges", "normal,build", "--prefix", "none", *flags],
         check=True, capture_output=True, text=True,
     )
-    sqlite_enabled = "sqlite" in flags
+    sqlite_enabled = "sqlite" in flags or "sqmass" in flags
     # vcpkg is also a build dependency of bundled libsqlite3-sys; its presence
     # in the SQLite-only graph does not imply libxml selection.
     forbidden = xml_dependencies | (set() if sqlite_enabled else sqlite_dependencies | {"vcpkg"})

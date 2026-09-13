@@ -18,8 +18,10 @@ jobs:
       - uses: ./.github/actions/setup-libxml
       - run: cargo test --locked --all-features --all-targets
       - run: cargo test --locked --all-features --doc
-      - run: cargo test --locked --no-default-features --features sqlite --test sqlite_connector
-      - run: cargo test --locked --no-default-features --features "sqlite rusqlite/extra_check" --test sqlite_connector
+      - run: cargo test --locked --no-default-features --features sqlite --test sqlite_connector --test mzml_sqlite_swath_handler
+      - run: cargo test --locked --no-default-features --features "sqlite rusqlite/extra_check" --test sqlite_connector --test mzml_sqlite_swath_handler
+      - run: cargo test --locked --no-default-features --features sqmass --test mzml_sqlite_handler
+      - run: cargo test --locked --no-default-features --features "sqmass rusqlite/extra_check" --test mzml_sqlite_handler
       - run: cargo test --locked --no-default-features
       - run: cargo test --locked --no-default-features --features idxml
       - run: cargo test --locked --no-default-features --features paramxml --test paramxml --test system_file
@@ -68,8 +70,10 @@ jobs:
       - uses: ./.github/actions/setup-libxml
       - run: cargo test --locked --all-features --all-targets
       - run: cargo test --locked --all-features --doc
-      - run: cargo test --locked --no-default-features --features sqlite --test sqlite_connector
-      - run: cargo test --locked --no-default-features --features "sqlite rusqlite/extra_check" --test sqlite_connector
+      - run: cargo test --locked --no-default-features --features sqlite --test sqlite_connector --test mzml_sqlite_swath_handler
+      - run: cargo test --locked --no-default-features --features "sqlite rusqlite/extra_check" --test sqlite_connector --test mzml_sqlite_swath_handler
+      - run: cargo test --locked --no-default-features --features sqmass --test mzml_sqlite_handler
+      - run: cargo test --locked --no-default-features --features "sqmass rusqlite/extra_check" --test mzml_sqlite_handler
       - run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
       - run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - run: cargo test --locked --no-default-features --features semantic-validation --test semantic_validator --test cv_mapping_file --test cv_mapping_values
@@ -112,8 +116,10 @@ jobs:
       - uses: ./.github/actions/setup-libxml
       - run: cargo test --locked --all-features --all-targets
       - run: cargo test --locked --all-features --doc
-      - run: cargo test --locked --no-default-features --features sqlite --test sqlite_connector
-      - run: cargo test --locked --no-default-features --features "sqlite rusqlite/extra_check" --test sqlite_connector
+      - run: cargo test --locked --no-default-features --features sqlite --test sqlite_connector --test mzml_sqlite_swath_handler
+      - run: cargo test --locked --no-default-features --features "sqlite rusqlite/extra_check" --test sqlite_connector --test mzml_sqlite_swath_handler
+      - run: cargo test --locked --no-default-features --features sqmass --test mzml_sqlite_handler
+      - run: cargo test --locked --no-default-features --features "sqmass rusqlite/extra_check" --test mzml_sqlite_handler
       - run: cargo test --locked --no-default-features
   schema-minimum-platforms:
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
