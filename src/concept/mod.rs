@@ -6,6 +6,9 @@
 
 pub mod constants;
 pub mod log_stream;
+/// Data parallelism with a determinism contract: a parallel result must be
+/// bit-identical to the serial one.
+pub mod parallel;
 pub mod progress_logger;
 pub mod unique_id;
 pub use unique_id::{HasUniqueId, UniqueId, UniqueIdGenerator};

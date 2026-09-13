@@ -36,7 +36,7 @@ path = "src/bin/MzMLSplitter.rs"
 required-features = ["mzml", "paramxml"]
 
 [features]
-default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "cv-mapping"]
+default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "cv-mapping", "parallel"]
 mzml = ["dep:quick-xml", "dep:sha1", "file-compression", "numpress"]
 numpress = ["dep:base64", "dep:flate2"]
 idxml = ["dep:quick-xml"]
@@ -52,6 +52,8 @@ cv-mapping = ["dep:quick-xml", "file-compression"]
 file-compression = ["dep:flate2", "dep:bzip2"]
 sqlite = ["dep:rusqlite"]
 sqmass = ["sqlite", "mzml"]
+parallel = ["dep:rayon"]
+network = ["dep:ureq"]
 
 [dependencies]
 libxml = { version = "=0.3.14", optional = true }
@@ -68,6 +70,14 @@ serde_json = { version = "=1.0.150", features = ["float_roundtrip"], optional = 
 # compiling C - the same trade already accepted for libxml, and like libxml this
 # is kept out of `default` so an ordinary build needs no C toolchain.
 rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled", "limits"], optional = true }
+# Data parallelism. OpenMS parallelises with OpenMP - 176 pragmas, ~100 of them
+# in ANALYSIS - and rayon maps onto the dominant `parallel for` shape directly.
+# Default-on, because a multithreaded core is the point; disabling the feature
+# gives a reproducible single-threaded build for debugging and comparison.
+rayon = { version = "=1.12.0", optional = true }
+# HTTP for SYSTEM/NetworkGetRequest and the update check. Pure Rust, blocking,
+# no async runtime. Its MSRV is exactly ours, so the pin is load-bearing.
+ureq = { version = "=3.4.1", optional = true }
 
 [target.'cfg(any(unix, windows))'.dependencies]
 cpu-time = "=1.0.0"
