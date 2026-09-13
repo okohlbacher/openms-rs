@@ -22,10 +22,23 @@
 //! `docs/BINNED_SHARED_PEAK_COUNT_SUPPORT.md`,
 //! `docs/BINNED_SPECTRAL_CONTRAST_ANGLE_SUPPORT.md` and
 //! `docs/BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md`.
+//!
+//! Four concrete `PeakSpectrumCompareFunctor` derivatives are
+//! [`SpectrumPrecursorComparator`] (`COMPARISON/SpectrumPrecursorComparator.h`),
+//! [`SpectrumCheapDPCorr`] (`COMPARISON/SpectrumCheapDPCorr.h`),
+//! [`PeakAlignment`] (`COMPARISON/PeakAlignment.h`) and
+//! [`SpectraSTSimilarityScore`] (`COMPARISON/SpectraSTSimilarityScore.h`), whose
+//! support documents are `docs/SPECTRUM_PRECURSOR_COMPARATOR_SUPPORT.md`,
+//! `docs/SPECTRUM_CHEAP_DP_CORR_SUPPORT.md`, `docs/PEAK_ALIGNMENT_SUPPORT.md`
+//! and `docs/SPECTRAST_SIMILARITY_SCORE_SUPPORT.md`. The remaining three
+//! derivatives - [`SpectrumAlignmentScore`], [`ZhangSimilarityScore`] and
+//! [`SteinScottImproveScore`] - are still the earlier wave's typed
+//! configuration structs and do not implement the trait.
 
-use crate::param::DefaultParamHandler;
-use crate::{Error, MSSpectrum, Precursor, Result};
+use crate::param::{DefaultParamHandler, Param, ParamValue};
+use crate::{Error, MSSpectrum, Peak1D, Precursor, Result};
 use std::collections::BTreeMap;
+use std::collections::btree_map::Entry;
 
 /// Matching tolerance: absolute Th or parts per million of the reference m/z.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -672,36 +685,6 @@ pub fn binned_sum_agreeing_intensities(a: &BinnedSpectrum, b: &BinnedSpectrum) -
     sum_agreeing_intensities(a, b)
 }
 
-/// Similarity in Th: max(0, window - |first precursor m/z difference|).
-/// Missing precursors are treated as m/z zero, preserving the source convention.
-#[derive(Clone, Copy, Debug)]
-pub struct SpectrumPrecursorComparator {
-    pub window: f64,
-}
-impl Default for SpectrumPrecursorComparator {
-    fn default() -> Self {
-        Self { window: 2.0 }
-    }
-}
-impl SpectrumPrecursorComparator {
-    /// Precursor similarity of `a` and `b`, as `SpectrumPrecursorComparator::operator()`.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::InvalidValue`] for a non-finite or negative window and
-    /// for an invalid spectrum.
-    pub fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
-        a.validate()?;
-        b.validate()?;
-        if !self.window.is_finite() || self.window < 0.0 {
-            return Err(bad("precursor window must be finite and nonnegative"));
-        }
-        let a = a.precursors.first().map_or(0.0, |p| p.mz);
-        let b = b.precursors.first().map_or(0.0, |p| p.mz);
-        Ok((self.window - (a - b).abs()).max(0.0))
-    }
-}
-
 /// Zhang many-to-many score. Uses a strict absolute tolerance boundary.
 /// The per-instance Gaussian scale corrects upstream's static-first-call cache.
 #[derive(Clone, Copy, Debug)]
@@ -890,22 +873,23 @@ fn functor_handler(base: &str, name: &str) -> Result<DefaultParamHandler> {
 /// default [`self_score`](Self::self_score) is that delegation and an
 /// implementor only overrides it to record a cheaper closed form.
 ///
-/// **This crate ships no implementor of this trait.** Four of the seven source
-/// derivatives exist in this module - [`SpectrumAlignmentScore`],
-/// [`ZhangSimilarityScore`], [`SteinScottImproveScore`] and
-/// [`SpectrumPrecursorComparator`] - but they were ported in an earlier wave as
-/// typed `Copy` configuration structs with no [`DefaultParamHandler`], and
-/// giving them one means porting the parameter tree each of them registers
-/// upstream, which is their own headers' work; a handler that did not carry
-/// those parameters would make `set_parameters` silently ineffective. The
-/// remaining three - `SpectrumCheapDPCorr`, `PeakAlignment` and
-/// `SpectraSTSimilarityScore` - are not ported at all. The trait is therefore
-/// the *shape* of the base, usable by a caller's own functor and exercised in
-/// `tests/comparison_functors.rs`, and the port of this header is `partial`
-/// until its derivatives arrive; see
+/// **Four of the seven derivatives implement this trait:**
+/// [`SpectrumPrecursorComparator`], [`SpectrumCheapDPCorr`], [`PeakAlignment`]
+/// and [`SpectraSTSimilarityScore`], each carrying the parameter tree its own
+/// header registers. The remaining three - [`SpectrumAlignmentScore`],
+/// [`ZhangSimilarityScore`] and [`SteinScottImproveScore`] - were ported in an
+/// earlier wave as typed `Copy` configuration structs with no
+/// [`DefaultParamHandler`]; giving them one means porting the parameter tree
+/// each of them registers upstream, which is their own headers' work, and a
+/// handler that did not carry those parameters would make `set_parameters`
+/// silently ineffective. See
 /// `docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md`. Its sibling
 /// [`BinnedSpectrumCompareFunctor`] has all three of its source derivatives
 /// shipped here.
+///
+/// Only [`PeakAlignment`] never renames its handler, so a
+/// `&dyn PeakSpectrumCompareFunctor` over the four reports three derived names
+/// and one `"PeakSpectrumCompareFunctor"`.
 pub trait PeakSpectrumCompareFunctor {
     /// The parameter surface the source inherits from `DefaultParamHandler`,
     /// carrying the functor's registered name and its current parameters.
@@ -1376,6 +1360,1539 @@ fn sum_agreeing_intensities(spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> R
         return Ok(0.0);
     }
     finite_score((f64::from(agreeing) / denominator).min(1.0))
+}
+
+// ---------------------------------------------------------------------------
+// The four remaining derivatives of the peak-spectrum functor hierarchy:
+//   COMPARISON/SpectrumPrecursorComparator.h
+//   COMPARISON/SpectrumCheapDPCorr.h
+//   COMPARISON/PeakAlignment.h
+//   COMPARISON/SpectraSTSimilarityScore.h
+// ---------------------------------------------------------------------------
+
+/// `boost::math::constants::root_two_pi<double>()`, the divisor in Boost's
+/// normal density.
+///
+/// Transcribed from Boost's own decimal literal rather than computed as
+/// `(2.0 * PI).sqrt()`: the two need not agree in the last bit, and
+/// [`SpectrumCheapDPCorr`] inherits this constant's rounding on every matched
+/// peak pair.
+const ROOT_TWO_PI: f64 = 2.506628274631000502415765284811045253e0;
+
+/// `boost::math::pdf(boost::math::normal_distribution<double>(0, sd), x)`,
+/// reproduced statement by statement so that the rounding order matches.
+///
+/// Boost computes `exponent = x - mean`, `exponent *= -exponent`,
+/// `exponent /= 2 * sd * sd`, `result = exp(exponent)` and finally
+/// `result /= sd * root_two_pi`. Mean is fixed at zero here because the only
+/// caller, `SpectrumCheapDPCorr::comparepeaks_`, constructs
+/// `normal_distribution<double>(0., variation)`.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when `sd` is not finite and positive, which
+/// is Boost's `check_scale` domain error under the default policy, and when `x`
+/// is NaN, which is its `check_x` domain error. An infinite `x` yields `0.0`,
+/// as Boost's explicit early return does.
+fn normal_pdf(sd: f64, x: f64) -> Result<f64> {
+    if !sd.is_finite() || sd <= 0.0 {
+        return Err(bad(
+            "the Gaussian match term needs a finite positive scale; \
+             a zero or negative variation makes it undefined",
+        ));
+    }
+    if x.is_infinite() {
+        return Ok(0.0);
+    }
+    if x.is_nan() {
+        return Err(bad(
+            "the Gaussian match term needs a finite position difference",
+        ));
+    }
+    let mut exponent = x;
+    exponent *= -exponent;
+    exponent /= 2.0 * sd * sd;
+    let mut result = exponent.exp();
+    result /= sd * ROOT_TWO_PI;
+    Ok(result)
+}
+
+/// A zeroed buffer of `cells` values whose allocation failure is an error
+/// rather than a process abort.
+///
+/// Every caller checks `cells` against an explicit ceiling first, so this is
+/// the second line of defence and not the bound itself.
+fn zeroed<T: Copy + Default>(cells: usize) -> Result<Vec<T>> {
+    let mut buffer = Vec::new();
+    buffer
+        .try_reserve_exact(cells)
+        .map_err(|_| bad("comparison matrix allocation failed"))?;
+    buffer.resize(cells, T::default());
+    Ok(buffer)
+}
+
+/// Narrow a consensus coordinate computed in `f64` to the `f32` a peak stores,
+/// refusing a value that does not survive the narrowing.
+///
+/// The source assigns the `double` expression straight into
+/// `Peak1D::setIntensity`, where an out-of-range value is undefined behaviour;
+/// here it is a checked error.
+fn narrow(value: f64) -> Result<f32> {
+    let result = value as f32;
+    if result.is_finite() {
+        Ok(result)
+    } else {
+        Err(bad("consensus intensity does not fit f32"))
+    }
+}
+
+/// Build the parameter surface of a concrete `PeakSpectrumCompareFunctor`
+/// derivative: the base names the handler after itself, the derivative renames
+/// it, registers its defaults and copies them into the current parameters.
+///
+/// `name` is `None` for the one derivative that never calls `setName`.
+fn derived_handler(name: Option<&str>, defaults: Param) -> Result<DefaultParamHandler> {
+    let mut handler = DefaultParamHandler::new("PeakSpectrumCompareFunctor")?;
+    if let Some(name) = name {
+        handler.set_name(name)?;
+    }
+    handler.set_defaults(defaults)?;
+    handler.defaults_to_parameters()?;
+    Ok(handler)
+}
+
+/// Read a parameter as a plain `f64`, as the source's `(double)param_.getValue`.
+fn float_parameter(handler: &DefaultParamHandler, key: &str) -> Result<f64> {
+    let value = handler.parameters().value(key)?.to_f64()?;
+    if value.is_finite() {
+        Ok(value)
+    } else {
+        Err(bad("comparison parameters must be finite"))
+    }
+}
+
+/// Read a parameter as a nonnegative integer.
+///
+/// The source casts these to `UInt` or `unsigned int`, so a negative value
+/// silently becomes an enormous positive one; here it is refused.
+fn count_parameter(handler: &DefaultParamHandler, key: &str) -> Result<u32> {
+    let value = handler.parameters().value(key)?.to_i64()?;
+    u32::try_from(value)
+        .map_err(|_| bad("comparison count parameters must fit an unsigned 32-bit integer"))
+}
+
+/// Compare just the parent mass of two spectra.
+///
+/// The score is `window - |Δ precursor m/z|`, clamped to zero: the source
+/// returns `0` when the distance exceeds `window` and the difference otherwise,
+/// which is the same function without the redundant second subtraction. Only
+/// the **first** precursor of each spectrum is read, and a spectrum with no
+/// precursor contributes m/z `0`, so two spectra that both lack a precursor
+/// score the full `window`. That convention is the source's and is preserved.
+///
+/// The single parameter `window` is registered as the integer `2` with the
+/// description "Allowed deviation between precursor peaks.", exactly as
+/// `SpectrumPrecursorComparator.cpp:22` registers it, and is read through the
+/// handler on every call as the source reads `param_.getValue("window")`.
+///
+/// See `docs/SPECTRUM_PRECURSOR_COMPARATOR_SUPPORT.md`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SpectrumPrecursorComparator {
+    handler: DefaultParamHandler,
+}
+
+impl SpectrumPrecursorComparator {
+    /// Construct the functor with the source's name and its one default.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed name or the fixed one-entry default tree, which cannot happen for
+    /// these literals.
+    pub fn new() -> Result<Self> {
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "window",
+            ParamValue::Integer(2),
+            "Allowed deviation between precursor peaks.",
+            &[],
+        )?;
+        Ok(Self {
+            handler: derived_handler(Some("SpectrumPrecursorComparator"), defaults)?,
+        })
+    }
+
+    /// Current `window` parameter, in Thomson.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the parameter has been replaced by a
+    /// value that is not a finite number.
+    pub fn window(&self) -> Result<f64> {
+        float_parameter(&self.handler, "window")
+    }
+}
+
+impl Default for SpectrumPrecursorComparator {
+    /// The source's default construction.
+    ///
+    /// [`SpectrumPrecursorComparator::new`] is fallible only through the
+    /// parameter handler's resource limits, which a two-word name and a
+    /// one-entry default tree cannot reach, so this cannot fail in practice.
+    fn default() -> Self {
+        Self::new().expect("the fixed one-entry parameter tree is within the handler's limits")
+    }
+}
+
+impl PeakSpectrumCompareFunctor for SpectrumPrecursorComparator {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// Precursor similarity of `a` and `b`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for an invalid spectrum and for a
+    /// `window` that is not a finite nonnegative number. The source reads the
+    /// parameter unchecked, so a negative window there yields a negative score
+    /// for every pair; here it is refused.
+    fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
+        a.validate()?;
+        b.validate()?;
+        let window = self.window()?;
+        if window < 0.0 {
+            return Err(bad("precursor window must be finite and nonnegative"));
+        }
+        let left = a.precursors.first().map_or(0.0, |p| p.mz);
+        let right = b.precursors.first().map_or(0.0, |p| p.mz);
+        Ok((window - (left - right).abs()).max(0.0))
+    }
+}
+
+/// Largest number of dynamic-programming cells one [`SpectrumCheapDPCorr`]
+/// comparison may allocate, summed over every block the scan hands to the
+/// inner alignment.
+///
+/// The source has no such ceiling: `dynprog_` allocates
+/// `(xrun + 1) * (yrun + 1)` doubles **and** as many `int`s for every pairable
+/// run, and a `variation` near its documented maximum of `1` makes one run span
+/// both whole spectra. The budget is charged before either buffer is allocated,
+/// so a refusal leaves both inputs and the functor untouched.
+pub const MAX_DP_CORR_CELLS: usize = 1_000_000;
+
+/// Optimal alignment of two stick spectra by dynamic programming, with a
+/// Gaussian-weighted match term.
+///
+/// The scan walks both peak lists at once. Peaks further apart than
+/// `variation` percent of their mean m/z cannot pair and are consumed one at a
+/// time; where several peaks on both sides could pair, the run is handed to an
+/// `O(n*m)` alignment and only pairs that could score above zero are ever
+/// examined. That is the "cheap" in the class name.
+///
+/// Three parameters are registered, with the source's own defaults and
+/// descriptions: `variation` (`0.001`), `int_cnt` (`0`) and `keeppeaks` (`0`).
+/// `int_cnt` selects how the two peak heights enter the score - `0` their
+/// product, `1` the square root of their product, `2` their sum and `3` their
+/// agreeing intensity `max(0, (i1 + i2) / 2 - |i1 - i2|)`.
+///
+/// # Stateful accessors
+///
+/// The source's `operator()` is `const` but writes three `mutable` members: the
+/// consensus spectrum, the peak map and the weighting factor. That cannot be
+/// expressed behind [`PeakSpectrumCompareFunctor::score`], which really is
+/// read-only here, so the port splits them:
+///
+/// * [`score`](PeakSpectrumCompareFunctor::score) returns the number and
+///   discards the consensus. The number is unaffected, because neither
+///   `factor_` nor the consensus feeds back into the score.
+/// * [`compare`](Self::compare) returns the same number and records the
+///   consensus and the peak map, which [`last_consensus`](Self::last_consensus)
+///   and [`peak_map`](Self::peak_map) then expose - the source's
+///   `lastconsensus()` and `getPeakMap()`. It also resets the factor to `0.5`,
+///   as the last statement of the source's `operator()` does.
+///
+/// See `docs/SPECTRUM_CHEAP_DP_CORR_SUPPORT.md`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SpectrumCheapDPCorr {
+    handler: DefaultParamHandler,
+    factor: f64,
+    last_consensus: MSSpectrum,
+    peak_map: BTreeMap<usize, usize>,
+}
+
+impl SpectrumCheapDPCorr {
+    /// Construct the functor with the source's name, defaults and factor.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed name or the fixed three-entry default tree.
+    pub fn new() -> Result<Self> {
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "variation",
+            ParamValue::Float(0.001),
+            "Maximum difference in position (in percent of the current m/z).\n\
+             Note that big values of variation ( 1 being the maximum ) result in \
+             consideration of all possible pairings which has a running time of O(n*n)",
+            &[],
+        )?;
+        defaults.set_value(
+            "int_cnt",
+            ParamValue::Integer(0),
+            "How the peak heights are used in the score.\n\
+             0 = product\n1 = sqrt(product)\n2 = sum\n3 = agreeing intensity\n",
+            &[],
+        )?;
+        defaults.set_value(
+            "keeppeaks",
+            ParamValue::Integer(0),
+            "Flag that states if peaks without alignment partner are kept in the consensus spectrum.",
+            &[],
+        )?;
+        Ok(Self {
+            handler: derived_handler(Some("SpectrumCheapDPCorr"), defaults)?,
+            factor: 0.5,
+            last_consensus: MSSpectrum::default(),
+            peak_map: BTreeMap::new(),
+        })
+    }
+
+    /// Weight given to the second spectrum when the next [`compare`](Self::compare)
+    /// builds its consensus, as the source's `factor_`.
+    pub fn factor(&self) -> f64 {
+        self.factor
+    }
+
+    /// Set the weighting of the second spectrum for the next consensus, as
+    /// `setFactor`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidRange`] unless `0 < factor < 1`, reproducing the
+    /// source's `Exception::OutOfRange`; both bounds are exclusive there.
+    pub fn set_factor(&mut self, factor: f64) -> Result<()> {
+        if factor < 1.0 && factor > 0.0 {
+            self.factor = factor;
+            Ok(())
+        } else {
+            Err(Error::InvalidRange(
+                "the consensus weighting factor must lie strictly between 0 and 1".into(),
+            ))
+        }
+    }
+
+    /// Consensus spectrum of the last [`compare`](Self::compare), as
+    /// `lastconsensus()`.
+    ///
+    /// Before the first call this is an empty default spectrum; the source's is
+    /// a default-constructed `PeakSpectrum` too. Its single precursor carries
+    /// the mean of the two input precursor m/z values and the **first**
+    /// spectrum's charge, which is what the source writes.
+    pub fn last_consensus(&self) -> &MSSpectrum {
+        &self.last_consensus
+    }
+
+    /// Peak indices of the first spectrum mapped to their partner in the second,
+    /// as `getPeakMap()`.
+    ///
+    /// The source's `std::map<UInt, UInt>` is a [`BTreeMap`] here, so iteration
+    /// order still ascends by key. Only aligned pairs appear.
+    pub fn peak_map(&self) -> &BTreeMap<usize, usize> {
+        &self.peak_map
+    }
+
+    /// Score `x` against `y` and record the consensus spectrum and peak map.
+    ///
+    /// This is the source's `operator()(x, y)` including its three `mutable`
+    /// side effects, ending with the reset of the weighting factor to `0.5`.
+    /// [`PeakSpectrumCompareFunctor::score`] computes the same number without
+    /// them.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakSpectrumCompareFunctor::score`]. A failure leaves the recorded
+    /// consensus, peak map and factor exactly as they were.
+    pub fn compare(&mut self, x: &MSSpectrum, y: &MSSpectrum) -> Result<f64> {
+        let outcome = self.run(x, y)?;
+        self.last_consensus = outcome.consensus;
+        self.peak_map = outcome.peak_map;
+        self.factor = 0.5;
+        Ok(outcome.score)
+    }
+
+    /// The source's `operator()(x, y)` with its outputs returned rather than
+    /// written through `mutable` members.
+    fn run(&self, x: &MSSpectrum, y: &MSSpectrum) -> Result<CheapDpOutcome> {
+        validate_spectrum(x, true)?;
+        validate_spectrum(y, true)?;
+        x.len()
+            .checked_add(y.len())
+            .ok_or_else(|| bad("combined peak count overflows"))?;
+        let variation_fraction = float_parameter(&self.handler, "variation")?;
+        if variation_fraction <= 0.0 {
+            return Err(bad(
+                "variation must be positive; the Gaussian match term has no zero-width limit",
+            ));
+        }
+        let int_cnt = count_parameter(&self.handler, "int_cnt")?;
+        let keep_peaks = self.handler.parameters().value("keeppeaks")?.to_i64()? != 0;
+
+        let left_precursor = x.precursors.first().cloned().unwrap_or_default();
+        let right_precursor = y.precursors.first().cloned().unwrap_or_default();
+        let mut consensus = MSSpectrum {
+            precursors: vec![Precursor::new(
+                (left_precursor.mz + right_precursor.mz) / 2.0,
+                left_precursor.charge,
+            )],
+            ..MSSpectrum::default()
+        };
+        let mut peak_map = BTreeMap::new();
+        let mut run = CheapDpRun {
+            variation_fraction,
+            int_cnt,
+            keep_peaks,
+            factor: self.factor,
+            budget: MAX_DP_CORR_CELLS,
+            consensus: &mut consensus,
+            peak_map: &mut peak_map,
+        };
+
+        let (px, py) = (x.peaks.as_slice(), y.peaks.as_slice());
+        let mut score = 0.0;
+        let mut xi = 0;
+        let mut yi = 0;
+        while xi < px.len() && yi < py.len() {
+            let variation = (px[xi].mz + py[yi].mz) / 2.0 * variation_fraction;
+            if (px[xi].mz - py[yi].mz).abs() > variation {
+                if px[xi].mz < py[yi].mz {
+                    if keep_peaks {
+                        let intensity = narrow(f64::from(px[xi].intensity) * (1.0 - run.factor))?;
+                        run.consensus.peaks.push(Peak1D::new(px[xi].mz, intensity));
+                    }
+                    xi += 1;
+                } else {
+                    if keep_peaks {
+                        let intensity = narrow(f64::from(py[yi].intensity) * run.factor)?;
+                        run.consensus.peaks.push(Peak1D::new(py[yi].mz, intensity));
+                    }
+                    yi += 1;
+                }
+                continue;
+            }
+            let (xrun, yrun) = pairable_run(px, py, xi, yi, variation);
+            if xrun > 1 && yrun > 1 {
+                score += run.dynamic_program(px, py, xi, xi + xrun - 1, yi, yi + yrun - 1)?;
+                xi += xrun;
+                yi += yrun;
+            } else {
+                // The source's one-to-one consensus weights the FIRST spectrum
+                // by (1 - factor); the traceback inside dynprog_ weights the
+                // SECOND one by (1 - factor) instead. Both are reproduced.
+                let mz = px[xi].mz * (1.0 - run.factor) + py[yi].mz * run.factor;
+                let intensity = narrow(
+                    f64::from(px[xi].intensity) * (1.0 - run.factor)
+                        + f64::from(py[yi].intensity) * run.factor,
+                )?;
+                run.consensus.peaks.push(Peak1D::new(mz, intensity));
+                // The source's else branch here compares the two indices rather
+                // than the stored value, unlike the otherwise identical code in
+                // dynprog_. It is unreachable either way: the map is cleared per
+                // call and this scan visits each index of the first spectrum at
+                // most once, so only the insert can run.
+                run.peak_map.entry(xi).or_insert(yi);
+                score += run.compare_peaks(
+                    px[xi].mz,
+                    py[yi].mz,
+                    f64::from(px[xi].intensity),
+                    f64::from(py[yi].intensity),
+                )?;
+                xi += 1;
+                yi += 1;
+            }
+        }
+        Ok(CheapDpOutcome {
+            score: finite_score(score)?,
+            consensus,
+            peak_map,
+        })
+    }
+}
+
+impl PeakSpectrumCompareFunctor for SpectrumCheapDPCorr {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// Optimal-alignment correlation of `a` and `b`.
+    ///
+    /// Identical in value to [`compare`](SpectrumCheapDPCorr::compare), which
+    /// additionally records the consensus spectrum and the peak map.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks, which the source
+    /// silently mis-aligns, and [`Error::InvalidValue`] for a negative
+    /// intensity, a `variation` that is not positive, an `int_cnt` outside
+    /// `0..=3` - where the source returns `-1` behind a `// TODO exception` -
+    /// for more than [`MAX_DP_CORR_CELLS`] dynamic-programming cells, and for a
+    /// non-finite score.
+    fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
+        Ok(self.run(a, b)?.score)
+    }
+}
+
+/// What one `SpectrumCheapDPCorr::operator()` produces: the score plus the two
+/// values the source publishes through `mutable` members.
+struct CheapDpOutcome {
+    score: f64,
+    consensus: MSSpectrum,
+    peak_map: BTreeMap<usize, usize>,
+}
+
+/// The parameters and accumulators `SpectrumCheapDPCorr::operator()` shares with
+/// its `dynprog_` helper.
+struct CheapDpRun<'a> {
+    variation_fraction: f64,
+    int_cnt: u32,
+    keep_peaks: bool,
+    factor: f64,
+    budget: usize,
+    consensus: &'a mut MSSpectrum,
+    peak_map: &'a mut BTreeMap<usize, usize>,
+}
+
+impl CheapDpRun<'_> {
+    /// `SpectrumCheapDPCorr::comparepeaks_`: a Gaussian in the position
+    /// difference, whose standard deviation is `variation` percent of the mean
+    /// of the two m/z values, times an intensity term chosen by `int_cnt`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the Gaussian scale is not positive,
+    /// when `int_cnt` is outside `0..=3` - the source returns `-1` there, which
+    /// a caller summing scores cannot distinguish from a real contribution -
+    /// and when `int_cnt` is `1` and the intensity product is negative, where
+    /// the source's `sqrt` yields NaN.
+    fn compare_peaks(&self, posa: f64, posb: f64, inta: f64, intb: f64) -> Result<f64> {
+        let variation = (posa + posb) / 2.0 * self.variation_fraction;
+        let density = normal_pdf(variation, posa - posb)?;
+        match self.int_cnt {
+            0 => Ok(density * inta * intb),
+            1 => Ok(density * checked_sqrt(inta * intb)?),
+            2 => Ok(density * (inta + intb)),
+            3 => Ok((density * ((inta + intb) / 2.0 - (inta - intb).abs())).max(0.0)),
+            _ => Err(bad("int_cnt must be 0, 1, 2 or 3")),
+        }
+    }
+
+    /// `SpectrumCheapDPCorr::dynprog_`: the optimal pairing of one run of peaks
+    /// from each spectrum, plus the consensus peaks and peak-map entries its
+    /// traceback emits.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the block exceeds the remaining
+    /// [`MAX_DP_CORR_CELLS`] budget, when its buffers cannot be allocated, when
+    /// a consensus intensity does not fit `f32`, and for anything
+    /// [`compare_peaks`](Self::compare_peaks) refuses.
+    fn dynamic_program(
+        &mut self,
+        x: &[Peak1D],
+        y: &[Peak1D],
+        xstart: usize,
+        xend: usize,
+        ystart: usize,
+        yend: usize,
+    ) -> Result<f64> {
+        let rows = xend - xstart + 2;
+        let cols = yend - ystart + 2;
+        let cells = rows
+            .checked_mul(cols)
+            .ok_or_else(|| bad("dynamic-programming block size overflows"))?;
+        self.budget = self
+            .budget
+            .checked_sub(cells)
+            .ok_or_else(|| bad("comparison exceeds the dynamic-programming cell ceiling"))?;
+        let mut dp = zeroed::<f64>(cells)?;
+        let mut trace = zeroed::<i8>(cells)?;
+        for i in 1..rows {
+            for j in 1..cols {
+                let left_peak = x[xstart + i - 1];
+                let right_peak = y[ystart + j - 1];
+                // The source spells this sum (y + x) here and (x + y) in the
+                // scan; floating addition is commutative, so it is one value.
+                let variation = (right_peak.mz + left_peak.mz) / 2.0 * self.variation_fraction;
+                let align = if (left_peak.mz - right_peak.mz).abs() > variation {
+                    0.0
+                } else {
+                    self.compare_peaks(
+                        left_peak.mz,
+                        right_peak.mz,
+                        f64::from(left_peak.intensity),
+                        f64::from(right_peak.intensity),
+                    )?
+                };
+                let from_left = dp[i * cols + j - 1];
+                let from_diagonal = dp[(i - 1) * cols + j - 1] + align;
+                let from_above = dp[(i - 1) * cols + j];
+                // Source: ((left > diagonal) ? left : diagonal) > above, then a
+                // second strict comparison of diagonal against left. Ties
+                // therefore prefer "above", and then "left" over "diagonal".
+                let best_of_two = if from_left > from_diagonal {
+                    from_left
+                } else {
+                    from_diagonal
+                };
+                if best_of_two > from_above {
+                    if from_diagonal > from_left {
+                        dp[i * cols + j] = from_diagonal;
+                        trace[i * cols + j] = 5;
+                    } else {
+                        dp[i * cols + j] = from_left;
+                        trace[i * cols + j] = -1;
+                    }
+                } else {
+                    dp[i * cols + j] = from_above;
+                    trace[i * cols + j] = 1;
+                }
+            }
+        }
+
+        let mut i = xend - xstart + 1;
+        let mut j = yend - ystart + 1;
+        loop {
+            match trace[i * cols + j] {
+                5 => {
+                    let left_peak = x[xstart + i - 1];
+                    let right_peak = y[ystart + j - 1];
+                    let mz = right_peak.mz * (1.0 - self.factor) + left_peak.mz * self.factor;
+                    let intensity = narrow(
+                        f64::from(right_peak.intensity) * (1.0 - self.factor)
+                            + f64::from(left_peak.intensity) * self.factor,
+                    )?;
+                    self.consensus.peaks.push(Peak1D::new(mz, intensity));
+                    match self.peak_map.entry(xstart + i - 1) {
+                        Entry::Vacant(slot) => {
+                            slot.insert(ystart + j - 1);
+                        }
+                        // Unreachable: the traceback decrements i on every 5, so
+                        // each key is written at most once per call.
+                        Entry::Occupied(mut slot) => {
+                            let previous = *slot.get();
+                            slot.insert((ystart + j - 1).min(previous));
+                        }
+                    }
+                    i -= 1;
+                    j -= 1;
+                }
+                1 => {
+                    if self.keep_peaks {
+                        let peak = x[xstart + i - 1];
+                        let intensity = narrow(f64::from(peak.intensity) * (1.0 - self.factor))?;
+                        self.consensus.peaks.push(Peak1D::new(peak.mz, intensity));
+                    }
+                    i -= 1;
+                }
+                -1 => {
+                    if self.keep_peaks {
+                        let peak = y[ystart + j - 1];
+                        let intensity = narrow(f64::from(peak.intensity) * self.factor)?;
+                        self.consensus.peaks.push(Peak1D::new(peak.mz, intensity));
+                    }
+                    j -= 1;
+                }
+                // Every cell with i >= 1 and j >= 1 was written above, so this
+                // cannot happen; the source would spin forever instead.
+                _ => return Err(bad("dynamic-programming traceback reached an unset cell")),
+            }
+            if i == 0 || j == 0 {
+                break;
+            }
+        }
+        Ok(dp[(xend - xstart + 1) * cols + (yend - ystart + 1)])
+    }
+}
+
+/// How many peaks of each spectrum, starting at `xi` and `yi`, could pair with
+/// one another - the source's `xrun`/`yrun` loop.
+///
+/// The source spells the bounds `xit + xrun != x.end()`; both counters only ever
+/// grow by one and the body breaks the moment either reaches the end, so `<` is
+/// the same condition and makes the indexing obviously in range.
+fn pairable_run(
+    x: &[Peak1D],
+    y: &[Peak1D],
+    xi: usize,
+    yi: usize,
+    variation: f64,
+) -> (usize, usize) {
+    let mut xrun = 1;
+    let mut yrun = 1;
+    // The source writes the two disjunction terms as !(a < b); every m/z here
+    // is finite, so that is exactly a >= b and is spelled so.
+    while xi + xrun < x.len()
+        && yi + yrun < y.len()
+        && (x[xi + xrun - 1].mz + variation >= y[yi + yrun].mz
+            || y[yi + yrun - 1].mz + variation >= x[xi + xrun].mz)
+    {
+        if y[yi + yrun - 1].mz + variation > x[xi + xrun].mz {
+            xrun += 1;
+        } else if x[xi + xrun - 1].mz + variation > y[yi + yrun].mz {
+            yrun += 1;
+        } else {
+            xrun += 1;
+            yrun += 1;
+        }
+        if xi + xrun == x.len() || yi + yrun == y.len() {
+            break;
+        }
+    }
+    (xrun, yrun)
+}
+
+/// Largest number of alignment-matrix cells one [`PeakAlignment`] comparison
+/// may allocate, counting the `(n + 1) * (m + 1)` score matrix.
+///
+/// The source allocates that matrix plus, in `getAlignmentTraceback`, an
+/// `n * m` direction matrix, with no ceiling at all: two 5000-peak spectra ask
+/// it for 200 MB. The budget is checked before either buffer is allocated.
+pub const MAX_ALIGNMENT_MATRIX_CELLS: usize = 4_000_000;
+
+/// Global alignment of two peak lists with a constant gap cost.
+///
+/// The class comment calls this Needleman-Wunsch; the recurrence is indeed
+/// global, with the first row and column pre-charged with multiples of the gap
+/// cost, but the reported score is the best cell of the **last row or last
+/// column** rather than the corner, so a suffix of either spectrum may be left
+/// unaligned. A pair of peaks may only align when their m/z differ by at most
+/// `epsilon`; otherwise the cell can only come from a gap. The gap cost is
+/// `epsilon` as well - `PeakAlignment.cpp:99` sets it from the same parameter
+/// under a `//TODO gapcost dependence on distance ?`.
+///
+/// Four parameters are registered with the source's defaults and descriptions:
+/// `epsilon` (`0.2`), `normalized` (`1`), `heuristic_level` (`0`) and
+/// `precursor_mass_tolerance` (`3.0`). **`normalized` is never read.** The
+/// score is divided by the geometric mean of the two self-alignment scores
+/// unconditionally, so clearing the flag changes nothing; it is registered here
+/// so the parameter surface matches, and the port reads it no more than the
+/// source does.
+///
+/// Two shortcuts precede the alignment, in this order: precursors further apart
+/// than `precursor_mass_tolerance` score `0`, and - when `heuristic_level` is
+/// nonzero - so do two spectra whose `heuristic_level` most intense peaks share
+/// no m/z within `epsilon`.
+///
+/// This functor is the one derivative that never calls `setName`, so
+/// [`name`](PeakSpectrumCompareFunctor::name) reports the base's
+/// `"PeakSpectrumCompareFunctor"`. That is the source's behaviour, not an
+/// omission here.
+///
+/// See `docs/PEAK_ALIGNMENT_SUPPORT.md`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct PeakAlignment {
+    handler: DefaultParamHandler,
+}
+
+impl PeakAlignment {
+    /// Construct the functor with the source's four defaults.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed four-entry default tree.
+    pub fn new() -> Result<Self> {
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "epsilon",
+            ParamValue::Float(0.2),
+            "defines the absolute error of the mass spectrometer",
+            &[],
+        )?;
+        defaults.set_value(
+            "normalized",
+            ParamValue::Integer(1),
+            "is set 1 if the similarity-measurement is normalized to the range [0,1]",
+            &[],
+        )?;
+        defaults.set_value(
+            "heuristic_level",
+            ParamValue::Integer(0),
+            "set 0 means no heuristic is applied otherwise the given value is interpreted as \
+             unsigned integer, the number of strongest peaks considered for heurisitcs - in \
+             those sets of peaks has to be at least one match to conduct comparison",
+            &[],
+        )?;
+        defaults.set_value(
+            "precursor_mass_tolerance",
+            ParamValue::Float(3.0),
+            "Mass tolerance of the precursor peak, defines the distance of two PrecursorPeaks \
+             for which they are supposed to be from different peptides",
+            &[],
+        )?;
+        // The source never renames the handler, so the base name survives.
+        Ok(Self {
+            handler: derived_handler(None, defaults)?,
+        })
+    }
+
+    /// Aligned `(index in spec1, index in spec2)` pairs, ascending, as
+    /// `getAlignmentTraceback`.
+    ///
+    /// Only diagonal steps - actually aligned peaks - are reported; gap steps
+    /// are traversed silently. The traceback starts at the best cell of the last
+    /// row or column, preferring the earliest such cell in the row scan and
+    /// overriding it only on a strict improvement in the column scan.
+    ///
+    /// Ties inside the matrix resolve the way the source's zero-filled
+    /// direction matrix does: when no single predecessor is strictly best the
+    /// cell keeps its initial `0`, which the traceback reads as "from the left",
+    /// so a tie consumes a peak of the second spectrum. That is the case the
+    /// source marks `// TODO the cases where all or two values are equal`, and
+    /// it is reproduced rather than repaired because the reported alignment is
+    /// observable.
+    ///
+    /// Unlike [`score`](PeakSpectrumCompareFunctor::score), this entry point
+    /// applies **neither** shortcut and does **not** guard a zero variance, so
+    /// it is the raw alignment of the two peak lists.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks and
+    /// [`Error::InvalidValue`] for an empty spectrum - where the source divides
+    /// by a zero pair count and carries NaN through the whole matrix - for a
+    /// zero peak-distance variance, where the source divides by a zero sigma and
+    /// returns infinities, for a negative intensity under the score's `sqrt`,
+    /// for a non-finite `epsilon`, and for more than
+    /// [`MAX_ALIGNMENT_MATRIX_CELLS`] matrix cells.
+    pub fn alignment_traceback(
+        &self,
+        spec1: &MSSpectrum,
+        spec2: &MSSpectrum,
+    ) -> Result<Vec<(usize, usize)>> {
+        validate_spectrum(spec1, true)?;
+        validate_spectrum(spec2, true)?;
+        let epsilon = float_parameter(&self.handler, "epsilon")?;
+        // The source's sigma here has no zero-variance guard, unlike operator().
+        let sigma = peak_distance_sigma(spec1, spec2, false)?;
+        if sigma <= 0.0 {
+            return Err(bad(
+                "peak-distance variance is zero; the source divides by that sigma",
+            ));
+        }
+        let matrix = AlignmentMatrix::fill(spec1, spec2, epsilon, sigma)?;
+        Ok(matrix.traceback())
+    }
+
+    /// The source's heuristic shortcut: do the `level` most intense peaks of the
+    /// two spectra share any m/z within `epsilon`?
+    ///
+    /// The source sorts copies of both spectra by intensity with `std::sort`,
+    /// whose order among equal intensities is unspecified, so which peaks land
+    /// in a tied top-`level` set is not defined there. This port sorts stably,
+    /// which makes the selection deterministic without changing it whenever the
+    /// intensities at the cut are distinct.
+    fn heuristic_match(
+        &self,
+        spec1: &MSSpectrum,
+        spec2: &MSSpectrum,
+        epsilon: f64,
+        level: usize,
+    ) -> Result<bool> {
+        let mut left = spec1.clone();
+        let mut right = spec2.clone();
+        left.sort_by_intensity(true)?;
+        right.sort_by_intensity(true)?;
+        for strong in &left.peaks[..level.min(left.len())] {
+            for other in &right.peaks[..level.min(right.len())] {
+                if (other.mz - strong.mz).abs() < epsilon {
+                    return Ok(true);
+                }
+            }
+        }
+        Ok(false)
+    }
+}
+
+impl PeakSpectrumCompareFunctor for PeakAlignment {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// Normalised alignment score of `spec1` and `spec2`.
+    ///
+    /// The best cell of the last row or column, divided by the geometric mean of
+    /// the two self-alignment scores. The best-cell search starts from
+    /// `numeric_limits<double>::min()`, the smallest positive normal `f64` and
+    /// **not** the most negative one, so a matrix whose last row and column are
+    /// entirely negative reports that tiny positive number instead of its real
+    /// maximum. This port reproduces that starting value, because the resulting
+    /// score is what upstream callers have been comparing against.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks, which the source does
+    /// not check, and [`Error::InvalidValue`] for a negative intensity under the
+    /// score's `sqrt`, for an empty spectrum that reaches the alignment - where
+    /// the source divides by a zero pair count and returns `inf` - for a
+    /// non-finite parameter, for a negative `heuristic_level`, for more than
+    /// [`MAX_ALIGNMENT_MATRIX_CELLS`] matrix cells, and for a zero or non-finite
+    /// self-alignment product in the denominator.
+    ///
+    /// An empty spectrum returns `Ok(0.0)` whenever one of the two shortcuts
+    /// fires first, which is what the class test observes: its empty spectrum
+    /// carries no precursor, so the precursor distance to a real spectrum
+    /// exceeds `precursor_mass_tolerance`.
+    ///
+    /// # The zero-variance guard cannot be reached usefully
+    ///
+    /// When every pairwise m/z distance is equal - a single peak on each side,
+    /// say - the source substitutes `numeric_limits<double>::min()` for sigma.
+    /// The position term is then `1 / (DBL_MIN * sqrt(2 pi))`, about `1.8e307`,
+    /// so the **product** of the two self-alignment scores overflows to
+    /// infinity for every nonzero `f32` intensity, down to the smallest
+    /// subnormal, and the source's quotient silently becomes `0`: complete
+    /// dissimilarity for a spectrum compared with itself. Here that overflow is
+    /// [`Error::InvalidValue`], as is the zero denominator a spectrum of zero
+    /// intensities produces.
+    fn score(&self, spec1: &MSSpectrum, spec2: &MSSpectrum) -> Result<f64> {
+        validate_spectrum(spec1, true)?;
+        validate_spectrum(spec2, true)?;
+        let epsilon = float_parameter(&self.handler, "epsilon")?;
+        let precursor_tolerance = float_parameter(&self.handler, "precursor_mass_tolerance")?;
+        let heuristic_level = count_parameter(&self.handler, "heuristic_level")? as usize;
+
+        let left = spec1.precursors.first().map_or(0.0, |p| p.mz);
+        let right = spec2.precursors.first().map_or(0.0, |p| p.mz);
+        if (left - right).abs() > precursor_tolerance {
+            return Ok(0.0);
+        }
+        if heuristic_level > 0 && !self.heuristic_match(spec1, spec2, epsilon, heuristic_level)? {
+            return Ok(0.0);
+        }
+
+        let sigma = peak_distance_sigma(spec1, spec2, true)?;
+        let matrix = AlignmentMatrix::fill(spec1, spec2, epsilon, sigma)?;
+        let best = matrix.best_border_cell();
+        let self1 = self_alignment_score(spec1, sigma)?;
+        let self2 = self_alignment_score(spec2, sigma)?;
+        let denominator = checked_sqrt(self1 * self2)?;
+        if denominator == 0.0 {
+            return Err(bad(
+                "both self-alignment scores are zero; the source divides by that zero",
+            ));
+        }
+        finite_score(best / denominator)
+    }
+}
+
+/// `PeakAlignment::peakPairScore_`: the geometric mean of the two intensities
+/// times a position term.
+///
+/// **The position term is not the Gaussian the formula looks like.** The source
+/// writes `exp(-(fabs(pos1 - pos2)) / 2 * sigma * sigma)`, and C's precedence
+/// reads that as `exp(((-|Δ|) / 2) * sigma * sigma)`: the distance enters
+/// linearly and sigma **multiplies** the exponent instead of dividing it, so a
+/// larger spread makes distant peaks score *less*, not more. The intended
+/// `exp(-Δ² / (2σ²))` would need different parentheses. The expression is
+/// transcribed exactly, because every published score from this class carries
+/// it.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] for a negative intensity product, where the
+/// source's `sqrt` yields NaN, and for a non-finite result.
+fn peak_pair_score(pos1: f64, intens1: f64, pos2: f64, intens2: f64, sigma: f64) -> Result<f64> {
+    let pi = checked_sqrt(intens1 * intens2)?;
+    let pp = (1.0 / (sigma * (2.0 * crate::constants::PI).sqrt()))
+        * (-((pos1 - pos2).abs()) / 2.0 * sigma * sigma).exp();
+    finite_score(pi * pp)
+}
+
+/// Standard deviation of the pairwise m/z distance between two spectra, the
+/// source's `mid`/`var`/`sigma` block.
+///
+/// Both accumulations run over every pair in row-major order, and both divide by
+/// the pair count as an exact integer product widened to `f64`, exactly as the
+/// source does.
+///
+/// `guard` selects `operator()`'s `(var == 0) ? numeric_limits<double>::min()`
+/// fallback; `getAlignmentTraceback` computes the same variance without it.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when either spectrum is empty - the source
+/// divides by a zero pair count and carries NaN into every cell - and when the
+/// variance is not finite.
+fn peak_distance_sigma(spec1: &MSSpectrum, spec2: &MSSpectrum, guard: bool) -> Result<f64> {
+    let pairs = spec1
+        .len()
+        .checked_mul(spec2.len())
+        .ok_or_else(|| bad("pairwise peak count overflows"))?;
+    if pairs == 0 {
+        return Err(bad(
+            "peak alignment needs two non-empty spectra; the source divides by a zero pair count",
+        ));
+    }
+    let mut mid = 0.0;
+    for left in &spec1.peaks {
+        for right in &spec2.peaks {
+            mid += (left.mz - right.mz).abs();
+        }
+    }
+    mid /= pairs as f64;
+    let mut variance = 0.0;
+    for left in &spec1.peaks {
+        for right in &spec2.peaks {
+            let deviation = (left.mz - right.mz).abs() - mid;
+            variance += deviation * deviation;
+        }
+    }
+    variance /= pairs as f64;
+    finite_score(variance)?;
+    if guard && variance == 0.0 {
+        // The source's comment: "only in case of only two equal peaks in the
+        // spectra sigma is 0".
+        return Ok(f64::MIN_POSITIVE);
+    }
+    checked_sqrt(variance)
+}
+
+/// The source's `score_spec1`/`score_spec2`: every peak scored against itself.
+///
+/// # Errors
+///
+/// As [`peak_pair_score`].
+fn self_alignment_score(spectrum: &MSSpectrum, sigma: f64) -> Result<f64> {
+    let mut total = 0.0;
+    for peak in &spectrum.peaks {
+        let intensity = f64::from(peak.intensity);
+        total += peak_pair_score(peak.mz, intensity, peak.mz, intensity, sigma)?;
+    }
+    finite_score(total)
+}
+
+/// `PeakAlignment`'s score matrix and the direction matrix its traceback reads.
+///
+/// One filling routine serves both entry points, so the score and the traceback
+/// cannot disagree about the alignment; the source duplicates the loop and the
+/// two copies already differ in their sigma.
+struct AlignmentMatrix {
+    rows: usize,
+    cols: usize,
+    cells: Vec<f64>,
+    /// `1` from the diagonal, `0` from the left, `2` from above, with `0` also
+    /// standing for "no strict winner", as the source's zero-filled matrix does.
+    trace: Vec<u8>,
+}
+
+impl AlignmentMatrix {
+    /// Fill the `(n + 1) * (m + 1)` score matrix and the `n * m` direction
+    /// matrix.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a non-finite or negative `epsilon`,
+    /// for more than [`MAX_ALIGNMENT_MATRIX_CELLS`] cells, for a failed
+    /// allocation and for anything [`peak_pair_score`] refuses.
+    fn fill(spec1: &MSSpectrum, spec2: &MSSpectrum, epsilon: f64, sigma: f64) -> Result<Self> {
+        if !epsilon.is_finite() || epsilon < 0.0 {
+            return Err(bad("epsilon must be finite and nonnegative"));
+        }
+        let rows = spec1
+            .len()
+            .checked_add(1)
+            .ok_or_else(|| bad("alignment matrix size overflows"))?;
+        let cols = spec2
+            .len()
+            .checked_add(1)
+            .ok_or_else(|| bad("alignment matrix size overflows"))?;
+        let count = rows
+            .checked_mul(cols)
+            .filter(|&n| n <= MAX_ALIGNMENT_MATRIX_CELLS)
+            .ok_or_else(|| bad("alignment exceeds the alignment-matrix cell ceiling"))?;
+        let mut cells = zeroed::<f64>(count)?;
+        let mut trace = zeroed::<u8>(spec1.len() * spec2.len())?;
+        // The gap cost is the same parameter as the match window.
+        let gap = epsilon;
+        for i in 1..rows {
+            cells[i * cols] = -gap * i as f64;
+        }
+        for (j, cell) in cells.iter_mut().enumerate().take(cols).skip(1) {
+            *cell = -gap * j as f64;
+        }
+        for i in 1..rows {
+            for j in 1..cols {
+                let left_peak = spec1.peaks[i - 1];
+                let right_peak = spec2.peaks[j - 1];
+                let from_left = cells[i * cols + j - 1] - gap;
+                let from_above = cells[(i - 1) * cols + j] - gap;
+                if (left_peak.mz - right_peak.mz).abs() <= epsilon {
+                    let from_diagonal = cells[(i - 1) * cols + j - 1]
+                        + peak_pair_score(
+                            left_peak.mz,
+                            f64::from(left_peak.intensity),
+                            right_peak.mz,
+                            f64::from(right_peak.intensity),
+                            sigma,
+                        )?;
+                    cells[i * cols + j] = from_left.max(from_above.max(from_diagonal));
+                    if from_diagonal > from_left && from_diagonal > from_above {
+                        trace[(i - 1) * spec2.len() + j - 1] = 1;
+                    } else if from_left > from_diagonal && from_left > from_above {
+                        trace[(i - 1) * spec2.len() + j - 1] = 0;
+                    } else if from_above > from_diagonal && from_above > from_left {
+                        trace[(i - 1) * spec2.len() + j - 1] = 2;
+                    }
+                    // No strict winner: the cell keeps the zero it was filled
+                    // with, which the traceback reads as "from the left".
+                } else {
+                    cells[i * cols + j] = from_left.max(from_above);
+                    trace[(i - 1) * spec2.len() + j - 1] = u8::from(from_left <= from_above) * 2;
+                }
+            }
+        }
+        Ok(Self {
+            rows,
+            cols,
+            cells,
+            trace,
+        })
+    }
+
+    /// The source's best-overall-score scan: the largest value in the last row
+    /// or the last column, starting from `numeric_limits<double>::min()`.
+    fn best_border_cell(&self) -> f64 {
+        let mut best = f64::MIN_POSITIVE;
+        for j in 0..self.cols {
+            best = best.max(self.cells[(self.rows - 1) * self.cols + j]);
+        }
+        for i in 0..self.rows {
+            best = best.max(self.cells[i * self.cols + self.cols - 1]);
+        }
+        best
+    }
+
+    /// Walk back from the best border cell, collecting the diagonal steps.
+    fn traceback(&self) -> Vec<(usize, usize)> {
+        let columns = self.cols - 1;
+        let mut best = f64::MIN_POSITIVE;
+        let mut row = 0;
+        let mut column = 0;
+        // Strict improvement only, so the first maximum of the last row wins and
+        // the last-column scan overrides it only on a strictly larger value.
+        for j in 0..self.cols {
+            let value = self.cells[(self.rows - 1) * self.cols + j];
+            if best < value {
+                best = value;
+                row = self.rows - 1;
+                column = j;
+            }
+        }
+        for i in 0..self.rows {
+            let value = self.cells[i * self.cols + self.cols - 1];
+            if best < value {
+                best = value;
+                row = i;
+                column = self.cols - 1;
+            }
+        }
+        let mut aligned = Vec::new();
+        while row > 0 && column > 0 {
+            match self.trace[(row - 1) * columns + column - 1] {
+                1 => {
+                    aligned.push((row - 1, column - 1));
+                    row -= 1;
+                    column -= 1;
+                }
+                0 => column -= 1,
+                _ => row -= 1,
+            }
+        }
+        aligned.reverse();
+        aligned
+    }
+}
+
+/// Peak filtering applied before a SpectraST comparison, with the source's
+/// default arguments.
+///
+/// The source spells these as four defaulted parameters of
+/// `SpectraSTSimilarityScore::preprocess`; they are gathered here because Rust
+/// has no default arguments and because they always travel together.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SpectraStPreprocessing {
+    /// Peaks at or below this intensity are dropped. Source default `2.01`,
+    /// stored as `float` upstream and compared against the `float` intensity.
+    pub remove_peak_intensity_threshold: f32,
+    /// Peaks below `1 / cut_peaks_below` of the base peak are dropped. Source
+    /// default `1000`.
+    pub cut_peaks_below: u32,
+    /// Fewer surviving peaks than this rejects the spectrum. Source default `5`.
+    pub min_peak_number: usize,
+    /// How many peaks are **examined**, not how many are kept. Source default
+    /// `150`.
+    pub max_peak_number: usize,
+}
+
+impl Default for SpectraStPreprocessing {
+    fn default() -> Self {
+        Self {
+            remove_peak_intensity_threshold: 2.01,
+            cut_peaks_below: 1000,
+            min_peak_number: 5,
+            max_peak_number: 150,
+        }
+    }
+}
+
+/// Dot product of SpectraST, with its dot-bias and delta-D companions.
+///
+/// Unlike the other peak-spectrum functors this score is meant for matching one
+/// spectrum against a whole library: preprocess and transform every spectrum,
+/// take the dot products, keep the best two, derive
+/// [`delta_d`](Self::delta_d) from them and combine everything with
+/// [`compute_f`](Self::compute_f). The method is H. Lam et al., "Development and
+/// validation of a spectral library searching method for peptide identification
+/// from MS/MS", Proteomics 7, 655-667, 2007.
+///
+/// # The scaling exponents
+///
+/// SpectraST scales intensity by `0.5` and m/z by `0`, and this implementation
+/// applies exactly that: [`preprocess`](Self::preprocess) replaces every
+/// surviving intensity with its square root and leaves m/z untouched, so no mass
+/// weighting enters the dot product at all. The often-quoted `m/z^0.5` variant
+/// of the published score is **not** implemented upstream, and inventing it here
+/// would change every score. The only other transform is the normalisation in
+/// [`transform`](Self::transform), which divides the binned vector by its own
+/// Euclidean norm so that a spectrum scores exactly `1` against itself.
+///
+/// Binning is fixed: bin width `1`, absolute units, spread `1` and the low
+/// resolution offset `0.4`, spelled out by [`Self::bin_config`]. The source's
+/// own `// TODO: resolution seems rather low` sits on that line.
+///
+/// This is the one derivative of [`PeakSpectrumCompareFunctor`] that
+/// `PeakSpectrumCompareFunctor.cpp` does not include for factory registration,
+/// and the one whose constructor calls `setName` without `defaultsToParam_()`.
+/// It registers no parameters, so that omission has no observable effect and is
+/// reproduced as written.
+///
+/// See `docs/SPECTRAST_SIMILARITY_SCORE_SUPPORT.md`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SpectraSTSimilarityScore {
+    handler: DefaultParamHandler,
+}
+
+impl SpectraSTSimilarityScore {
+    /// Construct the functor with the source's name and no parameters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed name.
+    pub fn new() -> Result<Self> {
+        let mut handler = DefaultParamHandler::new("PeakSpectrumCompareFunctor")?;
+        // The source stops here: it never calls defaultsToParam_(), which is
+        // harmless only because it registers no defaults either.
+        handler.set_name("SpectraSTSimilarityScore")?;
+        Ok(Self { handler })
+    }
+
+    /// The binning this score hard-codes:
+    /// `BinnedSpectrum(spec, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES)`.
+    pub fn bin_config() -> BinConfig {
+        BinConfig {
+            size: 1.0,
+            unit: BinUnit::Absolute,
+            spread: 1,
+            offset: 0.4,
+            ..BinConfig::default()
+        }
+    }
+
+    /// Dot product of two already binned spectra, the source's
+    /// `operator()(const BinnedSpectrum&, const BinnedSpectrum&)`.
+    ///
+    /// No normalisation happens here; pass [`transform`](Self::transform)ed
+    /// spectra to get a score in `[0, 1]`. The reduction is Eigen's sparse dot:
+    /// `f32` products accumulated in `f32` over the shared bin indices, widened
+    /// only on return.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the two spectra do not share a
+    /// binning - the source hands mismatched vectors to Eigen, which asserts in
+    /// a debug build and reads past the shorter one otherwise - when they
+    /// together store more than [`MAX_COMPARED_BINS`] bins, and when the `f32`
+    /// accumulation overflows.
+    pub fn dot(&self, bin1: &BinnedSpectrum, bin2: &BinnedSpectrum) -> Result<f64> {
+        compatible(bin1, bin2)?;
+        preflight_bins(bin1, bin2)?;
+        sparse_dot(bin1, bin2)
+    }
+
+    /// Bin `spectrum` and divide the result by its own Euclidean norm.
+    ///
+    /// The norm is Eigen's `SparseMatrixBase::norm()`: the `f32` square root of
+    /// the `f32` sum of the squared stored coefficients. Stored zeros stay
+    /// stored, because Eigen divides coefficients in place without pruning.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks and
+    /// [`Error::InvalidValue`] for an m/z below zero, for a binning that
+    /// overflows the configured limits, and for a zero or non-finite norm - a
+    /// spectrum with no peaks or with only zero intensities - where the source
+    /// divides by that zero and fills the vector with NaN.
+    pub fn transform(&self, spectrum: &MSSpectrum) -> Result<BinnedSpectrum> {
+        let mut binned = BinnedSpectrum::new(spectrum, Self::bin_config())?;
+        let norm = sparse_norm(&binned)?;
+        if !norm.is_finite() || norm <= 0.0 {
+            return Err(bad(
+                "cannot normalise a binned spectrum whose norm is zero or not finite",
+            ));
+        }
+        for value in binned.bins.values_mut() {
+            *value /= norm;
+            if !value.is_finite() {
+                return Err(bad("normalised bin is not finite"));
+            }
+        }
+        Ok(binned)
+    }
+
+    /// How much of the dot product a few bins dominate.
+    ///
+    /// The numerator is the Euclidean norm of the element-wise product of the
+    /// two binned vectors, again reduced in `f32`; the denominator is the dot
+    /// product. `dot_product` is the source's `double dot_product = -1`
+    /// sentinel: `None`, or any value that is not strictly positive, recomputes
+    /// it from the two spectra. A denominator that is still not positive yields
+    /// `0.0`, as the source's own guard does.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for incompatible binning, for more than
+    /// [`MAX_COMPARED_BINS`] combined stored bins, for an `f32` overflow in the
+    /// numerator, for a non-finite supplied `dot_product` - where the source's
+    /// `<= 0.0` guard lets NaN through - and for a non-finite quotient.
+    pub fn dot_bias(
+        &self,
+        bin1: &BinnedSpectrum,
+        bin2: &BinnedSpectrum,
+        dot_product: Option<f64>,
+    ) -> Result<f64> {
+        compatible(bin1, bin2)?;
+        preflight_bins(bin1, bin2)?;
+        if let Some(value) = dot_product {
+            if !value.is_finite() {
+                return Err(bad("a supplied dot product must be finite"));
+            }
+        }
+        let mut squares = 0.0_f32;
+        for (index, &left) in &bin1.bins {
+            if let Some(&right) = bin2.bins.get(index) {
+                let product = left * right;
+                squares += product * product;
+            }
+        }
+        if !squares.is_finite() {
+            return Err(bad("dot-bias numerator overflows f32"));
+        }
+        let numerator = f64::from(squares.sqrt());
+        let denominator = match dot_product {
+            Some(value) if value > 0.0 => value,
+            _ => self.dot(bin1, bin2)?,
+        };
+        if denominator <= 0.0 {
+            return Ok(0.0);
+        }
+        finite_score(numerator / denominator)
+    }
+
+    /// Normalised distance between the best and the second best match,
+    /// `(top_hit - runner_up) / top_hit`.
+    ///
+    /// The source notes that dot products range over `[0, 1]`; nothing checks
+    /// that, and neither does this.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when `top_hit` is zero, which is the
+    /// source's `Exception::DivisionByZero`, and when either argument or the
+    /// quotient is not finite.
+    pub fn delta_d(&self, top_hit: f64, runner_up: f64) -> Result<f64> {
+        if !top_hit.is_finite() || !runner_up.is_finite() {
+            return Err(bad("delta_D needs two finite scores"));
+        }
+        if top_hit == 0.0 {
+            return Err(bad("delta_D divides by a zero top hit"));
+        }
+        finite_score((top_hit - runner_up) / top_hit)
+    }
+
+    /// The overall SpectraST score,
+    /// `0.6 * dot_product + 0.4 * delta_D - b`.
+    ///
+    /// The bias penalty `b` is a step function of `dot_bias`: `0.12` below
+    /// `0.1` and on `(0.35, 0.4]`, `0.18` on `(0.4, 0.45]`, `0.24` above `0.45`,
+    /// and zero on `[0.1, 0.35]`. The low-bias and high-bias penalties share a
+    /// value; that is what `SpectraSTSimilarityScore.cpp:132` writes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when any argument or the result is not
+    /// finite. The source performs no such check and lets NaN select `b = 0`,
+    /// because every comparison against NaN is false.
+    pub fn compute_f(&self, dot_product: f64, delta_d: f64, dot_bias: f64) -> Result<f64> {
+        if !dot_product.is_finite() || !delta_d.is_finite() || !dot_bias.is_finite() {
+            return Err(bad("the SpectraST score needs three finite terms"));
+        }
+        let b = if dot_bias < 0.1 || (0.35 < dot_bias && dot_bias <= 0.4) {
+            0.12
+        } else if 0.4 < dot_bias && dot_bias <= 0.45 {
+            0.18
+        } else if dot_bias > 0.45 {
+            0.24
+        } else {
+            0.0
+        };
+        finite_score(0.6 * dot_product + 0.4 * delta_d - b)
+    }
+
+    /// Filter `spectrum` in place and report whether it survives.
+    ///
+    /// Peaks are dropped unless their intensity exceeds both
+    /// [`remove_peak_intensity_threshold`](SpectraStPreprocessing::remove_peak_intensity_threshold)
+    /// and `1 / cut_peaks_below` of the base peak's intensity; every survivor
+    /// keeps its m/z and takes the square root of its intensity, the SpectraST
+    /// intensity exponent of `0.5`, computed in `f32` as upstream.
+    ///
+    /// # Two behaviours worth knowing before calling this
+    ///
+    /// * The header says the filter "cuts peaks exceeding the max_peak_number
+    ///   most intense peaks". It does not. The spectrum is sorted by **m/z** and
+    ///   the loop stops after examining
+    ///   [`max_peak_number`](SpectraStPreprocessing::max_peak_number) peaks, so
+    ///   what is kept is a prefix in m/z, not the strongest peaks, and the
+    ///   result can be shorter than that bound.
+    /// * The source assigns a fresh, default-constructed spectrum over the
+    ///   argument, so **every piece of metadata is lost** - precursors,
+    ///   retention time, native id, data arrays. That is reproduced, because a
+    ///   SpectraST workflow's downstream numbers depend on the peaks it leaves
+    ///   behind and silently keeping more state would be a different function.
+    ///   Clone the spectrum first if the metadata matters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for an invalid spectrum, a negative m/z
+    /// or intensity - the source's `sqrt` would yield NaN - a zero
+    /// [`cut_peaks_below`](SpectraStPreprocessing::cut_peaks_below), where the
+    /// source divides by zero and discards every peak, and a non-finite
+    /// threshold. The spectrum is left untouched when any of these fires.
+    pub fn preprocess(
+        &self,
+        spectrum: &mut MSSpectrum,
+        options: SpectraStPreprocessing,
+    ) -> Result<bool> {
+        spectrum.validate()?;
+        if options.cut_peaks_below == 0 {
+            return Err(bad("cut_peaks_below must be positive"));
+        }
+        if !options.remove_peak_intensity_threshold.is_finite() {
+            return Err(bad("the intensity threshold must be finite"));
+        }
+        if spectrum
+            .peaks
+            .iter()
+            .any(|p| p.mz < 0.0 || p.intensity < 0.0)
+        {
+            return Err(bad(
+                "SpectraST preprocessing requires nonnegative m/z and intensities",
+            ));
+        }
+        let mut min_high_intensity = 0.0;
+        if let Some(base) = spectrum.base_peak() {
+            min_high_intensity =
+                (1.0 / f64::from(options.cut_peaks_below)) * f64::from(base.intensity);
+        }
+        let mut kept = Vec::new();
+        kept.try_reserve(options.max_peak_number.min(spectrum.len()))
+            .map_err(|_| bad("preprocessed peak allocation failed"))?;
+        let mut sorted = spectrum.clone();
+        sorted.sort_by_position()?;
+        for peak in sorted.peaks.iter().take(options.max_peak_number) {
+            if peak.intensity > options.remove_peak_intensity_threshold
+                && f64::from(peak.intensity) > min_high_intensity
+            {
+                kept.push(Peak1D::new(peak.mz, peak.intensity.sqrt()));
+            }
+        }
+        let passed = kept.len() >= options.min_peak_number;
+        *spectrum = MSSpectrum::from_peaks(kept);
+        Ok(passed)
+    }
+}
+
+impl PeakSpectrumCompareFunctor for SpectraSTSimilarityScore {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// Normalised dot product of two peak spectra.
+    ///
+    /// Exactly `dot(transform(a), transform(b))`; the source spells the binning
+    /// and the normalisation out a second time in this overload, with the same
+    /// arguments, so the two cannot differ.
+    ///
+    /// # Errors
+    ///
+    /// As [`transform`](SpectraSTSimilarityScore::transform) and
+    /// [`dot`](SpectraSTSimilarityScore::dot).
+    fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
+        self.dot(&self.transform(a)?, &self.transform(b)?)
+    }
+}
+
+/// `Eigen::SparseMatrixBase::norm()` of a `SparseVector<float>`:
+/// `sqrt(cwiseAbs2().sum())`, with the squares and their accumulation both in
+/// `f32` and only the square root applied afterwards.
+///
+/// The accumulation order is ascending bin index, for the reason
+/// [`sparse_sum`] documents: Eigen's dense redux over the stored value array is
+/// vectorised, so this reproduces the reduction's `f32` precision rather than
+/// its bit pattern on every build.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when the `f32` accumulation overflows.
+fn sparse_norm(spectrum: &BinnedSpectrum) -> Result<f32> {
+    let mut total = 0.0_f32;
+    for &value in spectrum.bins.values() {
+        total += value * value;
+    }
+    if total.is_finite() {
+        Ok(total.sqrt())
+    } else {
+        Err(bad("binned squared norm overflows f32"))
+    }
 }
 
 #[cfg(test)]
