@@ -307,8 +307,14 @@ impl ToolContext {
 /// `":8"`, `"2:"`, `"2:8"` and `":"` are accepted, and an absent side leaves
 /// that bound untouched. The part before the first colon sets `low` and the
 /// part after the last colon sets `high`, each converted like
-/// `StringUtils::toDouble`. Returns whether any bound was set. As in the
-/// source, `low > high` is not an error: the caller receives an empty range.
+/// `StringUtils::toDouble`. Returns whether any bound was set.
+///
+/// As in the source, `low > high` is not an error, and both bounds are returned
+/// as given. The source's consumers may still swap them: DTAExtractor passes
+/// its retention-time bounds to `DRange<1>(rt_l, rt_u)`, whose constructor
+/// normalises reversed bounds (`DTAExtractor.cpp:144` at topp 174b576,
+/// `DIntervalBase.h:85-90` at core bc9cc12), so the C++ tool reads `-rt 70:50`
+/// as 50 to 70. A caller that needs that must order the bounds itself.
 ///
 /// # Errors
 ///

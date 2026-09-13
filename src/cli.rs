@@ -418,6 +418,8 @@ fn parse_command_line(
         warnings: Vec::new(),
     };
     let mut queue: VecDeque<&str> = VecDeque::new();
+    // Text left over after each option, gathered in reverse (see below).
+    let mut misc_reversed: Vec<String> = Vec::new();
     for argument in arguments.iter().skip(1).rev() {
         if !is_option(argument) {
             queue.push_front(argument);
@@ -445,11 +447,16 @@ fn parse_command_line(
             }
             None => parsed.unknown.push(argument.clone()),
         }
-        let rest: Vec<String> = queue.drain(..).map(str::to_owned).collect();
-        parsed.misc.splice(0..0, rest);
+        // The source inserts the rest of the queue at the front of `misc`
+        // (2436-2439), which costs time quadratic in the token count. Pushing
+        // each chunk reversed and reversing once at the end gives the same order
+        // in linear time.
+        misc_reversed.extend(queue.drain(..).rev().map(str::to_owned));
     }
-    let rest: Vec<String> = queue.drain(..).map(str::to_owned).collect();
-    parsed.misc.splice(0..0, rest);
+    // What is left are leading text arguments (2442-2444).
+    misc_reversed.extend(queue.drain(..).rev().map(str::to_owned));
+    misc_reversed.reverse();
+    parsed.misc = misc_reversed;
     Ok(Ok(parsed))
 }
 
@@ -528,8 +535,13 @@ fn prepare<T: Tool>(
     let cmd = &command_line.values;
     let given = |name: &str| cmd.exists(name).unwrap_or(false);
 
-    // 2. A bare invocation (TOPPBase.cpp:227-232) is not yet refused here: it
-    //    still reaches the required-parameter check. See docs/TOPP_CLI_SUPPORT.md.
+    // 2. A bare invocation prints usage and is refused (227-232). An empty
+    //    argument list, argc 0, still runs, as in the source class test.
+    if arguments.len() == 1 {
+        print_usage::<T>(err, spec, false)?;
+        writeln!(err, "No options given. Aborting!")?;
+        return Ok(Prepared::Done(ExitCode::IllegalParameters));
+    }
 
     // 3. Usage requests short-circuit before any validation (235-239).
     if given("-help") || given("-helphelp") {
@@ -683,21 +695,67 @@ fn write_commands<T: Tool>(
     Ok(None)
 }
 
-/// Load an INI file with the exit codes the source's run-phase catch assigns:
-/// a missing file is [`ExitCode::InputFileNotFound`] and a malformed one
-/// [`ExitCode::InputFileCorrupt`] (`TOPPBase.cpp:296`, `436-465`).
+/// Load an INI file with the exit codes the source's run-phase catch assigns.
+///
+/// Both callers, the INI merge and `-write_ini`, load inside the source's
+/// run-phase `try` (`TOPPBase.cpp:258`; the loads are at `296` and `2630`), so
+/// a failure takes the inner catch:
+///
+/// * A missing file is [`ExitCode::InputFileNotFound`]: `XMLFile::parse_`
+///   checks `File::exists` (caught at `436-441`).
+/// * An existing file this process cannot read is
+///   [`ExitCode::InputFileNotReadable`], with the source's `FileNotReadable`
+///   wording (`448-453`). In the source, xerces cannot open the file, and
+///   `XMLHandler::fatalError` asks `FileHandler::getTypeByContent` for a
+///   file-type hint, whose `TextFile` load throws `FileNotReadable`
+///   (`XMLHandler.cpp:49-50`, `FileHandler.cpp:402`, `TextFile.cpp:40-43`)
+///   before the `ParseError` is raised.
+/// * A readable directory, malformed XML and any other read failure of an
+///   existing file are [`ExitCode::InputFileCorrupt`], the source's
+///   `ParseError` (`460-465`). For a directory the diagnostic is the source's
+///   without the file-type hint that `XMLHandler::fatalError` appends.
+///
+/// The same mapping applies when the file changes between these checks and the
+/// load. Failures other than I/O and parsing, such as a document beyond the
+/// reader's limits, map as in `run_failure`.
 fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param, ExitCode>> {
+    let not_found = format!("Error: File not found (the file '{path}' does not exist)");
+    let not_readable = format!(
+        "Error: File not readable (the file '{path}' is not readable for the current user)"
+    );
     if !file::exists(path) {
-        writeln!(
-            err,
-            "Error: File not found (the file '{path}' does not exist)"
-        )?;
+        writeln!(err, "{not_found}")?;
         return Ok(Err(ExitCode::InputFileNotFound));
     }
-    Ok(match paramxml::load(path) {
-        Ok(loaded) => Ok(loaded),
-        Err(error) => Err(run_failure(&error, err)),
-    })
+    if !file::readable(path) {
+        writeln!(err, "{not_readable}")?;
+        return Ok(Err(ExitCode::InputFileNotReadable));
+    }
+    if file::is_directory(path) {
+        writeln!(
+            err,
+            "Error: Unable to read file (While loading '{path}': unable to read data from file)"
+        )?;
+        return Ok(Err(ExitCode::InputFileCorrupt));
+    }
+    match paramxml::load(path) {
+        Ok(loaded) => Ok(Ok(loaded)),
+        Err(Error::Io(error)) => {
+            let (code, text) = match error.kind() {
+                std::io::ErrorKind::NotFound => (ExitCode::InputFileNotFound, not_found),
+                std::io::ErrorKind::PermissionDenied => {
+                    (ExitCode::InputFileNotReadable, not_readable)
+                }
+                _ => (
+                    ExitCode::InputFileCorrupt,
+                    format!("Error: Unable to read file (While loading '{path}': {error})"),
+                ),
+            };
+            writeln!(err, "{text}")?;
+            Ok(Err(code))
+        }
+        Err(error) => Ok(Err(run_failure(&error, err))),
+    }
 }
 
 /// Source `checkIfIniParametersAreApplicable_` (`TOPPBase.cpp:1957-1966`).
@@ -1112,12 +1170,25 @@ fn initialisation_failure<T: Tool>(error: &Error, err: &mut dyn Write) -> ExitCo
 /// A failure while the tool runs, mapped as the source's run-phase catch
 /// (`TOPPBase.cpp:430-499`).
 ///
-/// A parse failure is `INPUT_FILE_CORRUPT`, a missing file
-/// `INPUT_FILE_NOT_FOUND`, a permission failure `CANNOT_WRITE_OUTPUT_FILE`, an
-/// invalid value or range `ILLEGAL_PARAMETERS`, missing information
-/// `MISSING_PARAMETERS`, and any other I/O failure `UNKNOWN_ERROR`. `Unsupported`
-/// and `UnsortedData` are `INCOMPATIBLE_INPUT_DATA`, the code the source tools
-/// return explicitly for those conditions.
+/// A parse failure is `INPUT_FILE_CORRUPT`, as the source's `ParseError`
+/// (460-465). The other arms are native mappings, because [`Error`] is coarser
+/// than the source's exceptions:
+///
+/// * A missing file is `INPUT_FILE_NOT_FOUND`, as `FileNotFound` (436-441).
+/// * A permission failure is `CANNOT_WRITE_OUTPUT_FILE`, as `UnableToCreateFile`
+///   (430-435). A `std::io::Error` does not say whether it read or wrote; a
+///   tool's inputs are checked for readability before its body runs, so a
+///   denied permission there is taken as a failed write. INI files never reach
+///   this arm: `load_ini` maps their read failures itself.
+/// * Any other I/O failure is `UNKNOWN_ERROR`, the `BaseException` arm
+///   (495-499).
+/// * An invalid value or range is `ILLEGAL_PARAMETERS`, as `InvalidParameter`
+///   (475-480), and missing information is `MISSING_PARAMETERS`, as
+///   `RequiredParameterNotGiven` (466-474). The source's own `InvalidValue`,
+///   `InvalidRange` and `MissingInformation` exceptions derive directly from
+///   `BaseException` and would exit `UNKNOWN_ERROR` there.
+/// * `Unsupported` and `UnsortedData` are `INCOMPATIBLE_INPUT_DATA`, the code
+///   the source tools return explicitly for those conditions.
 fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
     let (code, text) = match error {
         Error::Parse { .. } => (

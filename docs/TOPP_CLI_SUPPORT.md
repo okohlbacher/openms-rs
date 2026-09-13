@@ -69,42 +69,70 @@ its own resolved parameters mid-run.
 `run_with` follows `TOPPBase::main` phase by phase. The exit code depends on the
 phase, as in the source, where errors inside the run-phase `try`
 (`TOPPBase.cpp:258-425`) take the inner catch (430-499) and anything else takes
-the initialisation catch (505-514). Every row below is asserted by
-`tests/topp_cli_lifecycle.rs` against the executed C++ product SDK; the last
-column names the case in `../oracle/topp-cli-lifecycle/manifest.json`.
+the initialisation catch (505-514).
 
-| Phase | Condition | Exit | Source | Oracle case |
-| --- | --- | --- | --- | --- |
-| registration | tool registration fails | 6 | 505-508 | — (native test) |
-| parse | a flag followed by text | 6 | 186-191, 2336-2348 | `flag_with_trailing_text` |
-| parse | a number that does not convert, including `-section:name` values | 6 | 186-191, 2365-2407 | `int_option_not_numeric`, `algorithm_peakcount_not_int` |
-| parse | no arguments at all | 6 | 227-232 | `no_arguments` — **not yet applied**, see below |
-| parse | `--help`, `--helphelp` | 0 | 235-239 | `help` |
-| parse | an unknown option, including an unknown `-section:name` | 6 | 242-247 | `unknown_option`, `algorithm_bogus` |
-| parse | trailing text | 6 | 250-255 | `trailing_text` |
-| write | `-write_ini` target not writable | 5 | 2609 | `write_ini_unwritable` |
-| write | `-write_ini` | 0 | 2606-2641 | `write_ini_with_cli_value`, `write_ini_with_ini` |
-| write | `-write_ctd`, `-write_cwl`, `-write_nested_cwl`, `-write_json`, `-write_nested_json` | 12 | 2643-2683 | `write_cwl` … (12 without TDL; `write_ctd` 0) |
-| INI | `-ini` file missing | 1 | 296, 436-441 | `ini_missing` |
-| INI | `-ini` file malformed | 3 | 296, 460-465 | `ini_malformed` |
-| INI | INI without a section for this tool | 0, warning | 1957-1966 | `ini_foreign_section` |
-| update | unknown parameter (INI item, `-instance`, top-level `common:` value) | 6 | 338-343 | `ini_unknown_item`, `instance_on_command_line`, `ini_common_top_level` |
-| update | value outside its restrictions | 6 | 338-343 | `algorithm_movetype_sideways`, `ini_invalid_subsection_value` |
-| update | value of another type | 6 | 338-343 | `ini_value_type_mismatch` |
-| update | INI written by another version | 0, notice on stdout | 355-366 | `ini_version_mismatch` |
-| validation | required value missing or empty | 7 | 1398-1406, 466-474 | `missing_required_output` |
-| validation | input missing / unreadable / empty | 1 / 2 / 4 | 1968-1995 | `missing_input`, `unreadable_input`, `zero_byte_input` |
-| validation | output not writable | 5 | 1997-2013 | `unwritable_output` |
-| validation | output extension not registered | 6 | 1595-1608 | `output_wrong_extension` |
-| run | `Error::Parse` from the tool | 3 | 460-465 | `corrupt_input` |
-| run | `Error::Io` not found / permission / other | 1 / 5 / 8 | 430-441, 495-499 | — (native test) |
-| run | `Error::InvalidValue`, `InvalidRange` | 6 | 475-480 | — |
-| run | `Error::MissingInformation` | 7 | 466-474 | — |
-| run | `Error::Unsupported`, `UnsortedData` | 11 | the tools' own `INCOMPATIBLE_INPUT_DATA` returns | — |
+The *Test* column names the cases that assert each row, in
+`tests/topp_cli_lifecycle.rs` unless another file is named. *Evidence* says what
+backs the expected exit code:
+
+* **tier 1**: an executed C++ case on the product SDK, named as in
+  `../oracle/topp-cli-lifecycle/manifest.json`, or as in
+  `../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json` where marked †;
+* **tier 4, derived**: read from the cited source lines, with no executed case;
+* **tier 4, native**: a native mapping. The Rust `Error` enum is coarser than the
+  source's exceptions, so there is no C++ case to execute; the row says what the
+  source does instead where the two differ.
+
+| Phase | Condition | Exit | Source | Test | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| registration | tool registration fails | 6 | 505-508 | `an_initialisation_failure_is_illegal_parameters` | tier 4, derived |
+| parse | more than `MAX_ARGUMENTS` tokens or `MAX_ARGUMENT_BYTES` bytes | 6 | — | `an_oversized_command_line_is_refused_before_parsing` | tier 4, native bound |
+| parse | a flag followed by text | 6 | 186-191, 2336-2348 | `a_flag_followed_by_text_is_refused`, `upstream_flag_with_trailing_arguments` | tier 1: `flag_with_trailing_text` |
+| parse | a number that does not convert, including `-section:name` values | 6 | 186-191, 2365-2407 | `a_non_numeric_integer_is_refused`, `a_non_numeric_subsection_integer_is_refused` | tier 1: `int_option_not_numeric`, `algorithm_peakcount_not_int` |
+| parse | no arguments at all | 6 | 227-232 | `a_bare_invocation_is_refused`; also `tests/topp_dta_extractor.rs`, `tests/topp_baseline_filter.rs`, `tests/topp_map_normalizer.rs` | tier 1: `no_arguments` |
+| parse | `--help`, `--helphelp` | 0 | 235-239 | `usage_and_exit_codes_follow_the_source_contract` in `tests/topp_dta_extractor.rs` | tier 1: `help` (exit code; the stream differs, see *Usage text*) |
+| parse | an unknown option, including an unknown `-section:name` | 6 | 242-247 | `an_unknown_option_is_refused`, `an_unknown_subsection_parameter_is_refused` | tier 1: `unknown_option`, `algorithm_bogus` |
+| parse | trailing text | 6 | 250-255 | `trailing_text_is_refused` | tier 1: `trailing_text` |
+| parse | trailing text after several options, listed in command-line order | 6 | 2436-2444 | `a_command_line_at_the_argument_bound_is_parsed` | tier 4, derived |
+| write | `-write_ini` target not writable | 5 | 2609 | `write_ini_to_an_unwritable_path_is_refused` | tier 1: `write_ini_unwritable` |
+| write | `-write_ini` | 0 | 2606-2641 | `write_ini_ignores_command_line_values`, `write_ini_with_an_invalid_ini_value_keeps_the_default` | tier 1: `write_ini_with_cli_value`, `write_ini_with_ini` |
+| write | `-write_ctd`, `-write_cwl`, `-write_nested_cwl`, `-write_json`, `-write_nested_json` | 12 | 2643-2683 | `tool_description_writers_are_refused_explicitly` | tier 1: `write_cwl`, `write_nested_cwl`, `write_json`, `write_nested_json` exit 12 without TDL; `write_ctd` exits 0 there, see *Refused writers* |
+| INI | `-ini` file missing | 1 | 296, 436-441 | `a_missing_ini_is_input_file_not_found` | tier 1: `ini_missing` |
+| INI | `-ini` file not readable, before a run or with `-write_ini` | 2 | 296, 2630, 448-453 | `an_unreadable_ini_is_input_file_not_readable` | tier 1: `ini_unreadable`†, `write_ini_ini_unreadable`† |
+| INI | `-ini` file malformed | 3 | 296, 460-465 | `a_malformed_ini_is_input_file_corrupt` | tier 1: `ini_malformed` |
+| INI | `-ini` names a directory, before a run or with `-write_ini` | 3 | 296, 2630, 460-465 | `an_ini_directory_is_input_file_corrupt` | tier 1: `ini_directory`†, `write_ini_ini_directory`† |
+| INI | INI without a section for this tool | 0, warning | 1957-1966 | `an_ini_for_another_tool_warns_and_applies_defaults` | tier 1: `ini_foreign_section` |
+| update | unknown parameter (INI item, `-instance`, top-level `common:` value) | 6 | 338-343 | `an_unknown_ini_item_is_refused`, `instance_on_the_command_line_is_refused`, `a_common_top_level_value_is_refused_as_in_the_source` | tier 1: `ini_unknown_item`, `instance_on_command_line`, `ini_common_top_level` |
+| update | value outside its restrictions | 6 | 338-343 | `an_invalid_subsection_value_on_the_command_line_is_refused`, `an_invalid_subsection_value_in_an_ini_is_refused` | tier 1: `algorithm_movetype_sideways`, `ini_invalid_subsection_value` |
+| update | value of another type | 6 | 338-343 | `an_ini_value_of_the_wrong_type_is_refused` | tier 1: `ini_value_type_mismatch` |
+| update | INI written by another version | 0, notice on stdout | 355-366 | `an_ini_from_another_version_is_noted` | tier 1: `ini_version_mismatch` |
+| validation | required value missing or empty | 7 | 1398-1406, 466-474 | `a_missing_required_output_is_missing_parameters` | tier 1: `missing_required_output` |
+| validation | input missing / unreadable / empty | 1 / 2 / 4 | 1968-1995 | `a_missing_input_is_input_file_not_found`, `an_unreadable_input_is_input_file_not_readable`, `a_zero_byte_input_is_input_file_empty` | tier 1: `missing_input`, `unreadable_input`, `zero_byte_input` |
+| validation | output not writable | 5 | 1997-2013 | `an_unwritable_output_is_cannot_write_output_file` | tier 1: `unwritable_output` |
+| validation | output extension not registered | 6 | 1595-1608 | `a_wrong_output_extension_is_refused` | tier 1: `output_wrong_extension` |
+| run | `Error::Parse` from the tool | 3 | 460-465 | `a_corrupt_input_is_input_file_corrupt`, `run_phase_errors_map_like_the_source_inner_catch` | tier 1: `corrupt_input` |
+| run | `Error::Io`, not found | 1 | 436-441 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `FileNotFound` |
+| run | `Error::Io`, permission denied | 5 | 430-435 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: an I/O error does not say whether it read or wrote; a tool's inputs are checked for readability before its body runs, so a denial there is taken as a failed write. INI files never take this row |
+| run | any other `Error::Io` | 8 | 495-499 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native |
+| run | `Error::InvalidValue`, `InvalidRange` | 6 | 475-480 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `InvalidParameter`; the source's own `InvalidValue` and `InvalidRange` exceptions reach its `BaseException` arm, exit 8 |
+| run | `Error::MissingInformation` | 7 | 466-474 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `RequiredParameterNotGiven`; the source's `MissingInformation` exception reaches its `BaseException` arm, exit 8 |
+| run | `Error::Unsupported`, `UnsortedData` | 11 | the tools' own `INCOMPATIBLE_INPUT_DATA` returns | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native |
 
 A malformed INI file is exit 3, not 6: the source loads it inside the run-phase
 `try` (`TOPPBase.cpp:258`, `296`), so its `ParseError` is `INPUT_FILE_CORRUPT`.
 The early plan classified it as an initialisation error; the oracle settles it.
+
+An unreadable INI file is exit 2 for the same reason. `XMLFile::parse_` checks
+only that the file exists (`XMLFile.cpp:124`); xerces cannot open it, and
+`XMLHandler::fatalError` asks `FileHandler::getTypeByContent` for a file-type
+hint before raising its `ParseError` (`XMLHandler.cpp:49-50`). For an
+uncompressed file that reads through `TextFile` (`FileHandler.cpp:402`), which
+throws `FileNotReadable` (`TextFile.cpp:40-43`; all at core bc9cc12). A readable
+directory does reach the `ParseError`, exit 3. `-write_ini` loads its `-ini`
+inside the same `try` (2630), with the same codes. This port checks existence,
+readability and directories before loading, in that order, and prints the
+source's `FileNotReadable` wording; for a directory it prints the source's
+`ParseError` wording without the file-type hint.
 
 ## Preserved source conventions
 
@@ -182,13 +210,6 @@ confirmed on the oracle):
 
 ## Native differences
 
-**A bare invocation is not refused yet.** The source exits 6 with
-`No options given. Aborting!` (`TOPPBase.cpp:227-232`, oracle `no_arguments`).
-`tests/topp_dta_extractor.rs:131`, `tests/topp_baseline_filter.rs:93` and
-`tests/topp_map_normalizer.rs:102` still assert `MISSING_PARAMETERS` for it, so
-the check stays out until those assertions are changed; the corresponding case in
-`tests/topp_cli_lifecycle.rs` is ignored with that reason.
-
 **Usage text.** A successful `--help` prints to the output stream, because
 `tests/topp_dta_extractor.rs` asserts it there; the source prints usage to
 standard error in every case, as this port already does after a command-line
@@ -230,6 +251,16 @@ runs with it disabled.
 throws `WrongParameterType` and `InvalidParameter`. The strict update already
 guarantees that every resolved value has its registered type.
 
+**Non-finite values in processing records.** Outside `-test`,
+`processing_info` records every resolved parameter as metadata, and `MetaValue`
+holds only finite floating-point values, so a resolved `inf` or `nan` double
+makes it fail with `Error::InvalidValue`, exit 6 once a tool propagates it. The
+source's `DataValue` records any double: the product SDK's
+SpectraFilterWindowMower accepts `-algorithm:windowsize inf` and `nan` and exits
+0 (verifier probe, not in a manifest), although this port's window mower refuses
+both values itself. No ported tool calls `processing_info` yet; the D4 retrofit
+in W2.2 must record such values in a representable form or keep this difference.
+
 **Diagnostics.** `Param::update_with_options` decides the update and applies it;
 its report is worded natively, so the CLI derives the source wording from the
 same entries. A missing file's parenthetical reads `does not exist`, where the
@@ -238,15 +269,17 @@ source says `could not be found`, because an existing assertion fixes the phrase
 **Errors** are typed `Result` values mapped at the boundary. A registration
 error is exit 6 (the source's initialisation catch) rather than 12.
 `parse_range` leaves both bounds unchanged on error. A command line is bounded
-by `MAX_ARGUMENTS` and `MAX_ARGUMENT_BYTES` before parsing. Number conversion
+by `MAX_ARGUMENTS` and `MAX_ARGUMENT_BYTES` before parsing, and parsed in time
+linear in its length: the text left after each option is gathered in reverse and
+ordered once, where the source inserts each chunk at the front of its list
+(`TOPPBase.cpp:2436-2439`). Number conversion
 follows `std::from_chars`, so hexadecimal floats are rejected even though the
 oracle's libc++ `strtod` fallback accepts them. `unique_id_generator` returns an
 independent generator per call instead of seeding a process-wide singleton.
 
 ## Checked boundaries and evidence
 
-`tests/topp_cli_lifecycle.rs` holds 59 cases; one, the bare invocation, is
-ignored for the reason above.
+`tests/topp_cli_lifecycle.rs` holds 62 cases, none ignored.
 
 * **Oracle cases (tier 1 executed differential).** `../oracle/topp-cli-lifecycle/run.sh`
   runs 38 cases of the C++ product SDK (core 4fdec46, Debug, AppleClang 21) in a
@@ -254,7 +287,11 @@ ignored for the reason above.
   binary hashes, inputs, exit codes, diagnostics and output hashes. Two executions
   agreed on all 37 shared cases. The subsection override is compared against the
   C++ output `tests/data/topp_cli_lifecycle/swm_algorithm_peakcount_1.mzML`; no
-  case reaches a Debug-only precondition.
+  case reaches a Debug-only precondition. `ini_read_failures.sh` in the same
+  directory adds six cases on the same binaries, recorded in
+  `ini_read_failures/manifest.json`: an INI written by the tool, a readable
+  control run with it, that INI unreadable before a run and with `-write_ini`,
+  and a directory as `-ini` on both paths.
 * **Upstream class test (tier 3).** Transcribed with their literals:
   `getIniLocation_` (default), `getStringOption_` (default, command line, wrong
   type, unregistered, required), `getIntOption_`, `getDoubleOption_`,
@@ -268,8 +305,10 @@ ignored for the reason above.
   cases (the source rejects `-instance` and top-level `common:` values in its
   strict update and only reads values left behind), the `-write_ini` file
   comparison (W2.2), `-log` and `Citation::toString` (not ported).
-* **Native cases** cover `run_io` routing, run-phase error mapping, the
-  initialisation failure, the argument bound and the context services.
+* **Native cases (tier 4)** cover `run_io` routing, the run-phase mapping of
+  every `Error` variant, the initialisation failure, the argument bound (refused
+  beyond it, parsed in full at it, with trailing-text chunks in command-line
+  order) and the context services.
 
 ## DTAExtractor and executed differential evidence
 
@@ -302,6 +341,16 @@ Two source behaviors had to be matched to get there, and both were real gaps:
    plus the peaks and silently ignores the rest, and uses the legacy proton mass
    (`(mz - 1.0) * charge + 1.0`), not the exact one. `dta::WriteOptions::source()`
    selects that behavior; the checked default is unchanged for library callers.
+
+**A reversed retention-time range is not matched yet.** The C++ tool passes its
+`-rt` bounds to `DRange<1>(rt_l, rt_u)`, whose constructor swaps reversed bounds
+(`DTAExtractor.cpp:144` at topp 174b576, `DIntervalBase.h:85-90` at core
+bc9cc12), so `DTAExtractor -test -rt 70:50` on the product SDK exits 0 and
+writes `DTA_RT60.0.dta` (verifier probe, not in a manifest). This port's tool
+compares retention times against the bounds as `parse_range` returns them and
+writes nothing for that command line. The m/z bounds are compared as given in
+both. The fix belongs to `src/cli/tools/dta_extractor.rs` and is recorded for
+that tool's owner; no test covers it yet.
 
 ## MzMLSplitter
 

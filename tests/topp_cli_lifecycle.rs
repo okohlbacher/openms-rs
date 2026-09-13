@@ -448,7 +448,6 @@ fn string_value(ctx: &ToolContext, key: &str) -> String {
 
 /// Oracle `no_arguments`: exit 6, "No options given. Aborting!", usage on stderr.
 #[test]
-#[ignore = "INT-W1.4 d: a bare invocation exits 6 at TOPPBase.cpp:227-232 (oracle no_arguments), but tests/topp_dta_extractor.rs:131, tests/topp_baseline_filter.rs:93 and tests/topp_map_normalizer.rs:102 still assert MISSING_PARAMETERS and package CLI-1 may not change them"]
 fn a_bare_invocation_is_refused() {
     let outcome = run::<DTAExtractor>(&[]);
     assert_eq!(outcome.code, ExitCode::IllegalParameters, "{}", outcome.err);
@@ -1013,6 +1012,99 @@ fn a_missing_ini_is_input_file_not_found() {
     );
 }
 
+/// Oracle `ini_unreadable` and `write_ini_ini_unreadable`
+/// (`../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`): an INI
+/// that exists but cannot be read is exit 2 with the source's `FileNotReadable`
+/// wording, before a run and with `-write_ini`, and nothing is written. As in
+/// the oracle's `ini_readable_control`, the same INI runs cleanly while it is
+/// readable. Skipped when permissions do not restrict the process, as for root.
+#[cfg(unix)]
+#[test]
+fn an_unreadable_ini_is_input_file_not_readable() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = Workdir::new("ini-unreadable");
+    let ini = dir.file("unreadable.ini");
+    let written = run::<SpectraFilterWindowMower>(&["-write_ini", &ini]);
+    assert_eq!(written.code, ExitCode::ExecutionOk, "{}", written.err);
+    let control = run::<SpectraFilterWindowMower>(&[
+        "-test",
+        "-ini",
+        &ini,
+        "-in",
+        &swm_input(),
+        "-out",
+        &dir.file("control.mzML"),
+    ]);
+    assert_eq!(control.code, ExitCode::ExecutionOk, "{}", control.err);
+
+    fs::set_permissions(&ini, fs::Permissions::from_mode(0o000)).unwrap();
+    if fs::File::open(&ini).is_ok() {
+        fs::set_permissions(&ini, fs::Permissions::from_mode(0o644)).unwrap();
+        return;
+    }
+    let out = dir.file("out.mzML");
+    let before_run = run::<SpectraFilterWindowMower>(&[
+        "-test",
+        "-ini",
+        &ini,
+        "-in",
+        &swm_input(),
+        "-out",
+        &out,
+    ]);
+    let written_ini = dir.file("written.ini");
+    let with_write_ini =
+        run::<SpectraFilterWindowMower>(&["-write_ini", &written_ini, "-ini", &ini]);
+    fs::set_permissions(&ini, fs::Permissions::from_mode(0o644)).unwrap();
+
+    let expected =
+        format!("Error: File not readable (the file '{ini}' is not readable for the current user)");
+    for outcome in [&before_run, &with_write_ini] {
+        assert_eq!(
+            outcome.code,
+            ExitCode::InputFileNotReadable,
+            "{}",
+            outcome.err
+        );
+        assert!(outcome.err.contains(&expected), "{}", outcome.err);
+    }
+    assert!(!Path::new(&out).exists());
+    assert!(!Path::new(&written_ini).exists());
+}
+
+/// Oracle `ini_directory` and `write_ini_ini_directory`
+/// (`../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`): a
+/// directory given as `-ini` is the source's `ParseError`, exit 3, before a run
+/// and with `-write_ini`, and nothing is written.
+#[test]
+fn an_ini_directory_is_input_file_corrupt() {
+    let dir = Workdir::new("ini-directory");
+    let ini = dir.file("directory.ini");
+    fs::create_dir(&ini).unwrap();
+    let out = dir.file("out.mzML");
+    let before_run = run::<SpectraFilterWindowMower>(&[
+        "-test",
+        "-ini",
+        &ini,
+        "-in",
+        &swm_input(),
+        "-out",
+        &out,
+    ]);
+    let written_ini = dir.file("written.ini");
+    let with_write_ini =
+        run::<SpectraFilterWindowMower>(&["-write_ini", &written_ini, "-ini", &ini]);
+
+    let expected =
+        format!("Error: Unable to read file (While loading '{ini}': unable to read data from file");
+    for outcome in [&before_run, &with_write_ini] {
+        assert_eq!(outcome.code, ExitCode::InputFileCorrupt, "{}", outcome.err);
+        assert!(outcome.err.contains(&expected), "{}", outcome.err);
+    }
+    assert!(!Path::new(&out).exists());
+    assert!(!Path::new(&written_ini).exists());
+}
+
 /// Oracle `ini_common_tool_section`: a `common:<tool>:` value is found by leaf
 /// name and applied.
 #[test]
@@ -1251,6 +1343,53 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
         "{}",
         unsupported.err
     );
+
+    // Native mappings (tier 4). A std::io::Error does not say whether it read
+    // or wrote, and inputs are checked before the body runs, so a denied
+    // permission is taken as a failed write. The source's own InvalidRange and
+    // MissingInformation exceptions would reach its BaseException arm (exit 8);
+    // these follow InvalidParameter and RequiredParameterNotGiven instead.
+    let denied = stream_tool(Err(Error::Io(std::io::Error::from(
+        std::io::ErrorKind::PermissionDenied,
+    ))));
+    assert_eq!(
+        denied.code,
+        ExitCode::CannotWriteOutputFile,
+        "{}",
+        denied.err
+    );
+    assert!(
+        denied.err.contains("Error: Unable to write file ("),
+        "{}",
+        denied.err
+    );
+
+    let other = stream_tool(Err(Error::Io(std::io::Error::other("device failure"))));
+    assert_eq!(other.code, ExitCode::UnknownError, "{}", other.err);
+    assert!(
+        other.err.contains("Error: Unexpected internal error ("),
+        "{}",
+        other.err
+    );
+
+    let range = stream_tool(Err(Error::InvalidRange("inverted".into())));
+    assert_eq!(range.code, ExitCode::IllegalParameters, "{}", range.err);
+
+    let information = stream_tool(Err(Error::MissingInformation("no charge".into())));
+    assert_eq!(
+        information.code,
+        ExitCode::MissingParameters,
+        "{}",
+        information.err
+    );
+
+    let unsorted = stream_tool(Err(Error::UnsortedData));
+    assert_eq!(
+        unsorted.code,
+        ExitCode::IncompatibleInputData,
+        "{}",
+        unsorted.err
+    );
 }
 
 struct FailingRegistration;
@@ -1285,6 +1424,38 @@ fn an_oversized_command_line_is_refused_before_parsing() {
     let arguments = vec!["-test".to_owned(); MAX_ARGUMENTS + 1];
     let outcome = run_arguments::<ToppBaseTest>(&arguments);
     assert_eq!(outcome.code, ExitCode::IllegalParameters, "{}", outcome.err);
+}
+
+/// A command line at the `MAX_ARGUMENTS` bound is parsed in full, and the text
+/// left after several options keeps command-line order. The source inserts each
+/// such chunk at the front of its list (`TOPPBase.cpp:2436-2444`), which is
+/// quadratic in the token count; the port gathers the chunks in reverse and
+/// orders them once. No timing is asserted.
+#[test]
+fn a_command_line_at_the_argument_bound_is_parsed() {
+    let outcome = run::<DTAExtractor>(&["t1", "-in", "a", "t2", "t3", "-out", "b", "t4"]);
+    assert_eq!(outcome.code, ExitCode::IllegalParameters, "{}", outcome.err);
+    assert!(
+        outcome
+            .err
+            .contains("Trailing text argument(s) '[t1, t2, t3, t4]' given. Aborting!"),
+        "{}",
+        outcome.err
+    );
+
+    let mut arguments = vec![DTAExtractor::NAME.to_owned()];
+    while arguments.len() + 2 <= MAX_ARGUMENTS {
+        arguments.push("-bogus".to_owned());
+        arguments.push("x".to_owned());
+    }
+    let outcome = run_arguments::<DTAExtractor>(&arguments);
+    // The diagnostic lists half a million options; keep it out of the message.
+    assert_eq!(outcome.code, ExitCode::IllegalParameters);
+    assert!(
+        outcome
+            .err
+            .starts_with("Unknown option(s) '[-bogus, -bogus, ")
+    );
 }
 
 /// `-test` seeds the unique-id generator (TOPPBase.cpp:369-376). The two draws
