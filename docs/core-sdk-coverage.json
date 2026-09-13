@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 26,
-      "evidence_requires_review": 169,
+      "evidence_requires_review": 172,
       "native_equivalent": 83,
       "partial": 39,
-      "unmapped": 469
+      "unmapped": 466
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -6868,20 +6868,28 @@
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
       "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "candidate_rust_files": [
+        "src/format/mzml_sqlite_handler.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mzml_sqlite_handler_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h",
       "sha256": "de45201a11fce98dfd88f5c9c0bacf661963ff803abbd8b3ade202972ebc03c4",
       "domain": "FORMAT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "candidate_rust_files": [
+        "src/format/mzml_sqlite_swath_handler.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/mzml_sqlite_swath_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -8320,6 +8328,7 @@
         "src/format/sqlite_connector.rs"
       ],
       "reference_manifests": [
+        "tests/data/mzml_sqlite_swath_provenance.json",
         "tests/data/sqlite_connector_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -12828,10 +12837,12 @@
       "header": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
       "sha256": "a2e370ab9f8b152a8047d18c813ab9a8c9225e1956e84e95e7de0256b49f637b",
       "domain": "OPENSWATHALGO",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/mzml_sqlite_swath_provenance.json"
+      ],
       "direct_topp_consumers": [
         "OpenSwathWorkflow"
       ]

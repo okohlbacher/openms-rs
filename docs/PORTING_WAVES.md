@@ -23,7 +23,8 @@ Cargo. Keeping SQLite optional is a dependency boundary, not a scope exclusion.
 S0 now has a [native connector](SQLITE_CONNECTOR_SUPPORT.md), all eight source
 class-test sections mapped, nineteen native regression tests and an adapted
 C++ defect probe. The [validation record](VALIDATION.md) records the executed
-integration checks. S1 is next; no database file adapter is closed by S0 alone.
+integration checks. S1 is in progress: the handler and SWATH query ports are
+under remote testing and review; no database file adapter is closed by S0 alone.
 
 | Stage | Work | Dependency and verification boundary |
 |---|---|---|
@@ -35,9 +36,18 @@ integration checks. S1 is next; no database file adapter is closed by S0 alone.
 | S3 | Integrate and review the whole family | Wire supported FileHandler operations, run all features plus SQLite-only/minimum combinations, compare retained source results and update documentation before committing. |
 
 The [S1 implementation plan](SQLITE_STORAGE_PLAN.md) pins the schema, fixtures,
-API mapping and regression matrix. Its thirteen source findings are recorded as
+API mapping and regression matrix. The initial findings are recorded as
 CPP-190 through CPP-202; the auxiliary-array recovery contract remains an
-unconfirmed candidate. These findings are not implemented fixes.
+unconfirmed candidate. The adapted SWATH probe reproduces CPP-196/197/202;
+CPP-203 adds unchecked query-step errors, reviewed from source and tested in
+Rust. The shared issue log distinguishes native handling from proposed C++
+fixes; no upstream fixes are claimed.
+
+The [S2 consumer and spectrum-access plan](SQLITE_CONSUMER_PLAN.md) inventories
+the next public APIs, Parquet and OpenSwath prerequisites, and streaming tests.
+Its [source-review manifest](../tests/data/sqlite_s2_review.json) records
+CPP-204 through CPP-217 with explicit defect/candidate labels. No S2 runtime
+implementation or execution is claimed by that preparation.
 
 Before each stage, inspect the pinned header, implementation, registrations and
 class tests. A dependency discovered during implementation becomes an explicit

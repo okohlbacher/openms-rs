@@ -37,6 +37,11 @@ pub struct SqliteConnector {
 }
 
 impl SqliteConnector {
+    /// Borrow the owned connection for crate-internal typed format queries.
+    pub(crate) fn connection(&self) -> &Connection {
+        &self.connection
+    }
+
     /// Open a database in [`SqlOpenMode::ReadWriteOrCreate`] mode.
     ///
     /// SQLite's `:memory:` filename creates a private in-memory database; an

@@ -1,0 +1,141 @@
+{
+ "edges": {
+  "analysis": [
+   "chemistry",
+   "concept",
+   "format",
+   "identification",
+   "kernel",
+   "metadata",
+   "processing"
+  ],
+  "chemistry": [
+   "concept",
+   "data_structures",
+   "identification",
+   "kernel",
+   "metadata",
+   "param"
+  ],
+  "cli": [
+   "data_structures",
+   "format",
+   "kernel",
+   "param",
+   "processing",
+   "system"
+  ],
+  "concept": [
+   "chemistry"
+  ],
+  "data_structures": [
+   "metadata",
+   "param"
+  ],
+  "format": [
+   "analysis",
+   "chemistry",
+   "concept",
+   "data_structures",
+   "identification",
+   "kernel",
+   "metadata",
+   "param",
+   "system"
+  ],
+  "identification": [
+   "chemistry",
+   "concept",
+   "data_structures",
+   "format",
+   "kernel",
+   "metadata",
+   "param"
+  ],
+  "kernel": [
+   "analysis",
+   "chemistry",
+   "concept",
+   "format",
+   "identification",
+   "metadata",
+   "param"
+  ],
+  "metadata": [
+   "chemistry",
+   "concept",
+   "data_structures",
+   "format",
+   "identification",
+   "kernel",
+   "system"
+  ],
+  "processing": [
+   "chemistry",
+   "kernel",
+   "metadata"
+  ],
+  "system": [
+   "format",
+   "param"
+  ]
+ },
+ "mutually_dependent_pairs": [
+  [
+   "analysis",
+   "format"
+  ],
+  [
+   "analysis",
+   "kernel"
+  ],
+  [
+   "chemistry",
+   "concept"
+  ],
+  [
+   "chemistry",
+   "identification"
+  ],
+  [
+   "chemistry",
+   "kernel"
+  ],
+  [
+   "chemistry",
+   "metadata"
+  ],
+  [
+   "data_structures",
+   "metadata"
+  ],
+  [
+   "format",
+   "identification"
+  ],
+  [
+   "format",
+   "kernel"
+  ],
+  [
+   "format",
+   "metadata"
+  ],
+  [
+   "format",
+   "system"
+  ],
+  [
+   "identification",
+   "kernel"
+  ],
+  [
+   "identification",
+   "metadata"
+  ],
+  [
+   "kernel",
+   "metadata"
+  ]
+ ]
+}

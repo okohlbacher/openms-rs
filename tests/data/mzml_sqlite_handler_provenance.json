@@ -1,0 +1,663 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h",
+      "sha256": "ef9050bdfb4b3b8e450c09e51ed2f4f77d78607950eecdbb626f01c3686fe07e",
+      "role": "Installed public handler API, including protected context; Internal namespace does not remove installed header from mapping."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "sha256": "2fed127c3f01192e027198e09fe6c21f4b81e4ccbda61727365d0eef69daa334",
+      "role": "Full implementation reviewed: schema, reads, metadata hydration, write and compression paths."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLSqliteHandler_test.cpp",
+      "sha256": "0d5d87cc24aae2a2020a699fc531b0d100d38f0d9d92b1ae9be1c787026ff37a",
+      "role": "Thirteen source class-test sections, 128 static in-section assertion macros and eight comparison-helper macros outside sections."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/sources.cmake",
+      "sha256": "0ef956966c6225f901d79c7f399a150f28bb9bc5d31d628703c3370b47266463",
+      "role": "Installed handler header registration."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/sources.cmake",
+      "sha256": "03936ea4a6410695252e4fa0f93c759b5aa2b7124cfc67ad3a487955d4e388c2",
+      "role": "Handler implementation registration."
+    },
+    {
+      "path": "src/tests/class_tests/openms/executables.cmake",
+      "sha256": "d606cc39e24bda314dcaac0d64310f357a296ce0cf44c616ef9763fadac2a899",
+      "role": "Class-test registration."
+    },
+    {
+      "path": "src/testframework/include/OpenMS/CONCEPT/ClassTest.h",
+      "sha256": "c27b7fff3116223a83aee7e05230230040221a44359224c26822f4c5d6fbb2f8",
+      "role": "Tolerance macros mutate global TEST settings; START_SECTION/END_SECTION do not reset them. Reviewed relevant macro definitions."
+    },
+    {
+      "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
+      "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f",
+      "role": "Initial tolerance values, similarity comparison and section-postprocessing; no per-section tolerance reset. Reviewed relevant definitions."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/mzml_sqlite_handler/MzMLSqliteHandler_1.mzML",
+      "source_path": "src/tests/class_tests/openms/data/MzMLSqliteHandler_1.mzML",
+      "sha256": "c57ce081bc065a5e00193ee939ee1336f2b7dc5a2a1cbf29dee840432a4dc4a7",
+      "bytes": 667674,
+      "role": "Exact retained source mzML input; paired reference for class-test comparisons and writer inputs."
+    },
+    {
+      "path": "tests/data/sqlite_s1_source_review/SqliteMassFile_1.sqMass",
+      "source_path": "src/tests/class_tests/openms/data/SqliteMassFile_1.sqMass",
+      "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
+      "bytes": 94208,
+      "role": "Exact retained source binary sqMass reader input; its presence upstream is retained-file evidence, not proof it was produced by executing the current pin."
+    }
+  ],
+  "native_implementation": [
+    "src/format/mzml_sqlite_handler.rs"
+  ],
+  "native_tests": [
+    "tests/mzml_sqlite_handler.rs"
+  ],
+  "support": "docs/MZML_SQLITE_HANDLER_SUPPORT.md",
+  "class_test_sections": [
+    {
+      "ordinal": 1,
+      "title": "(MzMLSqliteHandler(const std::string& filename, const UInt64 run_id))",
+      "line": 129,
+      "assertion_count": 1,
+      "native_tests": [
+        "constructor_defaults_and_drop_do_not_create_a_file"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "construction": "non-null handler"
+      }
+    },
+    {
+      "ordinal": 2,
+      "title": "(~MzMLSqliteHandler())",
+      "line": 134,
+      "assertion_count": 0,
+      "native_tests": [
+        "constructor_defaults_and_drop_do_not_create_a_file"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "destruction": "delete; no literal assertions"
+      }
+    },
+    {
+      "ordinal": 3,
+      "title": "UInt64 getRunID() const",
+      "line": 140,
+      "assertion_count": 1,
+      "native_tests": [
+        "retained_run_id_and_counts"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "run_id": 12345
+      }
+    },
+    {
+      "ordinal": 4,
+      "title": "void readExperiment(MSExperiment & exp, bool meta_only = false) const",
+      "line": 145,
+      "assertion_count": 16,
+      "native_tests": [
+        "retained_experiment_metadata_and_all_numeric_values"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "spectrum_count": 2,
+        "chromatogram_count": 1,
+        "metadata_only": "zero primary points; settings equal paired mzML; run ID12345",
+        "full": "paired mzML settings; unequal exact experiment because retained sqMass is lossy",
+        "comparison_helpers": {
+          "intensity": [
+            0.0001,
+            1.001
+          ],
+          "mz": [
+            1e-05,
+            1.000001
+          ],
+          "chromatogram_rt": [
+            0.05,
+            1.000001
+          ]
+        }
+      }
+    },
+    {
+      "ordinal": 5,
+      "title": "Size getNrSpectra() const",
+      "line": 198,
+      "assertion_count": 1,
+      "native_tests": [
+        "retained_run_id_and_counts"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "count": 2
+      }
+    },
+    {
+      "ordinal": 6,
+      "title": "Size getNrChromatograms() const",
+      "line": 205,
+      "assertion_count": 1,
+      "native_tests": [
+        "retained_run_id_and_counts"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "count": 1
+      }
+    },
+    {
+      "ordinal": 7,
+      "title": "void readSpectra(std::vector<MSSpectrum> & exp, const std::vector<int> & indices, bool meta_only = false) const",
+      "line": 212,
+      "assertion_count": 21,
+      "native_tests": [
+        "selected_spectrum_class_test_literals"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "selected_ids": [
+          [
+            1
+          ],
+          [
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "sizes_full": [
+          19914,
+          19800
+        ],
+        "rt": [
+          0.2961,
+          0.4738
+        ],
+        "metadata_only_sizes": 0,
+        "invalid_ids": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            5
+          ]
+        ],
+        "source_exception": "IllegalArgument",
+        "inherited_literal_tolerance": {
+          "absolute": 0.05,
+          "relative": 1.000001
+        }
+      }
+    },
+    {
+      "ordinal": 8,
+      "title": "void readChromatograms(std::vector<MSChromatogram> & exp, const std::vector<int> & indices, bool meta_only = false) const",
+      "line": 283,
+      "assertion_count": 15,
+      "native_tests": [
+        "selected_chromatogram_class_test_literals"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "existing_native_id": "TIC",
+        "metadata_only_sizes": 0,
+        "invalid_ids": [
+          [
+            0,
+            1
+          ],
+          [
+            5
+          ]
+        ],
+        "written_native_ids": [
+          "TIC",
+          "second"
+        ],
+        "selected_written_ids": [
+          [
+            0
+          ],
+          [
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "ordinal": 9,
+      "title": "std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const",
+      "line": 368,
+      "assertion_count": 16,
+      "native_tests": [
+        "retention_time_class_test_literals_and_stable_nearest"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "cases": [
+          {
+            "rt": 0.4738,
+            "delta": 0.1,
+            "restriction": [],
+            "expected": [
+              1
+            ]
+          },
+          {
+            "rt": 0.296,
+            "delta": 0.1,
+            "restriction": [],
+            "expected": [
+              0
+            ]
+          },
+          {
+            "rt": 0.296,
+            "delta": 1.1,
+            "restriction": [],
+            "expected": [
+              0,
+              1
+            ]
+          },
+          {
+            "rt": 0.296,
+            "delta": 1.1,
+            "restriction": [
+              1
+            ],
+            "expected": [
+              1
+            ]
+          },
+          {
+            "rt": 0.296,
+            "delta": 1.1,
+            "restriction": [
+              0
+            ],
+            "expected": [
+              0
+            ]
+          },
+          {
+            "rt": 0,
+            "delta": 0.1,
+            "restriction": [],
+            "expected": []
+          },
+          {
+            "rt": 0.3,
+            "delta": -0.1,
+            "restriction": [],
+            "expected": [
+              1
+            ]
+          },
+          {
+            "rt": 0,
+            "delta": -0.1,
+            "restriction": [],
+            "expected": [
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "ordinal": 10,
+      "title": "void writeExperiment(const MSExperiment & exp)",
+      "line": 433,
+      "assertion_count": 18,
+      "native_tests": [
+        "full_experiment_write_recreate_and_lossy_source_tolerances"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "before_create": "IllegalArgument",
+        "after_write_spectrum_count": 2,
+        "after_recreate_spectrum_count": 0,
+        "rewrite_spectrum_count": 2,
+        "readback_counts": [
+          2,
+          1
+        ],
+        "readback": "metadata-only zero points; full data use same comparison helpers as readExperiment; experimental settings equal"
+      }
+    },
+    {
+      "ordinal": 11,
+      "title": "[EXTRA] writeRunLevelInformation is safe against SQL injection via the loaded file path",
+      "line": 508,
+      "assertion_count": 2,
+      "native_tests": [
+        "run_level_loaded_file_path_is_bound_and_masked"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "loaded_file_path": "/tmp/o'brien'; DROP TABLE RUN;--/run.mzML",
+        "run_rows_after_write": 1,
+        "source_regression": "Existing upstream parameterized path fix; no newly identified unfixed path injection."
+      }
+    },
+    {
+      "ordinal": 12,
+      "title": "void writeSpectra(const std::vector<MSSpectrum>& spectra)",
+      "line": 539,
+      "assertion_count": 14,
+      "native_tests": [
+        "repeated_spectrum_appends_preserve_source_literals"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "before_create": "IllegalArgument",
+        "append_spectrum_counts": [
+          2,
+          4,
+          6
+        ],
+        "readback_sizes": [
+          19914,
+          19800,
+          19914,
+          19800,
+          19914,
+          19800
+        ],
+        "point": {
+          "spectrum": 0,
+          "index": 100,
+          "mz": 204.817,
+          "intensity": 3857.86
+        },
+        "after_recreate_rewrite": 2,
+        "inherited_literal_tolerance": {
+          "absolute": 0.05,
+          "relative": 1.000001
+        }
+      }
+    },
+    {
+      "ordinal": 13,
+      "title": "void writeChromatograms(const std::vector<MSChromatogram>& chroms)",
+      "line": 587,
+      "assertion_count": 22,
+      "native_tests": [
+        "repeated_chromatogram_appends_lossless_and_lossy"
+      ],
+      "status": "Source and native test code mapped; final assertion-family review and remote execution pending.",
+      "source_expectations": {
+        "compression_modes": [
+          "lossless zlib",
+          "lossy Numpress plus zlib"
+        ],
+        "before_create": "IllegalArgument",
+        "append_chromatogram_counts": [
+          1,
+          2,
+          3
+        ],
+        "points_each": 48,
+        "point": {
+          "chromatogram": 0,
+          "index": 20,
+          "rt": 0.200695,
+          "intensity": 147414.578125
+        },
+        "after_recreate_rewrite": 1,
+        "literal_tolerances": {
+          "lossless": {
+            "absolute": 0.05,
+            "relative": 1.000001
+          },
+          "lossy": {
+            "absolute": 0.05,
+            "relative": 1.0002
+          }
+        }
+      }
+    }
+  ],
+  "source_assertion_count": 128,
+  "source_helper_assertion_count": 8,
+  "source_total_static_assertion_count": 136,
+  "assertion_count_note": "Static macro occurrences, not runtime count: helper size assertions and source sections run in loops; TEST_REAL_SIMILAR helpers are invoked conditionally after isRealSimilar fails. Eight helper macros live outside START_SECTION blocks. Thirteen sections include a destructor block with zero assertions.",
+  "source_anchors": [
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 115,
+      "operation": "Data hydration: accepts compression1,5,6 and primary coordinate/intensity roles; pairing and ordering defects recorded."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 269,
+      "operation": "Constructor source defaults: full metadata true, lossy true, mass accuracy0.0001; batch size uninitialized."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 280,
+      "operation": "Full experiment read chooses RUN_EXTRA mzML when configured, otherwise SQL projection; primary arrays hydrated separately."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 361,
+      "operation": "getRunID requires exactly one RUN row, despite message describing only excess rows."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 390,
+      "operation": "Selected spectrum/chromatogram reads use SQL ID membership and caller output containers; source empty-input preconditions."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 441,
+      "operation": "Counts and RT selection; nonpositive delta uses >= and LIMIT1 without ORDER BY."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 604,
+      "operation": "Chromatogram SQL projection uses inner joins to precursor and product."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 730,
+      "operation": "Spectrum SQL projection uses left joins to precursor/product."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 880,
+      "operation": "writeExperiment commits run information, chromatograms, spectra through separate operations."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 887,
+      "operation": "Run filename uses bound bytes; full snapshot clears primary points and auxiliary arrays before mzML serialization."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 939,
+      "operation": "Schema creation removes an existing database; source leaves handler ID counters unchanged."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 1030,
+      "operation": "Index declarations include precursor/product indexes accidentally attached to DATA."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 1062,
+      "operation": "Spectrum writes: raw-double zlib or Numpress linear/slof with zlib; m/z configured absolute accuracy; SQL metadata projection and staged inserts."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp",
+      "line": 1299,
+      "operation": "Chromatogram writes: corresponding encoding; RT linear accuracy hardcoded0.05 seconds."
+    },
+    {
+      "path": "src/testframework/include/OpenMS/CONCEPT/ClassTest.h",
+      "line": 534,
+      "operation": "START_SECTION resets test counters/state, not numeric tolerances; END_SECTION571 calls postprocessing without tolerance reset."
+    },
+    {
+      "path": "src/testframework/include/OpenMS/CONCEPT/ClassTest.h",
+      "line": 792,
+      "operation": "TOLERANCE_ABSOLUTE assigns the shared global; neighboring relative macro assigns its global."
+    },
+    {
+      "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
+      "line": 674,
+      "operation": "endSectionPostProcess does not restore numeric tolerances."
+    }
+  ],
+  "source_public_api_mapping_pending": {
+    "constructor": "new(path,run_id)",
+    "implicit_destructor": "Rust ownership/drop",
+    "setConfig": "set_config(full_meta,lossy,accuracy,batch_size)",
+    "setRunId": "set_run_id",
+    "getRunID": "run_id",
+    "getNrSpectra": "nr_spectra",
+    "getNrChromatograms": "nr_chromatograms",
+    "readExperiment": "read_experiment(meta_only)",
+    "readSpectra": "read_spectra(ids,meta_only)",
+    "readChromatograms": "read_chromatograms(ids,meta_only)",
+    "getSpectraIndicesbyRT": "spectra_indices_by_rt(rt,delta,ids)",
+    "createTables": "create_tables",
+    "writeExperiment": "write_experiment",
+    "writeSpectra": "write_spectra",
+    "writeChromatograms": "write_chromatograms",
+    "writeRunLevelInformation": "write_run_level_information"
+  },
+  "source_compression_contract": {
+    "documented_numeric_codes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "implemented_read_codes": [
+      1,
+      5,
+      6
+    ],
+    "lossless_write": {
+      "coordinate": 1,
+      "intensity": 1
+    },
+    "lossy_write": {
+      "coordinate": 5,
+      "intensity": 6
+    },
+    "mz_accuracy_default": 0.0001,
+    "chromatogram_rt_accuracy": 0.05,
+    "numpress_error_tolerance": -1.0,
+    "raw_double_note": "Source uses host double byte representation. Native endian and validation policy require explicit review."
+  },
+  "evidence": "Tier3 pinned source/API/class-literal review plus retained exact upstream fixture inputs. Native source and named test mappings reviewed; final assertion-family review and remote execution pending. No MzMLSqliteHandler C++ execution or regenerated C++ output. The independently executed SQL source-review artifact remains tier4; the separate adapted SWATH C++ probe does not execute this handler.",
+  "external_reference_artifacts": [],
+  "cpp_issue_log_entries": [
+    "CPP-190",
+    "CPP-191",
+    "CPP-192",
+    "CPP-193",
+    "CPP-194",
+    "CPP-195",
+    "CPP-198",
+    "CPP-199",
+    "CPP-201",
+    "CPP-202"
+  ],
+  "gaps": [
+    "Final native assertion-family review and remote integration execution pending; no complete-header claim yet.",
+    "No executed C++ handler/class-test differential.",
+    "Native metadata and auxiliary-array policy require final code and tests; fullmetadata source flag does not imply lossless preservation of all input fields.",
+    "Compression codes listed in source comments exceed implemented C++ decoder scope; support must enumerate actual codecs.",
+    "Protected SQL helpers and private connector implementation are source context, not separate public API closure.",
+    "Focused inherited mzML activation metadata closure pending: collision energy/supplemental metadata from source-supported full snapshots was ignored on native read."
+  ],
+  "native_policy_reviewed": {
+    "feature": "sqmass (requires sqlite and mzml codec closure)",
+    "configuration": "Source lossy=true/fullmetadata=true/accuracy0.0001 defaults; initialized batch500; finite nonpositive accuracy preserves ordinary fixed-point sentinel; atomic config validation.",
+    "selection": "Nonempty unique nonnegative i64 SQL IDs, ascendingID results; empty RT restriction selects all. Nonpositive RT delta picks earliest qualifyingRT thenID.",
+    "errors": "SQLite Error::Io retaining cause; malformed input checked errors; unsupported metadata Error::Unsupported.",
+    "metadata": "Full snapshot uses native mzML subset; auxiliary arrays defaultReject or explicitSource drop; peptide IDs and unsupported mzML fields still fail; SQL-only metadata loss requires Source policy.",
+    "transactions": "One read transaction per public operation; atomic writes, counters aftercommit; builder run snapshot can precede records and is validated at read.",
+    "numeric": "Compression1/5/6; raw little-endianf64; finite checked f32 intensities; distinct paired roles and lengths.",
+    "limits": "Materialization/scans/codec budgets; no hard SQLite virtual-machine timeout or totalprocessRSS guarantee.",
+    "short_coordinates": "Native lossy writer falls back to supported lossless code1 for coordinate arrays with fewer than3values; nonempty Numpress output must have finite positive fixedpoint.",
+    "run_id_owner": "Dedicated MSExperiment.sql_run_id; pairedmzML fixture settings comparison removes legacy sqMassRunID metadata key from expectation."
+  },
+  "native_cpp_issue_handling_source_review": {
+    "CPP-190": "Initialized batch500 and validated configuration.",
+    "CPP-191": "Rejects missing/duplicate roles and unequal array lengths.",
+    "CPP-192": "Hydrates selected records bySQLID, validates full snapshot identity.",
+    "CPP-193": "Binds record metadata and peptide sequence as SQL values.",
+    "CPP-194": "Each public write has transaction rollback and delayed counter advancement.",
+    "CPP-195": "PRECURSOR/PRODUCT indexes target matching tables.",
+    "CPP-198": "Successful database recreation resets counters.",
+    "CPP-199": "Activation lookup validates nonnegative in-range enum indices.",
+    "CPP-201": "DefaultReject for auxiliary arrays; Source deliberatelydrops; fullsnapshot still constrained bymzML serializer.",
+    "CPP-202": "ReadOnly opens existingfiles; missingpath errors beforeSQLitecreation."
+  },
+  "source_tolerance_state": {
+    "mechanism": "TOLERANCE_ABSOLUTE/RELATIVE assign global TEST::absdiff_max_allowed/ratio_max_allowed; START_SECTION/END_SECTION do not reset. Values below follow sequential successful source control flow, not a C++ run.",
+    "initial": {
+      "absolute": 1e-05,
+      "relative": 1.00001
+    },
+    "after_line138": {
+      "absolute": 1e-05,
+      "relative": 1.0005
+    },
+    "after_readExperiment_cmpDataRT_line189": {
+      "absolute": 0.05,
+      "relative": 1.000001,
+      "applies_to": "Later selected-spectrum RT literals and all intervening TEST_REAL_SIMILAR calls until a tolerance change."
+    },
+    "after_writeExperiment_cmpDataRT_line501": {
+      "absolute": 0.05,
+      "relative": 1.000001,
+      "applies_to": "Spectrum append special m/z/intensity literals, first (lossless) chromatogram append RT/intensity literals."
+    },
+    "after_line632_lossy_chromatogram": {
+      "absolute": 0.05,
+      "relative": 1.0002,
+      "applies_to": "Second (lossy) chromatogram append RT/intensity literals."
+    },
+    "final_reset_lines671_672": {
+      "absolute": 1e-05,
+      "relative": 1.00001
+    },
+    "comparison": "Absolute OR multiplicative-relative acceptance, including source sign rules. Helpers temporarily set globals; their final values remain afterward. Native tests may deliberately strengthen individual comparisons; do not describe stricter values as exact source thresholds."
+  }
+}

@@ -1,0 +1,44 @@
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.12
+   Compiling pkg-config v0.3.34
+   Compiling vcpkg v0.2.15
+   Compiling autocfg v1.5.1
+   Compiling libc v0.2.189
+   Compiling libm v0.2.16
+   Compiling smallvec v1.16.1
+   Compiling iana-time-zone v0.1.65
+   Compiling openms v0.2.0 (/scratch/kohlbach/agents/codex-sqlite-s1-swath)
+   Compiling bitflags v2.13.2
+   Compiling fallible-iterator v0.3.0
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling cc v1.4.5
+   Compiling num-traits v0.2.19
+   Compiling libsqlite3-sys v0.38.2
+   Compiling cpu-time v1.0.0
+   Compiling chrono v0.4.45
+   Compiling rusqlite v0.40.2
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 18.27s
+
+running 18 tests
+test constructor_defers_io_and_source_defaults_map_to_value_subset ... ok
+test missing_paths_are_not_created_and_non_database_input_is_unchanged ... ok
+test original_retained_sqmass_has_no_swath_windows_and_two_ms1_records ... ok
+test destruction_and_queries_leave_no_connection_or_file_lock ... ok
+test locked_reads_report_errors_and_recover_after_unlock ... ok
+test center_lookup_skips_null_rows_preserves_duplicates_and_ignores_other_fields ... ok
+test finite_negative_offsets_and_signed_zero_follow_source_arithmetic ... ok
+     Running tests/mzml_sqlite_swath_handler.rs (target/debug/deps/mzml_sqlite_swath_handler-8275efd5cc2bf1c2)
+test discovery_deduplicates_tuples_and_sorts_independently_of_insertion_order ... ok
+test ids_are_checked_sorted_signed_64_bit_record_keys ... ok
+test center_lookup_includes_both_exact_tolerance_boundaries ... ok
+test sql_step_error_after_a_valid_row_is_not_mistaken_for_end_of_results ... ok
+test row_budget_counts_nonmatches_and_both_discovery_tables ... ok
+test null_and_incorrect_sql_types_fail_without_returning_partial_results ... ok
+test views_are_rejected_before_evaluation_and_missing_columns_report_errors ... ok
+test nonfinite_input_and_selected_sql_values_are_rejected ... ok
+test source_read_swath_windows_section ... ok
+test source_read_ms1_spectra_section ... ok
+test source_read_spectra_for_window_section ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+

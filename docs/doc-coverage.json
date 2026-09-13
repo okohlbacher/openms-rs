@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 4712,
-  "documented": 3129
+  "items": 4743,
+  "documented": 3160
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -482,8 +482,8 @@
    "documented": 4
   },
   "src/format/mod.rs": {
-   "items": 44,
-   "documented": 44
+   "items": 46,
+   "documented": 46
   },
   "src/format/modification_definitions.rs": {
    "items": 23,
@@ -556,6 +556,14 @@
   "src/format/mzml_schema.rs": {
    "items": 10,
    "documented": 10
+  },
+  "src/format/mzml_sqlite_handler.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/format/mzml_sqlite_swath_handler.rs": {
+   "items": 8,
+   "documented": 8
   },
   "src/format/mzml_validator.rs": {
    "items": 7,

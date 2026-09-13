@@ -201,7 +201,7 @@ fn rejected(
     report.status = NumpressEncodeStatus::Rejected(NumpressRejection::Codec(error.to_string()));
     report
 }
-fn encode_raw(
+pub(crate) fn encode_raw(
     input: &[f64],
     config: &NumpressConfig,
     work: &mut Work,
@@ -368,7 +368,11 @@ fn raw_decode(data: &[u8], mode: NumpressCompression, limits: &NumpressLimits) -
         NumpressCompression::Slof => raw::decode_slof_with_limits(data, limits),
     }
 }
-fn decode_raw(input: &[u8], mode: NumpressCompression, work: &mut Work) -> Result<Vec<f64>> {
+pub(crate) fn decode_raw(
+    input: &[u8],
+    mode: NumpressCompression,
+    work: &mut Work,
+) -> Result<Vec<f64>> {
     if input.is_empty() || mode == NumpressCompression::None {
         return Ok(Vec::new());
     }
@@ -385,7 +389,7 @@ fn decode_raw(input: &[u8], mode: NumpressCompression, work: &mut Work) -> Resul
 
 const CHUNK: usize = 16 * 1024;
 const ZLIB_STATE_BYTES: usize = 1024 * 1024;
-fn zlib_encode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
+pub(crate) fn zlib_encode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
     work.allocate(ZLIB_STATE_BYTES)?;
     let mut encoder = Compress::new(Compression::default(), true);
     let mut result = Vec::new();
@@ -419,7 +423,7 @@ fn zlib_encode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
         }
     }
 }
-fn zlib_decode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
+pub(crate) fn zlib_decode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
     work.allocate(ZLIB_STATE_BYTES)?;
     let mut decoder = Decompress::new(true);
     let mut result = Vec::new();
@@ -455,6 +459,16 @@ pub(crate) struct Work {
     bytes: usize,
 }
 impl Work {
+    #[cfg(feature = "sqmass")]
+    pub(crate) fn remaining_bytes(&self) -> usize {
+        self.bytes
+    }
+
+    #[cfg(feature = "sqmass")]
+    pub(crate) fn remaining_work(&self) -> usize {
+        self.work
+    }
+
     pub(crate) fn new(limits: NumpressCoderLimits) -> Self {
         Self {
             work: limits.raw.max_work,

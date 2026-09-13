@@ -1,0 +1,35 @@
+{
+  "scope": "Independent read-only review of S1 handler transaction behavior, metadata preservation, and API coverage. No handler/test edits made.",
+  "snapshot_note": "Coherent first implementation/tests provided by owner while first remote gate ran; owner already working on RUN_ID relationships, low-level snapshot matching, and aggregate metadata allocation, so these known items are not duplicated.",
+  "reviewed_files": [
+    "src/format/mzml_sqlite_handler.rs",
+    "tests/mzml_sqlite_handler.rs",
+    "src/format/numpress_coder.rs",
+    "src/format/mzml.rs",
+    "src/format/mzml_record.rs"
+  ],
+  "implementation_sha256_at_report": "4819f11d00169a56217bd41dc8f6819d40e1452a1566b2ace5ed0467220842db",
+  "findings": [
+    {
+      "key": "expanded-lossless-size",
+      "priority": 1,
+      "function": "MzMLSqliteHandler::store_array",
+      "trigger": "Set max_blob_bytes=16; use lossless Source-policy write_spectra with three zero-valued peaks and a short native ID. Coordinate/intensity raw arrays are24 bytes but zlib compress to11 bytes.",
+      "issue": "Writer checks compressed output through zlib_encode but does not check uncompressed raw byte length; read arrays uses zlib_decode capped at16, so the successfully written arrays cannot be read with the same limits.",
+      "fix": "Check/charge uncompressed array size before construction/encode, as well as compressed size. Add small exact-limit regression.",
+      "evidence": "Rust source trace and independent Python zlib confirmation24->11; no Rust reproduction was run by this reviewer."
+    },
+    {
+      "key": "noise-snapshot-self-read",
+      "priority": 1,
+      "function": "write_run/read_experiment",
+      "trigger": "Full metadata experiment with valid native ID and a nonempty metadata FloatList under sampled noise m/z array (or other supported sampled-noise role).",
+      "issue": "spectrum_metadata retains noise metadata, and mzML writer emits these independent arrays even with cleared primary peaks. RUN_EXTRA read sets max_total_array_elements=0, so a full write can succeed but subsequent full read rejects its own metadata array. Two-arrays-per-record cap can also exclude the extra independent grids.",
+      "fix": "Preserve and budget supported independent metadata arrays in snapshot reads, or reject explicitly before committing writes; add noise-grid round-trip regression.",
+      "evidence": "Rust source trace through mzml_record::NOISE and existing mzml_typed_transport test noise_empty_mismatched_lengths_and_empty_spectrum_are_preserved; no new Rust reproduction by this reviewer."
+    }
+  ],
+  "api_coverage": "All explicit public source operations have native counterparts; no missing operation found in bounded review.",
+  "transactions": "Public write helpers share one transaction and update counters after commit; late-write rollback tests exist. No additional transactional finding beyond owner-known pending items.",
+  "delivery": "Both findings sent to handler owner and integrating root; owner is responsible for reproduction/fixes."
+}

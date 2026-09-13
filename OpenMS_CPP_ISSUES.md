@@ -3460,7 +3460,7 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-196 — SWATH selection stops at a matching chromatogram precursor NULL ID
 
-**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+**Status and source:** Reproduced with an adapted C++ probe; source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:92` (`MzMLSqliteSwathHandler::readSpectraForWindow`).
 
@@ -3470,13 +3470,13 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Filter SPECTRUM_ID IS NOT NULL (prefer join to SPECTRUM for valid identities) and iterate with checked SQLITE_ROW/SQLITE_DONE status instead of a column-value sentinel. No upstream fix is claimed.
 
-**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. The retained Python SQLite observations support the SQL mechanism, not an execution of the C++ control flow. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+**Evidence:** Executed on kim with GCC 13.3/C++20 and host SQLite 3.45.1, using the exact pinned handler, connector and SwathMap sources plus declared type, string-formatting, exception and pointer-only adapters. With center 500, a matching chromatogram row first returned no IDs; placing it between two spectrum precursors returned only ID 1. Removing that row returned IDs 1 and 2. This is adapted execution, not a full SDK or original class-test run. Hashed sources, adapters, executable, database and logs are listed in [the SWATH provenance manifest](tests/data/mzml_sqlite_swath_provenance.json); `../oracle/sqlite-swath-s1-probe/result.log` has SHA-256 `792d2506c10b59e5900518c1afe191e37eed72402a715c7ce03838268f0a4bcb`. The earlier Python SQL observations remain independent SQL evidence.
 
-**Rust handling:** Not implemented in S0. Use fallible typed row iteration and filter out non-spectrum precursors.
+**Rust handling:** S1 uses fallible typed row iteration and skips NULL spectrum IDs; the remote-tested native regression retains all matching spectrum rows around chromatogram rows.
 
 ## CPP-197 — SWATH window docs promise distinct centers but query deduplicates full bounds tuples
 
-**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+**Status and source:** Reproduced with an adapted C++ probe; source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h:57` (`MzMLSqliteSwathHandler::readSwathWindows documentation`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:30` (`MzMLSqliteSwathHandler::readSwathWindows`).
 
@@ -3486,9 +3486,9 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Document distinct (center,lower,upper) tuples and add a differing-width example; if unique centers are intended instead, define how conflicting bounds are handled before changing SQL. No upstream fix is claimed.
 
-**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. The retained Python SQLite observations support the SQL mechanism, not an execution of the C++ control flow. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+**Evidence:** Executed on kim with GCC 13.3/C++20 and host SQLite 3.45.1, using the exact pinned handler, connector and SwathMap sources plus declared type, string-formatting, exception and pointer-only adapters. Two spectrum precursors at center 500 with offsets 10 and 20 returned two windows, 490–510 and 480–520, demonstrating full-tuple distinctness. This is adapted execution, not a full SDK or original class-test run. Hashed sources, adapters, executable, database and logs are listed in [the SWATH provenance manifest](tests/data/mzml_sqlite_swath_provenance.json); `../oracle/sqlite-swath-s1-probe/result.log` has SHA-256 `792d2506c10b59e5900518c1afe191e37eed72402a715c7ce03838268f0a4bcb`. The earlier Python SQL observations remain independent SQL evidence.
 
-**Rust handling:** Not implemented in S0. Preserve distinct tuples and describe that behavior accurately.
+**Rust handling:** S1 preserves distinct tuples, including equal centers with differing bounds, and describes that behavior explicitly. Native regression tests compare both windows.
 
 ## CPP-198 — Recreating tables on a used handler retains counters from the deleted database
 
@@ -3556,7 +3556,7 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-202 — Read accessors create an empty database when the input path is missing
 
-**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+**Status and source:** Reproduced with an adapted C++ probe; source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:23` (`MzMLSqliteSwathHandler::readSwathWindows`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:58` (`MzMLSqliteSwathHandler::readMS1Spectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:84` (`MzMLSqliteSwathHandler::readSpectraForWindow`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:280` (`MzMLSqliteHandler::readExperiment`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:390` (`MzMLSqliteHandler::readSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:413` (`MzMLSqliteHandler::readChromatograms`); `src/openms/include/OpenMS/FORMAT/SqliteConnector.h:58` (`SqliteConnector default open mode`); `src/openms/source/FORMAT/SqliteConnector.cpp:44` (`SqliteConnector::openDatabase_`).
 
@@ -3566,6 +3566,275 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Pass SqlOpenMode::READ_ONLY from all read/count/lookup accessors. Retain creating modes only for explicit create/write operations; test that failed reads leave no file. No upstream fix is claimed.
 
-**Evidence:** Pinned source review. No executed C++ reproduction or sanitizer run is claimed. Source hashes and supporting artifacts are retained in [the S1 review manifest](tests/data/sqlite_s1_review.json).
+**Evidence:** Executed on kim with GCC 13.3/C++20 and host SQLite 3.45.1, using the exact pinned handler, connector and SwathMap sources plus declared type, string-formatting, exception and pointer-only adapters. The missing path remained absent after construction. Calling `readMS1Spectra` raised adapted `IllegalArgument` and left a zero-byte file. Other listed read paths remain source-reviewed only. This is adapted execution, not a full SDK or original class-test run. Hashed sources, adapters, executable, database and logs are listed in [the SWATH provenance manifest](tests/data/mzml_sqlite_swath_provenance.json); `../oracle/sqlite-swath-s1-probe/result.log` has SHA-256 `792d2506c10b59e5900518c1afe191e37eed72402a715c7ce03838268f0a4bcb`. The earlier Python SQL observations remain independent SQL evidence.
 
-**Rust handling:** Not implemented in S0. Open all read paths with explicit ReadOnly mode and test missing-path noncreation.
+**Rust handling:** S1 SWATH accessors open with explicit ReadOnly mode; native missing-path tests verify noncreation. The main storage handler is being validated separately and is not covered by the adapted SWATH probe.
+
+## CPP-203 — SWATH accessors can return partial success after SQLite step errors
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; the SQLite error trigger is executed in a Rust regression, not a C++ reproduction.
+
+**Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp`: `readSwathWindows` (lines 39–53), `readMS1Spectra` (69–79), and `readSpectraForWindow` (98–108).
+
+**Trigger:** Create an ordinary SPECTRUM table with ID rows 1 and -9223372036854775808, then add a virtual generated MSLEVEL column evaluating `abs(ID)`. The MS1 query can produce its first row before the next step reports SQLite integer overflow. Locks, corrupt pages or other execution failures provide additional possible triggers, but are not reproduced by this test.
+
+**Issue:** Each accessor discards both initial and subsequent `sqlite3_step` return codes and treats a NULL column as end of results. Execution failure can consequently become a successful empty result or a successful prefix. Ignoring `sqlite3_finalize` also loses the saved statement error. This shares the unchecked-step mechanism of CPP-185 but concerns the independent public SWATH loops; CPP-196 separately covers a valid NULL row stopping the scan.
+
+**Proposed C++ fix:** Accumulate rows only while step returns SQLITE_ROW, accept only SQLITE_DONE as successful completion, and throw for every other result. Use owned statement cleanup on all exits; never publish a partial result on query error. No upstream fix is claimed.
+
+**Evidence:** Exact pinned source SHA-256 `8eb697bd44daee056ac3af662bab64b02f2ba82869a2f8f2bf188ae4dc277597`. Native test `sql_step_error_after_a_valid_row_is_not_mistaken_for_end_of_results` in [the SWATH tests](tests/mzml_sqlite_swath_handler.rs) executes a genuine SQLite step error after a valid row and verifies cleanup. Remote test evidence is recorded in [SWATH provenance](tests/data/mzml_sqlite_swath_provenance.json). The separate adapted C++ probe covers CPP-196/197/202 only; no executed C++ result is claimed for CPP-203.
+
+**Rust handling:** Every fallible row advance propagates SQLite failure as `Error::Io`; the locally accumulated vector is discarded on failure and the transaction/connection close through ownership.
+
+## CPP-204 — MSDataSqlConsumer owning raw pointer leaks during failed construction and can be shallow-copied
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h` (`MSDataSqlConsumer implicit copy constructor/assignment`, `handler_ ownership`); `src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp:16` (`MSDataSqlConsumer::MSDataSqlConsumer`).
+
+**Trigger:** Construct with a path whose createTables throws after handler allocation, or copy a successfully constructed consumer and destroy both copies.
+
+**Issue:** Constructor allocates handler before throwing operations and no RAII owner releases it on failure. Public class does not disable copy; implicit copy duplicates owning pointer, leading to two destructors using/deleting it.
+
+**Proposed C++ fix:** Use std::unique_ptr<MzMLSqliteHandler>, initialize safely, and delete copy operations or implement ownership-preserving copy semantics. No upstream fix is claimed.
+
+**Evidence:** Header raw pointer; allocation line18 precedes reserve/create lines22–26; delete line42. Full header and source reviewed. No C++ allocation/leak probe. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; recommend owned Rust handler, no Clone for mutable consumer.
+
+
+## CPP-205 — MSDataSqlConsumer destructor lets I/O exceptions escape noexcept destruction
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp:29` (`MSDataSqlConsumer::~MSDataSqlConsumer`, `flush`, `writeRunLevelInformation`); `src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h` (`~MSDataSqlConsumer override`).
+
+**Trigger:** Leave buffered records or unwritten RUN metadata, then encounter SQLite/disk failure at destruction.
+
+**Issue:** Destructor calls throwing flush/write methods without catch. Its implicit noexcept override terminates the process on escape; explicit handler deletion is skipped.
+
+**Proposed C++ fix:** Add an explicit checked finalize operation; keep destructor nonthrowing and make ownership RAII. Report persistent failures through finalize, not destruction. No upstream fix is claimed.
+
+**Evidence:** Lines31 and38 call operations known to throw, inherited IMSDataConsumer destructor is nonthrowing. No executed termination reproduction. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; propose finish()->Result and nonthrowing Drop.
+
+
+## CPP-206 — MSDataSqlConsumer changes buffered records to the next run ID
+
+**Status and source:** Unconfirmed buffered-run ownership contract candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp:45` (`MSDataSqlConsumer::addRun`, `MSDataSqlConsumer::setRunId`, `MSDataSqlConsumer::flush`).
+
+**Trigger:** Consume a spectrum under runA while below flush threshold, call setRunId(B) or addRun(...,B), then flush.
+
+**Issue:** Buffers contain only records, not their original run IDs; flush writes using the handler current ID B. Records accepted before the run switch are reassigned to the later run. The header says the ID applies to subsequent writes, so deferred flush semantics may be intentional; review caller expectations before changing behavior.
+
+**Proposed C++ fix:** Flush both buffers successfully before changing run ID, or retain per-record run ownership and flush grouped by original run. No upstream fix is claimed.
+
+**Evidence:** Lines48/57 change handler ID with no flush; lines64/71 later call handler writers that bind its current run_id_. Header says setRunId applies to subsequent writes; buffered consumption ambiguity should be stated in fix rationale. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; require run-transition tests and deliberate per-run behavior.
+
+
+## CPP-207 — SpectrumAccessSqMass unchecked view positions permit out-of-bounds access
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp:27` (`SpectrumAccessSqMass(parent,indices)`, `getSpectrumById`, `getSpectrumMetaById`).
+
+**Trigger:** Parent subset contains one entry; construct child with position -1, or call getSpectrumById/getSpectrumMetaById with -1 or >=subset length.
+
+**Issue:** Nested constructor checks upper bound only, then indexes with negative int converted to size_t. Individual getters index the subset with no bounds check. Undefined behavior precedes checked SQL access.
+
+**Proposed C++ fix:** Validate 0 <= id < visible count before every vector access; use checked at() or explicit validation for all constructors and accessors. No upstream fix is claimed.
+
+**Evidence:** Lines43–45,75,106 show the unchecked accesses. Public header documents out-of-range parent selection throws. No UB execution attempted. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; use checked usize view positions/Result and validate SQL ID mapping.
+
+
+## CPP-208 — SpectrumAccessSqMass bulk read does not preserve the configured view order or duplicates
+
+**Status and source:** Source-reviewed defect; ordering additionally lacks sql guarantee at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp:121` (`getAllSpectra`, `getSpectrumById`, `SpectrumAccessSqMass(handler,indices)`).
+
+**Trigger:** Configure subset [1,0] or [1,1] and compare individual visible getters with getAllSpectra.
+
+**Issue:** Individual access honors vector position, but bulk passes it to SQL IN without ORDER BY. SQL order is not guaranteed to match view order. Duplicate IDs collapse in SQL, then handler size mismatch throws despite individual accesses and reported subset count permitting duplicates.
+
+**Proposed C++ fix:** Fetch unique underlying IDs once, map records by SQL ID, then reconstruct configured ordered view including repeated positions; alternatively reject duplicate views explicitly at construction if API changed. No upstream fix is claimed.
+
+**Evidence:** Constructor stores input unchanged, getter uses sidx_[id], bulk forwards sidx_; handler uses WHERE ID IN(...) and compares unique returned count to original index count. No current C++ SQL-order execution. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; S1 sorted unique read API requires wrapper reordering and duplicate handling.
+
+
+## CPP-209 — SpectrumAccessSqMass metadata index stays zero for every spectrum
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp:114` (`getSpectrumMetaById`, `getAllSpectra`); `src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h:156` (`OSSpectrumMeta::index/default constructor`).
+
+**Trigger:** Request metadata for visible spectrum1 or later, or bulk-read several spectra.
+
+**Issue:** Source fills id,RT,ms_level but leaves index at default0, contradicting SpectrumMeta index documentation as zero-based consecutive spectrum-list index.
+
+**Proposed C++ fix:** Assign the visible position to index in individual and bulk metadata results. No upstream fix is claimed.
+
+**Evidence:** Assignments at114–117/153–156 omit index; constructor initializes index0. No executed reproduction. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; add exact metadata-index assertions for full and subset views.
+
+
+## CPP-210 — SpectrumAccessSqMass class test repeats one out-of-range index instead of testing 50
+
+**Status and source:** Source-reviewed test defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/tests/class_tests/openms/source/SpectrumAccessSqMass_test.cpp:97` (`parent-subset constructor START_SECTION`).
+
+**Trigger:** The second out-of-range parent-subset test constructs indices2=[50].
+
+**Issue:** TEST_EXCEPTION passes indices ([1]) again rather than indices2, so the alleged50 case is never tested.
+
+**Proposed C++ fix:** Pass indices2 to the second constructor invocation; also add negative-index coverage. No upstream fix is claimed.
+
+**Evidence:** Source lines97–103 show separate indices2 creation then old indices passed. No class-test execution. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; native independent tests should check both1 and50 and negative values.
+
+
+## CPP-211 — SpectrumAccessSqMass installed example omits required handler run ID
+
+**Status and source:** Source-reviewed documentation defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h` (`SpectrumAccessSqMass_example documentation`); `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h` (`MzMLSqliteHandler(filename,run_id)`).
+
+**Trigger:** Compile the installed example constructing MzMLSqliteHandler handler(file).
+
+**Issue:** Pinned handler constructor requires two arguments and has no default run_id, so example cannot compile.
+
+**Proposed C++ fix:** Pass handler(file,0) for reading. No upstream fix is claimed.
+
+**Evidence:** Exact public header signature compared with example. No compiler run. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Native documentation should use its actual new(path,run_id) signature.
+
+
+## CPP-212 — OpenSwath drift filtering dereferences missing or misaligned mobility arrays
+
+**Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h` (`ISpectrumAccess::filterByDrift`, `ISpectrumAccess::getSpectrumById(id,drift_start,drift_end)`); `src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp` (`SpectrumAccessSqMass::getSpectrumById`).
+
+**Trigger:** Call base drift-filtered access on SqMass spectrum (which supplies only m/z and intensity), or filter a spectrum whose drift/intensity arrays are shorter than m/z.
+
+**Issue:** All guards are commented out. filterByDrift dereferences null mobility pointer and advances drift/intensity iterators to m/z length without checking lengths. Every normal SqMass-returned spectrum lacks mobility arrays.
+
+**Proposed C++ fix:** Validate all primary/mobility arrays and equal lengths; return a checked missing-mobility error and reject malformed ranges/arrays. No upstream fix is claimed.
+
+**Evidence:** ISpectrumAccess header obtains nullable getDriftTimeArray then directly reads im_arr->data; source SqMass constructs only two primary arrays. No unsafe execution attempted. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Shared interface not implemented yet; missing mobility must be an explicit Result error, never a panic/null dereference.
+
+
+## CPP-213 — SqMassFile store documentation hides unconditional replacement of an existing database
+
+**Status and source:** Unconfirmed replacement-documentation candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/include/OpenMS/FORMAT/SqMassFile.h` (`SqMassFile::store documentation`); `src/openms/source/FORMAT/SqMassFile.cpp:27` (`SqMassFile::store`).
+
+**Trigger:** Store to an existing sqMass path expecting the documented create-if-necessary behavior.
+
+**Issue:** Documentation says creating file/tables if necessary, but implementation always calls createTables which removes the existing database before write. Overwriting is common for store APIs; this wording alone does not prove append/preservation was promised. The candidate is the lack of explicit replacement/failure documentation, not overwrite semantics by themselves.
+
+**Proposed C++ fix:** Explicitly document replacement/destructive behavior and failure consequences, or implement deliberate atomic replacement/append semantics. No upstream fix is claimed.
+
+**Evidence:** store calls createTables unconditionally; handler createTables removes file. No current C++ write execution. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; stage whole output and atomically replace only after successful store if native chooses safer behavior.
+
+
+## CPP-214 — MSDataSqlConsumer full metadata discards supplied experimental settings and addRun suppresses accumulated snapshot
+
+**Status and source:** Source-reviewed loss; contract candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp:45` (`addRun`, `setExperimentalSettings`, `~MSDataSqlConsumer`, `consumeSpectrum`, `consumeChromatogram`).
+
+**Trigger:** Use full_meta=true, send nondefault experimental settings and record-level metadata, call addRun, consume records, finish/destroy.
+
+**Issue:** setExperimentalSettings is a no-op. addRun writes an empty snapshot and sets wrote_any_run, so destructor never writes accumulated peak_meta. Full read falls back from empty snapshot to SQL projection, losing metadata outside that projection.
+
+**Proposed C++ fix:** Persist supplied settings and final per-run metadata snapshot; separate RUN existence from snapshot finalization, or document full_meta limitation for explicit/multiple-run workflow. No upstream fix is claimed.
+
+**Evidence:** Line107 no-op; addRun empty meta lines49–52; destructor skip lines36–40; source handler fallback readExperiment empty snapshot. No execution; full-meta contract needs explicit policy review. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; preserve settings, distinguish add-run registration from final snapshot, and state multi-run compatibility limits.
+
+
+## CPP-215 — MSDataSqlConsumer accepts negative signed buffer size before unsigned allocation
+
+**Status and source:** Unconfirmed input-validation candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp:16` (`MSDataSqlConsumer constructor`); `src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h` (`constructor buffer_size argument`).
+
+**Trigger:** Pass buffer_size=-1.
+
+**Issue:** Signed argument becomes size_t maximum and reserve attempts an excessive allocation/throws rather than a clear invalid-size error; ctor raw-pointer leak separately confirmed. Zero immediately flushes rather than buffering.
+
+**Proposed C++ fix:** Validate positive buffer size before allocation; decide and document whether0 is supported immediate-flush mode. No upstream fix is claimed.
+
+**Evidence:** Source conversion/reserve reviewed; header has no documented negative semantics. No allocation probe. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; validate before any file replacement or allocation.
+
+
+## CPP-216 — SpectrumAccessSqMass zero-width RT documentation differs from delegated first-at-or-after behavior
+
+**Status and source:** Source-reviewed documentation mismatch candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h` (`getSpectraByRT documentation`); `src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp:166` (`getSpectraByRT`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp` (`getSpectraIndicesbyRT`).
+
+**Trigger:** Call getSpectraByRT(0.3,0) against source fixture with spectrumRTs0.2961 and0.4738.
+
+**Issue:** Header describes exact interval[RT-delta,RT+delta], but delegated nonpositive branch returns firstRT>=target, potentially0.4738. This behavior is needed by base nearest-spectrum convenience.
+
+**Proposed C++ fix:** Document special delta0 semantics and preserve them deliberately, or change base nearest-search contract together. No upstream fix is claimed.
+
+**Evidence:** Source header and delegation read; source handler source test confirms nonpositive behavior for delta-.1 but no exactzero accessor test. No current accessor execution. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Not implemented yet; native RT boundary tests and explicit zero semantics required.
+
+
+## CPP-217 — OpenSwath getMultipleSpectra count parameter can return more than requested
+
+**Status and source:** Source-reviewed algorithm/documentation candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Affected files and functions:** `src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.cpp` (`ISpectrumAccess::getMultipleSpectra both overloads`).
+
+**Trigger:** Request n=0 or n=2 around an interior valid closest spectrum.
+
+**Issue:** Always pushes closest once; then adds left+right for i<=n/2. n0 yields1; n2 canyield3 despite comment describing n as sequence length. Negative requests also return one.
+
+**Proposed C++ fix:** Validate positive odd n and document odd-window semantics, or cap selection to requested count and define even tie policy. No upstream fix is claimed.
+
+**Evidence:** Both full implementation overloads read; no class-test expectation checked yet and no execution. Exact source hashes and review scope are retained in [the S2 source-review manifest](tests/data/sqlite_s2_review.json). No executed C++ reproduction or S2 native test is claimed.
+
+**Rust handling:** Shared interface not implemented yet; choose explicit bounded count contract after interface test audit.
+
+## CPP-218 — Positive-accuracy Numpress encoding destroys one- and two-point coordinate arrays
+
+**Status and source:** Reproduced through the exact standalone raw C++ codec at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The MSNumpressCoder/sqMass calling paths are source-reviewed, not executed as a full SDK.
+
+**Affected files and functions:** `src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp`: `optimalLinearFixedPointMass` (237–245), `optimalLinearFixedPoint` (262 onward), `encodeLinear` (326 onward), and `decodeLinear` (443, 458); `src/openms/source/FORMAT/MSNumpressCoder.cpp` (`encodeNPRaw`, 131–151); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp` (`writeSpectra` and `writeChromatograms` Numpress configuration, 1078–1085 and 1319–1326).
+
+**Trigger:** Encode a nonempty array containing one or two coordinates, such as [100], [100,101] or chromatogram RTs [1,2], using positive target accuracy 0.0001 or 0.05. The sqMass writer uses this configuration and disables codec error verification.
+
+**Issue:** The accuracy estimator returns zero for fewer than three values, incorrectly commenting that the first two points are encoded as floats. They are actually integer-quantized by the factor, so zero destroys the input. Decoding divides zero by zero and yields NaN. MSNumpressCoder falls back only for a negative estimated factor, so zero is not corrected. Using the ordinary estimator alone is also insufficient: its factor is infinite for short all-zero arrays.
+
+**Proposed C++ fix:** Select a positive finite factor for nonempty short arrays, respecting accuracy and integer range, or fall back to an explicitly supported lossless storage mode. Treat short all-zero input deliberately; reject nonfinite/zero factors where raw nonempty linear encoding or decoding cannot interpret them. No upstream fix is claimed.
+
+**Evidence:** A standalone driver compiled the exact pinned raw translation unit/header on kim with GCC 13.3/C++20. All 42 cases were checked: 12 short positive-accuracy cases decoded to NaN, four short all-zero ordinary estimates were infinite and skipped before encoding, and 26 finite controls passed (including six explicit-factor-one zero controls). A separate sanitizer diagnostic stopped at the invalid floating-point-to-integer conversion for the infinite zero estimate; no resulting encoded/decoded values are used. Sources, driver, binary and logs are hashed in [handler provenance](tests/data/mzml_sqlite_handler_provenance.json) and retained under `../oracle/sqlite-short-numpress-s1-probe/`. This is tier 2 raw-codec execution; no full handler or upstream class-test run is claimed.
+
+**Rust handling:** The sqMass handler writes one- and two-point coordinate arrays using source-supported lossless code 1, including all-zero inputs. Intensity SLOF behavior remains unchanged. The public raw codec's documented source semantics remain separate. Native short-array tests check stored compression tags and finite exact coordinate round trips.

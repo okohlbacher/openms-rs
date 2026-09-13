@@ -64,6 +64,12 @@ pub mod percolator_infile;
 #[cfg(any(feature = "featurexml", feature = "consensusxml"))]
 pub mod transformation_xml;
 pub use peak_options::PeakFileOptions;
+/// Bounded sqMass experiment storage, including compressed mzML metadata.
+#[cfg(feature = "sqmass")]
+pub mod mzml_sqlite_handler;
+/// Read-only SWATH/DIA windows and spectrum IDs from sqMass databases.
+#[cfg(feature = "sqlite")]
+pub mod mzml_sqlite_swath_handler;
 pub(crate) mod path_io;
 /// SQLite connections and checked table, statement and blob operations.
 #[cfg(feature = "sqlite")]

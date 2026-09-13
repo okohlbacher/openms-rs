@@ -2697,13 +2697,7 @@ fn write_precursor(w: &mut impl Write, precursor: &Precursor, tpp: bool) -> Resu
             "",
         )?;
     }
-    cv(
-        w,
-        "MS:1000042",
-        "peak intensity",
-        &precursor.intensity.to_string(),
-        "",
-    )?;
+    precursor_metadata::write_intensity(w, precursor)?;
     precursor_metadata::write_end(w, precursor)
 }
 // Keep the established scalar codec arguments plus its precomputed header.
