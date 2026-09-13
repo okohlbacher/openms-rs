@@ -204,9 +204,11 @@ fn checked_paths(a: &Path, b: &Path) -> Result<()> {
 ///
 /// Source `File::exists`, which is `std::filesystem::exists` and answers
 /// `false` for an empty path. A path this port refuses outright — longer than
-/// [`MAX_PATH_BYTES`], or holding an interior NUL — is `false` as well: a
-/// predicate has nowhere to report an error, and "not a usable path" is not
-/// "exists".
+/// [`MAX_PATH_BYTES`], or holding an interior NUL — is `false` as well, and so
+/// is one whose existence cannot be determined because a parent directory
+/// cannot be searched, where the source's throwing overload raises
+/// `filesystem_error`: a predicate has nowhere to report an error, and "not a
+/// usable path" is not "exists". [`is_directory`] answers the same way.
 pub fn exists(file: impl AsRef<Path>) -> bool {
     check_path(file.as_ref()).is_ok() && file.as_ref().try_exists().unwrap_or(false)
 }
@@ -333,7 +335,7 @@ pub fn readable(file: impl AsRef<Path>) -> bool {
         _ => false, // Do not block by opening a FIFO or device during a query.
     }
 }
-/// Test whether `file` could be written, without changing anything on disk.
+/// Test whether `file` could be written, leaving `file` itself untouched.
 ///
 /// This is a query, and the source is explicit that asking it must not change
 /// the answer: an existing file is opened for writing but never truncated, and
@@ -345,13 +347,47 @@ pub fn readable(file: impl AsRef<Path>) -> bool {
 ///
 /// An empty path is `false`, as in the source. A path whose parent does not
 /// exist is `false`. A directory is writable when a new entry can be created in
-/// it.
+/// it. Anything that exists but is neither a regular file nor a directory — a
+/// FIFO, a device — is `false` without being opened; the source's `access(2)`
+/// answers `true` for a writable FIFO, but opening one for writing blocks until
+/// a reader appears and a query must not block. [`readable`] refuses the same
+/// kinds for the same reason.
 ///
-/// The probe carries a name of its own, so in a directory close enough to the
-/// platform's path limit that the caller's shorter name would still fit but the
-/// probe's would not, the answer can be `false` where the source says `true`.
-/// The source takes the same risk and mitigates it the same way, by keeping the
-/// probe name short.
+/// The probe has no single fixed name. [`TempFile`] walks a ladder of
+/// progressively shorter candidates, ending at the bare decimal probe counter,
+/// and the first that can be created exclusively answers the question. The
+/// ladder stands in for the source's own fallback: the source tries one
+/// descriptive probe name and, when the create fails for a reason that is about
+/// the *name* rather than about the directory — `ENAMETOOLONG`, or the
+/// `ENOENT`/`EINVAL` that the Windows CRT folds `ERROR_FILENAME_EXCED_RANGE`
+/// onto — asks the directory itself with `access(dir, W_OK)`. Without one or
+/// the other, a directory close enough to the platform's path limit that the
+/// caller's shorter name would still fit but the descriptive probe's would not
+/// is reported unwritable, which is exactly the false negative this function
+/// exists to avoid; `writable_agrees_with_the_operating_system_at_every_path_depth`
+/// in `tests/system_file.rs` sweeps that band against the operating system's
+/// own answer, and fails on Linux without the ladder.
+///
+/// Three divergences from the source remain.
+///
+/// * `access(2)` needs no filename at all, while the shortest rung of the
+///   ladder is still a name: the decimal counter, one byte until the process
+///   has handed out ten unique names and two thereafter. A directory whose path
+///   sits within that many bytes of the platform's limit — close enough that
+///   the caller's own one-character name fits and the counter does not — is
+///   answered `false` where the source answers `true`. Safe Rust has no
+///   `access(2)`, so the band is narrowed rather than closed.
+/// * The ladder is walked on *any* failed create, not on a decoded
+///   `ENAMETOOLONG`, because `io::ErrorKind::InvalidFilename` is unstable at
+///   this crate's minimum Rust version. A directory that refuses the first
+///   candidate for a reason that has nothing to do with the name therefore
+///   costs two more `open` calls before the same `false` is returned.
+/// * Creating answers for the *effective* process where `access(2)` answers for
+///   the *real* user id, as [`readable`] notes; the two differ only for a
+///   set-uid process. For an existing directory that also means this port
+///   creates and removes a probe inside it where the source creates nothing:
+///   the directory is left holding exactly what it held, but its modification
+///   time moves and a filesystem watcher sees the two events.
 pub fn writable(file: impl AsRef<Path>) -> bool {
     let p = file.as_ref();
     if p.as_os_str().is_empty() || check_path(p).is_err() {
@@ -1201,15 +1237,27 @@ impl TempFile {
     }
     /// Create a temporary file in `base`.
     ///
-    /// The name is `.openms-<unique name>.tmp`; see [`get_unique_name`].
-    /// Creation is exclusive, so the name is reserved rather than merely
-    /// unlikely, and a collision is retried with a fresh name.
+    /// The name is normally `.openms-<unique name>.tmp`; see
+    /// [`get_unique_name`]. It is not guaranteed to be: when a candidate cannot
+    /// be created, two progressively shorter ones are tried in turn — `.o` with
+    /// the decimal probe counter, then that counter alone — so that a directory
+    /// close enough to the platform's path limit to reject the descriptive name
+    /// still yields a temporary rather than a failure. [`writable`] is the
+    /// caller that needs the short rungs, and every other caller will see the
+    /// long name; no caller should depend on either spelling.
+    ///
+    /// Creation is exclusive, so whichever candidate is used is reserved rather
+    /// than merely unlikely. A candidate that is already taken moves on to the
+    /// next, and when all three are taken the whole ladder is retried with a
+    /// fresh unique name.
     ///
     /// # Errors
     ///
     /// Returns [`Error::Io`] when `base` does not exist or cannot be written,
-    /// and [`Error::InvalidValue`] when the path exceeds [`MAX_PATH_BYTES`] or
-    /// 100 successive names were all taken.
+    /// reported from the shortest candidate that failed — no shorter name
+    /// exists, so the cause was not the length. Returns
+    /// [`Error::InvalidValue`] when a candidate path exceeds
+    /// [`MAX_PATH_BYTES`] or 100 successive ladders were all taken.
     pub fn new_in(base: impl AsRef<Path>) -> Result<Self> {
         Self::create_in(base.as_ref(), None).map(|(guard, _)| guard)
     }
@@ -1232,32 +1280,47 @@ impl TempFile {
             cleanup: false,
         })
     }
+    /// The three candidate names one attempt tries, longest first.
+    ///
+    /// The trailing `_`-separated field of a unique name is the process-wide
+    /// counter, so the two short rungs stay distinct within this process
+    /// without carrying the date, the time or the pid.
+    fn candidate_names(unique: &str) -> [String; 3] {
+        // filter() rather than a bare unwrap_or: an empty tail would name the
+        // base directory itself rather than a file inside it.
+        let short = unique
+            .rsplit('_')
+            .next()
+            .filter(|s| !s.is_empty())
+            .unwrap_or("0");
+        [
+            format!(".openms-{unique}.tmp"),
+            format!(".o{short}"),
+            short.to_owned(),
+        ]
+    }
     fn create_in(base: &Path, avoid: Option<&Path>) -> Result<(Self, File)> {
         check_path(base)?;
         for _ in 0..100 {
-            let unique = get_unique_name(false)?;
             // Each candidate is shorter than the last. The short ones exist for
             // a directory so close to the platform's path limit that the
             // descriptive name no longer fits although the caller's own, shorter
             // name still would: answering "not writable" there is exactly the
             // false negative writable() exists to avoid. The source reaches the
             // same answer by asking the directory itself with access(2), which
-            // safe Rust cannot call. The counter alone still separates two
-            // probes within this process, and a collision retries.
+            // safe Rust cannot call.
             //
-            // The ladder is walked on *any* failure rather than on a decoded
+            // The ladder is walked on *any* refusal rather than on a decoded
             // ENAMETOOLONG, because io::ErrorKind::InvalidFilename is unstable
-            // at this crate's minimum Rust version. That costs at most three
-            // syscalls: a failure of the shortest candidate is reported at once,
-            // since no name shorter than it exists and the cause was therefore
-            // not the length.
-            let short = unique.rsplit('_').next().unwrap_or("0").to_owned();
+            // at this crate's minimum Rust version. That costs at most two extra
+            // opens, and the error reported is the shortest candidate's: no
+            // shorter name exists, so the cause was not the length. A candidate
+            // that merely already exists, or that is the very name the caller
+            // asked about, is skipped the same way; only when all three are
+            // unavailable does the outer loop draw a fresh unique name.
+            let unique = get_unique_name(false)?;
             let mut refusal = None;
-            for name in [
-                format!(".openms-{unique}.tmp"),
-                format!(".o{short}"),
-                short.clone(),
-            ] {
+            for name in Self::candidate_names(&unique) {
                 match Self::create_candidate(base, &name, avoid) {
                     Ok(Some(created)) => return Ok(created),
                     Ok(None) => (),
@@ -2409,6 +2472,35 @@ mod tests {
             assert!(!avoid.exists());
         }
         assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 0);
+    }
+    #[test]
+    fn probe_candidates_shorten_strictly_and_end_at_the_bare_counter() {
+        // writable()'s divergence from access(2) is exactly the length of the
+        // shortest rung, so pin the ladder the rustdoc describes.
+        let names = TempFile::candidate_names("20260913_141530_4711_7");
+        assert_eq!(
+            names,
+            [
+                ".openms-20260913_141530_4711_7.tmp".to_owned(),
+                ".o7".to_owned(),
+                "7".to_owned()
+            ]
+        );
+        for pair in names.windows(2) {
+            assert!(pair[1].len() < pair[0].len());
+        }
+        // No rung may ever be empty: that would name the directory itself.
+        for unique in ["20260913_141530_4711_", "", "_"] {
+            assert!(
+                TempFile::candidate_names(unique)
+                    .iter()
+                    .all(|n| !n.is_empty())
+            );
+        }
+        // The real generator keeps the counter in the trailing field.
+        let unique = get_unique_name(false).unwrap();
+        let last = TempFile::candidate_names(&unique)[2].clone();
+        assert!(!last.is_empty() && last.bytes().all(|b| b.is_ascii_digit()));
     }
     #[test]
     fn wildcard_work_is_cumulative_across_names() {
