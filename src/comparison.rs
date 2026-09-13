@@ -4,7 +4,26 @@
 
 //! Spectrum alignment and sparse binned comparisons ported from OpenMS.
 //! See `docs/COMPARISON_SUPPORT.md` for source provenance, precision and limits.
+//!
+//! The two abstract bases of the spectrum-similarity hierarchy,
+//! `COMPARISON/PeakSpectrumCompareFunctor.h` and
+//! `COMPARISON/BinnedSpectrumCompareFunctor.h`, are the traits
+//! [`PeakSpectrumCompareFunctor`] and [`BinnedSpectrumCompareFunctor`]; the
+//! three binned scorers `COMPARISON/BinnedSharedPeakCount.h`,
+//! `COMPARISON/BinnedSpectralContrastAngle.h` and
+//! `COMPARISON/BinnedSumAgreeingIntensities.h` are
+//! [`BinnedSharedPeakCount`], [`BinnedSpectralContrastAngle`] and
+//! [`BinnedSumAgreeingIntensities`]. The parameter-free functions
+//! [`binned_shared_peak_count`], [`binned_cosine`] and
+//! [`binned_sum_agreeing_intensities`] are entry points into those same three
+//! implementations and cannot disagree with them. Their support documents are
+//! `docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md`,
+//! `docs/BINNED_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md`,
+//! `docs/BINNED_SHARED_PEAK_COUNT_SUPPORT.md`,
+//! `docs/BINNED_SPECTRAL_CONTRAST_ANGLE_SUPPORT.md` and
+//! `docs/BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md`.
 
+use crate::param::DefaultParamHandler;
 use crate::{Error, MSSpectrum, Precursor, Result};
 use std::collections::BTreeMap;
 
@@ -364,6 +383,15 @@ pub struct SpectrumAlignmentScore {
     pub weighting: DistanceWeighting,
 }
 impl SpectrumAlignmentScore {
+    /// Similarity of `reference` and `target`, as `SpectrumAlignmentScore::operator()`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] when either spectrum is not sorted by m/z,
+    /// and [`Error::InvalidValue`] for a negative or non-finite intensity, an
+    /// invalid tolerance, an alignment that exceeds
+    /// [`SpectrumAlignment::max_cells`], or a non-finite score. A zero intensity
+    /// norm on either side yields `Ok(0.0)` rather than a division by zero.
     pub fn score(&self, reference: &MSSpectrum, target: &MSSpectrum) -> Result<f64> {
         validate_spectrum(reference, true)?;
         validate_spectrum(target, true)?;
@@ -457,6 +485,12 @@ impl BinConfig {
         }
         Ok(index as usize)
     }
+    /// Lower m/z bound of bin `index`, as `BinnedSpectrum::getBinLowerMZ`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for an invalid layout and when the bound
+    /// overflows `f32`; the source returns the overflowed value.
     pub fn bin_lower_mz(self, index: usize) -> Result<f32> {
         self.validate()?;
         let result = match self.unit {
@@ -488,6 +522,18 @@ impl PartialEq for BinnedSpectrum {
     }
 }
 impl BinnedSpectrum {
+    /// Bin `spectrum` onto `config`, as the source's five-argument constructor.
+    ///
+    /// Each peak adds its intensity to its own bin and, when
+    /// [`BinConfig::spread`] is nonzero, to that many neighbours on each side;
+    /// bin 0 stops the downward spread. The precursor list is copied.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks, which the source only
+    /// asserts in debug builds, and [`Error::InvalidValue`] for an invalid
+    /// layout, an m/z below 1 under ppm binning, `f32` intensity overflow, or
+    /// work beyond [`BinConfig::max_bins`] / [`BinConfig::max_updates`].
     pub fn new(spectrum: &MSSpectrum, config: BinConfig) -> Result<Self> {
         config.validate()?;
         validate_spectrum(spectrum, false)?;
@@ -524,12 +570,18 @@ impl BinnedSpectrum {
             precursors: spectrum.precursors.clone(),
         })
     }
+    /// Binning layout, covering the source's `getBinSize`, `getBinSpread`,
+    /// `getOffset` and the unit flag in one value.
     pub fn config(&self) -> BinConfig {
         self.config
     }
+    /// Stored bins by index, as the source's const `getBins`. Explicit zeros are
+    /// retained, so this is `nonZeros()` in the Eigen sense, not "nonzero values".
     pub fn bins(&self) -> &BTreeMap<usize, f32> {
         &self.bins
     }
+    /// Precursors copied from the binned spectrum, as the source's const
+    /// `getPrecursors`.
     pub fn precursors(&self) -> &[Precursor] {
         &self.precursors
     }
@@ -551,71 +603,73 @@ fn compatible(a: &BinnedSpectrum, b: &BinnedSpectrum) -> Result<()> {
         Err(bad("incompatible binned spectrum layouts"))
     }
 }
-/// OpenMS BinnedSpectralContrastAngle is cosine similarity, not acos(cosine).
-/// Signed bin values are supported; a zero norm yields zero.
+// The three binned scores below have exactly one implementation each, shared by
+// a parameter-free function here and by the functor further down that ports the
+// corresponding `COMPARISON/Binned*.h` header. The functor is the authoritative
+// item - it is what the header maps onto, it carries the `DefaultParamHandler`
+// surface and it is reachable through `&dyn BinnedSpectrumCompareFunctor` - and
+// the function is the same code path under a shorter name, so the two cannot
+// disagree. Before this was collapsed the pair differed in reduction precision,
+// denominator grouping, clamping and degenerate-case policy.
+
+/// Cosine of the spectral contrast angle of two binned spectra: the
+/// parameter-free entry point to [`BinnedSpectralContrastAngle`].
+///
+/// Despite the upstream class name this is the cosine and not the angle,
+/// `dot(a, b) / sqrt(dot(a, a) * dot(b, b))`, reduced in `f32` exactly as
+/// `Eigen::SparseVector<float>::dot` reduces it, with the source's denominator
+/// grouping and no clamping. Signed bins are supported, and a zero
+/// `dot(a, a) * dot(b, b)` yields the source's defined `0.0`.
+///
+/// This is the same implementation as
+/// [`BinnedSpectralContrastAngle`]'s [`BinnedSpectrumCompareFunctor::score`],
+/// not a second one, so the two agree bit for bit. Construct the functor when a
+/// trait object or the parameter surface is wanted; call this when neither is.
+///
+/// # Errors
+///
+/// As the functor: [`Error::InvalidValue`] for incompatible binning, for more
+/// than [`MAX_COMPARED_BINS`] combined stored bins, and for an `f32` dot product
+/// that overflows.
 pub fn binned_cosine(a: &BinnedSpectrum, b: &BinnedSpectrum) -> Result<f64> {
-    compatible(a, b)?;
-    let norm_a = a
-        .bins
-        .values()
-        .map(|&v| f64::from(v).powi(2))
-        .sum::<f64>()
-        .sqrt();
-    let norm_b = b
-        .bins
-        .values()
-        .map(|&v| f64::from(v).powi(2))
-        .sum::<f64>()
-        .sqrt();
-    if norm_a == 0.0 || norm_b == 0.0 {
-        return Ok(0.0);
-    }
-    let dot = a
-        .bins
-        .iter()
-        .map(|(i, &v)| f64::from(v) * f64::from(*b.bins.get(i).unwrap_or(&0.0)))
-        .sum::<f64>();
-    finite_score((dot / (norm_a * norm_b)).clamp(-1.0, 1.0))
+    spectral_contrast_angle(a, b)
 }
-/// Stored-bin intersection divided by the larger stored-bin count, as in Eigen.
-/// Explicit zeros still count as stored bins. Two empty spectra yield zero.
+
+/// Stored-bin intersection over the larger stored-bin count: the parameter-free
+/// entry point to [`BinnedSharedPeakCount`].
+///
+/// Explicit zeros still count as stored bins, as `Eigen::SparseVector::nonZeros`
+/// counts them, and two spectra that store no bins yield `0.0` where the source
+/// divides by zero.
+///
+/// This is the same implementation as [`BinnedSharedPeakCount`]'s
+/// [`BinnedSpectrumCompareFunctor::score`], not a second one.
+///
+/// # Errors
+///
+/// As the functor: [`Error::InvalidValue`] for incompatible binning and for more
+/// than [`MAX_COMPARED_BINS`] combined stored bins.
 pub fn binned_shared_peak_count(a: &BinnedSpectrum, b: &BinnedSpectrum) -> Result<f64> {
-    compatible(a, b)?;
-    let denominator = a.bins.len().max(b.bins.len());
-    if denominator == 0 {
-        return Ok(0.0);
-    }
-    Ok(a.bins.keys().filter(|i| b.bins.contains_key(i)).count() as f64 / denominator as f64)
+    shared_peak_count(a, b)
 }
-/// Sum max(0, (a+b)/2 - |a-b|), divided by the mean total intensity.
-/// Negative bins are rejected; a zero denominator yields zero.
+
+/// Sum of `max(0, (a + b) / 2 - |a - b|)` over the union of the stored bins,
+/// divided by the mean total intensity and capped at one: the parameter-free
+/// entry point to [`BinnedSumAgreeingIntensities`].
+///
+/// Negative bins are accepted and truncated away, as upstream; a zero mean total
+/// intensity yields `0.0` where the source divides by zero.
+///
+/// This is the same implementation as [`BinnedSumAgreeingIntensities`]'s
+/// [`BinnedSpectrumCompareFunctor::score`], not a second one.
+///
+/// # Errors
+///
+/// As the functor: [`Error::InvalidValue`] for incompatible binning, for more
+/// than [`MAX_COMPARED_BINS`] combined stored bins, and for an `f32`
+/// accumulation that overflows.
 pub fn binned_sum_agreeing_intensities(a: &BinnedSpectrum, b: &BinnedSpectrum) -> Result<f64> {
-    compatible(a, b)?;
-    if a.bins.values().chain(b.bins.values()).any(|&v| v < 0.0) {
-        return Err(bad("agreeing intensities requires nonnegative bins"));
-    }
-    let total = a
-        .bins
-        .values()
-        .chain(b.bins.values())
-        .map(|&v| f64::from(v))
-        .sum::<f64>()
-        * 0.5;
-    if total == 0.0 {
-        return Ok(0.0);
-    }
-    let sum = a
-        .bins
-        .iter()
-        .filter_map(|(i, &v)| {
-            b.bins.get(i).map(|&w| {
-                let v = f64::from(v);
-                let w = f64::from(w);
-                ((v + w) * 0.5 - (v - w).abs()).max(0.0)
-            })
-        })
-        .sum::<f64>();
-    finite_score((sum / total).min(1.0))
+    sum_agreeing_intensities(a, b)
 }
 
 /// Similarity in Th: max(0, window - |first precursor m/z difference|).
@@ -630,6 +684,12 @@ impl Default for SpectrumPrecursorComparator {
     }
 }
 impl SpectrumPrecursorComparator {
+    /// Precursor similarity of `a` and `b`, as `SpectrumPrecursorComparator::operator()`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a non-finite or negative window and
+    /// for an invalid spectrum.
     pub fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
         a.validate()?;
         b.validate()?;
@@ -660,6 +720,15 @@ impl Default for ZhangSimilarityScore {
     }
 }
 impl ZhangSimilarityScore {
+    /// Similarity of `a` and `b`, as `ZhangSimilarityScore::operator()`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks and
+    /// [`Error::InvalidValue`] for a negative or non-finite intensity, an
+    /// invalid tolerance, more than [`ZhangSimilarityScore::max_pairs`]
+    /// candidate pairs, or a non-finite score. A zero total intensity on either
+    /// side yields `Ok(0.0)`.
     pub fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
         let mut sum = 0.0;
         for_each_pair(a, b, self.tolerance, false, self.max_pairs, |i, j| {
@@ -694,6 +763,17 @@ impl Default for SteinScottImproveScore {
     }
 }
 impl SteinScottImproveScore {
+    /// Similarity of `a` and `b`, as `SteinScottImproveScore::operator()`.
+    ///
+    /// Scores below [`SteinScottImproveScore::threshold`] are reported as zero.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::UnsortedData`] for unsorted peaks and
+    /// [`Error::InvalidValue`] for a negative or non-finite intensity, a
+    /// non-finite threshold, an invalid tolerance, more than
+    /// [`SteinScottImproveScore::max_pairs`] candidate pairs, or a non-finite
+    /// score. A zero intensity norm on either side yields `Ok(0.0)`.
     pub fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64> {
         if !self.threshold.is_finite() {
             return Err(bad("score threshold must be finite"));
@@ -755,6 +835,547 @@ fn for_each_pair(
         }
     }
     Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// The spectrum-similarity functor hierarchy:
+//   COMPARISON/PeakSpectrumCompareFunctor.h
+//   COMPARISON/BinnedSpectrumCompareFunctor.h
+//   COMPARISON/BinnedSharedPeakCount.h
+//   COMPARISON/BinnedSpectralContrastAngle.h
+//   COMPARISON/BinnedSumAgreeingIntensities.h
+// ---------------------------------------------------------------------------
+
+/// Largest number of stored bins a single binned comparison may examine, summed
+/// over both spectra.
+///
+/// [`BinnedSpectrum`] already caps its own bin count at
+/// [`BinConfig::max_bins`], so this is the second, comparison-side ceiling: it
+/// is checked before any traversal begins, and no scorer allocates, so a
+/// rejected comparison leaves both inputs untouched. The source has no such
+/// ceiling; its cost is `O(bins)` per call regardless.
+pub const MAX_COMPARED_BINS: usize = 4_000_000;
+
+/// Reproduce the source's two-step construction: the abstract base names the
+/// handler after itself, then the concrete functor renames it and copies its
+/// (empty) defaults into the current parameters, as `defaultsToParam_` does.
+fn functor_handler(base: &str, name: &str) -> Result<DefaultParamHandler> {
+    let mut handler = DefaultParamHandler::new(base)?;
+    handler.set_name(name)?;
+    handler.defaults_to_parameters()?;
+    Ok(handler)
+}
+
+/// Base for compare functors of spectra, that return a similarity value for two
+/// spectra.
+///
+/// Implementors return a similarity value for a pair of spectra. The value
+/// should be greater than or equal to zero.
+///
+/// The source class is an abstract `DefaultParamHandler` subclass with two pure
+/// virtual `operator()` overloads. Here the two-spectrum overload is
+/// [`score`](Self::score), the one-spectrum overload is
+/// [`self_score`](Self::self_score), and the inherited parameter surface is
+/// reached through [`handler`](Self::handler) and
+/// [`handler_mut`](Self::handler_mut). The trait is object safe, so
+/// `&dyn PeakSpectrumCompareFunctor` replaces the base-class pointer the source
+/// hierarchy exists for.
+///
+/// The base has **seven** derivatives in the pinned tree, not the six that
+/// `PeakSpectrumCompareFunctor.cpp:11-16` `#include`s for factory registration:
+/// `SpectrumCheapDPCorr`, `SpectrumPrecursorComparator`, `ZhangSimilarityScore`,
+/// `SpectrumAlignmentScore`, `SteinScottImproveScore`, `PeakAlignment` and -
+/// absent from that include list - `SpectraSTSimilarityScore`. All seven
+/// override the one-spectrum overload as `operator()(spec, spec)`, so the
+/// default [`self_score`](Self::self_score) is that delegation and an
+/// implementor only overrides it to record a cheaper closed form.
+///
+/// **This crate ships no implementor of this trait.** Four of the seven source
+/// derivatives exist in this module - [`SpectrumAlignmentScore`],
+/// [`ZhangSimilarityScore`], [`SteinScottImproveScore`] and
+/// [`SpectrumPrecursorComparator`] - but they were ported in an earlier wave as
+/// typed `Copy` configuration structs with no [`DefaultParamHandler`], and
+/// giving them one means porting the parameter tree each of them registers
+/// upstream, which is their own headers' work; a handler that did not carry
+/// those parameters would make `set_parameters` silently ineffective. The
+/// remaining three - `SpectrumCheapDPCorr`, `PeakAlignment` and
+/// `SpectraSTSimilarityScore` - are not ported at all. The trait is therefore
+/// the *shape* of the base, usable by a caller's own functor and exercised in
+/// `tests/comparison_functors.rs`, and the port of this header is `partial`
+/// until its derivatives arrive; see
+/// `docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md`. Its sibling
+/// [`BinnedSpectrumCompareFunctor`] has all three of its source derivatives
+/// shipped here.
+pub trait PeakSpectrumCompareFunctor {
+    /// The parameter surface the source inherits from `DefaultParamHandler`,
+    /// carrying the functor's registered name and its current parameters.
+    fn handler(&self) -> &DefaultParamHandler;
+
+    /// Mutable parameter surface, for the source's public `setParameters` and
+    /// `setName`. The source's `updateMembers_` hook has no equivalent: a
+    /// functor that derives typed state from parameters recomputes it here.
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler;
+
+    /// Registered functor name, as `DefaultParamHandler::getName`.
+    fn name(&self) -> &str {
+        self.handler().name()
+    }
+
+    /// Similarity of `a` and `b`.
+    ///
+    /// # Errors
+    ///
+    /// Implementation defined; the source signature cannot fail but every
+    /// concrete functor here reports invalid input and unbounded work instead of
+    /// returning a wrong or non-finite score.
+    fn score(&self, a: &MSSpectrum, b: &MSSpectrum) -> Result<f64>;
+
+    /// Self similarity, `score(a, a)`.
+    ///
+    /// # Errors
+    ///
+    /// As [`score`](Self::score).
+    fn self_score(&self, a: &MSSpectrum) -> Result<f64> {
+        self.score(a, a)
+    }
+}
+
+/// Base for compare functors of binned spectra.
+///
+/// Implementors return a value for a pair of [`BinnedSpectrum`] objects, or a
+/// single one with itself. Ideally the value reflects the similarity of the
+/// pair; for how each similarity is computed see the concrete functors.
+///
+/// The source class comment states that functors normalised to `[0, 1]` are
+/// identifiable by a set `normalized` parameter. No binned functor in the
+/// pinned revision registers such a parameter - only `PeakAlignment`, which
+/// derives from [`PeakSpectrumCompareFunctor`], does - so that sentence does not
+/// describe this hierarchy. All three binned functors here are normalised to
+/// `[0, 1]` for nonnegative bins, and each says so in its own documentation.
+///
+/// As with [`PeakSpectrumCompareFunctor`], the two pure virtual `operator()`
+/// overloads are [`score`](Self::score) and [`self_score`](Self::self_score),
+/// the trait is object safe, and every source derivative implements the
+/// one-spectrum overload as `operator()(spec, spec)`.
+pub trait BinnedSpectrumCompareFunctor {
+    /// The parameter surface the source inherits from `DefaultParamHandler`.
+    fn handler(&self) -> &DefaultParamHandler;
+
+    /// Mutable parameter surface, for the source's public `setParameters` and
+    /// `setName`.
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler;
+
+    /// Registered functor name, as `DefaultParamHandler::getName`.
+    fn name(&self) -> &str {
+        self.handler().name()
+    }
+
+    /// Similarity of `spec1` and `spec2`.
+    ///
+    /// # Errors
+    ///
+    /// Implementation defined; every functor here reports incompatible binning,
+    /// work beyond [`MAX_COMPARED_BINS`] and non-finite arithmetic as
+    /// [`Error::InvalidValue`].
+    fn score(&self, spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> Result<f64>;
+
+    /// Self similarity, `score(spec, spec)`.
+    ///
+    /// # Errors
+    ///
+    /// As [`score`](Self::score).
+    fn self_score(&self, spec: &BinnedSpectrum) -> Result<f64> {
+        self.score(spec, spec)
+    }
+}
+
+/// Refuse a comparison whose two spectra together store more than
+/// [`MAX_COMPARED_BINS`] bins, before anything is traversed.
+fn preflight_bins(a: &BinnedSpectrum, b: &BinnedSpectrum) -> Result<()> {
+    let total = a
+        .bins
+        .len()
+        .checked_add(b.bins.len())
+        .ok_or_else(|| bad("binned comparison size overflow"))?;
+    if total > MAX_COMPARED_BINS {
+        return Err(bad("binned comparison exceeds the stored-bin ceiling"));
+    }
+    Ok(())
+}
+
+/// `Eigen::SparseVector<float>::dot`: the products of the coefficients stored at
+/// indices present in both vectors, accumulated in `f32` in ascending index
+/// order and widened only on return. The source assigns that `float` result to a
+/// `double`, so the reduction's precision, not `double`'s, is what the score
+/// inherits.
+///
+/// Eigen's sparse dot is a scalar merge of the two inner iterators, so the
+/// association reproduced here is the one it uses; see [`sparse_sum`] for the
+/// reductions where that is not true, and note that a C++ build which contracts
+/// `res += a * b` into an FMA (the default at `-ffp-contract=fast`) rounds once
+/// where this rounds twice.
+fn sparse_dot(a: &BinnedSpectrum, b: &BinnedSpectrum) -> Result<f64> {
+    let mut total = 0.0_f32;
+    for (index, &value) in &a.bins {
+        if let Some(&other) = b.bins.get(index) {
+            total += value * other;
+        }
+    }
+    if total.is_finite() {
+        Ok(f64::from(total))
+    } else {
+        Err(bad("binned dot product overflows f32"))
+    }
+}
+
+/// `Eigen::SparseVector<float>::sum`: the stored coefficients accumulated in
+/// `f32`, here sequentially in ascending index order.
+///
+/// **This one is not bit-exact against every C++ build, and the fidelity claim
+/// is bounded accordingly.** `SparseVector::sum()` maps the stored-value array
+/// to a dense vector and calls the dense reduction, which Eigen vectorises into
+/// several packet accumulators and combines at the end - an association that
+/// depends on the target's packet width and on the Eigen version, and that is
+/// not the sequential one. The same is true of the agreeing-intensity numerator,
+/// which upstream is `s.coeffs().cwiseMax(0).sum()` over that same dense value
+/// array. The port sums the same `f32` values in the same index order; what it
+/// reproduces is the `f32` *precision* of the reduction, and agreement with a
+/// vectorised C++ build is to `f32` reduction rounding rather than bit for bit.
+/// A sequential order is chosen because it is deterministic, is what a scalar
+/// build produces, and is the association a parallel implementation must
+/// reproduce under `concept::parallel`.
+fn sparse_sum(spectrum: &BinnedSpectrum) -> Result<f64> {
+    let mut total = 0.0_f32;
+    for &value in spectrum.bins.values() {
+        total += value;
+    }
+    if total.is_finite() {
+        Ok(f64::from(total))
+    } else {
+        Err(bad("binned intensity sum overflows f32"))
+    }
+}
+
+/// Square root that refuses a negative or non-finite radicand instead of
+/// yielding NaN. The source calls `sqrt` unguarded.
+fn checked_sqrt(value: f64) -> Result<f64> {
+    if value.is_finite() && value >= 0.0 {
+        Ok(value.sqrt())
+    } else {
+        Err(bad("comparison norm is not a nonnegative finite number"))
+    }
+}
+
+/// Compare functor scoring the shared peaks for similarity measurement.
+///
+/// The score is the number of bins occupied in both spectra divided by the
+/// larger of the two occupied-bin counts, which normalises it to `[0, 1]`.
+/// "Occupied" means *stored*, as `Eigen::SparseVector::nonZeros` counts stored
+/// coefficients: a bin that a peak of intensity zero created, or that a spread
+/// wrote a zero into, counts as occupied even though its value is zero.
+///
+/// The details of the score can be found in: K. Wan, I. Vidavsky, and M. Gross.
+/// Comparing similar spectra: from similarity index to spectral contrast angle.
+/// Journal of the American Society for Mass Spectrometry, 13(1):85-88, January
+/// 2002.
+///
+/// The source registers no parameters, so `getParameters()` is empty and the
+/// `@htmlinclude OpenMS_BinnedSharedPeakCount.parameters` block it documents is
+/// empty too. Its protected `precursor_mass_tolerance_` member is never
+/// initialised, never written by `updateMembers_`, never copied by the copy
+/// constructor and never read; it has no counterpart here.
+///
+/// [`binned_shared_peak_count`] is the parameter-free entry point to this same
+/// computation.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BinnedSharedPeakCount {
+    handler: DefaultParamHandler,
+}
+
+impl BinnedSharedPeakCount {
+    /// Construct the functor with the source's name and its empty parameters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] only if the parameter handler rejects the
+    /// fixed name, which cannot happen for this literal.
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            handler: functor_handler("BinnedSpectrumCompareFunctor", "BinnedSharedPeakCount")?,
+        })
+    }
+}
+
+impl BinnedSpectrumCompareFunctor for BinnedSharedPeakCount {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// Shared occupied bins over the larger occupied-bin count.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the two spectra do not share a
+    /// binning, which is the source's `Exception::IllegalArgument`, and when the
+    /// two spectra together store more than [`MAX_COMPARED_BINS`] bins.
+    ///
+    /// Two spectra that both store no bins yield `Ok(0.0)`. The source divides
+    /// by that zero denominator and returns NaN.
+    fn score(&self, spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> Result<f64> {
+        shared_peak_count(spec1, spec2)
+    }
+}
+
+/// `BinnedSharedPeakCount::operator()`, the one implementation behind both that
+/// functor and [`binned_shared_peak_count`].
+fn shared_peak_count(spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> Result<f64> {
+    compatible(spec1, spec2)?;
+    preflight_bins(spec1, spec2)?;
+    let denominator = spec1.bins.len().max(spec2.bins.len());
+    if denominator == 0 {
+        return Ok(0.0);
+    }
+    let shared = spec1
+        .bins
+        .keys()
+        .filter(|index| spec2.bins.contains_key(index))
+        .count();
+    Ok(shared as f64 / denominator as f64)
+}
+
+/// Compare functor scoring the spectral contrast angle for similarity
+/// measurement.
+///
+/// Despite the name the source returns the *cosine* of the spectral contrast
+/// angle, not the angle: `dot(a, b) / sqrt(dot(a, a) * dot(b, b))`. For
+/// nonnegative bins that is in `[0, 1]`; bins may be negative in principle, in
+/// which case the score is in `[-1, 1]` and is not clamped, exactly as in the
+/// source.
+///
+/// The details of the score can be found in: K. Wan, I. Vidavsky, and M. Gross.
+/// Comparing similar spectra: from similarity index to spectral contrast angle.
+/// Journal of the American Society for Mass Spectrometry, 13(1):85-88, January
+/// 2002.
+///
+/// The denominator is `sqrt(sum1 * sum2)` and not `sqrt(sum1) * sqrt(sum2)`;
+/// the two differ in the last bits and the source's grouping is kept.
+///
+/// The source registers no parameters, and its protected
+/// `precursor_mass_tolerance_` member is unused; see [`BinnedSharedPeakCount`].
+///
+/// [`binned_cosine`] is the parameter-free entry point to this same
+/// computation. It used to be a second, `f64` implementation with a
+/// `sqrt(sum1) * sqrt(sum2)` denominator and a clamp to `[-1, 1]`, which
+/// disagreed with this one in the last bits; it is now this one.
+///
+/// ```
+/// use openms::comparison::{
+///     BinConfig, BinnedSpectralContrastAngle, BinnedSpectrum, BinnedSpectrumCompareFunctor,
+/// };
+/// use openms::{MSSpectrum, Peak1D};
+///
+/// let spectrum = MSSpectrum::from_peaks(vec![
+///     Peak1D::new(100.0, 2.0),
+///     Peak1D::new(200.0, 3.0),
+/// ]);
+/// let binned = BinnedSpectrum::new(&spectrum, BinConfig::default())?;
+/// let functor = BinnedSpectralContrastAngle::new()?;
+/// assert_eq!(functor.name(), "BinnedSpectralContrastAngle");
+/// assert_eq!(functor.self_score(&binned)?, 1.0);
+/// # Ok::<(), openms::Error>(())
+/// ```
+#[derive(Clone, Debug, PartialEq)]
+pub struct BinnedSpectralContrastAngle {
+    handler: DefaultParamHandler,
+}
+
+impl BinnedSpectralContrastAngle {
+    /// Construct the functor with the source's name and its empty parameters.
+    ///
+    /// # Errors
+    ///
+    /// As [`BinnedSharedPeakCount::new`].
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            handler: functor_handler(
+                "BinnedSpectrumCompareFunctor",
+                "BinnedSpectralContrastAngle",
+            )?,
+        })
+    }
+}
+
+impl BinnedSpectrumCompareFunctor for BinnedSpectralContrastAngle {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// Cosine of the spectral contrast angle between the two bin vectors.
+    ///
+    /// An empty or all-zero spectrum makes `sum1 * sum2` zero; the source
+    /// returns a defined score of `0` there rather than `0.0 / 0.0`, and so does
+    /// this.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the two spectra do not share a
+    /// binning, when they together store more than [`MAX_COMPARED_BINS`] bins,
+    /// and when an `f32` dot product overflows. The source only asserts
+    /// compatible binning through `OPENMS_PRECONDITION`, which is a no-op in
+    /// release builds, so incompatible input silently scores two different
+    /// binnings against each other there; its two sibling functors throw.
+    fn score(&self, spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> Result<f64> {
+        spectral_contrast_angle(spec1, spec2)
+    }
+}
+
+/// `BinnedSpectralContrastAngle::operator()`, the one implementation behind both
+/// that functor and [`binned_cosine`].
+fn spectral_contrast_angle(spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> Result<f64> {
+    compatible(spec1, spec2)?;
+    preflight_bins(spec1, spec2)?;
+    let sum1 = sparse_dot(spec1, spec1)?;
+    let sum2 = sparse_dot(spec2, spec2)?;
+    let numerator = sparse_dot(spec1, spec2)?;
+    if sum1 * sum2 == 0.0 {
+        return Ok(0.0);
+    }
+    finite_score(numerator / checked_sqrt(sum1 * sum2)?)
+}
+
+/// Sum of agreeing intensities for similarity measurement.
+///
+/// Per bin the score takes the mean of the two intensities minus their absolute
+/// difference, `(a + b) / 2 - |a - b|`, and discards the result where it is
+/// negative: bins whose intensity difference is larger than their average
+/// intensity receive a weight of zero. The retained values are summed and
+/// divided by the mean of the two total intensities, so perfect agreement
+/// results in a similarity score of `1.0`, and the score is capped at `1.0`.
+///
+/// Transformation and other factors of the peptide mass spectrometry pairwise
+/// peak-list comparison process. Witold E Wolski, Maciej Lalowski, Peter Martus,
+/// Ralf Herwig, Patrick Giavalisco, Johan Gobom, Albert Sickmann, Hans Lehrach
+/// and Knut Reinert. BMC Bioinformatics 2005, 6:285, doi:10.1186/1471-2105-6-285.
+///
+/// A bin stored in only one spectrum contributes `(v + 0) / 2 - |v| <= 0`, so it
+/// is always discarded; the source still visits it, because the sparse sum of
+/// the two bin vectors is their union, and so does this.
+///
+/// The source registers no parameters, and its protected
+/// `precursor_mass_tolerance_` member is unused; see [`BinnedSharedPeakCount`].
+///
+/// [`binned_sum_agreeing_intensities`] is the parameter-free entry point to this
+/// same computation. It used to be a second, `f64` implementation that rejected
+/// negative bins, which the source accepts and truncates away; it is now this
+/// one, so a negative bin is no longer an error from either.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BinnedSumAgreeingIntensities {
+    handler: DefaultParamHandler,
+}
+
+impl BinnedSumAgreeingIntensities {
+    /// Construct the functor with the source's name and its empty parameters.
+    ///
+    /// # Errors
+    ///
+    /// As [`BinnedSharedPeakCount::new`].
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            handler: functor_handler(
+                "BinnedSpectrumCompareFunctor",
+                "BinnedSumAgreeingIntensities",
+            )?,
+        })
+    }
+}
+
+impl BinnedSpectrumCompareFunctor for BinnedSumAgreeingIntensities {
+    fn handler(&self) -> &DefaultParamHandler {
+        &self.handler
+    }
+
+    fn handler_mut(&mut self) -> &mut DefaultParamHandler {
+        &mut self.handler
+    }
+
+    /// Agreeing intensity summed over the union of the stored bins, over the
+    /// mean total intensity, capped at `1.0`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the two spectra do not share a
+    /// binning, which is the source's `Exception::IllegalArgument`, when they
+    /// together store more than [`MAX_COMPARED_BINS`] bins, and when an `f32`
+    /// accumulation overflows.
+    ///
+    /// A zero mean total intensity - two empty spectra, all-zero bins, or bins
+    /// that cancel - yields `Ok(0.0)`. The source divides by that zero and
+    /// returns NaN when the numerator is zero too, or `1.0` when it is positive.
+    fn score(&self, spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> Result<f64> {
+        sum_agreeing_intensities(spec1, spec2)
+    }
+}
+
+/// `BinnedSumAgreeingIntensities::operator()`, the one implementation behind both
+/// that functor and [`binned_sum_agreeing_intensities`].
+fn sum_agreeing_intensities(spec1: &BinnedSpectrum, spec2: &BinnedSpectrum) -> Result<f64> {
+    compatible(spec1, spec2)?;
+    preflight_bins(spec1, spec2)?;
+    let sum1 = sparse_sum(spec1)?;
+    let sum2 = sparse_sum(spec2)?;
+    // The source builds one sparse vector over the union of both bin sets in
+    // f32, truncates its negative coefficients and sums them, all before the
+    // result is widened to double. The union walk below is that expression.
+    let mut agreeing = 0.0_f32;
+    let mut left = spec1.bins.iter();
+    let mut right = spec2.bins.iter();
+    let mut head_left = left.next().map(|(&index, &value)| (index, value));
+    let mut head_right = right.next().map(|(&index, &value)| (index, value));
+    loop {
+        let (first, second) = match (head_left, head_right) {
+            (Some((i, a)), Some((j, b))) if i == j => {
+                head_left = left.next().map(|(&index, &value)| (index, value));
+                head_right = right.next().map(|(&index, &value)| (index, value));
+                (a, b)
+            }
+            (Some((i, a)), Some((j, _))) if i < j => {
+                head_left = left.next().map(|(&index, &value)| (index, value));
+                (a, 0.0)
+            }
+            (Some(_), Some((_, b))) => {
+                head_right = right.next().map(|(&index, &value)| (index, value));
+                (0.0, b)
+            }
+            (Some((_, a)), None) => {
+                head_left = left.next().map(|(&index, &value)| (index, value));
+                (a, 0.0)
+            }
+            (None, Some((_, b))) => {
+                head_right = right.next().map(|(&index, &value)| (index, value));
+                (0.0, b)
+            }
+            (None, None) => break,
+        };
+        let value = (first + second) * 0.5 - (first - second).abs();
+        // Eigen's cwiseMax(0) keeps the coefficient unless it is below zero.
+        agreeing += if value < 0.0 { 0.0 } else { value };
+    }
+    if !agreeing.is_finite() {
+        return Err(bad("agreeing intensity sum overflows f32"));
+    }
+    let denominator = (sum1 + sum2) / 2.0;
+    if denominator == 0.0 {
+        return Ok(0.0);
+    }
+    finite_score((f64::from(agreeing) / denominator).min(1.0))
 }
 
 #[cfg(test)]
