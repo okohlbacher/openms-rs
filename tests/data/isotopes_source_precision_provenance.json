@@ -92,14 +92,15 @@
    "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
   }
  ],
- "context_sources_note": "Read for call sites (FeatureFinderAlgorithmPicked step 2.5, abundance overrides), the Peak1D float intensity type, EmpiricalFormula's std::map<const Element*, SignedSize> and constants; not ported or tested here, so they are not ledger evidence for those headers.",
+ "context_sources_note": "Read for call sites (FeatureFinderAlgorithmPicked step 2.5, abundance overrides), the Peak1D float intensity type, EmpiricalFormula's std::map<const Element*, SignedSize> (EmpiricalFormula.h:66, the pointer-keyed map whose iteration order varies between runs) and constants; not ported or tested here, so they are not ledger evidence for those headers.",
  "native_implementation": [
   "src/chemistry/isotopes.rs",
   "src/kernel/geometry.rs"
  ],
  "native_tests": [
   "tests/isotopes_source_precision.rs",
-  "tests/geometry_bounding_box.rs"
+  "tests/geometry_bounding_box.rs",
+  "src/chemistry/isotopes.rs (unit test source_precision_work_follows_its_own_convolution_sequence)"
  ],
  "regression_tests": [
   "tests/isotopes.rs",
@@ -134,7 +135,16 @@
    "rows": 243,
    "kind": "oracle-generated (tier 1 executed differential)",
    "producer": "../oracle/b2-iso-source-precision/probe.cpp via run.sh",
-   "format": "Tab-separated. Distribution lines: kind, label, size, then mass_bits:intensity_bits (binary64 and binary32, lowercase hexadecimal). formula_order lines: symbol:count in C++ iteration order. window_trim: size before, after trimLeft, after trimRight. trim: sizes. bbox: min/max corner bits and r2.intersects(r3), r3.intersects(r2)."
+   "format": "Tab-separated. Distribution lines: kind, label, size, then mass_bits:intensity_bits (binary64 and binary32, lowercase hexadecimal). formula_order lines: symbol:count in C++ iteration order. window_trim: size before, after trimLeft, after trimRight. trim: sizes. bbox: min/max corner bits and r2.intersects(r3), r3.intersects(r2).",
+   "note": "One execution, repeated once with identical bytes. Both executions iterated natural elements in ascending atomic number, the majority order of the repeated executions below."
+  },
+  {
+   "path": "tests/data/isotopes_source_precision/element_order.tsv",
+   "sha256": "0ee63874950e537daf2655c17b30e2b84dc78cc0b14d8b1dce9624e0cd37fb74",
+   "rows": 262,
+   "kind": "oracle-generated (tier 1 executed differential, 200 executions of one binary)",
+   "producer": "../oracle/b2-iso-element-order/probe.cpp via run.sh 200, summarised by tally.py",
+   "format": "Tab-separated; the most frequent output of a case first; run_ids '-' for the most frequent output, otherwise comma-separated run numbers. runs N. formula: label, count, run_ids, iteration order (symbols), getLightestIsotopeWeight bits, size, mass_bits:intensity_bits. window/estimate/underflow: label, count, size, peaks (most frequent output only). other: kind, label, count, run_ids of each other output. trim_narrow: label, count, size, peaks. all_natural/all_natural_labelled: count, run_ids, elements displaced from ascending atomic number. all_natural_max20: count, run_ids, whether masses and intensities differ from the most frequent output."
   }
  ],
  "evidence": [
@@ -142,6 +152,12 @@
    "tier": 1,
    "label": "oracle-generated (tier 1 executed differential)",
    "covers": "Bitwise: element isotope tables narrowed to binary32; run for 10 formulas; peptide, RNA and DNA averagine estimates; FeatureFinderAlgorithmPicked windows 0..80 (limit 20, width 100) with source trimLeft/trimRight; the 12C = 90 % override (limit 1020); public convolve; binary32 renormalize; fragment weights; DBoundingBox intersects (21 steps), touching borders, width and height."
+  },
+  {
+   "tier": 1,
+   "label": "oracle-generated (tier 1 executed differential, repeated executions)",
+   "covers": "200 executions of one SDK binary (../oracle/b2-iso-element-order): EmpiricalFormula iteration order, getLightestIsotopeWeight and run bits for 22 formulas, 81 FeatureFinderAlgorithmPicked windows, RNA/DNA estimates at 1000 and 10000 Da, binary32 underflow at 1e5 and 1e6 Da, and insert/trimLeft float narrowing. The element order is not fixed (22 distinct outputs; C1H1N1O1S1P1 iterated H N C O P S in runs 40 and 147, which changed every window from 150 Da up). The port matches the majority output for every natural-element case, matches the runs that iterated its labelled-isotope placement, and differs for Os3Ir3 because the SDK builds iridium from rhenium's tables.",
+   "scope_of_bit_identity": "SourceSingle reproduces the executed SDK bit for bit only for runs that iterate the formula's elements in the port's order: ascending atomic number for natural elements (the majority of runs), each labelled isotope after its natural element (no majority). No fixed order reproduces every run."
   },
   {
    "tier": 3,
@@ -168,7 +184,15 @@
    "include/OpenMS/DATASTRUCTURES/DIntervalBase.h"
   ],
   "debug_only": [],
-  "decision": "D7: product SDK accepted as development-time oracle"
+  "decision": "D7: product SDK accepted as development-time oracle",
+  "repeated_execution": {
+   "driver": "../oracle/b2-iso-element-order",
+   "date": "2026-09-13T19:18:21Z",
+   "host": "Apple M4 Max, macOS 26.6.2, 16 logical CPUs",
+   "runs": 200,
+   "distinct_whole_outputs": 22,
+   "supersedes": "findings.element_iteration_order of ../oracle/b2-iso-source-precision/manifest.json (ascending atomic number, generalised from two identical executions)"
+  }
  },
  "external_reference_artifacts": [
   {
@@ -215,23 +239,68 @@
    "path": "../oracle/b2-iso-source-precision/results/crosscheck.log",
    "sha256": "b3e56fa768730ee073d26f7b4660097e5e979cba585e09f61c650e085f815119",
    "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/probe.cpp",
+   "sha256": "f113cc1d2edcd5b23e98feefb4803533ac64f66c193a149d22c64cbc34b78967",
+   "origin_key": "b2_iso_element_order_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/run.sh",
+   "sha256": "c263bbf8f7916597a93b15290c7d903100bd61bec559d93ec884f9d62f521267",
+   "origin_key": "b2_iso_element_order_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/tally.py",
+   "sha256": "92e11072d272c21a2d5aa372bd1cec98a416131abf6c084db3c803c67749bf20",
+   "origin_key": "b2_iso_element_order_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/manifest.json",
+   "sha256": "43a1f0a3b0082a5f6580087935651de564abc30d130cb6a90a0056778420fc7b",
+   "origin_key": "b2_iso_element_order_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/build.log",
+   "sha256": "c12a98aa727be9919ec8752e53c3df6a3806f5344386dc0cf9aa6b0c8df9dcce",
+   "origin_key": "b2_iso_element_order_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/results/runs.sha256",
+   "sha256": "ff91e15c524083a359503e8e6a68313a364bfd4528f9621d2b8e28b4e75e01fc",
+   "origin_key": "b2_iso_element_order_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/results/tally.txt",
+   "sha256": "162eb9bedd1422f189c572ec5b0b0724b52f7148a8fb5a11215ac4c5da4333bf",
+   "origin_key": "b2_iso_element_order_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/results/element_order.tsv",
+   "sha256": "0ee63874950e537daf2655c17b30e2b84dc78cc0b14d8b1dce9624e0cd37fb74",
+   "origin_key": "b2_iso_element_order_probe"
   }
  ],
- "external_reference_note": "The C++ driver, its run script, the exact-rational cross-check and the hashed manifest live outside this repository under ../oracle/b2-iso-source-precision; only the generated fixture enters the repository. The driver links the product SDK libOpenMS (core 4fdec46, Debug) whose isotope and bounding-box headers are hash-identical to pin bc9cc12.",
+ "external_reference_note": "The C++ drivers, run scripts, the exact-rational cross-check, the repeated-run tally and the hashed manifests live outside this repository under ../oracle/b2-iso-source-precision and ../oracle/b2-iso-element-order; only the generated fixtures enter the repository. Both drivers link the product SDK libOpenMS (core 4fdec46, Debug) whose isotope, EmpiricalFormula, ElementDB and bounding-box headers are hash-identical to pin bc9cc12. The 200 per-run outputs are hashed in results/runs.sha256.",
  "pending_verification": {
   "owner": "B6-FFAP-SEEDS",
   "against": "C2-ORACLE-PICKED ../oracle/featurefinder-picked (TheoreticalIsotopePattern, item 5)",
   "criterion": "estimate_from_peptide_weight under ProbabilityPrecision::SourceSingle, trim_left_source and trim_right reproduce the f32 TheoreticalIsotopePattern bit for bit (intensity, optional_begin/end, trimmed_left) for every FeatureFinderCentroided_1 mass window (charge 2, mass_window_width 100) and the abundance_12C = 90 case.",
-  "status": "pending: C2 had not landed during B2-ISO-GEOM; source-review and executed-probe expectations are met"
+  "status": "pending: B6 owns the committed comparison. In the B2 fix round, a temporary, uncommitted replica of the reviewer's c2cmp ran on kim against this tree (source precision, trim_left_source with narrowing, trim_right, optional_begin/end, maximum, normalisation) and matched all 15 FFC_1 windows bit for bit in the six C2 records omp1 and omp4 of ffap_ffc1_symmetric, ffap_ffc1_asymmetric and ffap_ffc1_user_seeds.",
+  "notes": [
+   "Each C2 record is one SDK execution. 2 of 200 executions of one binary iterated N before C and changed every window from 150 Da up, so a single-record mismatch can come from the oracle's element order; record or re-execute before attributing it to the port.",
+   "Source precision returns Error::InvalidValue when every retained bin underflows binary32 (1e6 Da peptide averagine, limit 20), where the SDK returns NaN; B6 must handle a per-window Err. FFC_1 (maximum 1316.5 Da) cannot reach it."
+  ]
  },
  "cpp_issue_candidates": [
   "FeatureFinderAlgorithmPicked.cpp:163-179 builds abundance overrides by insert() into a default-constructed IsotopeDistribution that already holds (0, 1); executed windows are wrong (30 vs 6 bins).",
-  "CoarseIsotopePatternGenerator::run convolves in std::map<const Element*, SignedSize> pointer order, so binary32 patterns depend on heap addresses (ElementDB construction order in the executed build)."
+  "CoarseIsotopePatternGenerator::run gives different bits in different runs of the same binary. EmpiricalFormula keys atoms by std::map<const Element*, SignedSize> (EmpiricalFormula.h:66), so run (CoarseIsotopePatternGenerator.cpp:114-120) and getLightestIsotopeWeight (EmpiricalFormula.cpp:57-67) iterate in Element address order. Reproduction: ../oracle/b2-iso-element-order/probe.cpp run 200 times; CoarseIsotopePatternGenerator(0).run(EmpiricalFormula(\"C1H1N1O1S1P1\")) iterated H C N O P S in 198 runs (bin 2 intensity 0x3d3540d4) and H N C O P S in runs 40 and 147 (0x3d3540d5); the same runs changed estimateFromPeptideWeight for every FeatureFinderAlgorithmPicked window from 150 to 8050 Da. Fix: order the map by atomic number and isotope mass number."
  ],
  "target_verification": {
   "date": "2026-09-13",
   "base_revision": "744455b70d7f1d4745e137e7e14947a7e8d4ccad",
-  "platform": "Rust gates on kim (IBMI build node, Linux x86_64) through ~/.local/bin/openms-kim-gate.sh slot b1-b2; cargo fmt and the repository checkers run locally (macOS arm64). The tier-1 fixture was produced on macOS arm64 and matches bit for bit on Linux x86_64.",
+  "round": "verifier fix round on top of d0bb6ae; results below are from the fix-round tree",
+  "platform": "Rust gates on kim (IBMI build node, Linux x86_64) through ~/.local/bin/openms-kim-gate.sh slot fix-b2; cargo fmt and the repository checkers run locally (macOS arm64). The tier-1 fixtures were produced on macOS arm64 and match bit for bit on Linux x86_64.",
   "consumer_targets": "--lib --test isotopes_source_precision --test geometry_bounding_box --test isotopes --test features --test fine_isotopes --test fine_isotope_reference --test fine_isotope_stream --test fine_isotope_stream_review --test theoretical --test rna_workflow --test adduct_workflow --test averagine_deisotoping --test averagine_deisotoping_reference --test averagine_deisotoping_review --test deisotoping --test feature_finding_metabo --test feature_identification --test feature_hypothesis --test featurexml --test map_operations --test alignment_transformer --test ims_isotopes --test ims_element --test ims_alphabet",
   "results": [
    {
@@ -242,22 +311,27 @@
    {
     "command": "cargo test --locked --all-features <consumer_targets>",
     "toolchain": "kim current",
-    "result": "pass: 25 test binaries, 0 failures (lib 274, isotopes_source_precision 12, geometry_bounding_box 6)"
+    "result": "pass: 25 test binaries, 645 passed, 0 failures (lib 275, isotopes_source_precision 16, geometry_bounding_box 6)"
    },
    {
     "command": "cargo +1.85.0 test --locked --all-features <consumer_targets>",
     "toolchain": "1.85.0",
-    "result": "pass: 25 test binaries, 0 failures"
+    "result": "pass: 25 test binaries, 645 passed, 0 failures"
    },
    {
     "command": "cargo test --locked --no-default-features --test isotopes_source_precision --test geometry_bounding_box",
     "toolchain": "kim current",
-    "result": "pass: 12 + 6"
+    "result": "pass: 16 + 6"
    },
    {
     "command": "cargo +1.85.0 test --locked --no-default-features --test isotopes_source_precision --test geometry_bounding_box",
     "toolchain": "1.85.0",
-    "result": "pass: 12 + 6"
+    "result": "pass: 16 + 6"
+   },
+   {
+    "command": "temporary uncommitted replica of the reviewer's c2cmp (15 FFC_1 windows) on kim, compared with ../oracle/featurefinder-picked/results/{omp1,omp4}/ffap_ffc1_{symmetric,asymmetric,user_seeds}.jsonl by the reviewer's c2compare.py",
+    "toolchain": "kim current; comparison local",
+    "result": "15/15 windows bit-identical in all six records"
    },
    {
     "command": "cargo clippy --locked --all-features --lib --tests -- -D warnings",

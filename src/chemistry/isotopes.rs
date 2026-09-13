@@ -12,10 +12,13 @@
 //! Probabilities are stored as `f64`. By default ([`ProbabilityPrecision::Double`])
 //! they are also computed in `f64`, whereas C++ keeps them in `Peak1D`'s `float`
 //! intensity. [`ProbabilityPrecision::SourceSingle`] selects the source binary32
-//! arithmetic explicitly; it reproduces the executed C++ SDK bit for bit. Coarse
-//! mass correction is a carbon-13 spacing approximation, not isotope fine
-//! structure. See `docs/ISOTOPE_SUPPORT.md` for the native conventions and limits
-//! and `docs/ISOTOPE_SOURCE_PRECISION_SUPPORT.md` for the source-precision contract.
+//! arithmetic explicitly. For formulas of natural elements it reproduces, bit for
+//! bit, the executed C++ SDK runs whose element iteration order is ascending
+//! atomic number, which were the majority of the measured runs; the SDK's own
+//! order, and with it its binary32 output, varies between runs. Coarse mass
+//! correction is a carbon-13 spacing approximation, not isotope fine structure.
+//! See `docs/ISOTOPE_SUPPORT.md` for the native conventions and limits and
+//! `docs/ISOTOPE_SOURCE_PRECISION_SUPPORT.md` for the source-precision contract.
 
 use super::{Atom, C13C12_MASSDIFF_U, EmpiricalFormula, PROTON_MASS_U, element, parse_atom};
 use crate::{Error, Result};
@@ -65,14 +68,26 @@ pub enum ProbabilityPrecision {
     ///   operations. A C++ build that contracts the expression into a fused
     ///   multiply-add would differ in the last bit; the executed SDK build does
     ///   not.
-    /// - Formula elements are convolved in `ElementDB` construction order:
-    ///   ascending atomic number, each natural element before its labelled
-    ///   isotopes in ascending mass number. The source iterates a
-    ///   `std::map<const Element*, SignedSize>`, whose pointer order follows
-    ///   that construction order in the executed SDK. The lightest-isotope mass
-    ///   is summed in the same order.
+    /// - Formula elements are convolved in ascending atomic number, each natural
+    ///   element before its labelled isotopes in ascending mass number, and the
+    ///   lightest-isotope mass is summed in the same order. The source iterates
+    ///   `EmpiricalFormula`'s `std::map<const Element*, SignedSize>`
+    ///   (`EmpiricalFormula.h:66`), so its order is the address order of the
+    ///   `ElementDB` elements, and that order is not fixed. In 200 runs of one
+    ///   SDK binary, `C1H1N1O1S1P1` iterated `H C N O P S` in 198 runs and
+    ///   `H N C O P S` in 2; those 2 runs produced different binary32 patterns,
+    ///   including every FeatureFinderAlgorithmPicked averagine window from
+    ///   150 to 8050 Da. No fixed order reproduces every run. Ascending atomic
+    ///   number reproduces the majority runs for natural elements. Labelled
+    ///   isotopes had no majority position, so their placement here is a native
+    ///   choice, and the lightest-isotope mass of a labelled formula can differ
+    ///   from a C++ run in the last bit.
     /// - Renormalization sums the binary32 weights in reverse order into an
-    ///   `f64` and narrows each quotient back to `f32`.
+    ///   `f64` and narrows each quotient back to `f32`. When every retained bin
+    ///   has underflowed to zero, as for a 1,000,000 Da peptide averagine
+    ///   estimate limited to 20 bins, this returns an error where
+    ///   [`Self::Double`] succeeds; the source divides zero by zero and returns
+    ///   NaN weights.
     ///
     /// Results are stored as `f64` values that are exactly representable in
     /// `f32`.
@@ -342,7 +357,7 @@ impl IsotopeDistribution {
     }
 
     /// Remove the low-probability prefix in current order, without normalization.
-    /// Unlike upstream's all-below-cutoff bug, this can remove every peak.
+    /// Unlike the source, this can remove every peak.
     ///
     /// Source `trimLeft` trims the left side of a distribution to isotopes with
     /// a significant contribution, typically the small leading entries of
@@ -375,18 +390,28 @@ impl IsotopeDistribution {
     /// `isotopic_pattern:intensity_percentage_optional`. Weights equal to the
     /// cutoff are retained. No normalization is applied.
     ///
-    /// The comparison reads the stored `f64` weight, as the source promotes its
-    /// `float` intensity; for weights produced under
-    /// [`ProbabilityPrecision::SourceSingle`] this is the source comparison
-    /// exactly.
+    /// The source compares its `float` intensity, promoted to `double`, with
+    /// the `double` cutoff. Each stored weight is narrowed to `f32` first, as
+    /// source `insert` narrows it, so the comparison is the source's for every
+    /// input: a weight of `0.7` becomes `0.699999988` and does not reach a
+    /// cutoff of `0.7`.
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when `cutoff` is negative or not finite;
-    /// the distribution is then unchanged.
+    /// Returns [`Error::InvalidValue`] when `cutoff` is negative or not finite,
+    /// or a weight exceeds the binary32 range (the source stores an infinite
+    /// intensity); the distribution is then unchanged.
     pub fn trim_left_source(&mut self, cutoff: f64) -> Result<()> {
         validate_nonnegative(cutoff, "probability cutoff")?;
-        if let Some(first) = self.peaks.iter().position(|p| p.probability >= cutoff) {
+        let narrowed = self
+            .peaks
+            .iter()
+            .map(|peak| narrow(peak.probability))
+            .collect::<Result<Vec<f32>>>()?;
+        if let Some(first) = narrowed
+            .iter()
+            .position(|&weight| f64::from(weight) >= cutoff)
+        {
             self.peaks.drain(..first);
         }
         Ok(())
@@ -1396,10 +1421,14 @@ fn lightest_isotope_mass(atom: Atom) -> f64 {
     }
 }
 
-/// Formula atoms in source `ElementDB` construction order: ascending atomic
+/// Formula atoms in the source-precision convolution order: ascending atomic
 /// number, each natural element before its labelled isotopes (ascending mass
-/// number). Pointer order of the source's `std::map<const Element*, _>` follows
-/// this order in the executed SDK.
+/// number).
+///
+/// The source's `std::map<const Element*, _>` iterates in `ElementDB` address
+/// order, which varies between runs of the same binary. Ascending atomic number
+/// is the majority order measured for natural elements; the labelled-isotope
+/// placement is a native choice, since no placement was a majority.
 fn source_atom_order(formula: &EmpiricalFormula) -> Vec<(Atom, i32)> {
     let mut atoms: Vec<(Atom, i32)> = formula
         .atoms
@@ -1788,4 +1817,40 @@ fn validate_nonnegative(value: f64, name: &str) -> Result<()> {
 
 fn invalid(message: impl Into<String>) -> Error {
     Error::InvalidValue(message.into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn products(precision: ProbabilityPrecision, max_peaks: Option<usize>, text: &str) -> usize {
+        let generator = CoarseIsotopePatternGenerator::new(max_peaks, CoarseMassMode::Approximate)
+            .unwrap()
+            .with_precision(precision);
+        let formula: EmpiricalFormula = text.parse().unwrap();
+        let mut work = CoarseIsotopeWork::default();
+        generator.run_with_work(&formula, &mut work).unwrap();
+        work.used
+    }
+
+    /// Source precision charges the products of its own convolution sequence.
+    /// It copies instead of convolving with the identity for odd exponents, and
+    /// it convolves in atomic-number rather than symbol order, which changes the
+    /// intermediate lengths. Its total is therefore lower or higher than the
+    /// native total depending on the formula and the bin limit.
+    #[test]
+    fn source_precision_work_follows_its_own_convolution_sequence() {
+        use ProbabilityPrecision::{Double, SourceSingle};
+        // Exponent one: natively C^1 costs 2 (identity * C) plus 2 (pattern * C^1);
+        // source precision copies C for the power and pays only the second 2.
+        assert_eq!(products(Double, None, "C1"), 4);
+        assert_eq!(products(SourceSingle, None, "C1"), 2);
+        // Unbounded peptide: H^95 (191 bins) is convolved before C^44 (45 bins),
+        // which costs more than the skipped identity convolutions save.
+        assert_eq!(products(Double, None, "C44H95N12O13S1"), 36_245);
+        assert_eq!(products(SourceSingle, None, "C44H95N12O13S1"), 36_380);
+        // Twenty bins cap both lengths, so only the skipped convolutions remain.
+        assert_eq!(products(Double, Some(20), "C44H95N12O13S1"), 3_081);
+        assert_eq!(products(SourceSingle, Some(20), "C44H95N12O13S1"), 3_070);
+    }
 }

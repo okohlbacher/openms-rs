@@ -26,9 +26,14 @@ it at `intensity_percentage_optional`, classifies optional peaks against
 `intensity_percentage` and scales by the maximum. All of that runs on `float`
 intensities. The native `f64` pattern differs from the source by about 1e-7
 relative, which is enough to flip a threshold decision or a seed score in the
-last bit. The source-precision mode reproduces the executed C++ SDK bit for bit
-(tier 1, below); B6 still has to close the pattern comparison for every
-FeatureFinderCentroided_1 window against the C2 oracle.
+last bit. For formulas of natural elements, the source-precision mode
+reproduces bit for bit the executed C++ SDK runs that iterate elements in
+ascending atomic number, the majority of runs (tier 1, below). The SDK itself
+does not give the same bits in every run: its element order follows heap
+addresses, and 2 of 200 runs of one binary produced different patterns for
+every averagine window from 150 Da up (see *Element order*). B6 still has to
+close the pattern comparison for every FeatureFinderCentroided_1 window against
+the C2 oracle.
 
 ## API mapping
 
@@ -135,15 +140,54 @@ FeatureFinderCentroided_1 window against the C2 oracle.
   a binary32 sum. The port performs the same two operations in the same order.
   A contracted fused multiply-add would round once; the executed SDK build does
   not contract (measured, below).
-- **Element order.** `run` iterates `EmpiricalFormula`'s
-  `std::map<const Element*, SignedSize>`, so the convolution order is pointer
-  order. The executed SDK iterates in `ElementDB` construction order (ascending
-  atomic number: H, C, N, O, P, S, ..., Br). The port sorts formula atoms by
-  atomic number, each natural element before its labelled isotopes in ascending
-  mass number, and sums `getLightestIsotopeWeight` in that order too. Natural
-  elements are measured; the labelled-isotope position follows
-  `ElementDB::buildElement_` (the natural element is allocated before
-  `storeIsotopes_`) and is source review only.
+- **Element order.** `run` convolves in the iteration order of `EmpiricalFormula`'s
+  `std::map<const Element*, SignedSize>` (`EmpiricalFormula.h:66`, member
+  `formula_` at `:341`; loop at `CoarseIsotopePatternGenerator.cpp:114-120`),
+  and `getLightestIsotopeWeight` sums in the same order
+  (`EmpiricalFormula.cpp:57-67`). The key is the address of an `Element` that
+  `ElementDB` allocates on first use (`ElementDB.cpp:580-588, 634-664`). The
+  order is therefore heap-address order, and **it is not fixed**. One probe
+  binary run 200 times in the fixed oracle environment
+  (`../oracle/b2-iso-element-order`) produced 22 distinct outputs:
+  - All natural elements in one formula: ascending atomic number in 173 runs;
+    14 other orders in the remaining 27. He came before H in 9 runs; B, F, Ne,
+    Na, N or O moved in 13; one block (Rb..Pd, Br..Sm, Tb..U or Bi..U) moved to
+    the front, or H..Se to the end, in 5 single runs.
+  - H, C, N, O, P, S: `H C N O P S` in 198 runs and `H N C O P S` in runs 40
+    and 147. Br came first in runs 32 and 111. Na sat between H and C in 3 runs
+    and between C and O in 2.
+  - Pairs of multi-isotope elements: He before H in 9 runs, B before Li in 13,
+    Tb before Gd in 1. Nd/Eu, Yb/Lu, Os/Ir and Hg/Tl kept ascending order in
+    all 200.
+  - Labelled isotopes had no majority position. `(13)C2C4H12O6(15)N1N1(2)H1`
+    iterated `H C N O (2)H (13)C (15)N` in 69 runs, `(2)H (13)C (15)N H C N O`
+    in 62, `H (2)H C (13)C N (15)N O` in 49, `(2)H H C N O (13)C (15)N` in 18
+    and with N before C in 2. `C1H1(13)C2O3` iterated `H C O (13)C` in 89
+    runs, `(13)C H C O` in 62 and `H C (13)C O` in 49.
+
+  The order changes the bits. In runs 40 and 147, `C1H1N1O1S1P1` (unbounded)
+  has bin-2 intensity `0x3d3540d5` instead of `0x3d3540d4`. The same two runs
+  change the weights, and for some windows the masses, of every
+  FeatureFinderAlgorithmPicked window from 150 to 8050 Da (limit 20), of the
+  RNA and DNA estimates at 1000 and 10000 Da and of the 100 kDa peptide
+  estimate. Only the 50 Da window is identical in all 200 runs. Br first changes
+  `C6H4Br2` and `C8H10Br1N1O2P1S1`. Monoisotopic elements and labelled isotopes
+  are single weight-1.0 peaks and cannot change weights, but they move the
+  summation order of the lightest-isotope weight. `C10H15Na2O3` with Na between
+  C and O (2 runs) and `C1H1(13)C2O3` in the `H C O (13)C` order (89 runs) end
+  in a different last bit.
+
+  No fixed order reproduces every run. The port sorts formula atoms by atomic
+  number and sums `getLightestIsotopeWeight` in that order. For natural
+  elements this reproduces the majority runs bit for bit in every measured
+  case, including all 81 windows
+  (`natural_element_patterns_match_the_majority_of_repeated_sdk_runs`). Each
+  labelled isotope follows its natural element, in ascending mass number. That
+  placement is a native choice, not `ElementDB` construction order. The 49 runs
+  that iterated it produced the port's bits exactly. More frequent orders can
+  end the lightest-isotope weight of a labelled formula in a different last bit,
+  as for `C1H1(13)C2O3` and `(13)C2C4H12O6(15)N1N1(2)H1`
+  (`labelled_isotope_placement_is_native_and_its_mass_anchor_can_differ`).
 - **Exponentiation.** `convolvePow_` returns its input for exponent 1, starts
   from the input (odd exponent) or the identity, and convolves each successive
   square whose bit is set, lowest bit first. Squares the source computes after
@@ -190,6 +234,15 @@ FeatureFinderCentroided_1 window against the C2 oracle.
   sum and a negative charge return `Error::InvalidValue`; the source produces
   infinities, NaN or `Exception::Precondition`. Failed renormalization leaves
   the distribution unchanged.
+- **Binary32 underflow.** For very large formulas every retained bin can
+  underflow to zero in binary32. Source precision then returns
+  `Error::InvalidValue` where `Double` succeeds. The executed SDK returns NaN
+  weights instead: all 20 bins of the 1,000,000 Da peptide averagine estimate
+  with limit 20 were NaN in every one of 200 runs. The 100,000 Da estimate stays
+  finite (`source_precision_errors_where_every_bin_underflows_and_cpp_returns_nan`).
+- **Fixed element order.** The port convolves in ascending atomic number, with
+  labelled isotopes after their natural element; the SDK's order varies between
+  runs (see *Element order*).
 - **Override validation.** `set_isotope_override` requires declared isotope
   mass numbers, a strictly increasing nominal layout that includes the lightest
   declared isotope, and a positive finite total. The
@@ -204,12 +257,23 @@ FeatureFinderCentroided_1 window against the C2 oracle.
   as for every other exponent; the protected source helper returns its input
   unchanged. Probabilities are equal.
 - **Allocation and work limits** (`MAX_ISOTOPE_PEAKS`,
-  `MAX_CONVOLUTION_PRODUCTS`) apply in both precisions; source precision counts
-  the same products as the native path.
+  `MAX_CONVOLUTION_PRODUCTS`) apply in both precisions. Each precision charges
+  the products of its own convolution sequence. For odd exponents, source
+  precision copies the input where the native path convolves it with the
+  identity. It also convolves in atomic-number rather than symbol order, which
+  changes the intermediate lengths. Its total can therefore be lower or higher.
+  Unbounded, `C44H95N12O13S1` costs 36,380 products in source precision and
+  36,245 natively; with 20 bins it costs 3,070 and 3,081
+  (`source_precision_work_follows_its_own_convolution_sequence`, a unit test in
+  `src/chemistry/isotopes.rs`).
 - **`trim_left` keeps its native default** (removes every peak when all are
   below the cutoff); only `trim_left_source` reproduces the source. The source
-  comparison promotes `float` to `double`; `trim_left_source` compares the stored
-  `f64`, which is the same comparison for source-precision results.
+  compares the `float` intensity that `insert` stored with the `double` cutoff,
+  so `trim_left_source` narrows each weight to `f32` before comparing. Executed:
+  weights 0.7 and 0.8 with cutoff 0.7 keep one peak, because 0.7 is stored as
+  0.699999988 (`source_trim_left_compares_the_narrowed_weight`). A weight beyond
+  the binary32 range is rejected, where the source would store an infinite
+  intensity.
 - **Poisson approximations** are not affected by `ProbabilityPrecision`;
   `approximateFromPeptideWeight` keeps a `float` running product in the source.
 - **Sorting** is stable where the source `std::sort` is unstable.
@@ -228,10 +292,12 @@ FeatureFinderCentroided_1 window against the C2 oracle.
 `libOpenMS.dylib` (core 4fdec46, Debug, AppleClang 21, arm64; the four headers
 used are hash-identical to the pin) and prints binary64 masses and binary32
 `Peak1D` intensities as hexadecimal bit patterns. It ran twice in the fixed
-oracle environment with byte-identical output. The 243-line output is the
-repository fixture `tests/data/isotopes_source_precision/probe.tsv`, labelled
-*oracle-generated (tier 1 executed differential)*. Hashes of the driver, run
-script, cross-check, logs, binary and manifest are in the provenance file.
+oracle environment with byte-identical output. Both runs iterated natural
+elements in ascending atomic number, the majority order measured below. The
+243-line output is the repository fixture
+`tests/data/isotopes_source_precision/probe.tsv`, labelled *oracle-generated
+(tier 1 executed differential)*. Hashes of the driver, run script, cross-check,
+logs, binary and manifest are in the provenance file.
 
 | Probe lines | Rust test | Contract |
 |---|---|---|
@@ -250,6 +316,26 @@ values. Comparisons are bitwise. The probe ran on macOS arm64; the Rust tests
 ran on Linux x86_64 (kim) and agree bit for bit, as expected for correctly
 rounded IEEE-754 `+`, `*`, `/` and narrowing with no `libm` call on the path.
 
+### Tier 1: repeated executions of one SDK binary
+
+`../oracle/b2-iso-element-order/probe.cpp` links the same product SDK and prints,
+per case, the `EmpiricalFormula` iteration order, `getLightestIsotopeWeight`
+and the `run` or estimate bits. `run.sh` built it once and executed it 200
+times in the fixed oracle environment on 2026-09-13 (macOS arm64, 16 cores).
+`tally.py` groups the outputs of each case. Its summary is the fixture
+`tests/data/isotopes_source_precision/element_order.tsv`: every distinct output
+with its run count and run numbers, the most frequent output first. For the
+windows and estimates the fixture keeps the majority output in full and lists
+the other outputs by run number.
+
+| Fixture lines | Rust test | Contract |
+|---|---|---|
+| `formula` (22 formulas, 47 distinct outputs) | `natural_element_patterns_match_the_majority_of_repeated_sdk_runs`, `labelled_isotope_placement_is_native_and_its_mass_anchor_can_differ` | order, lightest-isotope weight and `run` bits per distinct output. H, C, N, O, P, S, Br, Cl, Na, Fe, Se, Mg, K, Ca, Cu, Zn, He, Li, B, Nd, Eu, Yb, Lu, Hg, Tl, Gd and Tb match the majority output. `Os3Ir3` differs in every run because `ElementDB.cpp:512` builds iridium from rhenium's tables (reported to the integrator) |
+| `window` (81), `estimate` (4), `other` | `natural_element_patterns_match_the_majority_of_repeated_sdk_runs` | majority bits equal the port and `probe.tsv`; the other outputs are runs 40 and 147 |
+| `underflow` (2) | `source_precision_errors_where_every_bin_underflows_and_cpp_returns_nan` | NaN weights at 1,000,000 Da; finite bits at 100,000 Da |
+| `trim_narrow` (2) | `source_trim_left_compares_the_narrowed_weight` | `insert` narrowing and `trimLeft` |
+| `all_natural`, `all_natural_labelled`, `all_natural_max20` | documentation only | distinct all-element orders, described by the displaced elements |
+
 ### Tier 3: upstream class tests (`TEST_REAL_SIMILAR` rule)
 
 `tests/isotopes_source_precision.rs` implements ClassTest `isRealSimilar`
@@ -257,8 +343,10 @@ rounded IEEE-754 `+`, `*`, `/` and narrowing with no `libm` call on the path.
 1 + 1e-5) and asserts the class-test literals under source precision.
 
 - `CoarseIsotopeDistribution_test.cpp`, 23 sections: the three constructors,
-  setMaxIsotope (317 bins), convolve_, run (glucose, charged glucose, explicit
-  adduct, negative charge), convolvePow_ (C222N190O110, Br2, CBr2),
+  setMaxIsotope (317 bins), convolve_, run (glucose, charged glucose, the
+  explicit C6H14O6 reference and its mass bound, negative charge; the
+  `addChargeAdduct(2)` equivalence is not ported because the Rust
+  `EmpiricalFormula` has no adduct arithmetic), convolvePow_ (C222N190O110, Br2, CBr2),
   estimateFromWeightAndComp, estimateFromPeptideWeight (probabilities, masses,
   rounded masses), approximateFromPeptideWeight and approximateIntensities (KL
   below 0.05 against the source-precision truth), estimateFromPeptideWeightAndS,
@@ -311,6 +399,23 @@ this package was built; the windows 0..80 above cover FFC_1 masses up to
 8050 Da, which includes every window whose maximum MS1 m/z times charge 2 stays
 below that bound.
 
+C2 has landed since. In the B2 fix round, a temporary, uncommitted replica of
+the reviewer's comparison ran on kim against this tree: source precision,
+`trim_left_source` (with narrowing), `trim_right`, optional begin and end, the
+maximum and normalisation. It matched all 15 FFC_1 windows bit for bit in six C2
+records: `omp1` and `omp4` of `ffap_ffc1_symmetric`, `ffap_ffc1_asymmetric` and
+`ffap_ffc1_user_seeds`. The committed test remains B6's.
+
+Two measured properties affect that comparison:
+
+- Each C2 record comes from one SDK execution. 2 of 200 executions iterated N
+  before C and changed every window from 150 Da up. A mismatch in a single C2
+  run can therefore be the oracle's element order rather than the port. B6
+  should record or re-execute before it concludes that the port is wrong.
+- Source precision returns an error when every retained bin underflows. B6 must
+  handle a per-window `Err` instead of assuming success. FFC_1 (maximum
+  1316.5 Da) is far below that mass.
+
 ### Verification commands
 
 Run from the worktree root on the kim build node through
@@ -348,11 +453,20 @@ python3 tools/check_doc_coverage.py
   wrong theoretical pattern (executed: 30 instead of 6 bins for the first
   window at 12C = 90 %). A `set()` of the two-isotope container, as before the
   override refactoring, would give the intended pattern.
-- **Coarse pattern bits depend on `Element*` addresses.** `run` convolves in
-  `std::map<const Element*, SignedSize>` order, which is heap-address order.
-  It happens to follow `ElementDB` construction order in the executed build, but
-  a different allocator could change the binary32 patterns (78 of 101 probe
-  lines change under a different element order).
+- **`CoarseIsotopePatternGenerator::run` gives different bits in different
+  runs of the same binary.** `EmpiricalFormula` stores atoms in
+  `std::map<const Element*, SignedSize>` (`EmpiricalFormula.h:66`). `run`
+  (`CoarseIsotopePatternGenerator.cpp:114-120`) and `getLightestIsotopeWeight`
+  (`EmpiricalFormula.cpp:57-67`) therefore iterate in `Element` address order,
+  and binary32 accumulation depends on that order. Minimal reproduction: build
+  `../oracle/b2-iso-element-order/probe.cpp` against the SDK and run it 200
+  times. `CoarseIsotopePatternGenerator(0).run(EmpiricalFormula("C1H1N1O1S1P1"))`
+  iterated `H C N O P S` in 198 runs, with bin-2 intensity `0x3d3540d4`. Runs 40
+  and 147 iterated `H N C O P S` and printed `0x3d3540d5`. The same two runs
+  changed `estimateFromPeptideWeight` for every FeatureFinderAlgorithmPicked
+  window from 150 to 8050 Da. Labelled isotopes and elements such as Na, Br, He
+  and B also move between runs (see *Element order*). A fix is to order the map
+  by atomic number and isotope mass number instead of by pointer.
 
 ## Consumers
 

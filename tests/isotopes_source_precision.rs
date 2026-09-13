@@ -7,8 +7,11 @@
 //! executed C++ SDK probe `../oracle/b2-iso-source-precision` (product SDK,
 //! core 4fdec46; hashes in `tests/data/isotopes_source_precision_provenance.json`).
 //! Masses are binary64 and `Peak1D` intensities binary32; both are compared bit
-//! for bit. Tier 3: `CoarseIsotopeDistribution_test.cpp` and
-//! `IsotopeDistribution_test.cpp` literals at `bc9cc12`, compared with the
+//! for bit. `tests/data/isotopes_source_precision/element_order.tsv` summarises
+//! 200 executions of one SDK binary by `../oracle/b2-iso-element-order`: the
+//! distinct outputs per case with their run counts, because the SDK's element
+//! iteration order varies between runs. Tier 3: `CoarseIsotopeDistribution_test.cpp`
+//! and `IsotopeDistribution_test.cpp` literals at `bc9cc12`, compared with the
 //! ClassTest `TEST_REAL_SIMILAR` rule. Tier 4: native errors and limits.
 
 use openms::chemistry::isotopes::{
@@ -18,6 +21,7 @@ use openms::chemistry::isotopes::{
 use openms::chemistry::{EmpiricalFormula, element};
 
 const PROBE: &str = include_str!("data/isotopes_source_precision/probe.tsv");
+const RUNS: &str = include_str!("data/isotopes_source_precision/element_order.tsv");
 const SINGLE: ProbabilityPrecision = ProbabilityPrecision::SourceSingle;
 const APPROXIMATE: CoarseMassMode = CoarseMassMode::Approximate;
 const NOMINAL: CoarseMassMode = CoarseMassMode::Nominal;
@@ -85,6 +89,42 @@ fn bits(distribution: &IsotopeDistribution) -> Vec<(u64, u32)> {
             (peak.mass.to_bits(), single.to_bits())
         })
         .collect()
+}
+
+/// Repeated-run fixture lines whose leading fields equal `prefix`, in fixture
+/// order (the most frequent output of a case comes first).
+fn run_lines(prefix: &[&str]) -> Vec<Vec<&'static str>> {
+    RUNS.lines()
+        .map(|line| line.split('\t').collect::<Vec<_>>())
+        .filter(|fields| fields.len() >= prefix.len() && &fields[..prefix.len()] == prefix)
+        .collect()
+}
+
+/// Number of SDK executions summarised by the repeated-run fixture.
+fn recorded_runs() -> usize {
+    run_lines(&["runs"])[0][1].parse().unwrap()
+}
+
+/// A run count field.
+fn count_at(fields: &[&str], index: usize) -> usize {
+    fields[index].parse().unwrap()
+}
+
+/// `(mass bits, intensity bits)` from a size field and its `mass:intensity` peaks.
+fn peak_fields(fields: &[&str]) -> Vec<(u64, u32)> {
+    let count: usize = fields[0].parse().unwrap();
+    let peaks: Vec<(u64, u32)> = fields[1..]
+        .iter()
+        .map(|peak| {
+            let (mass, intensity) = peak.split_once(':').unwrap();
+            (
+                u64::from_str_radix(mass, 16).unwrap(),
+                u32::from_str_radix(intensity, 16).unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(peaks.len(), count);
+    peaks
 }
 
 /// ClassTest `isRealSimilar` (`ClassTest.cpp:364-490`): absolute difference
@@ -178,6 +218,286 @@ fn averagine_estimates_match_executed_cpp_bits() {
 }
 
 #[test]
+fn natural_element_patterns_match_the_majority_of_repeated_sdk_runs() {
+    // EmpiricalFormula iterates std::map<const Element*, SignedSize>
+    // (EmpiricalFormula.h:66), so its element order follows ElementDB addresses
+    // and varies between runs of one SDK binary, and the binary32 output varies
+    // with it. The port convolves natural elements in ascending atomic number,
+    // the majority order.
+    let runs = recorded_runs();
+    assert_eq!(runs, 200);
+    for (label, text, max, majority_order) in [
+        ("CHNOPS_max0", "C1H1N1O1S1P1", None, "H C N O P S"),
+        ("C44H95N12O13S1_max0", "C44H95N12O13S1", None, "H C N O S"),
+        (
+            "C50H80N13O20P1S1_max20",
+            "C50H80N13O20P1S1",
+            Some(20),
+            "H C N O P S",
+        ),
+        (
+            "C95H119N37O68P10_max20",
+            "C95H119N37O68P10",
+            Some(20),
+            "H C N O P",
+        ),
+        ("C6H12O6+2_max3", "C6H12O6+2", Some(3), "H C O"),
+        (
+            "C8H10Br1N1O2P1S1_max0",
+            "C8H10Br1N1O2P1S1",
+            None,
+            "H C N O P S Br",
+        ),
+        ("C6H4Br2_max0", "C6H4Br2", None, "H C Br"),
+        ("Cl_C6H5Cl1_max0", "C6H5Cl1", None, "H C Cl"),
+        ("Na_C10H15Na2O3_max0", "C10H15Na2O3", None, "H C O Na"),
+        (
+            "mixed_C10H15Fe1Cl1Na2O3Se1_max20",
+            "C10H15Fe1Cl1Na2O3Se1",
+            Some(20),
+            "H C O Na Cl Fe Se",
+        ),
+        (
+            "mixed_C20H30N4O6K1Ca1Mg1Zn1Cu1_max20",
+            "C20H30N4O6K1Ca1Mg1Zn1Cu1",
+            Some(20),
+            "H C N O Mg K Ca Cu Zn",
+        ),
+        ("pair_H6He3_max0", "H6He3", None, "H He"),
+        ("pair_Li3B3_max0", "Li3B3", None, "Li B"),
+        ("pair_Nd3Eu3_max0", "Nd3Eu3", None, "Nd Eu"),
+        ("pair_Yb3Lu3_max0", "Yb3Lu3", None, "Yb Lu"),
+        ("pair_Hg3Tl3_max0", "Hg3Tl3", None, "Hg Tl"),
+        ("pair_Gd3Tb3_max0", "Gd3Tb3", None, "Gd Tb"),
+    ] {
+        let lines = run_lines(&["formula", label]);
+        let majority = &lines[0];
+        assert!(2 * count_at(majority, 2) > runs, "{label}: majority");
+        assert_eq!(majority[4], majority_order, "{label}");
+        assert_eq!(
+            lines.iter().map(|line| count_at(line, 2)).sum::<usize>(),
+            runs,
+            "{label}"
+        );
+        let pattern = source(max, APPROXIMATE).run(&formula(text)).unwrap();
+        assert_eq!(bits(&pattern), peak_fields(&majority[6..]), "{label}");
+        assert_eq!(
+            format!("{:016x}", pattern.peaks()[0].mass.to_bits()),
+            majority[5],
+            "{label}: lightest-isotope weight"
+        );
+        for other in &lines[1..] {
+            assert_ne!(
+                other[4], majority[4],
+                "{label}: outputs vary with the order"
+            );
+        }
+    }
+
+    // ElementDB.cpp:512 builds iridium from rhenium's abundance and mass tables,
+    // so no run of the SDK matches the port's iridium table.
+    let iridium = run_lines(&["formula", "pair_Os3Ir3_max0"]);
+    assert_eq!((iridium.len(), iridium[0][4]), (1, "Os Ir"));
+    let pattern = source(None, APPROXIMATE).run(&formula("Os3Ir3")).unwrap();
+    assert_ne!(bits(&pattern), peak_fields(&iridium[0][6..]));
+
+    // Minimal reproduction: C1H1N1O1S1P1, unbounded. Two of 200 runs iterated N
+    // before C and differ from the other 198 in the intensity of bin 2.
+    let chnops = run_lines(&["formula", "CHNOPS_max0"]);
+    assert_eq!(chnops.len(), 2);
+    assert_eq!(
+        (count_at(&chnops[1], 2), chnops[1][3], chnops[1][4]),
+        (2, "40,147", "H N C O P S")
+    );
+    let (usual, swapped) = (peak_fields(&chnops[0][6..]), peak_fields(&chnops[1][6..]));
+    assert_eq!(
+        usual.iter().map(|peak| peak.0).collect::<Vec<_>>(),
+        swapped.iter().map(|peak| peak.0).collect::<Vec<_>>()
+    );
+    assert_eq!((usual[2].1, swapped[2].1), (0x3d35_40d4, 0x3d35_40d5));
+    let n_before_c = chnops[1][3];
+
+    // FeatureFinderAlgorithmPicked step 2.5 windows (limit 20, width 100): the
+    // same two runs change every window except the 50 Da one.
+    let windows = source(Some(20), APPROXIMATE);
+    for index in 0..=80_usize {
+        let label = format!("ffap20_w{index}");
+        let majority = &run_lines(&["window", &label])[0];
+        let pattern = windows
+            .estimate_from_peptide_weight(
+                0.5 * MASS_WINDOW_WIDTH + index as f64 * MASS_WINDOW_WIDTH,
+            )
+            .unwrap();
+        assert_eq!(bits(&pattern), peak_fields(&majority[3..]), "{label}");
+        assert_eq!(bits(&pattern), probe_peaks("window", &label), "{label}");
+        let others = run_lines(&["other", "window", &label]);
+        let expected: Vec<&str> = if index == 0 { vec![] } else { vec![n_before_c] };
+        assert_eq!(
+            others.iter().map(|fields| fields[4]).collect::<Vec<_>>(),
+            expected,
+            "{label}"
+        );
+        assert_eq!(
+            count_at(majority, 2)
+                + others
+                    .iter()
+                    .map(|fields| count_at(fields, 3))
+                    .sum::<usize>(),
+            runs
+        );
+    }
+    for (family, mass) in [
+        ("rna", 1000.0),
+        ("dna", 1000.0),
+        ("rna", 10000.0),
+        ("dna", 10000.0),
+    ] {
+        let label = format!("{family}_max20_{mass}");
+        let pattern = if family == "rna" {
+            windows.estimate_from_rna_weight(mass)
+        } else {
+            windows.estimate_from_dna_weight(mass)
+        }
+        .unwrap();
+        let majority = &run_lines(&["estimate", &label])[0];
+        assert_eq!(bits(&pattern), peak_fields(&majority[3..]), "{label}");
+        assert_eq!(
+            run_lines(&["other", "estimate", &label])
+                .iter()
+                .map(|fields| fields[4])
+                .collect::<Vec<_>>(),
+            [n_before_c],
+            "{label}"
+        );
+    }
+}
+
+#[test]
+fn labelled_isotope_placement_is_native_and_its_mass_anchor_can_differ() {
+    // No position of the labelled isotopes was a majority in the repeated SDK
+    // runs, so the port's placement (after its natural element) is a native
+    // choice. Runs that iterated that order produced the port's bits exactly.
+    let runs = recorded_runs();
+    for (label, text, port_order, natural_order, anchor_differs) in [
+        (
+            "labelled_13C2C4H12O6_15N1N1_2H1_max0",
+            "(13)C2C4H12O6(15)N1N1(2)H1",
+            "H (2)H C (13)C N (15)N O",
+            "H C N O",
+            true,
+        ),
+        (
+            "labelled_C1H1_13C2O3_max0",
+            "C1H1(13)C2O3",
+            "H C (13)C O",
+            "H C O",
+            true,
+        ),
+        (
+            "labelled_C6H11_2H1O6_max0",
+            "C6H11(2)H1O6",
+            "H (2)H C O",
+            "H C O",
+            false,
+        ),
+        (
+            "labelled_13C6H12O6_max0",
+            "(13)C6H12O6",
+            "H (13)C O",
+            "H O",
+            false,
+        ),
+    ] {
+        let lines = run_lines(&["formula", label]);
+        assert!(lines.len() > 1, "{label}: the order varies");
+        assert!(
+            lines.iter().all(|line| 2 * count_at(line, 2) <= runs),
+            "{label}: no majority order"
+        );
+        let port = bits(&source(None, APPROXIMATE).run(&formula(text)).unwrap());
+        let same_order = lines.iter().find(|line| line[4] == port_order).unwrap();
+        assert_eq!(port, peak_fields(&same_order[6..]), "{label}");
+        // Labelled isotopes are single weight-1.0 peaks, so wherever they sit,
+        // runs with the majority natural-element order give the port's weights.
+        for line in &lines {
+            let natural: Vec<&str> = line[4].split(' ').filter(|s| !s.starts_with('(')).collect();
+            if natural.join(" ") == natural_order {
+                assert_eq!(
+                    peak_fields(&line[6..])
+                        .iter()
+                        .map(|peak| peak.1)
+                        .collect::<Vec<_>>(),
+                    port.iter().map(|peak| peak.1).collect::<Vec<_>>(),
+                    "{label}: {}",
+                    line[4]
+                );
+            }
+        }
+        // The lightest-isotope weight is summed in iteration order; the most
+        // frequent run's sum can differ from the port's in the last bit.
+        assert_eq!(lines[0][5] != same_order[5], anchor_differs, "{label}");
+    }
+}
+
+#[test]
+fn source_precision_errors_where_every_bin_underflows_and_cpp_returns_nan() {
+    let runs = recorded_runs();
+    let executed = run_lines(&["underflow", "peptide_max20_1e6"]);
+    assert_eq!((executed.len(), count_at(&executed[0], 2)), (1, runs));
+    let peaks = peak_fields(&executed[0][3..]);
+    assert_eq!(peaks.len(), 20);
+    assert!(
+        peaks
+            .iter()
+            .all(|&(_, intensity)| f32::from_bits(intensity).is_nan()),
+        "C++ renormalize divides zero by zero"
+    );
+    assert!(
+        source(Some(20), APPROXIMATE)
+            .estimate_from_peptide_weight(1e6)
+            .is_err()
+    );
+    let double = Generator::new(Some(20), APPROXIMATE)
+        .unwrap()
+        .estimate_from_peptide_weight(1e6)
+        .unwrap();
+    assert_eq!(double.len(), 20);
+    let finite = source(Some(20), APPROXIMATE)
+        .estimate_from_peptide_weight(1e5)
+        .unwrap();
+    assert_eq!(
+        bits(&finite),
+        peak_fields(&run_lines(&["underflow", "peptide_max20_1e5"])[0][3..])
+    );
+}
+
+#[test]
+fn source_trim_left_compares_the_narrowed_weight() {
+    // IsotopeDistribution::insert stores 0.7 as the float 0.699999988, which
+    // does not reach a double cutoff of 0.7 (executed: one peak remains).
+    let narrowed = |distribution: &IsotopeDistribution| {
+        distribution
+            .peaks()
+            .iter()
+            .map(|peak| (peak.mass.to_bits(), (peak.probability as f32).to_bits()))
+            .collect::<Vec<_>>()
+    };
+    let mut weights = distribution(&[(0.0, 0.7), (1.0, 0.8)]);
+    let inserted = &run_lines(&["trim_narrow", "insert_0.7_0.8"])[0];
+    assert_eq!(narrowed(&weights), peak_fields(&inserted[3..]));
+    weights.trim_left_source(0.7).unwrap();
+    let trimmed = &run_lines(&["trim_narrow", "insert_0.7_0.8_trimLeft0.7"])[0];
+    assert_eq!(narrowed(&weights), peak_fields(&trimmed[3..]));
+    assert_eq!(weights.len(), 1);
+
+    // A weight beyond binary32 is rejected; the distribution is unchanged.
+    let mut wide = distribution(&[(0.0, 0.5), (1.0, 1e39)]);
+    let old = wide.clone();
+    assert!(wide.trim_left_source(0.5).is_err());
+    assert_eq!(wide, old);
+}
+
+#[test]
 fn feature_finder_picked_windows_match_executed_cpp_bits_and_trims() {
     // FeatureFinderAlgorithmPicked.cpp:364-374: max_isotopes 20, window centre
     // 0.5 * width + index * width, source trimLeft then trimRight.
@@ -236,14 +556,18 @@ fn override_weights_narrow_like_source_insertion_and_match_cpp_windows() {
         probe_peaks("override", "ffap_insert_12C_90")[0],
         (0.0_f64.to_bits(), 1.0_f32.to_bits())
     );
-    for index in [0_usize, 1, 5, 10] {
-        let stray = probe_peaks(
-            "override_window",
-            &format!("ffap_insert_12C_90_max1020_w{index}"),
-        );
-        let intended = probe_peaks("override_window", &format!("set_12C_90_max1020_w{index}"));
-        assert!(stray.len() > intended.len());
-    }
+    let sizes = |construction: &str| {
+        [0_usize, 1, 5, 10].map(|index| {
+            probe_peaks(
+                "override_window",
+                &format!("{construction}_max1020_w{index}"),
+            )
+            .len()
+        })
+    };
+    // Executed windows 0/1/5/10, as cited in the support document.
+    assert_eq!(sizes("ffap_insert_12C_90"), [30, 110, 436, 811]);
+    assert_eq!(sizes("set_12C_90"), [6, 26, 148, 247]);
     let stray = distribution(&[(0.0, 1.0), (12.0, 0.9), (13.0, 0.1)]);
     assert!(
         source(Some(1020), APPROXIMATE)
@@ -387,6 +711,9 @@ fn coarse_class_test_literals_hold_in_source_precision() {
     similar(charged.peaks()[0].probability, 0.923246, "charged p0");
     similar(charged.peaks()[2].mass, 184.0846529, "charged m2");
     similar(charged.peaks()[2].probability, 0.0132435, "charged p2");
+    // The addChargeAdduct(2) equivalence (:150-170) is not ported: the Rust
+    // EmpiricalFormula has no adduct arithmetic. Only the explicit C6H14O6
+    // reference and its mass bound are transcribed.
     let explicit = source(Some(3), APPROXIMATE)
         .run(&formula("C6H14O6"))
         .unwrap();
@@ -579,7 +906,11 @@ fn coarse_class_test_literals_hold_in_source_precision() {
             assert_eq!(a.mass, b.mass);
         }
     }
-    for (precursor, fragment, mass) in [(200.0, 100.0, 100.170), (2000.0, 100.0, 100.170)] {
+    for (precursor, fragment, mass) in [
+        (200.0, 100.0, 100.170),
+        (2000.0, 100.0, 100.170),
+        (2000.0, 1000.0, 999.714),
+    ] {
         let joint = unbounded
             .estimate_fragment_from_weights(
                 precursor,
