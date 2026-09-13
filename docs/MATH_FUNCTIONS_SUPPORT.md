@@ -57,7 +57,7 @@ Every public member of the header appears below.
 | `template<T> T ppmToMassAbs(T ppm, T mz_ref)` | `ppm_to_mass_abs(f64, f64) -> Result<f64>` | Its C++ comment block opens with `/*`, so this member is absent from the generated Doxygen; its content is carried into the rustdoc anyway. |
 | `pair<double,double> getTolWindow(double val, double tol, bool ppm)` | `tolerance_window(f64, f64, bool) -> Result<(f64, f64)>` | The asymmetric ppm window is reproduced exactly; `tol == 1e6` is checked instead of dividing by zero. |
 | `template<T1> T1::value_type quantile(const T1& x, double q)` | `quantile(&[f64], f64) -> Result<f64>` | `f64` samples only. `Exception::InvalidParameter` on empty becomes `Error::InvalidValue`; sortedness is now checked (`Error::UnsortedData`). |
-| `class RandomShuffler` | **not ported here**: `chemistry::decoy_random::DecoyRandom` already implements exactly these semantics (Boost `mt19937_64` seeding and normalization, Boost `uniform_int` bucket mapping, descending Fisher-Yates) but is `pub(crate)` inside another group's module and specialised to `&mut [u8]`. See "Deferred: RandomShuffler" below. |
+| `class RandomShuffler` | **not ported here**: `chemistry::decoy_random::DecoyRandom` already implements exactly these semantics (the `boost::mt19937_64` word stream, taken from `rand_mt::Mt64`; Boost `uniform_int` bucket mapping; descending Fisher-Yates) but is `pub(crate)` inside another group's module and specialised to `&mut [u8]`. See "Deferred: RandomShuffler" below. |
 | `RandomShuffler::RandomShuffler(int seed)` | not ported here; `DecoyRandom::seeded(u64)` | |
 | `RandomShuffler::RandomShuffler(const boost::mt19937_64&)` | not ported: constructing from a foreign engine value has no Rust meaning without that engine type. | |
 | `RandomShuffler::RandomShuffler()` / `~RandomShuffler()` | not ported: a default engine state and a trivial destructor have no counterpart. | |
@@ -193,17 +193,21 @@ Every divergence, and why.
 
 `Math::RandomShuffler` is the only public member of the header without a
 counterpart in this module, and the reason is placement rather than difficulty.
-Its exact semantics - Boost `mt19937_64` seeding and state normalization, Boost
-`uniform_int`'s bucket-division-with-rejection mapping, and the *descending*
-Fisher-Yates loop - are already implemented, faithfully and with an independent
-oracle, in `src/chemistry/decoy_random.rs` as `DecoyRandom`. That type is
+Its exact semantics are already implemented, with an independent oracle, in
+`src/chemistry/decoy_random.rs` as `DecoyRandom`. The `boost::mt19937_64` word
+stream comes from the `rand_mt::Mt64` dependency; Boost `uniform_int`'s
+bucket-division-with-rejection mapping and the *descending* Fisher-Yates loop
+are ported beside it. `Mt64` omits Boost's seed-time state normalization, which
+changes no output word; `DECOY_REFERENCE_REVIEW.md` gives the reason and the
+executed comparison against the hand-written engine it replaced. That type is
 `pub(crate)`, its `shuffle` is `pub(super)`, and it shuffles `&mut [u8]`.
 
 Publishing a generic shuffler from `concept::math_functions` would mean one of
 two things, and neither belongs in this work package:
 
-* duplicating the MT19937-64 engine, which would put two copies of a
-  bit-exactness-critical generator in the crate, or
+* duplicating the Boost range mapping and the Fisher-Yates loop, which would put
+  two copies of bit-exactness-critical code in the crate (the engine is a shared
+  dependency and needs no copy), or
 * widening the visibility of another group's private module and generalising its
   element type, which changes `DECOY_SUPPORT`'s documented surface and its
   ledger scope.

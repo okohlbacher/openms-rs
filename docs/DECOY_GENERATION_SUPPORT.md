@@ -58,11 +58,11 @@ reproducible execution without shared cache or random-state races. The outer
 multi-variant operation ignores the receiver's seed and cache and does not
 deduplicate identical variants or guarantee a difference from the target.
 
-The private random helper implements MT19937-64 and the Boost integer-bucket
-rejection mapping used by the source's descending Fisher–Yates shuffle. Seeded
-source strings and independently derived integer references test the mapping;
-using the same engine with modulo indexing or another shuffle distribution
-would change the results. The inspected Boost 1.90 headers are supplemental
+The private random helper draws MT19937-64 words from `rand_mt::Mt64` and
+implements the Boost integer-bucket rejection mapping used by the source's
+descending Fisher–Yates shuffle. Seeded source strings and independently derived
+integer references test the mapping; using the same engine with modulo indexing
+or another shuffle distribution would change the results. The inspected Boost 1.90 headers are supplemental
 evidence, separate from the pinned OpenMS snapshot. Its time seeds and concurrent
 source schedules are not reproducible reference cases.
 

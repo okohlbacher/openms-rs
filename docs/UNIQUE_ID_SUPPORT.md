@@ -34,12 +34,13 @@ which its ID interface considers invalid, despite its method descriptions saying
 that generated IDs are valid. These random identifiers are not cryptographic
 secrets and cannot guarantee uniqueness.
 
-The existing private MT19937-64 implementation is reused, including its tested
-Boost state normalization. Only crate-private visibility changes are required;
-no recurrence, seed arithmetic or decoy shuffling operation is changed. Its
-original Boost Software License notice remains in the shared implementation.
-The source's six exact words for seed `546666321` independently check this reuse;
-the engine's existing multi-cycle reference tests remain applicable.
+The engine is `rand_mt::Mt64` from `rand_mt 6.0.3`, the reference MT19937-64 and
+the same algorithm as the source's `std::mt19937_64`. The generator first reused
+the decoy generator's private hand-written engine; it now holds `Mt64` directly,
+so the `concept` module no longer depends on `chemistry`. Neither
+`std::mt19937_64` nor `Mt64` applies Boost's seed-time state normalization. The
+source's six exact words for seed `546666321` check this stream, and the decoy
+engine's multi-cycle reference tests run against the same crate.
 
 A UUID consumes two consecutive words from the same owned generator. As in the
 source `memcpy`, each word is laid out in the host's native byte order, then the
@@ -51,8 +52,10 @@ a caller can lock one shared generator for the complete operation.
 
 `Clone` deliberately copies native generator state and therefore repeats its
 future sequence. The source singleton is not copied; this is an explicit native
-ownership facility. Initialization and each draw use fixed-size state. UUID
-formatting allocates a single 36-byte string. No dependency is added.
+ownership facility. `Debug` shows the seed but prints the engine as `Mt64 {}`,
+because the crate keeps its state private. Initialization and each draw use
+fixed-size state. UUID formatting allocates a single 36-byte string. The only
+dependency is `rand_mt`, pinned to an exact version.
 
 ## Common value interface
 
