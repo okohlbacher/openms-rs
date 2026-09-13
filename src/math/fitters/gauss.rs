@@ -26,13 +26,18 @@ use crate::{Error, Result};
 /// a constant. Here it is a constant.
 const HALF_LOG_TWO_PI: f64 = 0.918_938_533_204_672_7;
 
-/// `sqrt(2 * pi)`, Boost's `constants::root_two_pi`, used by the density so
-/// that the normalization factor is formed exactly as the source forms it.
+/// `sqrt(2 * pi)`, the divisor Boost's normal density actually forms.
 ///
-/// Boost stores this as a decimal literal, whose nearest `f64` is one unit in
-/// the last place above `(2.0 * PI).sqrt()`; the literal is what the source
-/// divides by, so the literal is what is used here.
-const ROOT_TWO_PI: f64 = 2.506_628_274_631_000_7;
+/// `boost/math/distributions/normal.hpp` writes the last step of `pdf` as
+/// `result /= sd * sqrt(2 * constants::pi<RealType>())`: it evaluates the
+/// square root of the rounded `2 * pi` at run time and does **not** use
+/// `constants::root_two_pi`. That distinction is worth a constant of its own,
+/// because Boost's `root_two_pi` decimal literal rounds to
+/// `2.506_628_274_631_000_7`, one unit in the last place *above* this value,
+/// and using it costs `GaussFitter::eval` up to one unit in the last place on
+/// every point. The unit test below pins this constant to
+/// `(2.0 * PI).sqrt()`, which is the expression the source evaluates.
+const SQRT_TWO_PI: f64 = 2.506_628_274_631_000_2;
 
 /// Number of fitted parameters: amplitude, center and width.
 const PARAMETERS: usize = 3;
@@ -82,8 +87,8 @@ impl GaussFitResult {
     ///
     /// Returns the intensity, that is the normal probability density scaled so
     /// that its maximum at `x0` equals `a`. The source spells this out as
-    /// `pdf(x) * (A / pdf(x0))` and warns in a comment that multiplying the
-    /// density by `A` directly would be wrong; the same two-step form is used
+    /// `pdf(x) * (A / pdf(x0))`, with a comment warning that "simply
+    /// multiplying the CDF with A is wrong"; the same two-step form is used
     /// here, in the same order, so the result is bit-comparable.
     ///
     /// This may be called with any parameters - the initial guess, to see a
@@ -144,12 +149,18 @@ impl GaussFitResult {
 }
 
 /// Boost's `normal_distribution` density, in its arithmetic order.
+///
+/// Statement for statement `boost/math/distributions/normal.hpp`: form the
+/// deviation, negate-and-square it in place, divide by `2 * sd * sd`,
+/// exponentiate, then divide by `sd * sqrt(2 * pi)`. The last divisor is
+/// [`SQRT_TWO_PI`], the value Boost computes there - not its `root_two_pi`
+/// literal, which is a different `f64`.
 fn normal_pdf(x: f64, mean: f64, sd: f64) -> f64 {
     let mut exponent = x - mean;
     exponent *= -exponent;
     exponent /= 2.0 * sd * sd;
     let mut result = exponent.exp();
-    result /= sd * ROOT_TWO_PI;
+    result /= sd * SQRT_TWO_PI;
     result
 }
 
@@ -330,11 +341,22 @@ mod tests {
     #[test]
     fn half_log_two_pi_matches_the_source_expression() {
         assert_eq!(HALF_LOG_TWO_PI, 0.5 * (2.0 * std::f64::consts::PI).ln());
-        // Boost's decimal literal is one ulp above the square root of the
-        // rounded `2 * PI`; both are within an ulp of the true constant.
-        let computed = (2.0 * std::f64::consts::PI).sqrt();
-        assert!(ROOT_TWO_PI > computed);
-        assert!((ROOT_TWO_PI - computed) / ROOT_TWO_PI < f64::EPSILON);
+    }
+
+    /// Boost's `pdf` divides by `sd * sqrt(2 * constants::pi<RealType>())`, so
+    /// the divisor is the square root of the rounded `2 * pi`, evaluated at run
+    /// time. It is *not* `constants::root_two_pi`, whose decimal literal rounds
+    /// to a different `f64` one unit in the last place higher. Both halves are
+    /// asserted so that a future edit cannot quietly swap one for the other.
+    #[test]
+    fn the_density_divisor_is_the_square_root_boost_evaluates() {
+        assert_eq!(SQRT_TWO_PI, (2.0 * std::f64::consts::PI).sqrt());
+        let root_two_pi_literal = 2.506_628_274_631_000_7_f64;
+        assert_ne!(SQRT_TWO_PI, root_two_pi_literal);
+        assert_eq!(
+            f64::from_bits(SQRT_TWO_PI.to_bits() + 1),
+            root_two_pi_literal
+        );
     }
 
     #[test]

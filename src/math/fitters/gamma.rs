@@ -85,10 +85,20 @@ fn gamma_density(b: f64, p: f64, x: f64) -> f64 {
 /// The source calls `boost::math::digamma`. Boost uses rational minimax
 /// approximations; this is the recurrence `psi(x) = psi(x + 1) - 1/x` up to
 /// `x >= 10` followed by the standard asymptotic series through the Bernoulli
-/// number `B14`. Both are accurate to a few units in the last place, and the
-/// value only steers the Jacobian: the converged parameters are determined by
-/// the residual, not by the search direction. The fitted `b` and `p` of the
-/// class test are reproduced well inside its tolerance.
+/// number `B14`. Both are accurate to a few units in the last place.
+///
+/// That substitution is not free of consequences and is not claimed to be. The
+/// value enters the shape column of the Jacobian, and in Levenberg-Marquardt
+/// the Jacobian sets the `diag` scaling, the trust-region radius, the gradient
+/// test and every termination test, so a perturbed Jacobian can stop the
+/// iteration at a slightly different point - the same argument the solver
+/// module makes for keeping Eigen's stopping rule. What makes the substitution
+/// safe here is the size of the slack, not an absence of effect: the agreement
+/// with the closed forms is better than `1e-14` absolute, while the Gamma class
+/// test asserts only the parameters its data were generated from, `b = 7.25`
+/// and `p = 3.11`, at `0.01` absolute, and the port lands `2.7e-3` and `6.9e-3`
+/// away. Nothing in this group publishes a C++-produced Gamma parameter, so no
+/// tighter statement is available and none is made.
 fn digamma(x: f64) -> f64 {
     let mut value = x;
     let mut result = 0.0f64;

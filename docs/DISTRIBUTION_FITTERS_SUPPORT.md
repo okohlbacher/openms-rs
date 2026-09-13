@@ -43,16 +43,112 @@ a dependency, so it is reproduced in
   `TooManyFunctionEvaluation`, `FtolTooSmall`, `XtolTooSmall`, `GtolTooSmall`;
 * Eigen's defaults, which none of the four fitters overrides: `factor = 100`,
   `maxfev = 400`, `ftol = xtol = sqrt(f64::EPSILON)`, `gtol = 0`;
-* both of Eigen's norms, because the algorithm uses each in specific places -
-  `stableNorm` (scale by the largest magnitude, then sum the scaled squares)
-  for residual, step and gradient norms, `blueNorm` (Blue's three-bin
-  algorithm) for the Jacobian's column norms and inside `lmpar`.
+* **all three** of the norms this path uses, each where Eigen uses it. An
+  earlier revision of this document said "both of Eigen's norms"; that was
+  wrong, and the code was not - there are three:
+
+  | Norm | Eigen expression | Where |
+  |---|---|---|
+  | `stable_norm` | `stableNorm()` - one scaling pass by the largest magnitude, then the scaled sum of squares | `fnorm`, `fnorm1`, `pnorm`, `xnorm`, the predicted-reduction norm, and `gnorm` inside `lmpar` |
+  | `blue_norm` | `blueNorm()` - Blue's three-bin algorithm | `fjac.colwise().blueNorm()`, the column norms the driver turns into `diag`; and `dxnorm` and the two correction norms inside `lmpar` |
+  | `plain_norm` | `MatrixBase::norm()` - `sqrt` of a plain sum of squares, no scaling pass | the pivot column norms inside `ColPivHouseholderQR`, both the initial pass and the direct recomputation the LAPACK downdating rule falls back to |
+
+  The distinction is load-bearing: substituting any one for another changes the
+  pivot order or the trust-region scaling and therefore the answer.
 
 This is what makes the published parameters reachable. A generic
 Levenberg-Marquardt with a different stopping rule stops at a different point:
 Eigen's `ftol` of `1.49e-8` is a loose relative reduction, so the reported
 parameters are a property of *that* stopping rule and not only of the residual
 surface.
+
+### The one solver deviation found by audit, and what it cost
+
+An audit of this port against `unsupported/Eigen/src/NonLinearOptimization/`
+found one place where the transcription had silently normalised an asymmetry in
+the reference, and the earlier revision of this document did not mention it.
+
+`lmpar` forms the quantity `P^-1 (diag .* diag .* x) / dxnorm` twice, and Eigen
+spells the two occurrences with **different associations**:
+
+| Site | Eigen, `lmpar.h` | Meaning |
+|---|---|---|
+| the `parl` lower bound, `rank == n` branch | line 198: `P^-1 * diag.cwiseProduct(wa2) / dxnorm` | `(diag[i] * wa2[i]) / dxnorm` - multiply, then divide |
+| the Newton correction inside the loop | line 241: `P^-1 * diag.cwiseProduct(wa2 / dxnorm)` | `diag[i] * (wa2[i] / dxnorm)` - divide, then multiply |
+
+The port had taken the divide-first spelling at both sites, so it agreed with
+Eigen's line 241 but not with its line 198. Both lines carry those numbers in
+Eigen 3.4.0 - the version installed in the OpenMS build environment - and in
+5.0.1, and the asymmetry is identical in both, so it is not an artefact of one
+Eigen release. (Whether MINPACK's own Fortran is symmetric here was not
+checked: no MINPACK source is available in this tree, and the reference the
+port must match is Eigen's C++, which is what the four `.cpp` files call.)
+
+**Which operation, and how large.** One `f64` multiply-divide pair per
+parameter, once per `lmpar` call, in the branch that computes the lower bound
+`parl`. `(a*b)/c` and `a*(b/c)` differ by at most one unit in the last place of
+the result, and only when the two roundings fall on opposite sides; for the
+2- and 3-parameter problems here that is a single rounding per parameter per
+call, never an accumulation within one call.
+
+**Whether it compounds.** Yes, through the iteration, though not without bound.
+`parl` clamps the Levenberg parameter `par` from below, `par` scales the
+diagonal handed to `qrsolv`, and the resulting step moves `x`; the next
+iteration re-evaluates the residual and the Jacobian at the moved `x`, so a
+one-ulp difference re-enters as an O(1 ulp) relative difference in every
+subsequent quantity. Measured on the gate node by correcting the association
+and re-running the class-test cases:
+
+| Case | Shift caused by the correction |
+|---|---|
+| `GaussFitter::fit` case 1, `A` | 153 ulp, `3.3e-14` relative |
+| `GaussFitter::fit` case 1, `x0` | 21 ulp, `3.9e-15` relative |
+| `GaussFitter::fit` case 1, `sigma` | 810 ulp, `1.7e-13` relative |
+| `GaussFitter::fit` case 2 | bit-identical either way |
+| Gamma, both Gumbel cases, both maximum-likelihood cases | bit-identical either way |
+
+So a single ulp at the start of the long case grows to roughly 800 ulp by the
+end of it, and vanishes entirely on the cases that converge in few steps. It is
+not visible at the tolerance the class tests assert - `1e-5`, nearly eight
+orders of magnitude away - nor at the `1e-9` and `1e-11` this port's own fit
+tests assert. Reported for honesty about the margin, not because any assertion
+turned on it.
+
+**Status: corrected.** Each site now carries the association of the Eigen line
+it transcribes, with that line cited in a comment, and
+`the_two_lmpar_scalings_are_not_the_same_association` pins a triple at which
+the two spellings disagree, so collapsing them again fails a test. The fit
+deviations against the published C++ parameters in §5 were re-measured after
+the correction and are marginally smaller for two of the three case-1
+parameters and marginally larger for the third - the correction is inside the
+`4e-11` noise floor of that case and does not explain it.
+
+**A second, smaller omission found in the same pass, also corrected.**
+`stable_norm` took the plain reciprocal `1.0 / max_coeff`, where Eigen's
+`stable_norm_kernel` guards both ends of the range first: if `1 / maxCoeff`
+overflows - which it does for a subnormal largest coefficient - Eigen uses
+`(scale, invScale) = (1 / highest(), highest())`, and if `maxCoeff` is infinite
+it uses `(maxCoeff, 1)`. Without the guard the subnormal case returns infinity
+instead of a subnormal. Unreachable from the four fitters, which validate their
+inputs finite before the solver sees them, but it was a divergence from the
+reference and is now transcribed and tested
+(`stable_norm_guards_the_reciprocal_at_both_ends_of_the_range`). No published
+value changes.
+
+**One accumulation-order difference remains and is not correctable here.**
+Eigen's `squaredNorm()` and `dot()` are vectorized reductions: they accumulate
+into several SIMD lanes and combine at the end, so their summation order
+depends on the compiler, the target and the alignment of the data. This port
+accumulates sequentially. Every `squaredNorm()` and `dot()` on this path is
+affected: the QR's pivot column norms, the tail norm inside `makeHouseholder`,
+the scaled inner sum inside `stableNorm`, and the gradient dot product in
+`minimizeOneStep`. `blueNorm` is *not* affected - Eigen's `blueNorm_impl` is a
+scalar loop over the coefficients, which is what this port reproduces. The
+difference is at most one unit in the last place per reduction, it is not
+reproducible across builds of the C++ itself, and it is the leading candidate
+for the residual `4e-11` in the first `GaussFitter` case. Matching it would mean
+guessing a particular Eigen build's vector width, which would be a worse kind of
+infidelity.
 
 ---
 
@@ -152,14 +248,41 @@ accessor), `gamma::GammaDistributionFitResult::eval`,
   (`GammaDistributionFitter.cpp:27`), `GumbelDistributionFitter` and
   `GumbelMaxLikelihoodFitter` at `(a, b) = (0.25, 0.1)`
   (`GumbelDistributionFitter.cpp:32`, `GumbelMaxLikelihoodFitter.cpp:112`).
-  None of these is a neutral starting point and the surfaces are not convex;
-  the first `GaussFitter` class-test case starts at `x0 = 3.0` and converges to
-  `x0 = 0.3`, which a different start would not reach.
+  None of these is a neutral starting point and the surfaces are not convex.
+  An earlier revision asserted, without checking, that a different start "would
+  not reach" the published answer of the first `GaussFitter` case. The measured
+  situation on that case is more specific and more useful:
+
+  | Start `(A, x0, sigma)` | Outcome |
+  |---|---|
+  | `(0.06, 3.0, 0.5)`, the source's | `(1.0189827566, 0.3006128709, 0.1363163309)` |
+  | `(1.0, 0.3, 0.2)` | same basin, `1.0e-5` relative away in `A` |
+  | `(1.0, 1.0, 1.0)` | same basin, `4.6e-6` relative away in `A` |
+  | `(0.5, -1.0, 2.0)` | same basin, `1.0e-5` relative away in `A` |
+  | `(0.06, 10.0, 0.5)` | a *different* minimum: `A = 1328.4`, `x0 = -582.9`, `sigma = 127.5` |
+  | `(0.06, 0.0, 0.5)` | no answer: `TooManyFunctionEvaluation`, which `GaussFitter` turns into `Exception::UnableToFit` |
+
+  So a far-away start can land on another minimum or fail outright, and even a
+  start in the right basin lands `1e-5` to `1e-6` relative from the published
+  parameters - at least five orders of magnitude further than any arithmetic
+  difference discussed in this document. The published numbers belong to the
+  source's guess and to no other.
 * **The result structs' defaults.** `GaussFitResult` defaults to
-  `(-1, -1, -1)`, which is not a usable model. `GumbelDistributionFitter`'s
-  result defaults to `(1.0, 2.0)`, which is *not* the fitter's starting guess of
-  `(0.25, 0.1)` - the constructor assigns over the default-constructed member.
-  Both are asserted by the class tests and both are reproduced.
+  `(-1, -1, -1)` (`GaussFitter.h:42-43`), which is not a usable model.
+  `GumbelDistributionFitter`'s result defaults to `(1.0, 2.0)`
+  (`GumbelDistributionFitter.h:40`), which is *not* the fitter's starting guess
+  of `(0.25, 0.1)` - the constructor assigns over the default-constructed
+  member. Both are reproduced, but only one of them is *asserted* by a class
+  test, and an earlier revision of this document claimed both were. The correct
+  statement: `GumbelDistributionFitter_test.cpp:130-134` has a
+  `START_SECTION((GumbelDistributionFitResult()))` that asserts `a == 1.0` and
+  `b == 2.0`. `GaussFitter_test.cpp` has no section for the default constructor
+  at all; the only place `(-1, -1, -1)` appears there is line 127, where the
+  `setInitialParameters` section builds a result through the *three-argument*
+  constructor and the section ends in `NOT_TESTABLE`. The port's default is
+  therefore evidence-tier "header read", not "class test", and
+  `the_default_result_is_the_sources_invalid_marker` is a native test, not a
+  transcription.
 * **The residual expressions, in the source's arithmetic order.** The Gaussian
   residual reuses `sig2 = 2 * sig * sig` and writes
   `A * exp(-(x - x0) * (x - x0) / sig2) - y` (`GaussFitter.cpp:56`). The Gamma
@@ -208,12 +331,31 @@ accessor), `gamma::GammaDistributionFitResult::eval`,
   start parameters with the result (`GumbelMaxLikelihoodFitter.cpp:98-99`), so a
   second call continues from the first. `fit_weighted` takes `&mut self` for
   that reason, and a rejected call leaves them untouched.
-* **Boost's constants and expression order.** `GaussFitResult::eval` is
-  `pdf(x) * (A / pdf(x0))` with the source's comment that multiplying the
-  density by `A` directly is wrong (`GaussFitter.cpp:135`). The density is
-  Boost's `normal_distribution` pdf in Boost's order, dividing by Boost's
-  `root_two_pi` literal - which is one unit in the last place above
-  `(2.0 * PI).sqrt()`.
+* **Boost's expression order, and the constant Boost actually uses.**
+  `GaussFitResult::eval` is `pdf(x) * (A / pdf(x0))`, with the source's comment
+  that "simply multiplying the CDF with A is wrong"
+  (`GaussFitter.cpp:124`, `:135`). The density is Boost's
+  `normal_distribution` pdf in Boost's order: form the deviation, negate and
+  square it in place, divide by `2 * sd * sd`, exponentiate, divide by
+  `sd * sqrt(2 * pi)`.
+
+  That last divisor was got wrong, and the reason given for it was wrong in the
+  specific way this project keeps hitting. An earlier revision of this document
+  said the pdf divides by "Boost's `root_two_pi` literal", and the port
+  therefore carried `2.506_628_274_631_000_7`, the `f64` that literal rounds to.
+  Boost's `normal.hpp` does not use `root_two_pi`: the last line of `pdf` reads
+
+      result /= sd * sqrt(2 * constants::pi<RealType>());
+
+  so the divisor is the square root of the *rounded* `2 * pi`, evaluated at run
+  time. For `double` that is `2.506_628_274_631_000_2`, one unit in the last
+  place *below* the `root_two_pi` literal. The port now uses that value, named
+  `SQRT_TWO_PI`, pinned by a unit test to `(2.0 * PI).sqrt()` and to being one
+  ulp below the literal. The correction is worth what a correction of this size
+  is ever worth: `GaussFitter::eval` now reproduces all seven published C++
+  intensities **bit for bit**, where before it matched four of seven and missed
+  the other three by up to `1.8e-16` relative. That `1.8e-16` row in §5 was
+  never a `libm` difference; it was this constant.
 
 ---
 
@@ -266,12 +408,37 @@ Each is documented at the Rust item as well.
   by the asymptotic series through `B14`. Measured against the closed forms
   `psi(1) = -gamma` and `psi(1/2) = -gamma - 2 ln 2` and against the recurrence
   at eleven integer points, the implementation agrees to better than `1e-14`
-  absolute. The value enters only the Jacobian, which steers the search and does
-  not define the optimum; the Gamma class test's parameters are reproduced to
-  `2.7e-3` and `6.9e-3` absolute against its `0.01` tolerance.
-* **`pow(v, 2.0)` is written `v * v`.** The source spells the squares in
-  `log_eval_no_normalize` and in the Gamma Jacobian with `std::pow`; for a
-  correctly rounded `pow` those are the same `f64`.
+  absolute.
+
+  An earlier revision justified this with "the value enters only the Jacobian,
+  which steers the search and does not define the optimum". That is true of the
+  minimizer of the sum of squares and false of what `fit` returns, and it
+  contradicts the argument §1 makes at length: in Levenberg-Marquardt the
+  Jacobian sets `diag`, the trust-region radius, the gradient test and every
+  termination test, so the *reported* parameters are a property of the Jacobian
+  as well as of the residual. A perturbed digamma can and in general does move
+  them.
+
+  The reason the substitution is acceptable is the size of the slack, not an
+  absence of effect. `GammaDistributionFitter` is the only one of the four that
+  calls digamma, its class test asserts only the parameters the data were
+  generated from - `b = 7.25`, `p = 3.11` - at `0.01` absolute, and the port
+  lands `2.7e-3` and `6.9e-3` away, with three orders of magnitude between the
+  `1e-14` digamma error and that margin. No C++-produced Gamma parameter is
+  published anywhere in the SDK, so a tighter claim is not available and is not
+  made: this item is an accepted, bounded divergence, not a proven identity.
+* **`pow(v, 2.0)` is written `v * v`.** The source spells squares with
+  `std::pow` in three places, not the two an earlier revision listed:
+  `GaussFitter.cpp:144` (`pow((x - x0) / sigma, 2.0)`),
+  `GammaDistributionFitter.cpp:100` (`pow(tgamma(p), 2)`) and
+  `GumbelDistributionFitter.cpp:81-85` (`pow(z, 2)` and three `pow(b, 2)`).
+  `v * v` is the correctly rounded square by construction; `std::pow(v, 2.0)`
+  equals it only if the implementation is correctly rounded at that argument,
+  which neither IEEE-754 nor the C standard requires of `pow` in general.
+  glibc and Apple's libm both special-case small integral exponents and return
+  the rounded product, so on the platforms this crate is gated on the two agree;
+  an exotic libm could differ by one unit in the last place. Stated as the
+  bounded assumption it is rather than as an identity.
 * **`-1.0 * v` is written `-v`.** IEEE negation is exact, so these are the same
   value; the change is only to satisfy `clippy::neg_multiply`.
 * **The solver's matrix type is `DenseMatrix`, not `Matrix`.** It is Eigen's
@@ -289,6 +456,23 @@ Each is documented at the Rust item as well.
 * **Serial.** Neither the four `.cpp` files nor Eigen's non-linear optimization
   module carries `#pragma omp`, so there is no OpenMP gap to record: the source
   is serial here and so is the port.
+
+  Nothing here is parallelised and nothing here should be. A single fit is a
+  sequential dependency chain - iteration `k + 1` cannot start until `k`'s step
+  is accepted - and the residual and Jacobian loops are a few dozen to a few
+  thousand elements, far below the point where a `rayon` split would pay for
+  itself. Recorded as a candidate for a caller, not for this module: fitting
+  *many independent* data sets is embarrassingly parallel, because `fit` takes
+  `&self` and `GaussFitter`, `GammaDistributionFitter` and
+  `GumbelDistributionFitter` are `Copy` with no interior mutability, so a
+  `par_iter().map(|d| fitter.fit(d))` over a slice of data sets is already
+  sound and, collected in order, bit-identical to the serial loop: each fit
+  reduces only over its own data, so there is no cross-item float reduction
+  whose order could change. `GumbelMaxLikelihoodFitter::fit_weighted` is the
+  exception: it takes
+  `&mut self` because the source writes the result back into its own start
+  parameters, so a caller wanting that in parallel needs one fitter per task,
+  which changes nothing numerically as long as each starts from the same guess.
 
 ---
 
@@ -322,6 +506,20 @@ transcribed literal:
   first transcribed and this test is what caught them.
 * `stable_norm_survives_magnitudes_that_overflow_a_naive_sum` checks both norms
   at `1e200` and `1e-200`, where a naive sum of squares overflows or underflows.
+* `the_density_divisor_is_the_square_root_boost_evaluates` asserts that the
+  density's divisor is exactly `(2.0 * PI).sqrt()`, the expression Boost's
+  `normal.hpp` evaluates, and that it is one unit in the last place below
+  Boost's unused `root_two_pi` literal. This is what turned `GaussFitter::eval`
+  from four-of-seven exact into seven-of-seven; see §3.
+* `the_two_lmpar_scalings_are_not_the_same_association` asserts that
+  `(a*b)/c != a*(b/c)` at a concrete triple, pinning the asymmetry Eigen's
+  `lmpar.h` has between its lines 198 and 241; see §1.
+* `the_published_gauss_case_belongs_to_the_sources_initial_guess` re-fits the
+  first `GaussFitter` case from five other starting points and asserts that one
+  reaches a different minimum, one cannot be fitted at all, and the three that
+  reach the right basin still land between `1e-7` and `1e-3` relative from the
+  published amplitude. This is the measurement behind the table in §3 and the
+  reason the initial guesses and the stopping rule are reproduced verbatim.
 * `digamma_reproduces_its_closed_form_values` (closed forms and the recurrence).
 * `gauss_log_eval_is_the_log_of_the_unit_amplitude_density`,
   `eval_reaches_the_amplitude_at_the_center`,
@@ -341,13 +539,13 @@ OpenMS's defaults are `1e-5` for both.
 
 | Case | Expected | Obtained | Deviation | C++ tolerance |
 |---|---|---|---|---|
-| `GaussFitter::fit` case 1, `A` | `1.01898275662372` | `1.0189827566259952` | `2.2e-12` rel | default |
-| `GaussFitter::fit` case 1, `x0` | `0.300612870901173` | `0.3006128709014418` | `8.9e-13` rel | default |
-| `GaussFitter::fit` case 1, `sigma` | `0.136316330927453` | `0.13631633092187595` | `4.1e-11` rel | default |
+| `GaussFitter::fit` case 1, `A` | `1.01898275662372` | `1.0189827566259613` | `2.2e-12` rel | default |
+| `GaussFitter::fit` case 1, `x0` | `0.300612870901173` | `0.30061287090144295` | `9.0e-13` rel | default |
+| `GaussFitter::fit` case 1, `sigma` | `0.136316330927453` | `0.13631633092189843` | `4.1e-11` rel | default |
 | `GaussFitter::fit` case 2, `A` | `175011.893006749` | `175011.8930067491` | `6.7e-16` rel | default |
 | `GaussFitter::fit` case 2, `x0` | `240.1007246725147` | `240.1007246725147` | exact | default |
 | `GaussFitter::fit` case 2, `sigma` | `0.00046642320683761701` | `0.00046642320683761495` | `4.4e-15` rel | default |
-| `GaussFitter::eval`, 7 points | see test | - | max `1.8e-16` rel; 4 of 7 exact | default |
+| `GaussFitter::eval`, 7 points | see test | all seven | **exact, 7 of 7** | default |
 | `GammaDistributionFitter::fit`, `b` | `7.25` | `7.2527011185365495` | `2.7e-3` abs | `0.01` abs |
 | `GammaDistributionFitter::fit`, `p` | `3.11` | `3.1168754039854303` | `6.9e-3` abs | `0.01` abs |
 | `GumbelDistributionFitter::fit` case 1, `a` | `0.5` | `0.5015861406501456` | `1.6e-3` abs | `0.1` abs |
@@ -364,31 +562,69 @@ and maximum-likelihood rows are *not* measurements of the port against the C++:
 their expected values are the parameters the data were generated from, rounded
 to two or three digits, so the deviations above are dominated by the fit itself.
 Only the two `GaussFitter` cases and `GaussFitter::eval` publish the numbers the
-C++ actually produced, and those are the rows that read `1e-16` to `4e-11`.
+C++ actually produced, and those are the rows that read exact to `4e-11`.
 
-The `GaussFitter` rows are the real fidelity measurement. Case 2 starts from a
-guess already close to its optimum and agrees to within a few units in the last
-place. Case 1 starts at `x0 = 3.0` and travels to `x0 = 0.3` across an order of
-magnitude more residual evaluations, and still agrees to `4e-11` - the
-accumulated divergence of two `exp` implementations over many iterations of an
-identical algorithm, not a difference in the algorithm itself.
+The `GaussFitter` rows are the real fidelity measurement. `eval` is now exact
+on all seven points, which is the strongest statement available anywhere in this
+group: a closed-form expression with no iteration reproduces the C++ bit for
+bit. Case 2 starts from a guess already close to its optimum and agrees to
+within a few units in the last place. Case 1 starts at `x0 = 3.0` and travels to
+`x0 = 0.3` across an order of magnitude more residual evaluations and agrees to
+`4e-11`.
 
-An independent cross-check supports the same conclusion: a Python
+**What the `4e-11` is, and what it is not.** Two candidate explanations were
+tested rather than asserted:
+
+* It is *not* the `lmpar` association deviation described in §1. Correcting
+  that moved case 1 by at most `1.7e-13` relative, more than two orders of
+  magnitude short of `4e-11`, and left every other case bit-identical.
+* It is *not* the density divisor corrected in §3: `fit` never calls
+  `normal_pdf`. Only `eval` does, and `eval` is now exact.
+
+Two candidates remain: the vectorized accumulation order of Eigen's
+`squaredNorm` and `dot` (§1), and the `exp` implementation - the Gaussian
+residual and its Jacobian call nothing else transcendental. Both produce
+last-place differences in the *iterates*, which this case amplifies: it is the
+only case that travels a long way across a non-convex surface, and §1's measured
+"one ulp in, 810 ulp out" for a deliberately injected one-ulp change is a direct
+measurement of that amplification on this exact case. An earlier revision named
+`exp` alone as the cause; that was not measured and is not now claimed.
+
+An earlier revision also offered as corroboration that "a Python
 re-implementation of the same transcription, run on a different platform and a
-different `libm`, reaches `0.5015861406501456` for the first Gumbel case,
-`0.9955965893616037` for the second and `(2.001561295066307,
-0.6230114376387215)` for the maximum-likelihood CSV case - the same `f64` values
-the Rust reaches, bit for bit.
+different `libm`" reaches the same `f64` values bit for bit. That claim has been
+withdrawn. It could not support the conclusion it was attached to: a
+re-implementation *of the same transcription* shares every transcription
+decision with the Rust, so agreement between them is evidence about language
+and nothing about whether the transcription matches Eigen - the very question at
+issue. (It would also have had to run on a host whose `libm` differs from the
+gate node's to mean what it said, which was never established.) Nothing in this
+document now rests on a check that cannot be re-run from this repository.
 
 ### Test tolerances
 
-`tests/math_distribution_fitters.rs` asserts `1e-9` relative for the first
-`GaussFitter` case and `1e-11` for the second and for `eval`, which is tighter
-than the class test and leaves roughly two orders of magnitude of headroom over
-the measured deviation for `libm` differences between platforms. The other
-fitters use the class tests' own tolerances, because their expected values are
-generating parameters rather than C++ output and tightening them would assert
-something the source never claimed.
+`tests/math_distribution_fitters.rs` asserts, all relative:
+
+| Case | Asserted | Measured deviation | Headroom |
+|---|---|---|---|
+| `GaussFitter::fit` case 1 | `1e-9` | `4.1e-11` | 24x |
+| `GaussFitter::fit` case 2 | `1e-11` | `4.4e-15` | 2,200x |
+| `GaussFitter::eval` and `GaussFitResult::eval` | `1e-14` | `0` (bit-exact) | ~45 units in the last place |
+
+Every one of these is tighter than the class test's own `1e-5`, and the
+headroom is there for `libm` differences between platforms, not for the port.
+An earlier revision of this document said `1e-11` was asserted for `eval`; the
+test file asserts `1e-14`, and the doc was simply wrong about its own tests. It
+also described the headroom as "roughly two orders of magnitude", which is right
+for case 2 and wrong for case 1; the per-row figures above replace it.
+
+`eval` is left at `1e-14` rather than tightened to bit equality: it is bit-exact
+on the gate node, but `exp` is not required to be correctly rounded and a
+different platform may legitimately move the last bit.
+
+The other fitters use the class tests' own tolerances, because their expected
+values are generating parameters rather than C++ output and tightening them
+would assert something the source never claimed.
 
 ### Checked boundaries
 
@@ -475,12 +711,25 @@ Recorded here for the integrator; none is worked around silently.
    `@exception`. Its own class test cannot call it: the `MLE` section of
    `GumbelDistributionFitter_test.cpp` includes `GumbelMaxLikelihoodFitter.h`
    and uses that class instead.
-3. **Three headers document a method none of them has.** `GaussFitter.h:30`,
+3. **Three headers document a method none of them has, and one translation
+   unit calls it.** `GaussFitter.h:29-30`,
    `GumbelDistributionFitter.h:28-29` and `GumbelMaxLikelihoodFitter.h:26-27`
    all say the fitted parameters "can be transformed into a gnuplot formula
-   using `getGnuplotFormula()`". There is no such member on any of the three;
-   the formula-building code is inside `#ifdef ..._VERBOSE` blocks in the
-   `.cpp` files that write to `std::cout`.
+   using `getGnuplotFormula()`" (`GaussFitter.h` omits the parentheses). There
+   is no such member on any of the three classes; what exists instead is
+   formula-building code inside `#ifdef ..._VERBOSE` blocks in the `.cpp` files
+   that writes to `std::cout`.
+
+   The stale documentation has a matching stale *caller*, which is worse than
+   the comment on its own: `IDDecoyProbability.cpp` calls
+   `gdf.getGnuplotFormula()` on a `Math::GammaDistributionFitter` (line 193 and
+   line 195) and `gf.getGnuplotFormula()` on a `Math::GaussFitter` (lines 319,
+   321 and 328), all inside `#ifdef IDDECOYPROBABILITY_DEBUG`. Defining that
+   macro breaks the build of `ANALYSIS/ID`. The only unconditional survivor is
+   a commented-out block at `IDDecoyProbability.cpp:311-317`. So the members
+   were removed and their callers were disabled rather than updated; the
+   getters named `getGnuplotFormula` that still exist in the SDK belong to the
+   unrelated `TraceFitter` hierarchy and take four arguments.
 4. **`GumbelMaxLikelihoodFitter::fitWeighted` reads past the end of a short
    weight vector** (`GumbelMaxLikelihoodFitter.cpp:58-63`): a second iterator is
    advanced in lockstep with the sample iterator and the two sizes are never

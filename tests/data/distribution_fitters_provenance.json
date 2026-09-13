@@ -257,13 +257,13 @@
    "operation": "fitWeighted({}, {}) is asserted to return the initial parameters; three sections depend on the empty-input path"
   }
  ],
- "evidence": "Tier 3 source review for every parameter value: the expected numbers are transcribed from the four _test.cpp files, which are the only oracle available without building C++. Tier 4 independent checks that depend on no transcribed literal: the maximum-likelihood result is verified to be a local minimum of the source's own weighted negative log-likelihood by recomputing it at the fit and at eight neighbours, with the objective strictly positive (1310.76) so that minimizing its square is minimizing it; the solver is driven onto a zero-residual linear problem with the exact solution y = 1 + 2x; the four Blue's-algorithm constants are asserted against 2.0f64.powi(e) (this caught two wrong literals); both norms are exercised at 1e200 and 1e-200; digamma is checked against psi(1) = -gamma, psi(1/2) = -gamma - 2 ln 2 and the recurrence at eleven integer points; and each density is checked against its closed-form mode and symmetry. No tier 1 or tier 2 evidence exists: no retained C++ output exists for a MATH/STATISTICS fitter and no oracle driver was built. Cross-check: an independent Python transcription of the same algorithm, on a different platform and libm, reaches the identical f64 values 0.5015861406501456, 0.9955965893616037 and (2.001561295066307, 0.6230114376387215) for the three Gumbel cases.",
+ "evidence": "Tier 3 source review for every parameter value: the expected numbers are transcribed from the four _test.cpp files, which are the only oracle available without building C++. One exception is flagged rather than folded in: GaussFitResult's (-1,-1,-1) default has no START_SECTION in GaussFitter_test.cpp and is read from GaussFitter.h:42-43, not from a class test. Tier 4 independent checks that depend on no transcribed literal: the maximum-likelihood result is verified to be a local minimum of the source's own weighted negative log-likelihood by recomputing it at the fit and at eight neighbours, with the objective strictly positive (1310.76) so that minimizing its square is minimizing it; the solver is driven onto a zero-residual linear problem with the exact solution y = 1 + 2x; the four Blue's-algorithm constants are asserted against 2.0f64.powi(e) (this caught two wrong literals); the density divisor is asserted to be (2.0*PI).sqrt(), the expression boost/math/distributions/normal.hpp evaluates, and to be one ulp below Boost's unused root_two_pi literal; the two differently-associated scalings of Eigen's lmpar.h:198 and :241 are asserted to be distinct in binary64; both norms are exercised at 1e200 and 1e-200; digamma is checked against psi(1) = -gamma, psi(1/2) = -gamma - 2 ln 2 and the recurrence at eleven integer points; and each density is checked against its closed-form mode and symmetry. No tier 1 or tier 2 evidence exists: no retained C++ output exists for a MATH/STATISTICS fitter and no oracle driver was built. A cross-check against a Python re-implementation that an earlier revision of this manifest cited has been withdrawn: it re-implemented the same transcription, so agreement with it was evidence about language portability and not about fidelity to Eigen.",
  "achieved_agreement": [
   {
    "case": "GaussFitter::fit case 1 (A, x0, sigma)",
    "expected": "1.01898275662372, 0.300612870901173, 0.136316330927453",
-   "obtained": "1.0189827566259952, 0.3006128709014418, 0.13631633092187595",
-   "deviation": "2.2e-12, 8.9e-13, 4.1e-11 relative",
+   "obtained": "1.0189827566259613, 0.30061287090144295, 0.13631633092189843",
+   "deviation": "2.2e-12, 9.0e-13, 4.1e-11 relative",
    "cpp_tolerance": "TEST_REAL_SIMILAR default (1e-5 relative or absolute)"
   },
   {
@@ -276,8 +276,8 @@
   {
    "case": "GaussFitter::eval, seven points",
    "expected": "78670.515322697669 .. 12184.248044493703",
-   "obtained": "identical for four of seven",
-   "deviation": "max 1.8e-16 relative",
+   "obtained": "identical for all seven",
+   "deviation": "exact, 7 of 7",
    "cpp_tolerance": "TEST_REAL_SIMILAR default"
   },
   {
@@ -331,9 +331,9 @@
  ],
  "gaps": [
   "No tier-1 differential evidence: no retained C++ output exists for these fitters and no oracle driver linking the prebuilt libOpenMS was built.",
-  "digamma is the recurrence plus the asymptotic series through B14, not Boost's rational minimax approximation; agreement is better than 1e-14 absolute against closed forms and the value enters only the Jacobian.",
+  "digamma is the recurrence plus the asymptotic series through B14, not Boost's rational minimax approximation; agreement is better than 1e-14 absolute against closed forms. It enters the Gamma Jacobian, which in Levenberg-Marquardt also sets diag, the trust-region radius and every termination test, so it can move the reported parameters; what bounds the risk is the class test's 0.01 absolute tolerance against a 2.7e-3 / 6.9e-3 margin, not an absence of effect.",
   "tgamma comes from the already-vendored libm crate rather than the platform's std::tgamma; both are accurate to about one unit in the last place.",
-  "Eigen may vectorize the inner sums of its norms and dot products, which this port accumulates sequentially; the difference is at most one unit in the last place per reduction and is the likely origin of the 4e-11 divergence in the longest Gauss fit.",
+  "Eigen's squaredNorm() and dot() are vectorized reductions whose summation order depends on the build; this port accumulates sequentially. At most one unit in the last place per reduction, not reproducible across builds of the C++ itself, and the leading candidate for the residual 4e-11 in the first GaussFitter case. Measured amplification on that case: a deliberately injected one-ulp change inside lmpar moved the fitted sigma by 810 ulp.",
   "src/math had to be declared in src/lib.rs because the MATH domain root did not exist; that is the only edit outside this package's own files."
  ],
  "openmp": "None. Neither the four .cpp files nor Eigen's NonLinearOptimization module carries a #pragma omp, so the port's serial execution matches the source's.",
@@ -343,5 +343,14 @@
    "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
   ],
   "source_changes": []
- }
+ },
+ "audit_corrections": [
+  "Solver deviation, corrected: lmpar had been transcribed with diag*(wa2/dxnorm) at both of Eigen's two scaling sites, but Eigen's lmpar.h:198 (the parl lower bound) spells it (diag*wa2)/dxnorm while lmpar.h:241 (the Newton correction) spells it diag*(wa2/dxnorm). Verified identical in Eigen 3.4.0 and 5.0.1. One f64 rounding per parameter per lmpar call; it compounds through the iteration. Correcting it moved GaussFitter case 1 by up to 810 ulp (1.7e-13 relative) and left every other case bit-identical. Pinned by the_two_lmpar_scalings_are_not_the_same_association.",
+  "Constant, corrected: boost/math/distributions/normal.hpp divides by sd * sqrt(2 * constants::pi<RealType>()), not by constants::root_two_pi. The port had carried the root_two_pi literal, one ulp too high. GaussFitter::eval now reproduces all seven published C++ intensities bit for bit instead of four of seven.",
+  "Documentation, corrected: an earlier revision said the solver uses 'both of Eigen's norms'; this path uses three (stableNorm, blueNorm and the plain MatrixBase::norm() inside ColPivHouseholderQR), and the port always implemented all three.",
+  "Documentation, corrected: an earlier revision said both result-struct defaults are asserted by class tests; only GumbelDistributionFitResult()'s (1.0, 2.0) is.",
+  "Documentation, corrected: the digamma justification 'the value enters only the Jacobian, which does not define the optimum' contradicted the document's own argument for reproducing Eigen's stopping rule and has been replaced by a slack-based argument.",
+  "Documentation, withdrawn: the Python re-implementation cross-check, which could not support the fidelity conclusion it was attached to.",
+  "Documentation, corrected: the stated test tolerance for eval was 1e-11; the test file asserts 1e-14."
+ ]
 }

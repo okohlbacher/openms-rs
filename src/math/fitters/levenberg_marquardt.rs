@@ -207,24 +207,44 @@ impl DenseMatrix {
 /// A single scaling pass by the largest magnitude, then the sum of squares of
 /// the scaled entries: `scale * sqrt(sum((v / scale)^2))`. A one-element vector
 /// short-circuits to its magnitude and an all-zero vector to zero, both as in
-/// Eigen. This is not the same expression as [`blue_norm`] and the two are used
-/// exactly where Eigen uses each.
+/// Eigen.
+///
+/// Eigen's path through this algorithm uses three different norm expressions,
+/// not two, and each is reproduced where Eigen uses it: `stableNorm` for the
+/// residual, step and scaled-`x` norms and for `lmpar`'s `gnorm`; [`blue_norm`]
+/// for the Jacobian column norms the driver turns into `diag` and for the two
+/// scaled-step norms inside `lmpar`; and the plain `sqrt(sum(v^2))` of
+/// `MatrixBase::norm()`, the private `plain_norm`, for the pivot column norms
+/// inside the column-pivoted QR.
 pub fn stable_norm(v: &[f64]) -> f64 {
     match v.len() {
         0 => 0.0,
         1 => v[0].abs(),
         _ => {
-            let mut scale = 0.0f64;
+            let mut max_coeff = 0.0f64;
             for &x in v {
                 let ax = x.abs();
-                if ax > scale {
-                    scale = ax;
+                if ax > max_coeff {
+                    max_coeff = ax;
                 }
             }
-            if scale == 0.0 {
+            if max_coeff == 0.0 {
                 return 0.0;
             }
-            let inv = 1.0 / scale;
+            // `stable_norm_kernel` does not take the plain reciprocal: it
+            // guards the two ends of the range first. A subnormal largest
+            // coefficient makes `1 / maxCoeff` overflow, and an infinite one
+            // makes it zero; in either case Eigen substitutes a usable pair.
+            // Unreachable from these four fitters, whose inputs are validated
+            // finite, but transcribed rather than assumed away.
+            let reciprocal = 1.0 / max_coeff;
+            let (scale, inv) = if reciprocal > f64::MAX {
+                (1.0 / f64::MAX, f64::MAX)
+            } else if max_coeff > f64::MAX {
+                (max_coeff, 1.0)
+            } else {
+                (max_coeff, reciprocal)
+            };
             let mut ssq = 0.0f64;
             for &x in v {
                 let t = x * inv;
@@ -251,6 +271,9 @@ const BLUE_S2M: f64 = 1.1113793747425387e-162; // 2^-538, scaling for the large 
 /// magnitudes all fall in the medium range - which is every case these fitters
 /// meet - the result is `sqrt(sum(v^2))` accumulated in order. A NaN anywhere
 /// in the medium bin propagates, as in Eigen.
+///
+/// This is *not* the norm the column-pivoted QR uses for pivoting; see
+/// [`stable_norm`] for which of the three goes where.
 pub fn blue_norm(v: &[f64]) -> f64 {
     let relerr = f64::EPSILON.sqrt();
     let ab2 = if v.is_empty() {
@@ -411,6 +434,16 @@ fn apply_householder_vector(w: &mut [f64], row0: usize, essential: &[f64], tau: 
     }
 }
 
+/// Euclidean norm as Eigen's `MatrixBase::norm()` computes it: the square root
+/// of a plain running sum of squares, with no scaling pass.
+///
+/// The third of the three norms on this path. `ColPivHouseholderQR` uses it,
+/// and only it, for the initial column norms and for the direct recomputation
+/// the LAPACK downdating rule falls back to - never `stableNorm` or
+/// `blueNorm`. Eigen's `squaredNorm()` is a vectorized reduction and may
+/// therefore pair the products differently from this sequential sum; that is
+/// the one remaining accumulation-order difference on this path and it is
+/// recorded in `docs/DISTRIBUTION_FITTERS_SUPPORT.md`.
 fn plain_norm(v: &[f64]) -> f64 {
     let mut sum = 0.0f64;
     for &x in v {
@@ -666,8 +699,15 @@ fn lmpar(qr: &ColPivQr, diag: &[f64], qtb: &[f64], delta: f64, par_in: f64) -> (
     }
     let mut parl = 0.0f64;
     if rank == n {
+        // `lmpar.h:198` spells this branch `P^-1 * diag.cwiseProduct(wa2) /
+        // dxnorm`, so the product is formed first and the quotient taken
+        // second. The Newton correction further down spells the same quantity
+        // `P^-1 * diag.cwiseProduct(wa2 / dxnorm)` and therefore divides
+        // first. The two associations differ in the last bit; each site keeps
+        // the one its line of Eigen has. See the solver-deviation section of
+        // `docs/DISTRIBUTION_FITTERS_SUPPORT.md`.
         let mut work: Vec<f64> = (0..n)
-            .map(|j| diag[qr.ind[j]] * (wa2[qr.ind[j]] / dxnorm))
+            .map(|j| (diag[qr.ind[j]] * wa2[qr.ind[j]]) / dxnorm)
             .collect();
         for j in 0..n {
             let mut sum = 0.0f64;
@@ -720,6 +760,8 @@ fn lmpar(qr: &ColPivQr, diag: &[f64], qtb: &[f64], delta: f64, par_in: f64) -> (
         {
             break;
         }
+        // `lmpar.h:241`: `P^-1 * diag.cwiseProduct(wa2 / dxnorm)` - the
+        // quotient first here, unlike the `parl` branch above.
         let mut work: Vec<f64> = (0..n)
             .map(|j| diag[qr.ind[j]] * (wa2[qr.ind[j]] / dxnorm))
             .collect();
@@ -1014,6 +1056,20 @@ mod tests {
         assert!((blue_norm(&tiny) / expected - 1.0).abs() < 1e-15);
     }
 
+    /// The two guards `stable_norm_kernel` puts around `1 / maxCoeff`, which
+    /// the fitters themselves never reach because they validate their input
+    /// finite: a subnormal largest coefficient, where the reciprocal
+    /// overflows, and an infinite one, where it underflows to zero.
+    #[test]
+    fn stable_norm_guards_the_reciprocal_at_both_ends_of_the_range() {
+        let subnormal = [f64::from_bits(1), f64::from_bits(1)];
+        let got = stable_norm(&subnormal);
+        assert!(got.is_finite(), "{got:?}");
+        assert!(got >= 0.0);
+        let infinite = [f64::INFINITY, 1.0];
+        assert_eq!(stable_norm(&infinite), f64::INFINITY);
+    }
+
     #[test]
     fn fewer_residuals_than_parameters_is_improper() {
         let mut x = [1.0, 1.0, 1.0];
@@ -1055,6 +1111,20 @@ mod tests {
         assert_ne!(status, LmStatus::ImproperInputParameters);
         assert!((x[0] - 1.0).abs() < 1e-10, "{x:?}");
         assert!((x[1] - 2.0).abs() < 1e-10, "{x:?}");
+    }
+
+    /// `lmpar` scales `diag * x` by `1 / dxnorm` twice, and Eigen associates
+    /// the two occurrences differently: `lmpar.h:198` computes
+    /// `(diag * wa2) / dxnorm` for the `parl` lower bound, `lmpar.h:241`
+    /// computes `diag * (wa2 / dxnorm)` for the Newton correction. The
+    /// associations are not interchangeable in binary64, and this pins a
+    /// triple where they differ, so that collapsing the two sites onto one
+    /// spelling fails here rather than silently moving the last bits of every
+    /// fitted parameter.
+    #[test]
+    fn the_two_lmpar_scalings_are_not_the_same_association() {
+        let (diag, wa2, dxnorm) = (0.1_f64, 1.1_f64, 7.0_f64);
+        assert_ne!((diag * wa2) / dxnorm, diag * (wa2 / dxnorm));
     }
 
     #[test]

@@ -134,6 +134,60 @@ fn gauss_fit_reproduces_both_published_cases() {
     assert!(fitted.sigma > 0.0);
 }
 
+/// Independent of every transcribed literal: the published parameters of the
+/// first `GaussFitter` case are a property of the source's initial guess and
+/// not of the residual surface alone, which is why the guess is carried over
+/// verbatim and why the solver's stopping rule had to be reproduced.
+///
+/// Backs the table in §3 of `docs/DISTRIBUTION_FITTERS_SUPPORT.md`. The bounds
+/// are deliberately loose: what is asserted is the *shape* of the dependence -
+/// a far start reaches a different minimum, one start cannot be fitted at all,
+/// and a start in the right basin still lands orders of magnitude further away
+/// than any arithmetic difference between this port and the C++.
+#[test]
+fn the_published_gauss_case_belongs_to_the_sources_initial_guess() {
+    let points = [
+        (0.0, 0.01),
+        (0.05, 0.2),
+        (0.16, 0.63),
+        (0.28, 0.99),
+        (0.66, 0.03),
+        (0.50, 0.36),
+    ];
+    let from = |guess: GaussFitResult| {
+        let mut fitter = GaussFitter::new();
+        fitter.set_initial_parameters(guess);
+        fitter.fit(&points)
+    };
+
+    // A start far to the right of the data reaches a different minimum.
+    let elsewhere = from(GaussFitResult::new(0.06, 10.0, 0.5)).unwrap();
+    assert!(
+        (elsewhere.x0 - 0.300612870901173).abs() > 1.0,
+        "{elsewhere:?}"
+    );
+
+    // A start at the left edge of the data spends the whole evaluation budget;
+    // `GaussFitter` turns TooManyFunctionEvaluation into UnableToFit.
+    assert!(from(GaussFitResult::new(0.06, 0.0, 0.5)).is_err());
+
+    // Starts inside the right basin converge there, but not to the published
+    // f64: they miss it by far more than the port misses the C++.
+    for guess in [
+        GaussFitResult::new(1.0, 0.3, 0.2),
+        GaussFitResult::new(1.0, 1.0, 1.0),
+        GaussFitResult::new(0.5, -1.0, 2.0),
+    ] {
+        let other = from(guess).unwrap();
+        let offset = (other.a - 1.01898275662372).abs() / 1.01898275662372;
+        assert!(
+            offset > 1e-7,
+            "{guess:?} landed at {other:?}, offset {offset:e}"
+        );
+        assert!(offset < 1e-3, "{guess:?} left the basin: {other:?}");
+    }
+}
+
 /// `START_SECTION((void setInitialParameters(const GaussFitResult& result)))`
 #[test]
 fn gauss_set_initial_parameters_is_read_back_and_used() {
