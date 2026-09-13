@@ -127,28 +127,50 @@ fn native_permissions_probe_never_creates_or_truncates_requested_path() {
         assert!(f::executable(&present));
     }
 }
+/// File_test.cpp:181-237 — the two probe races, kept separate as the source keeps
+/// them, and at the source's own repeat count. Both are races, so a single
+/// attempt proves nothing: the source records that they went wrong in roughly 2%
+/// and 79% of attempts before its fix, and 2% needs hundreds of repeats to be a
+/// guard rather than a coin toss. A `Barrier` replaces the source's yielding
+/// spin, so the threads are released together instead of by luck.
 #[test]
 fn concurrent_writable_probes_preserve_real_writer_output() {
+    const REPEATS: usize = 500;
     let d = temp();
-    let path = Arc::new(d.path().join("output"));
-    for _ in 0..32 {
-        let barrier = Arc::new(Barrier::new(3));
-        let mut threads = Vec::new();
-        for _ in 0..2 {
-            let b = barrier.clone();
-            let p = path.clone();
-            threads.push(std::thread::spawn(move || {
-                b.wait();
-                assert!(f::writable(&*p));
-            }));
+    let shared = Arc::new(d.path().join("shared"));
+    let contended = Arc::new(d.path().join("contended"));
+    for _ in 0..REPEATS {
+        // Two callers race to probe one path that does not exist yet. Probing
+        // used to create and delete that very path, so one prober deleted the
+        // other's file and then reported it unwritable.
+        let barrier = Arc::new(Barrier::new(2));
+        let probers: Vec<_> = (0..2)
+            .map(|_| {
+                let (b, p) = (barrier.clone(), shared.clone());
+                std::thread::spawn(move || {
+                    b.wait();
+                    f::writable(&*p)
+                })
+            })
+            .collect();
+        for prober in probers {
+            assert!(prober.join().unwrap());
         }
+        assert!(!shared.exists(), "probing left litter behind");
+
+        // A probe running alongside a real writer must leave that writer's
+        // output alone.
+        let barrier = Arc::new(Barrier::new(2));
+        let (b, p) = (barrier.clone(), contended.clone());
+        let prober = std::thread::spawn(move || {
+            b.wait();
+            f::writable(&*p);
+        });
         barrier.wait();
-        fs::write(&*path, b"important").unwrap();
-        for thread in threads {
-            thread.join().unwrap();
-        }
-        assert_eq!(fs::read(&*path).unwrap(), b"important");
-        fs::remove_file(&*path).unwrap();
+        fs::write(&*contended, b"important").unwrap();
+        prober.join().unwrap();
+        assert_eq!(fs::read(&*contended).unwrap(), b"important");
+        fs::remove_file(&*contended).unwrap();
     }
     assert_eq!(fs::read_dir(d.path()).unwrap().count(), 0);
 }
@@ -651,7 +673,12 @@ fn a_non_utf8_directory_entry_is_named_in_the_error_rather_than_skipped() {
     use std::os::unix::ffi::OsStrExt;
     let d = temp();
     let raw = OsStr::from_bytes(b"broken-\xff-name");
-    fs::write(d.path().join(raw), b"x").unwrap();
+    if fs::write(d.path().join(raw), b"x").is_err() {
+        // A filesystem that enforces UTF-8 filenames — APFS and HFS+ answer
+        // EILSEQ — refuses to create the input, so the entry this guards cannot
+        // occur there at all. Everything below still runs on the Linux gate.
+        return;
+    }
     fs::write(d.path().join("ok.txt"), b"x").unwrap();
     fs::create_dir(d.path().join("sub")).unwrap();
 
@@ -770,8 +797,13 @@ fn source_config_dir_branch_has_no_trailing_separator() {
         ".OpenMS"
     };
     assert_eq!(c.get_openms_config_dir(), c.home_directory.join(expected));
-    assert!(c.get_openms_config_dir().ends_with("OpenMS"));
-    assert!(!c.get_openms_config_dir().to_str().unwrap().ends_with('/'));
+    // hasSuffix(config_dir, "OpenMS") in the source is a *string* suffix, and
+    // that is what both branches satisfy. Path::ends_with would compare whole
+    // components and so reject the non-unix branch's ".OpenMS", which is the
+    // branch macOS takes.
+    let text = c.get_openms_config_dir().to_str().unwrap().to_owned();
+    assert!(text.ends_with("OpenMS"), "{text}");
+    assert!(!text.ends_with('/'), "{text}");
     assert!(!c.get_openms_config_dir().exists());
 }
 

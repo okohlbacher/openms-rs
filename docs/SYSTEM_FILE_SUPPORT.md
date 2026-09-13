@@ -294,7 +294,12 @@ so near the platform's path limit there is a band in which the caller's file
 still fits and the probe does not; the source answers that by asking the
 directory itself with `access(2)`, and this port by falling back to
 progressively shorter probe names, which `writable_agrees_with_the_operating_system_at_every_path_depth`
-checks against the operating system's own answer at every reachable depth.
+checks against the operating system's own answer at every reachable depth. The
+ladder narrows the band rather than closing it: its shortest rung is still a
+name — the bare decimal probe counter, one byte until the process has handed out
+ten unique names and two thereafter — where `access(2)` needs none, so a
+directory within that many bytes of the limit is still answered "not writable"
+where the source answers "writable".
 
 **Wildcards.** Matching is deterministic, case-sensitive Unicode: `*`, `?`,
 bracket ranges and classes with `!`/`^` negation, and backslash escapes. A

@@ -252,6 +252,7 @@
   "independently_derived": [
    "A file stamped half a second before the Unix epoch must report -1, not 0, because POSIX st_mtim.tv_sec truncates towards negative infinity; this follows from the stat() contract the source cites and not from any class-test literal.",
    "writable() must agree with the operating system at every path depth. The test establishes ground truth by actually creating the file, so it needs no platform path limit to be hard-coded; without the short-name probe fallback it fails on Linux, which is how the gap was found.",
+   "The probe ladder shortens strictly and its last rung is the bare decimal counter, which is the exact width of writable()'s residual divergence from access(2); no rung may be empty, since an empty name would address the base directory itself rather than a file inside it.",
    "extension() cuts the basename at the stem's length, and the stem is a prefix of the basename, so that offset is always a character boundary; dir/<multi-byte>.txt therefore cannot panic, and the test pins it for a three-character Japanese name.",
    "Exactly one of several concurrent no-clobber movers can win, because publication is a hard link: the winner's destination holds one input's bytes in full and every loser's input is still present.",
    "Two simultaneous writable() probes of the same absent path must both answer true and must leave a concurrent writer's output intact, since neither probe ever touches the queried name.",
@@ -263,7 +264,7 @@
   "Owned TempFile/TempDir guards replace the process-exit filename registry; the default TempFile reserves a real file exclusively rather than returning an uncreated name. Drop is silent, as the source's destructor is; close() reports.",
   "Regular-file no-clobber publication uses hard links, so unsupported filesystems, no-clobber directory/symlink moves and cross-device directory/symlink moves are checked errors rather than racy emulation.",
   "Overwrite moves do not pre-delete the destination, correcting the source's delete-then-rename window. Directory copy preflights cycles, self/descendant copies, all visible Cancel conflicts and destination directory symlinks.",
-  "Permission queries are effective-process semantic probes rather than real-uid access(2) or Windows ACL calculations; FIFOs and devices are never opened, and the requested basename is never created. The source's name-length fallback is reproduced with shorter probe names.",
+  "Permission queries are effective-process semantic probes rather than real-uid access(2) or Windows ACL calculations; FIFOs and devices are never opened, and the requested basename is never created. The source's name-length fallback is reproduced with progressively shorter probe names, which narrows rather than closes the band: the shortest rung is still a name -- the bare decimal probe counter -- where access(2) needs none, so a directory within that many bytes of the platform limit is still answered false where the source answers true.",
   "Portable character-based Unicode glob grammar; a directory entry that is not valid UTF-8 makes file_list return an error naming it rather than being skipped or matched approximately.",
   "getOpenMSConfigDir follows the source's __unix__ branch, not Rust's unix cfg flag, so macOS resolves to <home>/.OpenMS as the source does.",
   "UTC rather than local time, and the HOSTNAME/COMPUTERNAME environment variable rather than gethostname, in get_unique_name.",
@@ -275,7 +276,7 @@
   "MAX_BYTES = 64 MiB of conservative logical allocation for paths, copy plans and pattern tokens; file contents are streamed and not charged, with no scientific-data-size cap",
   "MAX_PATH_BYTES = 1 MiB per path or pattern, and an interior NUL is refused, before any filesystem call",
   "MAX_DEPTH = 128 levels for directory creation, recursive copy and recursive removal, checked before anything is created so a rejected make_dir leaves no partial chain",
-  "Temporary creation retries at most 100 times, matching the source's own Windows cap; each attempt walks three progressively shorter candidate names and reports a non-length failure at once",
+  "Temporary creation retries at most 100 times, matching the source's own Windows cap; each attempt walks three progressively shorter candidate names -- .openms-<unique>.tmp, .o<counter>, <counter> -- and reports the shortest candidate's failure, since no shorter name exists and the cause was therefore not the length",
   "get_unique_name refuses a system clock before the Unix epoch, a host name over 255 bytes, and an exhausted counter, none of which the source checks",
   "Param and ParamXML retain their own checked parsing and update budgets; an existing OpenMS.ini without the paramxml feature is an explicit Unsupported rather than a silent fall back to defaults",
   "Ordinary caller-owned context and guard values, and Rust Clone, are not secretly fallible"
