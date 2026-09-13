@@ -237,6 +237,11 @@ fn one_report_carries_both_overloads_outputs() {
 /// must be captured intact, and a single argument that itself contains spaces
 /// must arrive as one argument rather than being split by a shell. Reproduces
 /// the class test's two literals, `MARKER_STDOUT_OK` and `arg=[one two three]`.
+///
+/// The section's own call is
+/// `ep.run(script.string(), spaced_args, "", true, error_msg)` — an **empty**
+/// working directory, which the source folds into `"."` — and expects
+/// `SUCCESS`, so the empty string is passed here rather than left unset.
 #[cfg(unix)]
 #[test]
 fn spaces_in_the_executable_path_and_in_one_argument_survive() {
@@ -252,7 +257,9 @@ fn spaces_in_the_executable_path_and_in_one_argument_survive() {
         let mut process = ExternalProcess::with_callbacks(|t| out.push_str(t), |_| {});
         let report = process
             .run(
-                &Invocation::new(&path).with_arguments(["one two three"]),
+                &Invocation::new(&path)
+                    .with_arguments(["one two three"])
+                    .with_working_directory(""),
                 true,
             )
             .unwrap();
@@ -321,7 +328,7 @@ fn the_environment_overlay_is_added_to_the_inherited_environment() {
 }
 
 /// The source's `working_dir` parameter, and its "leave empty for the current
-/// working directory" rule, which this port spells `None`.
+/// working directory" rule, which this port spells `None` or an empty path.
 #[cfg(unix)]
 #[test]
 fn the_working_directory_is_where_relative_paths_resolve() {
@@ -341,6 +348,22 @@ fn the_working_directory_is_where_relative_paths_resolve() {
     // `cat` fails; that is the source's `"."` default.
     let run = capture(&Invocation::new(&path)).unwrap();
     assert_eq!(run.report.state, ReturnState::NonzeroExit);
+}
+
+/// The other half of that rule: `working_dir.empty() ? "." : working_dir`
+/// (`ExternalProcess.cpp:131`, `:233`). An empty directory is not a directory
+/// that cannot be entered — it is the current one, so the child must run.
+#[cfg(unix)]
+#[test]
+fn an_empty_working_directory_is_the_current_one() {
+    let directory = temp();
+    let path = script(directory.path(), "pwd.sh", "#!/bin/sh\npwd\n");
+
+    let empty = capture(&Invocation::new(&path).with_working_directory("")).unwrap();
+    assert_eq!(empty.report.state, ReturnState::Success);
+
+    let unset = capture(&Invocation::new(&path)).unwrap();
+    assert_eq!(empty.stdout, unset.stdout);
 }
 
 /// The source's `idle_callback`, invoked from the poll loop so a caller can
@@ -363,6 +386,76 @@ fn the_idle_callback_runs_while_the_child_runs() {
     // At a 50 ms cadence a 400 ms child yields several ticks; one is enough to
     // prove the callback is reached from inside the loop.
     assert!(ticks >= 1, "idle callback never ran");
+}
+
+/// The cadence itself. The source reaches `idle_callback` once per
+/// `io_ctx.run_for(milliseconds(50))`, however much the child writes in
+/// between, so the callback rate is bounded by elapsed time and not by the
+/// number of output chunks. A child that floods both is the case that tells
+/// the two apart.
+#[cfg(unix)]
+#[test]
+fn the_idle_cadence_is_set_by_the_clock_and_not_by_the_output() {
+    let directory = temp();
+    let path = script(
+        directory.path(),
+        "chatty.sh",
+        "#!/bin/sh\nyes 0123456789012345678901234567890123456789 | head -n 60000\nsleep 0.3\n",
+    );
+    let mut ticks = 0_usize;
+    let mut process = ExternalProcess::new();
+    let started = std::time::Instant::now();
+    let report = process
+        .run_with_idle(&Invocation::new(&path), false, &mut || ticks += 1)
+        .unwrap();
+    let elapsed = started.elapsed();
+    assert_eq!(report.state, ReturnState::Success);
+
+    // Every tick needs a full POLL_INTERVAL since the previous one, so the
+    // count is at most one more than the intervals that fit in the run. The
+    // spare tick absorbs the partial interval at each end.
+    let allowed = elapsed.as_millis() / external_process::POLL_INTERVAL.as_millis() + 2;
+    assert!(
+        u128::try_from(ticks).unwrap() <= allowed,
+        "idle callback ran {ticks} times in {elapsed:?}, which is more often than the \
+         source's 50 ms poll allows ({allowed}); it is following the output, not the clock"
+    );
+}
+
+/// A budget has to bound the *call*, not merely the child. A child that exits
+/// at once but leaves a descendant behind hands that descendant the write ends
+/// of its pipes, so they never reach end of file; without this rule the drain
+/// waits for the descendant and the budget can never fire, because the child it
+/// would have killed is already gone.
+///
+/// The call is made on a worker thread so that the failure is a failed
+/// assertion rather than a suite that never finishes.
+#[cfg(unix)]
+#[test]
+fn a_budget_ends_the_call_when_a_descendant_still_holds_the_pipes() {
+    let directory = temp();
+    let path = script(
+        directory.path(),
+        "orphan.sh",
+        "#!/bin/sh\nsleep 30 &\nexit 0\n",
+    );
+    let (sender, receiver) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let run = capture(&Invocation::new(&path).with_timeout(Duration::from_millis(250)));
+        let _ = sender.send(run.map(|run| run.report));
+    });
+
+    let report = receiver
+        .recv_timeout(Duration::from_secs(20))
+        .expect(
+            "the call never returned: the budget cannot end a drain a descendant is holding open",
+        )
+        .unwrap();
+    // The child itself exited cleanly, and it is the child's outcome that is
+    // reported: nothing was killed, so `timed_out` stays false.
+    assert_eq!(report.state, ReturnState::Success);
+    assert_eq!(report.exit_code, Some(0));
+    assert!(!report.timed_out);
 }
 
 /// Verbose mode writes the source's two banners: the command line before the

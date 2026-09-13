@@ -75,16 +75,19 @@ package; it simply reaches it without executing anything. Callers that want the
 distinction call `validate_package_name`, which returns
 `Error::InvalidValue`. Non-ASCII identifiers, which Python 3 permits, are
 refused: the probe answers a yes/no question about ordinary package names, and
-the narrower rule is deliberate. Recorded in `OpenMS_CPP_ISSUES.md` as
-*`PythonInfo::isPackageInstalled` executes its argument*.
+the narrower rule is deliberate. Reported for the shared
+[C++ issue ledger](../OpenMS_CPP_ISSUES.md) as
+*`PythonInfo::isPackageInstalled` executes its argument*, which the integrator
+owns and numbers.
 
 **The resolved path is executed directly.** After `File::findExecutable` made
 the name absolute, the source hands that absolute path back to
 `bp::search_path`, which only ever walks `PATH` entries — so a perfectly good
 absolute interpreter fails the probe whenever `PATH` is empty or unset, and the
 class test cannot notice because its positive block is guarded by `canRun`
-itself. This port runs the resolved path. See `OpenMS_CPP_ISSUES.md` entry
-*empty `PATH` defeats an absolute executable*.
+itself. This port runs the resolved path. Reported for the shared
+[C++ issue ledger](../OpenMS_CPP_ISSUES.md) as *empty `PATH` defeats an absolute
+executable*, which the integrator owns and numbers.
 
 **Resolution goes through `FileContext`**, not the process `PATH` directly, for
 the same reason as `system::java_info`: it is what makes the module testable
