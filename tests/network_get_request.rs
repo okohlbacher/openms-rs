@@ -6,11 +6,15 @@
 //! `NetworkGetRequest_test.cpp`, plus the transport classification the source
 //! delegates to libcurl.
 //!
-//! No test here reaches the network. The two malformed-URL cases of the source's
-//! `run()` section go through the real
-//! [`UreqTransport`](openms::system::network_get_request::UreqTransport), whose
-//! URL preflight refuses them before a socket is opened; every case that would
-//! need a peer is driven through a recorded
+//! No test here reaches the network, and the property is checked rather than
+//! asserted. The real
+//! [`UreqTransport`](openms::system::network_get_request::UreqTransport) is
+//! given exactly two URLs in this suite, `""` and `"http://"`, and
+//! `the_real_transport_refuses_every_url_this_suite_gives_it` shows that each
+//! comes back as the preflight's own `MalformedUrl(<the URL verbatim>)` — a
+//! value nothing inside `ureq` produces, so the refusal demonstrably happened
+//! before a socket could exist. Every case that would need a peer is driven
+//! through a recorded
 //! [`HttpTransport`](openms::system::network_get_request::HttpTransport)
 //! instead. The source's third case relies on the reserved `.invalid` TLD to
 //! force a DNS failure, which is still a name lookup and still depends on the
@@ -201,6 +205,14 @@ fn run_reports_a_scheme_without_a_host_as_an_error() {
     request.run(&UreqTransport::new());
     assert!(request.has_error());
     assert!(!request.error_string().is_empty());
+    // The preflight reports the URL verbatim; anything `ureq` itself rejected
+    // would carry its own rendering instead, so this pins the offline path.
+    assert_eq!(
+        request.error(),
+        Some(&RequestError::Transport(TransportError::MalformedUrl(
+            "http://".to_owned()
+        )))
+    );
 }
 
 /// Class-test section `void run()`, case 3: an unresolvable host.
@@ -234,6 +246,12 @@ fn a_second_run_replaces_the_state_of_the_first() {
     request.set_url("");
     request.run(&UreqTransport::new());
     assert!(request.has_error());
+    assert_eq!(
+        request.error(),
+        Some(&RequestError::Transport(TransportError::MalformedUrl(
+            String::new()
+        )))
+    );
 
     request.set_url("http://another-nonexistent-host.invalid/");
     request.set_timeout(5);
@@ -351,6 +369,35 @@ fn an_error_status_still_carries_its_body_and_headers() {
     assert!(request.header("x-absent").is_none());
 }
 
+/// Native: a transport failure leaves no body, where the source can leave a truncated one.
+///
+/// The source's write callback appends as the bytes arrive, so a transfer that
+/// dies mid-body — an expiring `CURLOPT_TIMEOUT`, a reset connection — leaves
+/// what did arrive in `response_bytes_` and `getResponseBinary()` returns it
+/// next to `hasError() == true`. `HttpTransport::get` returns a whole response
+/// or a `TransportError` and never both, so here the body is empty. This is the
+/// documented divergence; the test exists so it cannot drift unnoticed in either
+/// direction.
+#[test]
+fn a_transport_failure_leaves_no_body_at_all() {
+    let mut request = NetworkGetRequest::new();
+    request.run(&Recorded::ok(200, b"the first run's body"));
+    assert_eq!(request.response_binary(), b"the first run's body");
+
+    // Exactly the conditions under which the source would hold a partial body.
+    for error in [
+        TransportError::Timeout,
+        TransportError::Io("connection reset by peer".into()),
+    ] {
+        request.run(&Recorded::failing(error));
+        assert!(request.has_error());
+        assert!(request.response_binary().is_empty());
+        assert_eq!(request.response_text().unwrap(), "");
+        assert_eq!(request.status(), None);
+        assert!(request.headers().is_empty());
+    }
+}
+
 /// Native: the bounds a caller may set, and the ceilings on them.
 #[test]
 fn limits_are_checked_against_their_ceilings() {
@@ -421,7 +468,7 @@ fn every_transport_error_renders_non_empty() {
 #[test]
 fn no_global_initialisation_is_needed_before_a_transport_is_used() {
     let transport = UreqTransport::new();
-    let results: Vec<bool> = std::thread::scope(|scope| {
+    let results: Vec<Option<RequestError>> = std::thread::scope(|scope| {
         let handles: Vec<_> = (0..4)
             .map(|_| {
                 let transport = &transport;
@@ -429,7 +476,7 @@ fn no_global_initialisation_is_needed_before_a_transport_is_used() {
                     let mut request = NetworkGetRequest::new();
                     request.set_url("");
                     request.run(transport);
-                    request.has_error()
+                    request.error().cloned()
                 })
             })
             .collect();
@@ -438,5 +485,34 @@ fn no_global_initialisation_is_needed_before_a_transport_is_used() {
             .map(|handle| handle.join().expect("worker thread panicked"))
             .collect()
     });
-    assert_eq!(results, vec![true; 4]);
+    let refused = RequestError::Transport(TransportError::MalformedUrl(String::new()));
+    assert_eq!(results, vec![Some(refused); 4]);
+}
+
+/// Native: every use of the *real* transport in this suite is refused offline.
+///
+/// The claim that no test in this group reaches the network rests on two facts:
+/// `UreqTransport` is handed only the URLs listed here, and `check_http_url` —
+/// the first statement of its `get`, and a pure function of the string — refuses
+/// each of them before `ureq` is called at all. The second fact is what this
+/// test pins: the error is the preflight's own
+/// `MalformedUrl(<the URL verbatim>)`, which nothing inside `ureq` produces, so
+/// a change that let one of these URLs through to a socket would fail here
+/// rather than quietly start resolving names on a build machine.
+#[test]
+fn the_real_transport_refuses_every_url_this_suite_gives_it() {
+    for url in ["", "http://"] {
+        let mut request = NetworkGetRequest::new();
+        request.set_url(url);
+        request.run(&UreqTransport::new());
+        assert_eq!(
+            request.error(),
+            Some(&RequestError::Transport(TransportError::MalformedUrl(
+                url.to_owned()
+            ))),
+            "{url:?} must be refused by the preflight, not by the network"
+        );
+        assert!(request.response_binary().is_empty());
+        assert_eq!(request.status(), None);
+    }
 }
