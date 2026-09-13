@@ -1,0 +1,179 @@
+{
+ "package_revisions": {
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
+  "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+ },
+ "scope": "The TOPPBase lifecycle of the independently versioned OpenMS4-cli package: command-line parse closure, INI merge and strict update, write commands, file checks, phase-aware exit codes and the run services (progress log type, thread policy, test-mode unique-id seed, processing annotations). Package CLI-1 (C4-CLI-SPEC plus integrator step W1.4). Deliberately not resolved against the Core SDK checkout, except for the Param::update and StringUtils wording the lifecycle reproduces.",
+ "method": "TOPPBase.cpp read at the cli pin with git show; generic cases executed against the C++ product SDK binaries DTAExtractor and SpectraFilterWindowMower by ../oracle/topp-cli-lifecycle/run.sh in a clean environment (env -i, per-case HOME and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH=<sdk>/share/OpenMS/4.0.0); the Rust suite asserts each case's exit code and a diagnostic line, and compares the subsection-override output canonically with the C++ output. TOPPBase_test.cpp sections that apply to the native API are transcribed with their literals.",
+ "evidence_tier": "oracle-generated (tier 1 executed differential) for the tool cases; source review (tier 3) for the transcribed TOPPBase_test.cpp sections; Rust-only (tier 4) for run_io routing, run-phase error mapping and the argument bound",
+ "oracle": {
+  "product_sdk": "/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/product-sdk",
+  "source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+  "build_type": "Debug",
+  "compiler": "AppleClang 21.0.0",
+  "binaries_sha256": {
+   "bin/DTAExtractor": "2ef65618307a7c9e27bc94c237b5421eca5d111a57c59bffb1779d387a1293cf",
+   "bin/SpectraFilterWindowMower": "6a8843a154c9993af66a3e0bea556ffc620d8eff757ff84b0f9f39d74a2129e8",
+   "lib/libOpenMS.dylib": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a"
+  },
+  "debug_only_cases": [],
+  "reproducibility": "Two executions agreed on exit code and every output sha256 for all 37 shared cases; ini_common_top_level ran once."
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/topp-cli-lifecycle/manifest.json",
+   "sha256": "fb364f53bdd416b841e13063078033e2ecc5757d1f11a435014dee6bd028976d",
+   "role": "38 executed cases: command lines, exit codes, diagnostics, output hashes, oracle identity"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/run.sh",
+   "sha256": "6b337d8f8c5612c285a7de2ac715724e69b74eeca219a3423aa6e59b4728ae84",
+   "role": "driver"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/make_manifest.py",
+   "sha256": "0c44ee5206e806fa51d9cbb46cc10182eca5c966edbc191a97479e5dee179663",
+   "role": "manifest generator"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/compare_runs.py",
+   "sha256": "9f1feb3582b0e9c9f036331ac717eb0861288e423dcca0d4c79b988fcd86b676",
+   "role": "reproducibility comparison"
+  }
+ ],
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPBase.cpp",
+   "revision": "cli c19e494",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPBase.h",
+   "revision": "cli c19e494",
+   "sha256": "576cea45f0a5eea7827c44f8080c98759aea16d34c854f8867132e6f54d102b3"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/tests/source/TOPPBase_test.cpp",
+   "revision": "cli c19e494",
+   "sha256": "01e7de9f30281c3afa9dee1b920a1cf36b46b72fc57c72824cd2852e506fa29f"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/DATASTRUCTURES/Param.cpp",
+   "revision": "core bc9cc12",
+   "sha256": "5bfd393df12f6cc6d3238f3a31cdf33e72aeead1ec6831666ac8306889aec407",
+   "used_for": "ParamEntry::isValid and Param::update diagnostics (56-166, 1216-1374)"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "revision": "core bc9cc12",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "used_for": "toInt32 and toDouble conversion rules and messages (136-276)"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/topp_cli_lifecycle/TOPPBaseCmdParseSubsectionsTest.ini",
+   "sha256": "f081a2a60d8b4ad3d964c9cb5fd0015eac3f70ee4957b1694cc38f0e5b7b7b02",
+   "origin": "OpenMS4-tests/packages/cli/tests/data/TOPPBaseCmdParseSubsectionsTest.ini at c19e494, unchanged"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/TOPPBase_common.ini",
+   "sha256": "d0f05b7b7a969cf4c998e1f71d4be74310f82d1b68167dd71467ded1e77bdcb7",
+   "origin": "OpenMS4-tests/packages/cli/tests/data/TOPPBase_common.ini at c19e494, unchanged"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/TOPPBase_toolcommon.ini",
+   "sha256": "6ecf61c02df7830616a8a671d2a7c26ddba61db954941beb1952c663e8586d5e",
+   "origin": "OpenMS4-tests/packages/cli/tests/data/TOPPBase_toolcommon.ini at c19e494, unchanged"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/TOPPBase_empty.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "origin": "OpenMS4-tests/packages/cli/tests/data/TOPPBase_empty.txt at c19e494, unchanged (zero bytes)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/swm_algorithm_peakcount_1.mzML",
+   "sha256": "e9fc56b18627fbde974e6c21cec35c520068819a36d12e3380a2ee25932b281d",
+   "origin": "oracle-generated (tier 1 executed differential): SpectraFilterWindowMower -test -in window_mower_tool_input.mzML -out out.mzML -algorithm:peakcount 1, case algorithm_peakcount_1; identical bytes for algorithm_peakcount_twice, ini_common_tool_section and ini_instance_and_common"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/corrupt.mzML",
+   "sha256": "a9ed1680c951989261218655b5b324e73ac96952f3085596a4650934048f5846",
+   "origin": "authored: the first 3000 bytes of tests/data/window_mower_tool_input.mzML; oracle case corrupt_input exits 3"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/unknown_item.ini",
+   "sha256": "6e8708c62eea268f3aaaa2216a4461e9a5f731979caf0cfb5d357b34e7743b25",
+   "origin": "authored oracle input; case ini_unknown_item exits 6"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/foreign_section.ini",
+   "sha256": "2ac0843843bbfa656e933f345960d86ba9e0e2c8682bec2296aac2b7a45e364b",
+   "origin": "authored oracle input; case ini_foreign_section exits 0 with a warning"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/movetype_sideways.ini",
+   "sha256": "85b59253faa670f77936b94711e4fdeaa9404207bae0f14dc2a37959e0eef280",
+   "origin": "authored oracle input; cases ini_invalid_subsection_value (exit 6) and write_ini_with_ini (exit 0)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/peakcount_string.ini",
+   "sha256": "953eefec511ae817b92251ead7b49f880812a6d648fbc5614a06e789978def95",
+   "origin": "authored oracle input; case ini_value_type_mismatch exits 6"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/version_mismatch.ini",
+   "sha256": "9842958528e3bc5bea52b9cf99324f4aeda5fef355279274d439475d3070c4ba",
+   "origin": "authored oracle input; case ini_version_mismatch exits 0 with a notice on stdout"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/malformed.ini",
+   "sha256": "3c9dd7da3d705e185445ac0f09d32bc609d18231b74612b9341a9b6109355d2d",
+   "origin": "authored oracle input; case ini_malformed exits 3"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/common_tool_section.ini",
+   "sha256": "004cee81894f4e668099543c20024388e82978b7673aba94644e27b04ff61fd7",
+   "origin": "authored oracle input; case ini_common_tool_section exits 0"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/instance_and_common.ini",
+   "sha256": "98a89233e3f1125f27e95077ad3817c6384599dd264da7b77afe24bcaa6123dc",
+   "origin": "authored oracle input; case ini_instance_and_common exits 0 with the peakcount 1 output"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/common_top_level.ini",
+   "sha256": "118ca19d6ae96c6cb894b7379b03524a4b752fe4e6a990720a6b31ec6a28a597",
+   "origin": "authored oracle input; case ini_common_top_level exits 6"
+  },
+  {
+   "path": "tests/data/window_mower_tool_input.mzML",
+   "sha256": "df641949fbb0a1370333a4d49a11317da9e4f9fa2e295acfda6b2dd4614d8afe",
+   "origin": "existing retained upstream fixture (topp_spectra_filter_window_mower_provenance.json); oracle input"
+  },
+  {
+   "path": "tests/data/window_mower_tool_output.mzML",
+   "sha256": "77b164053be5fce69fccb28a3d4487e8dd14c53fe013fb598ea390290fbb3703",
+   "origin": "existing retained upstream fixture; the default-parameter reference"
+  }
+ ],
+ "native_implementation": [
+  "src/cli.rs",
+  "src/cli/context.rs",
+  "src/cli/spec.rs",
+  "src/cli/parameter.rs",
+  "src/cli/processing.rs",
+  "src/cli/usage.rs"
+ ],
+ "native_tests": [
+  "tests/topp_cli_lifecycle.rs",
+  "tests/topp_spectra_filter_window_mower.rs"
+ ],
+ "support": "docs/TOPP_CLI_SUPPORT.md",
+ "upstream_test_definition": "OpenMS4-tests/packages/cli/tests/source/TOPPBase_test.cpp at c19e494 (23 START_SECTIONs; accounting in docs/TOPP_CLI_SUPPORT.md)",
+ "pending": [
+  "a_bare_invocation_is_refused is ignored: TOPPBase.cpp:227-232 exits 6 (oracle no_arguments), but three existing assertions of MISSING_PARAMETERS in tests/topp_dta_extractor.rs:131, tests/topp_baseline_filter.rs:93 and tests/topp_map_normalizer.rs:102 may not be changed by package CLI-1"
+ ]
+}

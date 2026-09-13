@@ -151,11 +151,16 @@ fn a_subsection_value_from_an_ini_changes_the_result() {
     let _ = fs::remove_dir_all(&dir);
 }
 
-/// An INI value that violates a registered restriction is **ignored**, not an
-/// error: the source `Param::update` warns and keeps the existing default. The
-/// tool therefore still runs, with the default movement type.
+/// An INI value that violates a registered restriction is **rejected**. The
+/// source applies INI and command-line values with
+/// `param_.update(finalParam, false, false, true, true, ...)`, that is with
+/// `fail_on_invalid_values` and `fail_on_unknown_parameters` set
+/// (`TOPPBase.cpp:339-342`), and exits with ILLEGAL_PARAMETERS instead of
+/// falling back to the default. The C++ product SDK does exactly that for this
+/// INI value (`../oracle/topp-cli-lifecycle`, case
+/// `ini_invalid_subsection_value`).
 #[test]
-fn an_invalid_subsection_value_falls_back_to_the_default() {
+fn an_invalid_subsection_value_is_rejected() {
     let dir = workdir("bad");
     let ini = dir.join("tool.ini");
     assert_eq!(
@@ -182,14 +187,11 @@ fn an_invalid_subsection_value_falls_back_to_the_default() {
         "-out",
         &out.to_string_lossy(),
     ]);
-    assert_eq!(code, ExitCode::ExecutionOk, "{err}");
-    // Falling back to "slide" must reproduce the retained reference exactly.
-    let produced: Vec<usize> = load(&out).spectra.iter().map(|s| s.peaks.len()).collect();
-    let reference: Vec<usize> = load(fixture("window_mower_tool_output.mzML"))
-        .spectra
-        .iter()
-        .map(|s| s.peaks.len())
-        .collect();
-    assert_eq!(produced, reference);
+    assert_eq!(code, ExitCode::IllegalParameters, "{err}");
+    assert!(
+        err.contains("Parameters passed to 'SpectraFilterWindowMower' are invalid"),
+        "{err}"
+    );
+    assert!(!out.exists(), "no output is written after a refused update");
     let _ = fs::remove_dir_all(&dir);
 }
