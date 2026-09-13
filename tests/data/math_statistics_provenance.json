@@ -1,0 +1,303 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "sha256": "61c80a040673e0bca53086d2947b5bcd100c046c6024c8c99f5da6237b98ec7d",
+   "role": "Ported in full. Header-only free-function library: sums, means, medians, both quantile conventions, deviations, the Tukey/winsorized/adaptive quantile family, five correlation coefficients, computeRank and SummaryStatistics."
+  },
+  {
+   "path": "src/openms/source/MATH/StatisticFunctions.cpp",
+   "sha256": "587b1ec4e84dfdc7399d4456c3e3125c36ceeba1478fe9f41679d41c2b2dda0f",
+   "role": "Empty translation unit: an OpenMS namespace with no members. Hashed to record that the header carries the whole implementation and nothing was missed in a .cpp."
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/BasicStatistics.h",
+   "sha256": "2a969d3ed5a57fee2082559e9b462f20abd9854327818f8dc4494dcdfc3efc0a",
+   "role": "Ported in full. Header-only template; no .cpp exists in the SDK."
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/RankData.h",
+   "sha256": "3c64cd52f51a696aaa0b109ea0e32afccbe9d18cc5eaca69ffd8d77de4d9e2a7",
+   "role": "Ported in full. Header-only static templates plus three by-value free functions; no .cpp exists in the SDK."
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h",
+   "sha256": "002733b1c1873c8205ae245f9a6bd73cda95d1b15ae9ef58794ba3a02831a29e",
+   "role": "Ported in full. Header-only template."
+  },
+  {
+   "path": "src/openms/source/MATH/STATISTICS/Histogram.cpp",
+   "sha256": "17a77bba116fd755484d9930e84d4e0a4d59b0762b183d2f4ef5782d4bf22831",
+   "role": "Empty translation unit, as StatisticFunctions.cpp."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/StatisticFunctions_test.cpp",
+   "sha256": "135f96d5fce818ae1010b257cc5a9cea441cca5bf22192f0bc816464026af6e5",
+   "role": "Oracle for StatisticFunctions.h: 20 START_SECTIONs, all mapped in tests/statistic_functions.rs."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BasicStatistics_test.cpp",
+   "sha256": "50458b52cea1fe3f0beadc4e02f954afe3a300dfb9617edd5f531a9537a62770",
+   "role": "Oracle for BasicStatistics.h: 18 START_SECTIONs, all mapped in tests/basic_statistics.rs. A plain grep -c reports 20, because two further occurrences at lines 341 and 356 are inside comments that refer to a section rather than opening one. Also the origin of the 195-value dvector_data sample transcribed there."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RankData_test.cpp",
+   "sha256": "3633a8661444d9e52954f59f5f4c61fdc3f84e2ff04f2b376b4c1e78934900b9",
+   "role": "Oracle for RankData.h: 11 START_SECTIONs, all mapped in tests/rank_data.rs. Its cross-validation section carries vectors its authors generated with SciPy 1.17.1; those are transcribed, not re-executed here."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Histogram_test.cpp",
+   "sha256": "0848c8516d06247608dc648497cc549e44baa87fa69627c1c1e35b86376e8d5f",
+   "role": "Oracle for Histogram.h: 23 START_SECTIONs, all mapped in tests/histogram.rs. It instantiates Histogram<float, float> and mutates one shared object down the file."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Exception.h",
+   "sha256": "620da10fdd42133622a159cca1b7b45328dd36f34496d8f6de965ee89f9bebda",
+   "role": "Not ported. Read for the exact exception classes the four headers throw: InvalidRange, InvalidValue, OutOfRange and IndexOverflow, which the support documents map onto this crate's Error variants."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+   "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6",
+   "role": "Not ported. Read for Size, SignedSize, UInt and Int, whose widths decide where the source's index arithmetic wraps."
+  }
+ ],
+ "fixtures": [],
+ "native_implementation": [
+  "src/math/mod.rs",
+  "src/math/statistic_functions.rs",
+  "src/math/basic_statistics.rs",
+  "src/math/rank_data.rs",
+  "src/math/histogram.rs"
+ ],
+ "native_tests": [
+  "tests/statistic_functions.rs",
+  "tests/basic_statistics.rs",
+  "tests/rank_data.rs",
+  "tests/histogram.rs"
+ ],
+ "support": [
+  "docs/STATISTIC_FUNCTIONS_SUPPORT.md",
+  "docs/BASIC_STATISTICS_SUPPORT.md",
+  "docs/RANK_DATA_SUPPORT.md",
+  "docs/HISTOGRAM_SUPPORT.md"
+ ],
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 144,
+   "operation": "median averages the two middle values for an even count and returns the single middle value for an odd one, which is why it returns double rather than the element type"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 254,
+   "operation": "quantile1st takes the median of [0, size/2 - 1) for an even count; the -1 is commented as excluding the median value, but an even count has no middle element, so one real observation is dropped from the lower half"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 289,
+   "operation": "quantile3rd takes the median of [size/2 + 1, end) and drops one observation from the upper half for the same reason"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 320,
+   "operation": "quantile's sortedness precondition is OPENMS_PRECONDITION only, so it is compiled out of a release build; the port always checks and returns Error::UnsortedData"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 342,
+   "operation": "a zero fractional part short-circuits to x[idx] without touching x[idx + 1], which is what keeps q == 1 from reading past the end"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 371,
+   "operation": "tukeyUpperFence needs four finite values and a strictly positive interquartile range, and otherwise returns +infinity as the no-fence sentinel"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 441,
+   "operation": "winsorizedQuantile also caps below at 0.0, which the source's comment calls defensive for absolute residuals and which makes it unsuitable for signed data"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 512,
+   "operation": "adaptiveQuantile degenerates to a step function when r_dense <= r_sparse, rather than rejecting the configuration"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 542,
+   "operation": "variance uses std::numeric_limits<double>::max() as the sentinel for an unsupplied mean, so a caller that means DBL_MAX cannot say so; the port splits the overload instead"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 555,
+   "operation": "variance divides by distance - 1 unchecked and returns NaN for a single value; covariance at line 624 does the same; meanSquareError at line 658 divides by n instead, and these different degrees of freedom are preserved exactly"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 618,
+   "operation": "covariance re-tests the two begin iterators inside its loop, a loop-invariant check, so a shorter second range is dereferenced out of bounds before the trailing checkIteratorsEqual notices"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 734,
+   "operation": "matthewsCorrelationCoefficient calls checkIteratorsNotNULL(begin_a, end_b), comparing iterators from two different containers, which is undefined behaviour and not the emptiness check it intends"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 811,
+   "operation": "pearsonCorrelationCoefficient returns numerator / sqrt(denominator_a * denominator_b); a constant range zeroes a denominator and the documented result is NaN, which the port returns explicitly after proving the numerator is zero in that case"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 821,
+   "operation": "computeRank computes Size n = w.size() - 1 in unsigned arithmetic, which wraps to SIZE_MAX for an empty vector"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 835,
+   "operation": "computeRank detects ties with the relative test |a - b| > 1e-7 * |later|, so the tolerance collapses to zero next to a zero and a chain of near-neighbours becomes one block; the tie rank is 0.5 * (i + z + 1)"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 907,
+   "operation": "rankCorrelationCoefficient correlates about the theoretical mean rank (n + 1) / 2 rather than the observed mean of the ranks, with a comment recording the earlier integer division"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 923,
+   "operation": "rankCorrelationCoefficient returns 0 when either sum of squares is zero, where pearsonCorrelationCoefficient returns NaN for the same situation"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+   "line": 951,
+   "operation": "SummaryStatistics substitutes 0.0 for the variance when count <= 1, acknowledging in a comment that the n-1 divisor is undefined there"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/BasicStatistics.h",
+   "line": 100,
+   "operation": "update repairs a zero probability mass by zeroing mean and variance after the division; the coordinate overload at line 113 has no such guard and leaves both NaN"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/BasicStatistics.h",
+   "line": 122,
+   "operation": "the coordinate overload takes only a coordinate begin iterator and advances it once per probability, reading past the end of a shorter coordinate range"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/BasicStatistics.h",
+   "line": 166,
+   "operation": "normalDensity_sqrt2pi is exp of the standardised square with no 1/sqrt(variance) scaling, so it is exactly 1 at the mean for every variance; it divides by the variance unchecked"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/BasicStatistics.h",
+   "line": 174,
+   "operation": "sqrt2pi() is the literal 2.50662827463100050240, which parses to the f64 2.5066282746310007, one ulp above the correctly rounded sqrt(2 pi) 2.5066282746310002; the port keeps the source value"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/BasicStatistics.h",
+   "line": 261,
+   "operation": "normalApproximationHelper_ divides each density by the summed density and multiplies by sum(), in that order, so the output carries the distribution's own mass; the divisor is not checked"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/RankData.h",
+   "line": 91,
+   "operation": "nan_policy Propagate returns an all-NaN vector as soon as any NaN is present, for every tie method, matching SciPy"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/RankData.h",
+   "line": 119,
+   "operation": "indices are stable-sorted by the values promoted to double using <, under which -0.0 and 0.0 are equal; the port uses partial_cmp rather than the IEEE-754 total order so Ordinal keeps that behaviour"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/RankData.h",
+   "line": 179,
+   "operation": "tie blocks are found by exact equality of the promoted values, unlike computeRank's relative tolerance; the one-based ranks of a block spanning [lo, hi) are lo+1 through hi"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h",
+   "line": 181,
+   "operation": "rightBorderOfBin returns nextafter(maxBound(), maxBound() + 1) for the last bin, because valueToBin routes max into it regardless of the bin arithmetic"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h",
+   "line": 118,
+   "operation": "maxValue and minValue dereference max_element/min_element over bins_ without checking that it is non-empty, which a default-constructed histogram is"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h",
+   "line": 297,
+   "operation": "reset clears bins_ and assigns the new bounds before throwing on a non-positive bin size, leaving a half-updated object; the port builds the new bins first"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h",
+   "line": 365,
+   "operation": "applyLogTransformation casts multiplier * log(x + 1) back to ValueType, so the default UInt instantiation truncates to an integer, and it does not check the sign of the logarithm's argument"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h",
+   "line": 377,
+   "operation": "valueToBin's two bound comparisons are both false for a NaN, which then reaches floor(NaN) and a conversion to the unsigned Size"
+  },
+  {
+   "path": "src/openms/include/OpenMS/MATH/STATISTICS/Histogram.h",
+   "line": 413,
+   "operation": "initBins_ computes Size(ceil((max_ - min_) / bin_size_)) with no check that max_ >= min_ and no ceiling on the result; max_ == min_ is special-cased to a single bin"
+  }
+ ],
+ "evidence": {
+  "tier": "3 and 4",
+  "executed_cpp": false,
+  "description": "Tier 3 is the transcription of every literal in the four class tests, section by section, with the source line recorded above each Rust test. Tier 4 covers the expectations derived independently from a closed form, a symmetry or an invariant, and the Rust-only guards. No retained C++ output and no oracle driver exists for these headers, so no tier 1 or tier 2 claim is made.",
+  "sections": {
+   "StatisticFunctions_test.cpp": 20,
+   "BasicStatistics_test.cpp": 18,
+   "RankData_test.cpp": 11,
+   "Histogram_test.cpp": 23,
+   "total": 72,
+   "mapped": 72,
+   "unaccounted": 0,
+   "grep_count_note": "A plain grep -c START_SECTION over the four files reports 74. Two of those occurrences are inside comments in BasicStatistics_test.cpp at lines 341 and 356 and open no section, so the real total is 72 and all 72 are mapped."
+  },
+  "independently_derived": [
+   "MeanAbsoluteDeviation of the seven-value z_odd sample is exactly 6/7, against the class test's truncated 0.857142",
+   "MeanAbsoluteDeviation of {-1,0,1,2,3} about 1 is exactly 6/5, which is representable, so the test asserts equality rather than a tolerance",
+   "MAD of {-1,0,1,2,3,4} is 1.5 for both the median the class test's `true` literal supplies (1.0) and the median its comment states (1.5)",
+   "SummaryStatistics sample variance of {1,3} is ((1-2)^2 + (3-2)^2)/(2-1) = 2",
+   "Spearman correlation of a strictly increasing sequence with itself is exactly +1 and with its reversal exactly -1, by the symmetry of the ranks about mu",
+   "computeRank's tie block for four equal values starting at sorted position 3 gets 0.5*(3+7+1) = 5.5, the mean of ranks 4..7",
+   "adaptive quantile case A: Q1 = 2 and Q3 = 7 over the sorted base give a Tukey fence of 14.5, a tail fraction of exactly 1/201, a raw quantile of 0.6*9 + 0.4*1000 and a robust quantile of 0.6*9 + 0.4*14.5",
+   "a zero denominator in the Matthews and Pearson coefficients forces a zero numerator in every reachable case, so the source's unchecked division yields NaN and the explicit NaN is an equivalence rather than a substitution",
+   "BasicStatistics weighted mean and variance of {0,1,3,2,0} are exactly 13/6 and 17/36",
+   "BasicStatistics coordinates 1000 - i reflect the positions, so the weighted mean reflects: mean == 1000 - mean(positions)",
+   "the normal approximation's entries sum to sum(), because each is density/total_density * sum",
+   "the source's sqrt2pi literal is exactly one ulp above sqrt(2 pi), asserted on the bit patterns",
+   "rankdata Average is the exact midpoint of Min and Max at every position, and Ordinal is a permutation of 1..=n",
+   "Histogram bin counts 10, 5 and 6 follow from ceil((max - min) / bin_size)",
+   "the log-transformed last histogram bin is exactly ln(10001), against the class test's rounded 9.21044"
+  ]
+ },
+ "native_boundaries": [
+  "statistic_functions: MAX_ITEMS = 50,000,000 values and MAX_BYTES = 512 MiB per staged buffer, checked with checked_mul in a preflight before any allocation, for mad, tukey_upper_fence, winsorized_quantile, adaptive_quantile, compute_rank and rank_correlation_coefficient",
+  "basic_statistics: MAX_ITEMS = 50,000,000 probabilities, coordinates or approximation points, checked before the state is cleared",
+  "rank_data: MAX_ITEMS = 50,000,000 values, checked before either staging buffer is allocated",
+  "histogram: MAX_BINS = 16,777,216 bins, checked against the caller-controlled ceil((max - min) / bin_size) before the vector is allocated",
+  "Sortedness is always verified where the source states it only as a precondition, including for a one-element range, which std::is_sorted accepts even when that element is NaN",
+  "statistic_functions: every entry point that orders values refuses a NaN, because std::sort's strict-weak-ordering precondition makes the source's answer undefined there. median, quantile1st, quantile3rd, mad, compute_rank, rank_correlation_coefficient and SummaryStatistics::new return InvalidValue before sorting; median_sorted, quantile1st_sorted, quantile3rd_sorted and quantile return UnsortedData. mad also refuses a NaN median and a NaN difference manufactured by inf - inf. Infinities are ordered, not refused",
+  "variance, sd and covariance refuse n < 2 instead of dividing by zero; SummaryStatistics keeps the source's 0.0 for n <= 1",
+  "Every division by a caller-influenced denominator is either checked or replaced by the value the division would have produced, with the equivalence stated at the item",
+  "Histogram refuses an inverted range, a non-finite bound, width, value or increment, a NaN lookup, and a bin at or below -1 in the log transformation; reset and apply_log_transformation commit atomically",
+  "BasicStatistics::update_with_coordinates compares the two lengths instead of walking an unbounded coordinate iterator",
+  "compute_rank on an empty slice is a no-op rather than an unsigned wrap",
+  "BasicStatistics::normal_approximation(0) and normal_approximation_at(&[]) succeed and return empty, because normalApproximationHelper_ runs both of its loops zero times and never divides by gaussSum; the zero-sum refusal applies only where the source would actually divide"
+ ],
+ "openmp": "None of the four headers carries a #pragma omp, so there is no parallel behaviour to match and no performance gap to record for this group.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
