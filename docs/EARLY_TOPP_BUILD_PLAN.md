@@ -6,6 +6,9 @@ resume assessment. The objective is an early, useful Rust tool bundle, led by
 long-term scope. Completing SQLite S2, every FileHandler format, all CLI base
 classes or entire scientific domains is not a prerequisite for these builds.
 
+The executable breakdown into work packages, the ownership rules and the decisions
+taken are in [EARLY_TOPP_WORK_PACKAGES](EARLY_TOPP_WORK_PACKAGES.md).
+
 ## Deliverables and order
 
 Keep the five existing tools building: BaselineFilter, DTAExtractor,
