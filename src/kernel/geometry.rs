@@ -3,6 +3,13 @@
 // $Maintainer: OpenMS Rust contributors $
 
 //! Checked RT/m/z geometry and the OpenMS scan-envelope hull representation.
+//!
+//! [`BoundingBox2D`] covers the two-dimensional `DATASTRUCTURES/DBoundingBox.h`
+//! (with `width` and `height` from `DATASTRUCTURES/DIntervalBase.h`) as used for
+//! feature and hull bounds, dimension 0 being RT and dimension 1 m/z;
+//! [`ConvexHull2D`] ports `DATASTRUCTURES/ConvexHull2D.h`. See
+//! `docs/FEATURE_SUPPORT.md` and, for the bounding-box predicates,
+//! `docs/ISOTOPE_SOURCE_PRECISION_SUPPORT.md`.
 
 use super::NumericRange;
 use crate::{Error, Result};
@@ -36,6 +43,11 @@ impl Point2D {
 }
 
 /// A nonempty, inclusive rectangular bound; use `Option` for an empty bound.
+///
+/// Source `DBoundingBox<2>` is a closed interval whose borders are contained.
+/// Its default instance is an empty sentinel and its `isEmpty` also reports
+/// boxes of zero extent as empty; here emptiness is `None`, and a box of zero
+/// width or height is an ordinary degenerate box.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct BoundingBox2D {
     rt: NumericRange,
@@ -111,6 +123,43 @@ impl BoundingBox2D {
                 max: self.mz.max.max(other.mz.max),
             },
         }
+    }
+
+    /// Whether this box and `other` share at least one point, borders included.
+    ///
+    /// Source `DBoundingBox::intersects` (`DBoundingBox.h:157-166`) checks each
+    /// dimension in turn, RT then m/z, and reports no intersection as soon as
+    /// `other` starts above or ends below this box. Touching edges and corners
+    /// therefore intersect, and so does a degenerate box lying on a border. The
+    /// test is symmetric; coordinates are finite by construction, so no NaN
+    /// comparison can break that.
+    pub fn intersects(self, other: Self) -> bool {
+        if other.rt.min > self.rt.max || other.rt.max < self.rt.min {
+            return false;
+        }
+        if other.mz.min > self.mz.max || other.mz.max < self.mz.min {
+            return false;
+        }
+        true
+    }
+
+    /// The retention time extent, `max.rt - min.rt` (source `width`).
+    ///
+    /// Source `DIntervalBase::width` (`DIntervalBase.h:319-323`) is the extent of
+    /// dimension zero, which is RT in feature and hull bounding boxes. As in the
+    /// source, the difference of two extreme finite coordinates can overflow to
+    /// positive infinity.
+    pub fn width(self) -> f64 {
+        self.rt.max - self.rt.min
+    }
+
+    /// The mass-to-charge extent, `max.mz - min.mz` (source `height`).
+    ///
+    /// Source `DIntervalBase::height` (`DIntervalBase.h:325-329`) is the extent
+    /// of dimension one, which is m/z in feature and hull bounding boxes.
+    /// Overflow behaves as in [`Self::width`].
+    pub fn height(self) -> f64 {
+        self.mz.max - self.mz.min
     }
 }
 

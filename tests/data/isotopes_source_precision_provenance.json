@@ -1,0 +1,289 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "744455b70d7f1d4745e137e7e14947a7e8d4ccad",
+ "package": "B2-ISO-GEOM",
+ "scope": "Explicit source-precision (Peak1D binary32) coarse isotope patterns and renormalisation (ProbabilityPrecision::SourceSingle), the source IsotopeDistribution::trimLeft (trim_left_source), and BoundingBox2D intersects/width/height from DBoundingBox.h and DIntervalBase.h. The f64 default and every existing signature are unchanged.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
+   "sha256": "e13e47c2e04d49813771857043d588a8bc51f73d75afaf38526f86ea9e783b28"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.cpp",
+   "sha256": "0974fabc36a93f741c210d89e940215fa773306b99b5b45309a35cb4b43a2f8c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h",
+   "sha256": "d82891844f6de8a3335cc0cd7a09b46bbe4055af5e25119b3fc4fdab17ea8201"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.cpp",
+   "sha256": "987934145e3cf0d5f5eff97fc580ef2c680e8b3a932d36c8c4855d4ef063bf38"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+   "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+   "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DBoundingBox.h",
+   "sha256": "5a71ca1b34de215282edb32ea31e209bb10f583c68c7ce81b534bc216089980d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h",
+   "sha256": "787ed51ddf700a472a09dcaed4eb738c50ab8353e0b212f0a6a8a3171615b495"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/CoarseIsotopeDistribution_test.cpp",
+   "sha256": "33731eb0978031e8b45bad0fe533ede51e09c1af9b9db0c96422cd9be8e8f92a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IsotopeDistribution_test.cpp",
+   "sha256": "214145a80bb77529d479bf9117f8f3b213139f2e11c416a0b0068bb3c2bde975"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/DBoundingBox_test.cpp",
+   "sha256": "2be3650d1fb84708bbf74d065bcaa8005943eeb9484c9f6454a902d6850b9c4b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/DIntervalBase_test.cpp",
+   "sha256": "8c30ad6575e90a79aa0d4de665c07df63b00cba99c813700472179ec9993d6fc"
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
+   "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f"
+  }
+ ],
+ "context_sources": [
+  {
+   "repository_path": "OpenMS4-core@bc9cc12:src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0"
+  },
+  {
+   "repository_path": "OpenMS4-core@bc9cc12:src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h",
+   "sha256": "24d0f9c4aae34061cc5d2ceb0003d9d4cd86b22c1448ae13bb4358ae0f626405"
+  },
+  {
+   "repository_path": "OpenMS4-core@bc9cc12:src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h",
+   "sha256": "2c7d51a8f37b67005e8697934907a159d7b348939ff3b3648b9dcf26020bffd1"
+  },
+  {
+   "repository_path": "OpenMS4-core@bc9cc12:src/openms/include/OpenMS/CHEMISTRY/ElementDB.h",
+   "sha256": "2903d20126658479d7376982c1c8be89ec7dbd2c6bd13d5b759b560128189836"
+  },
+  {
+   "repository_path": "OpenMS4-core@bc9cc12:src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h",
+   "sha256": "9c2a81ef15a7beb3e52c3ba9e1db9b98ae68f27aa3eb5f62cd3a5562f978927d"
+  },
+  {
+   "repository_path": "OpenMS4-core@bc9cc12:src/openms/include/OpenMS/KERNEL/Peak1D.h",
+   "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
+  },
+  {
+   "repository_path": "OpenMS4-core@bc9cc12:src/openms/include/OpenMS/MATH/MathFunctions.h",
+   "sha256": "1f4b40a09b40a525e58b819b5fe838c130869f8d38c56f5af6a0642d98501b2e"
+  },
+  {
+   "repository_path": "OpenMS4-core@bc9cc12:src/openms/include/OpenMS/CONCEPT/Constants.h",
+   "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+  }
+ ],
+ "context_sources_note": "Read for call sites (FeatureFinderAlgorithmPicked step 2.5, abundance overrides), the Peak1D float intensity type, EmpiricalFormula's std::map<const Element*, SignedSize> and constants; not ported or tested here, so they are not ledger evidence for those headers.",
+ "native_implementation": [
+  "src/chemistry/isotopes.rs",
+  "src/kernel/geometry.rs"
+ ],
+ "native_tests": [
+  "tests/isotopes_source_precision.rs",
+  "tests/geometry_bounding_box.rs"
+ ],
+ "regression_tests": [
+  "tests/isotopes.rs",
+  "tests/features.rs",
+  "tests/fine_isotopes.rs",
+  "tests/fine_isotope_reference.rs",
+  "tests/fine_isotope_stream.rs",
+  "tests/fine_isotope_stream_review.rs",
+  "tests/theoretical.rs",
+  "tests/rna_workflow.rs",
+  "tests/adduct_workflow.rs",
+  "tests/averagine_deisotoping.rs",
+  "tests/averagine_deisotoping_reference.rs",
+  "tests/averagine_deisotoping_review.rs",
+  "tests/deisotoping.rs",
+  "tests/feature_finding_metabo.rs",
+  "tests/feature_identification.rs",
+  "tests/feature_hypothesis.rs",
+  "tests/featurexml.rs",
+  "tests/map_operations.rs",
+  "tests/alignment_transformer.rs",
+  "tests/ims_isotopes.rs",
+  "tests/ims_element.rs",
+  "tests/ims_alphabet.rs",
+  "src/lib.rs unit tests (--lib)"
+ ],
+ "support_document": "docs/ISOTOPE_SOURCE_PRECISION_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/isotopes_source_precision/probe.tsv",
+   "sha256": "4a9d6ddc3807cf92e9f700ddb0bf84571c0182fdca71697a2f2abc6aa4809435",
+   "rows": 243,
+   "kind": "oracle-generated (tier 1 executed differential)",
+   "producer": "../oracle/b2-iso-source-precision/probe.cpp via run.sh",
+   "format": "Tab-separated. Distribution lines: kind, label, size, then mass_bits:intensity_bits (binary64 and binary32, lowercase hexadecimal). formula_order lines: symbol:count in C++ iteration order. window_trim: size before, after trimLeft, after trimRight. trim: sizes. bbox: min/max corner bits and r2.intersects(r3), r3.intersects(r2)."
+  }
+ ],
+ "evidence": [
+  {
+   "tier": 1,
+   "label": "oracle-generated (tier 1 executed differential)",
+   "covers": "Bitwise: element isotope tables narrowed to binary32; run for 10 formulas; peptide, RNA and DNA averagine estimates; FeatureFinderAlgorithmPicked windows 0..80 (limit 20, width 100) with source trimLeft/trimRight; the 12C = 90 % override (limit 1020); public convolve; binary32 renormalize; fragment weights; DBoundingBox intersects (21 steps), touching borders, width and height."
+  },
+  {
+   "tier": 3,
+   "label": "source review",
+   "covers": "CoarseIsotopeDistribution_test.cpp (23 sections), IsotopeDistribution_test.cpp (25), DBoundingBox_test.cpp (18) and DIntervalBase_test.cpp width/height literals, compared with the ClassTest isRealSimilar rule; section accounting in the support document."
+  },
+  {
+   "tier": 4,
+   "label": "independently derived / Rust-only",
+   "covers": "crosscheck.py exact-rational binary32 re-derivation of 101 pattern lines (93 unfused-only, 8 both, 0 fused-only, 0 neither; alphabetical element order fails 78 of 101); exhaustive 10,000-pair intersects grid; binary32 range, overflow, zero-sum, work and allocation limits."
+  }
+ ],
+ "oracle": {
+  "sdk": "../product-sdk",
+  "build_info_sha256": "22f7ae60f0ef2edc9908459c9593cada1772b4e97bcd6739ea423438de299a9b",
+  "source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+  "build_type": "Debug",
+  "compiler": "AppleClang 21.0.0.21000101, arm64",
+  "libOpenMS_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+  "headers_identical_to_pin": [
+   "include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
+   "include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h",
+   "include/OpenMS/DATASTRUCTURES/DBoundingBox.h",
+   "include/OpenMS/DATASTRUCTURES/DIntervalBase.h"
+  ],
+  "debug_only": [],
+  "decision": "D7: product SDK accepted as development-time oracle"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/b2-iso-source-precision/probe.cpp",
+   "sha256": "856f21927e926707f6bdb9fc3ffb49be2c1b230e8f615d2a0c272ada82acd9cb",
+   "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/run.sh",
+   "sha256": "41c0caa7884108db564c9e70b0367b8ecd8a4b861f1ee2c49dcac71f4ac0ee5d",
+   "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/crosscheck.py",
+   "sha256": "7205ea51eef7519f982571cc1c8a88342ecaba34e10eef34ae9865f208f9d9f7",
+   "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/manifest.json",
+   "sha256": "e86f6c60f186c67e1915256747adf72004d1239bae67f57994156875580f4084",
+   "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/build.log",
+   "sha256": "c32a76c273f961d9907268cc8bf82f069ad58f98a5004dbb95ef9d4c5692cc52",
+   "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/results/probe.tsv",
+   "sha256": "4a9d6ddc3807cf92e9f700ddb0bf84571c0182fdca71697a2f2abc6aa4809435",
+   "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/results/probe.stderr",
+   "sha256": "533fcb3f815b875ca7ac24dc5b36f91a050b52d877bad2c54d95656bb9753604",
+   "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/results_rerun/probe.tsv",
+   "sha256": "4a9d6ddc3807cf92e9f700ddb0bf84571c0182fdca71697a2f2abc6aa4809435",
+   "origin_key": "b2_iso_source_precision_probe"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/results/crosscheck.log",
+   "sha256": "b3e56fa768730ee073d26f7b4660097e5e979cba585e09f61c650e085f815119",
+   "origin_key": "b2_iso_source_precision_probe"
+  }
+ ],
+ "external_reference_note": "The C++ driver, its run script, the exact-rational cross-check and the hashed manifest live outside this repository under ../oracle/b2-iso-source-precision; only the generated fixture enters the repository. The driver links the product SDK libOpenMS (core 4fdec46, Debug) whose isotope and bounding-box headers are hash-identical to pin bc9cc12.",
+ "pending_verification": {
+  "owner": "B6-FFAP-SEEDS",
+  "against": "C2-ORACLE-PICKED ../oracle/featurefinder-picked (TheoreticalIsotopePattern, item 5)",
+  "criterion": "estimate_from_peptide_weight under ProbabilityPrecision::SourceSingle, trim_left_source and trim_right reproduce the f32 TheoreticalIsotopePattern bit for bit (intensity, optional_begin/end, trimmed_left) for every FeatureFinderCentroided_1 mass window (charge 2, mass_window_width 100) and the abundance_12C = 90 case.",
+  "status": "pending: C2 had not landed during B2-ISO-GEOM; source-review and executed-probe expectations are met"
+ },
+ "cpp_issue_candidates": [
+  "FeatureFinderAlgorithmPicked.cpp:163-179 builds abundance overrides by insert() into a default-constructed IsotopeDistribution that already holds (0, 1); executed windows are wrong (30 vs 6 bins).",
+  "CoarseIsotopePatternGenerator::run convolves in std::map<const Element*, SignedSize> pointer order, so binary32 patterns depend on heap addresses (ElementDB construction order in the executed build)."
+ ],
+ "target_verification": {
+  "date": "2026-09-13",
+  "base_revision": "744455b70d7f1d4745e137e7e14947a7e8d4ccad",
+  "platform": "Rust gates on kim (IBMI build node, Linux x86_64) through ~/.local/bin/openms-kim-gate.sh slot b1-b2; cargo fmt and the repository checkers run locally (macOS arm64). The tier-1 fixture was produced on macOS arm64 and matches bit for bit on Linux x86_64.",
+  "consumer_targets": "--lib --test isotopes_source_precision --test geometry_bounding_box --test isotopes --test features --test fine_isotopes --test fine_isotope_reference --test fine_isotope_stream --test fine_isotope_stream_review --test theoretical --test rna_workflow --test adduct_workflow --test averagine_deisotoping --test averagine_deisotoping_reference --test averagine_deisotoping_review --test deisotoping --test feature_finding_metabo --test feature_identification --test feature_hypothesis --test featurexml --test map_operations --test alignment_transformer --test ims_isotopes --test ims_element --test ims_alphabet",
+  "results": [
+   {
+    "command": "cargo fmt --all -- --check",
+    "toolchain": "local stable",
+    "result": "pass"
+   },
+   {
+    "command": "cargo test --locked --all-features <consumer_targets>",
+    "toolchain": "kim current",
+    "result": "pass: 25 test binaries, 0 failures (lib 274, isotopes_source_precision 12, geometry_bounding_box 6)"
+   },
+   {
+    "command": "cargo +1.85.0 test --locked --all-features <consumer_targets>",
+    "toolchain": "1.85.0",
+    "result": "pass: 25 test binaries, 0 failures"
+   },
+   {
+    "command": "cargo test --locked --no-default-features --test isotopes_source_precision --test geometry_bounding_box",
+    "toolchain": "kim current",
+    "result": "pass: 12 + 6"
+   },
+   {
+    "command": "cargo +1.85.0 test --locked --no-default-features --test isotopes_source_precision --test geometry_bounding_box",
+    "toolchain": "1.85.0",
+    "result": "pass: 12 + 6"
+   },
+   {
+    "command": "cargo clippy --locked --all-features --lib --tests -- -D warnings",
+    "toolchain": "kim current",
+    "result": "pass"
+   },
+   {
+    "command": "RUSTDOCFLAGS='-D warnings' cargo doc --locked --all-features --no-deps",
+    "toolchain": "kim current",
+    "result": "pass"
+   },
+   {
+    "command": "python3 tools/check_core_sdk.py",
+    "toolchain": "local",
+    "result": "pass"
+   },
+   {
+    "command": "python3 tools/check_module_cycles.py",
+    "toolchain": "local",
+    "result": "pass: 57 cross-module edges, 14 mutually-dependent pairs; no new edge"
+   },
+   {
+    "command": "python3 tools/check_doc_coverage.py",
+    "toolchain": "local",
+    "result": "pass; src/chemistry/isotopes.rs 59/59 and src/kernel/geometry.rs 29/29 documented (floor not rewritten: docs/doc-coverage.json is integrator-owned)"
+   }
+  ]
+ }
+}
