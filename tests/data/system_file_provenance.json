@@ -1,61 +1,63 @@
 {
- "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
- "method": "Direct source/header/class-test audit; no C++ build or execution. Exact source bytes are packaged separately from synthetic native concurrency and filesystem tests.",
- "sources": [
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "method": "Direct header/implementation/class-test audit at the pinned revision; no C++ was built or executed. Packaged fixtures are exact source bytes; every other expectation is either a transcribed class-test literal or a natively derived guard, and the two are kept apart below.",
+ "source_files": [
   {
    "path": "src/openms/include/OpenMS/SYSTEM/File.h",
    "sha256": "adafb26d518a73ee94a30c6a8ed9c2edb94983627df106d1e4738fbc3e3aec47",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/SYSTEM/File.h"
+   "role": "Ported in full. 39 public function names in 40 overloads, the nested TempDir (two constructors, destructor, deleted copy/move, getPath), CopyOptions and MatchingFileListsStatus, plus the private helpers observable through them. Every member is listed in the support document's API table."
   },
   {
    "path": "src/openms/source/SYSTEM/File.cpp",
    "sha256": "1670f67c6c86a1026d12f2ceb78fcaf06d23b4181e81b8b76aaf91506d54b2e6",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/SYSTEM/File.cpp"
+   "role": "Ported in full: filesystem operations, lexical path helpers, permission probes, wildcard listing, resource lookup and the shared-data resolution order. Its platform branches (Windows.h, Shlwapi.h, dlfcn.h, mach-o/dyld.h) are replaced by portable std::fs/std::path; the dladdr library-directory probe becomes an explicit FileContext candidate."
   },
   {
    "path": "src/openms/source/SYSTEM/FileConfig.cpp",
    "sha256": "bc436919bb1a79d14ac023310174a77ece46d61b40b1f263195684b4cbd96349",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/SYSTEM/FileConfig.cpp"
+   "role": "Ported in full: OpenMS.ini policy, temporary/user/home/config directory resolution and findDatabase. Kept in a separate translation unit upstream so Param and ParamXMLFile stay out of File.cpp; here the equivalent split is the paramxml cargo feature."
   },
   {
    "path": "src/openms/source/SYSTEM/FileTemp.cpp",
    "sha256": "3fab4161a5a65d3372a1f65a17991209a7b967ec78510cf85391a86d1ebcb6da",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/SYSTEM/FileTemp.cpp"
+   "role": "Ported in full: TempDir, getTemporaryFile and the temporary-file registry. The exit-time TemporaryFiles_ registry of uncreated names is replaced by owned TempFile/TempDir guards; mkdtemp's _XXXXXX becomes an exclusive create with the source's own 100-attempt retry cap."
   },
   {
    "path": "src/openms/include/OpenMS/SYSTEM/PathUtils.h",
    "sha256": "bb67911e8e75e1a97243e859296b5b18d3e46f90e0db2fa138b36d3343356040",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/SYSTEM/PathUtils.h"
+   "role": "Not re-ported here; File::basename delegates to PathUtils::basename, which src/system/path_utils.rs already covers. Hashed because File's basename/stemName/extension results are defined by it."
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/FileNameUtils.h",
    "sha256": "03a45edd288a3e5ef91423580043d882e6e02614e5e7f50798b2fc3ffbf5d771",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/FORMAT/FileNameUtils.h"
+   "role": "Not re-ported here. File::stemName and File::extension are defined in terms of FileNameUtils::stripExtension, which crate::format::file_types::strip_extension provides; hashed because the compound-extension literals in the class test come from it."
   },
   {
    "path": "src/openms/source/FORMAT/FileNameUtils.cpp",
    "sha256": "a3796bd2a77b24fb9e9748fe24a824231a31650258b065884e6b741742df004f",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/FORMAT/FileNameUtils.cpp"
+   "role": "As above: the implementation that decides where stemName cuts, including the known-compound-extension table and the last-dot fallback for an unknown one."
   },
   {
    "path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
    "sha256": "bc766b362acec369917682cbb0c14a22cfeb83cc4e5c28ead5fc9556bf02eba2",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/source/DATASTRUCTURES/DateTime.cpp"
+   "role": "Not ported for this group. Read to establish what getUniqueName's date and time actually are before the '-' and ':' are stripped, and therefore that the port's switch to UTC is a stated divergence rather than an accident."
   },
   {
    "path": "src/tests/class_tests/openms/source/File_test.cpp",
    "sha256": "74344b097fbb12698d127ff59dc76f68573f0f52be2a7caf02acf023771588f2",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/File_test.cpp"
+   "role": "Oracle: 35 START_SECTIONs, all mapped in tests/system_file.rs. Also the origin of the two packaged fixtures and of the writable() path-depth sweep and concurrency regressions."
   },
   {
    "path": "src/tests/class_tests/openms/source/CoreDataPath_probe.cpp",
    "sha256": "1d574af314d5c0f1bcd1fdcc48f8a1400e156103acffd8ff4d7852c651a3f1e0",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/tests/class_tests/openms/source/CoreDataPath_probe.cpp"
+   "role": "Not ported. Read for the shared-data resolution contract the SDK checks separately from File_test.cpp, confirming that the marker file and the override precedence are the whole of isOpenMSDataPath_."
   },
   {
    "path": "src/openms/include/OpenMS/openms_data_path.h.in",
    "sha256": "747a7612c363a2ed013bf80082d899920b8bfbce4347636001966a7427ee25f6",
-   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/openms_data_path.h.in"
+   "role": "Not ported: it is a CMake template whose substituted values are build-machine paths. Read to establish exactly which of resolveOpenMSDataPath_'s candidates are compiled in, and therefore which ones become explicit FileContext::data_candidates entries."
   }
  ],
  "fixtures": [
@@ -72,71 +74,217 @@
    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   }
  ],
+ "native_implementation": [
+  "src/system/file.rs"
+ ],
+ "native_tests": [
+  "tests/system_file.rs",
+  "src/system/file.rs::tests"
+ ],
+ "support": [
+  "docs/SYSTEM_FILE_SUPPORT.md"
+ ],
  "source_surface": {
   "public_function_names": 39,
   "public_overloads": 40,
   "tempdir_constructors": 2,
-  "class_test_sections": 35
+  "public_enums": 2,
+  "class_test_sections": 35,
+  "direct_topp_consumers": 53
  },
- "tests": [
-  "tests/system_file.rs",
-  "src/system/file.rs::tests"
- ],
- "support": "docs/SYSTEM_FILE_SUPPORT.md",
- "source_ranges": [
+ "source_anchors": [
   {
-   "path": "src/tests/class_tests/openms/source/File_test.cpp",
-   "start": 39,
-   "end": 231,
-   "behavior": "Queries, exact 15-byte fixture, Unix epoch and non-destructive concurrent writable probes."
+   "path": "src/openms/include/OpenMS/SYSTEM/File.h",
+   "line": 39,
+   "operation": "TempDir's destructor removes the tree unless keep_dir was set at construction; it returns nothing and throws nothing, so a failed removal is already silent in the source. The port's Drop is silent for the same reason and offers close() to make it visible."
   },
   {
-   "path": "src/tests/class_tests/openms/source/File_test.cpp",
-   "start": 240,
-   "end": 380,
-   "behavior": "Resource lookup, lexical paths/extensions, directory lists, unique name."
+   "path": "src/openms/include/OpenMS/SYSTEM/File.h",
+   "line": 172,
+   "operation": "listDirectories documents 'an empty list on any error or if the path is not a directory (no throw)', so a caller cannot tell an unreadable directory from an empty one; the port returns the error instead"
   },
   {
-   "path": "src/tests/class_tests/openms/source/File_test.cpp",
-   "start": 400,
-   "end": 618,
-   "behavior": "Recursive copy modes, config/environment, executable and PATH behavior."
+   "path": "src/openms/include/OpenMS/SYSTEM/File.h",
+   "line": 275,
+   "operation": "getUserDirectory's documentation names OPENMS_HOME_DIR, and getSystemParameters' at line 283 repeats it, but FileConfig.cpp reads OPENMS_HOME_PATH; the implementation is what the port follows"
   },
   {
-   "path": "src/tests/class_tests/openms/source/File_test.cpp",
-   "start": 620,
-   "end": 726,
-   "behavior": "Temporary ownership and paired filename status."
+   "path": "src/openms/include/OpenMS/SYSTEM/File.h",
+   "line": 320,
+   "operation": "findExecutable does not require the file to have executable permission set, and says so; existence and not-a-directory are the whole test"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 164,
+   "operation": "empty() returns true when the path is missing, when file_size reports an error (which it does for a directory) and when the size is zero, so it reads as 'not a nonempty regular file'"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 189,
+   "operation": "getModificationTime uses stat()'s st_mtime rather than std::filesystem::last_write_time, because file_time_type's epoch is implementation-defined (2174 on libstdc++, 1601 on MSVC) and clock_cast is unavailable on the supported toolchains; -1 is both the failure sentinel and a legitimate time one second before the epoch"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 211,
+   "operation": "fileSize returns -1 from a UInt64 function, so a missing file reaches the caller as 18446744073709551615 and compares greater than every real size; the port returns Result<u64>"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 221,
+   "operation": "rename resolves both paths with canonical() and returns true unchanged when they are the same file; with overwrite_existing it removes the destination *before* renaming, so a rename that then fails leaves the caller with neither file; the EXDEV branch copies and removes, preserving what Qt's QFile::rename did silently"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 353,
+   "operation": "remove() is std::remove, which on POSIX unlinks a file and also removes an empty directory, and treats an absent path as success"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 366,
+   "operation": "removeDir is fs::remove_all, identical to removeDirRecursively at line 386 despite the name and the header's 'and all its contents' wording; both print to stderr and return false on failure"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 398,
+   "operation": "absolutePath returns fs::current_path() for an empty input and is otherwise fs::absolute, which is purely lexical: '..' is not collapsed and symlinks are not resolved"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 449,
+   "operation": "path() returns \".\" rather than an empty string for a bare filename, with the comment explaining that path(f) + '/' + basename(f) would otherwise turn a relative name into an absolute one"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 516,
+   "operation": "writable() is a query that must not change the answer: it probes an absent path with a file of its own rather than with the caller's name, retries on EEXIST, and falls back to access(dir, W_OK) when the create fails for a reason about the probe *name* (ENAMETOOLONG, or the ENOENT/EINVAL the Windows CRT folds ERROR_FILENAME_EXCED_RANGE onto). The port reproduces the fallback with progressively shorter probe names, because safe Rust has no access(2) and io::ErrorKind::InvalidFilename is unstable at the crate's minimum Rust version"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 571,
+   "operation": "find() returns an already existing input unchanged, throws for an empty or whitespace-only name because prefixing a directory would otherwise 'find' the directory, pushes the data path last so caller directories win, appends File::path(filename) to every directory (which is \".\" and not empty for a bare name), and builds a failure hint naming the resolved data path and OPENMS_DATA_PATH"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 626,
+   "operation": "fileList matches with POSIX fnmatch (flags 0) or Windows PathMatchSpecA, considers only regular files, sorts, and returns whether the output is nonempty; fnmatch operates on bytes, so '?' there covers one byte where the port's character-based matcher covers one character"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 668,
+   "operation": "getUniqueName is DateTime::now()'s local date and time with '-' and ':' removed, an optional gethostname, the pid, and a static atomic counter whose first emitted value is 1; the port uses UTC and the HOSTNAME/COMPUTERNAME environment variable, so the host part may legitimately be absent"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 706,
+   "operation": "resolveOpenMSDataPath_ order: OPENMS_DATA_PATH is authoritative and an invalid override fails instead of falling through; otherwise the dladdr library directory, the executable directory, the macOS bundle, then the two compiled-in paths. Only success is cached, in a thread-safe function-local static"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 815,
+   "operation": "isOpenMSDataPath_ is exactly exists(path + \"/CHEMISTRY/unimod.xml\"); the port uses the same marker and the crate's packaged chemistry tables deliberately do not satisfy it"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 897,
+   "operation": "findSiblingTOPPExecutable searches the executable directory and three macOS bundle alternatives only, carries a TODO about probing PATH, and throws FileNotFound otherwise; the class test pins the siblings-only contract"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/File.cpp",
+   "line": 928,
+   "operation": "validateMatchingFileNames compares two std::sets, so multiplicity is discarded: two equal-length lists with the same set but different multiplicities are ORDER_MISMATCH rather than SET_MISMATCH"
   },
   {
    "path": "src/openms/source/SYSTEM/FileConfig.cpp",
-   "start": 128,
-   "end": 177,
-   "behavior": "Five defaults and discarded repaired p_new quirk; source does not rewrite configuration."
+   "line": 28,
+   "operation": "getTempDirectory calls getSystemParameters() as its first statement, before it even looks at OPENMS_TMPDIR, so a malformed OpenMS.ini is an error even when the environment override would have answered; getUserDirectory at line 48 does the same"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/FileConfig.cpp",
+   "line": 48,
+   "operation": "getUserDirectory reads OPENMS_HOME_PATH (not the header's OPENMS_HOME_DIR) and finishes with ensureLastChar(dir, '/'), which turns an explicitly empty configured value into the filesystem root"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/FileConfig.cpp",
+   "line": 113,
+   "operation": "getOpenMSConfigDir switches on __unix__, which Apple's compilers do not define, so macOS takes the <home>/.OpenMS branch and never consults XDG_CONFIG_HOME; the port switches on cfg!(all(unix, not(any(target_os = \"macos\", target_os = \"ios\")))) rather than on Rust's unix flag, which is set on macOS"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/FileConfig.cpp",
+   "line": 156,
+   "operation": "getSystemParameters builds p_new from the defaults, updates it with the file's tree, and then returns p rather than p_new, discarding the repair; the only observable effect is that version has been overwritten in the returned tree, and no file is rewritten"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/FileTemp.cpp",
+   "line": 52,
+   "operation": "createUniqueDir_ caps its retry at 100 attempts on Windows and relies on mkdtemp's _XXXXXX elsewhere; both create the parent chain first, because only the leaf is created otherwise. The port keeps the 100-attempt cap for both the directory and the file guard"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/FileTemp.cpp",
+   "line": 120,
+   "operation": "the no-argument TempDir uses the prefix getTempDirectory() + \"/\" + getUniqueName(), while the two-argument one at line 133 prefixes OpenMSTempDir_; the two constructors therefore produce differently shaped names, and the port uses the second shape for both"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/FileTemp.cpp",
+   "line": 137,
+   "operation": "~TempDir logs at debug level and returns when keep_dir_ is set, otherwise calls removeDirRecursively and discards its bool; no exception escapes the destructor"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/FileTemp.cpp",
+   "line": 153,
+   "operation": "getTemporaryFile returns a nonempty alternative_file untouched and unregistered; otherwise it returns a name that is never created, only queued for deletion at exit by TemporaryFiles_::~TemporaryFiles_ at line 179"
   }
  ],
- "native_adaptations": [
-  "Explicit FileContext replaces automatic library-address discovery and compiled-in checkout paths; successful discovery caching and retry policy preserved.",
-  "Owned temporary guards replace process-exit filename registry; default TempFile reserves an existing exclusive file.",
-  "Regular-file no-clobber publication requires hard links; unsupported filesystems and no-clobber directory/symlink moves error instead of racy emulation.",
-  "Overwrite moves do not pre-delete the destination. Directory copy preflights cycles, self/descendant copy, known Cancel conflicts and destination directory symlinks.",
-  "Semantic effective-process permission probes replace exact access/ACL queries; no FIFO/device open and no requested-basename creation.",
-  "Portable Unicode glob grammar; UTC/environment-hostname/process/counter names.",
-  "Checked Results replace sentinels and directory-list failure-as-empty; paths are native PathBuf without decorative trailing separators."
- ],
- "limits": {
-  "max_entry_visits": 100000,
-  "max_work": 50000000,
-  "max_logical_bytes": 67108864,
-  "max_path_or_pattern_bytes": 1048576,
-  "max_depth": 128,
-  "creation_attempts": 100,
-  "file_content_bytes": "streamed; no small content cap"
+ "evidence": {
+  "tier": "3 and 4",
+  "executed_cpp": false,
+  "description": "Tier 3 is the transcription of File_test.cpp's literals, section by section, with the source section named above each Rust test. Tier 4 covers the natively derived guards: concurrency (probe and no-clobber publication), lifecycle (guard drop, keep, close), symbolic-link and encoding boundaries, the resource ceilings, and the two expectations derived from the platform rather than from a literal — the __unix__ configuration-directory branch, and the writable() path-depth sweep, which compares against the operating system's own answer instead of a hard-coded length. No retained C++ output and no oracle driver exists for File, whose answers are properties of the machine rather than of a fixture, so no tier 1 or tier 2 claim is made.",
+  "sections": {
+   "File_test.cpp": 35,
+   "mapped": 35,
+   "unaccounted": 0,
+   "not_reproducible_literally": [
+    "makeDir (File_test.cpp:459) additionally changes the process working directory to test a relative path. No test in a multithreaded binary may do that, so the port checks the absolute chain, idempotence on an existing directory, and the occupied-path and depth-ceiling failures instead.",
+    "getUniqueName (File_test.cpp:375) asserts that the hostname form is strictly longer than the no-hostname form. The port reads HOSTNAME rather than calling gethostname, and that variable is normally unset for a non-interactive process, so the host part may legitimately be absent; the section's other literal, split.size() >= 4, is reproduced exactly.",
+    "getOpenMSConfigDir (File_test.cpp:501) sets XDG_CONFIG_HOME with setenv. FileContext::from_environment reads it once instead of on every call, so the port asserts on the isolated context's branch, suffix and absent trailing separator.",
+    "findDoc (File_test.cpp:267) is guarded by ENABLE_DOCS and resolves files from the upstream source and build trees, which do not exist here; the port exercises the same search through explicit documentation directories."
+   ]
+  },
+  "independently_derived": [
+   "A file stamped half a second before the Unix epoch must report -1, not 0, because POSIX st_mtim.tv_sec truncates towards negative infinity; this follows from the stat() contract the source cites and not from any class-test literal.",
+   "writable() must agree with the operating system at every path depth. The test establishes ground truth by actually creating the file, so it needs no platform path limit to be hard-coded; without the short-name probe fallback it fails on Linux, which is how the gap was found.",
+   "extension() cuts the basename at the stem's length, and the stem is a prefix of the basename, so that offset is always a character boundary; dir/<multi-byte>.txt therefore cannot panic, and the test pins it for a three-character Japanese name.",
+   "Exactly one of several concurrent no-clobber movers can win, because publication is a hard link: the winner's destination holds one input's bytes in full and every loser's input is still present.",
+   "Two simultaneous writable() probes of the same absent path must both answer true and must leave a concurrent writer's output intact, since neither probe ever touches the queried name.",
+   "A directory-link cycle inside a recursive copy is detected from the canonical ancestor set, so the traversal terminates for input the source would follow indefinitely."
+  ]
  },
+ "native_adaptations": [
+  "Explicit FileContext replaces automatic dladdr library-address discovery, compiled-in checkout paths and process-global environment reads; the source's success-only caching and retry-after-correction policy is preserved, and clear_data_cache is added because a function-local static cannot offer it.",
+  "Owned TempFile/TempDir guards replace the process-exit filename registry; the default TempFile reserves a real file exclusively rather than returning an uncreated name. Drop is silent, as the source's destructor is; close() reports.",
+  "Regular-file no-clobber publication uses hard links, so unsupported filesystems, no-clobber directory/symlink moves and cross-device directory/symlink moves are checked errors rather than racy emulation.",
+  "Overwrite moves do not pre-delete the destination, correcting the source's delete-then-rename window. Directory copy preflights cycles, self/descendant copies, all visible Cancel conflicts and destination directory symlinks.",
+  "Permission queries are effective-process semantic probes rather than real-uid access(2) or Windows ACL calculations; FIFOs and devices are never opened, and the requested basename is never created. The source's name-length fallback is reproduced with shorter probe names.",
+  "Portable character-based Unicode glob grammar; a directory entry that is not valid UTF-8 makes file_list return an error naming it rather than being skipped or matched approximately.",
+  "getOpenMSConfigDir follows the source's __unix__ branch, not Rust's unix cfg flag, so macOS resolves to <home>/.OpenMS as the source does.",
+  "UTC rather than local time, and the HOSTNAME/COMPUTERNAME environment variable rather than gethostname, in get_unique_name.",
+  "Checked Results replace the -1/false/empty-list sentinels; paths are native PathBuf without decorative trailing separators."
+ ],
+ "native_boundaries": [
+  "MAX_ENTRIES = 100,000 charged entry visits, counting planning and enumeration visits and not only output rows, so filtering cannot make a traversal cheap",
+  "MAX_WORK = 50,000,000 abstract units, charged for path inspection, entry visits, sorting and each character step of a wildcard match, so a pathological pattern is refused rather than run",
+  "MAX_BYTES = 64 MiB of conservative logical allocation for paths, copy plans and pattern tokens; file contents are streamed and not charged, with no scientific-data-size cap",
+  "MAX_PATH_BYTES = 1 MiB per path or pattern, and an interior NUL is refused, before any filesystem call",
+  "MAX_DEPTH = 128 levels for directory creation, recursive copy and recursive removal, checked before anything is created so a rejected make_dir leaves no partial chain",
+  "Temporary creation retries at most 100 times, matching the source's own Windows cap; each attempt walks three progressively shorter candidate names and reports a non-length failure at once",
+  "get_unique_name refuses a system clock before the Unix epoch, a host name over 255 bytes, and an exhausted counter, none of which the source checks",
+  "Param and ParamXML retain their own checked parsing and update budgets; an existing OpenMS.ini without the paramxml feature is an explicit Unsupported rather than a silent fall back to defaults",
+  "Ordinary caller-owned context and guard values, and Rust Clone, are not secretly fallible"
+ ],
+ "openmp": "None of File.cpp, FileConfig.cpp or FileTemp.cpp carries a #pragma omp. The source's only concurrency is the mutex guarding its temporary-name list and the thread-safe initialisation of its two function-local statics, so there is nothing to parallelise and no performance gap to record; the port is serial and uses no rayon. The concurrency the class test does exercise — simultaneous writable() probes, and a probe racing a real writer — is reproduced natively.",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "source_revisions": [
-   "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
   ],
   "source_changes": []
  }

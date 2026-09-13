@@ -592,3 +592,317 @@ fn native_resource_bounds_are_checked_before_directory_mutation() {
     let c = context(d.path());
     assert!(c.find(&long, &[]).is_err());
 }
+
+// ---------------------------------------------------------------------------
+// Sections closed in this work package.
+// ---------------------------------------------------------------------------
+
+/// File_test.cpp:280-335 — `path`, `basename`, `stemName` and `extension`,
+/// extended to a multi-byte name. Every helper cuts at a separator or at the
+/// stem's own length, both character boundaries, so none of them can become the
+/// byte-offset slice that panics on `dir/日本語.txt`.
+#[test]
+fn lexical_helpers_never_split_a_multibyte_name() {
+    assert_eq!(f::basename("dir/日本語.txt"), "日本語.txt");
+    assert_eq!(f::path("dir/日本語.txt"), "dir");
+    assert_eq!(f::stem_name("dir/日本語.txt"), "日本語");
+    assert_eq!(f::extension("dir/日本語.txt"), ".txt");
+    assert_eq!(f::stem_name("日本語/sample.mzML.gz"), "sample");
+    assert_eq!(f::extension("日本語/sample.mzML.gz"), ".mzML.gz");
+    assert_eq!(f::basename("日本語"), "日本語");
+    assert_eq!(f::path("日本語"), ".");
+    assert_eq!(f::stem_name("日本語"), "日本語");
+    assert_eq!(f::extension("日本語"), "");
+    assert_eq!(f::stem_name("日本語."), "日本語");
+    assert_eq!(f::extension("日本語."), ".");
+    assert_eq!(f::basename("日本語/"), "");
+    assert_eq!(f::path("日本語/"), "日本語");
+
+    // ... and the same name survives a round trip through the filesystem.
+    let d = temp();
+    let file = d.path().join("日本語.txt");
+    fs::write(&file, b"x").unwrap();
+    assert!(f::exists(&file));
+    assert_eq!(f::file_size(&file).unwrap(), 1);
+    assert!(f::readable(&file));
+    assert!(f::writable(&file));
+    assert_eq!(
+        f::file_list(d.path(), "日本語.*", false).unwrap(),
+        vec![PathBuf::from("日本語.txt")]
+    );
+    // Matching runs over characters: '?' covers one character each, where POSIX
+    // fnmatch would need nine '?' for these nine bytes. That divergence is
+    // documented at file_list.
+    assert_eq!(
+        f::file_list(d.path(), "???.txt", false).unwrap(),
+        vec![PathBuf::from("日本語.txt")]
+    );
+    f::remove(&file).unwrap();
+    assert!(!f::exists(&file));
+}
+
+/// A directory entry whose name is not UTF-8 stops wildcard matching with a
+/// named error rather than being skipped or matched approximately; everything
+/// that does not need to decode the name keeps working on the same directory.
+#[test]
+#[cfg(unix)]
+fn a_non_utf8_directory_entry_is_named_in_the_error_rather_than_skipped() {
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
+    let d = temp();
+    let raw = OsStr::from_bytes(b"broken-\xff-name");
+    fs::write(d.path().join(raw), b"x").unwrap();
+    fs::write(d.path().join("ok.txt"), b"x").unwrap();
+    fs::create_dir(d.path().join("sub")).unwrap();
+
+    assert_eq!(
+        f::list_directories(d.path()).unwrap(),
+        vec![d.path().join("sub")]
+    );
+    assert!(f::exists(d.path().join(raw)));
+    assert_eq!(f::file_size(d.path().join(raw)).unwrap(), 1);
+
+    let message = f::file_list(d.path(), "*", false).unwrap_err().to_string();
+    assert!(message.contains("not UTF-8"), "{message}");
+    assert!(message.contains("broken-"), "{message}");
+    // The guard still removes the whole tree, non-UTF-8 entry included.
+    let path = d.path().to_owned();
+    drop(d);
+    assert!(!path.exists());
+}
+
+/// File_test.cpp:42-107, 276-279, 337-362, 390-398 — the literals that pin what
+/// an empty or missing path answers, plus `absolutePath("")`.
+#[test]
+fn source_empty_and_missing_path_literals() {
+    assert!(!f::exists(""));
+    assert!(!f::exists("does_not_exists.txt"));
+    assert!(f::empty("does_not_exists.txt"));
+    assert!(!f::readable(""));
+    assert!(!f::readable("does_not_exists.txt"));
+    assert!(!f::writable(""));
+    assert!(!f::writable("/this/file/cannot/be/written.txt"));
+    assert!(!f::is_directory(""));
+    assert!(f::is_directory("."));
+    assert!(!f::is_directory("does_not_exists.txt"));
+    assert!(!f::executable("does_not_exists.txt"));
+    assert!(f::file_size("does_not_exists.txt").is_err());
+    assert!(f::get_modification_time("does_not_exists.txt").is_err());
+    // Removing what is not there is success, as the source documents.
+    f::remove("does_not_exists.txt").unwrap();
+    // Source absolutePath("") is fs::current_path() exactly.
+    assert_eq!(
+        f::absolute_path("").unwrap(),
+        std::env::current_dir().unwrap()
+    );
+    // The source answers an unreadable directory with an empty list; this
+    // returns the error, because the two are different answers.
+    assert!(f::list_directories("/nonexistent_path_xyz").is_err());
+}
+
+/// File_test.cpp:364-373 — `fileList` with a pattern that matches nothing, an
+/// exact filename, and the `full_path` form whose entry carries both the
+/// directory prefix and the filename suffix.
+#[test]
+fn source_file_list_literals_and_directories_never_match() {
+    let d = temp();
+    fs::write(
+        d.path().join("File_test_text.txt"),
+        include_bytes!("data/system_file_text.txt"),
+    )
+    .unwrap();
+    fs::create_dir(d.path().join("subdir")).unwrap();
+    assert!(
+        f::file_list(d.path(), "*.bliblaluff", false)
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(
+        f::file_list(d.path(), "File_test_text.txt", false).unwrap(),
+        vec![PathBuf::from("File_test_text.txt")]
+    );
+    let full = f::file_list(d.path(), "File_test_text.txt", true).unwrap();
+    assert_eq!(full.len(), 1);
+    assert!(full[0].starts_with(d.path()));
+    assert!(full[0].ends_with("File_test_text.txt"));
+    // Only regular files are considered, whatever the pattern says.
+    assert!(f::file_list(d.path(), "sub*", false).unwrap().is_empty());
+    assert!(f::file_list(d.path(), "*", true).unwrap().len() == 1);
+}
+
+/// File_test.cpp:459-473 — `makeDir` creates the whole missing chain and
+/// reports success for a directory that is already there. The source's relative
+/// path case changes the process working directory, which no test in a
+/// multithreaded binary may do; the depth ceiling and the occupied-path
+/// failures are checked instead.
+#[test]
+fn source_make_dir_creates_missing_parents_and_accepts_an_existing_directory() {
+    let d = temp();
+    let nested = d.path().join("a/b/c");
+    assert!(!f::is_directory(&nested));
+    f::make_dir(&nested).unwrap();
+    assert!(f::is_directory(&nested));
+    f::make_dir(&nested).unwrap();
+    fs::write(d.path().join("occupied"), b"x").unwrap();
+    assert!(f::make_dir(d.path().join("occupied")).is_err());
+    assert!(f::make_dir(d.path().join("occupied/child")).is_err());
+    // remove() takes an empty directory, and not a populated one.
+    assert!(f::remove(d.path().join("a")).is_err());
+    f::remove(&nested).unwrap();
+    assert!(!nested.exists());
+    // Both source removal names are recursive.
+    f::remove_dir(d.path().join("a")).unwrap();
+    assert!(!d.path().join("a").exists());
+}
+
+/// File_test.cpp:501-516 — the configuration directory ends in `OpenMS`, has no
+/// trailing separator, and takes the platform branch the source's `__unix__`
+/// test selects. The source's `XDG_CONFIG_HOME` case sets a process-global
+/// environment variable, which `FileContext::from_environment` reads once
+/// instead; the isolated context is what a test can assert on.
+#[test]
+fn source_config_dir_branch_has_no_trailing_separator() {
+    let d = temp();
+    let c = context(d.path());
+    let expected = if cfg!(all(unix, not(any(target_os = "macos", target_os = "ios")))) {
+        ".config/OpenMS"
+    } else {
+        ".OpenMS"
+    };
+    assert_eq!(c.get_openms_config_dir(), c.home_directory.join(expected));
+    assert!(c.get_openms_config_dir().ends_with("OpenMS"));
+    assert!(!c.get_openms_config_dir().to_str().unwrap().ends_with('/'));
+    assert!(!c.get_openms_config_dir().exists());
+}
+
+/// File_test.cpp:375-384 — the unique name splits into at least four
+/// underscore-separated parts, with an eight-digit date and a six-digit time.
+/// The source also asserts that the hostname form is strictly longer; this port
+/// reads `HOSTNAME` rather than calling `gethostname`, and that variable is
+/// normally unset for a non-interactive process, so the host part may legitimately
+/// be absent and the two forms may be the same length.
+#[test]
+fn source_unique_name_shape_with_and_without_the_host_part() {
+    let with_host = f::get_unique_name(true).unwrap();
+    let without_host = f::get_unique_name(false).unwrap();
+    assert_ne!(with_host, without_host);
+    assert!(with_host.split('_').count() >= 4, "{with_host}");
+    assert_eq!(without_host.split('_').count(), 4);
+    let parts: Vec<&str> = without_host.split('_').collect();
+    assert_eq!(parts[0].len(), 8);
+    assert_eq!(parts[1].len(), 6);
+    for part in &parts {
+        assert!(part.chars().all(|c| c.is_ascii_digit()), "{without_host}");
+    }
+}
+
+/// File_test.cpp:607-654 — `File::TempDir()` with no explicit parent creates a
+/// directory that exists, and the destructor removes it unless `keep_dir` was
+/// set. The base comes from `getTempDirectory()`, which reads the user's
+/// `OpenMS.ini`; with the `paramxml` feature off an existing one is an explicit
+/// `Unsupported` rather than a guess, and there is then nothing to exercise.
+#[test]
+fn source_default_temp_dir_guard_creates_and_removes_its_tree() {
+    let environment = FileContext::from_environment().unwrap();
+    let Ok(base) = environment.get_temp_directory() else {
+        assert!(environment.get_system_parameters().is_err());
+        return;
+    };
+    assert!(f::is_directory(&base));
+    let dir = TempDir::new(false).unwrap();
+    let path = dir.path().to_owned();
+    assert!(f::exists(&path));
+    assert!(path.starts_with(&base));
+    drop(dir);
+    assert!(!f::exists(&path));
+
+    let kept = TempDir::new(true).unwrap();
+    let path = kept.path().to_owned();
+    drop(kept);
+    assert!(f::exists(&path));
+    f::remove_dir(&path).unwrap();
+    assert!(!f::exists(&path));
+}
+
+/// File_test.cpp:617-633 — a child guard under an explicit parent disappears
+/// without taking the parent with it, two temporary files differ, and a
+/// nonempty alternative is returned unchanged and never created.
+#[test]
+fn source_temporary_registry_equivalent_child_parent_and_alternative() {
+    let d = temp();
+    let mut c = context(d.path());
+    let scratch = d.path().join("scratch");
+    f::make_dir(&scratch).unwrap();
+    c.temporary_override = Some(scratch.clone());
+
+    let first = c.get_temporary_file(None).unwrap();
+    let second = c.get_temporary_file(None).unwrap();
+    assert!(!first.path().as_os_str().is_empty());
+    assert_ne!(first.path(), second.path());
+    assert!(first.path().starts_with(&scratch));
+    assert!(first.path().exists() && second.path().exists());
+
+    let retained = Path::new("retain-this-filename");
+    let guard = c.get_temporary_file(Some(retained)).unwrap();
+    assert_eq!(guard.path(), retained);
+    drop(guard);
+    assert!(!retained.exists());
+
+    let (a, b) = (first.path().to_owned(), second.path().to_owned());
+    drop(first);
+    drop(second);
+    assert!(!a.exists() && !b.exists());
+
+    let parent = TempDir::new_in(d.path(), false).unwrap();
+    let child_path = {
+        let child = TempDir::new_in(parent.path(), false).unwrap();
+        assert!(f::is_directory(child.path()));
+        assert!(child.path().starts_with(parent.path()));
+        child.path().to_owned()
+    };
+    assert!(!f::exists(&child_path));
+    assert!(f::exists(parent.path()));
+}
+
+/// File_test.cpp:130-180 — the path-depth sweep. `writable` answers "could this
+/// be created?" by creating a probe of its own, whose name is longer than a
+/// typical caller's, so near the platform's path limit there is a band where the
+/// caller's file still fits and the probe does not. Reporting "not writable"
+/// there is the false negative the function exists to avoid, so at every depth
+/// the answer is compared against whether the OS will in fact create the file.
+#[test]
+fn writable_agrees_with_the_operating_system_at_every_path_depth() {
+    let d = temp();
+    let mut deep = d.path().to_owned();
+    // Capped below the recursive-removal depth ceiling, so that a filesystem
+    // with no practical path limit neither loops forever nor leaves a tree the
+    // guard cannot remove.
+    for _ in 0..100 {
+        let next = deep.join("d".repeat(60));
+        if fs::create_dir(&next).is_err() || !next.is_dir() {
+            break;
+        }
+        deep = next;
+    }
+    let (mut checked, mut agreed) = (0, 0);
+    let mut tail = 1;
+    while tail < 60 {
+        let leaf = deep.join("e".repeat(tail));
+        tail += 6;
+        if fs::create_dir(&leaf).is_err() || !leaf.is_dir() {
+            continue;
+        }
+        let target = leaf.join("o");
+        let creatable = fs::File::create(&target).is_ok();
+        if creatable {
+            fs::remove_file(&target).unwrap();
+        }
+        checked += 1;
+        if f::writable(&target) == creatable {
+            agreed += 1;
+        }
+        fs::remove_dir_all(&leaf).unwrap();
+    }
+    assert_ne!(checked, 0);
+    assert_eq!(agreed, checked);
+}
