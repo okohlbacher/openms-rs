@@ -16,7 +16,9 @@
 //! The oracle replay rebuilds every input of
 //! `../oracle/feature-finder-picked-helper-structs/driver.cpp`, formats each
 //! result the way the driver prints it, and requires the C++ run's output row
-//! for row, with floating-point values compared bit for bit.
+//! for row, with floating-point values compared bit for bit on every platform.
+//! That is deliberately stricter than a tolerance; the support document's
+//! evidence section gives the reasons and says when it must be re-measured.
 
 // The class-test literals are transcribed verbatim, including digits beyond
 // the precision of their type, so the f32 values match the C++ literals exactly.

@@ -6,7 +6,7 @@
  "group": "feature_finder_picked_helper_structs",
  "work_package": "B1-HELPERS (early TOPP bundle, wave 1)",
  "method": "Port of FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h and .cpp. The 14 START_SECTIONs of the class test are transcribed with their literals and comparison macros. An oracle driver outside this repository replays the same inputs plus 13 boundary cases against the product-SDK libOpenMS; its output is retained here and replayed row for row with floats compared bit for bit.",
- "evidence_tier": "tier 1 (executed differential: product-SDK libOpenMS oracle, 164 rows replayed bit for bit, covering every ported method); tier 3 (transcribed class-test literals and comparison macros, all 14 sections); tier 4 (native ceilings, the NaN-merge error, accessors and default values)",
+ "evidence_tier": "tier 1 (executed differential: product-SDK libOpenMS oracle, 164 rows replayed bit for bit) for every computational member: getConvexhull, updateMaximum, getAvgMZ, MassTrace::isValid, MassTraces::isValid, getPeakCount, getTheoreticalmaxPosition, updateBaseline, getRTBounds, computeIntensityProfile, Seed::operator<, IsotopePattern(Size) and TheoreticalIsotopePattern::size, where the getConvexhull rows hold no signed-zero m/z (a known difference, see native_boundaries); tier 3 (transcribed class-test literals and comparison macros, all 14 sections); tier 4 (the accessors MassTraces::reserve, clear, get/get_mut, last/last_mut, iter/iter_mut, as_slice, is_empty and the IntoIterator impls, and PatternPeak::index; the native ceilings, the NaN-merge error and default values)",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h",
@@ -21,14 +21,6 @@
    "sha256": "f9e79115c0b03d6b95d0eb1d86588804be31d453f5cb62329d69842935c93cec"
   },
   {
-   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderDefs.h",
-   "sha256": "0760af479ef94a1704e540521952d7d38ee8015c9daa6122ff62213981ceba41"
-  },
-  {
-   "path": "src/openms/include/OpenMS/DATASTRUCTURES/IsotopeCluster.h",
-   "sha256": "dc1862c75d47245a8fa59d1fac43ba9eacd3c1465d28c2a7b05ebb7afd36bf4e"
-  },
-  {
    "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConvexHull2D.h",
    "sha256": "eecde18cc716756736ff8917084ca052e31a392a6dd6c65ce2237c3714d652a8"
   },
@@ -41,22 +33,38 @@
    "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
   },
   {
-   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
-   "sha256": "a9d5a2373f301e3ac553bdfbcb8e1dba95de46eab1344bf07a4962760e35b8c0"
-  },
-  {
-   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
-   "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0"
-  },
-  {
-   "path": "src/openms/include/OpenMS/FEATUREFINDER/Fitter1D.h",
-   "sha256": "29b0bb30a42c6bca9bf9038e666b05023e9af18bd03796bc48ded9dd1024002f"
-  },
-  {
    "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
    "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f"
   }
  ],
+ "context_sources": [
+  {
+   "path": "OpenMS/FEATUREFINDER/FeatureFinderDefs.h",
+   "sha256": "0760af479ef94a1704e540521952d7d38ee8015c9daa6122ff62213981ceba41",
+   "role": "not ported: no includer; duplicates the FeatureFinderDefs struct of FeatureFinderAlgorithmPicked.h"
+  },
+  {
+   "path": "OpenMS/DATASTRUCTURES/IsotopeCluster.h",
+   "sha256": "dc1862c75d47245a8fa59d1fac43ba9eacd3c1465d28c2a7b05ebb7afd36bf4e",
+   "role": "not ported: reached only through the FeatureFinderDefs typedef copies and the legacy Fitter1D.h typedefs"
+  },
+  {
+   "path": "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
+   "sha256": "a9d5a2373f301e3ac553bdfbcb8e1dba95de46eab1344bf07a4962760e35b8c0",
+   "role": "consumer, ported by later packages: the duplicate FeatureFinderDefs struct at line 24 and the Seed-keyed abort_reasons_ map at line 153"
+  },
+  {
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0",
+   "role": "consumer, ported by later packages: read to confirm the copied TracePeak values, the PatternPeak values and both uses of Seed::operator<"
+  },
+  {
+   "path": "OpenMS/FEATUREFINDER/Fitter1D.h",
+   "sha256": "29b0bb30a42c6bca9bf9038e666b05023e9af18bd03796bc48ded9dd1024002f",
+   "role": "legacy Fitter1D typedefs, the other route to IsotopeCluster.h"
+  }
+ ],
+ "context_sources_note": "Read for context and not ported by this group. Headers are named by include path below the core checkout's include directory, the implementation below its source directory, both at source_revision, where their sha256 values were checked with git show. They are deliberately kept out of sources and not spelled from the repository root: tools/core_sdk_coverage.py counts every core-prefixed path string in a provenance manifest as reference evidence for that header, which would move these unported headers out of 'unmapped', and tools/check_core_sdk.py --source hashes every sources path from the checkout root.",
  "native_implementation": [
   "src/analysis/feature_finder_picked/helper_structs.rs"
  ],
@@ -91,7 +99,7 @@
   "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=product-sdk/share/OpenMS/4.0.0, per-run scratch working directory",
   "reproduction": "Two runs from separate scratch directories produced byte-identical output.",
   "debug_only": [],
-  "comparison": "Exact: every row string equal, so every f64 matches bit for bit. The Rust replay was checked on the Linux x86-64 build node (IBMI kim), with its current stable toolchain and with 1.85.0, with default and with no default features, against the macOS arm64 oracle output."
+  "comparison": "Exact: every row string equal, so every f64 matches bit for bit. The Rust replay was checked on the Linux x86-64 build node (IBMI kim), with its current stable toolchain and with 1.85.0, with default and with no default features, against the macOS arm64 oracle output. This bitwise contract is deliberately stricter than the early-bundle plan, which asserts bit equality only on macOS arm64 against the same-platform oracle and 1e-9 relative elsewhere. The recorded members use only basic arithmetic, comparisons and fabs, so no libm result enters. The one expression a compiler may contract, getAvgMZ's sum += mz * intensity, gives the same bits contracted and uncontracted for the recorded mt_avg and boundary inexact cases (checked with Python math.fma; the products of mt1 are exact), so the retained rows do not depend on whether the Debug oracle contracts. Regenerating the oracle from a Release or FMA-contracting build, or adding getAvgMZ cases, requires re-measuring before the bitwise assertion is kept."
  },
  "source_anchors": [
   {
@@ -145,55 +153,71 @@
    "operation": "computeIntensityProfile: first trace copied unchecked, later traces merged by a single std::list walk with exact RT equality; double += float"
   },
   {
-   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
    "line": 548,
-   "operation": "std::sort(seeds.rbegin(), seeds.rend()) is the only use of Seed::operator<"
+   "operation": "std::sort(seeds.rbegin(), seeds.rend()) orders the seeds by descending intensity through Seed::operator<, the first of its two uses; std::sort is not stable, so equal intensities have no defined order"
   },
   {
-   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
    "line": 660,
    "operation": "updateBaseline, baseline scaled by 0.75, updateMaximum on traces[max_trace]"
   },
   {
-   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 1034,
+   "operation": "debug mode writes debug/abort_reasons.featureXML by walking abort_reasons_ in ascending Seed::operator< order, with RT, m/z and intensity taken at the key seed's position and unique id = index"
+  },
+  {
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
    "line": 1084,
    "operation": "input map sorted before run_; afterwards only float data arrays change, never peak m/z or intensity (supports copied TracePeak values)"
   },
   {
-   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 1138,
+   "operation": "abort_ stores abort_reasons_[seed] = reason in debug mode; seeds of equal intensity are one key, so the first seed stored keeps its position and takes the last reason"
+  },
+  {
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
    "line": 1401,
    "operation": "pattern.peak compared against -2 (removed) and -1 (missing); no other negative value is assigned"
   },
   {
-   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
+   "path": "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
    "line": 24,
    "operation": "duplicate FeatureFinderDefs struct (IndexPair, IndexSet, ChargedIndexSet, Flag, NoSuccessor); unused in source/FEATUREFINDER"
   },
   {
-   "path": "src/openms/include/OpenMS/FEATUREFINDER/Fitter1D.h",
+   "path": "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
+   "line": 153,
+   "operation": "std::map<Seed, std::string> abort_reasons_ is ordered by Seed::operator<, the second of its two uses"
+  },
+  {
+   "path": "OpenMS/FEATUREFINDER/Fitter1D.h",
    "line": 33,
    "operation": "IsotopeCluster::IndexSet and ChargedIndexSet typedefs for the legacy Fitter1D family, the other route to IsotopeCluster.h"
   }
  ],
  "native_boundaries": [
   "MassTrace peaks are (spectrum index, peak index) plus copied rt f64, mz f64 and intensity f32; max_peak is Option<TracePeak>, and pointer identity becomes index equality",
-  "Seed exposes is_less_intense_than instead of PartialOrd, because an intensity-only order would contradict the structural PartialEq",
+  "Seed exposes is_less_intense_than instead of PartialOrd, because an intensity-only order would contradict the structural PartialEq. The source's operator< orders std::sort of the seeds and keys the debug-mode abort_reasons_ map; a caller that reproduces debug/abort_reasons.featureXML must key by is_less_intense_than, so that seeds of equal intensity collapse into one entry with the first seed's position and the last reason",
   "IsotopePattern::peak is a PatternPeak enum (NotFound = -1, Removed = -2, Found(index)); the source assigns no other negative value",
   "IsotopePattern::new refuses more than 100,000 isotopes; MassTraces::reserve refuses a capacity above 100,000 traces and maps allocation failure to Error::InvalidValue, leaving the collection unchanged",
   "MassTraces::intensity_profile refuses more than 1,000,000 total peaks or more than 100,000,000 worst-case merge steps before allocating; an index-linked list reproduces the std::list insertion cost",
   "MassTraces::intensity_profile returns Error::InvalidValue where the source loop never terminates (a NaN retention time meeting a profile entry), and an empty profile where the source dereferences begin() of an empty vector",
-  "MassTrace::convex_hull refuses non-finite coordinates and more than 1,000,000 peaks",
+  "MassTrace::convex_hull refuses non-finite coordinates and more than 1,000,000 peaks; the source accepts infinities as map keys",
+  "Known difference: MassTrace::convex_hull merges the m/z range of one retention time through kernel ConvexHull2D::add_points with f64::min and f64::max, and Rust leaves their sign for -0.0 against +0.0 unspecified, while the source keeps the first value (DBoundingBox<1>::encloses and strict < and > in ConvexHull2D::addPoint). An independent review fuzz against product-SDK libOpenMS (not retained) found 2 differing hull rows on Linux x86-64 and 1 on macOS arm64 in a hand-built signed-zero case. m/z is positive on the FeatureFinderCentroided path and the retained rows hold no signed zero; the fix belongs in the kernel",
   "get, get_mut, last and last_mut return Option; Index and IndexMut panic on out-of-range indices like slices",
   "Scalars the source leaves uninitialised (max_rt, theoretical_int, baseline, TheoreticalIsotopePattern scalars) start at zero"
  ],
  "not_ported": [
   {
-   "header": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderDefs.h",
+   "header": "OpenMS/FEATUREFINDER/FeatureFinderDefs.h",
    "reason": "No includer; duplicates the FeatureFinderDefs struct defined in FeatureFinderAlgorithmPicked.h. IndexPair, IndexSet, ChargedIndexSet, Flag and NoSuccessor are not used on the FeatureFinderCentroided path."
   },
   {
-   "header": "src/openms/include/OpenMS/DATASTRUCTURES/IsotopeCluster.h",
-   "reason": "Reached only through the two FeatureFinderDefs typedef copies and the legacy Fitter1D.h typedefs; the picked algorithm uses none of them. The coverage ledger's candidate src/processing/deisotoping.rs is an unrelated Deisotoper result struct."
+   "header": "OpenMS/DATASTRUCTURES/IsotopeCluster.h",
+   "reason": "Reached only through the two FeatureFinderDefs typedef copies and the legacy Fitter1D.h typedefs; the picked algorithm uses none of them. The coverage ledger's candidate src/processing/deisotoping.rs is an unrelated Deisotoper result struct that only shares the name. Its evidence_requires_review status comes from that declaration-name match, which a review entry cannot clear."
   }
  ],
  "cpp_defect_candidates": [

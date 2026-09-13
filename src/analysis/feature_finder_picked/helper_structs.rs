@@ -77,10 +77,15 @@ impl Seed {
     /// neither less nor greater than any other, and `-0.0` is not less than
     /// `+0.0`.
     ///
-    /// The source overloads `operator<`, which `std::sort` then uses. This port
-    /// does not implement [`PartialOrd`], because an ordering that ignores the
-    /// positions would contradict the structural [`PartialEq`] that compares
-    /// them. The sorting policy, including ties, belongs to the caller.
+    /// The source overloads `operator<` for two uses in
+    /// `FeatureFinderAlgorithmPicked`. `std::sort` orders the seeds by
+    /// descending intensity with it. In debug mode it also orders the
+    /// `std::map<Seed, std::string>` of abort reasons, where seeds of equal
+    /// intensity are one key: the first seed stored keeps its position and takes
+    /// the last reason. This port does not implement [`PartialOrd`], because an
+    /// ordering that ignores the positions would contradict the structural
+    /// [`PartialEq`] that compares them. The sorting policy, including ties, and
+    /// the keying of an abort-reason map belong to the caller.
     pub fn is_less_intense_than(&self, rhs: &Self) -> bool {
         self.intensity < rhs.intensity
     }

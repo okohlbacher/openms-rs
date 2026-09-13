@@ -150,12 +150,13 @@ this header and is outside this module.
 
 | Source behaviour | This port | Reason |
 | --- | --- | --- |
-| `Seed::operator<` feeds `std::sort` | `is_less_intense_than`, no `PartialOrd` | An intensity-only ordering would contradict the structural `PartialEq`. The sort order, including ties, is the caller's (B6) decision. |
+| `Seed::operator<` has two uses in `FeatureFinderAlgorithmPicked`: `std::sort` of the seeds (`.cpp:548`), and in debug mode the order of `std::map<Seed, std::string> abort_reasons_` (`.h:153`), filled at `.cpp:1138` and written to `debug/abort_reasons.featureXML` at `.cpp:1028-1045` | `is_less_intense_than`, no `PartialOrd` | An intensity-only ordering would contradict the structural `PartialEq`. The sort order, including ties, is the caller's (B6) decision. A caller that reproduces the debug abort-reason output (B7, B10 debug 5) must key its map by `is_less_intense_than`. Seeds of equal intensity then collapse into one entry, which keeps the first seed's position and the last reason, and entries come out in ascending `f32` intensity. |
 | `MassTraces::isValid` is non-`const` | `&self` | It modifies nothing. |
 | `at` throws `std::out_of_range`; `back` on empty and out-of-range `operator[]` are undefined | `get`/`last` return `Option`; `Index` panics like slice indexing | Checked accessors exist for every access. |
 | `reserve` fails only at the allocator's limit | `reserve` refuses more than `MAX_TRACES` (100,000) and maps allocation failure to `Error::InvalidValue` | Bounded pre-allocation; the collection is unchanged on error. |
 | `IsotopePattern(Size)` always allocates | `IsotopePattern::new` refuses more than `MAX_SIZE` (100,000) isotopes | Bounded allocation. |
 | `getConvexhull` accepts any coordinates into a `std::map` | `convex_hull` refuses non-finite coordinates (from `ConvexHull2D::from_points`) and more than `MAX_PEAKS` peaks | A NaN key breaks the map's ordering; infinities are not hull coordinates. |
+| `ConvexHull2D::addPoint` keeps the first m/z of a retention time when a later one is equal: it skips a point its `DBoundingBox<1>` encloses, and `enlarge` replaces only on strict `<` or `>` | `convex_hull` merges the m/z range of one retention time with `f64::min` and `f64::max` in kernel `ConvexHull2D::add_points` | Known difference, not a design choice. For `-0.0` and `+0.0` m/z at one retention time, Rust leaves the sign that `min` and `max` return unspecified. An independent review fuzz against the product-SDK libOpenMS (705 cases, not retained) matched every hull bit for bit except a hand-built signed-zero case: 2 differing rows on Linux x86-64, 1 on macOS arm64. m/z is positive on the FeatureFinderCentroided path, and the retained oracle rows hold no signed zero. The fix belongs in the kernel: strict comparisons that keep the first value. |
 | `computeIntensityProfile` on an empty collection dereferences `begin()` | returns an empty profile | Undefined behaviour in the source. |
 | `computeIntensityProfile` never terminates when a NaN retention time meets a profile entry | returns `Error::InvalidValue` | A hang is not a result. A NaN that is only copied or appended passes through as in the source. |
 | `computeIntensityProfile` fills a caller's list, documented as empty | returns a new `Vec` | That contract as a return value; an index-linked list keeps the source's insertion cost. |
@@ -179,6 +180,29 @@ The retained output is `tests/data/feature_finder_picked_helper_structs_oracle.t
 The test `oracle_replay_matches_the_product_sdk_output_row_for_row` rebuilds
 every input and requires every row, with floats compared bit for bit. The
 comparison is exact, so no tolerance is declared.
+
+That bitwise contract applies on every platform. It is deliberately stricter
+than the early-bundle plan, which asserts bit equality only on macOS arm64
+against the same-platform oracle and 1e-9 relative elsewhere. The reasons:
+- the members use only basic arithmetic, comparisons and `fabs`, so no libm
+  result enters;
+- the one expression a compiler may contract into a fused multiply-add,
+  `getAvgMZ`'s `sum += mz * intensity`, gives the same bits either way for the
+  recorded `mt_avg` and `inexact` cases (checked with Python `math.fma`; the
+  products of `mt1` are exact), so the retained rows do not depend on whether
+  the Debug oracle contracts;
+- all 164 rows matched on Linux x86-64 (IBMI kim; stable and 1.85.0, with and
+  without default features) and, in an independent review run, on macOS arm64.
+
+Regenerating the oracle from a Release or FMA-contracting build, or adding
+`getAvgMZ` cases, requires re-measuring before the bitwise assertion is kept.
+
+Tier 1 covers every computational member: `getConvexhull`, `updateMaximum`,
+`getAvgMZ`, both `isValid`, `getPeakCount`, `getTheoreticalmaxPosition`,
+`updateBaseline`, `getRTBounds`, `computeIntensityProfile`, `Seed::operator<`,
+`IsotopePattern(Size)` and `TheoreticalIsotopePattern::size`. The accessors
+have tier 4 evidence only (below). No hull row holds a signed-zero m/z, where
+the port has a known difference (see native differences).
 
 The rows cover:
 - `avg_mz` exactly 1000 for `mt1`, the `mt_avg` value, and an inexact
@@ -217,7 +241,9 @@ test, with the literals and comparison semantics unchanged.
 - the empty profile;
 - non-finite hull coordinates;
 - `clear` keeping `max_trace` and `baseline`;
-- the accessors;
+- the accessors, which the oracle driver does not compare: `MassTraces::reserve`,
+  `clear`, `get`/`get_mut`, `last`/`last_mut`, `iter`/`iter_mut`, `as_slice`,
+  `is_empty`, the `IntoIterator` impls and `PatternPeak::index`;
 - `Seed` ordering ignoring position;
 - `update_baseline` keeping its value without peaks.
 
@@ -244,13 +270,27 @@ are documented and thrown in every build mode, so they are not defects.
 ## Ledger notes
 
 - `FeatureFinderAlgorithmPickedHelperStructs.h`: this file covers every public
-  member. It is at 100% rustdoc coverage, with tier 1 evidence for every method.
-  Suggested status is `complete`, with `rust`
-  `src/analysis/feature_finder_picked/helper_structs.rs`, `tests`
-  `tests/feature_finder_picked_helper_structs.rs` and this document. The
+  member. It is at 100% rustdoc coverage, with tier 1 evidence for every
+  computational member and tier 4 for the accessors. Suggested status is
+  `complete`, with `rust` `src/analysis/feature_finder_picked/helper_structs.rs`,
+  `tests` `tests/feature_finder_picked_helper_structs.rs` and this document. The
   integrator decides.
 - `FeatureFinderDefs.h`: not ported; no includer, and a duplicate of the struct
   in `FeatureFinderAlgorithmPicked.h`.
 - `IsotopeCluster.h`: the ledger's candidate mapping to
   `src/processing/deisotoping.rs` is wrong. No Rust file covers it; see the
-  not-ported table above.
+  not-ported table above. Its `evidence_requires_review` status comes from the
+  `pub struct IsotopeCluster` name match. A review entry can only set
+  `complete`, `partial` or `native_equivalent`, so the remap needs a generator
+  or naming change, not a review.
+- The provenance manifest lists the context-only sources (`FeatureFinderDefs.h`,
+  `IsotopeCluster.h`, `Fitter1D.h` and `FeatureFinderAlgorithmPicked.h`/`.cpp`)
+  under `context_sources`. Their paths are relative to the include or source
+  directory and do not start with the core repository prefix.
+  `tools/core_sdk_coverage.py` counts every prefixed path string in a manifest
+  as reference evidence, and this spelling keeps the unported headers
+  `unmapped`. Regenerating the ledger with this manifest moves only this header
+  from `unmapped` to `evidence_requires_review`. It also adds the manifest to the
+  reference manifests of `ConvexHull2D.h` and `KERNEL/Peak1D.h`. Separately,
+  `helper_structs.rs` joins the candidate files of `KERNEL/MassTrace.h`, because
+  both declare `pub struct MassTrace`; that is a name collision, not coverage.
