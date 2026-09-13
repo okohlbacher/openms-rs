@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5053,
-  "documented": 3487
+  "items": 5296,
+  "documented": 3784
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -330,8 +330,8 @@
    "documented": 4
   },
   "src/comparison.rs": {
-   "items": 35,
-   "documented": 35
+   "items": 67,
+   "documented": 67
   },
   "src/concept/constants.rs": {
    "items": 132,
@@ -813,6 +813,10 @@
    "items": 18,
    "documented": 18
   },
+  "src/math/fft.rs": {
+   "items": 14,
+   "documented": 14
+  },
   "src/math/fitters/gamma.rs": {
    "items": 8,
    "documented": 8
@@ -841,9 +845,21 @@
    "items": 27,
    "documented": 27
   },
+  "src/math/kernel_density.rs": {
+   "items": 14,
+   "documented": 14
+  },
   "src/math/mod.rs": {
-   "items": 5,
-   "documented": 5
+   "items": 9,
+   "documented": 9
+  },
+  "src/math/multiple_testing.rs": {
+   "items": 19,
+   "documented": 19
+  },
+  "src/math/posterior_error_probability.rs": {
+   "items": 36,
+   "documented": 36
   },
   "src/math/rank_data.rs": {
    "items": 8,
@@ -973,17 +989,41 @@
    "items": 13,
    "documented": 13
   },
+  "src/system/external_process.rs": {
+   "items": 31,
+   "documented": 31
+  },
   "src/system/file.rs": {
    "items": 68,
-   "documented": 14
+   "documented": 68
+  },
+  "src/system/java_info.rs": {
+   "items": 3,
+   "documented": 3
   },
   "src/system/mod.rs": {
-   "items": 5,
-   "documented": 5
+   "items": 12,
+   "documented": 12
+  },
+  "src/system/network.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/system/network_get_request.rs": {
+   "items": 33,
+   "documented": 33
   },
   "src/system/path_utils.rs": {
    "items": 3,
    "documented": 3
+  },
+  "src/system/python_info.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/system/r_wrapper.rs": {
+   "items": 11,
+   "documented": 11
   },
   "src/system/stop_watch.rs": {
    "items": 28,
@@ -992,6 +1032,10 @@
   "src/system/sys_info.rs": {
    "items": 13,
    "documented": 13
+  },
+  "src/system/update_check.rs": {
+   "items": 23,
+   "documented": 23
   }
  }
 }

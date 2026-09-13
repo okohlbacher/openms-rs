@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 38,
-      "evidence_requires_review": 168,
-      "native_equivalent": 88,
-      "partial": 45,
-      "unmapped": 447
+      "complete": 53,
+      "evidence_requires_review": 164,
+      "native_equivalent": 89,
+      "partial": 48,
+      "unmapped": 432
     },
     "topp_sources": 146,
     "validated_topp_workflows": 5
@@ -3717,11 +3717,24 @@
       "header": "src/openms/include/OpenMS/COMPARISON/PeakAlignment.h",
       "sha256": "88b7056ccddfc491436078fd0a0123ab2b736e8389dd3c3a6661944fe877696e",
       "domain": "COMPARISON",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_scorers.rs"
+        ],
+        "documentation": "docs/PEAK_ALIGNMENT_SUPPORT.md",
+        "scope": "Every public member ported: construction with the four registered parameters (including the never-read `normalized`), copy/assignment, both operator() overloads and getAlignmentTraceback. The private peakPairScore_ is ported with its mis-parenthesised exponent intact. One matrix fill serves both entry points, each passing in its own sigma so the source's guarded/unguarded difference survives. All seven class-test sections ported."
+      },
+      "candidate_rust_files": [
+        "src/comparison.rs"
+      ],
       "reference_manifests": [
-        "tests/data/comparison_functors_provenance.json"
+        "tests/data/comparison_functors_provenance.json",
+        "tests/data/comparison_scorers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -3729,9 +3742,9 @@
       "header": "src/openms/include/OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h",
       "sha256": "3e5d1af32c7704e4368398ac5742603ac876405494bb13899216a9f6c1c77fcc",
       "domain": "COMPARISON",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/comparison.rs"
         ],
@@ -3739,13 +3752,14 @@
           "tests/comparison_functors.rs"
         ],
         "documentation": "docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md",
-        "scope": "All six public members reviewed. The abstract DefaultParamHandler base becomes the object-safe trait PeakSpectrumCompareFunctor: the two pure virtual operator() overloads are score and self_score (the latter provided, defaulting to score(a, a), which is what all six source derivatives implement), and the inherited parameter surface is handler()/handler_mut()/name(). Default constructor, copy constructor, destructor and operator= are the implementor's own construction, Clone, drop glue and assignment; the C++ bodies are defaulted or forward to DefaultParamHandler. score returns Result<f64> where the source returns double. No shipped type implements the trait yet: the four source descendants already in comparison (SpectrumAlignmentScore, ZhangSimilarityScore, SteinScottImproveScore, SpectrumPrecursorComparator) were ported in an earlier wave as typed Copy structs without a DefaultParamHandler, so wiring them on belongs to the wave that ports their own headers; a test functor in tests/comparison_functors.rs implements and exercises the trait, including through &dyn. Held at partial rather than complete: the crate ships no type implementing the trait, its only implementor being a test type, and the seven source derivatives belong to the next wave."
+        "scope": "All six public members reviewed. The abstract DefaultParamHandler base becomes the object-safe trait PeakSpectrumCompareFunctor: the two pure virtual operator() overloads are score and self_score (the latter provided, defaulting to score(a, a), which is what all six source derivatives implement), and the inherited parameter surface is handler()/handler_mut()/name(). Default constructor, copy constructor, destructor and operator= are the implementor's own construction, Clone, drop glue and assignment; the C++ bodies are defaulted or forward to DefaultParamHandler. score returns Result<f64> where the source returns double. No shipped type implements the trait yet: the four source descendants already in comparison (SpectrumAlignmentScore, ZhangSimilarityScore, SteinScottImproveScore, SpectrumPrecursorComparator) were ported in an earlier wave as typed Copy structs without a DefaultParamHandler, so wiring them on belongs to the wave that ports their own headers; a test functor in tests/comparison_functors.rs implements and exercises the trait, including through &dyn. Held at partial rather than complete: the crate ships no type implementing the trait, its only implementor being a test type, and the seven source derivatives belong to the next wave. Upgraded from partial: the reason it was held - that the crate shipped no implementor - expired when the seven derivatives landed and implemented the trait."
       },
       "candidate_rust_files": [
         "src/comparison.rs"
       ],
       "reference_manifests": [
-        "tests/data/comparison_functors_provenance.json"
+        "tests/data/comparison_functors_provenance.json",
+        "tests/data/comparison_scorers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -3753,11 +3767,24 @@
       "header": "src/openms/include/OpenMS/COMPARISON/SpectraSTSimilarityScore.h",
       "sha256": "131d8833334424c80faaf1d2f33569f259f9bfe7cd29773161d0826cc533b727",
       "domain": "COMPARISON",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_scorers.rs"
+        ],
+        "documentation": "docs/SPECTRAST_SIMILARITY_SCORE_SUPPORT.md",
+        "scope": "Every public member ported: construction (reproducing the missing defaultsToParam_), copy/assignment, all three operator() overloads as score/dot/self_score, preprocess, transform, dot_bias, delta_D and compute_F. The empty protected section declares no members. All twelve class-test sections ported, including the one upstream marks NOT_TESTABLE."
+      },
+      "candidate_rust_files": [
+        "src/comparison.rs"
+      ],
       "reference_manifests": [
-        "tests/data/comparison_functors_provenance.json"
+        "tests/data/comparison_functors_provenance.json",
+        "tests/data/comparison_scorers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -3765,12 +3792,24 @@
       "header": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h",
       "sha256": "e38817397c8f34619b0231887d0b493928f8889163da88ab6eee275e8313e021",
       "domain": "COMPARISON",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison.rs",
+          "tests/comparison_scorers.rs"
+        ],
+        "documentation": "docs/SPECTRUM_ALIGNMENT_SUPPORT.md",
+        "scope": "SpectrumAligner: the DefaultParamHandler class with tolerance and is_relative_tolerance, driving the banded DP and the MatchedIterator<PpmTrait> walk that already existed in this module as comparison::SpectrumAlignment. Every public member has a counterpart in the support doc's API table: default/copy/assignment/destructor, getSpectrumAlignment and the inherited parameter surface. The only unported item is the ALIGNMENT_DEBUG macro, which the header defines and immediately undefines, so all five #ifdef blocks are dead in every build. Native additions: max_cells and tolerance()."
+      },
       "candidate_rust_files": [
         "src/comparison.rs"
       ],
       "reference_manifests": [
+        "tests/data/comparison_scorers_provenance.json",
         "tests/data/spectrum_annotation_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -3783,23 +3822,48 @@
       "header": "src/openms/include/OpenMS/COMPARISON/SpectrumAlignmentScore.h",
       "sha256": "25ebe09fe97a7503923968842ce5939fbcb1ab9894165d58255bd11370632404",
       "domain": "COMPARISON",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_scorers.rs"
+        ],
+        "documentation": "docs/SPECTRUM_ALIGNMENT_SCORE_SUPPORT.md",
+        "scope": "SpectrumAlignmentScorer, the first implementor of the PeakSpectrumCompareFunctor trait. Both operator() overloads, all four parameters, construction/copy/assignment/destruction and the inherited parameter surface are ported. Reproduces the float intensity product, the sqrt(sum1*sum2) denominator grouping, the erfc grouping and the double ppm window that disagrees with the alignment's float one."
+      },
       "candidate_rust_files": [
         "src/comparison.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_scorers_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/SpectrumCheapDPCorr.h",
       "sha256": "02ed71fa5cc9080fb6e2651cc1b097022f6047211d1df10165da879f64d06607",
       "domain": "COMPARISON",
-      "status": "evidence_requires_review",
-      "review": null,
-      "candidate_rust_files": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_scorers.rs"
+        ],
+        "documentation": "docs/SPECTRUM_CHEAP_DP_CORR_SUPPORT.md",
+        "scope": "Every public member ported: construction with the three registered parameters, copy/assignment, both operator() overloads, lastconsensus(), getPeakMap() and setFactor(). Both private helpers (dynprog_, comparepeaks_) ported; the declared-but-never-defined static `info_` is recorded as not ported. The source's three mutable members are split into a read-only `score` and a recording `compare`, which cannot disagree because both call one routine. All nine class-test sections ported."
+      },
+      "candidate_rust_files": [
+        "src/comparison.rs"
+      ],
       "reference_manifests": [
-        "tests/data/comparison_functors_provenance.json"
+        "tests/data/comparison_functors_provenance.json",
+        "tests/data/comparison_scorers_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -3807,36 +3871,72 @@
       "header": "src/openms/include/OpenMS/COMPARISON/SpectrumPrecursorComparator.h",
       "sha256": "bae8cbf781b217b6405853f4d82ec7d4ebcfcb633b4250c1987bd19c42514e48",
       "domain": "COMPARISON",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_scorers.rs"
+        ],
+        "documentation": "docs/SPECTRUM_PRECURSOR_COMPARATOR_SUPPORT.md",
+        "scope": "Every public member ported: default/copy construction, destruction, assignment, both operator() overloads and the registered `window` parameter. Reshaped from wave A's Copy struct with a public `window` field into the header's DefaultParamHandler-carrying functor implementing PeakSpectrumCompareFunctor; `Default` and `score` are preserved for existing callers, the field becomes the read-only `window()` accessor over the parameter. All six class-test sections ported."
+      },
       "candidate_rust_files": [
         "src/comparison.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_scorers_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/SteinScottImproveScore.h",
       "sha256": "b1a807a03f0d6c4242b5dd3d3e42b4b764146dda83c3b573a2283806ec06c52c",
       "domain": "COMPARISON",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_scorers.rs"
+        ],
+        "documentation": "docs/STEIN_SCOTT_IMPROVE_SCORE_SUPPORT.md",
+        "scope": "SteinScottImproveScorer implementing PeakSpectrumCompareFunctor. Both operator() overloads, both parameters (neither restricted, as upstream), construction/copy/assignment/destruction. Reproduces the inclusive 2*epsilon window, the grouping of z = (epsilon/10000) * (sum3*sum4), the float intensity product and the float narrowing of the threshold before comparison."
+      },
       "candidate_rust_files": [
         "src/comparison.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_scorers_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/COMPARISON/ZhangSimilarityScore.h",
       "sha256": "b55d2021fc4cea74dea52e27c97e2f8ca2a3620b856f374aeeaa0f594045fa12",
       "domain": "COMPARISON",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/comparison.rs"
+        ],
+        "tests": [
+          "tests/comparison_scorers.rs"
+        ],
+        "documentation": "docs/ZHANG_SIMILARITY_SCORE_SUPPORT.md",
+        "scope": "ZhangSimilarityScorer implementing PeakSpectrumCompareFunctor. Both operator() overloads, all four parameters, the protected getFactor_ (promoted to the public associated function ZhangSimilarityScorer::factor, since it is a pure function of its arguments and the port has no subclasses), and construction/copy/assignment/destruction. The source's Exception::NotImplemented on is_relative_tolerance is Error::Unsupported, and the sliding j_left cursor with its strict < window is transcribed rather than replaced."
+      },
       "candidate_rust_files": [
         "src/comparison.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_scorers_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileFilter"
       ]
@@ -4314,10 +4414,12 @@
       "header": "src/openms/include/OpenMS/CONCEPT/VersionInfo.h",
       "sha256": "428d3b6a9bbf75ee15031f1ae0a12f9d03c4dc8c1dfaf4bbccb92b175f723a16",
       "domain": "CONCEPT",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/network_provenance.json"
+      ],
       "direct_topp_consumers": [
         "ConsensusID",
         "FileMerger",
@@ -4892,20 +4994,24 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/MatchedIterator.h",
       "sha256": "79941c1975151fcb2b98228295fcdbad0c8aca966266fc20b053ee27aeeab0d3",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_scorers_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/Matrix.h",
       "sha256": "195bd7dd42f46dc78a28b7034754cc4085703bcd633e94e1c14166eee0596280",
       "domain": "DATASTRUCTURES",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/comparison_scorers_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -5067,6 +5173,7 @@
         "tests/data/mzml_normalization_provenance.json",
         "tests/data/mztab_file_provenance.json",
         "tests/data/mztab_provenance.json",
+        "tests/data/network_provenance.json",
         "tests/data/param_value_provenance.json",
         "tests/data/percolator_infile_provenance.json",
         "tests/data/proforma_parser_probe_provenance.json",
@@ -9083,6 +9190,7 @@
       ],
       "reference_manifests": [
         "tests/data/comparison_functors_provenance.json",
+        "tests/data/comparison_scorers_provenance.json",
         "tests/data/kernel_gap_closures_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -10192,6 +10300,7 @@
         "src/processing/spline/smoothing.rs"
       ],
       "reference_manifests": [
+        "tests/data/math_kde_provenance.json",
         "tests/data/spline_math_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -10218,6 +10327,7 @@
       ],
       "reference_manifests": [
         "tests/data/chromatogram_processing_provenance.json",
+        "tests/data/math_kde_provenance.json",
         "tests/data/spline_math_provenance.json"
       ],
       "direct_topp_consumers": [
@@ -10293,6 +10403,7 @@
       "candidate_rust_files": [],
       "reference_manifests": [
         "SOURCE_PROVENANCE.json",
+        "tests/data/comparison_scorers_provenance.json",
         "tests/data/decoy_provenance.json",
         "tests/data/ims_weights_provenance.json",
         "tests/data/mass_decomposition_algorithm_provenance.json",
@@ -10468,30 +10579,73 @@
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/KernelDensityEstimation.h",
       "sha256": "4155b0e56bb28f111d6075d0c9de1248293929ae2a84a5cf22299106e2151076",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/math/fft.rs",
+          "src/math/kernel_density.rs",
+          "src/math/mod.rs"
+        ],
+        "tests": [
+          "tests/fft.rs",
+          "tests/kernel_density.rs"
+        ],
+        "documentation": "docs/KERNEL_DENSITY_SUPPORT.md",
+        "scope": "Complete public surface: bwNrd0 with PyProphet's fallback chain and the type-7 quartiles, both linBin overloads (the histogram the code implements, not the linear binning the header describes), forRt/revRt over a native radix-2 FFT that replaces the vendored evergreen transform, silvermanKernelFFT with the numeric_limits<double>::min() substitution for a non-positive binning correction, gridKdeFFT with M = bit_ceil(max(gridsize, n, 512)), the M-1-interval linspace, the delta*n normalisation and the final unit-integral rescale, and kdeFFTEval with negative clamping. The statsmodels and scipy reference fixtures the class test ships are reproduced to its own tolerances. CubicSpline2d is reimplemented privately because the module-cycle ratchet forbids a math -> processing edge; tests/kernel_density.rs asserts bit-identical agreement with the ported class. Native: MAX_ITEMS and MAX_GRID ceilings, a refusal for non-power-of-two transform lengths where evergreen silently transforms a different size, and for a zero-width grid, a zero range and a non-finite sample."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/math_kde_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/MultipleTesting.h",
       "sha256": "994269d4d76657c3e8fd661b32fb8488bc3ccd31cdb3b9d5eccc7e5b669b5ed6",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/math/mod.rs",
+          "src/math/multiple_testing.rs"
+        ],
+        "tests": [
+          "tests/multiple_testing.rs"
+        ],
+        "documentation": "docs/MULTIPLE_TESTING_SUPPORT.md",
+        "scope": "Every public member ported: Pi0Result, Pi0Method and LfdrTransform with their four string conversions, qValue (max ranks, the right-to-left cumulative-minimum sweep, the pfdr denominator), pi0Est (the repeated-addition lambda grid, the single-lambda short circuit, all five smoother fallbacks, last-value-wins on duplicate lambdas, and the bootstrap branch with the source's nearest-rank percentile), lfdr (in-place probit clipping, the logistic null, the cumulative-maximum monotone step), pNorm, computeModelFDR and pEmp. The R qvalue fixture is reproduced to 1e-4 and the PyProphet lfdr fixture for all four settings to 1e-2. PARTIAL because pi0Est's Smoother branch takes the smoothing spline as a caller-supplied Pi0Smoother rather than constructing BSplineSmoothingSpline itself: that class lives in `processing` and tools/check_module_cycles.py forbids a new math edge, so a caller who passes None silently takes the source's !spl.ok() fallback instead of the spline answer. tests/multiple_testing.rs wires the ported spline in and reproduces 0.697161, 0.6685638 and 0.6658949 through the seam. Native: MAX_ITEMS, validated adj and eps, boost's normal quantile replaced by Acklam plus a Halley step."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/math_kde_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h",
       "sha256": "0e12fe38dadcd282ea915bcdf17a203b3f5093c24501ce94a3fdc00cd154a77c",
       "domain": "MATH",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/math/mod.rs",
+          "src/math/posterior_error_probability.rs"
+        ],
+        "tests": [
+          "tests/posterior_error_probability.rs"
+        ],
+        "documentation": "docs/POSTERIOR_ERROR_PROBABILITY_SUPPORT.md",
+        "scope": "Numerical surface complete: both EM fits with the source's literal initialisation (mean of the lower half plus the minimum, sd about that location, the 0.7 boundary, a prior of 0.7), its natural-log convergence threshold 10^-neg_log_delta, its iteration cap tested before the increment, and its abort-reports-success branch; fillDensities, fillLogDensities, fillLogDensitiesGumbel, computeLogLikelihood (base ten) and computeLLAndIncorrectPosteriorsFromLogDensities (natural), the two weighted-moment helpers, all four accessors, getGumbel_, computeProbability with its Gumbel-in-every-branch quirk, processOutliers_ in all four modes, and the three gnuplot formula builders with printf(\"%g\") number formatting. Both 2000-draw mixture fixtures recover their generating parameters at the class test's 0.5 tolerance, and the gnuplot substring assertions pin the small-sample fit to three significant digits. PARTIAL because seven public members are not ported: extractAndTransformScores, updateScores, transformScore_, getScore_ (need metadata/identification), initPlots, plotTargetDecoyEstimation (need format/TextFile) and tryGnuplot (needs a process launcher) \u2014 all forbidden by the module-cycle ratchet and all listed in the support document. Native: DefaultParamHandler replaced by PepParameters/IncorrectComponent/OutlierHandling; compute_probability refuses after fit_gumbel_gauss, which in the source reads an unfitted Gaussian parameter set."
+      },
+      "candidate_rust_files": [
+        "src/math/posterior_error_probability.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/math_kde_provenance.json"
+      ],
       "direct_topp_consumers": [
         "IDPosteriorErrorProbability"
       ]
@@ -12825,20 +12979,45 @@
       "header": "src/openms/include/OpenMS/SYSTEM/CurlInit.h",
       "sha256": "5ce45901440231e4a6ee68f871f774c99608c600e90dd4a08986e710fdc6731c",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
+      "status": "native_equivalent",
+      "review": {
+        "status": "native_equivalent",
+        "rust": [],
+        "tests": [
+          "tests/network_get_request.rs"
+        ],
+        "documentation": "docs/CURL_INIT_SUPPORT.md",
+        "scope": "No Rust type, deliberately. CurlInit is an RAII guard whose only job is to run curl_global_init once per process behind a function-local static and curl_global_cleanup at exit. ureq has no global state to initialise, so a counterpart would be an empty struct with an empty method that tells a caller a lie. Every public member is listed in the API table with 'not ported' and the reason. The property the guard exists to provide - a transport usable immediately, concurrently, with no setup call - is asserted in tests/network_get_request.rs::no_global_initialisation_is_needed_before_a_transport_is_used, which drives four threads through one shared UreqTransport. The SDK has no CurlInit_test.cpp, so no class-test section is unaccounted for. The single behaviour not reproduced is the curl_global_cleanup at static-destruction time, which has nothing to clean up here."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/network_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/SYSTEM/ExternalProcess.h",
       "sha256": "1ef32f5c6c3d9f6c8b7f2991e532f28111d969ed109938bfbcba70d95c2733b7",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/system/external_process.rs"
+        ],
+        "tests": [
+          "src/system/external_process.rs",
+          "tests/system_process.rs"
+        ],
+        "documentation": "docs/EXTERNAL_PROCESS_SUPPORT.md",
+        "scope": "Every public member has a documented Rust counterpart and all seven class-test sections are ported. Both enums map value for value; the two constructors, the destructor and setCallbacks map to new/with_callbacks/Drop/set_callbacks; both run overloads map to run/run_with_idle, because one RunReport carries the RETURNSTATE and the error_msg out-parameter that distinguish them. The eight run parameters become one Invocation, and the source's private ProcessWait.h polling deadline becomes Invocation::timeout. The four outcome strings, the two verbose banners, the 50 ms cadence, the 4096-byte buffer, the inherit-plus-overlay environment, the empty-working-dir-means-'.' rule and the collapse of IO_MODE into one can_read predicate are all reproduced exactly. Two deliberate corrections, documented at the item: a signalled child is classified as CRASH in every IO_MODE (the source only asks WIFSIGNALED in its reading branch, so a segfault under NO_IO is reported as NONZERO_EXIT carrying the signal number), and PATH resolution comes from std::process::Command rather than bp::search_path, which additionally succeeds for an absolute path when PATH is empty. Nothing in the header is unported; ExternalProcessMBox is a Qt wrapper outside this header and outside the scientific SDK."
+      },
+      "candidate_rust_files": [
+        "src/system/external_process.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/system_process_provenance.json"
+      ],
       "direct_topp_consumers": [
         "MetaProSIP"
       ]
@@ -12847,17 +13026,18 @@
       "header": "src/openms/include/OpenMS/SYSTEM/File.h",
       "sha256": "adafb26d518a73ee94a30c6a8ed9c2edb94983627df106d1e4738fbc3e3aec47",
       "domain": "SYSTEM",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/system/file.rs"
         ],
         "tests": [
+          "src/system/file.rs",
           "tests/system_file.rs"
         ],
         "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
-        "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
+        "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation. All 42 public members reviewed one by one against bc9cc12 and listed in the support document's API table: 39 function names in 40 overloads, both public enums, the two TempDir constructors, its destructor, its deleted copy/move and getPath, plus the five private helpers observable through them. src/system/file.rs is at 100% rustdoc (68/68, up from 14/68); all 35 class-test sections are mapped, four of them with a stated reason why the source literal cannot be reproduced (working-directory mutation, setenv, an environment-derived hostname, ENABLE_DOCS). Three source capabilities are replaced rather than reproduced and are documented at the item, in the support doc and in the manifest: the dladdr/GetModuleHandleExW library-directory probe and the two CMake-substituted data paths become explicit FileContext::data_candidates; the compiled-in findDoc directories become FileContext::documentation_directories; the exit-time TemporaryFiles_ name registry becomes owned TempFile/TempDir guards whose Drop is silent (as the source's destructor is) with close() to report. The glob is a portable character-based Unicode subset: POSIX locale classes/collation and Windows PathMatchSpecA pattern-list/case rules are not emulated, and '?' covers one character where fnmatch covers one byte. No-clobber directory/symlink renames and cross-device directory/symlink moves are checked errors, because portable safe std has no atomic no-clobber directory primitive and the port will not substitute a racy existence check."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -12925,10 +13105,23 @@
       "header": "src/openms/include/OpenMS/SYSTEM/JavaInfo.h",
       "sha256": "53259c2d838a1237e5f4cc90020a4ff7ad8dd4d130410b5ac0ccf588fe826dd5",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/system/java_info.rs"
+        ],
+        "tests": [
+          "src/system/java_info.rs",
+          "tests/system_process.rs"
+        ],
+        "documentation": "docs/JAVA_INFO_SUPPORT.md",
+        "scope": "The header's single public member, canRun, is ported with its full diagnosis text transcribed (the Java-Check header line, the not-found/relative-PATH/absolute-path/timeout/non-zero-exit branches, and the macOS application-bundle paragraph under cfg!(target_os = \"macos\")), and the class test's only literal, canRun(\"\") == false, is asserted on every platform. Partial for two API differences, not gaps: the verbose_on_error parameter has no counterpart, because this crate has no global log stream and the text is always returned in JavaCheck::message for the caller to print; and can_run takes a &FileContext, resolving through FileContext::find_executable instead of reading the process PATH through bp::search_path. That second difference is what makes the module testable with no JVM installed, and it also fixes the source's failure to find an absolute Java when PATH is empty. JavaCheck adds exit_code, timed_out and output, which the source computes and discards."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/system_process_provenance.json"
+      ],
       "direct_topp_consumers": [
         "LuciphorAdapter",
         "MSFraggerAdapter",
@@ -12940,20 +13133,48 @@
       "header": "src/openms/include/OpenMS/SYSTEM/Network.h",
       "sha256": "098a27609c73ec1fcbc70ef86d5ff5badb37209ce57190a190bf1b705b888570",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/system/network.rs"
+        ],
+        "tests": [
+          "src/system/network.rs",
+          "tests/network.rs"
+        ],
+        "documentation": "docs/NETWORK_SUPPORT.md",
+        "scope": "The header's one public method and the .cpp's file-static saveFileName_ both ported, and the single class-test section mapped. Every statement of the header's unusually detailed Doxygen block is preserved or explicitly changed: the '?' then '#' truncation order, the basename with its 'download' fallback, the .0/.1/.2 never-overwrite rule, the '' -> './' mapping, the ten-minute timeout, an HTTP error status counting as a download failure, an empty body still producing a file, and the 'Download of ... failed!.' message text including its typo. Three documented differences: the written path is returned where the source logs it (system may not depend on the logging module), a partially written file is removed where the header says it is left behind, and the basename is split on '/' alone on every platform because '/' is a URL's separator - the source's std::filesystem::path::filename treats '\\' as one on Windows only. Bounded: URL <=64 KiB, collision suffixes <=10000 where the source's loop does not terminate, and a derived name of '.', '..' or one containing a separator or NUL refused where the source passes it to std::ofstream. The upstream section downloads a file:// URL, which ureq cannot speak; the same fixture's bytes are served through a recorded transport and the assertion strengthened from 'the file exists' to byte equality. Behind the non-default network feature."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/network_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/SYSTEM/NetworkGetRequest.h",
       "sha256": "84fa03cc4a33e65bccad52c5fe895a9c431ec467a49b13d9a0f857646635a92e",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/system/network_get_request.rs"
+        ],
+        "tests": [
+          "src/system/network_get_request.rs",
+          "tests/network_get_request.rs"
+        ],
+        "documentation": "docs/NETWORK_GET_REQUEST_SUPPORT.md",
+        "scope": "Every public member has a documented Rust counterpart and all nine class-test sections are mapped with a cited value; the four sub-cases of the run() section have a test each, and the five NOT_TESTABLE sections are given direct tests the trait makes possible. The documented contract is preserved exactly: run cannot throw or return an error, failures are observable only through has_error/error_string, the error boundary is status >= 400 (so an unfollowed 3xx is a success), a body arriving with an error status is kept because curl_easy_perform returned CURLE_OK, the 'HTTP error N' literal is byte-exact, a timeout of 0 or less is unset, and each run replaces rather than accumulates state. The transport is a trait instead of a direct libcurl call, so that no test reaches the network; UreqTransport reproduces the libcurl option set option by option, including http_status_as_error(false) to keep error bodies. Bounded where the source is not: redirects 10 (<=64), body 64 MiB (<=4 GiB), headers <=1024, and a URL preflight that refuses a non-http(s) scheme or empty host offline. getResponse becomes a checked response_text plus an exact response_binary, because a Rust str is UTF-8 where std::string is a byte container. libcurl's curl_easy_strerror texts are not reproduced - TransportError names the CURLE_* condition instead - and the source's 'Failed to initialize libcurl' branch has no counterpart because building a ureq request cannot fail that way. Behind the non-default network feature."
+      },
+      "candidate_rust_files": [
+        "src/system/network_get_request.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/network_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -12987,30 +13208,58 @@
       "header": "src/openms/include/OpenMS/SYSTEM/PythonInfo.h",
       "sha256": "f9eaf5f16955f3bd1d63e917f6f0dd6d9086393c26e47071438c25a3f95bd8dd",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/system/python_info.rs"
+        ],
+        "tests": [
+          "src/system/python_info.rs",
+          "tests/system_process.rs"
+        ],
+        "documentation": "docs/PYTHON_INFO_SUPPORT.md",
+        "scope": "All three public members are ported and all three class-test sections with them. canRun's in/out python_executable and out error_msg become PythonCheck fields rather than mutated arguments, keeping the source's 'resolved to' note that is appended even on success; getVersion's concatenate-without-separator-then-trim rule is reproduced exactly, including that a multi-line banner comes back with its lines run together, and is exposed as the pure version_from_output so it can be tested on recorded strings. Partial for three reasons. First, isPackageInstalled diverges deliberately: the source concatenates the caller's package_name into the Python program passed to -c, so the argument is executed as source code; this port validates it as a dotted ASCII identifier path and answers false without spawning when it is not one, which reproduces the class test's own asserted false for 'veryWeirdPackage___@@__@' by a safer route but refuses the non-ASCII identifiers Python 3 permits. Second, the resolved absolute path is executed directly instead of being handed back to bp::search_path, which fails whenever PATH is empty. Third, all three functions take a &FileContext instead of reading the process PATH."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/system_process_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/SYSTEM/RWrapper.h",
       "sha256": "409b0fba11e7e7b690e188afc825fa8bee4c86a3f0c03e99ef616afe12dd4c8c",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/system/r_wrapper.rs"
+        ],
+        "tests": [
+          "src/system/r_wrapper.rs",
+          "tests/system_process.rs"
+        ],
+        "documentation": "docs/R_WRAPPER_SUPPORT.md",
+        "scope": "All three public members are ported and all three class-test sections with them, including the graceful-degradation contract the class test exists to pin: findScript is the only entry point that fails loudly (Exception::FileNotFound becomes Error::Io with ErrorKind::NotFound) and runScript swallows it into a false. Both argument vectors are exact and public constants: --vanilla -e sessionInfo() and --vanilla --quiet <script> <args>. findScript keeps the source's operation order, resolving getOpenMSDataPath before File::find, so an existing script still fails when the shared data cannot be located. The per-line drain with an appended newline is reproduced as reassemble_lines, and findR merges stdout then stderr as the source imitates Qt MergedChannels. Partial for three reasons: the verbose parameter has no counterpart in any of the three functions, because every diagnosis is returned rather than logged; the default arguments executable = \"Rscript\" become the DEFAULT_EXECUTABLE constant that callers pass explicitly; and resolution goes through a &FileContext. One message text diverges deliberately \u2014 the source hardcodes the literal 'Rscript' in findR's failure message even for a different interpreter, and this interpolates the requested name."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/system_process_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
       "header": "src/openms/include/OpenMS/SYSTEM/SIMDe.h",
       "sha256": "f3e1180f0bfb78b34a2d88559a6b7f4d0ac1d7759405cac7ae60aba9679c7aab",
       "domain": "SYSTEM",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/system_process_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -13076,10 +13325,23 @@
       "header": "src/openms/include/OpenMS/SYSTEM/UpdateCheck.h",
       "sha256": "35b714895cbc1c0d61e55d029777cbb32c0d727634d185fff68786acb1552081",
       "domain": "SYSTEM",
-      "status": "unmapped",
-      "review": null,
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/system/update_check.rs"
+        ],
+        "tests": [
+          "src/system/update_check.rs",
+          "tests/update_check.rs"
+        ],
+        "documentation": "docs/UPDATE_CHECK_SUPPORT.md",
+        "scope": "The header's one public method ported with its whole .cpp policy, and the single class-test section mapped. Preserved exactly: the stamp-file rate limiting with its strict 24-hour comparison, the modification-time bump happening before the request (so a failed query still consumes the day's budget) while preserving the access time, the platform tag order Win/Mac/Linux/Unix/unknown, the '32'/'64' architecture rule, the OpenMS_Default_<platform>_<arch>_<tool>_<version> identifier, the plain-HTTP endpoint, the five-second timeout, all four notice texts including their trailing spaces, and the skip when the server answer equals VersionDetails::EMPTY. VersionDetails::create, operator<, ==, != and > are transcribed from VersionInfo.cpp along with StringUtils::toInt32's exact conversion rules; PartialOrd is deliberately not implemented because the source's operator< disagrees with its own operator== for two distinct pre-release identifiers. Differences: four globals (config dir, libcurl, VersionInfo, the clock) become parameters, which is what makes the class test's uncreatable-config-directory scenario expressible without setenv; run returns an UpdateCheckReport with seven named outcomes plus the warning and notice lines instead of writing to OPENMS_LOG_*, because system may not reach the logging module; parse returns Option rather than the EMPTY sentinel while the decision reproduces the source's != EMPTY branch; and a tool name that is not a plain file-name component is refused where the source concatenates it into a path. Two C++ defects are reproduced verbatim and reported: the announcement names the local version rather than the server's, and `revision` is computed and never used. CONCEPT/VersionInfo.h itself is not ported - only the VersionDetails surface UpdateCheck depends on - and that is stated in the API table. Behind the non-default network feature."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/network_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -13310,8 +13572,7 @@
         "OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
-        "OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h"
       ],
       "workflow_validated": false
     },
@@ -13442,8 +13703,7 @@
         "OpenMS/KERNEL/MSSpectrum.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/SpectrumMetaDataLookup.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/SpectrumMetaDataLookup.h"
       ],
       "workflow_validated": false
     },
@@ -13485,8 +13745,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -13675,8 +13934,7 @@
         "OpenMS/CHEMISTRY/ResidueDB.h",
         "OpenMS/DATASTRUCTURES/FASTAContainer.h",
         "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -13762,8 +14020,7 @@
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
         "OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
-        "OpenMS/PROCESSING/SMOOTHING/GaussFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/SMOOTHING/GaussFilter.h"
       ],
       "workflow_validated": false
     },
@@ -13803,7 +14060,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h",
         "OpenMS/SYSTEM/StopWatch.h"
       ],
       "workflow_validated": false
@@ -13900,8 +14156,7 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h"
       ],
       "workflow_validated": false
     },
@@ -13948,7 +14203,6 @@
         "OpenMS/FORMAT/FeatureXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/SYSTEM/File.h",
         "OpenMS/SYSTEM/StopWatch.h"
       ],
       "workflow_validated": false
@@ -13981,8 +14235,7 @@
         "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h"
       ],
       "workflow_validated": false
     },
@@ -14021,8 +14274,7 @@
         "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/MATH/MathFunctions.h"
       ],
       "workflow_validated": false
     },
@@ -14244,7 +14496,6 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/COMPARISON/ZhangSimilarityScore.h",
         "OpenMS/CONCEPT/EnumHelpers.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/ConsensusXMLFile.h",
@@ -14362,9 +14613,7 @@
         "OpenMS/CONCEPT/FuzzyStringComparator.h",
         "OpenMS/config.h"
       ],
-      "open_sdk_headers": [
-        "OpenMS/SYSTEM/File.h"
-      ],
+      "open_sdk_headers": [],
       "workflow_validated": false
     },
     {
@@ -14536,8 +14785,7 @@
         "OpenMS/FORMAT/XTandemXMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ID/IdentificationDataConverter.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -14575,8 +14823,7 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
@@ -14634,8 +14881,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/OMSFile.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -14698,8 +14944,7 @@
         "OpenMS/ANALYSIS/ID/IDRipper.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -14963,7 +15208,6 @@
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h",
         "OpenMS/SYSTEM/JavaInfo.h"
       ],
       "workflow_validated": false
@@ -15038,8 +15282,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
       ],
       "workflow_validated": false
     },
@@ -15073,7 +15316,6 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/PepXMLFile.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h",
         "OpenMS/SYSTEM/JavaInfo.h"
       ],
       "workflow_validated": false
@@ -15113,7 +15355,6 @@
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/METADATA/SpectrumMetaDataLookup.h",
-        "OpenMS/SYSTEM/File.h",
         "OpenMS/SYSTEM/JavaInfo.h"
       ],
       "workflow_validated": false
@@ -15140,8 +15381,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/MzTabFile.h"
       ],
       "workflow_validated": false
     },
@@ -15168,8 +15408,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -15326,8 +15565,7 @@
         "OpenMS/FORMAT/MascotGenericFile.h",
         "OpenMS/FORMAT/MascotXMLFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -15346,8 +15584,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/AASequence.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/CONCEPT/LogStream.h"
       ],
       "workflow_validated": false
     },
@@ -15374,8 +15611,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/MATH/MathFunctions.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/MATH/MathFunctions.h"
       ],
       "workflow_validated": false
     },
@@ -15419,7 +15655,6 @@
         "OpenMS/CHEMISTRY/ElementDB.h",
         "OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
         "OpenMS/CHEMISTRY/ModificationsDB.h",
-        "OpenMS/COMPARISON/SpectrumAlignment.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FEATUREFINDER/GaussModel.h",
         "OpenMS/FORMAT/FileHandler.h",
@@ -15427,9 +15662,7 @@
         "OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
         "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
-        "OpenMS/PROCESSING/SCALING/Normalizer.h",
-        "OpenMS/SYSTEM/ExternalProcess.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/SCALING/Normalizer.h"
       ],
       "workflow_validated": false
     },
@@ -15479,8 +15712,7 @@
         "OpenMS/FORMAT/MascotGenericFile.h",
         "OpenMS/FORMAT/MzTab.h",
         "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": false
     },
@@ -15529,8 +15761,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": true,
       "workflow_evidence": "tests/data/topp_mzml_splitter_provenance.json"
@@ -15660,7 +15891,6 @@
         "OpenMS/METADATA/PeptideIdentification.h",
         "OpenMS/METADATA/ProteinIdentification.h",
         "OpenMS/METADATA/SpectrumLookup.h",
-        "OpenMS/SYSTEM/File.h",
         "OpenMS/SYSTEM/JavaInfo.h"
       ],
       "workflow_validated": false
@@ -15718,7 +15948,6 @@
         "OpenMS/CHEMISTRY/RNaseDB.h",
         "OpenMS/CHEMISTRY/RNaseDigestion.h",
         "OpenMS/CHEMISTRY/RibonucleotideDB.h",
-        "OpenMS/COMPARISON/SpectrumAlignment.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTabFile.h",
@@ -15733,8 +15962,7 @@
         "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
         "OpenMS/PROCESSING/FILTERING/WindowMower.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/PROCESSING/SCALING/Normalizer.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/SCALING/Normalizer.h"
       ],
       "workflow_validated": false
     },
@@ -15753,8 +15981,7 @@
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/DigestionEnzymeProtein.h",
         "OpenMS/CHEMISTRY/ModificationsDB.h",
-        "OpenMS/CHEMISTRY/ProteaseDB.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/CHEMISTRY/ProteaseDB.h"
       ],
       "workflow_validated": false
     },
@@ -15778,8 +16005,7 @@
         "OpenMS/CONCEPT/Colorizer.h",
         "OpenMS/CONCEPT/VersionInfo.h",
         "OpenMS/FORMAT/IndentedStream.h",
-        "OpenMS/SYSTEM/BuildInfo.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/SYSTEM/BuildInfo.h"
       ],
       "workflow_validated": false
     },
@@ -15876,7 +16102,6 @@
         "OpenMS/CHEMISTRY/ResidueDB.h",
         "OpenMS/CHEMISTRY/ResidueModification.h",
         "OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
-        "OpenMS/COMPARISON/SpectrumAlignment.h",
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/CONCEPT/VersionInfo.h",
         "OpenMS/DATASTRUCTURES/ListUtilsIO.h",
@@ -15899,8 +16124,7 @@
         "OpenMS/PROCESSING/FILTERING/WindowMower.h",
         "OpenMS/PROCESSING/ID/IDFilter.h",
         "OpenMS/PROCESSING/SCALING/Normalizer.h",
-        "OpenMS/PROCESSING/SCALING/SqrtScaler.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/SCALING/SqrtScaler.h"
       ],
       "workflow_validated": false
     },
@@ -16070,8 +16294,7 @@
         "OpenMS/CONCEPT/Exception.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h"
       ],
       "workflow_validated": false
     },
@@ -16149,8 +16372,7 @@
         "OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzMLFile.h",
-        "OpenMS/FORMAT/SwathFile.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/SwathFile.h"
       ],
       "workflow_validated": false
     },
@@ -16306,8 +16528,7 @@
         "OpenMS/FORMAT/TransformationXMLFile.h",
         "OpenMS/FORMAT/ZipArchiveFile.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h"
       ],
       "workflow_validated": false
     },
@@ -16452,8 +16673,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/METADATA/PeptideIdentification.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -16486,8 +16706,7 @@
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/OSWFile.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
@@ -16546,8 +16765,7 @@
         "OpenMS/FORMAT/ProteinIdentificationArrowIO.h",
         "OpenMS/FORMAT/QPXFile.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
@@ -16620,8 +16838,7 @@
         "OpenMS/FORMAT/ProteinGroupArrowExport.h",
         "OpenMS/FORMAT/QPXFile.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
@@ -16721,8 +16938,7 @@
         "OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h",
         "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
         "OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
@@ -16766,8 +16982,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/Base64.h",
-        "OpenMS/FORMAT/QcMLFile.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
@@ -16786,8 +17001,7 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/QcMLFile.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
@@ -16805,8 +17019,7 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/QcMLFile.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
@@ -16826,8 +17039,7 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/QcMLFile.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
@@ -16865,8 +17077,7 @@
         "OpenMS/DATASTRUCTURES/String.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/QcMLFile.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/QcMLFile.h"
       ],
       "workflow_validated": false
     },
@@ -16991,8 +17202,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CHEMISTRY/NASequence.h",
-        "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/CONCEPT/LogStream.h"
       ],
       "workflow_validated": false
     },
@@ -17074,8 +17284,7 @@
         "OpenMS/FORMAT/IdXMLFile.h",
         "OpenMS/FORMAT/MzMLFile.h",
         "OpenMS/FORMAT/PepXMLFile.h",
-        "OpenMS/PROCESSING/ID/IDFilter.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/PROCESSING/ID/IDFilter.h"
       ],
       "workflow_validated": false
     },
@@ -17102,8 +17311,7 @@
         "OpenMS/FEATUREFINDER/SeedListGenerator.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -17124,8 +17332,7 @@
         "OpenMS/config.h"
       ],
       "open_sdk_headers": [
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
@@ -17167,8 +17374,7 @@
       "open_sdk_headers": [
         "OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/ProteinIdentification.h"
       ],
       "workflow_validated": false
     },
@@ -17291,8 +17497,7 @@
       ],
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
-        "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/FileHandler.h"
       ],
       "workflow_validated": false
     },
@@ -17406,8 +17611,7 @@
         "OpenMS/MATH/MathFunctions.h",
         "OpenMS/METADATA/MetaInfoInterfaceUtils.h",
         "OpenMS/METADATA/ProteinIdentification.h",
-        "OpenMS/METADATA/USI.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/METADATA/USI.h"
       ],
       "workflow_validated": false
     },
@@ -17433,8 +17637,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/FORMAT/MzTab.h",
-        "OpenMS/FORMAT/MzTabFile.h",
-        "OpenMS/SYSTEM/File.h"
+        "OpenMS/FORMAT/MzTabFile.h"
       ],
       "workflow_validated": false
     },

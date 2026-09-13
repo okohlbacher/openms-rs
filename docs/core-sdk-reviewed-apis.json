@@ -246,8 +246,19 @@
    "documentation": "docs/BINNED_SUM_AGREEING_INTENSITIES_SUPPORT.md",
    "scope": "Every public and protected member reviewed. The agreement rule is ported literally: per bin (a + b) * 0.5 - |a - b|, truncated at zero, summed, over the mean of the two totals, capped at 1.0. The walk spans the union of the stored bins because sparse addition does, the arithmetic stays f32 (Eigen promotes the scalar 0.5 down to float), and cwiseMax(0) semantics are written out rather than using f32::max. Deliberately not ported: the empty updateMembers_ and the dead precursor_mass_tolerance_. Native: a zero mean total yields 0.0 where the source returns NaN or 1.0; incompatible binning is Error::InvalidValue; f32 overflow is checked; MAX_COMPARED_BINS bounds the comparison. Negative bins are accepted as upstream, which makes an all-negative spectrum score 0 against itself - documented, because the class comment's 'perfect agreement results in 1.0' holds only for nonnegative bins."
   },
+  "src/openms/include/OpenMS/COMPARISON/PeakAlignment.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_scorers.rs"
+   ],
+   "documentation": "docs/PEAK_ALIGNMENT_SUPPORT.md",
+   "scope": "Every public member ported: construction with the four registered parameters (including the never-read `normalized`), copy/assignment, both operator() overloads and getAlignmentTraceback. The private peakPairScore_ is ported with its mis-parenthesised exponent intact. One matrix fill serves both entry points, each passing in its own sigma so the source's guarded/unguarded difference survives. All seven class-test sections ported."
+  },
   "src/openms/include/OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h": {
-   "status": "partial",
+   "status": "complete",
    "rust": [
     "src/comparison.rs"
    ],
@@ -255,7 +266,85 @@
     "tests/comparison_functors.rs"
    ],
    "documentation": "docs/PEAK_SPECTRUM_COMPARE_FUNCTOR_SUPPORT.md",
-   "scope": "All six public members reviewed. The abstract DefaultParamHandler base becomes the object-safe trait PeakSpectrumCompareFunctor: the two pure virtual operator() overloads are score and self_score (the latter provided, defaulting to score(a, a), which is what all six source derivatives implement), and the inherited parameter surface is handler()/handler_mut()/name(). Default constructor, copy constructor, destructor and operator= are the implementor's own construction, Clone, drop glue and assignment; the C++ bodies are defaulted or forward to DefaultParamHandler. score returns Result<f64> where the source returns double. No shipped type implements the trait yet: the four source descendants already in comparison (SpectrumAlignmentScore, ZhangSimilarityScore, SteinScottImproveScore, SpectrumPrecursorComparator) were ported in an earlier wave as typed Copy structs without a DefaultParamHandler, so wiring them on belongs to the wave that ports their own headers; a test functor in tests/comparison_functors.rs implements and exercises the trait, including through &dyn. Held at partial rather than complete: the crate ships no type implementing the trait, its only implementor being a test type, and the seven source derivatives belong to the next wave."
+   "scope": "All six public members reviewed. The abstract DefaultParamHandler base becomes the object-safe trait PeakSpectrumCompareFunctor: the two pure virtual operator() overloads are score and self_score (the latter provided, defaulting to score(a, a), which is what all six source derivatives implement), and the inherited parameter surface is handler()/handler_mut()/name(). Default constructor, copy constructor, destructor and operator= are the implementor's own construction, Clone, drop glue and assignment; the C++ bodies are defaulted or forward to DefaultParamHandler. score returns Result<f64> where the source returns double. No shipped type implements the trait yet: the four source descendants already in comparison (SpectrumAlignmentScore, ZhangSimilarityScore, SteinScottImproveScore, SpectrumPrecursorComparator) were ported in an earlier wave as typed Copy structs without a DefaultParamHandler, so wiring them on belongs to the wave that ports their own headers; a test functor in tests/comparison_functors.rs implements and exercises the trait, including through &dyn. Held at partial rather than complete: the crate ships no type implementing the trait, its only implementor being a test type, and the seven source derivatives belong to the next wave. Upgraded from partial: the reason it was held - that the crate shipped no implementor - expired when the seven derivatives landed and implemented the trait."
+  },
+  "src/openms/include/OpenMS/COMPARISON/SpectraSTSimilarityScore.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_scorers.rs"
+   ],
+   "documentation": "docs/SPECTRAST_SIMILARITY_SCORE_SUPPORT.md",
+   "scope": "Every public member ported: construction (reproducing the missing defaultsToParam_), copy/assignment, all three operator() overloads as score/dot/self_score, preprocess, transform, dot_bias, delta_D and compute_F. The empty protected section declares no members. All twelve class-test sections ported, including the one upstream marks NOT_TESTABLE."
+  },
+  "src/openms/include/OpenMS/COMPARISON/SpectrumAlignment.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison.rs",
+    "tests/comparison_scorers.rs"
+   ],
+   "documentation": "docs/SPECTRUM_ALIGNMENT_SUPPORT.md",
+   "scope": "SpectrumAligner: the DefaultParamHandler class with tolerance and is_relative_tolerance, driving the banded DP and the MatchedIterator<PpmTrait> walk that already existed in this module as comparison::SpectrumAlignment. Every public member has a counterpart in the support doc's API table: default/copy/assignment/destructor, getSpectrumAlignment and the inherited parameter surface. The only unported item is the ALIGNMENT_DEBUG macro, which the header defines and immediately undefines, so all five #ifdef blocks are dead in every build. Native additions: max_cells and tolerance()."
+  },
+  "src/openms/include/OpenMS/COMPARISON/SpectrumAlignmentScore.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_scorers.rs"
+   ],
+   "documentation": "docs/SPECTRUM_ALIGNMENT_SCORE_SUPPORT.md",
+   "scope": "SpectrumAlignmentScorer, the first implementor of the PeakSpectrumCompareFunctor trait. Both operator() overloads, all four parameters, construction/copy/assignment/destruction and the inherited parameter surface are ported. Reproduces the float intensity product, the sqrt(sum1*sum2) denominator grouping, the erfc grouping and the double ppm window that disagrees with the alignment's float one."
+  },
+  "src/openms/include/OpenMS/COMPARISON/SpectrumCheapDPCorr.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_scorers.rs"
+   ],
+   "documentation": "docs/SPECTRUM_CHEAP_DP_CORR_SUPPORT.md",
+   "scope": "Every public member ported: construction with the three registered parameters, copy/assignment, both operator() overloads, lastconsensus(), getPeakMap() and setFactor(). Both private helpers (dynprog_, comparepeaks_) ported; the declared-but-never-defined static `info_` is recorded as not ported. The source's three mutable members are split into a read-only `score` and a recording `compare`, which cannot disagree because both call one routine. All nine class-test sections ported."
+  },
+  "src/openms/include/OpenMS/COMPARISON/SpectrumPrecursorComparator.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_scorers.rs"
+   ],
+   "documentation": "docs/SPECTRUM_PRECURSOR_COMPARATOR_SUPPORT.md",
+   "scope": "Every public member ported: default/copy construction, destruction, assignment, both operator() overloads and the registered `window` parameter. Reshaped from wave A's Copy struct with a public `window` field into the header's DefaultParamHandler-carrying functor implementing PeakSpectrumCompareFunctor; `Default` and `score` are preserved for existing callers, the field becomes the read-only `window()` accessor over the parameter. All six class-test sections ported."
+  },
+  "src/openms/include/OpenMS/COMPARISON/SteinScottImproveScore.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_scorers.rs"
+   ],
+   "documentation": "docs/STEIN_SCOTT_IMPROVE_SCORE_SUPPORT.md",
+   "scope": "SteinScottImproveScorer implementing PeakSpectrumCompareFunctor. Both operator() overloads, both parameters (neither restricted, as upstream), construction/copy/assignment/destruction. Reproduces the inclusive 2*epsilon window, the grouping of z = (epsilon/10000) * (sum3*sum4), the float intensity product and the float narrowing of the threshold before comparison."
+  },
+  "src/openms/include/OpenMS/COMPARISON/ZhangSimilarityScore.h": {
+   "status": "complete",
+   "rust": [
+    "src/comparison.rs"
+   ],
+   "tests": [
+    "tests/comparison_scorers.rs"
+   ],
+   "documentation": "docs/ZHANG_SIMILARITY_SCORE_SUPPORT.md",
+   "scope": "ZhangSimilarityScorer implementing PeakSpectrumCompareFunctor. Both operator() overloads, all four parameters, the protected getFactor_ (promoted to the public associated function ZhangSimilarityScorer::factor, since it is a pure function of its arguments and the port has no subclasses), and construction/copy/assignment/destruction. The source's Exception::NotImplemented on is_relative_tolerance is Error::Unsupported, and the sliding j_left cursor with its strict < window is transcribed rather than replaced."
   },
   "src/openms/include/OpenMS/CONCEPT/Constants.h": {
    "status": "native_equivalent",
@@ -1819,6 +1908,44 @@
    "documentation": "docs/HISTOGRAM_SUPPORT.md",
    "scope": "Complete public and protected surface: both constructors and the data-iterator constructor, the bounds/size/extrema accessors, indexed and value-keyed bin lookup, centerOfBin/leftBorderOfBin/rightBorderOfBin with the last bin's nextafter border, inc/incUntil/incFrom and getCumulativeHistogram as a method, reset, equality, iteration, applyLogTransformation and valueToBin. Both template parameters are fixed to f64, which keeps the class test's Histogram<float,float> expressible and removes the default UInt instantiation's truncation in applyLogTransformation. Native: inverted ranges, non-finite bounds/values/increments, NaN lookups and bins at or below -1 are refused; MAX_BINS bounds the bin count; reset and applyLogTransformation commit atomically; minValue/maxValue return Option instead of dereferencing an empty vector's end iterator."
   },
+  "src/openms/include/OpenMS/MATH/STATISTICS/KernelDensityEstimation.h": {
+   "status": "complete",
+   "rust": [
+    "src/math/fft.rs",
+    "src/math/kernel_density.rs",
+    "src/math/mod.rs"
+   ],
+   "tests": [
+    "tests/fft.rs",
+    "tests/kernel_density.rs"
+   ],
+   "documentation": "docs/KERNEL_DENSITY_SUPPORT.md",
+   "scope": "Complete public surface: bwNrd0 with PyProphet's fallback chain and the type-7 quartiles, both linBin overloads (the histogram the code implements, not the linear binning the header describes), forRt/revRt over a native radix-2 FFT that replaces the vendored evergreen transform, silvermanKernelFFT with the numeric_limits<double>::min() substitution for a non-positive binning correction, gridKdeFFT with M = bit_ceil(max(gridsize, n, 512)), the M-1-interval linspace, the delta*n normalisation and the final unit-integral rescale, and kdeFFTEval with negative clamping. The statsmodels and scipy reference fixtures the class test ships are reproduced to its own tolerances. CubicSpline2d is reimplemented privately because the module-cycle ratchet forbids a math -> processing edge; tests/kernel_density.rs asserts bit-identical agreement with the ported class. Native: MAX_ITEMS and MAX_GRID ceilings, a refusal for non-power-of-two transform lengths where evergreen silently transforms a different size, and for a zero-width grid, a zero range and a non-finite sample."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/MultipleTesting.h": {
+   "status": "partial",
+   "rust": [
+    "src/math/mod.rs",
+    "src/math/multiple_testing.rs"
+   ],
+   "tests": [
+    "tests/multiple_testing.rs"
+   ],
+   "documentation": "docs/MULTIPLE_TESTING_SUPPORT.md",
+   "scope": "Every public member ported: Pi0Result, Pi0Method and LfdrTransform with their four string conversions, qValue (max ranks, the right-to-left cumulative-minimum sweep, the pfdr denominator), pi0Est (the repeated-addition lambda grid, the single-lambda short circuit, all five smoother fallbacks, last-value-wins on duplicate lambdas, and the bootstrap branch with the source's nearest-rank percentile), lfdr (in-place probit clipping, the logistic null, the cumulative-maximum monotone step), pNorm, computeModelFDR and pEmp. The R qvalue fixture is reproduced to 1e-4 and the PyProphet lfdr fixture for all four settings to 1e-2. PARTIAL because pi0Est's Smoother branch takes the smoothing spline as a caller-supplied Pi0Smoother rather than constructing BSplineSmoothingSpline itself: that class lives in `processing` and tools/check_module_cycles.py forbids a new math edge, so a caller who passes None silently takes the source's !spl.ok() fallback instead of the spline answer. tests/multiple_testing.rs wires the ported spline in and reproduces 0.697161, 0.6685638 and 0.6658949 through the seam. Native: MAX_ITEMS, validated adj and eps, boost's normal quantile replaced by Acklam plus a Halley step."
+  },
+  "src/openms/include/OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h": {
+   "status": "partial",
+   "rust": [
+    "src/math/mod.rs",
+    "src/math/posterior_error_probability.rs"
+   ],
+   "tests": [
+    "tests/posterior_error_probability.rs"
+   ],
+   "documentation": "docs/POSTERIOR_ERROR_PROBABILITY_SUPPORT.md",
+   "scope": "Numerical surface complete: both EM fits with the source's literal initialisation (mean of the lower half plus the minimum, sd about that location, the 0.7 boundary, a prior of 0.7), its natural-log convergence threshold 10^-neg_log_delta, its iteration cap tested before the increment, and its abort-reports-success branch; fillDensities, fillLogDensities, fillLogDensitiesGumbel, computeLogLikelihood (base ten) and computeLLAndIncorrectPosteriorsFromLogDensities (natural), the two weighted-moment helpers, all four accessors, getGumbel_, computeProbability with its Gumbel-in-every-branch quirk, processOutliers_ in all four modes, and the three gnuplot formula builders with printf(\"%g\") number formatting. Both 2000-draw mixture fixtures recover their generating parameters at the class test's 0.5 tolerance, and the gnuplot substring assertions pin the small-sample fit to three significant digits. PARTIAL because seven public members are not ported: extractAndTransformScores, updateScores, transformScore_, getScore_ (need metadata/identification), initPlots, plotTargetDecoyEstimation (need format/TextFile) and tryGnuplot (needs a process launcher) — all forbidden by the module-cycle ratchet and all listed in the support document. Native: DefaultParamHandler replaced by PepParameters/IncorrectComponent/OutlierHandling; compute_probability refuses after fit_gumbel_gauss, which in the source reads an unfitted Gaussian parameter set."
+  },
   "src/openms/include/OpenMS/MATH/STATISTICS/RankData.h": {
    "status": "native_equivalent",
    "rust": [
@@ -2089,16 +2216,74 @@
    "documentation": "docs/BUILD_INFO_SUPPORT.md",
    "scope": "All eight class-test sections are mapped and every public member appears in the API table. Partial for three stated reasons: getOSVersionString_ reads /etc/os-release on Linux but reports 'unknown' on macOS and Windows, because sysctlbyname and RtlGetVersion need platform bindings; getBuildType is derived from debug_assertions rather than CMake's OPENMS_BUILD_TYPE string, which Cargo does not bake into a library; and setOpenMPNumThreads is not ported, being a no-op in the source's own non-OpenMP build. isOpenMPEnabled (false) and getOpenMPMaxNumThreads (1) are exactly the source's non-OpenMP answers. getActiveSIMDExtensions re-bases the SIMDe probes onto Rust target features with the source's order and labels."
   },
+  "src/openms/include/OpenMS/SYSTEM/CurlInit.h": {
+   "status": "native_equivalent",
+   "rust": [],
+   "tests": [
+    "tests/network_get_request.rs"
+   ],
+   "documentation": "docs/CURL_INIT_SUPPORT.md",
+   "scope": "No Rust type, deliberately. CurlInit is an RAII guard whose only job is to run curl_global_init once per process behind a function-local static and curl_global_cleanup at exit. ureq has no global state to initialise, so a counterpart would be an empty struct with an empty method that tells a caller a lie. Every public member is listed in the API table with 'not ported' and the reason. The property the guard exists to provide - a transport usable immediately, concurrently, with no setup call - is asserted in tests/network_get_request.rs::no_global_initialisation_is_needed_before_a_transport_is_used, which drives four threads through one shared UreqTransport. The SDK has no CurlInit_test.cpp, so no class-test section is unaccounted for. The single behaviour not reproduced is the curl_global_cleanup at static-destruction time, which has nothing to clean up here."
+  },
+  "src/openms/include/OpenMS/SYSTEM/ExternalProcess.h": {
+   "status": "complete",
+   "rust": [
+    "src/system/external_process.rs"
+   ],
+   "tests": [
+    "src/system/external_process.rs",
+    "tests/system_process.rs"
+   ],
+   "documentation": "docs/EXTERNAL_PROCESS_SUPPORT.md",
+   "scope": "Every public member has a documented Rust counterpart and all seven class-test sections are ported. Both enums map value for value; the two constructors, the destructor and setCallbacks map to new/with_callbacks/Drop/set_callbacks; both run overloads map to run/run_with_idle, because one RunReport carries the RETURNSTATE and the error_msg out-parameter that distinguish them. The eight run parameters become one Invocation, and the source's private ProcessWait.h polling deadline becomes Invocation::timeout. The four outcome strings, the two verbose banners, the 50 ms cadence, the 4096-byte buffer, the inherit-plus-overlay environment, the empty-working-dir-means-'.' rule and the collapse of IO_MODE into one can_read predicate are all reproduced exactly. Two deliberate corrections, documented at the item: a signalled child is classified as CRASH in every IO_MODE (the source only asks WIFSIGNALED in its reading branch, so a segfault under NO_IO is reported as NONZERO_EXIT carrying the signal number), and PATH resolution comes from std::process::Command rather than bp::search_path, which additionally succeeds for an absolute path when PATH is empty. Nothing in the header is unported; ExternalProcessMBox is a Qt wrapper outside this header and outside the scientific SDK."
+  },
   "src/openms/include/OpenMS/SYSTEM/File.h": {
-   "status": "partial",
+   "status": "complete",
    "rust": [
     "src/system/file.rs"
    ],
    "tests": [
+    "src/system/file.rs",
     "tests/system_file.rs"
    ],
    "documentation": "docs/SYSTEM_FILE_SUPPORT.md",
-   "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation."
+   "scope": "Native entry points cover all 39 source function names and 40 overloads, including owned temp lifetimes, resource/config discovery and filesystem operations. Native glob subset does not reproduce POSIX locale classes/collation or Windows PathMatchSpec semantics; no-clobber directory/symlink rename and cross-device directory moves remain checked unsupported. Permission probes use native filesystem behavior rather than exact platform ACL emulation. All 42 public members reviewed one by one against bc9cc12 and listed in the support document's API table: 39 function names in 40 overloads, both public enums, the two TempDir constructors, its destructor, its deleted copy/move and getPath, plus the five private helpers observable through them. src/system/file.rs is at 100% rustdoc (68/68, up from 14/68); all 35 class-test sections are mapped, four of them with a stated reason why the source literal cannot be reproduced (working-directory mutation, setenv, an environment-derived hostname, ENABLE_DOCS). Three source capabilities are replaced rather than reproduced and are documented at the item, in the support doc and in the manifest: the dladdr/GetModuleHandleExW library-directory probe and the two CMake-substituted data paths become explicit FileContext::data_candidates; the compiled-in findDoc directories become FileContext::documentation_directories; the exit-time TemporaryFiles_ name registry becomes owned TempFile/TempDir guards whose Drop is silent (as the source's destructor is) with close() to report. The glob is a portable character-based Unicode subset: POSIX locale classes/collation and Windows PathMatchSpecA pattern-list/case rules are not emulated, and '?' covers one character where fnmatch covers one byte. No-clobber directory/symlink renames and cross-device directory/symlink moves are checked errors, because portable safe std has no atomic no-clobber directory primitive and the port will not substitute a racy existence check."
+  },
+  "src/openms/include/OpenMS/SYSTEM/JavaInfo.h": {
+   "status": "partial",
+   "rust": [
+    "src/system/java_info.rs"
+   ],
+   "tests": [
+    "src/system/java_info.rs",
+    "tests/system_process.rs"
+   ],
+   "documentation": "docs/JAVA_INFO_SUPPORT.md",
+   "scope": "The header's single public member, canRun, is ported with its full diagnosis text transcribed (the Java-Check header line, the not-found/relative-PATH/absolute-path/timeout/non-zero-exit branches, and the macOS application-bundle paragraph under cfg!(target_os = \"macos\")), and the class test's only literal, canRun(\"\") == false, is asserted on every platform. Partial for two API differences, not gaps: the verbose_on_error parameter has no counterpart, because this crate has no global log stream and the text is always returned in JavaCheck::message for the caller to print; and can_run takes a &FileContext, resolving through FileContext::find_executable instead of reading the process PATH through bp::search_path. That second difference is what makes the module testable with no JVM installed, and it also fixes the source's failure to find an absolute Java when PATH is empty. JavaCheck adds exit_code, timed_out and output, which the source computes and discards."
+  },
+  "src/openms/include/OpenMS/SYSTEM/Network.h": {
+   "status": "complete",
+   "rust": [
+    "src/system/network.rs"
+   ],
+   "tests": [
+    "src/system/network.rs",
+    "tests/network.rs"
+   ],
+   "documentation": "docs/NETWORK_SUPPORT.md",
+   "scope": "The header's one public method and the .cpp's file-static saveFileName_ both ported, and the single class-test section mapped. Every statement of the header's unusually detailed Doxygen block is preserved or explicitly changed: the '?' then '#' truncation order, the basename with its 'download' fallback, the .0/.1/.2 never-overwrite rule, the '' -> './' mapping, the ten-minute timeout, an HTTP error status counting as a download failure, an empty body still producing a file, and the 'Download of ... failed!.' message text including its typo. Three documented differences: the written path is returned where the source logs it (system may not depend on the logging module), a partially written file is removed where the header says it is left behind, and the basename is split on '/' alone on every platform because '/' is a URL's separator - the source's std::filesystem::path::filename treats '\\' as one on Windows only. Bounded: URL <=64 KiB, collision suffixes <=10000 where the source's loop does not terminate, and a derived name of '.', '..' or one containing a separator or NUL refused where the source passes it to std::ofstream. The upstream section downloads a file:// URL, which ureq cannot speak; the same fixture's bytes are served through a recorded transport and the assertion strengthened from 'the file exists' to byte equality. Behind the non-default network feature."
+  },
+  "src/openms/include/OpenMS/SYSTEM/NetworkGetRequest.h": {
+   "status": "complete",
+   "rust": [
+    "src/system/network_get_request.rs"
+   ],
+   "tests": [
+    "src/system/network_get_request.rs",
+    "tests/network_get_request.rs"
+   ],
+   "documentation": "docs/NETWORK_GET_REQUEST_SUPPORT.md",
+   "scope": "Every public member has a documented Rust counterpart and all nine class-test sections are mapped with a cited value; the four sub-cases of the run() section have a test each, and the five NOT_TESTABLE sections are given direct tests the trait makes possible. The documented contract is preserved exactly: run cannot throw or return an error, failures are observable only through has_error/error_string, the error boundary is status >= 400 (so an unfollowed 3xx is a success), a body arriving with an error status is kept because curl_easy_perform returned CURLE_OK, the 'HTTP error N' literal is byte-exact, a timeout of 0 or less is unset, and each run replaces rather than accumulates state. The transport is a trait instead of a direct libcurl call, so that no test reaches the network; UreqTransport reproduces the libcurl option set option by option, including http_status_as_error(false) to keep error bodies. Bounded where the source is not: redirects 10 (<=64), body 64 MiB (<=4 GiB), headers <=1024, and a URL preflight that refuses a non-http(s) scheme or empty host offline. getResponse becomes a checked response_text plus an exact response_binary, because a Rust str is UTF-8 where std::string is a byte container. libcurl's curl_easy_strerror texts are not reproduced - TransportError names the CURLE_* condition instead - and the source's 'Failed to initialize libcurl' branch has no counterpart because building a ureq request cannot fail that way. Behind the non-default network feature."
   },
   "src/openms/include/OpenMS/SYSTEM/PathUtils.h": {
    "status": "complete",
@@ -2111,6 +2296,30 @@
    ],
    "documentation": "docs/PATH_UTILS_SUPPORT.md",
    "scope": "Both public members ported with identical behaviour on every platform. basename reproduces all three outcomes of substr(find_last_of(\"\\\\/\") + 1), including the trailing-separator and bare-separator cases, and delegates to system::file::basename rather than repeating the source's second copy of File::basename. to_path is PathBuf::from behind a length and NUL check; the source's Windows u8string re-encoding is a no-op in Rust and its ANSI std::system_error fallback is unreachable because a &str is UTF-8 by construction. The one class-test section is mapped with all six cross-platform round-trip literals; the four _WIN32 cases are unrepresentable here and are recorded as such."
+  },
+  "src/openms/include/OpenMS/SYSTEM/PythonInfo.h": {
+   "status": "partial",
+   "rust": [
+    "src/system/python_info.rs"
+   ],
+   "tests": [
+    "src/system/python_info.rs",
+    "tests/system_process.rs"
+   ],
+   "documentation": "docs/PYTHON_INFO_SUPPORT.md",
+   "scope": "All three public members are ported and all three class-test sections with them. canRun's in/out python_executable and out error_msg become PythonCheck fields rather than mutated arguments, keeping the source's 'resolved to' note that is appended even on success; getVersion's concatenate-without-separator-then-trim rule is reproduced exactly, including that a multi-line banner comes back with its lines run together, and is exposed as the pure version_from_output so it can be tested on recorded strings. Partial for three reasons. First, isPackageInstalled diverges deliberately: the source concatenates the caller's package_name into the Python program passed to -c, so the argument is executed as source code; this port validates it as a dotted ASCII identifier path and answers false without spawning when it is not one, which reproduces the class test's own asserted false for 'veryWeirdPackage___@@__@' by a safer route but refuses the non-ASCII identifiers Python 3 permits. Second, the resolved absolute path is executed directly instead of being handed back to bp::search_path, which fails whenever PATH is empty. Third, all three functions take a &FileContext instead of reading the process PATH."
+  },
+  "src/openms/include/OpenMS/SYSTEM/RWrapper.h": {
+   "status": "partial",
+   "rust": [
+    "src/system/r_wrapper.rs"
+   ],
+   "tests": [
+    "src/system/r_wrapper.rs",
+    "tests/system_process.rs"
+   ],
+   "documentation": "docs/R_WRAPPER_SUPPORT.md",
+   "scope": "All three public members are ported and all three class-test sections with them, including the graceful-degradation contract the class test exists to pin: findScript is the only entry point that fails loudly (Exception::FileNotFound becomes Error::Io with ErrorKind::NotFound) and runScript swallows it into a false. Both argument vectors are exact and public constants: --vanilla -e sessionInfo() and --vanilla --quiet <script> <args>. findScript keeps the source's operation order, resolving getOpenMSDataPath before File::find, so an existing script still fails when the shared data cannot be located. The per-line drain with an appended newline is reproduced as reassemble_lines, and findR merges stdout then stderr as the source imitates Qt MergedChannels. Partial for three reasons: the verbose parameter has no counterpart in any of the three functions, because every diagnosis is returned rather than logged; the default arguments executable = \"Rscript\" become the DEFAULT_EXECUTABLE constant that callers pass explicitly; and resolution goes through a &FileContext. One message text diverges deliberately — the source hardcodes the literal 'Rscript' in findR's failure message even for a different interpreter, and this interpolates the requested name."
   },
   "src/openms/include/OpenMS/SYSTEM/StopWatch.h": {
    "status": "partial",
@@ -2135,6 +2344,18 @@
    ],
    "documentation": "docs/SYS_INFO_SUPPORT.md",
    "scope": "Every public member has a documented Rust counterpart and both class-test sections are mapped. bytesToHumanReadable and getProcessId are exact on every platform; the three memory readings answer from /proc on Linux and return None — never a fabricated zero — elsewhere, because the source's Windows PROCESS_MEMORY_COUNTERS_EX and macOS Mach task_info/host_statistics64 branches need a platform binding this crate does not take. That platform gap is why this is partial. MemUsage models 'not recorded' as Option instead of the source's 0 sentinel and emits the sign that the source's diff_str_ discards; both divergences are documented at the item."
+  },
+  "src/openms/include/OpenMS/SYSTEM/UpdateCheck.h": {
+   "status": "complete",
+   "rust": [
+    "src/system/update_check.rs"
+   ],
+   "tests": [
+    "src/system/update_check.rs",
+    "tests/update_check.rs"
+   ],
+   "documentation": "docs/UPDATE_CHECK_SUPPORT.md",
+   "scope": "The header's one public method ported with its whole .cpp policy, and the single class-test section mapped. Preserved exactly: the stamp-file rate limiting with its strict 24-hour comparison, the modification-time bump happening before the request (so a failed query still consumes the day's budget) while preserving the access time, the platform tag order Win/Mac/Linux/Unix/unknown, the '32'/'64' architecture rule, the OpenMS_Default_<platform>_<arch>_<tool>_<version> identifier, the plain-HTTP endpoint, the five-second timeout, all four notice texts including their trailing spaces, and the skip when the server answer equals VersionDetails::EMPTY. VersionDetails::create, operator<, ==, != and > are transcribed from VersionInfo.cpp along with StringUtils::toInt32's exact conversion rules; PartialOrd is deliberately not implemented because the source's operator< disagrees with its own operator== for two distinct pre-release identifiers. Differences: four globals (config dir, libcurl, VersionInfo, the clock) become parameters, which is what makes the class test's uncreatable-config-directory scenario expressible without setenv; run returns an UpdateCheckReport with seven named outcomes plus the warning and notice lines instead of writing to OPENMS_LOG_*, because system may not reach the logging module; parse returns Option rather than the EMPTY sentinel while the decision reproduces the source's != EMPTY branch; and a tool name that is not a plain file-name component is refused where the source concatenates it into a path. Two C++ defects are reproduced verbatim and reported: the announcement names the local version rather than the server's, and `revision` is computed and never used. CONCEPT/VersionInfo.h itself is not ported - only the VersionDetails surface UpdateCheck depends on - and that is stated in the API table. Behind the non-default network feature."
   }
  },
  "upstream_refresh_review": "docs/CORE_SDK_82CE5B3_REVIEW.md",

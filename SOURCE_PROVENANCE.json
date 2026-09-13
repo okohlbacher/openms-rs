@@ -605,7 +605,11 @@
   "tests/data/path_utils_provenance.json",
   "tests/data/spline_math_provenance.json",
   "tests/data/stop_watch_provenance.json",
-  "tests/data/sys_info_provenance.json"
+  "tests/data/sys_info_provenance.json",
+  "tests/data/comparison_scorers_provenance.json",
+  "tests/data/math_kde_provenance.json",
+  "tests/data/network_provenance.json",
+  "tests/data/system_process_provenance.json"
  ],
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
@@ -712,5 +716,11 @@
   "tests/data/spline_math_provenance.json",
   "tests/data/stop_watch_provenance.json",
   "tests/data/sys_info_provenance.json"
+ ],
+ "math_system_comparison_wave_b_manifests": [
+  "tests/data/comparison_scorers_provenance.json",
+  "tests/data/math_kde_provenance.json",
+  "tests/data/network_provenance.json",
+  "tests/data/system_process_provenance.json"
  ]
 }
