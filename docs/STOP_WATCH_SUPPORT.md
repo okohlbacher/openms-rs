@@ -169,12 +169,40 @@ module, so there is no parallelism gap to record beyond the crate-wide one.
 
 All 21 class-test sections are mapped in `tests/stop_watch.rs`. The seven
 `toString` literals are transcribed verbatim (tier 3) and re-derived from the
-source expression at every unit boundary (tier 4). Thirteen sections are
+source expression at every unit boundary (tier 4). Fourteen sections are
 `NOT_TESTABLE` or deferred upstream; each is still covered by the behaviour the
 source test says is "tested below". The two ordering sections the source calls
 untestable — because it does not control host CPU scheduling — are covered by
 the one property that does not depend on it: the relation reads CPU time alone,
 so two cleared watches compare `Equal` however they got there.
+
+**The CPU clock is pinned by test, not taken on trust.** The source's `wait()`
+is a **busy loop** (`StopWatch_test.cpp:21-29`), not a sleep, and its `bool
+stop()` section then bounds four scale-sensitive quantities against the length
+of that wait with `t_wait = 0.2 s`: `getCPUTime() > t_wait/2` (line 144),
+`getUserTime() > t_wait/2` (line 152), `getUserTime() < t_wait*2` (line 154) and
+`getSystemTime() < t_wait*2` (line 156). All four are transcribed with the
+source's own half-to-double factors — deliberately generous, so a loaded CI host
+does not turn them into flakes — and they are the only coverage that the tick
+scale of `MICROS_PER_TICK` is right: a reading divided by the wrong `USER_HZ`
+misses them by that whole factor. They hold only because the port's `wait`
+helper busy-loops as the source's does; a sleeping thread accrues no CPU time,
+so substituting a sleep would make every one of them vacuous. Because CPU time
+is a property of the whole process and `cargo test` runs a binary's tests as
+threads of one process, every test in the file that burns CPU on purpose takes a
+process-wide lock, exactly as `tests/sys_info.rs` does for its working-set
+readings.
+
+The remaining timing assertions of that section are transcribed too:
+`getClockTime()` above `0.1 s` and above `t_wait*0.95` and below `t_wait*3`, the
+component-wise `<=` against the watch that never stopped (lines 164-165), and
+`s_resume.getCPUTime() > (t_wait + t_wait_more)/2` across a stop/resume boundary
+(line 175). One is not: `getClockTime() < 0.3` (line 126). Line 146 bounds the
+same value at `t_wait*3 = 0.6` with the comment "be a bit more loose if e.g. a VM
+is busy", so upstream loosened the wall-clock ceiling and left the tighter one
+standing, which makes the loosening ineffective. The effective bound is the
+looser of the two, and that is the one asserted here; the inconsistency is
+recorded as a C++ defect candidate in the provenance record.
 
 The frozen-while-stopped invariant is exact rather than statistical: a stopped
 watch computes from stored integers, so repeated reads are bit-identical.

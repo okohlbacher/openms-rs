@@ -78,12 +78,20 @@ exact counterpart.
 
 | Platform | Source | Port |
 |---|---|---|
-| Linux / other Unix | `VERSION_ID` from `/etc/os-release` | same |
+| Linux | `VERSION_ID` from `/etc/os-release` | same |
+| other Unix (`__unix__`) | `VERSION_ID` from `/etc/os-release` | `"unknown"` |
 | macOS | `sysctlbyname("kern.osproductversion")` | `"unknown"` |
 | Windows | `RtlGetVersion` from `ntdll.dll` | `"unknown"` |
 
-Both missing probes need a platform binding this crate does not take. The value
-is a display string and nothing in the port branches on it, so an honest
+`/etc/os-release` is read under `cfg(target_os = "linux")`, not under
+`cfg(unix)`, so the second row is narrower than the source's `__unix__` branch:
+a FreeBSD build that publishes the file still reports `"unknown"` here. The OS
+*name* is unaffected — the port maps every non-macOS Unix to `Linux`, exactly as
+the source does — so only the version string differs, and only on a platform
+this crate does not currently target.
+
+The two missing platform probes need a binding this crate does not take. The
+value is a display string and nothing in the port branches on it, so an honest
 `"unknown"` is preferable to a guess — and it is exactly what the source itself
 returns when its own probe fails. The class test only requires a non-empty
 string, which the fallback satisfies. Adding them is a deferral, not a gap in
@@ -98,8 +106,9 @@ emit — and both are fixed for a given binary, which is the only property the
 class test asserts. Neither is a claim that the code *uses* those instructions;
 this port has no hand-written SIMD at all.
 
-**OpenMP is absent, and says so.** The port is deliberately serial: the source's
-36 files with `#pragma omp` have no threaded counterpart here. So
+**OpenMP is absent, and says so.** No OpenMP runtime is linked here: the 36
+files under `src/openms/source` that carry `#pragma omp` have no counterpart,
+and nothing in the crate is threaded by OpenMP. So
 `openmp_enabled()` is `false` and `openmp_max_num_threads()` is `1` — which are
 not approximations but *exactly* what the source returns when `_OPENMP` is not
 defined, so this is the one part of the header the port reproduces perfectly by

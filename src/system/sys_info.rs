@@ -99,11 +99,16 @@ pub fn process_peak_memory_consumption() -> Option<u64> {
 ///
 /// `None` means the platform does not report it here. Linux prefers
 /// `MemAvailable` from `/proc/meminfo`, so reclaimable page cache counts as
-/// available, and falls back to `MemFree` when the running kernel is too old to
-/// publish `MemAvailable`. The source's fallback is
-/// `sysconf(_SC_AVPHYS_PAGES) * sysconf(_SC_PAGESIZE) / 1024`; glibc answers
-/// that query from the same two `/proc/meminfo` keys in the same order, so the
-/// fallback agrees without the libc call.
+/// available. That is not a substitution: it is the source's own *primary*
+/// path, the same file and the same key, which returns on the first match
+/// (`SysInfo.cpp:107-133`). Only the fallback differs. Where the running kernel
+/// is too old to publish `MemAvailable`, this port falls back to `MemFree` in
+/// the same file, while the source falls back to
+/// `sysconf(_SC_AVPHYS_PAGES) * sysconf(_SC_PAGESIZE) / 1024`. Both fallbacks
+/// answer the narrower question — physically free pages, without the
+/// reclaimable cache `MemAvailable` adds — but no claim is made here that they
+/// agree to the byte, because `_SC_AVPHYS_PAGES` is answered by whichever libc
+/// the source was linked against.
 pub fn free_system_memory() -> Option<u64> {
     meminfo_field("MemAvailable:").or_else(|| meminfo_field("MemFree:"))
 }

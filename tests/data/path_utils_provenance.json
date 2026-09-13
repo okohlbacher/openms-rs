@@ -54,7 +54,7 @@
   "path": "src/tests/class_tests/openms/source/PathUtils_test.cpp",
   "lines": "28-131",
   "sections": 1,
-  "literal_extraction": "All six cross-platform round-trip literals are transcribed into tests/path_utils.rs. The four _WIN32-only cases are not ported: three of them exercise the ANSI fallback for the byte 0xE4, which a Rust &str cannot represent, and the fourth is a UNC path that the port accepts with no special handling."
+  "literal_extraction": "All six cross-platform round-trip literals are transcribed into tests/path_utils.rs. The three _WIN32-only cases (PathUtils_test.cpp:74-127) are not ported: two of them exercise the ANSI fallback for the byte 0xE4, which a Rust &str cannot represent - once on a bare filename and once inside a UNC path - and the third is a plain ASCII UNC path that the port accepts with no special handling."
  },
  "native_boundaries": [
   "basename delegates to system::file::basename rather than duplicating the source's second copy of File::basename",

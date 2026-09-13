@@ -235,9 +235,11 @@ pub fn os_version_string() -> String {
 
 /// Whether the library was built with OpenMP support.
 ///
-/// Always `false`. The port is deliberately serial — the source's 36 files with
-/// `#pragma omp` have no threaded counterpart here — so this reports what the
-/// source's own non-OpenMP build reports.
+/// Always `false`. No OpenMP runtime is linked here — the 36 files under
+/// `src/openms/source` that carry `#pragma omp` have no counterpart — so this
+/// reports exactly what the source's own non-OpenMP build reports. The answer
+/// does not depend on whether the crate threads work by some other means,
+/// because `_OPENMP` is what the source's predicate tests.
 pub fn openmp_enabled() -> bool {
     false
 }

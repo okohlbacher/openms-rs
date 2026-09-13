@@ -16,7 +16,8 @@ use openms::system::sys_info::{
 };
 use std::sync::{Mutex, MutexGuard};
 
-/// 64 MiB, four times the margin the source section asks for.
+/// 64 MiB — 65 536 KiB against the 10 000 KB growth the source section asserts,
+/// so more than six times the margin it asks for.
 const PROBE_BYTES: usize = 64 * 1024 * 1024;
 
 /// A working-set reading is a property of the whole process, and `cargo test`

@@ -54,8 +54,13 @@
   },
   {
    "path": "src/openms/source/SYSTEM/SysInfo.cpp",
+   "line": 122,
+   "operation": "read_available_memory_linux opens /proc/meminfo, scans for the key MemAvailable: and returns on the first match, so reading that file and that key is the source's own primary path and not a substitution the port makes"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/SysInfo.cpp",
    "line": 137,
-   "operation": "free memory prefers MemAvailable from /proc/meminfo and falls back to sysconf(_SC_AVPHYS_PAGES) * sysconf(_SC_PAGESIZE) / 1024, which glibc answers from MemAvailable then MemFree"
+   "operation": "only when the MemAvailable: key is absent does the source fall back to sysconf(_SC_AVPHYS_PAGES) * sysconf(_SC_PAGESIZE) / 1024; this port falls back to MemFree in the same /proc/meminfo instead, which answers the same narrower question without the libc call"
   },
   {
    "path": "src/openms/source/SYSTEM/SysInfo.cpp",
@@ -99,7 +104,7 @@
   "Every memory reading is Option<u64>: Linux answers from /proc, and every other platform answers None rather than a fabricated zero",
   "The source's Windows PROCESS_MEMORY_COUNTERS_EX and macOS Mach task_info / host_statistics64 branches have no counterpart, because both need a platform binding this crate does not take",
   "The working set is read from /proc/self/status VmRSS and the peak from VmHWM, which the kernel derives from the same counters the source reaches through statm and getrusage, already in kibibytes and without a sysconf call",
-  "Free memory reads MemAvailable then MemFree, reproducing glibc's own answer to _SC_AVPHYS_PAGES without the libc call",
+  "Free memory reads MemAvailable from /proc/meminfo, which is the source's own primary path - same file, same key - and falls back to MemFree in the same file where the source falls back to sysconf(_SC_AVPHYS_PAGES); both fallbacks report physically free pages rather than available ones, but no bit-identity between them is claimed, since _SC_AVPHYS_PAGES is answered by whichever libc the source was linked against",
   "/proc reads are capped at 256 KiB and require the kB unit on the matched line, which the source does not check",
   "MemUsage models 'not recorded' as None rather than the source's 0 sentinel, so a genuine zero reading is not resampled",
   "MemUsage::delta refuses an event label above 1 MiB; the source applies no bound",

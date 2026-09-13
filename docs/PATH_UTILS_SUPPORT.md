@@ -69,11 +69,12 @@ conversion replaces a failure at every later use.
 The class test has a **single section**, `to_path`, and all six of its
 cross-platform round-trip literals — ASCII, `U+00E4`, the CJK string 日本語, a
 name with spaces and parentheses, a 300-character name and the mixed
-`测试 äö` — are transcribed into `tests/path_utils.rs`. Its four `_WIN32`-only
-cases are not ported: three exercise the ANSI fallback for the lone byte `0xE4`,
-which no `&str` can hold, and the fourth is a UNC path the port accepts with no
-special handling. `basename` has no section at all, so its cases are derived
-from the source expression and are tier 4.
+`测试 äö` — are transcribed into `tests/path_utils.rs`. Its three `_WIN32`-only
+cases (`PathUtils_test.cpp:74-127`) are not ported: two exercise the ANSI
+fallback for the lone byte `0xE4`, which no `&str` can hold — once on a bare
+filename and once inside a UNC path — and the third is a plain ASCII UNC path
+the port accepts with no special handling. `basename` has no section at all, so
+its cases are derived from the source expression and are tier 4.
 
 No C++ execution is claimed. Source hashes, line anchors and the class-test
 review are in [the provenance record](../tests/data/path_utils_provenance.json).

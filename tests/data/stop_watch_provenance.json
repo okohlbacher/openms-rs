@@ -35,10 +35,11 @@
  ],
  "support_document": "docs/STOP_WATCH_SUPPORT.md",
  "source_surface": {
-  "public_function_names": 15,
-  "public_overloads": 16,
+  "public_function_names": 17,
+  "public_overloads": 18,
   "class_test_sections": 21,
-  "private_helper_type": "TimeDiff_"
+  "private_helper_type": "TimeDiff_",
+  "counting_rule": "Public function declarations in the header, constructors and destructors excluded (StopWatch declares none): start, stop, resume, reset, clear, getClockTime, getUserTime, getSystemTime, getCPUTime, isRunning, operator==, operator!=, operator<, operator<=, operator>=, operator> and toString - 17 names, 18 overloads, because toString is declared twice (const member and static double)."
  },
  "source_anchors": [
   {
@@ -106,7 +107,9 @@
   "path": "src/tests/class_tests/openms/source/StopWatch_test.cpp",
   "lines": "31-233",
   "sections": 21,
-  "literal_extraction": "The seven toString literals are transcribed verbatim. Thirteen sections are NOT_TESTABLE or deferred in the source test; each is still covered here by the behaviour the source test says is 'tested below', and the two ordering sections the source calls untestable are covered by the one property that does not depend on host CPU scheduling: the relation reads CPU time alone, so two cleared watches compare equal."
+  "literal_extraction": "The seven toString literals are transcribed verbatim. Fourteen of the 21 sections are NOT_TESTABLE or deferred in the source test; each is still covered here by the behaviour the source test says is 'tested below', and the two ordering sections the source calls untestable are covered by the one property that does not depend on host CPU scheduling: the relation reads CPU time alone, so two cleared watches compare equal.",
+  "cpu_scale_assertions": "The source's wait() is a busy loop (StopWatch_test.cpp:21-29), not a sleep, and its bool stop() section bounds four scale-sensitive quantities against t_wait = 0.2 s: getCPUTime() > t_wait/2 (line 144), getUserTime() > t_wait/2 (line 152), getUserTime() < t_wait*2 (line 154) and getSystemTime() < t_wait*2 (line 156). All four are transcribed in tests/stop_watch.rs with the source's own half-to-double factors, together with getClockTime() > 0.1, > t_wait*0.95 and < t_wait*3, the component-wise user/system <= against the watch that never stopped (lines 164-165) and s_resume.getCPUTime() > (t_wait + t_wait_more)/2 (line 175). They are the only coverage that the USER_HZ tick scale is applied correctly, and they hold only because the port's wait helper busy-loops as the source's does: a sleeping thread accrues no CPU time and would make all four vacuous. CPU time is a whole-process property and cargo test runs a binary's tests as threads of one process, so every test in the file that burns CPU on purpose holds a process-wide lock.",
+  "not_transcribed": "StopWatch_test.cpp:126, TEST_EQUAL(s.getClockTime() < 0.3, true). Line 146 bounds the same value at t_wait*3 = 0.6 with the comment 'be a bit more loose if e.g. a VM is busy', so the effective wall-clock ceiling is the looser of the two; that one is asserted instead. See cpp_defect_candidates."
  },
  "native_boundaries": [
   "Wall time is sampled from std::time::Instant, so a measured interval is monotonic; the source samples gettimeofday and a backwards clock step shortens or reverses its measurement",
@@ -119,7 +122,8 @@
   "format_seconds refuses non-finite input and magnitudes above 9e18 seconds, where the source's cast to an integer type is undefined behaviour",
   "The day count keeps i64 width; the source narrows it to int",
   "PartialOrd is deliberately not implemented, because the source's operator< compares only CPU time and would then disagree with its own operator==; cpu_time_cmp exposes the source relation explicitly",
-  "Precondition throws become Error::InvalidValue; reset() cannot fail here because the clear always precedes the restart"
+  "Precondition throws become Error::InvalidValue; reset() cannot fail here because the clear always precedes the restart",
+  "The source's wait() is reproduced as a busy loop rather than a sleep, because the four CPU, user and kernel bounds of its bool stop() section only hold for a thread that is actually running; tests that burn CPU serialise on a process-wide lock, since /proc/self/stat aggregates over the whole process and cargo test runs a binary's tests as threads of one process"
  ],
  "openmp_gap": "StopWatch itself carries no #pragma omp. Its documented contract that CPU time sums over all threads is preserved: /proc/self names the thread group, so utime and stime already aggregate over every thread, exactly as times() does.",
  "license": "BSD-3-Clause for source-derived code and literals; existing cpu-time dependency unchanged",
@@ -129,5 +133,13 @@
    "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
   ],
   "source_changes": []
- }
+ },
+ "cpp_defect_candidates": [
+  {
+   "path": "src/tests/class_tests/openms/source/StopWatch_test.cpp",
+   "lines": "126, 146",
+   "issue": "The bool stop() section bounds getClockTime() twice on the same value: < 0.3 at line 126 and < t_wait*3 = 0.6 at line 146, the latter commented 'be a bit more loose if e.g. a VM is busy'. The intended loosening has no effect while the stricter line 126 stands, so the section is still as tight as 1.5x t_wait on a busy VM.",
+   "suggested_fix": "Drop line 126, or raise it to the same t_wait*3 bound as line 146."
+  }
+ ]
 }

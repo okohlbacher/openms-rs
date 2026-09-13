@@ -86,17 +86,25 @@ reachable from this crate without a platform binding it does not take. Returning
 set to 0", and a caller that ignores the `bool` sees a plausible zero. `None`
 cannot be mistaken for a measurement.
 
-**The Linux readings come from different `/proc` files than the source's, on
-purpose.** The source computes the working set as
-`statm.resident * sysconf(_SC_PAGESIZE) / 1024` and the peak as
-`getrusage(...).ru_maxrss`. The kernel publishes both of those counters in
+**Two of the three Linux readings come from a different `/proc` file than the
+source's, on purpose; the third comes from the same one.** The source computes
+the working set as `statm.resident * sysconf(_SC_PAGESIZE) / 1024` and the peak
+as `getrusage(...).ru_maxrss`. The kernel publishes both of those counters in
 `/proc/self/status` as `VmRSS` and `VmHWM`, already in kibibytes — the source's
 own quoted `proc(5)` excerpt says `resident` is "the same as VmRSS in
 /proc/[pid]/status". Reading them there gives the identical number without a
-`sysconf` call, which is what makes the module libc-free. For free memory the
-source falls back to `sysconf(_SC_AVPHYS_PAGES)`; glibc answers that from
-`MemAvailable` and then `MemFree` in `/proc/meminfo`, so parsing those two keys
-in that order *is* the fallback, one layer down.
+`sysconf` call, which is what makes the module libc-free.
+
+Free memory is the exception. The source's **primary** path already reads
+`MemAvailable` from `/proc/meminfo` and returns on the first match
+(`SysInfo.cpp:107-133`), which is exactly what this port does — same file, same
+key, no divergence. Only the fallback differs: on a kernel too old to publish
+`MemAvailable` the source falls back to
+`sysconf(_SC_AVPHYS_PAGES) * sysconf(_SC_PAGESIZE) / 1024` and this port falls
+back to `MemFree` in the same file. Both answer the narrower question —
+physically free pages, without the reclaimable page cache `MemAvailable` counts
+— but the port does not claim the two agree to the byte, because
+`_SC_AVPHYS_PAGES` is answered by whichever libc the source was linked against.
 
 **A negative delta keeps its sign.** `diff_str_` appends `"-"` to a local string
 and then **assigns over that string** with the magnitude instead of appending to
@@ -145,9 +153,10 @@ around them — `0`, `1`, `1000`, `1023`, `1024`, `1536`, `45.34 MiB`, `2^60`,
 `u64::MAX` — are derived from the source's format (tier 4). The memory section
 is reproduced without its 20 MB mzML fixture: a 64 MiB allocation is made
 resident page by page and the same "grew by more than 10 000 KB" assertion is
-made, which keeps a SYSTEM test free of a format dependency and gives four times
-the margin the source asks for. On a platform where the readings are
-unavailable, the same section asserts that they are all `None`.
+made, which keeps a SYSTEM test free of a format dependency and gives more than
+six times the margin the source asks for — 64 MiB is 65 536 KiB against a
+10 000 KB threshold. On a platform where the readings are unavailable, the same
+section asserts that they are all `None`.
 
 No C++ execution is claimed. Source hashes, line anchors and the class-test
 review are in [the provenance record](../tests/data/sys_info_provenance.json).
