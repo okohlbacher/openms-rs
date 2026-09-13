@@ -1,0 +1,315 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "3b8ca9448393b380532401ac905865ec56e8d77f",
+ "license": "BSD-3-Clause for source-derived code and literals",
+ "method": "Direct header, implementation and class-test audit; no C++ build or execution. The transport is injected behind a trait so that every expectation is checked against a recorded response: no test in this group opens a socket, performs a DNS lookup, or contacts the OpenMS REST server.",
+ "evidence_tier": "tier 3 (source review, transcribed class-test expectations and OpenMS's own string literals) and tier 4 (expectations derived from the implementations - the 400 status boundary, the StringUtils::toInt32 conversion rules, the non-transitivity of VersionDetails::operator<, the strict 24-hour comparison, the collision-suffix sequence - plus the native bounds)",
+ "feature_gate": "network",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/CurlInit.h",
+   "sha256": "5ce45901440231e4a6ee68f871f774c99608c600e90dd4a08986e710fdc6731c",
+   "role": "Not ported. RAII guard for curl_global_init/curl_global_cleanup; ureq needs no global initialisation, so the header has no Rust counterpart. Recorded in docs/CURL_INIT_SUPPORT.md with the reason."
+  },
+  {
+   "path": "src/openms/source/SYSTEM/CurlInit.cpp",
+   "sha256": "d844cca30b2774f3b4ffef5f3b188e0b88e7c635c0f8105912d4c47a90cbecfb",
+   "role": "Not ported. Hashed to record that the whole implementation was read and that nothing beyond the two libcurl calls exists in it."
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/NetworkGetRequest.h",
+   "sha256": "84fa03cc4a33e65bccad52c5fe895a9c431ec467a49b13d9a0f857646635a92e",
+   "role": "Ported in full to src/system/network_get_request.rs, including the documented contract that run() never throws and that failures are reported through hasError/getErrorString."
+  },
+  {
+   "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
+   "sha256": "b53b75d44c38008ccb4324a79eca98e577541daf81b28e7fe8f9a6948ad5fd64",
+   "role": "Ported. Source of the libcurl option set the UreqTransport reproduces, of the >= 400 error boundary and of the 'HTTP error N' literal."
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/Network.h",
+   "sha256": "098a27609c73ec1fcbc70ef86d5ff5badb37209ce57190a190bf1b705b888570",
+   "role": "Ported to src/system/network.rs. Its Doxygen block is the specification of the filename derivation, the collision rule, the '' -> './' mapping and the three failure paths."
+  },
+  {
+   "path": "src/openms/source/SYSTEM/Network.cpp",
+   "sha256": "feeb190845ec7ed779504c0e137228574176173ae501659bbd7c9e14a4dfeac5",
+   "role": "Ported, including the file-static saveFileName_, which becomes the public network::save_file_name."
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/UpdateCheck.h",
+   "sha256": "35b714895cbc1c0d61e55d029777cbb32c0d727634d185fff68786acb1552081",
+   "role": "Ported to src/system/update_check.rs. Two lines of API; the policy is entirely in the .cpp."
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "sha256": "75203ac2ebf6533865c63e24c9f80e8126b483d25b367e58a06c6e7870a7d391",
+   "role": "Ported. Source of the stamp-file rate limiting, the platform-tagged identifier, the five-second query, the four notice texts and both reproduced defects."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/VersionInfo.h",
+   "sha256": "428d3b6a9bbf75ee15031f1ae0a12f9d03c4dc8c1dfaf4bbccb92b175f723a16",
+   "role": "Not ported as a header. The VersionDetails part UpdateCheck depends on is reproduced as update_check::SemanticVersion; its Doxygen block is the specification of the parse rules and of the operator< caveat. getTime, getVersion, getRevision, getSourceRevision, isSourceDirty, getBuildInfo and getBranch have no counterpart in this group."
+  },
+  {
+   "path": "src/openms/source/CONCEPT/VersionInfo.cpp",
+   "sha256": "32d69d27b24c5fb23911355b4428114dceda5197681fe3cd2b96541a152cfe68",
+   "role": "Read for VersionDetails::create and the four comparison operators, which are transcribed relation for relation into SemanticVersion."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "role": "Read for StringUtilsHelper::toInt32 and skipWS, whose exact conversion rules decide which version strings VersionDetails::create accepts. Reproduced as the private to_int32 in src/system/update_check.rs; the rest of the file is out of scope here."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/NetworkGetRequest_test.cpp",
+   "sha256": "30919fceebf9bc1de7e914064b84b21959203dbc42f767d496a9cb5171ea8aa1",
+   "role": "Oracle for NetworkGetRequest.h: 9 START_SECTIONs, all mapped in tests/network_get_request.rs. Five are NOT_TESTABLE upstream and deferred to run(); each is given a direct test here."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Network_test.cpp",
+   "sha256": "761fbb100c9fda08c2658cc9621a9d58fc824f9f5cf930386339475a8dbc21e0",
+   "role": "Oracle for Network.h: 1 START_SECTION, mapped in tests/network.rs. It downloads a file:// URL, which ureq cannot speak; the same fixture's bytes are served through a recorded transport instead."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/UpdateCheck_test.cpp",
+   "sha256": "0cb6761effc1897b166de880c3948b63fe793c1a448245a12d2b917582f8023e",
+   "role": "Oracle for UpdateCheck.h: 1 START_SECTION, mapped in tests/update_check.rs. It forces an uncreatable config directory by pointing XDG_CONFIG_HOME at a path whose parent is a regular file."
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/Network_test_fixture.txt",
+   "sha256": "539a0ccfac1e6043cadd97387784f15d51c5b652801056ea05686646f4a92b41",
+   "role": "Upstream input data for Network_test.cpp, copied unchanged to tests/data/network_test_fixture.txt. Input, not retained C++ output, so it supports no tier 1 claim."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/network_test_fixture.txt",
+   "sha256": "539a0ccfac1e6043cadd97387784f15d51c5b652801056ea05686646f4a92b41",
+   "role": "Byte-identical copy of the upstream Network_test_fixture.txt, served through the recorded transport in tests/network.rs."
+  }
+ ],
+ "native_implementation": [
+  "src/system/network_get_request.rs",
+  "src/system/network.rs",
+  "src/system/update_check.rs"
+ ],
+ "native_tests": [
+  "tests/network_get_request.rs",
+  "tests/network.rs",
+  "tests/update_check.rs",
+  "src/system/network_get_request.rs::tests",
+  "src/system/network.rs::tests",
+  "src/system/update_check.rs::tests"
+ ],
+ "support": [
+  "docs/CURL_INIT_SUPPORT.md",
+  "docs/NETWORK_GET_REQUEST_SUPPORT.md",
+  "docs/NETWORK_SUPPORT.md",
+  "docs/UPDATE_CHECK_SUPPORT.md"
+ ],
+ "support_document": "docs/NETWORK_GET_REQUEST_SUPPORT.md",
+ "source_surface": {
+  "public_function_names": 12,
+  "class_test_sections": 11,
+  "counting_rule": "Public declarations in the four headers, constructors and destructors counted separately: CurlInit::ensure (1) plus its private ctor/dtor and two deleted copy members, which are not public; NetworkGetRequest ctor, dtor, setUrl, setTimeout, run, getResponse, getResponseBinary, hasError, getErrorString (9); Network::downloadFile (1); UpdateCheck::run (1). The class-test total is 9 (NetworkGetRequest) + 1 (Network) + 1 (UpdateCheck); CurlInit has no class test in the SDK."
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/CurlInit.h",
+   "line": 15,
+   "operation": "CurlInit is documented as a thread-safe RAII guard whose ensure() must be called before any curl API; ureq has no global state, so nothing is ported"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/CurlInit.cpp",
+   "line": 17,
+   "operation": "ensure() relies on the C++11 guarantee that a function-local static is constructed exactly once, even under concurrent first calls, and destroyed at process exit"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/NetworkGetRequest.h",
+   "line": 26,
+   "operation": "the header states that the instance is reusable, that each run replaces the previously observed state, and that redirects are followed automatically"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
+   "line": 20,
+   "operation": "writeCallback inserts size * nmemb bytes into an unbounded std::vector<char>, so the peer decides how much memory the process commits"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
+   "line": 61,
+   "operation": "CURLOPT_FOLLOWLOCATION is set to 1 and CURLOPT_MAXREDIRS is never set, so the redirect chain is libcurl's unlimited default; the port caps it at 10 and reports TooManyRedirects"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
+   "line": 62,
+   "operation": "CURLOPT_NOSIGNAL is set to 1 for a thread-safe DNS timeout; ureq installs no signal handler, so there is nothing to disable"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
+   "line": 63,
+   "operation": "CURLOPT_TIMEOUT is set only when timeout_ > 0, so 0 and any negative value leave the request without a deadline"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
+   "line": 76,
+   "operation": "the status is read only after curl_easy_perform succeeded, by which point the write callback has already stored the body; an HTTP error therefore sets has_error_ while getResponse still returns the error document, which is why the port sets ureq's http_status_as_error to false"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/NetworkGetRequest.cpp",
+   "line": 81,
+   "operation": "the error string for a status failure is \"HTTP error \" + std::to_string(http_code), formed in OpenMS code rather than libcurl, so it is reproduced byte for byte"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/Network.cpp",
+   "line": 32,
+   "operation": "saveFileName_ cuts at the first '?' before cutting at the first '#', so a '#' inside a query string is already gone when the fragment is looked for"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/Network.cpp",
+   "line": 36,
+   "operation": "the basename comes from std::filesystem::path::filename, which treats '\\' as a separator on Windows only; an empty basename becomes the literal \"download\". The port splits on '/' alone on every platform, because '/' is the path separator of a URL"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/Network.cpp",
+   "line": 43,
+   "operation": "the collision loop while (fs::exists(dest / (basename + \".\" + to_string(i)))) ++i; has no upper bound and probes the filesystem forever when every candidate is taken; the port stops at 10000"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/Network.cpp",
+   "line": 54,
+   "operation": "the download timeout is setTimeout(600), documented in the header as ten minutes"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/Network.cpp",
+   "line": 59,
+   "operation": "an empty download_folder becomes \"./\" and the destination is built by string concatenation, so the result can contain a doubled separator; Path::join names the same file without it"
+  },
+  {
+   "path": "src/openms/include/OpenMS/SYSTEM/Network.h",
+   "line": 49,
+   "operation": "the header states that a partially written file is not cleaned up on write failure; the port removes it, so a failed download leaves the directory unchanged"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 40,
+   "operation": "a revision string is built from VersionInfo::getRevision(), substituting \"UNKNOWN\" for an empty or \"exported\" value, and is then never used anywhere in the function"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 65,
+   "operation": "the queried identifier is \"OpenMS\" + \"_\" + \"Default_\" + platform + \"_\" + architecture + \"_\" + tool_name + \"_\" + version, illustrated by the comment above it as OpenMS_Default_Win_64_FeatureFinderCentroided_2.0.0"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 71,
+   "operation": "the stamp file is (re)created when it is missing OR unreadable, and the touch uses a default std::ofstream, which truncates an existing unreadable file"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 98,
+   "operation": "the query happens when first_run is true or current_time > last_modified_time + 24 hours; the comparison is strict, so exactly 24 hours is not yet due"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 101,
+   "operation": "stat() and utime() bump the modification time while preserving st_atime, and this happens before the request is issued, so a failed query still consumes the day's budget; either call failing warns and continues"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 121,
+   "operation": "the notice tells the user to set OPENMS_DISABLE_UPDATE_CHECK to ON, but nothing in the Core SDK reads that variable; the switch is honoured by the TOPP framework in a separately versioned package"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 126,
+   "operation": "the version query uses setTimeout(5) against http://openms-update.cs.uni-tuebingen.de/check/, over plain HTTP"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 138,
+   "operation": "a server version equal to VersionDetails::EMPTY is skipped, which covers both a parse failure and a literal 0.0.0, because create() overloads one value for both"
+  },
+  {
+   "path": "src/openms/source/SYSTEM/UpdateCheck.cpp",
+   "line": 142,
+   "operation": "the announcement prints the local `version` argument rather than the server's version, so a user on 2.0.0 is told that version 2.0.0 is available; reproduced verbatim and reported as a C++ defect"
+  },
+  {
+   "path": "src/openms/source/CONCEPT/VersionInfo.cpp",
+   "line": 27,
+   "operation": "operator< is lexicographic on (major, minor, patch) and, on a tie, ranks a version with a pre-release identifier below one without; two different identifiers on the same triple are neither less nor greater yet compare unequal, so the relation is not a strict weak ordering consistent with operator== and the port therefore does not implement PartialOrd"
+  },
+  {
+   "path": "src/openms/source/CONCEPT/VersionInfo.cpp",
+   "line": 55,
+   "operation": "create() demands at least one '.', parses major, then minor up to an optional second '.', then patch up to a '-' that is searched for only after that second '.', and finally takes the remainder verbatim as the pre-release identifier; any ConversionError yields EMPTY"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "line": 136,
+   "operation": "toInt32 skips leading space/tab/newline/carriage-return, accepts one '+', calls std::from_chars (which accepts a leading '-'), then skips trailing whitespace and throws unless the whole string was consumed"
+  }
+ ],
+ "class_test_review": {
+  "sections": 11,
+  "mapped": 11,
+  "unaccounted": 0,
+  "files": {
+   "NetworkGetRequest_test.cpp": 9,
+   "Network_test.cpp": 1,
+   "UpdateCheck_test.cpp": 1
+  },
+  "literal_extraction": "The four default-state assertions of NetworkGetRequest_test.cpp, the 'no throw / error set / non-empty error string / empty response' shape of each of the four run() cases, the single File::exists assertion of Network_test.cpp and the two assertions of UpdateCheck_test.cpp are transcribed. The remaining expectations are derived from the implementations rather than from any test literal, and are listed under independently_derived.",
+  "not_reproduced": [
+   "NetworkGetRequest_test.cpp case 3 drives CURLE_COULDNT_RESOLVE_HOST through the reserved .invalid TLD. That is a resolver call whose outcome depends on the host's DNS configuration, so the port asserts the same four properties against a recorded TransportError::HostNotFound instead.",
+   "Network_test.cpp downloads a file:// URL, which libcurl handles and ureq does not. The upstream fixture's bytes are served through a recorded transport, and the assertion is strengthened from 'the file exists' to 'the file exists at the derived name and holds exactly those bytes'.",
+   "UpdateCheck_test.cpp is #ifdef __unix__ because it redirects XDG_CONFIG_HOME with setenv. The Rust test builds the same uncreatable config directory as a FileContext value, so it needs no environment variable and runs on every platform."
+  ]
+ },
+ "independently_derived": [
+  "The error boundary is exactly status >= 400: 399 is not an error and 400 is, from the .cpp comparison rather than from any test literal",
+  "The error text for a status failure is 'HTTP error 404' / 'HTTP error 503', from the source's own concatenation",
+  "A 3xx response that was not followed is not an error, by the same comparison",
+  "A timeout of 0 or any negative value leaves the request without a deadline, from the `timeout_ > 0` guard",
+  "toInt32 accepts '+-12' as -12, because the '+' is stripped before std::from_chars reads the '-'; it rejects '+ 12' and '2147483648'",
+  "VersionDetails::create rejects '1.2-alpha' - the minor component would be '2-alpha', which toInt32 refuses - while accepting '1.2.3-alpha', because the '-' is searched for only after the second '.'",
+  "'1.0.0-a'.is_greater_than('1.0.0-b') and '1.0.0-b'.is_greater_than('1.0.0-a') are both true, since operator> is !(< || ==) and neither direction of < holds",
+  "is_due is false at exactly MIN_QUERY_INTERVAL and true one second later, from the strict > in the .cpp",
+  "A failed query still consumes the 24-hour window, from the order of the utime call and the request",
+  "Three downloads of one URL produce run.tsv, run.tsv.0 and run.tsv.1, from the collision rule",
+  "'https://host' derives the file name 'host', because that is its last '/'-separated component and std::filesystem::path::filename returns it",
+  "An empty response body still produces a zero-length file, since the write is unconditional"
+ ],
+ "native_boundaries": [
+  "network_get_request: redirects capped at DEFAULT_MAX_REDIRECTS = 10, caller-settable up to MAX_REDIRECTS = 64, where libcurl's CURLOPT_MAXREDIRS default is unlimited",
+  "network_get_request: response body capped at DEFAULT_MAX_RESPONSE_BYTES = 64 MiB, caller-settable up to MAX_RESPONSE_BYTES = 4 GiB, where the source's write callback appends without a ceiling",
+  "network_get_request: at most MAX_HEADERS = 1024 response headers, a bound on a native addition since the source captures no headers at all",
+  "network_get_request: UreqTransport refuses a URL without '://', with an empty host, or with a scheme other than http/https before any socket is opened, reproducing libcurl's offline CURLE_URL_MALFORMAT and CURLE_UNSUPPORTED_PROTOCOL",
+  "network_get_request: response_text and Header::value_text return Error::InvalidValue for non-UTF-8 bytes instead of decoding lossily; the bytes stay available through response_binary and Header::value",
+  "network: URL length capped at MAX_URL_BYTES = 64 KiB, checked before a socket is opened",
+  "network: the collision-suffix search stops at MAX_NAME_SUFFIX = 10000, where the source's loop has no bound",
+  "network: a derived basename of '.', '..', or one containing '/', '\\' or NUL is refused, where the source passes it to std::ofstream",
+  "network: a partially written file is removed on write failure, where the source's header states it is left behind",
+  "update_check: tool_name must be 1-256 bytes and a plain file-name component, where the source concatenates it into a path unchecked",
+  "update_check: version capped at MAX_VERSION_BYTES = 256 and the response at MAX_QUERY_RESPONSE_BYTES = 64 KiB",
+  "update_check: SemanticVersion::parse returns Option rather than the EMPTY sentinel, while should_report_update reproduces the source's `!= EMPTY` branch so the decision is unchanged",
+  "update_check: PartialOrd is deliberately not implemented, because the source's operator< disagrees with its own operator== for two distinct pre-release identifiers"
+ ],
+ "network_isolation": "No test in this group opens a socket. The two malformed-URL cases of NetworkGetRequest_test.cpp go through the real UreqTransport, whose URL preflight refuses them before any connection is attempted; every other case uses a recorded HttpTransport implemented in the test file. In particular nothing queries http://openms-update.cs.uni-tuebingen.de, which would report the build machine's usage to an upstream server.",
+ "openmp": "None of the four headers or their implementations carries a #pragma omp, so there is no parallel behaviour to match and no performance gap to record for this group.",
+ "external_dependency": {
+  "crate": "ureq",
+  "version": "3.4.1",
+  "feature": "network",
+  "note": "Already a declared, non-default dependency of the crate before this port; no dependency was added. Its default features (rustls, gzip) are in effect. Nothing outside src/system/network_get_request.rs names it."
+ },
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
