@@ -1,0 +1,256 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "744455b70d7f1d4745e137e7e14947a7e8d4ccad",
+ "license": "BSD-3-Clause",
+ "group": "feature_finder_picked_helper_structs",
+ "work_package": "B1-HELPERS (early TOPP bundle, wave 1)",
+ "method": "Port of FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h and .cpp. The 14 START_SECTIONs of the class test are transcribed with their literals and comparison macros. An oracle driver outside this repository replays the same inputs plus 13 boundary cases against the product-SDK libOpenMS; its output is retained here and replayed row for row with floats compared bit for bit.",
+ "evidence_tier": "tier 1 (executed differential: product-SDK libOpenMS oracle, 164 rows replayed bit for bit, covering every ported method); tier 3 (transcribed class-test literals and comparison macros, all 14 sections); tier 4 (native ceilings, the NaN-merge error, accessors and default values)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h",
+   "sha256": "24d0f9c4aae34061cc5d2ceb0003d9d4cd86b22c1448ae13bb4358ae0f626405"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "sha256": "bf2e3249bc0b10068cea877cecc54abe508f401741c0979160db7a92e949bf44"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureFinderAlgorithmPickedHelperStructs_test.cpp",
+   "sha256": "f9e79115c0b03d6b95d0eb1d86588804be31d453f5cb62329d69842935c93cec"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderDefs.h",
+   "sha256": "0760af479ef94a1704e540521952d7d38ee8015c9daa6122ff62213981ceba41"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/IsotopeCluster.h",
+   "sha256": "dc1862c75d47245a8fa59d1fac43ba9eacd3c1465d28c2a7b05ebb7afd36bf4e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConvexHull2D.h",
+   "sha256": "eecde18cc716756736ff8917084ca052e31a392a6dd6c65ce2237c3714d652a8"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+   "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+   "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
+   "sha256": "a9d5a2373f301e3ac553bdfbcb8e1dba95de46eab1344bf07a4962760e35b8c0"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/Fitter1D.h",
+   "sha256": "29b0bb30a42c6bca9bf9038e666b05023e9af18bd03796bc48ded9dd1024002f"
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
+   "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/feature_finder_picked/helper_structs.rs"
+ ],
+ "native_tests": [
+  "tests/feature_finder_picked_helper_structs.rs"
+ ],
+ "support_document": "docs/FEATURE_FINDER_PICKED_HELPER_STRUCTS_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/feature_finder_picked_helper_structs_oracle.tsv",
+   "sha256": "af599642df0ef9e13f1859b2229cbdc34ec742bfafba9246b328e1b30cc29bd4",
+   "bytes": 9301,
+   "rows": 164,
+   "kind": "oracle-generated (tier 1 executed differential)",
+   "role": "Output of ../oracle/feature-finder-picked-helper-structs/run.sh, byte-identical across two runs. Rows are case, quantity, kind and value; f64 values are IEEE-754 bit patterns. tests/feature_finder_picked_helper_structs.rs rebuilds every input and requires every row."
+  }
+ ],
+ "class_test_review": {
+  "path": "src/tests/class_tests/openms/source/FeatureFinderAlgorithmPickedHelperStructs_test.cpp",
+  "lines": "26-359",
+  "sections": 14,
+  "literal_extraction": "All literals are transcribed verbatim, including the f32 intensity literals with digits beyond f32 precision; the file allows clippy::excessive_precision for that reason. The source test mutates shared state between sections: mt1 is copied into mt after its updateMaximum section, mt2 is pushed after the getPeakCount section, and three border peaks are added to mt[1] before computeIntensityProfile. Each Rust test rebuilds that state in the same order.",
+  "comparison": "TEST_EQUAL is exact equality after converting the expected value to the actual value's type (ClassTest.h:224-245). TEST_REAL_SIMILAR is isRealSimilar with absdiff_max_allowed 1e-5 and ratio_max_allowed 1 + 1e-5 (ClassTest.cpp:35-38 and 364-470), transcribed in f64; the source evaluates in long double, and the transcribed cases are far from both limits. TEST_EXCEPTION(Exception::Precondition, ...) becomes Err(Error::InvalidValue(_))."
+ },
+ "oracle": {
+  "manifest": "../oracle/feature-finder-picked-helper-structs/manifest.json",
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "sdk": "product-sdk, Debug build of core 4fdec46b205459b92e7d3b9e56df5d8e912d5c85, AppleClang 21.0.0.21000101, C++23",
+  "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+  "driver_compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101), arm64-apple-darwin25.6.0, -std=c++23 -O0",
+  "revision_equivalence": "4fdec46 is an ancestor of bc9cc12; git diff --stat 4fdec46 bc9cc12 is empty for the helper-struct header and implementation, ConvexHull2D.h/.cpp, Peak1D.h/.cpp, DBoundingBox.h, DIntervalBase.h and DPosition.h.",
+  "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=product-sdk/share/OpenMS/4.0.0, per-run scratch working directory",
+  "reproduction": "Two runs from separate scratch directories produced byte-identical output.",
+  "debug_only": [],
+  "comparison": "Exact: every row string equal, so every f64 matches bit for bit. The Rust replay was checked on the Linux x86-64 build node (IBMI kim), with its current stable toolchain and with 1.85.0, with default and with no default features, against the macOS arm64 oracle output."
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 14,
+   "operation": "IsotopePattern(Size): peak(size, -1), four zero vectors, default-initialised theoretical_pattern"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 28,
+   "operation": "Seed::operator< compares float intensity only"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 33,
+   "operation": "getConvexhull: addPoints over (RT, m/z) into a std::map keyed by RT"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 46,
+   "operation": "updateMaximum: strict float >, first maximum wins; empty trace returns early"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 65,
+   "operation": "getAvgMZ: double sums of mz*float and float, then quotient"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 97,
+   "operation": "MassTraces::isValid: fewer than 2 traces false; fabs(seed_mz - avg) <= tolerance"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 115,
+   "operation": "getTheoreticalmaxPosition: Precondition on empty; strict > keeps the first maximum"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 135,
+   "operation": "updateBaseline: 0 when empty; first peak seeds, strict < replaces; untouched when no trace has peaks"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 160,
+   "operation": "getRTBounds: Precondition on empty; starts at (DBL_MAX, -DBL_MAX)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+   "line": 188,
+   "operation": "computeIntensityProfile: first trace copied unchecked, later traces merged by a single std::list walk with exact RT equality; double += float"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 548,
+   "operation": "std::sort(seeds.rbegin(), seeds.rend()) is the only use of Seed::operator<"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 660,
+   "operation": "updateBaseline, baseline scaled by 0.75, updateMaximum on traces[max_trace]"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 1084,
+   "operation": "input map sorted before run_; afterwards only float data arrays change, never peak m/z or intensity (supports copied TracePeak values)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "line": 1401,
+   "operation": "pattern.peak compared against -2 (removed) and -1 (missing); no other negative value is assigned"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
+   "line": 24,
+   "operation": "duplicate FeatureFinderDefs struct (IndexPair, IndexSet, ChargedIndexSet, Flag, NoSuccessor); unused in source/FEATUREFINDER"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/Fitter1D.h",
+   "line": 33,
+   "operation": "IsotopeCluster::IndexSet and ChargedIndexSet typedefs for the legacy Fitter1D family, the other route to IsotopeCluster.h"
+  }
+ ],
+ "native_boundaries": [
+  "MassTrace peaks are (spectrum index, peak index) plus copied rt f64, mz f64 and intensity f32; max_peak is Option<TracePeak>, and pointer identity becomes index equality",
+  "Seed exposes is_less_intense_than instead of PartialOrd, because an intensity-only order would contradict the structural PartialEq",
+  "IsotopePattern::peak is a PatternPeak enum (NotFound = -1, Removed = -2, Found(index)); the source assigns no other negative value",
+  "IsotopePattern::new refuses more than 100,000 isotopes; MassTraces::reserve refuses a capacity above 100,000 traces and maps allocation failure to Error::InvalidValue, leaving the collection unchanged",
+  "MassTraces::intensity_profile refuses more than 1,000,000 total peaks or more than 100,000,000 worst-case merge steps before allocating; an index-linked list reproduces the std::list insertion cost",
+  "MassTraces::intensity_profile returns Error::InvalidValue where the source loop never terminates (a NaN retention time meeting a profile entry), and an empty profile where the source dereferences begin() of an empty vector",
+  "MassTrace::convex_hull refuses non-finite coordinates and more than 1,000,000 peaks",
+  "get, get_mut, last and last_mut return Option; Index and IndexMut panic on out-of-range indices like slices",
+  "Scalars the source leaves uninitialised (max_rt, theoretical_int, baseline, TheoreticalIsotopePattern scalars) start at zero"
+ ],
+ "not_ported": [
+  {
+   "header": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderDefs.h",
+   "reason": "No includer; duplicates the FeatureFinderDefs struct defined in FeatureFinderAlgorithmPicked.h. IndexPair, IndexSet, ChargedIndexSet, Flag and NoSuccessor are not used on the FeatureFinderCentroided path."
+  },
+  {
+   "header": "src/openms/include/OpenMS/DATASTRUCTURES/IsotopeCluster.h",
+   "reason": "Reached only through the two FeatureFinderDefs typedef copies and the legacy Fitter1D.h typedefs; the picked algorithm uses none of them. The coverage ledger's candidate src/processing/deisotoping.rs is an unrelated Deisotoper result struct."
+  }
+ ],
+ "cpp_defect_candidates": [
+  {
+   "status": "unconfirmed candidate (source review; not executed, because it is undefined behaviour)",
+   "function": "FeatureFinderAlgorithmPickedHelperStructs::MassTraces::computeIntensityProfile",
+   "lines": "FeatureFinderAlgorithmPickedHelperStructs.cpp:196-198",
+   "trigger": "an empty MassTraces",
+   "behaviour": "trace_it = begin() is dereferenced without a check",
+   "proposed_fix": "return early when this->empty()",
+   "rust_handling": "returns an empty profile"
+  },
+  {
+   "status": "unconfirmed candidate (source review; not executed, because the loop never terminates)",
+   "function": "FeatureFinderAlgorithmPickedHelperStructs::MassTraces::computeIntensityProfile",
+   "lines": "FeatureFinderAlgorithmPickedHelperStructs.cpp:210-236",
+   "trigger": "a NaN retention time in a later trace compared with a profile entry, or a NaN profile entry reached by a later trace",
+   "behaviour": "none of >, < and == holds, so neither iterator advances and the while loop never ends",
+   "proposed_fix": "treat unordered comparisons as an error, or advance the profile iterator",
+   "rust_handling": "Error::InvalidValue"
+  },
+  {
+   "status": "unconfirmed candidate (source review; not executed, because it reads an uninitialised value)",
+   "function": "FeatureFinderAlgorithmPickedHelperStructs::MassTraces::updateBaseline",
+   "lines": "FeatureFinderAlgorithmPickedHelperStructs.cpp:135-158; the constructor at 82-85 does not initialise baseline",
+   "trigger": "one or more traces, none of which holds a peak",
+   "behaviour": "baseline is never assigned and keeps an indeterminate value",
+   "proposed_fix": "initialise baseline to 0 in the constructor, or set it to 0 when no peak is seen",
+   "rust_handling": "baseline starts at 0.0 and is left unchanged"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/feature-finder-picked-helper-structs/driver.cpp",
+   "sha256": "f43e77709452be0aa7fba31df1f282c24ece144bb3aa46b5de01ebf50d60712a",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-finder-picked-helper-structs/run.sh",
+   "sha256": "2dfdb056ecce3bf670b8120db4383856c9dcb2f86e18f6b762785bdd0b0849bd",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-finder-picked-helper-structs/manifest.json",
+   "sha256": "876da8d46ea2387b0242a0f7ce456349f6e441185ececc41290716b6ff429b39",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The oracle driver, its run script and its manifest live outside this repository under ../oracle/feature-finder-picked-helper-structs/ so that no C++ is committed here. The driver links the prebuilt product-SDK libOpenMS (sha256 under oracle); its output is the fixture above, whose sha256 is verified in-repo. The external files are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
