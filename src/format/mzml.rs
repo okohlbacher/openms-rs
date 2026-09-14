@@ -3117,6 +3117,26 @@ pub fn write_with_options(
 fn experiment_header_guard(experiment: &MSExperiment) -> Result<()> {
     header::guard(experiment)
 }
+/// How many whole-document allowances an mzML write of `experiment` receives:
+/// one for the experiment-level header and one more for every spectrum and
+/// chromatogram.
+///
+/// The writer preflights (header plan, settings validation and the prepared
+/// writers' markup, index and binary budgets) used to share one fixed
+/// allowance across the whole document. That refused realistic runs after
+/// about 650 records: the 2026-09-14 smoke benchmark measured 647 passing and
+/// 648 failing spectra on `UK222_picked`, while the C++ Release writer stores
+/// the complete 44k-spectrum runs. Every such allowance is now multiplied by
+/// this share count, so a ceiling grows linearly with the records it has to
+/// cover and still bounds amplification within the document. The source
+/// enforces no ceilings at all.
+fn writer_shares(experiment: &MSExperiment) -> usize {
+    experiment
+        .spectra
+        .len()
+        .saturating_add(experiment.chromatograms.len())
+        .saturating_add(1)
+}
 fn validate_write(experiment: &MSExperiment) -> Result<()> {
     experiment_header_guard(experiment)?;
     // O(1) loss guards precede validation of newly supported owned settings.
@@ -3150,10 +3170,12 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
             &chromatogram.string_data_arrays,
         )?;
     }
-    // Fixed cumulative settings preflight, independent of binary encoding.
-    // Cover owned scalar metadata before validation/rendering traverses it.
-    let mut settings_work = 50_000_000usize;
-    let mut settings_bytes = 256 * 1024 * 1024;
+    // Cumulative settings preflight, independent of binary encoding: one fixed
+    // allowance per record share (`writer_shares`). Cover owned scalar
+    // metadata before validation/rendering traverses it.
+    let shares = writer_shares(experiment);
+    let mut settings_work = 50_000_000usize.saturating_mul(shares);
+    let mut settings_bytes = (256usize * 1024 * 1024).saturating_mul(shares);
     let initial_work = settings_work;
     let initial_bytes = settings_bytes;
     experiment

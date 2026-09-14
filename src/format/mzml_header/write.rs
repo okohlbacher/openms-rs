@@ -87,8 +87,23 @@ impl<'a> Build<'a> {
         Ok(())
     }
 }
+/// Plan the header and per-record reference text for `experiment`.
+///
+/// The allowance is the reader's fixed header allowance ([`Work::default`])
+/// multiplied by `writer_shares`: once for the experiment-level header and
+/// once for every spectrum and chromatogram, whose metadata, processing
+/// history, array descriptions and controlled-vocabulary lookups are charged
+/// against the same pool. A single fixed allowance refused realistic runs after
+/// about 650 records.
 pub(crate) fn prepare(experiment: &MSExperiment) -> Result<Plan> {
-    prepare_with_work(experiment, Work::default())
+    let shares = writer_shares(experiment);
+    prepare_with_work(
+        experiment,
+        Work {
+            remaining: MAX_WORK.saturating_mul(shares),
+            bytes: MAX_BYTES.saturating_mul(shares),
+        },
+    )
 }
 fn prepare_with_work(experiment: &MSExperiment, mut work: Work) -> Result<Plan> {
     guard(experiment)?;
