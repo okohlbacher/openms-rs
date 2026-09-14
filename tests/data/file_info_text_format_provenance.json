@@ -1,0 +1,415 @@
+{
+ "group": "file_info_text_format",
+ "package": "A2-TEXTFMT (early TOPP bundle, wave 1)",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "oracle_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+ "rust_base_revision": "744455b70d7f1d4745e137e7e14947a7e8d4ccad",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+   "sha256": "ae4767948b7c5b40bd7398e210a8fbabe008021210192d1c64f3d59d83c79212"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+   "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileInfo.cpp",
+   "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/String_test.cpp",
+   "sha256": "3ee9adb76f7242a2d6836c0289ea476421c131d24c9cdba4071e98530415cb34"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/StringUtils_test.cpp",
+   "sha256": "5a17a50dabf9703174850917df3a2a9ad5f59fd15fdce4f7c80ef910688af465"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ListUtilsIO_test.cpp",
+   "sha256": "94d9817af79e57b379950a805ebef390c46f20f11ebe644d2f88f9d29b92cf4f"
+  }
+ ],
+ "native_implementation": [
+  "src/format/file_info/text_format.rs"
+ ],
+ "native_tests": [
+  "tests/file_info_text_format.rs"
+ ],
+ "support_document": "src/format/file_info/text_format.rs",
+ "support_document_note": "The package owns no docs/*_SUPPORT.md. The API mapping, preserved source conventions, native differences, evidence, class-test accounting and follow-up are the module documentation.",
+ "fixtures": [
+  {
+   "path": "tests/file_info_text_format.rs#ORACLE_DRIVER_TSV",
+   "sha256": "1f00c34677af82248bba69fdccf25843f519edd0eaad6b46d5d7239e14fc12a9",
+   "bytes": 69970,
+   "rows": {
+    "D": 386,
+    "S": 100,
+    "F": 249,
+    "G": 268,
+    "L": 10
+   },
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/file-info-text-format/results/driver.tsv verbatim (product-SDK libOpenMS core 4fdec46, macOS)"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#SWEEP_ORACLE_TSV",
+   "sha256": "dc7efb28ded7a6feda9178a3bcc08776e8f6e72ee2b622e6ad50966ea8d775f4",
+   "bytes": 32818,
+   "rows": {
+    "D": 218,
+    "S": 90,
+    "G": 105,
+    "I": 12
+   },
+   "evidence_tier": "1 (D, S and macOS G/I columns); 2 (Linux G/I columns)",
+   "kind": "../oracle/text-format/results/embedded.tsv verbatim: rows selected by select.py from oracle output only. The D/S rounding column and the G tie-at-precision column are computed by select.py from the IEEE bits with exact decimal arithmetic, not from Rust output."
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_1_OUTPUT",
+   "sha256": "2f999b05e38ab970a555225127ce8d81aac68278bcfc9ab50f7ee748a2948f5e",
+   "bytes": 1063,
+   "upstream": "test-data 0cb15f2 topp/FileInfo_1_output.txt",
+   "kind": "retained upstream output (tier 1), embedded verbatim"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_1_INPUT",
+   "sha256": "5d27bdc748902b56f40a0d8e367448a57172ae8d12aaed9b92cd25d4720e513a",
+   "bytes": 797,
+   "upstream": "test-data 0cb15f2 topp/FileInfo_1_input.dta",
+   "upstream_sha256": "2df7f660cb7c7a0b5b2946c9b97aa621434c20152f4d1854a869df018bf8943f",
+   "upstream_bytes": 855,
+   "kind": "retained upstream input, CRLF line endings normalised to LF; values unchanged"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_2_OUTPUT",
+   "sha256": "5169c529db1c482154a505ab21e12ca1bbf51cc9cbc3383ca01eba6466068753",
+   "bytes": 1032,
+   "upstream": "test-data 0cb15f2 topp/FileInfo_2_output.txt",
+   "kind": "retained upstream output (tier 1), embedded verbatim"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_2_INPUT",
+   "sha256": "61092f9feddee5d9ae497720a35b2cda37d8415a7882b418e74017f43ef75517",
+   "bytes": 108,
+   "upstream": "test-data 0cb15f2 topp/FileInfo_2_input.dta2d",
+   "kind": "retained upstream input, embedded verbatim"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_3_OUTPUT",
+   "sha256": "baff62b33a44a65867037213da3fe6437b5f9b579897c12224120b0c498fea80",
+   "bytes": 1909,
+   "upstream": "test-data 0cb15f2 topp/FileInfo_3_output.txt",
+   "kind": "retained upstream output (tier 1), embedded verbatim"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_7_OUTPUT",
+   "sha256": "f1dcb192fafc243d2a3ae77e89483d3b7f2fbf9dacab72debe2ff3940ddd2979",
+   "bytes": 3953,
+   "upstream": "test-data 0cb15f2 topp/FileInfo_7_output.txt",
+   "kind": "retained upstream output (tier 1), embedded verbatim"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_9_OUTPUT",
+   "sha256": "cb802ef21b92abe2746c38e753540057628aa3e0a77b8870bbc6bb25dace8b5e",
+   "bytes": 2916,
+   "upstream": "test-data 0cb15f2 topp/FileInfo_9_output.txt",
+   "kind": "retained upstream output (tier 1), embedded verbatim"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_19_OUTPUT",
+   "sha256": "bc1c36407bed2c3da2c909c5fc78503db194088a57397a2a550636ec467659b3",
+   "bytes": 2017,
+   "upstream": "test-data 0cb15f2 topp/FileInfo_19_output.txt",
+   "kind": "retained upstream output (tier 1), embedded verbatim"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_3_FEATURES",
+   "upstream": "test-data 0cb15f2 topp/FileInfo_3_input.featureXML",
+   "upstream_sha256": "28398a29ab159370a2356a32fcc115ea54a46f9331112a41c2e47c0dc18ce131",
+   "kind": "values transcribed from the retained input"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#FILE_INFO_7_CONSENSUS",
+   "upstream": "test-data 0cb15f2 topp/FileInfo_7_input.consensusXML",
+   "upstream_sha256": "7331039d83f68135621d777f32434582cc39e52c2ed2d65c5953dbe39760d954",
+   "kind": "values transcribed from the retained input"
+  },
+  {
+   "path": "tests/file_info_text_format.rs#file_info_9_peak_statistics_and_resolution_match_the_retained_report",
+   "upstream": "test-data 0cb15f2 topp/FileInfo_9_input.mzML",
+   "upstream_sha256": "e14e087cd100f551dbf505cbd442ab8074c0266ce2c97ebe606408940cd3afa4",
+   "kind": "values transcribed from the retained input"
+  }
+ ],
+ "upstream_test_definition": {
+  "path": "topp/CMakeLists.txt",
+  "revision": "0cb15f2",
+  "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+  "lines": "880-933"
+ },
+ "class_test_review": {
+  "paths": [
+   "src/tests/class_tests/openms/source/String_test.cpp",
+   "src/tests/class_tests/openms/source/StringUtils_test.cpp",
+   "src/tests/class_tests/openms/source/ListUtilsIO_test.cpp"
+  ],
+  "sections": {
+   "String_test.cpp": 69,
+   "StringUtils_test.cpp": 45,
+   "ListUtilsIO_test.cpp": 1
+  },
+  "ported": "String_test.cpp: toStr for the 8 integer types, toStr(float, true), toStr(double, true), number(double, UInt); StringUtils_test.cpp: the formatting literals of [EXTRA] non-finite values round-trip",
+  "not_ported": "toStr(x, false) literals, toStr(long double), toStr(DataValue), numberLength, std::string operator+ and operator+= with numbers, ListUtilsIO_test StringList operator<<",
+  "accounting": "module documentation, section Class tests"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/file-info-text-format/manifest.json",
+   "sha256": "a959541af4859bfa5b84f7471ebef31a3cdf417ad362f563b6245b7bfc4a7334",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/manifest.json",
+   "sha256": "110bdd830eb8fd7152ed0dd6ba244200d9a94c612cae6f6d0a2ce85670dce5bc",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/sweep.h",
+   "sha256": "5ae0968653569567091f22612c4410a5c9657bb565d43aa351c2a56b6945b78a",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/driver.cpp",
+   "sha256": "7d380ecf255a571ee3e58b36e0e4ac3e4ba4834613bdbf68912d22163c932c8f",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/std_probe.cpp",
+   "sha256": "220beadc0da75c0987311edbc891e2735f8613f219d3ae4aff81da441861f57d",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/select.py",
+   "sha256": "248124bae436368bae07f702bea4c7a403e5b4fef9f4a03ad8009fefbbca1d97",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/run.sh",
+   "sha256": "84d237af4057d3dcc9eb6f46e5f09fa3fabbb84fa16c8b962febb6dc5786748d",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/run_linux.sh",
+   "sha256": "a7ceaa326bdc84e1b4a6a418ef2c2efc2b7df88f0f0819331692a2af759f598d",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/driver.tsv",
+   "sha256": "fd6547ecfa02b783840f1b021a1ed60ac5f94f7ca1536596b9bcd5b9b88f3261",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/std_probe.macos.tsv",
+   "sha256": "c0c3f2322b0604204fa774fd0ee8d4d663f632189dfdc6ad2e5f43dad19d2701",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/std_probe.linux.tsv",
+   "sha256": "7a44cf1aa82ba60ec9c65561131820b6d6c5111fcd72173dbae4274293aa6e4c",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/intmax.macos.tsv",
+   "sha256": "48e6c90ab351b570778fd02ce81e553d613a8dbfae19c0f104f55c13e51acf10",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/intmax.linux.tsv",
+   "sha256": "12cc9e531343c8dbd930b14dc6d5177c966ec05aa466d42025334ff39b96209e",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/toolchain.macos.txt",
+   "sha256": "d8cfcaf9ae3a98371d9bb317172dca1dc846bdf14f30f10a3976c84f8fc0a6d9",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/toolchain.linux.txt",
+   "sha256": "800a2b1b7886f1924efed5eee527ab44c9e9a81c65bf96633eba374c3707de48",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/sha256.linux.txt",
+   "sha256": "f2ababd96c3f4f201ccea14b9792023e77627aee6effa7b2532529903fae7b05",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/embedded.tsv",
+   "sha256": "dc7efb28ded7a6feda9178a3bcc08776e8f6e72ee2b622e6ad50966ea8d775f4",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/results/summary.txt",
+   "sha256": "d20247a3d748b497f44166145eec1b2adf7d5bb738acb364b9f4355be61716e5",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/text-format/rust/full_sweep_probe.before.rs",
+   "sha256": "0d79833dd1d4e2766bc7b839e54ee1f00b0e807d89e17a3ff7f95a91315e67b9",
+   "location": "outside this repository",
+   "origin_key": "target_verification"
+  },
+  {
+   "path": "../oracle/text-format/rust/full_sweep_probe.rs",
+   "sha256": "aed970c2fa406cf9edf435d91eab62772e47d7d59876b9b968084ade52171ee4",
+   "location": "outside this repository",
+   "origin_key": "target_verification"
+  },
+  {
+   "path": "../oracle/text-format/results/rust_full_sweep.before.log",
+   "sha256": "c1ea26f6ab08382f4bca80f0d63865e6e1dd28c55cd1d54832c43db74a9a8f69",
+   "location": "outside this repository",
+   "origin_key": "target_verification"
+  },
+  {
+   "path": "../oracle/text-format/results/rust_full_sweep.after.current.log",
+   "sha256": "3e7401638e8e3d304616408c09db574cc6775f252b9d761c5b4e80404edbc21c",
+   "location": "outside this repository",
+   "origin_key": "target_verification"
+  },
+  {
+   "path": "../oracle/text-format/results/rust_full_sweep.after.1.85.0.log",
+   "sha256": "8f1184de66039c7a80b0613b935cae230dcbbdf2a4c4e62414d08f281462236e",
+   "location": "outside this repository",
+   "origin_key": "target_verification"
+  },
+  {
+   "path": "../oracle/text-format/results/rust_full_sweep.after.implementation.txt",
+   "sha256": "59fd661979cf3ab2e575bba48a77d2157e3eeea900c630279b2985220790614d",
+   "location": "outside this repository",
+   "origin_key": "target_verification"
+  }
+ ],
+ "external_reference_note": "C++ drivers, probes and their outputs live outside this repository under ../oracle/ so that no C++ is committed here. The Rust full-sweep probe is kept there too because it reads the multi-megabyte sweep tables, which are not committed. Recorded, not re-verified by the in-repo gate.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "oracle_build": "product-sdk libOpenMS core 4fdec46, Debug, AppleClang 21, libc++, macOS arm64. 4fdec46..bc9cc12 changes appendNumeric only in a libc++ long-double branch (commit 74526a8); ../oracle/file-info-text-format compiles the pinned NumericFormatting.h and reproduces the SDK's D, S and F rows byte for byte.",
+  "tie_rule_full_sweep": {
+   "rows": {
+    "D": 60457,
+    "S": 10973,
+    "G": 15195
+   },
+   "two_sided_exact_ties": {
+    "D": 6489,
+    "S": 1234
+   },
+   "one_sided_exact_ties": {
+    "D": 4,
+    "S": 0
+   },
+   "to_chars_takes_the_other_neighbour": {
+    "rows": {
+     "D": 94,
+     "S": 6
+    },
+    "distinct_powers_of_two": {
+     "D": 46,
+     "S": 3
+    },
+    "rows_not_at_a_power_of_two": 0,
+    "rows_at_two_sided_ties": 0,
+    "embedded": "every such row",
+    "method": "select.py: the exact value rounded half to even at the to_chars text's length differs from that text"
+   },
+   "before_fix": {
+    "implementation_blob": "62c6eb7e328ea559d5d774f5cebf437132d188a2",
+    "toolchain": "rustc 1.96.0",
+    "mismatching_rows": {
+     "D": 3159,
+     "S": 626
+    },
+    "mismatch_classes": "two-sided exact ties only, including all 41 review rows"
+   },
+   "after_fix": {
+    "implementation_sha256": "0fdb6df32f534333fe85c9a8998f117fdece3b2aabd881d2d73c3207b89dc46f",
+    "implementation_blob": "e021eddd3328f403d11182be8b72d1c865743fef",
+    "toolchains": [
+     "cargo 1.96.0 (30a34c682 2026-05-25)",
+     "cargo 1.85.0 (d73d2caf9 2024-12-31)"
+    ],
+    "platform": "Linux (kim) through openms-kim-gate.sh slot fix2-a2",
+    "mismatching_rows": {
+     "D": 0,
+     "S": 0,
+     "G_vs_glibc": 0
+    }
+   },
+   "mutation_checks": {
+    "toolchain": "cargo 1.96.0 on kim, applied to a scratch copy of the worktree, never to the repository",
+    "mutations": [
+     "scientific toStr text taken from {:e} alone (the rule before the fix)",
+     "nearest text at the shortest length taken without the read-back check"
+    ],
+    "result": "each makes tests/file_info_text_format.rs fail to_str_breaks_shortest_ties_like_std_to_chars, float_to_str_breaks_shortest_ties_like_std_to_chars and shortest_ties_take_the_even_digit_and_one_sided_ties_the_only_round_trip (32 passed, 3 failed)"
+   }
+  },
+  "platform_findings": {
+   "to_chars_macos_vs_linux_differences": 0,
+   "stream_percent_g_apple_libc_vs_glibc_differences": 324,
+   "stream_percent_g_difference_class": "integer-valued double below 1e15 on an exact decimal tie at precision P whose neighbour nearer zero ends in 0, so rounding half to even keeps that neighbour; Apple libc keeps its trailing zeros, glibc and the C standard strip them",
+   "stream_percent_g_rows_in_class_and_differences": [
+    324,
+    324
+   ],
+   "stream_percent_g_rows_outside_class_and_differences": [
+    14871,
+    0
+   ],
+   "stream_percent_g_class_bound": "largest differing value 993123135600500; the smallest integer round-down tie at or above 1e15 in the sweep, 1005000000000000, prints alike",
+   "stream_percent_g_integer_nontie_rows_and_differences": [
+    244,
+    0
+   ],
+   "snprintf_percent_f_at_int_max": "Apple libc: -1, EOVERFLOW and an empty string once the text reaches INT_MAX bytes. glibc 2.39: the 63-byte digit prefix at text lengths INT_MAX (ret INT_MAX) and 2^31 (ret -1), 63 spaces at a digit count of INT_MAX",
+   "linux_toolchain": [
+    "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "ldd (Ubuntu GLIBC 2.39-0ubuntu8.9) 2.39",
+    "Linux 6.8.0-124-generic x86_64"
+   ]
+  }
+ }
+}
