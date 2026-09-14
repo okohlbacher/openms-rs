@@ -46,9 +46,9 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 | `struct FeatureInfo` and its `struct MapColumn` | `model::FeatureInfo`, `model::MapColumn`; the consensus-only fields stay empty until A7 |
 | `struct IdentInfo` | `model::IdentInfo`; declared, filled by A7 |
 | `struct FastaInfo` | `model::FastaInfo`; `std::map<char, UInt64>` is `BTreeMap<u8, u64>`; declared, filled by A7 |
-| `struct MzTabInfo` | `model::MzTabInfo`; the member `type` is `kind`; declared, not filled |
-| `struct ValidationInfo` | `model::ValidationInfo`, `supported` defaulting to `true`; filled by A6 (`-i`) and A8 (`-v`) |
-| `struct CorruptionInfo`, `struct DetailInfo` | `model::CorruptionInfo`, `model::DetailInfo`; filled by A6 |
+| `struct MzTabInfo` | `model::MzTabInfo`; the member `type` is `kind`; filled by the mzTab branch, which no package ports yet |
+| `struct ValidationInfo` | `model::ValidationInfo`, `supported` defaulting to `true`; filled by A6 (`-i`) and A8 (`-v`); `schema_version` and `detail` are never written by the source run |
+| `struct CorruptionInfo`, `struct DetailInfo` | `model::CorruptionInfo`, `model::DetailInfo`; never filled, as in the source (the `-c` and `-d` output goes only into the text) |
 | `struct Result` | `model::FileInfoResult` (`Result` is the crate's error alias); native field `warnings` |
 | `struct Options` (all eight members) | `model::Options`; `ProgressLogger::LogType` is `concept::progress_logger::ProgressLogType` |
 | `Result run(const std::string&, const Options&)` | `FileInfo::run(&self, impl AsRef<Path>, &Options) -> Result<FileInfoResult>` |

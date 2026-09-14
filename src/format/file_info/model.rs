@@ -23,9 +23,12 @@
 //! Several declared fields are never written by the source `run` at core
 //! `bc9cc12` either:
 //! [`FileInfoResult::experiment_meta`](crate::format::file_info::model::FileInfoResult::experiment_meta),
-//! [`FileInfoResult::statistics`](crate::format::file_info::model::FileInfoResult::statistics)
-//! and, for a feature map, every consensus-only field. The port leaves them at
-//! their defaults in the same places.
+//! [`FileInfoResult::statistics`](crate::format::file_info::model::FileInfoResult::statistics),
+//! [`FileInfoResult::corruption`](crate::format::file_info::model::FileInfoResult::corruption),
+//! [`FileInfoResult::detail`](crate::format::file_info::model::FileInfoResult::detail),
+//! the validation `schema_version` and `detail`, and, for a feature map, every
+//! consensus-only field. The port leaves them at their defaults in the same
+//! places.
 
 use crate::concept::progress_logger::ProgressLogType;
 use crate::format::FileType;
@@ -390,6 +393,10 @@ pub struct MzTabInfo {
 
 /// The `-v` schema and semantic validation and `-i` indexed-mzML blocks, the
 /// source `FileInfo::ValidationInfo`. Neither flag runs in this port yet.
+///
+/// The source `run` fills `performed`, `supported`, `valid`, `warnings`,
+/// `errors` and the four index fields; it never writes `schema_version` or
+/// `detail` at core `bc9cc12`, whose validator output goes only into the text.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ValidationInfo {
     /// Whether validation ran.
@@ -398,9 +405,10 @@ pub struct ValidationInfo {
     pub supported: bool,
     /// Whether the file was valid.
     pub valid: bool,
-    /// Schema version validated against.
+    /// Schema version validated against; never written by the source run.
     pub schema_version: String,
-    /// Captured validator output, re-emitted verbatim.
+    /// Captured validator output, re-emitted verbatim; never written by the
+    /// source run.
     pub detail: String,
     /// Semantic-validation warnings.
     pub warnings: Vec<String>,
@@ -436,7 +444,11 @@ impl Default for ValidationInfo {
 }
 
 /// The `-c` corrupt-data block, the source `FileInfo::CorruptionInfo`, with
-/// already formatted message lines. Not run by this port yet.
+/// already formatted message lines.
+///
+/// Declared by the source, never filled by its `run` at core `bc9cc12`: the
+/// `-c` messages go only into the text report. [`FileInfoResult::corruption`]
+/// therefore stays at its default here too.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CorruptionInfo {
     /// Whether the check ran.
@@ -448,7 +460,11 @@ pub struct CorruptionInfo {
 }
 
 /// The `-d` detailed per-spectrum listing, the source `FileInfo::DetailInfo`,
-/// kept as rendered lines. Not run by this port yet.
+/// kept as rendered lines.
+///
+/// Declared by the source, never filled by its `run` at core `bc9cc12`: the
+/// listing goes only into the text report. [`FileInfoResult::detail`]
+/// therefore stays at its default here too.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct DetailInfo {
     /// Whether the listing ran.
@@ -486,11 +502,12 @@ pub struct FileInfoResult {
     pub processing: Vec<ProcessingStep>,
     /// Always empty, as the source leaves it; see [`NamedStats`].
     pub statistics: Vec<NamedStats>,
-    /// Validation and index-check results; never performed by this port yet.
+    /// Validation and index-check results; `-v` and `-i` do not run in this
+    /// port yet, so it stays at its default.
     pub validation: ValidationInfo,
-    /// Corrupt-data check results; never performed by this port yet.
+    /// Always at its default, as the source leaves it; see [`CorruptionInfo`].
     pub corruption: CorruptionInfo,
-    /// Detailed listing; never performed by this port yet.
+    /// Always at its default, as the source leaves it; see [`DetailInfo`].
     pub detail: DetailInfo,
     /// trafoXML model and summary; never set by this port yet.
     pub transformation_summary: String,
