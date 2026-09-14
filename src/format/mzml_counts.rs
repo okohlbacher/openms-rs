@@ -28,7 +28,9 @@ pub struct MzMLCounts {
 pub const MAX_COUNT_EVENT_BYTES: usize = 1024 * 1024;
 /// Maximum XML nesting, including ignored record payload.
 pub const MAX_COUNT_XML_DEPTH: usize = 256;
-/// Maximum semantic descriptor, expanded-parameter and MS-level membership work.
+/// Default floor of the counting work allowance: semantic descriptor,
+/// expanded-parameter and MS-level membership work. The allowance grows with
+/// the consumed input; see `ReadOptions::scaling.count_work`.
 pub const MAX_COUNT_WORK: usize = 50_000_000;
 
 /// Read source-default declared counts; stop once both list counts are known.
@@ -354,7 +356,9 @@ impl<'a> State<'a> {
             group_list: None,
             group_list_seen: false,
             pending: Vec::new(),
-            work: MAX_COUNT_WORK,
+            // No absolute ceiling: `ReadOptions::scaling.count_work` bounds
+            // the counting work once `parse_impl` attaches it.
+            work: usize::MAX,
             budget: ParameterBudget {
                 remaining: limits.max_total_params,
                 bytes: limits.max_param_bytes,
@@ -744,7 +748,7 @@ impl Setup {
                     &mut state.budget,
                     &mut self.work,
                     &mut self.experiment.settings,
-                    state.limits.source_dangling_references,
+                    state.limits,
                 )?;
             }
             "spectrumList" | "chromatogramList" => {
@@ -877,7 +881,37 @@ fn parse_impl(
     let mut declaration = false;
     let mut encoding = Encoding::Utf8;
     let mut can_discard = true;
+    // Size-derived allowances, reconciled with the consumed input before each
+    // event (see `ReadOptions::scaling`). The count work has no absolute
+    // ceiling of its own; `MAX_COUNT_WORK` is the default floor.
+    let scaling = &limits.scaling;
+    let mut ledger = super::scaling::Ledger::attach([
+        (&mut state.work, scaling.count_work),
+        (&mut state.budget.remaining, scaling.params),
+        (&mut state.budget.bytes, scaling.param_bytes),
+    ]);
+    let mut setup_ledger = setup.as_deref_mut().map(|setup| {
+        // The header allowance has no absolute ceiling either.
+        setup.work.remaining = usize::MAX;
+        setup.work.bytes = usize::MAX;
+        super::scaling::Ledger::attach([
+            (&mut setup.work.remaining, scaling.metadata_work),
+            (&mut setup.work.bytes, scaling.metadata_bytes),
+        ])
+    });
     loop {
+        let position = reader.get_mut().consumed;
+        ledger.sync(
+            position,
+            [
+                &mut state.work,
+                &mut state.budget.remaining,
+                &mut state.budget.bytes,
+            ],
+        );
+        if let (Some(ledger), Some(setup)) = (setup_ledger.as_mut(), setup.as_deref_mut()) {
+            ledger.sync(position, [&mut setup.work.remaining, &mut setup.work.bytes]);
+        }
         let whitespace = stack.is_empty()
             || (setup.is_some() && !state.seen_run)
             || (!state.skipped()

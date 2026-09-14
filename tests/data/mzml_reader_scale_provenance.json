@@ -1,0 +1,192 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "cli": "c19e494",
+  "topp": "174b576"
+ },
+ "license": "BSD-3-Clause",
+ "scope": "Two OpenMS4 benchmark blockers of the mzML reader. (1) Source-compatible reading of a run startTimeStamp or processingMethod completion time that DateTime::set rejects, including the ProteoWizard sentinel \"-infinity\" and the Boost spellings \"infinity\" and \"not-a-date-time\"; selected by mzml::ReadOptions::source_invalid_timestamps (and ReadOptions::source()), with the default staying strict. (2) Size-derived cumulative reader ceilings: every cumulative allowance is floor + per_byte * consumed XML bytes, applied together with the absolute ReadOptions/LoadOptions ceilings, which now default to unbounded. The Numpress coder allowance becomes per array; the scientific selection allowance stays cumulative but scales.",
+ "source_files": [
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
+   "sha256": "bc766b362acec369917682cbb0c14a22cfeb83cc4e5c28ead5fc9556bf02eba2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DateTime.h",
+   "sha256": "50a9834bbe7d2723850aca762e3cca31777aa0d2c472e908f174c92fadc60e2f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  }
+ ],
+ "source_anchors": [
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
+   "line": 332,
+   "operation": "DateTime::set throws Exception::ParseError for text no format matches, the sentinels included; the type has no notion of a sentinel, so the leniency belongs at the mzML boundary"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "line": 359,
+   "operation": "asDateTime_: trims, keeps the first 19 characters, calls DateTime::set, catches ParseError, calls error(LOAD, 'DateTime conversion error of ...') and returns an unset DateTime; an empty string returns unset silently"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "line": 71,
+   "operation": "error(LOAD, msg) prints 'Non-fatal error while loading ...' on OPENMS_LOG_ERROR and returns; loading continues"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "line": 232,
+   "operation": "cvParamToValue, XSD_DATE branch: a value DateTime::set rejects warns and returns DataValue::EMPTY, so handleCVParam_ (MzMLHandler.cpp:1539) returns before the completion time is stored"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 1236,
+   "operation": "run: exp_->setDateTime(asDateTime_(start_time)); the raw text is kept as mzml_start_time_stamp only when longer than 19 characters"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 3248,
+   "operation": "processingMethod MS:1000747: processing_[current_id_].back()->setCompletionTime(asDateTime_(value))"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 5209,
+   "operation": "writer: startTimeStamp is emitted only when the run DateTime is valid, and mzml_start_time_stamp is excluded from the run userParams (line 5229)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 965,
+   "operation": "contrast for the ceilings: the source reserves from the declared list count and has no resource ceiling of any kind"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_reader_scale/pxd001819_50amol_r1_first3.mzML",
+   "sha256": "7063c05a2e78820a791b98022cb9b095cd47913cbb6c62df8a3891fc68d6a147",
+   "kind": "first three spectra of the benchmark input /ceph/ibmi/abi/oliver/bench/openms4/inputs/centroid_lcms_velos_pxd001819_50amol_r1/50amol_R1.mzML (sha256 of the full file in inputs/MANIFEST.json), cut with the benchmark harness slice_mzml.py; carries ProteoWizard's own startTimeStamp=\"-infinity\" and zlib arrays"
+  },
+  {
+   "path": "tests/data/mzml_reader_scale/cpp_timestamp_oracle.tsv",
+   "sha256": "06d9d9b3f8604381e402eb060a2d2efc4385a373130db1ff59a9f1e70018fe55",
+   "kind": "executed C++ Release results, one row per timestamp spelling: exit codes of FileInfo and FileConverter, the non-fatal error text, and the startTimeStamp of the written file"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/mzml-reader-scale/datetime_sentinel_cpp.sh",
+   "sha256": "e6fdecab2431a1480156a1a12fee23d9d4dc09ebd1e4be74080d8b34858a9d10",
+   "origin_key": "fixtures",
+   "label": "driver (tier 1 executed): runs the C++ Release FileInfo, FileConverter and MzMLSplitter on each timestamp case"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/cpp_timestamp_run/minus_infinity/converted.mzML",
+   "sha256": "00c8480de1cbadb9fdf9ec108145b670d19becd40fbdf971c31b29c9cdc607e8",
+   "origin_key": "fixtures",
+   "label": "C++ FileConverter output for startTimeStamp=\"-infinity\": the run element has no startTimeStamp"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/cpp_timestamp_run/infinity/converted.mzML",
+   "sha256": "7440172efb2f758d70999328238fd513fcf9317705d7721040dbaccda4e04677",
+   "origin_key": "fixtures",
+   "label": "C++ FileConverter output for startTimeStamp=\"infinity\""
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/cpp_timestamp_run/not_a_date_time/converted.mzML",
+   "sha256": "5598d15860b9be0fd75dfb7e2799e82ee3aa33bbf12a62222009bd4a3d3a9050",
+   "origin_key": "fixtures",
+   "label": "C++ FileConverter output for startTimeStamp=\"not-a-date-time\""
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/cpp_timestamp_run/empty/converted.mzML",
+   "sha256": "38e77d7d414e7c10383648c2c6fc4145d7209f85256ae42997478fdd6328db35",
+   "origin_key": "fixtures",
+   "label": "C++ FileConverter output for an empty startTimeStamp"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/cpp_timestamp_run/valid_control/converted.mzML",
+   "sha256": "de2a3df09e66168d350b6634633d39f5c2ee60ca77f16c2321cc29010810d9c7",
+   "origin_key": "fixtures",
+   "label": "C++ FileConverter control output: startTimeStamp=\"2014-01-01T00:00:00\" is preserved"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/cpp_timestamp_run/completion_not_a_date_time/converted.mzML",
+   "sha256": "7f7a2f04ad9acddf90b216c328c99a6b9ce1d24734cae010740f57edb32514c1",
+   "origin_key": "fixtures",
+   "label": "C++ FileConverter output with a processingMethod completion time \"not-a-date-time\": the term is dropped, only the converter's own MS:1000747 is written"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/probe_instrumentation.diff",
+   "sha256": "6edf8e1040f6ccb567fb27fe6f182c49939f62ef64e6743230857ec61e720622",
+   "origin_key": "measurements",
+   "label": "temporary Rust instrumentation (not committed) that reports the charge of each cumulative allowance per consumed XML byte"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/probe_scale.rs.txt",
+   "sha256": "d14f6e3b4218e4a67df05b0bdc7b36665e92383ce4c95b47e142e3a28cb01d63",
+   "origin_key": "measurements",
+   "label": "the temporary test that drove the instrumentation with every ceiling disabled"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/probe_unlimited_ibminode06.log",
+   "sha256": "6f66462506aa6c52366254e40252a69df87967e9ed66995359bd17493a83caa0",
+   "origin_key": "measurements",
+   "label": "the measured per-byte ratios and peak RSS for all six benchmark mzML inputs on ibminode06, from which the InputScaling defaults are derived"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/hpc_scale_06.sh",
+   "sha256": "f0fa753394276452b7e2dd833bc5f8e4983f49237dc696069f6c83860cb88596",
+   "origin_key": "measurements",
+   "label": "runner for the #[ignore]d HPC scale tests, one process per input, under /usr/bin/time -v"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/sync_build_06.sh",
+   "sha256": "933e707f9065b99f17b8ae0c6a9ecfe0518975ea3235866ca7bb3aaf727c54c8",
+   "origin_key": "measurements",
+   "label": "release build of the test binaries on ibminode06 (measurement only; the gates run on dax)"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/hpc_scale_ibminode06.log",
+   "sha256": "b2281a758a91149e42e8076b894c75619699dc320aab5e05154348e504f5657c",
+   "origin_key": "measurements",
+   "label": "the #[ignore]d HPC scale tests run against this commit on ibminode06: wall time and peak RSS per benchmark input"
+  }
+ ],
+ "external_reference_note": "No C++ is committed to this repository. The C++ driver is a shell script under ../oracle/mzml-reader-scale/ that runs the prebuilt Release TOPP tools at /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (BUILD_MANIFEST.json there records the build); only its results enter the repository, as the oracle TSV above. The benchmark inputs stay on /ceph/ibmi/abi/oliver/bench/openms4/inputs and are read only by #[ignore]d tests.",
+ "evidence_tier": "tier_1_executed_cpp_for_the_timestamp_policy_plus_tier_4_measured_ceilings",
+ "method": "Tier 1: datetime_sentinel_cpp.sh replaced run/@startTimeStamp in a three-spectrum slice of 50amol_R1.mzML with -infinity, infinity, not-a-date-time, an empty value and a valid control, added a processingMethod completion time of not-a-date-time in a sixth case, and ran the C++ Release FileInfo, FileConverter and MzMLSplitter on each. Exit codes, stderr and the written run element are the expected values in tests/mzml_reader_scale.rs. Tier 4: an instrumented reader with every ceiling disabled measured the charge of each cumulative allowance per consumed XML byte on all six benchmark mzML inputs (0.5-2.3 GB, uncompressed and zlib); the InputScaling defaults keep the former fixed ceilings as floors and grant at least eight times the largest measured ratio per byte. The #[ignore]d HPC tests then read every input with the defaults and compare spectrum counts against inputs/MANIFEST.json, which a Python header scan produced. Synthetic documents (20,000 sparse spectra; 4,000 zlib and 6,500 Numpress spectra of 200-500 points) show that the former fixed ceilings, reproduced by InputScaling::fixed, reject a realistic file while the size-derived ones admit it, and adversarial documents (a declared billion points, a 4,000-fold zlib bomb, a 20,000-parameter group expanded per spectrum, 200 levels of nesting) stay refused.",
+ "measurements": {
+  "node": "ibminode06 (AMD EPYC 7763, 128 logical CPUs, 995 GiB RAM, Ubuntu 24.04), inputs staged on node-local /scratch",
+  "build": "cargo test --release --locked --features mzml-validation,paramxml",
+  "note": "Wall time and peak RSS per input are in ../oracle/mzml-reader-scale/hpc_scale_ibminode06.log; each row is one process reading one input with ReadOptions::source() and then counting it again with load_size_with_options."
+ },
+ "native_implementation": [
+  "src/format/mzml_scaling.rs",
+  "src/format/mzml.rs",
+  "src/format/mzml_counts.rs",
+  "src/format/mzml_load.rs",
+  "src/format/mzml_header.rs",
+  "src/format/mzml_header/read.rs"
+ ],
+ "native_tests": [
+  "tests/mzml_reader_scale.rs",
+  "src/format/mzml_scaling.rs"
+ ],
+ "support_document": "docs/MZML_READER_SCALE_SUPPORT.md",
+ "target_verification": {
+  "tests": "tests/mzml_reader_scale.rs (8 public, 6 #[ignore]d HPC) and the 3 private Ledger tests in src/format/mzml_scaling.rs, plus every existing mzml*, indexed_mzml*, on_disc*, file_handler*, file_info and topp_* test binary",
+  "cpp_issue_candidate": "None from this lane: the source's treatment of a rejected timestamp is deliberate (a non-fatal error) and its lack of resource ceilings is a design choice, not a defect."
+ }
+}
