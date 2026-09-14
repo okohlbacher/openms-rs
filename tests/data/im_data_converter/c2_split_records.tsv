@@ -1,0 +1,11 @@
+c2_input	one_cv	faims_one_cv.mzML	112	-0x1.68p+5
+c2_group	one_cv	source_sequence	0	-0x1.68p+5	112	true
+c2_input	two_cv	faims_two_cv.mzML	112	-0x1.ep+5,-0x1.68p+5
+c2_group	two_cv	source_sequence	0	-0x1.ep+5	56	true
+c2_group	two_cv	source_sequence	1	-0x1.68p+5	56	true
+c2_input	ffc1_non_faims	FeatureFinderCentroided_1_input.mzML	112	-
+c2_group	ffc1_non_faims	source_sequence	0	nan	112	false
+c2_fact	split_groups_have_no_ms_level_ranges_synthetic	0	-0x1.ep+5	2	true
+c2_fact	split_groups_have_no_ms_level_ranges_synthetic	1	-0x1.68p+5	2	true
+c2_fact	split_groups_have_no_ms_level_ranges_two_cv_ffc1	0	-0x1.ep+5	56	true
+c2_fact	split_groups_have_no_ms_level_ranges_two_cv_ffc1	1	-0x1.68p+5	56	true
