@@ -210,6 +210,46 @@ fn noncanonical_metadata_remains_user_param_without_type_or_method_changes() {
     assert!(!xml.contains("MS:1002679"));
 }
 
+/// Source `MzMLHandler.cpp:4596-4601` writes `MS:1000042` only for a positive
+/// intensity, always with its unit attributes. The C++ Release output of
+/// MapNormalizer on `inputs/derived/sub_centroid_uk222_picked_first600.mzML`
+/// carries the term on the same 149 of 600 spectra as the input, while this
+/// port used to add `value="0"` to the 49 remaining precursors.
+#[test]
+fn absent_precursor_intensity_writes_no_peak_intensity_term() {
+    let mut p = Precursor::default();
+    p.mz = 684.203_369_140_625;
+    p.charge = 2;
+    for chrom in [false, true] {
+        let xml = roundtrip(&p, chrom);
+        assert!(!xml.contains("MS:1000042"), "{xml}");
+    }
+    let mut measured = p.clone();
+    measured.intensity = 12611.4365234375;
+    let xml = roundtrip(&measured, false);
+    assert!(
+        xml.contains(
+            "<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" \
+             value=\"12611.437\" unitAccession=\"MS:1000132\" unitCvRef=\"MS\" \
+             unitName=\"percent of base peak\"/>"
+        ),
+        "{xml}"
+    );
+    // A negative or explicitly united intensity is kept where the source drops
+    // it, because omitting it would change the value that reads back.
+    let mut negative = p.clone();
+    negative.intensity = -1.5;
+    assert!(roundtrip(&negative, false).contains("value=\"-1.5\""));
+    let mut united = p.clone();
+    united
+        .cv_terms
+        .metadata
+        .insert("peak intensity unit accession".into(), "MS:1000131".into());
+    let xml = roundtrip(&united, false);
+    assert!(xml.contains("accession=\"MS:1000042\""), "{xml}");
+    assert!(xml.contains("unitAccession=\"MS:1000131\""), "{xml}");
+}
+
 #[test]
 fn intensity_default_normalizes_and_nondefault_identity_survives() {
     for unit in [
