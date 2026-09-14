@@ -110,8 +110,8 @@ Letters mark lanes:
 - PeakPickerHiRes in memory: P3.
 - The bundle: C6.
 
-The three tools and FileInfo.h stay `partial` in the ledger until waves 5 and 6
-close them.
+The three tools stay `partial` in the ledger until waves 5 and 6 close them;
+FileInfo.h stays `unmapped` (nothing of it is ported) until A4-A8 land.
 
 ## Wave 1 status
 
