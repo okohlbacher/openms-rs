@@ -51,16 +51,39 @@
 //! # Platform `exp` and `log`
 //!
 //! `exp` and `log` are the platform C library's, as in the source, through
-//! `f64::exp` and `f64::ln`; `sqrt` is correctly rounded everywhere. The `libm`
-//! crate's `exp` was measured and rejected: at the 3,972 residuals the executed
-//! C++ recorded (Apple libm on macOS arm64), glibc's `exp` on Linux x86-64
-//! agreed bit for bit with Apple's at every point, while the `libm` crate's
-//! differed by one unit in the last place at 362 of them. A residual near a
-//! converged fit is a small difference of large terms, so one unit in the last
-//! place of `exp` moved residuals by up to 9e-12 relative and fitted
-//! parameters by up to 1.1e-9. The results are therefore as reproducible
-//! across machines as the platform `exp` is: identical where the platform
-//! rounds `exp` correctly, as glibc and Apple libm did at every recorded point.
+//! `f64::exp` and `f64::ln`. They are the only platform-dependent operations on
+//! the fit path: `sqrt` is correctly rounded everywhere, and the solver calls
+//! nothing else from the C library. A fit is serial and repeats bit for bit on
+//! one platform, but its last bits depend on the C library, so results are not
+//! bit-identical across platforms:
+//!
+//! - glibc 2.39 (Linux x86-64) and Apple libm (macOS arm64, where the oracle
+//!   ran) return different last bits at 70 of the 37,080 distinct `exp`
+//!   arguments the tests reach; the 25 `log` arguments agree. At the 3,972
+//!   residual points the executed C++ recorded, both reproduce the oracle bit
+//!   for bit.
+//! - Fits that pass through such an argument differ between the two. For
+//!   example, `start.trailing_max` deviates from the oracle by 1.72e-3 on Linux
+//!   and 1.49e-3 on macOS, and of the 19,572 FeatureFinderCentroided_1 values
+//!   16,699 are bit-identical on Linux and 16,696 on macOS.
+//! - With Apple libm's values substituted for every `exp` and `log` on Linux,
+//!   the Linux run reproduces the macOS run, so the C library is the whole
+//!   difference. The acceptance criteria hold on both platforms.
+//!
+//! Two platform-independent choices were measured and not adopted:
+//!
+//! - The `libm` crate's `exp` differs from both platform libraries by one unit
+//!   in the last place at 362 of the recorded residual points. That breaks the
+//!   1e-14 residual criterion (up to 9.1e-12 relative) and moves fitted
+//!   parameters by up to 1.13e-9.
+//! - A correctly rounded `exp` and `log`, simulated by table lookup, meets every
+//!   criterion and would give the same bits on every platform. Neither platform
+//!   library is correctly rounded, though (glibc misrounds 31 of the arguments,
+//!   Apple libm 69), so it matches the oracle in fewer last bits: 16,658 of the
+//!   FeatureFinderCentroided_1 values.
+//!
+//! Choosing between the platform library and a correctly rounded one is left
+//! to the integrator; the Gaussian and EGH fitters must make the same choice.
 //!
 //! The support document `docs/TRACE_FITTER_SUPPORT.md` records the API
 //! mapping, the native differences and the executed evidence.
@@ -325,7 +348,8 @@ fn pow2(b: f64) -> f64 {
     b * b
 }
 
-/// The exponential the source calls, `exp` of the platform C library.
+/// The exponential the source calls, `exp` of the platform C library. Its last
+/// bit differs between C libraries; see the module documentation.
 fn exp(x: f64) -> f64 {
     x.exp()
 }

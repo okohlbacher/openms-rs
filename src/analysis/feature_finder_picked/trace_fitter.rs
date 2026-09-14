@@ -105,6 +105,9 @@ pub struct TraceFitterParams {
     /// `SignedSize` member: the source parameter carries no minimum, and a value
     /// of zero or below makes every fit fail, because Eigen refuses
     /// `maxfev <= 0` as improper input.
+    ///
+    /// The record and [`Self::to_param`] take the whole `i64` range, but
+    /// [`Self::from_param`] reads back only values within `i32`; see there.
     pub max_iteration: i64,
     /// Whether each trace's residuals are weighted by its theoretical
     /// intensity during the fit: source parameter `weighted`, the string
@@ -187,6 +190,20 @@ impl TraceFitterParams {
     /// `Exception::InvalidParameter`: when `max_iteration` is not an integer,
     /// or `weighted` is not one of the strings `"true"` and `"false"`. Also
     /// returns it when a `Param` resource ceiling is reached.
+    ///
+    /// Also returns it, with the message `"parameter value cannot be converted
+    /// to i32"`, when `max_iteration` lies outside the `i32` range, where the
+    /// source accepts it. This is a native difference inherited from
+    /// `crate::param`, whose restriction check converts every integer entry to
+    /// `i32` and fails on overflow. The source's `ParamEntry::isValid` narrows
+    /// the value to `int` without a check, and `updateMembers_` then reads the
+    /// full 64-bit value. The executed product SDK accepts and stores 2^31,
+    /// 3,000,000,000, -2^31 - 1 and `i64::MAX`.
+    ///
+    /// `FeatureFinderAlgorithmPicked` does not reach the difference. It passes
+    /// `fit:max_iterations` as a `UInt`, and the source checks that parameter's
+    /// minimum of 1 on the `int`-narrowed value, so the value it hands the
+    /// fitter stays below 2^31.
     pub fn from_param(parameters: &Param) -> Result<(Self, Vec<String>)> {
         let mut handler = DefaultParamHandler::new(Self::HANDLER_NAME)?;
         handler.set_defaults(Self::defaults()?)?;
@@ -195,6 +212,10 @@ impl TraceFitterParams {
 
     /// The record as a `Param` with the source's descriptions, tags and
     /// restrictions: source `getParameters` of a fitter holding these values.
+    ///
+    /// Every `max_iteration` is written, but [`Self::from_param`] reads the
+    /// result back only when `max_iteration` lies within `i32`. Outside that
+    /// range the round trip fails, where the source's round trip succeeds.
     ///
     /// # Errors
     ///
@@ -412,11 +433,20 @@ pub const UNABLE_TO_FIT_FINAL_SET: &str = "UnableToFit-FinalSet";
 /// the parameter allows. [`optimize`] therefore passes the smaller of
 /// `max_iteration` and `MAX_RESIDUAL_WORK / values` (at least 1) to the solver
 /// and refuses, rather than accepts, a fit that exhausts this ceiling before
-/// the configured budget. A fit that ends within the ceiling is unaffected: its
-/// evaluations, status and parameters are those of the uncapped budget. At the
-/// feature finder's sizes (tens to a few thousand residuals) the ceiling is
-/// hundreds of thousands of evaluations or more, against natural termination
-/// after tens.
+/// the configured budget.
+///
+/// A fit that ends before the ceiling is unaffected: its evaluations, status
+/// and parameters are those of the uncapped budget. So is a fit that ends at
+/// exactly the ceiling's evaluation with status 1, 2 or 3, because the solver
+/// tests those before the budget. A fit whose uncapped run would end at exactly
+/// that evaluation with status 4 (`CosinusTooSmall`), 6, 7 or 8 is refused. The
+/// solver tests the budget first: before `FtolTooSmall`, `XtolTooSmall` and
+/// `GtolTooSmall` in the same step, and before the next iteration's
+/// `CosinusTooSmall` test, as Eigen does. This needs at least
+/// `MAX_RESIDUAL_WORK / values` evaluations, 1,073 or more within the solver's
+/// point ceiling. At the feature finder's sizes (tens to a few thousand
+/// residuals) the ceiling is hundreds of thousands of evaluations or more,
+/// against natural termination after tens.
 pub const MAX_RESIDUAL_WORK: usize = 1 << 30;
 
 /// The error standing in for the source's `Exception::UnableToFit` named
@@ -474,9 +504,11 @@ pub const FEWER_RESIDUALS_THAN_PARAMETERS: &str = "Skipping feature, we always e
 ///   [`crate::math::fitters::levenberg_marquardt::preflight_points`] when
 ///   `values` or the dense Jacobian exceed the solver's ceilings, checked
 ///   before anything is evaluated. The source has no ceiling.
-/// - [`Error::InvalidValue`] when the fit spends [`MAX_RESIDUAL_WORK`] before
-///   it ends and before the configured budget is spent; see that constant. The
-///   source would continue.
+/// - [`Error::InvalidValue`] when the solver stops on the work ceiling derived
+///   from [`MAX_RESIDUAL_WORK`] while the configured budget is larger. That
+///   includes a fit whose natural end with status 4, 6, 7 or 8 falls on exactly
+///   the ceiling's evaluation, because the budget test comes first; see that
+///   constant. The source would continue or accept.
 pub fn optimize<R, J>(
     x: &mut [f64],
     values: usize,
@@ -832,6 +864,67 @@ mod tests {
             LmStatus::TooManyFunctionEvaluation
         );
         assert_eq!(capped.map(f64::to_bits), uncapped.map(f64::to_bits));
+    }
+
+    /// `x - 1` and a constant zero: one Gauss-Newton step reaches a zero
+    /// residual, and the next iteration stops with `CosinusTooSmall` after two
+    /// evaluations.
+    fn linear(x: &[f64], f: &mut [f64]) {
+        f[0] = x[0] - 1.0;
+        f[1] = 0.0;
+    }
+
+    fn linear_jacobian(_x: &[f64], jac: &mut DenseMatrix) {
+        jac.set(0, 0, 1.0);
+        jac.set(1, 0, 0.0);
+    }
+
+    fn run_linear(max_iteration: i64, residual_work: usize) -> (Result<LmStatus>, [f64; 1], usize) {
+        let mut x = [0.0];
+        let mut evaluations = 0usize;
+        let result = optimize_bounded(
+            &mut x,
+            2,
+            |point: &[f64], f: &mut [f64]| {
+                evaluations += 1;
+                linear(point, f);
+            },
+            linear_jacobian,
+            &TraceFitterParams {
+                max_iteration,
+                weighted: false,
+            },
+            residual_work,
+        );
+        (result, x, evaluations)
+    }
+
+    /// The budget test precedes `CosinusTooSmall` (and `FtolTooSmall`,
+    /// `XtolTooSmall`, `GtolTooSmall`), so a fit whose natural end with one of
+    /// those statuses falls on exactly the ceiling's evaluation is refused, as
+    /// `MAX_RESIDUAL_WORK` documents; one evaluation more of ceiling gives the
+    /// uncapped fit.
+    #[test]
+    fn a_late_status_at_exactly_the_ceiling_is_refused() {
+        let (natural, fitted, evaluations) = run_linear(500, MAX_RESIDUAL_WORK);
+        assert_eq!(natural.unwrap(), LmStatus::CosinusTooSmall);
+        assert_eq!(evaluations, 2);
+        assert_eq!(fitted, [1.0]);
+
+        let (status, x, _) = run_linear(500, 2 * 3);
+        assert_eq!(status.unwrap(), LmStatus::CosinusTooSmall);
+        assert_eq!(x.map(f64::to_bits), fitted.map(f64::to_bits));
+
+        let (status, x, spent) = run_linear(500, 2 * 2);
+        assert!(matches!(status, Err(Error::InvalidValue(ref m)) if m.contains("work ceiling")));
+        assert_eq!(x, [0.0]);
+        assert_eq!(spent, 2);
+
+        // The same stop from the configured budget is accepted, as the source
+        // accepts `TooManyFunctionEvaluation`.
+        let (status, x, _) = run_linear(2, MAX_RESIDUAL_WORK);
+        assert_eq!(status.unwrap(), LmStatus::TooManyFunctionEvaluation);
+        assert_eq!(x.map(f64::to_bits), fitted.map(f64::to_bits));
     }
 
     /// A ceiling below one evaluation per residual still allows the initial

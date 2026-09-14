@@ -375,6 +375,50 @@ fn to_param_round_trips_and_carries_the_restrictions() {
     }
 }
 
+/// The current boundary of the `Param` round trip, a native difference
+/// (`docs/TRACE_FITTER_SUPPORT.md`, native difference 8).
+///
+/// `to_param` writes every `i64`. `from_param` refuses values outside `i32`,
+/// because `crate::param`'s restriction check converts integer entries to
+/// `i32`. The executed product SDK
+/// (`../oracle/gauss-trace-fitter/param-range/results/out.tsv`) accepts each
+/// value below and stores it unchanged in `param_` and in `max_iterations_`.
+/// When `crate::param` narrows as the source does, this test must change to
+/// the source's outcome.
+#[test]
+fn to_param_and_from_param_disagree_beyond_i32() {
+    for max_iteration in [i64::from(i32::MAX), i64::from(i32::MIN)] {
+        let record = TraceFitterParams {
+            max_iteration,
+            weighted: false,
+        };
+        let (back, _) = TraceFitterParams::from_param(&record.to_param().unwrap()).unwrap();
+        assert_eq!(back, record);
+    }
+    for max_iteration in [
+        i64::from(i32::MAX) + 1,
+        3_000_000_000,
+        i64::from(i32::MIN) - 1,
+        i64::MAX,
+    ] {
+        let record = TraceFitterParams {
+            max_iteration,
+            weighted: true,
+        };
+        let param = record.to_param().unwrap();
+        assert_eq!(
+            *param.value("max_iteration").unwrap(),
+            ParamValue::Integer(max_iteration)
+        );
+        match TraceFitterParams::from_param(&param) {
+            Err(Error::InvalidValue(message)) => {
+                assert_eq!(message, "parameter value cannot be converted to i32");
+            }
+            other => panic!("{max_iteration}: {other:?}"),
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // The driver
 // ---------------------------------------------------------------------------

@@ -99,7 +99,8 @@ C++ (the C2 oracle reaches them through a derived probe class).
   parameter vector reach that status without an evaluation, as Eigen's
   `minimizeInit` does. On every error the parameter vector is unchanged.
 - `max_iteration` is signed, has no minimum and no maximum, and is read as an
-  integer; `weighted` is true exactly when it is the string `"true"`.
+  integer (through `from_param` only within `i32`; native difference 8);
+  `weighted` is true exactly when it is the string `"true"`.
 - `computeTheoretical` is `trace.theoretical_int * getValue(trace.peaks[k].rt)`.
 - The span checks keep the subclasses' comparisons: `true` reports the
   violation, although the header documents the opposite.
@@ -137,12 +138,24 @@ C++ (the C2 oracle reaches them through a derived probe class).
 ## Native differences
 
 1. **`exp` and `log` come from the platform C library**, as in the source,
-   through `f64::exp` and `f64::ln`. The work package's notes proposed the
-   `libm` crate for cross-machine reproducibility; it was measured and rejected
-   (see the evidence section): its `exp` differs from Apple's and glibc's by one
-   unit in the last place at 9% of the recorded residual points, which breaks
-   the 1e-14 residual criterion and moves FeatureFinderCentroided_1 fits by up to
-   1.1e-9. Results are as reproducible across machines as the platform `exp`.
+   through `f64::exp` and `f64::ln`, so fitted parameters are **not
+   bit-identical across platforms**. glibc 2.39 (Linux x86-64) and Apple libm
+   (macOS arm64) disagree in the last bit at 70 of the 37,080 distinct `exp`
+   arguments the tests reach. The same commit therefore gives different fits on
+   the two platforms the project tests on; for example `start.trailing_max`
+   deviates from the oracle by 1.72e-3 on Linux and 1.49e-3 on macOS. Both meet
+   every acceptance criterion. A fit is serial and repeats bit for bit on one
+   platform.
+   - The work package's notes proposed the `libm` crate for cross-machine
+     reproducibility. It was measured and rejected: its `exp` differs from both
+     platform libraries by one unit in the last place at 9% of the recorded
+     residual points, which breaks the 1e-14 residual criterion and moves
+     FeatureFinderCentroided_1 fits by up to 1.1e-9.
+   - A correctly rounded `exp` and `log` meets every criterion in a
+     table-lookup simulation and would be identical on every platform. It
+     matches the oracle in fewer last bits.
+   - The choice is the integrator's (see "`exp` and `log` across platforms").
+     B5-EGH must follow it.
 2. **Errors** are `Error::InvalidValue` whose message starts with
    `UnableToFit-FinalSet: `, the source exception's name; the part after it is
    the source's `what()`.
@@ -154,12 +167,24 @@ C++ (the C2 oracle reaches them through a derived probe class).
 5. **Work ceilings.** `optimize` checks the solver's point and byte ceilings
    (`levenberg_marquardt::preflight_points`: 1,000,000 residuals, 64 MiB of
    Jacobian) before evaluating, and passes at most `MAX_RESIDUAL_WORK / values`
-   (2^30 residual evaluations in total, at least one evaluation) as `maxfev`. A
-   fit that ends within that ceiling is exactly the uncapped fit; one that would
-   need more before its configured budget is refused with `Error::InvalidValue`
-   and leaves the parameters unchanged, where the source would continue.
-   FeatureFinderCentroided_1's fits end after 30 to 131 evaluations over about
-   100 residuals, against a ceiling of about ten million.
+   (2^30 residual evaluations in total, at least one evaluation) as `maxfev`.
+   When the ceiling is below the configured budget and the solver stops on
+   it, the fit is refused with `Error::InvalidValue` and the parameters are
+   left unchanged, where the source would continue or accept.
+   - A fit that ends before the ceiling is exactly the uncapped fit.
+   - So is a fit that ends at the ceiling's own evaluation with status 1, 2
+     or 3, which the solver tests before the budget.
+   - A fit whose uncapped run would end at exactly that evaluation with status
+     4, 6, 7 or 8 is refused. Eigen and the transcription test the budget
+     before `FtolTooSmall`, `XtolTooSmall` and `GtolTooSmall`, and before the
+     next iteration's `CosinusTooSmall`. The unit tests
+     `the_work_ceiling_refuses_only_fits_that_outlast_it` and
+     `a_late_status_at_exactly_the_ceiling_is_refused` check both sides.
+
+   Within the solver's point ceiling the work ceiling is at least 1,073
+   evaluations. FeatureFinderCentroided_1's fits
+   end after 30 to 131 evaluations over about 100 residuals, against a ceiling
+   of about ten million.
 6. **`Clone` copies `region_rt_span`.** The source copy constructor and
    assignment copy `height_`, `x0_` and `sigma_` but not `region_rt_span_`, so
    `checkMaximalRTSpan` on a copy reads an indeterminate value.
@@ -175,6 +200,18 @@ C++ (the C2 oracle reaches them through a derived probe class).
    Invalid string parameter value 'maybe' for parameter 'weighted' given!
    Valid values are: 'true,false'."); the executed cases in
    `tests/trace_fitter.rs` check the outcome, not the text.
+   **`max_iteration` beyond `i32`:** `to_param` writes any `i64`, but
+   `from_param` refuses a value outside `i32` ("parameter value cannot be
+   converted to i32"), so the round trip fails there. The cause is
+   `crate::param`'s restriction check (`src/param.rs`), which converts
+   every integer entry to `i32`. The source's `ParamEntry::isValid`
+   (`Param.cpp:122`) narrows to `int` without a check, and `updateMembers_`
+   reads the full value. The executed SDK accepts and stores 2^31,
+   3,000,000,000, -2^31 - 1 and `i64::MAX`
+   (`../oracle/gauss-trace-fitter/param-range`). `FeatureFinderAlgorithmPicked`
+   never reaches the range: the `UInt` it passes stays below 2^31, because the
+   minimum of `fit:max_iterations` is checked on the `int`-narrowed value.
+   `to_param_and_from_param_disagree_beyond_i32` records the current boundary.
 9. **Borrowing.** `fit` borrows the traces immutably, and `area`, the span
    checks and `gnuplot_formula` take `&self`; the source declares them
    non-const, but no subclass writes.
@@ -210,16 +247,21 @@ output; their sha256 values are in the manifest. No C++ is in this repository.
 the oracle's fitted parameters) are compared within 1e-14 relative; fitted
 parameters, sweep parameters and the evaluation path within 1e-9 relative;
 statuses, `nfev`, `njev`, the evaluation order, booleans, strings and the budget
-boundaries exactly. Measured on Linux x86-64 (IBMI dax, 2026-09-14) against the
-macOS arm64 oracle:
+boundaries exactly. Measured against the macOS arm64 oracle on Linux x86-64
+(IBMI dax, glibc 2.39, 2026-09-14) and with Apple libm. The Apple libm column
+comes from the independent review run of commit `46be7d2` on macOS arm64 (class
+tests and seeds). The Linux run with Apple libm's `exp` and `log` values
+substituted reproduces those numbers and supplies the other three rows. The
+two libraries differ only in the bit-identical counts, through `exp` (native
+difference 1):
 
-| Replay | Values | Bit-identical | Largest relative deviation |
-| --- | ---: | ---: | --- |
-| class-test cases | 10,461 | 8,255 | start values, residuals, Jacobians, queries 0; fit 2.5e-12; sweep 3.7e-12; path 1.8e-11 |
-| FeatureFinderCentroided_1 seeds | 19,572 | 16,699 | start values, residuals, Jacobians, queries 0; fit and sweep 6.4e-10 |
-| degenerate inputs | 24 | 22 | fit 3.0e-15 |
-| fit failures | 32 | 32 | 0 |
-| gnuplot case | 3 | 3 | 0 |
+| Replay | Values | Bit-identical, glibc | Bit-identical, Apple libm | Largest relative deviation (both) |
+| --- | ---: | ---: | ---: | --- |
+| class-test cases | 10,461 | 8,255 | 8,255 | start values, residuals, Jacobians, queries 0; fit 2.5e-12; sweep 3.7e-12; path 1.8e-11 |
+| FeatureFinderCentroided_1 seeds | 19,572 | 16,699 | 16,696 | start values, residuals, Jacobians, queries 0; fit and sweep 6.4e-10 |
+| degenerate inputs | 24 | 22 | 22 | fit 3.0e-15 |
+| fit failures | 32 | 32 | 32 | 0 |
+| gnuplot case | 3 | 3 | 3 | 0 |
 
 Every status agrees at every budget checked: 1 to 500 for the class-test cases,
 and for the seeds every budget up to two past natural termination plus 100,
@@ -235,30 +277,90 @@ rejects ("Fitted model is bigger than 'max_rt_span'"). The work package's litera
 9.9995822835781674 and sigma 1.5000586589470672 unweighted, height
 6.0828584222534152 weighted 0.4/0.6.
 
-**Ill-conditioned boundary cases.** Four of this package's own start-value cases
-fit less closely, although their start values, residuals and Jacobians are
-bit-identical, so the difference arises inside the Levenberg-Marquardt solver:
-the Eigen transcription in `src/math/fitters/levenberg_marquardt.rs` and the
-executed Eigen part company after some steps (Eigen's vectorised reductions pair
-some sums differently), and these fits amplify it.
+**Ill-conditioned boundary cases.** Four of this package's own start-value
+cases, not work-package targets, fit less closely than 1e-9.
 
-| Case | Largest relative deviation of height, centre, sigma | Asserted bound |
+What was executed:
+
+- Their start values and intensity profiles are bit-identical to the
+  oracle's.
+- The driver did not record the C++ functor for these cases, so their
+  residuals and Jacobians were not compared.
+- The gap is the same with glibc's `exp` and `log`, with Apple libm's (the
+  oracle platform's library: the macOS review run, and the substitution run
+  on Linux) and with correctly rounded ones, except for `trailing_max`.
+
+So the gap does not come from `exp` or `log`. It most likely arises in the
+Levenberg-Marquardt solver, where the transcription in
+`src/math/fitters/levenberg_marquardt.rs` (package B3's file) and the executed
+Eigen 5.0.1 part company after some steps, and these fits amplify it. Where
+they part company is not established. That Eigen's vectorised reductions pair
+some sums differently is an untested hypothesis. The cases are handed to B3 as a
+solver-fidelity item.
+
+| Case | Largest relative deviation of height, centre, sigma: glibc / Apple libm / correctly rounded | Asserted bound |
 | --- | --- | --- |
-| `start.n4_boundary` (four points, maximum second) | 1.40e-9 | 1e-8 |
-| `start.merged_profile` (two traces with interleaved retention times) | 4.41e-9 | 1e-8 |
-| `start.leading_max` (maximum at the first retention time, sigma 0.25) | 2.93e-4 | 1e-3 |
-| `start.trailing_max` (maximum at the last retention time) | 1.72e-3 | 1e-2 |
+| `start.n4_boundary` (four points, maximum second) | 1.40e-9 / 1.40e-9 / 1.40e-9 | 1e-8 |
+| `start.merged_profile` (two traces with interleaved retention times) | 4.41e-9 / 4.41e-9 / 4.41e-9 | 1e-8 |
+| `start.leading_max` (maximum at the first retention time, sigma 0.25) | 2.93e-4 / 2.93e-4 / 2.93e-4 | 1e-3 |
+| `start.trailing_max` (maximum at the last retention time) | 1.72e-3 / 1.49e-3 / 1.49e-3 | 1e-2 |
 
-A change of the solver backend (package B3) must re-measure these bounds.
+The expected values are the oracle's. The bounds are not: each is the next
+power of ten above the port's own largest measured deviation. A change of the
+solver (package B3) must re-measure them, and a solver that matches Eigen here
+should replace them with the 1e-9 fit tolerance.
 
-**`exp` measurement.** At the 840 class-test and 3,132 seed residual points the
-oracle recorded, the platform `exp` of glibc on dax reproduced every C++
-residual and Jacobian entry bit for bit. The `libm` crate's `exp` differed from
-it in 22 and 340 evaluations by one unit in the last place; with it, 21 and 204
-residuals were not bit-identical, the largest residual deviation was 9.1e-12
-relative (a residual near convergence), and the FeatureFinderCentroided_1 fits
-reached 1.13e-9 relative in sigma for 3 of 25 seeds, while the class-test
-`checkMaximalRTSpan` knife edge (`5 * sigma / span + 1e-14`) flipped.
+**`exp` and `log` across platforms.** The evidence for native difference 1:
+
+- **Recorded points.** At the 840 class-test and 3,132 seed residual points
+  the oracle recorded, glibc's `exp` (dax) and Apple libm's `exp` (macOS arm64,
+  review run) reproduce every C++ residual and Jacobian entry bit for bit.
+- **The `libm` crate.** Its `exp` differed from the platform libraries in 22
+  and 340 of those evaluations, by one unit in the last place. With it, 21 and
+  204 residuals were not bit-identical, and the largest residual deviation was
+  9.1e-12 relative (a residual near convergence). The
+  FeatureFinderCentroided_1 fits reached 1.13e-9 relative in sigma for 3 of 25
+  seeds, and the class-test `checkMaximalRTSpan` knife edge
+  (`5 * sigma / span + 1e-14`) flipped.
+- **Every argument the tests reach**
+  (`../oracle/gauss-trace-fitter/exp-simulation`, `manifest.json` sha256
+  `09fb44d732ca9f318d0df8c25f1be5f1e50f85d13429c81fe9646699259a9da7`). A
+  scratch checkout of `46be7d2` recorded every distinct `exp` and `log`
+  argument of `tests/gauss_trace_fitter.rs` on dax. It then
+  replaced both functions with a lookup table and repeated the tests until no
+  argument was missing, once with Apple libm's values (CPython `math` on macOS
+  arm64) and once with correctly rounded values (80-digit `decimal`). Over the
+  37,080 distinct `exp` and 25 `log` arguments of the three runs:
+
+  | `exp` values | Disagreements |
+  | --- | ---: |
+  | glibc 2.39 vs Apple libm | 70 |
+  | glibc vs correctly rounded | 31 |
+  | Apple libm vs correctly rounded | 69 |
+  | misrounded identically by both libraries (error 0.5000-0.502 ulp) | 15 |
+  | `log`, any pair | 0 |
+
+  The three substitutions give these replays, all 32 tests passing:
+
+  | `exp` and `log` | Class tests bit-identical | Seeds bit-identical | `tie4_smoothed` | `flat_alpha_ge_1` | `trailing_max` |
+  | --- | ---: | ---: | --- | --- | --- |
+  | glibc (dax) | 8,255 | 16,699 | 3.74e-13 | 2.95e-11 | 1.72e-3 |
+  | Apple libm substituted on dax | 8,255 | 16,696 | 0 | 5.95e-15 | 1.49e-3 |
+  | correctly rounded, substituted on dax | 6,355 | 16,658 | 3.74e-13 | 2.95e-11 | 1.49e-3 |
+
+  With Apple libm substituted, the Linux run reproduces the macOS review run
+  (16,696 seed values; `tie4_smoothed` 0, `flat_alpha_ge_1` 5.95e-15,
+  `trailing_max` 1.49e-3), so the C library is the whole cross-platform
+  difference.
+- **Correctly rounded `exp` and `log`.** Residuals and Jacobians still deviate
+  0 at every recorded point, and every other acceptance criterion holds. The
+  bit-identical counts fall because neither platform library is correctly
+  rounded.
+- **Decision.** Keeping the platform library matches the oracle platform's
+  last bits; a correctly rounded implementation gives the same bits on every
+  platform. Choosing is the integrator's decision (a crate such as a
+  CORE-MATH port would need a `Cargo.toml` change). B5-EGH must make the same
+  choice.
 
 **Not covered.** A negative `max_iteration` through the tool path cannot occur
 (`fit:max_iterations` has minimum 1). The C++ copy constructor's uninitialised

@@ -143,8 +143,8 @@
   "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=product-sdk/share/OpenMS/4.0.0, per-run scratch working directory, perl alarm 600 s",
   "reproduction": "run.sh runs the driver twice from separate scratch directories and requires byte-identical output; extract_c2.py is run over the C2 omp1 and omp4 results and the outputs must be byte-identical.",
   "debug_only": [],
-  "comparison": "Start values, residuals, Jacobians and queries evaluated on the oracle's fitted parameters within 1e-14 relative; fitted parameters, sweep parameters and the evaluation path within 1e-9 relative; statuses, nfev, njev, evaluation sequences, booleans, strings and budget boundaries exactly. Four of the driver's own ill-conditioned start-value fits carry measured bounds (1e-8, 1e-8, 1e-3, 1e-2) documented in docs/TRACE_FITTER_SUPPORT.md. Measured on Linux x86-64 (IBMI dax) with stable Rust and 1.85.0, default and no default features: 30,348 floating-point values compared, 25,249 bit-identical; start values, residuals, Jacobians and queries 0 deviation everywhere; class-test fits 2.5e-12, FeatureFinderCentroided_1 fits 6.4e-10.",
-  "platform_math": "exp and log are the platform C library's. glibc's exp on dax reproduced all 3,972 recorded residual points of the macOS arm64 oracle bit for bit; the libm crate's exp differed at 362 evaluations by one unit in the last place, moving residuals by up to 9.1e-12 relative and FeatureFinderCentroided_1 sigma by up to 1.13e-9."
+  "comparison": "Start values, residuals, Jacobians and queries evaluated on the oracle's fitted parameters within 1e-14 relative; fitted parameters, sweep parameters and the evaluation path within 1e-9 relative; statuses, nfev, njev, evaluation sequences, booleans, strings and budget boundaries exactly. Four of the driver's own ill-conditioned start-value fits (n4_boundary, merged_profile, leading_max, trailing_max) carry bounds of 1e-8, 1e-8, 1e-3 and 1e-2: the expected values are the oracle's, the bounds are the next power of ten above the port's own largest measured deviation, not oracle values. Their start values are bit-identical; the driver recorded no functor evaluations for them; the gap persists with the oracle platform's exp and log, so it does not come from exp or log and most likely arises in the Levenberg-Marquardt solver (B3 solver-fidelity item; the mechanism is not established). Measured on Linux x86-64 (IBMI dax, glibc 2.39) with stable Rust and 1.85.0, default and no default features: 30,348 floating-point values compared, 25,249 bit-identical; start values, residuals, Jacobians and queries 0 deviation everywhere; class-test fits 2.5e-12, FeatureFinderCentroided_1 fits 6.4e-10. On macOS arm64 (Apple libm; independent review run of 46be7d2) the same deviations hold, with 16,696 instead of 16,699 bit-identical FeatureFinderCentroided_1 values and different fits in cases that pass through an exp argument where the libraries differ (start.tie4_smoothed 0 vs 3.74e-13, start.flat_alpha_ge_1 5.95e-15 vs 2.95e-11, start.trailing_max 1.49e-3 vs 1.72e-3).",
+  "platform_math": "exp and log are the platform C library's, so fitted parameters are not bit-identical across platforms. At the 3,972 residual points the oracle recorded, glibc (dax) and Apple libm (macOS arm64) both reproduce every C++ residual and Jacobian entry bit for bit. Over the 37,080 distinct exp and 25 log arguments the tests reach (../oracle/gauss-trace-fitter/exp-simulation), glibc and Apple libm disagree at 70 exp arguments; glibc is not correctly rounded at 31, Apple libm at 69, both misround 15 identically; log agrees everywhere. Substituting Apple libm's values for exp and log on dax reproduces the macOS run, so the C library is the whole cross-platform difference. Substituting correctly rounded values passes every test and criterion (residuals and Jacobians 0 deviation at every recorded point) with fewer bit-identical values: class tests 6,355 of 10,461 (8,255 with either platform library), FeatureFinderCentroided_1 16,658 of 19,572. The libm crate's exp differed from the platform libraries at 362 recorded evaluations by one unit in the last place, moving residuals by up to 9.1e-12 relative (breaking the 1e-14 criterion) and FeatureFinderCentroided_1 sigma by up to 1.13e-9. Platform library versus correctly rounded exp/log is an integrator decision; B5-EGH must make the same choice."
  },
  "source_anchors": [
   {
@@ -199,13 +199,13 @@
   }
  ],
  "native_boundaries": [
-  "exp and log are the platform C library's (f64::exp, f64::ln), as the source's; the libm crate was measured and rejected (see oracle.platform_math)",
+  "exp and log are the platform C library's (f64::exp, f64::ln), as the source's; fitted parameters therefore differ in their last bits between glibc and Apple libm (see oracle.platform_math); the libm crate was measured and rejected, a correctly rounded exp/log is left to the integrator",
   "UnableToFit becomes Error::InvalidValue('UnableToFit-FinalSet: <what>')",
   "Traces without any peak are refused with the N>=p error before the fitter changes; the source reads past the end of its empty profile",
   "compute_theoretical returns Error::InvalidValue for an index past the peaks; the source indexes unchecked",
-  "optimize checks levenberg_marquardt::preflight_points (1,000,000 residuals, 64 MiB Jacobian) and caps maxfev at MAX_RESIDUAL_WORK / values (2^30 residual evaluations in total); a fit that would need more before its configured budget is refused instead of continuing, and one that ends within it is unchanged",
+  "optimize checks levenberg_marquardt::preflight_points (1,000,000 residuals, 64 MiB Jacobian) and caps maxfev at MAX_RESIDUAL_WORK / values (2^30 residual evaluations in total, at least 1,073 evaluations); when that cap is below the configured budget and the solver stops on it, the fit is refused instead of continuing. A fit that ends before the cap, or at the cap's evaluation with status 1-3, is unchanged; one whose natural end at exactly the cap's evaluation would be status 4, 6, 7 or 8 is refused, because the budget test precedes those tests",
   "Clone copies region_rt_span, which the source copy leaves uninitialised; members the source leaves uninitialised start at zero",
-  "TraceFitterParams::from_param returns unknown keys as warnings and keeps only the two known values; validation messages are the Param module's wording",
+  "TraceFitterParams::from_param returns unknown keys as warnings and keeps only the two known values; validation messages are the Param module's wording; from_param refuses a max_iteration outside i32 ('parameter value cannot be converted to i32', from crate::param's restriction check), which to_param writes and the executed source accepts and stores (../oracle/gauss-trace-fitter/param-range: 2^31, 3,000,000,000, -2^31 - 1, i64::MAX); FeatureFinderAlgorithmPicked hands the fitter values below 2^31 only",
   "fit borrows the traces immutably; area, the span checks and gnuplot_formula take &self",
   "gnuplot_formula writes a non-ASCII function name as UTF-8; numbers follow format::file_info::text_format::ostream_g at precision 6",
   "optimize_with_status additionally returns the accepted LmStatus"
@@ -317,9 +317,63 @@
    "sha256": "855a416bb95cd395eb2e7a8fb26ba227df2b0f0ac6b97336ffab0784a4548664",
    "location": "outside this repository",
    "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/manifest.json",
+   "sha256": "09fb44d732ca9f318d0df8c25f1be5f1e50f85d13429c81fe9646699259a9da7",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/table_lookup.patch",
+   "sha256": "669e4870f7f6dcde5ec0f116c61cdb4e89ffc4f911021f55bd0fec50f5a1e46a",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/make_cr_table.py",
+   "sha256": "f26da287ca38028f17fcbd382742205f0564dbc20e1db06b5800ece89447d06c",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/exp_compare.py",
+   "sha256": "8aa884320cf9065e2bcfcb2b4423edba7b1a69921d0dd22a267a72dbcce134a1",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/logs/apple_libm_final.log",
+   "sha256": "67fef37b820f4d00ca2de4d04db07c7c1d756446687338d21c40c67ae61f3526",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/logs/correctly_rounded_final.log",
+   "sha256": "5ae71258999a03fc7b9f7bac86117854ca275af08aeb4481b5407eff23823d61",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/param-range/probe.cpp",
+   "sha256": "6963709bd3a7d6c4731eb27599fa62943edb70ac2b255b1afadf41e1132b5b0b",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/param-range/run.sh",
+   "sha256": "e099b40477f4eaa7001b6cc045c0ba84e027eecf749cac29ced00dd003ce1765",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/param-range/results/out.tsv",
+   "sha256": "39a6bc7f23130f126a0b0f599de851fc432d0aac3473a2ed3961fa167912c125",
+   "location": "outside this repository",
+   "origin_key": "oracle"
   }
  ],
- "external_reference_note": "The B4 driver, its run script, the C2 extraction script and the C2 results they read live outside this repository under ../oracle/ so that no C++ is committed here. The fixtures above are their output and are hashed in-repo. The external files are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
+ "external_reference_note": "The B4 driver, its run script, the C2 extraction script and the C2 results they read live outside this repository under ../oracle/ so that no C++ is committed here. The fixtures above are their output and are hashed in-repo. The external files are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate. exp-simulation holds the table-lookup harness and logs behind oracle.platform_math; param-range holds the executed probe of max_iteration beyond int.",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "source_revisions": [

@@ -30,8 +30,12 @@
 //! booleans, strings and the budget boundaries are compared exactly. The oracle
 //! ran on macOS arm64 with Apple libm and Eigen 5.0.1; the port calls the
 //! platform `exp` and `log` and the Eigen transcription in
-//! `openms::math::fitters::levenberg_marquardt`. Each replay prints how many
-//! values were bit-identical and the largest relative deviation it met.
+//! `openms::math::fitters::levenberg_marquardt`. The platform `exp` differs in
+//! the last bit between glibc and Apple libm, so the bit-identical counts and
+//! some fit deviations differ between Linux and macOS; every tolerance holds on
+//! both (`docs/TRACE_FITTER_SUPPORT.md`, native difference 1). Each replay
+//! prints how many values were bit-identical and the largest relative
+//! deviation it met.
 
 // The class-test literals are transcribed verbatim, including digits beyond
 // the precision of their type, so the f32 values match the C++ literals exactly.
@@ -1261,7 +1265,9 @@ fn fit_failures_match_the_oracle() {
 fn start_value_boundaries_match_the_oracle() {
     // Every start value, the query arithmetic and the gnuplot text agree bit for
     // bit in every case; the fitted parameters of four ill-conditioned fits do
-    // not reach 1e-9 (see `ill_conditioned_fit_tolerance`).
+    // not reach 1e-9 (see `ill_conditioned_fit_tolerance`). The driver recorded
+    // no functor evaluations for these cases, so residuals and Jacobians are not
+    // compared here.
     let fixture = Fixture::parse(EXTRA);
     let cases = fixture.cases("start.");
     assert_eq!(cases.len(), 9);
@@ -1341,16 +1347,28 @@ fn start_value_boundaries_match_the_oracle() {
 /// 1e-9, or `None` for the work package's tolerance.
 ///
 /// These are this package's own boundary cases, not the work package's targets.
-/// Their start values, residuals and Jacobians equal the oracle's bit for bit,
-/// so the difference arises inside the Levenberg-Marquardt solver: the port's
-/// Eigen transcription in `src/math/fitters/levenberg_marquardt.rs` (package
-/// B3's file) and the executed Eigen 5.0.1 part company after some steps, and
-/// these fits amplify it. Measured on Linux x86-64 (dax, 2026-09-14): largest
-/// relative deviation of height, centre and sigma 1.40e-9 (`n4_boundary`),
-/// 4.41e-9 (`merged_profile`), 2.93e-4 (`leading_max`, maximum at the first
-/// retention time, sigma 0.25) and 1.72e-3 (`trailing_max`). Each bound is the
-/// next power of ten above its measurement. A change of the solver backend must
-/// re-measure them.
+///
+/// The expected values are the oracle's; the bounds are not. Each bound is the
+/// next power of ten above the port's own largest measured deviation of height,
+/// centre and sigma:
+///
+/// - `n4_boundary`: 1.40e-9.
+/// - `merged_profile`: 4.41e-9.
+/// - `leading_max` (maximum at the first retention time, sigma 0.25): 2.93e-4.
+/// - `trailing_max`: 1.72e-3 on Linux x86-64 with glibc (dax, 2026-09-14), and
+///   1.49e-3 with Apple libm or a correctly rounded `exp`.
+///
+/// The other three are the same with all three `exp` implementations.
+///
+/// Only the start values are known to equal the oracle's bit for bit; the
+/// driver recorded no residuals or Jacobians for these cases. The gap persists
+/// with the oracle platform's own `exp` and `log`, so it does not come from
+/// them. It most likely arises inside the Levenberg-Marquardt solver, where the
+/// transcription in `src/math/fitters/levenberg_marquardt.rs` (package B3's
+/// file) and the executed Eigen 5.0.1 part company after some steps, but where
+/// is not established. These cases are a solver-fidelity item for B3. A change
+/// of the solver must re-measure the bounds, and a solver that matches Eigen
+/// here should drop them for the 1e-9 fit tolerance.
 fn ill_conditioned_fit_tolerance(case: &str) -> Option<f64> {
     match case {
         "start.n4_boundary" | "start.merged_profile" => Some(1e-8),
