@@ -1,16 +1,115 @@
 // Copyright (c) 2002-present, OpenMS Inc.
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
+//! Header registry construction and reference resolution for the mzML reader.
+//!
+//! Source `MzMLHandler::startElement` collects `sourceFile`, `sample`,
+//! `software`, `instrumentConfiguration` and `dataProcessing` definitions into
+//! `std::map` members keyed by ID (`MzMLHandler.cpp:1248-1290`) and resolves
+//! references against them. This module builds the equivalent registry once
+//! the `run` element opens, and resolves record, array and scan references
+//! from it afterwards. See `docs/MZML_HEADER_SUPPORT.md`.
+
 use super::*;
 
+/// The error message and warning label for an unresolved `softwareRef`.
+const SOFTWARE_REF: &str = "softwareRef";
+/// The error message and warning label for an unresolved processing reference:
+/// `dataProcessingRef` on a record or array, or a list's
+/// `defaultDataProcessingRef`.
+const DATA_PROCESSING_REF: &str = "dataProcessingRef";
+
+/// Resolution policy for header references that name no preceding definition,
+/// with the per-read warning state of the source-compatible policy.
+///
+/// Source `MzMLHandler` looks `softwareRef` and every data-processing reference
+/// up with `std::map::operator[]` (`MzMLHandler.cpp:920`, `:924`, `:948`,
+/// `:952`, `:1034`, `:1264` and `:1288`). A missing key default-constructs the
+/// value, so a dangling reference silently becomes an empty `Software` or an
+/// empty processing history. The native default refuses that loss; the source
+/// policy is selected with `mzml::ReadOptions::source_dangling_references`.
+#[derive(Default)]
+pub(crate) struct DanglingReferences {
+    /// Substitute the source's default-constructed value instead of failing.
+    source: bool,
+    /// Dangling `softwareRef` IDs already reported during this read.
+    software: BTreeSet<String>,
+    /// Dangling processing-reference IDs already reported during this read.
+    processing: BTreeSet<String>,
+}
+impl DanglingReferences {
+    /// A policy that rejects dangling references, or substitutes the source's
+    /// empty values when `source` is `true`.
+    pub fn new(source: bool) -> Self {
+        Self {
+            source,
+            ..Self::default()
+        }
+    }
+    /// Handle the reference `id` of kind `label` (`softwareRef` or
+    /// `dataProcessingRef`) that names no definition.
+    ///
+    /// # Errors
+    ///
+    /// Under the default policy returns [`Error::Parse`] with the message
+    /// `unresolved <label>`, unchanged from the strict reader. Under the
+    /// source policy returns an error only when the allowance cannot cover
+    /// the lookup or the record of a first occurrence.
+    ///
+    /// # Notes
+    ///
+    /// Under the source policy, the first occurrence of each distinct ID per
+    /// kind writes one line to the crate's warning log stream
+    /// (`LogLevel::Warn`, standard error unless reconfigured), so a file whose
+    /// every record names the same dangling ID warns once. The source writes
+    /// nothing here; the warning is native, so a caller that opted into the
+    /// loss can still see it. A logging failure never changes the read result.
+    fn dangling(&mut self, label: &'static str, id: &str, work: &mut Work) -> Result<()> {
+        if !self.source {
+            return Err(invalid(format!("unresolved {label}")));
+        }
+        let (warned, replacement) = if label == SOFTWARE_REF {
+            (&mut self.software, "empty software")
+        } else {
+            (&mut self.processing, "an empty processing history")
+        };
+        work.charge(id.len().saturating_mul(64), 0)?;
+        if warned.contains(id) {
+            return Ok(());
+        }
+        work.meter().tree::<String>(1)?;
+        let copy = work.copy(id)?;
+        // `id` passed `parameter_id`, so it cannot carry a line break.
+        let _ = crate::concept::log_stream::log_message(
+            crate::concept::log_stream::LogLevel::Warn,
+            format_args!(
+                "Warning: mzML {label} '{id}' names no definition; source-compatible reading uses {replacement}."
+            ),
+        );
+        warned.insert(copy);
+        Ok(())
+    }
+}
+
+/// Resolved header definitions, consulted by record, array, scan and precursor
+/// references once the `run` element has opened.
 #[derive(Default)]
 pub(crate) struct Registry {
     source_files: BTreeMap<String, SourceFile>,
     processing: BTreeMap<String, Vec<Arc<DataProcessing>>>,
     instrument_ids: BTreeSet<String>,
     default_instrument: String,
+    dangling: DanglingReferences,
 }
 impl Registry {
+    /// A deep copy of the source file with ID `id`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] for a malformed or unresolved `sourceFileRef`,
+    /// under either dangling-reference policy, and when the allowance is
+    /// exhausted. Source `MzMLHandler.cpp:899-906` warns about an unregistered
+    /// spectrum source file and continues; that leniency is not ported.
     pub fn source(&self, id: &str, work: &mut Work) -> Result<SourceFile> {
         let id = parameter_id(id)?;
         work.charge(id.len().saturating_mul(64), 0)?;
@@ -20,16 +119,37 @@ impl Registry {
             .ok_or_else(|| invalid("unresolved sourceFileRef"))?;
         copy_source(value, work)
     }
-    pub fn processing(&self, id: &str, work: &mut Work) -> Result<Vec<Arc<DataProcessing>>> {
+    /// The processing history with ID `id`, sharing the definition's `Arc`
+    /// handles.
+    ///
+    /// Serves `dataProcessingRef` on spectra, chromatograms and binary arrays,
+    /// and the lists' `defaultDataProcessingRef`. An ID that names no
+    /// definition yields an empty history under the source policy, as source
+    /// `processing_[ref]` does, and is warned about once per read.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] for a malformed ID, for an unresolved ID under
+    /// the default policy (`unresolved dataProcessingRef`), and when the
+    /// allowance is exhausted.
+    pub fn processing(&mut self, id: &str, work: &mut Work) -> Result<Vec<Arc<DataProcessing>>> {
         let id = parameter_id(id)?;
         work.charge(id.len().saturating_mul(64), 0)?;
-        let value = self
-            .processing
-            .get(id)
-            .ok_or_else(|| invalid("unresolved dataProcessingRef"))?;
+        let Some(value) = self.processing.get(id) else {
+            self.dangling.dangling(DATA_PROCESSING_REF, id, work)?;
+            return Ok(Vec::new());
+        };
         work.slots::<Arc<DataProcessing>>(value.len())?;
         Ok(value.clone())
     }
+    /// The `source_file_name` and `source_file_path` metadata of an optional
+    /// `sourceFileRef` attribute on a scan or precursor.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] for a malformed or unresolved reference under
+    /// either dangling-reference policy, and when the parameter budget or the
+    /// allowance is exhausted.
     pub fn source_metadata(
         &self,
         attrs: &BTreeMap<String, String>,
@@ -52,6 +172,15 @@ impl Registry {
         }
         Ok(metadata)
     }
+    /// A scan's acquisition: source-file metadata, `externalSpectrumID`, and an
+    /// `instrumentConfigurationRef` recorded as metadata when it names a
+    /// configuration other than the run default.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] for a malformed or unresolved source-file or
+    /// instrument reference under either dangling-reference policy, and when
+    /// the parameter budget or the allowance is exhausted.
     pub fn scan(
         &self,
         attrs: &BTreeMap<String, String>,
@@ -81,6 +210,14 @@ impl Registry {
     }
 }
 
+/// Build the registry from the captured header lists and apply the `run`
+/// element's `sampleRef`, `defaultInstrumentConfigurationRef` and
+/// `startTimeStamp` to `settings`.
+///
+/// `source_dangling_references` selects the source treatment of a
+/// `softwareRef` or data-processing reference that names no preceding
+/// definition (see `DanglingReferences`); the registry keeps that policy for
+/// the record references resolved after `run` opens.
 pub(super) fn parse(
     roots: Vec<Node>,
     attrs: &BTreeMap<String, String>,
@@ -88,6 +225,7 @@ pub(super) fn parse(
     parameters: &mut ParameterBudget,
     work: &mut Work,
     settings: &mut ExperimentalSettings,
+    source_dangling_references: bool,
 ) -> Result<Registry> {
     // Ordinary readers start empty. A retaining transform starts from exact
     // cloned lengths, so its first append can move twice the old descriptor
@@ -111,7 +249,10 @@ pub(super) fn parse(
         parameters,
         work,
     };
-    let mut result = Registry::default();
+    let mut result = Registry {
+        dangling: DanglingReferences::new(source_dangling_references),
+        ..Registry::default()
+    };
     let mut samples = BTreeMap::new();
     let mut software = BTreeMap::new();
     let mut instruments = BTreeMap::new();
@@ -176,7 +317,8 @@ pub(super) fn parse(
                     cx.work.meter().tree::<String>(1)?;
                     cx.work.meter().tree::<(String, Instrument)>(1)?;
                     result.instrument_ids.insert(cx.work.copy(&id)?);
-                    instruments.insert(id, read_instrument(node, &software, &mut cx)?);
+                    let value = read_instrument(node, &software, &mut result.dangling, &mut cx)?;
+                    instruments.insert(id, value);
                 }
             }
             "dataProcessingList" => {
@@ -200,7 +342,12 @@ pub(super) fn parse(
                         // Source ignores order and retains XML encounter sequence.
                         let _: u64 = number(method.get("order")?, "processing method order")?;
                         let mut value = DataProcessing {
-                            software: software_ref(method.get("softwareRef")?, &software, cx.work)?,
+                            software: software_ref(
+                                method.get("softwareRef")?,
+                                &software,
+                                &mut result.dangling,
+                                cx.work,
+                            )?,
                             ..Default::default()
                         };
                         cx.work.slots::<(DataProcessing, [usize; 2])>(1)?;
@@ -268,11 +415,18 @@ pub(super) fn parse(
                             Ok(())
                         })?;
                         let history_marker = value.metadata.contains_key(write::EMPTY_HISTORY);
+                        // The placeholder flag is looked up by the normalized
+                        // ID `software_ref` resolved. Indexing by the raw
+                        // attribute panicked on a whitespace-padded reference,
+                        // and would on a dangling one under the source policy;
+                        // neither names the exact placeholder software.
+                        let placeholder_software = software
+                            .get(parameter_id(method.get("softwareRef")?)?)
+                            .is_some_and(|entry| entry.1);
                         if (history_marker || value.metadata.contains_key(write::EMPTY_ACTIONS))
                             && (!clean
                                 || action_count != 1
-                                || (history_marker
-                                    && (count != 2 || !software[method.get("softwareRef")?].1)))
+                                || (history_marker && (count != 2 || !placeholder_software)))
                         {
                             return Err(invalid(
                                 "processing marker contains additional or discarded XML payload",
@@ -353,16 +507,25 @@ fn register_id(node: &Node, ids: &mut BTreeSet<String>, work: &mut Work) -> Resu
     }
     Ok(id.into())
 }
+/// Resolve a `softwareRef` against the software defined so far.
+///
+/// A dangling ID yields `Software::default()` under the source policy, as
+/// source `software_[ref]` does for an instrument (`MzMLHandler.cpp:1288`) and
+/// a processing method (`:1264`); the default policy fails with
+/// `unresolved softwareRef`.
 fn software_ref(
     id: &str,
     software: &BTreeMap<String, (Software, bool)>,
+    dangling: &mut DanglingReferences,
     work: &mut Work,
 ) -> Result<Software> {
     let id = parameter_id(id)?;
     work.charge(id.len().saturating_mul(64), 0)?;
-    let value = software
-        .get(id)
-        .ok_or_else(|| invalid("unresolved softwareRef"))?;
+    let Some(value) = software.get(id) else {
+        dangling.dangling(SOFTWARE_REF, id, work)?;
+        work.slots::<Software>(1)?;
+        return Ok(Software::default());
+    };
     let value = &value.0;
     work.slots::<Software>(1)?;
     work.meter().text(&value.name)?;
@@ -595,6 +758,7 @@ fn exact_placeholder_software(node: &Node, cx: &mut Context<'_>) -> Result<bool>
 fn read_instrument(
     node: &Node,
     software: &BTreeMap<String, (Software, bool)>,
+    dangling: &mut DanglingReferences,
     cx: &mut Context<'_>,
 ) -> Result<Instrument> {
     let mut value = Instrument::default();
@@ -693,7 +857,7 @@ fn read_instrument(
                     return Err(invalid("duplicate instrument softwareRef"));
                 }
                 software_seen = true;
-                value.software = software_ref(child.get("ref")?, software, cx.work)?;
+                value.software = software_ref(child.get("ref")?, software, dangling, cx.work)?;
             }
             "cvParam" | "userParam" | "referenceableParamGroupRef" => {}
             _ => return Err(invalid("invalid instrumentConfiguration child")),
@@ -788,6 +952,17 @@ fn sample_number(raw: &str) -> Result<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// Route this test thread's warnings to a discarding sink; the source
+    /// policy warns by design and the output is asserted in
+    /// `tests/mzml_header_leniency.rs`.
+    fn discard_warnings() {
+        use crate::concept::log_stream::{LogLevel, LogSink, with_thread_local_log};
+        with_thread_local_log(LogLevel::Warn, |log| {
+            log.remove_all_streams()?;
+            log.insert(&LogSink::new(std::io::sink()))
+        })
+        .unwrap();
+    }
     #[test]
     fn full_registry_value_roots_are_charged_before_payload_parsing() {
         fn size<T>() -> usize {
@@ -840,6 +1015,7 @@ mod tests {
                 &mut params,
                 &mut work,
                 &mut ExperimentalSettings::default(),
+                false,
             )
             .err()
             .unwrap();
@@ -873,7 +1049,8 @@ mod tests {
                 &BTreeMap::new(),
                 &mut parameters,
                 &mut work,
-                &mut settings
+                &mut settings,
+                false,
             )
             .is_err()
         );
@@ -901,6 +1078,70 @@ mod tests {
         assert_eq!(registry.source("id", &mut one).unwrap(), first);
         assert!(registry.source("id", &mut one).is_err());
         assert_eq!(registry.source_files["id"].name.len(), 4096);
+    }
+    #[test]
+    fn dangling_processing_references_follow_the_selected_policy() {
+        discard_warnings();
+        let unlimited = || Work {
+            remaining: usize::MAX,
+            bytes: usize::MAX,
+        };
+        let mut strict = Registry::default();
+        let error = strict.processing("absent", &mut unlimited()).unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            invalid("unresolved dataProcessingRef").to_string()
+        );
+        let mut source = Registry {
+            dangling: DanglingReferences::new(true),
+            ..Registry::default()
+        };
+        let mut work = unlimited();
+        assert!(source.processing("absent", &mut work).unwrap().is_empty());
+        let first = (usize::MAX - work.remaining, usize::MAX - work.bytes);
+        assert!(source.processing("absent", &mut work).unwrap().is_empty());
+        let second = (
+            usize::MAX - work.remaining - first.0,
+            usize::MAX - work.bytes - first.1,
+        );
+        // A repeated ID pays only its lookup; the first also records the ID.
+        assert!(second.0 < first.0 && second.1 < first.1);
+        assert_eq!(source.dangling.processing.len(), 1);
+        assert!(source.dangling.software.is_empty());
+        // Malformed IDs stay errors under the source policy.
+        assert!(source.processing("1bad", &mut unlimited()).is_err());
+    }
+    #[test]
+    fn dangling_reference_record_is_charged_before_it_is_retained() {
+        discard_warnings();
+        let mut policy = DanglingReferences::new(true);
+        let mut probe = Work {
+            remaining: usize::MAX,
+            bytes: usize::MAX,
+        };
+        policy
+            .dangling(SOFTWARE_REF, "so_in_0", &mut probe)
+            .unwrap();
+        let needed = usize::MAX - probe.bytes;
+        let mut policy = DanglingReferences::new(true);
+        let mut short = Work {
+            remaining: usize::MAX,
+            bytes: needed - 1,
+        };
+        assert!(
+            policy
+                .dangling(SOFTWARE_REF, "so_in_0", &mut short)
+                .is_err()
+        );
+        assert!(policy.software.is_empty());
+        let mut strict = DanglingReferences::default();
+        let error = strict
+            .dangling(SOFTWARE_REF, "so_in_0", &mut probe)
+            .unwrap_err();
+        assert_eq!(
+            error.to_string(),
+            invalid("unresolved softwareRef").to_string()
+        );
     }
     #[test]
     fn record_processing_references_charge_handles_and_preserve_shared_identity() {

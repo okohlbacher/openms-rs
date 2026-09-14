@@ -44,21 +44,42 @@ impl Default for Work {
     }
 }
 impl Work {
+    /// Spend `count` work units and `bytes` allocation bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] when either allowance would go below zero. Work
+    /// is spent before bytes, so when only the byte allowance is short the work
+    /// units stay spent; every caller abandons the operation on this error.
     pub fn charge(&mut self, count: usize, bytes: usize) -> Result<()> {
         self.remaining = self.remaining.checked_sub(count).ok_or_else(resource)?;
         self.bytes = self.bytes.checked_sub(bytes).ok_or_else(resource)?;
         Ok(())
     }
+    /// An owned copy of `text`, charged by its length in work and bytes before
+    /// it is allocated.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] when the allowance is exhausted.
     pub fn copy(&mut self, text: &str) -> Result<String> {
         self.charge(text.len(), text.len())?;
         Ok(text.into())
     }
+    /// Charge `count` inline slots of `T`: `count` work units and
+    /// `count * size_of::<T>()` bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] on overflow or when the allowance is exhausted.
     pub fn slots<T>(&mut self, count: usize) -> Result<()> {
         self.charge(
             count,
             count.checked_mul(size_of::<T>()).ok_or_else(resource)?,
         )
     }
+    /// The shared data-array meter over this allowance, for tree, text and CV
+    /// term charges.
     pub fn meter(&mut self) -> Meter<'_> {
         Meter {
             work: &mut self.remaining,
@@ -127,6 +148,9 @@ pub(super) struct Draft {
     stack: Vec<Node>,
 }
 impl Draft {
+    /// Whether the element `tag` under `parent` belongs to the retained header:
+    /// one of the five header lists directly under `mzML`, or any descendant of
+    /// an element already being captured.
     pub fn captures(&self, tag: &str, parent: &str) -> bool {
         !self.stack.is_empty()
             || matches!(
@@ -141,6 +165,13 @@ impl Draft {
                 )
             )
     }
+    /// Open a captured element with its attributes, charging the node, its
+    /// name and its attribute payload before it is retained.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] beyond 16 nesting levels and when the
+    /// allowance is exhausted.
     pub fn start(
         &mut self,
         tag: &str,
@@ -165,6 +196,13 @@ impl Draft {
         });
         Ok(())
     }
+    /// Close a captured element and attach it to its parent or the roots.
+    /// Returns `false` when no element is being captured, so the caller handles
+    /// the closing tag itself.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] when `tag` does not match the open element.
     pub fn end(&mut self, tag: &str) -> Result<bool> {
         if self.stack.is_empty() {
             return Ok(false);
@@ -180,6 +218,18 @@ impl Draft {
         }
         Ok(true)
     }
+    /// Resolve the captured header when the `run` element opens, with the
+    /// `run` attributes in `attrs`, and return the registry for later record
+    /// references.
+    ///
+    /// `source_dangling_references` is `ReadOptions::source_dangling_references`:
+    /// `true` substitutes the source's empty values for a `softwareRef` or
+    /// data-processing reference that names no definition, `false` rejects it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] for an unclosed header element, malformed or
+    /// unresolved header content, and exhausted parameter or work allowances.
     pub fn finish(
         self,
         attrs: &BTreeMap<String, String>,
@@ -187,11 +237,20 @@ impl Draft {
         parameters: &mut ParameterBudget,
         work: &mut Work,
         settings: &mut ExperimentalSettings,
+        source_dangling_references: bool,
     ) -> Result<Registry> {
         if !self.stack.is_empty() {
             return Err(invalid("unfinished mzML header"));
         }
-        read::parse(self.roots, attrs, groups, parameters, work, settings)
+        read::parse(
+            self.roots,
+            attrs,
+            groups,
+            parameters,
+            work,
+            settings,
+            source_dangling_references,
+        )
     }
 }
 

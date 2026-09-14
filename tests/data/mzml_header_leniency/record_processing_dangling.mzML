@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
+<fileDescription><fileContent/></fileDescription>
+<softwareList count="1"><software id="sw" version="2.0"><cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="tool"/></software></softwareList>
+<instrumentConfigurationList count="1"><instrumentConfiguration id="ic"><softwareRef ref="sw"/></instrumentConfiguration></instrumentConfigurationList>
+<dataProcessingList count="1"><dataProcessing id="dp"><processingMethod order="0" softwareRef="sw"><cvParam cvRef="MS" accession="MS:1000035" name="peak picking"/></processingMethod></dataProcessing></dataProcessingList>
+<run id="r" defaultInstrumentConfigurationRef="ic">
+<spectrumList count="4" defaultDataProcessingRef="absent_default">
+<spectrum id="scan=1" index="0" defaultArrayLength="0"/>
+<spectrum id="scan=2" index="1" defaultArrayLength="0" dataProcessingRef="absent_explicit"/>
+<spectrum id="scan=3" index="2" defaultArrayLength="0" dataProcessingRef="dp"/>
+<spectrum id="scan=4" index="3" defaultArrayLength="2"><binaryDataArrayList count="3"><binaryDataArray encodedLength="24" dataProcessingRef="absent_array"><cvParam cvRef="MS" accession="MS:1000514" name="m/z array"/><cvParam cvRef="MS" accession="MS:1000523" name="64-bit float"/><cvParam cvRef="MS" accession="MS:1000576" name="no compression"/><binary>AAAAAAAAWUAAAAAAAABpQA==</binary></binaryDataArray><binaryDataArray encodedLength="12"><cvParam cvRef="MS" accession="MS:1000515" name="intensity array"/><cvParam cvRef="MS" accession="MS:1000521" name="32-bit float"/><cvParam cvRef="MS" accession="MS:1000576" name="no compression"/><binary>AACAPwAAAEA=</binary></binaryDataArray><binaryDataArray encodedLength="24" dataProcessingRef="absent_aux"><cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="aux"/><cvParam cvRef="MS" accession="MS:1000523" name="64-bit float"/><cvParam cvRef="MS" accession="MS:1000576" name="no compression"/><binary>AAAAAAAA4D8AAAAAAAD4Pw==</binary></binaryDataArray></binaryDataArrayList></spectrum>
+</spectrumList>
+<chromatogramList count="2" defaultDataProcessingRef="dp">
+<chromatogram id="c1" index="0" defaultArrayLength="0"/>
+<chromatogram id="c2" index="1" defaultArrayLength="0" dataProcessingRef="absent_chrom"/>
+</chromatogramList>
+</run>
+</mzML>

@@ -744,6 +744,7 @@ impl Setup {
                     &mut state.budget,
                     &mut self.work,
                     &mut self.experiment.settings,
+                    state.limits.source_dangling_references,
                 )?;
             }
             "spectrumList" | "chromatogramList" => {
