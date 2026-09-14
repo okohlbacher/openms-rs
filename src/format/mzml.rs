@@ -114,6 +114,25 @@ pub struct ReadOptions {
     pub max_total_params: usize,
     /// Cumulative parameter, acquisition descriptor and resolved-reference storage bytes.
     pub max_param_bytes: usize,
+    /// Read a dangling header reference the way source `MzMLHandler` does.
+    ///
+    /// Covers a `softwareRef` on an `instrumentConfiguration` or
+    /// `processingMethod`, and a `dataProcessingRef` or
+    /// `defaultDataProcessingRef` on a record list, record or binary array,
+    /// whose ID names no preceding definition. `false`, the default, rejects
+    /// such a document with [`Error::Parse`] (`unresolved softwareRef`,
+    /// `unresolved dataProcessingRef`), because the reference cannot be kept.
+    ///
+    /// `true` selects the source behaviour, which `std::map::operator[]`
+    /// produces there (`MzMLHandler.cpp:920-952`, `:1034`, `:1264`, `:1288`):
+    /// the software becomes `Software::default()` and the processing history
+    /// becomes empty, so the reference is dropped. Each distinct dangling ID is
+    /// reported once per read on the crate's warning log stream, where the
+    /// source is silent. Malformed IDs, and unresolved `sourceFileRef`,
+    /// `sampleRef`, instrument configuration and parameter group references,
+    /// remain errors. Tool paths that reproduce source loading enable it; see
+    /// `docs/MZML_HEADER_SUPPORT.md`.
+    pub source_dangling_references: bool,
 }
 impl Default for ReadOptions {
     fn default() -> Self {
@@ -129,6 +148,7 @@ impl Default for ReadOptions {
             max_param_groups: 100_000,
             max_total_params: 10_000_000,
             max_param_bytes: 512 * 1024 * 1024,
+            source_dangling_references: false,
         }
     }
 }
@@ -1847,6 +1867,7 @@ fn read_engine(
                             &mut parameter_budget,
                             &mut header_work,
                             &mut experiment.settings,
+                            options.source_dangling_references,
                         )?;
                         seen_run = true;
                     }

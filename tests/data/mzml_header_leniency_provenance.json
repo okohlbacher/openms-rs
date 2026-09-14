@@ -1,0 +1,147 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "topp": "174b576",
+  "test-data": "0cb15f2",
+  "cli": "c19e494",
+  "oracle_core": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85"
+ },
+ "license": "BSD-3-Clause",
+ "scope": "Source-compatible resolution of mzML header references that name no preceding definition (work package P2-MZML-LENIENCY, decision D10): instrumentConfiguration and processingMethod softwareRef, and record-list defaultDataProcessingRef, spectrum and chromatogram dataProcessingRef and binaryDataArray dataProcessingRef. Selected by mzml::ReadOptions::source_dangling_references; the default stays strict. sourceFileRef, sampleRef, instrument configuration and parameter group references are out of scope and stay strict.",
+ "source_files": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzMLFile.cpp",
+   "sha256": "6c64cc4549b088907c4ce85b526a56ca46918728063ad9a5eaad4a5ce355900e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileHandler.cpp",
+   "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
+  }
+ ],
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 920,
+   "operation": "spectrum dataProcessingRef: spec_.setDataProcessing(processing_[data_processing_ref]); std::map::operator[] default-constructs an empty vector for an unknown ID"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 924,
+   "operation": "spectrum without dataProcessingRef: processing_[default_processing_], the spectrumList defaultDataProcessingRef read at line 958"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 948,
+   "operation": "chromatogram dataProcessingRef and, at line 952, the chromatogramList default read at line 989, both through processing_[...]"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 1034,
+   "operation": "binaryDataArray dataProcessingRef: bin_data_.back().meta.setDataProcessing(processing_[data_processing_ref])"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 1264,
+   "operation": "processingMethod: dp->setSoftware(software_[softwareRef]); only a missing attribute (ParseError) is caught and logged, an unknown ID silently yields an empty Software"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 1288,
+   "operation": "instrumentConfiguration softwareRef: instruments_[current_id_].setSoftware(software_[ref]), a copy of the default-constructed entry for an unknown ID"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "line": 899,
+   "operation": "contrast: an unregistered spectrum sourceFileRef is checked with contains() and warned about with OPENMS_LOG_WARN (lines 899-906); not ported by this group"
+  }
+ ],
+ "upstream_test_definition": {
+  "package": "test-data",
+  "revision": "0cb15f2",
+  "path": "topp/CMakeLists.txt",
+  "lines": "2543-2545",
+  "tests": [
+   "TOPP_PeakPickerHiRes_5",
+   "TOPP_PeakPickerHiRes_5_out1"
+  ],
+  "note": "The tool workflow itself belongs to P3-PICKER-TOOL. This group proves only that its input loads as the source loads it."
+ },
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_header_leniency/PeakPickerHiRes_5_input.mzML",
+   "sha256": "976a3bb76e1c5003172acbff4d049320b14a1a9d2fb970a186f6e8c03213feed",
+   "kind": "pinned upstream TOPP input, byte-identical to test-data 0cb15f2:topp/PeakPickerHiRes_5_input.mzML; instrumentConfiguration ic_0 has softwareRef so_in_0 with no softwareList, and chromatogramList has defaultDataProcessingRef dp_sp_0 with no dataProcessingList"
+  },
+  {
+   "path": "tests/data/mzml_header_leniency/instrument_software_dangling.mzML",
+   "sha256": "3fec581ab0b85c777676a0d26422fba524f7dccbbef8e2d7041a7f6f251fff53",
+   "kind": "synthetic, ../oracle/p2-mzml-leniency/make_cases.py: instrument softwareRef absent_software"
+  },
+  {
+   "path": "tests/data/mzml_header_leniency/processing_method_software_dangling.mzML",
+   "sha256": "7c2ecaedb6120fef9485ce2299b41b6a9cf20c9cf8ed9b7d4c50bf69f98e1855",
+   "kind": "synthetic, make_cases.py: processingMethod softwareRef absent_software before a resolved method"
+  },
+  {
+   "path": "tests/data/mzml_header_leniency/record_processing_dangling.mzML",
+   "sha256": "485f1b85b9610622c67186abe94ec6350789cca92eaac82b0a528f1e2a20f36c",
+   "kind": "synthetic, make_cases.py: dangling spectrumList default, spectrum, m/z array, auxiliary array and chromatogram processing references beside resolved ones"
+  },
+  {
+   "path": "tests/data/mzml_header_leniency/forward_software_reference.mzML",
+   "sha256": "786614265bfbc7ad05166cf630cecb7a76c9884fdbd20ca6ec49f594dfd89d1f",
+   "kind": "synthetic, make_cases.py: instrument softwareRef to software defined by a later softwareList"
+  },
+  {
+   "path": "tests/data/mzml_header_leniency/p2_mzml_leniency_oracle.tsv",
+   "sha256": "5cb3592eaa13488980756524da22a11656774cf73cb8a9b2c9bca6d9b4818055",
+   "rows": 68,
+   "kind": "oracle-generated (tier 1 executed differential): byte-identical copy of ../oracle/p2-mzml-leniency/results/p2_mzml_leniency_oracle.tsv, the product-sdk driver's stdout for load, metadata and transform on the five inputs above, reproduced byte for byte in two runs"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/p2-mzml-leniency/manifest.json",
+   "sha256": "322724f5a00dd7634b90190c5e75cda0afa411a06fb8960c6e6c52cebf7f987c",
+   "origin_key": "fixtures",
+   "label": "oracle-generated (tier 1 executed differential)",
+   "debug_only": []
+  },
+  {
+   "path": "../oracle/p2-mzml-leniency/driver.cpp",
+   "sha256": "f43066446075e1680b0241d7bbd48278b523bb9630dfc7486a3dd03fa9396acc",
+   "origin_key": "fixtures",
+   "label": "oracle driver source"
+  },
+  {
+   "path": "../oracle/p2-mzml-leniency/results/p2_mzml_leniency_oracle.stderr",
+   "sha256": "3be1915f2167c6a1113a6ca1d56cf22906f74c04f3e324a8a4ec28907f68bf54",
+   "origin_key": "fixtures",
+   "label": "oracle stderr: case markers and one unrelated Debug 'Update ranges' record, no reference diagnostic"
+  }
+ ],
+ "external_reference_note": "No C++ is committed to this repository. The oracle driver, its CMake project, case generator, runner and manifest live in ../oracle/p2-mzml-leniency/ and link the unmodified product-sdk libOpenMS (Debug, core 4fdec46; git diff 4fdec46..bc9cc12 is empty for MzMLHandler.cpp/.h, MzMLHandlerHelper.cpp, MzMLFile.cpp/.h, FileHandler.cpp, DataProcessing.cpp/.h and IMSDataConsumer.h). Only the generated stdout and the inputs enter the repository, with the hashes above.",
+ "evidence_tier": "tier_1_executed_differential_oracle_generated_plus_rust_only",
+ "method": "Oracle-generated (tier 1 executed differential): the product-sdk driver loads each input through FileHandler::loadExperiment with default PeakFileOptions, through MzMLFile::load with metadata-only options and through MzMLFile::transform, and prints instrument name and software, every record's processing entries (software name, version, actions) and every float array's processing count. tests/mzml_header_leniency.rs renders the Rust reader's results in the same line format, through read_with_load_options with the options FileHandler::load_experiment_with_options passes, read_with_load_options with metadata_only (checked equal to read_metadata_with_options) and transform_from, all with ReadOptions::source_dangling_references, and requires all 68 lines to be equal. Tier 4 (Rust-only): the strict default keeps every existing error message on read, load-option, metadata and transform paths; the source option reads PeakPickerHiRes_5_input.mzML into exactly the experiment the strict reader gives for a copy with the two references removed, on the stream, load-option and path readers; other reference kinds and malformed IDs stay errors; one warning per distinct dangling ID per read; the whitespace-padded placeholder software reference no longer panics; private tests check the warning record's allowance charging.",
+ "native_implementation": [
+  "src/format/mzml_header/read.rs",
+  "src/format/mzml_header.rs",
+  "src/format/mzml.rs",
+  "src/format/mzml_counts.rs"
+ ],
+ "native_tests": [
+  "tests/mzml_header_leniency.rs",
+  "src/format/mzml_header/read.rs"
+ ],
+ "support_document": "docs/MZML_HEADER_SUPPORT.md",
+ "target_verification": {
+  "tests": "tests/mzml_header_leniency.rs (7) and the private read.rs tests (6), on stable and 1.85.0, under --all-features and under --no-default-features --features mzml; every mzml*, file_handler*, imzml*, indexed_mzml*, mzxml, mzdata, precursor_workflow, workflows and topp_mzml_splitter test binary green on both toolchains",
+  "cpp_issue_candidate": "MzMLHandler resolves softwareRef and data-processing references with std::map::operator[] (MzMLHandler.cpp:920-952, 1034, 1264, 1288): a reference naming no definition silently becomes an empty Software or an empty processing history, with no diagnostic, while an unregistered spectrum sourceFileRef is checked and warned about (899-906). The upstream fixture PeakPickerHiRes_5_input.mzML depends on it."
+ }
+}

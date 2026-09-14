@@ -1,0 +1,68 @@
+load	PeakPickerHiRes_5_input	spectra	0	chromatograms	3
+load_instrument	PeakPickerHiRes_5_input	name	<empty>	software	<empty>	<empty>
+load_chromatogram	PeakPickerHiRes_5_input	YLYEIAR/2_i0	processing	0
+load_chromatogram	PeakPickerHiRes_5_input	YLYEIAR/2_i1	processing	0
+load_chromatogram	PeakPickerHiRes_5_input	YLYEIAR/2_i2	processing	0
+load	instrument_software_dangling	spectra	1	chromatograms	0
+load_instrument	instrument_software_dangling	name	<empty>	software	<empty>	<empty>
+load_spectrum	instrument_software_dangling	scan=1	processing	1
+load_spectrum_processing	instrument_software_dangling	scan=1	0	tool	2.0	Peak picking
+load	processing_method_software_dangling	spectra	1	chromatograms	0
+load_instrument	processing_method_software_dangling	name	<empty>	software	tool	2.0
+load_spectrum	processing_method_software_dangling	scan=1	processing	2
+load_spectrum_processing	processing_method_software_dangling	scan=1	0	<empty>	<empty>	Smoothing
+load_spectrum_processing	processing_method_software_dangling	scan=1	1	tool	2.0	Peak picking
+load	record_processing_dangling	spectra	4	chromatograms	2
+load_instrument	record_processing_dangling	name	<empty>	software	tool	2.0
+load_spectrum	record_processing_dangling	scan=1	processing	0
+load_spectrum	record_processing_dangling	scan=2	processing	0
+load_spectrum	record_processing_dangling	scan=3	processing	1
+load_spectrum_processing	record_processing_dangling	scan=3	0	tool	2.0	Peak picking
+load_spectrum	record_processing_dangling	scan=4	processing	0
+load_float_array	record_processing_dangling	scan=4	aux	processing	0
+load_chromatogram	record_processing_dangling	c1	processing	1
+load_chromatogram_processing	record_processing_dangling	c1	0	tool	2.0	Peak picking
+load_chromatogram	record_processing_dangling	c2	processing	0
+load	forward_software_reference	spectra	1	chromatograms	0
+load_instrument	forward_software_reference	name	<empty>	software	<empty>	<empty>
+load_spectrum	forward_software_reference	scan=1	processing	1
+load_spectrum_processing	forward_software_reference	scan=1	0	tool	2.0	Peak picking
+metadata	PeakPickerHiRes_5_input	spectra	0	chromatograms	0
+metadata_instrument	PeakPickerHiRes_5_input	name	<empty>	software	<empty>	<empty>
+metadata	instrument_software_dangling	spectra	0	chromatograms	0
+metadata_instrument	instrument_software_dangling	name	<empty>	software	<empty>	<empty>
+metadata	processing_method_software_dangling	spectra	0	chromatograms	0
+metadata_instrument	processing_method_software_dangling	name	<empty>	software	tool	2.0
+metadata	record_processing_dangling	spectra	0	chromatograms	0
+metadata_instrument	record_processing_dangling	name	<empty>	software	tool	2.0
+metadata	forward_software_reference	spectra	0	chromatograms	0
+metadata_instrument	forward_software_reference	name	<empty>	software	<empty>	<empty>
+transform	PeakPickerHiRes_5_input	spectra	0	chromatograms	3
+transform_instrument	PeakPickerHiRes_5_input	name	<empty>	software	<empty>	<empty>
+transform_chromatogram	PeakPickerHiRes_5_input	YLYEIAR/2_i0	processing	0
+transform_chromatogram	PeakPickerHiRes_5_input	YLYEIAR/2_i1	processing	0
+transform_chromatogram	PeakPickerHiRes_5_input	YLYEIAR/2_i2	processing	0
+transform	instrument_software_dangling	spectra	1	chromatograms	0
+transform_instrument	instrument_software_dangling	name	<empty>	software	<empty>	<empty>
+transform_spectrum	instrument_software_dangling	scan=1	processing	1
+transform_spectrum_processing	instrument_software_dangling	scan=1	0	tool	2.0	Peak picking
+transform	processing_method_software_dangling	spectra	1	chromatograms	0
+transform_instrument	processing_method_software_dangling	name	<empty>	software	tool	2.0
+transform_spectrum	processing_method_software_dangling	scan=1	processing	2
+transform_spectrum_processing	processing_method_software_dangling	scan=1	0	<empty>	<empty>	Smoothing
+transform_spectrum_processing	processing_method_software_dangling	scan=1	1	tool	2.0	Peak picking
+transform	record_processing_dangling	spectra	4	chromatograms	2
+transform_instrument	record_processing_dangling	name	<empty>	software	tool	2.0
+transform_spectrum	record_processing_dangling	scan=1	processing	0
+transform_spectrum	record_processing_dangling	scan=2	processing	0
+transform_spectrum	record_processing_dangling	scan=3	processing	1
+transform_spectrum_processing	record_processing_dangling	scan=3	0	tool	2.0	Peak picking
+transform_spectrum	record_processing_dangling	scan=4	processing	0
+transform_float_array	record_processing_dangling	scan=4	aux	processing	0
+transform_chromatogram	record_processing_dangling	c1	processing	1
+transform_chromatogram_processing	record_processing_dangling	c1	0	tool	2.0	Peak picking
+transform_chromatogram	record_processing_dangling	c2	processing	0
+transform	forward_software_reference	spectra	1	chromatograms	0
+transform_instrument	forward_software_reference	name	<empty>	software	<empty>	<empty>
+transform_spectrum	forward_software_reference	scan=1	processing	1
+transform_spectrum_processing	forward_software_reference	scan=1	0	tool	2.0	Peak picking
