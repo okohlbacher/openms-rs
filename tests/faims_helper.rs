@@ -458,9 +458,10 @@ fn identifiers(peptides: &[PeptideIdentification]) -> String {
 #[test]
 fn filter_matches_every_executed_oracle_case_or_refuses_the_silent_ones() {
     let rows = records("faims_filter");
-    assert_eq!(rows.len(), 10);
+    assert_eq!(rows.len(), 15);
     assert_eq!(records("faims_filter_empty_value_exists")[0][1], "1");
     let mut refused = Vec::new();
+    let mut infinite_targets = Vec::new();
     for row in &rows {
         let name = row[1];
         let target = hex_f64(row[2]);
@@ -491,7 +492,10 @@ fn filter_matches_every_executed_oracle_case_or_refuses_the_silent_ones() {
             continue;
         }
         assert_eq!(row[4], "ok", "{name}");
-        let silent = !target.is_finite() || tolerance.is_nan() || tolerance <= 0.0;
+        // An infinite target is not silent in this sense: it is a voltage
+        // get_compensation_voltages can return, and it is filtered exactly as
+        // the source filters it.
+        let silent = target.is_nan() || tolerance.is_nan() || tolerance <= 0.0;
         if silent {
             assert!(
                 matches!(result, Err(Error::InvalidValue(_))),
@@ -502,6 +506,9 @@ fn filter_matches_every_executed_oracle_case_or_refuses_the_silent_ones() {
             assert_eq!(row[5], "p1_unannotated,p8_other_key_only", "{name}");
             refused.push(name);
         } else {
+            if target.is_infinite() {
+                infinite_targets.push(name);
+            }
             assert_eq!(identifiers(&result.unwrap()), row[5], "{name}");
         }
     }
@@ -511,7 +518,17 @@ fn filter_matches_every_executed_oracle_case_or_refuses_the_silent_ones() {
             "tolerance_zero",
             "tolerance_negative",
             "tolerance_nan",
-            "target_nan"
+            "target_nan",
+            "target_nan_tolerance_infinite"
+        ]
+    );
+    assert_eq!(
+        infinite_targets,
+        [
+            "target_positive_infinity",
+            "target_negative_infinity",
+            "target_positive_infinity_tolerance_infinite",
+            "target_negative_infinity_tolerance_infinite"
         ]
     );
 }
@@ -539,7 +556,7 @@ fn filter_keeps_the_strict_boundary_order_and_input_unchanged() {
 }
 
 #[test]
-fn filter_refuses_non_numeric_annotations_and_infinite_targets() {
+fn filter_refuses_non_numeric_annotations_and_accepts_infinite_targets() {
     let unannotated = identification("u", FAIMS_CV, None);
     for value in [
         MetaValue::from("-45"),
@@ -557,18 +574,71 @@ fn filter_refuses_non_numeric_annotations_and_infinite_targets() {
             other => panic!("expected a refusal, got {other:?}"),
         }
     }
-    for target in [f64::INFINITY, f64::NEG_INFINITY] {
-        assert!(matches!(
+    // FAIMSHelper.cpp has no target check. The executed source keeps only the
+    // unannotated identifications for an infinite target (oracle
+    // target_positive_infinity, target_negative_infinity), because
+    // |cv - target| is infinite and never less than the tolerance.
+    for (target, case) in [
+        (f64::INFINITY, "target_positive_infinity"),
+        (f64::NEG_INFINITY, "target_negative_infinity"),
+    ] {
+        let row = records("faims_filter")
+            .into_iter()
+            .find(|row| row[1] == case)
+            .expect("oracle case");
+        assert_eq!(hex_f64(row[2]).to_bits(), target.to_bits(), "{case}");
+        assert_eq!(hex_f64(row[3]).to_bits(), 0.01f64.to_bits(), "{case}");
+        assert_eq!(row[4], "ok", "{case}");
+        assert_eq!(row[5], "p1_unannotated,p8_other_key_only", "{case}");
+        assert_eq!(
             FaimsHelper::filter_peptides_by_faims_cv(
                 std::slice::from_ref(&unannotated),
                 target,
                 0.01
-            ),
-            Err(Error::InvalidValue(_))
-        ));
+            )
+            .unwrap(),
+            std::slice::from_ref(&unannotated)
+        );
+        let kept =
+            FaimsHelper::filter_peptides_by_faims_cv(&oracle_identifications(), target, 0.01)
+                .unwrap();
+        assert_eq!(identifiers(&kept), row[5], "{case}");
     }
     let kept =
         FaimsHelper::filter_peptides_by_faims_cv(std::slice::from_ref(&unannotated), -45.0, 1e-300)
             .unwrap();
     assert_eq!(kept, [unannotated]);
+}
+
+#[test]
+fn an_infinite_target_keeps_no_annotated_identification_not_even_an_infinite_one() {
+    // The oracle filtered {unannotated, +inf, -inf, -45} by +inf and by -inf at
+    // an infinite tolerance, and C++ kept only the unannotated identification:
+    // the same infinity gives |inf - inf| = NaN, the opposite infinity and -45
+    // give inf, and neither is less than inf. The two infinite annotations
+    // cannot be built here, because MetaValue refuses non-finite floats, so
+    // the port runs the two representable identifications and must keep what
+    // C++ kept: nothing C++ would keep is lost.
+    assert!(MetaValue::try_from(f64::INFINITY).is_err());
+    assert!(MetaValue::try_from(f64::NEG_INFINITY).is_err());
+    let representable = [
+        identification("i0_unannotated", FAIMS_CV, None),
+        identification("i3_double_-45", FAIMS_CV, float(-45.0)),
+    ];
+    let rows = records("faims_filter_infinite_annotation");
+    assert_eq!(rows.len(), 2);
+    for (row, (case, target)) in rows.iter().zip([
+        ("target_positive_infinity", f64::INFINITY),
+        ("target_negative_infinity", f64::NEG_INFINITY),
+    ]) {
+        assert_eq!(row[1], case);
+        assert_eq!(hex_f64(row[2]).to_bits(), target.to_bits(), "{case}");
+        let tolerance = hex_f64(row[3]);
+        assert_eq!(tolerance, f64::INFINITY, "{case}");
+        assert_eq!(row[4], "ok", "{case}");
+        assert_eq!(row[5], "i0_unannotated", "{case}");
+        let kept =
+            FaimsHelper::filter_peptides_by_faims_cv(&representable, target, tolerance).unwrap();
+        assert_eq!(identifiers(&kept), row[5], "{case}");
+    }
 }

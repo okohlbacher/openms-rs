@@ -20,9 +20,11 @@
 
 use openms::format::peak_type_estimator::PeakTypeEstimator;
 use openms::kernel::{Peak1D, SpectrumType, SpectrumTypeQueryLimits};
+use openms::metadata::DataProcessing;
 use openms::processing::peak_picking::estimate_spectrum_type;
 use openms::{Error, MSSpectrum};
 use std::io::Cursor;
+use std::sync::Arc;
 
 const ORACLE: &str = include_str!("data/peak_type_estimator/oracle_estimates.tsv");
 const RAW: &str = include_str!("data/spectrum_type/PeakTypeEstimator_raw.dta");
@@ -347,6 +349,52 @@ fn ceilings_and_their_order_are_those_of_msspectrum_get_type_with_limits() {
             .get_type_with_limits(true, nothing)
             .unwrap(),
         SpectrumType::Unknown
+    );
+}
+
+#[test]
+fn a_data_processing_record_spends_work_the_peak_slice_does_not() {
+    // MSSpectrum::get_type_with_budget (src/kernel/spectrum_type.rs) charges
+    // every data-processing record 1 + 12 * (bit length of its action count)
+    // work units while it looks for a peak-picking step, before it charges 32
+    // units per peak. A default record has no actions and costs one unit, so
+    // at exactly 7 * 32 units the 7-peak profile fits as a slice but not as a
+    // spectrum carrying that record.
+    let peaks = synthetic("ascending_profile");
+    assert_eq!(peaks.len(), 7);
+    let mut spectrum = MSSpectrum::from_peaks(peaks);
+    assert_eq!(spectrum.spectrum_type, SpectrumType::Unknown);
+    spectrum
+        .data_processing
+        .push(Arc::new(DataProcessing::default()));
+    assert!(spectrum.data_processing[0].actions.is_empty());
+    let tight = SpectrumTypeQueryLimits {
+        max_work: 224,
+        ..SpectrumTypeQueryLimits::default()
+    };
+    assert_eq!(
+        PeakTypeEstimator::estimate_type_with_limits(&spectrum.peaks, tight).unwrap(),
+        SpectrumType::Profile
+    );
+    // The peaks are finite, so the refusal is the work ceiling and nothing else.
+    match spectrum.get_type_with_limits(true, tight) {
+        Err(Error::InvalidValue(message)) => {
+            assert!(message.contains("resource limit"), "{message}");
+        }
+        other => panic!("expected the work ceiling to refuse, got {other:?}"),
+    }
+    // One more unit pays for the record, and the two paths agree again.
+    let paid = SpectrumTypeQueryLimits {
+        max_work: 225,
+        ..tight
+    };
+    assert_eq!(
+        PeakTypeEstimator::estimate_type_with_limits(&spectrum.peaks, paid).unwrap(),
+        SpectrumType::Profile
+    );
+    assert_eq!(
+        spectrum.get_type_with_limits(true, paid).unwrap(),
+        SpectrumType::Profile
     );
 }
 

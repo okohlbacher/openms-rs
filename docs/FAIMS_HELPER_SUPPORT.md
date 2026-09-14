@@ -88,6 +88,20 @@ test `voltages_order_numerically_and_not_by_bit_pattern` pins this.
   0.00999999999999801, so it is kept at the default tolerance (oracle
   `default_tolerance`). Only the exact key counts: a `FAIMS` key leaves an
   identification unannotated, and it is kept.
+- **Infinite targets are filtered, not refused.** `FAIMSHelper.cpp` has no
+  check on `target_cv`. Against `+inf` or `-inf`, `|cv - target_cv|` is
+  infinite for every annotation and never less than the tolerance, an infinite
+  tolerance included, so only the unannotated identifications are kept (oracle
+  `target_positive_infinity`, `target_negative_infinity` and their
+  `_tolerance_infinite` variants). The port returns the same identifiers. This
+  keeps the two functions consistent: `get_compensation_voltages` returns
+  infinite voltages (oracle `infinities`), and every voltage it returns is a
+  valid target. The source keeps no annotated identification even when the
+  annotation is the same infinity, because `inf - inf` is NaN (oracle
+  `faims_filter_infinite_annotation`, where `+inf`, `-inf` and `-45`
+  annotations are all dropped at an infinite tolerance). `MetaValue` refuses
+  non-finite floats, so the port cannot build such an annotation. On the
+  representable identifications it keeps what C++ keeps.
 - **Integer annotations** convert to `f64` as `DataValue::operator double()`
   converts `INT_VALUE` (oracle `p4_int_-45`, kept).
 - **Input order is preserved**, and kept identifications are copies; the input
@@ -107,13 +121,18 @@ test `voltages_order_numerically_and_not_by_bit_pattern` pins this.
   `nan_last`). This is reported as a C++ issue candidate.
 - **Warnings are returned, not logged.** This kernel module is not wired to
   `LogStream`; the caller decides where `CompensationVoltages::warnings` goes.
-- **Filter parameters that can never match are refused.** A non-finite
+- **NaN filter parameters and non-positive tolerances are refused.** A NaN
   `target_cv`, or a `cv_tolerance` that is NaN, zero or negative, returns
   `Error::InvalidValue` before any identification is examined. The source
   accepts them and, because its strict comparison can never succeed, silently
   keeps only the unannotated identifications (oracle `tolerance_zero`,
-  `tolerance_negative`, `tolerance_nan`, `target_nan`). A positive infinite
-  tolerance stays valid and keeps every identification (oracle
+  `tolerance_negative`, `tolerance_nan`, `target_nan`, and
+  `target_nan_tolerance_infinite`, which shows that even an infinite tolerance
+  cannot match a NaN target). A NaN target is refused for the reason
+  `CompensationVoltage::new` refuses NaN, so no voltage
+  `get_compensation_voltages` returns is refused as a target. An infinite
+  target is not refused (see the preserved conventions above). A positive
+  infinite tolerance stays valid and keeps every identification (oracle
   `tolerance_infinite`).
 - **Non-numeric annotations are refused**, naming the identification index. An
   empty `DataValue` makes the source throw `Exception::ConversionError` (oracle
@@ -137,9 +156,9 @@ test `voltages_order_numerically_and_not_by_bit_pattern` pins this.
 | `FAIMSHelper_test.cpp:32-104` literals | 3 (source review) | the constructor and destructor sections; 19 spectra and the voltages {-65, -55, -45} of `IM_FAIMS_test.mzML`; FAIMS detected beyond the first spectrum with the sentinel ignored; empty for non-FAIMS data |
 | `oracle_cases.tsv`, `faims_file_*` | 1 (executed differential) | the C++ `MzMLFile` load of `IM_FAIMS_test.mzML`: native ID, MS level, drift time (hexadecimal) and unit of all 19 spectra, and the resulting voltage set in iteration order |
 | `oracle_cases.tsv`, `faims_cvs` | 1 (executed differential) | 16 synthetic experiments: the two class-test experiments, empty, order, signed zeros, infinities, sentinel only, sentinel on another unit, unit `NONE`, duplicates, adjacent doubles, NaN first/middle/last and NaN on another unit. The Rust voltages match bit for bit, including the sign of zero, for the 13 cases without a FAIMS NaN; the three NaN cases are refused and their C++ results asserted |
-| `oracle_cases.tsv`, `faims_filter*` | 1 (executed differential) | nine identifications (double, integer, unannotated, other key, boundary values) under ten parameter cases, plus an empty `DataValue` annotation. Kept lists match for the six accepted cases; the four refused cases and the conversion exception are asserted against their recorded C++ outcomes |
+| `oracle_cases.tsv`, `faims_filter*` | 1 (executed differential) | 15 `faims_filter` records: 13 parameter cases on nine identifications (double, integer, unannotated, other key, boundary values), including NaN and infinite targets at the default and at an infinite tolerance, one empty input, and an empty `DataValue` annotation. Kept lists match for the nine accepted cases, the four infinite-target cases among them. The five refused cases and the conversion exception are asserted against their recorded C++ outcomes. Two `faims_filter_infinite_annotation` records filter `+inf`, `-inf` and `-45` annotations by `±inf` at an infinite tolerance: C++ keeps only the unannotated identification, and the port keeps the same on the representable subset |
 | oracle stderr (manifest) | 1 | the missing-voltage warning occurs three times: after the class-test sentinel case, after `only_sentinel`, and after `nan_first` (whose empty result shows `erase` removed the NaN root) |
-| `tests/faims_helper.rs` native tests | 4 | ordering, equality and hashing of `CompensationVoltage`; NaN refusal with the spectrum index; parameter and annotation refusals; strict boundary, order preservation and unchanged input; the ceilings |
+| `tests/faims_helper.rs` native tests | 4 | ordering, equality and hashing of `CompensationVoltage`; NaN refusal with the spectrum index; parameter and annotation refusals; infinite targets accepted; strict boundary, order preservation and unchanged input; the ceilings |
 
 The oracle is product-sdk (Debug, core `4fdec46`), accepted as a
 development-time oracle. `git diff 4fdec46 bc9cc12` is empty for
@@ -181,7 +200,10 @@ the only part that waits for another work package.
   path from any reader that accepts `NaN` as a cvParam value.
 - **Silent no-match parameters in `filterPeptidesByFAIMSCV`.** A tolerance of
   zero or less, or a NaN target or tolerance, keeps only unannotated
-  identifications without any diagnostic. This is a usability hazard rather
-  than a crash; the port refuses these values.
+  identifications without any diagnostic, even at an infinite tolerance. This
+  is a usability hazard rather than a crash; the port refuses these values. An
+  infinite target also matches no annotation, but it is a voltage the source's
+  own `getCompensationVoltages` can return, so the port filters it as the
+  source does.
 - **Non-numeric `FAIMS_CV` annotations** reach `DataValue::operator double()`,
   already logged as CPP-058.

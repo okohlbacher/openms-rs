@@ -68,7 +68,7 @@
   {
    "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
    "line": 68,
-   "operation": "an identification with a FAIMS_CV meta value (metaValueExists) is converted with (double)getMetaValue and kept when std::abs(pep_cv - target_cv) < cv_tolerance (strict)"
+   "operation": "an identification with a FAIMS_CV meta value (metaValueExists) is converted with (double)getMetaValue and kept when std::abs(pep_cv - target_cv) < cv_tolerance (strict); neither target_cv nor cv_tolerance is checked, so an infinite target is filtered and keeps only unannotated identifications (oracle target_positive_infinity, target_negative_infinity)"
   },
   {
    "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
@@ -104,13 +104,13 @@
   },
   {
    "path": "tests/data/faims_helper/oracle_cases.tsv",
-   "sha256": "d690315731531655fd809db721f92e5bc9ccd36a7e2e662665d1bb72a82345fb",
-   "rows": 48,
-   "kind": "oracle-generated (tier 1 executed differential): the faims_ records of ../oracle/pte-faims-helper/results/pte_faims_oracle.tsv (1 faims_file_spectra, 19 faims_file_spectrum, 1 faims_file_cvs, 16 faims_cvs, 10 faims_filter, 1 faims_filter_empty_value_exists)"
+   "sha256": "48fa83394f2fe2f9b8017a32ab434bf6e48a83092e475ab030b6845a8971267b",
+   "rows": 55,
+   "kind": "oracle-generated (tier 1 executed differential): the faims_ records of ../oracle/pte-faims-helper/results/pte_faims_oracle.tsv (1 faims_file_spectra, 19 faims_file_spectrum, 1 faims_file_cvs, 16 faims_cvs, 15 faims_filter, 1 faims_filter_empty_value_exists, 2 faims_filter_infinite_annotation)"
   }
  ],
  "evidence_tier": 1,
- "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; git diff 4fdec46..bc9cc12 empty for FAIMSHelper.{h,cpp}, FAIMSHelper_test.cpp, IM_FAIMS_test.mzML, MzMLHandler.cpp, DataValue.cpp, MetaInfo.cpp, IMTypes.h and Constants.h; installed FAIMSHelper.h equal to the pin) executed getCompensationVoltages on IM_FAIMS_test.mzML and on 16 synthetic experiments, and filterPeptidesByFAIMSCV under 10 parameter cases plus an empty annotation. The Rust voltages equal the C++ sets bit for bit, including the sign of zero, in iteration order, for every case without a FAIMS NaN; the Rust filter keeps exactly the C++ identifiers for the six accepted parameter cases. The three NaN cases, the four silent parameter cases and the empty annotation are refused natively, and their recorded C++ outcomes are asserted. The oracle stderr carries the missing-voltage warning three times (class_section_beyond_first_and_sentinel, only_sentinel, nan_first); Rust warns for the first two and refuses the third. Tier 3: the five FAIMSHelper_test.cpp sections are transcribed unchanged. Tier 4: CompensationVoltage ordering, equality and hashing, the refusals and the ceilings. filterPeptidesByFAIMSCV has no upstream class test; the oracle is its only executed evidence. No Debug-only precondition lies on this path.",
+ "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; git diff 4fdec46..bc9cc12 empty for FAIMSHelper.{h,cpp}, FAIMSHelper_test.cpp, IM_FAIMS_test.mzML, MzMLHandler.cpp, DataValue.cpp, MetaInfo.cpp, IMTypes.h and Constants.h; installed FAIMSHelper.h equal to the pin) executed getCompensationVoltages on IM_FAIMS_test.mzML and on 16 synthetic experiments, and filterPeptidesByFAIMSCV under 13 parameter cases on nine identifications (NaN, +inf and -inf targets at tolerance 0.01 and at an infinite tolerance among them), on an empty list, on an empty annotation, and with +inf and -inf targets against +inf, -inf and -45 annotations. The Rust voltages equal the C++ sets bit for bit, including the sign of zero, in iteration order, for every case without a FAIMS NaN. The Rust filter keeps exactly the C++ identifiers for the nine accepted cases, including the four infinite-target cases, where C++ throws nothing and keeps only the unannotated identifications. On the representable identifications of the infinite-annotation cases it also keeps what C++ keeps; C++ matches no infinite annotation, not even the same infinity. The three NaN voltage cases, the five silent parameter cases (NaN target at both tolerances, zero, negative and NaN tolerance) and the empty annotation are refused natively, and their recorded C++ outcomes are asserted. The oracle stderr carries the missing-voltage warning three times (class_section_beyond_first_and_sentinel, only_sentinel, nan_first); Rust warns for the first two and refuses the third. Tier 3: the five FAIMSHelper_test.cpp sections are transcribed unchanged. Tier 4: CompensationVoltage ordering, equality and hashing, the refusals and the ceilings. filterPeptidesByFAIMSCV has no upstream class test; the oracle is its only executed evidence. No Debug-only precondition lies on this path.",
  "class_test_sections": {
   "FAIMSHelper_test.cpp": {
    "sections": 5,
@@ -132,17 +132,17 @@
  },
  "cpp_issue_candidates": [
   "getCompensationVoltages inserts NaN drift times into std::set<double>, violating strict weak ordering: a NaN first empties the result and logs a spurious missing-voltage warning; a later NaN is silently dropped (oracle nan_first, nan_middle, nan_last)",
-  "filterPeptidesByFAIMSCV accepts a zero, negative or NaN tolerance and a NaN target and silently keeps only unannotated identifications (oracle tolerance_zero, tolerance_negative, tolerance_nan, target_nan)"
+  "filterPeptidesByFAIMSCV accepts a zero, negative or NaN tolerance and a NaN target and silently keeps only unannotated identifications, a NaN target even at an infinite tolerance (oracle tolerance_zero, tolerance_negative, tolerance_nan, target_nan, target_nan_tolerance_infinite)"
  ],
  "oracle": {
   "evidence_label": "oracle-generated (tier 1 executed differential)",
   "manifest": "../oracle/pte-faims-helper/manifest.json",
-  "manifest_sha256": "eb29e3035039a90710d18077853ef01fe41c692df8099525a1f71f7ad370bb95",
+  "manifest_sha256": "c374c3281c49f62037fb30623dfe9395b45912e2ecfc6ea6ba552fac6488e50d",
   "sdk_source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
   "sdk_build_type": "Debug",
   "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
-  "driver_output_sha256": "2d99c1270c341ab03500b5dc1a096b482fd65517302555da1156891300384261",
-  "driver_stderr_sha256": "ff84d92b896e9d8fabf6e9d1dc14ec3e690eecaa91a654a8c253d0273def333e",
+  "driver_output_sha256": "adb001945735ad45c89668f523e02efed115d8571c9250a23ca5e54864b0eb45",
+  "driver_stderr_sha256": "e91b9513d4bb234ee9f261a2e0be2d1bb2422f832dd12ed7c6774bc4f411359b",
   "split_rule": "grep -E '^faims_' of the driver stdout; tests/data/peak_type_estimator/oracle_estimates.tsv followed by this file reproduces the driver stdout byte for byte",
   "reproduced_byte_for_byte": true,
   "debug_only": []
@@ -150,7 +150,7 @@
  "external_reference_artifacts": [
   {
    "path": "../oracle/pte-faims-helper/driver.cpp",
-   "sha256": "f1135c35c4839a012502766791ea3addb42e533fefd99ae7316e78ba6c571944",
+   "sha256": "b9bcfc20fd2196cd28778dd0886295906584c81c6c6483b976ed93f32c8f9a99",
    "location": "outside this repository",
    "origin_key": "oracle"
   },
@@ -168,7 +168,7 @@
   },
   {
    "path": "../oracle/pte-faims-helper/manifest.json",
-   "sha256": "eb29e3035039a90710d18077853ef01fe41c692df8099525a1f71f7ad370bb95",
+   "sha256": "c374c3281c49f62037fb30623dfe9395b45912e2ecfc6ea6ba552fac6488e50d",
    "location": "outside this repository",
    "origin_key": "oracle"
   }

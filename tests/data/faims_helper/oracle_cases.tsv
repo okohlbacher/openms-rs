@@ -42,7 +42,14 @@ faims_filter	tolerance_negative	-0x1.68p+5	-0x1p+0	ok	p1_unannotated,p8_other_ke
 faims_filter	tolerance_infinite	-0x1.68p+5	inf	ok	p0_double_-45,p1_unannotated,p2_double_-44.995,p3_double_-44.99,p4_int_-45,p5_double_-55,p6_double_-44.5,p7_double_+45,p8_other_key_only
 faims_filter	tolerance_nan	-0x1.68p+5	nan	ok	p1_unannotated,p8_other_key_only
 faims_filter	target_nan	nan	0x1.47ae147ae147bp-7	ok	p1_unannotated,p8_other_key_only
+faims_filter	target_nan_tolerance_infinite	nan	inf	ok	p1_unannotated,p8_other_key_only
+faims_filter	target_positive_infinity	inf	0x1.47ae147ae147bp-7	ok	p1_unannotated,p8_other_key_only
+faims_filter	target_negative_infinity	-inf	0x1.47ae147ae147bp-7	ok	p1_unannotated,p8_other_key_only
+faims_filter	target_positive_infinity_tolerance_infinite	inf	inf	ok	p1_unannotated,p8_other_key_only
+faims_filter	target_negative_infinity_tolerance_infinite	-inf	inf	ok	p1_unannotated,p8_other_key_only
 faims_filter	target_positive	0x1.68p+5	0x1.47ae147ae147bp-7	ok	p1_unannotated,p7_double_+45,p8_other_key_only
 faims_filter	empty_input	-0x1.68p+5	0x1.47ae147ae147bp-7	ok	-
 faims_filter_empty_value_exists	1
 faims_filter	empty_datavalue_annotation	-0x1.68p+5	0x1.47ae147ae147bp-7	exception:ConversionError	-
+faims_filter_infinite_annotation	target_positive_infinity	inf	inf	ok	i0_unannotated
+faims_filter_infinite_annotation	target_negative_infinity	-inf	inf	ok	i0_unannotated

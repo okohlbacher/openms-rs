@@ -84,12 +84,26 @@ passes `MSSpectrum` iterators, that is `Peak1D`, so the Rust entry point takes a
   not reported. `MSSpectrum::get_type(true)` refuses the same input, so the two
   public paths agree.
 - **Resource ceilings.** The ceilings and their order are those
-  `MSSpectrum::get_type_with_limits` applies when it reaches estimation:
-  `max_points`, then 32 work units per peak against `max_work`, then 16 bytes
-  per peak against `max_bytes`, then the finiteness check, then a fallible
-  allocation. Short input returns `Unknown` before any ceiling is consulted. The
-  test asserts both paths accept and refuse at the same boundaries. The source
-  has no ceiling.
+  `MSSpectrum::get_type_with_limits` applies to the peaks when it reaches
+  estimation: `max_points`, then 32 work units per peak against `max_work`,
+  then 16 bytes per peak against `max_bytes`, then the finiteness check, then a
+  fallible allocation. Short input returns `Unknown` before any ceiling is
+  consulted. For a spectrum with no stored type and no data-processing records,
+  queried with `query_data` set, the test asserts both paths accept and refuse
+  at the same boundaries. The source has no ceiling.
+- **Data-processing records spend work the slice does not.** Before the peaks
+  are charged, `get_type_with_limits` searches the spectrum's data-processing
+  records for a peak-picking step. It charges each record `1 + 12 * h` work
+  units against the same `max_work`, where `h` is the bit length of the
+  record's action count, so a record without actions costs one unit
+  (`get_type_with_budget` in `src/kernel/spectrum_type.rs`). A spectrum with
+  records can therefore fail under limits its peak slice fits. The 7-peak
+  `ascending_profile` shape at `max_work` 224 (7 × 32) is `Profile` as a slice
+  and a resource error as a spectrum carrying one default record; at 225 both
+  are `Profile` (`a_data_processing_record_spends_work_the_peak_slice_does_not`).
+  A record with a peak-picking action instead makes the spectrum `Centroid`
+  without estimating. `estimate_type_with_limits` receives no records and
+  charges none.
 - **`Result` return type.** The source cannot fail. The Rust function returns
   `Result<SpectrumType>` for the two refusals above; the early-TOPP-bundle plan
   sketched `-> SpectrumType`, which cannot express them.
@@ -102,7 +116,7 @@ passes `MSSpectrum` iterators, that is `Peak1D`, so the Rust entry point takes a
 | `oracle_estimates.tsv`, `pte_dta` / `pte_dta_first4` | 1 (executed differential) | the same three spectra through the unmodified C++ `DTAFile` and `estimateType`: sizes 66, 99386 and 121, and the same classes |
 | `oracle_estimates.tsv`, `pte_mzml` | 1 (executed differential) | `estimateType` on every spectrum (65) of eight mzML fixtures, with the native ID, MS level and peak count; the Rust estimate on the Rust-loaded peaks matches for all 65, and `MSSpectrum::get_type(true)` with nothing stored equals the estimate for all 65 |
 | `oracle_estimates.tsv`, `pte_synthetic` | 1 (executed differential) | eleven shapes: short input, flat, all-zero, profile in ascending and descending m/z order, negative edges, duplicate m/z, the exact 10% ratio, m/z 1e17, NaN and infinite intensity |
-| `tests/peak_type_estimator.rs` native tests | 4 | finiteness after the short-input gate; ceiling parity with `get_type_with_limits`; the stricter picker refusing what the estimator classifies |
+| `tests/peak_type_estimator.rs` native tests | 4 | finiteness after the short-input gate; ceiling parity with `get_type_with_limits` for a spectrum without stored type or data-processing records; the one-unit charge of a default data-processing record that makes the spectrum fail at `max_work` 224 where its 7-peak slice succeeds; the stricter picker refusing what the estimator classifies |
 | `tests/spectrum_type.rs` (unchanged, earlier package) | 3 | the transcription's own boundary tests through `MSSpectrum::get_type` |
 
 The stored and queried types (`getType(false)`, `getType(true)`) recorded in the
