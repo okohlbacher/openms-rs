@@ -3,11 +3,13 @@
 // $Maintainer: OpenMS Rust contributors $
 //! Normalizes peak intensities to a percentage of the run maximum.
 //!
-//! Ports `OpenMS4-topp/src/MapNormalizer.cpp`.
+//! Ports `OpenMS4-topp/src/MapNormalizer.cpp`. The output carries the source's
+//! `intensity normalization` processing record.
 
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
+use crate::metadata::ProcessingAction;
 use crate::{Error, Result};
 
 /// The `MapNormalizer` TOPP tool.
@@ -51,6 +53,9 @@ impl Tool for MapNormalizer {
             }
         }
 
+        // Source addDataProcessing_(exp, getProcessingInfo_(NORMALIZATION)).
+        let processing = ctx.processing_info(&[ProcessingAction::IntensityNormalization])?;
+        ctx.add_data_processing(&mut experiment, &processing);
         FileHandler::store_experiment(ctx.string("out")?, &experiment, Some(FileType::MzMl))?;
         Ok(ExitCode::ExecutionOk)
     }

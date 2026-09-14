@@ -16,20 +16,66 @@
 
 use openms::cli::tools::MzMLSplitter;
 use openms::cli::{ExitCode, run_with};
+use openms::data_structures::DateTime;
 use openms::format::file_handler::FileHandler;
 use openms::format::file_types::FileType;
 use openms::kernel::{MSExperiment, MSSpectrum};
-use std::fs;
+use openms::system::file::TempDir;
 use std::path::{Path, PathBuf};
 
 fn fixture(name: &str) -> PathBuf {
     Path::new("tests/data").join(name)
 }
 
-fn split(case: &str, args: &[&str]) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("openms-split-{}-{case}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
+/// The processing records of every spectrum and chromatogram agree with the
+/// retained C++ output: the same records in the same order, each with the same
+/// software name and version, actions, completion time and metadata.
+///
+/// Decision D4: the source tool calls `addDataProcessing_(part,
+/// getProcessingInfo_(DataProcessing::FILTERING))` while each part still holds
+/// no spectra and no chromatograms (`MzMLSplitter.cpp`), so the retained
+/// `MzMLSplitter_output_part*.mzML` carry only the records the input already
+/// had, and so does the C++ product SDK's output (oracle `mzml_splitter_1` in
+/// `../oracle/topp-cli-lifecycle/cli2/manifest.json`). Completion times are
+/// compared to the minute, the precision the C++ mzML writer keeps
+/// (`MzMLHandler.cpp:3947` writes `yyyy-MM-dd+hh:mm`).
+fn assert_same_processing(produced: &MSExperiment, expected: &MSExperiment) {
+    let minutes = |time: Option<DateTime>| time.map(|t| t.format("yyyy-MM-dd+hh:mm").unwrap());
+    let records = |experiment: &MSExperiment| {
+        experiment
+            .spectra
+            .iter()
+            .map(|s| s.data_processing.clone())
+            .chain(
+                experiment
+                    .chromatograms
+                    .iter()
+                    .map(|c| c.data_processing.clone()),
+            )
+            .collect::<Vec<_>>()
+    };
+    let (produced, expected) = (records(produced), records(expected));
+    assert_eq!(produced.len(), expected.len(), "record holders");
+    for (index, (a, e)) in produced.iter().zip(&expected).enumerate() {
+        assert_eq!(a.len(), e.len(), "holder {index}: processing records");
+        for (i, (pa, pe)) in a.iter().zip(e).enumerate() {
+            let at = format!("holder {index}, record {i}");
+            assert_eq!(pa.software.name, pe.software.name, "{at}: software");
+            assert_eq!(pa.software.version, pe.software.version, "{at}: version");
+            assert_eq!(pa.actions, pe.actions, "{at}: actions");
+            assert_eq!(
+                minutes(pa.completion_time),
+                minutes(pe.completion_time),
+                "{at}: completion time"
+            );
+            assert_eq!(pa.metadata, pe.metadata, "{at}: metadata");
+        }
+    }
+}
+
+fn split(_case: &str, args: &[&str]) -> TempDir {
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let dir = temp.path();
     let mut arguments = vec![
         "MzMLSplitter".to_string(),
         "-test".to_string(),
@@ -49,7 +95,7 @@ fn split(case: &str, args: &[&str]) -> PathBuf {
         "tool failed: {}",
         String::from_utf8_lossy(&err)
     );
-    dir
+    temp
 }
 
 /// Records of two runs agree when they hold the same spectra in the same order,
@@ -107,25 +153,27 @@ fn load(path: impl AsRef<Path>) -> MSExperiment {
 
 #[test]
 fn topp_mzml_splitter_1_splits_into_a_requested_number_of_parts() {
-    let dir = split("1", &["-parts", "2"]);
+    let temp = split("1", &["-parts", "2"]);
+    let dir = temp.path();
     for part in 1..=2 {
         let produced = load(dir.join(format!("out_part{part}of2.mzML")));
         let reference = load(fixture(&format!("mzml_splitter_output_part{part}.mzML")));
         assert_same_records(&produced, &reference, &format!("part {part}"));
+        assert_same_processing(&produced, &reference);
     }
-    let _ = fs::remove_dir_all(&dir);
 }
 
 #[test]
 fn topp_mzml_splitter_2_derives_the_part_count_from_a_size_limit() {
     // 40 KB over a ~59 KB input rounds up to the same two parts as case 1.
-    let dir = split("2", &["-size", "40", "-unit", "KB"]);
+    let temp = split("2", &["-size", "40", "-unit", "KB"]);
+    let dir = temp.path();
     for part in 1..=2 {
         let produced = load(dir.join(format!("out_part{part}of2.mzML")));
         let reference = load(fixture(&format!("mzml_splitter_output_part{part}.mzML")));
         assert_same_records(&produced, &reference, &format!("part {part}"));
+        assert_same_processing(&produced, &reference);
     }
-    let _ = fs::remove_dir_all(&dir);
 }
 
 #[test]
@@ -135,7 +183,8 @@ fn every_record_is_placed_exactly_once() {
     let whole = load(fixture("mzml_splitter_input.mzML"));
     // parts=1 with no size limit is refused by the source, so it starts at 2.
     for parts in [2usize, 3, 4, 7, 11] {
-        let dir = split(&format!("n{parts}"), &["-parts", &parts.to_string()]);
+        let temp = split(&format!("n{parts}"), &["-parts", &parts.to_string()]);
+        let dir = temp.path();
         let width = parts.to_string().len();
         let mut seen = Vec::new();
         for part in 1..=parts {
@@ -144,7 +193,6 @@ fn every_record_is_placed_exactly_once() {
         }
         let expected: Vec<String> = whole.spectra.iter().map(|s| s.native_id.clone()).collect();
         assert_eq!(seen, expected, "parts={parts} lost or reordered records");
-        let _ = fs::remove_dir_all(&dir);
     }
 }
 

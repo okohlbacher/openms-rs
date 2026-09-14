@@ -5,11 +5,16 @@
 //!
 //! Ports `OpenMS4-topp/src/BaselineFilter.cpp`. Unlike most algorithm-wrapping
 //! tools this registers the filter's three parameters as ordinary options
-//! rather than a subsection, exactly as the source does.
+//! rather than a subsection, exactly as the source does. The output carries the
+//! source's `baseline reduction` processing record.
+//!
+//! Not ported: the warning the source writes when peak type estimation finds
+//! the first spectrum centroided.
 
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
+use crate::metadata::ProcessingAction;
 use crate::processing::SpectrumFilter;
 use crate::processing::baseline::{MorphologicalFilter, MorphologicalMethod, StructuringElement};
 use crate::{Error, Result};
@@ -130,6 +135,10 @@ impl Tool for BaselineFilter {
             },
         };
         filter.filter_experiment(&mut experiment)?;
+        // Source addDataProcessing_(ms_exp, getProcessingInfo_(BASELINE_REDUCTION)):
+        // one shared record on every spectrum and chromatogram.
+        let processing = ctx.processing_info(&[ProcessingAction::BaselineReduction])?;
+        ctx.add_data_processing(&mut experiment, &processing);
         FileHandler::store_experiment(ctx.string("out")?, &experiment, Some(FileType::MzMl))?;
         Ok(ExitCode::ExecutionOk)
     }

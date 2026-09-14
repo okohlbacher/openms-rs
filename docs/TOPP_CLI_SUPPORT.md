@@ -30,7 +30,8 @@ The framework needs the `paramxml` feature, because every TOPP tool supports
 | `getSubsectionDefaults_()`, `getDefaultParameters_` | internal; `ToolSpec::to_param` is the parameter part |
 | `getToolUserDefaults_` | not ported (reads `~/<Tool>.ini`, which would make runs depend on the account) |
 | `parseCommandLine_` | internal |
-| `handleWriteCommands_` | internal; `-write_ini` ported, CTD/CWL/JSON refused |
+| `handleWriteCommands_` | internal; `-write_ini` ported with the source's ISO-8859-1 declaration (`paramxml::WriteOptions::source`), CTD/CWL/JSON refused |
+| `fileParamValidityCheck_` (both overloads) | internal; input formats through `FileHandler::get_type`, output formats through `type_by_file_name` |
 | `checkIfIniParametersAreApplicable_` | internal |
 | `checkParam_` | not ported (warnings only; see native differences) |
 | `TOPPBase::ExitCodes` | `ExitCode`, same 15 variants and discriminants |
@@ -40,7 +41,7 @@ The framework needs the `paramxml` feature, because every TOPP tool supports
 | `registerInputFile_`, `registerOutputFile_`, `registerOutputPrefix_`, `registerOutputDir_` | `ToolSpec::register_*` |
 | `register{String,Int,Double}List_`, `register{Input,Output}FileList_` | `ToolSpec::register_*_list` |
 | `registerFullParam_`, `registerParamSubsectionsAsTOPPSubsections_`, `registerTOPPSubsection_` | `ToolSpec::register_full_param`, `ToolSpec::topp_subsections` |
-| `setValidStrings_`, `setValidFormats_`, `setMin/MaxInt_`, `setMin/MaxFloat_` | `ToolSpec::set_*`; `setValidFormats_`'s `force_OpenMS_format` not ported |
+| `setValidStrings_`, `setValidFormats_`, `setMin/MaxInt_`, `setMin/MaxFloat_` | `ToolSpec::set_*`; `setValidFormats_`'s `force_OpenMS_format` not ported; `ParameterInformation::accepted_formats` reads a file parameter's formats wherever they are kept |
 | `registerSubsection_`, `addText_`, `addEmptyLine_` | `ToolSpec::register_subsection`, `add_text`, `add_empty_line` |
 | `findEntry_`, `getParameterByName_` | `ToolSpec::find` |
 | `get{String,Int,Double}Option_`, `get{String,Int,Double}List_`, `getFlag_`, `getParam_` | `ToolContext::{string,int,double,string_list,int_list,double_list,flag,param}` |
@@ -55,10 +56,11 @@ The framework needs the `paramxml` feature, because every TOPP tool supports
 | `inputFileReadable_`, `outputFileWritable_` | `cli::input_file_readable`, `cli::output_file_writable` |
 | `parseRange_(text, double&, double&)` | `parse_range` |
 | `parseRange_(text, Int&, Int&)` | not ported; no ported tool uses it |
-| `version_`, `verboseVersion_` | `Tool::VERSION`, `TOPP_PRODUCT_VERSION`; the verbose usage line is W2.2 |
-| `printUsage_` | internal, reached by `--help` / `--helphelp` and command-line errors |
+| `version_`, `verboseVersion_` | `Tool::VERSION`, `TOPP_PRODUCT_VERSION`; `cli::verbose_version` |
+| `printUsage_` | internal (`src/cli/usage.rs`), reached by `--help` / `--helphelp` and command-line errors; writes to the error stream |
 | `writeLogInfo_`, `writeLogWarn_`, `writeLogError_`, `writeDebug_`, `enableLogging_` | not ported; diagnostics go to the `out`/`err` streams, and `-log` is inert |
-| `getDocumentationURL`, `Citation`, `cite_openms` | not ported |
+| `getDocumentationURL` | internal; the release URL of the core version, used by the usage text |
+| `Citation`, `cite_openms` | `cite_openms` as its rendered text inside the usage text; `Citation` and tool citations not ported (no ported tool has one) |
 
 Registration is a builder rather than protected methods on the tool, so the
 registered set is inspectable without running the tool, and a tool cannot mutate
@@ -76,8 +78,9 @@ The *Test* column names the cases that assert each row, in
 backs the expected exit code:
 
 * **tier 1**: an executed C++ case on the product SDK, named as in
-  `../oracle/topp-cli-lifecycle/manifest.json`, or as in
-  `../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json` where marked †;
+  `../oracle/topp-cli-lifecycle/manifest.json`, as in
+  `../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json` where marked †,
+  or as in `../oracle/topp-cli-lifecycle/cli2/manifest.json` where marked ‡;
 * **tier 4, derived**: read from the cited source lines, with no executed case;
 * **tier 4, native**: a native mapping. The Rust `Error` enum is coarser than the
   source's exceptions, so there is no C++ case to execute; the row says what the
@@ -90,19 +93,20 @@ backs the expected exit code:
 | parse | a flag followed by text | 6 | 186-191, 2336-2348 | `a_flag_followed_by_text_is_refused`, `upstream_flag_with_trailing_arguments` | tier 1: `flag_with_trailing_text` |
 | parse | a number that does not convert, including `-section:name` values | 6 | 186-191, 2365-2407 | `a_non_numeric_integer_is_refused`, `a_non_numeric_subsection_integer_is_refused` | tier 1: `int_option_not_numeric`, `algorithm_peakcount_not_int` |
 | parse | no arguments at all | 6 | 227-232 | `a_bare_invocation_is_refused`; also `tests/topp_dta_extractor.rs`, `tests/topp_baseline_filter.rs`, `tests/topp_map_normalizer.rs` | tier 1: `no_arguments` |
-| parse | `--help`, `--helphelp` | 0 | 235-239 | `usage_and_exit_codes_follow_the_source_contract` in `tests/topp_dta_extractor.rs` | tier 1: `help` (exit code; the stream differs, see *Usage text*) |
+| parse | `--help`, `--helphelp`: usage on the error stream | 0 | 235-239, 631-888 | `usage_text_matches_the_cpp_text_for_every_ported_tool`; `usage_and_exit_codes_follow_the_source_contract` in `tests/topp_dta_extractor.rs` | tier 1: `help`; `help_<tool>`‡ and `helphelp_<tool>`‡ for the five tools, text byte for byte apart from the revision, see *Usage text* |
 | parse | an unknown option, including an unknown `-section:name` | 6 | 242-247 | `an_unknown_option_is_refused`, `an_unknown_subsection_parameter_is_refused` | tier 1: `unknown_option`, `algorithm_bogus` |
 | parse | trailing text | 6 | 250-255 | `trailing_text_is_refused` | tier 1: `trailing_text` |
 | parse | trailing text after several options, listed in command-line order | 6 | 2436-2444 | `a_command_line_at_the_argument_bound_is_parsed` | tier 4, derived |
 | write | `-write_ini` target not writable | 5 | 2609 | `write_ini_to_an_unwritable_path_is_refused` | tier 1: `write_ini_unwritable` |
-| write | `-write_ini` | 0 | 2606-2641 | `write_ini_ignores_command_line_values`, `write_ini_with_an_invalid_ini_value_keeps_the_default` | tier 1: `write_ini_with_cli_value`, `write_ini_with_ini` |
+| write | `-write_ini` | 0 | 2606-2641, 2097-2256 | `write_ini_ignores_command_line_values`, `write_ini_with_an_invalid_ini_value_keeps_the_default`, `write_ini_matches_the_cpp_file_for_every_ported_tool`, `upstream_write_ini_matches_the_retained_files` | tier 1: `write_ini_with_cli_value`, `write_ini_with_ini`, `write_ini_<tool>`‡ for the five tools; the retained `TOPPBase_test_write_ini_out.ini` and `TOPPBase_test_write_ini_subsec_out.ini` |
 | write | `-write_ctd`, `-write_cwl`, `-write_nested_cwl`, `-write_json`, `-write_nested_json` | 12 | 2643-2683 | `tool_description_writers_are_refused_explicitly` | tier 1: `write_cwl`, `write_nested_cwl`, `write_json`, `write_nested_json` exit 12 without TDL; `write_ctd` exits 0 there, see *Refused writers* |
 | INI | `-ini` file missing | 1 | 296, 436-441 | `a_missing_ini_is_input_file_not_found` | tier 1: `ini_missing` |
 | INI | `-ini` file not readable, before a run or with `-write_ini` | 2 | 296, 2630, 448-453 | `an_unreadable_ini_is_input_file_not_readable`, `a_fifo_ini_this_user_cannot_open_is_input_file_not_readable` | tier 1: `ini_unreadable`†, `write_ini_ini_unreadable`† (a regular file); `ini_fifo_denied`†, `write_ini_ini_fifo_denied`† (a FIFO with mode 000: not queried for readability before the load, whose open is refused) |
 | INI | `-ini` file malformed | 3 | 296, 460-465 | `a_malformed_ini_is_input_file_corrupt` | tier 1: `ini_malformed` |
 | INI | `-ini` names a directory, before a run or with `-write_ini` | 3 | 296, 2630, 460-465 | `an_ini_directory_is_input_file_corrupt` | tier 1: `ini_directory`†, `write_ini_ini_directory`† |
 | INI | `-ini` names the character device `/dev/null`, before a run or with `-write_ini` | 3 | 296, 2630, 460-465 | `a_character_device_ini_is_input_file_corrupt` | tier 1: `ini_dev_null`†, `write_ini_ini_dev_null`† |
-| INI | `-ini` names a FIFO this user can open | as the INI it carries once a writer opens it; blocks until then | 296, 2630 | `an_ini_fifo_is_read_once_a_writer_opens_it` (exit 0 with `-write_ini`) | tier 4, native: with no writer the C++ tool blocks opening it too, so there is no exit code to execute |
+| INI | `-ini` exists but cannot be opened for another reason than a missing file or permissions (a Unix socket, `/dev/tty` without a controlling terminal), before a run or with `-write_ini` | 8 | 296, 2630, 495-499; `TextFile.cpp:44-47` | `a_socket_ini_is_an_unexpected_internal_error`, `a_terminal_ini_without_a_controlling_terminal_is_an_unexpected_internal_error` | tier 1: `ini_socket`†, `write_ini_ini_socket`†, `ini_tty`†, `write_ini_ini_tty`† |
+| INI | `-ini` names a FIFO this user can open | as the INI it carries once a writer opens it; blocks until then | 296, 2630 | `an_ini_fifo_is_read_once_a_writer_opens_it` (exit 0 with `-write_ini`) | tier 4, native, a deliberate difference: the C++ tool opens the INI twice and blocks with a single writer (observation `write_ini_ini_fifo_single_writer`†); with no writer both block |
 | INI | INI without a section for this tool | 0, warning | 1957-1966 | `an_ini_for_another_tool_warns_and_applies_defaults` | tier 1: `ini_foreign_section` |
 | update | unknown parameter (INI item, `-instance`, top-level `common:` value) | 6 | 338-343 | `an_unknown_ini_item_is_refused`, `instance_on_the_command_line_is_refused`, `a_common_top_level_value_is_refused_as_in_the_source` | tier 1: `ini_unknown_item`, `instance_on_command_line`, `ini_common_top_level` |
 | update | value outside its restrictions | 6 | 338-343 | `an_invalid_subsection_value_on_the_command_line_is_refused`, `an_invalid_subsection_value_in_an_ini_is_refused` | tier 1: `algorithm_movetype_sideways`, `ini_invalid_subsection_value` |
@@ -110,8 +114,12 @@ backs the expected exit code:
 | update | INI written by another version | 0, notice on stdout | 355-366 | `an_ini_from_another_version_is_noted` | tier 1: `ini_version_mismatch` |
 | validation | required value missing or empty | 7 | 1398-1406, 466-474 | `a_missing_required_output_is_missing_parameters` | tier 1: `missing_required_output` |
 | validation | input missing / unreadable / empty | 1 / 2 / 4 | 1968-1995 | `a_missing_input_is_input_file_not_found`, `an_unreadable_input_is_input_file_not_readable`, `a_zero_byte_input_is_input_file_empty` | tier 1: `missing_input`, `unreadable_input`, `zero_byte_input` |
+| validation | input format detected by name, then by content, and not accepted | 6 | 1575-1593 | `the_input_format_is_detected_by_name_then_content`; `usage_and_exit_codes_follow_the_source_contract` in `tests/topp_dta_extractor.rs` | tier 1: `in_txt_extension_mzml_content`‡, `in_dta_extension`‡ |
+| validation | input format detected and accepted (no extension, an unknown one, or another case) | runs | 1575-1593 | `the_input_format_is_detected_by_name_then_content` | tier 1: `in_no_extension_mzml_content`‡, `in_unknown_extension_mzml_content`‡, `in_uppercase_extension`‡ (exit 0) |
+| validation | input format undetermined | warning, then runs | 1580-1583 | `an_undetermined_input_format_only_warns` | tier 1: `in_unknown_name_and_content`‡ (the warning; the later load's exit code differs, see *Formats*) |
 | validation | output not writable | 5 | 1997-2013 | `an_unwritable_output_is_cannot_write_output_file` | tier 1: `unwritable_output` |
-| validation | output extension not registered | 6 | 1595-1608 | `a_wrong_output_extension_is_refused` | tier 1: `output_wrong_extension` |
+| validation | output name of a known type the parameter does not accept | 6 | 1595-1608 | `a_wrong_output_extension_is_refused`, `the_output_format_is_checked_by_name_only` | tier 1: `output_wrong_extension`, `out_txt_extension`‡ |
+| validation | output name of no known type, or of an accepted type in another case | runs | 1598-1601 | `the_output_format_is_checked_by_name_only` | tier 1: `out_unknown_extension`‡, `out_no_extension`‡, `out_uppercase_extension`‡ (exit 0) |
 | run | `Error::Parse` from the tool | 3 | 460-465 | `a_corrupt_input_is_input_file_corrupt`, `run_phase_errors_map_like_the_source_inner_catch` | tier 1: `corrupt_input` |
 | run | `Error::Io`, not found | 1 | 436-441 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `FileNotFound` |
 | run | `Error::Io`, permission denied | 5 | 430-435 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: an I/O error does not say whether it read or wrote; a tool's inputs are checked for readability before its body runs, so a denial there is taken as a failed write. INI files never take this row |
@@ -140,13 +148,33 @@ Anything else is not queried for readability, because `file::readable` answers
 `false` for a device or FIFO without opening it, which reported the readable
 `/dev/null` as unreadable. The load opens such a file itself: a denied open is
 exit 2 with the same wording, as for a FIFO with mode 000 in the oracle's
-`ini_fifo_denied` and `write_ini_ini_fifo_denied`; any other open or read
-failure is exit 3, and a document that does not parse exit 3. `/dev/null` reads
-as an empty document, exit 3 with an `Error: Unable to read file (` line on both
-paths, as the oracle's `ini_dev_null` and `write_ini_ini_dev_null` do; the
-source's line also names the file and xerces's message. A FIFO this user can
-open is opened like a file, so it waits for a writer; the C++ tool also blocks
-on such a FIFO with no writer.
+`ini_fifo_denied` and `write_ini_ini_fifo_denied`.
+
+An open that fails for any other reason is exit 8 with the source's
+`Error: Unexpected internal error (IO error for file '<path>')`. The file exists
+and passes `File::readable`, so `TextFile` throws `IOException`
+(`TextFile.cpp:44-47`), which reaches the `BaseException` arm (495-499). The
+oracle records this for a Unix socket (`ini_socket`, `write_ini_ini_socket`) and
+for `/dev/tty` opened without a controlling terminal (`ini_tty`,
+`write_ini_ini_tty`). The port tells such an open failure from a later read
+failure by opening the file once more after the load has failed; a FIFO is not
+opened again, because that open would wait for a writer, so its I/O failure is
+taken as a read failure. A read failure after a successful open, and a document
+that does not parse, stay exit 3. `/dev/null` reads as an empty document, exit
+3 with an `Error: Unable to read file (` line on both paths, as the oracle's
+`ini_dev_null` and `write_ini_ini_dev_null` do; the source's line also names the
+file and xerces's message.
+
+A FIFO this user can open is opened once and read like a file, so it waits for
+a writer; the C++ tool also blocks on such a FIFO with no writer. With a writer
+that opens the FIFO once, the two differ, deliberately: the source opens the INI
+twice, once to look for compression (`XMLFile.cpp:141-147`) and once for xerces
+(`:166`), so after its first open closes no writer is left and the second open
+waits. The oracle observation `write_ini_ini_fifo_single_writer` records it: the
+writer sends the whole INI, and the C++ tool blocks until a 10-second alarm ends
+it (exit 142) without writing anything. This port reads what the one writer
+sends (`an_ini_fifo_is_read_once_a_writer_opens_it`, tier 4). Reproducing the
+second open would make the port hang on an input it can read.
 
 ## Preserved source conventions
 
@@ -184,12 +212,66 @@ words: `Unknown (or deprecated) Parameter '…' given in outdated parameter file
 please update/fix the parameters!`.
 
 **`-write_ini`** writes the defaults, updated leniently and verbosely from `-ini`
-when given, and never command-line values (`TOPPBase.cpp:2606-2641`).
+when given, and never command-line values (`TOPPBase.cpp:2606-2641`). The file
+declares ISO-8859-1, as `ParamXMLFile::store` does. The tree is
+`getDefaultParameters_`'s: an input file carries the `input file` tag, an output
+file `output file`, an output prefix `output prefix` and an output directory
+`output dir`, and their formats become `*.<format>` restrictions, which the
+writer emits as `supported_formats`; flags are typed `bool`; a parameter's own
+tags other than `is_executable` on an input file are not written (2097-2256).
+For each of the five ported tools the file matches the product SDK's line by
+line with only `version` lines skipped, and entry for entry once decoded; the
+class test's `TOPPBaseTest` and `TOPPBaseCmdParseSubsectionsTest` files match
+the retained C++ files at `TEST_FILE_SIMILAR`'s tolerances.
 
 **File checks** follow `inputFileReadable_` and `outputFileWritable_`: an input
 must exist, be readable and, unless it is a directory, hold a byte; an output
 must be writable, and an output prefix is probed as `<prefix>_0`. The
 writability query never creates or deletes a file under the caller's name.
+
+**Formats** follow `fileParamValidityCheck_` (1498-1614). An input file's format
+is what `FileHandler::get_type` detects: the name first, then the content for a
+name no type claims. A detected format the parameter accepts runs; one it does
+not accept is `Invalid parameter: Input file '<path>' has invalid format
+'<type>'. Valid formats are: '<formats>'.`, exit 6; an undetermined format only
+warns, `Warning: Could not determine format of input file '<path>'!`. An output
+file's format comes from its name alone: a known type the parameter does not
+accept is `Invalid parameter: Invalid output file extension for file '<path>'.
+Valid file extensions are: '<formats>'.`, exit 6, and a name no type claims is
+accepted. Types compare with their names without regard to case. Input file
+lists are checked file by file; output file lists and output prefixes are not
+checked for format, and a parameter without formats is not checked at all.
+
+**Usage text** is `printUsage_`'s, on the error stream for `--help` and
+`--helphelp` as after a command-line error: the tool line, the documentation
+URL, the version line `<product version> (OpenMS core <version>, revision
+<short revision>)`, the OpenMS citation, the options with a description column
+at six past the longest shown name and argument, `(default: '…')`,
+`(valid: …)`, `(valid formats: …)` and `(min: …)`/`(max: …)` addons, and for a
+tool with subsections either their summary (`--help`) or every subsection
+parameter under its section description (`--helphelp`). Descriptions start with
+an upper-case letter, and a line break in a description continues at the
+description column (`IndentedStream`, `ConsoleUtils::breakString_`).
+
+**Processing records (decision D4).** BaselineFilter, MapNormalizer and
+SpectraFilterWindowMower attach `getProcessingInfo_` with `BASELINE_REDUCTION`,
+`NORMALIZATION` (`Intensity normalization`) and `FILTERING` (`Data filtering`)
+to every spectrum and chromatogram after processing, as their sources do.
+MzMLSplitter calls the same code while each part still holds no spectra and no
+chromatograms, so its parts carry no new record; that is reproduced (C++ issue
+candidate). DTAExtractor writes DTA files, which hold no processing record.
+Against the retained outputs `BaselineFilter_output.mzML`,
+`MapNormalizer_output.mzML`, `SpectraFilterWindowMower_1_output.mzML` and
+`MzMLSplitter_output_part1/2.mzML`, every record holder has the same records in
+the same order, with the same software, version, actions, completion time and
+metadata; outside `-test`, SpectraFilterWindowMower's record matches the product
+SDK's (`window_mower_notest`‡) key for key. Two comparisons follow the C++ mzML
+writer rather than the tool: it stores completion times to the minute
+(`MzMLHandler.cpp:3947`), and a software name as the PSI-MS term found by the
+name, the name plus ` software` or `TOPP ` plus the name (3763-3787), so
+`SpectraFilterWindowMower` reloads from a C++ file as
+`TOPP SpectraFilterWindowMower`. This port's mzML writer keeps the seconds and
+the exact name.
 
 **Run services.** `-test` seeds the unique-id generator with 19991231235959 and
 makes the processing record machine-independent: software version
@@ -224,24 +306,39 @@ confirmed on the oracle):
 
 ## Native differences
 
-**Usage text.** A successful `--help` prints to the output stream, because
-`tests/topp_dta_extractor.rs` asserts it there; the source prints usage to
-standard error in every case, as this port already does after a command-line
-error. The usage layout, the `Version:` line, the documentation URL, citations
-and the subsection list differ from the source (W2.2).
+**Usage text.** The layout is the one the source writes when standard error is
+not a terminal and `COLUMNS` is unset, as in the oracle, and for the five ported
+tools it matches the product SDK's text byte for byte, apart from the revision.
+Not ported: colours for a terminal, shaping lines to the console width that
+`COLUMNS` or `stty size` report (the source's probe prints `stty: stdin isn't a
+terminal` when there is no terminal), tool citations and the
+`Common UTIL options:` heading, because every ported tool is a TOPP tool. The
+version line names this crate's pinned core revision (`bc9cc12`) where the
+product SDK names the revision it was built from (`4fdec46`). An earlier version
+of this port printed `--help` usage on the output stream; the oracle's `help`
+case writes nothing there.
 
 **Validation order.** The source checks each option lazily when `main_` reads it;
 this port checks every registered option after the update, in registration
 order. Exit codes agree whenever a tool reads all its options, which every ported
 tool does.
 
-**Formats.** Input formats are checked by file extension; the source detects the
-type from content with `FileHandler::getType` and only warns about an unknown
-type. Output extensions must be registered; the source accepts an unknown
-extension. Both are W2.2.
+**Formats.** When `FileHandler::get_type` fails, for example on a directory with
+an unknown name (for which the source reports an unknown type; an open
+`src/format/file_handler.rs` follow-up), the format counts as undetermined and
+only warns. After that warning the source's load of a file whose content no
+type claims throws `ParseError`, exit 3 ("type: unknown is not allowed for
+loading an experiment", oracle `in_unknown_name_and_content`); this port's
+`FileHandler::load_experiment` returns `Error::InvalidValue`, exit 6. That
+difference belongs to the loader, not to the check. `setValidFormats_`'s
+`force_OpenMS_format` check of registered format names is not ported.
 
-**`-write_ini` parity** beyond the defaults-only rule — `supported_formats`,
-the ISO-8859-1 declaration and a FuzzyDiff match with the C++ file — is W2.2.
+**`-write_ini`** is compared with the C++ files by number, not by text: this
+writer prints `3` where the source prints `3.0`. The ISO-8859-1 declaration is
+kept consistent with the bytes (`paramxml::OutputEncoding::Latin1`): the source
+copies UTF-8 bytes under that declaration, so its non-ASCII text reads back as
+different characters, while this writer writes ISO-8859-1 bytes and character
+references. The five ported tools' files are ASCII.
 
 **Refused writers.** The CTD, CWL and JSON tool-description writers are not
 ported. Each request exits 12 with an explicit message, which is what the oracle
@@ -268,12 +365,19 @@ guarantees that every resolved value has its registered type.
 **Non-finite values in processing records.** Outside `-test`,
 `processing_info` records every resolved parameter as metadata, and `MetaValue`
 holds only finite floating-point values, so a resolved `inf` or `nan` double
-makes it fail with `Error::InvalidValue`, exit 6 once a tool propagates it. The
-source's `DataValue` records any double: the product SDK's
-SpectraFilterWindowMower accepts `-algorithm:windowsize inf` and `nan` and exits
-0 (verifier probe, not in a manifest), although this port's window mower refuses
-both values itself. No ported tool calls `processing_info` yet; the D4 retrofit
-in W2.2 must record such values in a representable form or keep this difference.
+makes it fail with `Error::InvalidValue`, exit 6. The source's `DataValue`
+records any double: the product SDK's SpectraFilterWindowMower accepts
+`-algorithm:windowsize inf` and exits 0 with a `parameter:
+algorithm:windowsize` record of type `xsd:double` and value `inf` (oracle
+`window_mower_notest_windowsize_inf`‡). The D4 retrofit keeps this documented
+difference rather than recording a non-finite value in another type: a string
+would change the record's type, which a decoded comparison with the C++ output
+would report anyway. Among the ported tools the difference is not reached
+through the record. BaselineFilter's `-struc_elem_length inf` fails the range
+check first, exit 6 in both (`baseline_filter_notest_length_inf`‡); this
+port's window mower refuses a non-finite window size before the record is
+built, exit 6 where the C++ tool exits 0; MapNormalizer and MzMLSplitter have no
+floating-point parameter.
 
 **Diagnostics.** `Param::update_with_options` decides the update and applies it;
 its report is worded natively, so the CLI derives the source wording from the
@@ -293,7 +397,7 @@ independent generator per call instead of seeding a process-wide singleton.
 
 ## Checked boundaries and evidence
 
-`tests/topp_cli_lifecycle.rs` holds 65 cases, none ignored.
+`tests/topp_cli_lifecycle.rs` holds 73 cases, none ignored.
 
 * **Oracle cases (tier 1 executed differential).** `../oracle/topp-cli-lifecycle/run.sh`
   runs 38 cases of the C++ product SDK (core 4fdec46, Debug, AppleClang 21) in a
@@ -302,33 +406,64 @@ independent generator per call instead of seeding a process-wide singleton.
   agreed on all 37 shared cases. The subsection override is compared against the
   C++ output `tests/data/topp_cli_lifecycle/swm_algorithm_peakcount_1.mzML`; no
   case reaches a Debug-only precondition. `ini_read_failures.sh` in the same
-  directory adds ten cases on the same binaries, recorded in
+  directory adds fifteen cases on the same binaries, recorded in
   `ini_read_failures/manifest.json`: an INI written by the tool, a readable
   control run with it, that INI unreadable before a run and with `-write_ini`,
   a directory as `-ini` on both paths, the character device `/dev/null` as
-  `-ini` on both paths, and a FIFO with mode 000 as `-ini` on both paths. Each
-  time cases were added, first the device cases and then the FIFO cases, the
-  earlier cases ran again and matched every previous run in exit code, stderr
-  and outputs; only timing figures in the control run's stdout changed. A FIFO
-  this user can open is not a case, because with no writer the C++ tool blocks
-  opening it.
+  `-ini` on both paths, a FIFO with mode 000 as `-ini` on both paths, a Unix
+  socket as `-ini` on both paths, `/dev/tty` opened from a new session (without
+  a controlling terminal) on both paths, and the observation
+  `write_ini_ini_fifo_single_writer`. Each time cases were added, first the
+  device cases, then the FIFO cases, then the socket, terminal and single-writer
+  cases, the earlier cases ran again and matched every previous run in exit
+  code, stderr and outputs; only timing figures in the control run's stdout
+  changed. A FIFO with no writer is not a case, because the C++ tool blocks
+  opening it. `cli2_cases.sh` adds 34 cases on the five ported tools' binaries,
+  recorded in `cli2/manifest.json`: `-test -write_ini` of every tool,
+  `--help` and `--helphelp` of every tool, ten input and output format cases,
+  the registered BaselineFilter, MapNormalizer, SpectraFilterWindowMower and
+  MzMLSplitter invocations, two runs without `-test` and two with a non-finite
+  floating-point parameter. A second execution (`cli2_rerun_manifest.json`)
+  agreed on every exit code and stderr; the outputs differed only in the
+  completion times of the three non-test mzML files, and stdout only in timing
+  figures. The retained fixtures `write_ini_<tool>.ini`, `help_<tool>.txt`,
+  `helphelp_<tool>.txt` (without the `stty` line) and `swm_notest_output.mzML`
+  come from the first execution.
+* **Retained C++ outputs (tier 1).** `TOPPBase_test_write_ini_out.ini` and
+  `TOPPBase_test_write_ini_subsec_out.ini` (cli c19e494), compared with the
+  ported `FuzzyStringComparator` as `TEST_FILE_SIMILAR` does. The processing
+  records of the retained `BaselineFilter_output.mzML`,
+  `MapNormalizer_output.mzML`, `SpectraFilterWindowMower_1_output.mzML` and
+  `MzMLSplitter_output_part1/2.mzML`, compared as decoded mzML in
+  `tests/topp_baseline_filter.rs`, `tests/topp_map_normalizer.rs`,
+  `tests/topp_spectra_filter_window_mower.rs` and `tests/topp_mzml_splitter.rs`
+  beside their existing peak comparisons, which are unchanged.
 * **Upstream class test (tier 3).** Transcribed with their literals:
   `getIniLocation_` (default), `getStringOption_` (default, command line, wrong
   type, unregistered, required), `getIntOption_`, `getDoubleOption_`,
   `getIntList_`, `getDoubleList_`, `getStringList_`, `getFlag_`,
   `inputFileReadable_`, `outputFileWritable_`, `parseRange_`, data processing
   methods, `getParam_`, misc options, subsection parameters, duplicate
-  parameters and flag with trailing arguments. Not transcribed: the constructor,
-  destructor and `main` sections (no object lifecycle; `main` is NOT_TESTABLE
-  upstream), `setMaxNumberOfThreads` (NOT_TESTABLE; the native policy is
-  tested), `getIniLocation_` with `-instance 5` and the `getStringOption_` INI
-  cases (the source rejects `-instance` and top-level `common:` values in its
-  strict update and only reads values left behind), the `-write_ini` file
-  comparison (W2.2), `-log` and `Citation::toString` (not ported).
+  parameters and flag with trailing arguments, and the `-write_ini` part of
+  `getStringOption_` (483-536): `TEST_EQUAL(p1, p2)` with `Param::operator==`
+  semantics, where the expected version is the port's `Tool::VERSION` instead
+  of `VersionInfo::getVersion()` (the class-test tool has no installed manifest
+  and so reports the core version), and both `TEST_FILE_SIMILAR` comparisons.
+  Not transcribed: the constructor, destructor and `main` sections (no object
+  lifecycle; `main` is NOT_TESTABLE upstream), `setMaxNumberOfThreads`
+  (NOT_TESTABLE; the native policy is tested), `getIniLocation_` with
+  `-instance 5` and the `getStringOption_` INI cases (the source rejects
+  `-instance` and top-level `common:` values in its strict update and only
+  reads values left behind), `-log` and `Citation::toString` (not ported).
 * **Native cases (tier 4)** cover `run_io` routing, the run-phase mapping of
   every `Error` variant, the initialisation failure, the argument bound (refused
   beyond it, parsed in full at it, with trailing-text chunks in command-line
-  order) and the context services.
+  order), the context services, and a FIFO read once by a single writer.
+* **Environment-dependent cases.** The socket case runs where a Unix socket
+  can be bound in the temporary directory and does not open for reading; the
+  terminal case runs only in a process without a controlling terminal, as under
+  the gate and in CI. Both print `ran:` or `skipped:` with the reason; both ran
+  on the Linux gate host.
 
 ## DTAExtractor and executed differential evidence
 
@@ -414,9 +549,13 @@ the filter's three parameters as ordinary options rather than a subsection,
 exactly as the source does, and keeps the source's two refusals: a run holding
 only chromatograms, and spectra that are not sorted by m/z.
 
-None of the five tools adds the processing record the source attaches to its
-output yet; the context services for it exist, and the retrofit is a separate
-wave-2 step.
+BaselineFilter, MapNormalizer and SpectraFilterWindowMower add the processing
+record the source attaches to their outputs, and MzMLSplitter reproduces the
+source's attaching it to parts that hold nothing yet (decision D4; see
+*Processing records* under *Preserved source conventions*). Not ported:
+BaselineFilter's warning when peak type estimation finds the first spectrum
+centroided, and the log lines MzMLSplitter writes about the file size and each
+part.
 
 The second DTA finding above is the first concrete instance of the port's
 "checked boundaries" convention blocking C++ parity. The resolution pattern —

@@ -1,0 +1,37 @@
+
+SpectraFilterWindowMower -- Applies thresholdfilter to peak spectra.
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_SpectraFilterWindowMower.html
+Version: 1.0.0 (OpenMS core 4.0.0, revision 4fdec46)
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  SpectraFilterWindowMower <options>
+
+Options (mandatory options marked with '*'):
+  -in <file>*                    Input file  (valid formats: 'mzML')
+  -out <file>*                   Output file  (valid formats: 'mzML')
+                                 
+Common TOPP options:
+  -ini <file>                    Use the given TOPP INI file
+  -log <file>                    Name of log file (created only when specified)
+  -instance <n>                  Instance number for the TOPP INI file (default: '1')
+  -debug <n>                     Sets the debug level (default: '0')
+  -threads <n>                   Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores) (default: '1')
+  -write_ini <file>              Writes the default configuration file
+  -write_ctd <out_dir>           Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>
+  -write_nested_cwl <out_dir>    Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>
+  -write_cwl <out_dir>           Writes the Common Workflow Language file(s) (Toolname(s).cwl) to <out_dir>, but enforce a flat parameter hierarchy
+  -write_nested_json <out_dir>   Writes the default configuration file
+  -write_json <out_dir>          Writes the default configuration file, but compatible to the flat hierarchy
+  -no_progress                   Disables progress logging to command line
+  -force                         Overrides tool-specific checks
+  -test                          Enables the test mode (needed for internal use only)
+  --help                         Shows options
+  --helphelp                     Shows all options (including advanced)
+
+Algorithm parameter subsection.:
+  -algorithm:windowsize <value>  The size of the sliding window along the m/z axis. (default: '50.0')
+  -algorithm:peakcount <number>  The number of peaks that should be kept. (default: '2')
+  -algorithm:movetype <choice>   Whether sliding window (one peak steps) or jumping window (window size steps) should be used. (default: 'slide') (valid: 'slide', 'jump')
+

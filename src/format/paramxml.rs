@@ -18,15 +18,21 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
 
+/// The parameter XML format version this module writes, and the newest it reads.
 pub const VERSION: &str = "1.8.0";
 
 /// Allocation/work bounds apply before parsing or writing the corresponding data.
 #[derive(Clone, Copy, Debug)]
 pub struct Limits {
+    /// Most raw, decoded or written XML bytes.
     pub max_xml_bytes: usize,
+    /// Most XML elements read or written.
     pub max_elements: usize,
+    /// Deepest XML element nesting.
     pub max_depth: usize,
+    /// Most items in one list or comma-separated attribute.
     pub max_list_items: usize,
+    /// Most bytes in one fully qualified parameter path.
     pub max_path_bytes: usize,
 }
 impl Default for Limits {
@@ -52,9 +58,20 @@ fn unsupported(message: impl Into<String>) -> Error {
 }
 
 /// Read an owned parameter tree. No external entities or schemas are fetched.
+///
+/// # Errors
+///
+/// As [`read_with_limits`], with the default [`Limits`].
 pub fn read(input: impl Read) -> Result<Param> {
     read_with_limits(input, Limits::default())
 }
+/// Read an owned parameter tree within `limits`.
+///
+/// # Errors
+///
+/// Returns [`Error::Parse`] for malformed or over-limit XML,
+/// [`Error::Unsupported`] for unsupported encodings, types and declarations,
+/// and propagates I/O failures of `input`.
 pub fn read_with_limits(input: impl Read, limits: Limits) -> Result<Param> {
     parse(input, Param::new(), limits)
 }
@@ -65,6 +82,12 @@ pub fn read_into(input: impl Read, target: &mut Param, limits: Limits) -> Result
     *target = draft;
     Ok(())
 }
+/// Load an owned parameter tree from a file; gzip and bzip2 are recognised by
+/// content.
+///
+/// # Errors
+///
+/// As [`load_with_limits`], with the default [`Limits`].
 pub fn load(path: impl AsRef<Path>) -> Result<Param> {
     load_with_limits(path, Limits::default())
 }
@@ -72,9 +95,21 @@ pub fn load(path: impl AsRef<Path>) -> Result<Param> {
 pub fn load_with_limits(path: impl AsRef<Path>, limits: Limits) -> Result<Param> {
     read_with_limits(super::path_io::open(path.as_ref())?, limits)
 }
+/// Load a file into `target` with the source's accumulation semantics; see
+/// [`read_into`].
+///
+/// # Errors
+///
+/// As [`load_into_with_limits`], with the default [`Limits`].
 pub fn load_into(path: impl AsRef<Path>, target: &mut Param) -> Result<()> {
     load_into_with_limits(path, target, Limits::default())
 }
+/// Load a file into `target` within `limits`; a failure leaves `target`
+/// unchanged.
+///
+/// # Errors
+///
+/// Propagates the open failure, then as [`read_with_limits`].
 pub fn load_into_with_limits(
     path: impl AsRef<Path>,
     target: &mut Param,
@@ -682,17 +717,94 @@ fn close(
     Ok(())
 }
 
-/// Validate and serialize fully before touching the destination stream; flush errors propagate.
+/// The character encoding a written parameter file declares and uses.
+///
+/// The source `ParamXMLFile::store` always declares `ISO-8859-1` but copies the
+/// bytes of its UTF-8 strings unchanged, so a non-ASCII character reads back as
+/// different characters. Both encodings here keep the declaration and the bytes
+/// consistent; for ASCII content [`OutputEncoding::Latin1`] writes the same
+/// bytes as the source.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum OutputEncoding {
+    /// `encoding="UTF-8"`, every character written as UTF-8. The native default.
+    #[default]
+    Utf8,
+    /// `encoding="ISO-8859-1"`, the source declaration. A character up to
+    /// U+00FF is written as its single ISO-8859-1 byte, and any other character
+    /// as a hexadecimal character reference such as `&#x20AC;`, which an XML
+    /// reader resolves to the same character.
+    Latin1,
+}
+
+/// Options of [`write_with_options`] and [`store_with_options`].
+///
+/// The default is the native writer, with a UTF-8 declaration.
+/// [`WriteOptions::source`] selects the source's ISO-8859-1 declaration, which
+/// the TOPP `-write_ini` option uses.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct WriteOptions {
+    /// The declared and used character encoding.
+    pub encoding: OutputEncoding,
+}
+
+impl WriteOptions {
+    /// The source writer's declaration, `encoding="ISO-8859-1"`, with bytes that
+    /// agree with it; see [`OutputEncoding::Latin1`].
+    pub fn source() -> Self {
+        Self {
+            encoding: OutputEncoding::Latin1,
+        }
+    }
+}
+
+/// Validate and serialize fully before touching the destination stream; flush
+/// errors propagate. Declares UTF-8; [`write_with_options`] selects the source
+/// declaration.
+///
+/// # Errors
+///
+/// As [`write_with_limits`], with the default [`Limits`].
 pub fn write(output: impl Write, param: &Param) -> Result<()> {
     write_with_limits(output, param, Limits::default())
 }
-pub fn write_with_limits(mut output: impl Write, param: &Param, limits: Limits) -> Result<()> {
+/// Serialize within `limits`, declaring UTF-8.
+///
+/// # Errors
+///
+/// As [`write_with_options`].
+pub fn write_with_limits(output: impl Write, param: &Param, limits: Limits) -> Result<()> {
+    write_with_options(output, param, limits, WriteOptions::default())
+}
+/// Serialize within `limits`, with the declaration and encoding of `options`.
+///
+/// Nothing reaches `output` until the whole document has been serialized and
+/// validated.
+///
+/// # Errors
+///
+/// Returns [`Error::Unsupported`] for a tree the parameter XML format cannot
+/// represent (see `docs/PARAMXML_SUPPORT.md`), [`Error::Parse`] when a limit
+/// would be exceeded or a string holds a character XML 1.0 forbids, and
+/// propagates write and flush failures of `output`.
+pub fn write_with_options(
+    mut output: impl Write,
+    param: &Param,
+    limits: Limits,
+    options: WriteOptions,
+) -> Result<()> {
+    let latin1 = options.encoding == OutputEncoding::Latin1;
     let mut xml = Output {
         bytes: Vec::new(),
         limits,
         elements: 0,
+        latin1,
     };
-    xml.add("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<PARAMETERS version=\"1.8.0\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n")?;
+    xml.add(if latin1 {
+        "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
+    } else {
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    })?;
+    xml.add("<PARAMETERS version=\"1.8.0\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n")?;
     xml.element(0)?;
     xml.node(param.root(), 1, 0)?;
     xml.add("</PARAMETERS>\n")?;
@@ -700,13 +812,35 @@ pub fn write_with_limits(mut output: impl Write, param: &Param, limits: Limits) 
     output.flush()?;
     Ok(())
 }
-/// A filename of `-` writes to stdout, matching the source API.
+/// Store to a file, declaring UTF-8. A filename of `-` writes to stdout,
+/// matching the source API.
+///
+/// # Errors
+///
+/// As [`store_with_options`].
 pub fn store(path: impl AsRef<Path>, param: &Param) -> Result<()> {
+    store_with_options(path, param, WriteOptions::default())
+}
+/// Store to a file with the declaration and encoding of `options`. A filename
+/// of `-` writes to stdout, matching the source API.
+///
+/// The document is serialized and validated before the file is created or
+/// truncated.
+///
+/// # Errors
+///
+/// As [`write_with_options`], and propagates the failure to create or write
+/// the file.
+pub fn store_with_options(
+    path: impl AsRef<Path>,
+    param: &Param,
+    options: WriteOptions,
+) -> Result<()> {
     if path.as_ref() == Path::new("-") {
-        return write(std::io::stdout().lock(), param);
+        return write_with_options(std::io::stdout().lock(), param, Limits::default(), options);
     }
     let mut bytes = Vec::new();
-    write(&mut bytes, param)?;
+    write_with_options(&mut bytes, param, Limits::default(), options)?;
     let mut file = File::create(path)?;
     file.write_all(&bytes)?;
     file.flush()?;
@@ -717,13 +851,18 @@ struct Output {
     bytes: Vec<u8>,
     limits: Limits,
     elements: usize,
+    /// Encode as ISO-8859-1, with character references above U+00FF.
+    latin1: bool,
 }
 impl Output {
     fn add(&mut self, text: &str) -> Result<()> {
-        if self.bytes.len().saturating_add(text.len()) > self.limits.max_xml_bytes {
+        self.add_bytes(text.as_bytes())
+    }
+    fn add_bytes(&mut self, bytes: &[u8]) -> Result<()> {
+        if self.bytes.len().saturating_add(bytes.len()) > self.limits.max_xml_bytes {
             return Err(bad("parameter XML output byte limit exceeded"));
         }
-        self.bytes.extend_from_slice(text.as_bytes());
+        self.bytes.extend_from_slice(bytes);
         Ok(())
     }
     fn element(&mut self, depth: usize) -> Result<()> {
@@ -754,6 +893,10 @@ impl Output {
                 '\n' if description => self.add("#br#")?,
                 '\n' => self.add("&#xA;")?,
                 '\r' => self.add("&#xD;")?,
+                _ if self.latin1 && !c.is_ascii() => match u8::try_from(u32::from(c)) {
+                    Ok(byte) => self.add_bytes(&[byte])?,
+                    Err(_) => self.add(&format!("&#x{:X};", u32::from(c)))?,
+                },
                 _ => {
                     let mut buffer = [0; 4];
                     self.add(c.encode_utf8(&mut buffer))?;

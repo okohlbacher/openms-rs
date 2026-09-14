@@ -3,7 +3,7 @@
 // $Maintainer: OpenMS Rust contributors $
 #![cfg(feature = "paramxml")]
 
-use openms::format::paramxml::{self, Limits};
+use openms::format::paramxml::{self, Limits, OutputEncoding, WriteOptions};
 use openms::param::{Param, ParamValue};
 use std::io::{self, Read, Write};
 
@@ -78,6 +78,75 @@ fn source_writer_fixture_all_values_and_metadata() {
             .replace("ISO-8859-1", "UTF-8")
     );
     assert_eq!(param, copy(&param));
+}
+
+/// Writer option `WriteOptions::source()`: the source's `ISO-8859-1`
+/// declaration. The immutable source golden is then reproduced byte for byte,
+/// declaration included, while the default writer keeps declaring UTF-8.
+/// Characters above U+007F are written consistently with the declaration: up to
+/// U+00FF as one ISO-8859-1 byte, beyond as a character reference, and both
+/// read back unchanged. The source writer copies UTF-8 bytes under the same
+/// declaration instead, so its non-ASCII text does not read back; that native
+/// difference is recorded in `docs/PARAMXML_SUPPORT.md`.
+#[test]
+fn source_declaration_writer_option() {
+    let param = paramxml::read(SOURCE).unwrap();
+    let mut output = Vec::new();
+    paramxml::write_with_options(
+        &mut output,
+        &param,
+        Limits::default(),
+        WriteOptions::source(),
+    )
+    .unwrap();
+    assert_eq!(output, SOURCE);
+    assert_eq!(WriteOptions::default().encoding, OutputEncoding::Utf8);
+    assert_eq!(WriteOptions::source().encoding, OutputEncoding::Latin1);
+
+    let mut param = Param::new();
+    param
+        .set_value(
+            "tool:1:name",
+            ParamValue::String("caf\u{e9} \u{20ac} \u{1d11e}".into()),
+            "na\u{ef}ve \u{2603}",
+            &[],
+        )
+        .unwrap();
+    param
+        .set_value(
+            "tool:1:list",
+            ParamValue::StringList(vec!["\u{fc}".into(), "\u{3b1}".into()]),
+            "",
+            &[],
+        )
+        .unwrap();
+    let mut latin1 = Vec::new();
+    paramxml::write_with_options(
+        &mut latin1,
+        &param,
+        Limits::default(),
+        WriteOptions::source(),
+    )
+    .unwrap();
+    assert!(latin1.starts_with(b"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"));
+    assert!(std::str::from_utf8(&latin1).is_err());
+    let contains = |needle: &[u8]| latin1.windows(needle.len()).any(|w| w == needle);
+    assert!(contains(b"value=\"caf\xe9 &#x20AC; &#x1D11E;\""));
+    assert!(contains(b"description=\"na\xefve &#x2603;\""));
+    assert!(contains(b"<LISTITEM value=\"\xfc\"/>"));
+    assert!(contains(b"<LISTITEM value=\"&#x3B1;\"/>"));
+    assert_eq!(paramxml::read(latin1.as_slice()).unwrap(), param);
+
+    let mut utf8 = Vec::new();
+    paramxml::write(&mut utf8, &param).unwrap();
+    assert!(utf8.starts_with(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"));
+    assert_eq!(paramxml::read(utf8.as_slice()).unwrap(), param);
+
+    let dir = openms::system::file::TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let path = dir.path().join("source.ini");
+    paramxml::store_with_options(&path, &param, WriteOptions::source()).unwrap();
+    assert_eq!(std::fs::read(&path).unwrap(), latin1);
+    assert_eq!(paramxml::load(&path).unwrap(), param);
 }
 
 #[test]

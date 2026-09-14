@@ -5,21 +5,25 @@
   "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
   "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
  },
- "scope": "The TOPPBase lifecycle of the independently versioned OpenMS4-cli package: command-line parse closure, INI merge and strict update, write commands, file checks, phase-aware exit codes and the run services (progress log type, thread policy, test-mode unique-id seed, processing annotations). Package CLI-1 (C4-CLI-SPEC plus integrator step W1.4). Deliberately not resolved against the Core SDK checkout, except for the Param::update and StringUtils wording the lifecycle reproduces.",
- "method": "TOPPBase.cpp read at the cli pin with git show; generic cases executed against the C++ product SDK binaries DTAExtractor and SpectraFilterWindowMower by ../oracle/topp-cli-lifecycle/run.sh in a clean environment (env -i, per-case HOME and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH=<sdk>/share/OpenMS/4.0.0); the Rust suite asserts each case's exit code and a diagnostic line, and compares the subsection-override output canonically with the C++ output. The INI read failures (an unreadable file, a directory, the character device /dev/null and a FIFO with mode 000, before a run and with -write_ini) were executed the same way by ../oracle/topp-cli-lifecycle/ini_read_failures.sh. A FIFO this user can open is not an oracle case: with no writer the C++ tool blocks opening it. TOPPBase_test.cpp sections that apply to the native API are transcribed with their literals.",
- "evidence_tier": "oracle-generated (tier 1 executed differential) for the tool cases, including the INI read failures of ini_read_failures/manifest.json; source review (tier 3) for the transcribed TOPPBase_test.cpp sections; Rust-only (tier 4) for run_io routing, the run-phase mapping of every Error variant, the registration failure, the argument bound, the order of trailing-text chunks and a FIFO as -ini read once a writer opens it. docs/TOPP_CLI_SUPPORT.md labels every exit-code row with its asserting test and tier.",
+ "scope": "The TOPPBase lifecycle of the independently versioned OpenMS4-cli package: command-line parse closure, INI merge and strict update, write commands and -write_ini parity, usage text, file and format checks, phase-aware exit codes and the run services (progress log type, thread policy, test-mode unique-id seed, processing annotations), and the processing records the ported tools attach to their outputs (decision D4). Package CLI-1 (C4-CLI-SPEC plus integrator step W1.4) and package CLI-2 (integrator step W2.2). Deliberately not resolved against the Core SDK checkout, except for the Param::update, StringUtils, TextFile, XMLFile, IndentedStream, ConsoleUtils and MzMLHandler behaviour the lifecycle and its comparisons reproduce.",
+ "method": "TOPPBase.cpp and TOPPBase_test.cpp read at the cli pin and the five tools' sources at the topp pin with git show; generic cases executed against the C++ product SDK binaries DTAExtractor and SpectraFilterWindowMower by ../oracle/topp-cli-lifecycle/run.sh in a clean environment (env -i, per-case HOME and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH=<sdk>/share/OpenMS/4.0.0); the Rust suite asserts each case's exit code and a diagnostic line, and compares the subsection-override output canonically with the C++ output. The INI read failures (an unreadable file, a directory, the character device /dev/null, a FIFO with mode 000, a Unix socket and /dev/tty without a controlling terminal, before a run and with -write_ini) were executed the same way by ../oracle/topp-cli-lifecycle/ini_read_failures.sh, which also records, as an observation, the C++ tool blocking on a FIFO whose only writer opens it once. Package CLI-2 executed ../oracle/topp-cli-lifecycle/cli2_cases.sh on the five ported tools' product SDK binaries: -test -write_ini of each tool (compared line by line with exact numbers and only version lines skipped, and as decoded parameter trees), --help and --helphelp of each tool (compared byte for byte after the stty line of the console-width probe is dropped and the revision in the version line is replaced), input format detection by name and content and output extension checks (exit code and diagnostic), and the registered BaselineFilter, MapNormalizer, SpectraFilterWindowMower and MzMLSplitter test invocations with and without -test (processing records compared as decoded mzML). The retained TOPPBase_test_write_ini_out.ini and TOPPBase_test_write_ini_subsec_out.ini are compared with the ported FuzzyStringComparator at TEST_FILE_SIMILAR's default tolerances and WHITELIST(\"version\"). TOPPBase_test.cpp sections that apply to the native API are transcribed with their literals.",
+ "evidence_tier": "oracle-generated (tier 1 executed differential) for the tool cases, including the INI read failures of ini_read_failures/manifest.json and the CLI-2 cases of cli2/manifest.json; tier 1 retained C++ output for the TOPPBase_test -write_ini files and for the processing records of the retained BaselineFilter, MapNormalizer, SpectraFilterWindowMower and MzMLSplitter outputs; source review (tier 3) for the transcribed TOPPBase_test.cpp sections; Rust-only (tier 4) for run_io routing, the run-phase mapping of every Error variant, the registration failure, the argument bound, the order of trailing-text chunks and a FIFO as -ini read once by a single writer (a deliberate difference; the C++ tool blocks, oracle observation write_ini_ini_fifo_single_writer). docs/TOPP_CLI_SUPPORT.md labels every exit-code row with its asserting test and tier.",
  "oracle": {
   "product_sdk": "/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/product-sdk",
   "source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
   "build_type": "Debug",
   "compiler": "AppleClang 21.0.0",
   "binaries_sha256": {
+   "bin/BaselineFilter": "556ca3fbfb485893dbd7080144f25564723f683701dcdced69e7f8d3a981b22e",
    "bin/DTAExtractor": "2ef65618307a7c9e27bc94c237b5421eca5d111a57c59bffb1779d387a1293cf",
+   "bin/MapNormalizer": "ae8c3516bb2ecd78f205ea1d802c9063682c3de3ba97748278d98c0d712e43e7",
+   "bin/MzMLSplitter": "fd91cfb4930f60c37c9e3abbe8808a0280e8c4f01d5703fa62a50ff8f3990656",
    "bin/SpectraFilterWindowMower": "6a8843a154c9993af66a3e0bea556ffc620d8eff757ff84b0f9f39d74a2129e8",
-   "lib/libOpenMS.dylib": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a"
+   "lib/libOpenMS.dylib": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+   "lib/libOpenMS_CLI.1.dylib": "53d9b438077965947bd743a934fd8c19a1e4ad142249ea3498820735cd3b62ad"
   },
   "debug_only_cases": [],
-  "reproducibility": "Two executions agreed on exit code and every output sha256 for all 37 shared cases; ini_common_top_level ran once."
+  "reproducibility": "run.sh: two executions agreed on exit code and every output sha256 for all 37 shared cases; ini_common_top_level ran once. ini_read_failures.sh: each time cases were added (device, FIFO, then socket, tty and the single-writer observation) the earlier cases ran again and matched in exit code, stderr and outputs; only the timing figures in ini_readable_control's stdout changed. cli2_cases.sh: two executions (cli2/manifest.json and cli2_rerun_manifest.json) agreed on every exit code and stderr of all 34 cases and on every output except the three non-test mzML outputs, which differ only in their completion-time lines; stdout differs only in timing figures. The retained fixtures come from the first execution."
  },
  "external_reference_artifacts": [
   {
@@ -44,13 +48,28 @@
   },
   {
    "path": "../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json",
-   "sha256": "77ab0db36ebeeedd3eac202f987fc1190651d4312b6366fdaed51afdc12218b3",
-   "role": "10 executed INI read-failure cases on the same binaries: a tool-written INI, a readable control run, that INI unreadable before a run and with -write_ini (exit 2), a directory as -ini on both paths (exit 3), the character device /dev/null as -ini on both paths (exit 3) and a FIFO with mode 000 as -ini on both paths (exit 2)"
+   "sha256": "3db01a2a922f1f53616e157b295b7d72e25bb6c8eeb3f9e34d0af48362d2bd43",
+   "role": "15 executed INI read-failure cases on the same binaries: a tool-written INI, a readable control run, that INI unreadable before a run and with -write_ini (exit 2), a directory as -ini on both paths (exit 3), the character device /dev/null as -ini on both paths (exit 3), a FIFO with mode 000 as -ini on both paths (exit 2), a Unix socket as -ini on both paths (exit 8, 'Error: Unexpected internal error (IO error for file ...)'), /dev/tty opened from a new session as -ini on both paths (exit 8, same diagnostic), and the observation write_ini_ini_fifo_single_writer (a FIFO fed once with the tool's INI: the C++ tool blocks on its second open until a 10-second alarm, exit 142, nothing written)"
   },
   {
    "path": "../oracle/topp-cli-lifecycle/ini_read_failures.sh",
-   "sha256": "9611f25181937cf4c411c272679c2a80d6b6498028253b79c5463ebab71c8bab",
+   "sha256": "971a817e671ed736b96e169e013fd0710d3f66a511caece2e16abb078b3bc2cb",
    "role": "driver and manifest generator for the INI read-failure cases"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/cli2/manifest.json",
+   "sha256": "66a0ead1769df69dff40196982662a8964fd5f3b5bc828b8fcac38e75ad19016",
+   "role": "34 executed CLI-2 cases on BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter and SpectraFilterWindowMower: write_ini_<tool> (-test -write_ini) and write_ini_notest_DTAExtractor; help_<tool> and helphelp_<tool> (usage on stderr, stdout empty); ten format cases (in_no_extension_mzml_content 0, in_txt_extension_mzml_content 6, in_uppercase_extension 0, in_unknown_extension_mzml_content 0, in_dta_extension 6, in_unknown_name_and_content 3 with the undetermined-format warning, out_unknown_extension 0, out_no_extension 0, out_txt_extension 6, out_uppercase_extension 0); the registered test invocations baseline_filter_1, map_normalizer_1, window_mower_1 and mzml_splitter_1; window_mower_notest and map_normalizer_notest; window_mower_notest_windowsize_inf (0, records xsd:double inf) and baseline_filter_notest_length_inf (6, range check)"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/cli2_cases.sh",
+   "sha256": "e3ca6686590d2436dd52baba1b77ca35f24860227b3600b6fa0de4599e75ce94",
+   "role": "driver and manifest generator for the CLI-2 cases"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/cli2_rerun_manifest.json",
+   "sha256": "470717526247deb0dedc38d094f05d29ecb51a265df91fd7ec356d94894a388f",
+   "role": "manifest of the second execution of cli2_cases.sh, kept for the reproducibility comparison"
   }
  ],
  "sources": [
@@ -134,6 +153,78 @@
    "revision": "topp 174b576",
    "sha256": "0450b63576ec4916a0a0bdace902e43e40373a663ef5edb5b58e44480a1c8d3f",
    "used_for": "the -rt bounds reach DRange<1>(rt_l, rt_u) (144); cited by the parse_range documentation"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/BaselineFilter.cpp",
+   "revision": "topp 174b576",
+   "sha256": "5742cc6e325e71f164e22c22c77bc171240006f9b1d506e46f6d1537e9e0f1d2",
+   "used_for": "addDataProcessing_(ms_exp, getProcessingInfo_(BASELINE_REDUCTION)) after filtering (D4)"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/MapNormalizer.cpp",
+   "revision": "topp 174b576",
+   "sha256": "e53887be24df66273bb9a9e70b66e32f951085717b9eae3001591557b7c4c36f",
+   "used_for": "addDataProcessing_(exp, getProcessingInfo_(NORMALIZATION)) after scaling (D4)"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/SpectraFilterWindowMower.cpp",
+   "revision": "topp 174b576",
+   "sha256": "70391f052226f5b365f5d1680a1ab0a0005f1cbe2c4234e43c4994959e23c683",
+   "used_for": "addDataProcessing_(exp, getProcessingInfo_(FILTERING)) after filtering (D4)"
+  },
+  {
+   "path": "OpenMS4-tests/packages/topp/src/MzMLSplitter.cpp",
+   "revision": "topp 174b576",
+   "sha256": "63c9599132be0479ebd48ca9f50046a0c73981b969e68413bde3e763d258d55d",
+   "used_for": "addDataProcessing_(part, getProcessingInfo_(FILTERING)) runs before the part's spectra and chromatograms are moved in, so no part carries the record (D4)"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/tests/source/TOPPBase_test.cpp",
+   "revision": "cli c19e494",
+   "sha256": "01e7de9f30281c3afa9dee1b920a1cf36b46b72fc57c72824cd2852e506fa29f",
+   "used_for": "the -write_ini part of [EXTRA] getStringOption_ (483-536): TEST_EQUAL(p1, p2), WHITELIST(\"version\") and the two TEST_FILE_SIMILAR comparisons"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt",
+   "revision": "test-data 0cb15f2",
+   "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+   "used_for": "TOPPWRITEINI_<tool> and TOPPWRITEINI_<tool>_SectionName (83-85), TOPPWRITEINI_OVERWRITE's comparison with -whitelist version (104-106), and the registered BaselineFilter (331-333), MapNormalizer (343-345), SpectraFilterWindowMower (2782-2784) and MzMLSplitter (4260-4262) invocations"
+  },
+  {
+   "path": "OpenMS4-tests/packages/test-data/topp/check_ini.cmake",
+   "revision": "test-data 0cb15f2",
+   "sha256": "99182de954283346b4d956e20cf173e8a4ab3e32a2cee727df172d8c3a5f88e7",
+   "used_for": "the SectionName check: the first line matching ^  <NODE name=\"...\" names the tool"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/IndentedStream.cpp",
+   "revision": "core bc9cc12",
+   "sha256": "9cbebb24a712bd7d6d3e24925819765b6deae60113444d86a6acde7981997cb5",
+   "used_for": "the indentation of usage text lines"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/APPLICATIONS/ConsoleUtils.cpp",
+   "revision": "core bc9cc12",
+   "sha256": "c870c8ed0426c1f694b7e148cf4762126a7d82794f2d0128a5b77c1f311b67b5",
+   "used_for": "breakString_: line breaks, indented continuation lines, the ten-line limit, and no shaping when the console width cannot be determined (COLUMNS unset, stty fails)"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "revision": "core bc9cc12",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "used_for": "firstToUpper (429-433) and the std::string + number operators (859-907) of the usage text"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/testframework/source/CONCEPT/ClassTest.cpp",
+   "revision": "core bc9cc12",
+   "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f",
+   "used_for": "TEST_FILE_SIMILAR's default tolerances, absolute 1e-5 and relative 1 + 1e-5 (35-38), and its comparator settings (586-608)"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "revision": "core bc9cc12",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a",
+   "used_for": "how the retained outputs store processing records: completion time to the minute (3947) and the software name as a PSI-MS term found by name, name + ' software' or 'TOPP ' + name (3763-3787); the decoded comparisons apply both"
   }
  ],
  "fixtures": [
@@ -220,7 +311,117 @@
   {
    "path": "tests/data/window_mower_tool_output.mzML",
    "sha256": "77b164053be5fce69fccb28a3d4487e8dd14c53fe013fb598ea390290fbb3703",
-   "origin": "existing retained upstream fixture; the default-parameter reference"
+   "origin": "existing retained upstream fixture; the default-parameter reference, and the processing-record reference of TOPP_SpectraFilterWindowMower_1"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/TOPPBase_test_write_ini_out.ini",
+   "sha256": "fc12af13a3db73d8e51bcd609f849ce03a4a2833c93bfec4e5095973a17f24d4",
+   "origin": "OpenMS4-tests/packages/cli/tests/data/TOPPBase_test_write_ini_out.ini at c19e494, unchanged; retained C++ output (tier 1)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/TOPPBase_test_write_ini_subsec_out.ini",
+   "sha256": "43bbb00fb24131baf1fc0afe1c721096302ede0a8d9b401fa0a40900d549186f",
+   "origin": "OpenMS4-tests/packages/cli/tests/data/TOPPBase_test_write_ini_subsec_out.ini at c19e494, unchanged; retained C++ output (tier 1)"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/write_ini_BaselineFilter.ini",
+   "sha256": "355fed6a0714f4d7a63a956c163d6cdfe82b6394e671303401a39cd8e03ecbe2",
+   "origin": "oracle-generated (tier 1 executed differential): BaselineFilter -test -write_ini, case write_ini_BaselineFilter of cli2/manifest.json, unchanged"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/write_ini_DTAExtractor.ini",
+   "sha256": "d615c22cd66158591494ddd77c8636d326a53653efe043ab6324209e36281758",
+   "origin": "oracle-generated (tier 1 executed differential): DTAExtractor -test -write_ini, case write_ini_DTAExtractor of cli2/manifest.json, unchanged; identical bytes for write_ini_notest_DTAExtractor and for run.sh's write_ini_with_cli_value"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/write_ini_MapNormalizer.ini",
+   "sha256": "7820b412ebf9b3958d0a35cc11ee03f7e3f4dff3dc9490b9b91a79f4c42daeec",
+   "origin": "oracle-generated (tier 1 executed differential): MapNormalizer -test -write_ini, case write_ini_MapNormalizer of cli2/manifest.json, unchanged"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/write_ini_MzMLSplitter.ini",
+   "sha256": "c54ec2358a7b8230fbe21446e0a5eb4244d4e421cff66c1345c4e394d610bf4d",
+   "origin": "oracle-generated (tier 1 executed differential): MzMLSplitter -test -write_ini, case write_ini_MzMLSplitter of cli2/manifest.json, unchanged"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/write_ini_SpectraFilterWindowMower.ini",
+   "sha256": "dbb18628d7b895527203e2d3470809b166b5af6e28468b505e8061a03da7a7d3",
+   "origin": "oracle-generated (tier 1 executed differential): SpectraFilterWindowMower -test -write_ini, case write_ini_SpectraFilterWindowMower of cli2/manifest.json, unchanged"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/help_BaselineFilter.txt",
+   "sha256": "7f312f8635c9db21aed73f367043df6c5c574dc59a8c3e07d4b043ef085e3c14",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of BaselineFilter --help, case help_BaselineFilter of cli2/manifest.json, without its first line 'stty: stdin isn't a terminal'"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/helphelp_BaselineFilter.txt",
+   "sha256": "0773012a2010d9d9a44ccd38a07b1db26660256bd9004a9f4ad8a50833e0eed9",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of BaselineFilter --helphelp, case helphelp_BaselineFilter, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/help_DTAExtractor.txt",
+   "sha256": "b87ed79d166e8650b66cd8f14cb49cf22a41b114948220a6f8649fed98e3b640",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of DTAExtractor --help, case help_DTAExtractor, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/helphelp_DTAExtractor.txt",
+   "sha256": "2b67dfcc54ddb59e8316aee9d5b88dd7b167863f79840d18f0bd928385fcd56a",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of DTAExtractor --helphelp, case helphelp_DTAExtractor, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/help_MapNormalizer.txt",
+   "sha256": "b8f35070a563f69995a37b684b793b45b2dc7521ac240a84e1e31dffd998be15",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of MapNormalizer --help, case help_MapNormalizer, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/helphelp_MapNormalizer.txt",
+   "sha256": "1a0b5905fe728a9a0a75f373817de1ac6222e837fcd890a63e5b6a5ae43a8c99",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of MapNormalizer --helphelp, case helphelp_MapNormalizer, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/help_MzMLSplitter.txt",
+   "sha256": "096dbdb7b067779fe757d287c1ef40448689a33cccbdb6f4523f7d200d64de9a",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of MzMLSplitter --help, case help_MzMLSplitter, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/helphelp_MzMLSplitter.txt",
+   "sha256": "681d3e02e04d05c91fc54176efbdaad52779982c94949737d9a77b0c798cca16",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of MzMLSplitter --helphelp, case helphelp_MzMLSplitter, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/help_SpectraFilterWindowMower.txt",
+   "sha256": "bc767f97a73133035a2a7855809be14bd4741666f01d8355ce48ef6377a6c88b",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of SpectraFilterWindowMower --help, case help_SpectraFilterWindowMower, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/helphelp_SpectraFilterWindowMower.txt",
+   "sha256": "b5326240452b7bd800ac11bc1a2815707caf6ebc3f60be7c4e797f607c8ab58c",
+   "origin": "oracle-generated (tier 1 executed differential): stderr of SpectraFilterWindowMower --helphelp, case helphelp_SpectraFilterWindowMower, without its stty line"
+  },
+  {
+   "path": "tests/data/topp_cli_lifecycle/swm_notest_output.mzML",
+   "sha256": "39cb404f3b8d50f59ff5671b233153cabb2e6181d940eb9d3fcb9d6962cb7b32",
+   "origin": "oracle-generated (tier 1 executed differential): SpectraFilterWindowMower -in window_mower_tool_input.mzML -out notest.mzML without -test, case window_mower_notest of cli2/manifest.json (first execution), unchanged; its completion-time lines and the in/out parameter paths depend on the run"
+  },
+  {
+   "path": "tests/data/baseline_filter_tool_output.mzML",
+   "sha256": "0d32ade099d09e4c56183b6d19d78316d1460e62e5d786f9d7ab84a536766ec0",
+   "origin": "existing retained upstream fixture (TOPP_BaselineFilter_1); the processing-record reference: the 'baseline reduction' record after the input's two"
+  },
+  {
+   "path": "tests/data/map_normalizer_output.mzML",
+   "sha256": "c26ec1cd963b22811b94034b95896f229aa0038075a3d502a6e19ef1940df5cd",
+   "origin": "existing retained upstream fixture (TOPP_MapNormalizer_1); the processing-record reference: the 'intensity normalization' record after the input's two"
+  },
+  {
+   "path": "tests/data/mzml_splitter_output_part1.mzML",
+   "sha256": "b199ad0975ead0a1dc2fd54ac28cc06c9419fe649d80f7fe37d4e71f9db91478",
+   "origin": "existing retained upstream fixture (TOPP_MzMLSplitter_1); the processing-record reference: only the input's two records"
+  },
+  {
+   "path": "tests/data/mzml_splitter_output_part2.mzML",
+   "sha256": "18ca579d907180da694d3da062b38675110dd627921ad7d9d56636cf304b764b",
+   "origin": "existing retained upstream fixture; the processing-record reference: only the input's two records"
   }
  ],
  "native_implementation": [
@@ -229,14 +430,22 @@
   "src/cli/spec.rs",
   "src/cli/parameter.rs",
   "src/cli/processing.rs",
-  "src/cli/usage.rs"
+  "src/cli/usage.rs",
+  "src/cli/tools/baseline_filter.rs",
+  "src/cli/tools/dta_extractor.rs",
+  "src/cli/tools/map_normalizer.rs",
+  "src/cli/tools/mzml_splitter.rs",
+  "src/cli/tools/spectra_filter_window_mower.rs",
+  "src/format/paramxml.rs (WriteOptions, OutputEncoding, write_with_options, store_with_options)"
  ],
  "native_tests": [
   "tests/topp_cli_lifecycle.rs",
   "tests/topp_spectra_filter_window_mower.rs",
   "tests/topp_dta_extractor.rs",
   "tests/topp_baseline_filter.rs",
-  "tests/topp_map_normalizer.rs"
+  "tests/topp_map_normalizer.rs",
+  "tests/topp_mzml_splitter.rs",
+  "tests/paramxml.rs (source_declaration_writer_option)"
  ],
  "support": "docs/TOPP_CLI_SUPPORT.md",
  "upstream_test_definition": "OpenMS4-tests/packages/cli/tests/source/TOPPBase_test.cpp at c19e494 (23 START_SECTIONs; accounting in docs/TOPP_CLI_SUPPORT.md)"

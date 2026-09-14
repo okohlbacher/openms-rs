@@ -9,11 +9,12 @@
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
 use openms::cli::tools::BaselineFilter;
-use openms::cli::{ExitCode, run_with};
+use openms::cli::{ExitCode, TEST_MODE_COMPLETION_TIME, run_with};
+use openms::data_structures::DateTime;
 use openms::format::file_handler::FileHandler;
 use openms::format::file_types::FileType;
 use openms::kernel::MSExperiment;
-use std::fs;
+use openms::system::file::TempDir;
 use std::path::{Path, PathBuf};
 
 fn fixture(name: &str) -> PathBuf {
@@ -31,12 +32,58 @@ fn run(args: &[&str]) -> (ExitCode, String) {
     (code, String::from_utf8_lossy(&err).into_owned())
 }
 
+/// The processing records of every spectrum and chromatogram agree with the
+/// retained C++ output: the same records in the same order, each with the same
+/// software name and version, actions, completion time and metadata.
+///
+/// Decision D4: the source tool attaches `getProcessingInfo_` to its output
+/// (`BaselineFilter.cpp`, `addDataProcessing_(ms_exp,
+/// getProcessingInfo_(DataProcessing::BASELINE_REDUCTION))`), and the retained
+/// `BaselineFilter_output.mzML` carries that record after the two the input
+/// already had.
+///
+/// Completion times are compared to the minute, the precision the C++ mzML
+/// writer keeps (`MzMLHandler.cpp:3947` writes `yyyy-MM-dd+hh:mm`): the record
+/// the tool builds under `-test` says 23:59:59, and the retained file says
+/// 23:59. This port's writer keeps the seconds.
+fn assert_same_processing(produced: &MSExperiment, expected: &MSExperiment) {
+    let minutes = |time: Option<DateTime>| time.map(|t| t.format("yyyy-MM-dd+hh:mm").unwrap());
+    let records = |experiment: &MSExperiment| {
+        experiment
+            .spectra
+            .iter()
+            .map(|s| s.data_processing.clone())
+            .chain(
+                experiment
+                    .chromatograms
+                    .iter()
+                    .map(|c| c.data_processing.clone()),
+            )
+            .collect::<Vec<_>>()
+    };
+    let (produced, expected) = (records(produced), records(expected));
+    assert_eq!(produced.len(), expected.len(), "record holders");
+    for (index, (a, e)) in produced.iter().zip(&expected).enumerate() {
+        assert_eq!(a.len(), e.len(), "holder {index}: processing records");
+        for (i, (pa, pe)) in a.iter().zip(e).enumerate() {
+            let at = format!("holder {index}, record {i}");
+            assert_eq!(pa.software.name, pe.software.name, "{at}: software");
+            assert_eq!(pa.software.version, pe.software.version, "{at}: version");
+            assert_eq!(pa.actions, pe.actions, "{at}: actions");
+            assert_eq!(
+                minutes(pa.completion_time),
+                minutes(pe.completion_time),
+                "{at}: completion time"
+            );
+            assert_eq!(pa.metadata, pe.metadata, "{at}: metadata");
+        }
+    }
+}
+
 #[test]
 fn topp_baseline_filter_1_matches_the_retained_output() {
-    let dir = std::env::temp_dir().join(format!("openms-bl-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    let out = dir.join("out.mzML");
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let out = temp.path().join("out.mzML");
     let (code, err) = run(&[
         "-test",
         "-in",
@@ -72,7 +119,14 @@ fn topp_baseline_filter_1_matches_the_retained_output() {
         }
     }
     assert!(compared > 100, "expected the fixture's full peak set");
-    let _ = fs::remove_dir_all(&dir);
+    assert_same_processing(&produced, &reference);
+    // The seconds the C++ writer drops are kept here: the -test record's time.
+    for spectrum in &produced.spectra {
+        assert_eq!(
+            spectrum.data_processing.last().unwrap().completion_time,
+            Some(DateTime::parse(TEST_MODE_COMPLETION_TIME).unwrap())
+        );
+    }
 }
 
 #[test]

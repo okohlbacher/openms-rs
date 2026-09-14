@@ -15,9 +15,38 @@
 - String restrictions retain order and empty fields. File supported formats override restrictions. The native reader also retains supported formats for output-prefix values and equivalent legacy file restrictions, correcting cases the C++ reader loses on its own round trip.
 - A bool input becomes a string constrained to `true,false`. Output uses `type="bool"` only for the source flag case: scalar value `false`, valid strings exactly `["true", "false"]`, and no overriding file type.
 - NaN, infinities, signed zero and full finite f64 precision are preserved. NaN is written as `NaN`. Unlike the source's limited decimal stream precision, native numbers use a round-trip representation; byte-identical numeric formatting is not promised in general.
-- UTF-8, declared ISO-8859-1 and ASCII, and UTF-16 little/big endian input are supported. Output declares and emits UTF-8. XML 1.0 literal line endings/attribute whitespace are normalized, while character references preserve tabs/newlines/carriage returns.
+- UTF-8, declared ISO-8859-1 and ASCII, and UTF-16 little/big endian input are supported. Output declares and emits UTF-8 by default; see *Writer options* for the source's ISO-8859-1 declaration. XML 1.0 literal line endings/attribute whitespace are normalized, while character references preserve tabs/newlines/carriage returns.
 
 The source's nonsemantic schema attributes `short_description`, `position`, and scalar `default` are accepted and ignored, as in ParamXMLHandler. No remote schema, external entity or DTD is fetched. Generic XMLFile schema-validation APIs are a separate SDK component; the tests validate generated documents independently against the original bundled XSD when `xmllint` is available.
+
+## Writer options
+
+`write_with_options(output, param, limits, options)` and
+`store_with_options(path, param, options)` take a `WriteOptions`, whose
+`encoding` is an `OutputEncoding`. `write`, `write_with_limits` and `store` use
+the default and are unchanged.
+
+| `OutputEncoding` | Declaration | Bytes |
+| --- | --- | --- |
+| `Utf8` (default) | `encoding="UTF-8"` | every character as UTF-8 |
+| `Latin1` (`WriteOptions::source()`) | `encoding="ISO-8859-1"`, as the source `ParamXMLFile::store` | a character up to U+00FF as its ISO-8859-1 byte, any other as a hexadecimal character reference (`&#x20AC;`) |
+
+With `WriteOptions::source()` the source writer golden
+`ParamXMLFile_test_writeXMLToStream.xml` is reproduced byte for byte, declaration
+included. The TOPP `-write_ini` option uses it (`docs/TOPP_CLI_SUPPORT.md`).
+
+Native difference: the source declares ISO-8859-1 but copies the UTF-8 bytes of
+its strings, so a non-ASCII character it writes reads back as several
+different characters, in this reader as in the source's. `Latin1` keeps the
+bytes consistent with the declaration, so the same tree reads back unchanged;
+for ASCII content the bytes are the source's. Everything else (validation,
+limits, escaping, atomic serialization before the destination is touched) is
+shared with the default writer.
+
+[Tests](../tests/paramxml.rs) (`source_declaration_writer_option`) compare the
+golden byte for byte, check the declaration of both encodings, the ISO-8859-1
+bytes and character references of values, descriptions and list items, and the
+round trip through `read`, `store_with_options` and `load`.
 
 ## Checked native adaptations
 
