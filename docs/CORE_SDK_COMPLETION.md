@@ -8,11 +8,11 @@ Validated TOPP workflows: **5** of 124, each reproducing its upstream test again
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 55 |
-| evidence_requires_review | 158 |
+| complete | 56 |
+| evidence_requires_review | 156 |
 | native_equivalent | 90 |
-| partial | 55 |
-| unmapped | 428 |
+| partial | 61 |
+| unmapped | 423 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -42,7 +42,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/CONCEPT/VersionInfo.h` | 5 | evidence_requires_review |
 | `OpenMS/FORMAT/OMSFile.h` | 5 | unmapped |
 | `OpenMS/FORMAT/PepXMLFile.h` | 5 | partial |
-| `OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h` | 5 | evidence_requires_review |
+| `OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h` | 5 | partial |
 | `OpenMS/SYSTEM/StopWatch.h` | 5 | partial |
 | `OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h` | 4 | evidence_requires_review |
 | `OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h` | 4 | unmapped |
@@ -51,7 +51,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | 4 | unmapped |
 | `OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h` | 4 | evidence_requires_review |
 | `OpenMS/CONCEPT/Exception.h` | 4 | evidence_requires_review |
-| `OpenMS/IONMOBILITY/IMDataConverter.h` | 4 | evidence_requires_review |
+| `OpenMS/IONMOBILITY/IMDataConverter.h` | 4 | partial |
 | `OpenMS/SYSTEM/JavaInfo.h` | 4 | partial |
 | `OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h` | 3 | evidence_requires_review |
 | `OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h` | 3 | unmapped |

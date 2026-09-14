@@ -613,7 +613,11 @@
   "tests/data/mzml_precursor_activation_provenance.json",
   "tests/data/peak_type_estimator_provenance.json",
   "tests/data/faims_helper_provenance.json",
-  "tests/data/feature_finder_picked_helper_structs_provenance.json"
+  "tests/data/feature_finder_picked_helper_structs_provenance.json",
+  "tests/data/peak_picking_provenance.json",
+  "tests/data/file_info_provenance.json",
+  "tests/data/im_data_converter_provenance.json",
+  "tests/data/feature_overlap_filter_provenance.json"
  ],
  "external_reference_artifacts": [
   {
@@ -698,18 +702,18 @@
   },
   {
    "path": "../oracle/topp-cli-lifecycle/ini_read_failures.sh",
-   "sha256": "9611f25181937cf4c411c272679c2a80d6b6498028253b79c5463ebab71c8bab",
+   "sha256": "971a817e671ed736b96e169e013fd0710d3f66a511caece2e16abb078b3bc2cb",
    "origin_key": "tests/data/topp_cli_lifecycle_provenance.json",
-   "package": "CLI-1",
-   "role": "driver and manifest generator for the INI read-failure cases; bundle/CLI-1 86d2733",
+   "package": "CLI-1, CLI-2",
+   "role": "driver and manifest generator for the INI read-failure cases, extended by CLI-2 with the socket, terminal and single-writer FIFO cases; bundle/CLI-1 86d2733, bundle/CLI-2 f886d90",
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
    "path": "../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json",
-   "sha256": "77ab0db36ebeeedd3eac202f987fc1190651d4312b6366fdaed51afdc12218b3",
+   "sha256": "3db01a2a922f1f53616e157b295b7d72e25bb6c8eeb3f9e34d0af48362d2bd43",
    "origin_key": "tests/data/topp_cli_lifecycle_provenance.json",
-   "package": "CLI-1",
-   "role": "10 executed INI read-failure cases, among them /dev/null (exit 3) and a mode-000 FIFO (exit 2) as -ini before a run and with -write_ini; bundle/CLI-1 86d2733",
+   "package": "CLI-1, CLI-2",
+   "role": "15 executed INI read-failure cases: the 10 of CLI-1, among them /dev/null (exit 3) and a mode-000 FIFO (exit 2) as -ini before a run and with -write_ini, plus a Unix socket and /dev/tty without a controlling terminal as -ini on both paths (exit 8) and the observation write_ini_ini_fifo_single_writer (the C++ tool blocks until the alarm, exit 142); bundle/CLI-1 86d2733, bundle/CLI-2 f886d90",
    "label": "oracle-generated (tier 1 executed differential)"
   },
   {
@@ -727,9 +731,241 @@
    "package": "A2-TEXTFMT",
    "role": "tie-rule sweep (60,457 doubles, 10,973 floats, 15,195 %g rows on macOS and Linux) and the INT_MAX probes; bundle/A2-TEXTFMT 6cec951",
    "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/lm-budget-differential/extract_fixture.py",
+   "sha256": "342c320b1953b411c38648a0e750327ae9e166a7b05217a759645cbf1bc0c9de",
+   "origin_key": "tests/data/lm_budget_differential_provenance.json",
+   "package": "B3-LM",
+   "role": "Python generator (no C++) of tests/data/lm_budget_differential/c2_trace_fits.txt from hash-checked C2 trace-fit results: 62 fits, max_fev 1..500, 29,004 budgets; bundle/B3-LM f604b4a",
+   "label": "oracle-derived fixture generator (inputs tier 1 executed differential, C2)"
+  },
+  {
+   "path": "../oracle/peak-picker-hires/manifest.json",
+   "sha256": "c19c15a49a2bfbea9a6f819ad692c4090de2002d1aac9cd0c36231b6c17ffc9f",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "P1-PICKER-LIB",
+   "role": "PeakPickerHiRes and SignalToNoiseEstimatorMedian oracle manifest: scope, SDK build info, revision equivalence 4fdec46 to bc9cc12, input and fixture hashes; bundle/P1-PICKER-LIB 1566a5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/peak-picker-hires/driver.cpp",
+   "sha256": "2d06db2fcec04f6af3102401a0e11e8e299e5d47b3276147f41c1e6617c4d4d6",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "P1-PICKER-LIB",
+   "role": "C++ driver for the 93 picking and noise cases, built with the SDK's -ffp-contract=off; bundle/P1-PICKER-LIB 1566a5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/peak-picker-hires/results/peak_picker_hires_oracle.tsv",
+   "sha256": "9eb8f2490b655a725df263ede006e71b4f90ee14ff7b77104b23b362eba62343",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "P1-PICKER-LIB",
+   "role": "driver stdout of the 93 cases, two runs byte-identical, projected into tests/data/peak_picking/oracle.tsv; bundle/P1-PICKER-LIB 1566a5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/peak-picker-hires/results/defaults.ini",
+   "sha256": "adf0400e910c5419aa730cff4f25f92f58ed8a2368369c5e487f57d7ba14080d",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "P1-PICKER-LIB",
+   "role": "PeakPickerHiRes getDefaults as stored by the product SDK; bundle/P1-PICKER-LIB 1566a5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/peak-picker-hires/results/noise_defaults.ini",
+   "sha256": "07e0df1812b632fda2caf9eb0cf830cdef7483d7143b329b206912e9b9bad6f5",
+   "origin_key": "tests/data/peak_picking_provenance.json",
+   "package": "P1-PICKER-LIB",
+   "role": "SignalToNoiseEstimatorMedian getDefaults as stored by the product SDK; bundle/P1-PICKER-LIB 1566a5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/p2-mzml-leniency/manifest.json",
+   "sha256": "322724f5a00dd7634b90190c5e75cda0afa411a06fb8960c6e6c52cebf7f987c",
+   "origin_key": "tests/data/mzml_header_leniency_provenance.json",
+   "package": "P2-MZML-LENIENCY",
+   "role": "dangling mzML header reference oracle (load, metadata-only and transform on PeakPickerHiRes_5_input.mzML and four synthetic cases, 68 lines, two runs byte-identical); lists every driver file hash; bundle/P2-MZML-LENIENCY 15a5f09",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/cli2/manifest.json",
+   "sha256": "66a0ead1769df69dff40196982662a8964fd5f3b5bc828b8fcac38e75ad19016",
+   "origin_key": "tests/data/topp_cli_lifecycle_provenance.json",
+   "package": "CLI-2",
+   "role": "34 executed CLI-2 cases on BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter and SpectraFilterWindowMower: -write_ini, --help and --helphelp of each tool, ten format cases, the registered test invocations, two runs without -test and two non-finite parameters; bundle/CLI-2 f886d90",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/cli2_cases.sh",
+   "sha256": "e3ca6686590d2436dd52baba1b77ca35f24860227b3600b6fa0de4599e75ce94",
+   "origin_key": "tests/data/topp_cli_lifecycle_provenance.json",
+   "package": "CLI-2",
+   "role": "driver and manifest generator for the 34 CLI-2 cases; bundle/CLI-2 f886d90",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/cli2_rerun_manifest.json",
+   "sha256": "470717526247deb0dedc38d094f05d29ecb51a265df91fd7ec356d94894a388f",
+   "origin_key": "tests/data/topp_cli_lifecycle_provenance.json",
+   "package": "CLI-2",
+   "role": "second execution of the CLI-2 cases: every exit code and stderr equal, outputs differ only in non-test completion times and stdout timings; bundle/CLI-2 f886d90",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/file-info-core/oracle.py",
+   "sha256": "179c660a7affdd1a09d1324f8b76ed065cd697759a0ece46dcba066b8e68254f",
+   "origin_key": "tests/data/file_info_provenance.json",
+   "package": "A4-FILEINFO-CORE",
+   "role": "product-SDK FileInfo runner: 27 cases, input derivations and the generated SRM inputs, reproduction check, manifest writer; bundle/A4-FILEINFO-CORE bb28715",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/file-info-core/run.sh",
+   "sha256": "68f01af8d969a40ecdf5ff6f3fdf0c2bcb24739ff04626894110fbba7bd70706",
+   "origin_key": "tests/data/file_info_provenance.json",
+   "package": "A4-FILEINFO-CORE",
+   "role": "entry point with the clean environment; bundle/A4-FILEINFO-CORE bb28715",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/file-info-core/manifest.json",
+   "sha256": "405ccdf5f2cfd3d212ffc9d57c1ba304b9a683eb4ebc9440f00ae48ceadb965b",
+   "origin_key": "tests/data/file_info_provenance.json",
+   "package": "A4-FILEINFO-CORE",
+   "role": "tool and build hashes, environment, input records with derivation rules, per-case exit codes and output hashes, reproduction verdict; bundle/A4-FILEINFO-CORE bb28715",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/file-info-core/inputs.json",
+   "sha256": "b31734cb2da0f8bfae63760882cac472b8555b5d857d2957c9a333c22dd266a0",
+   "origin_key": "tests/data/file_info_provenance.json",
+   "package": "A4-FILEINFO-CORE",
+   "role": "input origins and derivation rules, including the three derived inputs and the two generated SRM files; bundle/A4-FILEINFO-CORE bb28715",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/b6-ffap-seeds/manifest.json",
+   "sha256": "10bf7bdde255f93f1314922acd3abff5b26f381d210da9403453e6a1fb76f142",
+   "origin_key": "tests/data/feature_finder_picked_provenance.json",
+   "package": "B6-FFAP-SEEDS",
+   "role": "seed-stage oracle manifest (default parameters, 7 bins with charges 1-3, min_spectra 1; two runs byte-identical); hashes the driver, build, runner, extraction script and results; bundle/B6-FFAP-SEEDS 80bbdf1",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/im-data-converter/driver.cpp",
+   "sha256": "0b056baa2acd6cf19ddda3f17bb2c7740322fbb1a3f7fdee668c0b426c379e82",
+   "origin_key": "tests/data/im_data_converter_provenance.json",
+   "package": "B8-IMSPLIT",
+   "role": "C++ driver for splitByFAIMSCV on 6 mzML files and 20 synthetic experiments; bundle/B8-IMSPLIT c527c5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/im-data-converter/CMakeLists.txt",
+   "sha256": "59b532c6008bb53145c9bcafeeca0613444ab1b60ed1aeec9ed8bc4cd205a506",
+   "origin_key": "tests/data/im_data_converter_provenance.json",
+   "package": "B8-IMSPLIT",
+   "role": "driver build against the product SDK; bundle/B8-IMSPLIT c527c5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/im-data-converter/run.sh",
+   "sha256": "59c25a98cf6ebc841a229d0a70188ee94f77f0372e37b387b1770d321fe131e0",
+   "origin_key": "tests/data/im_data_converter_provenance.json",
+   "package": "B8-IMSPLIT",
+   "role": "clean-environment runner; two runs byte-identical; bundle/B8-IMSPLIT c527c5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/im-data-converter/extract_c2_records.py",
+   "sha256": "bd9e16b92795a9174bb917fbe776fe875807691081d172df00bd42c248bd8b97",
+   "origin_key": "tests/data/im_data_converter_provenance.json",
+   "package": "B8-IMSPLIT",
+   "role": "extracts the C2 FAIMS split records and checks the derivation of the two synthetic C2 inputs; bundle/B8-IMSPLIT c527c5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/im-data-converter/manifest.json",
+   "sha256": "8954b533b6d0052b2502dcd68b0924fc7da1d4b7a0884038c0ba3bb2d102b643",
+   "origin_key": "tests/data/im_data_converter_provenance.json",
+   "package": "B8-IMSPLIT",
+   "role": "oracle manifest: input, result and driver hashes, revision equivalence 4fdec46 to bc9cc12; bundle/B8-IMSPLIT c527c5f",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/CMakeLists.txt",
+   "sha256": "5aa3e0c77061d815918e8a8d017d4279c2f5a49993b6ba63d6bb388a5942845d",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "build of the library driver, the Release replica and the quadtree probe; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/run.sh",
+   "sha256": "6976870590c9114f763d5cca3938d912d265add7b4069a9aa8a3f1d7fb9f2f36",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "build, run (78 cases, two runs byte-identical) and collect; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/cases.h",
+   "sha256": "f403881e0a04229d01dec5e5c7eaf5bd56f1d12775e4c86e7fc1c898a155d449",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "the 78 case definitions, including the two trace-bounds cases of the fix round; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/fof_driver.cpp",
+   "sha256": "a2498a1eae647c387d17df2afbc7ea8dee1df626589abc864f1e15dc9ccba0b7",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "driver linking the product-SDK libOpenMS; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/fof_replica.cpp",
+   "sha256": "b3a0b9d759ae817444e4779b7536f172b20c783b7aa391c45377d68d2644721c",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "Release replica of the pinned FeatureOverlapFilter.cpp and Quadtree, -DNDEBUG; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/qt_probe.cpp",
+   "sha256": "ac42aefc0f79256e1f1fb8e76908724ec903cf0e9f8420d3de555a9bff001a35",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "pinned Quadtree header probe, built with and without NDEBUG; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/make_fixture.py",
+   "sha256": "b47b9ac8c0dbb26fe8e0daf3e9f6be681eb632ebdc2f05bba0d12dd27fdd2e68",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "lossless fixture compaction; fails unless the library equals the replica; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/tools/extent_search2.py",
+   "sha256": "3c4515890cdceb54b5d0b8ec904703bf1bd81b9f607efe52f69f8fccdfe90792",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "float32 simulation that found the extent-rounding case; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/manifest.json",
+   "sha256": "9c14db78bcb3d9f5d14e79cc3170e22b8da86726ef9bbc2a9b29589cca2958d0",
+   "origin_key": "tests/data/feature_overlap_filter_provenance.json",
+   "package": "B9-OVERLAP",
+   "role": "oracle manifest hashing every source, pinned copy, result and fixture; bundle/B9-OVERLAP f1c7785",
+   "label": "oracle-generated (tier 1 executed differential)"
   }
  ],
- "external_reference_note": "Executed C++ oracle artifacts of early-TOPP bundle wave 1, registered at integration on 2026-09-14. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration, and each origin_key names the in-repo group manifest that records the oracle's full artifact list. A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked) are registered at W4.4.",
+ "external_reference_note": "Executed C++ oracle artifacts of the early-TOPP bundle, registered at integration. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration and equals the hash in the group manifest named by origin_key, which records the oracle's full artifact list. Wave 1 (2026-09-14): A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. Wave 2 (2026-09-14): P1-PICKER-LIB, A4-FILEINFO-CORE, B8-IMSPLIT and B9-OVERLAP (fix round) have that shape and are also listed in current_sdk_reference_manifests. B3-LM, P2-MZML-LENIENCY and B6-FFAP-SEEDS are indexed only through origin_key, because their target_verification records verification commands or results rather than the revision, source_revisions and source_changes the checker reads; B6's group manifest also has no external_reference_note. CLI-2 updates two CLI-1 rows (ini_read_failures.sh and its manifest, now 15 cases) and adds its own 34-case manifest, driver and rerun manifest. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked), which A4, B3, B6, B8 and B9 cite, are registered at W4.4.",
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
  "cpp_reference_evidence": {
