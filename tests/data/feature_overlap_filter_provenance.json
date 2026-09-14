@@ -1,0 +1,306 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause; src/openms/extern/Quadtree is MIT (Pierre Vigier 2019)",
+ "package": "B9-OVERLAP (early TOPP bundle, wave 2)",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
+   "sha256": "28743fc1e3a113b8b1291ac791ae0c3ace8e2703e78ef1a9d6c9ae823739d04d"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
+   "sha256": "c72aa6a474f731511c591225a54142c288973520d7dee65e9bf9e82f97fbe8d2"
+  },
+  {
+   "path": "src/openms/extern/Quadtree/include/Quadtree.h",
+   "sha256": "ba39ccbed07be9116c212e8065ce0e6569eea3e1451fb87651217cce874ad39e"
+  },
+  {
+   "path": "src/openms/extern/Quadtree/include/Box.h",
+   "sha256": "5c780e5e11f6d85efb5be73c728ec08506fb2fd49fd81dab641e941a7ea713eb"
+  },
+  {
+   "path": "src/openms/extern/Quadtree/include/Vector2.h",
+   "sha256": "ef22f335fa754a699418db859e48eefa56ac6b04b1f9e070c8c7339519b6c95d"
+  },
+  {
+   "path": "src/openms/extern/Quadtree/LICENSE",
+   "sha256": "9869bf4ce47617bb540cf2b9c0a55440d2284719d907c7ed23ecaa4d0e61329c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureOverlapFilter_test.cpp",
+   "sha256": "e7add57e0104df8af4e1848729a78315b2e7fa94386579f2c90dbc9518d5a64e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+   "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+  }
+ ],
+ "native_implementation": [
+  "src/processing/feature_overlap_filter.rs",
+  "src/processing/feature_overlap_filter/quadtree.rs"
+ ],
+ "native_tests": [
+  "tests/feature_overlap_filter.rs"
+ ],
+ "support": "docs/FEATURE_OVERLAP_FILTER_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
+   "line": 31,
+   "operation": "getFeatureBounds: feature hull i per subordinate i, m/z bounds from its first and last outline points, MissingInformation for a subordinate without hulls (49-51), rt_min the first outline point with m/z > 0, rt_max by a backward walk that stops at the first scan again (69-83), entries keyed by unique ID"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
+   "line": 115,
+   "operation": "tracesOverlap dereferences FeatureBoundsMap::find without an end() check"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
+   "line": 139,
+   "operation": "filter: updateRanges, stable_sort with the comparator, float getBox lambdas (centroid 146-160, hull 161-169), float extent min-1 / max-min+2 widened by the tolerances in the centroid mode (171-186)"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
+   "line": 200,
+   "operation": "loop: skip a querier whose unique ID is removed, query order, overlap != &f, charge / FAIMS_CV / inclusive double distance tests (211-256), trace test (257-260), removal of the candidate's unique ID when the callback returns true (267-270), erase by unique ID (277-281)"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
+   "line": 284,
+   "operation": "createFAIMSMergeCallback: merged_centroid_rts / mzs extended, merged_centroid_IMs from the existing list or the survivor's FAIMS_CV (removed), FAIMS_merge_count as int, SUM or std::max in double stored as float, always true"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
+   "line": 384,
+   "operation": "mergeFAIMSFeatures: early return without FAIMS_CV, move into FAIMS and non-FAIMS maps, filter only with more than one FAIMS feature (require_same_charge true), callback merging only different CVs (430-499), clear(false) and refill FAIMS then non-FAIMS (518-526)"
+  },
+  {
+   "path": "src/openms/extern/Quadtree/include/Quadtree.h",
+   "line": 61,
+   "operation": "Threshold 16, MaxDepth 8; computeBox NW NE SW SE (80-102); getQuadrant strict < centre west/north, >= centre east/south (104-136); add with split (138-184); remove, swap-and-pop removeValue and tryMerge (186-250); query node values before children (252-270); findAllIntersections (272-312)"
+  },
+  {
+   "path": "src/openms/extern/Quadtree/include/Box.h",
+   "line": 54,
+   "operation": "contains inclusive (54-58); intersects strict (!(left >= other.right || right <= other.left || top >= other.bottom || bottom <= other.top))"
+  }
+ ],
+ "context_sources": [
+  {
+   "path": "KERNEL/FeatureMap.cpp",
+   "sha256": "210ebf2fbe17259af5034b78855d0f57e16becf525aae370217a044f0c926a27",
+   "line": 260,
+   "operation": "updateRanges: centroids, then getConvexHull().getBoundingBox() unless DBoundingBox::isEmpty"
+  },
+  {
+   "path": "KERNEL/Feature.cpp",
+   "sha256": "5b6ea1b5ecb99d656213c02ebfe4e9a89f5216bd6c7b535ab8d24a0bd7579f72",
+   "line": 93,
+   "operation": "getConvexHull: the single hull, or four corner points of the box DBoundingBox::enlarge builds from every hull's bounding box"
+  },
+  {
+   "path": "DATASTRUCTURES/ConvexHull2D.cpp",
+   "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1",
+   "line": 80,
+   "operation": "getHullPoints outline order (lower m/z ascending RT, upper descending, single-point end scans not repeated); getBoundingBox (137-157)"
+  },
+  {
+   "path": "OpenMS/DATASTRUCTURES/DBoundingBox.h",
+   "sha256": "5a71ca1b34de215282edb32ea31e209bb10f583c68c7ce81b534bc216089980d",
+   "line": 98,
+   "operation": "enlarge with strict < and >; isEmpty true when max <= min in any dimension (169-179)"
+  },
+  {
+   "path": "OpenMS/KERNEL/RangeManager.h",
+   "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d",
+   "line": 128,
+   "operation": "getMin/getMax throw InvalidRange on an empty range"
+  },
+  {
+   "path": "DATASTRUCTURES/DataValue.cpp",
+   "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b",
+   "line": 466,
+   "operation": "operator double throws ConversionError for EMPTY_VALUE, converts INT_VALUE, reads data_.dou_ otherwise; toDoubleList throws ConversionError for a non-DOUBLE_LIST (692-700)"
+  }
+ ],
+ "context_sources_note": "Read for the semantics the port reproduces and not ported by this group. The paths are spelled below the core checkout's include or source directory at source_revision, where their sha256 was checked, and not from the repository root, so that tools/core_sdk_coverage.py does not count them as reference evidence for those headers.",
+ "fixtures": [
+  {
+   "path": "tests/data/feature_overlap_filter/feature_overlap_filter_oracle.tsv",
+   "sha256": "dc039464bf668383726a30385030b851f08f5eda1167ccdab1e7980dd02f89c9",
+   "rows": 23514,
+   "kind": "oracle-generated (tier 1 executed differential) for the 72 cases the Debug library completes, and executed probe (tier 2, Release replica of the pinned source) for the 4 debug_only cases: 76 cases of ../oracle/feature-overlap-filter, compacted losslessly by make_fixture.py from results/fof_library.tsv (sha256 a31832b2470b75ad73f9b9ca9d41bd10ab48a7f6e5b22e86ff0cdc8744a785bd) and results/fof_replica.tsv (sha256 6c4867e36227e483ab89075f776df887b43ffce5c304d85337c231f302a76d92)"
+  },
+  {
+   "path": "tests/data/feature_overlap_filter/quadtree_grid.tsv",
+   "sha256": "5ea7518d0625de30e841095f2390628b803135044443f8ff349a561569ee093b",
+   "rows": 1054,
+   "kind": "executed probe (tier 2): the pinned extern/Quadtree header driven with 359 boxes, 359 adds, 145 queries, 186 removals and two intersection lists; identical with assertions and with -DNDEBUG"
+  },
+  {
+   "path": "tests/data/feature_overlap_filter/quadtree_nan.tsv",
+   "sha256": "894afb7b3231aec3cac0b6588df28e0e65ae5e1768ea057357f7e744c2bac092",
+   "rows": 129,
+   "kind": "executed probe (tier 2): the pinned extern/Quadtree header with -DNDEBUG on NaN, infinite and out-of-root boxes, including the (+inf, +inf, -inf, -inf) sentinel box of a feature without a hull"
+  }
+ ],
+ "evidence_tier": 1,
+ "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; installed FeatureOverlapFilter.h equal to the pin; PROCESSING/FEATURE, KERNEL and DATASTRUCTURES unchanged between 4fdec46 and bc9cc12 per the C2 manifest) ran 76 cases in separate processes, twice, byte-identical. tests/feature_overlap_filter.rs replays each through the port and compares every callback invocation in order (16,916), every output feature bit for bit (position, intensity, quality, charge, unique ID, meta values, hulls, subordinate hulls) and the map-level fields; the six C++ exceptions are matched to the port's error classes with the map unchanged. Tier 2 (executed probes): the pinned bc9cc12 FeatureOverlapFilter.cpp and extern/Quadtree compiled with -DNDEBUG equal the library byte for byte on all 72 completed cases and give the Release result for three of the four cases the Debug library aborts on, which the port matches; the fourth (a hull-less feature in the hull mode) is refused natively. The pinned quadtree header replays bit for bit on the grid and NaN scenarios. The C2 facts (../oracle/featurefinder-picked/results/omp1/faims_facts.jsonl) are asserted as literals. Tier 3: the 14 FeatureOverlapFilter_test.cpp sections transcribed unchanged. Tier 4: atomicity after merges, callbacks and failures, refusals, and the equality of create_faims_merge_callback with merge_overlapping_features. Four deliberate mutations of the port (child query order, centroid box float rounding, extent float rounding, zero-extent hull boxes in the extent) were each caught by the replay and reverted.",
+ "class_test_sections": {
+  "FeatureOverlapFilter_test.cpp": {
+   "sections": 14,
+   "ported": 14,
+   "unaccounted": 0,
+   "tests": {
+    "(Filter FeatureMap)": "section_filter_feature_map",
+    "mergeOverlappingFeatures - basic merging with SUM intensity": "section_merge_overlapping_features_basic_sum",
+    "mergeOverlappingFeatures - MAX intensity mode": "section_merge_overlapping_features_max_intensity",
+    "mergeOverlappingFeatures - require_same_charge": "section_merge_overlapping_features_require_same_charge",
+    "mergeOverlappingFeatures - require_same_im with FAIMS_CV": "section_merge_overlapping_features_require_same_im_with_faims_cv",
+    "mergeOverlappingFeatures - require_same_im with same FAIMS_CV": "section_merge_overlapping_features_require_same_im_with_same_faims_cv",
+    "mergeOverlappingFeatures - features without FAIMS_CV": "section_merge_overlapping_features_without_faims_cv",
+    "mergeOverlappingFeatures - mixed FAIMS_CV presence with require_same_im": "section_merge_overlapping_features_mixed_faims_cv_presence",
+    "mergeOverlappingFeatures - write_meta_values=false": "section_merge_overlapping_features_write_meta_values_false",
+    "mergeOverlappingFeatures - no merge when outside tolerance": "section_merge_overlapping_features_no_merge_outside_tolerance",
+    "mergeOverlappingFeatures - multiple features merging": "section_merge_overlapping_features_multiple_features",
+    "mergeFAIMSFeatures - only merges features with different FAIMS_CV": "section_merge_faims_features_only_merges_different_faims_cv",
+    "mergeFAIMSFeatures - does NOT merge features with same FAIMS_CV": "section_merge_faims_features_does_not_merge_same_faims_cv",
+    "mergeFAIMSFeatures - no-op on non-FAIMS data": "section_merge_faims_features_no_op_on_non_faims_data"
+   }
+  }
+ },
+ "crate_survey": {
+  "decision": "no qualifying crate; extern/Quadtree ported; no dependency request",
+  "qualification": "query order equal to extern/Quadtree: Threshold 16, MaxDepth 8, Box<float>, strict intersects, node values before children, NW NE SW SE, the source's split, remove and merge rules",
+  "surveyed": {
+   "aabb-quadtree 0.2.0": "inclusive and epsilon intersection, items duplicated into every intersecting child, results sorted by id and deduplicated, near-duplicates dropped, panics on a failed insert; unmaintained since 2019",
+   "quadtree-f32 0.5.0": "four items per node, inclusive overlap, BTreeMap storage",
+   "quadtree 0.5.0": "point quadtree (glam Vec2), no boxes",
+   "quadtree_rs 0.1.3": "integer anchors and sizes",
+   "rectutils 0.7.0": "static build, depth 64, entries duplicated into intersecting leaves",
+   "spart 0.6.1": "point-based capacity trees",
+   "rstar 0.13.0": "R*-tree"
+  }
+ },
+ "module_edges": {
+  "new": [
+   "processing -> concept (FAIMS_CV); acyclic, tools/check_module_cycles.py reports it as not yet recorded"
+  ]
+ },
+ "cpp_issue_candidates": [
+  "mergeFAIMSFeatures on features without unique IDs removes every FAIMS feature: removal is keyed by getUniqueId (FeatureOverlapFilter.cpp:269-281; oracle c2_uid0_wipe, C2 faims_facts)",
+  "filter does not skip already removed candidates: a removed feature is merged into a later survivor again and its intensity counted twice; a mergeFAIMSFeatures survivor absorbs at most one feature (oracle c2_three_cvs: 1000/900/800 -> 1900/1700)",
+  "float quadtree boxes with strict intersection precede the inclusive double tolerance test: a zero tolerance, a tolerance below the float spacing, or coordinates near 2^24 never merge features within the tolerances (oracle bound_zero_tolerance, bound_tiny_tolerance, bound_float_collapse_rt)",
+  "getFeatureBounds takes a trace's RT end from the end of the hull outline, which returns to the first scan, so trace-level overlap compares start times only (FeatureOverlapFilter.cpp:69-83; oracle edge_trace_bounds_collapse_trace versus edge_trace_bounds_collapse_hull)",
+  "FeatureMap::updateRanges skips zero-width hull boxes (DBoundingBox::isEmpty), so the quadtree extent can exclude a feature's box and a Debug build aborts on a valid map; a feature without a hull aborts the same way in the hull modes (oracle edge_zero_extent_hull_outside_margin, edge_hull_less_convex_hull, library exit 134)",
+  "exception safety: filter throws MissingInformation after sorting the map; an exception in the mergeFAIMSFeatures callback leaves the caller's map holding moved-from features without metadata (oracle edge_trace_missing_sub_hull, edge_faims_cv_empty)",
+  "undefined behaviour on reachable inputs (source review, not executed): tracesOverlap dereferences std::map::end() for a feature without trace bounds; getFeatureBounds indexes past the hull vector when a feature has more subordinates than hulls; (double) on a string FAIMS_CV reads the wrong union member"
+ ],
+ "oracle": {
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "manifest": "../oracle/feature-overlap-filter/manifest.json",
+  "manifest_sha256": "47589ea1deed690fded5a07c09e6d0105309d526babab76daeb3e6992d11a241",
+  "sdk_source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+  "sdk_build_type": "Debug",
+  "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+  "reproduced_byte_for_byte": true,
+  "platform": "macOS arm64, AppleClang 21.0.0.21000101, -ffp-contract=off",
+  "debug_only": [
+   {
+    "case": "bound_float_collapse_rt",
+    "library_exit": 134,
+    "assertion": "Quadtree.h:255 queryBox.intersects(box)",
+    "port": "equals the Release replica"
+   },
+   {
+    "case": "bound_merge_float_collapse",
+    "library_exit": 134,
+    "assertion": "Quadtree.h:255 queryBox.intersects(box)",
+    "port": "equals the Release replica"
+   },
+   {
+    "case": "edge_zero_extent_hull_outside_margin",
+    "library_exit": 134,
+    "assertion": "Quadtree.h:141 box.contains(mGetBox(value))",
+    "port": "equals the Release replica"
+   },
+   {
+    "case": "edge_hull_less_convex_hull",
+    "library_exit": 134,
+    "assertion": "Quadtree.h:141 box.contains(mGetBox(value))",
+    "port": "refused with Error::MissingInformation (native difference)"
+   }
+  ],
+  "c2_reference": {
+   "path": "../oracle/featurefinder-picked/results/omp1/faims_facts.jsonl",
+   "sha256": "5451c69787a4c9ebde00e36c5532035ec3799db58299c11df0d2cae5a6e8c06a",
+   "manifest_sha256": "7f6adefb614200c1a4ff1d9d423a9956765104470c4b232f3a85aed7e0d3f281"
+  }
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/feature-overlap-filter/CMakeLists.txt",
+   "sha256": "5aa3e0c77061d815918e8a8d017d4279c2f5a49993b6ba63d6bb388a5942845d",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/run.sh",
+   "sha256": "6976870590c9114f763d5cca3938d912d265add7b4069a9aa8a3f1d7fb9f2f36",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/cases.h",
+   "sha256": "9471a4f5cb0aae7f35c220b1e2e2560d4f99c36171be2ff34d7d679d60e4d0b6",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/fof_driver.cpp",
+   "sha256": "a2498a1eae647c387d17df2afbc7ea8dee1df626589abc864f1e15dc9ccba0b7",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/fof_replica.cpp",
+   "sha256": "b3a0b9d759ae817444e4779b7536f172b20c783b7aa391c45377d68d2644721c",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/qt_probe.cpp",
+   "sha256": "ac42aefc0f79256e1f1fb8e76908724ec903cf0e9f8420d3de555a9bff001a35",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/make_fixture.py",
+   "sha256": "b47b9ac8c0dbb26fe8e0daf3e9f6be681eb632ebdc2f05bba0d12dd27fdd2e68",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/tools/extent_search2.py",
+   "sha256": "3c4515890cdceb54b5d0b8ec904703bf1bd81b9f607efe52f69f8fccdfe90792",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/feature-overlap-filter/manifest.json",
+   "sha256": "47589ea1deed690fded5a07c09e6d0105309d526babab76daeb3e6992d11a241",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The oracle driver, the Release replica and the quadtree probe link or compile C++ and live outside this repository under ../oracle/ so that no C++ is committed here. Only their generated records and the sha256 values enter the repository; manifest.json there hashes every source, pinned copy, result and fixture.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
