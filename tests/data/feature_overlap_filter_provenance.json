@@ -49,7 +49,7 @@
   {
    "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
    "line": 31,
-   "operation": "getFeatureBounds: feature hull i per subordinate i, m/z bounds from its first and last outline points, MissingInformation for a subordinate without hulls (49-51), rt_min the first outline point with m/z > 0, rt_max by a backward walk that stops at the first scan again (69-83), entries keyed by unique ID"
+   "operation": "getFeatureBounds: feature hull i per subordinate i, m/z bounds from its first and last outline points, MissingInformation for a subordinate without hulls (49-51), rt_min the first outline point with m/z > 0, rt_max by a backward walk that stops at the first scan again (69-83), a trace with rt_min > rt_max skipped (84-87; oracle edge_trace_inverted_bounds_skipped and _control), entries keyed by unique ID"
   },
   {
    "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
@@ -129,9 +129,9 @@
  "fixtures": [
   {
    "path": "tests/data/feature_overlap_filter/feature_overlap_filter_oracle.tsv",
-   "sha256": "dc039464bf668383726a30385030b851f08f5eda1167ccdab1e7980dd02f89c9",
-   "rows": 23514,
-   "kind": "oracle-generated (tier 1 executed differential) for the 72 cases the Debug library completes, and executed probe (tier 2, Release replica of the pinned source) for the 4 debug_only cases: 76 cases of ../oracle/feature-overlap-filter, compacted losslessly by make_fixture.py from results/fof_library.tsv (sha256 a31832b2470b75ad73f9b9ca9d41bd10ab48a7f6e5b22e86ff0cdc8744a785bd) and results/fof_replica.tsv (sha256 6c4867e36227e483ab89075f776df887b43ffce5c304d85337c231f302a76d92)"
+   "sha256": "f35490cda1c0f16b4201c251b4fd164828525b038954314bda78a8bd90baac4f",
+   "rows": 23532,
+   "kind": "oracle-generated (tier 1 executed differential) for the 74 cases the Debug library completes, and executed probe (tier 2, Release replica of the pinned source) for the 4 debug_only cases: 78 cases of ../oracle/feature-overlap-filter, compacted losslessly by make_fixture.py from results/fof_library.tsv (sha256 bc9c36ff1bba9aed3ad56b17feb61b631f46a94eb02efda0374c1ed838382fb8) and results/fof_replica.tsv (sha256 094a1d336aaa7b270c1094372c2459e7b985bf75ffc796f75d223845b2dcf9ec)"
   },
   {
    "path": "tests/data/feature_overlap_filter/quadtree_grid.tsv",
@@ -147,7 +147,7 @@
   }
  ],
  "evidence_tier": 1,
- "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; installed FeatureOverlapFilter.h equal to the pin; PROCESSING/FEATURE, KERNEL and DATASTRUCTURES unchanged between 4fdec46 and bc9cc12 per the C2 manifest) ran 76 cases in separate processes, twice, byte-identical. tests/feature_overlap_filter.rs replays each through the port and compares every callback invocation in order (16,916), every output feature bit for bit (position, intensity, quality, charge, unique ID, meta values, hulls, subordinate hulls) and the map-level fields; the six C++ exceptions are matched to the port's error classes with the map unchanged. Tier 2 (executed probes): the pinned bc9cc12 FeatureOverlapFilter.cpp and extern/Quadtree compiled with -DNDEBUG equal the library byte for byte on all 72 completed cases and give the Release result for three of the four cases the Debug library aborts on, which the port matches; the fourth (a hull-less feature in the hull mode) is refused natively. The pinned quadtree header replays bit for bit on the grid and NaN scenarios. The C2 facts (../oracle/featurefinder-picked/results/omp1/faims_facts.jsonl) are asserted as literals. Tier 3: the 14 FeatureOverlapFilter_test.cpp sections transcribed unchanged. Tier 4: atomicity after merges, callbacks and failures, refusals, and the equality of create_faims_merge_callback with merge_overlapping_features. Four deliberate mutations of the port (child query order, centroid box float rounding, extent float rounding, zero-extent hull boxes in the extent) were each caught by the replay and reverted.",
+ "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; installed FeatureOverlapFilter.h equal to the pin; PROCESSING/FEATURE, KERNEL and DATASTRUCTURES unchanged between 4fdec46 and bc9cc12 per the C2 manifest) ran 78 cases in separate processes, twice, byte-identical. tests/feature_overlap_filter.rs replays each through the port and compares every callback invocation in order (16,917), every output feature bit for bit (position, intensity, quality, charge, unique ID, meta values, hulls, subordinate hulls) and the map-level fields; the six C++ exceptions are matched to the port's error classes with the map unchanged. Tier 2 (executed probes): the pinned bc9cc12 FeatureOverlapFilter.cpp and extern/Quadtree compiled with -DNDEBUG equal the library byte for byte on all 74 completed cases and give the Release result for three of the four cases the Debug library aborts on, which the port matches; the fourth (a hull-less feature in the hull mode) is refused natively. The pinned quadtree header replays bit for bit on the grid and NaN scenarios. The C2 facts (../oracle/featurefinder-picked/results/omp1/faims_facts.jsonl) are asserted as literals. Tier 3: the 14 FeatureOverlapFilter_test.cpp sections transcribed unchanged. Tier 4: atomicity after merges (including a survivor that changed every journaled field several times), callbacks and failures, refusals, the equality of create_faims_merge_callback with merge_overlapping_features, and unit tests bounding the rollback journal to one entry per field per feature (2,000 co-located features merged into one; 500 crafted FAIMS features carrying merged_centroid_IMs). Six deliberate mutations of the port (child query order, centroid box float rounding, extent float rounding, zero-extent hull boxes in the extent, deleting the skip of a trace whose rt_min exceeds its rt_max, journaling every change instead of each field's first) were each caught by the tests and reverted.",
  "class_test_sections": {
   "FeatureOverlapFilter_test.cpp": {
    "sections": 14,
@@ -201,7 +201,7 @@
  "oracle": {
   "evidence_label": "oracle-generated (tier 1 executed differential)",
   "manifest": "../oracle/feature-overlap-filter/manifest.json",
-  "manifest_sha256": "47589ea1deed690fded5a07c09e6d0105309d526babab76daeb3e6992d11a241",
+  "manifest_sha256": "9c14db78bcb3d9f5d14e79cc3170e22b8da86726ef9bbc2a9b29589cca2958d0",
   "sdk_source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
   "sdk_build_type": "Debug",
   "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
@@ -254,7 +254,7 @@
   },
   {
    "path": "../oracle/feature-overlap-filter/cases.h",
-   "sha256": "9471a4f5cb0aae7f35c220b1e2e2560d4f99c36171be2ff34d7d679d60e4d0b6",
+   "sha256": "f403881e0a04229d01dec5e5c7eaf5bd56f1d12775e4c86e7fc1c898a155d449",
    "location": "outside this repository",
    "origin_key": "oracle"
   },
@@ -290,7 +290,7 @@
   },
   {
    "path": "../oracle/feature-overlap-filter/manifest.json",
-   "sha256": "47589ea1deed690fded5a07c09e6d0105309d526babab76daeb3e6992d11a241",
+   "sha256": "9c14db78bcb3d9f5d14e79cc3170e22b8da86726ef9bbc2a9b29589cca2958d0",
    "location": "outside this repository",
    "origin_key": "oracle"
   }

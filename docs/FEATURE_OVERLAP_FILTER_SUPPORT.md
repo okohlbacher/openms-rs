@@ -151,7 +151,13 @@ Each item is covered by the executed oracle unless marked otherwise.
   whose first scan has an m/z extent, stops at that first scan again. Traces
   therefore compare by their start (`edge_trace_bounds_collapse_trace` keeps two
   features whose traces overlap for 1.5 s; `edge_trace_bounds_collapse_hull`
-  merges them).
+  merges them). A trace whose computed start lies after its end is skipped
+  (`.cpp:84-87`): an outline without m/z above zero whose first scan is a single
+  point, or one whose first scan has m/z 0 at its lower edge, gives a start at
+  the second scan and an end at the first; such a trace takes no part in the
+  overlap test (`edge_trace_inverted_bounds_skipped` keeps a feature whose only
+  overlapping traces are of this kind, `edge_trace_inverted_bounds_control`
+  removes it when one of them is regular).
 - **Multi-hull features.** The hull box of a feature with several hulls is the
   box `DBoundingBox::enlarge` builds from every hull's corners
   (`edge_multi_hull_bounding_box`).
@@ -170,7 +176,11 @@ Each item is covered by the executed oracle unless marked otherwise.
    C++ map sorted), and `mergeFAIMSFeatures` has moved the features into its two
    temporary maps when its callback throws, so the C++ map is left holding
    features stripped of their metadata (`edge_faims_cv_empty`). The merge
-   functions keep a journal of what their callbacks changed and undo it; the
+   functions keep a journal of the values their callbacks overwrote and undo
+   it. The journal records each field of each feature once, with its value
+   before the call, so it holds at most six entries per feature however many
+   features a survivor absorbs (the source itself keeps only the current
+   merged lists); the
    generic filters copy the features first when a failure after a callback is
    possible (trace mode, `require_same_im`, more than
    `MAX_CANDIDATE_VISITS` possible candidates), and
@@ -180,10 +190,11 @@ Each item is covered by the executed oracle unless marked otherwise.
      `Error::MissingInformation`. The source converts the `±DBL_MAX` sentinel box
      to `float` (undefined before C++23); the Debug library aborts on the
      quadtree's containment assertion, and the Release replica silently ignores
-     the feature (`edge_hull_less_convex_hull`, `debug_only`);
+     the feature (`edge_hull_less_convex_hull`, `debug_only`). In the trace mode
+     this refusal also covers the empty feature hull a subordinate's m/z bounds
+     would be read from (the source reads `front()` of an empty vector);
    - trace mode: a subordinate without a matching feature hull (the source reads
-     past the hull vector) or with an empty feature hull (the source reads
-     `front()` of an empty vector) is `Error::InvalidValue`; a candidate pair of
+     past the hull vector) is `Error::InvalidValue`; a candidate pair of
      which one feature has no trace bounds is `Error::InvalidValue` when it is
      reached (the source dereferences `std::map::end()`);
    - a box or extent that does not fit `f32` is `Error::InvalidValue`;
@@ -224,7 +235,8 @@ Each item is covered by the executed oracle unless marked otherwise.
 
 ## Checked boundaries and evidence
 
-All in `tests/feature_overlap_filter.rs`, 31 tests.
+In `tests/feature_overlap_filter.rs` (33 tests) and the unit tests of
+`src/processing/feature_overlap_filter.rs` (3 tests).
 
 **Tier 3, class test.** The 14 START_SECTIONs of `FeatureOverlapFilter_test.cpp`,
 transcribed with their literals, comparisons and `TEST_REAL_SIMILAR` default
@@ -234,13 +246,13 @@ tolerance unchanged; see the accounting below.
 product-sdk libOpenMS (Debug, core `4fdec46`; the installed
 `FeatureOverlapFilter.h` equals the pin, and the traced `PROCESSING/FEATURE`,
 `KERNEL` and `DATASTRUCTURES` sources are unchanged between `4fdec46` and the pin
-per the C2 manifest). It runs 76 cases, each in its own process and twice, and
+per the C2 manifest). It runs 78 cases, each in its own process and twice, and
 records inputs, every callback invocation, exceptions and outputs with doubles
 and floats as their bits. `oracle_cases_replay_bit_for_bit` rebuilds every input
 through the port's model (the round trip of every input is checked first), runs
 the same call, and compares:
 
-- the callback sequence `(best, other, return)`, in order (16,916 invocations);
+- the callback sequence `(best, other, return)`, in order (16,917 invocations);
 - every output feature bit for bit: position, intensity, quality, charge,
   unique ID, every meta value, every hull and subordinate hull;
 - the map-level fields for the `mergeFAIMSFeatures` cases;
@@ -248,13 +260,13 @@ the same call, and compares:
   (`InvalidRange`, `MissingInformation`, `ConversionError` → `InvalidValue`) and
   an unchanged map.
 
-69 cases compare equal, six are errors matched to the C++ exception, and one is
+71 cases compare equal, six are errors matched to the C++ exception, and one is
 refused natively (`edge_hull_less_convex_hull`). The families: the 14 class-test
 sections as 16 cases, two sections calling twice (`class_*`); the three C2 facts
 (`c2_*`); 19 random-map cases of 240 or 700 features in all three modes with
 callbacks that keep everything, remove everything, remove by a rule, and move the
 survivor (`order_*`, which split the tree over several levels); 16 float-boundary
-cases (`bound_*`); and 22 edge cases (`edge_*`).
+cases (`bound_*`); and 24 edge cases (`edge_*`).
 
 `c2_*` tests also transcribe the C2 literals directly
 (`../oracle/featurefinder-picked/results/omp1/faims_facts.jsonl`, sha256
@@ -264,7 +276,7 @@ give 1900 and 1700.
 
 **Tier 2, executed probes.** The pinned `FeatureOverlapFilter.cpp` and
 `extern/Quadtree` headers compiled into a replica with `-DNDEBUG` agree byte for
-byte with the library on all 72 cases the library completes, which also
+byte with the library on all 74 cases the library completes, which also
 confirms that the library behaves as the pinned source; three of the four
 `debug_only` cases are compared with the replica, and the fourth is refused
 (native difference 2). The pinned quadtree header, driven directly with
@@ -279,12 +291,24 @@ centroid box from `rt - tol` in `f64` without the source's intermediate `float`;
 computing the extent without that intermediate `float`; and counting
 zero-extent hull boxes in the extent. The last two needed dedicated cases
 (`bound_extent_rounding_found`, found by a float32 simulation kept in the oracle's
-`tools/extent_search2.py`, and `edge_zero_extent_hull_many`).
+`tools/extent_search2.py`, and `edge_zero_extent_hull_many`). Two later
+mutations were caught the same way: deleting the skip of a trace whose start
+lies after its end fails the replay of `edge_trace_inverted_bounds_skipped`
+(it had survived before that case existed), and journaling every change instead
+of each field's first fails the three journal unit tests.
 
 **Tier 4, native contracts.** Atomicity after a merge has happened
 (`faims_merge_error_after_a_merge_restores_the_map`), after a callback has run in
 trace mode (`trace_mode_candidate_without_bounds_restores_the_map_after_a_callback`),
-after a fallible callback fails, and on `f32` overflow; each refusal of
+after a fallible callback fails, on `f32` overflow, and after a survivor has
+changed every journaled field several times
+(`merge_error_after_repeated_changes_of_the_same_fields_restores_the_map`); a
+journal of at most one entry per field per feature, with 2,000 co-located
+features merged into one and, on crafted input, 500 FAIMS features that all
+carry `merged_centroid_IMs` (unit tests
+`merge_journal_records_each_field_once_however_many_merges`,
+`faims_journal_records_each_field_once_on_crafted_input`,
+`journal_rollback_restores_the_values_before_the_run`); each refusal of
 difference 2 and 3 with the map unchanged; `merge_faims_features` leaving a map
 without FAIMS features untouched even when its features are invalid;
 `create_faims_merge_callback` through `filter_with_fallible_callback` equal to

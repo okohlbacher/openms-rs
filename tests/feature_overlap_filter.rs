@@ -8,7 +8,7 @@
 //!   `bc9cc12`, transcribed with their literals and checks unchanged.
 //! - Tier 1: the C2 FAIMS facts (`../oracle/featurefinder-picked`,
 //!   `faims_facts.jsonl`) and the B9 oracle (`../oracle/feature-overlap-filter`):
-//!   76 cases executed against the product-sdk libOpenMS, replayed here and
+//!   78 cases executed against the product-sdk libOpenMS, replayed here and
 //!   compared bit for bit, including every callback invocation in order. The
 //!   four cases the Debug library aborts on are compared with the Release
 //!   replica of the pinned source (tier 2), and so are the quadtree probes.
@@ -489,7 +489,11 @@ fn unhex(text: &str) -> String {
 }
 
 fn hex(text: &str) -> String {
-    text.bytes().map(|b| format!("{b:02x}")).collect()
+    use std::fmt::Write;
+    text.bytes().fold(String::new(), |mut out, b| {
+        let _ = write!(out, "{b:02x}");
+        out
+    })
 }
 
 fn fields(text: &str) -> BTreeMap<&str, &str> {
@@ -830,7 +834,7 @@ fn run_oracle_op(
 #[test]
 fn oracle_cases_replay_bit_for_bit() {
     let cases = oracle_cases();
-    assert_eq!(cases.len(), 76);
+    assert_eq!(cases.len(), 78);
     let mut compared = 0;
     let mut refused = 0;
     for case in &cases {
@@ -899,20 +903,67 @@ fn oracle_cases_replay_bit_for_bit() {
             }
         }
     }
-    assert_eq!((compared, refused), (69, 7));
+    assert_eq!((compared, refused), (71, 7));
 }
 
 #[test]
 fn oracle_callback_counts_cover_the_quadtree_order() {
     let cases = oracle_cases();
     let callbacks: usize = cases.iter().map(|c| c.callbacks.len()).sum();
-    assert_eq!(callbacks, 16916);
+    assert_eq!(callbacks, 16917);
     let deep = cases
         .iter()
         .find(|c| c.name == "order_centroid_loose_rule0")
         .unwrap();
     assert_eq!(deep.inputs.len(), 240);
     assert!(deep.callbacks.len() > 1000);
+}
+
+#[test]
+fn oracle_trace_with_rt_min_after_rt_max_is_skipped() {
+    // getFeatureBounds skips a trace whose rt_min exceeds its rt_max
+    // (FeatureOverlapFilter.cpp:84-87). In the first case the second feature's
+    // only traces that would overlap the first feature's are such traces, so it is
+    // kept without a callback; the control has a regular trace there and is
+    // removed. Both are replayed bit for bit by oracle_cases_replay_bit_for_bit.
+    let cases = oracle_cases();
+    let skipped = cases
+        .iter()
+        .find(|c| c.name == "edge_trace_inverted_bounds_skipped")
+        .unwrap();
+    assert_eq!(skipped.source, "library");
+    assert!(skipped.callbacks.is_empty());
+    assert_eq!(skipped.size, Some(2));
+    let control = cases
+        .iter()
+        .find(|c| c.name == "edge_trace_inverted_bounds_control")
+        .unwrap();
+    assert_eq!(control.source, "library");
+    assert_eq!(control.callbacks, vec![(0, 1, true)]);
+    assert_eq!(control.size, Some(1));
+
+    // The first feature's trace hull ends at its last scan: [9.5, 12].
+    let inputs: Vec<Feature> = skipped.inputs.iter().map(|f| parse_feature(f)).collect();
+    let outline = inputs[0].subordinates[0].convex_hulls[0].hull_points();
+    assert_eq!(outline.first().map(|p| p.rt), Some(9.5));
+    assert_eq!(outline.last().map(|p| (p.rt, p.mz)), Some((12.0, 501.0)));
+    // The skipped traces: no m/z above zero (rt_min 11 from the last point,
+    // rt_max 10 from the first), and m/z 0 at the first scan's lower edge.
+    let traces = &inputs[1].subordinates;
+    let zero = traces[0].convex_hulls[0].hull_points();
+    assert!(zero.iter().all(|p| p.mz <= 0.0));
+    assert_eq!((zero[0].rt, zero[zero.len() - 1].rt), (10.0, 11.0));
+    let lower_zero = traces[1].convex_hulls[0].hull_points();
+    assert_eq!((lower_zero[0].rt, lower_zero[0].mz), (10.0, 0.0));
+
+    for case in [skipped, control] {
+        let mut map =
+            FeatureMap::from_features(case.inputs.iter().map(|f| parse_feature(f)).collect());
+        let mut log = Vec::new();
+        run_oracle_op(&case.op, &mut map, &mut log).unwrap();
+        assert_eq!(log, case.callbacks, "{}", case.name);
+        assert_eq!(Some(map.len()), case.size, "{}", case.name);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1101,6 +1152,42 @@ fn faims_merge_error_after_a_merge_restores_the_map() {
     let result = FeatureOverlapFilter::merge_faims_features(&mut fmap, 5.0, 0.05);
     assert!(matches!(result, Err(Error::InvalidValue(_))), "{result:?}");
     assert_eq!(fmap, before);
+}
+
+#[test]
+fn merge_error_after_repeated_changes_of_the_same_fields_restores_the_map() {
+    // The survivor absorbs three features, changing its intensity, both centroid
+    // lists, FAIMS_CV, merged_centroid_IMs and FAIMS_merge_count, before the
+    // fourth sum leaves the f32 range. The journal keeps only each field's value
+    // before the run, and that is what the map returns to.
+    let mut generator = UniqueIdGenerator::from_seed(18);
+    let mut features: Vec<Feature> = (0..6)
+        .map(|k| create_test_feature(100.0 + 0.1 * f64::from(k), 500.0, 0.0, 2))
+        .collect();
+    for f in &mut features {
+        f.intensity = f32::MAX / 4.0;
+    }
+    set_cv(&mut features[0], -45.0);
+    features[0].metadata.insert(
+        MERGED_CENTROID_RTS.into(),
+        MetaValue::try_from(vec![7.0]).unwrap(),
+    );
+    let mut fmap = map_of(features, &mut generator);
+    let before = fmap.clone();
+    let result = FeatureOverlapFilter::merge_overlapping_features(
+        &mut fmap,
+        5.0,
+        0.05,
+        true,
+        false,
+        MergeIntensityMode::Sum,
+        true,
+    );
+    assert!(matches!(result, Err(Error::InvalidValue(_))), "{result:?}");
+    assert_eq!(fmap, before);
+    for (after, original) in fmap.features.iter().zip(&before.features) {
+        assert_eq!(after.intensity.to_bits(), original.intensity.to_bits());
+    }
 }
 
 #[test]

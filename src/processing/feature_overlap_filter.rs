@@ -60,13 +60,13 @@
 //!   features out of the map when its merge throws, which strips their
 //!   metadata.
 //! - **Undefined source behaviour is refused.** A feature without a convex hull
-//!   in the hull modes (the source converts its `±DBL_MAX` sentinel box to
-//!   `float` and trips a Debug assertion), a subordinate without a matching
-//!   feature hull, an empty mass-trace hull, a trace-level candidate without
-//!   trace bounds (the source dereferences a missing map entry), a box or
-//!   extent that does not fit `f32`, and a `FAIMS_CV` or merged-centroid list of
-//!   the wrong type (the source throws or reads a union member of another type)
-//!   all return errors.
+//!   or with an empty one in the hull modes (the source converts its `±DBL_MAX`
+//!   sentinel box to `float` and trips a Debug assertion, and in the trace mode
+//!   reads the first point of an empty hull), a subordinate without a matching
+//!   feature hull, a trace-level candidate without trace bounds (the source
+//!   dereferences a missing map entry), a box or extent that does not fit
+//!   `f32`, and a `FAIMS_CV` or merged-centroid list of the wrong type (the
+//!   source throws or reads a union member of another type) all return errors.
 //! - **Validated input.** Features must pass `Feature::validate`, nonzero unique
 //!   IDs must be distinct (a `FeatureMap` invariant), and tolerances must be
 //!   finite and nonnegative.
@@ -330,17 +330,18 @@ impl FeatureOverlapFilter {
     /// - [`Error::InvalidRange`] for an empty map (the source's `getMinMZ`
     ///   throws `InvalidRange`);
     /// - [`Error::MissingInformation`] in the hull modes for a feature without a
-    ///   convex hull or with an empty one, and in the trace mode for a
-    ///   subordinate without convex hulls (the source throws
-    ///   `MissingInformation`, after sorting);
+    ///   convex hull or with an empty one, which in the trace mode includes the
+    ///   hull a subordinate's m/z bounds are read from (the source reads the
+    ///   first point of an empty hull), and in the trace mode for a subordinate
+    ///   without convex hulls (the source throws `MissingInformation`, after
+    ///   sorting);
     /// - [`Error::InvalidValue`] for more than [`Self::MAX_FEATURES`] features,
     ///   a feature that fails [`Feature::validate`], a repeated nonzero unique
     ///   ID, a tolerance that is not finite and nonnegative, a box or quadtree
     ///   extent that does not fit `f32`, a trace-mode feature with more
-    ///   subordinates than hulls or with an empty hull for a subordinate, a
-    ///   trace-mode candidate without trace bounds, a non-numeric `FAIMS_CV`
-    ///   read by the `require_same_im` check, or more than
-    ///   [`Self::MAX_CANDIDATE_VISITS`] candidates.
+    ///   subordinates than hulls, a trace-mode candidate without trace bounds,
+    ///   a non-numeric `FAIMS_CV` read by the `require_same_im` check, or more
+    ///   than [`Self::MAX_CANDIDATE_VISITS`] candidates.
     pub fn filter_with_mode<L, O>(
         feature_map: &mut FeatureMap,
         mut comparator: L,
@@ -456,11 +457,7 @@ impl FeatureOverlapFilter {
             &mut higher_intensity,
             FeatureOverlapMode::CentroidBased,
             &tolerances,
-            &mut |features: &mut [Feature], best, other, journal: &mut Journal| {
-                let plan = callback.plan(&features[best], &features[other])?;
-                plan.apply(&mut features[best], Some(journal), best)?;
-                Ok(true)
-            },
+            &mut journaled_merge(callback),
             Rollback::Journal,
         )
     }
@@ -549,6 +546,18 @@ fn higher_intensity(left: &Feature, right: &Feature) -> bool {
     left.intensity > right.intensity
 }
 
+/// The callback of `mergeOverlappingFeatures`: `callback` applied through the
+/// journal.
+fn journaled_merge(
+    callback: FaimsMergeCallback,
+) -> impl FnMut(&mut [Feature], usize, usize, &mut Journal) -> Result<bool> {
+    move |features: &mut [Feature], best: usize, other: usize, journal: &mut Journal| {
+        let plan = callback.plan(&features[best], &features[other])?;
+        plan.apply(&mut features[best], Some(journal), best)?;
+        Ok(true)
+    }
+}
+
 /// The callback of `mergeFAIMSFeatures` (FeatureOverlapFilter.cpp:430-499).
 fn merge_different_voltages(
     features: &mut [Feature],
@@ -614,49 +623,34 @@ impl MergePlan {
             }
             None => None,
         };
-        let mut set = |key: &'static str, value: MetaValue, best: &mut Feature| {
-            let old = best.metadata.insert(key.to_owned(), value);
+        // Only the value a slot held before the run is journaled: a later change
+        // of the same slot drops the superseded value, as the source does, so the
+        // journal stays linear in the number of features.
+        let mut set = |slot: MetaSlot, value: Option<MetaValue>, best: &mut Feature| {
+            let key = slot.key();
+            let old = match value {
+                Some(value) => best.metadata.insert(key.to_owned(), value),
+                None => best.metadata.remove(key),
+            };
             if let Some(journal) = journal.as_deref_mut() {
-                journal.entries.push(Undo::Meta { index, key, old });
+                journal.record_meta(index, slot, old);
             }
         };
         if let Some(rts) = rts {
-            set(MERGED_CENTROID_RTS, rts, best);
+            set(MetaSlot::MergedRts, Some(rts), best);
         }
         if let Some(mzs) = mzs {
-            set(MERGED_CENTROID_MZS, mzs, best);
+            set(MetaSlot::MergedMzs, Some(mzs), best);
         }
         if self.remove_cv {
-            let old = best.metadata.remove(FAIMS_CV);
-            if let Some(journal) = journal.as_deref_mut() {
-                journal.entries.push(Undo::Meta {
-                    index,
-                    key: FAIMS_CV,
-                    old,
-                });
-            }
+            set(MetaSlot::FaimsCv, None, best);
         }
         if let Some((ims, count)) = ims {
-            let old = best.metadata.insert(MERGED_CENTROID_IMS.to_owned(), ims);
-            let old_count = best.metadata.insert(FAIMS_MERGE_COUNT.to_owned(), count);
-            if let Some(journal) = journal.as_deref_mut() {
-                journal.entries.push(Undo::Meta {
-                    index,
-                    key: MERGED_CENTROID_IMS,
-                    old,
-                });
-                journal.entries.push(Undo::Meta {
-                    index,
-                    key: FAIMS_MERGE_COUNT,
-                    old: old_count,
-                });
-            }
+            set(MetaSlot::MergedIms, Some(ims), best);
+            set(MetaSlot::MergeCount, Some(count), best);
         }
         if let Some(journal) = journal {
-            journal.entries.push(Undo::Intensity {
-                index,
-                old: best.intensity,
-            });
+            journal.record_intensity(index, best.intensity);
         }
         best.intensity = self.intensity;
         Ok(())
@@ -763,6 +757,37 @@ enum Rollback {
     Snapshot,
 }
 
+/// A meta value that the built-in merge callbacks change.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum MetaSlot {
+    MergedRts,
+    MergedMzs,
+    FaimsCv,
+    MergedIms,
+    MergeCount,
+}
+
+impl MetaSlot {
+    /// The slot's meta value key.
+    fn key(self) -> &'static str {
+        match self {
+            MetaSlot::MergedRts => MERGED_CENTROID_RTS,
+            MetaSlot::MergedMzs => MERGED_CENTROID_MZS,
+            MetaSlot::FaimsCv => FAIMS_CV,
+            MetaSlot::MergedIms => MERGED_CENTROID_IMS,
+            MetaSlot::MergeCount => FAIMS_MERGE_COUNT,
+        }
+    }
+
+    /// The slot's bit in [`Journal::touched`].
+    fn bit(self) -> u8 {
+        1 << (self as u8)
+    }
+}
+
+/// The bit of the intensity in [`Journal::touched`], after the [`MetaSlot`]s.
+const INTENSITY_BIT: u8 = 1 << 5;
+
 enum Undo {
     Intensity {
         index: usize,
@@ -770,18 +795,55 @@ enum Undo {
     },
     Meta {
         index: usize,
-        key: &'static str,
+        slot: MetaSlot,
         old: Option<MetaValue>,
     },
 }
 
-/// The changes the built-in merge callbacks made, for an exact rollback.
+/// The values the built-in merge callbacks overwrote, for an exact rollback.
+///
+/// Each field of each feature is recorded once, with the value it held before
+/// the run, so the journal holds at most six entries per feature however many
+/// merges a survivor absorbs. Undoing the entries in reverse restores the
+/// features exactly.
 #[derive(Default)]
 struct Journal {
+    /// The first change of each field, in the order the changes happened.
     entries: Vec<Undo>,
+    /// Per feature index, one bit per [`MetaSlot`] and [`INTENSITY_BIT`] for
+    /// the fields already recorded.
+    touched: Vec<u8>,
 }
 
 impl Journal {
+    /// Whether the field `bit` of the feature at `index` changes for the first
+    /// time in this run; marks it changed.
+    fn first_change(&mut self, index: usize, bit: u8) -> bool {
+        if self.touched.len() <= index {
+            self.touched.resize(index + 1, 0);
+        }
+        let first = self.touched[index] & bit == 0;
+        self.touched[index] |= bit;
+        first
+    }
+
+    /// Records `old`, the value `slot` of the feature at `index` held before this
+    /// change, if it is the slot's first change.
+    fn record_meta(&mut self, index: usize, slot: MetaSlot, old: Option<MetaValue>) {
+        if self.first_change(index, slot.bit()) {
+            self.entries.push(Undo::Meta { index, slot, old });
+        }
+    }
+
+    /// Records `old`, the intensity of the feature at `index` before this
+    /// change, if it is the intensity's first change.
+    fn record_intensity(&mut self, index: usize, old: f32) {
+        if self.first_change(index, INTENSITY_BIT) {
+            self.entries.push(Undo::Intensity { index, old });
+        }
+    }
+
+    /// Undoes the recorded changes in reverse order.
     fn rollback(self, features: &mut [Feature]) {
         for entry in self.entries.into_iter().rev() {
             match entry {
@@ -790,14 +852,14 @@ impl Journal {
                         feature.intensity = old;
                     }
                 }
-                Undo::Meta { index, key, old } => {
+                Undo::Meta { index, slot, old } => {
                     if let Some(feature) = features.get_mut(index) {
                         match old {
                             Some(value) => {
-                                feature.metadata.insert(key.to_owned(), value);
+                                feature.metadata.insert(slot.key().to_owned(), value);
                             }
                             None => {
-                                feature.metadata.remove(key);
+                                feature.metadata.remove(slot.key());
                             }
                         }
                     }
@@ -1238,8 +1300,10 @@ fn trace_bounds(features: &[Feature]) -> Result<BTreeMap<u64, Vec<TraceBounds>>>
                 ))
             })?;
             let points = hull.hull_points();
+            // Defensive: `Plan::new` has already refused empty feature hulls in
+            // the hull modes, so a non-empty hull always has outline points.
             let (Some(first), Some(last)) = (points.first(), points.last()) else {
-                return Err(Error::InvalidValue(format!(
+                return Err(Error::MissingInformation(format!(
                     "convex hull {index} of the feature with unique ID {} is empty (the source reads its first point)",
                     feature.unique_id
                 )));
@@ -1283,4 +1347,107 @@ fn trace_bounds(features: &[Feature]) -> Result<BTreeMap<u64, Vec<TraceBounds>>>
         }
     }
     Ok(bounds)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `n` features at one position and charge with distinct unique IDs, so the
+    /// first absorbs every other one.
+    fn co_located(n: u64) -> Vec<Feature> {
+        (0..n)
+            .map(|k| {
+                let mut feature = Feature::new(100.0, 500.0, 1.0);
+                feature.charge = 2;
+                feature.unique_id = k + 1;
+                feature
+            })
+            .collect()
+    }
+
+    /// Runs the centroid-mode overlap loop as `run` does, without sorting, and
+    /// returns the number of removed IDs and the journal.
+    fn journal_of<O>(features: &mut [Feature], on_overlap: &mut O) -> (usize, Journal)
+    where
+        O: FnMut(&mut [Feature], usize, usize, &mut Journal) -> Result<bool>,
+    {
+        let tolerances = CentroidTolerances::default();
+        let plan = Plan::new(features, FeatureOverlapMode::CentroidBased, &tolerances).unwrap();
+        let mut journal = Journal::default();
+        let removed = overlap_loop(features, &plan, on_overlap, &mut journal).unwrap();
+        (removed.len(), journal)
+    }
+
+    #[test]
+    fn merge_journal_records_each_field_once_however_many_merges() {
+        let n = 2000;
+        let mut features = co_located(n);
+        let callback = FaimsMergeCallback::new(MergeIntensityMode::Sum, true);
+        let (removed, journal) = journal_of(&mut features, &mut journaled_merge(callback));
+        assert_eq!(removed as u64, n - 1);
+        assert_eq!(features[0].intensity, n as f32);
+        assert_eq!(
+            features[0].metadata[MERGED_CENTROID_RTS]
+                .as_float_list()
+                .unwrap()
+                .len() as u64,
+            n
+        );
+        // merged_centroid_rts, merged_centroid_mzs and the intensity of the one
+        // survivor, not three entries per merge.
+        assert_eq!(journal.entries.len(), 3);
+    }
+
+    #[test]
+    fn faims_journal_records_each_field_once_on_crafted_input() {
+        // Every feature carries FAIMS_CV and a merged_centroid_IMs list, so the
+        // survivor keeps its FAIMS_CV and absorbs every other voltage.
+        let n = 500;
+        let mut features = co_located(n);
+        for (k, feature) in features.iter_mut().enumerate() {
+            feature
+                .metadata
+                .insert(FAIMS_CV.to_owned(), MetaValue::from(k as i64));
+            feature.metadata.insert(
+                MERGED_CENTROID_IMS.to_owned(),
+                MetaValue::try_from(vec![k as f64]).unwrap(),
+            );
+        }
+        let (removed, journal) = journal_of(&mut features, &mut merge_different_voltages);
+        assert_eq!(removed as u64, n - 1);
+        assert_eq!(
+            features[0].metadata[MERGED_CENTROID_IMS]
+                .as_float_list()
+                .unwrap()
+                .len() as u64,
+            n
+        );
+        // The two centroid lists, merged_centroid_IMs, FAIMS_merge_count and the
+        // intensity.
+        assert_eq!(journal.entries.len(), 5);
+    }
+
+    #[test]
+    fn journal_rollback_restores_the_values_before_the_run() {
+        let mut features = co_located(40);
+        features[0].metadata.insert(
+            MERGED_CENTROID_RTS.to_owned(),
+            MetaValue::try_from(vec![7.0]).unwrap(),
+        );
+        features[0]
+            .metadata
+            .insert(FAIMS_CV.to_owned(), MetaValue::try_from(-45.0).unwrap());
+        let before = features.clone();
+        let callback = FaimsMergeCallback::new(MergeIntensityMode::Sum, true);
+        let (removed, journal) = journal_of(&mut features, &mut journaled_merge(callback));
+        assert_eq!(removed, 39);
+        assert_ne!(features, before);
+        // Every field once: both centroid lists, FAIMS_CV (removed by the first
+        // merge), merged_centroid_IMs and FAIMS_merge_count (written by every
+        // merge) and the intensity.
+        assert_eq!(journal.entries.len(), 6);
+        journal.rollback(&mut features);
+        assert_eq!(features, before);
+    }
 }
