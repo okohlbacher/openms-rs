@@ -151,7 +151,24 @@ of `File::TempDir`, `TempDir::new_in(std::env::temp_dir(), false)`, as
 
 ### Integration gates
 
-pending the kim run
+Run on kim (x86_64 Linux) at `ade680f`, the integrated tree without the
+Boost.Regex facade, sequentially in one slot through
+`~/.local/bin/openms-kim-gate.sh`:
+
+| Gate | Result |
+|---|---|
+| `test --locked --all-features --all-targets --no-fail-fast` (1.96.0) | 327 binaries, 4675 passed, 0 failed, 1 ignored (the 256 MiB log-buffer case) |
+| `+1.85.0 test --locked --all-features --all-targets --no-fail-fast` | 327 binaries, 4675 passed, 0 failed, 1 ignored |
+| `+1.85.0 test --locked --no-default-features --all-targets --no-fail-fast` | 322 binaries, 3249 passed, 0 failed, 1 ignored |
+| `test --locked --all-features --doc` | 65 passed, 0 failed |
+| `clippy --locked --all-features --all-targets -- -D warnings` | exit 0, no warnings |
+| `RUSTDOCFLAGS='-D warnings' doc --locked --all-features --no-deps` | exit 0, no warnings |
+
+Local: `cargo fmt --all -- --check` and every `tools/*.py` checker in check
+mode exit 0. The counts are summed over every `N passed` in the logs; cargo's
+interleaved output hides one `test result:` line from a line-anchored count on
+the stable log, which is why a naive count reads 4666 there. The per-test name
+lists of the two toolchains agree.
 
 ## SQLite S1 resume checkpoint (2026-09-13, final snapshot)
 
