@@ -1,0 +1,837 @@
+{
+ "group": "file_info",
+ "package": "A4-FILEINFO-CORE (early TOPP bundle, wave 2)",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "oracle_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+ "rust_base_revision": "42c21e74b440a307fba697def730c7ad60ef6f68",
+ "license": "BSD-3-Clause",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FileInfo.h",
+   "sha256": "43e35cc67dcd798a349ded37fbb8240087c9748c0c65df5debe797f92097bbc9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileInfo.cpp",
+   "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FileInfo_test.cpp",
+   "sha256": "3b13767604112794637aa877408161db344e84f487f6b92bf0e5ab669a964a23"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/AccurateMassSearchEngine_input1.featureXML",
+   "sha256": "d35dea71dff8e77add3808cc5c2409ffe1b22df61b05c49ac02c4f1a5fa5e067"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML",
+   "sha256": "01fdbc15e97c6ff2fb565fc5beea8e8e6d01474a2333da79b72f2440345ae6d3"
+  }
+ ],
+ "context_sources": [
+  {
+   "path": "FORMAT/FileHandler.cpp",
+   "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e",
+   "operation": "loadExperiment (849-1052): getType, the allowed-type ParseError, the per-type loaders, imzML InvalidFileType, the default ParseError and the mzML SRM conversion; loadFeatures with getFeatOptions"
+  },
+  {
+   "path": "KERNEL/FeatureMap.cpp",
+   "sha256": "210ebf2fbe17259af5034b78855d0f57e16becf525aae370217a044f0c926a27",
+   "operation": "updateRanges (260-290): positions and intensities, then hull bounding boxes"
+  },
+  {
+   "path": "KERNEL/RangeManager.h",
+   "sha256": "058f426a2e0be8c007c844c985ba73e0d6cd1747fd82c287ae459733b5c3fe2d",
+   "operation": "RangeBase::extend keeps the first of equal endpoints; isEmpty is min > max"
+  },
+  {
+   "path": "MATH/StatisticFunctions.h",
+   "sha256": "61c80a040673e0bca53086d2947b5bcd100c046c6024c8c99f5da6237b98ec7d",
+   "operation": "SummaryStatistics (933-963): sort, mean, variance n-1 or 0, quartiles, zeros when empty"
+  },
+  {
+   "path": "KERNEL/MSSpectrum.cpp",
+   "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+   "operation": "getType(bool) (142-165): stored type, peak-picking processing, optional estimate"
+  }
+ ],
+ "context_sources_note": "Read for context and not ported by this group; each is already ported or owned elsewhere. The paths are spelled below the core checkout's include or source directory at source_revision, where the sha256 was checked, so tools/core_sdk_coverage.py does not count them as evidence for those headers.",
+ "package_revisions": {
+  "cli": "c19e494",
+  "topp": "174b576",
+  "test-data": "0cb15f2"
+ },
+ "upstream_test_definition": {
+  "path": "topp/CMakeLists.txt",
+  "revision": "test-data 0cb15f2",
+  "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+  "registrations": [
+   {
+    "name": "TOPP_FileInfo_1",
+    "lines": "881-883"
+   },
+   {
+    "name": "TOPP_FileInfo_2",
+    "lines": "884-886"
+   },
+   {
+    "name": "TOPP_FileInfo_3",
+    "lines": "887-889"
+   },
+   {
+    "name": "TOPP_FileInfo_9",
+    "lines": "902-904"
+   }
+  ],
+  "comparison": "FuzzyDiff with the pinned FuzzyDiff.ini (ratio 1.01, absdiff 0.01) and -whitelist \"File name\", through tests/support/fuzzy_string_comparator.rs"
+ },
+ "method": "Library-level: FileInfo::run on each input with the registered or oracle flags; text and TSV compared byte for byte with the oracle files after replacing the 'File name: ' text line and the 'general: file name' TSV line, which embed the path; retained outputs compared with FuzzyDiff as registered.",
+ "evidence_tier": 1,
+ "evidence": "Tier 1 (executed differential): the product-SDK FileInfo tool (Debug, core 4fdec46; installed FileInfo.h and FileHandler.h equal to the pin; the C1 manifest records no output-relevant change on the traced call path) wrote the text and TSV reports of 31 runs: 7 from C1 (../oracle/topp-early-bundle run1: FileInfo_1/2/3/9 with -out_tsv, empty featureXML, empty mzML, retained FeatureFinderCentroided_1 output) and 24 from this package (../oracle/file-info-core, two runs reproduced byte for byte). All 31 text and 31 TSV reports equal the Rust reports except where a known mzML reader gap outside this package refuses the input (FileInfo_9, empty.mzML, FileInfo_12) or loads it differently (MzMLFile_1, selected-ion drift time); those 5 tests are ignored with the reason and guarded by a tripwire, and three derived inputs whose C++ reports equal the originals apart from the file name are compared instead. Tier 1 (retained upstream output): TOPP_FileInfo_1, _2, _3 and _9 pass FuzzyDiff as registered (FileInfo_9 on the derived input). Tier 3: seven of the nine FileInfo_test.cpp sections transcribed; consensusXML and FASTA pending for A7 with the explicit refusal asserted. Tier 4: refusals, error classes, defaults, structured-result consistency. None of the reports holds a default-stream tie of the Apple libc class, and no case exits non-zero, so no Debug-only precondition is involved.",
+ "native_implementation": [
+  "src/format/file_info/model.rs",
+  "src/format/file_info/report.rs",
+  "src/format/file_info/peaks.rs",
+  "src/format/file_info/features.rs"
+ ],
+ "native_tests": [
+  "tests/file_info.rs"
+ ],
+ "support_document": "docs/FILE_INFO_SUPPORT.md",
+ "related_manifests": [
+  "tests/data/file_info_text_format_provenance.json"
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/file_info/inputs/AccurateMassSearchEngine_input1.featureXML",
+   "sha256": "d35dea71dff8e77add3808cc5c2409ffe1b22df61b05c49ac02c4f1a5fa5e067",
+   "bytes": 103252,
+   "kind": "pinned class-test input, byte-identical to src/tests/class_tests/openms/data/AccurateMassSearchEngine_input1.featureXML at bc9cc12"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_12_input.mzML",
+   "sha256": "de00ddf0e0b8aad2554876035e0f82255aea0b14a002418c6194ca7a25926863",
+   "bytes": 48051,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_12_input.mzML (TOPP_FileInfo_12)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_1_input.dta",
+   "sha256": "2df7f660cb7c7a0b5b2946c9b97aa621434c20152f4d1854a869df018bf8943f",
+   "bytes": 855,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_1_input.dta (TOPP_FileInfo_1)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_2_input.dta2d",
+   "sha256": "61092f9feddee5d9ae497720a35b2cda37d8415a7882b418e74017f43ef75517",
+   "bytes": 108,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_2_input.dta2d (TOPP_FileInfo_2)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_3_input.featureXML",
+   "sha256": "28398a29ab159370a2356a32fcc115ea54a46f9331112a41c2e47c0dc18ce131",
+   "bytes": 25172,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_3_input.featureXML (TOPP_FileInfo_3)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_9_input.mzML",
+   "sha256": "e14e087cd100f551dbf505cbd442ab8074c0266ce2c97ebe606408940cd3afa4",
+   "bytes": 22523,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FileInfo_9_input.mzML (TOPP_FileInfo_9)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/FileInfo_9_strict_reader.mzML",
+   "sha256": "244af706a4f1ddd3e42ec617df3fed920ec8ad94af5b99ad0d689b16ff6e42bf",
+   "bytes": 22101,
+   "kind": "derived input of this package's oracle (../oracle/file-info-core/inputs/FileInfo_9_strict_reader.mzML); rule: the attribute ' dataProcessingRef=\"XcaliburProcessing\"' removed from the six m/z and intensity binaryDataArray start tags (lines 181, 187, 238, 244, 298, 304; the Rust reader refuses processing on primary arrays, which C++ accepts), then lines 160, 207 and 277 deleted: the second spectrum-level userParam 'name' (values scan1, scan2, scan3), which C++ MetaInfo overwrites and the Rust reader refuses as a duplicate; first, the uncompressed 64-bit float 'charge array' starting on line 258 re-encoded as 32-bit integers with the same values (the Rust reader refuses a charge array stored as float)",
+   "derived_from_sha256": "e14e087cd100f551dbf505cbd442ab8074c0266ce2c97ebe606408940cd3afa4",
+   "evidence_label": "derived input (rule recorded); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/MzMLFile_1_no_selected_ion_drift.mzML",
+   "sha256": "baebef3bec94e1b028534649daf294e75168d9f82dd60dd7489fd15d8eeae4d1",
+   "bytes": 37018,
+   "kind": "derived input of this package's oracle (../oracle/file-info-core/inputs/MzMLFile_1_no_selected_ion_drift.mzML); rule: line 326 deleted: the selected-ion 'ion mobility drift time' 8.1, which C++ copies onto the MS2 spectrum (MzMLHandler.cpp:1871-1875) and the Rust mzML reader does not",
+   "derived_from_sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+   "evidence_label": "derived input (rule recorded); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/MzMLFile_2_minimal.mzML",
+   "sha256": "01fdbc15e97c6ff2fb565fc5beea8e8e6d01474a2333da79b72f2440345ae6d3",
+   "bytes": 1055,
+   "kind": "pinned class-test input, byte-identical to src/tests/class_tests/openms/data/MzMLFile_2_minimal.mzML at bc9cc12"
+  },
+  {
+   "path": "tests/data/file_info/inputs/empty.featureXML",
+   "sha256": "17c24db71fe0f27744055ffea3ff8f6d295b9d700a4dc4c916a0dbabc4682866",
+   "bytes": 282,
+   "kind": "derived input of the C1 oracle (../oracle/topp-early-bundle/cases/derived/empty.featureXML, rule recorded in its derived.json: hand-authored featureXML 1.9 map with an empty featureList)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/empty.mzML",
+   "sha256": "dedf5a3840ea1d7710ab34ddc43259d85eb6723d6c5377c896b87426dcfcde44",
+   "bytes": 8699,
+   "kind": "derived input of the C1 oracle (../oracle/topp-early-bundle/cases/derived/empty.mzML, rule recorded in its derived.json: FileInfo_9_input.mzML with an empty spectrumList)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/empty_resolved_ref.mzML",
+   "sha256": "3a233be05ff85eb33339c7c2562bffcc6ba26184b6d81d1493f0f08a7dea4687",
+   "bytes": 8706,
+   "kind": "derived input of this package's oracle (../oracle/file-info-core/inputs/empty_resolved_ref.mzML); rule: C1's cases/derived/empty.mzML with the dangling spectrumList defaultDataProcessingRef 'dp_sp_0' replaced by the declared 'pwizconversion'",
+   "derived_from_sha256": "dedf5a3840ea1d7710ab34ddc43259d85eb6723d6c5377c896b87426dcfcde44",
+   "evidence_label": "derived input (rule recorded); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_1_tsv.tsv",
+   "sha256": "35e824b8dccee19f3023ae64948656a20d558aa51c970d84ffe3c038abbd0ab5",
+   "bytes": 1560,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_1_tsv/cwd/FileInfo_1.tmp.tsv (FileInfo -test -in FileInfo_1_input.dta -in_type dta -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_1_tsv.txt",
+   "sha256": "fd0dedf62dd84d37872ee93261632f03a71f9ab1d696712f5ce087c05c3823ad",
+   "bytes": 1109,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_1_tsv/cwd/FileInfo_1.tmp.txt (FileInfo -test -in FileInfo_1_input.dta -in_type dta -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_2_tsv.tsv",
+   "sha256": "1208251b3f0e49b0fe1790aa789f8e64c129a78f4dcba7f1aa56bf1149fce185",
+   "bytes": 1502,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_2_tsv/cwd/FileInfo_2.tmp.tsv (FileInfo -test -in FileInfo_2_input.dta2d -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_2_tsv.txt",
+   "sha256": "5ea3a6608ce17d56823a652c051f3f24a822e285cfb786df90601e4f7cd02f1f",
+   "bytes": 1078,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_2_tsv/cwd/FileInfo_2.tmp.txt (FileInfo -test -in FileInfo_2_input.dta2d -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_3_tsv.tsv",
+   "sha256": "811be851b2f4b4cda46ca5e3953a7c9126dd631b837b0c2e0d6c12c846c465ef",
+   "bytes": 3391,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_3_tsv/cwd/FileInfo_3.tmp.tsv (FileInfo -test -in FileInfo_3_input.featureXML -m -s -p -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_3_tsv.txt",
+   "sha256": "f41cee509478fa6917c24a5b66854eb939a7410e6b3532cc7a965d5d7c82224b",
+   "bytes": 1965,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_3_tsv/cwd/FileInfo_3.tmp.txt (FileInfo -test -in FileInfo_3_input.featureXML -m -s -p -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_9_tsv.tsv",
+   "sha256": "6418e18949a0d9c829a563a43e6d01df80461482d9b3cac008c3b7f1fe57c455",
+   "bytes": 2308,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_9_tsv/cwd/FileInfo_9.tmp.tsv (FileInfo -test -in FileInfo_9_input.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_9_tsv.txt",
+   "sha256": "feb97e91fac6f639f8800f219796d8a15432a4cf9aea1056008293cca30e5ba5",
+   "bytes": 2962,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_9_tsv/cwd/FileInfo_9.tmp.txt (FileInfo -test -in FileInfo_9_input.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_empty_featureXML.tsv",
+   "sha256": "d06348f2ba9a53bf6d8c5c83189924002cd12ebac04e3d04025da7bb5e12abb1",
+   "bytes": 2679,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_empty_featureXML/cwd/empty_featureXML.tmp.tsv (FileInfo -test -in cases/derived/empty.featureXML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_empty_featureXML.txt",
+   "sha256": "2d72d61c3b7877da52beb57d4f6e6f4926565f5ad9cc2bb6f0fa10defe777dcd",
+   "bytes": 1597,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_empty_featureXML/cwd/empty_featureXML.tmp.txt (FileInfo -test -in cases/derived/empty.featureXML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_empty_mzML.tsv",
+   "sha256": "c08a907c46f2071b74ab567e15ecebe560eabf4592873ac6a2456d1e2b6e5cef",
+   "bytes": 1306,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_empty_mzML/cwd/empty_mzML.tmp.tsv (FileInfo -test -in cases/derived/empty.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_empty_mzML.txt",
+   "sha256": "30a1985e95ad8647d19993a18373d17f65c7c57c37802b5a706d8498aeba49ac",
+   "bytes": 1794,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_empty_mzML/cwd/empty_mzML.tmp.txt (FileInfo -test -in cases/derived/empty.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_on_FFC_1_retained_output.tsv",
+   "sha256": "4474474ceb6ab9ba3fcd1f42d33a3cd88b7a346826586f69a28b67327ec2436e",
+   "bytes": 3187,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_on_FFC_1_retained_output/cwd/FileInfo_FFC_1.tmp.tsv (FileInfo -test -in FeatureFinderCentroided_1_1_output.featureXML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/FileInfo_on_FFC_1_retained_output.txt",
+   "sha256": "08b33b43b86b84fc00cd329305f0d5c0707314d60b7131c1a9ddb7c2026dd9af",
+   "bytes": 1920,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "C1 oracle output, verbatim: ../oracle/topp-early-bundle/results/run1/FileInfo_on_FFC_1_retained_output/cwd/FileInfo_FFC_1.tmp.txt (FileInfo -test -in FeatureFinderCentroided_1_1_output.featureXML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_featurexml_default.tsv",
+   "sha256": "f7eeccd85fa26276648834185799e8a71771ffc8b33f4beac85f498b302e67b0",
+   "bytes": 767,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_featurexml_default/cwd/out.tsv (FileInfo -test -in inputs/AccurateMassSearchEngine_input1.featureXML  -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_featurexml_default.txt",
+   "sha256": "09cf15a9bd8d34bcc043dbfc5b27af3f9697733b60b7cab15c5da1a52ff63fa9",
+   "bytes": 582,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_featurexml_default/cwd/out.txt (FileInfo -test -in inputs/AccurateMassSearchEngine_input1.featureXML  -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_featurexml_mps.tsv",
+   "sha256": "7277dbba2857c97de1e6fa4f16d612c3ab43b66a287c811e930ecb3902dc6fe0",
+   "bytes": 3023,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_featurexml_mps/cwd/out.tsv (FileInfo -test -in inputs/AccurateMassSearchEngine_input1.featureXML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_featurexml_mps.txt",
+   "sha256": "c77543932e48d1eb00b582517ef196de0e31eaee882f60e539ff59cd7d849799",
+   "bytes": 1818,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_featurexml_mps/cwd/out.txt (FileInfo -test -in inputs/AccurateMassSearchEngine_input1.featureXML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_featurexml_s.tsv",
+   "sha256": "eb8f5fdb8c2237974c3e7217de8d7e6c5a119e87a9e9dd3ac15662d6f265db85",
+   "bytes": 3004,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_featurexml_s/cwd/out.tsv (FileInfo -test -in inputs/AccurateMassSearchEngine_input1.featureXML -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_featurexml_s.txt",
+   "sha256": "b5a39b75b04ccfe62a77c276238e7693745e322d6208bc8665c2a94dcdc1d514",
+   "bytes": 1693,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_featurexml_s/cwd/out.txt (FileInfo -test -in inputs/AccurateMassSearchEngine_input1.featureXML -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_forced_type_tmp.tsv",
+   "sha256": "e0e45d18ab0f42ceaa1d5df2327e68b0474fe5818aa709faaed23fa8e7f3ffa3",
+   "bytes": 3001,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_forced_type_tmp/cwd/out.tsv (FileInfo -test -in inputs/test_forced_type.tmp -in_type featureXML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_forced_type_tmp.txt",
+   "sha256": "e6f0239d26370a23d15ad2e870fc05ca9ffe8fecd13dba444dbdf29305476064",
+   "bytes": 1796,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_forced_type_tmp/cwd/out.txt (FileInfo -test -in inputs/test_forced_type.tmp -in_type featureXML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_mzml_minimal_mps.tsv",
+   "sha256": "3b2c22b3f0db5a0a7a4cb2a9c4d13d7fce9a7b6354fd26c7ceebfc74e7afeb48",
+   "bytes": 1276,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_mzml_minimal_mps/cwd/out.tsv (FileInfo -test -in inputs/MzMLFile_2_minimal.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/class_mzml_minimal_mps.txt",
+   "sha256": "f7f046d0c29a9eb6b89646858ed4457ca36ef1c41a74e0fbe823fb156e82fa26",
+   "bytes": 1413,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/class_mzml_minimal_mps/cwd/out.txt (FileInfo -test -in inputs/MzMLFile_2_minimal.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/dta2d_1_mps.tsv",
+   "sha256": "9d3705ab6f88225a1c3bfd400f61a777487d65ae8d8314024a68c8abcea90114",
+   "bytes": 1649,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/dta2d_1_mps/cwd/out.tsv (FileInfo -test -in inputs/DTA2DFile_test_1.dta2d -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/dta2d_1_mps.txt",
+   "sha256": "37e5d852bab969bd970173b740d4ffeb31c328da351ecc0fe4a4ab156c68b0ed",
+   "bytes": 1759,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/dta2d_1_mps/cwd/out.txt (FileInfo -test -in inputs/DTA2DFile_test_1.dta2d -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/dta2d_2_mps.tsv",
+   "sha256": "0628195d9dd0c6d71ae063518b770cf01483305f21d35f1270b336a6ab49ea93",
+   "bytes": 1649,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/dta2d_2_mps/cwd/out.tsv (FileInfo -test -in inputs/DTA2DFile_test_2.dta2d -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/dta2d_2_mps.txt",
+   "sha256": "153584315012b9d44290330421b6a580a919b929e3d270dba41ad76b8c0b91e7",
+   "bytes": 1759,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/dta2d_2_mps/cwd/out.txt (FileInfo -test -in inputs/DTA2DFile_test_2.dta2d -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/dta2d_3_mps.tsv",
+   "sha256": "0d4987c3091d64818e154bc907c2034939ba130e9b2ad1e9a4104273b855b17d",
+   "bytes": 1661,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/dta2d_3_mps/cwd/out.tsv (FileInfo -test -in inputs/DTA2DFile_test_3.dta2d -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/dta2d_3_mps.txt",
+   "sha256": "d3f0aee8dd19b82b37c49bf6a40dce2921bb1034c0267b25e441e7c22c952066",
+   "bytes": 1771,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/dta2d_3_mps/cwd/out.txt (FileInfo -test -in inputs/DTA2DFile_test_3.dta2d -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/empty_resolved_ref_mps.tsv",
+   "sha256": "d6e76c464caa6d7b84687e2b1d48c9ba36a82c07fb1e09a71d8822d9fcc2520a",
+   "bytes": 1309,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/empty_resolved_ref_mps/cwd/out.tsv (FileInfo -test -in inputs/empty_resolved_ref.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/empty_resolved_ref_mps.txt",
+   "sha256": "e7d33e652f5e0d8d73bd6d54739339fed0baaec58211bc513d25c9b499fbbbde",
+   "bytes": 1797,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/empty_resolved_ref_mps/cwd/out.txt (FileInfo -test -in inputs/empty_resolved_ref.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/faims_interleaved_mps.tsv",
+   "sha256": "75dd3ea2f660fbf6dc4bd18871c8c90a6e9ea85ed7380b0b6821feec45d141ea",
+   "bytes": 2828,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/faims_interleaved_mps/cwd/out.tsv (FileInfo -test -in inputs/FAIMS_CV-60C_V-45_Interleaved.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/faims_interleaved_mps.txt",
+   "sha256": "96ddf92bced219cd2ca366507fb7c247b0a0435e23017790cbce595babd73e18",
+   "bytes": 2662,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/faims_interleaved_mps/cwd/out.txt (FileInfo -test -in inputs/FAIMS_CV-60C_V-45_Interleaved.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/faims_test_data_mps.tsv",
+   "sha256": "f3654b9fa219887e132750aa46c3728dde75b0697e0f08f1a5a689fc67074de0",
+   "bytes": 3186,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/faims_test_data_mps/cwd/out.tsv (FileInfo -test -in inputs/FAIMS_test_data.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/faims_test_data_mps.txt",
+   "sha256": "76ad3caae1e40ee1eae5c31b73fa356dd06b9f2af190ba58883d546e39c690be",
+   "bytes": 2680,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/faims_test_data_mps/cwd/out.txt (FileInfo -test -in inputs/FAIMS_test_data.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/ffc_input_mps.tsv",
+   "sha256": "7b88f92d3d2d90bd5ec549cc3ce5431cc00aa9b7a93c14ae23f20b22d4e60ade",
+   "bytes": 2073,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/ffc_input_mps/cwd/out.tsv (FileInfo -test -in inputs/FeatureFinderCentroided_1_input.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/ffc_input_mps.txt",
+   "sha256": "b3ae37b4a668d7828d1e727e99d798ce89fa875b88e1acb37b59a11897e8b43c",
+   "bytes": 2218,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/ffc_input_mps/cwd/out.txt (FileInfo -test -in inputs/FeatureFinderCentroided_1_input.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_12_mps.tsv",
+   "sha256": "e28eca72b49c95271b979a880e4c20679d179115db3a0f984726ae2dc5665ff8",
+   "bytes": 3045,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_12_mps/cwd/out.tsv (FileInfo -test -in inputs/FileInfo_12_input.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_12_mps.txt",
+   "sha256": "17817cd4bb518408b7ead464b0544610bc9cdbbcaca43f790c42724349749697",
+   "bytes": 3539,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_12_mps/cwd/out.txt (FileInfo -test -in inputs/FileInfo_12_input.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_3_default.tsv",
+   "sha256": "d6fffe6c606b8414b1215b6becb79d210ebebebc5ad51d90c07b7a3e1b4dfaa1",
+   "bytes": 894,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_3_default/cwd/out.tsv (FileInfo -test -in inputs/FileInfo_3_input.featureXML  -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_3_default.txt",
+   "sha256": "5e0b737ca4ac51722dcade1cc52ef93b4def551df61b54169fd0d2d786c0f94a",
+   "bytes": 577,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_3_default/cwd/out.txt (FileInfo -test -in inputs/FileInfo_3_input.featureXML  -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_9_default.tsv",
+   "sha256": "acfe8b868f129cc088afa36afd0d7eb8c60c011ff033152df6ae5c3f0775bafb",
+   "bytes": 1914,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_9_default/cwd/out.tsv (FileInfo -test -in inputs/FileInfo_9_input.mzML  -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_9_default.txt",
+   "sha256": "5c5c8fd3d218c0b782fc57cde5ae703a991348fa15ba0845d64f3b9be6430dd6",
+   "bytes": 1518,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_9_default/cwd/out.txt (FileInfo -test -in inputs/FileInfo_9_input.mzML  -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_9_strict_reader_default.tsv",
+   "sha256": "306ca7f562fa6653e47781629c2c5a041bb54027e37b2f6705b0a705745b2c75",
+   "bytes": 1922,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_9_strict_reader_default/cwd/out.tsv (FileInfo -test -in inputs/FileInfo_9_strict_reader.mzML  -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_9_strict_reader_default.txt",
+   "sha256": "d1b490d1e429e9c3790f3b2be22ff8a3fc972cb4f1f14e31320d0e42c5acb743",
+   "bytes": 1526,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_9_strict_reader_default/cwd/out.txt (FileInfo -test -in inputs/FileInfo_9_strict_reader.mzML  -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_9_strict_reader_mps.tsv",
+   "sha256": "e507a76961516a938fb1cce138534fc9ba30422c15d835ccc50021205152a417",
+   "bytes": 2300,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_9_strict_reader_mps/cwd/out.tsv (FileInfo -test -in inputs/FileInfo_9_strict_reader.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/fileinfo_9_strict_reader_mps.txt",
+   "sha256": "575c97fe237d7c4ccb72e6d27f5c367884e6d3e821f6f34277a243cbc41e5602",
+   "bytes": 2954,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/fileinfo_9_strict_reader_mps/cwd/out.txt (FileInfo -test -in inputs/FileInfo_9_strict_reader.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/im_faims_test_mps.tsv",
+   "sha256": "127db7ed6ea61fd45ac94d0515c8f1ddc3677485969fc074f93b8f95a35ddb4e",
+   "bytes": 2960,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/im_faims_test_mps/cwd/out.tsv (FileInfo -test -in inputs/IM_FAIMS_test.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/im_faims_test_mps.txt",
+   "sha256": "c48622c7d1fff2cfb85eac376aca3e765f9f20bbfbc7f3bfd44669f70e8ed3f4",
+   "bytes": 2387,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/im_faims_test_mps/cwd/out.txt (FileInfo -test -in inputs/IM_FAIMS_test.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/mzmlfile_1_mps.tsv",
+   "sha256": "b3d3c3a2c20a4ba8b469d9feeffc5e368bb5c7b463eda21d36707c02a5ec56e1",
+   "bytes": 3017,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/mzmlfile_1_mps/cwd/out.tsv (FileInfo -test -in inputs/MzMLFile_1.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/mzmlfile_1_mps.txt",
+   "sha256": "0c3b86ae9e40434c457b10922353686b4c388a7532298533c6e3805ddee733b4",
+   "bytes": 3432,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/mzmlfile_1_mps/cwd/out.txt (FileInfo -test -in inputs/MzMLFile_1.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/mzmlfile_1_no_selected_ion_drift_mps.tsv",
+   "sha256": "4121379ea2f58b4ee3ac5f7b1dd8e41d1290a4b308b59ce09cd8771ead8117a2",
+   "bytes": 2951,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/mzmlfile_1_no_selected_ion_drift_mps/cwd/out.tsv (FileInfo -test -in inputs/MzMLFile_1_no_selected_ion_drift.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/mzmlfile_1_no_selected_ion_drift_mps.txt",
+   "sha256": "c5616019d60d33765081aecc8db2dea019c599467918c2605098cf084381e5dd",
+   "bytes": 3458,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/mzmlfile_1_no_selected_ion_drift_mps/cwd/out.txt (FileInfo -test -in inputs/MzMLFile_1_no_selected_ion_drift.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/precursor_purity_mps.tsv",
+   "sha256": "7b8bf6bd2d6b1fa21a4e3c68b377c5b57845bb71f7981f9e8172b694d9bdc840",
+   "bytes": 2842,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/precursor_purity_mps/cwd/out.tsv (FileInfo -test -in inputs/precursor_purity_input.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/precursor_purity_mps.txt",
+   "sha256": "4a7a721d544e69997b3e3341dcebc2daecc356d3266192977d8276b34efd55ce",
+   "bytes": 2868,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/precursor_purity_mps/cwd/out.txt (FileInfo -test -in inputs/precursor_purity_input.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/pte_peak_dta_s.tsv",
+   "sha256": "a9027b775419c6f43ba6a0f373d880e6df209b11dbf8c87e40745479e7354120",
+   "bytes": 1533,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/pte_peak_dta_s/cwd/out.tsv (FileInfo -test -in inputs/PeakTypeEstimator_peak.dta -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/pte_peak_dta_s.txt",
+   "sha256": "05b611498613643580dab1160a97422919a32ff8d8ec6055e93fbf06782221c9",
+   "bytes": 1275,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/pte_peak_dta_s/cwd/out.txt (FileInfo -test -in inputs/PeakTypeEstimator_peak.dta -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/pte_raw_dta_mps.tsv",
+   "sha256": "6016d71add07befe774fd87704ff7fb2f2f669d7212e8b0f29854108bbdf0f30",
+   "bytes": 1674,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/pte_raw_dta_mps/cwd/out.tsv (FileInfo -test -in inputs/PeakTypeEstimator_raw.dta -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/pte_raw_dta_mps.txt",
+   "sha256": "0e1682a622f4ed9c7491529b622f5098ee9742de30422454614dd3be7053e6f3",
+   "bytes": 1711,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/pte_raw_dta_mps/cwd/out.txt (FileInfo -test -in inputs/PeakTypeEstimator_raw.dta -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/srm_chromatograms_mps.tsv",
+   "sha256": "96aff38f96a09cbaafff0d322436911266fbcc8793bd866a8fbb5518323ed41f",
+   "bytes": 1356,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/srm_chromatograms_mps/cwd/out.tsv (FileInfo -test -in inputs/mzml_numpress_source_original.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/srm_chromatograms_mps.txt",
+   "sha256": "1bb9bfc14aaff35b158647fa21eaed63369374a7742005eb1f0dc7c81ede8749",
+   "bytes": 1912,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/srm_chromatograms_mps/cwd/out.txt (FileInfo -test -in inputs/mzml_numpress_source_original.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/retained/FileInfo_1_output.txt",
+   "sha256": "2f999b05e38ab970a555225127ce8d81aac68278bcfc9ab50f7ee748a2948f5e",
+   "bytes": 1063,
+   "kind": "retained upstream expected output, test-data 0cb15f2 topp/FileInfo_1_output.txt, compared by TOPP_FileInfo_1_out1 (topp/CMakeLists.txt:882)",
+   "evidence_label": "retained upstream output (tier 1)"
+  },
+  {
+   "path": "tests/data/file_info/retained/FileInfo_2_output.txt",
+   "sha256": "5169c529db1c482154a505ab21e12ca1bbf51cc9cbc3383ca01eba6466068753",
+   "bytes": 1032,
+   "kind": "retained upstream expected output, test-data 0cb15f2 topp/FileInfo_2_output.txt, compared by TOPP_FileInfo_2_out1 (topp/CMakeLists.txt:885)",
+   "evidence_label": "retained upstream output (tier 1)"
+  },
+  {
+   "path": "tests/data/file_info/retained/FileInfo_3_output.txt",
+   "sha256": "baff62b33a44a65867037213da3fe6437b5f9b579897c12224120b0c498fea80",
+   "bytes": 1909,
+   "kind": "retained upstream expected output, test-data 0cb15f2 topp/FileInfo_3_output.txt, compared by TOPP_FileInfo_3_out1 (topp/CMakeLists.txt:888)",
+   "evidence_label": "retained upstream output (tier 1)"
+  },
+  {
+   "path": "tests/data/file_info/retained/FileInfo_9_output.txt",
+   "sha256": "cb802ef21b92abe2746c38e753540057628aa3e0a77b8870bbc6bb25dace8b5e",
+   "bytes": 2916,
+   "kind": "retained upstream expected output, test-data 0cb15f2 topp/FileInfo_9_output.txt, compared by TOPP_FileInfo_9_out1 (topp/CMakeLists.txt:903)",
+   "evidence_label": "retained upstream output (tier 1)"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_1_output.featureXML",
+   "sha256": "4eaa53c822be1cf304728b51fc8d45ff1e725659aa0aad9a3f62560d718fc473",
+   "bytes": 15232,
+   "kind": "A3 fixture, retained FeatureFinderCentroided_1 expectation (test-data 0cb15f2), read in place"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_test_data.mzML",
+   "sha256": "ad028d77045e07b773b9423f1c1f58baa1a0856b9d420155c8881d452c175301",
+   "bytes": 65274,
+   "kind": "A3 fixture (test-data 0cb15f2), read in place"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_CV-60C_V-45_Interleaved.mzML",
+   "sha256": "718775f365167f5b61a00a7bf851a7397db258317ae6a09afa860e5ad5470ea7",
+   "bytes": 395817,
+   "kind": "A3 fixture (test-data 0cb15f2), read in place"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_input.mzML",
+   "sha256": "a3dfae633502bc457fb3efeddb5d5006af935a51bd99d9a5974e24232885f9d3",
+   "bytes": 213090,
+   "kind": "A3 fixture (test-data 0cb15f2), read in place"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FileInfo_8_input.notype",
+   "sha256": "0cb5622d29ae38dd9c53512a19276c6aceb7a389bbe05fb9e23298e1a007714a",
+   "bytes": 7036,
+   "kind": "A3 fixture (test-data 0cb15f2), read in place"
+  },
+  {
+   "path": "tests/data/faims_helper/IM_FAIMS_test.mzML",
+   "sha256": "3a4b469e5df625ec4fa2319b69bfb2e96a399dfa9a5040ba8e7bdabad868690b",
+   "bytes": 514830,
+   "kind": "A1 fixture (class-test input), read in place"
+  },
+  {
+   "path": "tests/data/mzml_numpress_source_original.mzML",
+   "sha256": "e6c2409729250c7bd537804d0737bd205f36d0523ce3a904eb2344694f1689e7",
+   "bytes": 47820,
+   "kind": "existing fixture, read in place"
+  },
+  {
+   "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+   "bytes": 37187,
+   "kind": "existing fixture (MzMLFile_test input), read in place"
+  },
+  {
+   "path": "tests/data/precursor_purity_input.mzML",
+   "sha256": "2f5a1a3590bb5e261d3055041a55cf3888270028d76a1fbf898c9beb78181b44",
+   "bytes": 115055,
+   "kind": "existing fixture, read in place"
+  },
+  {
+   "path": "tests/data/spectrum_type/PeakTypeEstimator_raw.dta",
+   "sha256": "262bb2a65406892bd6ed1c0027151a863d91e7653bc487402ae58122647ea792",
+   "bytes": 619,
+   "kind": "existing fixture (PeakTypeEstimator_test input), read in place"
+  },
+  {
+   "path": "tests/data/spectrum_type/PeakTypeEstimator_peak.dta",
+   "sha256": "69d552ec11db33256f09c1e403aecc45018f3d4c2553ba27112d8ebecd6d5297",
+   "bytes": 1404,
+   "kind": "existing fixture (PeakTypeEstimator_test input), read in place"
+  },
+  {
+   "path": "tests/data/text_peak_lists/DTA2DFile_test_1.dta2d",
+   "sha256": "2ae3ae9d954da10e8b83eb39bf2fd53eec08f7aa5d2e76aaba69da4daf346447",
+   "bytes": 251,
+   "kind": "existing fixture (DTA2DFile_test input), read in place"
+  },
+  {
+   "path": "tests/data/text_peak_lists/DTA2DFile_test_2.dta2d",
+   "sha256": "04e38358b496cbe368feafef24642d3bd4e201da14a51b07ec6bcea905215dc0",
+   "bytes": 271,
+   "kind": "existing fixture (DTA2DFile_test input), read in place"
+  },
+  {
+   "path": "tests/data/text_peak_lists/DTA2DFile_test_3.dta2d",
+   "sha256": "0b567ff93b0bbc6dcc4bf9cd94f6d37ac74d14823291237faa01dde781733bcb",
+   "bytes": 274,
+   "kind": "existing fixture (DTA2DFile_test input), read in place"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/FuzzyDiff.ini",
+   "sha256": "238d0598a366b3e9e6f5686a4b666b483317617d33ce36ea5ab9a03842a83dc2",
+   "bytes": 3532,
+   "kind": "C3 fixture, the pinned test-data topp/FuzzyDiff.ini (ratio 1.01, absdiff 0.01), read in place"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/file-info-core/oracle.py",
+   "sha256": "973157d837682f081a6ee088b5418dbaf7ad97e99ca7b6b63b3f6d7ba5799056",
+   "origin_key": "fixtures",
+   "role": "driver: case table, input derivations, runs, reproduction check, manifest writer"
+  },
+  {
+   "path": "../oracle/file-info-core/run.sh",
+   "sha256": "68f01af8d969a40ecdf5ff6f3fdf0c2bcb24739ff04626894110fbba7bd70706",
+   "origin_key": "fixtures",
+   "role": "entry point with the exact environment"
+  },
+  {
+   "path": "../oracle/file-info-core/manifest.json",
+   "sha256": "6d234c0810d3cafd3ba4a3d03a012504e1d3ff8cd247640ec23d9755c85738f9",
+   "origin_key": "fixtures",
+   "role": "tool and build-info hashes, environment, input records with derivation rules, per-case exit codes and output hashes, reproduction verdict"
+  },
+  {
+   "path": "../oracle/file-info-core/inputs.json",
+   "sha256": "492efb6067ee3bf3c69126b8ad1f771e64449f145cb45792db1ad12bb4e0269e",
+   "origin_key": "fixtures",
+   "role": "input origins and derivation rules"
+  },
+  {
+   "path": "../oracle/topp-early-bundle/manifest.json",
+   "sha256": "64e98543fbe26c406988cee6122208d3007e3d66e9547f5130917e4c6b2ffbb0",
+   "origin_key": "fixtures",
+   "role": "C1 oracle manifest for the seven C1 cases"
+  }
+ ],
+ "external_reference_note": "No C++ and no oracle driver is committed to this repository. The two oracle directories live next to it under ../oracle/; their driver files and manifests are recorded here by sha256, and every fixture they produced is hashed in fixtures.",
+ "class_test_sections": {
+  "FileInfo_test.cpp": {
+   "sections": 9,
+   "ported": [
+    "FileInfo()",
+    "~FileInfo()",
+    "run ... - featureXML",
+    "run ... - mzML peaks",
+    "toText and toTSV",
+    "Options gating",
+    "forced type selects the parse branch for an unrecognized extension"
+   ],
+   "pending": {
+    "run ... - consensusXML": "A7; explicit refusal asserted",
+    "run ... - FASTA": "A7; explicit refusal asserted"
+   }
+  }
+ },
+ "known_reader_gaps": [
+  {
+   "input": "tests/data/file_info/inputs/FileInfo_9_input.mzML",
+   "refusals": [
+    "duplicate userParam name name",
+    "primary-array processing has no independent native owner",
+    "canonical auxiliary array binary type"
+   ],
+   "ignored_tests": [
+    "c1_file_info_9_mzml_mps",
+    "a4_file_info_9_default_flags"
+   ],
+   "derived": "tests/data/file_info/inputs/FileInfo_9_strict_reader.mzML"
+  },
+  {
+   "input": "tests/data/file_info/inputs/empty.mzML",
+   "refusals": [
+    "unresolved dataProcessingRef"
+   ],
+   "ignored_tests": [
+    "c1_empty_mzml_mps"
+   ],
+   "derived": "tests/data/file_info/inputs/empty_resolved_ref.mzML"
+  },
+  {
+   "input": "tests/data/file_info/inputs/FileInfo_12_input.mzML",
+   "refusals": [
+    "canonical auxiliary array binary type"
+   ],
+   "ignored_tests": [
+    "a4_indexed_file_info_12_all_flags"
+   ],
+   "derived": null
+  },
+  {
+   "input": "tests/data/mzml_validator/MzMLFile_1.mzML",
+   "refusals": [],
+   "difference": "selected-ion drift time not copied onto the MS2 spectrum (A3 request 5)",
+   "ignored_tests": [
+    "a4_mzml_file_1_all_flags"
+   ],
+   "derived": "tests/data/file_info/inputs/MzMLFile_1_no_selected_ion_drift.mzML"
+  }
+ ],
+ "module_edges_added": [
+  "format -> math"
+ ],
+ "determinism": "serial, as the source; no parallel path"
+}

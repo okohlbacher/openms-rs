@@ -1,0 +1,119 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/FAIMS_test_data.mzML
+File type: mzML
+
+Instrument: 
+
+MS levels: 1, 2
+Total number of peaks: 2681
+Number of spectra: 2
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 18.25 .. 18.39 sec (0.0 min)
+  mass-to-charge: 0.00 .. 1590.88
+  ion mobility: -65.00 .. -65.00
+  intensity: 0.00 .. 31878566.00
+
+Spectrum Ranges:
+  retention time: 18.25 .. 18.39 sec (0.0 min)
+  mass-to-charge: 110.07 .. 1590.88
+  ion mobility: -65.00 .. -65.00
+  intensity: 0.00 .. 5057372.00
+
+MS Level 1 Ranges:
+  retention time: 18.25 .. 18.25 sec (0.0 min)
+  mass-to-charge: 371.27 .. 1590.88
+  ion mobility: -65.00 .. -65.00
+  intensity: 0.00 .. 5057372.00
+
+MS Level 2 Ranges:
+  retention time: 18.39 .. 18.39 sec (0.0 min)
+  mass-to-charge: 110.07 .. 871.38
+  ion mobility: -65.00 .. -65.00
+  intensity: 1030.52 .. 15416.40
+
+Chromatogram Ranges:
+  retention time: 18.25 .. 18.39 sec (0.0 min)
+  mass-to-charge: 0.00 .. 0.00
+  intensity: 117547.12 .. 31878566.00
+
+Number of spectra per MS level:
+  level 1: 1
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Centroid)
+  level 2: Centroid (Centroid)
+
+Activation methods
+    MS-Level 2 & HCD (beam-type collision-induced dissociation): 1
+
+Precursor charge distribution:
+  charge 2: 1x
+
+IM (FAIMS_CV): [-65.0]
+
+Number of chromatograms: 1
+Number of chromatographic peaks: 2
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+
+-- Meta information --
+
+Document ID:        
+Date:               2019-09-07 09:40:04
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    
+  mass analyzer(s): 
+  detector(s):      
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    ProteoWizard software
+  software version: 3.0.19064
+  completion time:  0000-00-00 00:00:00
+  actions:          Conversion to mzML format
+
+Processing 2:
+  software name:    ProteoWizard software
+  software version: 3.0.19064
+  completion time:  0000-00-00 00:00:00
+  actions:          Peak picking
+
+Processing 3:
+  software name:    FileFilter
+  software version: 3.0.0-pre-feature-qfqf-ffmetaboid-2023-01-25
+  completion time:  2023-02-01 08:35:00
+  actions:          Data filtering
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 2644
+  mean:           11566.4
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        5.05737e+06
+  variance:       2.5303e+10
+
+
+

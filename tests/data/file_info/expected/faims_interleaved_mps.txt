@@ -1,0 +1,116 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/FAIMS_CV-60C_V-45_Interleaved.mzML
+File type: mzML
+
+Instrument: LTQ Orbitrap Velos
+  Mass Analyzer: Orbitrap (resolution: 0)
+
+MS levels: 1
+Total number of peaks: 20698
+Number of spectra: 12
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 1850.12 .. 1859.68 sec (0.2 min)
+  mass-to-charge: 0.00 .. 699.98
+  ion mobility: -60.00 .. -45.00
+  intensity: 0.00 .. 76219.52
+
+Spectrum Ranges:
+  retention time: 1850.12 .. 1859.68 sec (0.2 min)
+  mass-to-charge: 600.08 .. 699.98
+  ion mobility: -60.00 .. -45.00
+  intensity: 0.00 .. 76219.52
+
+MS Level 1 Ranges:
+  retention time: 1850.12 .. 1859.68 sec (0.2 min)
+  mass-to-charge: 600.08 .. 699.98
+  ion mobility: -60.00 .. -45.00
+  intensity: 0.00 .. 76219.52
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: 0.00 .. 0.00
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 12
+
+Peak type from metadata (or estimated from data)
+  level 1: Profile (Profile)
+
+Activation methods
+
+Precursor charge distribution:
+
+IM (FAIMS_CV): [-60.0, -45.0]
+
+Number of chromatograms: 1
+Number of chromatographic peaks: 0
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+
+-- Meta information --
+
+Document ID:        
+Date:               2015-03-03 22:10:25
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             LTQ Orbitrap Velos
+  model:            
+  vendor:           
+  ion source(s):    Nano electrospray ionization
+  mass analyzer(s): Orbitrap
+  detector(s):      inductive detector
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    ProteoWizard software
+  software version: 3.0.4833
+  completion time:  0000-00-00 00:00:00
+  actions:          Conversion to mzML format
+
+Processing 2:
+  software name:    FileFilter
+  software version: 2.0.0
+  completion time:  2015-10-01 16:29:00
+  actions:          Data filtering
+
+Processing 3:
+  software name:    FileFilter
+  software version: 2.0.0
+  completion time:  2015-10-02 09:34:00
+  actions:          Data filtering
+
+Processing 4:
+  software name:    FileFilter
+  software version: 2.4.0-fix-FFMdetection-2018-07-27
+  completion time:  2018-07-27 15:17:00
+  actions:          Data filtering
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 20698
+  mean:           925.445
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 491.632
+  maximum:        76219.5
+  variance:       2.04232e+07
+
+
+

@@ -1,0 +1,81 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/empty_resolved_ref.mzML
+File type: mzML
+
+Instrument: LCQ Deca
+  Mass Analyzer: Quadrupole ion trap (resolution: 0)
+  Mass Analyzer: Linear ion trap (resolution: 0)
+
+MS levels: 
+Total number of peaks: 0
+Number of spectra: 0
+
+Combined Ranges (spectra + chromatograms):
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  ion mobility: <none> .. <none>
+  intensity: <none> .. <none>
+
+Spectrum Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  ion mobility: <none> .. <none>
+  intensity: <none> .. <none>
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Peak type from metadata (or estimated from data)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Meta information --
+
+Document ID:        OpenMS_document_id
+Date:               2007-06-27 15:23:45
+
+Sample:
+  name:             Sample1
+  organism:         
+  comment:          
+
+Instrument:
+  name:             LCQ Deca
+  model:            
+  vendor:           
+  ion source(s):    Electrospray ionisation, Fast atom bombardment
+  mass analyzer(s): Quadrupole ion trap, Linear ion trap
+  detector(s):      Electron multiplier, Electron multiplier
+
+Contact person:
+  first name:     William
+  last name:      Pennington
+  email:          wpennington@higglesworth.edu
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

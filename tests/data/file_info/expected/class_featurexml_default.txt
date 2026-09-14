@@ -1,0 +1,25 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/AccurateMassSearchEngine_input1.featureXML
+File type: featureXML
+Number of features: 10
+
+Ranges:
+  retention time: 258.75 .. 318.75 sec (1.0 min)
+  mass-to-charge: 160.08 .. 165.06
+  intensity: 18965.90 .. 181771008.00
+
+Total ion current in features: 3.93843e+08
+
+Charge distribution:
+  charge 0: 4x
+  charge 1: 6x
+
+Distribution of peptide identifications (IDs) per feature:
+  0 IDs: 10
+
+Assigned peptide identifications: 0
+Unassigned peptide identifications: 0
+
+

@@ -1,0 +1,56 @@
+general: file name	/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/AccurateMassSearchEngine_input1.featureXML
+general: file type	featureXML
+general: number of features	10
+general: ranges: retention time: min	258.75
+general: ranges: retention time: max	318.75
+general: ranges: mass-to-charge: min	160.08
+general: ranges: mass-to-charge: max	165.06
+general: ranges: intensity: min	18965.90
+general: ranges: intensity: max	181771008.00
+general: total ion current in features	3.93843e+08
+general: charge distribution: charge: 0	4
+general: charge distribution: charge: 1	6
+general: distribution of peptide identifications (IDs) per feature: IDs: 0	10
+general: assigned peptide identifications	0
+general: unassigned peptide identifications	0
+meta: document ID	
+statistics: intensities: num. of values	10
+statistics: intensities: mean	3.93843e+07
+statistics: intensities: minimum	18965.9
+statistics: intensities: lower quartile	36073.8
+statistics: intensities: median	1.4666e+06
+statistics: intensities: upper quartile	1.03241e+08
+statistics: intensities: maximum	1.81771e+08
+statistics: intensities: variance	5.5016e+15
+statistics: feature FWHM in RT dimension: num. of values	10
+statistics: feature FWHM in RT dimension: mean	7.6
+statistics: feature FWHM in RT dimension: minimum	3.5
+statistics: feature FWHM in RT dimension: lower quartile	5.625
+statistics: feature FWHM in RT dimension: median	8.25
+statistics: feature FWHM in RT dimension: upper quartile	9.5
+statistics: feature FWHM in RT dimension: maximum	10
+statistics: feature FWHM in RT dimension: variance	4.87778
+statistics: overall qualities: num. of values	10
+statistics: overall qualities: mean	0.0238592
+statistics: overall qualities: minimum	1.09325e-05
+statistics: overall qualities: lower quartile	2.07941e-05
+statistics: overall qualities: median	0.000854075
+statistics: overall qualities: upper quartile	0.0624596
+statistics: overall qualities: maximum	0.110367
+statistics: overall qualities: variance	0.00202071
+statistics: qualities in retention time dimension: num. of values	10
+statistics: qualities in retention time dimension: mean	0
+statistics: qualities in retention time dimension: minimum	0
+statistics: qualities in retention time dimension: lower quartile	0
+statistics: qualities in retention time dimension: median	0
+statistics: qualities in retention time dimension: upper quartile	0
+statistics: qualities in retention time dimension: maximum	0
+statistics: qualities in retention time dimension: variance	0
+statistics: qualities in mass-to-charge dimension: num. of values	10
+statistics: qualities in mass-to-charge dimension: mean	0
+statistics: qualities in mass-to-charge dimension: minimum	0
+statistics: qualities in mass-to-charge dimension: lower quartile	0
+statistics: qualities in mass-to-charge dimension: median	0
+statistics: qualities in mass-to-charge dimension: upper quartile	0
+statistics: qualities in mass-to-charge dimension: maximum	0
+statistics: qualities in mass-to-charge dimension: variance	0

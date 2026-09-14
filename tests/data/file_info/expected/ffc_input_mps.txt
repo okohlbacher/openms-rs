@@ -1,0 +1,102 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/FeatureFinderCentroided_1_input.mzML
+File type: mzML
+
+Instrument: 
+  Mass Analyzer: Time-of-flight (resolution: 0)
+
+MS levels: 1
+Total number of peaks: 3084
+Number of spectra: 112
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 4114.53 .. 4481.96 sec (6.1 min)
+  mass-to-charge: 643.21 .. 658.26
+  ion mobility: <none> .. <none>
+  intensity: 11.64 .. 934.53
+
+Spectrum Ranges:
+  retention time: 4114.53 .. 4481.96 sec (6.1 min)
+  mass-to-charge: 643.21 .. 658.26
+  ion mobility: <none> .. <none>
+  intensity: 11.64 .. 934.53
+
+MS Level 1 Ranges:
+  retention time: 4114.53 .. 4481.96 sec (6.1 min)
+  mass-to-charge: 643.21 .. 658.26
+  ion mobility: <none> .. <none>
+  intensity: 11.64 .. 934.53
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 112
+
+Peak type from metadata (or estimated from data)
+  level 1: Unknown (Centroid)
+
+Activation methods
+
+Precursor charge distribution:
+
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    Electrospray ionisation
+  mass analyzer(s): Time-of-flight
+  detector(s):      Unknown
+
+Contact person:
+  first name:     
+  last name:      
+  email:          
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    MassWolf
+  software version: 1.02
+  completion time:  0000-00-00 00:00:00
+  actions:          Charge deconvolution, Deisotoping
+
+Processing 2:
+  software name:    FileConverter
+  software version: version_string
+  completion time:  1999-12-31 23:59:00
+  actions:          Conversion to mzML format
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 3084
+  mean:           48.9282
+  minimum:        11.6367
+  lower quartile: 19.218
+  median:         24.7792
+  upper quartile: 37.0782
+  maximum:        934.528
+  variance:       8267.66
+
+
+

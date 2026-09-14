@@ -1,0 +1,120 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/precursor_purity_input.mzML
+File type: mzML
+
+Instrument: Q Exactive
+  Mass Analyzer: Quadrupole (resolution: 0)
+  Mass Analyzer: Orbitrap (resolution: 0)
+
+MS levels: 1, 2
+Total number of peaks: 4326
+Number of spectra: 7
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 3610.81 .. 3612.64 sec (0.0 min)
+  mass-to-charge: 0.00 .. 1567.87
+  ion mobility: <none> .. <none>
+  intensity: 2658.38 .. 131483968.00
+
+Spectrum Ranges:
+  retention time: 3610.81 .. 3612.64 sec (0.0 min)
+  mass-to-charge: 100.05 .. 1567.87
+  ion mobility: <none> .. <none>
+  intensity: 2658.38 .. 131483968.00
+
+MS Level 1 Ranges:
+  retention time: 3610.81 .. 3612.64 sec (0.0 min)
+  mass-to-charge: 354.22 .. 1393.69
+  ion mobility: <none> .. <none>
+  intensity: 112947.25 .. 131483968.00
+
+MS Level 2 Ranges:
+  retention time: 3611.09 .. 3612.31 sec (0.0 min)
+  mass-to-charge: 100.05 .. 1567.87
+  ion mobility: <none> .. <none>
+  intensity: 2658.38 .. 958965.44
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: 0.00 .. 0.00
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 2
+  level 2: 5
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Centroid)
+  level 2: Centroid (Centroid)
+
+Activation methods
+    MS-Level 2 & HCD (beam-type collision-induced dissociation): 5
+
+Precursor charge distribution:
+  charge 2: 2x
+  charge 3: 3x
+
+Number of chromatograms: 1
+Number of chromatographic peaks: 0
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+
+-- Meta information --
+
+Document ID:        
+Date:               2012-10-16 12:40:43
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             Q Exactive
+  model:            
+  vendor:           
+  ion source(s):    Nano electrospray ionization
+  mass analyzer(s): Quadrupole, Orbitrap
+  detector(s):      inductive detector
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    ProteoWizard software
+  software version: 3.0.3827
+  completion time:  0000-00-00 00:00:00
+  actions:          Conversion to mzML format
+
+Processing 2:
+  software name:    FileFilter
+  software version: 1.12.0
+  completion time:  2013-12-12 18:35:00
+  actions:          Data filtering
+
+Processing 3:
+  software name:    TOPP PeakPickerHiRes
+  software version: 1.12.0
+  completion time:  2013-12-12 18:36:00
+  actions:          Peak picking
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 3872
+  mean:           1.54172e+06
+  minimum:        112947
+  lower quartile: 320039
+  median:         527189
+  upper quartile: 1.11476e+06
+  maximum:        1.31484e+08
+  variance:       2.34336e+13
+
+
+

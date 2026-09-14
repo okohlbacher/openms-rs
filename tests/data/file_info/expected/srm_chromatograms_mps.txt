@@ -1,0 +1,86 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/mzml_numpress_source_original.mzML
+File type: mzML
+
+Instrument: LCQ Deca
+  Mass Analyzer: Quadrupole ion trap (resolution: 0)
+  Mass Analyzer: Linear ion trap (resolution: 0)
+
+MS levels: 
+Total number of peaks: 342
+Number of spectra: 0
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 11.00 .. 195.00 sec (3.1 min)
+  mass-to-charge: 500.01 .. 504.25
+  ion mobility: <none> .. <none>
+  intensity: 2.43 .. 1436.27
+
+Spectrum Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  ion mobility: <none> .. <none>
+  intensity: <none> .. <none>
+
+Chromatogram Ranges:
+  retention time: 11.00 .. 195.00 sec (3.1 min)
+  mass-to-charge: 500.01 .. 504.25
+  intensity: 2.43 .. 1436.27
+
+Peak type from metadata (or estimated from data)
+
+Activation methods
+
+Precursor charge distribution:
+
+Number of chromatograms: 18
+Number of chromatographic peaks: 342
+
+Number of chromatograms per type: 
+  selected reaction monitoring chromatogram:                         18
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             LCQ Deca
+  model:            
+  vendor:           
+  ion source(s):    Electrospray ionisation, Fast atom bombardment
+  mass analyzer(s): Quadrupole ion trap, Linear ion trap
+  detector(s):      Electron multiplier, Electron multiplier
+
+Contact person:
+  first name:     
+  last name:      Drek'Thar
+  email:          
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

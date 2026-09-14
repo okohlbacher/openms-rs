@@ -1,0 +1,109 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/IM_FAIMS_test.mzML
+File type: mzML
+
+Instrument: 
+
+MS levels: 1, 2
+Total number of peaks: 44354
+Number of spectra: 19
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 136.33 .. 144.85 sec (0.1 min)
+  mass-to-charge: 100.08 .. 1590.89
+  ion mobility: -65.00 .. -45.00
+  intensity: 0.00 .. 113452328.00
+
+Spectrum Ranges:
+  retention time: 136.33 .. 144.85 sec (0.1 min)
+  mass-to-charge: 100.08 .. 1590.89
+  ion mobility: -65.00 .. -45.00
+  intensity: 0.00 .. 113452328.00
+
+MS Level 1 Ranges:
+  retention time: 136.33 .. 144.85 sec (0.1 min)
+  mass-to-charge: 371.27 .. 1590.89
+  ion mobility: -65.00 .. -45.00
+  intensity: 0.00 .. 113452328.00
+
+MS Level 2 Ranges:
+  retention time: 136.47 .. 142.92 sec (0.1 min)
+  mass-to-charge: 100.08 .. 1162.45
+  ion mobility: -65.00 .. -45.00
+  intensity: 1153.82 .. 1999661.88
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 1: 9
+  level 2: 10
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Centroid)
+  level 2: Centroid (Centroid)
+
+Activation methods
+    MS-Level 2 & HCD (beam-type collision-induced dissociation): 10
+
+Precursor charge distribution:
+  charge 2: 9x
+  charge 3: 1x
+
+IM (FAIMS_CV): [-65.0, -55.0, -45.0]
+
+
+-- Meta information --
+
+Document ID:        
+Date:               2019-09-07 09:40:04
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    
+  mass analyzer(s): 
+  detector(s):      
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    ProteoWizard software
+  software version: 3.0.19064
+  completion time:  0000-00-00 00:00:00
+  actions:          Conversion to mzML format
+
+Processing 2:
+  software name:    ProteoWizard software
+  software version: 3.0.19064
+  completion time:  0000-00-00 00:00:00
+  actions:          Peak picking
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 42637
+  mean:           112758
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        1.13452e+08
+  variance:       2.43101e+12
+
+
+
