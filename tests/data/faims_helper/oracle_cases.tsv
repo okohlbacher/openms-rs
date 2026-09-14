@@ -1,0 +1,48 @@
+faims_file_spectra	19
+faims_file_spectrum	0	controllerType=0 controllerNumber=1 scan=1661	1	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	1	controllerType=0 controllerNumber=1 scan=1662	2	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	2	controllerType=0 controllerNumber=1 scan=1663	2	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	3	controllerType=0 controllerNumber=1 scan=1674	1	-0x1.04p+6	FAIMS_CV
+faims_file_spectrum	4	controllerType=0 controllerNumber=1 scan=1687	1	-0x1.68p+5	FAIMS_CV
+faims_file_spectrum	5	controllerType=0 controllerNumber=1 scan=1688	2	-0x1.68p+5	FAIMS_CV
+faims_file_spectrum	6	controllerType=0 controllerNumber=1 scan=1700	1	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	7	controllerType=0 controllerNumber=1 scan=1701	2	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	8	controllerType=0 controllerNumber=1 scan=1702	2	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	9	controllerType=0 controllerNumber=1 scan=1713	1	-0x1.04p+6	FAIMS_CV
+faims_file_spectrum	10	controllerType=0 controllerNumber=1 scan=1715	2	-0x1.04p+6	FAIMS_CV
+faims_file_spectrum	11	controllerType=0 controllerNumber=1 scan=1726	1	-0x1.68p+5	FAIMS_CV
+faims_file_spectrum	12	controllerType=0 controllerNumber=1 scan=1727	2	-0x1.68p+5	FAIMS_CV
+faims_file_spectrum	13	controllerType=0 controllerNumber=1 scan=1728	2	-0x1.68p+5	FAIMS_CV
+faims_file_spectrum	14	controllerType=0 controllerNumber=1 scan=1738	1	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	15	controllerType=0 controllerNumber=1 scan=1739	2	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	16	controllerType=0 controllerNumber=1 scan=1740	2	-0x1.b8p+5	FAIMS_CV
+faims_file_spectrum	17	controllerType=0 controllerNumber=1 scan=1750	1	-0x1.04p+6	FAIMS_CV
+faims_file_spectrum	18	controllerType=0 controllerNumber=1 scan=1764	1	-0x1.68p+5	FAIMS_CV
+faims_file_cvs	3	-0x1.04p+6,-0x1.b8p+5,-0x1.68p+5
+faims_cvs	class_section_beyond_first_and_sentinel	1	-0x1.9p+5	ms:0x1.899999999999ap+3,FAIMS_CV:-0x1.9p+5,FAIMS_CV:-0x1p+0
+faims_cvs	class_section_non_faims	0	-	ms:0x1p+0,ms:0x1p+1
+faims_cvs	empty	0	-	-
+faims_cvs	ascending_numeric_order	5	-0x1.04p+6,-0x1.b8p+5,-0x1.68p+5,0x1p-1,0x1.4p+3	FAIMS_CV:-0x1.68p+5,FAIMS_CV:0x1.4p+3,FAIMS_CV:-0x1.04p+6,FAIMS_CV:0x1p-1,FAIMS_CV:-0x1.b8p+5
+faims_cvs	negative_zero_first	1	-0x0p+0	FAIMS_CV:-0x0p+0,FAIMS_CV:0x0p+0
+faims_cvs	positive_zero_first	1	0x0p+0	FAIMS_CV:0x0p+0,FAIMS_CV:-0x0p+0
+faims_cvs	infinities	3	-inf,-0x1.9p+5,inf	FAIMS_CV:inf,FAIMS_CV:-0x1.9p+5,FAIMS_CV:-inf
+faims_cvs	only_sentinel	0	-	FAIMS_CV:-0x1p+0
+faims_cvs	sentinel_on_non_faims	1	-0x1.9p+5	ms:-0x1p+0,FAIMS_CV:-0x1.9p+5
+faims_cvs	unit_none_with_value	1	-0x1.4p+5	<NONE>:-0x1.9p+5,FAIMS_CV:-0x1.4p+5
+faims_cvs	duplicates	1	-0x1.9p+5	FAIMS_CV:-0x1.9p+5,FAIMS_CV:-0x1.9p+5,FAIMS_CV:-0x1.9p+5
+faims_cvs	adjacent_doubles_stay_distinct	2	-0x1.9p+5,-0x1.8ffffffffffffp+5	FAIMS_CV:-0x1.9p+5,FAIMS_CV:-0x1.8ffffffffffffp+5
+faims_cvs	nan_first	0	-	FAIMS_CV:nan,FAIMS_CV:-0x1.9p+5,FAIMS_CV:-0x1.4p+5
+faims_cvs	nan_middle	2	-0x1.9p+5,-0x1.4p+5	FAIMS_CV:-0x1.9p+5,FAIMS_CV:nan,FAIMS_CV:-0x1.4p+5
+faims_cvs	nan_last	2	-0x1.9p+5,-0x1.4p+5	FAIMS_CV:-0x1.9p+5,FAIMS_CV:-0x1.4p+5,FAIMS_CV:nan
+faims_cvs	nan_on_non_faims	1	-0x1.4p+5	ms:nan,FAIMS_CV:-0x1.4p+5
+faims_filter	default_tolerance	-0x1.68p+5	0x1.47ae147ae147bp-7	ok	p0_double_-45,p1_unannotated,p2_double_-44.995,p3_double_-44.99,p4_int_-45,p8_other_key_only
+faims_filter	tolerance_half	-0x1.68p+5	0x1p-1	ok	p0_double_-45,p1_unannotated,p2_double_-44.995,p3_double_-44.99,p4_int_-45,p8_other_key_only
+faims_filter	tolerance_zero	-0x1.68p+5	0x0p+0	ok	p1_unannotated,p8_other_key_only
+faims_filter	tolerance_negative	-0x1.68p+5	-0x1p+0	ok	p1_unannotated,p8_other_key_only
+faims_filter	tolerance_infinite	-0x1.68p+5	inf	ok	p0_double_-45,p1_unannotated,p2_double_-44.995,p3_double_-44.99,p4_int_-45,p5_double_-55,p6_double_-44.5,p7_double_+45,p8_other_key_only
+faims_filter	tolerance_nan	-0x1.68p+5	nan	ok	p1_unannotated,p8_other_key_only
+faims_filter	target_nan	nan	0x1.47ae147ae147bp-7	ok	p1_unannotated,p8_other_key_only
+faims_filter	target_positive	0x1.68p+5	0x1.47ae147ae147bp-7	ok	p1_unannotated,p7_double_+45,p8_other_key_only
+faims_filter	empty_input	-0x1.68p+5	0x1.47ae147ae147bp-7	ok	-
+faims_filter_empty_value_exists	1
+faims_filter	empty_datavalue_annotation	-0x1.68p+5	0x1.47ae147ae147bp-7	exception:ConversionError	-

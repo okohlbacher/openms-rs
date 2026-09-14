@@ -1,0 +1,220 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "sha256": "039634ddb6e898e0c76428723a0a88a3069a380bf09e7421d2d2ae640fea218e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakTypeEstimator_test.cpp",
+   "sha256": "313686c99b54d2f0cb4658836cc2610563b518774afb59355b56d9c6a26c9c10"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/PeakTypeEstimator_raw.dta",
+   "sha256": "262bb2a65406892bd6ed1c0027151a863d91e7653bc487402ae58122647ea792"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/PeakTypeEstimator_rawTOF.dta",
+   "sha256": "8419dab0821b3ea794a8fa73c1846c5b0f933564f2fc5618a65756d03b70de14"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/PeakTypeEstimator_peak.dta",
+   "sha256": "69d552ec11db33256f09c1e403aecc45018f3d4c2553ba27112d8ebecd6d5297"
+  }
+ ],
+ "native_implementation": [
+  "src/format/peak_type_estimator.rs",
+  "src/kernel/spectrum_type.rs"
+ ],
+ "native_tests": [
+  "tests/peak_type_estimator.rs"
+ ],
+ "support": "docs/PEAK_TYPE_ESTIMATOR_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 40,
+   "operation": "@note: fewer than 5 peaks in the iterator range return SpectrumType::UNKNOWN; checked first at line 47, before any value is read"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 59,
+   "operation": "total intensity accumulated in double from float intensities, in order"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 66,
+   "operation": "stop examining maxima once explained intensity exceeds 0.5 * total (strict), at most five maxima"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 73,
+   "operation": "maximum search with strict >, starting from 0: the first highest point wins and nonpositive data yields no maximum"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 87,
+   "operation": "left shoulder: stops at data.begin() without examining it; intensity <= last, > 0, ratio to last strictly > 0.1, mz + 1 > max mz"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 101,
+   "operation": "rising point after the left shoulder restores the previous sink intensity"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 105,
+   "operation": "fewer than two left shoulder points (it_max - it < 3) marks break_left, but the right side is still cleared"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 115,
+   "operation": "right shoulder with mirrored conditions, mz - 1 < max mz; sink restore at line 130"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 144,
+   "operation": "float evidence ratio profile / float(profile + centroid); > 0.75 is PROFILE (the comment says 80%); 0/0 NaN is CENTROID"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h",
+   "line": 158,
+   "operation": "alternative quartile-of-distances estimateType kept inside a comment for reference (lines 158-242); never compiled, not ported"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+   "line": 162,
+   "operation": "MSSpectrum::getType(true) calls estimateType(begin(), end()) after the stored type and the PEAK_PICKING history"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileInfo.cpp",
+   "line": 1599,
+   "operation": "FileInfo estimates the peak type of the first spectrum per MS level with more than 10 peaks"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/peak_type_estimator/oracle_estimates.tsv",
+   "sha256": "a56202b0ea58fc559bf64543cf139639d2cec7ceef1087ebf3da43839cb49445",
+   "rows": 82,
+   "kind": "oracle-generated (tier 1 executed differential): the pte_ records of ../oracle/pte-faims-helper/results/pte_faims_oracle.tsv (3 pte_dta, 3 pte_dta_first4, 65 pte_mzml, 11 pte_synthetic)"
+  },
+  {
+   "path": "tests/data/spectrum_type/PeakTypeEstimator_raw.dta",
+   "sha256": "262bb2a65406892bd6ed1c0027151a863d91e7653bc487402ae58122647ea792",
+   "kind": "pinned class-test input, byte-identical to the core data file; owned by the spectrum_type group and read here without modification"
+  },
+  {
+   "path": "tests/data/spectrum_type/PeakTypeEstimator_rawTOF.dta",
+   "sha256": "8419dab0821b3ea794a8fa73c1846c5b0f933564f2fc5618a65756d03b70de14",
+   "kind": "pinned class-test input, byte-identical to the core data file; owned by the spectrum_type group and read here without modification"
+  },
+  {
+   "path": "tests/data/spectrum_type/PeakTypeEstimator_peak.dta",
+   "sha256": "69d552ec11db33256f09c1e403aecc45018f3d4c2553ba27112d8ebecd6d5297",
+   "kind": "pinned class-test input, byte-identical to the core data file; owned by the spectrum_type group and read here without modification"
+  },
+  {
+   "path": "tests/data/faims_helper/IM_FAIMS_test.mzML",
+   "sha256": "3a4b469e5df625ec4fa2319b69bfb2e96a399dfa9a5040ba8e7bdabad868690b",
+   "kind": "pinned class-test input owned by the faims_helper group; 19 spectra estimated"
+  },
+  {
+   "path": "tests/data/baseline_filter_tool_input.mzML",
+   "sha256": "4f694e838c83df0368673b0b023ad7a53b8990f9d6ad7eedf1a737ea977720c5",
+   "kind": "existing repository fixture read without modification; 2 spectra estimated"
+  },
+  {
+   "path": "tests/data/window_mower_tool_input.mzML",
+   "sha256": "df641949fbb0a1370333a4d49a11317da9e4f9fa2e295acfda6b2dd4614d8afe",
+   "kind": "existing repository fixture read without modification; 3 spectra estimated"
+  },
+  {
+   "path": "tests/data/dta_extractor_input.mzML",
+   "sha256": "da6175cbdb6e82e46ab55094e467dee3fc71468870b06f0f5a920ca25e1886e0",
+   "kind": "existing repository fixture read without modification; 3 spectra estimated"
+  },
+  {
+   "path": "tests/data/precursor_purity_input.mzML",
+   "sha256": "2f5a1a3590bb5e261d3055041a55cf3888270028d76a1fbf898c9beb78181b44",
+   "kind": "existing repository fixture read without modification; 7 spectra estimated"
+  },
+  {
+   "path": "tests/data/map_normalizer_input.mzML",
+   "sha256": "e7a982b84bca77886493c4a62ef60c0702197406b5742d5e22811d567413719d",
+   "kind": "existing repository fixture read without modification; 20 spectra estimated"
+  },
+  {
+   "path": "tests/data/mzml_splitter_input.mzML",
+   "sha256": "befa3b5dc2ea543812bb6447eaee89fd77a6653d9c0a7d9dc25fc2f0421e486c",
+   "kind": "existing repository fixture read without modification; 10 spectra estimated"
+  },
+  {
+   "path": "tests/data/mzml_upstream_serum.mzML",
+   "sha256": "8ae288b606b959b532791d36450dc546c72fa6903a5ffe69bd9ec0659eac9cc4",
+   "kind": "existing repository fixture read without modification; 1 spectrum estimated"
+  }
+ ],
+ "evidence_tier": 1,
+ "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; git diff 4fdec46..bc9cc12 empty for PeakTypeEstimator.h, its class test and fixtures, MSSpectrum.cpp, DTAFile and MzMLHandler.cpp; installed PeakTypeEstimator.h equal to the pin) executed estimateType on the three class-test DTA spectra, on all 65 spectra of eight mzML fixtures and on eleven synthetic shapes. The Rust estimate_type matches every record whose peaks are finite, and MSSpectrum::get_type(true) with nothing stored equals the estimate on all 65 spectra; the reader-level getType(false)/getType(true) columns also match. The two non-finite synthetic shapes are refused natively and their C++ class (CENTROID) is asserted. Tier 3: the three PeakTypeEstimator_test.cpp sections are transcribed unchanged. Tier 4: ceiling parity with MSSpectrum::get_type_with_limits and the finiteness refusal. No Debug-only precondition lies on this path.",
+ "class_test_sections": {
+  "PeakTypeEstimator_test.cpp": {
+   "sections": 3,
+   "ported": 3,
+   "unaccounted": 0,
+   "tests": {
+    "[EXTRA]PeakTypeEstimator()": "extra_constructor_and_destructor_sections",
+    "[EXTRA] ~PeakTypeEstimator()": "extra_constructor_and_destructor_sections",
+    "estimateType(begin, end)": "estimate_type_section_classifies_the_three_upstream_spectra"
+   }
+  }
+ },
+ "oracle": {
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "manifest": "../oracle/pte-faims-helper/manifest.json",
+  "manifest_sha256": "eb29e3035039a90710d18077853ef01fe41c692df8099525a1f71f7ad370bb95",
+  "sdk_source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+  "sdk_build_type": "Debug",
+  "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+  "driver_output_sha256": "2d99c1270c341ab03500b5dc1a096b482fd65517302555da1156891300384261",
+  "split_rule": "grep -E '^pte_' of the driver stdout; concatenated with tests/data/faims_helper/oracle_cases.tsv it reproduces the driver stdout byte for byte",
+  "reproduced_byte_for_byte": true,
+  "debug_only": []
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/pte-faims-helper/driver.cpp",
+   "sha256": "f1135c35c4839a012502766791ea3addb42e533fefd99ae7316e78ba6c571944",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/CMakeLists.txt",
+   "sha256": "2802af92389c3b015bbd138eba157c6d154f93e5f26af58fc7891bdd6089b3ba",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/run.sh",
+   "sha256": "4225c7d902c6c78a1efeac4d1fd807afd8504a904bd5c93e2e6501e9ac9f27eb",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/manifest.json",
+   "sha256": "eb29e3035039a90710d18077853ef01fe41c692df8099525a1f71f7ad370bb95",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The oracle driver links the prebuilt product-sdk and lives outside this repository under ../oracle/ so that no C++ is committed here. Only its generated records and their sha256 values enter the repository.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

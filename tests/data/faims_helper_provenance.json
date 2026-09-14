@@ -1,0 +1,184 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/IONMOBILITY/FAIMSHelper.h",
+   "sha256": "c37b3c0c224c0ee7d13feca1b4e80452fc0e0033e70d71cdcc67dec4eec38756"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
+   "sha256": "c0d91c7ede220a173d67cccce966ab0e0a29a1f6e1a17db9a6cff202d14bacf4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FAIMSHelper_test.cpp",
+   "sha256": "5869ed1eb95ba7dce9799827797aae970f3328df4906b11baf3209dd2824b72e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/IM_FAIMS_test.mzML",
+   "sha256": "3a4b469e5df625ec4fa2319b69bfb2e96a399dfa9a5040ba8e7bdabad868690b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/IONMOBILITY/IMTypes.h",
+   "sha256": "78234161bbea0fc48d21c1898451d75d98f1829ce313b9e7295ca96f3ac2fbc4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Constants.h",
+   "sha256": "cd34e3ab2627176d5ce81dd1d3e6cf9c752e03e607ea2b72eafeb939f0e1a67d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/PeptideIdentificationList.h",
+   "sha256": "8ec4241c46dec5448fdec64301e2fa98c529f8ac9b9de39ac03f8b8845084153"
+  }
+ ],
+ "native_implementation": [
+  "src/kernel/faims_helper.rs"
+ ],
+ "native_tests": [
+  "tests/faims_helper.rs"
+ ],
+ "support": "docs/FAIMS_HELPER_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/IONMOBILITY/FAIMSHelper.h",
+   "line": 33,
+   "operation": "getCompensationVoltages scans all spectra, collects CVs of spectra whose drift time unit is FAIMS_COMPENSATION_VOLTAGE, returns an empty set without FAIMS spectra, and ignores DRIFTTIME_NOT_SET with a warning"
+  },
+  {
+   "path": "src/openms/include/OpenMS/IONMOBILITY/FAIMSHelper.h",
+   "line": 57,
+   "operation": "filterPeptidesByFAIMSCV cv_tolerance defaults to 0.01"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
+   "line": 24,
+   "operation": "early return for an experiment without spectra, then an any_of pre-scan for a FAIMS spectrum (30-38); both only return the empty set that collection would also yield"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
+   "line": 45,
+   "operation": "CVs.insert(spec.getDriftTime()) into std::set<double> with no NaN check"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
+   "line": 50,
+   "operation": "CVs.erase(IMTypes::DRIFTTIME_NOT_SET) > 0 logs 'Warning: FAIMS compensation voltage is missing for at least one spectrum!' with OPENMS_LOG_WARN"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
+   "line": 68,
+   "operation": "an identification with a FAIMS_CV meta value (metaValueExists) is converted with (double)getMetaValue and kept when std::abs(pep_cv - target_cv) < cv_tolerance (strict)"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
+   "line": 78,
+   "operation": "identifications without a FAIMS_CV annotation are kept in every group for backward compatibility"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+   "line": 466,
+   "operation": "operator double throws ConversionError for EMPTY_VALUE, converts INT_VALUE, and otherwise reads data_.dou_ (CPP-058 for strings and lists)"
+  },
+  {
+   "path": "src/openms/source/METADATA/MetaInfo.cpp",
+   "line": 106,
+   "operation": "setValue stores any DataValue, EMPTY included, so metaValueExists reports an empty annotation"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileInfo.cpp",
+   "line": 1673,
+   "operation": "FileInfo calls getCompensationVoltages unconditionally on every peak file (also line 1742)"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "line": 31,
+   "operation": "splitByFAIMSCV groups spectra by the voltage set, in set order"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/faims_helper/IM_FAIMS_test.mzML",
+   "sha256": "3a4b469e5df625ec4fa2319b69bfb2e96a399dfa9a5040ba8e7bdabad868690b",
+   "kind": "pinned class-test input, byte-identical to src/tests/class_tests/openms/data/IM_FAIMS_test.mzML; its compensation voltages are spectrum-level MS:1001581 cvParams"
+  },
+  {
+   "path": "tests/data/faims_helper/oracle_cases.tsv",
+   "sha256": "d690315731531655fd809db721f92e5bc9ccd36a7e2e662665d1bb72a82345fb",
+   "rows": 48,
+   "kind": "oracle-generated (tier 1 executed differential): the faims_ records of ../oracle/pte-faims-helper/results/pte_faims_oracle.tsv (1 faims_file_spectra, 19 faims_file_spectrum, 1 faims_file_cvs, 16 faims_cvs, 10 faims_filter, 1 faims_filter_empty_value_exists)"
+  }
+ ],
+ "evidence_tier": 1,
+ "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; git diff 4fdec46..bc9cc12 empty for FAIMSHelper.{h,cpp}, FAIMSHelper_test.cpp, IM_FAIMS_test.mzML, MzMLHandler.cpp, DataValue.cpp, MetaInfo.cpp, IMTypes.h and Constants.h; installed FAIMSHelper.h equal to the pin) executed getCompensationVoltages on IM_FAIMS_test.mzML and on 16 synthetic experiments, and filterPeptidesByFAIMSCV under 10 parameter cases plus an empty annotation. The Rust voltages equal the C++ sets bit for bit, including the sign of zero, in iteration order, for every case without a FAIMS NaN; the Rust filter keeps exactly the C++ identifiers for the six accepted parameter cases. The three NaN cases, the four silent parameter cases and the empty annotation are refused natively, and their recorded C++ outcomes are asserted. The oracle stderr carries the missing-voltage warning three times (class_section_beyond_first_and_sentinel, only_sentinel, nan_first); Rust warns for the first two and refuses the third. Tier 3: the five FAIMSHelper_test.cpp sections are transcribed unchanged. Tier 4: CompensationVoltage ordering, equality and hashing, the refusals and the ceilings. filterPeptidesByFAIMSCV has no upstream class test; the oracle is its only executed evidence. No Debug-only precondition lies on this path.",
+ "class_test_sections": {
+  "FAIMSHelper_test.cpp": {
+   "sections": 5,
+   "ported": 5,
+   "unaccounted": 0,
+   "tests": {
+    "FAIMSHelper()": "constructor_and_destructor_sections",
+    "~FAIMSHelper()": "constructor_and_destructor_sections",
+    "getCompensationVoltages(PeakMap& exp)": "get_compensation_voltages_section_on_the_values_the_cpp_reader_produced (passes); get_compensation_voltages_section_through_the_mzml_reader (ignored until A3-FORMAT-IO)",
+    "getCompensationVoltages() detects FAIMS beyond first spectrum and ignores sentinel": "get_compensation_voltages_detects_faims_beyond_the_first_spectrum_and_ignores_the_sentinel_section",
+    "getCompensationVoltages() returns empty for non-FAIMS": "get_compensation_voltages_returns_empty_for_non_faims_section"
+   },
+   "pending_dependency": {
+    "test": "get_compensation_voltages_section_through_the_mzml_reader",
+    "waits_for": "A3-FORMAT-IO spectrum-level MS:1001581 in src/format/mzml.rs",
+    "measured_failure": "tests/faims_helper.rs:158 spectrum 0 drift_time bits 13830554455654793216 (-1.0, the unset sentinel) where the C++ reader produced 13856309416023818240 (-55.0)"
+   }
+  }
+ },
+ "cpp_issue_candidates": [
+  "getCompensationVoltages inserts NaN drift times into std::set<double>, violating strict weak ordering: a NaN first empties the result and logs a spurious missing-voltage warning; a later NaN is silently dropped (oracle nan_first, nan_middle, nan_last)",
+  "filterPeptidesByFAIMSCV accepts a zero, negative or NaN tolerance and a NaN target and silently keeps only unannotated identifications (oracle tolerance_zero, tolerance_negative, tolerance_nan, target_nan)"
+ ],
+ "oracle": {
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "manifest": "../oracle/pte-faims-helper/manifest.json",
+  "manifest_sha256": "eb29e3035039a90710d18077853ef01fe41c692df8099525a1f71f7ad370bb95",
+  "sdk_source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+  "sdk_build_type": "Debug",
+  "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+  "driver_output_sha256": "2d99c1270c341ab03500b5dc1a096b482fd65517302555da1156891300384261",
+  "driver_stderr_sha256": "ff84d92b896e9d8fabf6e9d1dc14ec3e690eecaa91a654a8c253d0273def333e",
+  "split_rule": "grep -E '^faims_' of the driver stdout; tests/data/peak_type_estimator/oracle_estimates.tsv followed by this file reproduces the driver stdout byte for byte",
+  "reproduced_byte_for_byte": true,
+  "debug_only": []
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/pte-faims-helper/driver.cpp",
+   "sha256": "f1135c35c4839a012502766791ea3addb42e533fefd99ae7316e78ba6c571944",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/CMakeLists.txt",
+   "sha256": "2802af92389c3b015bbd138eba157c6d154f93e5f26af58fc7891bdd6089b3ba",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/run.sh",
+   "sha256": "4225c7d902c6c78a1efeac4d1fd807afd8504a904bd5c93e2e6501e9ac9f27eb",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/manifest.json",
+   "sha256": "eb29e3035039a90710d18077853ef01fe41c692df8099525a1f71f7ad370bb95",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The oracle driver links the prebuilt product-sdk and lives outside this repository under ../oracle/ so that no C++ is committed here. Only its generated records, the pinned class-test mzML and their sha256 values enter the repository.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
