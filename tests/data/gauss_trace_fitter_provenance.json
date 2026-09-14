@@ -5,8 +5,8 @@
  "license": "BSD-3-Clause",
  "group": "trace_fitter",
  "work_package": "B4-GAUSS (early TOPP bundle, wave 2)",
- "method": "Port of FEATUREFINDER/TraceFitter.h and .cpp (the trait contract declared by the integrator, filled with the parameter defaults and Param mapping, the Levenberg-Marquardt driver optimize_ and the shared start-value steps) and of FEATUREFINDER/GaussTraceFitter.h and .cpp. The 16 START_SECTIONs of TraceFitter_test.cpp and the 17 of GaussTraceFitter_test.cpp are transcribed with their literals and comparison macros. The Gaussian records of the C2 class-level oracle (class-test fits, degenerate inputs and the 25 fits of the FeatureFinderCentroided_1 seed loop) and a B4 driver (defaults, setParameters, fit failures, start-value boundaries, gnuplot formatting) are retained as fixtures and replayed value by value.",
- "evidence_tier": "tier 1 (executed differential: product-SDK libOpenMS; 30,348 recorded floating-point values replayed, plus every recorded status, count, boolean and string) for the start values, the GaussTraceFunctor residuals and Jacobians, the fitted parameters at every recorded budget, every query (bounds, FWHM, area, getValue, the span checks, computeTheoretical, getGnuplotFormula), getDefaults, setParameters and the UnableToFit failures with the state they leave; adapted (C2's optimize_ replica, checked against the library at every budget) for the Levenberg-Marquardt status, nfev, njev and the evaluation sequence; tier 3 for the transcribed class-test sections; tier 4 for the optimize configuration against a direct minimize call, the work ceiling, initial_shape's loops, the refusals of empty traces and out-of-range indices, and non-finite input",
+ "method": "Port of FEATUREFINDER/TraceFitter.h and .cpp (the trait contract declared by the integrator, filled with the parameter defaults and Param mapping, the Levenberg-Marquardt driver optimize_ and the shared start-value steps) and of FEATUREFINDER/GaussTraceFitter.h and .cpp. The 16 START_SECTIONs of TraceFitter_test.cpp and the 17 of GaussTraceFitter_test.cpp are transcribed with their literals and comparison macros. The Gaussian records of the C2 class-level oracle (class-test fits, degenerate inputs and the 25 fits of the FeatureFinderCentroided_1 seed loop) and a B4 driver (defaults, setParameters, fit failures, start-value boundaries, gnuplot formatting) are retained as fixtures and replayed value by value. The review probe's 79 further inputs are retained as a known-gap fixture: their start values and the residuals and Jacobians at the start are asserted, and the fitted parameters, statuses, nfev, njev and residual paths are reported by an ignored test without asserting any Rust value.",
+ "evidence_tier": "tier 1 (executed differential: product-SDK libOpenMS; 30,348 recorded floating-point values replayed, plus every recorded status, count, boolean and string) for the start values, the GaussTraceFunctor residuals and Jacobians, the fitted parameters at every recorded budget, every query (bounds, FWHM, area, getValue, the span checks, computeTheoretical, getGnuplotFormula), getDefaults, setParameters and the UnableToFit failures with the state they leave; adapted (C2's optimize_ replica, checked against the library at every budget) for the Levenberg-Marquardt status, nfev, njev and the evaluation sequence; tier 3 for the transcribed class-test sections; tier 4 for the optimize configuration against a direct minimize call, the work ceiling, initial_shape's loops, the refusals of empty traces and out-of-range indices, and non-finite input; the fit agreement (fitted parameters within 1e-9, equal status, nfev and njev) is fixture-specific: on the review probe's 79 further inputs (tier 1 / adapted, tests/data/gauss_trace_fitter/solver_gap.tsv) it does not hold, a known gap recorded under known_gaps and not asserted",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FEATUREFINDER/TraceFitter.h",
@@ -116,6 +116,14 @@
    "rows": 364,
    "kind": "oracle-generated (tier 1 executed differential)",
    "role": "output of ../oracle/gauss-trace-fitter/driver.cpp, byte-identical across two runs: getDefaults, eight setParameters cases, four fit failures with the state they leave, nine start-value boundary fits with their queries, and five gnuplot formatting cases"
+  },
+  {
+   "path": "tests/data/gauss_trace_fitter/solver_gap.tsv",
+   "sha256": "8e73b0b8dd185823e8e41f13f6796864c3189c392f9fa588cd6c4c23a44bfbe0",
+   "bytes": 903044,
+   "rows": 1807,
+   "kind": "oracle-generated (tier 1 executed differential) for the library fit, the start vector and the functor at it; the replica status, nfev, njev, final vector and residual path are adapted",
+   "role": "../oracle/gauss-trace-fitter/solver-gap/run.sh (to_fixture.py over library_probe.cpp, replica.cpp and functor_probe.cpp outputs, each run twice byte-identically): the round-2 review's 79 inputs (12 edge cases, 7 budget cases, 60 seeded random Gaussian sets) with max_iteration, weighting and traces; the product-SDK fit outcome, fitted parameters and region span; the Eigen replica's status, nfev, njev, raw final vector and every residual-evaluation point; and the library functor's residuals and column-major Jacobian at the start vector. Read by solver_gap_inputs_first_step_inputs_match_the_oracle (asserted, 1e-14) and by the ignored solver_gap_probe_reports_the_known_gap (report only)"
   }
  ],
  "class_test_review": {
@@ -133,7 +141,8 @@
  "oracle": {
   "manifests": [
    "../oracle/featurefinder-picked/manifest.json",
-   "../oracle/gauss-trace-fitter/manifest.json"
+   "../oracle/gauss-trace-fitter/manifest.json",
+   "../oracle/gauss-trace-fitter/solver-gap/manifest.json"
   ],
   "evidence_label": "oracle-generated (tier 1 executed differential); adapted for the C2 optimize_ replica",
   "sdk": "product-sdk, Debug build of core 4fdec46b205459b92e7d3b9e56df5d8e912d5c85, AppleClang 21.0.0, C++23, Eigen 5.0.1",
@@ -143,7 +152,7 @@
   "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=product-sdk/share/OpenMS/4.0.0, per-run scratch working directory, perl alarm 600 s",
   "reproduction": "run.sh runs the driver twice from separate scratch directories and requires byte-identical output; extract_c2.py is run over the C2 omp1 and omp4 results and the outputs must be byte-identical.",
   "debug_only": [],
-  "comparison": "Start values, residuals, Jacobians and queries evaluated on the oracle's fitted parameters within 1e-14 relative; fitted parameters, sweep parameters and the evaluation path within 1e-9 relative; statuses, nfev, njev, evaluation sequences, booleans, strings and budget boundaries exactly. Four of the driver's own ill-conditioned start-value fits (n4_boundary, merged_profile, leading_max, trailing_max) carry bounds of 1e-8, 1e-8, 1e-3 and 1e-2: the expected values are the oracle's, the bounds are the next power of ten above the port's own largest measured deviation, not oracle values. Their start values are bit-identical; the driver recorded no functor evaluations for them; the gap persists with the oracle platform's exp and log, so it does not come from exp or log and most likely arises in the Levenberg-Marquardt solver (B3 solver-fidelity item; the mechanism is not established). Measured on Linux x86-64 (IBMI dax, glibc 2.39) with stable Rust and 1.85.0, default and no default features: 30,348 floating-point values compared, 25,249 bit-identical; start values, residuals, Jacobians and queries 0 deviation everywhere; class-test fits 2.5e-12, FeatureFinderCentroided_1 fits 6.4e-10. On macOS arm64 (Apple libm; independent review run of 46be7d2) the same deviations hold, with 16,696 instead of 16,699 bit-identical FeatureFinderCentroided_1 values and different fits in cases that pass through an exp argument where the libraries differ (start.tie4_smoothed 0 vs 3.74e-13, start.flat_alpha_ge_1 5.95e-15 vs 2.95e-11, start.trailing_max 1.49e-3 vs 1.72e-3).",
+  "comparison": "Start values, residuals, Jacobians and queries evaluated on the oracle's fitted parameters within 1e-14 relative; fitted parameters, sweep parameters and the evaluation path within 1e-9 relative; statuses, nfev, njev, evaluation sequences, booleans, strings and budget boundaries exactly. Four of the driver's own ill-conditioned start-value fits (n4_boundary, merged_profile, leading_max, trailing_max) carry bounds of 1e-8, 1e-8, 1e-3 and 1e-2: the expected values are the oracle's, the bounds are the next power of ten above the port's own largest measured deviation, not oracle values. Their start values are bit-identical; the driver recorded no functor evaluations for them; the gap persists with the oracle platform's exp and log, so it does not come from exp or log. They are instances of the general solver gap under known_gaps, not its extent. Measured on Linux x86-64 (IBMI dax, glibc 2.39) with stable Rust and 1.85.0, default and no default features: 30,348 floating-point values compared, 25,249 bit-identical; start values, residuals, Jacobians and queries 0 deviation everywhere; class-test fits 2.5e-12, FeatureFinderCentroided_1 fits 6.4e-10. These fit, status, nfev and njev agreements are fixture-specific; see known_gaps. On macOS arm64 (Apple libm; independent review run of 46be7d2) the same deviations hold, with 16,696 instead of 16,699 bit-identical FeatureFinderCentroided_1 values and different fits in cases that pass through an exp argument where the libraries differ (start.tie4_smoothed 0 vs 3.74e-13, start.flat_alpha_ge_1 5.95e-15 vs 2.95e-11, start.trailing_max 1.49e-3 vs 1.72e-3).",
   "platform_math": "exp and log are the platform C library's, so fitted parameters are not bit-identical across platforms. At the 3,972 residual points the oracle recorded, glibc (dax) and Apple libm (macOS arm64) both reproduce every C++ residual and Jacobian entry bit for bit. Over the 37,080 distinct exp and 25 log arguments the tests reach (../oracle/gauss-trace-fitter/exp-simulation), glibc and Apple libm disagree at 70 exp arguments; glibc is not correctly rounded at 31, Apple libm at 69, both misround 15 identically; log agrees everywhere. Substituting Apple libm's values for exp and log on dax reproduces the macOS run, so the C library is the whole cross-platform difference. Substituting correctly rounded values passes every test and criterion (residuals and Jacobians 0 deviation at every recorded point) with fewer bit-identical values: class tests 6,355 of 10,461 (8,255 with either platform library), FeatureFinderCentroided_1 16,658 of 19,572. The libm crate's exp differed from the platform libraries at 362 recorded evaluations by one unit in the last place, moving residuals by up to 9.1e-12 relative (breaking the 1e-14 criterion) and FeatureFinderCentroided_1 sigma by up to 1.13e-9. Platform library versus correctly rounded exp/log is an integrator decision; B5-EGH must make the same choice."
  },
  "source_anchors": [
@@ -355,6 +364,36 @@
    "origin_key": "oracle"
   },
   {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/exp_check14.py",
+   "sha256": "300b1f2a95faed8ff8ecc134cd934456c4dc0efec7dc29b9c4dd2992a4c1f169",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/tables/apple_libm_table.tsv",
+   "sha256": "356caf3b2949ffb8523115787ca4ee20fde4d38e281bfa4cee83b1528b6c596d",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/tables/correctly_rounded_table.tsv",
+   "sha256": "c6e02bdafb0550978e49dfc15534599d215b58d9a46a3462a6399c157847bb3f",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/tables/glibc_first_run_args.tsv",
+   "sha256": "f6354d60ce1ef50827dcaf2f1a53ed0465925a8ea12e06495ab322c848f1beaf",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/exp-simulation/tables/union_args_glibc_values.tsv",
+   "sha256": "a207444b0000891cda1b733198acd588c2a305d81412288b2ba2e0a060994968",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
    "path": "../oracle/gauss-trace-fitter/param-range/probe.cpp",
    "sha256": "6963709bd3a7d6c4731eb27599fa62943edb70ac2b255b1afadf41e1132b5b0b",
    "location": "outside this repository",
@@ -371,14 +410,115 @@
    "sha256": "39a6bc7f23130f126a0b0f599de851fc432d0aac3473a2ed3961fa167912c125",
    "location": "outside this repository",
    "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/manifest.json",
+   "sha256": "9d58b293c7c2cde78c9461f2363c7001d53056bbedb2c788afadc7f169dfbdbe",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/gen_cases.py",
+   "sha256": "f6ebd96785cac1e75f2c7a267fd7c63226ab354b8d6fa09ce29597e9e1cbdae9",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/cases.tsv",
+   "sha256": "272fdacaa089e488c3e628ef47998502607dc796aa5008094fd21a3232914ccf",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/library_probe.cpp",
+   "sha256": "6efd6cd82c471905e66aced72fb9b94d26bf3221143458618a4e611e38c3d68b",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/replica.cpp",
+   "sha256": "e377f18477597e4a4e8f49fa6a730147ab36e0450000a57a5bcbbb8952e40850",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/functor_probe.cpp",
+   "sha256": "5f47540b2ab0d3e295ac630cbf9e52d2de562479f454f464686ecbcb0a5ea270",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/run.sh",
+   "sha256": "a00133ba43c59c827d90de840906b08087f773eaea9935579ade28edcbdfed2f",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/to_fixture.py",
+   "sha256": "91a49eca7075845c20264245930e67793c5aa898e03102f8ef1c91c89fa50740",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/results/library_probe.tsv",
+   "sha256": "9ba608116cb97a510e0d5047f4ffb8a70c7e3d6767ae3996e27614b2c38e780f",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/results/replica.tsv",
+   "sha256": "20b1e7b590d96752222be8705a21aed9fffd76bef998994ccbe926ddcd6e070d",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/results/functor_probe.tsv",
+   "sha256": "00a105e34225eb3b7e7829e7cad2232a2c8ce2d9e8e890e44f83de64bf947368",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/results/solver_gap.tsv",
+   "sha256": "8e73b0b8dd185823e8e41f13f6796864c3189c392f9fa588cd6c4c23a44bfbe0",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/logs/rust_report_macos_arm64.log",
+   "sha256": "87e749235ce14e59c372c6d054f3d98283308980ad24d1015e317a8f948fd538",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/gauss-trace-fitter/solver-gap/logs/rust_report_linux_x86_64_dax.log",
+   "sha256": "9ac3f483ee5552161d83483dc9660d4f712401e3baac36d7323505d46fa2abd8",
+   "location": "outside this repository",
+   "origin_key": "oracle"
   }
  ],
- "external_reference_note": "The B4 driver, its run script, the C2 extraction script and the C2 results they read live outside this repository under ../oracle/ so that no C++ is committed here. The fixtures above are their output and are hashed in-repo. The external files are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate. exp-simulation holds the table-lookup harness and logs behind oracle.platform_math; param-range holds the executed probe of max_iteration beyond int.",
+ "external_reference_note": "The B4 driver, its run script, the C2 extraction script and the C2 results they read live outside this repository under ../oracle/ so that no C++ is committed here. The fixtures above are their output and are hashed in-repo. The external files are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate. exp-simulation holds the table-lookup harness and logs behind oracle.platform_math; param-range holds the executed probe of max_iteration beyond int. Every file that exp-simulation/manifest.json hashes is listed individually: its scripts, patch, logs and the four tables. solver-gap holds the review probe's 79 inputs, its library and Eigen-replica drivers (promoted unchanged), the round-3 functor driver, the run script, the join script, the results behind tests/data/gauss_trace_fitter/solver_gap.tsv, and the logs of the Rust report on macOS arm64 and Linux x86-64 (known_gaps).",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "source_revisions": [
    "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
   ],
   "source_changes": []
- }
+ },
+ "known_gaps": [
+  {
+   "id": "levenberg-marquardt-fidelity",
+   "status": "open; not asserted; root cause in src/math/fitters/levenberg_marquardt.rs, under investigation in lane B3b (this package does not change that file)",
+   "claim": "GaussTraceFitter::fit is not bit-faithful to the executed libOpenMS beyond the C2 and B4 fixtures. From start vectors, residuals and Jacobians that are bit-identical to the library's, the Levenberg-Marquardt transcription's residual-evaluation path departs from Eigen 5.0.1's in the last bits on most inputs already at the first trial step; fitted parameters then differ well beyond 1e-9, and the status and nfev can differ. The class-test (2.5e-12) and FeatureFinderCentroided_1 (6.4e-10) fit agreement, and the equal statuses, nfev and njev there, are fixture-specific.",
+   "executed": "The round-2 review generated 79 inputs (12 edge cases, 7 budget cases with max_iteration 1-13, 60 seeded random Gaussian sets: 1-4 traces, 3-40 peaks, 0-30% noise, weighted or unweighted, budget 1-60 or 500) and ran them on macOS arm64 through the product-SDK GaussTraceFitter::fit (tier 1, two byte-identical runs) and an Eigen replica of optimize_ on the library's own functor (adapted; reproduces the library's final parameters bit for bit in 79/79). Round 3 promoted the drivers to ../oracle/gauss-trace-fitter/solver-gap, reran them byte-identically, and added the library functor at the start vector (tier 1).",
+   "fixture": "tests/data/gauss_trace_fitter/solver_gap.tsv",
+   "asserted": "solver_gap_inputs_first_step_inputs_match_the_oracle: start vectors, region spans, residuals and Jacobians at the start vector within 1e-14; 14,065 of 14,065 values bit-identical on macOS arm64 and Linux x86-64",
+   "reported_not_asserted": "solver_gap_probe_reports_the_known_gap (#[ignore]; run with --ignored --nocapture); logs in ../oracle/gauss-trace-fitter/solver-gap/logs",
+   "measured_rust_deviations": {
+    "label": "measurements of the current port (library code of e6a5fec), not expectations",
+    "macos_arm64": "reproduces the review's numbers: residual path departs in 72/79 (58 at evaluation 1, all by evaluation 13); final height/centre/sigma/span bit-identical 124/316; 21 fits beyond 1e-9: 12 natural terminations by 1.04e-9 to 3.2e-4 (random_55 3.2e-4, random_52 1.4e-4, large_intensity 6.6e-5, random_28 5.6e-5, random_21 5.5e-5, unsorted_two_traces 1.9e-5, random_39 1.9e-5, negative_intensity 4.2e-6, random_17 3.9e-6, random_48 6.0e-9, random_33 2.45e-9, random_7 1.04e-9), 9 exhausted budgets of 500 by 9.0e-7 to 4.9e-3 (weighted_theo_negative 4.9e-3, random_23 4.3e-3, random_8 4.2e-3, random_12 3.9e-3); status differs in 3 (random_28 Rust 1/132 vs Eigen 2/126, random_52 1/154 vs 2/157, random_55 3/118 vs 1/111); nfev differs in 9 natural terminations (large_intensity 188 vs 249); the 20 fits stopped by a budget below 500 within 4.9e-12",
+    "linux_x86_64_dax_glibc_2_39": "the same 72 departures at the same evaluations with the same first deviations; bit-identical 123/316; 21 fits beyond 1e-9: 12 natural by 1.04e-9 to 3.2e-4, 9 exhausted by 1.1e-7 to 1.2e-2 (random_58 1.2e-2); status differs in 2 (random_28, random_52); nfev differs in 9 natural terminations"
+   },
+   "consequence": "The four ill-conditioned driver cases with measured bounds (start.n4_boundary, merged_profile, leading_max, trailing_max) are instances of this gap. When the solver matches Eigen, the report becomes an asserted replay with the package's tolerances and those bounds go. exp/log platform choice is second-order next to this gap."
+  }
+ ]
 }

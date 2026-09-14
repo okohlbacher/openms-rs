@@ -234,6 +234,8 @@ C++ (the C2 oracle reaches them through a derived probe class).
 | The 25 Gaussian fits of FeatureFinderCentroided_1's seed loop, with the traces the loop handed the fitter | 1 / adapted | `feature_finder_centroided_1_seed_fits_replay_the_oracle` |
 | `getDefaults`, eight `setParameters` cases, four fit failures and the state they leave, nine start-value boundaries, five gnuplot formatting cases | 1 | `tests/trace_fitter.rs`, `fit_failures_match_the_oracle`, `start_value_boundaries_match_the_oracle`, `gnuplot_number_formatting_matches_the_oracle` |
 | `optimize` configuration, refusals, exhausted budget, huge budget, work ceiling, `initial_shape` loops, non-finite input | 4 | `tests/trace_fitter.rs`, unit tests in `trace_fitter.rs`, `non_finite_input_does_not_panic` |
+| The review probe's 79 inputs: start vectors, region spans, residuals and Jacobians at the start vector | 1 (library), adapted for the replica's first evaluation point | `solver_gap_inputs_first_step_inputs_match_the_oracle` |
+| The same inputs: fitted parameters, status, `nfev`, `njev`, residual path (**known gap**, see below) | 1 / adapted, recorded and reported, not asserted | `solver_gap_probe_reports_the_known_gap` (`#[ignore]`) |
 
 **Oracle.** `../oracle/gauss-trace-fitter/run.sh` compiles `driver.cpp` against
 the product SDK (Debug, core `4fdec46`; the traced sources are hash-identical to
@@ -241,7 +243,9 @@ the product SDK (Debug, core `4fdec46`; the traced sources are hash-identical to
 environment and requires identical output, then extracts the Gaussian records of
 the C2 class-level oracle (`../oracle/featurefinder-picked`, results `omp1` and
 `omp4`, which must agree) with `extract_c2.py`. The four fixture files are its
-output; their sha256 values are in the manifest. No C++ is in this repository.
+output; their sha256 values are in the manifest. The fifth fixture,
+`solver_gap.tsv`, comes from `../oracle/gauss-trace-fitter/solver-gap/run.sh`
+(see "Known gap"). No C++ is in this repository.
 
 **Comparison.** Start values, residuals, Jacobians and the queries (evaluated on
 the oracle's fitted parameters) are compared within 1e-14 relative; fitted
@@ -263,11 +267,15 @@ difference 1):
 | fit failures | 32 | 32 | 32 | 0 |
 | gnuplot case | 3 | 3 | 3 | 0 |
 
-Every status agrees at every budget checked: 1 to 500 for the class-test cases,
-and for the seeds every budget up to two past natural termination plus 100,
-131, 250, 499 and 500. `nfev` and `njev` agree at every class-test budget and,
-for the seeds, at 500; the sequence of residual and Jacobian evaluations of the
-four class-test fits at 500 is the same, with parameters within 1e-9. The
+On these fixtures, every status agrees at every budget checked: 1 to 500 for
+the class-test cases, and for the seeds every budget up to two past natural
+termination plus 100, 131, 250, 499 and 500. `nfev` and `njev` agree at every
+class-test budget and, for the seeds, at 500; the sequence of residual and
+Jacobian evaluations of the four class-test fits at 500 is the same, with
+parameters within 1e-9. **This agreement is fixture-specific.** It is not a
+general property of the port: on other inputs the fits, statuses and `nfev`
+differ from the executed solver (see "Known gap: solver fidelity beyond the
+fixtures"). The
 budget boundaries are the
 oracle's: the class-test results equal the result at 500 from `max_iteration`
 47 (0.8/0.2, unweighted and weighted) and 31 (weighted 0.4/0.6) and differ at
@@ -290,13 +298,11 @@ What was executed:
   oracle platform's library: the macOS review run, and the substitution run
   on Linux) and with correctly rounded ones, except for `trailing_max`.
 
-So the gap does not come from `exp` or `log`. It most likely arises in the
-Levenberg-Marquardt solver, where the transcription in
-`src/math/fitters/levenberg_marquardt.rs` (package B3's file) and the executed
-Eigen 5.0.1 part company after some steps, and these fits amplify it. Where
-they part company is not established. That Eigen's vectorised reductions pair
-some sums differently is an untested hypothesis. The cases are handed to B3 as a
-solver-fidelity item.
+So the gap does not come from `exp` or `log`. These four cases are not
+special: they are instances of the general solver gap described in the next
+section, which the review's 79 further inputs exposed. The root cause is in
+`src/math/fitters/levenberg_marquardt.rs` and is under investigation in lane
+B3b.
 
 | Case | Largest relative deviation of height, centre, sigma: glibc / Apple libm / correctly rounded | Asserted bound |
 | --- | --- | --- |
@@ -307,8 +313,110 @@ solver-fidelity item.
 
 The expected values are the oracle's. The bounds are not: each is the next
 power of ten above the port's own largest measured deviation. A change of the
-solver (package B3) must re-measure them, and a solver that matches Eigen here
-should replace them with the 1e-9 fit tolerance.
+solver must re-measure them, and a solver that matches Eigen here should
+replace them with the 1e-9 fit tolerance.
+
+**Known gap: solver fidelity beyond the fixtures.** `GaussTraceFitter::fit`
+is not bit-faithful to the executed library in general. The class-test and
+FeatureFinderCentroided_1 results above (fits within 2.5e-12 and 6.4e-10,
+equal statuses, `nfev` and `njev`) are fixture-specific.
+
+What was executed:
+
+- The round-2 review of this package (commit `e6a5fec`) generated 79 inputs:
+  12 edge cases, 7 budget cases (`max_iteration` 1 to 13) and 60 seeded random
+  Gaussian sets (1 to 4 traces, 3 to 40 peaks, 0 to 30% noise, weighted or
+  unweighted, budget 1 to 60 or 500).
+- On macOS arm64, the oracle platform with Apple libm, it ran them through
+  the product-SDK `GaussTraceFitter::fit` (tier 1; two runs, byte-identical
+  output). It also ran them through its Eigen 5.0.1 replica of `optimize_` on
+  the library's own `GaussTraceFunctor` and start values (adapted: status,
+  `nfev`, `njev`, the raw final vector and every residual-evaluation point).
+  The replica reproduces the library's final parameters bit for bit in 79 of
+  79 cases, so its path is the library's.
+- The review's drivers are promoted unchanged to
+  `../oracle/gauss-trace-fitter/solver-gap` (`gen_cases.py`, `replica.cpp`,
+  and `review_probe.cpp` as `library_probe.cpp`). This round added
+  `functor_probe.cpp`: the library's `GaussTraceFunctor` residuals and
+  Jacobian at the library's start vector, the inputs of Eigen's first step
+  (tier 1). `run.sh` builds all three like the other drivers
+  (`-O0 -ffp-contract=off`, product SDK, Eigen 5.0.1), runs each twice with
+  byte-identical output, and `to_fixture.py` joins the results. Rerun on
+  2026-09-14, it reproduced the review's library and replica outputs byte for
+  byte. The fixture `tests/data/gauss_trace_fitter/solver_gap.tsv` holds the
+  inputs and the executed results, and nothing computed by Rust.
+- `solver_gap_inputs_first_step_inputs_match_the_oracle` asserts the start
+  vectors, the region spans, and the residuals and Jacobians at the start
+  vector within 1e-14. All 14,065 values are bit-identical on both platforms.
+- `solver_gap_probe_reports_the_known_gap` is `#[ignore]`d. Run with
+  `--ignored --nocapture`, it prints the port's deviations case by case and
+  asserts nothing about them. The printed reports of the two runs summarised
+  below are kept in `../oracle/gauss-trace-fitter/solver-gap/logs`.
+
+The review measured the port on macOS arm64. Running the report there on
+2026-09-14 reproduced the review's counts, fit deviations, statuses and
+`nfev`; the Linux column comes from dax (glibc 2.39). The first-difference
+deviation and the budget-limited bound below are this report's own measures.
+These are measurements of the current port, not expectations:
+
+| Measure | macOS arm64 | Linux x86-64 |
+| --- | --- | --- |
+| Start vector (evaluation 0) bit-identical | 79 of 79 | 79 of 79 |
+| Residual path departs from Eigen's | 72 of 79: 58 at evaluation 1 (the first trial step), the rest by evaluation 13 | the same |
+| Largest coordinate's relative deviation at the first differing evaluation | 1.1e-16 to 8.3e-14 | the same |
+| Final height, centre, sigma and span bit-identical | 124 of 316 | 123 of 316 |
+| Fits beyond 1e-9, natural termination | 12, by 1.04e-9 to 3.2e-4 | 12, by 1.04e-9 to 3.2e-4 |
+| Fits beyond 1e-9, budget of 500 exhausted | 9, by 9.0e-7 to 4.9e-3 | 9, by 1.1e-7 to 1.2e-2 |
+| Fits stopped by a budget below 500 (20) | within 4.9e-12 (the 7 budget cases within 4e-15) | the same |
+| Status differs | 3 | 2 |
+| `nfev` differs at natural termination | 9 | 9 |
+| `njev` differs | 17 | 17 |
+
+The fits beyond 1e-9 (relative deviation of height, centre or sigma from the
+library; status/`nfev` of the replica versus the port):
+
+| Case | Eigen status/`nfev` | macOS arm64 | Linux x86-64 |
+| --- | --- | --- | --- |
+| `large_intensity` | 1/249 | 6.6e-5, 1/188 | 6.6e-5, 1/188 |
+| `negative_intensity` | 1/132 | 4.2e-6, 1/123 | 6.0e-6, 1/118 |
+| `unsorted_two_traces` | 1/118 | 1.9e-5, 1/123 | 1.9e-5, 1/123 |
+| `random_7` | 1/86 | 1.04e-9, 1/86 | 1.04e-9, 1/86 |
+| `random_17` | 2/378 | 3.9e-6, 2/371 | 5.8e-5, 2/394 |
+| `random_21` | 1/112 | 5.5e-5, 1/111 | 5.5e-5, 1/111 |
+| `random_28` | 2/126 | 5.6e-5, **1**/132 | 5.6e-5, **1**/132 |
+| `random_33` | 1/97 | 2.45e-9, 1/97 | 2.46e-9, 1/97 |
+| `random_39` | 1/314 | 1.9e-5, 1/312 | 1.9e-5, 1/312 |
+| `random_48` | 3/52 | 6.0e-9, 3/52 | 6.0e-9, 3/52 |
+| `random_52` | 2/157 | 1.4e-4, **1**/154 | 1.4e-4, **1**/154 |
+| `random_55` | 1/111 | 3.2e-4, **3**/118 | 3.2e-4, 1/117 |
+| `weighted_theo_negative` | 5/500 | 4.9e-3 | 5.8e-3 |
+| `random_4` | 5/500 | 3.8e-4 | 3.3e-4 |
+| `random_8` | 5/500 | 4.2e-3 | 3.7e-3 |
+| `random_10` | 5/500 | 3.5e-4 | 1.9e-4 |
+| `random_12` | 5/500 | 3.9e-3 | 1.2e-3 |
+| `random_23` | 5/500 | 4.3e-3 | 4.3e-3 |
+| `random_24` | 5/500 | 9.0e-7 | 1.1e-7 |
+| `random_32` | 5/500 | 7.3e-4 | 1.1e-3 |
+| `random_58` | 5/500 | 1.25e-3 | 1.2e-2 |
+
+What this establishes:
+
+- On all 79 inputs the start vector and the residuals and Jacobian there are
+  bit-identical to the library's, on both platforms. In 58 cases the very
+  next point Eigen evaluates already differs. The departure therefore arises
+  inside `minimize`, in the first step's computation on most inputs. It does
+  not come from this package's start values, functor or driver configuration.
+- **The root cause is in `src/math/fitters/levenberg_marquardt.rs`, and it
+  is under investigation in lane B3b.** Where in the step the bits first
+  differ is not established here. This package does not change that file.
+- The four ill-conditioned driver cases above are instances of this gap, not
+  its extent.
+- `exp` and `log` are second-order here. Linux and macOS depart from Eigen at
+  the same evaluations, and the Linux-versus-macOS differences in the table
+  come after that departure.
+- When the solver matches Eigen, the report should become an asserted replay
+  with the package's tolerances, and the measured bounds of the four driver
+  cases should go.
 
 **`exp` and `log` across platforms.** The evidence for native difference 1:
 
@@ -397,6 +505,12 @@ should replace them with the 1e-9 fit tolerance.
   `complete` with `tests/trace_fitter.rs` and this document.
 - `GaussTraceFitter.h`: every member is mapped above; proposed `complete` with
   `tests/gauss_trace_fitter.rs` and this document.
+- Known gap for the ledger: `GaussTraceFitter::fit` is not bit-faithful to
+  the executed library beyond the fixtures (see "Known gap: solver fidelity
+  beyond the fixtures"). This is a solver-fidelity item owned by lane B3b
+  (`src/math/fitters/levenberg_marquardt.rs`), and it applies to every
+  consumer of that solver, including B5-EGH and the feature finder's fits.
+  It is not limited to four ill-conditioned cases.
 - New module edges `analysis -> math` and `analysis -> param`, both acyclic;
   `tools/check_module_cycles.py` reports them as not yet recorded.
 - CI: `cargo test --locked --no-default-features --test trace_fitter --test gauss_trace_fitter`

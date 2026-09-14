@@ -36,6 +36,17 @@
 //! both (`docs/TRACE_FITTER_SUPPORT.md`, native difference 1). Each replay
 //! prints how many values were bit-identical and the largest relative
 //! deviation it met.
+//!
+//! The fit, status, `nfev` and `njev` agreement of these replays holds for
+//! these fixtures only. On other inputs the Eigen transcription departs from
+//! the executed solver in the last bits, usually at the first trial step, and
+//! fits can miss 1e-9 by orders of magnitude. The review probe's 79 inputs
+//! (`tests/data/gauss_trace_fitter/solver_gap.tsv`, from
+//! `../oracle/gauss-trace-fitter/solver-gap`) record that gap. Their start
+//! values, and the residuals and Jacobians at them, are asserted; the ignored
+//! `solver_gap_probe_reports_the_known_gap` prints the rest without asserting
+//! any Rust value. The root cause is in
+//! `src/math/fitters/levenberg_marquardt.rs`, under investigation in lane B3b.
 
 // The class-test literals are transcribed verbatim, including digits beyond
 // the precision of their type, so the f32 values match the C++ literals exactly.
@@ -1264,10 +1275,11 @@ fn fit_failures_match_the_oracle() {
 #[test]
 fn start_value_boundaries_match_the_oracle() {
     // Every start value, the query arithmetic and the gnuplot text agree bit for
-    // bit in every case; the fitted parameters of four ill-conditioned fits do
-    // not reach 1e-9 (see `ill_conditioned_fit_tolerance`). The driver recorded
-    // no functor evaluations for these cases, so residuals and Jacobians are not
-    // compared here.
+    // bit in every case; the fitted parameters of four fits do not reach 1e-9
+    // (see `ill_conditioned_fit_tolerance`), an instance of the general solver
+    // gap recorded by `solver_gap_probe_reports_the_known_gap`. The driver
+    // recorded no functor evaluations for these cases, so residuals and
+    // Jacobians are not compared here.
     let fixture = Fixture::parse(EXTRA);
     let cases = fixture.cases("start.");
     assert_eq!(cases.len(), 9);
@@ -1363,10 +1375,14 @@ fn start_value_boundaries_match_the_oracle() {
 /// Only the start values are known to equal the oracle's bit for bit; the
 /// driver recorded no residuals or Jacobians for these cases. The gap persists
 /// with the oracle platform's own `exp` and `log`, so it does not come from
-/// them. It most likely arises inside the Levenberg-Marquardt solver, where the
-/// transcription in `src/math/fitters/levenberg_marquardt.rs` (package B3's
-/// file) and the executed Eigen 5.0.1 part company after some steps, but where
-/// is not established. These cases are a solver-fidelity item for B3. A change
+/// them.
+///
+/// These four are not special. They are instances of a general gap: the
+/// Levenberg-Marquardt transcription in `src/math/fitters/levenberg_marquardt.rs`
+/// departs from the executed Eigen 5.0.1 in the last bits, on most inputs
+/// already at the first trial step. The review's 79 further inputs
+/// (`solver_gap_probe_reports_the_known_gap`) put 21 fits beyond 1e-9. The
+/// root cause is in that file and is under investigation in lane B3b. A change
 /// of the solver must re-measure the bounds, and a solver that matches Eigen
 /// here should drop them for the 1e-9 fit tolerance.
 fn ill_conditioned_fit_tolerance(case: &str) -> Option<f64> {
@@ -1425,6 +1441,292 @@ fn gnuplot_number_formatting_matches_the_oracle() {
         );
     }
     deviations.report("gnuplot");
+}
+
+// ---------------------------------------------------------------------------
+// Known gap: the solver beyond the fixtures (report only)
+// ---------------------------------------------------------------------------
+
+/// The review probe's 79 inputs with the executed C++ results
+/// (`../oracle/gauss-trace-fitter/solver-gap`).
+const SOLVER_GAP: &str = include_str!("data/gauss_trace_fitter/solver_gap.tsv");
+
+/// `|actual - expected| / max(|actual|, |expected|)`, 0 for equal values and
+/// for two NaNs, infinite when the scale is zero or not finite.
+fn relative_deviation(actual: f64, expected: f64) -> f64 {
+    if actual == expected || (actual.is_nan() && expected.is_nan()) {
+        return 0.0;
+    }
+    let scale = actual.abs().max(expected.abs());
+    if scale.is_finite() && scale > 0.0 {
+        (actual - expected).abs() / scale
+    } else {
+        f64::INFINITY
+    }
+}
+
+/// Whether two floating-point values have the same bits, counting any two
+/// NaNs as equal.
+fn same_bits(actual: f64, expected: f64) -> bool {
+    actual.to_bits() == expected.to_bits() || (actual.is_nan() && expected.is_nan())
+}
+
+/// The residual-evaluation points of a [`BudgetFit`], three values each,
+/// without the Jacobian evaluations.
+fn residual_points(fit: &BudgetFit) -> Vec<&[f64]> {
+    fit.kinds
+        .chars()
+        .zip(fit.path.chunks(3))
+        .filter(|(kind, _)| *kind == 'f')
+        .map(|(_, point)| point)
+        .collect()
+}
+
+/// What the solver's first step reads is the library's, on the review probe's
+/// 79 inputs.
+///
+/// The start vector and region span come from the library's
+/// `setInitialParameters_`: the vector is the replica's first residual
+/// evaluation point (and the functor probe's), the span the library fit's.
+/// The residuals and the column-major Jacobian at that vector come from the
+/// library's `GaussTraceFunctor`. All are compared within 1e-14 relative, as
+/// every other start value, residual and Jacobian is. This part of the fit
+/// belongs to this package and holds on these inputs; the departure that
+/// `solver_gap_probe_reports_the_known_gap` reports begins after it, inside
+/// the solver.
+#[test]
+fn solver_gap_inputs_first_step_inputs_match_the_oracle() {
+    let fixture = Fixture::parse(SOLVER_GAP);
+    let cases = fixture.cases("gap.");
+    assert_eq!(cases.len(), 79);
+    let mut deviations = Deviations::default();
+    for case in &cases {
+        let traces = fixture.traces(case);
+        let weighted = fixture.boolean(case, "weighted");
+        let mut start = GaussTraceFitter::new();
+        start.set_initial_parameters(&traces).unwrap();
+        let x_start = [start.height(), start.center(), start.sigma()];
+        let path = fixture.f64s(case, "replica.path");
+        assert!(path.len() >= 3, "{case}: no residual evaluation recorded");
+        deviations.check_all("start vector", case, &x_start, &path[..3], EXACT_TOLERANCE);
+        deviations.check_all(
+            "start vector",
+            case,
+            &x_start,
+            &fixture.f64s(case, "functor[x_init].x"),
+            EXACT_TOLERANCE,
+        );
+        deviations.check(
+            "region_rt_span",
+            case,
+            start.region_rt_span(),
+            fixture.f64(case, "library.region_rt_span"),
+            EXACT_TOLERANCE,
+        );
+        check_functor(&mut deviations, &fixture, case, &traces, weighted);
+    }
+    deviations.report("solver-gap probe: start values, residuals and Jacobians at the start");
+}
+
+/// A known gap, reported and not asserted: the port's Levenberg-Marquardt
+/// path against the executed Eigen solver on inputs outside the C2 and B4
+/// fixtures.
+///
+/// The fixture holds the review probe of B4-GAUSS round 2: 12 edge cases,
+/// 7 budget cases and 60 seeded random Gaussian sets (1 to 4 traces, 3 to 40
+/// peaks, 0 to 30% noise, weighted or not, budget 1 to 60 or 500). For each it
+/// records the product-SDK `GaussTraceFitter::fit` (tier 1) and the review's
+/// Eigen replica of `optimize_` on the library's own functor (adapted: status,
+/// `nfev`, `njev`, the raw final vector and every residual-evaluation point),
+/// which reproduces the library's final parameters bit for bit in 79 of 79
+/// cases. All of it ran on macOS arm64.
+///
+/// The port's residual path departs from the replica's in the last bits in
+/// 72 of the 79 cases, 58 of them already at the first trial step
+/// (evaluation 1), from start vectors, residuals and Jacobians that are
+/// identical (`solver_gap_inputs_first_step_inputs_match_the_oracle`). On
+/// these inputs 21 fits then miss the 1e-9 fit tolerance, and statuses and
+/// `nfev` can differ (`docs/TRACE_FITTER_SUPPORT.md`, "Known gap"). This
+/// holds on macOS arm64 and on Linux x86-64. The root cause is in
+/// `src/math/fitters/levenberg_marquardt.rs`, under investigation in lane
+/// B3b. Until it is fixed this test is ignored; run it with
+/// `--ignored --nocapture`. It prints one line per case and a summary. It
+/// asserts only the fixture's shape, never a Rust value, and the numbers it
+/// prints are measurements of the current port, not expectations. When the
+/// solver matches Eigen, the comparison should become an ordinary replay with
+/// the package's tolerances, and the ignore should go.
+#[test]
+#[ignore = "known gap: the Levenberg-Marquardt transcription departs from Eigen (lane B3b); prints a report, asserts no Rust value"]
+fn solver_gap_probe_reports_the_known_gap() {
+    let fixture = Fixture::parse(SOLVER_GAP);
+    let cases = fixture.cases("gap.");
+    assert_eq!(cases.len(), 79);
+
+    let mut start_identical = 0usize;
+    let mut paths_differ = 0usize;
+    let mut first_step = 0usize;
+    let mut latest_first = 0usize;
+    let mut first_deviation = (f64::INFINITY, 0.0f64);
+    let mut values_identical = 0usize;
+    let mut outcome_differs = Vec::new();
+    let mut beyond_natural = Vec::new();
+    let mut beyond_exhausted = Vec::new();
+    let mut short_budget_largest = 0.0f64;
+    let mut status_differs = Vec::new();
+    let mut nfev_differs = Vec::new();
+    let mut njev_differs = 0usize;
+
+    for case in &cases {
+        let traces = fixture.traces(case);
+        let max_iteration = fixture.i64(case, "max_iteration");
+        let weighted = fixture.boolean(case, "weighted");
+        let name = case.trim_start_matches("gap.");
+
+        // The library fit (tier 1).
+        let mut fitter = GaussTraceFitter::with_parameters(TraceFitterParams {
+            max_iteration,
+            weighted,
+        });
+        let outcome = match fitter.fit(&traces) {
+            Ok(()) => "ok".to_owned(),
+            Err(error) => error.to_string(),
+        };
+        let expected_outcome = fixture.string(case, "library.outcome");
+        if outcome != expected_outcome {
+            outcome_differs.push(name.to_owned());
+        }
+        let mut expected = fixture.f64s(case, "library.params");
+        assert_eq!(expected.len(), 3, "{case} library.params");
+        expected.push(fixture.f64(case, "library.region_rt_span"));
+        let actual = [
+            fitter.height(),
+            fitter.center(),
+            fitter.sigma(),
+            fitter.region_rt_span(),
+        ];
+        values_identical += actual
+            .iter()
+            .zip(&expected)
+            .filter(|(a, e)| same_bits(**a, **e))
+            .count();
+        let fit_deviation = actual[..3]
+            .iter()
+            .zip(&expected[..3])
+            .map(|(a, e)| relative_deviation(*a, *e))
+            .fold(0.0, f64::max);
+
+        // The replica (adapted): status, counts and the residual path.
+        let expected_status = fixture.i64(case, "replica.status");
+        let expected_nfev = fixture.i64(case, "replica.nfev");
+        let expected_njev = fixture.i64(case, "replica.njev");
+        let expected_path = fixture.f64s(case, "replica.path");
+        assert_eq!(
+            expected_path.len(),
+            3 * usize::try_from(expected_nfev).unwrap(),
+            "{case} replica.path"
+        );
+        let expected_points: Vec<&[f64]> = expected_path.chunks(3).collect();
+        let run = fit_at_budget(&traces, weighted, max_iteration);
+        let status = run
+            .status
+            .as_ref()
+            .map(|s| i64::from(s.code()))
+            .map_err(|e| e.to_string());
+        let points = residual_points(&run);
+        let first_difference = points
+            .iter()
+            .zip(&expected_points)
+            .position(|(a, e)| a.iter().zip(e.iter()).any(|(a, e)| !same_bits(*a, *e)))
+            .or_else(|| {
+                (points.len() != expected_points.len())
+                    .then(|| points.len().min(expected_points.len()))
+            });
+        if points
+            .first()
+            .zip(expected_points.first())
+            .is_some_and(|(a, e)| a.iter().zip(e.iter()).all(|(a, e)| same_bits(*a, *e)))
+        {
+            start_identical += 1;
+        }
+        let mut divergence = String::from("none");
+        if let Some(index) = first_difference {
+            paths_differ += 1;
+            if index == 1 {
+                first_step += 1;
+            }
+            latest_first = latest_first.max(index);
+            if let (Some(a), Some(e)) = (points.get(index), expected_points.get(index)) {
+                let deviation = a
+                    .iter()
+                    .zip(e.iter())
+                    .map(|(a, e)| relative_deviation(*a, *e))
+                    .fold(0.0, f64::max);
+                first_deviation = (
+                    first_deviation.0.min(deviation),
+                    first_deviation.1.max(deviation),
+                );
+                divergence = format!("evaluation {index} (relative {deviation:.1e})");
+            } else {
+                divergence = format!("evaluation {index} (one path ends)");
+            }
+        }
+        if status != Ok(expected_status) {
+            status_differs.push(format!(
+                "{name}: Rust {status:?}/{} vs Eigen {expected_status}/{expected_nfev}",
+                run.nfev
+            ));
+        }
+        if as_i64(run.nfev) != expected_nfev && expected_status != 5 {
+            nfev_differs.push(format!("{name} {} vs {expected_nfev}", run.nfev));
+        }
+        if as_i64(run.njev) != expected_njev {
+            njev_differs += 1;
+        }
+        if fit_deviation > FIT_TOLERANCE {
+            let entry = format!(
+                "{name} ({fit_deviation:.2e}, Eigen status {expected_status}, nfev {expected_nfev})"
+            );
+            if expected_status == 5 {
+                beyond_exhausted.push(entry);
+            } else {
+                beyond_natural.push(entry);
+            }
+        }
+        if expected_status == 5 && max_iteration < 500 {
+            short_budget_largest = short_budget_largest.max(fit_deviation);
+        }
+        eprintln!(
+            "GAP {name}: budget {max_iteration}, weighted {weighted}; outcome {outcome:?} vs {expected_outcome:?}; \
+             fit relative deviation {fit_deviation:.2e}; status {status:?} vs {expected_status}; \
+             nfev {} vs {expected_nfev}; njev {} vs {expected_njev}; first differing residual evaluation: {divergence}",
+            run.nfev, run.njev
+        );
+    }
+
+    eprintln!("GAP summary over {} cases:", cases.len());
+    eprintln!("  start vector (evaluation 0) bit-identical: {start_identical}");
+    eprintln!(
+        "  residual paths differing: {paths_differ} ({first_step} at evaluation 1, latest first difference at evaluation {latest_first}); relative deviation at the first difference {:.1e} to {:.1e}",
+        first_deviation.0, first_deviation.1
+    );
+    eprintln!(
+        "  final height, centre, sigma, span bit-identical: {values_identical} of {}",
+        4 * cases.len()
+    );
+    eprintln!("  library outcome differs: {outcome_differs:?}");
+    eprintln!(
+        "  fits beyond {FIT_TOLERANCE:e}: {} natural terminations {beyond_natural:?}; {} exhausted budgets {beyond_exhausted:?}",
+        beyond_natural.len(),
+        beyond_exhausted.len()
+    );
+    eprintln!(
+        "  largest fit deviation of the budget-limited fits below 500: {short_budget_largest:.2e}"
+    );
+    eprintln!("  status differs: {status_differs:?}");
+    eprintln!(
+        "  nfev differs at natural termination: {} {nfev_differs:?}; njev differs: {njev_differs}",
+        nfev_differs.len()
+    );
 }
 
 // ---------------------------------------------------------------------------
