@@ -207,6 +207,53 @@ pub(super) fn field(parent: &str, accession: &str) -> Option<&'static str> {
         _ => None,
     }
 }
+
+/// Drift-time unit and PSI-MS/UO unit accession of a source mobility term.
+///
+/// `MzMLHandler.cpp` maps the same four accessions on the selected-ion
+/// (1839-1882), scan (2279-2311) and spectrum (1731-1738, FAIMS only) routes.
+/// Every Rust route reads this one table, so the accession/unit pairs cannot
+/// drift apart between them.
+pub(super) fn mobility_term(accession: &str) -> Option<(D, &'static str)> {
+    match accession {
+        "MS:1002476" => Some((D::Millisecond, "UO:0000028")),
+        "MS:1002815" => Some((D::InverseReducedMobility, "MS:1002814")),
+        "MS:1001581" => Some((D::FaimsCompensationVoltage, "UO:0000218")),
+        "MS:1002954" => Some((D::CollisionCrossSection, "UO:0000324")),
+        _ => None,
+    }
+}
+
+/// Accession, CV name and unit attributes the writers emit for a mobility
+/// unit, or `None` for `DriftTimeUnit::None`, which has no mzML term.
+///
+/// Shared by the selected-ion writer and the scan writer
+/// (`MzMLHandler.cpp:4607-4628` and 5412-5440).
+pub(super) fn mobility_cv(unit: D) -> Option<(&'static str, &'static str, &'static str)> {
+    match unit {
+        D::Millisecond => Some((
+            "MS:1002476",
+            "ion mobility drift time",
+            " unitCvRef=\"UO\" unitAccession=\"UO:0000028\" unitName=\"millisecond\"",
+        )),
+        D::InverseReducedMobility => Some((
+            "MS:1002815",
+            "inverse reduced ion mobility",
+            " unitCvRef=\"MS\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\"",
+        )),
+        D::FaimsCompensationVoltage => Some((
+            "MS:1001581",
+            "FAIMS compensation voltage",
+            " unitCvRef=\"UO\" unitAccession=\"UO:0000218\" unitName=\"volt\"",
+        )),
+        D::CollisionCrossSection => Some((
+            "MS:1002954",
+            "collisional cross sectional area",
+            " unitCvRef=\"UO\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\"",
+        )),
+        D::None => None,
+    }
+}
 fn unit(attrs: &BTreeMap<String, String>, expected: &str) -> Result<()> {
     if attrs.get("unitAccession").is_some_and(|v| v != expected) {
         return Err(Error::Unsupported(
@@ -245,11 +292,8 @@ pub(super) fn read_cv(
             .possible_charge_states
             .push(number(value, "possible charge state")?),
         ("selectedIon", "MS:1002476" | "MS:1002815" | "MS:1001581" | "MS:1002954") => {
-            let (kind, cv_unit) = match accession {
-                "MS:1002476" => (D::Millisecond, "UO:0000028"),
-                "MS:1002815" => (D::InverseReducedMobility, "MS:1002814"),
-                "MS:1001581" => (D::FaimsCompensationVoltage, "UO:0000218"),
-                _ => (D::CollisionCrossSection, "UO:0000324"),
+            let Some((kind, cv_unit)) = mobility_term(accession) else {
+                return Ok(false);
             };
             unit(attrs, cv_unit)?;
             p.drift_time = Some(finite(value, "precursor mobility")?);
@@ -405,28 +449,8 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
         )?;
     }
     if let Some(value) = p.drift_time {
-        let (accession, name, unit) = match p.drift_time_unit {
-            D::Millisecond => (
-                "MS:1002476",
-                "ion mobility drift time",
-                " unitCvRef=\"UO\" unitAccession=\"UO:0000028\" unitName=\"millisecond\"",
-            ),
-            D::InverseReducedMobility => (
-                "MS:1002815",
-                "inverse reduced ion mobility",
-                " unitCvRef=\"MS\" unitAccession=\"MS:1002814\" unitName=\"volt-second per square centimeter\"",
-            ),
-            D::FaimsCompensationVoltage => (
-                "MS:1001581",
-                "FAIMS compensation voltage",
-                " unitCvRef=\"UO\" unitAccession=\"UO:0000218\" unitName=\"volt\"",
-            ),
-            D::CollisionCrossSection => (
-                "MS:1002954",
-                "collisional cross sectional area",
-                " unitCvRef=\"UO\" unitAccession=\"UO:0000324\" unitName=\"square angstrom\"",
-            ),
-            D::None => return Err(invalid("mobility unit missing after preflight")),
+        let Some((accession, name, unit)) = mobility_cv(p.drift_time_unit) else {
+            return Err(invalid("mobility unit missing after preflight"));
         };
         cv(w, accession, name, &value.to_string(), unit)?;
     }

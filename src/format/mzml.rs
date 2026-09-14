@@ -45,7 +45,7 @@ use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor,
     SpectrumType,
 };
-use crate::metadata::{MetaValue, MetaValueData, Product, Unit};
+use crate::metadata::{DriftTimeUnit, MetaValue, MetaValueData, Product, Unit};
 use crate::{Error, Result};
 pub use load::LoadOptions;
 #[path = "mzml_acquisition.rs"]
@@ -81,6 +81,12 @@ use std::{
 
 const NS: &[u8] = b"http://psi.hupo.org/ms/mzml";
 const NAME_KEY: &str = "openms-rust:name";
+/// FAIMS volt unit as spelled by the earlier OpenMS writer that produced the
+/// upstream `FAIMS_CV-60C_V-45_Interleaved.mzML:324` and
+/// `FAIMS_test_data.mzML:171`; the pinned writer emits `UO:0000218`
+/// (`MzMLHandler.cpp:5415`). The source reader ignores unit attributes on
+/// mobility terms, so it reads both spellings.
+const LEGACY_FAIMS_VOLT: &str = "UO:000218";
 
 /// Resource limits and acquisition normalization for mzML loading.
 /// Limits apply before allocation from declared lengths and during decoding.
@@ -328,6 +334,12 @@ fn check_canonical_encoding(name: &str, encoding: Encoding) -> Result<()> {
     }
     Ok(())
 }
+/// Whether a binary-array parameter carries any unit attribute.
+fn has_unit_attributes(attrs: &BTreeMap<String, String>) -> bool {
+    ["unitAccession", "unitCvRef", "unitName"]
+        .iter()
+        .any(|key| attrs.contains_key(*key))
+}
 fn integer_array_encoding(name: &str) -> Encoding {
     if name == "charge array" {
         Encoding::Int32
@@ -360,27 +372,15 @@ impl Binary {
                     if name.is_empty() {
                         return Err(invalid("auxiliary array name is empty"));
                     }
-                    if ["unitAccession", "unitCvRef", "unitName"]
-                        .iter()
-                        .any(|k| attrs.contains_key(*k))
-                    {
-                        return Err(Error::Unsupported(
-                            "units on auxiliary arrays are not represented".into(),
-                        ));
-                    }
                     Some(Kind::Auxiliary(name.to_owned()))
                 }
                 _ => canonical_array_name(accession).map(|name| Kind::Auxiliary(name.into())),
             }
         };
-        if matches!(kind, Some(Kind::Auxiliary(_)))
-            && ["unitAccession", "unitCvRef", "unitName"]
-                .iter()
-                .any(|key| attrs.contains_key(*key))
-        {
-            return Err(Error::Unsupported(
-                "units on auxiliary arrays are not represented".into(),
-            ));
+        if let Some(Kind::Auxiliary(name)) = &kind {
+            if has_unit_attributes(attrs) {
+                self.mobility_array_unit(name, attrs, budget)?;
+            }
         }
         if let Some(kind) = kind {
             if self.kind.replace(kind).is_some() {
@@ -425,6 +425,57 @@ impl Binary {
             } else {
                 return Err(Error::Unsupported(format!("binary array CV {accession}")));
             }
+        }
+        Ok(())
+    }
+    /// Retain the unit of an ion-mobility array as the source's `unit_accession`
+    /// array metadata (`MzMLHandlerHelper.cpp:291-295`), which the writer
+    /// emits again and the reader restores.
+    ///
+    /// Only arrays that `MSSpectrum::contains_im_data` classifies as ion
+    /// mobility keep a unit. The source stores a unit on every non-default
+    /// array; other auxiliary arrays stay an explicit `Unsupported` error in
+    /// this port, as before.
+    fn mobility_array_unit(
+        &mut self,
+        name: &str,
+        attrs: &BTreeMap<String, String>,
+        budget: &mut ParameterBudget,
+    ) -> Result<()> {
+        let probe = MSSpectrum {
+            float_data_arrays: vec![DataArray::new(name, Vec::new())],
+            ..Default::default()
+        };
+        if !probe.contains_im_data() {
+            return Err(Error::Unsupported(
+                "units on auxiliary arrays are not represented".into(),
+            ));
+        }
+        let accession = attrs
+            .get("unitAccession")
+            .ok_or_else(|| invalid("array unit attributes require an accession"))?;
+        let prefix = accession
+            .split_once(':')
+            .map(|(prefix, _)| prefix)
+            .ok_or_else(|| invalid("invalid array unit accession"))?;
+        if !matches!(prefix, "MS" | "UO") {
+            return Err(Error::Unsupported(
+                "ion mobility array units require an MS or UO accession".into(),
+            ));
+        }
+        if attrs
+            .get("unitCvRef")
+            .is_some_and(|cv_ref| cv_ref != prefix)
+        {
+            return Err(invalid("array unit CV identity mismatch"));
+        }
+        record_transport::slot(budget, "unit_accession")?;
+        if self
+            .metadata
+            .insert("unit_accession".into(), accession.clone().into())
+            .is_some()
+        {
+            return Err(invalid("duplicate array unit metadata"));
         }
         Ok(())
     }
@@ -731,6 +782,50 @@ impl Record {
             &mut self.chromatogram.as_mut().unwrap().metadata
         }
     }
+    /// Spectrum- and scan-level ion mobility: `MS:1001581` directly below the
+    /// spectrum (`MzMLHandler.cpp:1731-1738`) and the four mobility terms below
+    /// a scan (2279-2311) set the spectrum's drift time and unit.
+    ///
+    /// The accession/unit table is the selected-ion one. A unit attribute must
+    /// name that quantity's unit, except that the legacy FAIMS spelling
+    /// [`LEGACY_FAIMS_VOLT`] is read as volts; the source ignores unit
+    /// attributes entirely. An identical repeat is accepted. A conflicting
+    /// repeat is `Unsupported`, where the source silently keeps the last value.
+    fn spectrum_mobility(
+        &mut self,
+        accession: &str,
+        value: &str,
+        attrs: &BTreeMap<String, String>,
+    ) -> Result<()> {
+        let Some((unit, expected)) = precursor_metadata::mobility_term(accession) else {
+            return Ok(());
+        };
+        if let Some(given) = attrs.get("unitAccession") {
+            let legacy =
+                unit == DriftTimeUnit::FaimsCompensationVoltage && given == LEGACY_FAIMS_VOLT;
+            if given != expected && !legacy {
+                return Err(Error::Unsupported(
+                    "spectrum mobility unit does not match its typed quantity".into(),
+                ));
+            }
+        }
+        let drift_time = finite(value, "spectrum mobility")?;
+        let spectrum = self
+            .spectrum
+            .as_mut()
+            .ok_or_else(|| invalid("mobility outside spectrum"))?;
+        if !self.seen_fields.insert("spectrum_mobility") {
+            if spectrum.drift_time != drift_time || spectrum.drift_time_unit != unit {
+                return Err(Error::Unsupported(
+                    "conflicting spectrum ion mobility values".into(),
+                ));
+            }
+            return Ok(());
+        }
+        spectrum.drift_time = drift_time;
+        spectrum.drift_time_unit = unit;
+        Ok(())
+    }
     fn cv(
         &mut self,
         parent: &str,
@@ -905,6 +1000,18 @@ impl Record {
                     .as_mut()
                     .ok_or_else(|| invalid("selected ion outside precursor"))?
                     .intensity = intensity(finite(value, "precursor intensity")?)?
+            }
+            ("spectrum", "MS:1000525") => {
+                // MzMLHandler.cpp:1642-1645: the generic representation term
+                // resets an earlier centroid or profile term to unknown.
+                self.spectrum
+                    .as_mut()
+                    .ok_or_else(|| invalid("spectrum representation outside spectrum"))?
+                    .spectrum_type = SpectrumType::Unknown
+            }
+            ("spectrum", "MS:1001581")
+            | ("scan", "MS:1002476" | "MS:1002815" | "MS:1001581" | "MS:1002954") => {
+                self.spectrum_mobility(accession, value, attrs)?
             }
             _ => {} // Acquisition CVs outside the supported model are intentionally not retained.
         }
@@ -2584,6 +2691,31 @@ fn validate_product_write(product: &Product) -> Result<()> {
     }
     validate_scalar_metadata(&product.cv_terms.metadata)
 }
+/// Writer preflight for the spectrum-level mobility the scan writer emits.
+///
+/// The source writes a FAIMS voltage whenever the unit is FAIMS, including the
+/// unset `-1` sentinel, and any other unit only for a set drift time; a drift
+/// time without a unit is written as milliseconds with a warning
+/// (`MzMLHandler.cpp:5412-5440`). This port writes the same two lossless cases
+/// and refuses the lossy ones: a drift time without a unit, and a non-FAIMS
+/// unit without a drift time, which the source drops. A non-finite drift time
+/// could not be read back and is refused too.
+fn validate_spectrum_mobility(s: &MSSpectrum) -> Result<()> {
+    if !s.drift_time.is_finite() {
+        return Err(Error::InvalidValue(
+            "spectrum drift time must be finite".into(),
+        ));
+    }
+    let faims = s.drift_time_unit == DriftTimeUnit::FaimsCompensationVoltage;
+    if (s.has_drift_time() && s.drift_time_unit == DriftTimeUnit::None)
+        || (!s.has_drift_time() && !faims && s.drift_time_unit != DriftTimeUnit::None)
+    {
+        return Err(Error::Unsupported(
+            "spectrum mobility requires both a value and an explicit unit".into(),
+        ));
+    }
+    Ok(())
+}
 fn validate_scalar_metadata(metadata: &crate::metadata::MetaInfo) -> Result<()> {
     for (key, value) in metadata {
         validate_scalar_value(key, value)?;
@@ -3075,6 +3207,7 @@ fn validate_write(experiment: &MSExperiment) -> Result<()> {
                 "mzML writer cannot store peptide identifications".into(),
             ));
         }
+        validate_spectrum_mobility(s)?;
         xml_string(&s.name)?;
         record_transport::validate(&s.metadata, false)?;
         let id = if s.native_id.is_empty() {

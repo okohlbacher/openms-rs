@@ -1,0 +1,320 @@
+loaded	spectrum_representation	5	0
+spectrum	spectrum_representation	0	scan=1	1	Unknown	-0x1p+0	<NONE>	none	3	-	-
+spectrum	spectrum_representation	1	scan=2	1	Profile	-0x1p+0	<NONE>	none	3	-	-
+spectrum	spectrum_representation	2	scan=3	1	Unknown	-0x1p+0	<NONE>	none	3	-	-
+spectrum	spectrum_representation	3	scan=4	1	Centroid	-0x1p+0	<NONE>	none	3	-	-
+spectrum	spectrum_representation	4	scan=5	1	Unknown	-0x1p+0	<NONE>	none	3	-	-
+loaded	scan_mobility	13	0
+spectrum	scan_mobility	0	scan=1	1	Unknown	0x1.ep+2	ms	im_spectrum	3	-	-
+spectrum	scan_mobility	1	scan=2	1	Unknown	0x1.b333333333333p-1	1/K0	im_spectrum	3	-	-
+spectrum	scan_mobility	2	scan=3	1	Unknown	-0x1.18p+5	FAIMS_CV	im_spectrum	3	-	-
+spectrum	scan_mobility	3	scan=4	1	Unknown	0x1.5e8p+8	CCS	im_spectrum	3	-	-
+spectrum	scan_mobility	4	scan=5	1	Unknown	-0x1.9p+5	FAIMS_CV	im_spectrum	3	-	-
+spectrum	scan_mobility	5	scan=6	1	Unknown	-0x1p+0	<NONE>	none	3	-	-
+spectrum	scan_mobility	6	scan=7	1	Unknown	-0x1p+0	<NONE>	none	3	-	-
+spectrum	scan_mobility	7	scan=8	1	Unknown	-0x1p+0	FAIMS_CV	none	3	-	-
+spectrum	scan_mobility	8	scan=9	1	Unknown	-0x1.4p+5	FAIMS_CV	im_spectrum	3	-	-
+spectrum	scan_mobility	9	scan=10	1	Unknown	0x1.4p+1	ms	im_spectrum	3	-	-
+spectrum	scan_mobility	10	scan=11	1	Unknown	0x1.ep+2	ms	im_spectrum	3	-	-
+spectrum	scan_mobility	11	scan=12	1	Unknown	-0x1.5p+5	FAIMS_CV	im_spectrum	3	-	-
+spectrum	scan_mobility	12	scan=13	1	Unknown	-0x1.68p+5	FAIMS_CV	im_spectrum	3	-	-
+loaded	scan_mobility_conflict	2	0
+spectrum	scan_mobility_conflict	0	scan=1	1	Unknown	0x1.1p+3	ms	im_spectrum	3	-	-
+spectrum	scan_mobility_conflict	1	scan=2	1	Unknown	-0x1.ep+5	FAIMS_CV	im_spectrum	3	-	-
+loaded	scan_mobility_unit_mismatch	1	0
+spectrum	scan_mobility_unit_mismatch	0	scan=1	1	Unknown	0x1.ep+2	ms	im_spectrum	3	-	-
+loaded	im_arrays	5	0
+spectrum	im_arrays	0	scan=1	1	Unknown	-0x1p+0	<NONE>	im_peak	3	-	f:mean ion mobility array|-|3
+spectrum	im_arrays	1	scan=2	1	Unknown	-0x1p+0	<NONE>	im_peak	3	-	f:mean ion mobility array|UO:0000028|3
+spectrum	im_arrays	2	scan=3	1	Unknown	-0x1p+0	<NONE>	im_peak	3	-	f:mean inverse reduced ion mobility array|MS:1002814|3
+spectrum	im_arrays	3	scan=4	1	Unknown	-0x1p+0	<NONE>	im_peak	3	-	f:Ion Mobility|UO:0000028|3
+spectrum	im_arrays	4	scan=5	1	Unknown	-0x1p+0	<NONE>	im_peak	3	-	f:Ion Mobility|-|3
+loaded	im_arrays_non_mobility_unit	1	0
+spectrum	im_arrays_non_mobility_unit	0	scan=1	1	Unknown	-0x1p+0	<NONE>	none	3	-	f:review array|UO:0000010|3
+loaded	FAIMS_CV-60C_V-45_Interleaved	12	1
+spectrum	FAIMS_CV-60C_V-45_Interleaved	0	controllerType=0 controllerNumber=1 scan=2130	1	Profile	-0x1.68p+5	FAIMS_CV	im_spectrum	1668	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	1	controllerType=0 controllerNumber=1 scan=2131	1	Profile	-0x1.ep+5	FAIMS_CV	im_spectrum	1953	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	2	controllerType=0 controllerNumber=1 scan=2132	1	Profile	-0x1.68p+5	FAIMS_CV	im_spectrum	1943	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	3	controllerType=0 controllerNumber=1 scan=2133	1	Profile	-0x1.ep+5	FAIMS_CV	im_spectrum	1783	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	4	controllerType=0 controllerNumber=1 scan=2134	1	Profile	-0x1.68p+5	FAIMS_CV	im_spectrum	1724	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	5	controllerType=0 controllerNumber=1 scan=2135	1	Profile	-0x1.ep+5	FAIMS_CV	im_spectrum	1902	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	6	controllerType=0 controllerNumber=1 scan=2136	1	Profile	-0x1.68p+5	FAIMS_CV	im_spectrum	1628	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	7	controllerType=0 controllerNumber=1 scan=2137	1	Profile	-0x1.ep+5	FAIMS_CV	im_spectrum	1714	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	8	controllerType=0 controllerNumber=1 scan=2138	1	Profile	-0x1.68p+5	FAIMS_CV	im_spectrum	1445	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	9	controllerType=0 controllerNumber=1 scan=2139	1	Profile	-0x1.ep+5	FAIMS_CV	im_spectrum	1404	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	10	controllerType=0 controllerNumber=1 scan=2140	1	Profile	-0x1.68p+5	FAIMS_CV	im_spectrum	1708	-	-
+spectrum	FAIMS_CV-60C_V-45_Interleaved	11	controllerType=0 controllerNumber=1 scan=2141	1	Profile	-0x1.ep+5	FAIMS_CV	im_spectrum	1826	-	-
+loaded	FAIMS_test_data	2	1
+spectrum	FAIMS_test_data	0	controllerType=0 controllerNumber=1 scan=212	1	Centroid	-0x1.04p+6	FAIMS_CV	im_spectrum	2644	-	-
+spectrum	FAIMS_test_data	1	controllerType=0 controllerNumber=1 scan=213	2	Centroid	-0x1.04p+6	FAIMS_CV	im_spectrum	35	-0x1p+0:<NONE>	-
+loaded	MzMLFile_1	4	2
+spectrum	MzMLFile_1	0	index=0	1	Centroid	0x1.c666666666666p+2	ms	im_spectrum	15	-	-
+spectrum	MzMLFile_1	1	index=1	2	Centroid	0x1.0333333333333p+3	ms	im_spectrum	10	0x1.0333333333333p+3:ms,-0x1p+0:<NONE>	f:signal to noise array|-|10;f:user-defined name|-|10
+spectrum	MzMLFile_1	2	index=2	1	Centroid	-0x1p+0	<NONE>	none	15	-	-
+spectrum	MzMLFile_1	3	index=3	1	Profile	-0x1p+0	<NONE>	none	0	-	-
+loaded	FeatureFinderCentroided_1_input	112	0
+spectrum	FeatureFinderCentroided_1_input	0	spectrum=1	1	Unknown	-0x1p+0	<NONE>	none	20	-	-
+spectrum	FeatureFinderCentroided_1_input	1	spectrum=2	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	2	spectrum=3	1	Unknown	-0x1p+0	<NONE>	none	21	-	-
+spectrum	FeatureFinderCentroided_1_input	3	spectrum=4	1	Unknown	-0x1p+0	<NONE>	none	18	-	-
+spectrum	FeatureFinderCentroided_1_input	4	spectrum=5	1	Unknown	-0x1p+0	<NONE>	none	17	-	-
+spectrum	FeatureFinderCentroided_1_input	5	spectrum=6	1	Unknown	-0x1p+0	<NONE>	none	17	-	-
+spectrum	FeatureFinderCentroided_1_input	6	spectrum=7	1	Unknown	-0x1p+0	<NONE>	none	21	-	-
+spectrum	FeatureFinderCentroided_1_input	7	spectrum=8	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	8	spectrum=9	1	Unknown	-0x1p+0	<NONE>	none	23	-	-
+spectrum	FeatureFinderCentroided_1_input	9	spectrum=10	1	Unknown	-0x1p+0	<NONE>	none	21	-	-
+spectrum	FeatureFinderCentroided_1_input	10	spectrum=11	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	11	spectrum=12	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	12	spectrum=13	1	Unknown	-0x1p+0	<NONE>	none	25	-	-
+spectrum	FeatureFinderCentroided_1_input	13	spectrum=14	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	14	spectrum=15	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	15	spectrum=16	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	16	spectrum=17	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	17	spectrum=18	1	Unknown	-0x1p+0	<NONE>	none	25	-	-
+spectrum	FeatureFinderCentroided_1_input	18	spectrum=19	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	19	spectrum=20	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	20	spectrum=21	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	21	spectrum=22	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	22	spectrum=23	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	23	spectrum=24	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	24	spectrum=25	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	25	spectrum=26	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	26	spectrum=27	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	27	spectrum=28	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	28	spectrum=29	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	29	spectrum=30	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	30	spectrum=31	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	31	spectrum=32	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	32	spectrum=33	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	33	spectrum=34	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	34	spectrum=35	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	35	spectrum=36	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	36	spectrum=37	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	37	spectrum=38	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	38	spectrum=39	1	Unknown	-0x1p+0	<NONE>	none	27	-	-
+spectrum	FeatureFinderCentroided_1_input	39	spectrum=40	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	40	spectrum=41	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	41	spectrum=42	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	42	spectrum=43	1	Unknown	-0x1p+0	<NONE>	none	25	-	-
+spectrum	FeatureFinderCentroided_1_input	43	spectrum=44	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	44	spectrum=45	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	45	spectrum=46	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	46	spectrum=47	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	47	spectrum=48	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	48	spectrum=49	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	49	spectrum=50	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	50	spectrum=51	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	51	spectrum=52	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	52	spectrum=53	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	53	spectrum=54	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	54	spectrum=55	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	55	spectrum=56	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	56	spectrum=57	1	Unknown	-0x1p+0	<NONE>	none	27	-	-
+spectrum	FeatureFinderCentroided_1_input	57	spectrum=58	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	58	spectrum=59	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	59	spectrum=60	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	60	spectrum=61	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	61	spectrum=62	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	62	spectrum=63	1	Unknown	-0x1p+0	<NONE>	none	33	-	-
+spectrum	FeatureFinderCentroided_1_input	63	spectrum=64	1	Unknown	-0x1p+0	<NONE>	none	33	-	-
+spectrum	FeatureFinderCentroided_1_input	64	spectrum=65	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	65	spectrum=66	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	66	spectrum=67	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	67	spectrum=68	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	68	spectrum=69	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	69	spectrum=70	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	70	spectrum=71	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	71	spectrum=72	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	72	spectrum=73	1	Unknown	-0x1p+0	<NONE>	none	27	-	-
+spectrum	FeatureFinderCentroided_1_input	73	spectrum=74	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	74	spectrum=75	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	75	spectrum=76	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	76	spectrum=77	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	77	spectrum=78	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	78	spectrum=79	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	79	spectrum=80	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	80	spectrum=81	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	81	spectrum=82	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	82	spectrum=83	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	83	spectrum=84	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	84	spectrum=85	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	85	spectrum=86	1	Unknown	-0x1p+0	<NONE>	none	31	-	-
+spectrum	FeatureFinderCentroided_1_input	86	spectrum=87	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	87	spectrum=88	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	88	spectrum=89	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	89	spectrum=90	1	Unknown	-0x1p+0	<NONE>	none	27	-	-
+spectrum	FeatureFinderCentroided_1_input	90	spectrum=91	1	Unknown	-0x1p+0	<NONE>	none	27	-	-
+spectrum	FeatureFinderCentroided_1_input	91	spectrum=92	1	Unknown	-0x1p+0	<NONE>	none	25	-	-
+spectrum	FeatureFinderCentroided_1_input	92	spectrum=93	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	93	spectrum=94	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	94	spectrum=95	1	Unknown	-0x1p+0	<NONE>	none	29	-	-
+spectrum	FeatureFinderCentroided_1_input	95	spectrum=96	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	96	spectrum=97	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	97	spectrum=98	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	98	spectrum=99	1	Unknown	-0x1p+0	<NONE>	none	25	-	-
+spectrum	FeatureFinderCentroided_1_input	99	spectrum=100	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	100	spectrum=101	1	Unknown	-0x1p+0	<NONE>	none	25	-	-
+spectrum	FeatureFinderCentroided_1_input	101	spectrum=102	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	102	spectrum=103	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	103	spectrum=104	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	104	spectrum=105	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	105	spectrum=106	1	Unknown	-0x1p+0	<NONE>	none	30	-	-
+spectrum	FeatureFinderCentroided_1_input	106	spectrum=107	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	107	spectrum=108	1	Unknown	-0x1p+0	<NONE>	none	28	-	-
+spectrum	FeatureFinderCentroided_1_input	108	spectrum=109	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	109	spectrum=110	1	Unknown	-0x1p+0	<NONE>	none	26	-	-
+spectrum	FeatureFinderCentroided_1_input	110	spectrum=111	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+spectrum	FeatureFinderCentroided_1_input	111	spectrum=112	1	Unknown	-0x1p+0	<NONE>	none	24	-	-
+loaded	intensity_bounds	2	0
+spectrum	intensity_bounds	0	scan=1	1	Unknown	-0x1p+0	<NONE>	none	6	-	-
+spectrum_peak	intensity_bounds	0	0	0x1.9p+6	0x0p+0
+spectrum_peak	intensity_bounds	0	1	0x1.94p+6	-0x1p+0
+spectrum_peak	intensity_bounds	0	2	0x1.98p+6	0x0p+0
+spectrum_peak	intensity_bounds	0	3	0x1.9cp+6	0x0p+0
+spectrum_peak	intensity_bounds	0	4	0x1.ap+6	0x1p+0
+spectrum_peak	intensity_bounds	0	5	0x1.a4p+6	0x1.93e594p+99
+spectrum	intensity_bounds	1	scan=2	2	Unknown	-0x1p+0	<NONE>	none	3	-	-
+spectrum_peak	intensity_bounds	1	0	0x1.9p+6	0x1.4p+2
+spectrum_peak	intensity_bounds	1	1	0x1.94p+6	0x1.8p+2
+spectrum_peak	intensity_bounds	1	2	0x1.98p+6	0x1.cp+2
+filtered	FeatureFinderCentroided_1_input	112	3084
+filtered_spectrum	FeatureFinderCentroided_1_input	0	spectrum=1	20
+filtered_spectrum	FeatureFinderCentroided_1_input	1	spectrum=2	24
+filtered_spectrum	FeatureFinderCentroided_1_input	2	spectrum=3	21
+filtered_spectrum	FeatureFinderCentroided_1_input	3	spectrum=4	18
+filtered_spectrum	FeatureFinderCentroided_1_input	4	spectrum=5	17
+filtered_spectrum	FeatureFinderCentroided_1_input	5	spectrum=6	17
+filtered_spectrum	FeatureFinderCentroided_1_input	6	spectrum=7	21
+filtered_spectrum	FeatureFinderCentroided_1_input	7	spectrum=8	26
+filtered_spectrum	FeatureFinderCentroided_1_input	8	spectrum=9	23
+filtered_spectrum	FeatureFinderCentroided_1_input	9	spectrum=10	21
+filtered_spectrum	FeatureFinderCentroided_1_input	10	spectrum=11	24
+filtered_spectrum	FeatureFinderCentroided_1_input	11	spectrum=12	24
+filtered_spectrum	FeatureFinderCentroided_1_input	12	spectrum=13	25
+filtered_spectrum	FeatureFinderCentroided_1_input	13	spectrum=14	24
+filtered_spectrum	FeatureFinderCentroided_1_input	14	spectrum=15	26
+filtered_spectrum	FeatureFinderCentroided_1_input	15	spectrum=16	28
+filtered_spectrum	FeatureFinderCentroided_1_input	16	spectrum=17	26
+filtered_spectrum	FeatureFinderCentroided_1_input	17	spectrum=18	25
+filtered_spectrum	FeatureFinderCentroided_1_input	18	spectrum=19	26
+filtered_spectrum	FeatureFinderCentroided_1_input	19	spectrum=20	28
+filtered_spectrum	FeatureFinderCentroided_1_input	20	spectrum=21	30
+filtered_spectrum	FeatureFinderCentroided_1_input	21	spectrum=22	29
+filtered_spectrum	FeatureFinderCentroided_1_input	22	spectrum=23	29
+filtered_spectrum	FeatureFinderCentroided_1_input	23	spectrum=24	29
+filtered_spectrum	FeatureFinderCentroided_1_input	24	spectrum=25	29
+filtered_spectrum	FeatureFinderCentroided_1_input	25	spectrum=26	31
+filtered_spectrum	FeatureFinderCentroided_1_input	26	spectrum=27	31
+filtered_spectrum	FeatureFinderCentroided_1_input	27	spectrum=28	31
+filtered_spectrum	FeatureFinderCentroided_1_input	28	spectrum=29	30
+filtered_spectrum	FeatureFinderCentroided_1_input	29	spectrum=30	28
+filtered_spectrum	FeatureFinderCentroided_1_input	30	spectrum=31	29
+filtered_spectrum	FeatureFinderCentroided_1_input	31	spectrum=32	30
+filtered_spectrum	FeatureFinderCentroided_1_input	32	spectrum=33	28
+filtered_spectrum	FeatureFinderCentroided_1_input	33	spectrum=34	31
+filtered_spectrum	FeatureFinderCentroided_1_input	34	spectrum=35	30
+filtered_spectrum	FeatureFinderCentroided_1_input	35	spectrum=36	28
+filtered_spectrum	FeatureFinderCentroided_1_input	36	spectrum=37	28
+filtered_spectrum	FeatureFinderCentroided_1_input	37	spectrum=38	28
+filtered_spectrum	FeatureFinderCentroided_1_input	38	spectrum=39	27
+filtered_spectrum	FeatureFinderCentroided_1_input	39	spectrum=40	30
+filtered_spectrum	FeatureFinderCentroided_1_input	40	spectrum=41	28
+filtered_spectrum	FeatureFinderCentroided_1_input	41	spectrum=42	28
+filtered_spectrum	FeatureFinderCentroided_1_input	42	spectrum=43	25
+filtered_spectrum	FeatureFinderCentroided_1_input	43	spectrum=44	29
+filtered_spectrum	FeatureFinderCentroided_1_input	44	spectrum=45	29
+filtered_spectrum	FeatureFinderCentroided_1_input	45	spectrum=46	28
+filtered_spectrum	FeatureFinderCentroided_1_input	46	spectrum=47	29
+filtered_spectrum	FeatureFinderCentroided_1_input	47	spectrum=48	30
+filtered_spectrum	FeatureFinderCentroided_1_input	48	spectrum=49	28
+filtered_spectrum	FeatureFinderCentroided_1_input	49	spectrum=50	30
+filtered_spectrum	FeatureFinderCentroided_1_input	50	spectrum=51	28
+filtered_spectrum	FeatureFinderCentroided_1_input	51	spectrum=52	29
+filtered_spectrum	FeatureFinderCentroided_1_input	52	spectrum=53	29
+filtered_spectrum	FeatureFinderCentroided_1_input	53	spectrum=54	28
+filtered_spectrum	FeatureFinderCentroided_1_input	54	spectrum=55	29
+filtered_spectrum	FeatureFinderCentroided_1_input	55	spectrum=56	29
+filtered_spectrum	FeatureFinderCentroided_1_input	56	spectrum=57	27
+filtered_spectrum	FeatureFinderCentroided_1_input	57	spectrum=58	28
+filtered_spectrum	FeatureFinderCentroided_1_input	58	spectrum=59	29
+filtered_spectrum	FeatureFinderCentroided_1_input	59	spectrum=60	29
+filtered_spectrum	FeatureFinderCentroided_1_input	60	spectrum=61	31
+filtered_spectrum	FeatureFinderCentroided_1_input	61	spectrum=62	31
+filtered_spectrum	FeatureFinderCentroided_1_input	62	spectrum=63	33
+filtered_spectrum	FeatureFinderCentroided_1_input	63	spectrum=64	33
+filtered_spectrum	FeatureFinderCentroided_1_input	64	spectrum=65	31
+filtered_spectrum	FeatureFinderCentroided_1_input	65	spectrum=66	28
+filtered_spectrum	FeatureFinderCentroided_1_input	66	spectrum=67	30
+filtered_spectrum	FeatureFinderCentroided_1_input	67	spectrum=68	30
+filtered_spectrum	FeatureFinderCentroided_1_input	68	spectrum=69	31
+filtered_spectrum	FeatureFinderCentroided_1_input	69	spectrum=70	30
+filtered_spectrum	FeatureFinderCentroided_1_input	70	spectrum=71	28
+filtered_spectrum	FeatureFinderCentroided_1_input	71	spectrum=72	28
+filtered_spectrum	FeatureFinderCentroided_1_input	72	spectrum=73	27
+filtered_spectrum	FeatureFinderCentroided_1_input	73	spectrum=74	29
+filtered_spectrum	FeatureFinderCentroided_1_input	74	spectrum=75	29
+filtered_spectrum	FeatureFinderCentroided_1_input	75	spectrum=76	31
+filtered_spectrum	FeatureFinderCentroided_1_input	76	spectrum=77	31
+filtered_spectrum	FeatureFinderCentroided_1_input	77	spectrum=78	31
+filtered_spectrum	FeatureFinderCentroided_1_input	78	spectrum=79	30
+filtered_spectrum	FeatureFinderCentroided_1_input	79	spectrum=80	26
+filtered_spectrum	FeatureFinderCentroided_1_input	80	spectrum=81	28
+filtered_spectrum	FeatureFinderCentroided_1_input	81	spectrum=82	31
+filtered_spectrum	FeatureFinderCentroided_1_input	82	spectrum=83	29
+filtered_spectrum	FeatureFinderCentroided_1_input	83	spectrum=84	28
+filtered_spectrum	FeatureFinderCentroided_1_input	84	spectrum=85	28
+filtered_spectrum	FeatureFinderCentroided_1_input	85	spectrum=86	31
+filtered_spectrum	FeatureFinderCentroided_1_input	86	spectrum=87	28
+filtered_spectrum	FeatureFinderCentroided_1_input	87	spectrum=88	26
+filtered_spectrum	FeatureFinderCentroided_1_input	88	spectrum=89	26
+filtered_spectrum	FeatureFinderCentroided_1_input	89	spectrum=90	27
+filtered_spectrum	FeatureFinderCentroided_1_input	90	spectrum=91	27
+filtered_spectrum	FeatureFinderCentroided_1_input	91	spectrum=92	25
+filtered_spectrum	FeatureFinderCentroided_1_input	92	spectrum=93	26
+filtered_spectrum	FeatureFinderCentroided_1_input	93	spectrum=94	28
+filtered_spectrum	FeatureFinderCentroided_1_input	94	spectrum=95	29
+filtered_spectrum	FeatureFinderCentroided_1_input	95	spectrum=96	30
+filtered_spectrum	FeatureFinderCentroided_1_input	96	spectrum=97	30
+filtered_spectrum	FeatureFinderCentroided_1_input	97	spectrum=98	24
+filtered_spectrum	FeatureFinderCentroided_1_input	98	spectrum=99	25
+filtered_spectrum	FeatureFinderCentroided_1_input	99	spectrum=100	24
+filtered_spectrum	FeatureFinderCentroided_1_input	100	spectrum=101	25
+filtered_spectrum	FeatureFinderCentroided_1_input	101	spectrum=102	26
+filtered_spectrum	FeatureFinderCentroided_1_input	102	spectrum=103	24
+filtered_spectrum	FeatureFinderCentroided_1_input	103	spectrum=104	30
+filtered_spectrum	FeatureFinderCentroided_1_input	104	spectrum=105	28
+filtered_spectrum	FeatureFinderCentroided_1_input	105	spectrum=106	30
+filtered_spectrum	FeatureFinderCentroided_1_input	106	spectrum=107	28
+filtered_spectrum	FeatureFinderCentroided_1_input	107	spectrum=108	28
+filtered_spectrum	FeatureFinderCentroided_1_input	108	spectrum=109	24
+filtered_spectrum	FeatureFinderCentroided_1_input	109	spectrum=110	26
+filtered_spectrum	FeatureFinderCentroided_1_input	110	spectrum=111	24
+filtered_spectrum	FeatureFinderCentroided_1_input	111	spectrum=112	24
+filtered	intensity_bounds	1	5
+filtered_spectrum	intensity_bounds	0	scan=1	5
+filtered_detail	intensity_bounds	0	scan=1	1	Unknown	-0x1p+0	<NONE>	none	5	-	-
+filtered_detail_peak	intensity_bounds	0	0	0x1.9p+6	0x0p+0
+filtered_detail_peak	intensity_bounds	0	1	0x1.98p+6	0x0p+0
+filtered_detail_peak	intensity_bounds	0	2	0x1.9cp+6	0x0p+0
+filtered_detail_peak	intensity_bounds	0	3	0x1.ap+6	0x1p+0
+filtered_detail_peak	intensity_bounds	0	4	0x1.a4p+6	0x1.93e594p+99
+type	FileInfo_5_input.mzDat	mzData
+type	FileInfo_8_input.notype	unknown
+type	sample.d	unknown
+type	sample.d/	unknown
+type	sample.d.zip	unknown
+type	empty.unknownext	unknown
+type	gz_mzml.bin	mzML
+type	mzml_content.unknownext	mzML
+type	missing.unknownext	error:FileNotFound
+type	peaks.mzML	mzML
+type	folder.featureXML//	featureXML
+type	back.mzML\	mzML
+type	features.featureXML.gz	featureXML
+features	FeatureFinderCentroided_1_1_output	default	8	30	0
+features	FeatureFinderCentroided_1_1_output	no_hulls_no_subordinates	8	0	0
+features_disallowed	FeatureFinderCentroided_1_1_output	InvalidFileType
+features	featurexml_source_1	default	2	1	2
+features	featurexml_source_1	no_hulls_no_subordinates	2	0	0
+features_disallowed	featurexml_source_1	InvalidFileType
+experiment_disallowed	spectrum_representation	Parse Error
