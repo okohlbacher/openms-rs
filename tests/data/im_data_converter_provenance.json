@@ -1,0 +1,266 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/IONMOBILITY/IMDataConverter.h",
+   "sha256": "512ec00e1cad39ba0c12963e2e544455f0f3b4cdf5aa1b6d735dfdd74c832bc9"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "sha256": "33fa5e9375dc6f08315a12de6d38e74fc81e307f8bdb0ab7493f3bc983a79dec"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IMDataConverter_test.cpp",
+   "sha256": "a65e4a6afd9831dbdcb7c0a6bb6893a3a9fa611b36a283173fa20494a27ec157"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/IM_FAIMS_test.mzML",
+   "sha256": "3a4b469e5df625ec4fa2319b69bfb2e96a399dfa9a5040ba8e7bdabad868690b"
+  }
+ ],
+ "scope": "IMDataConverter::splitByFAIMSCV only (decision D5 of the early TOPP bundle, package B8-IMSPLIT). reshapeIMFrameToMany, splitExperimentByIonMobility, reshapeIMFrameToSingle, setIMUnit and getIMUnit are not ported; IMDataConverter.h stays partial.",
+ "native_implementation": [
+  "src/kernel/im_data_converter.rs"
+ ],
+ "native_tests": [
+  "tests/im_data_converter.rs"
+ ],
+ "support": "docs/IM_DATA_CONVERTER_SUPPORT.md",
+ "source_anchors": [
+  {
+   "path": "src/openms/include/OpenMS/IONMOBILITY/IMDataConverter.h",
+   "line": 37,
+   "operation": "splitByFAIMSCV documentation: spectra moved out, input unusable afterwards; one (CV, MSExperiment) pair per unique FAIMS CV; MS2+ without CV assigned to the last seen FAIMS CV, spectra without prior context skipped with a warning; without FAIMS spectra an informational message and one element holding the original PeakMap under a NaN key"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "line": 31,
+   "operation": "the CVs are FAIMSHelper::getCompensationVoltages(exp), whose missing-voltage warning is logged first"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "line": 35,
+   "operation": "no CVs: OPENMS_LOG_INFO 'Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.' and emplace_back(quiet_NaN, std::move(exp)) (line 37)"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "line": 42,
+   "operation": "std::map<double, MSExperiment> keyed by the CV set in ascending order; each new MSExperiment receives getExperimentalSettings() = exp.getExperimentalSettings() (line 46) and nothing else: no chromatograms, no updateRanges"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "line": 52,
+   "operation": "last_faims_cv starts as NaN; a FAIMS spectrum sets it to its drift time and joins map.find(cv), or is skipped with 'Encountered spectrum with unexpected FAIMS CV (not in detected set): ' << cv (line 60)"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "line": 71,
+   "operation": "a spectrum of any other unit joins map.find(last_faims_cv) when last_faims_cv is not NaN and its MS level is above 1; otherwise 'Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).' (line 81). Such a spectrum never updates last_faims_cv"
+  },
+  {
+   "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
+   "line": 84,
+   "operation": "exp.clear(true) destroys the skipped spectra and the chromatograms and resets the input's settings; the map is moved into the result in key order (lines 87-91)"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IMDataConverter_test.cpp",
+   "line": 41,
+   "operation": "splitByFAIMSCV on IM_FAIMS_test.mzML: 19 spectra, input empty afterwards, keys -65/-55/-45 with 4/9/6 spectra whose drift times equal the key, group 1 date 2019-09-07T09:40:04 (lines 41-76)"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IMDataConverter_test.cpp",
+   "line": 201,
+   "operation": "MS2 without explicit CV assigned to the last seen FAIMS CV: groups -55 (3 spectra, 2 MS2) and -45 (2 spectra, 1 MS2) (lines 201-254)"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IMDataConverter_test.cpp",
+   "line": 256,
+   "operation": "one millisecond-unit MS1 spectrum gives a single group of one spectrum (lines 256-269)"
+  }
+ ],
+ "context_sources": [
+  {
+   "path": "IONMOBILITY/FAIMSHelper.cpp",
+   "sha256": "c0d91c7ede220a173d67cccce966ab0e0a29a1f6e1a17db9a6cff202d14bacf4",
+   "line": 50,
+   "operation": "CVs.erase(IMTypes::DRIFTTIME_NOT_SET) with the missing-voltage warning (line 52); ported by A1 in src/kernel/faims_helper.rs and reused unchanged"
+  },
+  {
+   "path": "KERNEL/MSExperiment.cpp",
+   "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05",
+   "line": 1275,
+   "operation": "clear(true) clears spectra and chromatograms, clearRanges() and resets ExperimentalSettings; getSqlRunID/setSqlRunID (lines 768-780) store the sqMass run id as a meta value of the settings, so the per-group settings copy carries it"
+  },
+  {
+   "path": "KERNEL/SpectrumRangeManager.h",
+   "sha256": "57709f2901021f536e61b073247caf245861ad41e31a14182993920d775508ca",
+   "line": 94,
+   "operation": "byMSLevel throws InvalidValue 'No ranges for this MS level' (line 100) when the level was never registered by updateRanges, which the split groups never call"
+  },
+  {
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0",
+   "line": 242,
+   "operation": "run_ reads map_.spectrumRanges().byMSLevel(1), so every split group throws and FeatureFinderCentroided exits 8 on FAIMS input; a native difference here, not emulated"
+  },
+  {
+   "path": "CONCEPT/LogStream.cpp",
+   "sha256": "a68abf7af7a12a0a6133e841f7b1069624b82af3c4a53488c5b38d9c017ae292",
+   "line": 299,
+   "operation": "syncLF_ repetition cache (isInCache_ 184-205, addToCache_ 207-234, clearCache 236-253): a repeated line is printed once and later as '<line> occurred N times'; the test emulates it to compare the returned records with the captured C++ log lines"
+  },
+  {
+   "package": "topp",
+   "revision": "174b576",
+   "path": "src/FeatureFinderCentroided.cpp",
+   "sha256": "3456f7a563352ae33a08b0872915970342c46229cce6a2bdbe2313b3ece89f68",
+   "line": 238,
+   "operation": "the consumer: auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(exp))"
+  }
+ ],
+ "context_sources_note": "Read for context and not ported by this group. Core paths are spelled below the core checkout's source or include directory at source_revision, where their sha256 was checked, and not from the repository root: tools/core_sdk_coverage.py counts every src/openms/-prefixed string in a provenance manifest as reference evidence for that header.",
+ "fixtures": [
+  {
+   "path": "tests/data/im_data_converter/oracle_cases.tsv",
+   "sha256": "f56edd1d0ac847d5551ada6489b2457c9cedca68fb61dd1410635f5df9c9071b",
+   "rows": 887,
+   "kind": "oracle-generated (tier 1 executed differential): byte-identical copy of ../oracle/im-data-converter/results/im_data_converter_oracle.tsv (26 case, 41 group, 432 spectrum, 19 log, 369 input records)"
+  },
+  {
+   "path": "tests/data/im_data_converter/c2_split_records.tsv",
+   "sha256": "0ba05fbfced36d21e906386c06613107d749d9dccbef2d64132e5fa49eb60c54",
+   "rows": 11,
+   "kind": "oracle-generated (tier 1 executed differential), extracted: the splitByFAIMSCV records of the C2 oracle (../oracle/featurefinder-picked/results/omp1/faims_corrected_{one_cv,two_cv,ffc1_non_faims}.jsonl source_sequence variant and faims_facts.jsonl facts 1a and 1b), written by ../oracle/im-data-converter/extract_c2_records.py"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/faims_helper/IM_FAIMS_test.mzML",
+   "sha256": "3a4b469e5df625ec4fa2319b69bfb2e96a399dfa9a5040ba8e7bdabad868690b",
+   "owner": "A1 (tests/data/faims_helper_provenance.json)",
+   "kind": "pinned class-test input, reused in place"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_input.mzML",
+   "sha256": "a3dfae633502bc457fb3efeddb5d5006af935a51bd99d9a5974e24232885f9d3",
+   "owner": "A3 (tests/data/mzml_mobility_provenance.json)",
+   "kind": "test-data 0cb15f2 topp/FeatureFinderCentroided_1_input.mzML, reused in place; also the base of the two derived C2 FAIMS fixtures"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_test_data.mzML",
+   "sha256": "ad028d77045e07b773b9423f1c1f58baa1a0856b9d420155c8881d452c175301",
+   "owner": "A3 (tests/data/mzml_mobility_provenance.json)",
+   "kind": "test-data 0cb15f2 topp/FAIMS_test_data.mzML, reused in place"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_CV-60C_V-45_Interleaved.mzML",
+   "sha256": "718775f365167f5b61a00a7bf851a7397db258317ae6a09afa860e5ad5470ea7",
+   "owner": "A3 (tests/data/mzml_mobility_provenance.json)",
+   "kind": "test-data 0cb15f2 topp/FAIMS_CV-60C_V-45_Interleaved.mzML, reused in place"
+  }
+ ],
+ "derived_fixtures": [
+  {
+   "name": "faims_one_cv.mzML",
+   "c2_sha256": "11616c7b050ba5f0399920e7c2b9649e4a897d24590b98684a115a0d5de6560e",
+   "rule": "FeatureFinderCentroided_1_input.mzML with '<cvParam cvRef=\"MS\" accession=\"MS:1001581\" name=\"FAIMS compensation voltage\" value=\"-45\" unitAccession=\"UO:0000218\" unitName=\"volt\" unitCvRef=\"UO\"/>' as an unindented line after each of the 112 '<scan>' lines",
+   "length": 229778,
+   "fnv1a64": "0xd603000177f01520"
+  },
+  {
+   "name": "faims_two_cv.mzML",
+   "c2_sha256": "ec1116e2e20f6e162d814753b8414d501feee7ea9b3dc68ddf99386efc727816",
+   "rule": "as faims_one_cv.mzML with the values -45 and -60 alternating, starting with -45",
+   "length": 229778,
+   "fnv1a64": "0xf47273d3ff222316"
+  }
+ ],
+ "derived_fixtures_note": "Rebuilt in tests/im_data_converter.rs instead of copying 460 KB of near-duplicate mzML. extract_c2_records.py checks that the rule reproduces both C2 files byte for byte against their sha256; the test binds its result by length and FNV-1a 64, because the crate has no sha256 implementation.",
+ "evidence_tier": 1,
+ "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; git diff 4fdec46..bc9cc12 empty for IMDataConverter.{h,cpp}, IMDataConverter_test.cpp, FAIMSHelper.cpp, MSExperiment.{h,cpp}, LogStream.{h,cpp}, MzMLHandler.cpp, ExperimentalSettings.cpp, SpectrumRangeManager.h and MSSpectrum.cpp; installed IMDataConverter.h and FAIMSHelper.h equal to the pin) executed splitByFAIMSCV on six mzML files and 20 synthetic experiments. For every file the Rust reader produces the C++ native IDs, MS levels, drift time bits and units, and for every case without a NaN voltage the Rust split produces the C++ group count, group keys bit for bit (sign of zero and infinities included), group sizes, group membership and order by native ID, MS level, drift time bits and unit, settings copies (date, comment, sqMass run id, equality with the input), chromatogram counts, the emptied input, and the log lines (compared through an emulation of the C++ log stream's repetition cache). The C2 records (both synthetic FAIMS fixtures and the FFC_1 input under the source sequence, and facts 1a and 1b) are reproduced: -45 with 112 spectra; -60 and -45 with 56 each; NaN with 112; -60 and -45 with 2 each. The three NaN cases are refused natively, with the input unchanged, and their recorded C++ outcomes are asserted. Tier 3: the three splitByFAIMSCV sections and the constructor and destructor sections of IMDataConverter_test.cpp are transcribed unchanged. Tier 4: the group key, the message records, the returned skipped spectra and chromatograms, atomicity on error, the settings resource ceiling and MAX_SPECTRA. Native difference, not emulated: C++ voltage groups have no ranges (byMSLevel(1) throws, recorded for every voltage group); Rust ranges are computed on demand and present. No Debug-only precondition lies on this path.",
+ "class_test_sections": {
+  "IMDataConverter_test.cpp": {
+   "sections": 10,
+   "ported": 5,
+   "not_ported": 5,
+   "unaccounted": 0,
+   "tests": {
+    "IMDataConverter()": "constructor_and_destructor_sections",
+    "~IMDataConverter()": "constructor_and_destructor_sections",
+    "splitByFAIMSCV(PeakMap& exp)": "split_by_faims_cv_section (with mzml); mzml_files_match_the_oracle (im_faims_test)",
+    "splitByFAIMSCV assigns MS2 without explicit CV to last seen FAIMS CV": "split_by_faims_cv_assigns_ms2_without_explicit_cv_to_last_seen_faims_cv_section; class_test_experiments_match_the_oracle",
+    "splitByFAIMSCV returns single-element group for non-FAIMS dataset": "split_by_faims_cv_returns_single_element_group_for_non_faims_dataset_section; class_test_experiments_match_the_oracle"
+   },
+   "not_ported_sections": {
+    "setIMUnit(DataArrays::FloatDataArray& fda, const DriftTimeUnit unit)": "not ported (IMDataArrayUtils::setIMUnit, outside D5)",
+    "getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit)": "NOT_TESTABLE in the source; not ported (the name-to-unit rule exists privately in src/kernel/spectrum_mobility.rs)",
+    "reshapeIMFrameToMany(MSSpectrum im_frame)": "not ported (outside D5)",
+    "splitExperimentByIonMobility(MSExperiment&& in, UInt, double, double, MZ_UNITS)": "not ported (needs the unported SpectraMerger)",
+    "reshapeIMFrameToSingle(const MSExperiment& in)": "NOT_TESTABLE in the source; not ported (outside D5)"
+   }
+  }
+ },
+ "cpp_issue_candidates": [
+  "splitByFAIMSCV builds each voltage group with addSpectrum and never calls updateRanges, so spectrumRanges().byMSLevel(1) throws on every group and FeatureFinderCentroided exits 8 on every FAIMS input (oracle: byMSLevel(1) throws for all 35 voltage groups; C2 facts 1a and 1b)",
+  "splitByFAIMSCV destroys the chromatograms of a FAIMS input without a message (exp.clear(true)); no group receives them (oracle faims_test_data, settings_and_chromatograms_faims)",
+  "splitByFAIMSCV passes NaN FAIMS drift times into std::set<double> and std::map<double, MSExperiment>: a NaN first leaves the input unsplit with a spurious missing-voltage warning, a later NaN spectrum joins the wrong group (oracle nan_first, nan_middle, nan_last)",
+  "the information message reads 'Not FAIMS compensation voltages found' (typo for 'No')"
+ ],
+ "oracle": {
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "manifest": "../oracle/im-data-converter/manifest.json",
+  "manifest_sha256": "8954b533b6d0052b2502dcd68b0924fc7da1d4b7a0884038c0ba3bb2d102b643",
+  "sdk_source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
+  "sdk_build_type": "Debug",
+  "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+  "driver_output_sha256": "f56edd1d0ac847d5551ada6489b2457c9cedca68fb61dd1410635f5df9c9071b",
+  "driver_stderr_sha256": "fa531d3219d53c8b081272a11b1c5c6a9a277870fb7079f11cb2171664013ead",
+  "driver_binary_sha256": "af678ca868196144d23b84770fd3f793921b521947fb0e59ee6b8826c02c634a",
+  "reproduced_byte_for_byte": true,
+  "c2_manifest": "../oracle/featurefinder-picked/manifest.json",
+  "c2_manifest_sha256": "7f6adefb614200c1a4ff1d9d423a9956765104470c4b232f3a85aed7e0d3f281",
+  "debug_only": []
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/im-data-converter/driver.cpp",
+   "sha256": "0b056baa2acd6cf19ddda3f17bb2c7740322fbb1a3f7fdee668c0b426c379e82",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/im-data-converter/CMakeLists.txt",
+   "sha256": "59b532c6008bb53145c9bcafeeca0613444ab1b60ed1aeec9ed8bc4cd205a506",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/im-data-converter/run.sh",
+   "sha256": "59c25a98cf6ebc841a229d0a70188ee94f77f0372e37b387b1770d321fe131e0",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/im-data-converter/extract_c2_records.py",
+   "sha256": "bd9e16b92795a9174bb917fbe776fe875807691081d172df00bd42c248bd8b97",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/im-data-converter/manifest.json",
+   "sha256": "8954b533b6d0052b2502dcd68b0924fc7da1d4b7a0884038c0ba3bb2d102b643",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The oracle driver links the prebuilt product-sdk and lives outside this repository under ../oracle/ so that no C++ is committed here. Only its generated records and their sha256 values enter the repository.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

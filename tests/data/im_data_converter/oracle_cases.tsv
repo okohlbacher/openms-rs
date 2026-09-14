@@ -1,0 +1,887 @@
+input	im_faims_test	0	controllerType=0 controllerNumber=1 scan=1661	1	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	1	controllerType=0 controllerNumber=1 scan=1662	2	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	2	controllerType=0 controllerNumber=1 scan=1663	2	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	3	controllerType=0 controllerNumber=1 scan=1674	1	-0x1.04p+6	FAIMS_CV
+input	im_faims_test	4	controllerType=0 controllerNumber=1 scan=1687	1	-0x1.68p+5	FAIMS_CV
+input	im_faims_test	5	controllerType=0 controllerNumber=1 scan=1688	2	-0x1.68p+5	FAIMS_CV
+input	im_faims_test	6	controllerType=0 controllerNumber=1 scan=1700	1	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	7	controllerType=0 controllerNumber=1 scan=1701	2	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	8	controllerType=0 controllerNumber=1 scan=1702	2	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	9	controllerType=0 controllerNumber=1 scan=1713	1	-0x1.04p+6	FAIMS_CV
+input	im_faims_test	10	controllerType=0 controllerNumber=1 scan=1715	2	-0x1.04p+6	FAIMS_CV
+input	im_faims_test	11	controllerType=0 controllerNumber=1 scan=1726	1	-0x1.68p+5	FAIMS_CV
+input	im_faims_test	12	controllerType=0 controllerNumber=1 scan=1727	2	-0x1.68p+5	FAIMS_CV
+input	im_faims_test	13	controllerType=0 controllerNumber=1 scan=1728	2	-0x1.68p+5	FAIMS_CV
+input	im_faims_test	14	controllerType=0 controllerNumber=1 scan=1738	1	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	15	controllerType=0 controllerNumber=1 scan=1739	2	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	16	controllerType=0 controllerNumber=1 scan=1740	2	-0x1.b8p+5	FAIMS_CV
+input	im_faims_test	17	controllerType=0 controllerNumber=1 scan=1750	1	-0x1.04p+6	FAIMS_CV
+input	im_faims_test	18	controllerType=0 controllerNumber=1 scan=1764	1	-0x1.68p+5	FAIMS_CV
+case	im_faims_test	19	0	3	true	0	true
+group	im_faims_test	0	-0x1.04p+6	4	0	true	2019-09-07T09:40:04		0	true
+spectrum	im_faims_test	0	0	controllerType=0 controllerNumber=1 scan=1674	1	-0x1.04p+6	FAIMS_CV
+spectrum	im_faims_test	0	1	controllerType=0 controllerNumber=1 scan=1713	1	-0x1.04p+6	FAIMS_CV
+spectrum	im_faims_test	0	2	controllerType=0 controllerNumber=1 scan=1715	2	-0x1.04p+6	FAIMS_CV
+spectrum	im_faims_test	0	3	controllerType=0 controllerNumber=1 scan=1750	1	-0x1.04p+6	FAIMS_CV
+group	im_faims_test	1	-0x1.b8p+5	9	0	true	2019-09-07T09:40:04		0	true
+spectrum	im_faims_test	1	0	controllerType=0 controllerNumber=1 scan=1661	1	-0x1.b8p+5	FAIMS_CV
+spectrum	im_faims_test	1	1	controllerType=0 controllerNumber=1 scan=1662	2	-0x1.b8p+5	FAIMS_CV
+spectrum	im_faims_test	1	2	controllerType=0 controllerNumber=1 scan=1663	2	-0x1.b8p+5	FAIMS_CV
+spectrum	im_faims_test	1	3	controllerType=0 controllerNumber=1 scan=1700	1	-0x1.b8p+5	FAIMS_CV
+spectrum	im_faims_test	1	4	controllerType=0 controllerNumber=1 scan=1701	2	-0x1.b8p+5	FAIMS_CV
+spectrum	im_faims_test	1	5	controllerType=0 controllerNumber=1 scan=1702	2	-0x1.b8p+5	FAIMS_CV
+spectrum	im_faims_test	1	6	controllerType=0 controllerNumber=1 scan=1738	1	-0x1.b8p+5	FAIMS_CV
+spectrum	im_faims_test	1	7	controllerType=0 controllerNumber=1 scan=1739	2	-0x1.b8p+5	FAIMS_CV
+spectrum	im_faims_test	1	8	controllerType=0 controllerNumber=1 scan=1740	2	-0x1.b8p+5	FAIMS_CV
+group	im_faims_test	2	-0x1.68p+5	6	0	true	2019-09-07T09:40:04		0	true
+spectrum	im_faims_test	2	0	controllerType=0 controllerNumber=1 scan=1687	1	-0x1.68p+5	FAIMS_CV
+spectrum	im_faims_test	2	1	controllerType=0 controllerNumber=1 scan=1688	2	-0x1.68p+5	FAIMS_CV
+spectrum	im_faims_test	2	2	controllerType=0 controllerNumber=1 scan=1726	1	-0x1.68p+5	FAIMS_CV
+spectrum	im_faims_test	2	3	controllerType=0 controllerNumber=1 scan=1727	2	-0x1.68p+5	FAIMS_CV
+spectrum	im_faims_test	2	4	controllerType=0 controllerNumber=1 scan=1728	2	-0x1.68p+5	FAIMS_CV
+spectrum	im_faims_test	2	5	controllerType=0 controllerNumber=1 scan=1764	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	0	spectrum=1	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	1	spectrum=2	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	2	spectrum=3	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	3	spectrum=4	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	4	spectrum=5	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	5	spectrum=6	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	6	spectrum=7	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	7	spectrum=8	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	8	spectrum=9	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	9	spectrum=10	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	10	spectrum=11	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	11	spectrum=12	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	12	spectrum=13	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	13	spectrum=14	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	14	spectrum=15	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	15	spectrum=16	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	16	spectrum=17	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	17	spectrum=18	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	18	spectrum=19	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	19	spectrum=20	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	20	spectrum=21	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	21	spectrum=22	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	22	spectrum=23	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	23	spectrum=24	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	24	spectrum=25	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	25	spectrum=26	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	26	spectrum=27	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	27	spectrum=28	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	28	spectrum=29	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	29	spectrum=30	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	30	spectrum=31	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	31	spectrum=32	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	32	spectrum=33	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	33	spectrum=34	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	34	spectrum=35	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	35	spectrum=36	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	36	spectrum=37	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	37	spectrum=38	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	38	spectrum=39	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	39	spectrum=40	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	40	spectrum=41	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	41	spectrum=42	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	42	spectrum=43	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	43	spectrum=44	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	44	spectrum=45	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	45	spectrum=46	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	46	spectrum=47	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	47	spectrum=48	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	48	spectrum=49	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	49	spectrum=50	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	50	spectrum=51	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	51	spectrum=52	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	52	spectrum=53	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	53	spectrum=54	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	54	spectrum=55	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	55	spectrum=56	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	56	spectrum=57	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	57	spectrum=58	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	58	spectrum=59	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	59	spectrum=60	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	60	spectrum=61	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	61	spectrum=62	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	62	spectrum=63	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	63	spectrum=64	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	64	spectrum=65	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	65	spectrum=66	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	66	spectrum=67	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	67	spectrum=68	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	68	spectrum=69	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	69	spectrum=70	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	70	spectrum=71	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	71	spectrum=72	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	72	spectrum=73	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	73	spectrum=74	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	74	spectrum=75	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	75	spectrum=76	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	76	spectrum=77	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	77	spectrum=78	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	78	spectrum=79	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	79	spectrum=80	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	80	spectrum=81	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	81	spectrum=82	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	82	spectrum=83	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	83	spectrum=84	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	84	spectrum=85	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	85	spectrum=86	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	86	spectrum=87	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	87	spectrum=88	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	88	spectrum=89	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	89	spectrum=90	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	90	spectrum=91	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	91	spectrum=92	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	92	spectrum=93	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	93	spectrum=94	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	94	spectrum=95	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	95	spectrum=96	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	96	spectrum=97	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	97	spectrum=98	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	98	spectrum=99	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	99	spectrum=100	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	100	spectrum=101	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	101	spectrum=102	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	102	spectrum=103	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	103	spectrum=104	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	104	spectrum=105	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	105	spectrum=106	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	106	spectrum=107	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	107	spectrum=108	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	108	spectrum=109	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	109	spectrum=110	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	110	spectrum=111	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_one_cv	111	spectrum=112	1	-0x1.68p+5	FAIMS_CV
+case	c2_faims_one_cv	112	0	1	true	0	true
+group	c2_faims_one_cv	0	-0x1.68p+5	112	0	true			0	true
+spectrum	c2_faims_one_cv	0	0	spectrum=1	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	1	spectrum=2	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	2	spectrum=3	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	3	spectrum=4	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	4	spectrum=5	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	5	spectrum=6	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	6	spectrum=7	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	7	spectrum=8	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	8	spectrum=9	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	9	spectrum=10	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	10	spectrum=11	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	11	spectrum=12	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	12	spectrum=13	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	13	spectrum=14	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	14	spectrum=15	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	15	spectrum=16	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	16	spectrum=17	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	17	spectrum=18	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	18	spectrum=19	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	19	spectrum=20	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	20	spectrum=21	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	21	spectrum=22	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	22	spectrum=23	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	23	spectrum=24	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	24	spectrum=25	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	25	spectrum=26	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	26	spectrum=27	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	27	spectrum=28	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	28	spectrum=29	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	29	spectrum=30	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	30	spectrum=31	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	31	spectrum=32	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	32	spectrum=33	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	33	spectrum=34	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	34	spectrum=35	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	35	spectrum=36	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	36	spectrum=37	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	37	spectrum=38	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	38	spectrum=39	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	39	spectrum=40	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	40	spectrum=41	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	41	spectrum=42	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	42	spectrum=43	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	43	spectrum=44	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	44	spectrum=45	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	45	spectrum=46	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	46	spectrum=47	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	47	spectrum=48	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	48	spectrum=49	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	49	spectrum=50	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	50	spectrum=51	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	51	spectrum=52	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	52	spectrum=53	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	53	spectrum=54	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	54	spectrum=55	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	55	spectrum=56	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	56	spectrum=57	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	57	spectrum=58	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	58	spectrum=59	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	59	spectrum=60	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	60	spectrum=61	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	61	spectrum=62	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	62	spectrum=63	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	63	spectrum=64	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	64	spectrum=65	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	65	spectrum=66	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	66	spectrum=67	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	67	spectrum=68	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	68	spectrum=69	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	69	spectrum=70	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	70	spectrum=71	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	71	spectrum=72	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	72	spectrum=73	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	73	spectrum=74	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	74	spectrum=75	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	75	spectrum=76	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	76	spectrum=77	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	77	spectrum=78	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	78	spectrum=79	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	79	spectrum=80	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	80	spectrum=81	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	81	spectrum=82	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	82	spectrum=83	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	83	spectrum=84	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	84	spectrum=85	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	85	spectrum=86	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	86	spectrum=87	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	87	spectrum=88	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	88	spectrum=89	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	89	spectrum=90	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	90	spectrum=91	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	91	spectrum=92	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	92	spectrum=93	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	93	spectrum=94	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	94	spectrum=95	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	95	spectrum=96	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	96	spectrum=97	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	97	spectrum=98	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	98	spectrum=99	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	99	spectrum=100	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	100	spectrum=101	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	101	spectrum=102	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	102	spectrum=103	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	103	spectrum=104	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	104	spectrum=105	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	105	spectrum=106	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	106	spectrum=107	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	107	spectrum=108	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	108	spectrum=109	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	109	spectrum=110	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	110	spectrum=111	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_one_cv	0	111	spectrum=112	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	0	spectrum=1	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	1	spectrum=2	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	2	spectrum=3	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	3	spectrum=4	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	4	spectrum=5	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	5	spectrum=6	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	6	spectrum=7	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	7	spectrum=8	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	8	spectrum=9	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	9	spectrum=10	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	10	spectrum=11	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	11	spectrum=12	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	12	spectrum=13	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	13	spectrum=14	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	14	spectrum=15	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	15	spectrum=16	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	16	spectrum=17	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	17	spectrum=18	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	18	spectrum=19	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	19	spectrum=20	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	20	spectrum=21	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	21	spectrum=22	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	22	spectrum=23	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	23	spectrum=24	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	24	spectrum=25	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	25	spectrum=26	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	26	spectrum=27	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	27	spectrum=28	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	28	spectrum=29	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	29	spectrum=30	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	30	spectrum=31	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	31	spectrum=32	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	32	spectrum=33	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	33	spectrum=34	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	34	spectrum=35	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	35	spectrum=36	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	36	spectrum=37	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	37	spectrum=38	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	38	spectrum=39	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	39	spectrum=40	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	40	spectrum=41	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	41	spectrum=42	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	42	spectrum=43	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	43	spectrum=44	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	44	spectrum=45	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	45	spectrum=46	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	46	spectrum=47	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	47	spectrum=48	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	48	spectrum=49	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	49	spectrum=50	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	50	spectrum=51	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	51	spectrum=52	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	52	spectrum=53	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	53	spectrum=54	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	54	spectrum=55	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	55	spectrum=56	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	56	spectrum=57	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	57	spectrum=58	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	58	spectrum=59	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	59	spectrum=60	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	60	spectrum=61	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	61	spectrum=62	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	62	spectrum=63	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	63	spectrum=64	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	64	spectrum=65	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	65	spectrum=66	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	66	spectrum=67	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	67	spectrum=68	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	68	spectrum=69	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	69	spectrum=70	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	70	spectrum=71	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	71	spectrum=72	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	72	spectrum=73	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	73	spectrum=74	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	74	spectrum=75	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	75	spectrum=76	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	76	spectrum=77	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	77	spectrum=78	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	78	spectrum=79	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	79	spectrum=80	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	80	spectrum=81	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	81	spectrum=82	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	82	spectrum=83	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	83	spectrum=84	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	84	spectrum=85	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	85	spectrum=86	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	86	spectrum=87	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	87	spectrum=88	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	88	spectrum=89	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	89	spectrum=90	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	90	spectrum=91	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	91	spectrum=92	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	92	spectrum=93	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	93	spectrum=94	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	94	spectrum=95	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	95	spectrum=96	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	96	spectrum=97	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	97	spectrum=98	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	98	spectrum=99	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	99	spectrum=100	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	100	spectrum=101	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	101	spectrum=102	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	102	spectrum=103	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	103	spectrum=104	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	104	spectrum=105	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	105	spectrum=106	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	106	spectrum=107	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	107	spectrum=108	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	108	spectrum=109	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	109	spectrum=110	1	-0x1.ep+5	FAIMS_CV
+input	c2_faims_two_cv	110	spectrum=111	1	-0x1.68p+5	FAIMS_CV
+input	c2_faims_two_cv	111	spectrum=112	1	-0x1.ep+5	FAIMS_CV
+case	c2_faims_two_cv	112	0	2	true	0	true
+group	c2_faims_two_cv	0	-0x1.ep+5	56	0	true			0	true
+spectrum	c2_faims_two_cv	0	0	spectrum=2	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	1	spectrum=4	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	2	spectrum=6	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	3	spectrum=8	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	4	spectrum=10	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	5	spectrum=12	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	6	spectrum=14	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	7	spectrum=16	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	8	spectrum=18	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	9	spectrum=20	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	10	spectrum=22	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	11	spectrum=24	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	12	spectrum=26	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	13	spectrum=28	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	14	spectrum=30	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	15	spectrum=32	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	16	spectrum=34	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	17	spectrum=36	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	18	spectrum=38	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	19	spectrum=40	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	20	spectrum=42	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	21	spectrum=44	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	22	spectrum=46	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	23	spectrum=48	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	24	spectrum=50	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	25	spectrum=52	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	26	spectrum=54	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	27	spectrum=56	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	28	spectrum=58	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	29	spectrum=60	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	30	spectrum=62	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	31	spectrum=64	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	32	spectrum=66	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	33	spectrum=68	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	34	spectrum=70	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	35	spectrum=72	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	36	spectrum=74	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	37	spectrum=76	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	38	spectrum=78	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	39	spectrum=80	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	40	spectrum=82	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	41	spectrum=84	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	42	spectrum=86	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	43	spectrum=88	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	44	spectrum=90	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	45	spectrum=92	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	46	spectrum=94	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	47	spectrum=96	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	48	spectrum=98	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	49	spectrum=100	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	50	spectrum=102	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	51	spectrum=104	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	52	spectrum=106	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	53	spectrum=108	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	54	spectrum=110	1	-0x1.ep+5	FAIMS_CV
+spectrum	c2_faims_two_cv	0	55	spectrum=112	1	-0x1.ep+5	FAIMS_CV
+group	c2_faims_two_cv	1	-0x1.68p+5	56	0	true			0	true
+spectrum	c2_faims_two_cv	1	0	spectrum=1	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	1	spectrum=3	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	2	spectrum=5	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	3	spectrum=7	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	4	spectrum=9	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	5	spectrum=11	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	6	spectrum=13	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	7	spectrum=15	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	8	spectrum=17	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	9	spectrum=19	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	10	spectrum=21	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	11	spectrum=23	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	12	spectrum=25	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	13	spectrum=27	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	14	spectrum=29	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	15	spectrum=31	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	16	spectrum=33	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	17	spectrum=35	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	18	spectrum=37	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	19	spectrum=39	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	20	spectrum=41	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	21	spectrum=43	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	22	spectrum=45	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	23	spectrum=47	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	24	spectrum=49	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	25	spectrum=51	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	26	spectrum=53	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	27	spectrum=55	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	28	spectrum=57	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	29	spectrum=59	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	30	spectrum=61	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	31	spectrum=63	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	32	spectrum=65	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	33	spectrum=67	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	34	spectrum=69	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	35	spectrum=71	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	36	spectrum=73	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	37	spectrum=75	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	38	spectrum=77	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	39	spectrum=79	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	40	spectrum=81	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	41	spectrum=83	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	42	spectrum=85	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	43	spectrum=87	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	44	spectrum=89	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	45	spectrum=91	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	46	spectrum=93	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	47	spectrum=95	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	48	spectrum=97	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	49	spectrum=99	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	50	spectrum=101	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	51	spectrum=103	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	52	spectrum=105	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	53	spectrum=107	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	54	spectrum=109	1	-0x1.68p+5	FAIMS_CV
+spectrum	c2_faims_two_cv	1	55	spectrum=111	1	-0x1.68p+5	FAIMS_CV
+input	ffc1_input	0	spectrum=1	1	-0x1p+0	<NONE>
+input	ffc1_input	1	spectrum=2	1	-0x1p+0	<NONE>
+input	ffc1_input	2	spectrum=3	1	-0x1p+0	<NONE>
+input	ffc1_input	3	spectrum=4	1	-0x1p+0	<NONE>
+input	ffc1_input	4	spectrum=5	1	-0x1p+0	<NONE>
+input	ffc1_input	5	spectrum=6	1	-0x1p+0	<NONE>
+input	ffc1_input	6	spectrum=7	1	-0x1p+0	<NONE>
+input	ffc1_input	7	spectrum=8	1	-0x1p+0	<NONE>
+input	ffc1_input	8	spectrum=9	1	-0x1p+0	<NONE>
+input	ffc1_input	9	spectrum=10	1	-0x1p+0	<NONE>
+input	ffc1_input	10	spectrum=11	1	-0x1p+0	<NONE>
+input	ffc1_input	11	spectrum=12	1	-0x1p+0	<NONE>
+input	ffc1_input	12	spectrum=13	1	-0x1p+0	<NONE>
+input	ffc1_input	13	spectrum=14	1	-0x1p+0	<NONE>
+input	ffc1_input	14	spectrum=15	1	-0x1p+0	<NONE>
+input	ffc1_input	15	spectrum=16	1	-0x1p+0	<NONE>
+input	ffc1_input	16	spectrum=17	1	-0x1p+0	<NONE>
+input	ffc1_input	17	spectrum=18	1	-0x1p+0	<NONE>
+input	ffc1_input	18	spectrum=19	1	-0x1p+0	<NONE>
+input	ffc1_input	19	spectrum=20	1	-0x1p+0	<NONE>
+input	ffc1_input	20	spectrum=21	1	-0x1p+0	<NONE>
+input	ffc1_input	21	spectrum=22	1	-0x1p+0	<NONE>
+input	ffc1_input	22	spectrum=23	1	-0x1p+0	<NONE>
+input	ffc1_input	23	spectrum=24	1	-0x1p+0	<NONE>
+input	ffc1_input	24	spectrum=25	1	-0x1p+0	<NONE>
+input	ffc1_input	25	spectrum=26	1	-0x1p+0	<NONE>
+input	ffc1_input	26	spectrum=27	1	-0x1p+0	<NONE>
+input	ffc1_input	27	spectrum=28	1	-0x1p+0	<NONE>
+input	ffc1_input	28	spectrum=29	1	-0x1p+0	<NONE>
+input	ffc1_input	29	spectrum=30	1	-0x1p+0	<NONE>
+input	ffc1_input	30	spectrum=31	1	-0x1p+0	<NONE>
+input	ffc1_input	31	spectrum=32	1	-0x1p+0	<NONE>
+input	ffc1_input	32	spectrum=33	1	-0x1p+0	<NONE>
+input	ffc1_input	33	spectrum=34	1	-0x1p+0	<NONE>
+input	ffc1_input	34	spectrum=35	1	-0x1p+0	<NONE>
+input	ffc1_input	35	spectrum=36	1	-0x1p+0	<NONE>
+input	ffc1_input	36	spectrum=37	1	-0x1p+0	<NONE>
+input	ffc1_input	37	spectrum=38	1	-0x1p+0	<NONE>
+input	ffc1_input	38	spectrum=39	1	-0x1p+0	<NONE>
+input	ffc1_input	39	spectrum=40	1	-0x1p+0	<NONE>
+input	ffc1_input	40	spectrum=41	1	-0x1p+0	<NONE>
+input	ffc1_input	41	spectrum=42	1	-0x1p+0	<NONE>
+input	ffc1_input	42	spectrum=43	1	-0x1p+0	<NONE>
+input	ffc1_input	43	spectrum=44	1	-0x1p+0	<NONE>
+input	ffc1_input	44	spectrum=45	1	-0x1p+0	<NONE>
+input	ffc1_input	45	spectrum=46	1	-0x1p+0	<NONE>
+input	ffc1_input	46	spectrum=47	1	-0x1p+0	<NONE>
+input	ffc1_input	47	spectrum=48	1	-0x1p+0	<NONE>
+input	ffc1_input	48	spectrum=49	1	-0x1p+0	<NONE>
+input	ffc1_input	49	spectrum=50	1	-0x1p+0	<NONE>
+input	ffc1_input	50	spectrum=51	1	-0x1p+0	<NONE>
+input	ffc1_input	51	spectrum=52	1	-0x1p+0	<NONE>
+input	ffc1_input	52	spectrum=53	1	-0x1p+0	<NONE>
+input	ffc1_input	53	spectrum=54	1	-0x1p+0	<NONE>
+input	ffc1_input	54	spectrum=55	1	-0x1p+0	<NONE>
+input	ffc1_input	55	spectrum=56	1	-0x1p+0	<NONE>
+input	ffc1_input	56	spectrum=57	1	-0x1p+0	<NONE>
+input	ffc1_input	57	spectrum=58	1	-0x1p+0	<NONE>
+input	ffc1_input	58	spectrum=59	1	-0x1p+0	<NONE>
+input	ffc1_input	59	spectrum=60	1	-0x1p+0	<NONE>
+input	ffc1_input	60	spectrum=61	1	-0x1p+0	<NONE>
+input	ffc1_input	61	spectrum=62	1	-0x1p+0	<NONE>
+input	ffc1_input	62	spectrum=63	1	-0x1p+0	<NONE>
+input	ffc1_input	63	spectrum=64	1	-0x1p+0	<NONE>
+input	ffc1_input	64	spectrum=65	1	-0x1p+0	<NONE>
+input	ffc1_input	65	spectrum=66	1	-0x1p+0	<NONE>
+input	ffc1_input	66	spectrum=67	1	-0x1p+0	<NONE>
+input	ffc1_input	67	spectrum=68	1	-0x1p+0	<NONE>
+input	ffc1_input	68	spectrum=69	1	-0x1p+0	<NONE>
+input	ffc1_input	69	spectrum=70	1	-0x1p+0	<NONE>
+input	ffc1_input	70	spectrum=71	1	-0x1p+0	<NONE>
+input	ffc1_input	71	spectrum=72	1	-0x1p+0	<NONE>
+input	ffc1_input	72	spectrum=73	1	-0x1p+0	<NONE>
+input	ffc1_input	73	spectrum=74	1	-0x1p+0	<NONE>
+input	ffc1_input	74	spectrum=75	1	-0x1p+0	<NONE>
+input	ffc1_input	75	spectrum=76	1	-0x1p+0	<NONE>
+input	ffc1_input	76	spectrum=77	1	-0x1p+0	<NONE>
+input	ffc1_input	77	spectrum=78	1	-0x1p+0	<NONE>
+input	ffc1_input	78	spectrum=79	1	-0x1p+0	<NONE>
+input	ffc1_input	79	spectrum=80	1	-0x1p+0	<NONE>
+input	ffc1_input	80	spectrum=81	1	-0x1p+0	<NONE>
+input	ffc1_input	81	spectrum=82	1	-0x1p+0	<NONE>
+input	ffc1_input	82	spectrum=83	1	-0x1p+0	<NONE>
+input	ffc1_input	83	spectrum=84	1	-0x1p+0	<NONE>
+input	ffc1_input	84	spectrum=85	1	-0x1p+0	<NONE>
+input	ffc1_input	85	spectrum=86	1	-0x1p+0	<NONE>
+input	ffc1_input	86	spectrum=87	1	-0x1p+0	<NONE>
+input	ffc1_input	87	spectrum=88	1	-0x1p+0	<NONE>
+input	ffc1_input	88	spectrum=89	1	-0x1p+0	<NONE>
+input	ffc1_input	89	spectrum=90	1	-0x1p+0	<NONE>
+input	ffc1_input	90	spectrum=91	1	-0x1p+0	<NONE>
+input	ffc1_input	91	spectrum=92	1	-0x1p+0	<NONE>
+input	ffc1_input	92	spectrum=93	1	-0x1p+0	<NONE>
+input	ffc1_input	93	spectrum=94	1	-0x1p+0	<NONE>
+input	ffc1_input	94	spectrum=95	1	-0x1p+0	<NONE>
+input	ffc1_input	95	spectrum=96	1	-0x1p+0	<NONE>
+input	ffc1_input	96	spectrum=97	1	-0x1p+0	<NONE>
+input	ffc1_input	97	spectrum=98	1	-0x1p+0	<NONE>
+input	ffc1_input	98	spectrum=99	1	-0x1p+0	<NONE>
+input	ffc1_input	99	spectrum=100	1	-0x1p+0	<NONE>
+input	ffc1_input	100	spectrum=101	1	-0x1p+0	<NONE>
+input	ffc1_input	101	spectrum=102	1	-0x1p+0	<NONE>
+input	ffc1_input	102	spectrum=103	1	-0x1p+0	<NONE>
+input	ffc1_input	103	spectrum=104	1	-0x1p+0	<NONE>
+input	ffc1_input	104	spectrum=105	1	-0x1p+0	<NONE>
+input	ffc1_input	105	spectrum=106	1	-0x1p+0	<NONE>
+input	ffc1_input	106	spectrum=107	1	-0x1p+0	<NONE>
+input	ffc1_input	107	spectrum=108	1	-0x1p+0	<NONE>
+input	ffc1_input	108	spectrum=109	1	-0x1p+0	<NONE>
+input	ffc1_input	109	spectrum=110	1	-0x1p+0	<NONE>
+input	ffc1_input	110	spectrum=111	1	-0x1p+0	<NONE>
+input	ffc1_input	111	spectrum=112	1	-0x1p+0	<NONE>
+case	ffc1_input	112	0	1	true	0	true
+group	ffc1_input	0	nan	112	0	true			0	false
+spectrum	ffc1_input	0	0	spectrum=1	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	1	spectrum=2	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	2	spectrum=3	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	3	spectrum=4	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	4	spectrum=5	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	5	spectrum=6	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	6	spectrum=7	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	7	spectrum=8	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	8	spectrum=9	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	9	spectrum=10	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	10	spectrum=11	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	11	spectrum=12	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	12	spectrum=13	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	13	spectrum=14	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	14	spectrum=15	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	15	spectrum=16	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	16	spectrum=17	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	17	spectrum=18	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	18	spectrum=19	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	19	spectrum=20	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	20	spectrum=21	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	21	spectrum=22	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	22	spectrum=23	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	23	spectrum=24	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	24	spectrum=25	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	25	spectrum=26	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	26	spectrum=27	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	27	spectrum=28	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	28	spectrum=29	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	29	spectrum=30	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	30	spectrum=31	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	31	spectrum=32	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	32	spectrum=33	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	33	spectrum=34	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	34	spectrum=35	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	35	spectrum=36	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	36	spectrum=37	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	37	spectrum=38	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	38	spectrum=39	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	39	spectrum=40	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	40	spectrum=41	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	41	spectrum=42	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	42	spectrum=43	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	43	spectrum=44	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	44	spectrum=45	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	45	spectrum=46	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	46	spectrum=47	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	47	spectrum=48	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	48	spectrum=49	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	49	spectrum=50	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	50	spectrum=51	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	51	spectrum=52	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	52	spectrum=53	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	53	spectrum=54	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	54	spectrum=55	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	55	spectrum=56	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	56	spectrum=57	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	57	spectrum=58	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	58	spectrum=59	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	59	spectrum=60	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	60	spectrum=61	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	61	spectrum=62	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	62	spectrum=63	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	63	spectrum=64	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	64	spectrum=65	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	65	spectrum=66	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	66	spectrum=67	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	67	spectrum=68	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	68	spectrum=69	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	69	spectrum=70	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	70	spectrum=71	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	71	spectrum=72	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	72	spectrum=73	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	73	spectrum=74	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	74	spectrum=75	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	75	spectrum=76	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	76	spectrum=77	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	77	spectrum=78	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	78	spectrum=79	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	79	spectrum=80	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	80	spectrum=81	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	81	spectrum=82	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	82	spectrum=83	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	83	spectrum=84	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	84	spectrum=85	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	85	spectrum=86	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	86	spectrum=87	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	87	spectrum=88	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	88	spectrum=89	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	89	spectrum=90	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	90	spectrum=91	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	91	spectrum=92	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	92	spectrum=93	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	93	spectrum=94	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	94	spectrum=95	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	95	spectrum=96	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	96	spectrum=97	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	97	spectrum=98	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	98	spectrum=99	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	99	spectrum=100	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	100	spectrum=101	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	101	spectrum=102	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	102	spectrum=103	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	103	spectrum=104	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	104	spectrum=105	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	105	spectrum=106	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	106	spectrum=107	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	107	spectrum=108	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	108	spectrum=109	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	109	spectrum=110	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	110	spectrum=111	1	-0x1p+0	<NONE>
+spectrum	ffc1_input	0	111	spectrum=112	1	-0x1p+0	<NONE>
+log	ffc1_input	info	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+input	faims_test_data	0	controllerType=0 controllerNumber=1 scan=212	1	-0x1.04p+6	FAIMS_CV
+input	faims_test_data	1	controllerType=0 controllerNumber=1 scan=213	2	-0x1.04p+6	FAIMS_CV
+case	faims_test_data	2	1	1	true	0	true
+group	faims_test_data	0	-0x1.04p+6	2	0	true	2019-09-07T09:40:04		0	true
+spectrum	faims_test_data	0	0	controllerType=0 controllerNumber=1 scan=212	1	-0x1.04p+6	FAIMS_CV
+spectrum	faims_test_data	0	1	controllerType=0 controllerNumber=1 scan=213	2	-0x1.04p+6	FAIMS_CV
+input	faims_interleaved	0	controllerType=0 controllerNumber=1 scan=2130	1	-0x1.68p+5	FAIMS_CV
+input	faims_interleaved	1	controllerType=0 controllerNumber=1 scan=2131	1	-0x1.ep+5	FAIMS_CV
+input	faims_interleaved	2	controllerType=0 controllerNumber=1 scan=2132	1	-0x1.68p+5	FAIMS_CV
+input	faims_interleaved	3	controllerType=0 controllerNumber=1 scan=2133	1	-0x1.ep+5	FAIMS_CV
+input	faims_interleaved	4	controllerType=0 controllerNumber=1 scan=2134	1	-0x1.68p+5	FAIMS_CV
+input	faims_interleaved	5	controllerType=0 controllerNumber=1 scan=2135	1	-0x1.ep+5	FAIMS_CV
+input	faims_interleaved	6	controllerType=0 controllerNumber=1 scan=2136	1	-0x1.68p+5	FAIMS_CV
+input	faims_interleaved	7	controllerType=0 controllerNumber=1 scan=2137	1	-0x1.ep+5	FAIMS_CV
+input	faims_interleaved	8	controllerType=0 controllerNumber=1 scan=2138	1	-0x1.68p+5	FAIMS_CV
+input	faims_interleaved	9	controllerType=0 controllerNumber=1 scan=2139	1	-0x1.ep+5	FAIMS_CV
+input	faims_interleaved	10	controllerType=0 controllerNumber=1 scan=2140	1	-0x1.68p+5	FAIMS_CV
+input	faims_interleaved	11	controllerType=0 controllerNumber=1 scan=2141	1	-0x1.ep+5	FAIMS_CV
+case	faims_interleaved	12	1	2	true	0	true
+group	faims_interleaved	0	-0x1.ep+5	6	0	true	2015-03-03T22:10:25		0	true
+spectrum	faims_interleaved	0	0	controllerType=0 controllerNumber=1 scan=2131	1	-0x1.ep+5	FAIMS_CV
+spectrum	faims_interleaved	0	1	controllerType=0 controllerNumber=1 scan=2133	1	-0x1.ep+5	FAIMS_CV
+spectrum	faims_interleaved	0	2	controllerType=0 controllerNumber=1 scan=2135	1	-0x1.ep+5	FAIMS_CV
+spectrum	faims_interleaved	0	3	controllerType=0 controllerNumber=1 scan=2137	1	-0x1.ep+5	FAIMS_CV
+spectrum	faims_interleaved	0	4	controllerType=0 controllerNumber=1 scan=2139	1	-0x1.ep+5	FAIMS_CV
+spectrum	faims_interleaved	0	5	controllerType=0 controllerNumber=1 scan=2141	1	-0x1.ep+5	FAIMS_CV
+group	faims_interleaved	1	-0x1.68p+5	6	0	true	2015-03-03T22:10:25		0	true
+spectrum	faims_interleaved	1	0	controllerType=0 controllerNumber=1 scan=2130	1	-0x1.68p+5	FAIMS_CV
+spectrum	faims_interleaved	1	1	controllerType=0 controllerNumber=1 scan=2132	1	-0x1.68p+5	FAIMS_CV
+spectrum	faims_interleaved	1	2	controllerType=0 controllerNumber=1 scan=2134	1	-0x1.68p+5	FAIMS_CV
+spectrum	faims_interleaved	1	3	controllerType=0 controllerNumber=1 scan=2136	1	-0x1.68p+5	FAIMS_CV
+spectrum	faims_interleaved	1	4	controllerType=0 controllerNumber=1 scan=2138	1	-0x1.68p+5	FAIMS_CV
+spectrum	faims_interleaved	1	5	controllerType=0 controllerNumber=1 scan=2140	1	-0x1.68p+5	FAIMS_CV
+case	class_ms2_last_seen_cv	5	0	2	true	0	true
+group	class_ms2_last_seen_cv	0	-0x1.b8p+5	3	0	true			0	true
+spectrum	class_ms2_last_seen_cv	0	0		1	-0x1.b8p+5	FAIMS_CV
+spectrum	class_ms2_last_seen_cv	0	1		2	-0x1p+0	<NONE>
+spectrum	class_ms2_last_seen_cv	0	2		2	-0x1p+0	<NONE>
+group	class_ms2_last_seen_cv	1	-0x1.68p+5	2	0	true			0	true
+spectrum	class_ms2_last_seen_cv	1	0		1	-0x1.68p+5	FAIMS_CV
+spectrum	class_ms2_last_seen_cv	1	1		2	-0x1p+0	<NONE>
+case	class_non_faims	1	0	1	true	0	true
+group	class_non_faims	0	nan	1	0	true			0	true
+spectrum	class_non_faims	0	0		1	0x1.4p+3	ms
+log	class_non_faims	info	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+case	empty	0	0	1	true	0	true
+group	empty	0	nan	0	0	true			0	true
+log	empty	info	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+case	ms2_before_any_faims	3	0	1	true	0	true
+group	ms2_before_any_faims	0	-0x1.68p+5	2	0	true			0	true
+spectrum	ms2_before_any_faims	0	0	s1	1	-0x1.68p+5	FAIMS_CV
+spectrum	ms2_before_any_faims	0	1	s2	2	-0x1p+0	<NONE>
+log	ms2_before_any_faims	warn	Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).
+case	cv_less_ms1_keeps_context	5	0	1	true	0	true
+group	cv_less_ms1_keeps_context	0	-0x1.68p+5	3	0	true			0	true
+spectrum	cv_less_ms1_keeps_context	0	0	s0	1	-0x1.68p+5	FAIMS_CV
+spectrum	cv_less_ms1_keeps_context	0	1	s2	2	-0x1p+0	<NONE>
+spectrum	cv_less_ms1_keeps_context	0	2	s4	2	-0x1p+0	<NONE>
+log	cv_less_ms1_keeps_context	warn	Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).
+log	cv_less_ms1_keeps_context	warn	<Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).> occurred 2 times
+case	sentinel_faims_spectrum	6	0	2	true	0	true
+group	sentinel_faims_spectrum	0	-0x1.ep+5	2	0	true			0	true
+spectrum	sentinel_faims_spectrum	0	0	s4	1	-0x1.ep+5	FAIMS_CV
+spectrum	sentinel_faims_spectrum	0	1	s5	2	-0x1p+0	<NONE>
+group	sentinel_faims_spectrum	1	-0x1.68p+5	2	0	true			0	true
+spectrum	sentinel_faims_spectrum	1	0	s0	1	-0x1.68p+5	FAIMS_CV
+spectrum	sentinel_faims_spectrum	1	1	s1	2	-0x1p+0	<NONE>
+log	sentinel_faims_spectrum	warn	Warning: FAIMS compensation voltage is missing for at least one spectrum!
+log	sentinel_faims_spectrum	warn	Encountered spectrum with unexpected FAIMS CV (not in detected set): -1
+log	sentinel_faims_spectrum	warn	Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).
+case	only_sentinel	2	0	1	true	0	true
+group	only_sentinel	0	nan	2	0	true			0	true
+spectrum	only_sentinel	0	0	s0	1	-0x1p+0	FAIMS_CV
+spectrum	only_sentinel	0	1	s1	2	-0x1p+0	<NONE>
+log	only_sentinel	warn	Warning: FAIMS compensation voltage is missing for at least one spectrum!
+log	only_sentinel	info	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+case	signed_zero_negative_first	4	0	1	true	0	true
+group	signed_zero_negative_first	0	-0x0p+0	4	0	true			0	true
+spectrum	signed_zero_negative_first	0	0	s0	1	-0x0p+0	FAIMS_CV
+spectrum	signed_zero_negative_first	0	1	s1	2	-0x1p+0	<NONE>
+spectrum	signed_zero_negative_first	0	2	s2	1	0x0p+0	FAIMS_CV
+spectrum	signed_zero_negative_first	0	3	s3	2	-0x1p+0	<NONE>
+case	signed_zero_positive_first	4	0	1	true	0	true
+group	signed_zero_positive_first	0	0x0p+0	4	0	true			0	true
+spectrum	signed_zero_positive_first	0	0	s0	1	0x0p+0	FAIMS_CV
+spectrum	signed_zero_positive_first	0	1	s1	2	-0x1p+0	<NONE>
+spectrum	signed_zero_positive_first	0	2	s2	1	-0x0p+0	FAIMS_CV
+spectrum	signed_zero_positive_first	0	3	s3	2	-0x1p+0	<NONE>
+case	infinities	4	0	3	true	0	true
+group	infinities	0	-inf	1	0	true			0	true
+spectrum	infinities	0	0	s1	1	-inf	FAIMS_CV
+group	infinities	1	-0x1.68p+5	2	0	true			0	true
+spectrum	infinities	1	0	s2	1	-0x1.68p+5	FAIMS_CV
+spectrum	infinities	1	1	s3	2	-0x1p+0	<NONE>
+group	infinities	2	inf	1	0	true			0	true
+spectrum	infinities	2	0	s0	1	inf	FAIMS_CV
+case	ms2_with_own_cv	5	0	2	true	0	true
+group	ms2_with_own_cv	0	-0x1.ep+5	2	0	true			0	true
+spectrum	ms2_with_own_cv	0	0	s1	2	-0x1.ep+5	FAIMS_CV
+spectrum	ms2_with_own_cv	0	1	s2	2	-0x1p+0	<NONE>
+group	ms2_with_own_cv	1	-0x1.68p+5	3	0	true			0	true
+spectrum	ms2_with_own_cv	1	0	s0	1	-0x1.68p+5	FAIMS_CV
+spectrum	ms2_with_own_cv	1	1	s3	1	-0x1.68p+5	FAIMS_CV
+spectrum	ms2_with_own_cv	1	2	s4	2	-0x1p+0	<NONE>
+case	ms_level_zero_and_three	4	0	1	true	0	true
+group	ms_level_zero_and_three	0	-0x1.68p+5	3	0	true			0	true
+spectrum	ms_level_zero_and_three	0	0	s0	1	-0x1.68p+5	FAIMS_CV
+spectrum	ms_level_zero_and_three	0	1	s2	2	-0x1p+0	<NONE>
+spectrum	ms_level_zero_and_three	0	2	s3	3	-0x1p+0	<NONE>
+log	ms_level_zero_and_three	warn	Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).
+case	interleaved_descending_cvs	7	0	3	true	0	true
+group	interleaved_descending_cvs	0	-0x1.18p+6	2	0	true			0	true
+spectrum	interleaved_descending_cvs	0	0	s4	1	-0x1.18p+6	FAIMS_CV
+spectrum	interleaved_descending_cvs	0	1	s5	2	-0x1p+0	<NONE>
+group	interleaved_descending_cvs	1	-0x1.9p+5	2	0	true			0	true
+spectrum	interleaved_descending_cvs	1	0	s2	1	-0x1.9p+5	FAIMS_CV
+spectrum	interleaved_descending_cvs	1	1	s3	2	-0x1p+0	<NONE>
+group	interleaved_descending_cvs	2	-0x1.ep+4	3	0	true			0	true
+spectrum	interleaved_descending_cvs	2	0	s0	1	-0x1.ep+4	FAIMS_CV
+spectrum	interleaved_descending_cvs	2	1	s1	2	-0x1p+0	<NONE>
+spectrum	interleaved_descending_cvs	2	2	s6	1	-0x1.ep+4	FAIMS_CV
+case	unit_none_with_value	3	0	1	true	0	true
+group	unit_none_with_value	0	-0x1.4p+5	2	0	true			0	true
+spectrum	unit_none_with_value	0	0	s1	1	-0x1.4p+5	FAIMS_CV
+spectrum	unit_none_with_value	0	1	s2	2	-0x1.9p+5	<NONE>
+log	unit_none_with_value	warn	Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).
+case	adjacent_doubles	3	0	2	true	0	true
+group	adjacent_doubles	0	-0x1.9p+5	1	0	true			0	true
+spectrum	adjacent_doubles	0	0	s0	1	-0x1.9p+5	FAIMS_CV
+group	adjacent_doubles	1	-0x1.8ffffffffffffp+5	2	0	true			0	true
+spectrum	adjacent_doubles	1	0	s1	1	-0x1.8ffffffffffffp+5	FAIMS_CV
+spectrum	adjacent_doubles	1	1	s2	2	-0x1p+0	<NONE>
+case	settings_and_chromatograms_faims	4	1	2	true	0	true
+group	settings_and_chromatograms_faims	0	-0x1.ep+5	1	0	true	2019-09-07T09:40:04	settings comment	42	true
+spectrum	settings_and_chromatograms_faims	0	0	s2	1	-0x1.ep+5	FAIMS_CV
+group	settings_and_chromatograms_faims	1	-0x1.68p+5	2	0	true	2019-09-07T09:40:04	settings comment	42	true
+spectrum	settings_and_chromatograms_faims	1	0	s0	1	-0x1.68p+5	FAIMS_CV
+spectrum	settings_and_chromatograms_faims	1	1	s1	2	-0x1p+0	<NONE>
+log	settings_and_chromatograms_faims	warn	Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).
+case	settings_and_chromatograms_non_faims	2	1	1	true	0	false
+group	settings_and_chromatograms_non_faims	0	nan	2	1	true	2019-09-07T09:40:04	settings comment	42	true
+spectrum	settings_and_chromatograms_non_faims	0	0	s0	1	-0x1p+0	<NONE>
+spectrum	settings_and_chromatograms_non_faims	0	1	s1	2	-0x1p+0	<NONE>
+log	settings_and_chromatograms_non_faims	info	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+case	nan_first	3	0	1	true	0	true
+group	nan_first	0	nan	3	0	true			0	true
+spectrum	nan_first	0	0	s0	1	nan	FAIMS_CV
+spectrum	nan_first	0	1	s1	1	-0x1.9p+5	FAIMS_CV
+spectrum	nan_first	0	2	s2	1	-0x1.4p+5	FAIMS_CV
+log	nan_first	warn	Warning: FAIMS compensation voltage is missing for at least one spectrum!
+log	nan_first	info	Not FAIMS compensation voltages found in the data. Returning PeakMap as CV NaN.
+case	nan_middle	4	0	2	true	0	true
+group	nan_middle	0	-0x1.9p+5	2	0	true			0	true
+spectrum	nan_middle	0	0	s0	1	-0x1.9p+5	FAIMS_CV
+spectrum	nan_middle	0	1	s1	1	nan	FAIMS_CV
+group	nan_middle	1	-0x1.4p+5	1	0	true			0	true
+spectrum	nan_middle	1	0	s3	1	-0x1.4p+5	FAIMS_CV
+log	nan_middle	warn	Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).
+case	nan_last	4	0	2	true	0	true
+group	nan_last	0	-0x1.9p+5	2	0	true			0	true
+spectrum	nan_last	0	0	s0	1	-0x1.9p+5	FAIMS_CV
+spectrum	nan_last	0	1	s2	1	nan	FAIMS_CV
+group	nan_last	1	-0x1.4p+5	1	0	true			0	true
+spectrum	nan_last	1	0	s1	1	-0x1.4p+5	FAIMS_CV
+log	nan_last	warn	Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout).
