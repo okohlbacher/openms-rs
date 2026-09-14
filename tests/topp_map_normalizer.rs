@@ -99,7 +99,8 @@ fn topp_map_normalizer_1_scales_ms1_to_percent_of_the_run_maximum() {
 
 #[test]
 fn required_parameters_and_formats_are_enforced() {
-    assert_eq!(run(&[]).0, ExitCode::MissingParameters);
+    // A bare invocation is ILLEGAL_PARAMETERS (TOPPBase.cpp:227-232).
+    assert_eq!(run(&[]).0, ExitCode::IllegalParameters);
     assert_eq!(
         run(&["-in", "absent.mzML", "-out", "x.mzML"]).0,
         ExitCode::InputFileNotFound

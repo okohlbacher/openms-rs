@@ -127,8 +127,9 @@ fn usage_and_exit_codes_follow_the_source_contract() {
     assert!(!out.contains("-no_progress"), "{out}");
     assert!(run(&["--helphelp"]).1.contains("-no_progress"));
 
-    // A missing required parameter is MISSING_PARAMETERS.
-    assert_eq!(run(&[]).0, ExitCode::MissingParameters);
+    // A bare invocation is ILLEGAL_PARAMETERS (TOPPBase.cpp:227-232; oracle
+    // no_arguments in ../oracle/topp-cli-lifecycle).
+    assert_eq!(run(&[]).0, ExitCode::IllegalParameters);
 
     // A missing input file is INPUT_FILE_NOT_FOUND.
     let (code, _, err) = run(&["-in", "absent.mzML", "-out", "x"]);

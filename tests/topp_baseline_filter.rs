@@ -90,5 +90,6 @@ fn unsorted_input_and_bad_parameters_are_refused() {
         .0,
         ExitCode::IllegalParameters
     );
-    assert_eq!(run(&[]).0, ExitCode::MissingParameters);
+    // A bare invocation is ILLEGAL_PARAMETERS (TOPPBase.cpp:227-232).
+    assert_eq!(run(&[]).0, ExitCode::IllegalParameters);
 }
