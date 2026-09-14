@@ -3,6 +3,8 @@
 The OpenMS-derived implementation is BSD-3-Clause, as reproduced below.
 The private decoy random helper's bounded-integer mapping additionally retains the Boost Software License
 1.0 and its original author notices; its component terms are reproduced below.
+The feature-overlap quadtree is derived from Pierre Vigier's MIT-licensed Quadtree
+library; its notice is reproduced below.
 The embedded OpenMS Rust Modification Table includes transformed UniMod
 data under the Design Science License. The original source XML, transformation
 script, data notices and full license are supplied in resources/modifications.
@@ -305,6 +307,38 @@ DEALINGS IN THE SOFTWARE.
 
 The unchanged license text is available from the
 [Boost license page](https://www.boost.org/LICENSE_1_0.txt).
+
+## Feature overlap quadtree: Pierre Vigier MIT
+
+`src/processing/feature_overlap_filter/quadtree.rs` is a port of the quadtree that
+the pinned OpenMS core vendors as `src/openms/extern/Quadtree` (`Quadtree.h`,
+`Box.h`, `Vector2.h`), which `FeatureOverlapFilter` uses. That library is MIT
+licensed; its copyright and permission notice, from the pinned
+`src/openms/extern/Quadtree/LICENSE`, is reproduced here for the derived code:
+
+```text
+MIT License
+
+Copyright (c) 2019 Pierre Vigier
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## Native runtime clock dependencies
 

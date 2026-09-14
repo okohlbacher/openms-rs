@@ -74,12 +74,23 @@
   "src/cli/context.rs",
   "src/cli/usage.rs",
   "src/bin/DTAExtractor.rs",
-  "src/cli/processing.rs"
+  "src/cli/processing.rs",
+  "src/cli/tools/baseline_filter.rs",
+  "src/cli/tools/dta_extractor.rs",
+  "src/cli/tools/map_normalizer.rs",
+  "src/cli/tools/mzml_splitter.rs",
+  "src/cli/tools/spectra_filter_window_mower.rs",
+  "src/format/paramxml.rs"
  ],
  "native_tests": [
   "tests/topp_dta_extractor.rs",
-  "tests/topp_cli_lifecycle.rs"
+  "tests/topp_cli_lifecycle.rs",
+  "tests/topp_baseline_filter.rs",
+  "tests/topp_map_normalizer.rs",
+  "tests/topp_mzml_splitter.rs",
+  "tests/topp_spectra_filter_window_mower.rs"
  ],
  "support": "docs/TOPP_CLI_SUPPORT.md",
- "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 366-376"
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 366-376 (TOPP_DTAExtractor_*); CLI-2 (f886d90) adds lines 83-85 (TOPPWRITEINI_<tool>) and the processing-record references of the retained outputs at lines 331-333, 343-345, 2782-2784 and 4260-4262",
+ "cli2_note": "CLI-2 (bundle/CLI-2 f886d90): the -write_ini, usage and format-check evidence of the five tools (BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter, SpectraFilterWindowMower) and the DataProcessing retrofit of decision D4 is recorded in tests/data/topp_cli_lifecycle_provenance.json, with the oracle cases in ../oracle/topp-cli-lifecycle/cli2/manifest.json. src/format/paramxml.rs carries the WriteOptions used by -write_ini."
 }

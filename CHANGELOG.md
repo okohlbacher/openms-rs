@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+- Integrated early TOPP bundle wave 2 (2026-09-14): eight verifier-approved
+  branches on `integrate/wave2`, recorded in `docs/VALIDATION.md`.
+  - PeakPickerHiRes and SignalToNoiseEstimatorMedian parameter contract
+    (`defaults`, `from_param`, `to_param`) and fidelity fixes: `get_type(true)`
+    in `pick_experiment`, spline bisection, the source FWHM midpoints, float32
+    ion-mobility products, and `PickingCompatibility` for the source's
+    acceptance of degenerate input (P1).
+  - mzML reader: `ReadOptions::source_dangling_references` reads dangling
+    `softwareRef` and data-processing references as MzMLHandler does, and a
+    whitespace-padded placeholder `softwareRef` no longer panics (P2).
+  - TOPPBase lifecycle part 2: `-write_ini` files equal the C++ tools', with the
+    ISO-8859-1 declaration through `paramxml::WriteOptions::source`; input
+    formats through `FileHandler::get_type`; usage on stderr with the product
+    version line; BaselineFilter, MapNormalizer, SpectraFilterWindowMower and
+    MzMLSplitter attach their DataProcessing records (decision D4); an `-ini`
+    that exists but cannot be opened exits 8 (CLI-2).
+  - FileInfo library preview: DTA, DTA2D, mzML (SRM spectra converted to
+    chromatograms) and featureXML with `-m`, `-p` and `-s` in text and TSV (A4).
+  - FeatureFinderAlgorithmPicked front half: parameters, input checks,
+    intensity, trace and isotope-pattern scores, pattern precalculation and seed
+    selection; `run` returns `Unsupported` after seed selection (B6).
+  - `IMDataConverter::split_by_faims_cv` (B8) and FeatureOverlapFilter with its
+    quadtree, source mode only (B9).
+  - The Levenberg-Marquardt crate failed its gate (B3): the Eigen transcription
+    stays, with a C2 evaluation-budget differential over 29,004 budgets.
+  - Logged CPP-256 to CPP-288, registered the packages' manifests and oracle
+    artifacts, added their test targets to the minimum-Rust CI job, recorded
+    five acyclic module edges and the quadtree's MIT notice, and updated the
+    ledger: FeatureOverlapFilter.h is complete; FeatureFinderAlgorithmPicked.h,
+    FileInfo.h, PeakPickerHiRes.h, both signal-to-noise estimator headers and
+    IMDataConverter.h are partial.
+
 - Integrated early TOPP bundle wave 1 and crate wave 1 (2026-09-14): nine
   verifier-approved branches, recorded in `docs/VALIDATION.md`.
   - PeakTypeEstimator's public API and FAIMSHelper (A1); mzML spectrum and scan
