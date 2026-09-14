@@ -10,7 +10,7 @@
 //!   FileInfo (Debug, core `4fdec46`) from the C1 oracle
 //!   (`../oracle/topp-early-bundle`: FileInfo_1/2/3/9 with `-out_tsv`, the
 //!   empty featureXML and mzML, the retained FeatureFinderCentroided_1 output)
-//!   and from this package's oracle (`../oracle/file-info-core`: 24 more cases),
+//!   and from this package's oracle (`../oracle/file-info-core`: 27 more cases),
 //!   compared byte for byte with only the `File name` lines normalised;
 //! - tier 1, retained upstream outputs: FileInfo_1, _2, _3 and _9 at test-data
 //!   `0cb15f2`, compared as registered, with FuzzyDiff (`FuzzyDiff.ini`, ratio
@@ -408,6 +408,84 @@ fn a4_srm_chromatograms_all_flags() {
         "mzml_numpress_source_original.mzML",
         &mps(),
         "srm_chromatograms_mps",
+    );
+}
+
+#[cfg(feature = "mzml")]
+#[test]
+fn a4_srm_spectra_become_chromatograms_all_flags() {
+    // FileHandler.cpp:906-911: the source mzML load step turns SRM spectra into
+    // chromatograms and removes them, so the report lists no spectrum.
+    let result = check_oracle(
+        "file_info/inputs/srm_spectra.mzML",
+        &mps(),
+        "srm_spectra_mps",
+    );
+    let peak = result.peak.as_ref().unwrap();
+    assert_eq!(peak.num_spectra, 0);
+    assert!(peak.ms_levels.is_empty());
+    assert!(peak.spectra_per_ms_level.is_empty());
+    assert!(peak.activation_methods.is_empty());
+    assert!(peak.precursor_charges.is_empty());
+    assert_eq!(peak.total_peaks, 3);
+    assert_eq!((peak.num_chromatograms, peak.num_chrom_peaks), (2, 3));
+    assert_eq!(
+        peak.chromatogram_types.iter().collect::<Vec<_>>(),
+        [(&"selected reaction monitoring chromatogram".to_owned(), &2)]
+    );
+    assert!(result.ranges.spectra_overall.rt.is_none());
+    let chromatograms = result.ranges.chromatograms;
+    assert_eq!(chromatograms.rt.map(|r| (r.min, r.max)), Some((1.0, 3.0)));
+    assert_eq!(
+        chromatograms.mz.map(|r| (r.min, r.max)),
+        Some((300.0, 400.0))
+    );
+}
+
+#[cfg(feature = "mzml")]
+#[test]
+fn a4_srm_spectra_among_ordinary_spectra() {
+    // Three convertible SRM spectra (one with two product peaks), three SRM
+    // spectra the conversion skips but still removes, two ordinary spectra and
+    // a stored TIC. The first remaining spectrum supplies -p, and the arrays of
+    // removed spectra no longer count.
+    let result = check_oracle(
+        "file_info/inputs/srm_spectra_mixed.mzML",
+        &mps(),
+        "srm_spectra_mixed_mps",
+    );
+    check_oracle(
+        "file_info/inputs/srm_spectra_mixed.mzML",
+        &Options::default(),
+        "srm_spectra_mixed_default",
+    );
+    let peak = result.peak.as_ref().unwrap();
+    assert_eq!(peak.num_spectra, 2);
+    assert_eq!(peak.ms_levels, [1, 2]);
+    assert_eq!((peak.num_chromatograms, peak.num_chrom_peaks), (4, 6));
+    assert_eq!(
+        peak.chromatogram_types.iter().collect::<Vec<_>>(),
+        [
+            (&"selected reaction monitoring chromatogram".to_owned(), &3),
+            (&"total ion current chromatogram".to_owned(), &1)
+        ]
+    );
+    assert_eq!(
+        peak.activation_methods_flat(),
+        [(2, "Electron transfer dissociation".to_owned(), 1)]
+    );
+    assert_eq!(
+        peak.float_arrays.iter().collect::<Vec<_>>(),
+        [(&"Zeta".to_owned(), &1)]
+    );
+    assert_eq!(
+        peak.int_arrays.iter().collect::<Vec<_>>(),
+        [(&"alpha".to_owned(), &2)]
+    );
+    assert_eq!(result.processing.len(), 1);
+    assert_eq!(
+        result.processing[0].actions,
+        ["Charge deconvolution", "Deisotoping"]
     );
 }
 
@@ -948,6 +1026,63 @@ fn unported_branches_are_refused_by_name() {
         ..Options::default()
     };
     assert!(unsupported_message("missing", &forced).contains("peak-file branch for fid"));
+}
+
+#[test]
+fn thermo_raw_and_bruker_tdf_are_refused_as_unported_peak_files() {
+    // The source loads both when built with its default WITH_THERMO_RAW and
+    // WITH_OPENTIMS options; no native reader serves them.
+    let message = unsupported_message("missing.raw", &Options::default());
+    assert!(message.contains("peak-file branch for raw"), "{message}");
+    // A `.d` name is not recognised as Bruker TDF without its marker files, so
+    // the type has to be forced.
+    let forced = Options {
+        forced_type: FileType::BrukerTdf,
+        ..Options::default()
+    };
+    let message = unsupported_message("missing.d", &forced);
+    assert!(message.contains("peak-file branch for d"), "{message}");
+}
+
+#[test]
+fn a_directory_without_a_recognised_name_is_an_unknown_type() {
+    // FileHandler::getTypeByContent reads a directory as an empty file and
+    // returns UNKNOWN (the product-SDK FileInfo reports "Could not determine
+    // input file type!"), so the run returns the meta-only result before any
+    // flag is looked at.
+    let dir = openms::system::file::TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let plain = dir.path().join("plain");
+    std::fs::create_dir(&plain).unwrap();
+    let options = Options {
+        validate: true,
+        detailed: true,
+        ..mps()
+    };
+    let result = FileInfo::new().run(&plain, &options).unwrap();
+    assert_eq!(result.meta.file_type, FileType::Unknown);
+    assert_eq!(result.meta.file_name, plain.to_str().unwrap());
+    assert!(result.text.is_empty() && result.tsv.is_empty());
+    assert!(result.peak.is_none() && result.feature.is_none());
+}
+
+#[test]
+fn refusals_follow_content_detection_of_an_unrecognised_name() {
+    let dir = openms::system::file::TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let validate = Options {
+        validate: true,
+        ..Options::default()
+    };
+    // A recognised extension gives the type without file access, so the
+    // refusal comes first.
+    let named = dir.path().join("absent.mzML");
+    match FileInfo::new().run(&named, &validate) {
+        Err(Error::Unsupported(message)) => assert!(message.contains("(-v)"), "{message}"),
+        other => panic!("expected Error::Unsupported, got {other:?}"),
+    }
+    // An unrecognised name needs the content, whose I/O error comes first.
+    let unnamed = dir.path().join("absent.notype");
+    let error = FileInfo::new().run(&unnamed, &validate).unwrap_err();
+    assert!(matches!(error, Error::Io(_)), "{error}");
 }
 
 #[test]

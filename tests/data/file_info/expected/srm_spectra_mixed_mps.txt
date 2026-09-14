@@ -1,0 +1,131 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/srm_spectra_mixed.mzML
+File type: mzML
+
+Instrument: 
+  Mass Analyzer: Quadrupole (resolution: 0)
+
+MS levels: 1, 2
+Total number of peaks: 21
+Number of spectra: 2
+
+Combined Ranges (spectra + chromatograms):
+  retention time: 0.50 .. 6.50 sec (0.1 min)
+  mass-to-charge: 0.00 .. 410.00
+  ion mobility: <none> .. <none>
+  intensity: 0.50 .. 100.00
+
+Spectrum Ranges:
+  retention time: 1.50 .. 6.00 sec (0.1 min)
+  mass-to-charge: 100.00 .. 199.00
+  ion mobility: <none> .. <none>
+  intensity: 0.50 .. 100.00
+
+MS Level 1 Ranges:
+  retention time: 1.50 .. 1.50 sec (0.0 min)
+  mass-to-charge: 100.00 .. 102.75
+  ion mobility: <none> .. <none>
+  intensity: 0.50 .. 100.00
+
+MS Level 2 Ranges:
+  retention time: 6.00 .. 6.00 sec (0.0 min)
+  mass-to-charge: 150.00 .. 199.00
+  ion mobility: <none> .. <none>
+  intensity: 2.00 .. 8.00
+
+Chromatogram Ranges:
+  retention time: 0.50 .. 6.50 sec (0.1 min)
+  mass-to-charge: 0.00 .. 410.00
+  intensity: 5.00 .. 20.00
+
+Number of spectra per MS level:
+  level 1: 1
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Profile)
+  level 2: Centroid (Unknown)
+
+Activation methods
+    MS-Level 2 & ETD (Electron transfer dissociation): 1
+
+Precursor charge distribution:
+  charge 2: 1x
+
+Meta data array:
+  Zeta:  1 spectra
+  alpha: 2 spectra
+
+Number of chromatograms: 4
+Number of chromatographic peaks: 6
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+  selected reaction monitoring chromatogram:                         3
+
+-- Meta information --
+
+Document ID:        
+Date:               0000-00-00 00:00:00
+
+Sample:
+  name:             
+  organism:         
+  comment:          
+
+Instrument:
+  name:             
+  model:            
+  vendor:           
+  ion source(s):    Electrospray ionisation
+  mass analyzer(s): Quadrupole
+  detector(s):      Electron multiplier
+
+
+-- Data processing information --
+
+Note: The data is taken from the first spectrum!
+
+Processing 1:
+  software name:    Xcalibur
+  software version: 2.1
+  completion time:  0000-00-00 00:00:00
+  actions:          Charge deconvolution, Deisotoping
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 12
+  mean:           34.375
+  minimum:        0.5
+  lower quartile: 1
+  median:         20
+  upper quartile: 80
+  maximum:        100
+  variance:       1315.69
+
+Meta data: Zeta
+  num. of values: 12
+  mean:           1.5
+  minimum:        1.5
+  lower quartile: 1.5
+  median:         1.5
+  upper quartile: 1.5
+  maximum:        1.5
+  variance:       0
+
+Meta data: alpha
+  num. of values: 15
+  mean:           4.6
+  minimum:        0
+  lower quartile: 1
+  median:         4
+  upper quartile: 8
+  maximum:        11
+  variance:       13.8286
+
+
+

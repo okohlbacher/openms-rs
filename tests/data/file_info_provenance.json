@@ -32,7 +32,7 @@
   {
    "path": "FORMAT/FileHandler.cpp",
    "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e",
-   "operation": "loadExperiment (849-1052): getType, the allowed-type ParseError, the per-type loaders, imzML InvalidFileType, the default ParseError and the mzML SRM conversion; loadFeatures with getFeatOptions"
+   "operation": "getType (204-251) and getTypeByContent (from 312; its uncompressed branch at 398-411 reads a directory as an empty file, so the type is UNKNOWN); loadExperiment (849-1052): getType, the allowed-type ParseError, the per-type loaders (BRUKER_TDF and RAW under WITH_OPENTIMS and WITH_THERMO_RAW), imzML InvalidFileType, the default ParseError and the mzML SRM conversion (906-911); loadFeatures with getFeatOptions"
   },
   {
    "path": "KERNEL/FeatureMap.cpp",
@@ -53,6 +53,16 @@
    "path": "KERNEL/MSSpectrum.cpp",
    "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
    "operation": "getType(bool) (142-165): stored type, peak-picking processing, optional estimate"
+  },
+  {
+   "path": "KERNEL/ChromatogramTools.h",
+   "sha256": "8c91556e0b00cd2041cc71a57c75fa85f36b406694b0ad9b9e69f1374fb46d6e",
+   "operation": "convertSpectraToChromatograms (110-215): SRM spectra with one precursor and at least one peak grouped by precursor and product m/z, appended after the stored chromatograms; with remove_spectra every SRM spectrum erased"
+  },
+  {
+   "path": "FORMAT/TextFile.cpp",
+   "sha256": "d5daf2c586ec4aa45a4e285628323f7e6f6429abc8740f4f460787d0f05eaa52",
+   "operation": "load (29-77): a directory opens as a stream without lines, so getTypeByContent sees an empty file"
   }
  ],
  "context_sources_note": "Read for context and not ported by this group; each is already ported or owned elsewhere. The paths are spelled below the core checkout's include or source directory at source_revision, where the sha256 was checked, so tools/core_sdk_coverage.py does not count them as evidence for those headers.",
@@ -87,7 +97,7 @@
  },
  "method": "Library-level: FileInfo::run on each input with the registered or oracle flags; text and TSV compared byte for byte with the oracle files after replacing the 'File name: ' text line and the 'general: file name' TSV line, which embed the path; retained outputs compared with FuzzyDiff as registered.",
  "evidence_tier": 1,
- "evidence": "Tier 1 (executed differential): the product-SDK FileInfo tool (Debug, core 4fdec46; installed FileInfo.h and FileHandler.h equal to the pin; the C1 manifest records no output-relevant change on the traced call path) wrote the text and TSV reports of 31 runs: 7 from C1 (../oracle/topp-early-bundle run1: FileInfo_1/2/3/9 with -out_tsv, empty featureXML, empty mzML, retained FeatureFinderCentroided_1 output) and 24 from this package (../oracle/file-info-core, two runs reproduced byte for byte). All 31 text and 31 TSV reports equal the Rust reports except where a known mzML reader gap outside this package refuses the input (FileInfo_9, empty.mzML, FileInfo_12) or loads it differently (MzMLFile_1, selected-ion drift time); those 5 tests are ignored with the reason and guarded by a tripwire, and three derived inputs whose C++ reports equal the originals apart from the file name are compared instead. Tier 1 (retained upstream output): TOPP_FileInfo_1, _2, _3 and _9 pass FuzzyDiff as registered (FileInfo_9 on the derived input). Tier 3: seven of the nine FileInfo_test.cpp sections transcribed; consensusXML and FASTA pending for A7 with the explicit refusal asserted. Tier 4: refusals, error classes, defaults, structured-result consistency. None of the reports holds a default-stream tie of the Apple libc class, and no case exits non-zero, so no Debug-only precondition is involved.",
+ "evidence": "Tier 1 (executed differential): the product-SDK FileInfo tool (Debug, core 4fdec46; installed FileInfo.h and FileHandler.h equal to the pin; the C1 manifest records no output-relevant change on the traced call path) wrote the text and TSV reports of 34 runs: 7 from C1 (../oracle/topp-early-bundle run1: FileInfo_1/2/3/9 with -out_tsv, empty featureXML, empty mzML, retained FeatureFinderCentroided_1 output) and 27 from this package (../oracle/file-info-core, two runs reproduced byte for byte; three of them on two generated mzML files whose SRM spectra the source mzML load step converts to chromatograms). All 34 text and 34 TSV reports equal the Rust reports except where a known mzML reader gap outside this package refuses the input (FileInfo_9, empty.mzML, FileInfo_12) or loads it differently (MzMLFile_1, selected-ion drift time); those 5 tests are ignored with the reason and guarded by a tripwire, and three derived inputs whose C++ reports equal the originals apart from the file name are compared instead. Tier 1 (retained upstream output): TOPP_FileInfo_1, _2, _3 and _9 pass FuzzyDiff as registered (FileInfo_9 on the derived input). Tier 3: seven of the nine FileInfo_test.cpp sections transcribed; consensusXML and FASTA pending for A7 with the explicit refusal asserted. Tier 4: refusals (Thermo RAW and Bruker TDF among them), their order relative to content type detection, a directory as an unknown type, error classes, defaults, structured-result consistency. None of the reports holds a default-stream tie of the Apple libc class, and no case exits non-zero, so no Debug-only precondition is involved.",
  "native_implementation": [
   "src/format/file_info/model.rs",
   "src/format/file_info/report.rs",
@@ -641,6 +651,62 @@
    "bytes": 2916,
    "kind": "retained upstream expected output, test-data 0cb15f2 topp/FileInfo_9_output.txt, compared by TOPP_FileInfo_9_out1 (topp/CMakeLists.txt:903)",
    "evidence_label": "retained upstream output (tier 1)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/srm_spectra.mzML",
+   "sha256": "d735f324e90de07d1d603cd3278de26403623440bc1b66ca15093def84ddb4c8",
+   "bytes": 6540,
+   "kind": "generated input of this package's oracle (../oracle/file-info-core/inputs/srm_spectra.mzML); rule: generated by oracle.py _srm_spectra: three MS2 spectra annotated 'SRM spectrum' (MS:1000583), each with one precursor (500, 500, 600; charge 2; CID) and one peak (300, 300, 400 at RT 1, 2, 3 s), and no chromatogram; the source mzML load step turns them into two SRM chromatograms and removes them",
+   "evidence_label": "generated input (generator in oracle.py, rule recorded); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "tests/data/file_info/inputs/srm_spectra_mixed.mzML",
+   "sha256": "117e5589642b03c783b898bb1dc2982e4d84af39043c87c362f11ea3f0d34bb9",
+   "bytes": 16603,
+   "kind": "generated input of this package's oracle (../oracle/file-info-core/inputs/srm_spectra_mixed.mzML); rule: generated by oracle.py _srm_spectra_mixed: eight spectra and a stored TIC chromatogram; spectra 0, 2 and 3 are SRM with one precursor (500, 500, 600) and one, one and two peaks, spectrum 0 with its own dataProcessingRef and a float array 'Zeta'; spectra 4 to 6 are SRM without a precursor, without peaks and with two precursors (skipped by the conversion, removed all the same); spectra 1 (MS1, twelve peaks, float 'Zeta' and integer 'alpha' arrays) and 7 (MS2, ETD, integer 'alpha') are ordinary and stay",
+   "evidence_label": "generated input (generator in oracle.py, rule recorded); tool outputs on it remain oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "tests/data/file_info/expected/srm_spectra_mps.tsv",
+   "sha256": "ac1d173159aebd210e7e47782a0db4a77f22377984f091d7535ce897255832fd",
+   "bytes": 1315,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/srm_spectra_mps/cwd/out.tsv (FileInfo -test -in inputs/srm_spectra.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/srm_spectra_mps.txt",
+   "sha256": "efb25af987b27d1cc08aeab547c39c5fbb209fe1243670f2831fdba68dd6fb27",
+   "bytes": 1651,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/srm_spectra_mps/cwd/out.txt (FileInfo -test -in inputs/srm_spectra.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/srm_spectra_mixed_mps.tsv",
+   "sha256": "39a40ae185814b5af1effb7481f015edcb26007ee61dfc5ff5895a8059e51949",
+   "bytes": 2317,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/srm_spectra_mixed_mps/cwd/out.tsv (FileInfo -test -in inputs/srm_spectra_mixed.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/srm_spectra_mixed_mps.txt",
+   "sha256": "cbbaf0309c0019a8967887ca702c2096eaa6830bc8d2a95d6bd1d4cb38e1b84f",
+   "bytes": 2836,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/srm_spectra_mixed_mps/cwd/out.txt (FileInfo -test -in inputs/srm_spectra_mixed.mzML -m -p -s -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/srm_spectra_mixed_default.tsv",
+   "sha256": "759ff0818e2d5683930480cc559bb4bad4073e4faf1f82bc0e45c288d113cf78",
+   "bytes": 1977,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/srm_spectra_mixed_default/cwd/out.tsv (FileInfo -test -in inputs/srm_spectra_mixed.mzML -no_progress -out ... -out_tsv ...)"
+  },
+  {
+   "path": "tests/data/file_info/expected/srm_spectra_mixed_default.txt",
+   "sha256": "1384c0e2dfa86e9c72404b10a01dd703884572cbab02016cb164c220e5d03dcb",
+   "bytes": 1649,
+   "evidence_label": "oracle-generated (tier 1 executed differential)",
+   "kind": "A4 oracle output, verbatim: ../oracle/file-info-core/results/run1/srm_spectra_mixed_default/cwd/out.txt (FileInfo -test -in inputs/srm_spectra_mixed.mzML -no_progress -out ... -out_tsv ...)"
   }
  ],
  "reused_fixtures": [
@@ -738,9 +804,9 @@
  "external_reference_artifacts": [
   {
    "path": "../oracle/file-info-core/oracle.py",
-   "sha256": "973157d837682f081a6ee088b5418dbaf7ad97e99ca7b6b63b3f6d7ba5799056",
+   "sha256": "179c660a7affdd1a09d1324f8b76ed065cd697759a0ece46dcba066b8e68254f",
    "origin_key": "fixtures",
-   "role": "driver: case table, input derivations, runs, reproduction check, manifest writer"
+   "role": "driver: case table, input derivations, generated SRM inputs, runs, reproduction check, manifest writer"
   },
   {
    "path": "../oracle/file-info-core/run.sh",
@@ -750,13 +816,13 @@
   },
   {
    "path": "../oracle/file-info-core/manifest.json",
-   "sha256": "6d234c0810d3cafd3ba4a3d03a012504e1d3ff8cd247640ec23d9755c85738f9",
+   "sha256": "405ccdf5f2cfd3d212ffc9d57c1ba304b9a683eb4ebc9440f00ae48ceadb965b",
    "origin_key": "fixtures",
    "role": "tool and build-info hashes, environment, input records with derivation rules, per-case exit codes and output hashes, reproduction verdict"
   },
   {
    "path": "../oracle/file-info-core/inputs.json",
-   "sha256": "492efb6067ee3bf3c69126b8ad1f771e64449f145cb45792db1ad12bb4e0269e",
+   "sha256": "b31734cb2da0f8bfae63760882cac472b8555b5d857d2957c9a333c22dd266a0",
    "origin_key": "fixtures",
    "role": "input origins and derivation rules"
   },

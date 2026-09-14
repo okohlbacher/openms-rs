@@ -9,7 +9,13 @@
 //! [`crate::format::FileHandler::load_experiment_with_options`] with default
 //! [`crate::format::PeakFileOptions`] and the forced or detected type as the
 //! only allowed type, as the source calls `FileHandler::loadExperiment(in, exp,
-//! {in_type}, log_type, false, false)`. The branch then writes, in the source
+//! {in_type}, log_type, false, false)`. For mzML the branch then finishes that
+//! source load step, which the native loader leaves out: SRM spectra become
+//! chromatograms and are removed
+//! ([`crate::kernel::ChromatogramTools::convert_spectra_to_chromatograms`] with
+//! `remove_spectra` set and `force_conversion` unset, as
+//! `FileHandler.cpp:910` calls it). Every count, range and section below is
+//! computed on the converted experiment. The branch then writes, in the source
 //! order:
 //!
 //! 1. the instrument name and every mass analyzer with its resolution;
@@ -34,7 +40,10 @@
 //! data processing of the first spectrum; `-s` the MS1 intensity statistics
 //! and one statistics block per data-array name. Integer arrays are promoted to
 //! `double`, float arrays and intensities from `float`; a string array
-//! contributes its name but no values, so its block is all zeros.
+//! contributes its name but no values, so its block is all zeros. As in the
+//! source, the values of one data-array name are collected, summarised and
+//! released before the next name's, so the statistics hold at most one block
+//! in memory.
 //!
 //! The structured [`crate::format::file_info::model::PeakInfo`] and ranges are
 //! filled alongside, as the source fills its `Result`.
@@ -44,16 +53,16 @@
 
 use super::model::{FileInfoResult, Options, PeakInfo, Ranges};
 use super::report::{
-    ReportStream, range_set, statistics_buffer, summarize, write_charge_distribution,
-    write_meta_title, write_processing, write_processing_title, write_ranges_text,
-    write_ranges_tsv, write_statistics_title, write_summary_text,
+    ReportStream, check_statistics_values, range_set, statistics_buffer, summarize,
+    write_charge_distribution, write_meta_title, write_processing, write_processing_title,
+    write_ranges_text, write_ranges_tsv, write_statistics_title, write_summary_text,
 };
 use super::text_format::{WRITTEN_DIGITS_F32, list_to_string, to_str};
 use crate::format::peak_type_estimator::PeakTypeEstimator;
 use crate::format::{FileHandler, FileType, PeakFileOptions};
 use crate::kernel::faims_helper::FaimsHelper;
 use crate::kernel::ranges::RangeManager;
-use crate::kernel::{MSExperiment, SpectrumType};
+use crate::kernel::{ChromatogramTools, DataArray, MSExperiment, SpectrumType};
 use crate::metadata::{ActivationMethod, ChromatogramType, DataProcessing, SpectrumSettings};
 use crate::{Error, Result};
 use std::collections::BTreeMap;
@@ -76,8 +85,20 @@ pub(crate) fn report(
     os_tsv: &mut ReportStream,
     result: &mut FileInfoResult,
 ) -> Result<()> {
-    let experiment =
+    let mut experiment =
         FileHandler::load_experiment_with_options(path, &[in_type], &PeakFileOptions::default())?;
+    if in_type == FileType::MzMl {
+        // FileHandler.cpp:906-911: the mzML case ends with
+        // `ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true)`.
+        // The loader accepted only `in_type`, so the type it detected is mzML
+        // too. The removed spectra the report hands back are dropped, as the
+        // source erases them.
+        ChromatogramTools::default().convert_spectra_to_chromatograms(
+            &mut experiment,
+            true,
+            false,
+        )?;
+    }
     let summary = Summary::compute(&experiment)?;
 
     write_content(&experiment, &summary, os, os_tsv, result)?;
@@ -630,44 +651,29 @@ fn write_statistics(
     os.text("\n");
 
     // The source gathers, per name, the float arrays and then the integer
-    // arrays of each spectrum in order; one pass per spectrum gives every
-    // name the same sequence of values.
-    let mut sizes: BTreeMap<&str, usize> = BTreeMap::new();
+    // arrays of each spectrum in order (`FileInfo.cpp:2412-2437`), and builds
+    // and drops one name's values at a time. One pass indexes every name's
+    // arrays in that order and checks each block against the ceiling before
+    // any values are copied; each block is then collected, summarised and
+    // released before the next.
+    let mut columns: BTreeMap<&str, Column<'_>> = BTreeMap::new();
     for spectrum in &experiment.spectra {
         for array in &spectrum.float_data_arrays {
-            grow(&mut sizes, &array.name, array.data.len())?;
+            Column::add(&mut columns, array, Part::Float)?;
         }
         for array in &spectrum.integer_data_arrays {
-            grow(&mut sizes, &array.name, array.data.len())?;
+            Column::add(&mut columns, array, Part::Integer)?;
         }
     }
-    let mut values: BTreeMap<&str, Vec<f64>> = BTreeMap::new();
-    for (name, size) in &sizes {
-        values.insert(name, statistics_buffer(*size)?);
-    }
-    for spectrum in &experiment.spectra {
-        let mut take = |name: &str, data: &mut dyn Iterator<Item = f64>| {
-            if let Some(target) = values.get_mut(name) {
-                target.extend(data);
-            }
-        };
-        for array in &spectrum.float_data_arrays {
-            take(
-                &array.name,
-                &mut array.data.iter().map(|value| f64::from(*value)),
-            );
-        }
-        for array in &spectrum.integer_data_arrays {
-            take(
-                &array.name,
-                &mut array.data.iter().map(|value| f64::from(*value)),
-            );
-        }
+    for column in columns.values() {
+        check_statistics_values(column.size)?;
     }
     for name in summary.meta_names.keys() {
-        let mut empty = Vec::new();
-        let sample = values.get_mut(name.as_str()).unwrap_or(&mut empty);
-        let stats = summarize(sample)?;
+        let stats = match columns.get(name.as_str()) {
+            Some(column) => summarize(&mut column.collect()?)?,
+            // A name held only by string arrays has no values.
+            None => summarize(&mut [])?,
+        };
         os.text("Meta data: ").text(name).text("\n");
         write_summary_text(os, &stats);
         os.text("\n");
@@ -675,8 +681,50 @@ fn write_statistics(
     Ok(())
 }
 
-fn grow<'a>(sizes: &mut BTreeMap<&'a str, usize>, name: &'a str, count: usize) -> Result<()> {
-    let size = sizes.entry(name).or_insert(0);
-    *size = size.checked_add(count).ok_or_else(count_overflow)?;
-    Ok(())
+/// The float and integer arrays of one data-array name, in collection order.
+struct Column<'a> {
+    size: usize,
+    parts: Vec<Part<'a>>,
+}
+
+/// One array's values, borrowed from the experiment.
+#[derive(Clone, Copy)]
+enum Part<'a> {
+    Float(&'a [f32]),
+    Integer(&'a [i32]),
+}
+
+impl<'a> Column<'a> {
+    /// Index `array` under its name.
+    fn add<T>(
+        columns: &mut BTreeMap<&'a str, Column<'a>>,
+        array: &'a DataArray<T>,
+        part: fn(&'a [T]) -> Part<'a>,
+    ) -> Result<()> {
+        let column = columns
+            .entry(array.name.as_str())
+            .or_insert_with(|| Column {
+                size: 0,
+                parts: Vec::new(),
+            });
+        column.size = column
+            .size
+            .checked_add(array.data.len())
+            .ok_or_else(count_overflow)?;
+        column.parts.push(part(&array.data));
+        Ok(())
+    }
+
+    /// The name's values promoted to `double`, in a buffer allocated fallibly
+    /// after the ceiling check.
+    fn collect(&self) -> Result<Vec<f64>> {
+        let mut values = statistics_buffer(self.size)?;
+        for part in &self.parts {
+            match *part {
+                Part::Float(data) => values.extend(data.iter().map(|value| f64::from(*value))),
+                Part::Integer(data) => values.extend(data.iter().map(|value| f64::from(*value))),
+            }
+        }
+        Ok(values)
+    }
 }

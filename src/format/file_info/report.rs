@@ -21,9 +21,12 @@
 //! This port runs the peak-file branch for DTA, DTA2D and mzML
 //! ([`crate::format::file_info::peaks`]) and the featureXML branch
 //! ([`crate::format::file_info::features`]), each with `-m`, `-p` and `-s`.
-//! Every other part of the source report is refused before anything is read,
-//! with [`Error::Unsupported`] naming the branch, so a run never returns a
-//! partial report:
+//! Every other part of the source report is refused with
+//! [`Error::Unsupported`] naming the branch, once the type is known and before
+//! the file is loaded, so a run never returns a partial report. The type is
+//! known without touching the file when it is forced or recognised from the
+//! name; otherwise the type detection reads the start of the file first, and
+//! its I/O error comes before the refusal. Refused are:
 //!
 //! - `-v` (schema and semantic validation) and `-i` (indexed-mzML check), for
 //!   every type;
@@ -32,7 +35,9 @@
 //! - the consensusXML, idXML, mzIdentML, FASTA, pepXML, mzTab, trafoXML and PQP
 //!   branches;
 //! - peak files of the types the source loads but no native loader serves on
-//!   this path: mzXML, mzData, MGF, MS2, sqMass, XMass (`fid`) and MSP.
+//!   this path: mzXML, mzData, MGF, MS2, sqMass, XMass (`fid`) and MSP, and
+//!   Thermo RAW and Bruker TDF, which the source loads when built with its
+//!   default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options.
 //!
 //! `docs/FILE_INFO_SUPPORT.md` holds the API mapping, the preserved source
 //! conventions, the native differences and the evidence.
@@ -105,7 +110,10 @@ impl FileInfo {
     ///
     /// The type is [`Options::forced_type`] unless that is
     /// [`FileType::Unknown`], in which case it is detected from the file name
-    /// and then the content ([`FileHandler::get_type`]). An unknown type yields
+    /// and then the content ([`FileHandler::get_type`]). A directory whose name
+    /// gives no type is [`FileType::Unknown`], as the source's content check
+    /// reads it as an empty file, where [`FileHandler::get_type`] returns the
+    /// I/O error. An unknown type yields
     /// a result with only [`FileInfoResult::meta`] filled and empty reports,
     /// as the source returns and lets the caller report it. A forced type
     /// selects the branch and the single allowed type of the loader, which
@@ -124,9 +132,11 @@ impl FileInfo {
     ///
     /// - [`Error::InvalidValue`] for a file name that is not UTF-8;
     /// - [`Error::Io`] when the type must be detected from content and the file
-    ///   cannot be opened or read, or when the loader cannot open it;
-    /// - [`Error::Unsupported`], before the file is read, for a flag or branch
-    ///   this port does not run (see the module documentation);
+    ///   is not a directory and cannot be opened or read, or when the loader
+    ///   cannot open it;
+    /// - [`Error::Unsupported`] for a flag or branch this port does not run
+    ///   (see the module documentation), before the file is loaded; before any
+    ///   file access only when the type is forced or recognised from the name;
     /// - [`Error::Parse`] for a type the source cannot load as a peak file
     ///   either, with the source message `type is not supported for loading
     ///   experiments`;
@@ -146,7 +156,7 @@ impl FileInfo {
         let mut result = FileInfoResult::default();
         result.meta.file_name = name.to_owned();
         let in_type = if options.forced_type == FileType::Unknown {
-            FileHandler::get_type(path)?
+            detect_type(path)?
         } else {
             options.forced_type
         };
@@ -265,6 +275,19 @@ fn report_features(
     ))
 }
 
+/// `FileHandler::getType` as the source `run` sees it.
+///
+/// The source content check opens a directory as a stream that yields no line
+/// and returns `UNKNOWN` (`FileHandler.cpp:398-410`, `TextFile::load`);
+/// [`FileHandler::get_type`] returns the I/O error of reading it. Only that
+/// case is mapped: every other error, a missing file among them, is returned.
+fn detect_type(path: &Path) -> Result<FileType> {
+    match FileHandler::get_type(path) {
+        Err(Error::Io(_)) if crate::system::file::is_directory(path) => Ok(FileType::Unknown),
+        other => other,
+    }
+}
+
 /// Which part of the source report a file type reaches.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Branch {
@@ -294,19 +317,24 @@ fn branch(in_type: FileType) -> Branch {
         | FileType::MzTab
         | FileType::TransformationXml
         | FileType::Pqp => Branch::Unported,
+        // Thermo RAW and Bruker TDF load in the source built with its default
+        // WITH_THERMO_RAW and WITH_OPENTIMS options; without them the source
+        // loader throws ParseError. Neither has a native reader here.
         FileType::MzXml
         | FileType::MzData
         | FileType::Mgf
         | FileType::Ms2
         | FileType::SqMass
         | FileType::Xmass
-        | FileType::Msp => Branch::UnportedPeaks,
+        | FileType::Msp
+        | FileType::Raw
+        | FileType::BrukerTdf => Branch::UnportedPeaks,
         FileType::ImzMl => Branch::ImagingPeaks,
         _ => Branch::NotLoadable,
     }
 }
 
-/// Refuse, before any file access, every flag and branch this port does not
+/// Refuse, before the file is loaded, every flag and branch this port does not
 /// run. The source's order is the report's: `-v`, then `-i`, then the content.
 fn check_supported(in_type: FileType, options: &Options) -> Result<()> {
     if options.validate {

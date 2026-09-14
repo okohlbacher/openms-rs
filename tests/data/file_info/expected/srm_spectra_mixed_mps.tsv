@@ -1,0 +1,54 @@
+general: file name	/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/srm_spectra_mixed.mzML
+general: file type	mzML
+number of spectra	2
+total number of peaks	21
+general: combined ranges: retention time: min	0.50
+general: combined ranges: retention time: max	6.50
+general: combined ranges: mass-to-charge: min	0.00
+general: combined ranges: mass-to-charge: max	410.00
+general: combined ranges: intensity: min	0.50
+general: combined ranges: intensity: max	100.00
+general: spectrum ranges: retention time: min	1.50
+general: spectrum ranges: retention time: max	6.00
+general: spectrum ranges: mass-to-charge: min	100.00
+general: spectrum ranges: mass-to-charge: max	199.00
+general: spectrum ranges: intensity: min	0.50
+general: spectrum ranges: intensity: max	100.00
+general: MS1 ranges: retention time: min	1.50
+general: MS1 ranges: retention time: max	1.50
+general: MS1 ranges: mass-to-charge: min	100.00
+general: MS1 ranges: mass-to-charge: max	102.75
+general: MS1 ranges: intensity: min	0.50
+general: MS1 ranges: intensity: max	100.00
+general: MS2 ranges: retention time: min	6.00
+general: MS2 ranges: retention time: max	6.00
+general: MS2 ranges: mass-to-charge: min	150.00
+general: MS2 ranges: mass-to-charge: max	199.00
+general: MS2 ranges: intensity: min	2.00
+general: MS2 ranges: intensity: max	8.00
+general: chromatogram ranges: retention time: min	0.50
+general: chromatogram ranges: retention time: max	6.50
+general: chromatogram ranges: mass-to-charge: min	0.00
+general: chromatogram ranges: mass-to-charge: max	410.00
+general: chromatogram ranges: intensity: min	5.00
+general: chromatogram ranges: intensity: max	20.00
+number of MS1 spectra	1
+number of MS2 spectra	1
+peak type metadata [annotation, estimate]	Centroid	Profile
+peak type metadata [annotation, estimate]	Centroid	Unknown
+activation methods (mslevel, method, count)	2	ETD	1
+general: charge distribution: charge: 2	1
+number of chromatograms	4
+number of chromatographic peaks	6
+document id	
+date	0000-00-00 00:00:00
+sample name	
+sample organism	
+sample comment	
+instrument name	
+instrument model	
+instrument vendor	
+data processing: 1: software name	Xcalibur
+data processing: 1: software version	2.1
+data processing: 1: completion time	0000-00-00 00:00:00
+data processing: 1: actions	Charge deconvolution, Deisotoping

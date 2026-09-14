@@ -76,12 +76,31 @@ Every public member of `FileInfo.h`, and the file-local helpers of
   first-spectrum note, `-m` sample and instrument lists and contacts).
 - **Unknown type**: forced type first, else `FileHandler::getType`; an unknown
   type returns a result with only `meta` filled (`file_type_name` `unknown`) and
-  empty reports, before any flag is looked at.
+  empty reports, before any flag is looked at. A directory whose name gives no
+  type is unknown too: the source content check reads it as an empty file
+  (`FileHandler.cpp:398-411`), where the native `FileHandler::get_type` returns
+  the I/O error, so `FileInfo::run` maps that one case
+  (`a_directory_without_a_recognised_name_is_an_unknown_type`; the product-SDK
+  tool reports `Could not determine input file type!` for it).
 - **Forced type** selects the branch and is the loader's only allowed type; the
   loader still detects the type by name and then content, so a featureXML map
   named `.tmp` loads when featureXML is forced (`FileInfo_test.cpp:120-145`).
 - **Loading**: peak files with default `PeakFileOptions`; featureXML with
   convex hulls and subordinates off (`FileInfo.cpp:1080-1081`).
+- **SRM spectra of mzML files** become chromatograms before anything is
+  counted. The source mzML load step ends with
+  `ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true)`
+  (`FileHandler.cpp:906-911`), which the native loader leaves out, so the
+  peak-file branch calls `ChromatogramTools::convert_spectra_to_chromatograms`
+  with `remove_spectra` set and `force_conversion` unset on mzML input. Each
+  SRM spectrum with one precursor and at least one peak adds one point per peak
+  to the chromatogram of its (precursor, product) pair, appended after the
+  stored chromatograms; every SRM spectrum is then removed, including those the
+  conversion skips (no precursor, two precursors, no peaks). The spectrum
+  counts, ranges, activation methods, charges, data-array names, `-p` (the first
+  remaining spectrum) and `-s` all see the converted experiment
+  (`a4_srm_spectra_become_chromatograms_all_flags`,
+  `a4_srm_spectra_among_ordinary_spectra`).
 - **Ranges**: two-decimal `StringUtils::number` for every bound and one decimal
   for the span in minutes, through `text_format::fixed_truncated` (A2's note:
   `fixed` would refuse what `number` cuts). An absent dimension prints
@@ -116,7 +135,9 @@ Every public member of `FileInfo.h`, and the file-local helpers of
   `double`. featureXML: intensity, width (`Feature FWHM in RT dimension`),
   overall, RT and m/z quality, text and TSV. Peak files: MS1 intensities, then
   one block per data-array name over the float and integer arrays of that name
-  (a string array's name gives an all-zero block); text only.
+  (a string array's name gives an all-zero block); text only. As in the source,
+  one name's values are collected, summarised and released before the next
+  name's, so at most one block is held.
 - **`-p`**: the map's processing, or the first spectrum's with the note
   `Note: The data is taken from the first spectrum!`; an empty list prints
   `No information about data processing available!`; actions in enum order;
@@ -139,12 +160,19 @@ Every public member of `FileInfo.h`, and the file-local helpers of
 1. **Refusals instead of partial support.** `-v` and `-i` for every type, `-d`
    and `-c` on peak files, the consensusXML, idXML, mzIdentML, FASTA, pepXML,
    mzTab, trafoXML and PQP branches, and peak files of mzXML, mzData, MGF, MS2,
-   sqMass, XMass and MSP return `Error::Unsupported` naming the branch, before
-   the file is opened. The source reports them. MGF and MS2 have native loaders
-   but no FileInfo oracle yet.
+   sqMass, XMass, MSP, Thermo RAW and Bruker TDF return `Error::Unsupported`
+   naming the branch. The source reports them; it loads RAW and TDF when built
+   with its default `WITH_THERMO_RAW` and `WITH_OPENTIMS` options (the
+   product-SDK oracle is built without both). MGF and MS2 have native loaders
+   but no FileInfo oracle yet. The refusal comes once the type is known and
+   before the file is loaded. The type is known without file access when it is
+   forced or recognised from the name (every refusal test uses such names);
+   otherwise type detection reads the start of the file first, so a missing
+   file with an unrecognised name gives `Error::Io` even with `-v` set
+   (`refusals_follow_content_detection_of_an_unrecognised_name`).
 2. **Errors of unloadable types.** The source writes the header and then throws
    from `FileHandler::loadExperiment`; the port returns no result:
-   `Error::Parse` for a type no experiment loader handles (source
+   `Error::Parse` for a type no experiment loader of the source handles (source
    `ParseError`), `Error::InvalidValue` for imzML (source `InvalidFileType`)
    and for a detected type other than the forced one (source `ParseError`,
    mapped as `FileHandler` maps it).
@@ -156,10 +184,9 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    `to_text` and `to_tsv` borrow the cached reports instead of copying them.
    The file name must be UTF-8 (`Error::InvalidValue`).
 5. **Loader strictness is inherited.** The native readers refuse inputs the
-   source loads; see *Known reader gaps*. `FileHandler` also does not move SRM
-   spectra of an mzML file into chromatograms, as the source loader does after
-   reading (`ChromatogramTools::convertSpectraToChromatograms`), so such a
-   file's report would list them as spectra.
+   source loads; see *Known reader gaps*. The library runs every load with the
+   strict default reader options; `Options` has no field for the
+   source-compatibility load options of D10 yet (see *Deferrals*).
 6. **Non-finite and signed-zero values.** The readers refuse NaN and infinite
    coordinates and intensities, `SummaryStatistics` refuses NaN, and a FAIMS
    spectrum with a NaN voltage is refused; the source would print `nan` or break
@@ -174,12 +201,15 @@ Every public member of `FileInfo.h`, and the file-local helpers of
    stored-type query and `PeakTypeEstimator` apply their own ceilings (the
    estimator refuses a spectrum above one million peaks, where the source
    classifies it). An MS level above `i32::MAX` cannot become a `PeakInfo` key
-   and is refused; the source casts.
+   and is refused; the source casts. The SRM conversion of mzML input runs with
+   the default `ChromatogramConversionLimits` and refuses, with
+   `Error::InvalidValue`, an input above them; a file without SRM spectra costs
+   it one step per spectrum and never reaches them.
 8. **`log_type`** is accepted and has no effect: the native loaders on this
    path report no progress.
 9. **Default-stream ties.** `ostream_g` follows the C standard and glibc for
    the class of integer-valued ties below `1e15` where Apple libc keeps trailing
-   zeros (A2's platform note, `text_format.rs`). None of the 31 oracle report
+   zeros (A2's platform note, `text_format.rs`). None of the 34 oracle report
    pairs here holds such a value; a macOS oracle text that differs from the
    port only there is not a port defect.
 
@@ -211,7 +241,7 @@ identical (commit `74526a8`). No case exits non-zero, so no Debug-only
 precondition is involved. The TOPP tool writes `toText` and `toTSV` of
 the library result, so its `-out` and `-out_tsv` files are the library
 reports. Text and TSV are compared byte for byte, only the `File name` line and
-the `general: file name` TSV line normalised:
+the `general: file name` TSV line normalised; 34 report pairs in all:
 
 - C1 (`../oracle/topp-early-bundle`, run1): FileInfo_1 (`-in_type dta`),
   FileInfo_2, FileInfo_3 (`-m -s -p`) and FileInfo_9 (`-m -p -s`) with
@@ -226,7 +256,10 @@ the `general: file name` TSV line normalised:
   chromatograms (`mzml_numpress_source_original.mzML`); `MzMLFile_1.mzML`
   (two processing steps, three activation methods, drift times, two contacts);
   `precursor_purity_input.mzML`; a profile and a centroid DTA; the three DTA2D
-  header variants; and the three derived inputs above.
+  header variants; the three derived inputs above; and two generated SRM-spectra
+  mzML files (`srm_spectra.mzML` with all flags; `srm_spectra_mixed.mzML` with
+  all and with default flags), whose generator and rules are in `oracle.py` and
+  its manifest.
 
 Tier 1, retained upstream output: TOPP_FileInfo_1, _2, _3 and _9
 (`topp/CMakeLists.txt:881-883`, `:884-886`, `:887-889`, `:902-904` at test-data
@@ -234,7 +267,9 @@ Tier 1, retained upstream output: TOPP_FileInfo_1, _2, _3 and _9
 (ratio 1.01, absdiff 0.01) and the registered whitelist `File name`. FileInfo_9
 runs on the derived input.
 
-Tier 4: every refusal and its message, before file access; unknown type;
+Tier 4: every refusal and its message, before file access for forced and
+recognised names and after content detection otherwise; unknown type, a
+directory among them;
 unloadable, imzML and forced-type mismatch errors; missing files (`Error::Io`);
 truncated featureXML and mzML (`Error::Parse`; C++ exits 3); a non-UTF-8 name;
 the file name printed as given; the `Options` and `Result` defaults; the
@@ -268,3 +303,10 @@ sections.
   mzXML, mzData, trafoXML (A8); pepXML, mzTab, PQP, sqMass, XMass, MSP, MGF and
   MS2 have no package yet.
 - The tool wrapper, exit codes and output routing are A5's.
+- Source-compatibility load options (D10). `FileInfo::run` loads peak files
+  through `FileHandler::load_experiment_with_options`, which passes the strict
+  default `mzml::ReadOptions`, and `Options` has no load-options field. When
+  P2 and A3 land the leniency options, A5 or the integrator adds a native field
+  to `Options` that defaults to the strict options and reaches the mzML reader
+  on the tool path; the ignored FileInfo_9, FileInfo_12 and empty-mzML cases are
+  the tests that field must turn on.
