@@ -64,8 +64,15 @@ preserves the principal numerical conventions of [OpenMS4-core revision
 
 ## Validation and intentional improvements
 
-Probabilities use `f64`, whereas C++ stores isotope weights in `Peak1D`'s `float`
-intensity field. Golden comparisons allow the source's rounding precision.
+Probabilities use `f64` by default, whereas C++ stores isotope weights in `Peak1D`'s
+`float` intensity field. Golden comparisons allow the source's rounding precision.
+The opt-in `ProbabilityPrecision::SourceSingle` computes in the source's binary32
+arithmetic instead. Its bit-identity is limited to executed SDK runs that
+iterate elements in the port's order (ascending atomic number for natural
+elements): the SDK keys its formula map by `Element` address, and its order
+changed in 2 of 200 runs of one binary. See
+[source precision](ISOTOPE_SOURCE_PRECISION_SUPPORT.md) for the contract and
+its evidence.
 Inputs and container mutations reject negative/nonfinite masses or weights.
 Weights above one are allowed before normalization. Empty normalization is a
 no-op; a nonempty zero-sum or overflowed-sum distribution returns an error and
@@ -74,7 +81,11 @@ weighted average mass.
 
 `trim_left` removes every peak when all weights fall below the cutoff, fixing an
 upstream edge case that leaves the distribution unchanged. Trimming retains
-weights equal to the cutoff. `resize` pads with `(0, 0)`, as in C++, and can
+weights equal to the cutoff. `trim_left_source` keeps the source behaviour for
+callers that need it (FeatureFinderAlgorithmPicked). Because the source compares
+the `float` intensity `insert` stored, it narrows each weight to `f32` before
+the comparison: weights 0.7 and 0.8 with cutoff 0.7 keep one peak, as the
+executed SDK does. `resize` pads with `(0, 0)`, as in C++, and can
 therefore change mass ordering. Fragment truncation bounds the complete loop,
 preventing the source's potential out-of-bounds access when the configured result
 length is shorter than its input fragment distribution.
@@ -145,4 +156,13 @@ cargo test --offline --test isotopes
 cargo clippy --offline --test isotopes -- -D warnings
 ```
 
-No C++ build or live C++/Rust differential run was performed.
+No C++ build or live C++/Rust differential run was performed for
+`tests/isotopes.rs`. The executed SDK comparisons of source precision,
+`trim_left_source` and the element order are recorded in
+[ISOTOPE_SOURCE_PRECISION_SUPPORT.md](ISOTOPE_SOURCE_PRECISION_SUPPORT.md).
+
+Iridium patterns differ from the executed C++ by design. The pinned
+`ElementDB.cpp:512` builds iridium from rhenium's tables, and the port uses the
+declared iridium table ([chemistry support](CHEMISTRY_SUPPORT.md)). Every SDK
+run gives `Os3Ir3` a rhenium-based lightest-isotope weight of 1106.716344 Da,
+so no precision mode reproduces C++ for formulas containing iridium (CPP-249).

@@ -27,6 +27,7 @@ mod context;
 mod parameter;
 mod processing;
 mod spec;
+/// The ported TOPP tools, one library type per executable.
 pub mod tools;
 mod usage;
 

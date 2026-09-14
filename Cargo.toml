@@ -91,9 +91,6 @@ levenberg-marquardt = "=0.14.0"
 nalgebra = { version = "=0.33.3", default-features = false, features = ["alloc", "libm"] }
 # Boost.Math normal quantile via erfc_inv, for MultipleTesting's lfdr. 0.19 needs Rust 1.89.
 statrs = { version = "=0.18.0", default-features = false }
-# Boost.Math digamma. `no_std` routes ln through libm, which keeps results the
-# same on every machine: never enable `special/std`.
-special = { version = "=0.14.1", default-features = false, features = ["no_std"] }
 # Boost.Random's mt19937_64 engine, for DecoyGenerator and UniqueIdGenerator.
 rand_mt = { version = "=6.0.3", default-features = false }
 # Boost.Regex semantics (lookaround, duplicate group names), used only through

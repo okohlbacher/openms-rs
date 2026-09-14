@@ -85,12 +85,34 @@ Verified on this machine at the time of writing:
 - `core-build/lib/libOpenMS.dylib` links, so oracle drivers are buildable now.
 - 710 compiled class-test binaries run; `DateTime_test`, `MSSpectrum_test` and
   `GaussFilter_test` pass.
-- The 130 TOPP executables in `topp-build/bin` **do not currently run**. They
-  reject the first data row of a well-formed 131-row tool manifest
-  (`share/openms4/tools/topp.tools.tsv`, 4 tab-separated fields, no duplicates)
-  with "Invalid or duplicate tool package manifest entry", for every prefix
-  tried. This blocks end-to-end tool comparison, not algorithm-level comparison,
-  and is a candidate entry for `OpenMS_CPP_ISSUES.md` once diagnosed.
+- The 130 TOPP executables in `topp-build/bin` did not run when this section was
+  first written. They rejected the first data row of a well-formed 131-row tool
+  manifest (`share/openms4/tools/topp.tools.tsv`, 4 tab-separated fields, no
+  duplicates) with "Invalid or duplicate tool package manifest entry", for every
+  prefix tried. That observation is limited to `topp-build/bin`, and it remains a
+  candidate entry for `OpenMS_CPP_ISSUES.md` once diagnosed.
+- The product SDK (`../product-sdk`, a Debug build of core `4fdec46`) runs. Its
+  TOPP binaries execute, and class-level drivers link its `libOpenMS` and
+  `libOpenMSTestFramework.a`. Early-TOPP wave 1 executed FuzzyDiff, FileInfo,
+  FeatureFinderCentroided, SpectraFilterWindowMower and DTAExtractor from it.
+  Decision D7 in [the work packages](EARLY_TOPP_WORK_PACKAGES.md) accepts it as a
+  development-time tier-1 oracle: outputs are labelled
+  `oracle-generated (tier 1 executed differential)`, Debug-only precondition
+  exits never become Rust expectations, and bitwise comparison holds only on
+  macOS arm64.
+
+Oracle drivers built against the product SDK on this host:
+
+- Compile with `-ffp-contract=off`, as OpenMS's `cmake/compiler_flags.cmake`
+  does, whenever a driver instantiates OpenMS or Eigen templates or replicates
+  library arithmetic. AppleClang's default FMA contraction otherwise changes last
+  bits, and the replica differs from `libOpenMS`.
+- Configure with `Boost_DIR=/opt/homebrew/Cellar/boost/1.90.0_1/lib/cmake/Boost-1.90.0`
+  (the SDK requires Boost 1.90.0 exactly; the Homebrew `opt` link is 1.92),
+  `Arrow_DIR` and `Parquet_DIR` from `Cellar/apache-arrow/25.0.0_1` (25.0.0
+  exactly), `CMAKE_FIND_FRAMEWORK=NEVER` with the Homebrew CURL paths (to avoid a
+  stray `/Library/Frameworks/libcurl.framework`), and
+  `OpenMP_ROOT=/opt/homebrew/opt/libomp`.
 
 An earlier diagnosis attributed the TOPP launch failure to a stale Homebrew
 abseil dylib. That was correct when observed and has since resolved through a

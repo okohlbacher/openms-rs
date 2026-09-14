@@ -1,7 +1,7 @@
 # Licenses for OpenMS for Rust
 
 The OpenMS-derived implementation is BSD-3-Clause, as reproduced below.
-The private random helper shared by decoy generation and unique IDs additionally retains the Boost Software License
+The private decoy random helper's bounded-integer mapping additionally retains the Boost Software License
 1.0 and its original author notices; its component terms are reproduced below.
 The embedded OpenMS Rust Modification Table includes transformed UniMod
 data under the Design Science License. The original source XML, transformation
@@ -32,6 +32,21 @@ Optional file compression uses bzip2 0.6.1 (MIT OR Apache-2.0) with its default
 pure Rust libbz2-rs-sys backend (bzip2-1.0.6), and flate2 1.1.9
 (MIT OR Apache-2.0). Their full licenses are supplied in the Cargo packages;
 no compression-library source is vendored here.
+The MT19937-64 engine used by decoy generation and unique IDs is `rand_mt` 6.0.3
+(MIT OR Apache-2.0), built without default features; its full licenses are
+supplied in its Cargo package and no `rand_mt` source is vendored here.
+
+The crates that replace other third-party C++ libraries are used the same way:
+from their Cargo packages, which supply the full license texts, with no source
+vendored here. `rustfft` 6.4.1 (MIT OR Apache-2.0) computes the kernel-density
+FFT. `statrs` 0.18.0 (MIT) supplies the normal quantile and brings in `approx`
+0.5.1 (Apache-2.0) and `num-traits` 0.2.19 (MIT OR Apache-2.0).
+`levenberg-marquardt` 0.14.0 (MIT) and `nalgebra` 0.33.3 (Apache-2.0), with
+nalgebra's `simba` 0.9.1 (Apache-2.0), are pinned for the Levenberg-Marquardt
+fitters. `fancy-regex` 0.19.2 (MIT), with `regex-automata` 0.4.18 and
+`regex-syntax` 0.8.11 (both MIT OR Apache-2.0), is pinned for the Boost.Regex
+facade. Their other transitive dependencies and exact versions are recorded in
+Cargo.lock.
 
 ## OpenMS implementation and custom data: BSD-3-Clause
 
@@ -251,17 +266,18 @@ POSSIBILITY OF SUCH DAMAGE.
 END OF TERMS AND CONDITIONS
 
 
-## Private decoy and unique-ID random helper: Boost Software License 1.0
+## Private decoy random helper: Boost Software License 1.0
 
-The native MT19937-64 and bounded-integer mapping in
-`src/chemistry/decoy_random.rs` are derived from the inspected Boost 1.90
-`random/mersenne_twister.hpp` and `random/uniform_int_distribution.hpp`.
-Unique ID generation reuses its raw engine without changing the recurrence.
-The derived helper retains their component license and author notices:
+The bounded-integer mapping in `src/chemistry/decoy_random.rs` is derived from
+the inspected Boost 1.90 `random/uniform_int_distribution.hpp`. The MT19937-64
+engine it draws from, which unique ID generation also uses, is the `rand_mt`
+6.0.3 dependency (MIT OR Apache-2.0); no code derived from
+`random/mersenne_twister.hpp` remains. The derived mapping retains that
+header's component license and author notices:
 
 Copyright Jens Maurer 2000-2001
 
-Copyright Steven Watanabe 2010, 2011
+Copyright Steven Watanabe 2011
 
 Boost Software License - Version 1.0 - August 17th, 2003
 

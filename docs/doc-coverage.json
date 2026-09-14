@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5296,
-  "documented": 3784
+  "items": 5387,
+  "documented": 3953
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -20,6 +20,10 @@
   "src/analysis/false_discovery_rate.rs": {
    "items": 23,
    "documented": 16
+  },
+  "src/analysis/feature_finder_picked/helper_structs.rs": {
+   "items": 41,
+   "documented": 41
   },
   "src/analysis/feature_finder_picked.rs": {
    "items": 1,
@@ -158,8 +162,8 @@
    "documented": 7
   },
   "src/chemistry/isotopes.rs": {
-   "items": 53,
-   "documented": 26
+   "items": 59,
+   "documented": 59
   },
   "src/chemistry/mass_decomposition.rs": {
    "items": 16,
@@ -294,16 +298,20 @@
    "documented": 0
   },
   "src/cli/context.rs": {
-   "items": 16,
-   "documented": 7
+   "items": 27,
+   "documented": 27
   },
   "src/cli/parameter.rs": {
-   "items": 14,
-   "documented": 12
+   "items": 15,
+   "documented": 15
+  },
+  "src/cli/processing.rs": {
+   "items": 5,
+   "documented": 5
   },
   "src/cli/spec.rs": {
-   "items": 29,
-   "documented": 7
+   "items": 31,
+   "documented": 31
   },
   "src/cli/tools/baseline_filter.rs": {
    "items": 1,
@@ -330,8 +338,8 @@
    "documented": 1
   },
   "src/cli.rs": {
-   "items": 5,
-   "documented": 4
+   "items": 8,
+   "documented": 8
   },
   "src/comparison.rs": {
    "items": 67,
@@ -363,7 +371,7 @@
   },
   "src/concept/unique_id.rs": {
    "items": 11,
-   "documented": 5
+   "documented": 11
   },
   "src/data_structures/cv_mapping.rs": {
    "items": 11,
@@ -442,8 +450,8 @@
    "documented": 3
   },
   "src/format/file_handler.rs": {
-   "items": 22,
-   "documented": 11
+   "items": 25,
+   "documented": 25
   },
   "src/format/file_info.rs": {
    "items": 1,
@@ -621,6 +629,10 @@
    "items": 36,
    "documented": 14
   },
+  "src/format/peak_type_estimator.rs": {
+   "items": 4,
+   "documented": 4
+  },
   "src/format/pepxml.rs": {
    "items": 29,
    "documented": 29
@@ -737,6 +749,10 @@
    "items": 17,
    "documented": 17
   },
+  "src/kernel/faims_helper.rs": {
+   "items": 12,
+   "documented": 12
+  },
   "src/kernel/feature_identification.rs": {
    "items": 26,
    "documented": 26
@@ -750,8 +766,8 @@
    "documented": 5
   },
   "src/kernel/geometry.rs": {
-   "items": 26,
-   "documented": 26
+   "items": 29,
+   "documented": 29
   },
   "src/kernel/map_operations.rs": {
    "items": 40,

@@ -18,15 +18,14 @@
    "param"
   ],
   "cli": [
+   "concept",
    "data_structures",
    "format",
    "kernel",
+   "metadata",
    "param",
    "processing",
    "system"
-  ],
-  "concept": [
-   "chemistry"
   ],
   "data_structures": [
    "metadata",
@@ -88,10 +87,6 @@
   [
    "analysis",
    "kernel"
-  ],
-  [
-   "chemistry",
-   "concept"
   ],
   [
    "chemistry",

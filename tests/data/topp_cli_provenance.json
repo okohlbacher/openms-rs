@@ -73,10 +73,12 @@
   "src/cli/spec.rs",
   "src/cli/context.rs",
   "src/cli/usage.rs",
-  "src/bin/DTAExtractor.rs"
+  "src/bin/DTAExtractor.rs",
+  "src/cli/processing.rs"
  ],
  "native_tests": [
-  "tests/topp_dta_extractor.rs"
+  "tests/topp_dta_extractor.rs",
+  "tests/topp_cli_lifecycle.rs"
  ],
  "support": "docs/TOPP_CLI_SUPPORT.md",
  "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 366-376"

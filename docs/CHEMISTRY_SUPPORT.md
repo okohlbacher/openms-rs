@@ -75,7 +75,11 @@ The reviewed local source files had these SHA-256 hashes:
   Empty sequences have mass zero and no fragment ions; their m/z is an error.
 - Iridium uses the **declared iridium isotope table** (191 and 193). The pinned
   C++ source accidentally passes the rhenium tables to `buildElement_` for
-  iridium. This is an intentional correction, covered by a regression test.
+  iridium (`ElementDB.cpp:512` at `bc9cc12`). This is an intentional correction,
+  covered by a regression test. Iridium masses and isotope patterns therefore
+  differ from the executed C++: every SDK run gives `Os3Ir3` a rhenium-based
+  lightest-isotope weight of 1106.716344 Da, where iridium gives 1124.739252 Da
+  (CPP-249).
 - Peptides preserve uppercase B/Z/X without inventing a mass or composition.
   `formula`, `mono_mass` and `average_mass` return `Result`; unresolved chemistry
   returns `Unsupported`. Numeric annotations resolve to registry modifications

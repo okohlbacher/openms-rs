@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- Integrated early TOPP bundle wave 1 and crate wave 1 (2026-09-14): nine
+  verifier-approved branches, recorded in `docs/VALIDATION.md`.
+  - PeakTypeEstimator's public API and FAIMSHelper (A1); mzML spectrum and scan
+    mobility, the representation reset, unit-bearing ion-mobility arrays and
+    FileHandler type detection with option-taking loaders (A3); the
+    FeatureFinderAlgorithmPicked helper structures (B1); opt-in source-precision
+    isotope patterns, the source `trimLeft` and bounding-box predicates (B2).
+  - TOPPBase lifecycle closure part 1 with TOPPBase exit codes for every tool
+    (CLI-1, decision D3): a bare invocation exits 6, an unreadable `-ini` 2 and a
+    directory `-ini` 3.
+  - FuzzyStringComparator, FuzzyDiff and a decoded featureXML/mzML comparator as
+    shared test support (C3).
+  - MultipleTesting's probit quantile now uses statrs `erfc_inv` in Boost's
+    statement order; SpectrumCheapDPCorr divides by the run-time `sqrt(2*pi)`
+    Boost uses instead of the `root_two_pi` literal (cross score +2 ulp).
+  - [REFACTOR] DecoyGenerator and UniqueIdGenerator take MT19937-64 from
+    `rand_mt` 6.0.3; output unchanged.
+  - [REFACTOR] Reference, URL-host and calendar-day checks take quick-xml,
+    `http::Uri` and chrono helpers. Signed character references are now refused
+    in the shared ID and map XML reader, and empty-host and unparseable URLs are
+    refused by the network preflight.
+  - The hand-rolled digamma stays, because the `special` crate measured further
+    from the executed libOpenMS; the unused `special` dependency is removed from
+    `Cargo.toml` and `Cargo.lock`.
+  - Logged 23 C++ issue candidates as CPP-230 to CPP-252, registered the new
+    provenance manifests and oracle artifacts, added the packages' test targets
+    to CI, and updated the ledger: PeakTypeEstimator.h is complete;
+    FAIMSHelper.h, the helper structures, DBoundingBox.h and both coarse isotope
+    headers are partial.
+
 - Resumed the integrated Claude checkpoint with sqMass handler hardening: invalid
   Numpress quantization fails atomically, writes recheck database limits before
   commit, snapshot/selection allocations are charged, and schema-name shadowing

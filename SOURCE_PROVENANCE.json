@@ -16,7 +16,7 @@
   "additional_probes": "The FORMAT numeric-overload, SQLite S0 connector, S1 SWATH and S1 short-array Numpress probes are retained separately in their manifests, outside the scientific case totals above. Connector/SWATH contexts use declared adaptations; the short-array probe compiles the exact standalone raw codec. None executes the full SDK."
  },
  "source_inventory": "docs/source-inventory.json",
- "license": "Implementation and OpenMS custom data: BSD-3-Clause; UniMod-derived modification data: Design Science License; XLMOD data/reference projection: CC-BY-3.0 (see LICENSES.md); private decoy/unique-ID RNG: BSD-3-Clause AND BSL-1.0; MODOMICS RNA inputs and transformed records retain separate data notices, with general redistribution terms unresolved for release (see LICENSES.md); optional serde_json: MIT OR Apache-2.0; optional bzip2 and libbz2-rs-sys: MIT OR Apache-2.0; raw Numpress: original Johan Teleman/Lund University BSD-3-Clause notice retained in source and LICENSES.md",
+ "license": "Implementation and OpenMS custom data: BSD-3-Clause; UniMod-derived modification data: Design Science License; XLMOD data/reference projection: CC-BY-3.0 (see LICENSES.md); private decoy random helper (bounded-integer mapping): BSD-3-Clause AND BSL-1.0; MT19937-64 engine rand_mt 6.0.3: MIT OR Apache-2.0; MODOMICS RNA inputs and transformed records retain separate data notices, with general redistribution terms unresolved for release (see LICENSES.md); optional serde_json: MIT OR Apache-2.0; optional bzip2 and libbz2-rs-sys: MIT OR Apache-2.0; raw Numpress: original Johan Teleman/Lund University BSD-3-Clause notice retained in source and LICENSES.md",
  "source_files": {
   "LICENSE": {
    "sha256": "9cee9ca86c8cd6e32a5a6b27378f5b23ec364eda092013e7ea5c33fc7a633677"
@@ -610,8 +610,54 @@
   "tests/data/math_kde_provenance.json",
   "tests/data/network_provenance.json",
   "tests/data/system_process_provenance.json",
-  "tests/data/mzml_precursor_activation_provenance.json"
+  "tests/data/mzml_precursor_activation_provenance.json",
+  "tests/data/peak_type_estimator_provenance.json",
+  "tests/data/faims_helper_provenance.json",
+  "tests/data/feature_finder_picked_helper_structs_provenance.json"
  ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/feature-finder-picked-helper-structs/manifest.json",
+   "sha256": "876da8d46ea2387b0242a0f7ce456349f6e441185ececc41290716b6ff429b39",
+   "origin_key": "tests/data/feature_finder_picked_helper_structs_provenance.json",
+   "package": "B1-HELPERS",
+   "role": "164-row helper-structure oracle; bundle/B1-HELPERS 1bd8686",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/b2-iso-source-precision/manifest.json",
+   "sha256": "e86f6c60f186c67e1915256747adf72004d1239bae67f57994156875580f4084",
+   "origin_key": "tests/data/isotopes_source_precision_provenance.json",
+   "package": "B2-ISO-GEOM",
+   "role": "source-precision isotope probe; its findings.element_iteration_order is superseded by the element-order manifest; bundle/B2-ISO-GEOM 799f610",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/b2-iso-element-order/manifest.json",
+   "sha256": "43a1f0a3b0082a5f6580087935651de564abc30d130cb6a90a0056778420fc7b",
+   "origin_key": "tests/data/isotopes_source_precision_provenance.json",
+   "package": "B2-ISO-GEOM",
+   "role": "200 repeated executions of one SDK binary measuring element iteration order; bundle/B2-ISO-GEOM 799f610",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/fuzzy-string-comparator/manifest.json",
+   "sha256": "f69a22c3cc8dd9e081653981cf57817464083b0a131d5242a8368e229355a187",
+   "origin_key": "tests/data/fuzzy_string_comparator_provenance.json",
+   "package": "C3-FUZZY",
+   "role": "137 comparator cases and FuzzyDiff runs; bundle/C3-FUZZY 30d82db",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/a3-format-io/manifest.json",
+   "sha256": "af576d57639f409a00a7ed914e3c83497d1ffa34a17d0f2436cb1ab0bce99e40",
+   "origin_key": "tests/data/mzml_mobility_provenance.json",
+   "package": "A3-FORMAT-IO",
+   "role": "mzML mobility and FileHandler type-detection oracle; bundle/A3-FORMAT-IO ff44438",
+   "label": "oracle-generated (tier 1 executed differential)"
+  }
+ ],
+ "external_reference_note": "Executed C++ oracle manifests of early-TOPP bundle wave 1, registered at integration on 2026-09-14. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration, and each origin_key names the in-repo group manifest that records the oracle's full artifact list. A1-PTE-FAIMS (../oracle/pte-faims-helper) and CLI-1 (../oracle/topp-cli-lifecycle) are registered at the final merge, because their follow-up commits change those oracle files. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked) are registered at W4.4.",
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
  "cpp_reference_evidence": {

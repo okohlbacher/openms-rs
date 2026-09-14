@@ -4034,3 +4034,411 @@ implementation. They do not count as completed Rust functionality.
 **Evidence:** Source loop only; no huge-directory experiment or C++ overflow reproduction.
 
 **Rust handling:** `src/system/network.rs::save_file_name` checks suffixes 0 through `MAX_NAME_SUFFIX` (10,000) inclusively and then returns `Error::InvalidValue`. This bounds suffix probing; it does not fix the separate selection/open race.
+
+## CPP-230 — FuzzyStringComparator reports the last above-one ratio as the maximum
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`, whose comparator source is byte-identical.
+
+**Status:** Executed. Report defect; the verdict is unaffected.
+
+**Affected file/function:** `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:665–683`, `compareLines_`.
+
+**Trigger:** Numbers that differ by ratios above one but within the relative tolerance, reported at verbose level 2 or higher.
+
+**Issue:** The recorded lines of the maximum are replaced whenever `ratio > ratio_max_`, but `ratio_max_` itself is raised only on the failure branch, just before `reportFailure_`. On a passing comparison it stays at 1, so every above-one ratio replaces the recorded lines. A PASSED report therefore prints `relative_max: 1`, and "Maximum relative error was attained at these lines" names the last line with any ratio above one, not the line with the largest ratio.
+
+**Proposed C++ fix:** Raise `ratio_max_` together with the recorded lines whenever `ratio > ratio_max_`, independently of the tolerance test.
+
+**Evidence:** Oracle case `rep_success_last_ratio_line` in `../oracle/fuzzy-string-comparator/manifest.json`; `tests/data/fuzzy_string_comparator_provenance.json`.
+
+**Rust handling:** `tests/support/fuzzy_string_comparator.rs` is test support for FuzzyDiff parity and reproduces the source report; every oracle case except the hexadecimal one of CPP-233 matches in verdict and log bytes.
+
+## CPP-231 — A reused FuzzyStringComparator keeps its raised ratio maximum
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:805`, `compareStreams`; the raise at 680 in `compareLines_`.
+
+**Trigger:** One instance compares `1` against `1.5`, which fails, then `1` against `1.2` with a relative tolerance of 1.01 and an absolute tolerance of 0.
+
+**Issue:** `compareStreams` resets only `is_status_success_`. The failed comparison leaves `ratio_max_` at 1.5, and `compareLines_` tests the tolerance only when a ratio exceeds `ratio_max_`, so the second comparison accepts 1.2 although it is outside the tolerance.
+
+**Proposed C++ fix:** Reset `ratio_max_`, `absdiff_max_` and the recorded maximum lines at the start of every comparison.
+
+**Evidence:** Oracle case `reuse_ratio_max_carries` in `../oracle/fuzzy-string-comparator/manifest.json`.
+
+**Rust handling:** Reproduced: the test support carries the maxima over to the next comparison on the same instance, as documented in `docs/FUZZY_STRING_COMPARATOR_SUPPORT.md`.
+
+## CPP-232 — A negative ratio that underflows to -0.0 passes the sign and ratio tests
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:645–660`, `compareLines_`.
+
+**Trigger:** `-1e-300` compared with `1e300`.
+
+**Issue:** The quotient `element_1_.number / element_2_.number` underflows to `-0.0`, so `ratio < 0` is false and the different-signs failure is skipped. `ratio < 1` then takes the reciprocal, `-inf`, which never exceeds `ratio_max_`, and the pair is accepted.
+
+**Proposed C++ fix:** Compare the operands' signs (for example with `std::signbit`) instead of the quotient's, and refuse a zero or infinite quotient of two non-zero numbers.
+
+**Evidence:** Oracle case `num_ratio_underflow_negative_zero` in `../oracle/fuzzy-string-comparator/manifest.json`.
+
+**Rust handling:** Reproduced in the test support; the oracle case matches.
+
+## CPP-233 — The libc++ number fallback accepts hexadecimal floats, so verdicts depend on the standard library
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (AppleClang, libc++).
+
+**Status:** Executed on libc++; the libstdc++ side comes from a verifier probe with g++ 13.3, not retained.
+
+**Affected file/function:** `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:160–211`, `fromCharsFloat`, compiled when `_LIBCPP_VERSION` is defined.
+
+**Trigger:** `0x10` compared with `16`; also `0X1P-2` with `0.25`.
+
+**Issue:** On libc++ builds number tokens are parsed with `strtod`, which accepts hexadecimal floats that `std::from_chars` in general format rejects, so `0x10` equals `16` on Apple builds only. The fallback also writes `strtod`'s result into the reset number of a letter element, which changes the failure report. Its comment assumes `std::from_chars` reports `result_out_of_range` only on overflow, but libstdc++'s `std::from_chars` also rejects `1e-400`, so underflow is platform-dependent too. Identical inputs therefore get different verdicts and reports by platform.
+
+**Proposed C++ fix:** Make the fallback reject what `std::from_chars` rejects (hexadecimal prefixes, and `nan(...)` sequences it does not consume), decide underflow explicitly on both paths, and leave a letter element's number untouched.
+
+**Evidence:** Oracle case `tok_hex_vs_decimal` in `../oracle/fuzzy-string-comparator/manifest.json`; the C3-FUZZY verifier's adversarial cases `adv_hex_capital_prefix_letters` and `adv_nan_dash_inside_plus`.
+
+**Rust handling:** The test support follows the `std::from_chars` contract the source states: no hexadecimal floats, underflow accepted. `tok_hex_vs_decimal` is asserted as a known divergence from the macOS oracle.
+
+## CPP-234 — A missing second input is reported as the first input file
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed. Diagnostic defect.
+
+**Affected file/function:** `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:891–898`, `openInputFileStream_` (message at 896).
+
+**Trigger:** `compareFiles` with a readable first file and a missing second file.
+
+**Issue:** `openInputFileStream_` serves both inputs but always logs "Error opening first input file '<name>'".
+
+**Proposed C++ fix:** Pass the input's position or label into `openInputFileStream_`.
+
+**Evidence:** Oracle case `file_missing_second` in `../oracle/fuzzy-string-comparator/manifest.json`.
+
+**Rust handling:** Reproduced: both open failures report "Error opening first input file".
+
+## CPP-235 — A NaN relative tolerance accepts every ratio
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:297–305`, `setAcceptableRelative`.
+
+**Trigger:** `setAcceptableRelative(NaN)`.
+
+**Issue:** `ratio_max_allowed_ < 1.0` is false for NaN, so NaN is stored unchecked, and `ratio > ratio_max_allowed_` is then false for every ratio: no relative difference can fail.
+
+**Proposed C++ fix:** Refuse a non-finite or non-positive tolerance in the setter.
+
+**Evidence:** Oracle case `num_ratio_nan_setter` in `../oracle/fuzzy-string-comparator/manifest.json`.
+
+**Rust handling:** Reproduced in the test support; the oracle case matches.
+
+## CPP-236 — FuzzyDiff -sort defeats the same-file check
+
+**Source revision:** topp `174b576e244e100f2345ca57a8e79aaa607156df` (`src/FuzzyDiff.cpp`) with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed with the product-SDK FuzzyDiff.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/FuzzyDiff.cpp:136–196`, the `-sort` branch of `main_`; `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:864–866`, `compareFiles`.
+
+**Trigger:** `FuzzyDiff -sort -in1 a.tsv -in2 a.tsv`.
+
+**Issue:** With `-sort`, FuzzyDiff writes both inputs to temporary files with unique names and compares those, so `compareFiles`'s "first and second input file have the same name. That's cheating!" check never fires, and a file compared with itself passes.
+
+**Proposed C++ fix:** Check the original input names before sorting.
+
+**Evidence:** Oracle case `fd_sort_same_file` in `../oracle/fuzzy-string-comparator/manifest.json`.
+
+**Rust handling:** `fuzzy_diff` sorts in memory with the same verdict and exit code, so the self-comparison passes as in the source.
+
+## CPP-237 — FeatureFinderCentroided's intensity filter keeps zero and subnormal intensities
+
+**Source revision:** topp `174b576e244e100f2345ca57a8e79aaa607156df` (`src/FeatureFinderCentroided.cpp`) with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`DPosition.h`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/FeatureFinderCentroided.cpp:182–184`, `main_`; `src/openms/include/OpenMS/DATASTRUCTURES/DPosition.h`, which has no `std::numeric_limits` specialisation (`minPositive` is at 326–329).
+
+**Trigger:** Any input spectrum with zero or subnormal intensities.
+
+**Issue:** The comment says "filter out zero (and negative) intensities", but the range starts at `std::numeric_limits<DPosition<1>>::min()`. Without a specialisation the primary template returns a value-initialised `DPosition`, which is 0, so zero and subnormal intensities pass and only negative ones are dropped.
+
+**Proposed C++ fix:** Start the range at `RP_TYPE::minPositive()`.
+
+**Evidence:** `../oracle/a3-format-io/manifest.json`: `intensity_bounds.mzML` keeps 0.0, 1e-310 and `DBL_MIN` and drops only -1.0; `tests/data/mzml_mobility_provenance.json`.
+
+**Rust handling:** No FeatureFinderCentroided wrapper exists yet. `FileHandler::load_experiment_with_options` applies the range a caller passes; a source-faithful wrapper (packages C5 and B10) must pass `[0.0, f64::MAX)`. FeatureFinderCentroided_1 loads 112 spectra and 3084 peaks with either lower bound.
+
+## CPP-238 — A FAIMS voltage of -1 V is indistinguishable from an unset drift time
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed for the reader and format query; the FAIMSHelper consequence is source-reviewed.
+
+**Affected file/function:** `src/openms/include/OpenMS/IONMOBILITY/IMTypes.h:93`, `DRIFTTIME_NOT_SET = -1.0`, and its readers, including `src/openms/source/IONMOBILITY/FAIMSHelper.cpp:50`.
+
+**Trigger:** A spectrum with `MS:1001581` (FAIMS compensation voltage) value `-1` volt.
+
+**Issue:** The sentinel -1 is a valid compensation voltage. Such a spectrum loads with drift time -1 and unit FAIMS_CV, but `determineIMFormat` reports no ion mobility, and `FAIMSHelper::getCompensationVoltages` erases -1 V as a missing voltage and warns. The writer still writes the value, because it tests the unit before the value.
+
+**Proposed C++ fix:** Represent "not set" apart from the value range, for example by the unit `NONE` alone or an optional drift time.
+
+**Evidence:** `../oracle/a3-format-io/manifest.json`, `scan_mobility.mzML` spectrum 7.
+
+**Rust handling:** The port keeps the source's -1 sentinel (`metadata::ImTypes::DRIFTTIME_NOT_SET`), so it shares the collision; `tests/mzml_mobility.rs` matches the oracle row.
+
+## CPP-239 — The precursor drift-time writer has no FAIMS case
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; no C++ write was executed.
+
+**Affected file/function:** `src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:4607–4628`, the selected-ion writer; the reader maps the term correctly at 1864.
+
+**Trigger:** A precursor whose drift-time unit is `FAIMS_COMPENSATION_VOLTAGE`.
+
+**Issue:** The switch handles `MILLISECOND`, `VSSC` and `CCS`. A FAIMS voltage falls into `default`, which warns "Precursor drift time unit not set, assume milliseconds" and writes `MS:1002476` in milliseconds, so the voltage reads back as a millisecond drift time.
+
+**Proposed C++ fix:** Add a FAIMS case that writes `MS:1001581` with `UO:0000218`, and keep the millisecond fallback for `NONE` only.
+
+**Evidence:** Source review; `tests/data/mzml_mobility_provenance.json`.
+
+**Rust handling:** The precursor writer takes its term from the shared mobility table in `src/format/mzml_precursor.rs`, which maps the FAIMS unit to `MS:1001581` with `UO:0000218`, so it does not fall back to milliseconds.
+
+## CPP-240 — Upstream FAIMS fixtures spell the volt unit UO:000218
+
+**Source revision:** test-data `0cb15f23fccc6ea196bfafcfbbf020958f36c3a3`.
+
+**Status:** Source-reviewed fixture defect.
+
+**Affected files:** `topp/FAIMS_CV-60C_V-45_Interleaved.mzML:324` and 364; `topp/FAIMS_test_data.mzML:171` and 213.
+
+**Issue:** The `unitAccession` is `UO:000218`, one digit short. The volt term is `UO:0000218`, which the pinned writer emits. A reader that checks unit accessions rejects or ignores the unit.
+
+**Proposed fix:** Correct the accession in both fixtures, or regenerate them with the current writer.
+
+**Evidence:** `git show 0cb15f2:topp/FAIMS_CV-60C_V-45_Interleaved.mzML` and `git show 0cb15f2:topp/FAIMS_test_data.mzML` in the test-data package.
+
+**Rust handling:** The mzML reader accepts `UO:000218` as volts for the FAIMS voltage only (native difference 3 in `docs/MZML_MOBILITY_SUPPORT.md`); the writer emits `UO:0000218`.
+
+## CPP-241 — computeIntensityProfile dereferences begin() of an empty MassTraces
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed undefined behaviour; not executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp:196–198`, `MassTraces::computeIntensityProfile`.
+
+**Trigger:** An empty `MassTraces`.
+
+**Issue:** `trace_it = this->begin()` is dereferenced (`trace_it->peaks`) and incremented without a check for an empty collection. The shipped callers pass non-empty traces.
+
+**Proposed C++ fix:** Return early when `this->empty()`.
+
+**Evidence:** Source review; `tests/data/feature_finder_picked_helper_structs_provenance.json`.
+
+**Rust handling:** `MassTraces::intensity_profile` returns an empty profile.
+
+## CPP-242 — computeIntensityProfile never terminates on a NaN retention time
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; not executed, because the trigger does not terminate.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp:210–236`, `MassTraces::computeIntensityProfile`.
+
+**Trigger:** A NaN retention time in a later trace compared against a profile entry, or a NaN entry copied from the first trace that a later trace reaches.
+
+**Issue:** None of `>`, `<` and `==` holds for NaN, so no branch advances either iterator and the `while` loop never ends.
+
+**Proposed C++ fix:** Treat an unordered comparison as an error, or advance the profile iterator.
+
+**Evidence:** Source review; `tests/data/feature_finder_picked_helper_structs_provenance.json`.
+
+**Rust handling:** Returns `Error::InvalidValue`; a NaN that is only copied or appended passes through as in the source.
+
+## CPP-243 — updateBaseline leaves the baseline indeterminate when no trace holds a peak
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed; not executed, because the result is an indeterminate value.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp:135–158`, `MassTraces::updateBaseline`; the constructor at 82–85 initialises only `max_trace`.
+
+**Trigger:** One or more traces, none of which holds a peak.
+
+**Issue:** The early return covers only an empty collection. With traces but no peaks the loop never assigns `baseline`, which the constructor never initialised, so it keeps an indeterminate value.
+
+**Proposed C++ fix:** Initialise `baseline` to 0 in the constructor, or set it to 0 when no peak is seen.
+
+**Evidence:** Source review; `tests/data/feature_finder_picked_helper_structs_provenance.json`.
+
+**Rust handling:** The baseline starts at 0.0, and `update_baseline` leaves it unchanged when no trace holds a peak.
+
+## CPP-244 — getCompensationVoltages lets a NaN into std::set<double>
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/IONMOBILITY/FAIMSHelper.cpp:45` (insert) and 50 (erase), `getCompensationVoltages`.
+
+**Trigger:** A FAIMS spectrum whose drift time is NaN, from any reader that accepts `NaN` as a cvParam value.
+
+**Issue:** NaN breaks the strict weak ordering `std::set<double>` requires. With the NaN on the first FAIMS spectrum, every later voltage compares equivalent to it and is dropped; `erase(DRIFTTIME_NOT_SET)` then removes the NaN, so the set comes back empty and a spurious missing-voltage warning is logged. With the NaN on a later spectrum, only the NaN is dropped.
+
+**Proposed C++ fix:** Skip or reject NaN voltages when collecting.
+
+**Evidence:** Oracle cases `nan_first`, `nan_middle` and `nan_last` of `../oracle/pte-faims-helper`; `tests/data/faims_helper_provenance.json`.
+
+**Rust handling:** `FaimsHelper::get_compensation_voltages` returns `Error::InvalidValue` naming the spectrum index.
+
+## CPP-245 — filterPeptidesByFAIMSCV silently accepts parameters that can never match
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/IONMOBILITY/FAIMSHelper.cpp:58–82`, `filterPeptidesByFAIMSCV` (comparison at 71).
+
+**Trigger:** A `cv_tolerance` of zero, a negative or NaN tolerance, or a NaN `target_cv`.
+
+**Issue:** The strict test `std::abs(pep_cv - target_cv) < cv_tolerance` can then never succeed, so only unannotated identifications are returned, with no diagnostic.
+
+**Proposed C++ fix:** Validate `target_cv` and `cv_tolerance`.
+
+**Evidence:** Oracle cases `tolerance_zero`, `tolerance_negative`, `tolerance_nan` and `target_nan` of `../oracle/pte-faims-helper`; `tests/data/faims_helper_provenance.json`.
+
+**Rust handling:** `FaimsHelper::filter_peptides_by_faims_cv` returns `Error::InvalidValue` for a non-finite target or a NaN, zero or negative tolerance; a positive infinite tolerance stays valid.
+
+## CPP-246 — PeakTypeEstimator's comment states an 80% threshold for a 75% test
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
+
+**Status:** Source-reviewed documentation defect; behaviour is unaffected.
+
+**Affected file/function:** `src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h:147`, `estimateType`.
+
+**Issue:** The line reads `if (evidence_ratio > 0.75) // 80% are profile`.
+
+**Proposed C++ fix:** Correct the comment to 75%.
+
+**Evidence:** Source review; `docs/PEAK_TYPE_ESTIMATOR_SUPPORT.md`.
+
+**Rust handling:** The port uses 0.75, and its documentation states 0.75.
+
+## CPP-247 — FeatureFinderAlgorithmPicked's abundance override keeps a stray (0, 1) peak
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:163–179`, `run`; `src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.cpp:33–36`, the default constructor.
+
+**Trigger:** Any non-default `isotopic_pattern:abundance_12C` or `isotopic_pattern:abundance_14N`.
+
+**Issue:** The override inserts the two isotopes into a default-constructed `IsotopeDistribution`, whose constructor already holds `(0, 1)`. The override becomes `{(0, 1), (12, a), (13, 1 - a)}`, which puts most of the weight 12 Da below carbon-12. Executed at 12C = 90% with `max_isotopes` 1020: windows 0, 1, 5 and 10 have 30, 110, 436 and 811 bins instead of the intended 6, 26, 148 and 247.
+
+**Proposed C++ fix:** `set()` the two-isotope container, or `clear()` before inserting.
+
+**Evidence:** `../oracle/b2-iso-source-precision/manifest.json` (`probe.tsv`); `tests/data/isotopes_source_precision_provenance.json`; the sizes are asserted in `tests/isotopes_source_precision.rs`.
+
+**Rust handling:** `CoarseIsotopePatternGenerator::set_isotope_override` rejects that construction. Whether FeatureFinderCentroided reproduces the defect is open for packages B6 and B10.
+
+## CPP-248 — CoarseIsotopePatternGenerator::run gives different bits in different runs of one binary
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed 200 times on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h:66` (`MapType_`) and 341 (`formula_`); `src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.cpp:114–120`, `run`; `src/openms/source/CHEMISTRY/EmpiricalFormula.cpp:57–67`, `getLightestIsotopeWeight`; element allocation at `src/openms/source/CHEMISTRY/ElementDB.cpp:580–588` and 634–664.
+
+**Trigger:** Repeated executions with the same formula.
+
+**Issue:** `formula_` is a `std::map<const Element*, SignedSize>`, ordered by heap address. `run` convolves and `getLightestIsotopeWeight` sums in that order, and binary32 accumulation depends on it. `CoarseIsotopePatternGenerator(0).run(EmpiricalFormula("C1H1N1O1S1P1"))` iterated `H C N O P S` in 198 of 200 runs, with bin-2 intensity `0x3d3540d4`, and `H N C O P S` in runs 40 and 147, printing `0x3d3540d5`. The same two runs changed `estimateFromPeptideWeight` for every FeatureFinderAlgorithmPicked window from 150 to 8050 Da. Br, Na, He, B and labelled isotopes also move between runs.
+
+**Proposed C++ fix:** Order the map by atomic number and isotope mass number instead of by pointer.
+
+**Evidence:** `../oracle/b2-iso-element-order/manifest.json` (`probe.cpp`, `run.sh`, `tally.py`, `results/runs.sha256`); `tests/data/isotopes_source_precision/element_order.tsv`.
+
+**Rust handling:** The port iterates in ascending atomic number, with labelled isotopes after their natural element, so `ProbabilityPrecision::SourceSingle` reproduces the SDK runs that use that order, the majority for natural elements.
+
+## CPP-249 — ElementDB builds iridium from rhenium's tables
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/CHEMISTRY/ElementDB.cpp:512`, the element table construction; `iridium_abundance` and `iridium_mass` at 510–511 are unused.
+
+**Issue:** The call is `buildElement_("Iridium", "Ir", 77u, rhenium_abundance, rhenium_mass)`, so every iridium mass and isotope pattern uses rhenium's isotopes. `Os3Ir3` has a lightest-isotope weight of 1106.716344 Da (three osmium-184 plus three rhenium-185) in every one of 200 runs, where iridium gives 1124.739252 Da.
+
+**Proposed C++ fix:** Pass `iridium_abundance` and `iridium_mass`.
+
+**Evidence:** Case `pair_Os3Ir3` of `../oracle/b2-iso-element-order/manifest.json`; `tests/isotopes_source_precision.rs`.
+
+**Rust handling:** The port uses the declared iridium table (`docs/CHEMISTRY_SUPPORT.md`); a test asserts that its `Os3Ir3` bits differ from every SDK run.
+
+## CPP-250 — -instance cannot be used
+
+**Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` (`source/APPLICATIONS/TOPPBase.cpp`) with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`Param.cpp`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `source/APPLICATIONS/TOPPBase.cpp:166` (registration), 2104 (`getDefaultParameters_` exclusion) and 339 (the strict `Param::update`).
+
+**Trigger:** Any tool run with `-instance <n>`.
+
+**Issue:** `instance` is registered, but `getDefaultParameters_` excludes it while the command-line `Param` keeps it. `Param::update` with `fail_on_unknown_parameters` set then rejects every run that passes `-instance` ("Unknown (or deprecated) Parameter 'instance' given in outdated parameter file!", exit 6). INI instance sections other than 1 are unreachable, and TOPPBase_test's instance 5 and 6 `getStringOption_` checks pass only because they read `param_` after the failed update.
+
+**Proposed C++ fix:** Remove `instance` from the command-line parameters before the update, as the lifecycle already does for `ini` (333).
+
+**Evidence:** Oracle case `instance_on_command_line` in `../oracle/topp-cli-lifecycle/manifest.json`; `tests/data/topp_cli_lifecycle/topp_cli_lifecycle_provenance.json`.
+
+**Rust handling:** The port reproduces exit 6. `docs/TOPP_CLI_SUPPORT.md` records why the `-instance 5` class-test case is not transcribed.
+
+## CPP-251 — common: values override instance values for subsection parameters
+
+**Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `source/APPLICATIONS/TOPPBase.cpp:305` (`param_common_ = param_inifile_.copy("common:", true)`) and 320–330 (merge order); `src/openms/source/DATASTRUCTURES/Param.cpp:1262–1281`, leaf-name matching in `Param::update`.
+
+**Trigger:** An INI with both `<Tool>:1:section:name` and `common:<Tool>:section:name`.
+
+**Issue:** `param_common_` keeps the nested key `<Tool>:section:name`, and `finalParam.merge` adds it next to the instance value `section:name`. `Param::update` finds the nested key by its leaf name after it has applied the instance value, so the common value wins, the reverse of the intended precedence.
+
+**Proposed C++ fix:** Take tool-specific common values only from `common:<Tool>:` (already copied separately) and strip that prefix before merging, so every value is matched by its full name.
+
+**Evidence:** Oracle case `ini_instance_and_common` in `../oracle/topp-cli-lifecycle/manifest.json`: the output has `peakcount=1` although the instance section says 2.
+
+**Rust handling:** The port reproduces the source precedence.
+
+## CPP-252 — A common:<tool>: value for a top-level parameter is rejected
+
+**Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Executed.
+
+**Affected file/function:** `source/APPLICATIONS/TOPPBase.cpp:305` and 339; `src/openms/source/DATASTRUCTURES/Param.cpp:1171–1183` (`findFirst`) and 1262–1281.
+
+**Trigger:** An INI with `common:<Tool>:threads`, a top-level parameter.
+
+**Issue:** The nested copy `<Tool>:threads` has no exact match, and `findFirst` matches only names that end in `:threads`, which excludes the root-level `threads`. The strict update therefore fails with exit 6 ("Unknown (or deprecated) Parameter 'SpectraFilterWindowMower:threads' …").
+
+**Proposed C++ fix:** The same as CPP-251: strip the `<Tool>:` prefix from tool-specific common values before merging.
+
+**Evidence:** Oracle case `ini_common_top_level` in `../oracle/topp-cli-lifecycle/manifest.json`.
+
+**Rust handling:** The port reproduces exit 6.

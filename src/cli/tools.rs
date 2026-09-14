@@ -3,7 +3,7 @@
 // $Maintainer: OpenMS Rust contributors $
 //! Ported TOPP tools.
 //!
-//! Each tool is a library type implementing [`Tool`](super::Tool), so the
+//! Each tool is a library type implementing [`Tool`](crate::cli::Tool), so the
 //! `src/bin/` executable and the differential test in `tests/` share exactly
 //! one definition of its parameters and behaviour.
 
