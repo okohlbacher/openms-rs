@@ -140,8 +140,14 @@ pub const MAX_PATTERN_BYTES: usize = 64 * 1024;
 
 /// Deepest group nesting the translator accepts.
 ///
-/// The translation adds up to four levels of its own, and `fancy-regex` stops
-/// at 64, so a deeper pattern is refused before it reaches the engine.
+/// `fancy-regex`'s parser refuses a group nested 64 deep, and the translation
+/// nests deeper than the pattern: the programs wrap it in two groups, a
+/// case-insensitive letter, `.`, a line anchor or a counted, shielded or
+/// rewritten repeat adds levels of its own (see "Work bounds" and "Engine
+/// rewrites" in the module documentation). So besides this cap on the pattern's
+/// own nesting, the translator counts the levels its spellings could add, as if
+/// every repeat were counted and shielded, and refuses a pattern that could reach
+/// the engine's limit before the engine sees it.
 pub const MAX_GROUP_DEPTH: usize = 48;
 
 /// Largest repeat bound in `{n}`, `{n,}` or `{n,m}` that the translator
@@ -1162,6 +1168,82 @@ const OPEN_GROUP_BACKREFERENCE: &str = "a backreference inside the group it refe
 const LEADING_LAZY_REPEAT: &str = "a lazy repeat with a finite maximum of a one-byte atom that \
                                    starts the expression (Boost's leading-repeat optimization skips \
                                    start positions)";
+/// Refusal of a repeat of a group whose body holds a repeat or an alternation
+/// compiled under the other case sensitivity.
+///
+/// Before matching, Boost gives every repeat and alternation state a map of the
+/// bytes that can start each of its two ways on
+/// (`basic_regex_creator::create_startmaps`), and the matcher consults it before
+/// it enters an iteration, leaves a repeat or tries an alternative. The map of a
+/// state is built by walking the states that follow it, and whenever that walk
+/// reaches a repeat or alternation whose map is not built yet, which happens when
+/// it loops back to the repeat of an enclosing group, it recurses into
+/// `create_startmap`, which starts again from the case sensitivity of the state
+/// whose map is being built (`bool l_icase = m_icase`) rather than from the one in
+/// effect where the walk stands. A literal or set further on is then looked up
+/// with the wrong case, and the map drops the bytes that start it:
+/// `(?i:b.+)*C` on `bcC` matches `2..3` in Boost and `(?i:bc+)+C` does not
+/// match, where trying every start position gives `0..3` for both.
+const CASE_SWITCHED_REPEAT: &str = "a repeat of a group holding a repeat or alternation under other \
+                                    case sensitivity (Boost builds its start map with the wrong case)";
+/// Refusal of `\<` in an expression that switches case sensitivity.
+///
+/// Boost's start-map walk (see [`CASE_SWITCHED_REPEAT`]) recurses at `\<` and
+/// `\>` to collect what follows and then removes the bytes the assertion rules
+/// out, and the recursion starts from the case sensitivity of the state whose map
+/// is being built, or of the options for the expression's own map. After `\<` a
+/// letter is looked up with the wrong case: `(?i)\<A` does not match `A` in
+/// Boost. (After `\>` only non-word bytes remain, which have no case.)
+const WORD_START_CASE_SWITCH: &str = "\\< in an expression that switches case sensitivity (Boost \
+                                      builds its start map with the wrong case)";
+/// Refusal of `\<` and `\>` in an expression with a repeated group that holds a
+/// repeat or an alternation.
+///
+/// When Boost's start-map walk reaches `\<` or `\>` it recurses and then removes
+/// every word byte (or every non-word byte) from the whole map it is filling. When
+/// the walk has looped back to an enclosing repeat, that map already holds the
+/// bytes that start another iteration, which come before the assertion, and loses
+/// them: `(?:\w\w+){2}\>` does not match `aaaa`, and `(\w+?)+\>` on `aaaa` captures
+/// group 1 at `0..4` in Boost instead of `3..4`.
+const WORD_BOUNDARY_AFTER_LOOP: &str = "\\< or \\> in an expression with a repeated group holding a \
+                                        repeat or alternation (Boost's start map drops the bytes that \
+                                        start another iteration)";
+/// Refusal of an expression whose start maps Boost might not build; see
+/// [`Translator::start_map_depth`].
+const START_MAP_RECURSION: &str = "more line anchors, word-boundary assertions, alternations and \
+                                   repeated groups than Boost's start-map recursion limit allows \
+                                   (Boost throws error_complexity)";
+/// Refusal of a lookbehind with more alternations than Boost's backstep
+/// calculation stacks.
+///
+/// `basic_regex_creator::calculate_backstep` pushes every alternation it meets on
+/// the way to the end of a lookbehind and gives up, rejecting the expression, when
+/// it would push one more than `BOOST_REGEX_MAX_BLOCKS` (1,024) of them.
+const LOOKBEHIND_ALTERNATIONS: &str = "a lookbehind with more than 1,024 alternations (Boost's \
+                                       backstep calculation gives up)";
+/// Refusal of a `\x` escape that `std::istream` reads differently from hex digits.
+///
+/// Boost reads the digits of `\xHH` (at most two bytes) and `\x{H...}` with
+/// `cpp_regex_traits::toi`, which is `std::istream >> std::hex >> intmax_t`: it
+/// skips white space and accepts a sign and a `0x` prefix, so `\x{+41}`,
+/// `\x{ 41}`, `\x{0x41}` and `\x-0` are valid there, and `\x0x` is not.
+const HEX_ESCAPE_STREAM_SYNTAX: &str = "a hexadecimal escape whose digits start with a sign, white \
+                                        space or 0x (Boost reads them with std::istream)";
+
+/// Refusal of a pattern whose translation could nest groups as deep as
+/// [`ENGINE_MAX_NESTING`]; see [`MAX_GROUP_DEPTH`].
+const TRANSLATION_TOO_DEEP: &str = "groups and repeats nested deeper than the engine's parser allows \
+                                    once translated";
+
+/// `fancy-regex`'s `MAX_RECURSION`: its parser refuses a group at this depth.
+const ENGINE_MAX_NESTING: usize = 64;
+
+/// `BOOST_REGEX_MAX_RECURSION_DEPTH`: the deepest recursion of Boost's
+/// `create_startmap` before it throws `error_complexity`.
+const BOOST_START_MAP_DEPTH: usize = 100;
+
+/// `BOOST_REGEX_MAX_BLOCKS`: the alternations Boost's `calculate_backstep` stacks.
+const BOOST_BACKSTEP_BLOCKS: usize = 1024;
 
 /// A Boost character class, as `cpp_regex_traits<char>` defines it in the C
 /// locale.
@@ -1414,6 +1496,13 @@ struct GroupShape {
     only_asserts: bool,
     /// The body holds the leading lazy repeat (see [`Translator::leading_repeat`]).
     holds_leading_repeat: bool,
+    /// [`Frame::state_icase`] of the body.
+    state_icase: [bool; 2],
+    /// Line anchors and word-boundary assertions in the body outside every
+    /// repeated group of it (see [`StartMapSites`]).
+    free_anchors: usize,
+    /// Alternations in the body outside every repeated group of it.
+    free_alternations: usize,
 }
 
 impl GroupShape {
@@ -1510,6 +1599,41 @@ impl MinLength {
     }
 }
 
+/// The states of a sub-expression at which Boost's `create_startmap` recurses,
+/// counted for [`Translator::start_map_depth`].
+///
+/// A site is free when no repeated group of the sub-expression encloses it and
+/// looped otherwise; a repeat of the whole sub-expression turns its free sites
+/// into looped ones.
+#[derive(Clone, Copy, Debug, Default)]
+struct StartMapSites {
+    /// `$` as a line anchor, `\<` and `\>` outside every repeated group.
+    free_anchors: usize,
+    /// The same inside a repeated group.
+    looped_anchors: usize,
+    /// Alternation states (one per `|`) outside every repeated group.
+    free_alternations: usize,
+    /// The same inside a repeated group.
+    looped_alternations: usize,
+    /// Quantifiers applied to a group (Boost's `syntax_element_rep` around
+    /// several states).
+    repeated_groups: usize,
+}
+
+impl StartMapSites {
+    fn add(&mut self, other: Self) {
+        self.free_anchors = self.free_anchors.saturating_add(other.free_anchors);
+        self.looped_anchors = self.looped_anchors.saturating_add(other.looped_anchors);
+        self.free_alternations = self
+            .free_alternations
+            .saturating_add(other.free_alternations);
+        self.looped_alternations = self
+            .looped_alternations
+            .saturating_add(other.looped_alternations);
+        self.repeated_groups = self.repeated_groups.saturating_add(other.repeated_groups);
+    }
+}
+
 #[derive(Debug)]
 struct Frame {
     kind: GroupKind,
@@ -1544,6 +1668,21 @@ struct Frame {
     /// For a lookaround, whether the states before it were all transparent to
     /// Boost's `probe_leading_repeat`, which skips a lookaround whole.
     leading_before: bool,
+    /// Whether the group holds, at any depth, a Boost repeat or alternation
+    /// state compiled case-sensitively (index 0) or case-insensitively (index 1)
+    /// (see [`CASE_SWITCHED_REPEAT`]). A repeat state takes the case sensitivity in
+    /// effect at its quantifier. The alternation state of the first `|` stands at
+    /// the start of the group, before a scoped `(?i:` switches, and that of a later
+    /// `|` at the start of the alternative before it, where the case sensitivity is
+    /// the one in effect at the previous `|`.
+    state_icase: [bool; 2],
+    /// Case sensitivity of the alternation state the next `|` inserts.
+    next_alternation_icase: bool,
+    /// Where Boost's start-map walk recurses inside the group.
+    sites: StartMapSites,
+    /// Deepest group nesting the translation of the group's contents could have
+    /// (see [`Translator::last_nest`]).
+    nest: usize,
 }
 
 impl Frame {
@@ -1568,6 +1707,10 @@ impl Frame {
             alternative_atoms: 0,
             holds_leading_repeat: false,
             leading_before: false,
+            state_icase: [false; 2],
+            next_alternation_icase: saved_flags.icase,
+            sites: StartMapSites::default(),
+            nest: 0,
         }
     }
 
@@ -1657,6 +1800,32 @@ struct Translator<'p> {
     last_leading: bool,
     /// Where the leading lazy repeat starts, while it is still leading.
     leading_repeat: Option<usize>,
+    /// A flag group switches case sensitivity somewhere: Boost has a
+    /// `toggle_case` state.
+    case_switch: bool,
+    /// Where the first `\<` is.
+    word_start: Option<usize>,
+    /// Where the first `\<` or `\>` is.
+    word_boundary: Option<usize>,
+    /// Where the first quantifier on a group holding a repeat or an alternation
+    /// is, a group whose start map Boost's walk loops back to.
+    looped_group: Option<usize>,
+    /// Group nesting the translation of `last` could have, removed again when a
+    /// quantifier wraps it: an upper bound over both spellings that counts a
+    /// one-byte atom or backreference as one level (`(?i:\x61)`, `(?s:.)`), an
+    /// assertion as two (the line anchors), a group as one level above its
+    /// contents (two for a positive lookahead, which may end in `(?=)`), and a
+    /// quantifier as one level above a repeated lookaround or a zero repeat of a
+    /// capturing group (which the translation rewrites), and otherwise as one
+    /// level above what it repeats for a counted repeat (whose iteration counter
+    /// is two levels deep) and one more for a shielded repeat, whether or not the
+    /// spelling applies them.
+    last_nest: usize,
+    /// The expression holds `\z`, `` \' `` or `$` under `(?-m)`, Boost's
+    /// `buffer_end`: a start-map walk that ends there adds no byte, so the map of
+    /// an alternation all of whose ways end there stays unbuilt and is walked
+    /// again each time another walk reaches it.
+    buffer_end: bool,
 }
 
 impl<'p> Translator<'p> {
@@ -1686,6 +1855,12 @@ impl<'p> Translator<'p> {
             leading_open: true,
             last_leading: false,
             leading_repeat: None,
+            case_switch: false,
+            word_start: None,
+            word_boundary: None,
+            looped_group: None,
+            last_nest: 0,
+            buffer_end: false,
         }
     }
 
@@ -1711,8 +1886,11 @@ impl<'p> Translator<'p> {
                 b'$' => {
                     self.position += 1;
                     let anchor = if self.flags.multiline {
+                        // Boost's `end_line` recurses in the start-map walk.
+                        self.add_start_map_anchor();
                         END_OF_LINE
                     } else {
+                        self.buffer_end = true;
                         r"\z"
                     };
                     self.assertion(anchor);
@@ -1749,10 +1927,23 @@ impl<'p> Translator<'p> {
         if let (Some(start), 0) = (self.leading_repeat, self.max_backreference) {
             return Err(self.unsupported(start, LEADING_LAZY_REPEAT));
         }
+        if let (Some(at), true) = (self.word_start, self.case_switch) {
+            return Err(self.unsupported(at, WORD_START_CASE_SWITCH));
+        }
+        if let (Some(at), Some(_)) = (self.word_boundary, self.looped_group) {
+            return Err(self.unsupported(at, WORD_BOUNDARY_AFTER_LOOP));
+        }
         let mut root = self
             .frames
             .pop()
             .unwrap_or_else(|| Frame::new(GroupKind::Root, self.flags, 0));
+        if self.start_map_depth(root.sites) > BOOST_START_MAP_DEPTH {
+            return Err(self.unsupported(self.bytes.len(), START_MAP_RECURSION));
+        }
+        // The programs wrap the spelling in two groups: `\A(?:(?:X)(?=)(?=))\z`.
+        if root.nest.saturating_add(2) >= ENGINE_MAX_NESTING {
+            return Err(self.unsupported(self.bytes.len(), TRANSLATION_TOO_DEEP));
+        }
         root.finish_alternative();
         self.guard_alternation(&mut root);
         Ok(Translation {
@@ -1814,6 +2005,57 @@ impl<'p> Translator<'p> {
         self.last_atoms = atoms;
     }
 
+    fn add_nest(&mut self, nest: usize) {
+        let frame = self.frame();
+        frame.nest = frame.nest.max(nest);
+        self.last_nest = nest;
+    }
+
+    /// Count a `$` line anchor, `\<` or `\>`, at which Boost's start-map walk
+    /// recurses.
+    fn add_start_map_anchor(&mut self) {
+        let sites = &mut self.frame().sites;
+        sites.free_anchors = sites.free_anchors.saturating_add(1);
+    }
+
+    /// An upper bound on the recursion depth of Boost's `create_startmap` over
+    /// the expression whose sites are `sites`; Boost throws `error_complexity`
+    /// at construction when the depth exceeds [`BOOST_START_MAP_DEPTH`].
+    ///
+    /// Boost builds the maps of its repeat and alternation states from the last to
+    /// the first, then the expression's own, each by a walk over the states that
+    /// can follow. The walk recurses, one level deeper than the call it is in, at
+    /// `$` (line anchor), `\<` and `\>`; and two levels deeper (the second of two
+    /// calls) at a repeat or alternation whose map is not built yet. Such a state
+    /// is either earlier in the expression, inside a repeated group the walk loops
+    /// back into, or an alternation all of whose ways end at a buffer end, whose
+    /// map stays empty. A repeat is recursed into at most once per map
+    /// (`set_bad_repeat`). A walk moves forward except where it loops back, and
+    /// after it loops back to a repeat it stays inside that repeat's group, whose
+    /// end leads to the marked repeat and stops. So a chain of recursions meets
+    /// each site at most once, except a site it passed on its way out of the
+    /// repeated groups around the state whose map is built, which it can meet once
+    /// more after looping back; on that way lie only anchors and alternations whose
+    /// maps stay empty, since every other state there comes later and has its map.
+    /// With `A` the anchors and `L` the alternations, each free (outside every
+    /// repeated group) or looped (inside one), and `R` the repeated groups, the
+    /// depth is at most `A_free + 2 A_looped + 2 R + 2 L_looped`, and with a buffer
+    /// end `2 (L_free + L_looped)` more, plus 2 as a margin.
+    fn start_map_depth(&self, sites: StartMapSites) -> usize {
+        let mut depth = sites
+            .free_anchors
+            .saturating_add(sites.looped_anchors.saturating_mul(2))
+            .saturating_add(sites.repeated_groups.saturating_mul(2))
+            .saturating_add(sites.looped_alternations.saturating_mul(2))
+            .saturating_add(2);
+        if self.buffer_end {
+            depth = depth
+                .saturating_add(sites.free_alternations.saturating_mul(2))
+                .saturating_add(sites.looped_alternations.saturating_mul(2));
+        }
+        depth
+    }
+
     fn literal(&mut self, byte: u8) {
         self.last_start = self.out.len();
         if self.flags.icase && byte.is_ascii_alphabetic() {
@@ -1829,6 +2071,7 @@ impl<'p> Translator<'p> {
         self.add_width(1);
         self.add_min_length(MinLength::BYTE);
         self.add_atoms(1);
+        self.add_nest(1);
         self.frame().consumes = true;
         self.last = Last::Byte;
         self.last_leading = self.leading_open;
@@ -1840,6 +2083,7 @@ impl<'p> Translator<'p> {
         self.add_item(false);
         self.add_min_length(MinLength::default());
         self.add_atoms(1);
+        self.add_nest(2);
         self.frame().asserts = true;
         self.last = Last::Fixed;
     }
@@ -1864,10 +2108,19 @@ impl<'p> Translator<'p> {
         match letter {
             b'b' => self.assertion(r"\b"),
             b'B' => self.assertion(r"\B"),
-            b'<' => self.assertion(r"\<"),
-            b'>' => self.assertion(r"\>"),
+            b'<' | b'>' => {
+                if letter == b'<' {
+                    self.word_start.get_or_insert(start);
+                }
+                self.word_boundary.get_or_insert(start);
+                self.add_start_map_anchor();
+                self.assertion(if letter == b'<' { r"\<" } else { r"\>" });
+            }
             b'A' | b'`' => self.assertion(r"\A"),
-            b'z' | b'\'' => self.assertion(r"\z"),
+            b'z' | b'\'' => {
+                self.buffer_end = true;
+                self.assertion(r"\z");
+            }
             b'a' => self.literal(0x07),
             b'e' => self.literal(0x1B),
             b'f' => self.literal(0x0C),
@@ -1916,6 +2169,7 @@ impl<'p> Translator<'p> {
                     engine: target.engine,
                 });
                 self.add_atoms(1);
+                self.add_nest(1);
                 self.leading_open = false;
                 self.frame().consumes = true;
                 self.last = Last::Backref {
@@ -1952,10 +2206,23 @@ impl<'p> Translator<'p> {
     }
 
     /// `\xHH` (one or two hex digits) or `\x{H...}`, after the `x`.
+    ///
+    /// Digits that start with white space, a sign or `0x` are refused
+    /// ([`HEX_ESCAPE_STREAM_SYNTAX`]); every other `\x` escape reads as Boost's
+    /// `std::istream` reads it.
     fn hex_escape(&mut self, start: usize) -> Result<u8> {
         let Some(&next) = self.bytes.get(self.position) else {
             return Err(self.syntax(start, "hexadecimal escape sequence terminated prematurely"));
         };
+        let digits_start = self.position + usize::from(next == b'{');
+        let stream_syntax = match self.bytes.get(digits_start) {
+            Some(b' ' | b'\t' | b'\n' | 0x0B | 0x0C | b'\r' | b'+' | b'-') => true,
+            Some(b'0') => matches!(self.bytes.get(digits_start + 1), Some(b'x' | b'X')),
+            _ => false,
+        };
+        if stream_syntax {
+            return Err(self.unsupported(start, HEX_ESCAPE_STREAM_SYNTAX));
+        }
         let value = if next == b'{' {
             self.position += 1;
             let digits = self.bytes[self.position..]
@@ -2309,6 +2576,7 @@ impl<'p> Translator<'p> {
             Some(b')') => {
                 self.position += 1;
                 let case_change = flags.icase != self.flags.icase;
+                self.case_switch |= case_change;
                 self.flags = flags;
                 self.frame().has_states = true;
                 // Boost appends a `toggle_case` state for a change of case
@@ -2320,6 +2588,7 @@ impl<'p> Translator<'p> {
                 self.last = Last::EmptyGroup { case_change };
                 self.last_min_length = MinLength::default();
                 self.last_atoms = 0;
+                self.last_nest = 0;
                 Ok(())
             }
             Some(b':') => {
@@ -2328,6 +2597,7 @@ impl<'p> Translator<'p> {
                 self.flags = flags;
                 self.push_group(GroupKind::NonCapture, "(?:", saved);
                 if flags.icase != saved.icase {
+                    self.case_switch = true;
                     self.leading_open = false;
                 }
                 Ok(())
@@ -2375,6 +2645,17 @@ impl<'p> Translator<'p> {
                 self.unsupported(start, "a lookbehind wider than MAX_LOOKBEHIND_WIDTH bytes")
             );
         }
+        if matches!(
+            frame.kind,
+            GroupKind::LookBehind | GroupKind::NegativeLookBehind
+        ) && frame
+            .sites
+            .free_alternations
+            .saturating_add(frame.sites.looped_alternations)
+            > BOOST_BACKSTEP_BLOCKS
+        {
+            return Err(self.unsupported(start, LOOKBEHIND_ALTERNATIONS));
+        }
         if self.counted && frame.kind == GroupKind::LookAhead {
             self.out.push_str(FORCE_BACKTRACKING);
         }
@@ -2407,6 +2688,16 @@ impl<'p> Translator<'p> {
             parent.asserts |= frame.asserts;
             parent.has_capture |= captures;
         }
+        self.add_nest(
+            frame
+                .nest
+                .max(usize::from(frame.kind == GroupKind::LookAhead))
+                .saturating_add(1),
+        );
+        let parent = self.frame();
+        parent.state_icase[0] |= frame.state_icase[0];
+        parent.state_icase[1] |= frame.state_icase[1];
+        parent.sites.add(frame.sites);
         self.last = Last::Group(GroupShape {
             start: frame.start,
             kind: frame.kind,
@@ -2415,6 +2706,9 @@ impl<'p> Translator<'p> {
             nullable: min_length.boost == 0,
             only_asserts: frame.asserts && !frame.consumes,
             holds_leading_repeat: frame.holds_leading_repeat,
+            state_icase: frame.state_icase,
+            free_anchors: frame.sites.free_anchors,
+            free_alternations: frame.sites.free_alternations,
         });
         Ok(())
     }
@@ -2478,13 +2772,18 @@ impl<'p> Translator<'p> {
         if frame.holds_leading_repeat {
             self.leading_repeat = None;
         }
+        let icase = self.flags.icase;
         let frame = self.frame();
+        frame.state_icase[usize::from(frame.next_alternation_icase)] = true;
+        frame.next_alternation_icase = icase;
+        frame.sites.free_alternations = frame.sites.free_alternations.saturating_add(1);
         frame.finish_alternative();
         frame.alternation = true;
         frame.has_states = true;
         self.last = Last::Nothing;
         self.last_min_length = MinLength::default();
         self.last_atoms = 0;
+        self.last_nest = 0;
     }
 
     fn simple_quantifier(&mut self, symbol: u8) -> Result<()> {
@@ -2706,6 +3005,54 @@ impl<'p> Translator<'p> {
             // Boost inserts the repeat state in front of the group.
             self.leading_repeat = None;
         }
+        // Boost puts a repeat state in front of what it repeats. A repeat of a
+        // group turns the start-map sites of the group into looped ones.
+        let icase = self.flags.icase;
+        let group = match self.last {
+            Last::Group(shape) => Some(shape),
+            _ => None,
+        };
+        if group.is_some_and(|shape| shape.state_icase.contains(&true)) {
+            self.looped_group.get_or_insert(start);
+        }
+        let repeats_group = matches!(self.last, Last::Group(_) | Last::EmptyGroup { .. });
+        let (frame_last, last_nest) = (self.last, self.last_nest);
+        let frame = self.frame();
+        frame.state_icase[usize::from(icase)] = true;
+        if let Some(shape) = group {
+            let sites = &mut frame.sites;
+            sites.free_anchors = sites.free_anchors.saturating_sub(shape.free_anchors);
+            sites.looped_anchors = sites.looped_anchors.saturating_add(shape.free_anchors);
+            sites.free_alternations = sites
+                .free_alternations
+                .saturating_sub(shape.free_alternations);
+            sites.looped_alternations = sites
+                .looped_alternations
+                .saturating_add(shape.free_alternations);
+        }
+        if repeats_group {
+            frame.sites.repeated_groups = frame.sites.repeated_groups.saturating_add(1);
+        }
+        let wrapped = match frame_last {
+            Last::Group(shape) if shape.is_zero_width() || (max == Some(0) && shape.captures) => {
+                Some(last_nest.saturating_add(1))
+            }
+            Last::Group(shape) if !shape.is_repeated_by_engine() => None,
+            Last::Byte | Last::Backref { .. } | Last::Group(_) => {
+                let mut nest = last_nest;
+                if min >= 2 {
+                    nest = nest.max(2).saturating_add(1);
+                }
+                if max.is_none() || (min, max) == (0, Some(1)) {
+                    nest = nest.saturating_add(1);
+                }
+                Some(nest)
+            }
+            Last::Nothing | Last::Fixed | Last::EmptyGroup { .. } => None,
+        };
+        if let Some(nest) = wrapped {
+            frame.nest = frame.nest.max(nest);
+        }
         self.leading_open = false;
         let contribution = self.last_min_length;
         let atoms = self.last_atoms;
@@ -2723,6 +3070,7 @@ impl<'p> Translator<'p> {
         self.last = Last::Fixed;
         self.last_min_length = MinLength::default();
         self.last_atoms = 0;
+        self.last_nest = 0;
         Ok(())
     }
 
@@ -2826,6 +3174,9 @@ impl<'p> Translator<'p> {
                 "a counted repeat of a backreference that can match the empty string (Boost \
                  ends a repeat after an empty iteration)",
             ),
+            Last::Group(shape) if shape.state_icase[usize::from(!self.flags.icase)] => {
+                self.unsupported(start, CASE_SWITCHED_REPEAT)
+            }
             _ if self
                 .last_min_length
                 .engine
@@ -3084,6 +3435,175 @@ mod tests {
             |regex: &fancy_regex::Regex| regex.find("bc").unwrap().map(|found| found.range());
         assert_eq!(range(&unguarded), Some(0..2));
         assert_eq!(range(&guarded), Some(0..1));
+    }
+
+    /// The category of a translation refusal, or `None` when it translates.
+    fn refusal(pattern: &str, options: RegexOptions) -> Option<String> {
+        match Translator::new(pattern, options, true).run() {
+            Ok(_) => None,
+            Err(Error::Unsupported(message)) => Some(message),
+            Err(other) => panic!("{pattern:?}: {other}"),
+        }
+    }
+
+    /// Boost's start maps: the case sensitivity of repeat and alternation
+    /// states inside a repeated group, `\<` after a case switch, `\<` and `\>`
+    /// beside a repeated group with an inner repeat or alternation.
+    #[test]
+    fn refuses_start_maps_boost_builds_wrongly() {
+        let plain = RegexOptions::default();
+        let icase = RegexOptions {
+            icase: true,
+            ..RegexOptions::default()
+        };
+        let refused = |pattern: &str, options: RegexOptions, category: &str| {
+            let message =
+                refusal(pattern, options).unwrap_or_else(|| panic!("{pattern:?} translated"));
+            assert!(message.contains(category), "{pattern:?}: {message}");
+        };
+        // A repeat state takes the case sensitivity at its quantifier; the first
+        // alternation state stands before a scoped switch, a later one where the
+        // previous `|` was.
+        for pattern in [
+            "(?i:b.+)*C",
+            "(?:y|(?i:b.+))+C",
+            "(?:(?i)x|y+)*",
+            "(?:a(?i)|b|c)+",
+            "(?i)(?:(?-i:a|b+)c)+",
+        ] {
+            refused(pattern, plain, CASE_SWITCHED_REPEAT);
+        }
+        refused("(?-i:b+)+", icase, CASE_SWITCHED_REPEAT);
+        for pattern in [
+            "(?i:a|b)*",
+            "(?:(?i)a|b)*",
+            "(?:(?i:a|b)c+)+",
+            "(?:b.+(?i))*C",
+            "(?i)(?:b.+)*C",
+            "(?:a(?i)|b)+",
+            "(?i:b.+)C",
+            "(?i)(?:(?-i:a|b)c)+",
+        ] {
+            assert_eq!(refusal(pattern, plain), None, "{pattern:?}");
+        }
+        refused(r"a(?i)\<b", plain, WORD_START_CASE_SWITCH);
+        refused(r"\<a(?-i)", icase, WORD_START_CASE_SWITCH);
+        assert_eq!(refusal(r"(?i)\<a", icase), None);
+        assert_eq!(refusal(r"(?i)a\>", plain), None);
+        refused(r"(?:\w\w+){2}\>", plain, WORD_BOUNDARY_AFTER_LOOP);
+        refused(r"\<(?:a|b)+", plain, WORD_BOUNDARY_AFTER_LOOP);
+        assert_eq!(refusal(r"(?:\w\w){2}\>", plain), None);
+        assert_eq!(refusal(r"(?:a|b)\>(?:ab)+", plain), None);
+    }
+
+    /// The bound on Boost's start-map recursion, at its limit of 100 levels:
+    /// anchors count once outside repeated groups and twice inside, as do
+    /// alternations inside them and the repeated groups, alternations outside
+    /// only with a buffer end, and a margin of 2.
+    #[test]
+    fn bounds_start_map_recursion() {
+        let plain = RegexOptions::default();
+        let within_limit = |pattern: &str| match refusal(pattern, plain) {
+            None => true,
+            Some(message) if message.contains(START_MAP_RECURSION) => false,
+            Some(message) => panic!("{pattern:?}: {message}"),
+        };
+        let alternatives = |count: usize| vec!["b"; count].join("|");
+        // (pattern at the bound of 100, the same one site further)
+        for (at_limit, beyond) in [
+            (
+                format!("{}a", "$".repeat(98)),
+                format!("{}a", "$".repeat(99)),
+            ),
+            (
+                format!("(?:a{})+", "$".repeat(48)),
+                format!("(?:a{})+", "$".repeat(49)),
+            ),
+            (
+                format!("(?:(?:{})x)+", alternatives(49)),
+                format!("(?:(?:{})x)+", alternatives(50)),
+            ),
+            (
+                format!("(?:{})\\z", alternatives(50)),
+                format!("(?:{})\\z", alternatives(51)),
+            ),
+            ("(?:a+)+".repeat(49), "(?:a+)+".repeat(50)),
+        ] {
+            assert!(within_limit(&at_limit), "{at_limit:?}");
+            assert!(!within_limit(&beyond), "{beyond:?}");
+        }
+        // Alternations outside repeated groups count only with a buffer end.
+        assert!(within_limit(&format!("(?:{})$", alternatives(200))));
+    }
+
+    /// The translator's bound on the group nesting of its spellings refuses a
+    /// pattern before the engine's parser would, and not earlier than one level
+    /// before: wrapping a pattern in one more group adds one level to both, and
+    /// with one wrapper less than the first refused, every program compiles.
+    #[test]
+    fn bounds_translated_nesting() {
+        let options = RegexOptions::default();
+        let wrap = |pattern: &str, levels: usize| {
+            format!("{}{pattern}{}", "(?:".repeat(levels), ")".repeat(levels))
+        };
+        // `levels` groups around `inner`, each followed by `quantifier`.
+        let nest = |inner: &str, quantifier: &str, levels: usize| {
+            format!(
+                "{}{inner}{}",
+                "(?:".repeat(levels),
+                format!("){quantifier}").repeat(levels)
+            )
+        };
+        for pattern in [
+            nest("a{2,}", "{2,}", 8),
+            nest("a+$", "+$", 20),
+            nest("(?=(?:(?=a)b){2,})c", "{2,}", 16),
+            nest("(?:(?=a)){0,1}b", "+", 22),
+            nest("(?:ab){2,}c?", "+", 16),
+        ] {
+            let pattern = pattern.as_str();
+            let first_refused = (0..MAX_GROUP_DEPTH)
+                .find(|&levels| refusal(&wrap(pattern, levels), options).is_some())
+                .unwrap_or_else(|| panic!("{pattern:?} is never refused"));
+            let message = refusal(&wrap(pattern, first_refused), options).unwrap();
+            assert!(
+                message.contains(TRANSLATION_TOO_DEEP),
+                "{pattern:?}: {message}"
+            );
+            assert!(first_refused > 0, "{pattern:?}");
+            let widest = wrap(pattern, first_refused - 1);
+            assert!(BoostRegex::new(&widest).is_ok(), "{widest:?}");
+        }
+        let deep =
+            |levels: usize| format!("{}a{{2,}}{}", "(?:".repeat(levels), "){2,}".repeat(levels));
+        assert_eq!(refusal(&deep(19), options), None);
+        assert!(refusal(&deep(20), options).is_some_and(|m| m.contains(TRANSLATION_TOO_DEEP)));
+    }
+
+    /// `\x` digits that `std::istream` reads with white space, a sign or `0x`.
+    #[test]
+    fn refuses_hex_escapes_read_as_stream_syntax() {
+        for pattern in [
+            r"\x{+41}",
+            r"\x{ 41}",
+            r"\x{0x41}",
+            r"\x+4",
+            r"[\x-0]",
+            r"\x0X",
+        ] {
+            assert!(
+                refusal(pattern, RegexOptions::default())
+                    .is_some_and(|message| message.contains(HEX_ESCAPE_STREAM_SYNTAX)),
+                "{pattern:?}"
+            );
+        }
+        for pattern in [r"\x41", r"\x{041}", r"\x4x", r"[\x00-\x{7f}]", r"\x0"] {
+            assert_eq!(
+                refusal(pattern, RegexOptions::default()),
+                None,
+                "{pattern:?}"
+            );
+        }
     }
 
     /// Boost's `probe_leading_repeat` walk, as the translator mirrors it.

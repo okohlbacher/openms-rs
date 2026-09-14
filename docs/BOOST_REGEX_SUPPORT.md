@@ -26,7 +26,9 @@ lookahead bodies; and a case-insensitive backreference to a group that grows
 across the haystack can take seconds on a megabyte, because the engine compares
 the whole group on every attempt. Such a consumer should also expect `Unsupported` for the
 constructs under [Refused constructs](#refused-constructs), for example a
-backreference inside the group it refers to.
+backreference inside the group it refers to, `\<` in an expression that switches case
+sensitivity, or a case switch inside a repeated group, where Boost's own start maps
+lose matches.
 
 ## API mapping
 
@@ -156,7 +158,9 @@ compared case.
   negative maximum is unbounded (`a{2,-1}` is `a{2,}`); a `{` that does not form a
   bound is a literal (`a{,3}`, `a{x}`, `x{2}{`, a value outside `intmax_t`);
   `a{3,2}` is an error. A repeated lookaround is tried at most once.
-- **Escapes.** `\xH`, `\xHH` and `\x{H...}` up to `0x7F`; `\a \e \f \n \r \t`;
+- **Escapes.** `\xH`, `\xHH` and `\x{H...}` up to `0x7F`, with hex digits only
+  (Boost also reads white space, a sign and `0x` there, which is refused, below);
+  `\a \e \f \n \r \t`;
   punctuation escapes are literals. A backreference `\1`-`\9` must name an
   existing group, which may come later in the pattern; one inside the group it
   names is refused (below). A backreference to a group that did not take part
@@ -243,7 +247,8 @@ check adds parsing time to construction (see [Construction cost](#construction-c
 ### Refused constructs
 
 The facade refuses with `Error::Unsupported`, rather than approximate, every
-construct below. Boost accepts them. Refusals that exist to keep work or memory
+construct below. Boost accepts them, except where a row names patterns Boost rejects
+too. Refusals that exist to keep work or memory
 bounded are explained under [Work bounds](#work-bounds) and
 [Construction cost](#construction-cost).
 
@@ -254,6 +259,11 @@ bounded are explained under [Work bounds](#work-bounds) and
 | recursion `(?R)`, `(?1)`, `(?+1)`, `(?-1)`, `(?&name)`; conditionals `(?(...)...)`; branch reset `(?\|...)`; verbs `(*...)` | not translated |
 | `\Z` | Boost's start map for `\Z` leaves out `\f`, so a leading `\Z` is never tried at a form feed (`\Z` on `"\f"` matches at 1, not 0); reproducing that bug is not worth it |
 | a lazy repeat with a finite maximum at least two above its minimum (`{n,m}?` with `m >= n + 2`) of a one-byte atom (a literal, `.`, a class or bracket expression) that starts the expression: nothing precedes it but group starts and ends, flag groups that keep case sensitivity, `^ $ \b \B \< \> \A \z`, comments and whole lookarounds, the expression has no backreference, no `\|` outside a lookaround precedes it or separates the alternatives of a group around it (or of the expression), and no quantifier applies to a group around it | a Boost bug, refused rather than reproduced like `\Z`. `basic_regex_creator::probe_leading_repeat` marks such a repeat as leading. When the lazy repeat extends below its maximum, Boost records the position it got to (`unwind_char_repeat`, `unwind_short_set_repeat`, `unwind_fast_dot_repeat`, `unwind_slow_dot_repeat`), and a failed start position resumes the search behind it (`match_prefix`, `find_restart_*`), skipping start positions that match: `a{1,3}?\b` on `aaaa` matches `3..4`, and `.{3,5}?\b` on `ababab` does not match, where every start position gives `1..4` and `1..6`. A flag group that changes case sensitivity adds a `toggle_case` state and an alternation or a quantifier adds a state in front, which ends Boost's walk, so `(?i)a{1,3}?\b` and `x\|a{1,3}?\b` are translated |
+| a quantifier (`{1}` and `?` included) on a group that holds, at any depth, a repeat or an alternation compiled under the other case sensitivity, such as `(?i:b.+)*C`, `(?:y\|(?i:b.+))+C` or `(?:(?i)x\|y+)*`; and `\<` anywhere in an expression that switches case sensitivity (`(?i)`, `(?-i)`, `(?i:...)` or `(?-i:...)` against the options), such as `(?i)\<A` | a Boost bug (found by the fifth review), refused like `\Z`. Before matching, Boost gives every repeat and alternation a map of the bytes that can start each of its two ways on (`basic_regex_creator::create_startmaps`), which the matcher consults before it enters an iteration, leaves a repeat or tries an alternative. The walk that builds a map follows the states that can come next and recurses (`create_startmap`) at `\<`, `\>`, and at a repeat or alternation whose map is not built yet, which it reaches when it loops back to the repeat of an enclosing group. Each recursion restarts from the case sensitivity of the state whose map is built (`bool l_icase = m_icase`), or of the options for the expression's own map, not from the one in effect where the walk stands, so a literal or set further on is looked up with the wrong case and the map drops the bytes that start it: `(?i:b.+)*C` on `bcC` matches `2..3` in Boost and `(?i:bc+)+C` does not match, `(?i)\<A` does not match `A`, and `(?i)(?:a(?-i:b.+))+c` does not match `abcC`, where every start position gives `0..3`, `0..3`, `0..1` and `0..4`. A repeat state has the case sensitivity in effect at its quantifier; Boost puts the alternation state of a group's first `\|` at the start of the group, before a scoped switch takes effect, and that of a later `\|` at the start of the alternative before it, so `(?i:a\|b)*`, `(?:(?i)a\|b)*C` and `(?:(?i:a\|b)c+)+C` are translated. After `\>` only non-word bytes remain in the map, which have no case, so `(?i)a\>` is translated too |
+| `\<` or `\>` anywhere in an expression in which a quantifier applies to a group holding, at any depth, a repeat or an alternation, such as `(?:\w\w+){2}\>`, `(?:\W\W??\|a)+\>`, `(\w+?)+\>` or `\<(?:\w\w*)+` | a Boost bug (found by the fifth review), refused. At `\<` (`\>`) the start-map walk recurses and then removes every non-word (word) byte from the whole map it is filling. After the walk has looped back to an enclosing repeat, that map already holds the bytes that start another iteration, which come before the assertion, so an inner repeat can no longer leave for another iteration: `(?:\w\w+){2}\>` does not match `aaaa` in Boost, `(?:\W\W??\|a)+\>` finds `2..3` in `..a` and `(\w+?)+\>` captures group 1 at `0..4` in `aaaa`, where every start position gives `0..4`, `0..3` and `3..4`. The walk does not recurse at `\b`, `\B` or a lookaround, and no other state removes bytes, so `\b` and `\B` after the same groups, and `\<\w+\>`, `(?:\w\w){2}\>` and `(?:ab)+\>`, are translated |
+| an expression in which `A_free + 2 (A_looped + L_looped + R) + 2` exceeds 100, or, when it holds a buffer end (`\z`, `` \' `` or `$` under `(?-m)`), that sum plus `2 (L_free + L_looped)`: `A` counts `$` line anchors, `\<` and `\>`, `L` alternations (one per `\|`), each free outside every repeated group and looped inside one, and `R` counts the quantifiers applied to groups | Boost throws `error_complexity` at construction when `create_startmap` recurses more than `BOOST_REGEX_MAX_RECURSION_DEPTH` (100) levels deep (found by the fifth review for `$`, `\<` and `\>` chains; by its sibling hunt for alternations and nested repeated groups). The sum bounds that depth: the walk recurses one level at an anchor and two at a repeat or alternation whose map is not built; such a state lies earlier in the expression inside a repeated group, or is an alternation all of whose ways end at a buffer end, whose map stays empty; a repeat is recursed into once per map (`set_bad_repeat`); and after a walk loops back to a repeat it stays inside that repeat's group, so a chain of recursions meets each site once, except that an anchor or an alternation whose map stays empty inside a repeated group can be met a second time after the loop back. `$` × 101 then `a`, `(?:a+)*` then `$` × 99, an alternation of 51 branches in `(?:(...)x?)+`, 40 nested `(?:...a+$)+` and `$` × 80 before `(?:\b\|\B)` × 12 and `\z` are Boost errors. The bound refuses some expressions Boost compiles (`$` × 99 or 100 then `a`, `a` then `$` × 101, `x*` then `$` × 99, 30 nested `(?:...$)+`, 50 branches in a repeated group); `$` × 98 then `a`, 49 branches and 20 nested `(?:...$)+` are translated. 7,700 random expressions of anchors, alternations, lookaheads and nested repeated groups whose sum is between 60 and 100 all compile in Boost |
+| a lookbehind holding more than 1,024 alternations | Boost's `calculate_backstep` stacks every alternation on the path it walks and rejects the lookbehind when it would stack one more than `BOOST_REGEX_MAX_BLOCKS` (1,024): `(?<=` then `(?:\|)` × 1,026 then `)a` is an error in Boost. One alternation of 1,030 branches, which Boost accepts, is refused as well |
+| `\x` escapes whose digits start with white space, `+`, `-` or `0x`/`0X`, such as `\x{+41}`, `\x{ 41}`, `\x{0x41}`, `\x+4`, `[\x 4]` or `\x0x` | Boost reads the digits with `std::istream >> std::hex` (`cpp_regex_traits::toi`), which skips white space and accepts a sign and a `0x` prefix: the first five are valid in Boost (`\x-0` is a NUL byte), where the facade reported a syntax error before the fifth review, and `\x0x` and `\x{0x}` are errors, which it compiled. Every other `\x` escape reads the same in both |
 | octal `\0...`, `\c` control escapes, `\g` and `\k` backreferences, multi-digit backreferences `\10`, `\p`/`\P` properties, `\N`, `\R`, `\X`, `\C` | not translated |
 | escape letters Boost reads as a literal or a locale class (`\y`, `\j`, `\l`, `\u`, `\L`, `\U`, `\E` ...), the same inside a bracket expression (`[\y]`, `[\0]`, `[a-\d]`), and `[\V]` | not translated |
 | collating elements `[[.a.]]` and equivalence classes `[[=a=]]` | locale-dependent |
@@ -269,7 +279,7 @@ bounded are explained under [Work bounds](#work-bounds) and
 | a repeat allowing more than one repetition inside an atomic group or a negative lookaround, such as `(?>a+)b`, `(?!.*x)` or `(?<!(?=.*b)a)` | work bound: the engine discards the backtracking branches pushed there without counting them |
 | a lookbehind wider than `MAX_LOOKBEHIND_WIDTH` (255) bytes | work bound |
 | repeat bounds whose value exceeds `MAX_REPEAT` (999,999,999), and a repeat whose shortest match, multiplied out over nested repeats, exceeds it | work bound; the product also overflows `fancy-regex`'s analyzer, which panicked in builds with overflow checks on `(?:(?:a{999999999}){999999999}){999999999}` |
-| nesting deeper than `MAX_GROUP_DEPTH` (48) and a translation longer than `MAX_TRANSLATED_BYTES` (512 KiB) | work and memory bounds; a pattern longer than `MAX_PATTERN_BYTES` (64 KiB) is `InvalidValue` |
+| nesting deeper than `MAX_GROUP_DEPTH` (48), a translation whose groups could nest 64 levels deep, and a translation longer than `MAX_TRANSLATED_BYTES` (512 KiB) | work and memory bounds, and the limit of `fancy-regex`'s parser (`MAX_RECURSION`, 64), which the translation reaches before the pattern does: a case-insensitive letter, `.` or a line anchor adds levels, and so does every counted and every shielded repeat (see [Engine rewrites](#engine-rewrites)). The translator counts, along every path and as if every repeat were counted and shielded, one level for a one-byte atom or a backreference, two for an assertion, one for a group (two for a positive lookahead), one more for a quantifier on a lookaround or a zero repeat of a capturing group, and otherwise, for a quantifier, one level above at least two when its minimum is 2 or more and one more when it is unbounded or optional; two more for the programs' own groups. `(?:` × 19, `a{2,}`, `){2,}` × 19 is translated and 20 levels are refused; none of 300,000 random nested expressions reached the engine's limit (see Evidence). A pattern longer than `MAX_PATTERN_BYTES` (64 KiB) is `InvalidValue` |
 
 None of these constructs occurs in a pinned OpenMS expression: every family
 derived from the OpenMS sources compiles in full. How often each was hit in the
@@ -594,6 +604,15 @@ too (37 MB) and took 10 s to find its match at the start of 5 MB of `a`; since t
 second round it runs on the backtracking machine (12 ms then, 18 ms on the third round's
 machine).
 
+Boost's own construction is exponential in two shapes the facade compiles in linear time
+(measured with the oracle driver, fifth round). `calculate_backstep` walks every
+combination of the alternatives in a lookbehind: 15, 20, 22 and 24 alternations `(?:|)` in
+a row took 0.00, 0.01, 0.03 and 0.11 s, and 1,025 did not finish (1,026 are rejected at
+once, see [Refused constructs](#refused-constructs)). And the start map of an
+alternation all of whose ways end at a buffer end stays empty, so every later walk
+recurses into it again: 40 or more `(?:\b|\B)` in a row before `\z` did not finish within
+20 s. The facade answers both.
+
 ### Other differences
 
 - **Error kinds and messages.** Boost's `regex_error` codes are not reproduced;
@@ -653,45 +672,52 @@ and it finds no pattern Boost rejects that the rules would accept.
 
 | | Patterns | Corpus cases | Boost answers | Compared by the facade | Mismatches |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Full corpus (`../oracle/boost-regex/corpus_full.txt`) | 84,017 | 7,285,115 | 6,872,401 | 4,978,831 | 0 |
-| Committed fixture (`tests/data/boost_regex_corpus.txt`) | 2,223 | 203,605 | 178,732 | 151,082 | 0 |
+| Full corpus (`../oracle/boost-regex/corpus_full.txt`) | 127,161 | 9,090,556 | 8,491,630 | 6,046,171 | 0 |
+| Committed fixture (`tests/data/boost_regex_corpus.txt`) | 2,301 | 211,285 | 185,164 | 153,642 | 0 |
 
 Boost answers every case of a pattern it compiles; compared cases exclude the
 patterns the facade refuses. The fixture keeps every pattern except the systematic
 probe grids of the full corpus (`UNB`, `LEAD`, the `BR` grids, `OPTNEST`, `OPTCAT`,
-`ALTPFX`, `ATOMALT`, `ATOMCTX` and `ATOMBR`), every fixed input (edge, structured and
-source-derived) and every run except extra operations marked full-only, and cuts
-seeded random inputs to a prefix per input set. It is 1,036,304 bytes (267,795
-corpus and 768,509 Boost output). A scratch build with `MAX_AUTOMATON_ATOMS` set to
-0, which searches every pattern with the counted spelling on the backtracking
-machine, also compares all 4,978,831 cases of the full corpus with 0 mismatches, and
-so does a build with overflow checks and debug assertions, without a panic.
+`ALTPFX`, `ATOMALT`, `ATOMCTX`, `ATOMBR`, `SMCASE`, `SMWORD`, `SMDEPTH`, `SMBR` and
+`HEX`), every fixed input (edge, structured and source-derived) and every run except
+extra operations marked full-only, and cuts seeded random inputs to a prefix per input
+set. It is 1,067,430 bytes (277,279 corpus and 790,151 Boost output). A scratch build
+with `MAX_AUTOMATON_ATOMS` set to 0, which searches every pattern with the counted
+spelling on the backtracking machine, also compares all 6,046,171 cases of the full
+corpus with 0 mismatches, and so does a build with overflow checks and debug
+assertions, without a panic. Rerunning `gen.py` and `refusals.py` reproduces the
+committed fixture pair, the full corpus and its Boost output, and the test constants
+byte for byte.
 
-Commit cfbaf1a, the previous round, run over this full corpus in the same harness,
-refuses the same 26,658 patterns and gives 12,399 different answers, none of them
-panics: 8,889 in `ATOMALT`, 2,996 in `ATOMCTX`, 168 in `ATOMBR` and 346 in `ADV`
-(the fourth review's probes, run over the `ATOM` inputs as well where a grid repeats
-them). Over the fixture it gives 160 different answers, all in the new `ADV` probes.
-Commit cf594ef, the round before, run over the third round's full corpus (67,916
-patterns), refused 24,547 patterns, compared 3,747,420 cases and gave 10,206
-different answers, 1,969 of them panics: 3,258 in `BROPEN` and the rest in `ALTPFX`
-(4,168), `OPTCAT` (1,681), `OPTNEST` (704) and `ADV` (395).
+Commit e6c581f, the previous round, run over this full corpus in the same harness,
+refuses 28,455 patterns, gives 12,119 different answers (none of them panics) and
+differs from Boost in 795 compile outcomes. The answers are 10,852 in `SMCASE`, 1,003
+in `SMWORD`, 12 in `SMBR` and 252 in `ADV` (the fifth review's probes). The compile
+outcomes are 751 `HEX` patterns Boost compiles and it rejected as syntax errors, 9
+`HEX` patterns Boost rejects and it compiled, 18 `SMDEPTH` patterns Boost rejects with
+`error_complexity` and it compiled, and 17 `ADV` probes. Over the fixture it gives 180
+different answers and 17 different compile outcomes, all in the new `ADV` probes.
+Earlier rounds: cfbaf1a gave 12,399 different answers over the fourth round's full
+corpus (84,017 patterns), and cf594ef 10,206, 1,969 of them panics, over the third
+round's (67,916 patterns).
 
 Per family in the committed fixture (the families other than `SYN`, `ADV` and
 `FUZZ` come from OpenMS sources; `ADV` holds the probes of the first two
 independent reviews and of the work bounds, the third review's backreference and
-engine-rewrite probes, and the fourth review's atomic-alternation probes):
+engine-rewrite probes, the fourth review's atomic-alternation probes, and the fifth
+review's start-map, recursion-limit and `\x` probes; two of the last, `\<\w+\>` and
+`\x{41}`, repeat `SYN` patterns and are counted there):
 
 | Family | Patterns | Refused by the facade | Refused by both | Compared cases |
 | --- | ---: | ---: | ---: | ---: |
-| `ADV` | 406 | 118 | 9 | 11,306 |
+| `ADV` | 484 | 154 | 22 | 14,090 |
 | `ANNOT` | 4 | 0 | 0 | 1,188 |
 | `CHROM` | 12 | 0 | 0 | 1,344 |
 | `CLASS` | 24 | 0 | 0 | 2,768 |
 | `DECOY` | 2 | 0 | 0 | 516 |
 | `ENZ` | 30 | 0 | 0 | 17,269 |
 | `FRAG` | 1 | 0 | 0 | 338 |
-| `FUZZ` | 1,111 | 220 | 422 | 7,504 |
+| `FUZZ` | 1,111 | 246 | 422 | 7,088 |
 | `IDX` | 1 | 0 | 0 | 231 |
 | `LOOKUP` | 1 | 0 | 0 | 628 |
 | `MRM` | 5 | 0 | 0 | 615 |
@@ -701,7 +727,7 @@ engine-rewrite probes, and the fourth review's atomic-alternation probes):
 | `PEPXML` | 1 | 0 | 0 | 171 |
 | `PERCOUT` | 3 | 0 | 0 | 354 |
 | `RNA` | 17 | 0 | 0 | 6,395 |
-| `SYN` | 578 | 87 | 79 | 93,887 |
+| `SYN` | 578 | 87 | 79 | 94,079 |
 | `TITLE` | 3 | 0 | 0 | 918 |
 
 The `ADV` family covers: bounded repeats of groups and backreferences that can
@@ -727,13 +753,20 @@ whose branches share a prefix that can match in several ways, among them the fou
 review's examples, in lookaheads and negative lookaheads, in a lookahead inside a
 lookbehind, with hard parts before and after, nested and repeated, beside
 backreferences (case-insensitive, over bytes above `0x7F`) and after a lazy leading
-repeat, and alternations of one width in lookbehinds (compared).
+repeat, and alternations of one width in lookbehinds (compared); and the fifth review's
+start-map examples (refused) beside the same groups without the repeat or with the
+switch where Boost's walk keeps it, `\b`, `\B` and `$` after the same repeated groups
+and `\<`, `\>` without an inner repeat (compared), `\x` escapes with white space, a sign
+or `0x` (refused, or rejected by both) beside plain ones, expressions on both sides of
+the start-map recursion bound (compared, refused, or rejected by both with Boost's
+`error_complexity`), and translations nested at the engine's parser limit.
 
 The full corpus adds grids. `UNB` (19,183 patterns, the second review's probe)
 repeats every body of two nullable or non-nullable parts, concatenated or
 alternated, with `*`, `+`, `*?`, `+?`, `{1,}` and `{0,}`, before four suffixes,
-over 19 inputs with search, full match and tokens: 15,346 refused, 218,709 cases
-compared. `LEAD` (18,365 patterns) puts eight atoms under ten greedy, lazy, bounded
+over 19 inputs with search, full match and tokens: 15,346 refused, 219,087 cases
+compared (the count includes the runs that later grids add to the patterns they share
+with it, here and below). `LEAD` (18,365 patterns) puts eight atoms under ten greedy, lazy, bounded
 and unbounded quantifiers before ten followers, inside twenty prefixes and wrappers
 (anchors, lookarounds, alternations before and after, capturing and non-capturing
 groups, case-changing and case-keeping flag groups, a quantified lookahead, a
@@ -761,10 +794,10 @@ are counted there:
 | `BRLEAD` | four atoms under five lazy quantifiers before four followers in 10 templates with backreferences (`R F(a)\1`, `()R F\1`, `(R)F\1` ...), with and without `icase`, over 15 inputs with search and tokens (0) | 1,480 | 0 | 0 | 45,600 |
 
 And grids of the shapes the engines' rewrites changed (see
-[Engine rewrites](#engine-rewrites)): `OPTNEST` (1,824 patterns) repeats a group
-holding one repeat, `(?:XI)O` and `(XI)O` for four atoms, eight inner and seven
-outer quantifiers and four suffixes, plus `(XI)O\1`: 636 refused, 92,664 cases
-compared. `OPTCAT` (3,316) puts seven edge repeats around seven optional middles
+[Engine rewrites](#engine-rewrites)): `OPTNEST` (1,823 patterns; `(\w+?)+$` is
+now an `ADV` probe) repeats a group holding one repeat, `(?:XI)O` and `(XI)O` for four
+atoms, eight inner and seven outer quantifiers and four suffixes, plus `(XI)O\1`: 636
+refused, 93,783 cases compared. `OPTCAT` (3,316) puts seven edge repeats around seven optional middles
 (`XMY`, `(?:XM(?:x|Y))`) and repeats `(?:P(?:MR)?)`: 144 refused, 211,744 compared.
 `ALTPFX` (3,692) gives the branches of an alternation a common prefix, 11 prefixes
 and 8 tails in six templates: 144 refused, 234,168 compared.
@@ -801,10 +834,60 @@ flags, 2,659,104 cases; 3,060 patterns in the `ATOMCTX` and `ATOMBR` shapes, 241
 cases) compare with 0 mismatches, where cfbaf1a gave 3,287, 4,029, 19,726 and 3,744
 different answers.
 
-Over the full corpus the facade refuses 26,658 patterns: 15,853 for a repeat of
-more than one iteration of a group that can match the empty string, 2,693 for a
-leading lazy repeat and 2,451 for a backreference inside the group it refers to
-among them.
+The fifth round adds grids around Boost's start maps, its start-map recursion
+limit and `\x` escapes. `SMC` has 22 inputs of `b`, `c`, `C`, `x`, `y` and `d` in case
+pairs, `SMW` 21 of `a`, `A`, `.` and spaces with a lone `0xE9`, `SM` 19 short ones, and
+`HEX` 21 of control bytes, `x`, `{`, `}`, signs, digits and white space:
+
+| Family | Templates | Patterns | Refused | Refused by both | Compared cases |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `SMCASE` | eight bodies with an inner repeat or alternation (`b.+`, `bc+`, `b(?:c\|d)`, `b(?:c\|C)`, `b\w*?`, `b[a-z]{1,2}`, `(?:y\|b.+)`, and `b` as a control) inside eight switches (`(?i)X`, `(?-i)X`, `(?i:X)`, `(?-i:X)`, `X(?i)`, `X(?-i)`, `(?:(?i)X)`, `(?:X)`), in seven group templates (plain, alternated before and after, after a literal, captured, nested with an inner quantifier, followed by `c?`) under `*`, `+`, `?`, `{2}`, `{1}` and `*?`, before `C`, `[a-z]`, `\w`, `$` or nothing, with and without `icase`, over `SMC` with search and full match | 26,878 | 8,819 | 0 | 794,596 |
+| `SMWORD` | ten bodies with and without an inner repeat or alternation (`\w\w+`, `\w{2,}`, `\W\W??\|a`, `\w+?`, `a\|\W`, `\w\w`, `ab`, `\w`, `.\W?`, `(?:a\|b)b`) under seven quantifiers, in 16 placements of `\<`, `\>`, `\b`, `\B` or `$` (after, before and inside the repeated group, at the start of an alternative inside it, after a lookahead, in an atomic group and a lookahead, after `(?i)` or `(?i:a)`), over `SMW` with search, full match and tokens (-1 and 0) | 4,620 | 1,580 | 0 | 237,258 |
+| `SMDEPTH` | around the recursion limit: 40 to 102 `$`, `\<` or `\>` before and after atoms, `x*`, `(?:a+)*` and `(?:a\|b)*`; alternations of 41 to 56 branches in repeated groups; 15 to 48 nested repeated groups with and without `$`; 40 to 90 `$` beside 4 to 12 alternations that end at `\z` or `(?-m)$`; lookbehinds with 10, 16, 1,026 and 1,030 alternations; over `SM` with search and tokens (-1) | 194 | 57 | 18 | 4,560 |
+| `SMBR` | backreferences in the shapes above: to a group before a case-switched repeated group, from inside one, to a later or unset group, before `\<` and `\>`, after 60 `$`, and to a group that can match empty, with and without `icase`, over `SM` with search, full match and tokens (-1) | 400 | 184 | 0 | 12,312 |
+| `HEX` | `\x` followed by every pair of `0 1 4 7 a A f F g x X + - space tab newline } { ,` and an optional `a` or `}`, in and outside a bracket expression, and `\x{...}` with up to three of `0 1 4 7 a A f x X + - space tab }`, also followed by `1`, over `HEX` with search | 10,975 | 942 | 8,744 | 27,363 |
+
+The 18 `SMDEPTH` patterns both refuse are Boost's `error_complexity` (16) and the
+lookbehinds of 1,026 and 1,030 alternations in a row (2). Commit e6c581f gives 10,852, 1,003 and 12 different answers in
+`SMCASE`, `SMWORD` and `SMBR` and 778 different compile outcomes in `SMDEPTH` and `HEX`
+(above). Beyond the corpus, the review's own grids, rerun on this change, compare with 0
+mismatches and 0 different compile outcomes: `F7b` (119,680 patterns, 29,568 refused,
+4,866,048 cases), `F7c` (18,368, 7,396, 268,016), `F11` (12,240, 6,468, 329,004) and
+`F13` (51,402, 1,739, 908,649), where e6c581f gave 109,656, 25,338, 34,625 and 0
+different answers and 584 different compile outcomes in `F13`; its `OMNI` random
+grammar, seeds 1 to 4 (240,000 expressions, 98,505 refused, 19,101,825 cases), gives 0
+different answers, where e6c581f gave 9, 63 and 6 on seeds 2 to 4. The review's depth
+probes (91 patterns) give 0 different compile outcomes.
+
+The sibling hunt of this round also looked beyond the review's examples. Two more ways
+past Boost's recursion limit turned up (an alternation of 51 branches in
+`(?:(...)x?)+`, and alternations that end at a buffer end, which also make Boost's
+construction exponential, see [Construction cost](#construction-cost)), and so did
+Boost's lookbehind alternation stack and a translation nesting past the engine's
+parser limit (`(?:` × 48, `a+`, `)+` × 48, which the engine refused after the
+optimizer's shielding): all four are refused now. Seeded explorations outside the
+corpus: 7,700 random expressions of anchors, alternations, lookaheads and nested
+repeated groups whose recursion bound is between 60 and 100 all compile in Boost; and
+300,000 random nested expressions (180,000 of plain, flag and non-capturing groups
+under counted, lazy and bounded repeats around anchors, sets and case-insensitive
+letters, and 120,000 with positive lookaheads, repeated lookarounds and zero repeats)
+never reached the engine's parser limit, with `refusals.py` agreeing on every
+refusal; about 600 of the compiled ones sat at the highest bound the translator allows.
+The backreference grids of the third round (`BROPEN`, `BRFWD`, `BRUNSET`, `BRREP`,
+`BRLOOK`, `BRDUP`, `BRZERO`, `BRNULL`, `BRICASE`, `BRLEAD`) and the `ATOMBR` grid of the
+fourth, which cover backreferences to open, later and unset groups, into and out of
+lookarounds and atomic groups, to repeated and duplicate-named groups, under `icase`
+over bytes above `0x7F`, beside lazy leading repeats and to groups that can match
+empty, were rerun with this change; their refusals and answers are unchanged.
+
+Over the full corpus the facade refuses 38,302 patterns: 17,091 for a repeat of more
+than one iteration of a group that can match the empty string, 7,973 for a repeat of a
+group holding a repeat or alternation under other case sensitivity, 2,693 for a leading
+lazy repeat, 2,451 for a backreference inside the group it refers to, 1,321 for `\<` or
+`\>` beside such a repeated group, 761 for a `\x` escape with stream syntax, 92 for
+`\<` after a case switch, 48 beyond the start-map recursion bound, 4 for a lookbehind
+with more than 1,024 alternations and 2 for a translation nested past the engine's
+parser limit among them.
 
 Adversarial inputs in every family: the empty string, `\n`, `\r`, `\r\n`, `\f`,
 `\v`, tab, space, NUL, `\n\r`, `\r\r\n`, `\f\n`, `\r\f`, `é`, lone `0xFF`, `0xC3`,
@@ -816,12 +899,16 @@ Refusals over the whole corpus, by category (`refusals.py`, equal to the facade'
 | Construct | Patterns |
 | --- | ---: |
 | a repeat inside an atomic group or a negative lookaround | 93 |
-| a capturing group inside a lookaround or atomic group | 85 |
+| a capturing group inside a lookaround or atomic group | 84 |
 | a repeat of more than one iteration of a group that can match the empty string | 73 |
 | a backreference inside the group it refers to | 29 |
 | a lazy repeat with a finite maximum of a one-byte atom that starts the expression | 27 |
 | a repeat of a group that can match the empty string and captures | 26 |
+| a repeat of a group holding a repeat or alternation under other case sensitivity | 20 |
+| `\<` or `\>` in an expression with a repeated group holding a repeat or alternation | 17 |
+| `\<` in an expression that switches case sensitivity | 11 |
 | a repeat of a group that only asserts a position | 11 |
+| a hexadecimal escape whose digits start with a sign, white space or `0x` | 10 |
 | `\Z` | 7 |
 | a counted repeat of a backreference that can match the empty string | 7 |
 | an escape letter without a translated meaning | 7 |
@@ -842,6 +929,8 @@ Refusals over the whole corpus, by category (`refusals.py`, equal to the facade'
 | a conditional expression | 2 |
 | a lookbehind wider than `MAX_LOOKBEHIND_WIDTH` bytes | 2 |
 | an octal escape | 2 |
+| groups and repeats nested deeper than the engine's parser allows once translated | 2 |
+| more line anchors, word-boundary assertions, alternations and repeated groups than Boost's start-map recursion limit allows | 3 |
 | `\G` | 1 |
 | a branch-reset group | 1 |
 | a collating element | 1 |
@@ -851,15 +940,14 @@ Refusals over the whole corpus, by category (`refusals.py`, equal to the facade'
 | a repeat bound above `MAX_REPEAT` | 1 |
 | the `x` (extended) modifier | 1 |
 
-205 of the 425 are probes outside `FUZZ`, listed one by one in
-`EXPECTED_UNSUPPORTED`; 220 are grammar-generated. The test asserts the list, these
-counts and the number of compared cases. The fourth round adds no refusal; the
-backreference refusal is from the third round. Its 29 patterns are that round's 16
-probes, `(a\1)` from `SYN` and 5
-grammar-generated patterns that compiled before (and compared equal on the fixture's
-inputs), and 7 patterns another rule refused before, because the backreference now
-stops the translation first: `(a\1{2})` (a counted repeat of a backreference that
-can match empty) and 6 `FUZZ` patterns.
+241 of the 487 are probes outside `FUZZ`, listed one by one in
+`EXPECTED_UNSUPPORTED`; 246 are grammar-generated. The test asserts the list, these
+counts and the number of compared cases. The fifth round adds six categories; they
+refuse 36 of its probes and 26 `FUZZ` patterns that compiled before (and compared
+equal on the fixture's inputs), and one `FUZZ` pattern that the capturing-group rule
+refused before now stops at an earlier rule. The backreference refusal is from the
+third round: its 29 patterns are that round's 16 probes, `(a\1)` from `SYN`, 5
+grammar-generated patterns and 7 patterns another rule refused before it.
 
 **Random expressions.** `../oracle/boost-regex/fuzz.py <mode> <seed> <count>` writes
 expressions from one of four grammars, each run with search, full match and the
@@ -871,19 +959,23 @@ budget) where the other answers is counted apart from a different answer:
 
 | Mode | Seeds and expressions | Refused | Compared cases | Different answers | Limit disagreements | cfbaf1a: different answers | cf594ef: different answers, of them panics |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `backref`: groups, lookarounds, atomic and flag groups, anchors, `\1`-`\3` as a quarter of the atoms | 1 (40,000), 2 to 5 (100,000 each) | 121,682 | 4,351,032 | 0 | 3, all the facade's budget | 0 | 19,954, 1,880 |
-| `repeat`: the same with lazy and `{2,}` quantifiers and 2% backreferences | 11 to 13 (100,000 each) | 123,620 | 12,575,304 | 0 | 14 (11 Boost's, 6 the facade's) | 0 | 5,585, 1,232 |
-| `easy`: no lookaround, anchor, atomic group or backreference, more alternation | 21 to 23 (100,000 each) | 123,513 | 22,237,362 | 0 | 165 (165 Boost's, 1 the facade's) | 0 | 464, 0 |
-| `prefix` (fourth round): alternations of 2 to 4 branches sharing a prefix that can match in several ways, nested up to three deep in capturing, non-capturing, atomic, lookahead, flag and named groups, in 18 contexts (optional, repeated, alternated, after a lookahead, in a lookahead inside a lookbehind, after an atomic lookbehind, beside backreferences) | 31 to 33 (100,000 each) | 148,945 | 17,919,447 | 0 | 0 | 9,163 | 37,210, 261 |
+| `backref`: groups, lookarounds, atomic and flag groups, anchors, `\1`-`\3` as a quarter of the atoms | 1 (40,000), 2 to 5 (100,000 each) | 122,084 | 4,300,380 | 0 | 0 (3, all the facade's budget, before this round's refusals) | 0 | 19,954, 1,880 |
+| `repeat`: the same with lazy and `{2,}` quantifiers and 2% backreferences | 11 to 13 (100,000 each) | 125,735 | 12,308,814 | 0 | 14 (11 Boost's, 6 the facade's) | 0 | 5,585, 1,232 |
+| `easy`: no lookaround, anchor, atomic group or backreference, more alternation | 21 to 23 (100,000 each) | 135,190 | 20,766,060 | 0 | 71, all Boost's | 0 | 464, 0 |
+| `prefix` (fourth round): alternations of 2 to 4 branches sharing a prefix that can match in several ways, nested up to three deep in capturing, non-capturing, atomic, lookahead, flag and named groups, in 18 contexts (optional, repeated, alternated, after a lookahead, in a lookahead inside a lookbehind, after an atomic lookbehind, beside backreferences) | 31 to 33 (100,000 each) | 152,303 | 17,425,821 | 0 | 0 | 9,163 | 37,210, 261 |
 
-The facade's budget errors are lookahead bodies the engine backtracks into (for
-example `((?=(?i:\w+|c+?)+\b|A??)a)+?b*(?!)|` on `aabbaabb`), described under
-[Work bounds](#work-bounds). The different answers at cf594ef were the backreferences
-inside their groups and the engine rewrites of the third round; those at cfbaf1a are
-the alternations inside atomic groups of this round (every one of the 974 distinct
-patterns behind them contains `(?>`). All four grammars were rerun with this change;
-a scratch build with `MAX_AUTOMATON_ATOMS` set to 0 also gives 0 different answers on
-the `prefix` seeds. The fuzzing also found
+The table is this round's rerun of the same seeds, which the fifth round's refusals
+change: they refuse 402, 2,115, 11,677 and 3,358 more expressions of the four
+grammars, and with them the 3 cases the facade's budget stopped in `backref` and 94 of
+the cases Boost's `error_complexity` stopped in `easy`. The facade's budget errors are
+lookahead bodies the engine backtracks into (for example
+`(?i:(?i:(ba+?|.A^)*?[ab](?=\w??.{0,}?))*?(?<=b)(?<n>[ab]))ca|(?=(?:)c|)\b` on
+`aabbaabb`), described under [Work bounds](#work-bounds). The different answers at
+cf594ef were the backreferences inside their groups and the engine rewrites of the
+third round; those at cfbaf1a the alternations inside atomic groups of the fourth
+round (every one of the 974 distinct patterns behind them contains `(?>`). A scratch
+build with `MAX_AUTOMATON_ATOMS` set to 0 also gives 0 different answers on the
+`prefix` seeds. The fuzzing also found
 that `refusals.py` did not mirror one detail of the translator: a repeated
 lookaround that the facade spells as an optional group (`(?:(?<!\w)){0,}?`) no
 longer counts as a lone lookaround of the enclosing group; it does now, and no
@@ -919,6 +1011,21 @@ not `aAbc`, `(?=(?>(?:a?|ab)c|(?:a?|ab)b)c)` matches at 1 in `abc`,
 `(?<=(?=(?>[ab]?b|[ab]?c)c)..)` and `(?<=(?>ab|a[bc]))c` find `2..2` in `bcc` and
 `2..3` in `abc`, nested, repeated and backreferenced forms give Boost's spans, and the
 tokens -1 and 0 of `(?>[ab]?b|[ab]?c)` over `abcc` are Boost's six.
+`start_map_shapes_are_refused` asserts the fifth review's start-map probes: each is
+refused with its category within a watchdog (the case-switched repeats, `\<` after a
+switch, `\<` and `\>` beside repeated groups with an inner repeat, and the recursion
+bound, including four expressions Boost rejects with `error_complexity` and three it
+compiles), and the neighbours give Boost's answers (`(?i:bc)+C` finds `1..4` in
+`aBcC`, `(?:b.+(?i))*C` finds `1..2` in `bCc`, `(?:(?i)a|b)*C` `0..2` in `bCc`, `(?i)\<A`
+under `icase` `1..2` in ` A`, `(?:\W\W??|a)+\B` `0..3` in `aaaa`, `(\w+?)+$` all of
+`aaaa` with group 1 at `3..4`, `(?:(?:a|...)x?)+` with 49 branches all of `abab`, and
+`$` × 60 before `(?:\b|\B)` × 12 and `\z` `2..2` in `A\n`).
+`escapes_and_limits_follow_boost` asserts that the `\x` escapes Boost reads with stream
+syntax are refused whether Boost accepts them (`\x{+41}`, `\x-0`) or not (`\x0x`), that
+plain ones give Boost's answers and syntax errors (`[\x4-\x{41}]` finds `2..3` in
+`ab ab`; `\x{4 }` and `\xg` are errors), that lookbehinds with 1,026 alternations in a
+row or 1,030 in one are refused, and that 20 levels of `(?:...a{2,}){2,}` are refused
+while 19 compile and do not match `aaaa`, as in Boost.
 
 **Tier 3.** `class_test_expressions` transcribes the regular-expression half of
 `SpectrumNativeIDParser_test`, `SpectrumLookup_test` and
@@ -946,6 +1053,14 @@ tokens -1 and 0 of `(?>[ab]?b|[ab]?c)` over `abcc` are Boost's six.
 - `backreferences_inside_their_group_are_refused`: the third review's
   backreferences inside their groups, among them `(?:(a|\1b)c)+`, on which the engine
   panicked, are refused within a watchdog.
+- Module tests `refuses_start_maps_boost_builds_wrongly`, `bounds_start_map_recursion`,
+  `bounds_translated_nesting` and `refuses_hex_escapes_read_as_stream_syntax`: the case
+  sensitivity the translator gives Boost's repeat and alternation states (a later `|`
+  takes the one at the previous `|`), the recursion bound exactly at 100 and one site
+  beyond for anchors, looped anchors, alternations in repeated groups, alternations
+  before a buffer end and sequential repeated groups, and, for five deeply nested
+  expressions wrapped in more and more groups, that the first refusal is the nesting
+  bound and that one group less compiles every engine program.
 - `uncounted_engine_work_is_bounded`: each family above stops with the budget on
   16 KiB, or is refused, within a watchdog.
 - `large_automata_spend_the_budget`: `\w{0,9999}b` over 100 KB stops with the
@@ -1044,6 +1159,9 @@ the full corpus and the tests, and check in the new source:
   (the message the facade maps it to, and the ceilings above);
 - the analyzer's shortest-match product (`MAX_REPEAT`), the lazy DFA's fallback to
   the PikeVM (the automaton ceilings above) and `utf8_empty` in bytes mode;
+- the parser's group nesting limit (`MAX_RECURSION`, 64), which the translator's
+  nesting bound mirrors (`bounds_translated_nesting` fails if a program nests deeper
+  than the bound allows);
 - the optimizer: the facade calls `fancy_regex::internal::optimize`,
   `fancy_regex::internal::FLAG_UNICODE` and `Expr::parse_tree_with_flags`, which are
   outside `fancy-regex`'s stable API, and relies on `RegexBuilder` parsing with only

@@ -18,8 +18,9 @@
 //! the refusal rules documented in `docs/BOOST_REGEX_SUPPORT.md`.
 //!
 //! The case-insensitive range, negated-class, nullable-repeat, leading-repeat,
-//! open-group backreference, engine-rewrite and atomic-alternation tests are tier 1
-//! as well, with Boost's answers transcribed from the same oracle output. The class-test section is tier 3 (literals transcribed from the pinned
+//! open-group backreference, engine-rewrite, atomic-alternation, start-map and
+//! escape tests are tier 1 as well, with Boost's answers transcribed from the same
+//! oracle output. The class-test section is tier 3 (literals transcribed from the pinned
 //! class tests); the limit, work-bound, error and robustness sections are tier 4.
 
 use openms::Error;
@@ -243,6 +244,18 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?-s).{1,3}?\\b"),
     ("-", "(?:$)+"),
     ("-", "(?:$|a){2}"),
+    (
+        "-",
+        "(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:a+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+)+",
+    ),
+    (
+        "-",
+        "(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:a+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+$)+",
+    ),
+    (
+        "-",
+        "(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:a{2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}",
+    ),
     ("-", "(?:(?:(?=a)(?=a)){999999999}){999999999}"),
     ("-", "(?:(?:(?=a)a{999999999}){999999999}){999999999}"),
     ("-", "(?:(?:\\bb{999999999}){999999999}){999}"),
@@ -261,18 +274,25 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?:(?=a)|a){2}"),
     ("-", "(?:(?=a)|b){2}"),
     ("-", "(?:(?=b)|a)+"),
+    ("-", "(?:(?i)x|y+)*C"),
+    ("-", "(?:(?i:a|b+)c)+"),
     ("-", "(?:(a|\\1b)c)+"),
     ("-", "(?:(a|b\\1)c)+"),
     ("-", "(?:)a{1,3}?\\b"),
     ("-", "(?:.{0,9999})*?b"),
     ("-", "(?:.{0,999})*?b"),
+    ("-", "(?:\\.|\\<b+)*c"),
     ("-", "(?:\\B|a){2}"),
+    ("-", "(?:\\W\\W??|a)+\\>"),
+    ("-", "(?:\\W\\W??|a){2}\\>"),
     ("-", "(?:\\b)*"),
     ("-", "(?:\\b|a)+?b"),
     ("-", "(?:\\b|a){1,2}b"),
     ("-", "(?:\\b|a){2,}b"),
     ("-", "(?:\\b|a){2}b"),
     ("-", "(?:\\b|a){3}"),
+    ("-", "(?:\\w\\w+){2}\\>"),
+    ("-", "(?:\\w{2,}){2,}\\>"),
     ("-", "(?:^)*"),
     ("-", "(?:^|a){2,}b"),
     ("-", "(?:a*){2}b"),
@@ -295,6 +315,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?:a|\\b)*"),
     ("-", "(?:a|\\b){1,}"),
     ("-", "(?:a|\\b){2}b"),
+    ("-", "(?:a|ab)+\\<"),
     ("-", "(?:b?|a)*"),
     ("-", "(?:b?|a)*?"),
     ("-", "(?:b?|a)+"),
@@ -302,6 +323,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?:b?|a){1,}"),
     ("-", "(?:x{0}$)+"),
     ("-", "(?:x{0}(?=a)){3}a"),
+    ("-", "(?:y|(?i:b.+))+C"),
     ("-", "(?:|a){2}b"),
     ("-", "(?<!(?=.*b)){1000,}"),
     ("-", "(?<!(?=.*b)\\w)[ab](?<=a)b"),
@@ -332,11 +354,20 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?>a?){2}"),
     ("-", "(?>a{2,})b"),
     ("-", "(?>b?|a)*"),
+    ("-", "(?i)(?-i:b.+)?[a-z]"),
+    ("-", "(?i)(?:a(?-i:b.+))+c"),
     ("-", "(?i)*"),
     ("-", "(?i)+a"),
+    ("-", "(?i)\\<A"),
+    ("-", "(?i)\\<A|b"),
+    ("-", "(?i)\\<[A-Z]"),
+    ("-", "(?i:b.+)*C"),
+    ("-", "(?i:b.+){1}C"),
+    ("-", "(?i:bc+)+C"),
     ("-", "(?s)a{1,3}?\\b"),
     ("-", "(?x)a b"),
     ("-", "(?|(a)|(b))"),
+    ("-", "(\\w+?)+\\>"),
     ("-", "(a(?=\\1))b"),
     ("-", "(a)(?(1)b|c)"),
     ("-", "(a)(?1)"),
@@ -371,6 +402,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "[[.a.]]"),
     ("-", "[[=a=]]"),
     ("-", "[\\0]"),
+    ("-", "[\\x 4]"),
     ("-", "[\\y]"),
     ("-", "[^b]{0,2}?b"),
     ("-", "[a-\\d]"),
@@ -378,6 +410,8 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "\\0"),
     ("-", "\\012"),
     ("-", "\\1{2}(a)"),
+    ("-", "\\<(?:\\w\\w*)+"),
+    ("-", "\\<a(?i)b"),
     ("-", "\\C"),
     ("-", "\\E"),
     ("-", "\\G"),
@@ -404,12 +438,25 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "\\q"),
     ("-", "\\u"),
     ("-", "\\w{3,5}?\\b"),
+    ("-", "\\x 4"),
+    ("-", "\\x+4"),
+    ("-", "\\x-0"),
     ("-", "\\x80"),
     ("-", "\\xc3"),
     ("-", "\\xff"),
+    ("-", "\\x{	41}"),
+    ("-", "\\x{ 41}"),
+    ("-", "\\x{+41}"),
+    ("-", "\\x{-0}"),
+    ("-", "\\x{0X41}"),
+    ("-", "\\x{0x41}"),
     ("-", "\\y"),
     ("-", "^\\Z"),
     ("-", "^a{1,3}?\\b"),
+    (
+        "-",
+        "a$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$",
+    ),
     ("-", "a(?i)*"),
     ("-", "a*+"),
     ("-", "a++"),
@@ -423,8 +470,13 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "a{1000000000}"),
     ("-", "a{2}+"),
     ("-", "a٣"),
+    (
+        "-",
+        "x*$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$",
+    ),
     ("-", "é"),
     ("-", "é+"),
+    ("i", "(?-i)(?:\\<)A"),
     ("i", "(a|\\1b)x"),
     ("i", "[ab]{3,5}?(?!a)"),
     ("i", "a{1,3}?\\b"),
@@ -433,6 +485,14 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
 /// Refusals over the whole corpus, fuzz family included, by the construct the
 /// facade names in its `Error::Unsupported` message; also from `refusals.py`.
 const EXPECTED_REFUSALS: &[(&str, usize)] = &[
+    (
+        "\\< in an expression that switches case sensitivity (Boost builds its start map with the wrong case)",
+        11,
+    ),
+    (
+        "\\< or \\> in an expression with a repeated group holding a repeat or alternation (Boost's start map drops the bytes that start another iteration)",
+        17,
+    ),
     ("\\G", 1),
     ("\\K", 2),
     ("\\Q...\\E quoting", 4),
@@ -449,7 +509,7 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
     ("a branch-reset group", 1),
     (
         "a capturing group inside a lookaround or atomic group (Boost keeps its capture when the surrounding match backtracks)",
-        85,
+        84,
     ),
     ("a character property escape", 3),
     ("a collating element", 1),
@@ -461,6 +521,10 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
     ),
     ("a group name outside [A-Za-z0-9_]", 1),
     ("a hexadecimal escape above 0x7F", 3),
+    (
+        "a hexadecimal escape whose digits start with a sign, white space or 0x (Boost reads them with std::istream)",
+        10,
+    ),
     (
         "a lazy repeat with a finite maximum of a one-byte atom that starts the expression (Boost's leading-repeat optimization skips start positions)",
         27,
@@ -475,6 +539,10 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
     (
         "a repeat inside an atomic group or a negative lookaround (the engine discards its work there without counting it)",
         93,
+    ),
+    (
+        "a repeat of a group holding a repeat or alternation under other case sensitivity (Boost builds its start map with the wrong case)",
+        20,
     ),
     (
         "a repeat of a group that can match the empty string and captures (Boost records a final empty iteration)",
@@ -500,12 +568,20 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
     ),
     ("an escape letter without a translated meaning", 7),
     ("an octal escape", 2),
+    (
+        "groups and repeats nested deeper than the engine's parser allows once translated",
+        2,
+    ),
+    (
+        "more line anchors, word-boundary assertions, alternations and repeated groups than Boost's start-map recursion limit allows (Boost throws error_complexity)",
+        3,
+    ),
     ("the x (extended) modifier", 1),
 ];
 
 /// Cases compared against Boost: the fixture's size, so a truncated fixture fails
 /// (`refusals.py`).
-const EXPECTED_CASES: usize = 151_082;
+const EXPECTED_CASES: usize = 153_642;
 
 const NULLABLE_GROUP: &str = "a repeat of more than one iteration of a group that can match the empty string (Boost ends a repeat after an empty iteration)";
 const LEADING_LAZY: &str = "a lazy repeat with a finite maximum of a one-byte atom that starts the expression (Boost's leading-repeat optimization skips start positions)";
@@ -1806,6 +1882,305 @@ fn atomic_alternations_keep_boost_answers() {
             token(3..3, false),
             token(3..4, true),
         ]
+    );
+}
+
+/// The fifth review: before matching, Boost builds a map of the bytes that can start
+/// each way on of every repeat and alternation (`basic_regex_creator::create_startmap`),
+/// and the map is wrong in two ways the engine does not share. When the walk that
+/// builds it recurses, at `\<`, `\>` or a repeat it loops back to, it restarts from
+/// the case sensitivity of the state whose map it builds, so after a case switch a
+/// letter is looked up with the wrong case: `(?i)\<A` does not match `A`, `(?i:b.+)*C`
+/// finds `2..3` in `bcC` and `(?i:bc+)+C` nothing, where the engine found `0..1`,
+/// `0..3` and `0..3`. And a recursion at `\<` or `\>` removes bytes from the whole
+/// map it fills, which after a loop back already holds the bytes that start another
+/// iteration: `(?:\w\w+){2}\>` does not match `aaaa`, and `(\w+?)+\>` captures group
+/// 1 at `0..4`, where the engine found `0..4` and `3..4`. The walk also stops with
+/// `error_complexity` beyond 100 nested recursions, which `$` chains, alternations in
+/// repeated groups and nested repeated groups reach. Each of these is refused within
+/// a watchdog; the neighbours are compiled and give Boost's answers (transcribed from
+/// the oracle output for the `ADV` family).
+#[test]
+fn start_map_shapes_are_refused() {
+    const CASE_SWITCHED_REPEAT: &str = "a repeat of a group holding a repeat or alternation under other case sensitivity (Boost builds its start map with the wrong case)";
+    const WORD_START_CASE_SWITCH: &str = "\\< in an expression that switches case sensitivity (Boost builds its start map with the wrong case)";
+    const WORD_BOUNDARY_AFTER_LOOP: &str = "\\< or \\> in an expression with a repeated group holding a repeat or alternation (Boost's start map drops the bytes that start another iteration)";
+    const START_MAP_RECURSION: &str = "more line anchors, word-boundary assertions, alternations and repeated groups than Boost's start-map recursion limit allows (Boost throws error_complexity)";
+    let icase = RegexOptions {
+        icase: true,
+        ..RegexOptions::default()
+    };
+    let plain = RegexOptions::default();
+    let alternatives = |count: usize| {
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"[..count]
+            .chars()
+            .map(String::from)
+            .collect::<Vec<_>>()
+            .join("|")
+    };
+    let refusals: Vec<(RegexOptions, String, &str)> = vec![
+        (plain, r"(?i:b.+)*C".into(), CASE_SWITCHED_REPEAT),
+        (plain, r"(?i:b.+){1}C".into(), CASE_SWITCHED_REPEAT),
+        (plain, r"(?i:bc+)+C".into(), CASE_SWITCHED_REPEAT),
+        (plain, r"(?i)(?-i:b.+)?[a-z]".into(), CASE_SWITCHED_REPEAT),
+        (plain, r"(?:y|(?i:b.+))+C".into(), CASE_SWITCHED_REPEAT),
+        (plain, r"(?i)(?:a(?-i:b.+))+c".into(), CASE_SWITCHED_REPEAT),
+        (plain, r"(?:(?i)x|y+)*C".into(), CASE_SWITCHED_REPEAT),
+        (plain, r"(?:(?i:a|b+)c)+".into(), CASE_SWITCHED_REPEAT),
+        (plain, r"(?i)\<A".into(), WORD_START_CASE_SWITCH),
+        (plain, r"(?i)\<[A-Z]".into(), WORD_START_CASE_SWITCH),
+        (plain, r"(?i)\<A|b".into(), WORD_START_CASE_SWITCH),
+        (icase, r"(?-i)(?:\<)A".into(), WORD_START_CASE_SWITCH),
+        (plain, r"\<a(?i)b".into(), WORD_START_CASE_SWITCH),
+        (plain, r"(?:\w\w+){2}\>".into(), WORD_BOUNDARY_AFTER_LOOP),
+        (plain, r"(?:\w{2,}){2,}\>".into(), WORD_BOUNDARY_AFTER_LOOP),
+        (plain, r"(?:\W\W??|a){2}\>".into(), WORD_BOUNDARY_AFTER_LOOP),
+        (plain, r"(?:\W\W??|a)+\>".into(), WORD_BOUNDARY_AFTER_LOOP),
+        (plain, r"(\w+?)+\>".into(), WORD_BOUNDARY_AFTER_LOOP),
+        (plain, r"(?:a|ab)+\<".into(), WORD_BOUNDARY_AFTER_LOOP),
+        (plain, r"\<(?:\w\w*)+".into(), WORD_BOUNDARY_AFTER_LOOP),
+        (plain, r"(?:\.|\<b+)*c".into(), WORD_BOUNDARY_AFTER_LOOP),
+        // Boost: error_complexity.
+        (plain, format!("{}a", "$".repeat(101)), START_MAP_RECURSION),
+        (
+            plain,
+            format!("(?:a+)*{}", "$".repeat(99)),
+            START_MAP_RECURSION,
+        ),
+        (
+            plain,
+            format!("(?:(?:{})x?)+", alternatives(51)),
+            START_MAP_RECURSION,
+        ),
+        (
+            plain,
+            format!("{}{}\\z", "$".repeat(80), r"(?:\b|\B)".repeat(12)),
+            START_MAP_RECURSION,
+        ),
+        // Boost compiles these; the bound counts more than Boost's walk reaches.
+        (plain, format!("a{}", "$".repeat(101)), START_MAP_RECURSION),
+        (plain, format!("x*{}", "$".repeat(99)), START_MAP_RECURSION),
+        (
+            plain,
+            format!("{}a+{}", "(?:".repeat(30), "$)+".repeat(30)),
+            START_MAP_RECURSION,
+        ),
+    ];
+    for (options, pattern, expected) in refusals {
+        let shown = pattern.clone();
+        let category = within(60, &shown, move || {
+            refused(&pattern, BoostRegex::with_options(&pattern, options))
+        });
+        assert_eq!(category, expected, "{shown:?} icase={}", options.icase);
+    }
+    // (options, pattern, haystack, Boost's groups of the first match)
+    type Case = (
+        RegexOptions,
+        String,
+        &'static [u8],
+        Option<Vec<Option<Range<usize>>>>,
+    );
+    let cases: &[Case] = &[
+        // The same groups without a repeat, or with the switch where Boost's walk
+        // keeps it.
+        (plain, r"(?i:b.+)C".into(), b"bcC", Some(vec![Some(0..3)])),
+        (plain, r"(?i:bc)+C".into(), b"aBcC", Some(vec![Some(1..4)])),
+        (
+            icase,
+            r"(?i:b(?:c|d))+C".into(),
+            b"bCc",
+            Some(vec![Some(0..3)]),
+        ),
+        (
+            plain,
+            r"(?:b.+(?i))*C".into(),
+            b"bCc",
+            Some(vec![Some(1..2)]),
+        ),
+        (
+            plain,
+            r"(?:b.+(?i))*C".into(),
+            b"aBcC",
+            Some(vec![Some(3..4)]),
+        ),
+        (
+            plain,
+            r"(?i)(?:b.+)*C".into(),
+            b"bc",
+            Some(vec![Some(1..2)]),
+        ),
+        (
+            plain,
+            r"(?:(?i:a|b)c+)+C".into(),
+            b"BcC",
+            Some(vec![Some(0..3)]),
+        ),
+        (
+            plain,
+            r"(?:(?i)a|b)*C".into(),
+            b"bCc",
+            Some(vec![Some(0..2)]),
+        ),
+        (icase, r"(?i)\<A".into(), b" A", Some(vec![Some(1..2)])),
+        (icase, r"\<A".into(), b"\xe9A", Some(vec![Some(1..2)])),
+        (plain, r"(?i)a\>".into(), b"aa aa", Some(vec![Some(1..2)])),
+        (plain, r"(?i)\bA".into(), b"..a", Some(vec![Some(2..3)])),
+        // `\b`, `\B` and `$` after the same groups, and the groups without a repeat
+        // or without an inner repeat.
+        (
+            plain,
+            r"(?:\w\w+){2}\b".into(),
+            b"abab",
+            Some(vec![Some(0..4)]),
+        ),
+        (
+            plain,
+            r"(?:\W\W??|a)+\B".into(),
+            b"aaaa",
+            Some(vec![Some(0..3)]),
+        ),
+        (
+            plain,
+            r"(\w+?)+$".into(),
+            b"aaaa",
+            Some(vec![Some(0..4), Some(3..4)]),
+        ),
+        (
+            plain,
+            r"(\w+?)\>".into(),
+            b"ab ab",
+            Some(vec![Some(0..2), Some(0..2)]),
+        ),
+        (
+            plain,
+            r"(?:\w\w){2}\>".into(),
+            b"abab",
+            Some(vec![Some(0..4)]),
+        ),
+        (plain, r"(?:ab)+\>".into(), b"ab ab", Some(vec![Some(0..2)])),
+        (plain, r"\<\w+\>".into(), b"..a", Some(vec![Some(2..3)])),
+        // Below the recursion limit.
+        (plain, format!("{}a", "$".repeat(98)), b"a", None),
+        (
+            plain,
+            format!("(?:a+)*{}", "$".repeat(96)),
+            b"aaaa",
+            Some(vec![Some(0..4)]),
+        ),
+        (
+            plain,
+            format!("(?:(?:{})x?)+", alternatives(48)),
+            b"abab",
+            Some(vec![Some(0..4)]),
+        ),
+        (
+            plain,
+            format!("{}a+{}", "(?:".repeat(20), "$)+".repeat(20)),
+            b"aaaa",
+            Some(vec![Some(0..4)]),
+        ),
+        (
+            plain,
+            format!("{}{}\\z", "$".repeat(60), r"(?:\b|\B)".repeat(12)),
+            b"A\n",
+            Some(vec![Some(2..2)]),
+        ),
+    ];
+    for (options, pattern, haystack, expected) in cases {
+        let found = BoostRegex::with_options(pattern, *options)
+            .unwrap_or_else(|error| panic!("{pattern:?}: {error}"))
+            .search(haystack)
+            .unwrap()
+            .map(|captures| {
+                (0..captures.len())
+                    .map(|group| captures.get(group))
+                    .collect()
+            });
+        assert_eq!(&found, expected, "{pattern:?} on {haystack:?}");
+    }
+}
+
+/// The fifth review's minor findings. Boost reads the digits of `\x` with
+/// `std::istream` (`cpp_regex_traits::toi`), which skips white space and accepts a
+/// sign and a `0x` prefix: `\x{+41}`, `\x{ 41}`, `\x{0x41}` and `\x+4` are valid
+/// Boost patterns, where the facade reported a syntax error, and `\x0x` is not, where
+/// the facade compiled it. Such escapes are refused; the others read as before
+/// (compile outcomes and answers from the oracle output). Boost's lookbehind width
+/// calculation rejects a lookbehind with more than 1,024 alternations on one path,
+/// and a translation nested as deep as `fancy-regex`'s parser refuses is refused
+/// before the engine sees it.
+#[test]
+fn escapes_and_limits_follow_boost() {
+    const HEX_STREAM: &str = "a hexadecimal escape whose digits start with a sign, white space or 0x (Boost reads them with std::istream)";
+    const LOOKBEHIND_ALTERNATIONS: &str =
+        "a lookbehind with more than 1,024 alternations (Boost's backstep calculation gives up)";
+    const TOO_DEEP: &str =
+        "groups and repeats nested deeper than the engine's parser allows once translated";
+    // Boost compiles the first ten and rejects the other four.
+    for pattern in [
+        r"\x{+41}",
+        r"\x{ 41}",
+        "\\x{\t41}",
+        r"\x{0x41}",
+        r"\x{0X41}",
+        r"\x{-0}",
+        r"\x+4",
+        r"\x 4",
+        r"[\x 4]",
+        r"\x-0",
+        r"\x0x",
+        r"\x0X",
+        r"[\x0x]",
+        r"\x{0x}",
+    ] {
+        assert_eq!(refused(pattern, BoostRegex::new(pattern)), HEX_STREAM);
+    }
+    // (pattern, haystack, Boost's match)
+    for (pattern, haystack, expected) in [
+        (r"\x{004}", &b"\x04"[..], Some(0..1)),
+        (r"\x04", b"\x04", Some(0..1)),
+        (r"[\x4-\x{41}]", b"ab ab", Some(2..3)),
+        (r"[\x4-\x{41}]", b"a", None),
+        (r"\x4x", b"4x", None),
+    ] {
+        let regex = BoostRegex::new(pattern).unwrap();
+        assert_eq!(
+            regex.search(haystack).unwrap().map(|found| found.range()),
+            expected,
+            "{pattern:?} on {haystack:?}"
+        );
+    }
+    // Boost rejects these (error_badbrace, error_escape), and so does the facade.
+    for pattern in [r"\x{4 }", r"\x{,4}", r"\xg", r"\x{}"] {
+        assert!(
+            matches!(BoostRegex::new(pattern), Err(Error::InvalidValue(_))),
+            "{pattern:?}"
+        );
+    }
+    // 1,026 alternations on one path: Boost reports an invalid lookbehind. 1,030 in
+    // one alternation: Boost compiles it; refused as well.
+    for pattern in [
+        format!("(?<={})a", "(?:|)".repeat(1026)),
+        format!("(?<!{})a", "|".repeat(1030)),
+    ] {
+        assert_eq!(
+            refused(&pattern, BoostRegex::new(&pattern)),
+            LOOKBEHIND_ALTERNATIONS
+        );
+    }
+    assert!(BoostRegex::new(&format!("(?<={})a", "(?:|)".repeat(16))).is_ok());
+    // A repeat nested 48 deep in repeats, which the engine's optimizer check spells
+    // with a shield at every level, would reach the engine's 64 levels.
+    let deep = format!("{}a+{}", "(?:".repeat(48), ")+".repeat(48));
+    assert_eq!(refused(&deep, BoostRegex::new(&deep)), TOO_DEEP);
+    let too_deep = format!("{}a{{2,}}{}", "(?:".repeat(20), "){2,}".repeat(20));
+    assert_eq!(refused(&too_deep, BoostRegex::new(&too_deep)), TOO_DEEP);
+    // One level less compiles, and does not match `aaaa`, as in Boost.
+    let shallow = format!("{}a{{2,}}{}", "(?:".repeat(19), "){2,}".repeat(19));
+    let shallow = BoostRegex::new(&shallow).unwrap();
+    assert_eq!(
+        shallow.search(b"aaaa").unwrap().map(|found| found.range()),
+        None
     );
 }
 
