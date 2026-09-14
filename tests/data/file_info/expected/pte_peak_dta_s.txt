@@ -1,0 +1,61 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/file-info-core/inputs/PeakTypeEstimator_peak.dta
+File type: dta
+
+Instrument: 
+
+MS levels: 2
+Total number of peaks: 121
+Number of spectra: 1
+
+Combined Ranges (spectra + chromatograms):
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 104.05 .. 1251.36
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 46.00
+
+Spectrum Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 104.05 .. 1251.36
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 46.00
+
+MS Level 2 Ranges:
+  retention time: -1.00 .. -1.00 sec (0.0 min)
+  mass-to-charge: 104.05 .. 1251.36
+  ion mobility: <none> .. <none>
+  intensity: 1.00 .. 46.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Number of spectra per MS level:
+  level 2: 1
+
+Peak type from metadata (or estimated from data)
+  level 2: Unknown (Centroid)
+
+Activation methods
+
+Precursor charge distribution:
+  charge 2: 1x
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+

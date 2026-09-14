@@ -1,0 +1,59 @@
+general: file name	/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/topp-early-bundle/cases/fixtures/topp/FeatureFinderCentroided_1_1_output.featureXML
+general: file type	featureXML
+general: number of features	8
+general: ranges: retention time: min	4183.19
+general: ranges: retention time: max	4407.28
+general: ranges: mass-to-charge: min	646.24
+general: ranges: mass-to-charge: max	654.78
+general: ranges: intensity: min	5038.81
+general: ranges: intensity: max	51366.17
+general: total ion current in features	183821
+general: charge distribution: charge: 2	8
+general: distribution of peptide identifications (IDs) per feature: IDs: 0	8
+general: assigned peptide identifications	0
+general: unassigned peptide identifications	0
+meta: document ID	
+data processing: 1: software name	FeatureFinderCentroided
+data processing: 1: software version	version_string
+data processing: 1: completion time	1999-12-31 23:59:59
+data processing: 1: actions	Quantitation
+statistics: intensities: num. of values	8
+statistics: intensities: mean	22977.6
+statistics: intensities: minimum	5038.81
+statistics: intensities: lower quartile	7318.62
+statistics: intensities: median	16032.7
+statistics: intensities: upper quartile	44767.5
+statistics: intensities: maximum	51366.2
+statistics: intensities: variance	3.3071e+08
+statistics: feature FWHM in RT dimension: num. of values	8
+statistics: feature FWHM in RT dimension: mean	33.2638
+statistics: feature FWHM in RT dimension: minimum	30.5016
+statistics: feature FWHM in RT dimension: lower quartile	31.8152
+statistics: feature FWHM in RT dimension: median	33.3854
+statistics: feature FWHM in RT dimension: upper quartile	34.6408
+statistics: feature FWHM in RT dimension: maximum	35.4663
+statistics: feature FWHM in RT dimension: variance	2.6096
+statistics: overall qualities: num. of values	8
+statistics: overall qualities: mean	0.912513
+statistics: overall qualities: minimum	0.868028
+statistics: overall qualities: lower quartile	0.882597
+statistics: overall qualities: median	0.917198
+statistics: overall qualities: upper quartile	0.93991
+statistics: overall qualities: maximum	0.940372
+statistics: overall qualities: variance	0.000683886
+statistics: qualities in retention time dimension: num. of values	8
+statistics: qualities in retention time dimension: mean	0
+statistics: qualities in retention time dimension: minimum	0
+statistics: qualities in retention time dimension: lower quartile	0
+statistics: qualities in retention time dimension: median	0
+statistics: qualities in retention time dimension: upper quartile	0
+statistics: qualities in retention time dimension: maximum	0
+statistics: qualities in retention time dimension: variance	0
+statistics: qualities in mass-to-charge dimension: num. of values	8
+statistics: qualities in mass-to-charge dimension: mean	0
+statistics: qualities in mass-to-charge dimension: minimum	0
+statistics: qualities in mass-to-charge dimension: lower quartile	0
+statistics: qualities in mass-to-charge dimension: median	0
+statistics: qualities in mass-to-charge dimension: upper quartile	0
+statistics: qualities in mass-to-charge dimension: maximum	0
+statistics: qualities in mass-to-charge dimension: variance	0

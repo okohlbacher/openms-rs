@@ -1,0 +1,85 @@
+
+-- General information --
+
+File name: /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/oracle/topp-early-bundle/cases/derived/empty.featureXML
+File type: featureXML
+Number of features: 0
+
+Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
+
+Total ion current in features: 0
+
+Charge distribution:
+
+Distribution of peptide identifications (IDs) per feature:
+
+Assigned peptide identifications: 0
+Unassigned peptide identifications: 0
+
+-- Meta information --
+
+Document ID: 
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+Intensities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Feature FWHM in RT dimension:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Overall qualities:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Qualities in retention time dimension:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+Qualities in mass-to-charge dimension:
+  num. of values: 0
+  mean:           0
+  minimum:        0
+  lower quartile: 0
+  median:         0
+  upper quartile: 0
+  maximum:        0
+  variance:       0
+
+
+
