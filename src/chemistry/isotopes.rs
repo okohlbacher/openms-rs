@@ -14,9 +14,11 @@
 //! intensity. [`ProbabilityPrecision::SourceSingle`] selects the source binary32
 //! arithmetic explicitly. For formulas of natural elements it reproduces, bit for
 //! bit, the executed C++ SDK runs whose element iteration order is ascending
-//! atomic number, which were the majority of the measured runs; the SDK's own
-//! order, and with it its binary32 output, varies between runs. Coarse mass
-//! correction is a carbon-13 spacing approximation, not isotope fine structure.
+//! atomic number, which were the majority of the measured runs, except formulas
+//! containing iridium, which the SDK's `ElementDB` builds from rhenium's tables
+//! (`ElementDB.cpp:512`). The SDK's own order, and with it its binary32 output,
+//! varies between runs. Coarse mass correction is a carbon-13 spacing
+//! approximation, not isotope fine structure.
 //! See `docs/ISOTOPE_SUPPORT.md` for the native conventions and limits and
 //! `docs/ISOTOPE_SOURCE_PRECISION_SUPPORT.md` for the source-precision contract.
 
@@ -78,10 +80,12 @@ pub enum ProbabilityPrecision {
     ///   `H N C O P S` in 2; those 2 runs produced different binary32 patterns,
     ///   including every FeatureFinderAlgorithmPicked averagine window from
     ///   150 to 8050 Da. No fixed order reproduces every run. Ascending atomic
-    ///   number reproduces the majority runs for natural elements. Labelled
-    ///   isotopes had no majority position, so their placement here is a native
-    ///   choice, and the lightest-isotope mass of a labelled formula can differ
-    ///   from a C++ run in the last bit.
+    ///   number reproduces the majority runs for natural elements, except
+    ///   formulas containing iridium, which the SDK's `ElementDB` builds from
+    ///   rhenium's tables (`ElementDB.cpp:512`). Labelled isotopes had no
+    ///   majority position, so their placement here is a native choice, and the
+    ///   lightest-isotope mass of a labelled formula can differ from a C++ run in
+    ///   the last bit.
     /// - Renormalization sums the binary32 weights in reverse order into an
     ///   `f64` and narrows each quotient back to `f32`. When every retained bin
     ///   has underflowed to zero, as for a 1,000,000 Da peptide averagine
@@ -522,8 +526,10 @@ impl CoarseIsotopePatternGenerator {
     /// [`ProbabilityPrecision::SourceSingle`] reproduces the source `Peak1D`
     /// binary32 results of `run`, every `estimate_*` method, `convolve`,
     /// `convolve_power`, `calc_fragment_isotope_dist` and
-    /// `estimate_fragment_from_weights`. The static Poisson approximations are
-    /// unaffected.
+    /// `estimate_fragment_from_weights`, within the element-order scope stated
+    /// on that variant and except formulas containing iridium, which the SDK's
+    /// `ElementDB` builds from rhenium's tables (`ElementDB.cpp:512`). The
+    /// static Poisson approximations are unaffected.
     pub fn with_precision(mut self, precision: ProbabilityPrecision) -> Self {
         self.precision = precision;
         self
