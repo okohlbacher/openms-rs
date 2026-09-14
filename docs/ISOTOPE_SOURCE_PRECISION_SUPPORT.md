@@ -28,12 +28,13 @@ intensities. The native `f64` pattern differs from the source by about 1e-7
 relative, which is enough to flip a threshold decision or a seed score in the
 last bit. For formulas of natural elements, the source-precision mode
 reproduces bit for bit the executed C++ SDK runs that iterate elements in
-ascending atomic number, the majority of runs (tier 1, below). The SDK itself
-does not give the same bits in every run: its element order follows heap
-addresses, and 2 of 200 runs of one binary produced different patterns for
-every averagine window from 150 Da up (see *Element order*). B6 still has to
-close the pattern comparison for every FeatureFinderCentroided_1 window against
-the C2 oracle.
+ascending atomic number, the majority of runs (tier 1, below), except formulas
+containing iridium, which the SDK's `ElementDB` builds from rhenium's tables
+(`ElementDB.cpp:512`). The SDK itself does not give the same bits in every
+run: its element order follows heap addresses, and 2 of 200 runs of one binary
+produced different patterns for every averagine window from 150 Da up (see
+*Element order*). B6 still has to close the pattern comparison for every
+FeatureFinderCentroided_1 window against the C2 oracle.
 
 ## API mapping
 
@@ -181,12 +182,15 @@ the C2 oracle.
   number and sums `getLightestIsotopeWeight` in that order. For natural
   elements this reproduces the majority runs bit for bit in every measured
   case, including all 81 windows
-  (`natural_element_patterns_match_the_majority_of_repeated_sdk_runs`). Each
-  labelled isotope follows its natural element, in ascending mass number. That
-  placement is a native choice, not `ElementDB` construction order. The 49 runs
-  that iterated it produced the port's bits exactly. More frequent orders can
-  end the lightest-isotope weight of a labelled formula in a different last bit,
-  as for `C1H1(13)C2O3` and `(13)C2C4H12O6(15)N1N1(2)H1`
+  (`natural_element_patterns_match_the_majority_of_repeated_sdk_runs`), except
+  formulas containing iridium, which the SDK's `ElementDB` builds from
+  rhenium's tables (`ElementDB.cpp:512`). `Os3Ir3` iterated `Os Ir` in all 200
+  runs and differs from the port in every one. Each labelled isotope follows its
+  natural element, in ascending mass number. That placement is a native choice,
+  not `ElementDB` construction order. The 49 runs that iterated it produced the
+  port's bits exactly. More frequent orders can end the lightest-isotope weight
+  of a labelled formula in a different last bit, as for `C1H1(13)C2O3` and
+  `(13)C2C4H12O6(15)N1N1(2)H1`
   (`labelled_isotope_placement_is_native_and_its_mass_anchor_can_differ`).
 - **Exponentiation.** `convolvePow_` returns its input for exponent 1, starts
   from the input (odd exponent) or the identity, and convolves each successive
