@@ -1305,6 +1305,54 @@ fn cheap_dp_corr_bounds_its_dynamic_programming_block() {
     assert!(functor.peak_map().is_empty());
 }
 
+#[test]
+fn cheap_dp_corr_gaussian_divisor_is_the_square_root_boost_evaluates() {
+    // boost/math/distributions/normal.hpp:162 ends pdf with
+    // `result /= sd * sqrt(2 * constants::pi<RealType>())`, a square root taken
+    // at run time. It does not use `constants::root_two_pi`, whose decimal
+    // literal rounds one unit in the last place higher; the port used to.
+    let computed = (2.0 * std::f64::consts::PI).sqrt();
+    let root_two_pi_literal = 2.506_628_274_631_000_7_f64;
+    assert_eq!(f64::from_bits(computed.to_bits() + 1), root_two_pi_literal);
+
+    // Derived, and exact on every machine: a lone pair at equal m/z has an
+    // exponent of -0.0, exp(-0.0) is exactly 1 under IEEE 754, and with unit
+    // intensities the scan adds one match term to 0.0, so the score is
+    // 1 / (sd * sqrt(2 pi)) to the last bit.
+    let functor = SpectrumCheapDPCorr::new().unwrap();
+    for mz in [100.0, 150.0, 1000.0] {
+        let peak = unit(&[mz]);
+        let sd = (mz + mz) / 2.0 * 0.001;
+        let score = functor.score(&peak, &peak).unwrap();
+        assert_eq!(
+            score.to_bits(),
+            (1.0 / (sd * computed)).to_bits(),
+            "m/z {mz}"
+        );
+        // The literal lands one or two units in the last place lower at each
+        // of these m/z, so this also fails if it comes back.
+        assert_ne!(
+            score.to_bits(),
+            (1.0 / (sd * root_two_pi_literal)).to_bits(),
+            "m/z {mz}"
+        );
+    }
+
+    // Off-centre the exponential is no longer exact, but both sides call the
+    // same f64::exp, so the rest of Boost's statement order is pinned as well.
+    let left = unit(&[100.0]);
+    let right = unit(&[100.03]);
+    let sd = (100.0 + 100.03) / 2.0 * 0.001;
+    let mut exponent: f64 = 100.0 - 100.03;
+    exponent *= -exponent;
+    exponent /= 2.0 * sd * sd;
+    let expected = exponent.exp() / (sd * computed);
+    assert_eq!(
+        functor.score(&left, &right).unwrap().to_bits(),
+        expected.to_bits()
+    );
+}
+
 // ---------------------------------------------------------------------------
 // COMPARISON/PeakAlignment.h - seven sections
 // ---------------------------------------------------------------------------

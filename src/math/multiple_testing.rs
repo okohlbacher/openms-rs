@@ -48,12 +48,17 @@
 //! * `lfdr`'s six trailing parameters become
 //!   [`crate::math::multiple_testing::LfdrOptions`], whose `Default` is the
 //!   source's default argument list.
+//! * The probit transform's `boost::math::quantile(normal_distribution(0, 1), p)`
+//!   is Boost's own formula over `statrs::function::erf::erfc_inv`, a port of
+//!   Boost's inverse error function, and returns the quantile's infinite limits
+//!   at `p = 0` and `p = 1` where Boost raises `std::overflow_error`.
 //! * Serial, as the source is: `MultipleTesting.cpp` carries no `#pragma omp`.
 
 use crate::math::kernel_density::{DEFAULT_CUT, DEFAULT_GRIDSIZE, bw_nrd0, kde_fft_eval};
 use crate::math::rank_data::{NanPolicy, RankMethod, rankdata_f64};
 use crate::{Error, Result};
-use std::f64::consts::PI;
+use statrs::function::erf::erfc_inv;
+use std::f64::consts::{PI, SQRT_2};
 
 /// Maximum number of p-values or statistics one call may consume.
 ///
@@ -718,12 +723,40 @@ pub fn p_norm(stat: &[f64], stat0: &[f64]) -> Result<Vec<f64>> {
 /// The standard normal quantile, `Phi^-1(p)`.
 ///
 /// The source calls `boost::math::quantile(normal_distribution<double>(0, 1),
-/// p)`. Boost is not a dependency here, so this is Acklam's rational
-/// approximation followed by one Halley step against
-/// `0.5 erfc(-x / sqrt(2))`, which brings the relative error to a few units in
-/// the last place — well inside the `1e-2` tolerance the class test's local-FDR
-/// reference vectors are compared at, and inside the `1e-4` of its `pNorm`
-/// vector.
+/// p)` (`MultipleTesting.cpp:452-453`). Boost evaluates that in four statements,
+/// `boost/math/distributions/normal.hpp:251-254`: `result = erfc_inv(2 * p)`,
+/// `result = -result`, `result *= sd * root_two` and `result += mean`. They are
+/// reproduced here with `sd = 1` and `mean = 0`, and `erfc_inv` comes from the
+/// `statrs` crate, whose inverse error functions are a port of Boost's rational
+/// approximations. Multiplying by an `sd` of one is exact, and Boost's
+/// `root_two` literal rounds to the same `f64` as [`SQRT_2`]. Adding a `mean` of
+/// zero changes nothing but the sign of a zero: at `p = 0.5` it turns the
+/// `-0.0` of the negation into the `+0.0` Boost returns.
+///
+/// # Accuracy
+///
+/// The result was measured against quantiles computed to 110 significant digits
+/// and rounded to nearest, at 40 values of `p` from `f64::MIN_POSITIVE` to
+/// `1 - 1e-15`. It is at most 1.55 units in the last place away (`2.9e-16`
+/// relative) on x86_64 Linux. The unit tests below assert four machine epsilons
+/// relative at the same points. The Acklam approximation with one Halley step
+/// that this replaced was up to `1.1e-9` relative away in the upper tail and
+/// `2.7e-14` next to the median.
+///
+/// `statrs` evaluates its polynomials in plain scalar code with no CPU
+/// dispatch, but it takes `ln` and `sqrt` from the platform's math library. A
+/// few inputs can therefore differ between machines by one or two units in the
+/// last place. Boost's own quantile already differs between aarch64 macOS and
+/// x86_64 Linux, where it promotes `double` to 80-bit `long double`.
+///
+/// # Limits
+///
+/// `p <= 0` returns negative infinity and `p >= 1` positive infinity, the
+/// limits of the quantile. Under its default policy Boost raises
+/// `std::overflow_error` at `p = 0` and `p = 1` instead. [`lfdr`] clips `p` to
+/// `[eps, 1 - eps]` with a validated positive `eps` before calling this, so it
+/// reaches the upper limit only when `eps` is small enough for `1 - eps` to
+/// round to one, and never reaches the lower one. A NaN yields NaN.
 fn standard_normal_quantile(p: f64) -> f64 {
     if p <= 0.0 {
         return f64::NEG_INFINITY;
@@ -731,59 +764,11 @@ fn standard_normal_quantile(p: f64) -> f64 {
     if p >= 1.0 {
         return f64::INFINITY;
     }
-    const A: [f64; 6] = [
-        -3.969683028665376e+01,
-        2.209460984245205e+02,
-        -2.759285104469687e+02,
-        1.38357751867269e+02,
-        -3.066479806614716e+01,
-        2.506628277459239e+00,
-    ];
-    const B: [f64; 5] = [
-        -5.447609879822406e+01,
-        1.615858368580409e+02,
-        -1.556989798598866e+02,
-        6.680131188771972e+01,
-        -1.328068155288572e+01,
-    ];
-    const C: [f64; 6] = [
-        -7.784894002430293e-03,
-        -3.223964580411365e-01,
-        -2.400758277161838e+00,
-        -2.549732539343734e+00,
-        4.374664141464968e+00,
-        2.938163982698783e+00,
-    ];
-    const D: [f64; 4] = [
-        7.784695709041462e-03,
-        3.224671290700398e-01,
-        2.445134137142996e+00,
-        3.754408661907416e+00,
-    ];
-    const P_LOW: f64 = 0.02425;
-
-    let mut x = if p < P_LOW {
-        let q = (-2.0 * p.ln()).sqrt();
-        (((((C[0] * q + C[1]) * q + C[2]) * q + C[3]) * q + C[4]) * q + C[5])
-            / ((((D[0] * q + D[1]) * q + D[2]) * q + D[3]) * q + 1.0)
-    } else if p <= 1.0 - P_LOW {
-        let q = p - 0.5;
-        let r = q * q;
-        (((((A[0] * r + A[1]) * r + A[2]) * r + A[3]) * r + A[4]) * r + A[5]) * q
-            / (((((B[0] * r + B[1]) * r + B[2]) * r + B[3]) * r + B[4]) * r + 1.0)
-    } else {
-        let q = (-2.0 * (1.0 - p).ln()).sqrt();
-        -(((((C[0] * q + C[1]) * q + C[2]) * q + C[3]) * q + C[4]) * q + C[5])
-            / ((((D[0] * q + D[1]) * q + D[2]) * q + D[3]) * q + 1.0)
-    };
-    // One Halley refinement; the exponential overflows for |x| beyond ~38, and
-    // there the approximation is already at the limit of what f64 resolves.
-    if x.abs() < 37.0 {
-        let e = 0.5 * libm::erfc(-x / std::f64::consts::SQRT_2) - p;
-        let u = e * (2.0 * PI).sqrt() * (x * x / 2.0).exp();
-        x -= u / (1.0 + x * u / 2.0);
-    }
-    x
+    let mut result = erfc_inv(2.0 * p);
+    result = -result;
+    result *= SQRT_2;
+    result += 0.0;
+    result
 }
 
 /// Local false discovery rate, the posterior probability that a hypothesis with
@@ -1056,4 +1041,138 @@ pub fn p_emp(stat: &[f64], stat0: &[f64]) -> Result<Vec<f64>> {
         out.push(if value <= min_p { min_p } else { value });
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::standard_normal_quantile;
+
+    /// `(p, Phi^-1(p))`, the quantile computed to 110 significant digits and
+    /// rounded to nearest.
+    ///
+    /// Independently derived, evidence tier 4, by
+    /// `../oracle/quantile-lane/derive_normal_quantiles.py` (sha256 in
+    /// `tests/data/math_kde_provenance.json`). The script uses only Python's
+    /// standard library: `pi` from Machin's formula, `erfc` from the Maclaurin
+    /// series of `erf` below 6 and from Laplace's continued fraction from 6 up,
+    /// and Newton's iteration on `Phi(x) - p` for the exact binary value of `p`.
+    /// It shares no code with Boost or `statrs`. `statistics.NormalDist` (AS241)
+    /// agrees with every entry to within 3.42 units in the last place.
+    ///
+    /// The points reach every branch of Boost's `erf_inv` that a binary64 `p`
+    /// can, both tails down to the smallest normal `p`, the median's
+    /// neighbourhood, and `0.02425`, where the replaced approximation switched
+    /// regions.
+    const REFERENCE: [(f64, f64); 40] = [
+        (f64::MIN_POSITIVE, -37.5193793471445),
+        (1e-300, -37.0470962993612),
+        (1e-200, -30.20559417957964),
+        (1e-100, -21.273453560965326),
+        (1e-30, -11.464024688443615),
+        (1e-16, -8.222082216130435),
+        (1e-10, -6.361340902404057),
+        (1e-8, -5.612001244174789),
+        (1e-5, -4.264890793922825),
+        (0.001, -3.0902323061678136),
+        (0.01, -2.326347874040841),
+        (0.02425, -1.972961051311885),
+        (0.025, -1.9599639845400543),
+        (0.05, -1.6448536269514726),
+        (0.1, -1.2815515655446004),
+        (0.13, -1.1263911290388007),
+        (0.2, -0.8416212335729142),
+        (0.25, -0.6744897501960817),
+        (0.3, -0.5244005127080408),
+        (0.4, -0.2533471031357997),
+        (0.45, -0.12566134685507402),
+        (0.49, -0.025068908258711057),
+        (0.499, -0.002506630899571766),
+        (0.501, 0.002506630899571766),
+        (0.51, 0.025068908258711057),
+        (0.6, 0.2533471031357997),
+        (0.7, 0.5244005127080407),
+        (0.75, 0.6744897501960817),
+        (0.8, 0.8416212335729144),
+        (0.87, 1.1263911290388007),
+        (0.9, 1.2815515655446006),
+        (0.95, 1.6448536269514722),
+        (0.975, 1.9599639845400538),
+        (0.99, 2.3263478740408408),
+        (0.999, 3.090232306167813),
+        (0.99999, 4.264890793923841),
+        (0.99999999, 5.612001243305505),
+        (0.9999999999, 6.361340889697422),
+        (0.9999999999999, 7.3487545403000425),
+        (0.999999999999999, 7.941444487415978),
+    ];
+
+    /// Four machine epsilons relative to the reference, which is four to eight
+    /// units in the last place depending on where the value falls within its
+    /// power of two.
+    ///
+    /// `statrs` ports Boost's rational approximations, and the 2026-09-13 crate
+    /// survey measured it within about two epsilons relative of Boost 1.92
+    /// itself. Against `REFERENCE` it was measured at most 1.01 epsilons
+    /// relative (1.55 units in the last place) away on x86_64 Linux. `statrs`
+    /// takes `ln` and `sqrt` from the platform library, which the survey
+    /// measured to move a few quantiles by one or two units between aarch64
+    /// macOS and x86_64 Linux; the bound leaves room for that. The Acklam approximation this
+    /// function used to be misses it at 12 of the 40 points, by up to
+    /// 2.5 million epsilons at `f64::MIN_POSITIVE`.
+    const TOLERANCE: f64 = 4.0 * f64::EPSILON;
+
+    #[test]
+    fn standard_normal_quantile_matches_independently_derived_values() {
+        for (p, expected) in REFERENCE {
+            let got = standard_normal_quantile(p);
+            assert!(
+                (got - expected).abs() <= TOLERANCE * expected.abs(),
+                "p = {p:e}: {got:e} is not within four epsilons of {expected:e}"
+            );
+        }
+        // The reference increases strictly with p, and so must the port.
+        for pair in REFERENCE.windows(2) {
+            assert!(
+                standard_normal_quantile(pair[0].0) < standard_normal_quantile(pair[1].0),
+                "not increasing between p = {:e} and p = {:e}",
+                pair[0].0,
+                pair[1].0
+            );
+        }
+    }
+
+    #[test]
+    fn standard_normal_quantile_is_exactly_antisymmetric_about_a_positive_zero_median() {
+        // Derived: Boost's closing `result += mean` turns the -0.0 of its
+        // negation into +0.0, and so does this port.
+        assert_eq!(standard_normal_quantile(0.5).to_bits(), 0.0_f64.to_bits());
+        // Derived: for p = 2^-k with 2 <= k <= 53, the values 1 - p, 2p,
+        // 2(1 - p), 1 - 2p and 2 - 2(1 - p) are all exact in binary64, so
+        // erfc_inv receives the same two arguments with opposite signs for p
+        // and for 1 - p. The quantiles must then be exact negatives.
+        for k in 2..=53_u32 {
+            let p = 1.0 / (1_u64 << k) as f64;
+            let lower = standard_normal_quantile(p);
+            assert!(lower.is_finite() && lower < 0.0, "k = {k}");
+            assert_eq!(
+                standard_normal_quantile(1.0 - p).to_bits(),
+                (-lower).to_bits(),
+                "k = {k}"
+            );
+        }
+    }
+
+    #[test]
+    fn standard_normal_quantile_limits_and_nan() {
+        assert_eq!(standard_normal_quantile(0.0), f64::NEG_INFINITY);
+        assert_eq!(standard_normal_quantile(-0.0), f64::NEG_INFINITY);
+        assert_eq!(standard_normal_quantile(-1.0), f64::NEG_INFINITY);
+        assert_eq!(standard_normal_quantile(1.0), f64::INFINITY);
+        assert_eq!(standard_normal_quantile(2.0), f64::INFINITY);
+        assert!(standard_normal_quantile(f64::NAN).is_nan());
+        // The smallest subnormal p lies inside the domain and stays finite,
+        // below the quantile of the smallest normal p.
+        let deepest = standard_normal_quantile(f64::from_bits(1));
+        assert!(deepest.is_finite() && deepest < REFERENCE[0].1, "{deepest}");
+    }
 }

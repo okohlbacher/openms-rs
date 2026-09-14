@@ -327,9 +327,29 @@
    "the Gumbel density at its own location is exactly exp(-1)/sigma",
    "the posterior-weighted moment helpers against hand-computed sums",
    "the posterior error probabilities lie in [0, 1] and never rise along the sorted scores, over both 2000-draw fixtures",
-   "ten printf(\"%g\") formatting cases applied by hand, including both switches to scientific notation"
+   "ten printf(\"%g\") formatting cases applied by hand, including both switches to scientific notation",
+   "standard_normal_quantile, the probit transform, lies within four machine epsilons relative of the correctly rounded quantile at 40 values of p from f64::MIN_POSITIVE to 1 - 1e-15. The reference is computed to 110 significant digits by ../oracle/quantile-lane/derive_normal_quantiles.py and shares no code with Boost or statrs. Measured on x86_64 Linux, the port is at most 1.55 ulp (1.01 epsilons relative) away. The Acklam approximation with one Halley step that it replaced was up to 1.1e-9 relative away and misses the bound at 12 of the 40 points. statistics.NormalDist (AS241) agrees with every reference value to within 3.42 ulp",
+   "standard_normal_quantile(0.5) is +0.0 to the bit, as Boost's closing result += mean makes it. For every k in 2..=53, q(1 - 2^-k) is the exact negation of q(2^-k), because every argument erfc_inv receives there is exact in binary64. The limits p <= 0 and p >= 1 give -inf and +inf, a NaN gives NaN, and the smallest subnormal p gives a finite quantile below the smallest normal p's"
   ]
  },
+ "external_reference_note": "The script that derives the standard normal quantile reference values lives outside this repository under ../oracle/, as the C++ probes recorded by other manifests do. It is Python using only the standard library (decimal and statistics), computes the quantile from its definition and executes no OpenMS, Boost or statrs code, so it is tier 4 evidence. It is recorded with its sha256 and not re-verified by the in-repo gate.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/quantile-lane/derive_normal_quantiles.py",
+   "sha256": "ecb3088cfb053025c12c1db69c02584d6bc855637b76a64ef497cb6fe9a214f6",
+   "origin_key": "evidence.independently_derived"
+  }
+ ],
+ "third_party_crates": [
+  {
+   "crate": "statrs",
+   "version": "=0.18.0",
+   "features": "default-features = false",
+   "replaces": "boost::math::quantile(normal_distribution<double>(0, 1), p) at MultipleTesting.cpp:452-453. Boost computes it as -erfc_inv(2p) * root_two + mean (boost/math/distributions/normal.hpp:251-254). standard_normal_quantile keeps those four statements and takes statrs::function::erf::erfc_inv, a port of Boost's erf_inv rational approximations, in place of the hand-written Acklam approximation plus one Halley step",
+   "decision": "docs/THIRD_PARTY_CRATE_DECISIONS.md",
+   "determinism": "No SIMD and no runtime CPU dispatch: erf_inv is scalar Horner evaluation. It takes ln and sqrt from the platform math library. Two survey evaluations on 2026-09-13 measured 14 of 109,361 and 1 of 24,430 quantiles differing by 1-2 ulp between aarch64 macOS and x86_64 Linux, none of them lfdr fixture inputs. The replaced code differed in none. lfdr results can therefore differ between machines in the last place for rare inputs"
+  }
+ ],
  "native_boundaries": [
   "fft: MAX_LEN = 2^24 points; the length must be a positive power of two; real_ifft's bin count must be exactly length/2 + 1; every input must be finite",
   "kernel_density: MAX_ITEMS = 50,000,000 sample values and MAX_GRID = 2^22 grid points, both checked before allocation; lin_bin needs nbins > 0, finite bounds and xmax > xmin; silverman_kernel_fft needs a finite bandwidth and a finite non-zero range; grid_kde_fft needs a finite sample, finite bandwidth and cut, and a positive grid width and spacing; the private cubic spline needs strictly increasing finite abscissae, finite coefficients and a query inside the grid",
