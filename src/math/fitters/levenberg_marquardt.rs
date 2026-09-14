@@ -10,11 +10,26 @@
 //! construct an `Eigen::LevenbergMarquardt<Functor>` and call `minimize`.
 //! Eigen's solver is a transcription of MINPACK `lmder`: column-pivoted
 //! Householder QR of the Jacobian, the `lmpar` trust-region parameter search
-//! with a Givens-rotation `qrsolv`, and MINPACK's termination tests. Because
-//! the crate may not take a dependency on a non-linear optimizer, that
+//! with a Givens-rotation `qrsolv`, and MINPACK's termination tests. That
 //! algorithm is reproduced here, step for step and in the same arithmetic
 //! order, so that the fitters converge to the published parameters rather than
-//! to some other point of a non-convex surface.
+//! to some other point of a non-convex surface. `TraceFitter::optimize_`
+//! (`FEATUREFINDER/TraceFitter.cpp`) calls the same Eigen class, with
+//! `maxfev` set from `max_iteration`, and uses this module too.
+//!
+//! **Why not the `levenberg-marquardt` crate.** Package B3-LM measured
+//! `levenberg-marquardt =0.14.0` behind this signature, with Eigen's `maxfev`
+//! emulated exactly, against the C2 class-level oracle and did not adopt it.
+//! Its evaluation accounting matched Eigen at 29,003 of 29,004 trace-fit
+//! budgets and this transcription at all 8,000 distribution-fitter budgets, but
+//! its fitted parameters were further from the executed C++ than this
+//! transcription's at 3,811 of 29,004 trace-fit budgets (up to `2.2e-9`
+//! relative where the transcription is at `6.4e-10`), and on a degenerate
+//! flat-trace fit it took a step Eigen does not take, ending with a different
+//! status after a different number of evaluations.
+//! This transcription reproduces Eigen's status, `nfev` and `njev` at all
+//! 29,004 budgets. The measurements are in `docs/DISTRIBUTION_FITTERS_SUPPORT.md`
+//! and `tests/lm_budget_differential.rs`.
 //!
 //! Defaults match `Eigen::LevenbergMarquardt::Parameters`:
 //! `factor = 100`, `maxfev = 400`, `ftol = xtol = sqrt(f64::EPSILON)`,
@@ -80,6 +95,13 @@ pub struct LmParameters {
     /// Initial trust-region scale: `delta = factor * ||diag * x||`.
     pub factor: f64,
     /// Maximum number of residual evaluations before the iteration gives up.
+    ///
+    /// Counted as Eigen counts `nfev`: 1 for the start, 1 per trial step, plus
+    /// whatever a Jacobian evaluation reports consuming (0 for an analytic
+    /// Jacobian, `n + 1` for [`numerical_jacobian`]). The count is compared
+    /// once after each trial step, after the `ftol` and `xtol` tests, so a fit
+    /// that converges on the step that reaches the budget still reports
+    /// convergence, and a budget of 1 still takes one trial step.
     pub max_fev: usize,
     /// Relative reduction of the residual norm below which the fit is accepted.
     pub ftol: f64,
@@ -800,7 +822,16 @@ fn lmpar(qr: &ColPivQr, diag: &[f64], qtb: &[f64], delta: f64, par_in: f64) -> (
 ///
 /// `x` holds the initial guess on entry and the fitted parameters on return,
 /// including when the returned status reports a failure - the C++ fitters read
-/// the vector back the same way and only then decide whether to throw.
+/// the vector back the same way and only then decide whether to throw. After a
+/// [`LmStatus::TooManyFunctionEvaluation`] stop that is the last accepted
+/// point, not the rejected trial.
+///
+/// The evaluation accounting and the order of the termination tests are
+/// checked budget by budget against the executed C++: for the eight
+/// `GaussTraceFitter`/`EGHTraceFitter` class-test fits, the 50 trace fits of
+/// `FeatureFinderCentroided_1` and four degenerate fits, the status and the
+/// residual and Jacobian evaluation counts equal Eigen's at every `max_fev`
+/// from 1 to 500 (`tests/lm_budget_differential.rs`).
 ///
 /// The iteration is serial. The source is serial here too: no `#pragma omp`
 /// appears in Eigen's non-linear optimization module or in the four fitters.

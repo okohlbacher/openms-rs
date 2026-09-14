@@ -13,9 +13,11 @@ Port of the four `MATH/STATISTICS` fitter headers at
 All four share `src/math/fitters/levenberg_marquardt.rs`, which has no C++
 header of its own: it reproduces the `Eigen::LevenbergMarquardt` the four
 `.cpp` files call. `src/math/mod.rs` and `src/math/fitters/mod.rs` are the new
-domain roots. Tests are `tests/math_distribution_fitters.rs` plus the
-`#[cfg(test)]` modules inside each source file; the manifest is
-`tests/data/distribution_fitters_provenance.json`.
+domain roots. Tests are `tests/math_distribution_fitters.rs`,
+`tests/lm_budget_differential.rs` (the solver's evaluation budget against the
+C2 oracle, §5 and §8) and the `#[cfg(test)]` modules inside each source file;
+the manifests are `tests/data/distribution_fitters_provenance.json` and
+`tests/data/lm_budget_differential_provenance.json`.
 
 The four headers and their implementations are 928 physical lines (385 of
 header, 543 of implementation) and their class tests carry 25 `START_SECTION`
@@ -29,9 +31,12 @@ The C++ does not implement an optimizer. `GaussFitter`,
 `GammaDistributionFitter` and `GumbelDistributionFitter` each build a functor
 with an analytic Jacobian and hand it to `Eigen::LevenbergMarquardt<Functor>`;
 `GumbelMaxLikelihoodFitter` wraps its functor in `Eigen::NumericalDiff` first.
-Eigen's class is a transcription of MINPACK `lmder`, and the crate may not take
-a dependency, so it is reproduced in
-`src/math/fitters/levenberg_marquardt.rs`:
+Eigen's class is a transcription of MINPACK `lmder`. The project's rule is a
+crate before hand-written code for a third-party library, and
+`levenberg-marquardt =0.14.0` was measured as that crate (§8); it did not meet
+the fidelity gate, so Eigen's solver stays reproduced in
+`src/math/fitters/levenberg_marquardt.rs`, which `TraceFitter` in
+`FEATUREFINDER` also uses:
 
 * column-pivoted Householder QR with LAPACK's norm-downdating rule and its
   `sqrt(eps)` recomputation threshold, and Eigen's rank threshold
@@ -528,8 +533,37 @@ transcribed literal:
   `the_customized_density_is_zero_outside_the_positive_quadrant` - closed-form
   and symmetry invariants of the four densities.
 
-No tier-1 or tier-2 evidence exists for this group: there is no retained C++
-output for a `MATH/STATISTICS` fitter and no oracle driver was built.
+No tier-1 or tier-2 evidence exists for the four fitters themselves: there is
+no retained C++ output for a `MATH/STATISTICS` fitter and no oracle driver was
+built for one.
+
+**Tier 1 for the shared solver.** `tests/lm_budget_differential.rs` drives
+`minimize` with the trace-fitter functors against the C2 class-level oracle
+(`../oracle/featurefinder-picked`, manifest sha256 `7f6adefb...`), whose
+drivers link the product-SDK `libOpenMS` and Eigen 5.0.1 with
+`-ffp-contract=off`. The fitted parameters are library output
+(`oracle-generated`); status, `nfev` and `njev` come from C2's `optimize_`
+replica (`adapted`), which equals the library fit bit for bit at every
+recorded budget. At every `max_fev` from 1 to 500, for the eight
+`GaussTraceFitter_test`/`EGHTraceFitter_test` fits, the 50 Gauss and EGH fits
+of the 25 `FeatureFinderCentroided_1` seeds and four degenerate inputs, the
+Eigen status, `nfev` and `njev` are reproduced exactly: 29,004 budgets, 0
+differences. The fitted parameters agree within `1e-9` relative with a `1e-12`
+absolute floor; the largest relative difference is `6.4e-10` (seeds 10, 12
+and 20, Gauss), and the floor is used only by the EGH class-test `tau`, whose
+true value is zero and which differs by at most `1.01e-15`. The oracle ran on
+macOS arm64 and the tests on Linux x86_64, so these are cross-platform numbers;
+bit identity on the oracle's own platform was not measured. The class-test
+residuals and Jacobians at the start vectors are bit-identical on the gate
+node. See §8.
+
+**Tier 4 for the budget rule on the four fitters.**
+`distribution_fitter_budgets_follow_eigen_accounting` sweeps `max_fev` 1..500
+over the 16 fits the class tests and this group's tests run and asserts
+Eigen's counting rule: a budget at or above the natural evaluation count
+reproduces the unbounded fit bit for bit, and a `TooManyFunctionEvaluation`
+stop happens at the first post-trial count at or above the budget (exactly
+`max(b, 2)` with an analytic Jacobian).
 
 ### Achieved agreement with the published parameters
 
@@ -754,3 +788,136 @@ so a `diag[l] == 0` break on the first column reads uninitialized memory. The
 driver's `diag` entries are column norms floored at `1.0` and are therefore
 always positive, so the break is unreachable from these four fitters; the port
 zero-initializes the workspace and says so at the call site.
+
+---
+
+## 8. Levenberg-Marquardt crate evaluation (package B3-LM)
+
+Decision D2 of the early TOPP bundle put `levenberg-marquardt =0.14.0`
+(with `nalgebra =0.33.3`, `default-features = false`, `alloc` + `libm`) behind a
+measured gate: adopt it behind the unchanged `minimize` signature only if an
+adapter reproduces Eigen's `maxfev` exactly and the fits stay as close to the
+executed C++ as this transcription. **The gate failed; the transcription stays
+the backend for the four fitters and for `TraceFitter`.**
+
+### The adapter that was measured
+
+It lives, unchanged, in the `candidate` module of
+`tests/lm_budget_differential.rs`, and
+`levenberg_marquardt_crate_candidate_gate_report` (ignored by default) re-runs
+the gate: `cargo test --test lm_budget_differential -- --ignored --nocapture`.
+
+* **Configuration.** `with_ftol` and `with_xtol` set `sqrt(f64::EPSILON)`
+  (the crate's own default constant is `1.49012e-8`), `with_gtol(0)`,
+  `with_stepbound(factor)`, diagonal scaling on, and
+  `patience = ceil(max_fev / (n + 1))`, capped so `patience * (n + 1)` cannot
+  overflow. The tolerances and the factor pass through `abs` after Eigen's
+  own `< 0` checks, because the crate asserts on the sign bit and would panic
+  on `-0.0` or a negative NaN that Eigen accepts.
+* **Exact `maxfev`.** The crate counts one start evaluation and one per trial
+  and tests its limit after the `ftol`/`xtol` tests, as Eigen does, but its
+  limit is `patience * (n + 1)` and cannot express other budgets. The adapter
+  counts Eigen's `nfev` itself (start 1, `+1` per trial, `+ consumed` per
+  Jacobian, so a numerical Jacobian adds `n + 1`). After each trial it arms
+  Eigen's `nfev >= maxfev` test; the next call the crate makes - `jacobian()`
+  after an accepted step or `residuals()` after a rejected one - applies it,
+  returns `None` and so stops the crate. The last accepted `x` is snapshotted
+  at every `jacobian()` call, which the crate makes only at accepted points,
+  and restored, because the crate leaves the rejected trial in place when
+  `residuals()` returns `None`. When the crate's machine-epsilon tests fire on
+  a step whose count already reached the budget, the result is
+  `TooManyFunctionEvaluation`, because Eigen tests `maxfev` first.
+* **Status mapping.** `Converged { ftol, xtol }` to 3, 1 or 2;
+  `LostPatience` and the emulated stop to 5; `NoImprovementPossible` to 6, 7
+  or 8; `Orthogonal` and `ResidualsZero` to 4; `Numerical` to 5; anything else
+  to `ImproperInputParameters`. Two of these are not exact, and no fix is
+  possible from outside the crate: `ResidualsZero` stops where Eigen, given a
+  subnormal but non-zero residual norm, would keep iterating, and `Numerical`
+  stops on the first non-finite gradient candidate where Eigen's `std::max`
+  skips a NaN and continues.
+
+### Measurements
+
+Gate node dax (Linux x86_64), debug and release builds identical:
+
+| Clause of acceptance 5 | Trace fits against C2 (62 problems, 29,004 budgets) | Distribution fits against the transcription (16 problems, 8,000 budgets) |
+|---|---|---|
+| status, nfev, njev identical | 29,003; fails on `degenerate/flat3_gauss` | 8,000 |
+| `x` within `1e-12` of the transcription | 18,497 | 5,467 |
+| otherwise no further from C2 than the transcription | 6,696 more | not decidable: no C++ sweep |
+| `x` clause fails | **3,811**, 9 of them at budget 500 | 2,533 beyond `1e-12` |
+
+The failures at budget 500, the fits the tool actually reports:
+
+| Problem | Candidate vs transcription | Candidate vs C2 | Transcription vs C2 |
+|---|---|---|---|
+| `classtest/gauss_theo_0.4_0.6_weighted` | `1.1e-12` | `2.5e-12` | `1.4e-12` |
+| `classtest/gauss_theo_0.4_0.6_unweighted` | `5.3e-12` | `2.8e-12` | `2.5e-12` |
+| `classtest/egh_theo_0.8_0.2_weighted` | `tau` only, `3.5e-4` of `3.9e-15` | `2.5e-2` | `2.5e-2` |
+| `ffc1/seed10`, `seed12`, `seed20` (Gauss) | `1.6e-9` | `2.2e-9` | `6.4e-10` |
+| `ffc1/seed17` (Gauss) | `1.5e-12` | `7.3e-12` | `5.9e-12` |
+| `ffc1/seed24` (Gauss) | `5.4e-12` | `5.0e-12` | `3.9e-13` |
+| `degenerate/flat3_gauss` | status 4 after 24 evaluations | sigma `5.5e7` | status 2 after 16, sigma `1.08e5` |
+
+All figures are the largest relative difference over the parameters. The
+distribution fits at budget 500 differ from the transcription by up to
+`4.0e-11` (Gauss from `(0.5, -1, 2)`), `1.0e-11` (the published Gauss case)
+and `2.4e-7` (the maximum-likelihood fit, whose forward-difference Jacobian
+amplifies last-place differences). On the one published C++ Gauss case the
+candidate is marginally closer to the published digits than the transcription
+(`A` `1.7e-12` against `2.2e-12` absolute).
+
+**The degenerate case.** Three equal intensities per trace make sigma grow
+without bound. The two paths agree, up to last-place differences, for 14
+accepted steps. On the 15th trial the transcription, like Eigen, leaves `x0` and sigma bit-unchanged and moves
+only the height, which is what `lmpar` does when `ColPivHouseholderQR::rank()`
+with its threshold `|maxpivot| * eps * min(m, n)` reports a rank below `n`;
+the crate counts a pivot as zero only when it is exactly zero
+(`qr.rs` `r_rank`) and takes the full step, doubling sigma. Eigen then stops on
+`xtol`; the crate continues until the residual is exactly zero. The rank
+explanation is inferred from the evaluation paths, not instrumented inside the
+crate.
+
+**Where the other differences come from.** The crate differs from Eigen in
+arithmetic the adapter cannot reach: MINPACK's `enorm` in place of Eigen's
+three norms, its own pivoted QR, `delta = temp * min(delta, 10 * pnorm)`
+where Eigen divides `pnorm` by `0.1`, and the first-iteration step clamp
+applied only to the first trial where Eigen applies it on every trial until a
+step is accepted. Last-place differences then grow over the iteration; they
+reach `1e-9` on the flat `FeatureFinderCentroided_1` optima that stop on
+`xtol`.
+
+**`minpack-compat`.** Measured with
+`--features levenberg-marquardt/minpack-compat`: 3,811 trace budgets fail the
+`x` clause again, the accounting still matches at 29,003, and the same
+degenerate fit differs (status 4 after 24 evaluations, with one more Jacobian,
+since `ResidualsZero` does not exist in that mode). It is not closer, and its
+MINPACK constants (`epsmch = 2.22044604926e-16`, `enorm` thresholds
+`3.834e-20` and `1.304e19`) are further from Eigen's `f64::EPSILON` and
+`f64::MIN_POSITIVE`. It stays off.
+
+**Crate-register tests** (`docs/THIRD_PARTY_CRATE_DECISIONS.md`):
+
+| Test | Result |
+|---|---|
+| MSRV at or below 1.85 | passes: the candidate compiles and runs under `+1.85.0` |
+| Pure Rust | yes; `nalgebra` without `std`, so `matrixmultiply` is absent (`cargo tree -e features`: `nalgebra` `alloc` and `libm` only) |
+| Maintained and widely used | not re-measured here; 0.15.0 exists but needs `nalgebra` 0.34 and Rust 1.87, so 0.14.0 is the pin |
+| Fidelity to the upstream class tests | **fails the gate** above, though every upstream class-test expectation would still pass at its own tolerance |
+| Same results on every machine | yes as far as the crate goes: scalar code, `libm` |
+
+**Speed.** In a release build on dax, the 62 trace fits at budget 500 repeated
+200 times take 1.51 s with the transcription and 1.20 s with the candidate,
+about 122 and 97 microseconds per fit including the residual and Jacobian
+work. The transcription allocates short-lived vectors inside every iteration
+(column norms, the QR copy, `lmpar` workspaces); removing those allocations
+would not change its arithmetic and is the way to close that gap.
+
+### Consequences
+
+* `minimize`, `LmParameters`, `LmStatus` and `DenseMatrix` are unchanged, and
+  `TraceFitter` builds on this transcription.
+* The budget boundaries B4, B5 and B10 test at the tool level
+  (`fit:max_iterations` 40 against 50, 6 against 8) rest on the accounting
+  pinned here.
+* The register row goes back to open: the crate was measured, not adopted.
