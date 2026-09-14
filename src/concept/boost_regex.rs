@@ -57,17 +57,28 @@
 //!
 //! # Work bounds
 //!
-//! `fancy-regex` fails a search that takes more backtracking steps than its
-//! budget ([`RegexOptions::backtrack_limit`](crate::concept::boost_regex::RegexOptions::backtrack_limit), shared by all start positions of
-//! one search and scaled with the haystack length), or that needs more than the
-//! 1,000,000 branches of its fixed backtracking stack. Both are
-//! [`Error::InvalidValue`](crate::Error::InvalidValue): an error, never a
+//! A search runs either on an automaton or on `fancy-regex`'s backtracking
+//! machine, and each has a bound.
+//!
+//! An expression that needs no backtracking, and whose automaton has at most
+//! [`MAX_AUTOMATON_ATOMS`](crate::concept::boost_regex::MAX_AUTOMATON_ATOMS)
+//! atoms (divided by the budget's scale factor for a long haystack), is handed
+//! whole to an automaton. It spends no budget, and its work is proportional to
+//! the haystack length times the atoms, which grow with repeat bounds.
+//!
+//! Every other search runs on the backtracking machine, which fails a search
+//! that takes more backtracking steps than its budget
+//! ([`RegexOptions::backtrack_limit`](crate::concept::boost_regex::RegexOptions::backtrack_limit),
+//! shared by all start positions of one search and scaled with the haystack
+//! length), or that needs more than the 1,000,000 branches of its fixed stack
+//! (`MAX_STACK`, reported by the engine as `RuntimeError::StackOverflow`). Both
+//! are [`Error::InvalidValue`](crate::Error::InvalidValue): an error, never a
 //! different answer. The engine does not count the work it does between two
-//! backtracking steps, so the facade spells every expression that needs
-//! backtracking such that the budget pays for that work as well:
+//! backtracking steps, so the facade spells these expressions such that the
+//! budget pays for that work as well:
 //!
 //! - the expression and every positive lookahead in it end in an always-true
-//!   assertion, so the engine runs their sub-expressions on its backtracking
+//!   assertion, so the engine runs their sub-expressions on the backtracking
 //!   machine, where every loop iteration pushes a branch, instead of handing a
 //!   trailing run to an automaton that could scan to the end of the haystack
 //!   from every start position;
@@ -75,7 +86,7 @@
 //!   which the engine otherwise does only above the minimum;
 //! - a repeat inside an atomic group or a negative lookaround, whose branches
 //!   the engine discards without counting them, is refused, and so are a
-//!   counted repeat of something that can match the empty string, a lookbehind
+//!   bounded repeat of something that can match the empty string, a lookbehind
 //!   wider than [`MAX_LOOKBEHIND_WIDTH`](crate::concept::boost_regex::MAX_LOOKBEHIND_WIDTH)
 //!   and a translation longer than
 //!   [`MAX_TRANSLATED_BYTES`](crate::concept::boost_regex::MAX_TRANSLATED_BYTES).
@@ -83,9 +94,11 @@
 //! Between two backtracking steps the engine then does work proportional to the
 //! translated pattern and its lookbehind widths, and a backreference compares
 //! at most the length of its group, as Boost's does, so a search's work is
-//! bounded by its budget times that. An expression that needs no backtracking
-//! runs entirely on an automaton, in time proportional to the haystack length
-//! times the pattern length, and spends no budget. These limits are not Boost's
+//! bounded by its budget times that. The engine's positive lookaheads are not
+//! atomic, as Boost's are: when what follows one fails, the engine backtracks
+//! into its body again, so a body with ambiguous repeats followed by a failing
+//! continuation can exhaust the budget on a few dozen bytes where Boost answers
+//! at once (`(?=(?:a|aa)*)b` on 24 `a` and a `c`). These limits are not Boost's
 //! `error_complexity`, so each engine stops some searches the other answers;
 //! `docs/BOOST_REGEX_SUPPORT.md` records the measurements.
 //!
@@ -122,6 +135,27 @@ pub const MAX_GROUP_DEPTH: usize = 48;
 /// [`Error::Unsupported`] before the engine sees it.
 pub const MAX_REPEAT: usize = 999_999_999;
 
+/// Largest automaton, in atoms, that a search over at most
+/// [`BACKTRACK_LIMIT_BYTES`] bytes runs on; a longer haystack divides it by the
+/// factor that scales its budget (4, 16 or [`MAX_BACKTRACK_SCALE`]).
+///
+/// The atoms of an expression are its one-byte atoms, assertions and
+/// backreferences with every repeat written out: a repeat multiplies the atoms
+/// of what it repeats by its maximum, or by its minimum (at least 1) when it
+/// is unbounded. An expression that needs no backtracking is searched by
+/// `fancy-regex`'s `regex-automata` delegate, which spends no backtracking
+/// budget. Its slowest mode, the one it falls back to when its lazy DFA runs
+/// out of cache, does work proportional to the haystack length times the atoms:
+/// `\w{0,9999}b` took 8 s over 100 KB. An expression with more atoms than the
+/// haystack's share of this limit is searched with the counted spelling on the
+/// backtracking machine instead, where [`RegexOptions::backtrack_limit`] bounds
+/// it, so an automaton search does at most about
+/// `MAX_AUTOMATON_ATOMS * BACKTRACK_LIMIT_BYTES` atom steps up to
+/// `MAX_BACKTRACK_SCALE * BACKTRACK_LIMIT_BYTES` bytes, and
+/// `MAX_AUTOMATON_ATOMS / MAX_BACKTRACK_SCALE` per byte beyond.
+/// `docs/BOOST_REGEX_SUPPORT.md` records the measured times.
+pub const MAX_AUTOMATON_ATOMS: usize = 4096;
+
 /// Widest lookbehind, in bytes, that the translator accepts.
 ///
 /// Every time the engine tries a lookbehind it steps back over the whole width,
@@ -143,11 +177,12 @@ pub const MAX_TRANSLATED_BYTES: usize = 8 * MAX_PATTERN_BYTES;
 /// [`BACKTRACK_LIMIT_BYTES`] bytes may take before it fails, unless
 /// [`RegexOptions::backtrack_limit`] says otherwise.
 ///
-/// Only expressions that need the backtracking engine (lookaround,
-/// backreferences, atomic groups, line anchors, word boundaries) spend this
-/// budget; the others run on an automaton. One search shares the budget across
-/// every start position it tries, so a longer haystack scales it (see
-/// [`BACKTRACK_LIMIT_BYTES`]).
+/// Only searches on the backtracking engine spend this budget: those of
+/// expressions that need it (lookaround, backreferences, atomic groups, line
+/// anchors, word boundaries) and of expressions whose automaton would be larger
+/// than [`MAX_AUTOMATON_ATOMS`] allows; the others run on an automaton. One
+/// search shares the budget across every start position it tries, so a longer
+/// haystack scales it (see [`BACKTRACK_LIMIT_BYTES`]).
 pub const DEFAULT_BACKTRACK_LIMIT: usize = 1_000_000;
 
 /// Haystack length, in bytes, that one unscaled backtracking budget covers.
@@ -355,19 +390,20 @@ impl<'h> Haystack<'h> {
 /// branch until it reaches its minimum. From every start position of a search
 /// that work is repeated, so a short expression could do work quadratic in the
 /// haystack without spending the budget. The counted spelling closes both
-/// gaps: [`FORCE_BACKTRACKING`] at the end of the expression and of every
-/// positive lookahead makes the engine run the sub-expressions before it on
-/// its backtracking machine, where every loop iteration pushes a branch, and
-/// [`COUNT_ITERATION`] makes every iteration of a counted repeat push one.
+/// gaps: [`FORCE_BACKTRACKING_ROOT`] at the end of the expression and
+/// [`FORCE_BACKTRACKING`] at the end of every positive lookahead make the engine
+/// run the sub-expressions before them on its backtracking machine, where every
+/// loop iteration pushes a branch, and [`COUNT_ITERATION`] makes every iteration
+/// of a counted repeat push one.
 #[derive(Clone, Debug)]
 struct EngineTexts {
-    /// For `regex_search` and, anchored at both ends, `regex_match`: the plain
-    /// spelling when the expression needs no backtracking, so the engine hands
-    /// all of it to an automaton that runs in time linear in the haystack, and
-    /// the counted spelling otherwise.
-    search: String,
-    /// The counted spelling, for the token iterator's non-empty retry, which
-    /// the engine always runs on its backtracking machine.
+    /// The plain spelling, when the expression needs no backtracking.
+    plain: Option<String>,
+    /// Automaton size of the expression (see [`Translator::last_atoms`]).
+    atoms: usize,
+    /// The counted spelling, for every search the plain one is not used for,
+    /// and for the token iterator's non-empty retry, which the engine always
+    /// runs on its backtracking machine.
     counted: String,
 }
 
@@ -376,7 +412,7 @@ impl EngineTexts {
     fn new(pattern: &str, options: RegexOptions) -> Result<(Self, Translation)> {
         let plain = Translator::new(pattern, options, false).run()?;
         let counted = Translator::new(pattern, options, true).run()?;
-        let counted = format!("(?:{}){FORCE_BACKTRACKING}", counted.pattern);
+        let counted = format!("(?:{}){FORCE_BACKTRACKING_ROOT}", counted.pattern);
         if counted.len() > MAX_TRANSLATED_BYTES {
             return Err(Error::Unsupported(format!(
                 "regular expression {} uses more than MAX_TRANSLATED_BYTES bytes of engine \
@@ -385,12 +421,24 @@ impl EngineTexts {
                 pattern.len()
             )));
         }
-        let search = if needs_backtracking(&plain.pattern) {
-            counted.clone()
-        } else {
-            plain.pattern.clone()
+        let texts = Self {
+            plain: (!needs_backtracking(&plain.pattern)).then(|| plain.pattern.clone()),
+            atoms: plain.atoms,
+            counted,
         };
-        Ok((Self { search, counted }, plain))
+        Ok((texts, plain))
+    }
+
+    /// The spelling for `regex_search` and, anchored at both ends,
+    /// `regex_match` over a haystack that scales the budget by `scale`: the
+    /// plain one, which the engine hands whole to an automaton, when the
+    /// expression needs no backtracking and has at most
+    /// [`MAX_AUTOMATON_ATOMS`]` / scale` atoms, and the counted one otherwise.
+    fn search(&self, scale: usize) -> &str {
+        match &self.plain {
+            Some(plain) if self.atoms <= MAX_AUTOMATON_ATOMS / scale.max(1) => plain,
+            _ => &self.counted,
+        }
     }
 }
 
@@ -421,20 +469,19 @@ struct Programs {
 }
 
 impl Programs {
-    /// Compile `texts` with `backtrack_limit`, and check that every program
-    /// numbers exactly the pattern's groups.
+    /// Compile `texts` for a haystack that scales the budget by `scale`, with
+    /// `backtrack_limit`, and check that every program numbers exactly the
+    /// pattern's groups.
     fn compile(
         pattern: &str,
         texts: &EngineTexts,
+        scale: usize,
         backtrack_limit: usize,
         mark_count: usize,
     ) -> Result<Self> {
-        let search = compile(pattern, &texts.search, backtrack_limit)?;
-        let full = compile(
-            pattern,
-            &format!(r"\A(?:{})\z", texts.search),
-            backtrack_limit,
-        )?;
+        let spelling = texts.search(scale);
+        let search = compile(pattern, spelling, backtrack_limit)?;
+        let full = compile(pattern, &format!(r"\A(?:{spelling})\z"), backtrack_limit)?;
         let not_empty = match build(&texts.counted, backtrack_limit, true) {
             Ok(regex) => Some(regex),
             Err(fancy_regex::Error::CompileError(error))
@@ -480,8 +527,9 @@ pub struct BoostRegex {
     texts: EngineTexts,
     programs: Programs,
     /// Programs for the budget scaled by 4, 16 and 64, compiled on first use.
-    /// `None` if the engine refused one, in which case the unscaled programs
-    /// are used and the search fails earlier rather than differently.
+    /// `None` if the engine refused one. The unscaled programs are then used
+    /// when they have the same spelling, so the search fails earlier rather
+    /// than differently, and the search fails otherwise.
     scaled: [OnceLock<Option<Programs>>; 3],
     mark_count: usize,
     names: Arc<[(String, usize)]>,
@@ -531,6 +579,7 @@ impl BoostRegex {
         let programs = Programs::compile(
             pattern,
             &texts,
+            1,
             options.backtrack_limit,
             translation.mark_count,
         )?;
@@ -545,9 +594,9 @@ impl BoostRegex {
         })
     }
 
-    /// The programs whose backtracking budget covers a haystack of `length`
-    /// bytes, with that budget.
-    fn programs(&self, length: usize) -> (&Programs, usize) {
+    /// The programs whose backtracking budget and spelling cover a haystack of
+    /// `length` bytes, with that budget.
+    fn programs(&self, length: usize) -> Result<(&Programs, usize)> {
         let needed = length.saturating_sub(1) / BACKTRACK_LIMIT_BYTES + 1;
         let tier = BACKTRACK_SCALES
             .iter()
@@ -558,15 +607,20 @@ impl BoostRegex {
             tier.checked_sub(1).and_then(|index| self.scaled.get(index)),
             BACKTRACK_SCALES.get(tier),
         ) else {
-            return unscaled;
+            return Ok(unscaled);
         };
         let limit = self.options.backtrack_limit.saturating_mul(scale);
         let scaled = cell.get_or_init(|| {
-            Programs::compile(&self.pattern, &self.texts, limit, self.mark_count).ok()
+            Programs::compile(&self.pattern, &self.texts, scale, limit, self.mark_count).ok()
         });
         match scaled {
-            Some(programs) => (programs, limit),
-            None => unscaled,
+            Some(programs) => Ok((programs, limit)),
+            None if self.texts.search(scale) == self.texts.search(1) => Ok(unscaled),
+            None => Err(Error::InvalidValue(format!(
+                "regular expression {} has no bounded engine program for a haystack of {length} \
+                 bytes",
+                quote(&self.pattern)
+            ))),
         }
     }
 
@@ -625,7 +679,7 @@ impl BoostRegex {
     /// As [`BoostRegex::search`].
     pub fn is_search_match(&self, haystack: &[u8]) -> Result<bool> {
         let haystack = Haystack::new(haystack);
-        let (programs, limit) = self.programs(haystack.len());
+        let (programs, limit) = self.programs(haystack.len())?;
         programs
             .search
             .is_match(haystack.text())
@@ -640,7 +694,7 @@ impl BoostRegex {
     /// As [`BoostRegex::search`].
     pub fn full_match(&self, haystack: &[u8]) -> Result<Option<Captures>> {
         let haystack = Haystack::new(haystack);
-        let (programs, limit) = self.programs(haystack.len());
+        let (programs, limit) = self.programs(haystack.len())?;
         self.captures(
             &programs.full,
             &haystack,
@@ -656,7 +710,7 @@ impl BoostRegex {
     /// As [`BoostRegex::search`].
     pub fn is_full_match(&self, haystack: &[u8]) -> Result<bool> {
         let haystack = Haystack::new(haystack);
-        let (programs, limit) = self.programs(haystack.len());
+        let (programs, limit) = self.programs(haystack.len())?;
         programs
             .full
             .is_match(haystack.text())
@@ -719,7 +773,7 @@ impl BoostRegex {
         not_initial_null: bool,
     ) -> Result<Option<Captures>> {
         let text = haystack.text();
-        let (programs, limit) = self.programs(haystack.len());
+        let (programs, limit) = self.programs(haystack.len())?;
         if !not_initial_null {
             let input = RegexInput::new(text).from_pos(haystack.to_engine(start));
             return self.captures(&programs.search, haystack, input, limit);
@@ -954,13 +1008,40 @@ const START_OF_LINE: &str = r"(?:\A|(?<=[\x0A\x0C])|(?<=\x0D)(?!\x0A))";
 const END_OF_LINE: &str = r"(?:\z|(?=[\x0D\x0C])|(?<!\x0D)(?=\x0A))";
 /// `.` under `(?-s)`: any byte except Boost's line separators.
 const DOT_NO_SEPARATOR: &str = r"[^\x0A\x0C\x0D]";
-/// A zero-width lookahead that always holds. `fancy-regex` hands a trailing
-/// run of sub-expressions that need no backtracking to an automaton; one that
-/// ends in this assertion is compiled for its backtracking machine instead.
+/// A zero-width lookahead that always holds, at the end of every positive
+/// lookahead body of the counted spelling.
+///
+/// `fancy-regex` compiles a concatenation that needs backtracking by handing
+/// its longest trailing run of sub-expressions that do not to an automaton
+/// (`compile_concat`), which runs anchored and can scan to the end of the
+/// haystack. A run that ends in this assertion is empty, so everything before it
+/// is compiled for the backtracking machine instead.
 const FORCE_BACKTRACKING: &str = "(?=)";
+/// The same for the whole expression, which needs the assertion twice.
+///
+/// Unless it refuses empty matches, `fancy-regex` first rewrites an expression
+/// that ends in a positive lookahead, `X(?=Y)`, into an explicit group 0 around
+/// `X` followed by `Y` (`optimize_trailing_lookahead`). One `(?=)` would become
+/// an empty `Y`, and an `X` that needs no backtracking would then be handed to
+/// an automaton whole. With two, the rewrite takes the second, the group keeps
+/// the first, and the group needs backtracking. Should a crate update change
+/// either rewrite, `bounded_spelling_runs_on_the_backtracking_machine` in the
+/// module tests and `forced_backtracking_spends_the_budget` in
+/// `tests/boost_regex.rs` fail.
+const FORCE_BACKTRACKING_ROOT: &str = "(?=)(?=)";
 /// An empty alternative beside one that never matches: every pass through it
 /// pushes one backtracking branch, which the budget counts when it is undone.
 const COUNT_ITERATION: &str = "(?:|(?!))";
+
+/// Refusal of a repeat allowing more than one iteration of a group that can
+/// match the empty string; see [`Translator::repeat_refusal`].
+const NULLABLE_GROUP_REPEAT: &str = "a repeat of more than one iteration of a group that can match \
+                                     the empty string (Boost ends a repeat after an empty iteration)";
+/// Refusal of a lazy repeat that Boost's leading-repeat optimization restarts
+/// from; see [`Translator::quantify`].
+const LEADING_LAZY_REPEAT: &str = "a lazy repeat with a finite maximum of a one-byte atom that \
+                                   starts the expression (Boost's leading-repeat optimization skips \
+                                   start positions)";
 
 /// A Boost character class, as `cpp_regex_traits<char>` defines it in the C
 /// locale.
@@ -1211,6 +1292,8 @@ struct GroupShape {
     nullable: bool,
     /// The body asserts positions (`^`, `$`, `\b`, ...) and consumes nothing.
     only_asserts: bool,
+    /// The body holds the leading lazy repeat (see [`Translator::leading_repeat`]).
+    holds_leading_repeat: bool,
 }
 
 impl GroupShape {
@@ -1332,6 +1415,15 @@ struct Frame {
     consumes: bool,
     asserts: bool,
     has_capture: bool,
+    /// Automaton size of the current alternative (see [`Translator::last_atoms`]).
+    atoms: usize,
+    /// Automaton size of the finished alternatives.
+    alternative_atoms: usize,
+    /// The group was open when the leading lazy repeat was recorded.
+    holds_leading_repeat: bool,
+    /// For a lookaround, whether the states before it were all transparent to
+    /// Boost's `probe_leading_repeat`, which skips a lookaround whole.
+    leading_before: bool,
 }
 
 impl Frame {
@@ -1352,10 +1444,16 @@ impl Frame {
             consumes: false,
             asserts: false,
             has_capture: false,
+            atoms: 0,
+            alternative_atoms: 0,
+            holds_leading_repeat: false,
+            leading_before: false,
         }
     }
 
     fn finish_alternative(&mut self) {
+        self.alternative_atoms = self.alternative_atoms.saturating_add(self.atoms);
+        self.atoms = 0;
         self.alternative_width = Some(match self.alternative_width {
             None => self.width,
             Some(previous) if previous == self.width => previous,
@@ -1388,6 +1486,8 @@ struct Translation {
     pattern: String,
     mark_count: usize,
     names: Vec<(String, usize)>,
+    /// Automaton size of the whole expression (see [`Translator::last_atoms`]).
+    atoms: usize,
 }
 
 struct Translator<'p> {
@@ -1411,6 +1511,26 @@ struct Translator<'p> {
     last_start: usize,
     /// Emit the counted spelling (see [`EngineTexts`]).
     counted: bool,
+    /// Automaton size of `last`, removed again when a quantifier rescales it.
+    ///
+    /// The atoms of a translation are its one-byte atoms, assertions and
+    /// backreferences with every repeat written out: a repeat multiplies the
+    /// atoms of what it repeats by its maximum, or by its minimum (at least 1)
+    /// when unbounded, as the engine's Thompson construction copies them. The
+    /// automaton the engine builds for an expression, and the work its slowest
+    /// search mode does per haystack byte, grow with this count.
+    last_atoms: usize,
+    /// Every state Boost has emitted so far is one its `probe_leading_repeat`
+    /// steps over: group starts and ends, flag groups that keep case
+    /// sensitivity, `^ $ \b \B \< \> \A \z`, and whole lookarounds. A `|`
+    /// (which Boost inserts at the start of its group), a flag group that
+    /// changes case sensitivity (a `toggle_case` state), a quantifier (a repeat
+    /// state in front of what it repeats) or anything that consumes ends it.
+    leading_open: bool,
+    /// `leading_open` as it was just before the last one-byte atom.
+    last_leading: bool,
+    /// Where the leading lazy repeat starts, while it is still leading.
+    leading_repeat: Option<usize>,
 }
 
 impl<'p> Translator<'p> {
@@ -1435,6 +1555,10 @@ impl<'p> Translator<'p> {
             last_min_length: MinLength::default(),
             last_start: 0,
             counted,
+            last_atoms: 0,
+            leading_open: true,
+            last_leading: false,
+            leading_repeat: None,
         }
     }
 
@@ -1493,10 +1617,21 @@ impl<'p> Translator<'p> {
                 "a backreference names a group the expression does not have",
             ));
         }
+        // Boost marks a leading repeat only in an expression without
+        // backreferences (`basic_regex_creator::probe_leading_repeat`).
+        if let (Some(start), 0) = (self.leading_repeat, self.max_backreference) {
+            return Err(self.unsupported(start, LEADING_LAZY_REPEAT));
+        }
+        let mut root = self
+            .frames
+            .pop()
+            .unwrap_or_else(|| Frame::new(GroupKind::Root, self.flags, 0));
+        root.finish_alternative();
         Ok(Translation {
             pattern: self.out,
             mark_count: self.mark_count,
             names: self.names,
+            atoms: root.alternative_atoms,
         })
     }
 
@@ -1545,6 +1680,12 @@ impl<'p> Translator<'p> {
         self.last_min_length = length;
     }
 
+    fn add_atoms(&mut self, atoms: usize) {
+        let frame = self.frame();
+        frame.atoms = frame.atoms.saturating_add(atoms);
+        self.last_atoms = atoms;
+    }
+
     fn literal(&mut self, byte: u8) {
         self.last_start = self.out.len();
         if self.flags.icase && byte.is_ascii_alphabetic() {
@@ -1559,14 +1700,18 @@ impl<'p> Translator<'p> {
         self.add_item(false);
         self.add_width(1);
         self.add_min_length(MinLength::BYTE);
+        self.add_atoms(1);
         self.frame().consumes = true;
         self.last = Last::Byte;
+        self.last_leading = self.leading_open;
+        self.leading_open = false;
     }
 
     fn assertion(&mut self, text: &str) {
         self.out.push_str(text);
         self.add_item(false);
         self.add_min_length(MinLength::default());
+        self.add_atoms(1);
         self.frame().asserts = true;
         self.last = Last::Fixed;
     }
@@ -1634,6 +1779,8 @@ impl<'p> Translator<'p> {
                     boost: 0,
                     engine: target.engine,
                 });
+                self.add_atoms(1);
+                self.leading_open = false;
                 self.frame().consumes = true;
                 self.last = Last::Backref {
                     nullable: target.boost == 0,
@@ -1908,7 +2055,14 @@ impl<'p> Translator<'p> {
         let start = self.out.len();
         self.out.push_str(text);
         self.frame().has_states = true;
-        self.frames.push(Frame::new(kind, saved_flags, start));
+        let mut frame = Frame::new(kind, saved_flags, start);
+        // Boost's `probe_leading_repeat` enters groups but skips a lookaround
+        // whole, so nothing inside one is leading.
+        if kind.is_lookaround() {
+            frame.leading_before = self.leading_open;
+            self.leading_open = false;
+        }
+        self.frames.push(frame);
         self.last = Last::Nothing;
     }
 
@@ -2021,8 +2175,15 @@ impl<'p> Translator<'p> {
                 let case_change = flags.icase != self.flags.icase;
                 self.flags = flags;
                 self.frame().has_states = true;
+                // Boost appends a `toggle_case` state for a change of case
+                // sensitivity, which its `probe_leading_repeat` does not step
+                // over.
+                if case_change {
+                    self.leading_open = false;
+                }
                 self.last = Last::EmptyGroup { case_change };
                 self.last_min_length = MinLength::default();
+                self.last_atoms = 0;
                 Ok(())
             }
             Some(b':') => {
@@ -2030,6 +2191,9 @@ impl<'p> Translator<'p> {
                 let saved = self.flags;
                 self.flags = flags;
                 self.push_group(GroupKind::NonCapture, "(?:", saved);
+                if flags.icase != saved.icase {
+                    self.leading_open = false;
+                }
                 Ok(())
             }
             _ => Err(self.syntax(start, "unknown '(?' extension or modifier")),
@@ -2080,11 +2244,15 @@ impl<'p> Translator<'p> {
         }
         self.out.push(')');
         self.flags = frame.saved_flags;
+        if frame.kind.is_lookaround() {
+            self.leading_open = frame.leading_before;
+        }
         let body = frame.body();
         let captures = frame.has_capture || frame.kind == GroupKind::Capture;
         if frame.kind.is_lookaround() {
             self.add_item(true);
             self.add_min_length(MinLength::default());
+            self.add_atoms(frame.alternative_atoms);
         } else {
             match (frame.kind, body) {
                 (GroupKind::NonCapture, Body::Empty) => self.frame().has_states = true,
@@ -2096,6 +2264,7 @@ impl<'p> Translator<'p> {
                 None => self.clear_width(),
             }
             self.add_min_length(min_length);
+            self.add_atoms(frame.alternative_atoms);
             let parent = self.frame();
             parent.consumes |= frame.consumes;
             parent.asserts |= frame.asserts;
@@ -2108,6 +2277,7 @@ impl<'p> Translator<'p> {
             captures,
             nullable: min_length.boost == 0,
             only_asserts: frame.asserts && !frame.consumes,
+            holds_leading_repeat: frame.holds_leading_repeat,
         });
         Ok(())
     }
@@ -2115,12 +2285,20 @@ impl<'p> Translator<'p> {
     fn alternation(&mut self) {
         self.position += 1;
         self.out.push('|');
+        // Boost inserts the alternation state at the start of the group (or
+        // of the expression), in front of everything the group holds.
+        self.leading_open = false;
+        let frame = self.frame();
+        if frame.holds_leading_repeat {
+            self.leading_repeat = None;
+        }
         let frame = self.frame();
         frame.finish_alternative();
         frame.alternation = true;
         frame.has_states = true;
         self.last = Last::Nothing;
         self.last_min_length = MinLength::default();
+        self.last_atoms = 0;
     }
 
     fn simple_quantifier(&mut self, symbol: u8) -> Result<()> {
@@ -2314,14 +2492,43 @@ impl<'p> Translator<'p> {
                 }
             }
         }
+        // Boost's `probe_leading_repeat` marks a repeat of a one-byte atom as
+        // leading when only transparent states precede it, and a lazy one with
+        // room for two more iterations than its minimum then restarts a failed
+        // search behind start positions that could still match.
+        let leading_lazy = matches!(self.last, Last::Byte)
+            && self.last_leading
+            && lazy
+            && max.is_some_and(|max| max >= min.saturating_add(2));
+        if leading_lazy {
+            self.leading_repeat = Some(start);
+            for frame in &mut self.frames {
+                frame.holds_leading_repeat = true;
+            }
+        } else if let Last::Group(GroupShape {
+            holds_leading_repeat: true,
+            ..
+        }) = self.last
+        {
+            // Boost inserts the repeat state in front of the group.
+            self.leading_repeat = None;
+        }
+        self.leading_open = false;
         let contribution = self.last_min_length;
+        let atoms = self.last_atoms;
+        let copies = max.unwrap_or(min.max(1));
         let frame = self.frame();
         frame.min_length = frame
             .min_length
             .without(contribution)
             .followed_by(contribution.repeated(min));
+        frame.atoms = frame
+            .atoms
+            .saturating_sub(atoms)
+            .saturating_add(atoms.saturating_mul(copies));
         self.last = Last::Fixed;
         self.last_min_length = MinLength::default();
+        self.last_atoms = 0;
         Ok(())
     }
 
@@ -2344,16 +2551,22 @@ impl<'p> Translator<'p> {
     /// hand to the engine.
     ///
     /// Boost ends a repeat as soon as one iteration matches the empty string,
-    /// even below the minimum (`repeater_count::check_null_repeat`), while the
-    /// engine iterates up to the bound: `(?:\b|a){2}b` matches `ab` there and
-    /// not in Boost, and `(?:a{0}\b){999999999}` runs a billion empty
-    /// iterations. An unbounded repeat stops after an empty iteration in the
-    /// engine too, so only a repeat that requires or allows more than one
-    /// iteration of something that can match empty is refused. The shortest
-    /// match of the repeat, as the engine's analyzer multiplies it out, must
-    /// also stay within [`MAX_REPEAT`].
+    /// even below the minimum: it takes the exit with the iteration accepted
+    /// (`repeater_count::check_null_repeat`, `perl_matcher::match_rep`). The
+    /// engine behaves differently either way. A bounded repeat iterates up to
+    /// its bound, so `(?:\b|a){2}b` matches `ab` there and not in Boost, and
+    /// `(?:a{0}\b){999999999}` runs a billion empty iterations. An unbounded
+    /// repeat (`RepeatEpsilon`) fails the empty iteration instead and backtracks
+    /// into the alternatives of its body, so `(?:b?|a)*` matches all of `ba`
+    /// there and only `b` in Boost. Every repeat that allows more than one
+    /// iteration of a group that can match empty is therefore refused. A
+    /// backreference matches the same text in every iteration, so only its
+    /// bounded repeats are refused, for the work. The shortest match of the
+    /// repeat, as the engine's analyzer multiplies it out, must also stay within
+    /// [`MAX_REPEAT`].
     fn repeat_refusal(&self, start: usize, min: usize, max: Option<usize>) -> Option<Error> {
         let counted = min > 1 || max.is_some_and(|max| max > 1);
+        let many = max.is_none_or(|max| max > 1);
         // The engine discards the backtracking branches pushed inside an atomic
         // group or a negative lookaround once its body has matched, without
         // counting them, so a loop there could run to the end of the haystack
@@ -2402,12 +2615,8 @@ impl<'p> Translator<'p> {
             Last::Group(shape) if shape.only_asserts => {
                 self.unsupported(start, "a repeat of a group that only asserts a position")
             }
-            Last::Group(shape) if counted && shape.nullable && shape.is_repeated_by_engine() => {
-                self.unsupported(
-                    start,
-                    "a counted repeat of a group that can match the empty string (Boost ends \
-                     a repeat after an empty iteration)",
-                )
+            Last::Group(shape) if many && shape.nullable && shape.is_repeated_by_engine() => {
+                self.unsupported(start, NULLABLE_GROUP_REPEAT)
             }
             Last::Backref { nullable: true } if counted => self.unsupported(
                 start,
@@ -2463,10 +2672,120 @@ mod tests {
         assert_eq!(translate(r"(?:ab){0,3}c+", true), r"(?:\x61\x62){0,3}\x63+");
         assert_eq!(translate(r"(a)\1{3,}", true), r"(\x61)(?:\1(?:|(?!))){3,}");
         let (texts, _) = EngineTexts::new(r"(?<=[KR])(?!P)", RegexOptions::default()).unwrap();
-        assert_eq!(texts.search, texts.counted);
-        assert!(texts.counted.ends_with(FORCE_BACKTRACKING));
+        for scale in BACKTRACK_SCALES {
+            assert_eq!(texts.search(scale), texts.counted);
+        }
+        assert!(texts.counted.ends_with(FORCE_BACKTRACKING_ROOT));
         let (texts, _) = EngineTexts::new(r"scan=(\d+)", RegexOptions::default()).unwrap();
-        assert_eq!(texts.search, r"\x73\x63\x61\x6E\x3D([0-9]+)");
+        for scale in BACKTRACK_SCALES {
+            assert_eq!(texts.search(scale), r"\x73\x63\x61\x6E\x3D([0-9]+)");
+        }
+    }
+
+    /// The atoms of a translation, and the haystack length from which an
+    /// expression that needs no backtracking leaves the automaton.
+    #[test]
+    fn counts_automaton_atoms() {
+        let atoms = |pattern: &str| {
+            Translator::new(pattern, RegexOptions::default(), false)
+                .run()
+                .unwrap()
+                .atoms
+        };
+        assert_eq!(atoms(""), 0);
+        assert_eq!(atoms("abc"), 3);
+        assert_eq!(atoms("a|bc"), 3);
+        assert_eq!(atoms(r"\w{0,9999}b"), 10_000);
+        assert_eq!(atoms("(?:ab){3,}c*"), 7);
+        assert_eq!(atoms("(?:a{2}|b){5}"), 15);
+        assert_eq!(atoms("(?:a(?#c)){4}(?i)"), 4);
+        assert_eq!(atoms("(?:(?:a{999}){999}){999}"), 997_002_999);
+        let texts = |pattern: &str| {
+            EngineTexts::new(pattern, RegexOptions::default())
+                .unwrap()
+                .0
+        };
+        let plain =
+            |texts: &EngineTexts, scale: usize| texts.plain.as_deref() == Some(texts.search(scale));
+        // MAX_AUTOMATON_ATOMS atoms stay on the automaton for the first tier only.
+        let widest = texts(&format!(r"\w{{0,{}}}b", MAX_AUTOMATON_ATOMS - 1));
+        assert_eq!(widest.atoms, MAX_AUTOMATON_ATOMS);
+        assert!(plain(&widest, 1));
+        assert!(!plain(&widest, 4));
+        let wider = texts(&format!(r"\w{{0,{}}}b", MAX_AUTOMATON_ATOMS));
+        assert!(!plain(&wider, 1));
+        // The largest expression of the pinned OpenMS sources that needs no
+        // backtracking has 46 atoms and stays on the automaton at every length.
+        let pinned = texts("TransitionGroupPicker:PeakPickerChromatogram:(.+)");
+        assert_eq!(pinned.atoms, 46);
+        assert!(plain(&pinned, MAX_BACKTRACK_SCALE));
+    }
+
+    /// The counted spelling of an expression that needs no backtracking must
+    /// run on the backtracking machine, where every loop iteration spends
+    /// budget: a crate update that hands it to an automaton again (see
+    /// [`FORCE_BACKTRACKING_ROOT`]) fails here.
+    #[test]
+    fn bounded_spelling_runs_on_the_backtracking_machine() {
+        let (texts, _) = EngineTexts::new("a*b", RegexOptions::default()).unwrap();
+        let haystack = "a".repeat(1000);
+        let plain = build(texts.plain.as_deref().unwrap(), 1000, false).unwrap();
+        assert!(matches!(plain.find(&haystack), Ok(None)));
+        let counted = build(&texts.counted, 1000, false).unwrap();
+        assert!(matches!(
+            counted.find(&haystack),
+            Err(fancy_regex::Error::RuntimeError(
+                fancy_regex::RuntimeError::BacktrackLimitExceeded
+            ))
+        ));
+        // With one trailing `(?=)` the engine's rewrite hands the whole
+        // expression to an automaton, which is why the spelling has two.
+        let single = build(
+            &format!("(?:{}){FORCE_BACKTRACKING}", texts.plain.unwrap()),
+            1000,
+            false,
+        )
+        .unwrap();
+        assert!(matches!(single.find(&haystack), Ok(None)));
+    }
+
+    /// Boost's `probe_leading_repeat` walk, as the translator mirrors it.
+    #[test]
+    fn finds_leading_lazy_repeats() {
+        let leading =
+            |pattern: &str| match Translator::new(pattern, RegexOptions::default(), false).run() {
+                Ok(_) => false,
+                Err(Error::Unsupported(message)) => {
+                    assert!(
+                        message.contains(LEADING_LAZY_REPEAT),
+                        "{pattern:?}: {message}"
+                    );
+                    true
+                }
+                Err(error) => panic!("{pattern:?}: {error}"),
+            };
+        for pattern in [
+            r"a{1,3}?\b",
+            r"\ba{0,2}?",
+            "(?=x)(?<!y)^(?:(a{2,4}?))$",
+            "(?#c)()(?s)[ab]{1,3}?(?:x|y)",
+        ] {
+            assert!(leading(pattern), "{pattern:?}");
+        }
+        for pattern in [
+            r"a{1,2}?\b",
+            r"a{1,}?\b",
+            r"a{1,3}\b",
+            r"x|a{1,3}?\b",
+            r"(?:a{1,3}?|x)",
+            "(?i)a{1,3}?",
+            "(?:a{1,3}?)+",
+            "(?=x)?a{1,3}?",
+            r"a{1,3}?\b(a)\1",
+            "(?=a{1,3}?)",
+        ] {
+            assert!(!leading(pattern), "{pattern:?}");
+        }
     }
 
     #[test]

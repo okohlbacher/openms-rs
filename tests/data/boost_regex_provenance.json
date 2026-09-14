@@ -2,8 +2,8 @@
  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "license": "BSD-3-Clause",
- "method": "Executed differential against Boost.Regex. An oracle driver outside this repository (../oracle/boost-regex/driver.cpp) was compiled against the header-only Boost.Regex 1.92 and run over a deterministic corpus that ../oracle/boost-regex/gen.py derives from the pinned OpenMS checkout: every Boost.Regex expression the pinned library and class tests use, with source-derived, structured, adversarial (line separators \\n \\r \\r\\n \\f \\v, NUL, non-ASCII and invalid UTF-8 bytes, Arabic-Indic digits, empty inputs) and seeded random inputs, plus syntax probes, the probes of the independent review and of the work bounds (family ADV), and grammar-generated expressions. The driver uses OpenMS's call shapes: basic_regex construction with perl syntax and the icase/no_mod_s flags, regex_search and regex_match into an smatch, named sub-expression lookup, and sregex_token_iterator over sub-expression index lists. tests/boost_regex.rs compiles every pattern with the facade and requires the same compile outcome (a refusal where Boost refuses), the same mark count, and byte-identical output for every match, group span, named lookup and token. Which patterns Boost compiles but the facade refuses with Error::Unsupported, their categories and the number of compared cases are derived on the oracle side by ../oracle/boost-regex/refusals.py, which re-implements the refusal rules of docs/BOOST_REGEX_SUPPORT.md independently of the Rust translator and combines them with Boost's compile outcomes; the test asserts its output exactly (probe patterns outside FUZZ one by one, the whole corpus by category, and the compared-case count).",
- "evidence_tier": "Tier 1 (executed differential, Boost.Regex 1.92) for boost_differential_corpus_has_no_mismatch; tier 1 (Boost answers transcribed from the oracle output) for case_insensitive_ranges_follow_boost and negated_classes_are_complemented_together; tier 3 (transcribed class-test literals) for class_test_expressions; tier 4 (Rust-only invariants and bounds) for the limit, work-bound, error, iterator and robustness tests.",
+ "method": "Executed differential against Boost.Regex. An oracle driver outside this repository (../oracle/boost-regex/driver.cpp) was compiled against the header-only Boost.Regex 1.92 and run over a deterministic corpus that ../oracle/boost-regex/gen.py derives from the pinned OpenMS checkout: every Boost.Regex expression the pinned library and class tests use, with source-derived, structured, adversarial (line separators \\n \\r \\r\\n \\f \\v, NUL, non-ASCII and invalid UTF-8 bytes, Arabic-Indic digits, empty inputs) and seeded random inputs, plus syntax probes, the probes of both independent reviews and of the work bounds (family ADV), and grammar-generated expressions; the full corpus adds two systematic probe grids (families UNB and LEAD) around the refusals of repeats of groups that can match the empty string and of leading lazy repeats. The driver uses OpenMS's call shapes: basic_regex construction with perl syntax and the icase/no_mod_s flags, regex_search and regex_match into an smatch, named sub-expression lookup, and sregex_token_iterator over sub-expression index lists. tests/boost_regex.rs compiles every pattern with the facade and requires the same compile outcome (a refusal where Boost refuses), the same mark count, and byte-identical output for every match, group span, named lookup and token. Which patterns Boost compiles but the facade refuses with Error::Unsupported, their categories and the number of compared cases are derived on the oracle side by ../oracle/boost-regex/refusals.py, which re-implements the refusal rules of docs/BOOST_REGEX_SUPPORT.md independently of the Rust translator and combines them with Boost's compile outcomes; the test asserts its output exactly (probe patterns outside FUZZ one by one, the whole corpus by category, and the compared-case count).",
+ "evidence_tier": "Tier 1 (executed differential, Boost.Regex 1.92) for boost_differential_corpus_has_no_mismatch; tier 1 (Boost answers transcribed from the oracle output) for case_insensitive_ranges_follow_boost, negated_classes_are_complemented_together, nullable_group_repeats_are_refused_within_a_time_bound and leading_lazy_repeats_are_refused; tier 3 (transcribed class-test literals) for class_test_expressions; tier 4 (Rust-only invariants and bounds) for the limit, work-bound, error, iterator and robustness tests.",
  "sources": [
   {"path": "share/OpenMS/CHEMISTRY/Enzymes.xml", "sha256": "2f160f3ec32db6257cb4eee43fd594b48cb36398a17b7af21bbba76bc8b16995", "role": "Every protease RegEx (29 distinct expressions and \"()\"), run as EnzymaticDigestion::tokenize_ does"},
   {"path": "share/OpenMS/CHEMISTRY/Enzymes_RNA.xml", "sha256": "4c90a3630a1553ef7c75bae00f2731e2f5bb690f3ee9434d54cc3315a95fe899", "role": "Every CutsAfter/CutsBefore member (16 distinct plus the empty expression), run as RNaseDigestion's regex_search per nucleotide code"},
@@ -46,8 +46,8 @@
   {"path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.cpp", "sha256": "574563a585667efa35804d0c2ce46b6e88a7e701c7632c15cd247298332c1a8f", "role": "Caller-supplied accession and description filters, regex_search"}
  ],
  "fixtures": [
-  {"path": "tests/data/boost_regex_corpus.txt", "sha256": "22a65c88082d0a3e7bac1f5bb45046a590fa6e6231130172c6e14dccb92eb125", "role": "Corpus subsample generated by ../oracle/boost-regex/gen.py: 2,068 patterns (every pattern of the full corpus), input sets and runs, 197,058 corpus cases"},
-  {"path": "tests/data/boost_regex_boost.txt", "sha256": "41f78804657957d650e0c6331faca364f1893bb6d53025001f566cbcfb5fa424", "role": "Output of ../oracle/boost-regex/driver.cpp (Boost.Regex 1.92) for boost_regex_corpus.txt: 2,068 compile outcomes and 172,185 answers"}
+  {"path": "tests/data/boost_regex_corpus.txt", "sha256": "442a00274e947f36cddcfedab4e2fbd9a88e071a287263b06d76fcc44634a228", "role": "Corpus subsample generated by ../oracle/boost-regex/gen.py: 2,142 patterns (every pattern of the full corpus outside the UNB and LEAD probe grids), input sets and runs, 199,344 corpus cases"},
+  {"path": "tests/data/boost_regex_boost.txt", "sha256": "957736c3aeb887f891c50907e0757e81888ecec13be9f44d3ff95021589b736d", "role": "Output of ../oracle/boost-regex/driver.cpp (Boost.Regex 1.92) for boost_regex_corpus.txt: 2,142 compile outcomes and 174,471 answers"}
  ],
  "native_implementation": [
   "src/concept/boost_regex.rs"
@@ -75,6 +75,18 @@
    {
     "path": "boost/regex/v5/regex_token_iterator.hpp",
     "sha256": "a6bc9f797fd96320ce2dc4b8e19d8dc2c501f2897b43f5d137ef641a592faa96"
+   },
+   {
+    "path": "boost/regex/v5/basic_regex_creator.hpp",
+    "sha256": "3d20e2b6a4926088a283f02e1dfe7dada6dca8880547ad561ef88d8abc76da68"
+   },
+   {
+    "path": "boost/regex/v5/perl_matcher_non_recursive.hpp",
+    "sha256": "0323cfd2ab555681652d59cbd097e2567981f9100d904413edb819df91cfb66a"
+   },
+   {
+    "path": "boost/regex/v5/perl_matcher.hpp",
+    "sha256": "bf9144047d64377a64a44969c6a13fd25c0c9c353e940403ffe3efe28b02afa0"
    }
   ],
   "refusal_rules": "../oracle/boost-regex/refusals.py (python3): the documented refusal rules, applied to a corpus and Boost's output; prints EXPECTED_UNSUPPORTED, EXPECTED_REFUSALS, EXPECTED_CASES and the per-family counts",
@@ -82,21 +94,24 @@
  },
  "corpus": {
   "generator_seed": 20260913,
-  "patterns": 2068,
-  "boost_compiled_patterns": 1558,
-  "full_corpus_cases": 1983043,
-  "full_boost_answers": 1639737,
-  "full_compared_cases": 1402806,
-  "fixture_cases": 197058,
-  "fixture_boost_answers": 172185,
-  "fixture_compared_cases": 147209,
-  "facade_refusals": 347,
-  "facade_refused_probes_outside_fuzz": 146,
-  "fixture_bytes": 990331,
-  "subsampling": "The fixture keeps every pattern, every run except those marked full-only (extra operations on the same patterns), and every fixed input (edge, structured and source-derived); seeded random inputs are cut to a per-set prefix. gen.py writes both corpora in one deterministic pass; rerunning it in a scratch directory with a driver built there from driver.cpp reproduced both corpora and both Boost outputs byte for byte.",
-  "full_corpus_sha256": "e3ba4a381189f4a0a4f768c40ae718d777a90920f5adb6d37479cd3358996065",
-  "full_boost_output_sha256": "83925cdf9038384f5c437843322b956c70ac5d8ea10ddb0aa00291c2332d901f",
-  "full_corpus_result": "1,402,806 cases compared, 0 mismatches, 0 compile-outcome or mark-count differences; refusals.py and the facade agree on all 347 refusals and their categories"
+  "patterns": 2142,
+  "boost_compiled_patterns": 1632,
+  "full_corpus_patterns": 39690,
+  "full_boost_compiled_patterns": 39180,
+  "full_corpus_cases": 3742129,
+  "full_boost_answers": 3398823,
+  "full_compared_cases": 2185378,
+  "full_facade_refusals": 18255,
+  "fixture_cases": 199344,
+  "fixture_boost_answers": 174471,
+  "fixture_compared_cases": 147830,
+  "facade_refusals": 403,
+  "facade_refused_probes_outside_fuzz": 188,
+  "fixture_bytes": 1007508,
+  "subsampling": "The fixture keeps every pattern outside the UNB and LEAD probe grids (which gen.py registers last, so pattern numbers agree), every run except those marked full-only (extra operations on the same patterns, and every run of the grids), and every fixed input (edge, structured and source-derived); seeded random inputs are cut to a per-set prefix. gen.py writes both corpora in one deterministic pass; rerunning it in a scratch directory with a driver built there from driver.cpp reproduced both corpora and both Boost outputs byte for byte.",
+  "full_corpus_sha256": "1254ac22ac3646e8901dfd9e6a19112884a1220b8711bedb9cd1fa6dd2b1e522",
+  "full_boost_output_sha256": "a853fd08bdb4402c332bc97cb02b48f5a90df5b242ffb81a523fa2602ef27c7c",
+  "full_corpus_result": "2,185,378 cases compared, 0 mismatches, 0 compile-outcome or mark-count differences; refusals.py and the facade agree on all 18,255 refusals and their categories. A scratch build with MAX_AUTOMATON_ATOMS set to 0, which searches every pattern with the counted spelling, also compared 1,393,496 cases of the corpus before the ADVSIZE probes and the grids with 0 mismatches."
  },
  "external_reference_artifacts": [
   {
@@ -107,7 +122,7 @@
   },
   {
    "path": "../oracle/boost-regex/gen.py",
-   "sha256": "34210863f933dabb2252e7bfc8736abd6c267186c9fbc82a9a3e9106e0e4e717",
+   "sha256": "a0775bad4727381516e04553ce1b9642349d4f11018bcdd5c9af6881275b26a3",
    "location": "outside this repository",
    "origin_key": "fixtures"
   },
@@ -119,19 +134,19 @@
   },
   {
    "path": "../oracle/boost-regex/refusals.py",
-   "sha256": "50fdf455c96d6adb077370d643407774663926db5b6f94beb97d61a561fb9a53",
+   "sha256": "24eb5a8a115238c1c328a39166b94ae3cffadb81454cfabfdcbb41086b914b17",
    "location": "outside this repository",
    "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/boost-regex/corpus_full.txt",
-   "sha256": "e3ba4a381189f4a0a4f768c40ae718d777a90920f5adb6d37479cd3358996065",
+   "sha256": "1254ac22ac3646e8901dfd9e6a19112884a1220b8711bedb9cd1fa6dd2b1e522",
    "location": "outside this repository",
    "origin_key": "corpus"
   },
   {
    "path": "../oracle/boost-regex/boost_full.txt",
-   "sha256": "83925cdf9038384f5c437843322b956c70ac5d8ea10ddb0aa00291c2332d901f",
+   "sha256": "a853fd08bdb4402c332bc97cb02b48f5a90df5b242ffb81a523fa2602ef27c7c",
    "location": "outside this repository",
    "origin_key": "corpus"
   }

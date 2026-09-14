@@ -17,18 +17,19 @@
 //! facade: `../oracle/boost-regex/refusals.py` derives both from Boost's output and
 //! the refusal rules documented in `docs/BOOST_REGEX_SUPPORT.md`.
 //!
-//! The case-insensitive range and negated-class tests are tier 1 as well, with
-//! Boost's answers transcribed from the same oracle output. The class-test section
-//! is tier 3 (literals transcribed from the pinned class tests); the limit,
-//! work-bound, error and robustness sections are tier 4.
+//! The case-insensitive range, negated-class, nullable-repeat and leading-repeat
+//! tests are tier 1 as well, with Boost's answers transcribed from the same oracle
+//! output. The class-test section is tier 3 (literals transcribed from the pinned
+//! class tests); the limit, work-bound, error and robustness sections are tier 4.
 
 use openms::Error;
 use openms::concept::boost_regex::{
-    BACKTRACK_LIMIT_BYTES, BoostRegex, MAX_BACKTRACK_SCALE, MAX_GROUP_DEPTH, MAX_LOOKBEHIND_WIDTH,
-    MAX_PATTERN_BYTES, MAX_TRANSLATED_BYTES, RegexOptions, SubMatch,
+    BACKTRACK_LIMIT_BYTES, BoostRegex, MAX_AUTOMATON_ATOMS, MAX_BACKTRACK_SCALE, MAX_GROUP_DEPTH,
+    MAX_LOOKBEHIND_WIDTH, MAX_PATTERN_BYTES, MAX_TRANSLATED_BYTES, RegexOptions, SubMatch,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
+use std::ops::Range;
 use std::path::PathBuf;
 use std::sync::mpsc;
 use std::thread;
@@ -225,6 +226,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "((?=a))*"),
     ("-", "()*"),
     ("-", "()+"),
+    ("-", "()a{1,3}?\\b"),
     ("-", "(*ACCEPT)"),
     ("-", "(*FAIL)"),
     ("-", "(?!(?=a+))b"),
@@ -233,23 +235,37 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?!a*$)x"),
     ("-", "(?!a+b)a"),
     ("-", "(?!a{2})a"),
+    ("-", "(?!x)a{1,3}?\\b"),
+    ("-", "(?#c)a{1,3}?\\b"),
     ("-", "(?(1)a|b)"),
+    ("-", "(?-i)a{1,3}?\\b"),
+    ("-", "(?-s).{1,3}?\\b"),
     ("-", "(?:$)+"),
     ("-", "(?:$|a){2}"),
     ("-", "(?:(?:(?=a)(?=a)){999999999}){999999999}"),
     ("-", "(?:(?:(?=a)a{999999999}){999999999}){999999999}"),
     ("-", "(?:(?:\\bb{999999999}){999999999}){999}"),
+    ("-", "(?:(?:ab)?|a)*"),
     ("-", "(?:(?:a{0}(?=a)){99999}){99999}"),
     ("-", "(?:(?:a{0}\\b){999999999}){999999999}"),
     ("-", "(?:(?:a{999999999}){999999999}){999999999}"),
+    ("-", "(?:(?:a|b?)*?)+b"),
     ("-", "(?:(?=(a))|b)*"),
+    ("-", "(?:(?=a)(?=a))+b"),
     ("-", "(?:(?=a)(?=a)){99999999}"),
+    ("-", "(?:(?=a)|a)+?b"),
+    ("-", "(?:(?=a)|a){1,}"),
     ("-", "(?:(?=a)|a){2,3}"),
     ("-", "(?:(?=a)|a){2,}"),
     ("-", "(?:(?=a)|a){2}"),
     ("-", "(?:(?=a)|b){2}"),
+    ("-", "(?:(?=b)|a)+"),
+    ("-", "(?:)a{1,3}?\\b"),
+    ("-", "(?:.{0,9999})*?b"),
+    ("-", "(?:.{0,999})*?b"),
     ("-", "(?:\\B|a){2}"),
     ("-", "(?:\\b)*"),
+    ("-", "(?:\\b|a)+?b"),
     ("-", "(?:\\b|a){1,2}b"),
     ("-", "(?:\\b|a){2,}b"),
     ("-", "(?:\\b|a){2}b"),
@@ -257,19 +273,31 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?:^)*"),
     ("-", "(?:^|a){2,}b"),
     ("-", "(?:a*){2}b"),
+    ("-", "(?:a*?b?)*"),
     ("-", "(?:a?){0,2}"),
     ("-", "(?:a?){2}?b"),
     ("-", "(?:a?){2}b"),
     ("-", "(?:a?\\b){2}"),
+    ("-", "(?:a?b?)+?c"),
     ("-", "(?:ab){999999999}"),
     ("-", "(?:a{0}$){99999999}"),
+    ("-", "(?:a{0}\\b)*a"),
+    ("-", "(?:a{0}\\b)+a"),
     ("-", "(?:a{0}\\b){0,999999999}"),
     ("-", "(?:a{0}\\b){2}a"),
     ("-", "(?:a{0}\\b){999999999,}"),
     ("-", "(?:a{0}\\b){999999999}"),
     ("-", "(?:a|(?=b)){2}b"),
     ("-", "(?:a|){2}b"),
+    ("-", "(?:a|\\b)*"),
+    ("-", "(?:a|\\b){1,}"),
     ("-", "(?:a|\\b){2}b"),
+    ("-", "(?:b?|a)*"),
+    ("-", "(?:b?|a)*?"),
+    ("-", "(?:b?|a)+"),
+    ("-", "(?:b?|a){0,}"),
+    ("-", "(?:b?|a){1,}"),
+    ("-", "(?:x{0}$)+"),
     ("-", "(?:x{0}(?=a)){3}a"),
     ("-", "(?:|a){2}b"),
     ("-", "(?<!(?=.*b)){1000,}"),
@@ -292,14 +320,17 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?=(a))*?b"),
     ("-", "(?=(a)){0}"),
     ("-", "(?=(a)){2}"),
+    ("-", "(?=a)a{1,3}?\\b"),
     ("-", "(?>(?:ab)+)c"),
     ("-", "(?>a*$)b"),
     ("-", "(?>a*)b"),
     ("-", "(?>a+)b"),
     ("-", "(?>a?){2}"),
     ("-", "(?>a{2,})b"),
+    ("-", "(?>b?|a)*"),
     ("-", "(?i)*"),
     ("-", "(?i)+a"),
+    ("-", "(?s)a{1,3}?\\b"),
     ("-", "(?x)a b"),
     ("-", "(?|(a)|(b))"),
     ("-", "(a)(?(1)b|c)"),
@@ -315,13 +346,17 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(a?)\\1{0,999999999}"),
     ("-", "(a?)\\1{2}"),
     ("-", "(a\\1{2})"),
+    ("-", "(a{1,3}?)\\b"),
     ("-", "(a{999999999})\\1{999999999}"),
     ("-", "(a|)\\1{1,3}b"),
     ("-", "(|a)*"),
+    ("-", ".{1,3}?(?=b)"),
+    ("-", ".{3,5}?\\b"),
     ("-", "[[.a.]]"),
     ("-", "[[=a=]]"),
     ("-", "[\\0]"),
     ("-", "[\\y]"),
+    ("-", "[^b]{0,2}?b"),
     ("-", "[a-\\d]"),
     ("-", "[é]"),
     ("-", "\\0"),
@@ -342,6 +377,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "\\X41"),
     ("-", "\\Z"),
     ("-", "\\Z\\n?"),
+    ("-", "\\ba{1,3}?\\b"),
     ("-", "\\cA"),
     ("-", "\\cZ"),
     ("-", "\\ca"),
@@ -351,11 +387,13 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "\\p{L}"),
     ("-", "\\q"),
     ("-", "\\u"),
+    ("-", "\\w{3,5}?\\b"),
     ("-", "\\x80"),
     ("-", "\\xc3"),
     ("-", "\\xff"),
     ("-", "\\y"),
     ("-", "^\\Z"),
+    ("-", "^a{1,3}?\\b"),
     ("-", "a(?i)*"),
     ("-", "a*+"),
     ("-", "a++"),
@@ -363,21 +401,26 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "a\\Kb"),
     ("-", "a\\Z"),
     ("-", "a\\Z\\n"),
+    ("-", "a{0,2}?\\b"),
+    ("-", "a{1,3}?(?:\\b|x)"),
+    ("-", "a{1,3}?\\b"),
     ("-", "a{1000000000}"),
     ("-", "a{2}+"),
     ("-", "a٣"),
     ("-", "é"),
     ("-", "é+"),
+    ("i", "[ab]{3,5}?(?!a)"),
+    ("i", "a{1,3}?\\b"),
 ];
 
 /// Refusals over the whole corpus, fuzz family included, by the construct the
 /// facade names in its `Error::Unsupported` message; also from `refusals.py`.
 const EXPECTED_REFUSALS: &[(&str, usize)] = &[
-    (r"\G", 1),
-    (r"\K", 2),
-    (r"\Q...\E quoting", 4),
+    ("\\G", 1),
+    ("\\K", 2),
+    ("\\Q...\\E quoting", 4),
     (
-        r"\Z (Boost never tries it at a form feed when it starts the expression)",
+        "\\Z (Boost never tries it at a form feed when it starts the expression)",
         7,
     ),
     ("a backreference with more than one digit", 2),
@@ -395,12 +438,12 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
         "a counted repeat of a backreference that can match the empty string (Boost ends a repeat after an empty iteration)",
         10,
     ),
-    (
-        "a counted repeat of a group that can match the empty string (Boost ends a repeat after an empty iteration)",
-        43,
-    ),
     ("a group name outside [A-Za-z0-9_]", 1),
     ("a hexadecimal escape above 0x7F", 3),
+    (
+        "a lazy repeat with a finite maximum of a one-byte atom that starts the expression (Boost's leading-repeat optimization skips start positions)",
+        27,
+    ),
     ("a lookbehind wider than MAX_LOOKBEHIND_WIDTH bytes", 2),
     ("a named or relative backreference", 4),
     ("a named-character, line-ending or grapheme escape", 4),
@@ -414,12 +457,16 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
     ),
     (
         "a repeat of a group that can match the empty string and captures (Boost records a final empty iteration)",
-        29,
+        28,
     ),
     ("a repeat of a group that only asserts a position", 11),
     (
         "a repeat of a modifier group that switches case sensitivity (Boost undoes the switch when the empty repetition is abandoned)",
         3,
+    ),
+    (
+        "a repeat of more than one iteration of a group that can match the empty string (Boost ends a repeat after an empty iteration)",
+        73,
     ),
     (
         "a repeat whose shortest match is longer than MAX_REPEAT bytes",
@@ -437,9 +484,10 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
 
 /// Cases compared against Boost: the fixture's size, so a truncated fixture fails
 /// (`refusals.py`).
-const EXPECTED_CASES: usize = 147_209;
+const EXPECTED_CASES: usize = 147_830;
 
-const NULLABLE_COUNTED: &str = "a counted repeat of a group that can match the empty string (Boost ends a repeat after an empty iteration)";
+const NULLABLE_GROUP: &str = "a repeat of more than one iteration of a group that can match the empty string (Boost ends a repeat after an empty iteration)";
+const LEADING_LAZY: &str = "a lazy repeat with a finite maximum of a one-byte atom that starts the expression (Boost's leading-repeat optimization skips start positions)";
 const DISCARDED: &str = "a repeat inside an atomic group or a negative lookaround (the engine discards its work there without counting it)";
 const LONG_SHORTEST_MATCH: &str = "a repeat whose shortest match is longer than MAX_REPEAT bytes";
 
@@ -995,13 +1043,14 @@ fn limits_are_errors() {
     );
 
     // A case-insensitive letter translates to the 9 bytes `(?i:\x61)`, and the
-    // counted spelling adds 7 around the whole: the largest such pattern whose
-    // engine pattern fits MAX_TRANSLATED_BYTES compiles, one letter more does not.
+    // counted spelling adds 12 around the whole, `(?:` and `)(?=)(?=)`: the largest
+    // such pattern whose engine pattern fits MAX_TRANSLATED_BYTES compiles, one
+    // letter more does not.
     let icase = RegexOptions {
         icase: true,
         ..RegexOptions::default()
     };
-    let fitting = (MAX_TRANSLATED_BYTES - 7) / 9;
+    let fitting = (MAX_TRANSLATED_BYTES - 12) / 9;
     assert!(BoostRegex::with_options(&"a".repeat(fitting), icase).is_ok());
     let too_long = "a".repeat(fitting + 1);
     assert_eq!(
@@ -1078,13 +1127,15 @@ fn nested_repeat_bounds_do_not_overflow_the_engine() {
     assert_eq!(below.search(b"aaa").unwrap(), None);
 }
 
-/// The review's hang: a counted repeat of a group that can match the empty string
-/// ran every one of its empty iterations without spending the backtracking budget
-/// (`(?:a{0}\b){999999999}` took 16.9 s on one byte), and gave answers Boost does
-/// not, because Boost ends a repeat after an empty iteration. Each is refused at
-/// once, nested forms included.
+/// The first review's hang: a bounded repeat of a group that can match the empty
+/// string ran every one of its empty iterations without spending the backtracking
+/// budget (`(?:a{0}\b){999999999}` took 16.9 s on one byte), and gave answers Boost
+/// does not, because Boost ends a repeat after an empty iteration. The second review
+/// found that the unbounded forms differ from Boost as well: the engine fails an
+/// empty iteration and backtracks into the group's other alternatives, where Boost
+/// accepts it and leaves the repeat. Each is refused at once, nested forms included.
 #[test]
-fn nullable_counted_repeats_are_refused_within_a_time_bound() {
+fn nullable_group_repeats_are_refused_within_a_time_bound() {
     for pattern in [
         r"(?:a{0}\b){999999999}",
         r"(?:a{0}\b){999999999,}",
@@ -1099,21 +1150,51 @@ fn nullable_counted_repeats_are_refused_within_a_time_bound() {
         r"(?:\b|a){3}",
         "(?:^|a){2,}b",
         "(?:(?=a)|a){2,}",
+        // The second review: Boost gives 0..1 on "ba", 0..1 on "ba", 0..2 on "aba"
+        // and 0..2 on "abab", where the engine gave 0..2, 0..2, 0..3 and 0..4.
+        "(?:b?|a)*",
+        "(?:a*?b?)*",
+        "(?:(?:ab)?|a)*",
+        "(?:(?:a|b?)*?)+b",
+        "(?:b?|a)+",
+        "(?:b?|a){1,}",
+        "(?:b?|a)*?",
+        r"(?:a{0}\b)+a",
+        r"(?:\b|a)+?b",
+        "(?:(?=a)|a)+?b",
+        "(?:(?:(?:b?|a)*)*)*",
     ] {
         let category = within(60, pattern, move || {
             refused(pattern, BoostRegex::new(pattern))
         });
-        assert_eq!(category, NULLABLE_COUNTED, "{pattern:?}");
+        assert_eq!(category, NULLABLE_GROUP, "{pattern:?}");
     }
-    // Repeats the engine ends after an empty iteration too are compiled; over a
-    // long haystack each search answers or reports a limit, within the bound.
+    // At most one iteration, a group that cannot match empty, or a backreference,
+    // which matches the same text in every iteration: compiled, with Boost's
+    // answers (transcribed from the oracle output for the `ADV` family).
+    // (pattern, haystack, Boost's groups of the match)
+    type Case<'a> = (&'a str, &'a [u8], Option<Vec<Option<Range<usize>>>>);
+    let cases: &[Case] = &[
+        ("(?:b?|a)?", b"ba", Some(vec![Some(0..1)])),
+        ("(?:b|a)*", b"bab", Some(vec![Some(0..3)])),
+        (r"(a?)\1+", b"aba", Some(vec![Some(0..0), Some(0..0)])),
+        (r"(b?)\1*a", b"bab", Some(vec![Some(0..2), Some(0..1)])),
+    ];
+    for (pattern, haystack, expected) in cases {
+        let found = BoostRegex::new(pattern)
+            .unwrap()
+            .search(haystack)
+            .unwrap()
+            .map(|captures| {
+                (0..captures.len())
+                    .map(|group| captures.get(group))
+                    .collect()
+            });
+        assert_eq!(&found, expected, "{pattern:?} on {haystack:?}");
+    }
+    // Over a long haystack each of them answers or reports a limit, within the bound.
     let haystack: &'static [u8] = Box::leak(vec![b'a'; 16 * 1024].into_boxed_slice());
-    for pattern in [
-        r"(?:a{0}\b)+a",
-        r"(?:\b|a)+?b",
-        "(?:(?=a)|a)+?b",
-        "(?:a?)?b",
-    ] {
+    for pattern in ["(?:a?)?b", r"(a?)\1+b", "(?:b|a)+?c", r"(b?)\1*c"] {
         let outcome = within(120, pattern, move || {
             let regex = BoostRegex::new(pattern).unwrap();
             regex
@@ -1121,9 +1202,194 @@ fn nullable_counted_repeats_are_refused_within_a_time_bound() {
                 .map(|found| found.map(|captures| captures.range()))
         });
         assert!(
-            matches!(outcome, Ok(_) | Err(Error::InvalidValue(_))),
+            matches!(outcome, Ok(None) | Err(Error::InvalidValue(_))),
             "{pattern:?}: {outcome:?}"
         );
+    }
+}
+
+/// Boost marks a repeat of a one-byte atom as leading when only group starts and
+/// ends, flag groups that keep case sensitivity, `^ $ \b \B \< \> \A \z` and whole
+/// lookarounds precede it, in an expression without backreferences
+/// (`basic_regex_creator::probe_leading_repeat`). When a lazy leading repeat with a
+/// finite maximum extends, Boost records where it got to, and a failed start
+/// position resumes the search behind that point (`perl_matcher::unwind_*_repeat`,
+/// `match_prefix`), skipping start positions that match. The facade refuses such
+/// a repeat; the others are compiled and give Boost's answers (transcribed from the
+/// oracle output for the `ADV` family).
+#[test]
+fn leading_lazy_repeats_are_refused() {
+    let icase = RegexOptions {
+        icase: true,
+        ..RegexOptions::default()
+    };
+    let plain = RegexOptions::default();
+    // The second review's examples: Boost answers 3..4, 3..4, no match, no match and
+    // no match, where a search that tries every start position finds 1..4, 1..4,
+    // 1..6, 2..7 and 1..6.
+    for (options, pattern) in [
+        (plain, r"a{1,3}?\b"),
+        (plain, ".{1,3}?(?=b)"),
+        (plain, r".{3,5}?\b"),
+        (plain, r"\w{3,5}?\b"),
+        (icase, "[ab]{3,5}?(?!a)"),
+        (plain, r"a{0,2}?\b"),
+        (plain, r"^a{1,3}?\b"),
+        (plain, r"(?=a)(?!x)()(?:(a{1,3}?))(?#c)(?-i)\b"),
+        (icase, r"a{1,3}?\b"),
+        (plain, "[^b]{0,2}?b"),
+    ] {
+        let category = within(60, pattern, move || {
+            refused(pattern, BoostRegex::with_options(pattern, options))
+        });
+        assert_eq!(
+            category, LEADING_LAZY,
+            "{pattern:?} icase={}",
+            options.icase
+        );
+    }
+    // (options, pattern, haystack, Boost's match)
+    type Case<'a> = (RegexOptions, &'a str, &'a [u8], Option<Range<usize>>);
+    let cases: &[Case] = &[
+        // An alternation state in front of the repeat.
+        (plain, r"x|a{1,3}?\b", b"aaaa", Some(1..4)),
+        (plain, r"a{1,3}?\b|x", b"aaaa", Some(1..4)),
+        // A toggle_case state in front of it.
+        (plain, r"(?i)a{1,3}?\b", b"aaaa", Some(1..4)),
+        (plain, r"(?i:)a{1,3}?\b", b"aaaa", Some(1..4)),
+        (icase, r"(?-i)a{1,3}?\b", b"aaaa", Some(1..4)),
+        // A repeat state in front of it.
+        (plain, r"(?=x)?a{1,3}?\b", b"aaaa", Some(1..4)),
+        (plain, r"(?:a{1,3}?)+\b", b"aaaa", Some(0..4)),
+        // No room for two iterations above the minimum, or no maximum.
+        (plain, r"a{1,2}?\b", b"aaaa", Some(2..4)),
+        (plain, r"a{1,}?\b", b"aaaa", Some(0..4)),
+        // A backreference anywhere in the expression.
+        (plain, r"a{1,3}?\b(a)\1", b"aaaa", None),
+    ];
+    for &(options, pattern, haystack, ref expected) in cases {
+        let found = BoostRegex::with_options(pattern, options)
+            .unwrap_or_else(|error| panic!("{pattern:?}: {error}"))
+            .search(haystack)
+            .unwrap()
+            .map(|captures| captures.range());
+        assert_eq!(&found, expected, "{pattern:?} on {haystack:?}");
+    }
+}
+
+/// An expression that needs no backtracking was handed whole to an automaton,
+/// whose slowest mode does work proportional to the haystack length times the
+/// expression's atoms, which repeat bounds multiply: `\w{0,9999}b` took 8 s over
+/// 100 KB, where Boost reports `error_complexity` in 80 ms. Above
+/// `MAX_AUTOMATON_ATOMS`, divided by the budget's scale factor for a long haystack,
+/// the search runs on the backtracking machine and spends the budget.
+#[test]
+fn large_automata_spend_the_budget() {
+    // Boost's answer on a short haystack, from the oracle output.
+    let wide = BoostRegex::new(r"\w{0,9999}b").unwrap();
+    assert_eq!(
+        wide.search(b"aab").unwrap().map(|found| found.range()),
+        Some(0..3)
+    );
+    let mut haystack = vec![b'a'; 100_000];
+    haystack.push(b'c');
+    let haystack: &'static [u8] = Box::leak(haystack.into_boxed_slice());
+    match within(120, r"\w{0,9999}b", move || wide.search(haystack)) {
+        Err(Error::InvalidValue(message)) => assert!(
+            message.contains("exceeded the backtracking limit of 4000000 steps"),
+            "{message}"
+        ),
+        other => panic!("expected the backtracking limit, got {other:?}"),
+    }
+
+    // The limit behaviour at the first two tiers, with a budget of one step, which
+    // only a search on the backtracking machine can exceed. `\w{0,4095}b` has exactly
+    // MAX_AUTOMATON_ATOMS atoms; its match in `ab` followed by twenty `a` takes more
+    // than four steps to backtrack to, and the spaces that follow end every run.
+    let one_step = RegexOptions {
+        backtrack_limit: 1,
+        ..RegexOptions::default()
+    };
+    let at_limit = format!(r"\w{{0,{}}}b", MAX_AUTOMATON_ATOMS - 1);
+    let above_limit = format!(r"\w{{0,{MAX_AUTOMATON_ATOMS}}}b");
+    let text = |length: usize| {
+        let mut text = b"ab".to_vec();
+        text.extend(std::iter::repeat_n(b'a', 20));
+        text.resize(length, b' ');
+        text
+    };
+    let at_limit = BoostRegex::with_options(&at_limit, one_step).unwrap();
+    assert_eq!(
+        at_limit
+            .search(&text(BACKTRACK_LIMIT_BYTES))
+            .unwrap()
+            .map(|found| found.range()),
+        Some(0..2)
+    );
+    for (regex, length, limit) in [
+        (&at_limit, BACKTRACK_LIMIT_BYTES + 1, 4),
+        (
+            &BoostRegex::with_options(&above_limit, one_step).unwrap(),
+            64,
+            1,
+        ),
+    ] {
+        match regex.search(&text(length)) {
+            Err(Error::InvalidValue(message)) => assert!(
+                message.contains(&format!("exceeded the backtracking limit of {limit} steps")),
+                "{length} bytes: {message}"
+            ),
+            other => panic!("{length} bytes: expected the backtracking limit, got {other:?}"),
+        }
+    }
+}
+
+/// The counted spelling ends in `(?=)(?=)` so that `fancy-regex` runs the expression
+/// on its backtracking machine: one trailing `(?=)` is removed by the engine's
+/// `optimize_trailing_lookahead`, after which a trailing run that needs no
+/// backtracking, or a whole expression that needs none, is handed to an automaton
+/// that spends no budget. Were a crate update to undo this, these searches would
+/// answer (slowly) instead of stopping with the budget error.
+#[test]
+fn forced_backtracking_spends_the_budget() {
+    let upper: &'static [u8] = Box::leak(vec![b'A'; 64 * 1024].into_boxed_slice());
+    for pattern in ["(?=A).*B", ".{0,5000}B", "(?:A|B){0,4096}C"] {
+        let outcome = within(120, pattern, move || {
+            BoostRegex::new(pattern).unwrap().search(upper)
+        });
+        match outcome {
+            Err(Error::InvalidValue(message)) => assert!(
+                message.contains("exceeded the backtracking limit of 1000000 steps"),
+                "{pattern:?}: {message}"
+            ),
+            other => panic!("{pattern:?}: expected the backtracking limit, got {other:?}"),
+        }
+    }
+}
+
+/// The engine's positive lookaheads are not atomic: when what follows fails, it
+/// backtracks into the lookahead's body, which Boost never does. A body with
+/// ambiguous repeats then exhausts the budget on a short haystack where Boost
+/// answers at once (no match for each of these); the search still ends within the
+/// bound, with Boost's answer or the budget error.
+#[test]
+fn lookahead_bodies_backtrack_within_the_budget() {
+    for (pattern, haystack) in [
+        ("(?=(?:a|aa)*)b", format!("{}c", "a".repeat(60))),
+        ("(?=a*a*a*)b", format!("{}c", "a".repeat(300))),
+        ("(?=.*a).*b", "a".repeat(4000)),
+        ("(?=[A-Z]*K)[A-Z]+R", "A".repeat(12_000)),
+    ] {
+        let outcome = within(120, pattern, move || {
+            BoostRegex::new(pattern)
+                .unwrap()
+                .search(haystack.as_bytes())
+        });
+        match outcome {
+            Ok(None) => {}
+            Err(Error::InvalidValue(message)) if message.contains("backtracking limit") => {}
+            other => panic!("{pattern:?}: {other:?}"),
+        }
     }
 }
 
