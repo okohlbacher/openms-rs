@@ -277,8 +277,10 @@ structured `PeakInfo`, `FeatureInfo`, ranges and processing steps checked
 against the executed reports.
 
 Feature lines: `tests/file_info.rs` gates mzML cases on `mzml` and featureXML
-cases on `featurexml`; it runs with `--no-default-features` (19 tests), with
-`mzml,featurexml` (58 tests, 5 ignored) and with `--all-features` (59 tests).
+cases on `featurexml`; it runs with `--no-default-features` (22 tests), with
+`mzml` (47 tests, 5 ignored), with `featurexml` (38 tests), with
+`mzml,featurexml` (63 tests, 5 ignored) and with `--all-features` (64 tests,
+5 ignored).
 
 ## Class-test section accounting
 
