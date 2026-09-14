@@ -710,11 +710,23 @@ fn write_commands<T: Tool>(
 ///   `XMLHandler::fatalError` asks `FileHandler::getTypeByContent` for a
 ///   file-type hint, whose `TextFile` load throws `FileNotReadable`
 ///   (`XMLHandler.cpp:49-50`, `FileHandler.cpp:402`, `TextFile.cpp:40-43`)
-///   before the `ParseError` is raised.
+///   before the `ParseError` is raised. A regular file or a directory is
+///   asked with `file::readable` before the load. Anything else, such as a
+///   character device or a FIFO, is not asked, because that query answers
+///   `false` for such a file without opening it; the load opens it instead,
+///   and only a denied open takes this row, as for a FIFO with mode 000
+///   (oracle `ini_fifo_denied` and `write_ini_ini_fifo_denied`).
 /// * A readable directory, malformed XML and any other read failure of an
 ///   existing file are [`ExitCode::InputFileCorrupt`], the source's
 ///   `ParseError` (`460-465`). For a directory the diagnostic is the source's
-///   without the file-type hint that `XMLHandler::fatalError` appends.
+///   without the file-type hint that `XMLHandler::fatalError` appends. The
+///   character device `/dev/null` is readable and reads as an empty document,
+///   so it is a `ParseError` here as in the source (oracle `ini_dev_null` and
+///   `write_ini_ini_dev_null`).
+///
+/// A FIFO this process can open is read like a file: opening it waits for a
+/// writer, as the C++ tool does, so with no writer the load blocks and no exit
+/// code is reached.
 ///
 /// The same mapping applies when the file changes between these checks and the
 /// load. Failures other than I/O and parsing, such as a document beyond the
@@ -728,11 +740,15 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
         writeln!(err, "{not_found}")?;
         return Ok(Err(ExitCode::InputFileNotFound));
     }
-    if !file::readable(path) {
+    // `file::readable` refuses a device or a FIFO without opening it, which
+    // would report a readable `/dev/null` as unreadable; those are left to the
+    // load, whose open failure is mapped below.
+    let directory = file::is_directory(path);
+    if (directory || std::path::Path::new(path).is_file()) && !file::readable(path) {
         writeln!(err, "{not_readable}")?;
         return Ok(Err(ExitCode::InputFileNotReadable));
     }
-    if file::is_directory(path) {
+    if directory {
         writeln!(
             err,
             "Error: Unable to read file (While loading '{path}': unable to read data from file)"

@@ -6,8 +6,8 @@
   "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
  },
  "scope": "The TOPPBase lifecycle of the independently versioned OpenMS4-cli package: command-line parse closure, INI merge and strict update, write commands, file checks, phase-aware exit codes and the run services (progress log type, thread policy, test-mode unique-id seed, processing annotations). Package CLI-1 (C4-CLI-SPEC plus integrator step W1.4). Deliberately not resolved against the Core SDK checkout, except for the Param::update and StringUtils wording the lifecycle reproduces.",
- "method": "TOPPBase.cpp read at the cli pin with git show; generic cases executed against the C++ product SDK binaries DTAExtractor and SpectraFilterWindowMower by ../oracle/topp-cli-lifecycle/run.sh in a clean environment (env -i, per-case HOME and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH=<sdk>/share/OpenMS/4.0.0); the Rust suite asserts each case's exit code and a diagnostic line, and compares the subsection-override output canonically with the C++ output. The INI read failures (an unreadable file and a directory, before a run and with -write_ini) were executed the same way by ../oracle/topp-cli-lifecycle/ini_read_failures.sh. TOPPBase_test.cpp sections that apply to the native API are transcribed with their literals.",
- "evidence_tier": "oracle-generated (tier 1 executed differential) for the tool cases, including the INI read failures of ini_read_failures/manifest.json; source review (tier 3) for the transcribed TOPPBase_test.cpp sections; Rust-only (tier 4) for run_io routing, the run-phase mapping of every Error variant, the registration failure, the argument bound and the order of trailing-text chunks. docs/TOPP_CLI_SUPPORT.md labels every exit-code row with its asserting test and tier.",
+ "method": "TOPPBase.cpp read at the cli pin with git show; generic cases executed against the C++ product SDK binaries DTAExtractor and SpectraFilterWindowMower by ../oracle/topp-cli-lifecycle/run.sh in a clean environment (env -i, per-case HOME and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH=<sdk>/share/OpenMS/4.0.0); the Rust suite asserts each case's exit code and a diagnostic line, and compares the subsection-override output canonically with the C++ output. The INI read failures (an unreadable file, a directory, the character device /dev/null and a FIFO with mode 000, before a run and with -write_ini) were executed the same way by ../oracle/topp-cli-lifecycle/ini_read_failures.sh. A FIFO this user can open is not an oracle case: with no writer the C++ tool blocks opening it. TOPPBase_test.cpp sections that apply to the native API are transcribed with their literals.",
+ "evidence_tier": "oracle-generated (tier 1 executed differential) for the tool cases, including the INI read failures of ini_read_failures/manifest.json; source review (tier 3) for the transcribed TOPPBase_test.cpp sections; Rust-only (tier 4) for run_io routing, the run-phase mapping of every Error variant, the registration failure, the argument bound, the order of trailing-text chunks and a FIFO as -ini read once a writer opens it. docs/TOPP_CLI_SUPPORT.md labels every exit-code row with its asserting test and tier.",
  "oracle": {
   "product_sdk": "/Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/product-sdk",
   "source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
@@ -44,12 +44,12 @@
   },
   {
    "path": "../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json",
-   "sha256": "da8225d57718950954d273e6b35c44f26bef7ce8887d7c8c99b7c8a7eaa28cf8",
-   "role": "6 executed INI read-failure cases on the same binaries: a tool-written INI, a readable control run, that INI unreadable before a run and with -write_ini (exit 2), and a directory as -ini on both paths (exit 3)"
+   "sha256": "77ab0db36ebeeedd3eac202f987fc1190651d4312b6366fdaed51afdc12218b3",
+   "role": "10 executed INI read-failure cases on the same binaries: a tool-written INI, a readable control run, that INI unreadable before a run and with -write_ini (exit 2), a directory as -ini on both paths (exit 3), the character device /dev/null as -ini on both paths (exit 3) and a FIFO with mode 000 as -ini on both paths (exit 2)"
   },
   {
    "path": "../oracle/topp-cli-lifecycle/ini_read_failures.sh",
-   "sha256": "360e4c5fcc662dcfa5fc9ace07edf1eb6967a49acbe6e199f6db0923255db11b",
+   "sha256": "9611f25181937cf4c411c272679c2a80d6b6498028253b79c5463ebab71c8bab",
    "role": "driver and manifest generator for the INI read-failure cases"
   }
  ],
@@ -80,6 +80,12 @@
    "revision": "core bc9cc12",
    "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
    "used_for": "toInt32 and toDouble conversion rules and messages (136-276)"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/SYSTEM/File.cpp",
+   "revision": "core bc9cc12",
+   "sha256": "1670f67c6c86a1026d12f2ceb78fcaf06d23b4181e81b8b76aaf91506d54b2e6",
+   "used_for": "File::exists is std::filesystem::exists (159-162), true for the character device /dev/null and for a FIFO, so an INI load of either reaches xerces; File::readable asks access(R_OK) (506-514), false for a FIFO with mode 000"
   },
   {
    "path": ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/XMLFile.cpp",
