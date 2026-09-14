@@ -23,7 +23,7 @@ x86_64); "1.96" is current stable and "1.85" the minimum Rust.
 | crate/mt64 | `1d0e9c8` (`f913cf5`) | Tier 1: Boost.Random `mt19937_64` and `uniform_int` plus libc++ `std::mt19937_64`, 19,649 output lines byte-identical | nine targets 159 passed on 1.96 and 1.85; `--lib` 274; 1.85 `--no-default-features` targets 83; clippy `--all-targets` and rustdoc exit 0 |
 | crate/existing-crates | `be2bb15` (`db19767`) | Tier 4: integer and byte code only; 14,141,319 reference names, 655,360,000 calendar combinations and 9M URLs compared with the replaced code | nextest `--all-features --lib --tests` 4443/4443 on 1.96 and 1.85; clippy `--lib --tests` exit 0 (also no-default and `network`); rustdoc exit 0; doctests 55+2 on 1.96 and 57 on 1.85; 1.85 slices no-default, `idxml`, `featurexml,consensusxml` and `network` passed |
 | C3-FUZZY | `30d82db` (`72650a5`) | Tier 1: 137 comparator cases against product-SDK `libOpenMSTestFramework.a` (one documented hexadecimal divergence) and FuzzyDiff runs; class-test literals tier 3 | `--test fuzzy_string_comparator` 33 passed, 1 ignored on 1.96 and 1.85; `--no-default-features` 30 passed, 1 ignored on both; `-- --ignored` 1 passed; clippy `--lib --tests` and `--all-targets` exit 0; fmt and rustdoc exit 0 |
-| A3-FORMAT-IO | `ff44438` (`c8b0141`) | Tier 1: `../oracle/a3-format-io`, re-executed byte for byte; class-test literals and DTA2D/DTA/MGF routing tier 3; round trips tier 4 | full `--all-features --no-fail-fast` 4514 passed on 1.96; on 1.85 4513 passed and 1 failed (`ms_data_writing_consumer`, a fixed temporary path; 28/28 in three reruns); `--no-default-features --features mzml` 19 on both; `mzml,featurexml` 8 on both; clippy `--all-targets` and rustdoc clean |
+| A3-FORMAT-IO | `ff44438` (`c8b0141`) | Tier 1: `../oracle/a3-format-io`, re-executed byte for byte; class-test literals and DTA2D/DTA/MGF routing tier 3; round trips tier 4 | full `--all-features --no-fail-fast` 4514 passed on 1.96; on 1.85 4513 passed and 1 failed (`ms_data_writing_consumer`: concurrent runs raced on a fixed temporary path; reproduced and fixed, see below; 28/28 in three reruns); `--no-default-features --features mzml` 19 on both; `mzml,featurexml` 8 on both; clippy `--all-targets` and rustdoc clean |
 | B1-HELPERS | `1bd8686` (`09575c3`) | Tier 1 for the 13 computational members (164 oracle rows, bitwise); tier 4 for the accessors | `--test feature_finder_picked_helper_structs` 26 passed on 1.96 (default, no-default and all features) and 1.85 (default and no-default); clippy `--all-targets`, rustdoc and fmt exit 0 |
 | A1-PTE-FAIMS | `cd7b83e` (`3d88650`) | Tier 1: `../oracle/pte-faims-helper` (4024 estimator, 1503 voltage and 1500 filter rows); class-test literals tier 3 | `--all-features --test peak_type_estimator --test faims_helper` 10 and 13 passed (1 ignored) on 1.96 and 1.85; `--no-default-features` 8 and 12 on both; clippy `--all-targets` and rustdoc exit 0; doctests 2 on both; the CI command `--all-features --all-targets` 4460 passed, 1 ignored |
 | B2-ISO-GEOM | `799f610` (`3982561`) | Tier 1: `../oracle/b2-iso-source-precision` and 200 repeated runs in `../oracle/b2-iso-element-order` (the verifier added 400 more); class-test literals tier 3; work counts tier 4 | `--all-features` lib and 24 targets 645 passed on 1.96 and 1.85; `--no-default-features --test isotopes_source_precision --test geometry_bounding_box` 16 and 6 on both; clippy `--all-targets` and rustdoc exit 0; full 1.96 suite 4517 passed |
@@ -37,6 +37,37 @@ ratchet (concept to chemistry removed, cli to concept and cli to metadata
 added), `SOURCE_PROVENANCE.json`, the minimum-Rust CI job, `LICENSES.md` and
 CPP-230 to CPP-252. The open follow-ups are listed in
 [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-1-status).
+
+### The ms_data_writing_consumer failure under 1.85
+
+The A3 verifier's one failure was `the_filename_constructor_creates_and_truncates`,
+which panicked at `tests/ms_data_writing_consumer.rs:377:36` with `Io(NotFound)`
+from `mzml::load`, right after a successful `finish()`. The cause is a race in
+the test, not the toolchain and not the writer:
+- The test wrote to the fixed directory
+  `std::env::temp_dir()/openms_ms_data_writing_consumer_file` and removed it at
+  the end.
+- `TMPDIR` is unset on kim, so every agent slot shares `/tmp`.
+- A concurrent run of the same binary could remove `out.mzML` between
+  `finish()` and `load()`. `MSDataWritingConsumer::create` opens the path with
+  `File::create`, so writing through the open handle still succeeds and only
+  `load` fails.
+
+Reproduced on kim, 50 runs or rounds per mode. Each campaign used its own
+`TMPDIR` under `/tmp`, so no other agent's run could disturb it or be disturbed.
+
+| Binary | Sequential, default threads | Sequential, `--test-threads=1` | 8 concurrent processes, whole binary | 8 concurrent processes, this test only |
+|---|---|---|---|---|
+| 1.85.0, before | 50/50 passed | 50/50 passed | 311 of 400 failed | 298 of 400 failed |
+| 1.96.0, before | 50/50 passed | 50/50 passed | 307 of 400 failed | 297 of 400 failed |
+| 1.85.0, after | 50/50 passed | 50/50 passed | 400/400 passed | 400/400 passed |
+| 1.96.0, after | 50/50 passed | 50/50 passed | 400/400 passed | 400/400 passed |
+
+All 1,213 failures before the fix carry the verifier's signature (`377:36`,
+`NotFound`). The fix gives the test its own directory through the crate's port
+of `File::TempDir`, `TempDir::new_in(std::env::temp_dir(), false)`, as
+`tests/indexed_mzml.rs` already does. `+1.85.0 test --locked --all-features
+--test ms_data_writing_consumer` passes 28/28.
 
 ### Integration gates
 

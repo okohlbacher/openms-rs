@@ -187,15 +187,126 @@ that no TOPP binary runs, and records the driver build recipe.
 - **FileInfo.h evidence.** The header moved from `unmapped` to
   `evidence_requires_review` only because the A1 and A3 manifests cite
   `FileInfo.cpp` as a consumer. Nothing of FileInfo is ported; A4 owns it.
+  A3's citation is gone: `tests/data/mzml_mobility_provenance.json` no longer
+  lists `FileInfo.cpp` in `source_files`, and its method text names
+  `FileInfo.cpp:1080-1084` as context only. The header stays
+  `evidence_requires_review` through A1's two anchors until the final merge
+  (below).
 - **Fixture ownership.** `tests/data/peak_type_estimator/` and
   `tests/data/faims_helper/` are A1-owned; A3, A6 and B8 reuse
   `tests/data/faims_helper/IM_FAIMS_test.mzML` instead of copying it.
   `tests/data/feature_finder_picked_helper_structs_oracle.tsv` is accepted as
   B1-owned test data.
-- **At the final merge:** register A1's and CLI-1's oracle artifacts in
-  `SOURCE_PROVENANCE.json`, and move
-  `tests/data/topp_cli_lifecycle/topp_cli_lifecycle_provenance.json` to
-  `tests/data/`, because the follow-ups still in flight change those files.
+- **At the final merge (lead):**
+  - Register A1's and CLI-1's oracle artifacts in `SOURCE_PROVENANCE.json`, and
+    move `tests/data/topp_cli_lifecycle/topp_cli_lifecycle_provenance.json` to
+    `tests/data/`, because the follow-ups still in flight change those files.
+  - Respell A1's two `FileInfo.cpp` anchors as `context_sources`:
+    `source_anchors[9]` (line 1673) in `tests/data/faims_helper_provenance.json`
+    and `source_anchors[11]` (line 1599) in
+    `tests/data/peak_type_estimator_provenance.json`. Drop the `src/openms/`
+    prefix from the path, as B1's `context_sources` do
+    (`FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp`):
+    `tools/core_sdk_coverage.py` counts every manifest string that starts with
+    `src/openms/`, whatever its key. Then `core_sdk_coverage.py --write` must
+    change only `FileInfo.h`, back to `unmapped` (`unmapped` +1,
+    `evidence_requires_review` -1).
+
+**Verifier notes carried forward.** Findings of the wave-1 verifiers that no
+follow-up in flight covers, each with its file and owner.
+- **Open for the lead: selected-ion drift time (A3 request 5).** C++ copies a
+  selected ion's drift time onto the spectrum (`MzMLFile_test.cpp:418-421`, the
+  a3-format-io oracle). On an MS2 spectrum with a scan-level FAIMS voltage it
+  replaces that voltage (`MzMLHandler.cpp:1871-1875`). The reader in
+  `src/format/mzml.rs` does neither, and `tests/precursor_workflow.rs:157` and
+  `:188` assert the unpropagated round trip, so adopting the source flips them.
+  Either way, add the MS2 case to native difference 1 in
+  `docs/MZML_MOBILITY_SUPPORT.md`.
+- **A3, `src/format/mzml.rs`:**
+  - A scan-level non-FAIMS mobility value of `-1` loads, but the writer
+    preflight (line 2714) refuses the spectrum it produced; C++ writes nothing
+    for it (`MzMLHandler.cpp:5418`). Refuse it on read, read it as unset, or
+    document it in native difference 6.
+  - A mobility value with leading whitespace (`" -35"`) is a parse error; C++
+    loads it.
+- **A3, `src/format/file_handler.rs`:**
+  - `get_type` returns an I/O error for a directory without a recognised
+    extension; C++ returns `UNKNOWN`.
+  - `load_experiment_with_options` opens the file before `check_allowed`, so a
+    missing file with a known but disallowed extension gives an I/O error
+    instead of the disallowed-type error (`FileHandler.cpp:855-863`).
+- **A3, `docs/MZML_MOBILITY_SUPPORT.md`:** native difference 7 should say that a
+  file whose first five lines exceed 64 KiB can be reported `Unknown`.
+- **A3, `tests/file_handler_type_detection.rs`:** the nine `getType` literals of
+  `FileHandler_test.cpp:135-167` are not ported, and the support doc has no
+  START_SECTION table for `FileHandler_test` and `MzMLFile_test`.
+- **A3, `tests/mzml_mobility.rs` and `tests/file_handler_type_detection.rs`:**
+  the duplicated `hex()` helper returns 0 for a subnormal `%a` value, because
+  its single `2^(exponent - 4 * digits)` scale underflows. No current oracle
+  value is subnormal.
+- **C3, `tests/support/decoded_compare.rs`:** `Walk::debug_text` compares
+  strings inside nested metadata (identifications, settings, source files, CV
+  terms) under the FuzzyDiff number and whitespace rules, while
+  `docs/FUZZY_STRING_COMPARATOR_SUPPORT.md:213` and the provenance say strings
+  must agree.
+- **C3, `tests/support/fuzzy_string_comparator.rs`:**
+  - Only `tok_hex_vs_decimal` is documented as a token divergence. Hex floats
+    are a whole class (`0X1P-2`); a signed or `+`-prefixed `nan(...)` with
+    characters outside `[A-Za-z0-9_]` is consumed to a different length; and
+    accepting underflow to zero is not the `std::from_chars` contract, which
+    libstdc++ rejects.
+  - An INI value that fails conversion exits 6; TOPPBase stores 0 and applies
+    only the range check.
+  - `from_ini` and `load_ini` accept content that is not ParamXML and return the
+    defaults; C++ FuzzyDiff exits 3.
+  - The `fuzzy_diff` rustdoc promises the C++ exit code, but two directory
+    inputs exit 10 where C++ exits 0.
+- **crate/quantile, `src/math/multiple_testing.rs` and
+  `docs/MULTIPLE_TESTING_SUPPORT.md`:**
+  - F2: the `TOLERANCE` doc (line 1121) says the replaced Acklam code missed by
+    up to 2.5 million epsilons at `f64::MIN_POSITIVE`; the largest miss was
+    about 5 million, at `p = 1 - 1e-13`.
+  - F3: the Accuracy rustdoc (line 748), "Machines" and the `determinism` text
+    in `tests/data/math_kde_provenance.json` say machines differ by one or two
+    units in the last place; up to 3 were measured. The replaced code was not
+    identical across machines either, and only `ln`, not `sqrt`, comes from the
+    platform.
+  - F4: "Limits" says the port returns `+inf` at `eps <= 2^-54`; that is the
+    quantile, while `lfdr` returns `Error::InvalidValue`. Boost's `domain_error`
+    for NaN, `p < 0` and `p > 1` is not mapped to the port's results.
+- **crate/mt64, `docs/DECOY_REFERENCE_REVIEW.md`, `src/chemistry/decoy_random.rs`
+  and `tests/data/decoy_provenance.json` (F2):**
+  - "lengths 0 to 1,000" (review line 54) was 12 fixed lengths: 0, 1, 2, 3, 5,
+    11, 13, 20, 31, 64, 200 and 1000.
+  - The equality argument (rustdoc line 31, provenance `normalization`) covers
+    only seeded states compared with seeded states.
+  - "Engine in the state of `boost::mt19937_64(seed)`" (rustdoc line 38) should
+    say output-equivalent.
+- **crate/existing-crates:**
+  - F1, `docs/IDXML_SUPPORT.md:67`: attribute values are not resolved by
+    `resolve_char_ref`/`resolve_xml_entity` but by `escape::unescape`
+    (`identification_xml.rs:474`). It shares the `CharRef` parser, but an
+    undeclared entity there is `Error::Parse`, not `Error::Unsupported`.
+  - F2, `docs/NETWORK_GET_REQUEST_SUPPORT.md:174`: `http://:[::1]:80/` cannot
+    come from the fuzz generator, whose alphabet has no `8` or `0`; use a
+    measured example such as `HTTPS://:[]:.`.
+- **CLI-1, `src/param` and `src/cli.rs` (request 7):** align the
+  `ParamUpdateReport` messages and `ParamEntry::validation_error` with
+  `Param.cpp:56-166` and `1216-1374`, then delete `update_diagnostics`
+  (`src/cli.rs:891`), which rebuilds the source wording.
+- **CLI-1, `src/cli/context.rs` and `src/system/update_check.rs` (request 8):**
+  `to_int32` is ported twice (`update_check.rs:219`, `context.rs:461`, with
+  `to_double` at 515); one shared `StringUtils::toInt32`/`toDouble` port removes
+  the duplicate.
+- **Integration, `tests/ms_data_writing_consumer.rs` (the 1.85 failure A3's
+  verifier saw): fixed.** Concurrent runs raced on a fixed `/tmp` directory;
+  neither the toolchain nor the writer was at fault. The test now uses its own
+  `TempDir`; the reproduction is in [VALIDATION](VALIDATION.md). **Open, for
+  the owners of those ports:** the same fixed-name pattern, which two
+  overlapping runs can break the same way, remains in
+  `tests/mascot_generic.rs:293` and `:1537`, `tests/sv_out_stream.rs:434`,
+  `tests/mztab_m.rs:958`, `:2425` and `:2531`, and the doctests at
+  `src/format/imzml_file.rs:580` and `src/format/imzml_writer.rs:890`.
 
 **Still in flight:** the Boost.Regex facade (`crate/regex-facade`) and A2, both
 in a fix round; follow-up commits on A1 (the infinite-target FAIMS contract),

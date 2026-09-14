@@ -25,6 +25,7 @@ use openms::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D,
 };
 use openms::metadata::{DataProcessing, ExperimentalSettings, ProcessingAction, SourceFile};
+use openms::system::file::TempDir;
 use std::sync::Arc;
 
 fn spectrum(native_id: &str, rt: f64, mz: f64) -> MSSpectrum {
@@ -363,9 +364,11 @@ fn a_chromatogram_closes_an_open_spectrum_list() {
 // ---------------------------------------------------------------------------
 #[test]
 fn the_filename_constructor_creates_and_truncates() {
-    let dir = std::env::temp_dir().join("openms_ms_data_writing_consumer_file");
-    std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("out.mzML");
+    // A directory of its own. Under a fixed name in the shared temporary
+    // directory, a concurrent run of this binary removed the file between
+    // `finish` and `load`.
+    let dir = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let path = dir.path().join("out.mzML");
     std::fs::write(&path, b"stale contents that must not survive").unwrap();
 
     let mut consumer = PlainMSDataWritingConsumer::create_plain(&path).unwrap();
@@ -378,10 +381,10 @@ fn the_filename_constructor_creates_and_truncates() {
     assert_eq!(loaded.spectra.len(), 1);
     assert_eq!(loaded.spectra[0].native_id, "scan=1");
 
-    let error = MSDataWritingConsumer::create(dir.join("missing").join("out.mzML"), PlainProcessor)
-        .unwrap_err();
+    let error =
+        MSDataWritingConsumer::create(dir.path().join("missing").join("out.mzML"), PlainProcessor)
+            .unwrap_err();
     assert!(matches!(error, Error::Io(_)), "{error}");
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 // ---------------------------------------------------------------------------

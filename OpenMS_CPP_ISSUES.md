@@ -4059,7 +4059,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Status:** Executed.
 
-**Affected file/function:** `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:805`, `compareStreams`; the raise at 680 in `compareLines_`.
+**Affected file/function:** `src/testframework/source/CONCEPT/FuzzyStringComparator.cpp:805`, `compareStreams`; the raise at 678 in `compareLines_`.
 
 **Trigger:** One instance compares `1` against `1.5`, which fails, then `1` against `1.2` with a relative tolerance of 1.01 and an absolute tolerance of 0.
 
@@ -4221,13 +4221,15 @@ implementation. They do not count as completed Rust functionality.
 
 **Status:** Source-reviewed fixture defect.
 
-**Affected files:** `topp/FAIMS_CV-60C_V-45_Interleaved.mzML:324` and 364; `topp/FAIMS_test_data.mzML:171` and 213.
+**Affected files:**
+- `topp/FAIMS_CV-60C_V-45_Interleaved.mzML`, lines 324, 364, 404, 444, 484, 524, 564, 604, 644, 684, 724 and 764: all 12 `MS:1001581` cvParams in the file, which has 12 spectra.
+- `topp/FAIMS_test_data.mzML`, lines 171 and 213: both `MS:1001581` cvParams in the file, which has 2 spectra.
 
-**Issue:** The `unitAccession` is `UO:000218`, one digit short. The volt term is `UO:0000218`, which the pinned writer emits. A reader that checks unit accessions rejects or ignores the unit.
+**Issue:** Every FAIMS compensation voltage cvParam in both files spells the `unitAccession` `UO:000218`, one digit short; neither file contains `UO:0000218`. The volt term is `UO:0000218`, which the pinned writer emits. A reader that checks unit accessions rejects or ignores the unit.
 
 **Proposed fix:** Correct the accession in both fixtures, or regenerate them with the current writer.
 
-**Evidence:** `git show 0cb15f2:topp/FAIMS_CV-60C_V-45_Interleaved.mzML` and `git show 0cb15f2:topp/FAIMS_test_data.mzML` in the test-data package.
+**Evidence:** In the test-data package, `git show 0cb15f2:topp/FAIMS_CV-60C_V-45_Interleaved.mzML | grep -n 'unitAccession="UO:000218"'` lists the 12 lines and `git show 0cb15f2:topp/FAIMS_test_data.mzML | grep -n 'unitAccession="UO:000218"'` the 2; `grep -c 'accession="MS:1001581"'` gives the same 12 and 2.
 
 **Rust handling:** The mzML reader accepts `UO:000218` as volts for the FAIMS voltage only (native difference 3 in `docs/MZML_MOBILITY_SUPPORT.md`); the writer emits `UO:0000218`.
 
