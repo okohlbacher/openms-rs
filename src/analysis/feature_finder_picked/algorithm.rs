@@ -5,6 +5,775 @@
 //! The picked feature finder's parameters, input validation and entry point
 //! (`FEATUREFINDER/FeatureFinderAlgorithmPicked.h`).
 //!
-//! Registered ahead of its early-TOPP-bundle work package so that the package
-//! never edits a module root. Package B6-FFAP-SEEDS fills it; it exports
-//! nothing yet.
+//! The source class identifies features in an LC-MS map of centroided MS1
+//! spectra: peptides whose isotope distribution shows over time. It computes
+//! RT and m/z positions and a charge estimate for each. It finds pronounced
+//! regions around *seeds*, which the caller may provide (for example from MS/MS
+//! identifications) or the algorithm computes itself, and then fits an isotope
+//! and retention-time model to each seed's data points.
+//!
+//! The source class holds its state across one `run`. This port splits it by
+//! stage:
+//!
+//! - this module: the 29 parameter defaults
+//!   ([`default_parameters`](crate::analysis::feature_finder_picked::algorithm::default_parameters)),
+//!   the typed members of `updateMembers_` and the values `run_` reads
+//!   ([`Settings`](crate::analysis::feature_finder_picked::algorithm::Settings)),
+//!   the input checks of `run`
+//!   ([`validate_input`](crate::analysis::feature_finder_picked::algorithm::validate_input)),
+//!   the resource ceilings
+//!   ([`Limits`](crate::analysis::feature_finder_picked::algorithm::Limits),
+//!   [`Options`](crate::analysis::feature_finder_picked::algorithm::Options)) and
+//!   the entry point [`run`](crate::analysis::feature_finder_picked::algorithm::run);
+//! - [`crate::analysis::feature_finder_picked::scoring`]: the per-peak intensity,
+//!   trace and isotope-pattern scores (steps 1, 2 and 3.1);
+//! - [`crate::analysis::feature_finder_picked::seeds`]: the precalculated isotope
+//!   patterns (step 2.5), seed selection (step 3.2) and
+//!   [`SeedStage`](crate::analysis::feature_finder_picked::seeds::SeedStage),
+//!   which runs everything up to and including seed selection.
+//!
+//! Seed extension, trace fitting, feature quality checks and overlap resolution
+//! (step 3.3 onward) are not ported yet:
+//! [`run`](crate::analysis::feature_finder_picked::algorithm::run) performs the
+//! seed stage and then returns [`Error::Unsupported`](crate::Error::Unsupported).
+//! The API mapping, the preserved source
+//! conventions, the native differences and the evidence are in
+//! `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
+//!
+//! The source writes its seed counts to `std::cout` and its warnings to the
+//! OpenMS log. Library code here never prints: every such line is collected in
+//! the log of the returned value.
+
+use crate::analysis::feature_finder_picked::seeds::SeedStage;
+use crate::kernel::{FeatureMap, MSExperiment};
+use crate::param::{DefaultParamHandler, Param, ParamValue};
+use crate::{Error, Result};
+
+/// Name of the source parameter handler, `DefaultParamHandler("FeatureFinderAlgorithmPicked")`.
+///
+/// It prefixes the unknown-parameter warnings of [`Settings::from_parameters`].
+pub const HANDLER_NAME: &str = "FeatureFinderAlgorithmPicked";
+
+/// Isotope count of the precalculated averagine patterns before abundance
+/// overrides: source `Size max_isotopes = 20` in `run_`.
+pub const BASE_MAX_ISOTOPES: usize = 20;
+
+/// Isotope count each non-default abundance adds: source `max_isotopes += 1000`,
+/// commented `// Why?` in the source.
+pub const OVERRIDE_EXTRA_ISOTOPES: usize = 1000;
+
+/// The source parameter defaults: `FeatureFinderAlgorithmPicked()` followed by
+/// `getDefaultParameters()`.
+///
+/// Returns all 29 entries with the source names, values, descriptions, numeric
+/// and string restrictions and `advanced` tags, in the source's insertion order,
+/// and the seven section descriptions. The `advanced` section has no
+/// description in the source, and neither has it here. `write_debug` is the
+/// string `"false"` restricted to `"true"` and `"false"`, which ParamXML writes as
+/// a `bool` item.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] only if the parameter tree rejects one of the
+/// fixed literals, which does not happen.
+pub fn default_parameters() -> Result<Param> {
+    let mut d = Param::new();
+    let advanced = ["advanced".to_string()];
+    let none: [String; 0] = [];
+
+    // debugging
+    d.set_value(
+        "write_debug",
+        ParamValue::String("false".into()),
+        "When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).",
+        &none,
+    )?;
+    d.set_valid_strings("write_debug", &["true".to_string(), "false".to_string()])?;
+    // intensity
+    d.set_value(
+        "intensity:bins",
+        ParamValue::Integer(10),
+        "Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.\nThis parameter should be decreased, if the algorithm is used on small regions of a map.",
+        &none,
+    )?;
+    d.set_min_int("intensity:bins", 1)?;
+    d.set_section_description(
+        "intensity",
+        "Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)",
+    )?;
+    // mass trace search parameters
+    d.set_value(
+        "mass_trace:mz_tolerance",
+        ParamValue::Float(0.03),
+        "Tolerated m/z deviation of peaks belonging to the same mass trace.\nIt should be larger than the m/z resolution of the instrument.\nThis value must be smaller than that 1/charge_high!",
+        &none,
+    )?;
+    d.set_min_float("mass_trace:mz_tolerance", 0.0)?;
+    d.set_value(
+        "mass_trace:min_spectra",
+        ParamValue::Integer(10),
+        "Number of spectra that have to show a similar peak mass in a mass trace.",
+        &none,
+    )?;
+    d.set_min_int("mass_trace:min_spectra", 1)?;
+    d.set_value(
+        "mass_trace:max_missing",
+        ParamValue::Integer(1),
+        "Number of consecutive spectra where a high mass deviation or missing peak is acceptable.\nThis parameter should be well below 'min_spectra'!",
+        &none,
+    )?;
+    d.set_min_int("mass_trace:max_missing", 0)?;
+    d.set_value(
+        "mass_trace:slope_bound",
+        ParamValue::Float(0.1),
+        "The maximum slope of mass trace intensities when extending from the highest peak.\nThis parameter is important to separate overlapping elution peaks.\nIt should be increased if feature elution profiles fluctuate a lot.",
+        &none,
+    )?;
+    d.set_min_float("mass_trace:slope_bound", 0.0)?;
+    d.set_section_description(
+        "mass_trace",
+        "Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).",
+    )?;
+    // isotopic pattern search parameters
+    d.set_value(
+        "isotopic_pattern:charge_low",
+        ParamValue::Integer(1),
+        "Lowest charge to search for.",
+        &none,
+    )?;
+    d.set_min_int("isotopic_pattern:charge_low", 1)?;
+    d.set_value(
+        "isotopic_pattern:charge_high",
+        ParamValue::Integer(4),
+        "Highest charge to search for.",
+        &none,
+    )?;
+    d.set_min_int("isotopic_pattern:charge_high", 1)?;
+    d.set_value(
+        "isotopic_pattern:mz_tolerance",
+        ParamValue::Float(0.03),
+        "Tolerated m/z deviation from the theoretical isotopic pattern.\nIt should be larger than the m/z resolution of the instrument.\nThis value must be smaller than that 1/charge_high!",
+        &none,
+    )?;
+    d.set_min_float("isotopic_pattern:mz_tolerance", 0.0)?;
+    d.set_value(
+        "isotopic_pattern:intensity_percentage",
+        ParamValue::Float(10.0),
+        "Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.",
+        &advanced,
+    )?;
+    d.set_min_float("isotopic_pattern:intensity_percentage", 0.0)?;
+    d.set_max_float("isotopic_pattern:intensity_percentage", 100.0)?;
+    d.set_value(
+        "isotopic_pattern:intensity_percentage_optional",
+        ParamValue::Float(0.1),
+        "Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.",
+        &advanced,
+    )?;
+    d.set_min_float("isotopic_pattern:intensity_percentage_optional", 0.0)?;
+    d.set_max_float("isotopic_pattern:intensity_percentage_optional", 100.0)?;
+    d.set_value(
+        "isotopic_pattern:optional_fit_improvement",
+        ParamValue::Float(2.0),
+        "Minimal percental improvement of isotope fit to allow leaving out an optional peak.",
+        &advanced,
+    )?;
+    d.set_min_float("isotopic_pattern:optional_fit_improvement", 0.0)?;
+    d.set_max_float("isotopic_pattern:optional_fit_improvement", 100.0)?;
+    d.set_value(
+        "isotopic_pattern:mass_window_width",
+        ParamValue::Float(25.0),
+        "Window width in Dalton for precalculation of estimated isotope distributions.",
+        &advanced,
+    )?;
+    d.set_min_float("isotopic_pattern:mass_window_width", 1.0)?;
+    d.set_max_float("isotopic_pattern:mass_window_width", 200.0)?;
+    d.set_value(
+        "isotopic_pattern:abundance_12C",
+        ParamValue::Float(98.93),
+        "Rel. abundance of the light carbon. Modify if labeled.",
+        &advanced,
+    )?;
+    d.set_min_float("isotopic_pattern:abundance_12C", 0.0)?;
+    d.set_max_float("isotopic_pattern:abundance_12C", 100.0)?;
+    d.set_value(
+        "isotopic_pattern:abundance_14N",
+        ParamValue::Float(99.632),
+        "Rel. abundance of the light nitrogen. Modify if labeled.",
+        &advanced,
+    )?;
+    d.set_min_float("isotopic_pattern:abundance_14N", 0.0)?;
+    d.set_max_float("isotopic_pattern:abundance_14N", 100.0)?;
+    d.set_section_description(
+        "isotopic_pattern",
+        "Settings for the calculation of a score indicating if a peak is part of a isotopic pattern (between 0 and 1).",
+    )?;
+    // seed settings
+    d.set_value(
+        "seed:min_score",
+        ParamValue::Float(0.8),
+        "Minimum seed score a peak has to reach to be used as seed.\nThe seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.\nIf your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score.",
+        &none,
+    )?;
+    d.set_min_float("seed:min_score", 0.0)?;
+    d.set_max_float("seed:min_score", 1.0)?;
+    d.set_section_description(
+        "seed",
+        "Settings that determine which peaks are considered a seed",
+    )?;
+    // fitting settings
+    d.set_value(
+        "fit:max_iterations",
+        ParamValue::Integer(500),
+        "Maximum number of iterations of the fit.",
+        &advanced,
+    )?;
+    d.set_min_int("fit:max_iterations", 1)?;
+    d.set_section_description("fit", "Settings for the model fitting")?;
+    // feature settings
+    d.set_value(
+        "feature:min_score",
+        ParamValue::Float(0.7),
+        "Feature score threshold for a feature to be reported.\nThe feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks.",
+        &none,
+    )?;
+    d.set_min_float("feature:min_score", 0.0)?;
+    d.set_max_float("feature:min_score", 1.0)?;
+    d.set_value(
+        "feature:min_isotope_fit",
+        ParamValue::Float(0.8),
+        "Minimum isotope fit of the feature before model fitting.",
+        &advanced,
+    )?;
+    d.set_min_float("feature:min_isotope_fit", 0.0)?;
+    d.set_max_float("feature:min_isotope_fit", 1.0)?;
+    d.set_value(
+        "feature:min_trace_score",
+        ParamValue::Float(0.5),
+        "Trace score threshold.\nTraces below this threshold are removed after the model fitting.\nThis parameter is important for features that overlap in m/z dimension.",
+        &advanced,
+    )?;
+    d.set_min_float("feature:min_trace_score", 0.0)?;
+    d.set_max_float("feature:min_trace_score", 1.0)?;
+    d.set_value(
+        "feature:min_rt_span",
+        ParamValue::Float(0.333),
+        "Minimum RT span in relation to extended area that has to remain after model fitting.",
+        &advanced,
+    )?;
+    d.set_min_float("feature:min_rt_span", 0.0)?;
+    d.set_max_float("feature:min_rt_span", 1.0)?;
+    d.set_value(
+        "feature:max_rt_span",
+        ParamValue::Float(2.5),
+        "Maximum RT span in relation to extended area that the model is allowed to have.",
+        &advanced,
+    )?;
+    d.set_min_float("feature:max_rt_span", 0.5)?;
+    d.set_value(
+        "feature:rt_shape",
+        ParamValue::String("symmetric".into()),
+        "Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used.",
+        &advanced,
+    )?;
+    d.set_valid_strings(
+        "feature:rt_shape",
+        &["symmetric".to_string(), "asymmetric".to_string()],
+    )?;
+    d.set_value(
+        "feature:max_intersection",
+        ParamValue::Float(0.35),
+        "Maximum allowed intersection of features.",
+        &advanced,
+    )?;
+    d.set_min_float("feature:max_intersection", 0.0)?;
+    d.set_max_float("feature:max_intersection", 1.0)?;
+    d.set_value(
+        "feature:reported_mz",
+        ParamValue::String("monoisotopic".into()),
+        "The mass type that is reported for features.\n'maximum' returns the m/z value of the highest mass trace.\n'average' returns the intensity-weighted average m/z value of all contained peaks.\n'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.",
+        &none,
+    )?;
+    d.set_valid_strings(
+        "feature:reported_mz",
+        &[
+            "maximum".to_string(),
+            "average".to_string(),
+            "monoisotopic".to_string(),
+        ],
+    )?;
+    d.set_section_description(
+        "feature",
+        "Settings for the features (intensity, quality assessment, ...)",
+    )?;
+    // user-specified seed settings
+    d.set_value(
+        "user-seed:rt_tolerance",
+        ParamValue::Float(5.0),
+        "Allowed RT deviation of seeds from the user-specified seed position.",
+        &none,
+    )?;
+    d.set_min_float("user-seed:rt_tolerance", 0.0)?;
+    d.set_value(
+        "user-seed:mz_tolerance",
+        ParamValue::Float(1.1),
+        "Allowed m/z deviation of seeds from the user-specified seed position.",
+        &none,
+    )?;
+    d.set_min_float("user-seed:mz_tolerance", 0.0)?;
+    d.set_value(
+        "user-seed:min_score",
+        ParamValue::Float(0.5),
+        "Overwrites 'seed:min_score' for user-specified seeds. The cutoff is typically a bit lower in this case.",
+        &none,
+    )?;
+    d.set_min_float("user-seed:min_score", 0.0)?;
+    d.set_max_float("user-seed:min_score", 1.0)?;
+    d.set_section_description("user-seed", "Settings for user-specified seeds.")?;
+    // advanced/debugging settings
+    d.set_value(
+        "advanced:pseudo_rt_shift",
+        ParamValue::Float(500.0),
+        "Pseudo RT shift used when .",
+        &advanced,
+    )?;
+    d.set_min_float("advanced:pseudo_rt_shift", 1.0)?;
+    Ok(d)
+}
+
+/// The retention-time model of the trace fit: parameter `feature:rt_shape`.
+///
+/// Read here because `run_` reads it through `chooseTraceFitter_`; the fit itself
+/// is not ported yet.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RtShape {
+    /// `symmetric`: a Gaussian (`GaussTraceFitter`), the default.
+    Symmetric,
+    /// `asymmetric`: an exponential-Gaussian hybrid (`EGHTraceFitter`).
+    Asymmetric,
+}
+
+/// The m/z reported for a feature: parameter `feature:reported_mz`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReportedMz {
+    /// `maximum`: the average m/z of the trace with the highest theoretical
+    /// intensity.
+    Maximum,
+    /// `average`: the intensity-weighted average m/z of all contained peaks.
+    Average,
+    /// `monoisotopic`: the monoisotopic m/z derived from the fitted isotope
+    /// model, the default.
+    Monoisotopic,
+}
+
+/// How a non-default `isotopic_pattern:abundance_12C` or `abundance_14N` is
+/// handled.
+///
+/// The source (`FeatureFinderAlgorithmPicked.cpp:163-179`) builds each override
+/// by inserting the light and heavy isotope into a default-constructed
+/// `IsotopeDistribution`, which already holds the peak `(0, 1)`. The executed C++
+/// keeps that stray peak: the patterns grow (the first FFC_1 window has 27
+/// normalised bins instead of 6) and FeatureFinderCentroided_1 with
+/// `abundance_12C = 90` finds no seed at all. The native
+/// [`CoarseIsotopePatternGenerator::set_isotope_override`](crate::chemistry::isotopes::CoarseIsotopePatternGenerator::set_isotope_override)
+/// rejects such a distribution, so the defect cannot be reproduced. Whether the
+/// port should refuse these parameters or compute the intended two-isotope
+/// override is a scientific decision that is still open, so the default refuses.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum AbundanceOverride {
+    /// A non-default abundance is [`Error::Unsupported`]; the default.
+    #[default]
+    Refuse,
+    /// Use the intended two-isotope distribution: weights `a / 100` and
+    /// `1 - a / 100` for the light and heavy isotope, narrowed to `f32` under
+    /// source precision. This is not the executed C++ result; see the type
+    /// documentation.
+    Intended,
+}
+
+/// Resource ceilings of the seed stage, checked before the corresponding work.
+///
+/// The source has no ceilings. Each limit below is far above the workloads the
+/// source is used for; the FeatureFinderCentroided_1 input (112 spectra, 3,084
+/// peaks, one charge) stays several orders of magnitude below every one.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Limits {
+    /// Most spectra in the input.
+    pub max_spectra: usize,
+    /// Most peaks in the input, over all spectra.
+    pub max_peaks: usize,
+    /// Most charges between `charge_low` and `charge_high`.
+    pub max_charges: usize,
+    /// Most intensity bins per dimension (`intensity:bins`); the quantile
+    /// table holds `bins^2 * 21` values.
+    pub max_intensity_bins: usize,
+    /// Most precalculated isotope windows,
+    /// `ceil(max_mz * charge_high / mass_window_width) + 1`.
+    pub max_isotope_windows: usize,
+    /// Most isotope-pattern values over all windows, bounded before step 2.5 as
+    /// the window count times the isotope count of each pattern.
+    pub max_pattern_values: usize,
+    /// Most bytes of per-peak score arrays, `4 * peaks * (3 + 2 * charges)`.
+    pub max_score_bytes: usize,
+    /// Most work units of the scoring steps: one per spectrum visited while
+    /// binning, per nearest-peak search, per step of the linear isotope walk
+    /// and per value a correlation reads.
+    pub max_work: u64,
+}
+
+impl Limits {
+    /// Default [`Self::max_spectra`].
+    pub const DEFAULT_MAX_SPECTRA: usize = 10_000_000;
+    /// Default [`Self::max_peaks`].
+    pub const DEFAULT_MAX_PEAKS: usize = 1_000_000_000;
+    /// Default [`Self::max_charges`].
+    pub const DEFAULT_MAX_CHARGES: usize = 1_000;
+    /// Default [`Self::max_intensity_bins`].
+    pub const DEFAULT_MAX_INTENSITY_BINS: usize = 2_000;
+    /// Default [`Self::max_isotope_windows`].
+    pub const DEFAULT_MAX_ISOTOPE_WINDOWS: usize = 1_000_000;
+    /// Default [`Self::max_pattern_values`].
+    pub const DEFAULT_MAX_PATTERN_VALUES: usize = 200_000_000;
+    /// Default [`Self::max_score_bytes`], 16 GiB.
+    pub const DEFAULT_MAX_SCORE_BYTES: usize = 16 << 30;
+    /// Default [`Self::max_work`].
+    pub const DEFAULT_MAX_WORK: u64 = 10_000_000_000_000;
+}
+
+impl Default for Limits {
+    fn default() -> Self {
+        Self {
+            max_spectra: Self::DEFAULT_MAX_SPECTRA,
+            max_peaks: Self::DEFAULT_MAX_PEAKS,
+            max_charges: Self::DEFAULT_MAX_CHARGES,
+            max_intensity_bins: Self::DEFAULT_MAX_INTENSITY_BINS,
+            max_isotope_windows: Self::DEFAULT_MAX_ISOTOPE_WINDOWS,
+            max_pattern_values: Self::DEFAULT_MAX_PATTERN_VALUES,
+            max_score_bytes: Self::DEFAULT_MAX_SCORE_BYTES,
+            max_work: Self::DEFAULT_MAX_WORK,
+        }
+    }
+}
+
+/// Native options of a run; the defaults reproduce the source where it is
+/// defined and refuse where it is not.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Options {
+    /// Resource ceilings.
+    pub limits: Limits,
+    /// Handling of non-default isotope abundances.
+    pub abundance_override: AbundanceOverride,
+}
+
+/// The typed parameter values of one run.
+///
+/// The first group are the members the source's `updateMembers_` sets; the
+/// second are the values `run_` reads from `param_` directly. Percentages are
+/// already divided by 100, as in the source.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Settings {
+    /// `isotopic_pattern:mz_tolerance` (source `pattern_tolerance_`).
+    pub pattern_tolerance: f64,
+    /// `mass_trace:mz_tolerance` (source `trace_tolerance_`).
+    pub trace_tolerance: f64,
+    /// Half of `mass_trace:min_spectra`, rounded down (source `min_spectra_`):
+    /// the number of scans inspected on each side of a peak.
+    pub min_spectra: usize,
+    /// `mass_trace:max_missing` (source `max_missing_trace_peaks_`).
+    pub max_missing_trace_peaks: u32,
+    /// `mass_trace:slope_bound` (source `slope_bound_`).
+    pub slope_bound: f64,
+    /// `isotopic_pattern:intensity_percentage / 100` (source
+    /// `intensity_percentage_`): pattern peaks above this contribution are
+    /// required.
+    pub intensity_percentage: f64,
+    /// `isotopic_pattern:intensity_percentage_optional / 100` (source
+    /// `intensity_percentage_optional_`): the trimming cutoff of the
+    /// precalculated patterns.
+    pub intensity_percentage_optional: f64,
+    /// `isotopic_pattern:optional_fit_improvement / 100` (source
+    /// `optional_fit_improvement_`).
+    pub optional_fit_improvement: f64,
+    /// `isotopic_pattern:mass_window_width` in Da (source `mass_window_width_`).
+    pub mass_window_width: f64,
+    /// `intensity:bins` (source `intensity_bins_`).
+    pub intensity_bins: usize,
+    /// `feature:min_isotope_fit` (source `min_isotope_fit_`).
+    pub min_isotope_fit: f64,
+    /// `feature:min_trace_score` (source `min_trace_score_`).
+    pub min_trace_score: f64,
+    /// `feature:min_rt_span` (source `min_rt_span_`).
+    pub min_rt_span: f64,
+    /// `feature:max_rt_span` (source `max_rt_span_`).
+    pub max_rt_span: f64,
+    /// `feature:max_intersection` (source `max_feature_intersection_`).
+    pub max_feature_intersection: f64,
+    /// `feature:reported_mz` (source `reported_mz_`).
+    pub reported_mz: ReportedMz,
+    /// `feature:min_score`.
+    pub min_feature_score: f64,
+    /// `isotopic_pattern:charge_low`.
+    pub charge_low: i32,
+    /// `isotopic_pattern:charge_high`.
+    pub charge_high: i32,
+    /// `fit:max_iterations`, handed to the trace fitter as `max_iteration`.
+    pub max_iterations: u32,
+    /// `isotopic_pattern:abundance_12C` in percent.
+    pub abundance_12c: f64,
+    /// `isotopic_pattern:abundance_14N` in percent.
+    pub abundance_14n: f64,
+    /// Whether `abundance_12C` differs from its default, compared as the source
+    /// compares the two `ParamValue`s: exact equality of type and value.
+    pub abundance_12c_changed: bool,
+    /// Whether `abundance_14N` differs from its default.
+    pub abundance_14n_changed: bool,
+    /// `seed:min_score`.
+    pub seed_min_score: f64,
+    /// `user-seed:rt_tolerance` in seconds.
+    pub user_seed_rt_tolerance: f64,
+    /// `user-seed:mz_tolerance` in Th.
+    pub user_seed_mz_tolerance: f64,
+    /// `user-seed:min_score`.
+    pub user_seed_min_score: f64,
+    /// `write_debug`.
+    pub write_debug: bool,
+    /// `feature:rt_shape`.
+    pub rt_shape: RtShape,
+}
+
+impl Settings {
+    /// Apply `parameters` over the defaults and read the typed values: source
+    /// `setParameters(param)` with `updateMembers_`, plus the reads at the start
+    /// of `run_`.
+    ///
+    /// Missing entries take their defaults. Entries the defaults do not know are
+    /// kept and reported as warnings in the returned vector, as the source
+    /// reports them on the OpenMS warning log; a caller that must be strict
+    /// treats a warning as an error, as TOPPBase does for its INI files.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when a known entry has a different value
+    /// type than its default or violates its restriction (source
+    /// `Exception::InvalidParameter`), or when a value cannot be converted.
+    pub fn from_parameters(parameters: &Param) -> Result<(Self, Vec<String>)> {
+        let mut handler = DefaultParamHandler::new(HANDLER_NAME)?;
+        let defaults = default_parameters()?;
+        handler.set_defaults(defaults.clone())?;
+        handler.defaults_to_parameters()?;
+        handler.set_parameters_with(parameters, |merged| Self::read(merged, &defaults))
+    }
+
+    fn read(p: &Param, defaults: &Param) -> Result<Self> {
+        let float = |key: &str| p.value(key)?.to_f64();
+        let int = |key: &str| p.value(key)?.to_i32();
+        let unsigned = |key: &str| p.value(key)?.to_u32();
+        let min_spectra = (f64::from(int("mass_trace:min_spectra")?) * 0.5).floor();
+        let reported_mz = match p.value("feature:reported_mz")?.as_str()? {
+            "maximum" => ReportedMz::Maximum,
+            "average" => ReportedMz::Average,
+            _ => ReportedMz::Monoisotopic,
+        };
+        // Source: `param_.getValue("feature:rt_shape") == "asymmetric"`, else symmetric.
+        let rt_shape = if p.value("feature:rt_shape")? == &ParamValue::String("asymmetric".into()) {
+            RtShape::Asymmetric
+        } else {
+            RtShape::Symmetric
+        };
+        let changed = |key: &str| -> Result<bool> { Ok(p.value(key)? != defaults.value(key)?) };
+        Ok(Self {
+            pattern_tolerance: float("isotopic_pattern:mz_tolerance")?,
+            trace_tolerance: float("mass_trace:mz_tolerance")?,
+            min_spectra: min_spectra as usize,
+            max_missing_trace_peaks: unsigned("mass_trace:max_missing")?,
+            slope_bound: float("mass_trace:slope_bound")?,
+            intensity_percentage: float("isotopic_pattern:intensity_percentage")? / 100.0,
+            intensity_percentage_optional: float("isotopic_pattern:intensity_percentage_optional")?
+                / 100.0,
+            optional_fit_improvement: float("isotopic_pattern:optional_fit_improvement")? / 100.0,
+            mass_window_width: float("isotopic_pattern:mass_window_width")?,
+            intensity_bins: unsigned("intensity:bins")? as usize,
+            min_isotope_fit: float("feature:min_isotope_fit")?,
+            min_trace_score: float("feature:min_trace_score")?,
+            min_rt_span: float("feature:min_rt_span")?,
+            max_rt_span: float("feature:max_rt_span")?,
+            max_feature_intersection: float("feature:max_intersection")?,
+            reported_mz,
+            min_feature_score: float("feature:min_score")?,
+            charge_low: int("isotopic_pattern:charge_low")?,
+            charge_high: int("isotopic_pattern:charge_high")?,
+            max_iterations: unsigned("fit:max_iterations")?,
+            abundance_12c: float("isotopic_pattern:abundance_12C")?,
+            abundance_14n: float("isotopic_pattern:abundance_14N")?,
+            abundance_12c_changed: changed("isotopic_pattern:abundance_12C")?,
+            abundance_14n_changed: changed("isotopic_pattern:abundance_14N")?,
+            seed_min_score: float("seed:min_score")?,
+            user_seed_rt_tolerance: float("user-seed:rt_tolerance")?,
+            user_seed_mz_tolerance: float("user-seed:mz_tolerance")?,
+            user_seed_min_score: float("user-seed:min_score")?,
+            write_debug: p.value("write_debug")?.to_bool()?,
+            rt_shape,
+        })
+    }
+
+    /// The number of charges searched, `charge_high - charge_low + 1`, or zero
+    /// when `charge_low` exceeds `charge_high` by one.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when `charge_low` exceeds `charge_high`
+    /// by more than one. The source computes the count in `UInt`, which wraps:
+    /// a difference of one gives zero charges and an empty result, and a larger
+    /// difference resizes the score arrays to a wrapped size and then indexes
+    /// past their end, which is undefined behaviour.
+    pub fn charge_count(&self) -> Result<usize> {
+        let count = i64::from(self.charge_high) - i64::from(self.charge_low) + 1;
+        if count < 0 {
+            return Err(Error::InvalidValue(format!(
+                "isotopic_pattern:charge_low {} exceeds charge_high {} by more than one; the source \
+                 behaviour is undefined",
+                self.charge_low, self.charge_high
+            )));
+        }
+        usize::try_from(count).map_err(|_| Error::InvalidValue("charge count overflow".into()))
+    }
+
+    /// The isotope count of the precalculated patterns: 20, plus 1000 for each
+    /// changed abundance, as `run_` computes it.
+    pub fn max_isotopes(&self) -> usize {
+        BASE_MAX_ISOTOPES
+            + OVERRIDE_EXTRA_ISOTOPES
+                * (usize::from(self.abundance_12c_changed)
+                    + usize::from(self.abundance_14n_changed))
+    }
+}
+
+/// The result of [`run`].
+#[derive(Clone, Debug, PartialEq)]
+pub struct RunOutput {
+    /// The features found.
+    pub features: FeatureMap,
+    /// Warnings and progress lines the source writes to the OpenMS log or to
+    /// `std::cout`, in the order they arise.
+    pub log: Vec<String>,
+}
+
+/// Source warning when the input is not sorted, verbatim.
+pub const UNSORTED_WARNING: &str =
+    "Input map is not sorted by RT and m/z! This is done now, before applying the algorithm!";
+
+/// The input checks at the start of source `run`, in source order.
+///
+/// 1. An experiment without spectra returns `Ok(false)`: the source clears the
+///    output and returns.
+/// 2. No peak in any spectrum or chromatogram (source `getSize() == 0`) is an
+///    error.
+/// 3. MS levels other than exactly `{1}` are an error.
+/// 4. Every retention time, m/z and intensity must be finite (native, see
+///    below).
+/// 5. When the spectra are not sorted by RT and m/z, they and the
+///    chromatograms are sorted and [`UNSORTED_WARNING`] is logged.
+/// 6. A non-empty spectrum whose first m/z is negative is an error.
+///
+/// Returns `Ok(true)` when the run continues.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] with the source messages of
+/// `Exception::IllegalArgument` for checks 2, 3 and 6. Check 4 is native: the
+/// source sorts and bins non-finite values with undefined results, and the
+/// native readers never produce them. A failed sort returns its error.
+pub fn validate_input(experiment: &mut MSExperiment, log: &mut Vec<String>) -> Result<bool> {
+    if experiment.spectra.is_empty() {
+        return Ok(false);
+    }
+    if experiment.total_peak_count()? == 0 {
+        return Err(Error::InvalidValue(
+            "FeatureFinder needs updated ranges on input map. Aborting.".into(),
+        ));
+    }
+    if experiment.ms_levels() != [1] {
+        return Err(Error::InvalidValue(
+            "FeatureFinder can only operate on MS level 1 data. Please do not use MS/MS data. \
+             Aborting."
+                .into(),
+        ));
+    }
+    for spectrum in &experiment.spectra {
+        if !spectrum.rt.is_finite()
+            || spectrum
+                .peaks
+                .iter()
+                .any(|peak| !peak.mz.is_finite() || !peak.intensity.is_finite())
+        {
+            return Err(Error::InvalidValue(
+                "FeatureFinderAlgorithmPicked needs finite retention times, m/z values and \
+                 intensities"
+                    .into(),
+            ));
+        }
+    }
+    if !experiment.is_sorted(true) {
+        log.push(UNSORTED_WARNING.to_string());
+        experiment.sort_spectra(true)?;
+        experiment.sort_chromatograms(true)?;
+    }
+    if experiment
+        .spectra
+        .iter()
+        .any(|spectrum| spectrum.peaks.first().is_some_and(|peak| peak.mz < 0.0))
+    {
+        return Err(Error::InvalidValue(
+            "FeatureFinder can only operate on spectra that contain peaks with positive m/z \
+             values. Filter the data accordingly beforehand! Aborting."
+                .into(),
+        ));
+    }
+    Ok(true)
+}
+
+/// Find features: source `run(PeakMap&&, FeatureMap&, const Param&, const FeatureMap& seeds)`.
+///
+/// `experiment` holds centroided MS1 spectra and is consumed, as the source
+/// moves it. `parameters` are applied over [`default_parameters`]. `seeds`
+/// holds user-specified seeds; an empty map lets the algorithm find seeds
+/// itself.
+///
+/// An experiment without spectra yields an empty feature map and an empty log.
+/// Otherwise the input is checked ([`validate_input`]), the parameters are
+/// applied ([`Settings::from_parameters`]) and the seed stage runs
+/// ([`SeedStage::compute`]).
+///
+/// # Errors
+///
+/// Every error of [`validate_input`], [`Settings::from_parameters`] and
+/// [`SeedStage::compute`]. After a successful seed stage this returns
+/// [`Error::Unsupported`]: seed extension, fitting, quality checks and overlap
+/// resolution (source step 3.3 onward) are not ported yet.
+pub fn run(experiment: MSExperiment, seeds: &FeatureMap, parameters: &Param) -> Result<RunOutput> {
+    run_with_options(experiment, seeds, parameters, &Options::default())
+}
+
+/// [`run`] with explicit [`Options`].
+///
+/// # Errors
+///
+/// As [`run`].
+pub fn run_with_options(
+    experiment: MSExperiment,
+    seeds: &FeatureMap,
+    parameters: &Param,
+    options: &Options,
+) -> Result<RunOutput> {
+    match SeedStage::run_with_options(experiment, seeds, parameters, options)? {
+        None => Ok(RunOutput {
+            features: FeatureMap::new(),
+            log: Vec::new(),
+        }),
+        Some(_) => Err(Error::Unsupported(
+            "FeatureFinderAlgorithmPicked seed extension, trace fitting and feature resolution \
+             (source step 3.3 onward) are not ported yet"
+                .into(),
+        )),
+    }
+}

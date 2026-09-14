@@ -1,0 +1,847 @@
+input	ffc1_symmetric	112	3084	40b01287ae147ae1	40b181f5c28f5c29	408419a480000000	4084921e80000000
+member	ffc1_symmetric	pattern_tolerance	3f947ae147ae147b
+member	ffc1_symmetric	trace_tolerance	3f947ae147ae147b
+member	ffc1_symmetric	min_spectra	7
+member	ffc1_symmetric	max_missing_trace_peaks	1
+member	ffc1_symmetric	slope_bound	3fb999999999999a
+member	ffc1_symmetric	intensity_percentage	3fb999999999999a
+member	ffc1_symmetric	intensity_percentage_optional	3f50624dd2f1a9fc
+member	ffc1_symmetric	optional_fit_improvement	3f947ae147ae147b
+member	ffc1_symmetric	mass_window_width	4059000000000000
+member	ffc1_symmetric	intensity_bins	1
+member	ffc1_symmetric	min_isotope_fit	3fe999999999999a
+member	ffc1_symmetric	min_trace_score	3fe0000000000000
+member	ffc1_symmetric	min_rt_span	3fd54fdf3b645a1d
+member	ffc1_symmetric	max_rt_span	4004000000000000
+member	ffc1_symmetric	max_feature_intersection	3fd6666666666666
+member	ffc1_symmetric	reported_mz	monoisotopic
+stdout	ffc1_symmetric	Found 25 seeds for charge 2.
+stdout	ffc1_symmetric	Found 8 feature candidates for charge 2.
+bins	ffc1_symmetric	1	40b01287ae147ae1	408419a480000000	4076f6e147ae1480	402e1e8000000000
+quantiles	ffc1_symmetric	0	0	402745fcc0000000	402de7fa40000000	403022ada0000000	403151bd40000000	4032395880000000	403337d160000000	40343f1160000000	40353266e0000000	403650f600000000	40377dae60000000	4038c71220000000	403a6315c0000000	403c1322e0000000	403e777a40000000	40408a6bc0000000	4042882060000000	4044ecf5e0000000	404a267fa0000000	4052a74c60000000	40642ee9e0000000	408d343a40000000
+window	ffc1_symmetric	0	4049000000000000	3	0	2	3fef20b680000000	0	3ff0000000000000	3f9a52aacc1ec337	3f6286bf94936ca0
+window	ffc1_symmetric	1	4062c00000000000	3	0	2	3fed4c2a20000000	0	3ff0000000000000	3fb5a5043d768ee9	3f7dbdb9edf8582f
+window	ffc1_symmetric	2	406f400000000000	3	0	1	3febd265e0000000	0	3ff0000000000000	3fc13492ea13298a	3f8dc45bdb558d62
+window	ffc1_symmetric	3	4075e00000000000	4	0	2	3fea288e80000000	0	3ff0000000000000	3fc89c01b9ffc4f0	3f9c75e42e82252f	3f68646b82fcecf8
+window	ffc1_symmetric	4	407c200000000000	4	0	2	3fe8d7ff60000000	0	3ff0000000000000	3fcefa4d6b163c03	3fa4b0b40ae2b7d2	3f74b88583316817
+window	ffc1_symmetric	5	4081300000000000	4	0	2	3fe78b2100000000	0	3ff0000000000000	3fd2d051afc8a05a	3facbe6a14a82cc8	3f807773177ef548
+window	ffc1_symmetric	6	4084500000000000	5	0	3	3fe622c5e0000000	0	3ff0000000000000	3fd684092874ec82	3fb420f5a78a205b	3f8aefeba8c95f08	3f5d72bb74e6be7e
+window	ffc1_symmetric	7	4087700000000000	5	0	3	3fe50559a0000000	0	3ff0000000000000	3fd9b511758bc90c	3fb967161697c7a1	3f92b32a4b905b22	3f66681472be2c10
+window	ffc1_symmetric	8	408a900000000000	5	0	3	3fe3c69ae0000000	0	3ff0000000000000	3fdd80b18cb9328c	3fc0333f91e6094e	3f9a508e08e78a84	3f714f8d73c6c7ec
+window	ffc1_symmetric	9	408db00000000000	5	0	3	3fe2bacba0000000	0	3ff0000000000000	3fe05df9faa97ddc	3fc3d646d85f2aaf	3fa1c0aa8362529b	3f79bb672f875c0f
+window	ffc1_symmetric	10	4090680000000000	5	0	2	3fe19ecb20000000	0	3ff0000000000000	3fe243c9bb936a4c	3fc82b5755f518db	3fa77341e20c92e4	3f82588007afbb5b
+window	ffc1_symmetric	11	4091f80000000000	6	0	3	3fe0bb9840000000	0	3ff0000000000000	3fe3dc4df48fe328	3fcc3435abe81f46	3fad38de6781f066	3f88574547d907c8	3f6127ee303605da
+window	ffc1_symmetric	12	4093880000000000	6	0	3	3fdf76f740000000	0	3ff0000000000000	3fe5b629b252d976	3fd0c0240ee9b4a1	3fb2cf5d2b961473	3f90f59e0fdd2315	3f69dc981d902946
+window	ffc1_symmetric	13	4095180000000000	6	0	3	3fdc7835c0000000	0	3ff0000000000000	3fe7721d13c13ba7	3fd6343de93cfd2c	3fbf6bd3b5aef329	3fa1f43429616181	3f8148f44cf38651
+window	ffc1_symmetric	14	4096a80000000000	6	0	3	3fdafb8e40000000	0	3ff0000000000000	3fe91ac1489c9c13	3fd8d61d647c7e88	3fc252b798de8171	3fa5d10481d800a8	3f85e30752e1a6e7
+seed	ffc1_symmetric	2	0	87	6	4469a1d2	3f6bea52
+seed	ffc1_symmetric	2	1	83	9	445a46f7	3f68b3a3
+seed	ffc1_symmetric	2	2	87	7	4427fccf	3f582f62
+seed	ffc1_symmetric	2	3	56	15	4425346f	3f63fcab
+seed	ffc1_symmetric	2	4	82	11	44229a26	3f4f80e1
+seed	ffc1_symmetric	2	5	56	16	4400ede5	3f5ae035
+seed	ffc1_symmetric	2	6	50	19	43d6e9c4	3f613e51
+seed	ffc1_symmetric	2	7	50	20	43a7e033	3f60745a
+seed	ffc1_symmetric	2	8	81	12	439a85d2	3f61f1f9
+seed	ffc1_symmetric	2	9	89	7	43964129	3f655e79
+seed	ffc1_symmetric	2	10	25	19	43798f0d	3f68889f
+seed	ffc1_symmetric	2	11	56	17	43678f57	3f63be2a
+seed	ffc1_symmetric	2	12	26	20	4364ec36	3f524031
+seed	ffc1_symmetric	2	13	31	7	432a4424	3f62b95e
+seed	ffc1_symmetric	2	14	21	22	431d460e	3f4f25b4
+seed	ffc1_symmetric	2	15	49	23	4317acf1	3f5f54b9
+seed	ffc1_symmetric	2	16	33	8	4304753c	3f5bb20b
+seed	ffc1_symmetric	2	17	20	23	42fe1806	3f5108ca
+seed	ffc1_symmetric	2	18	86	8	42e2da8c	3f5faf2a
+seed	ffc1_symmetric	2	19	26	11	42d67b28	3f58dea5
+seed	ffc1_symmetric	2	20	25	21	42ceee3b	3f5c1c8d
+seed	ffc1_symmetric	2	21	83	12	42c7fdb6	3f56eb51
+seed	ffc1_symmetric	2	22	56	18	42c220e7	3f5746a0
+seed	ffc1_symmetric	2	23	32	9	4296b432	3f5c1e58
+seed	ffc1_symmetric	2	24	63	27	4216af05	3f506fd8
+rt	ffc1_symmetric	0	40b01287ae147ae1	spectrum=1
+rt	ffc1_symmetric	1	40b015f0a3d70a3d	spectrum=2
+rt	ffc1_symmetric	2	40b0195c28f5c28f	spectrum=3
+rt	ffc1_symmetric	3	40b01cc28f5c28f6	spectrum=4
+rt	ffc1_symmetric	4	40b0202e147ae148	spectrum=5
+rt	ffc1_symmetric	5	40b02363d70a3d71	spectrum=6
+rt	ffc1_symmetric	6	40b026cccccccccd	spectrum=7
+rt	ffc1_symmetric	7	40b02a35c28f5c29	spectrum=8
+rt	ffc1_symmetric	8	40b02d9c28f5c28f	spectrum=9
+rt	ffc1_symmetric	9	40b03107ae147ae1	spectrum=10
+rt	ffc1_symmetric	10	40b03470a3d70a3d	spectrum=11
+rt	ffc1_symmetric	11	40b037d99999999a	spectrum=12
+rt	ffc1_symmetric	12	40b03b428f5c28f6	spectrum=13
+rt	ffc1_symmetric	13	40b03eae147ae148	spectrum=14
+rt	ffc1_symmetric	14	40b042170a3d70a4	spectrum=15
+rt	ffc1_symmetric	15	40b0457d70a3d70a	spectrum=16
+rt	ffc1_symmetric	16	40b048e666666666	spectrum=17
+rt	ffc1_symmetric	17	40b04c51eb851eb8	spectrum=18
+rt	ffc1_symmetric	18	40b04fbae147ae14	spectrum=19
+rt	ffc1_symmetric	19	40b052f333333333	spectrum=20
+rt	ffc1_symmetric	20	40b056599999999a	spectrum=21
+rt	ffc1_symmetric	21	40b059c28f5c28f6	spectrum=22
+rt	ffc1_symmetric	22	40b05d2e147ae148	spectrum=23
+rt	ffc1_symmetric	23	40b060947ae147ae	spectrum=24
+rt	ffc1_symmetric	24	40b0640000000000	spectrum=25
+rt	ffc1_symmetric	25	40b06768f5c28f5c	spectrum=26
+rt	ffc1_symmetric	26	40b06ad1eb851eb8	spectrum=27
+rt	ffc1_symmetric	27	40b06e0a3d70a3d7	spectrum=28
+rt	ffc1_symmetric	28	40b0713d70a3d70a	spectrum=29
+rt	ffc1_symmetric	29	40b07475c28f5c29	spectrum=30
+rt	ffc1_symmetric	30	40b077ab851eb852	spectrum=31
+rt	ffc1_symmetric	31	40b07ae3d70a3d71	spectrum=32
+rt	ffc1_symmetric	32	40b07e170a3d70a4	spectrum=33
+rt	ffc1_symmetric	33	40b0814ccccccccd	spectrum=34
+rt	ffc1_symmetric	34	40b084828f5c28f6	spectrum=35
+rt	ffc1_symmetric	35	40b087b851eb851f	spectrum=36
+rt	ffc1_symmetric	36	40b08aee147ae148	spectrum=37
+rt	ffc1_symmetric	37	40b08e23d70a3d71	spectrum=38
+rt	ffc1_symmetric	38	40b091599999999a	spectrum=39
+rt	ffc1_symmetric	39	40b0948f5c28f5c3	spectrum=40
+rt	ffc1_symmetric	40	40b097c51eb851ec	spectrum=41
+rt	ffc1_symmetric	41	40b09afae147ae14	spectrum=42
+rt	ffc1_symmetric	42	40b09e3333333333	spectrum=43
+rt	ffc1_symmetric	43	40b0a168f5c28f5c	spectrum=44
+rt	ffc1_symmetric	44	40b0a4a147ae147b	spectrum=45
+rt	ffc1_symmetric	45	40b0a7d47ae147ae	spectrum=46
+rt	ffc1_symmetric	46	40b0ab0a3d70a3d7	spectrum=47
+rt	ffc1_symmetric	47	40b0ae4000000000	spectrum=48
+rt	ffc1_symmetric	48	40b0b175c28f5c29	spectrum=49
+rt	ffc1_symmetric	49	40b0b4ab851eb852	spectrum=50
+rt	ffc1_symmetric	50	40b0b7e147ae147b	spectrum=51
+rt	ffc1_symmetric	51	40b0bb199999999a	spectrum=52
+rt	ffc1_symmetric	52	40b0be4ccccccccd	spectrum=53
+rt	ffc1_symmetric	53	40b0c1851eb851ec	spectrum=54
+rt	ffc1_symmetric	54	40b0c4b851eb851f	spectrum=55
+rt	ffc1_symmetric	55	40b0c7ee147ae148	spectrum=56
+rt	ffc1_symmetric	56	40b0cb570a3d70a4	spectrum=57
+rt	ffc1_symmetric	57	40b0cec000000000	spectrum=58
+rt	ffc1_symmetric	58	40b0d228f5c28f5c	spectrum=59
+rt	ffc1_symmetric	59	40b0d591eb851eb8	spectrum=60
+rt	ffc1_symmetric	60	40b0d8fd70a3d70a	spectrum=61
+rt	ffc1_symmetric	61	40b0dc63d70a3d71	spectrum=62
+rt	ffc1_symmetric	62	40b0dfd1eb851eb8	spectrum=63
+rt	ffc1_symmetric	63	40b0e33851eb851f	spectrum=64
+rt	ffc1_symmetric	64	40b0e6a147ae147b	spectrum=65
+rt	ffc1_symmetric	65	40b0ea0a3d70a3d7	spectrum=66
+rt	ffc1_symmetric	66	40b0ed7333333333	spectrum=67
+rt	ffc1_symmetric	67	40b0f0dc28f5c28f	spectrum=68
+rt	ffc1_symmetric	68	40b0f447ae147ae1	spectrum=69
+rt	ffc1_symmetric	69	40b0f7b0a3d70a3d	spectrum=70
+rt	ffc1_symmetric	70	40b0fb199999999a	spectrum=71
+rt	ffc1_symmetric	71	40b0fe851eb851ec	spectrum=72
+rt	ffc1_symmetric	72	40b101eb851eb852	spectrum=73
+rt	ffc1_symmetric	73	40b105570a3d70a4	spectrum=74
+rt	ffc1_symmetric	74	40b1088ccccccccd	spectrum=75
+rt	ffc1_symmetric	75	40b10bf333333333	spectrum=76
+rt	ffc1_symmetric	76	40b10f5eb851eb85	spectrum=77
+rt	ffc1_symmetric	77	40b112c7ae147ae1	spectrum=78
+rt	ffc1_symmetric	78	40b11630a3d70a3d	spectrum=79
+rt	ffc1_symmetric	79	40b119999999999a	spectrum=80
+rt	ffc1_symmetric	80	40b11d07ae147ae1	spectrum=81
+rt	ffc1_symmetric	81	40b1206e147ae148	spectrum=82
+rt	ffc1_symmetric	82	40b123d70a3d70a4	spectrum=83
+rt	ffc1_symmetric	83	40b1273d70a3d70a	spectrum=84
+rt	ffc1_symmetric	84	40b12aa8f5c28f5c	spectrum=85
+rt	ffc1_symmetric	85	40b12e11eb851eb8	spectrum=86
+rt	ffc1_symmetric	86	40b1317ae147ae14	spectrum=87
+rt	ffc1_symmetric	87	40b134e3d70a3d71	spectrum=88
+rt	ffc1_symmetric	88	40b1381c28f5c28f	spectrum=89
+rt	ffc1_symmetric	89	40b13b51eb851eb8	spectrum=90
+rt	ffc1_symmetric	90	40b13e87ae147ae1	spectrum=91
+rt	ffc1_symmetric	91	40b141c000000000	spectrum=92
+rt	ffc1_symmetric	92	40b144f333333333	spectrum=93
+rt	ffc1_symmetric	93	40b1482b851eb852	spectrum=94
+rt	ffc1_symmetric	94	40b14b5eb851eb85	spectrum=95
+rt	ffc1_symmetric	95	40b14e947ae147ae	spectrum=96
+rt	ffc1_symmetric	96	40b151ca3d70a3d7	spectrum=97
+rt	ffc1_symmetric	97	40b1550000000000	spectrum=98
+rt	ffc1_symmetric	98	40b15835c28f5c29	spectrum=99
+rt	ffc1_symmetric	99	40b15b6b851eb852	spectrum=100
+rt	ffc1_symmetric	100	40b15ea3d70a3d71	spectrum=101
+rt	ffc1_symmetric	101	40b161d70a3d70a4	spectrum=102
+rt	ffc1_symmetric	102	40b1650f5c28f5c3	spectrum=103
+rt	ffc1_symmetric	103	40b168428f5c28f6	spectrum=104
+rt	ffc1_symmetric	104	40b16b7ae147ae14	spectrum=105
+rt	ffc1_symmetric	105	40b16eb0a3d70a3d	spectrum=106
+rt	ffc1_symmetric	106	40b171e8f5c28f5c	spectrum=107
+rt	ffc1_symmetric	107	40b1751c28f5c28f	spectrum=108
+rt	ffc1_symmetric	108	40b17851eb851eb8	spectrum=109
+rt	ffc1_symmetric	109	40b17b8a3d70a3d7	spectrum=110
+rt	ffc1_symmetric	110	40b17ebd70a3d70a	spectrum=111
+rt	ffc1_symmetric	111	40b181f5c28f5c29	spectrum=112
+input	ffc1_user_seeds	112	3084	40b01287ae147ae1	40b181f5c28f5c29	408419a480000000	4084921e80000000
+member	ffc1_user_seeds	pattern_tolerance	3f947ae147ae147b
+member	ffc1_user_seeds	trace_tolerance	3f947ae147ae147b
+member	ffc1_user_seeds	min_spectra	7
+member	ffc1_user_seeds	max_missing_trace_peaks	1
+member	ffc1_user_seeds	slope_bound	3fb999999999999a
+member	ffc1_user_seeds	intensity_percentage	3fb999999999999a
+member	ffc1_user_seeds	intensity_percentage_optional	3f50624dd2f1a9fc
+member	ffc1_user_seeds	optional_fit_improvement	3f947ae147ae147b
+member	ffc1_user_seeds	mass_window_width	4059000000000000
+member	ffc1_user_seeds	intensity_bins	1
+member	ffc1_user_seeds	min_isotope_fit	3fe999999999999a
+member	ffc1_user_seeds	min_trace_score	3fe0000000000000
+member	ffc1_user_seeds	min_rt_span	3fd54fdf3b645a1d
+member	ffc1_user_seeds	max_rt_span	4004000000000000
+member	ffc1_user_seeds	max_feature_intersection	3fd6666666666666
+member	ffc1_user_seeds	reported_mz	monoisotopic
+stdout	ffc1_user_seeds	Found 24 seeds for charge 2.
+stdout	ffc1_user_seeds	Found 9 feature candidates for charge 2.
+bins	ffc1_user_seeds	1	40b01287ae147ae1	408419a480000000	4076f6e147ae1480	402e1e8000000000
+quantiles	ffc1_user_seeds	0	0	402745fcc0000000	402de7fa40000000	403022ada0000000	403151bd40000000	4032395880000000	403337d160000000	40343f1160000000	40353266e0000000	403650f600000000	40377dae60000000	4038c71220000000	403a6315c0000000	403c1322e0000000	403e777a40000000	40408a6bc0000000	4042882060000000	4044ecf5e0000000	404a267fa0000000	4052a74c60000000	40642ee9e0000000	408d343a40000000
+window	ffc1_user_seeds	0	4049000000000000	3	0	2	3fef20b680000000	0	3ff0000000000000	3f9a52aacc1ec337	3f6286bf94936ca0
+window	ffc1_user_seeds	1	4062c00000000000	3	0	2	3fed4c2a20000000	0	3ff0000000000000	3fb5a5043d768ee9	3f7dbdb9edf8582f
+window	ffc1_user_seeds	2	406f400000000000	3	0	1	3febd265e0000000	0	3ff0000000000000	3fc13492ea13298a	3f8dc45bdb558d62
+window	ffc1_user_seeds	3	4075e00000000000	4	0	2	3fea288e80000000	0	3ff0000000000000	3fc89c01b9ffc4f0	3f9c75e42e82252f	3f68646b82fcecf8
+window	ffc1_user_seeds	4	407c200000000000	4	0	2	3fe8d7ff60000000	0	3ff0000000000000	3fcefa4d6b163c03	3fa4b0b40ae2b7d2	3f74b88583316817
+window	ffc1_user_seeds	5	4081300000000000	4	0	2	3fe78b2100000000	0	3ff0000000000000	3fd2d051afc8a05a	3facbe6a14a82cc8	3f807773177ef548
+window	ffc1_user_seeds	6	4084500000000000	5	0	3	3fe622c5e0000000	0	3ff0000000000000	3fd684092874ec82	3fb420f5a78a205b	3f8aefeba8c95f08	3f5d72bb74e6be7e
+window	ffc1_user_seeds	7	4087700000000000	5	0	3	3fe50559a0000000	0	3ff0000000000000	3fd9b511758bc90c	3fb967161697c7a1	3f92b32a4b905b22	3f66681472be2c10
+window	ffc1_user_seeds	8	408a900000000000	5	0	3	3fe3c69ae0000000	0	3ff0000000000000	3fdd80b18cb9328c	3fc0333f91e6094e	3f9a508e08e78a84	3f714f8d73c6c7ec
+window	ffc1_user_seeds	9	408db00000000000	5	0	3	3fe2bacba0000000	0	3ff0000000000000	3fe05df9faa97ddc	3fc3d646d85f2aaf	3fa1c0aa8362529b	3f79bb672f875c0f
+window	ffc1_user_seeds	10	4090680000000000	5	0	2	3fe19ecb20000000	0	3ff0000000000000	3fe243c9bb936a4c	3fc82b5755f518db	3fa77341e20c92e4	3f82588007afbb5b
+window	ffc1_user_seeds	11	4091f80000000000	6	0	3	3fe0bb9840000000	0	3ff0000000000000	3fe3dc4df48fe328	3fcc3435abe81f46	3fad38de6781f066	3f88574547d907c8	3f6127ee303605da
+window	ffc1_user_seeds	12	4093880000000000	6	0	3	3fdf76f740000000	0	3ff0000000000000	3fe5b629b252d976	3fd0c0240ee9b4a1	3fb2cf5d2b961473	3f90f59e0fdd2315	3f69dc981d902946
+window	ffc1_user_seeds	13	4095180000000000	6	0	3	3fdc7835c0000000	0	3ff0000000000000	3fe7721d13c13ba7	3fd6343de93cfd2c	3fbf6bd3b5aef329	3fa1f43429616181	3f8148f44cf38651
+window	ffc1_user_seeds	14	4096a80000000000	6	0	3	3fdafb8e40000000	0	3ff0000000000000	3fe91ac1489c9c13	3fd8d61d647c7e88	3fc252b798de8171	3fa5d10481d800a8	3f85e30752e1a6e7
+seed	ffc1_user_seeds	2	0	87	6	4469a1d2	3f6bea52
+seed	ffc1_user_seeds	2	1	83	9	445a46f7	3f68b3a3
+seed	ffc1_user_seeds	2	2	87	7	4427fccf	3f582f62
+seed	ffc1_user_seeds	2	3	56	15	4425346f	3f63fcab
+seed	ffc1_user_seeds	2	4	82	11	44229a26	3f4f80e1
+seed	ffc1_user_seeds	2	5	56	16	4400ede5	3f5ae035
+seed	ffc1_user_seeds	2	6	50	19	43d6e9c4	3f613e51
+seed	ffc1_user_seeds	2	7	50	20	43a7e033	3f60745a
+seed	ffc1_user_seeds	2	8	81	12	439a85d2	3f61f1f9
+seed	ffc1_user_seeds	2	9	89	7	43964129	3f655e79
+seed	ffc1_user_seeds	2	10	25	19	43798f0d	3f68889f
+seed	ffc1_user_seeds	2	11	56	17	43678f57	3f63be2a
+seed	ffc1_user_seeds	2	12	26	20	4364ec36	3f524031
+seed	ffc1_user_seeds	2	13	31	7	432a4424	3f62b95e
+seed	ffc1_user_seeds	2	14	21	22	431d460e	3f4f25b4
+seed	ffc1_user_seeds	2	15	49	23	4317acf1	3f5f54b9
+seed	ffc1_user_seeds	2	16	33	8	4304753c	3f5bb20b
+seed	ffc1_user_seeds	2	17	20	23	42fe1806	3f5108ca
+seed	ffc1_user_seeds	2	18	26	11	42d67b28	3f58dea5
+seed	ffc1_user_seeds	2	19	25	21	42ceee3b	3f5c1c8d
+seed	ffc1_user_seeds	2	20	25	12	42a99500	3f3aef4c
+seed	ffc1_user_seeds	2	21	32	9	4296b432	3f5c1e58
+seed	ffc1_user_seeds	2	22	19	23	425976f8	3f423db4
+seed	ffc1_user_seeds	2	23	25	13	42285699	3f2100fa
+rt	ffc1_user_seeds	0	40b01287ae147ae1	spectrum=1
+rt	ffc1_user_seeds	1	40b015f0a3d70a3d	spectrum=2
+rt	ffc1_user_seeds	2	40b0195c28f5c28f	spectrum=3
+rt	ffc1_user_seeds	3	40b01cc28f5c28f6	spectrum=4
+rt	ffc1_user_seeds	4	40b0202e147ae148	spectrum=5
+rt	ffc1_user_seeds	5	40b02363d70a3d71	spectrum=6
+rt	ffc1_user_seeds	6	40b026cccccccccd	spectrum=7
+rt	ffc1_user_seeds	7	40b02a35c28f5c29	spectrum=8
+rt	ffc1_user_seeds	8	40b02d9c28f5c28f	spectrum=9
+rt	ffc1_user_seeds	9	40b03107ae147ae1	spectrum=10
+rt	ffc1_user_seeds	10	40b03470a3d70a3d	spectrum=11
+rt	ffc1_user_seeds	11	40b037d99999999a	spectrum=12
+rt	ffc1_user_seeds	12	40b03b428f5c28f6	spectrum=13
+rt	ffc1_user_seeds	13	40b03eae147ae148	spectrum=14
+rt	ffc1_user_seeds	14	40b042170a3d70a4	spectrum=15
+rt	ffc1_user_seeds	15	40b0457d70a3d70a	spectrum=16
+rt	ffc1_user_seeds	16	40b048e666666666	spectrum=17
+rt	ffc1_user_seeds	17	40b04c51eb851eb8	spectrum=18
+rt	ffc1_user_seeds	18	40b04fbae147ae14	spectrum=19
+rt	ffc1_user_seeds	19	40b052f333333333	spectrum=20
+rt	ffc1_user_seeds	20	40b056599999999a	spectrum=21
+rt	ffc1_user_seeds	21	40b059c28f5c28f6	spectrum=22
+rt	ffc1_user_seeds	22	40b05d2e147ae148	spectrum=23
+rt	ffc1_user_seeds	23	40b060947ae147ae	spectrum=24
+rt	ffc1_user_seeds	24	40b0640000000000	spectrum=25
+rt	ffc1_user_seeds	25	40b06768f5c28f5c	spectrum=26
+rt	ffc1_user_seeds	26	40b06ad1eb851eb8	spectrum=27
+rt	ffc1_user_seeds	27	40b06e0a3d70a3d7	spectrum=28
+rt	ffc1_user_seeds	28	40b0713d70a3d70a	spectrum=29
+rt	ffc1_user_seeds	29	40b07475c28f5c29	spectrum=30
+rt	ffc1_user_seeds	30	40b077ab851eb852	spectrum=31
+rt	ffc1_user_seeds	31	40b07ae3d70a3d71	spectrum=32
+rt	ffc1_user_seeds	32	40b07e170a3d70a4	spectrum=33
+rt	ffc1_user_seeds	33	40b0814ccccccccd	spectrum=34
+rt	ffc1_user_seeds	34	40b084828f5c28f6	spectrum=35
+rt	ffc1_user_seeds	35	40b087b851eb851f	spectrum=36
+rt	ffc1_user_seeds	36	40b08aee147ae148	spectrum=37
+rt	ffc1_user_seeds	37	40b08e23d70a3d71	spectrum=38
+rt	ffc1_user_seeds	38	40b091599999999a	spectrum=39
+rt	ffc1_user_seeds	39	40b0948f5c28f5c3	spectrum=40
+rt	ffc1_user_seeds	40	40b097c51eb851ec	spectrum=41
+rt	ffc1_user_seeds	41	40b09afae147ae14	spectrum=42
+rt	ffc1_user_seeds	42	40b09e3333333333	spectrum=43
+rt	ffc1_user_seeds	43	40b0a168f5c28f5c	spectrum=44
+rt	ffc1_user_seeds	44	40b0a4a147ae147b	spectrum=45
+rt	ffc1_user_seeds	45	40b0a7d47ae147ae	spectrum=46
+rt	ffc1_user_seeds	46	40b0ab0a3d70a3d7	spectrum=47
+rt	ffc1_user_seeds	47	40b0ae4000000000	spectrum=48
+rt	ffc1_user_seeds	48	40b0b175c28f5c29	spectrum=49
+rt	ffc1_user_seeds	49	40b0b4ab851eb852	spectrum=50
+rt	ffc1_user_seeds	50	40b0b7e147ae147b	spectrum=51
+rt	ffc1_user_seeds	51	40b0bb199999999a	spectrum=52
+rt	ffc1_user_seeds	52	40b0be4ccccccccd	spectrum=53
+rt	ffc1_user_seeds	53	40b0c1851eb851ec	spectrum=54
+rt	ffc1_user_seeds	54	40b0c4b851eb851f	spectrum=55
+rt	ffc1_user_seeds	55	40b0c7ee147ae148	spectrum=56
+rt	ffc1_user_seeds	56	40b0cb570a3d70a4	spectrum=57
+rt	ffc1_user_seeds	57	40b0cec000000000	spectrum=58
+rt	ffc1_user_seeds	58	40b0d228f5c28f5c	spectrum=59
+rt	ffc1_user_seeds	59	40b0d591eb851eb8	spectrum=60
+rt	ffc1_user_seeds	60	40b0d8fd70a3d70a	spectrum=61
+rt	ffc1_user_seeds	61	40b0dc63d70a3d71	spectrum=62
+rt	ffc1_user_seeds	62	40b0dfd1eb851eb8	spectrum=63
+rt	ffc1_user_seeds	63	40b0e33851eb851f	spectrum=64
+rt	ffc1_user_seeds	64	40b0e6a147ae147b	spectrum=65
+rt	ffc1_user_seeds	65	40b0ea0a3d70a3d7	spectrum=66
+rt	ffc1_user_seeds	66	40b0ed7333333333	spectrum=67
+rt	ffc1_user_seeds	67	40b0f0dc28f5c28f	spectrum=68
+rt	ffc1_user_seeds	68	40b0f447ae147ae1	spectrum=69
+rt	ffc1_user_seeds	69	40b0f7b0a3d70a3d	spectrum=70
+rt	ffc1_user_seeds	70	40b0fb199999999a	spectrum=71
+rt	ffc1_user_seeds	71	40b0fe851eb851ec	spectrum=72
+rt	ffc1_user_seeds	72	40b101eb851eb852	spectrum=73
+rt	ffc1_user_seeds	73	40b105570a3d70a4	spectrum=74
+rt	ffc1_user_seeds	74	40b1088ccccccccd	spectrum=75
+rt	ffc1_user_seeds	75	40b10bf333333333	spectrum=76
+rt	ffc1_user_seeds	76	40b10f5eb851eb85	spectrum=77
+rt	ffc1_user_seeds	77	40b112c7ae147ae1	spectrum=78
+rt	ffc1_user_seeds	78	40b11630a3d70a3d	spectrum=79
+rt	ffc1_user_seeds	79	40b119999999999a	spectrum=80
+rt	ffc1_user_seeds	80	40b11d07ae147ae1	spectrum=81
+rt	ffc1_user_seeds	81	40b1206e147ae148	spectrum=82
+rt	ffc1_user_seeds	82	40b123d70a3d70a4	spectrum=83
+rt	ffc1_user_seeds	83	40b1273d70a3d70a	spectrum=84
+rt	ffc1_user_seeds	84	40b12aa8f5c28f5c	spectrum=85
+rt	ffc1_user_seeds	85	40b12e11eb851eb8	spectrum=86
+rt	ffc1_user_seeds	86	40b1317ae147ae14	spectrum=87
+rt	ffc1_user_seeds	87	40b134e3d70a3d71	spectrum=88
+rt	ffc1_user_seeds	88	40b1381c28f5c28f	spectrum=89
+rt	ffc1_user_seeds	89	40b13b51eb851eb8	spectrum=90
+rt	ffc1_user_seeds	90	40b13e87ae147ae1	spectrum=91
+rt	ffc1_user_seeds	91	40b141c000000000	spectrum=92
+rt	ffc1_user_seeds	92	40b144f333333333	spectrum=93
+rt	ffc1_user_seeds	93	40b1482b851eb852	spectrum=94
+rt	ffc1_user_seeds	94	40b14b5eb851eb85	spectrum=95
+rt	ffc1_user_seeds	95	40b14e947ae147ae	spectrum=96
+rt	ffc1_user_seeds	96	40b151ca3d70a3d7	spectrum=97
+rt	ffc1_user_seeds	97	40b1550000000000	spectrum=98
+rt	ffc1_user_seeds	98	40b15835c28f5c29	spectrum=99
+rt	ffc1_user_seeds	99	40b15b6b851eb852	spectrum=100
+rt	ffc1_user_seeds	100	40b15ea3d70a3d71	spectrum=101
+rt	ffc1_user_seeds	101	40b161d70a3d70a4	spectrum=102
+rt	ffc1_user_seeds	102	40b1650f5c28f5c3	spectrum=103
+rt	ffc1_user_seeds	103	40b168428f5c28f6	spectrum=104
+rt	ffc1_user_seeds	104	40b16b7ae147ae14	spectrum=105
+rt	ffc1_user_seeds	105	40b16eb0a3d70a3d	spectrum=106
+rt	ffc1_user_seeds	106	40b171e8f5c28f5c	spectrum=107
+rt	ffc1_user_seeds	107	40b1751c28f5c28f	spectrum=108
+rt	ffc1_user_seeds	108	40b17851eb851eb8	spectrum=109
+rt	ffc1_user_seeds	109	40b17b8a3d70a3d7	spectrum=110
+rt	ffc1_user_seeds	110	40b17ebd70a3d70a	spectrum=111
+rt	ffc1_user_seeds	111	40b181f5c28f5c29	spectrum=112
+input	classtest	112	3084	40b01287ae147ae1	40b181f5c28f5c29	408419a480000000	4084921e80000000
+member	classtest	pattern_tolerance	3f947ae147ae147b
+member	classtest	trace_tolerance	3f947ae147ae147b
+member	classtest	min_spectra	7
+member	classtest	max_missing_trace_peaks	1
+member	classtest	slope_bound	3fb999999999999a
+member	classtest	intensity_percentage	3fb999999999999a
+member	classtest	intensity_percentage_optional	3f50624dd2f1a9fc
+member	classtest	optional_fit_improvement	3f947ae147ae147b
+member	classtest	mass_window_width	4059000000000000
+member	classtest	intensity_bins	1
+member	classtest	min_isotope_fit	3fe999999999999a
+member	classtest	min_trace_score	3fe0000000000000
+member	classtest	min_rt_span	3fd54fdf3b645a1d
+member	classtest	max_rt_span	4004000000000000
+member	classtest	max_feature_intersection	3fd6666666666666
+member	classtest	reported_mz	monoisotopic
+stdout	classtest	Found 25 seeds for charge 2.
+stdout	classtest	Found 8 feature candidates for charge 2.
+bins	classtest	1	40b01287ae147ae1	408419a480000000	4076f6e147ae1480	402e1e8000000000
+quantiles	classtest	0	0	402745fcc0000000	402de7fa40000000	403022ada0000000	403151bd40000000	4032395880000000	403337d160000000	40343f1160000000	40353266e0000000	403650f600000000	40377dae60000000	4038c71220000000	403a6315c0000000	403c1322e0000000	403e777a40000000	40408a6bc0000000	4042882060000000	4044ecf5e0000000	404a267fa0000000	4052a74c60000000	40642ee9e0000000	408d343a40000000
+window	classtest	0	4049000000000000	3	0	2	3fef20b680000000	0	3ff0000000000000	3f9a52aacc1ec337	3f6286bf94936ca0
+window	classtest	1	4062c00000000000	3	0	2	3fed4c2a20000000	0	3ff0000000000000	3fb5a5043d768ee9	3f7dbdb9edf8582f
+window	classtest	2	406f400000000000	3	0	1	3febd265e0000000	0	3ff0000000000000	3fc13492ea13298a	3f8dc45bdb558d62
+window	classtest	3	4075e00000000000	4	0	2	3fea288e80000000	0	3ff0000000000000	3fc89c01b9ffc4f0	3f9c75e42e82252f	3f68646b82fcecf8
+window	classtest	4	407c200000000000	4	0	2	3fe8d7ff60000000	0	3ff0000000000000	3fcefa4d6b163c03	3fa4b0b40ae2b7d2	3f74b88583316817
+window	classtest	5	4081300000000000	4	0	2	3fe78b2100000000	0	3ff0000000000000	3fd2d051afc8a05a	3facbe6a14a82cc8	3f807773177ef548
+window	classtest	6	4084500000000000	5	0	3	3fe622c5e0000000	0	3ff0000000000000	3fd684092874ec82	3fb420f5a78a205b	3f8aefeba8c95f08	3f5d72bb74e6be7e
+window	classtest	7	4087700000000000	5	0	3	3fe50559a0000000	0	3ff0000000000000	3fd9b511758bc90c	3fb967161697c7a1	3f92b32a4b905b22	3f66681472be2c10
+window	classtest	8	408a900000000000	5	0	3	3fe3c69ae0000000	0	3ff0000000000000	3fdd80b18cb9328c	3fc0333f91e6094e	3f9a508e08e78a84	3f714f8d73c6c7ec
+window	classtest	9	408db00000000000	5	0	3	3fe2bacba0000000	0	3ff0000000000000	3fe05df9faa97ddc	3fc3d646d85f2aaf	3fa1c0aa8362529b	3f79bb672f875c0f
+window	classtest	10	4090680000000000	5	0	2	3fe19ecb20000000	0	3ff0000000000000	3fe243c9bb936a4c	3fc82b5755f518db	3fa77341e20c92e4	3f82588007afbb5b
+window	classtest	11	4091f80000000000	6	0	3	3fe0bb9840000000	0	3ff0000000000000	3fe3dc4df48fe328	3fcc3435abe81f46	3fad38de6781f066	3f88574547d907c8	3f6127ee303605da
+window	classtest	12	4093880000000000	6	0	3	3fdf76f740000000	0	3ff0000000000000	3fe5b629b252d976	3fd0c0240ee9b4a1	3fb2cf5d2b961473	3f90f59e0fdd2315	3f69dc981d902946
+window	classtest	13	4095180000000000	6	0	3	3fdc7835c0000000	0	3ff0000000000000	3fe7721d13c13ba7	3fd6343de93cfd2c	3fbf6bd3b5aef329	3fa1f43429616181	3f8148f44cf38651
+window	classtest	14	4096a80000000000	6	0	3	3fdafb8e40000000	0	3ff0000000000000	3fe91ac1489c9c13	3fd8d61d647c7e88	3fc252b798de8171	3fa5d10481d800a8	3f85e30752e1a6e7
+seed	classtest	2	0	87	6	4469a1d2	3f6bea52
+seed	classtest	2	1	83	9	445a46f7	3f68b3a3
+seed	classtest	2	2	87	7	4427fccf	3f582f62
+seed	classtest	2	3	56	15	4425346f	3f63fcab
+seed	classtest	2	4	82	11	44229a26	3f4f80e1
+seed	classtest	2	5	56	16	4400ede5	3f5ae035
+seed	classtest	2	6	50	19	43d6e9c4	3f613e51
+seed	classtest	2	7	50	20	43a7e033	3f60745a
+seed	classtest	2	8	81	12	439a85d2	3f61f1f9
+seed	classtest	2	9	89	7	43964129	3f655e79
+seed	classtest	2	10	25	19	43798f0d	3f68889f
+seed	classtest	2	11	56	17	43678f57	3f63be2a
+seed	classtest	2	12	26	20	4364ec36	3f524031
+seed	classtest	2	13	31	7	432a4424	3f62b95e
+seed	classtest	2	14	21	22	431d460e	3f4f25b4
+seed	classtest	2	15	49	23	4317acf1	3f5f54b9
+seed	classtest	2	16	33	8	4304753c	3f5bb20b
+seed	classtest	2	17	20	23	42fe1806	3f5108ca
+seed	classtest	2	18	86	8	42e2da8c	3f5faf2a
+seed	classtest	2	19	26	11	42d67b28	3f58dea5
+seed	classtest	2	20	25	21	42ceee3b	3f5c1c8d
+seed	classtest	2	21	83	12	42c7fdb6	3f56eb51
+seed	classtest	2	22	56	18	42c220e7	3f5746a0
+seed	classtest	2	23	32	9	4296b432	3f5c1e58
+seed	classtest	2	24	63	27	4216af05	3f506fd8
+rt	classtest	0	40b01287ae147ae1	spectrum=1
+rt	classtest	1	40b015f0a3d70a3d	spectrum=2
+rt	classtest	2	40b0195c28f5c28f	spectrum=3
+rt	classtest	3	40b01cc28f5c28f6	spectrum=4
+rt	classtest	4	40b0202e147ae148	spectrum=5
+rt	classtest	5	40b02363d70a3d71	spectrum=6
+rt	classtest	6	40b026cccccccccd	spectrum=7
+rt	classtest	7	40b02a35c28f5c29	spectrum=8
+rt	classtest	8	40b02d9c28f5c28f	spectrum=9
+rt	classtest	9	40b03107ae147ae1	spectrum=10
+rt	classtest	10	40b03470a3d70a3d	spectrum=11
+rt	classtest	11	40b037d99999999a	spectrum=12
+rt	classtest	12	40b03b428f5c28f6	spectrum=13
+rt	classtest	13	40b03eae147ae148	spectrum=14
+rt	classtest	14	40b042170a3d70a4	spectrum=15
+rt	classtest	15	40b0457d70a3d70a	spectrum=16
+rt	classtest	16	40b048e666666666	spectrum=17
+rt	classtest	17	40b04c51eb851eb8	spectrum=18
+rt	classtest	18	40b04fbae147ae14	spectrum=19
+rt	classtest	19	40b052f333333333	spectrum=20
+rt	classtest	20	40b056599999999a	spectrum=21
+rt	classtest	21	40b059c28f5c28f6	spectrum=22
+rt	classtest	22	40b05d2e147ae148	spectrum=23
+rt	classtest	23	40b060947ae147ae	spectrum=24
+rt	classtest	24	40b0640000000000	spectrum=25
+rt	classtest	25	40b06768f5c28f5c	spectrum=26
+rt	classtest	26	40b06ad1eb851eb8	spectrum=27
+rt	classtest	27	40b06e0a3d70a3d7	spectrum=28
+rt	classtest	28	40b0713d70a3d70a	spectrum=29
+rt	classtest	29	40b07475c28f5c29	spectrum=30
+rt	classtest	30	40b077ab851eb852	spectrum=31
+rt	classtest	31	40b07ae3d70a3d71	spectrum=32
+rt	classtest	32	40b07e170a3d70a4	spectrum=33
+rt	classtest	33	40b0814ccccccccd	spectrum=34
+rt	classtest	34	40b084828f5c28f6	spectrum=35
+rt	classtest	35	40b087b851eb851f	spectrum=36
+rt	classtest	36	40b08aee147ae148	spectrum=37
+rt	classtest	37	40b08e23d70a3d71	spectrum=38
+rt	classtest	38	40b091599999999a	spectrum=39
+rt	classtest	39	40b0948f5c28f5c3	spectrum=40
+rt	classtest	40	40b097c51eb851ec	spectrum=41
+rt	classtest	41	40b09afae147ae14	spectrum=42
+rt	classtest	42	40b09e3333333333	spectrum=43
+rt	classtest	43	40b0a168f5c28f5c	spectrum=44
+rt	classtest	44	40b0a4a147ae147b	spectrum=45
+rt	classtest	45	40b0a7d47ae147ae	spectrum=46
+rt	classtest	46	40b0ab0a3d70a3d7	spectrum=47
+rt	classtest	47	40b0ae4000000000	spectrum=48
+rt	classtest	48	40b0b175c28f5c29	spectrum=49
+rt	classtest	49	40b0b4ab851eb852	spectrum=50
+rt	classtest	50	40b0b7e147ae147b	spectrum=51
+rt	classtest	51	40b0bb199999999a	spectrum=52
+rt	classtest	52	40b0be4ccccccccd	spectrum=53
+rt	classtest	53	40b0c1851eb851ec	spectrum=54
+rt	classtest	54	40b0c4b851eb851f	spectrum=55
+rt	classtest	55	40b0c7ee147ae148	spectrum=56
+rt	classtest	56	40b0cb570a3d70a4	spectrum=57
+rt	classtest	57	40b0cec000000000	spectrum=58
+rt	classtest	58	40b0d228f5c28f5c	spectrum=59
+rt	classtest	59	40b0d591eb851eb8	spectrum=60
+rt	classtest	60	40b0d8fd70a3d70a	spectrum=61
+rt	classtest	61	40b0dc63d70a3d71	spectrum=62
+rt	classtest	62	40b0dfd1eb851eb8	spectrum=63
+rt	classtest	63	40b0e33851eb851f	spectrum=64
+rt	classtest	64	40b0e6a147ae147b	spectrum=65
+rt	classtest	65	40b0ea0a3d70a3d7	spectrum=66
+rt	classtest	66	40b0ed7333333333	spectrum=67
+rt	classtest	67	40b0f0dc28f5c28f	spectrum=68
+rt	classtest	68	40b0f447ae147ae1	spectrum=69
+rt	classtest	69	40b0f7b0a3d70a3d	spectrum=70
+rt	classtest	70	40b0fb199999999a	spectrum=71
+rt	classtest	71	40b0fe851eb851ec	spectrum=72
+rt	classtest	72	40b101eb851eb852	spectrum=73
+rt	classtest	73	40b105570a3d70a4	spectrum=74
+rt	classtest	74	40b1088ccccccccd	spectrum=75
+rt	classtest	75	40b10bf333333333	spectrum=76
+rt	classtest	76	40b10f5eb851eb85	spectrum=77
+rt	classtest	77	40b112c7ae147ae1	spectrum=78
+rt	classtest	78	40b11630a3d70a3d	spectrum=79
+rt	classtest	79	40b119999999999a	spectrum=80
+rt	classtest	80	40b11d07ae147ae1	spectrum=81
+rt	classtest	81	40b1206e147ae148	spectrum=82
+rt	classtest	82	40b123d70a3d70a4	spectrum=83
+rt	classtest	83	40b1273d70a3d70a	spectrum=84
+rt	classtest	84	40b12aa8f5c28f5c	spectrum=85
+rt	classtest	85	40b12e11eb851eb8	spectrum=86
+rt	classtest	86	40b1317ae147ae14	spectrum=87
+rt	classtest	87	40b134e3d70a3d71	spectrum=88
+rt	classtest	88	40b1381c28f5c28f	spectrum=89
+rt	classtest	89	40b13b51eb851eb8	spectrum=90
+rt	classtest	90	40b13e87ae147ae1	spectrum=91
+rt	classtest	91	40b141c000000000	spectrum=92
+rt	classtest	92	40b144f333333333	spectrum=93
+rt	classtest	93	40b1482b851eb852	spectrum=94
+rt	classtest	94	40b14b5eb851eb85	spectrum=95
+rt	classtest	95	40b14e947ae147ae	spectrum=96
+rt	classtest	96	40b151ca3d70a3d7	spectrum=97
+rt	classtest	97	40b1550000000000	spectrum=98
+rt	classtest	98	40b15835c28f5c29	spectrum=99
+rt	classtest	99	40b15b6b851eb852	spectrum=100
+rt	classtest	100	40b15ea3d70a3d71	spectrum=101
+rt	classtest	101	40b161d70a3d70a4	spectrum=102
+rt	classtest	102	40b1650f5c28f5c3	spectrum=103
+rt	classtest	103	40b168428f5c28f6	spectrum=104
+rt	classtest	104	40b16b7ae147ae14	spectrum=105
+rt	classtest	105	40b16eb0a3d70a3d	spectrum=106
+rt	classtest	106	40b171e8f5c28f5c	spectrum=107
+rt	classtest	107	40b1751c28f5c28f	spectrum=108
+rt	classtest	108	40b17851eb851eb8	spectrum=109
+rt	classtest	109	40b17b8a3d70a3d7	spectrum=110
+rt	classtest	110	40b17ebd70a3d70a	spectrum=111
+rt	classtest	111	40b181f5c28f5c29	spectrum=112
+input	classtest_9247_tight_pattern	112	3084	40b01287ae147ae1	40b181f5c28f5c29	408419a480000000	4084921e80000000
+member	classtest_9247_tight_pattern	pattern_tolerance	3f747ae147ae147b
+member	classtest_9247_tight_pattern	trace_tolerance	3fe0000000000000
+member	classtest_9247_tight_pattern	min_spectra	7
+member	classtest_9247_tight_pattern	max_missing_trace_peaks	1
+member	classtest_9247_tight_pattern	slope_bound	3fb999999999999a
+member	classtest_9247_tight_pattern	intensity_percentage	3fb999999999999a
+member	classtest_9247_tight_pattern	intensity_percentage_optional	3f50624dd2f1a9fc
+member	classtest_9247_tight_pattern	optional_fit_improvement	3f947ae147ae147b
+member	classtest_9247_tight_pattern	mass_window_width	4059000000000000
+member	classtest_9247_tight_pattern	intensity_bins	1
+member	classtest_9247_tight_pattern	min_isotope_fit	3fe999999999999a
+member	classtest_9247_tight_pattern	min_trace_score	3fe0000000000000
+member	classtest_9247_tight_pattern	min_rt_span	3fd54fdf3b645a1d
+member	classtest_9247_tight_pattern	max_rt_span	4004000000000000
+member	classtest_9247_tight_pattern	max_feature_intersection	3fd6666666666666
+member	classtest_9247_tight_pattern	reported_mz	monoisotopic
+stdout	classtest_9247_tight_pattern	Found 15 seeds for charge 2.
+stdout	classtest_9247_tight_pattern	Found 1 feature candidates for charge 2.
+bins	classtest_9247_tight_pattern	1	40b01287ae147ae1	408419a480000000	4076f6e147ae1480	402e1e8000000000
+quantiles	classtest_9247_tight_pattern	0	0	402745fcc0000000	402de7fa40000000	403022ada0000000	403151bd40000000	4032395880000000	403337d160000000	40343f1160000000	40353266e0000000	403650f600000000	40377dae60000000	4038c71220000000	403a6315c0000000	403c1322e0000000	403e777a40000000	40408a6bc0000000	4042882060000000	4044ecf5e0000000	404a267fa0000000	4052a74c60000000	40642ee9e0000000	408d343a40000000
+window	classtest_9247_tight_pattern	0	4049000000000000	3	0	2	3fef20b680000000	0	3ff0000000000000	3f9a52aacc1ec337	3f6286bf94936ca0
+window	classtest_9247_tight_pattern	1	4062c00000000000	3	0	2	3fed4c2a20000000	0	3ff0000000000000	3fb5a5043d768ee9	3f7dbdb9edf8582f
+window	classtest_9247_tight_pattern	2	406f400000000000	3	0	1	3febd265e0000000	0	3ff0000000000000	3fc13492ea13298a	3f8dc45bdb558d62
+window	classtest_9247_tight_pattern	3	4075e00000000000	4	0	2	3fea288e80000000	0	3ff0000000000000	3fc89c01b9ffc4f0	3f9c75e42e82252f	3f68646b82fcecf8
+window	classtest_9247_tight_pattern	4	407c200000000000	4	0	2	3fe8d7ff60000000	0	3ff0000000000000	3fcefa4d6b163c03	3fa4b0b40ae2b7d2	3f74b88583316817
+window	classtest_9247_tight_pattern	5	4081300000000000	4	0	2	3fe78b2100000000	0	3ff0000000000000	3fd2d051afc8a05a	3facbe6a14a82cc8	3f807773177ef548
+window	classtest_9247_tight_pattern	6	4084500000000000	5	0	3	3fe622c5e0000000	0	3ff0000000000000	3fd684092874ec82	3fb420f5a78a205b	3f8aefeba8c95f08	3f5d72bb74e6be7e
+window	classtest_9247_tight_pattern	7	4087700000000000	5	0	3	3fe50559a0000000	0	3ff0000000000000	3fd9b511758bc90c	3fb967161697c7a1	3f92b32a4b905b22	3f66681472be2c10
+window	classtest_9247_tight_pattern	8	408a900000000000	5	0	3	3fe3c69ae0000000	0	3ff0000000000000	3fdd80b18cb9328c	3fc0333f91e6094e	3f9a508e08e78a84	3f714f8d73c6c7ec
+window	classtest_9247_tight_pattern	9	408db00000000000	5	0	3	3fe2bacba0000000	0	3ff0000000000000	3fe05df9faa97ddc	3fc3d646d85f2aaf	3fa1c0aa8362529b	3f79bb672f875c0f
+window	classtest_9247_tight_pattern	10	4090680000000000	5	0	2	3fe19ecb20000000	0	3ff0000000000000	3fe243c9bb936a4c	3fc82b5755f518db	3fa77341e20c92e4	3f82588007afbb5b
+window	classtest_9247_tight_pattern	11	4091f80000000000	6	0	3	3fe0bb9840000000	0	3ff0000000000000	3fe3dc4df48fe328	3fcc3435abe81f46	3fad38de6781f066	3f88574547d907c8	3f6127ee303605da
+window	classtest_9247_tight_pattern	12	4093880000000000	6	0	3	3fdf76f740000000	0	3ff0000000000000	3fe5b629b252d976	3fd0c0240ee9b4a1	3fb2cf5d2b961473	3f90f59e0fdd2315	3f69dc981d902946
+window	classtest_9247_tight_pattern	13	4095180000000000	6	0	3	3fdc7835c0000000	0	3ff0000000000000	3fe7721d13c13ba7	3fd6343de93cfd2c	3fbf6bd3b5aef329	3fa1f43429616181	3f8148f44cf38651
+window	classtest_9247_tight_pattern	14	4096a80000000000	6	0	3	3fdafb8e40000000	0	3ff0000000000000	3fe91ac1489c9c13	3fd8d61d647c7e88	3fc252b798de8171	3fa5d10481d800a8	3f85e30752e1a6e7
+seed	classtest_9247_tight_pattern	2	0	87	6	4469a1d2	3f53bbec
+seed	classtest_9247_tight_pattern	2	1	50	19	43d6e9c4	3f6052b0
+seed	classtest_9247_tight_pattern	2	2	50	20	43a7e033	3f5fda77
+seed	classtest_9247_tight_pattern	2	3	49	23	4317acf1	3f60631f
+seed	classtest_9247_tight_pattern	2	4	33	8	4304753c	3f5a1148
+seed	classtest_9247_tight_pattern	2	5	20	23	42fe1806	3f626c99
+seed	classtest_9247_tight_pattern	2	6	86	8	42e2da8c	3f518eeb
+seed	classtest_9247_tight_pattern	2	7	25	21	42ceee3b	3f6444e6
+seed	classtest_9247_tight_pattern	2	8	84	1	4276d22e	3f4e569f
+seed	classtest_9247_tight_pattern	2	9	63	31	4250bfb0	3f6ee388
+seed	classtest_9247_tight_pattern	2	10	19	24	4238a5d6	3f6071de
+seed	classtest_9247_tight_pattern	2	11	38	24	422e41e8	3f5b4895
+seed	classtest_9247_tight_pattern	2	12	38	23	4224d9b8	3f5a2d04
+seed	classtest_9247_tight_pattern	2	13	84	27	420c607f	3f5071fb
+seed	classtest_9247_tight_pattern	2	14	17	22	41e79924	3f553883
+rt	classtest_9247_tight_pattern	0	40b01287ae147ae1	spectrum=1
+rt	classtest_9247_tight_pattern	1	40b015f0a3d70a3d	spectrum=2
+rt	classtest_9247_tight_pattern	2	40b0195c28f5c28f	spectrum=3
+rt	classtest_9247_tight_pattern	3	40b01cc28f5c28f6	spectrum=4
+rt	classtest_9247_tight_pattern	4	40b0202e147ae148	spectrum=5
+rt	classtest_9247_tight_pattern	5	40b02363d70a3d71	spectrum=6
+rt	classtest_9247_tight_pattern	6	40b026cccccccccd	spectrum=7
+rt	classtest_9247_tight_pattern	7	40b02a35c28f5c29	spectrum=8
+rt	classtest_9247_tight_pattern	8	40b02d9c28f5c28f	spectrum=9
+rt	classtest_9247_tight_pattern	9	40b03107ae147ae1	spectrum=10
+rt	classtest_9247_tight_pattern	10	40b03470a3d70a3d	spectrum=11
+rt	classtest_9247_tight_pattern	11	40b037d99999999a	spectrum=12
+rt	classtest_9247_tight_pattern	12	40b03b428f5c28f6	spectrum=13
+rt	classtest_9247_tight_pattern	13	40b03eae147ae148	spectrum=14
+rt	classtest_9247_tight_pattern	14	40b042170a3d70a4	spectrum=15
+rt	classtest_9247_tight_pattern	15	40b0457d70a3d70a	spectrum=16
+rt	classtest_9247_tight_pattern	16	40b048e666666666	spectrum=17
+rt	classtest_9247_tight_pattern	17	40b04c51eb851eb8	spectrum=18
+rt	classtest_9247_tight_pattern	18	40b04fbae147ae14	spectrum=19
+rt	classtest_9247_tight_pattern	19	40b052f333333333	spectrum=20
+rt	classtest_9247_tight_pattern	20	40b056599999999a	spectrum=21
+rt	classtest_9247_tight_pattern	21	40b059c28f5c28f6	spectrum=22
+rt	classtest_9247_tight_pattern	22	40b05d2e147ae148	spectrum=23
+rt	classtest_9247_tight_pattern	23	40b060947ae147ae	spectrum=24
+rt	classtest_9247_tight_pattern	24	40b0640000000000	spectrum=25
+rt	classtest_9247_tight_pattern	25	40b06768f5c28f5c	spectrum=26
+rt	classtest_9247_tight_pattern	26	40b06ad1eb851eb8	spectrum=27
+rt	classtest_9247_tight_pattern	27	40b06e0a3d70a3d7	spectrum=28
+rt	classtest_9247_tight_pattern	28	40b0713d70a3d70a	spectrum=29
+rt	classtest_9247_tight_pattern	29	40b07475c28f5c29	spectrum=30
+rt	classtest_9247_tight_pattern	30	40b077ab851eb852	spectrum=31
+rt	classtest_9247_tight_pattern	31	40b07ae3d70a3d71	spectrum=32
+rt	classtest_9247_tight_pattern	32	40b07e170a3d70a4	spectrum=33
+rt	classtest_9247_tight_pattern	33	40b0814ccccccccd	spectrum=34
+rt	classtest_9247_tight_pattern	34	40b084828f5c28f6	spectrum=35
+rt	classtest_9247_tight_pattern	35	40b087b851eb851f	spectrum=36
+rt	classtest_9247_tight_pattern	36	40b08aee147ae148	spectrum=37
+rt	classtest_9247_tight_pattern	37	40b08e23d70a3d71	spectrum=38
+rt	classtest_9247_tight_pattern	38	40b091599999999a	spectrum=39
+rt	classtest_9247_tight_pattern	39	40b0948f5c28f5c3	spectrum=40
+rt	classtest_9247_tight_pattern	40	40b097c51eb851ec	spectrum=41
+rt	classtest_9247_tight_pattern	41	40b09afae147ae14	spectrum=42
+rt	classtest_9247_tight_pattern	42	40b09e3333333333	spectrum=43
+rt	classtest_9247_tight_pattern	43	40b0a168f5c28f5c	spectrum=44
+rt	classtest_9247_tight_pattern	44	40b0a4a147ae147b	spectrum=45
+rt	classtest_9247_tight_pattern	45	40b0a7d47ae147ae	spectrum=46
+rt	classtest_9247_tight_pattern	46	40b0ab0a3d70a3d7	spectrum=47
+rt	classtest_9247_tight_pattern	47	40b0ae4000000000	spectrum=48
+rt	classtest_9247_tight_pattern	48	40b0b175c28f5c29	spectrum=49
+rt	classtest_9247_tight_pattern	49	40b0b4ab851eb852	spectrum=50
+rt	classtest_9247_tight_pattern	50	40b0b7e147ae147b	spectrum=51
+rt	classtest_9247_tight_pattern	51	40b0bb199999999a	spectrum=52
+rt	classtest_9247_tight_pattern	52	40b0be4ccccccccd	spectrum=53
+rt	classtest_9247_tight_pattern	53	40b0c1851eb851ec	spectrum=54
+rt	classtest_9247_tight_pattern	54	40b0c4b851eb851f	spectrum=55
+rt	classtest_9247_tight_pattern	55	40b0c7ee147ae148	spectrum=56
+rt	classtest_9247_tight_pattern	56	40b0cb570a3d70a4	spectrum=57
+rt	classtest_9247_tight_pattern	57	40b0cec000000000	spectrum=58
+rt	classtest_9247_tight_pattern	58	40b0d228f5c28f5c	spectrum=59
+rt	classtest_9247_tight_pattern	59	40b0d591eb851eb8	spectrum=60
+rt	classtest_9247_tight_pattern	60	40b0d8fd70a3d70a	spectrum=61
+rt	classtest_9247_tight_pattern	61	40b0dc63d70a3d71	spectrum=62
+rt	classtest_9247_tight_pattern	62	40b0dfd1eb851eb8	spectrum=63
+rt	classtest_9247_tight_pattern	63	40b0e33851eb851f	spectrum=64
+rt	classtest_9247_tight_pattern	64	40b0e6a147ae147b	spectrum=65
+rt	classtest_9247_tight_pattern	65	40b0ea0a3d70a3d7	spectrum=66
+rt	classtest_9247_tight_pattern	66	40b0ed7333333333	spectrum=67
+rt	classtest_9247_tight_pattern	67	40b0f0dc28f5c28f	spectrum=68
+rt	classtest_9247_tight_pattern	68	40b0f447ae147ae1	spectrum=69
+rt	classtest_9247_tight_pattern	69	40b0f7b0a3d70a3d	spectrum=70
+rt	classtest_9247_tight_pattern	70	40b0fb199999999a	spectrum=71
+rt	classtest_9247_tight_pattern	71	40b0fe851eb851ec	spectrum=72
+rt	classtest_9247_tight_pattern	72	40b101eb851eb852	spectrum=73
+rt	classtest_9247_tight_pattern	73	40b105570a3d70a4	spectrum=74
+rt	classtest_9247_tight_pattern	74	40b1088ccccccccd	spectrum=75
+rt	classtest_9247_tight_pattern	75	40b10bf333333333	spectrum=76
+rt	classtest_9247_tight_pattern	76	40b10f5eb851eb85	spectrum=77
+rt	classtest_9247_tight_pattern	77	40b112c7ae147ae1	spectrum=78
+rt	classtest_9247_tight_pattern	78	40b11630a3d70a3d	spectrum=79
+rt	classtest_9247_tight_pattern	79	40b119999999999a	spectrum=80
+rt	classtest_9247_tight_pattern	80	40b11d07ae147ae1	spectrum=81
+rt	classtest_9247_tight_pattern	81	40b1206e147ae148	spectrum=82
+rt	classtest_9247_tight_pattern	82	40b123d70a3d70a4	spectrum=83
+rt	classtest_9247_tight_pattern	83	40b1273d70a3d70a	spectrum=84
+rt	classtest_9247_tight_pattern	84	40b12aa8f5c28f5c	spectrum=85
+rt	classtest_9247_tight_pattern	85	40b12e11eb851eb8	spectrum=86
+rt	classtest_9247_tight_pattern	86	40b1317ae147ae14	spectrum=87
+rt	classtest_9247_tight_pattern	87	40b134e3d70a3d71	spectrum=88
+rt	classtest_9247_tight_pattern	88	40b1381c28f5c28f	spectrum=89
+rt	classtest_9247_tight_pattern	89	40b13b51eb851eb8	spectrum=90
+rt	classtest_9247_tight_pattern	90	40b13e87ae147ae1	spectrum=91
+rt	classtest_9247_tight_pattern	91	40b141c000000000	spectrum=92
+rt	classtest_9247_tight_pattern	92	40b144f333333333	spectrum=93
+rt	classtest_9247_tight_pattern	93	40b1482b851eb852	spectrum=94
+rt	classtest_9247_tight_pattern	94	40b14b5eb851eb85	spectrum=95
+rt	classtest_9247_tight_pattern	95	40b14e947ae147ae	spectrum=96
+rt	classtest_9247_tight_pattern	96	40b151ca3d70a3d7	spectrum=97
+rt	classtest_9247_tight_pattern	97	40b1550000000000	spectrum=98
+rt	classtest_9247_tight_pattern	98	40b15835c28f5c29	spectrum=99
+rt	classtest_9247_tight_pattern	99	40b15b6b851eb852	spectrum=100
+rt	classtest_9247_tight_pattern	100	40b15ea3d70a3d71	spectrum=101
+rt	classtest_9247_tight_pattern	101	40b161d70a3d70a4	spectrum=102
+rt	classtest_9247_tight_pattern	102	40b1650f5c28f5c3	spectrum=103
+rt	classtest_9247_tight_pattern	103	40b168428f5c28f6	spectrum=104
+rt	classtest_9247_tight_pattern	104	40b16b7ae147ae14	spectrum=105
+rt	classtest_9247_tight_pattern	105	40b16eb0a3d70a3d	spectrum=106
+rt	classtest_9247_tight_pattern	106	40b171e8f5c28f5c	spectrum=107
+rt	classtest_9247_tight_pattern	107	40b1751c28f5c28f	spectrum=108
+rt	classtest_9247_tight_pattern	108	40b17851eb851eb8	spectrum=109
+rt	classtest_9247_tight_pattern	109	40b17b8a3d70a3d7	spectrum=110
+rt	classtest_9247_tight_pattern	110	40b17ebd70a3d70a	spectrum=111
+rt	classtest_9247_tight_pattern	111	40b181f5c28f5c29	spectrum=112
+input	classtest_9247_tight_trace	112	3084	40b01287ae147ae1	40b181f5c28f5c29	408419a480000000	4084921e80000000
+member	classtest_9247_tight_trace	pattern_tolerance	3fe0000000000000
+member	classtest_9247_tight_trace	trace_tolerance	3f747ae147ae147b
+member	classtest_9247_tight_trace	min_spectra	7
+member	classtest_9247_tight_trace	max_missing_trace_peaks	1
+member	classtest_9247_tight_trace	slope_bound	3fb999999999999a
+member	classtest_9247_tight_trace	intensity_percentage	3fb999999999999a
+member	classtest_9247_tight_trace	intensity_percentage_optional	3f50624dd2f1a9fc
+member	classtest_9247_tight_trace	optional_fit_improvement	3f947ae147ae147b
+member	classtest_9247_tight_trace	mass_window_width	4059000000000000
+member	classtest_9247_tight_trace	intensity_bins	1
+member	classtest_9247_tight_trace	min_isotope_fit	3fe999999999999a
+member	classtest_9247_tight_trace	min_trace_score	3fe0000000000000
+member	classtest_9247_tight_trace	min_rt_span	3fd54fdf3b645a1d
+member	classtest_9247_tight_trace	max_rt_span	4004000000000000
+member	classtest_9247_tight_trace	max_feature_intersection	3fd6666666666666
+member	classtest_9247_tight_trace	reported_mz	monoisotopic
+stdout	classtest_9247_tight_trace	Found 18 seeds for charge 2.
+stdout	classtest_9247_tight_trace	Found 0 feature candidates for charge 2.
+bins	classtest_9247_tight_trace	1	40b01287ae147ae1	408419a480000000	4076f6e147ae1480	402e1e8000000000
+quantiles	classtest_9247_tight_trace	0	0	402745fcc0000000	402de7fa40000000	403022ada0000000	403151bd40000000	4032395880000000	403337d160000000	40343f1160000000	40353266e0000000	403650f600000000	40377dae60000000	4038c71220000000	403a6315c0000000	403c1322e0000000	403e777a40000000	40408a6bc0000000	4042882060000000	4044ecf5e0000000	404a267fa0000000	4052a74c60000000	40642ee9e0000000	408d343a40000000
+window	classtest_9247_tight_trace	0	4049000000000000	3	0	2	3fef20b680000000	0	3ff0000000000000	3f9a52aacc1ec337	3f6286bf94936ca0
+window	classtest_9247_tight_trace	1	4062c00000000000	3	0	2	3fed4c2a20000000	0	3ff0000000000000	3fb5a5043d768ee9	3f7dbdb9edf8582f
+window	classtest_9247_tight_trace	2	406f400000000000	3	0	1	3febd265e0000000	0	3ff0000000000000	3fc13492ea13298a	3f8dc45bdb558d62
+window	classtest_9247_tight_trace	3	4075e00000000000	4	0	2	3fea288e80000000	0	3ff0000000000000	3fc89c01b9ffc4f0	3f9c75e42e82252f	3f68646b82fcecf8
+window	classtest_9247_tight_trace	4	407c200000000000	4	0	2	3fe8d7ff60000000	0	3ff0000000000000	3fcefa4d6b163c03	3fa4b0b40ae2b7d2	3f74b88583316817
+window	classtest_9247_tight_trace	5	4081300000000000	4	0	2	3fe78b2100000000	0	3ff0000000000000	3fd2d051afc8a05a	3facbe6a14a82cc8	3f807773177ef548
+window	classtest_9247_tight_trace	6	4084500000000000	5	0	3	3fe622c5e0000000	0	3ff0000000000000	3fd684092874ec82	3fb420f5a78a205b	3f8aefeba8c95f08	3f5d72bb74e6be7e
+window	classtest_9247_tight_trace	7	4087700000000000	5	0	3	3fe50559a0000000	0	3ff0000000000000	3fd9b511758bc90c	3fb967161697c7a1	3f92b32a4b905b22	3f66681472be2c10
+window	classtest_9247_tight_trace	8	408a900000000000	5	0	3	3fe3c69ae0000000	0	3ff0000000000000	3fdd80b18cb9328c	3fc0333f91e6094e	3f9a508e08e78a84	3f714f8d73c6c7ec
+window	classtest_9247_tight_trace	9	408db00000000000	5	0	3	3fe2bacba0000000	0	3ff0000000000000	3fe05df9faa97ddc	3fc3d646d85f2aaf	3fa1c0aa8362529b	3f79bb672f875c0f
+window	classtest_9247_tight_trace	10	4090680000000000	5	0	2	3fe19ecb20000000	0	3ff0000000000000	3fe243c9bb936a4c	3fc82b5755f518db	3fa77341e20c92e4	3f82588007afbb5b
+window	classtest_9247_tight_trace	11	4091f80000000000	6	0	3	3fe0bb9840000000	0	3ff0000000000000	3fe3dc4df48fe328	3fcc3435abe81f46	3fad38de6781f066	3f88574547d907c8	3f6127ee303605da
+window	classtest_9247_tight_trace	12	4093880000000000	6	0	3	3fdf76f740000000	0	3ff0000000000000	3fe5b629b252d976	3fd0c0240ee9b4a1	3fb2cf5d2b961473	3f90f59e0fdd2315	3f69dc981d902946
+window	classtest_9247_tight_trace	13	4095180000000000	6	0	3	3fdc7835c0000000	0	3ff0000000000000	3fe7721d13c13ba7	3fd6343de93cfd2c	3fbf6bd3b5aef329	3fa1f43429616181	3f8148f44cf38651
+window	classtest_9247_tight_trace	14	4096a80000000000	6	0	3	3fdafb8e40000000	0	3ff0000000000000	3fe91ac1489c9c13	3fd8d61d647c7e88	3fc252b798de8171	3fa5d10481d800a8	3f85e30752e1a6e7
+seed	classtest_9247_tight_trace	2	0	87	6	4469a1d2	3f5b447f
+seed	classtest_9247_tight_trace	2	1	83	9	445a46f7	3f5f2062
+seed	classtest_9247_tight_trace	2	2	56	15	4425346f	3f75c79b
+seed	classtest_9247_tight_trace	2	3	88	6	4424b62b	3f69508b
+seed	classtest_9247_tight_trace	2	4	83	10	441ff619	3f4dc30d
+seed	classtest_9247_tight_trace	2	5	56	16	4400ede5	3f4fab25
+seed	classtest_9247_tight_trace	2	6	50	19	43d6e9c4	3f5fdd5d
+seed	classtest_9247_tight_trace	2	7	50	20	43a7e033	3f5fdc44
+seed	classtest_9247_tight_trace	2	8	81	12	439a85d2	3f57b255
+seed	classtest_9247_tight_trace	2	9	89	7	43964129	3f6d63aa
+seed	classtest_9247_tight_trace	2	10	25	19	43798f0d	3f64459a
+seed	classtest_9247_tight_trace	2	11	56	17	43678f57	3f6495fd
+seed	classtest_9247_tight_trace	2	12	25	20	435b3b4d	3f547adc
+seed	classtest_9247_tight_trace	2	13	31	7	432a4424	3f5e0d72
+seed	classtest_9247_tight_trace	2	14	21	22	431d460e	3f4d8d0e
+seed	classtest_9247_tight_trace	2	15	49	23	4317acf1	3f55e61e
+seed	classtest_9247_tight_trace	2	16	33	8	4304753c	3f4cf220
+seed	classtest_9247_tight_trace	2	17	56	18	42c220e7	3f53c98f
+rt	classtest_9247_tight_trace	0	40b01287ae147ae1	spectrum=1
+rt	classtest_9247_tight_trace	1	40b015f0a3d70a3d	spectrum=2
+rt	classtest_9247_tight_trace	2	40b0195c28f5c28f	spectrum=3
+rt	classtest_9247_tight_trace	3	40b01cc28f5c28f6	spectrum=4
+rt	classtest_9247_tight_trace	4	40b0202e147ae148	spectrum=5
+rt	classtest_9247_tight_trace	5	40b02363d70a3d71	spectrum=6
+rt	classtest_9247_tight_trace	6	40b026cccccccccd	spectrum=7
+rt	classtest_9247_tight_trace	7	40b02a35c28f5c29	spectrum=8
+rt	classtest_9247_tight_trace	8	40b02d9c28f5c28f	spectrum=9
+rt	classtest_9247_tight_trace	9	40b03107ae147ae1	spectrum=10
+rt	classtest_9247_tight_trace	10	40b03470a3d70a3d	spectrum=11
+rt	classtest_9247_tight_trace	11	40b037d99999999a	spectrum=12
+rt	classtest_9247_tight_trace	12	40b03b428f5c28f6	spectrum=13
+rt	classtest_9247_tight_trace	13	40b03eae147ae148	spectrum=14
+rt	classtest_9247_tight_trace	14	40b042170a3d70a4	spectrum=15
+rt	classtest_9247_tight_trace	15	40b0457d70a3d70a	spectrum=16
+rt	classtest_9247_tight_trace	16	40b048e666666666	spectrum=17
+rt	classtest_9247_tight_trace	17	40b04c51eb851eb8	spectrum=18
+rt	classtest_9247_tight_trace	18	40b04fbae147ae14	spectrum=19
+rt	classtest_9247_tight_trace	19	40b052f333333333	spectrum=20
+rt	classtest_9247_tight_trace	20	40b056599999999a	spectrum=21
+rt	classtest_9247_tight_trace	21	40b059c28f5c28f6	spectrum=22
+rt	classtest_9247_tight_trace	22	40b05d2e147ae148	spectrum=23
+rt	classtest_9247_tight_trace	23	40b060947ae147ae	spectrum=24
+rt	classtest_9247_tight_trace	24	40b0640000000000	spectrum=25
+rt	classtest_9247_tight_trace	25	40b06768f5c28f5c	spectrum=26
+rt	classtest_9247_tight_trace	26	40b06ad1eb851eb8	spectrum=27
+rt	classtest_9247_tight_trace	27	40b06e0a3d70a3d7	spectrum=28
+rt	classtest_9247_tight_trace	28	40b0713d70a3d70a	spectrum=29
+rt	classtest_9247_tight_trace	29	40b07475c28f5c29	spectrum=30
+rt	classtest_9247_tight_trace	30	40b077ab851eb852	spectrum=31
+rt	classtest_9247_tight_trace	31	40b07ae3d70a3d71	spectrum=32
+rt	classtest_9247_tight_trace	32	40b07e170a3d70a4	spectrum=33
+rt	classtest_9247_tight_trace	33	40b0814ccccccccd	spectrum=34
+rt	classtest_9247_tight_trace	34	40b084828f5c28f6	spectrum=35
+rt	classtest_9247_tight_trace	35	40b087b851eb851f	spectrum=36
+rt	classtest_9247_tight_trace	36	40b08aee147ae148	spectrum=37
+rt	classtest_9247_tight_trace	37	40b08e23d70a3d71	spectrum=38
+rt	classtest_9247_tight_trace	38	40b091599999999a	spectrum=39
+rt	classtest_9247_tight_trace	39	40b0948f5c28f5c3	spectrum=40
+rt	classtest_9247_tight_trace	40	40b097c51eb851ec	spectrum=41
+rt	classtest_9247_tight_trace	41	40b09afae147ae14	spectrum=42
+rt	classtest_9247_tight_trace	42	40b09e3333333333	spectrum=43
+rt	classtest_9247_tight_trace	43	40b0a168f5c28f5c	spectrum=44
+rt	classtest_9247_tight_trace	44	40b0a4a147ae147b	spectrum=45
+rt	classtest_9247_tight_trace	45	40b0a7d47ae147ae	spectrum=46
+rt	classtest_9247_tight_trace	46	40b0ab0a3d70a3d7	spectrum=47
+rt	classtest_9247_tight_trace	47	40b0ae4000000000	spectrum=48
+rt	classtest_9247_tight_trace	48	40b0b175c28f5c29	spectrum=49
+rt	classtest_9247_tight_trace	49	40b0b4ab851eb852	spectrum=50
+rt	classtest_9247_tight_trace	50	40b0b7e147ae147b	spectrum=51
+rt	classtest_9247_tight_trace	51	40b0bb199999999a	spectrum=52
+rt	classtest_9247_tight_trace	52	40b0be4ccccccccd	spectrum=53
+rt	classtest_9247_tight_trace	53	40b0c1851eb851ec	spectrum=54
+rt	classtest_9247_tight_trace	54	40b0c4b851eb851f	spectrum=55
+rt	classtest_9247_tight_trace	55	40b0c7ee147ae148	spectrum=56
+rt	classtest_9247_tight_trace	56	40b0cb570a3d70a4	spectrum=57
+rt	classtest_9247_tight_trace	57	40b0cec000000000	spectrum=58
+rt	classtest_9247_tight_trace	58	40b0d228f5c28f5c	spectrum=59
+rt	classtest_9247_tight_trace	59	40b0d591eb851eb8	spectrum=60
+rt	classtest_9247_tight_trace	60	40b0d8fd70a3d70a	spectrum=61
+rt	classtest_9247_tight_trace	61	40b0dc63d70a3d71	spectrum=62
+rt	classtest_9247_tight_trace	62	40b0dfd1eb851eb8	spectrum=63
+rt	classtest_9247_tight_trace	63	40b0e33851eb851f	spectrum=64
+rt	classtest_9247_tight_trace	64	40b0e6a147ae147b	spectrum=65
+rt	classtest_9247_tight_trace	65	40b0ea0a3d70a3d7	spectrum=66
+rt	classtest_9247_tight_trace	66	40b0ed7333333333	spectrum=67
+rt	classtest_9247_tight_trace	67	40b0f0dc28f5c28f	spectrum=68
+rt	classtest_9247_tight_trace	68	40b0f447ae147ae1	spectrum=69
+rt	classtest_9247_tight_trace	69	40b0f7b0a3d70a3d	spectrum=70
+rt	classtest_9247_tight_trace	70	40b0fb199999999a	spectrum=71
+rt	classtest_9247_tight_trace	71	40b0fe851eb851ec	spectrum=72
+rt	classtest_9247_tight_trace	72	40b101eb851eb852	spectrum=73
+rt	classtest_9247_tight_trace	73	40b105570a3d70a4	spectrum=74
+rt	classtest_9247_tight_trace	74	40b1088ccccccccd	spectrum=75
+rt	classtest_9247_tight_trace	75	40b10bf333333333	spectrum=76
+rt	classtest_9247_tight_trace	76	40b10f5eb851eb85	spectrum=77
+rt	classtest_9247_tight_trace	77	40b112c7ae147ae1	spectrum=78
+rt	classtest_9247_tight_trace	78	40b11630a3d70a3d	spectrum=79
+rt	classtest_9247_tight_trace	79	40b119999999999a	spectrum=80
+rt	classtest_9247_tight_trace	80	40b11d07ae147ae1	spectrum=81
+rt	classtest_9247_tight_trace	81	40b1206e147ae148	spectrum=82
+rt	classtest_9247_tight_trace	82	40b123d70a3d70a4	spectrum=83
+rt	classtest_9247_tight_trace	83	40b1273d70a3d70a	spectrum=84
+rt	classtest_9247_tight_trace	84	40b12aa8f5c28f5c	spectrum=85
+rt	classtest_9247_tight_trace	85	40b12e11eb851eb8	spectrum=86
+rt	classtest_9247_tight_trace	86	40b1317ae147ae14	spectrum=87
+rt	classtest_9247_tight_trace	87	40b134e3d70a3d71	spectrum=88
+rt	classtest_9247_tight_trace	88	40b1381c28f5c28f	spectrum=89
+rt	classtest_9247_tight_trace	89	40b13b51eb851eb8	spectrum=90
+rt	classtest_9247_tight_trace	90	40b13e87ae147ae1	spectrum=91
+rt	classtest_9247_tight_trace	91	40b141c000000000	spectrum=92
+rt	classtest_9247_tight_trace	92	40b144f333333333	spectrum=93
+rt	classtest_9247_tight_trace	93	40b1482b851eb852	spectrum=94
+rt	classtest_9247_tight_trace	94	40b14b5eb851eb85	spectrum=95
+rt	classtest_9247_tight_trace	95	40b14e947ae147ae	spectrum=96
+rt	classtest_9247_tight_trace	96	40b151ca3d70a3d7	spectrum=97
+rt	classtest_9247_tight_trace	97	40b1550000000000	spectrum=98
+rt	classtest_9247_tight_trace	98	40b15835c28f5c29	spectrum=99
+rt	classtest_9247_tight_trace	99	40b15b6b851eb852	spectrum=100
+rt	classtest_9247_tight_trace	100	40b15ea3d70a3d71	spectrum=101
+rt	classtest_9247_tight_trace	101	40b161d70a3d70a4	spectrum=102
+rt	classtest_9247_tight_trace	102	40b1650f5c28f5c3	spectrum=103
+rt	classtest_9247_tight_trace	103	40b168428f5c28f6	spectrum=104
+rt	classtest_9247_tight_trace	104	40b16b7ae147ae14	spectrum=105
+rt	classtest_9247_tight_trace	105	40b16eb0a3d70a3d	spectrum=106
+rt	classtest_9247_tight_trace	106	40b171e8f5c28f5c	spectrum=107
+rt	classtest_9247_tight_trace	107	40b1751c28f5c28f	spectrum=108
+rt	classtest_9247_tight_trace	108	40b17851eb851eb8	spectrum=109
+rt	classtest_9247_tight_trace	109	40b17b8a3d70a3d7	spectrum=110
+rt	classtest_9247_tight_trace	110	40b17ebd70a3d70a	spectrum=111
+rt	classtest_9247_tight_trace	111	40b181f5c28f5c29	spectrum=112
