@@ -23,7 +23,10 @@
 //!   including its lower-cased range endpoints under `icase` and its single
 //!   complement of all negated classes in one bracket expression, and emits the
 //!   resulting bytes, so neither the engine's class tables nor its case folding
-//!   is consulted for a set;
+//!   is consulted for a set. A class name is looked up as
+//!   `cpp_regex_traits::lookup_classname` does, which folds it to lower case and
+//!   knows the one-letter aliases `d h l s u v w` beside the POSIX names, so
+//!   `[[:ALPHA:]]` is `[[:alpha:]]` and `[[:D:]]` is `[[:digit:]]`;
 //! - case-insensitive literals and backreferences, and the word boundaries
 //!   `\b`, `\B`, `\<` and `\>`, use the engine's Unicode tables, which agree
 //!   with Boost's C-locale tables on every character a haystack can contain here
@@ -662,7 +665,8 @@ impl BoostRegex {
     /// - [`Error::InvalidValue`] when Boost would throw `regex_error` for the
     ///   pattern: unbalanced parentheses or brackets, nothing to repeat, a
     ///   repeat of a zero-width assertion, a backreference to a group that does
-    ///   not exist, a reversed range, an unknown POSIX class, a lookbehind
+    ///   not exist, a reversed range, a class name of letters that names no class,
+    ///   a Python group opening (`(?P<name>...)`, `(?P=name)`), a lookbehind
     ///   without one fixed width, an empty lookahead, and similar. Also when the
     ///   pattern is longer than [`MAX_PATTERN_BYTES`] or the backtrack limit is
     ///   zero.
@@ -1292,20 +1296,26 @@ impl ClassKind {
         }
     }
 
+    /// Every name `get_default_class_id` knows, in the one spelling
+    /// `lookup_classname` reduces a name to. Boost's table carries the one-letter
+    /// aliases `d h l s u v w` beside the POSIX names, and a `unicode` class no
+    /// `char` belongs to; [`Translator::posix_class`] refuses that one.
     fn posix(name: &[u8]) -> Option<Self> {
         Some(match name {
             b"alnum" => Self::Alnum,
             b"alpha" => Self::Alpha,
             b"blank" => Self::Blank,
             b"cntrl" => Self::Cntrl,
-            b"digit" => Self::Digit,
+            b"d" | b"digit" => Self::Digit,
             b"graph" => Self::Graph,
-            b"lower" => Self::Lower,
+            b"h" => Self::Horizontal,
+            b"l" | b"lower" => Self::Lower,
             b"print" => Self::Print,
             b"punct" => Self::Punct,
-            b"space" => Self::Space,
-            b"upper" => Self::Upper,
-            b"word" => Self::Word,
+            b"s" | b"space" => Self::Space,
+            b"u" | b"upper" => Self::Upper,
+            b"v" => Self::Vertical,
+            b"w" | b"word" => Self::Word,
             b"xdigit" => Self::Xdigit,
             _ => return None,
         })
@@ -2321,7 +2331,14 @@ impl<'p> Translator<'p> {
         if negated {
             name = &name[1..];
         }
-        let Some(kind) = ClassKind::posix(name) else {
+        // `cpp_regex_traits::lookup_classname` retries the lookup with the name
+        // lower-cased, and the `C` locale's `tolower` folds `A-Z` only, so
+        // `[[:ALPHA:]]` and `[[:Alpha:]]` are `[[:alpha:]]`.
+        let folded = name.to_ascii_lowercase();
+        if folded == b"unicode" {
+            return Err(self.unsupported(start, "the [:unicode:] class"));
+        }
+        let Some(kind) = ClassKind::posix(&folded) else {
             return if !name.is_empty() && name.iter().all(u8::is_ascii_alphabetic) {
                 Err(self.syntax(class_start, "unknown character class name"))
             } else {
@@ -2418,6 +2435,15 @@ impl<'p> Translator<'p> {
                 }
             }
             0x80..=0xFF => Err(self.unsupported(start, "a non-ASCII byte")),
+            // Boost parses a collating element at either endpoint of a range,
+            // not only at the start of a set item: `get_next_set_literal` reads
+            // `[` and takes `[.name.]` when a `.` follows, and a plain `[`
+            // otherwise (`=` and `:` included, which only `parse_inner_set`
+            // gives a meaning). `[A-[.a.]]` is therefore the range `A` to `a`,
+            // whose members depend on the collating sequence.
+            b'[' if self.bytes.get(start + 1) == Some(&b'.') => {
+                Err(self.unsupported(start, "a collating element"))
+            }
             other => {
                 self.position += 1;
                 Ok(other)
@@ -2519,7 +2545,19 @@ impl<'p> Translator<'p> {
                 _ => self.named_group(start, b'>'),
             },
             b'\'' => self.named_group(start, b'\''),
-            b'P' => Err(self.syntax(start, "Python-style '(?P' groups are not Boost syntax")),
+            // Boost consumes the `P` and then reads `(?P>name)` as a recursion
+            // and everything else as an option group
+            // (`basic_regex_parser::parse_perl_extension`), so `(?Pi)` is `(?i)`,
+            // `(?P:a|b)` is `(?:a|b)`, `(?P)` is an empty option group, and only
+            // the Python spellings `(?P<name>...)` and `(?P=name)` are errors --
+            // the option parser rejects the `<` and the `=`.
+            b'P' => {
+                self.position += 1;
+                if self.bytes.get(self.position) == Some(&b'>') {
+                    return Err(self.unsupported(start, "a recursive sub-expression"));
+                }
+                self.flag_group(start)
+            }
             b'|' => Err(self.unsupported(start, "a branch-reset group")),
             b'(' => Err(self.unsupported(start, "a conditional expression")),
             b'R' | b'&' | b'+' | b'0'..=b'9' => {
@@ -3679,6 +3717,114 @@ mod tests {
             translation.names,
             vec![("GROUP".to_string(), 1), ("GROUP".to_string(), 2)]
         );
+    }
+
+    /// `cpp_regex_traits::lookup_classname` retries its lookup with the name
+    /// lower-cased, and `get_default_class_id` carries the one-letter aliases
+    /// beside the POSIX names, so every spelling of a name is the same class.
+    #[test]
+    fn folds_class_names_and_knows_boost_aliases() {
+        let translate = |pattern: &str| {
+            Translator::new(pattern, RegexOptions::default(), false)
+                .run()
+                .unwrap()
+                .pattern
+        };
+        for (spelled, plain) in [
+            ("[[:ALPHA:]]", "[[:alpha:]]"),
+            ("[[:Alpha:]]", "[[:alpha:]]"),
+            ("[[:aLPHA:]]", "[[:alpha:]]"),
+            ("[[:Word:]]", "[[:word:]]"),
+            ("[[:^XDIGIT:]]", "[[:^xdigit:]]"),
+            ("[[:d:]]", "[[:digit:]]"),
+            ("[[:D:]]", "[[:digit:]]"),
+            ("[[:l:]]", "[[:lower:]]"),
+            ("[[:s:]]", "[[:space:]]"),
+            ("[[:u:]]", "[[:upper:]]"),
+            ("[[:w:]]", "[[:word:]]"),
+            // `h` and `v` have no POSIX spelling; they are `\h` and `\v`'s classes.
+            ("[[:h:]]", r"[\h]"),
+            ("[[:v:]]", r"[\n-\r]"),
+        ] {
+            assert_eq!(translate(spelled), translate(plain), "{spelled}");
+        }
+        // Boost's own class, which no `char` belongs to, and a name no lookup finds.
+        for pattern in ["[[:unicode:]]", "[[:UNICODE:]]", "[^[:unicode:]]"] {
+            assert!(
+                matches!(
+                    Translator::new(pattern, RegexOptions::default(), false).run(),
+                    Err(Error::Unsupported(_))
+                ),
+                "{pattern}"
+            );
+        }
+        assert!(matches!(
+            Translator::new("[[:FOO:]]", RegexOptions::default(), false).run(),
+            Err(Error::InvalidValue(_))
+        ));
+    }
+
+    /// `get_next_set_literal` opens a collating element at either endpoint of a
+    /// range; a `[` that no `.` follows stays a literal there.
+    #[test]
+    fn refuses_collating_elements_at_both_range_ends() {
+        let translate = |pattern: &str| {
+            Translator::new(pattern, RegexOptions::default(), false)
+                .run()
+                .unwrap()
+                .pattern
+        };
+        for pattern in [
+            "[A-[.a.]]",
+            "[[.a.]-z]",
+            r"[\n-[.-.]]",
+            "[!-[.].]]",
+            "[^A-[.a.]]",
+        ] {
+            assert!(
+                matches!(
+                    Translator::new(pattern, RegexOptions::default(), false).run(),
+                    Err(Error::Unsupported(_))
+                ),
+                "{pattern}"
+            );
+        }
+        assert_eq!(translate("[A-[x]"), translate(r"[A-\x5bx]"));
+        assert_eq!(translate("[A-[]"), translate(r"[A-\x5b]"));
+    }
+
+    /// `parse_perl_extension` consumes the `P` and parses the rest as an option
+    /// group, apart from `(?P>name)`.
+    #[test]
+    fn reads_python_style_group_openings_as_option_groups() {
+        let translate = |pattern: &str| {
+            Translator::new(pattern, RegexOptions::default(), false)
+                .run()
+                .unwrap()
+                .pattern
+        };
+        for (python, perl) in [
+            ("(?Pi)a", "(?i)a"),
+            ("(?Pi:a)b", "(?i:a)b"),
+            ("(?P:a|b)c", "(?:a|b)c"),
+            ("(?P-i)a", "(?-i)a"),
+            ("(?Pim-s)a", "(?im-s)a"),
+        ] {
+            assert_eq!(translate(python), translate(perl), "{python}");
+        }
+        assert!(matches!(
+            Translator::new("(?<n>a)(?P>n)", RegexOptions::default(), false).run(),
+            Err(Error::Unsupported(_))
+        ));
+        for pattern in ["(?P<n>a)", "(?P=n)", "(?Pz)", "(?P"] {
+            assert!(
+                matches!(
+                    Translator::new(pattern, RegexOptions::default(), false).run(),
+                    Err(Error::InvalidValue(_))
+                ),
+                "{pattern}"
+            );
+        }
     }
 
     #[test]

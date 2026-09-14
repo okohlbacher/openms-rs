@@ -7,6 +7,7 @@ S ADVNUM ' 'a 'aa 'aaa 'ab 'b 'a{1} 'a{+1} 'a{-1} 'a{-0} 'a{2,-1} 'a{ '{} 'a{999
 S ADVOPT ' 'a 'b 'c 'aa 'ab 'ba 'aab 'aba 'abb 'abba 'abbc 'abab 'aaba 'abc 'acbc 'ababc
 S ADVREP ' 'a 'aa 'ab 'aab 'b 'ba 'bab 'aaa 'a\x0a '\x0a 'x
 S ADVSET ' 'a 'A 'z 'Z 'k 'K 'y 'Y '1 '\x20 '\x09 '\x0b '\x0a '_ '- '[ '\\ '] '^ '` '@ '{ '~ '\x7f '\x00 '\xc3\xa9 '\xff 'a1\x20_-[` 'x[y 'x_y 'x`y 'a[b '[[ 'Kk
+S ADVSET6 ' 'A 'B 'Z '[ '\\ '] '^ '_ '` 'a 'b 'z '0 '9 '- '. '! '= ': '; 'x 'X 'c 'C 'n '\x20 '\x09 '\x0a '\x0b '\x0c '\x0d '\x00 '\x7f '\x1b 'ab 'aB 'a\x20b 'ab\x20c 'a] ']a '[.a.] '-] 'abab '\xe9 '\xff '\x80 'a\xe9
 S ADVSIZE ' 'a 'b 'ab 'aab 'c 'ac 'aaaab 'abc 'xyz 'AKR 'AAKAR 'aac 'a\x0ab
 S ADVSTART ' 'A 'a 'xA '\x20A 'Ab 'bcC 'bCc 'BcC 'bcdC 'abcC 'aBcC 'bc 'aaaa 'abab '..a '.a 'a.a 'a\x20b 'ab\x20ab 'aa\x20aa '\x04 'x '0x '4x '\x20 '+ '\x00 '\xe9A 'a\xe9 'A\x0a '\x0a
 S ADVUNB ' 'a 'b 'ab 'ba 'bab 'aba 'abab 'c 'bac
@@ -4631,6 +4632,236 @@ P 2298 - - '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$(?:\\b|\
 P 2299 - - '(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:a{2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}
 # family ADV
 P 2300 - - '(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:(?:a{2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}){2,}
+# family ADV
+P 2301 - - '[A-[.a.]]
+# family ADV
+P 2302 - - '[\\n-[.-.]]
+# family ADV
+P 2303 - - '[!-[.].]]
+# family ADV
+P 2304 - - '[a-[.a.]]
+# family ADV
+P 2305 i - '[A-[.a.]]
+# family ADV
+P 2306 - - '[A-[.ab.]]
+# family ADV
+P 2307 - - '[A-[.a.]-z]
+# family ADV
+P 2308 - - '[=-[.a.]\\b-
+# family ADV
+P 2309 - - '[A-[.a.]x]
+# family ADV
+P 2310 - - '[^A-[.a.]]
+# family ADV
+P 2311 - - '[A-[.tab.]]
+# family ADV
+P 2312 - - '[A-[.NUL.]]
+# family ADV
+P 2313 - - '[A-[..]]
+# family ADV
+P 2314 - - '[A-[.]]
+# family ADV
+P 2315 - - '[A-[.]
+# family ADV
+P 2316 - - '[A-[.a]
+# family ADV
+P 2317 - - '[A-[.a.]
+# family ADV
+P 2318 - - '[!-[.-.][.-.]]
+# family ADV
+P 2319 - - '[q[.a.]-[.z.]]
+# family ADV
+P 2320 - - '[\\x41-[.a.]]
+# family ADV
+P 2321 - - '[[.a.]-z]
+# family ADV
+P 2322 - - '[a[.b.]c]
+# family ADV
+P 2323 - - '[-[.a.]]
+# family ADV
+P 2324 - - '[A-[x]
+# family ADV
+P 2325 - - '[A-[]
+# family ADV
+P 2326 - - '[A-[]]
+# family ADV
+P 2327 - - '[A-[=a=]]x
+# family ADV
+P 2328 - - '[A-[:alpha:]]x
+# family ADV
+P 2329 i - '[A-[x]
+# family ADV
+P 2330 - - '[!-[]
+# family ADV
+P 2331 - - '[a-[]
+# family ADV
+P 2332 - - '[A-[x]-z]
+# family ADV
+P 2333 - - '[A-\\x5b]
+# family ADV
+P 2334 - - '(?Pi)A
+# family ADV
+P 2335 - - '(?P:a|b)c
+# family ADV
+P 2336 - - '(?P)
+# family ADV
+P 2337 - - '(?Pim-sx:a|b)
+# family ADV
+P 2338 - - '(?P-i)
+# family ADV
+P 2339 - n '(?<n>a)(?P>n)
+# family ADV
+P 2340 - - '(?Pi:a)
+# family ADV
+P 2341 - - '(?P-i:A)
+# family ADV
+P 2342 - - '(?Pm)^a
+# family ADV
+P 2343 - - '(?Ps).
+# family ADV
+P 2344 - - '(?Px)a\x20b
+# family ADV
+P 2345 - - '(?P)a
+# family ADV
+P 2346 - - 'a(?Pi)b
+# family ADV
+P 2347 i - '(?Pi)a
+# family ADV
+P 2348 i - '(?P-i)A
+# family ADV
+P 2349 - - '(?Pi-s).
+# family ADV
+P 2350 - - '(?P:)
+# family ADV
+P 2351 - - '(?Pi:)x
+# family ADV
+P 2352 - - '(?:(?Pi)a)*b
+# family ADV
+P 2353 - - '(?Pi)(?P-i)a
+# family ADV
+P 2354 - - '(?P=n)
+# family ADV
+P 2355 - - '(?P>)
+# family ADV
+P 2356 - - '(?P
+# family ADV
+P 2357 - - '(?Pi
+# family ADV
+P 2358 - - '(?Pz)
+# family ADV
+P 2359 - - '(?PP)
+# family ADV
+P 2360 - - '(?PPi)
+# family ADV
+P 2361 - - '(?P&n)
+# family ADV
+P 2362 - - '(?P1)
+# family ADV
+P 2363 - - '(?P?i)
+# family ADV
+P 2364 - - '[[:ALPHA:]]
+# family ADV
+P 2365 - - '[[:Alpha:]]
+# family ADV
+P 2366 - - '[[:aLPHA:]]
+# family ADV
+P 2367 - - '[[:Word:]]
+# family ADV
+P 2368 - - '[[:D:]]
+# family ADV
+P 2369 - - '[[:XDIGIT:]]
+# family ADV
+P 2370 - - '[[:Blank:]]
+# family ADV
+P 2371 - - '[[:CNTRL:]]
+# family ADV
+P 2372 - - '[[:GRAPH:]]
+# family ADV
+P 2373 - - '[[:PRINT:]]
+# family ADV
+P 2374 - - '[[:PUNCT:]]
+# family ADV
+P 2375 - - '[[:SPACE:]]
+# family ADV
+P 2376 - - '[[:UPPER:]]
+# family ADV
+P 2377 - - '[[:LOWER:]]
+# family ADV
+P 2378 - - '[[:ALNUM:]]
+# family ADV
+P 2379 - - '[[:^ALPHA:]]
+# family ADV
+P 2380 - - '[^[:Digit:]]
+# family ADV
+P 2381 - - '[[:Alpha:][:DIGIT:]]
+# family ADV
+P 2382 - - '(?i)[[:UPPER:]]
+# family ADV
+P 2383 i - '[[:UPPER:]]
+# family ADV
+P 2384 - - '[[:d:]]
+# family ADV
+P 2385 - - '[[:h:]]
+# family ADV
+P 2386 - - '[[:l:]]
+# family ADV
+P 2387 - - '[[:s:]]
+# family ADV
+P 2388 - - '[[:u:]]
+# family ADV
+P 2389 - - '[[:v:]]
+# family ADV
+P 2390 - - '[[:w:]]
+# family ADV
+P 2391 - - '[[:^d:]]
+# family ADV
+P 2392 - - '[[:^w:]]
+# family ADV
+P 2393 - - '[a[:d:]]
+# family ADV
+P 2394 - - '[[:S:]]
+# family ADV
+P 2395 - - '[[:V:]]
+# family ADV
+P 2396 - - '[[:H:]]
+# family ADV
+P 2397 - - '[[:L:]]
+# family ADV
+P 2398 - - '[[:U:]]
+# family ADV
+P 2399 - - '[[:W:]]
+# family ADV
+P 2400 i - '[[:u:]]
+# family ADV
+P 2401 - - '(?i)[[:l:]]
+# family ADV
+P 2402 - - '[[:unicode:]]
+# family ADV
+P 2403 - - '[[:UNICODE:]]
+# family ADV
+P 2404 - - '[[:Unicode:]]
+# family ADV
+P 2405 - - '[[:^unicode:]]
+# family ADV
+P 2406 - - '[^[:unicode:]]
+# family ADV
+P 2407 - - '[a[:unicode:]]
+# family ADV
+P 2408 - - '[[:unicode:][:alpha:]]
+# family ADV
+P 2409 - - '[[:FOO:]]
+# family ADV
+P 2410 - - '[[:Ascii:]]
+# family ADV
+P 2411 - - '[[:ANY:]]
+# family ADV
+P 2412 - - '[[:<:]]
+# family ADV
+P 2413 - - '[[:>:]]
+# family ADV
+P 2414 - - '[[:d:]-z]
+# family ADV
+P 2415 - - '[[:B:]]
 R 0 t-1 ENZ
 R 1 t-1 ENZ
 R 2 t-1 ENZ
@@ -8764,3 +8995,363 @@ R 2299 t-1 ADVSTART
 R 2300 s ADVSTART
 R 2300 m ADVSTART
 R 2300 t-1 ADVSTART
+R 2301 s ADVSET6
+R 2301 m ADVSET6
+R 2301 t-1 ADVSET6
+R 2302 s ADVSET6
+R 2302 m ADVSET6
+R 2302 t-1 ADVSET6
+R 2303 s ADVSET6
+R 2303 m ADVSET6
+R 2303 t-1 ADVSET6
+R 2304 s ADVSET6
+R 2304 m ADVSET6
+R 2304 t-1 ADVSET6
+R 2305 s ADVSET6
+R 2305 m ADVSET6
+R 2305 t-1 ADVSET6
+R 2306 s ADVSET6
+R 2306 m ADVSET6
+R 2306 t-1 ADVSET6
+R 2307 s ADVSET6
+R 2307 m ADVSET6
+R 2307 t-1 ADVSET6
+R 2308 s ADVSET6
+R 2308 m ADVSET6
+R 2308 t-1 ADVSET6
+R 2309 s ADVSET6
+R 2309 m ADVSET6
+R 2309 t-1 ADVSET6
+R 2310 s ADVSET6
+R 2310 m ADVSET6
+R 2310 t-1 ADVSET6
+R 2311 s ADVSET6
+R 2311 m ADVSET6
+R 2311 t-1 ADVSET6
+R 2312 s ADVSET6
+R 2312 m ADVSET6
+R 2312 t-1 ADVSET6
+R 2313 s ADVSET6
+R 2313 m ADVSET6
+R 2313 t-1 ADVSET6
+R 2314 s ADVSET6
+R 2314 m ADVSET6
+R 2314 t-1 ADVSET6
+R 2315 s ADVSET6
+R 2315 m ADVSET6
+R 2315 t-1 ADVSET6
+R 2316 s ADVSET6
+R 2316 m ADVSET6
+R 2316 t-1 ADVSET6
+R 2317 s ADVSET6
+R 2317 m ADVSET6
+R 2317 t-1 ADVSET6
+R 2318 s ADVSET6
+R 2318 m ADVSET6
+R 2318 t-1 ADVSET6
+R 2319 s ADVSET6
+R 2319 m ADVSET6
+R 2319 t-1 ADVSET6
+R 2320 s ADVSET6
+R 2320 m ADVSET6
+R 2320 t-1 ADVSET6
+R 2321 s ADVSET6
+R 2321 m ADVSET6
+R 2321 t-1 ADVSET6
+R 203 s ADVSET6
+R 203 m ADVSET6
+R 203 t-1 ADVSET6
+R 2322 s ADVSET6
+R 2322 m ADVSET6
+R 2322 t-1 ADVSET6
+R 2323 s ADVSET6
+R 2323 m ADVSET6
+R 2323 t-1 ADVSET6
+R 2324 s ADVSET6
+R 2324 m ADVSET6
+R 2324 t-1 ADVSET6
+R 2325 s ADVSET6
+R 2325 m ADVSET6
+R 2325 t-1 ADVSET6
+R 2326 s ADVSET6
+R 2326 m ADVSET6
+R 2326 t-1 ADVSET6
+R 2327 s ADVSET6
+R 2327 m ADVSET6
+R 2327 t-1 ADVSET6
+R 2328 s ADVSET6
+R 2328 m ADVSET6
+R 2328 t-1 ADVSET6
+R 2329 s ADVSET6
+R 2329 m ADVSET6
+R 2329 t-1 ADVSET6
+R 2330 s ADVSET6
+R 2330 m ADVSET6
+R 2330 t-1 ADVSET6
+R 2331 s ADVSET6
+R 2331 m ADVSET6
+R 2331 t-1 ADVSET6
+R 2332 s ADVSET6
+R 2332 m ADVSET6
+R 2332 t-1 ADVSET6
+R 204 s ADVSET6
+R 204 m ADVSET6
+R 204 t-1 ADVSET6
+R 2333 s ADVSET6
+R 2333 m ADVSET6
+R 2333 t-1 ADVSET6
+R 2334 s ADVSET6
+R 2334 m ADVSET6
+R 2334 t-1 ADVSET6
+R 2335 s ADVSET6
+R 2335 m ADVSET6
+R 2335 t-1 ADVSET6
+R 2336 s ADVSET6
+R 2336 m ADVSET6
+R 2336 t-1 ADVSET6
+R 2337 s ADVSET6
+R 2337 m ADVSET6
+R 2337 t-1 ADVSET6
+R 2338 s ADVSET6
+R 2338 m ADVSET6
+R 2338 t-1 ADVSET6
+R 2339 s ADVSET6
+R 2339 m ADVSET6
+R 2339 t-1 ADVSET6
+R 2340 s ADVSET6
+R 2340 m ADVSET6
+R 2340 t-1 ADVSET6
+R 2341 s ADVSET6
+R 2341 m ADVSET6
+R 2341 t-1 ADVSET6
+R 2342 s ADVSET6
+R 2342 m ADVSET6
+R 2342 t-1 ADVSET6
+R 2343 s ADVSET6
+R 2343 m ADVSET6
+R 2343 t-1 ADVSET6
+R 2344 s ADVSET6
+R 2344 m ADVSET6
+R 2344 t-1 ADVSET6
+R 2345 s ADVSET6
+R 2345 m ADVSET6
+R 2345 t-1 ADVSET6
+R 2346 s ADVSET6
+R 2346 m ADVSET6
+R 2346 t-1 ADVSET6
+R 2347 s ADVSET6
+R 2347 m ADVSET6
+R 2347 t-1 ADVSET6
+R 2348 s ADVSET6
+R 2348 m ADVSET6
+R 2348 t-1 ADVSET6
+R 2349 s ADVSET6
+R 2349 m ADVSET6
+R 2349 t-1 ADVSET6
+R 2350 s ADVSET6
+R 2350 m ADVSET6
+R 2350 t-1 ADVSET6
+R 2351 s ADVSET6
+R 2351 m ADVSET6
+R 2351 t-1 ADVSET6
+R 2352 s ADVSET6
+R 2352 m ADVSET6
+R 2352 t-1 ADVSET6
+R 2353 s ADVSET6
+R 2353 m ADVSET6
+R 2353 t-1 ADVSET6
+R 367 s ADVSET6
+R 367 m ADVSET6
+R 367 t-1 ADVSET6
+R 2354 s ADVSET6
+R 2354 m ADVSET6
+R 2354 t-1 ADVSET6
+R 386 s ADVSET6
+R 386 m ADVSET6
+R 386 t-1 ADVSET6
+R 385 s ADVSET6
+R 385 m ADVSET6
+R 385 t-1 ADVSET6
+R 2355 s ADVSET6
+R 2355 m ADVSET6
+R 2355 t-1 ADVSET6
+R 2356 s ADVSET6
+R 2356 m ADVSET6
+R 2356 t-1 ADVSET6
+R 2357 s ADVSET6
+R 2357 m ADVSET6
+R 2357 t-1 ADVSET6
+R 2358 s ADVSET6
+R 2358 m ADVSET6
+R 2358 t-1 ADVSET6
+R 2359 s ADVSET6
+R 2359 m ADVSET6
+R 2359 t-1 ADVSET6
+R 2360 s ADVSET6
+R 2360 m ADVSET6
+R 2360 t-1 ADVSET6
+R 2361 s ADVSET6
+R 2361 m ADVSET6
+R 2361 t-1 ADVSET6
+R 2362 s ADVSET6
+R 2362 m ADVSET6
+R 2362 t-1 ADVSET6
+R 2363 s ADVSET6
+R 2363 m ADVSET6
+R 2363 t-1 ADVSET6
+R 2364 s ADVSET6
+R 2364 m ADVSET6
+R 2364 t-1 ADVSET6
+R 2365 s ADVSET6
+R 2365 m ADVSET6
+R 2365 t-1 ADVSET6
+R 2366 s ADVSET6
+R 2366 m ADVSET6
+R 2366 t-1 ADVSET6
+R 2367 s ADVSET6
+R 2367 m ADVSET6
+R 2367 t-1 ADVSET6
+R 2368 s ADVSET6
+R 2368 m ADVSET6
+R 2368 t-1 ADVSET6
+R 2369 s ADVSET6
+R 2369 m ADVSET6
+R 2369 t-1 ADVSET6
+R 2370 s ADVSET6
+R 2370 m ADVSET6
+R 2370 t-1 ADVSET6
+R 2371 s ADVSET6
+R 2371 m ADVSET6
+R 2371 t-1 ADVSET6
+R 2372 s ADVSET6
+R 2372 m ADVSET6
+R 2372 t-1 ADVSET6
+R 2373 s ADVSET6
+R 2373 m ADVSET6
+R 2373 t-1 ADVSET6
+R 2374 s ADVSET6
+R 2374 m ADVSET6
+R 2374 t-1 ADVSET6
+R 2375 s ADVSET6
+R 2375 m ADVSET6
+R 2375 t-1 ADVSET6
+R 2376 s ADVSET6
+R 2376 m ADVSET6
+R 2376 t-1 ADVSET6
+R 2377 s ADVSET6
+R 2377 m ADVSET6
+R 2377 t-1 ADVSET6
+R 2378 s ADVSET6
+R 2378 m ADVSET6
+R 2378 t-1 ADVSET6
+R 2379 s ADVSET6
+R 2379 m ADVSET6
+R 2379 t-1 ADVSET6
+R 2380 s ADVSET6
+R 2380 m ADVSET6
+R 2380 t-1 ADVSET6
+R 2381 s ADVSET6
+R 2381 m ADVSET6
+R 2381 t-1 ADVSET6
+R 2382 s ADVSET6
+R 2382 m ADVSET6
+R 2382 t-1 ADVSET6
+R 2383 s ADVSET6
+R 2383 m ADVSET6
+R 2383 t-1 ADVSET6
+R 2384 s ADVSET6
+R 2384 m ADVSET6
+R 2384 t-1 ADVSET6
+R 2385 s ADVSET6
+R 2385 m ADVSET6
+R 2385 t-1 ADVSET6
+R 2386 s ADVSET6
+R 2386 m ADVSET6
+R 2386 t-1 ADVSET6
+R 2387 s ADVSET6
+R 2387 m ADVSET6
+R 2387 t-1 ADVSET6
+R 2388 s ADVSET6
+R 2388 m ADVSET6
+R 2388 t-1 ADVSET6
+R 2389 s ADVSET6
+R 2389 m ADVSET6
+R 2389 t-1 ADVSET6
+R 2390 s ADVSET6
+R 2390 m ADVSET6
+R 2390 t-1 ADVSET6
+R 2391 s ADVSET6
+R 2391 m ADVSET6
+R 2391 t-1 ADVSET6
+R 2392 s ADVSET6
+R 2392 m ADVSET6
+R 2392 t-1 ADVSET6
+R 2393 s ADVSET6
+R 2393 m ADVSET6
+R 2393 t-1 ADVSET6
+R 2394 s ADVSET6
+R 2394 m ADVSET6
+R 2394 t-1 ADVSET6
+R 2395 s ADVSET6
+R 2395 m ADVSET6
+R 2395 t-1 ADVSET6
+R 2396 s ADVSET6
+R 2396 m ADVSET6
+R 2396 t-1 ADVSET6
+R 2397 s ADVSET6
+R 2397 m ADVSET6
+R 2397 t-1 ADVSET6
+R 2398 s ADVSET6
+R 2398 m ADVSET6
+R 2398 t-1 ADVSET6
+R 2399 s ADVSET6
+R 2399 m ADVSET6
+R 2399 t-1 ADVSET6
+R 2400 s ADVSET6
+R 2400 m ADVSET6
+R 2400 t-1 ADVSET6
+R 2401 s ADVSET6
+R 2401 m ADVSET6
+R 2401 t-1 ADVSET6
+R 2402 s ADVSET6
+R 2402 m ADVSET6
+R 2402 t-1 ADVSET6
+R 2403 s ADVSET6
+R 2403 m ADVSET6
+R 2403 t-1 ADVSET6
+R 2404 s ADVSET6
+R 2404 m ADVSET6
+R 2404 t-1 ADVSET6
+R 2405 s ADVSET6
+R 2405 m ADVSET6
+R 2405 t-1 ADVSET6
+R 2406 s ADVSET6
+R 2406 m ADVSET6
+R 2406 t-1 ADVSET6
+R 2407 s ADVSET6
+R 2407 m ADVSET6
+R 2407 t-1 ADVSET6
+R 2408 s ADVSET6
+R 2408 m ADVSET6
+R 2408 t-1 ADVSET6
+R 2409 s ADVSET6
+R 2409 m ADVSET6
+R 2409 t-1 ADVSET6
+R 2410 s ADVSET6
+R 2410 m ADVSET6
+R 2410 t-1 ADVSET6
+R 2411 s ADVSET6
+R 2411 m ADVSET6
+R 2411 t-1 ADVSET6
+R 2412 s ADVSET6
+R 2412 m ADVSET6
+R 2412 t-1 ADVSET6
+R 2413 s ADVSET6
+R 2413 m ADVSET6
+R 2413 t-1 ADVSET6
+R 2414 s ADVSET6
+R 2414 m ADVSET6
+R 2414 t-1 ADVSET6
+R 2415 s ADVSET6
+R 2415 m ADVSET6
+R 2415 t-1 ADVSET6

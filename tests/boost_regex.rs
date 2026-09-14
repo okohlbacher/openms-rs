@@ -339,6 +339,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?<=a{100}b{156})c"),
     ("-", "(?<=a{256})b"),
     ("-", "(?<n-x>a)"),
+    ("-", "(?<n>a)(?P>n)"),
     ("-", "(?<n>a)\\k<n>"),
     ("-", "(?<n>a|\\1b)x"),
     ("-", "(?=(\\d+))\\d"),
@@ -354,6 +355,8 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?>a?){2}"),
     ("-", "(?>a{2,})b"),
     ("-", "(?>b?|a)*"),
+    ("-", "(?Pim-sx:a|b)"),
+    ("-", "(?Px)a b"),
     ("-", "(?i)(?-i:b.+)?[a-z]"),
     ("-", "(?i)(?:a(?-i:b.+))+c"),
     ("-", "(?i)*"),
@@ -399,13 +402,34 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(|a)*"),
     ("-", ".{1,3}?(?=b)"),
     ("-", ".{3,5}?\\b"),
+    ("-", "[!-[.-.][.-.]]"),
+    ("-", "[!-[.].]]"),
+    ("-", "[-[.a.]]"),
+    ("-", "[A-[.a.]]"),
+    ("-", "[A-[.a.]x]"),
+    ("-", "[[.a.]-z]"),
     ("-", "[[.a.]]"),
+    ("-", "[[:<:]]"),
+    ("-", "[[:>:]]"),
+    ("-", "[[:UNICODE:]]"),
+    ("-", "[[:Unicode:]]"),
+    ("-", "[[:^unicode:]]"),
+    ("-", "[[:unicode:][:alpha:]]"),
+    ("-", "[[:unicode:]]"),
     ("-", "[[=a=]]"),
     ("-", "[\\0]"),
+    ("-", "[\\n-[.-.]]"),
     ("-", "[\\x 4]"),
+    ("-", "[\\x41-[.a.]]"),
     ("-", "[\\y]"),
+    ("-", "[^A-[.a.]]"),
+    ("-", "[^[:unicode:]]"),
     ("-", "[^b]{0,2}?b"),
+    ("-", "[a-[.a.]]"),
     ("-", "[a-\\d]"),
+    ("-", "[a[.b.]c]"),
+    ("-", "[a[:unicode:]]"),
+    ("-", "[q[.a.]-[.z.]]"),
     ("-", "[é]"),
     ("-", "\\0"),
     ("-", "\\012"),
@@ -478,6 +502,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "é+"),
     ("i", "(?-i)(?:\\<)A"),
     ("i", "(a|\\1b)x"),
+    ("i", "[A-[.a.]]"),
     ("i", "[ab]{3,5}?(?!a)"),
     ("i", "a{1,3}?\\b"),
 ];
@@ -511,8 +536,9 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
         "a capturing group inside a lookaround or atomic group (Boost keeps its capture when the surrounding match backtracks)",
         84,
     ),
+    ("a character class name that is not a POSIX class", 2),
     ("a character property escape", 3),
-    ("a collating element", 1),
+    ("a collating element", 14),
     ("a conditional expression", 2),
     ("a control-character escape", 3),
     (
@@ -534,7 +560,7 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
     ("a named-character, line-ending or grapheme escape", 4),
     ("a non-ASCII byte", 4),
     ("a possessive quantifier", 4),
-    ("a recursive sub-expression", 1),
+    ("a recursive sub-expression", 2),
     ("a repeat bound above MAX_REPEAT", 1),
     (
         "a repeat inside an atomic group or a negative lookaround (the engine discards its work there without counting it)",
@@ -576,12 +602,13 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
         "more line anchors, word-boundary assertions, alternations and repeated groups than Boost's start-map recursion limit allows (Boost throws error_complexity)",
         3,
     ),
-    ("the x (extended) modifier", 1),
+    ("the [:unicode:] class", 7),
+    ("the x (extended) modifier", 3),
 ];
 
 /// Cases compared against Boost: the fixture's size, so a truncated fixture fails
 /// (`refusals.py`).
-const EXPECTED_CASES: usize = 153_642;
+const EXPECTED_CASES: usize = 162_714;
 
 const NULLABLE_GROUP: &str = "a repeat of more than one iteration of a group that can match the empty string (Boost ends a repeat after an empty iteration)";
 const LEADING_LAZY: &str = "a lazy repeat with a finite maximum of a one-byte atom that starts the expression (Boost's leading-repeat optimization skips start positions)";
@@ -2182,6 +2209,248 @@ fn escapes_and_limits_follow_boost() {
         shallow.search(b"aaaa").unwrap().map(|found| found.range()),
         None
     );
+}
+
+/// The bytes the class-name test reports on, in the order the transcribed lists
+/// use.
+const CLASS_PROBE: [u8; 16] = [
+    b'0', b'9', b'a', b'z', b'A', b'Z', b'_', b'-', b' ', b'\t', b'\n', 0x0B, b'\r', 0x7F, 0x00,
+    0xE9,
+];
+
+/// The sixth review's findings, both in the bracket-expression parser.
+/// `get_next_set_literal` reads a collating element at *either* endpoint of a
+/// range, so `[A-[.a.]]` is the range `A` to `a` and only a `[` that is not
+/// followed by `.` is a literal; and `cpp_regex_traits::lookup_classname` retries
+/// its lookup with the name lower-cased and knows the one-letter aliases
+/// `d h l s u v w` beside a `unicode` class that no `char` belongs to. Collating
+/// elements and `[[:unicode:]]` are refused; the other spellings are translated.
+/// Compile outcomes and answers transcribed from the oracle output for the `ADV`
+/// family of the fixture.
+#[test]
+fn bracket_elements_and_class_names_follow_boost() {
+    const COLLATING: &str = "a collating element";
+    const UNICODE_CLASS: &str = "the [:unicode:] class";
+    const NOT_A_POSIX_CLASS: &str = "a character class name that is not a POSIX class";
+    // Boost compiles every one of these, with a range whose endpoints come from
+    // its collating sequence.
+    for pattern in [
+        "[A-[.a.]]",
+        "[a-[.a.]]",
+        r"[\n-[.-.]]",
+        "[!-[.].]]",
+        "[^A-[.a.]]",
+        "[A-[.a.]x]",
+        "[q[.a.]-[.z.]]",
+        r"[\x41-[.a.]]",
+        "[!-[.-.][.-.]]",
+        "[[.a.]-z]",
+        "[[.a.]]",
+        "[a[.b.]c]",
+    ] {
+        assert_eq!(
+            refused(pattern, BoostRegex::new(pattern)),
+            COLLATING,
+            "{pattern:?}"
+        );
+    }
+    // Boost rejects these (error_collate, error_range, error_ctype); the facade
+    // refuses the collating element before it reaches the same fault.
+    for pattern in ["[A-[.ab.]]", "[A-[.a.]-z]", "[A-[.tab.]]", "[A-[.]"] {
+        assert_eq!(
+            refused(pattern, BoostRegex::new(pattern)),
+            COLLATING,
+            "{pattern:?}"
+        );
+    }
+    // A `[` that no `.` follows is a literal at a range end, so `[A-[x]` is
+    // `A` to `[` plus `x`. (pattern, haystack, Boost's match)
+    for (pattern, haystack, expected) in [
+        ("[A-[x]", &b"A"[..], Some(0..1)),
+        ("[A-[x]", b"[", Some(0..1)),
+        ("[A-[x]", b"Z", Some(0..1)),
+        ("[A-[x]", b"x", Some(0..1)),
+        ("[A-[x]", b"\\", None),
+        ("[A-[x]", b"a", None),
+        ("[A-[]", b"[", Some(0..1)),
+        ("[A-[]", b"\\", None),
+        ("[A-[=a=]]x", b"=]x", Some(0..3)),
+        ("[A-[=a=]]x", b"[]x", Some(0..3)),
+        ("[A-[:alpha:]]x", b":]x", Some(0..3)),
+        ("[A-[:alpha:]]x", b"p]x", Some(0..3)),
+        (r"[A-\x5b]", b"[", Some(0..1)),
+        (r"[A-\x5b]", b"\\", None),
+    ] {
+        let regex = BoostRegex::new(pattern).unwrap_or_else(|error| panic!("{pattern:?}: {error}"));
+        assert_eq!(
+            regex.search(haystack).unwrap().map(|found| found.range()),
+            expected,
+            "{pattern:?} on {haystack:?}"
+        );
+    }
+    // (pattern, the bytes of CLASS_PROBE Boost matches, in that order)
+    for (pattern, matched) in [
+        ("[[:ALPHA:]]", &b"azAZ"[..]),
+        ("[[:Alpha:]]", b"azAZ"),
+        ("[[:aLPHA:]]", b"azAZ"),
+        ("[[:ALNUM:]]", b"09azAZ"),
+        ("[[:Word:]]", b"09azAZ_"),
+        ("[[:XDIGIT:]]", b"09aA"),
+        ("[[:Blank:]]", b" \t\x0b"),
+        ("[[:CNTRL:]]", b"\t\n\x0b\r\x7f\x00"),
+        ("[[:GRAPH:]]", b"09azAZ_-"),
+        ("[[:PRINT:]]", b"09azAZ_- "),
+        ("[[:PUNCT:]]", b"_-"),
+        ("[[:SPACE:]]", b" \t\n\x0b\r"),
+        ("[[:UPPER:]]", b"AZ"),
+        ("[[:LOWER:]]", b"az"),
+        // Boost's one-letter aliases, which the facade reported as unknown names.
+        ("[[:d:]]", b"09"),
+        ("[[:D:]]", b"09"),
+        ("[[:h:]]", b" \t"),
+        ("[[:H:]]", b" \t"),
+        ("[[:l:]]", b"az"),
+        ("[[:L:]]", b"az"),
+        ("[[:s:]]", b" \t\n\x0b\r"),
+        ("[[:S:]]", b" \t\n\x0b\r"),
+        ("[[:u:]]", b"AZ"),
+        ("[[:U:]]", b"AZ"),
+        ("[[:v:]]", b"\n\x0b\r"),
+        ("[[:V:]]", b"\n\x0b\r"),
+        ("[[:w:]]", b"09azAZ_"),
+        ("[[:W:]]", b"09azAZ_"),
+        ("[[:^D:]]", b"azAZ_- \t\n\x0b\r\x7f\x00\xe9"),
+        ("[[:^ALPHA:]]", b"09_- \t\n\x0b\r\x7f\x00\xe9"),
+    ] {
+        let regex = BoostRegex::new(pattern).unwrap_or_else(|error| panic!("{pattern:?}: {error}"));
+        let found: Vec<u8> = CLASS_PROBE
+            .iter()
+            .copied()
+            .filter(|byte| regex.is_search_match(&[*byte]).unwrap())
+            .collect();
+        assert_eq!(found, matched, "{pattern:?}");
+    }
+    // No `char` belongs to Boost's own `unicode` class, in any spelling.
+    for pattern in [
+        "[[:unicode:]]",
+        "[[:UNICODE:]]",
+        "[[:Unicode:]]",
+        "[[:^unicode:]]",
+        "[^[:unicode:]]",
+        "[a[:unicode:]]",
+        "[[:unicode:][:alpha:]]",
+    ] {
+        assert_eq!(
+            refused(pattern, BoostRegex::new(pattern)),
+            UNICODE_CLASS,
+            "{pattern:?}"
+        );
+    }
+    // `[[:<:]]` and `[[:>:]]` are Boost's word-boundary spellings, still refused.
+    for pattern in ["[[:<:]]", "[[:>:]]"] {
+        assert_eq!(
+            refused(pattern, BoostRegex::new(pattern)),
+            NOT_A_POSIX_CLASS,
+            "{pattern:?}"
+        );
+    }
+    // A name neither the exact nor the folded lookup finds stays an error, as
+    // Boost's error_ctype.
+    for pattern in ["[[:FOO:]]", "[[:Ascii:]]", "[[:ANY:]]", "[[:B:]]"] {
+        assert!(
+            matches!(BoostRegex::new(pattern), Err(Error::InvalidValue(_))),
+            "{pattern:?}"
+        );
+    }
+}
+
+/// The sixth review's third finding: `parse_perl_extension` consumes the `P` of
+/// `(?P`, reads `(?P>name)` as a recursion and hands everything else to the
+/// option-group parser, so `(?Pi)` is `(?i)`, `(?P:a|b)` is `(?:a|b)` and `(?P)`
+/// is an empty option group. Only the Python spellings `(?P<name>...)` and
+/// `(?P=name)` are errors, because the option parser rejects their `<` and `=`.
+/// Answers transcribed from the oracle output for the `ADV` family of the fixture.
+#[test]
+fn python_style_group_openings_follow_boost() {
+    let plain = &RegexOptions::default();
+    let icase = &RegexOptions {
+        icase: true,
+        ..RegexOptions::default()
+    };
+    // (options, pattern, haystack, Boost's match)
+    for (options, pattern, haystack, expected) in [
+        (plain, "(?Pi)A", &b"a"[..], Some(0..1)),
+        (plain, "(?Pi)A", b"A", Some(0..1)),
+        (plain, "(?Pi)A", b"b", None),
+        (plain, "(?P:a|b)c", b"ac", Some(0..2)),
+        (plain, "(?P:a|b)c", b"bc", Some(0..2)),
+        (plain, "(?P:a|b)c", b"abc", Some(1..3)),
+        (plain, "(?P:a|b)c", b"c", None),
+        (plain, "(?P)", b"a", Some(0..0)),
+        (plain, "(?P)", b"", Some(0..0)),
+        (plain, "(?P)a", b"a", Some(0..1)),
+        (plain, "(?P)a", b"b", None),
+        (plain, "(?P:)", b"a", Some(0..0)),
+        (icase, "(?P-i)A", b"a", None),
+        (icase, "(?P-i)A", b"A", Some(0..1)),
+        (icase, "(?Pi)a", b"A", Some(0..1)),
+        (plain, "(?Pm)^a", b"b\na", Some(2..3)),
+        (plain, "(?Pm)^a", b"ba", None),
+        (plain, "(?Ps).", b"\n", Some(0..1)),
+        (plain, "(?Pi-s).", b"\n", None),
+        (plain, "(?Pi-s).", b"A", Some(0..1)),
+        (plain, "a(?Pi)b", b"ab", Some(0..2)),
+        (plain, "a(?Pi)b", b"aB", Some(0..2)),
+        (plain, "a(?Pi)b", b"Ab", None),
+        (plain, "(?Pi:a)", b"A", Some(0..1)),
+        (plain, "(?Pi:a)", b"b", None),
+        (icase, "(?P-i:A)", b"A", Some(0..1)),
+        (icase, "(?P-i:A)", b"a", None),
+        (plain, "(?Pi)(?P-i)a", b"a", Some(0..1)),
+        (plain, "(?Pi)(?P-i)a", b"A", None),
+    ] {
+        let regex = BoostRegex::with_options(pattern, *options)
+            .unwrap_or_else(|error| panic!("{pattern:?}: {error}"));
+        assert_eq!(
+            regex.search(haystack).unwrap().map(|found| found.range()),
+            expected,
+            "{pattern:?} icase={} on {haystack:?}",
+            options.icase
+        );
+    }
+    // `(?P>name)` is a recursion by name, and `x` in the option list is the
+    // extended modifier: both refused, as their `(?...` spellings are.
+    assert_eq!(
+        refused("(?<n>a)(?P>n)", BoostRegex::new("(?<n>a)(?P>n)")),
+        "a recursive sub-expression"
+    );
+    for pattern in ["(?Pim-sx:a|b)", "(?Px)a b"] {
+        assert_eq!(
+            refused(pattern, BoostRegex::new(pattern)),
+            "the x (extended) modifier",
+            "{pattern:?}"
+        );
+    }
+    // Everything Boost rejects here the facade rejects too, as an invalid pattern
+    // rather than an unsupported construct.
+    for pattern in [
+        "(?P<n>a)",
+        "(?P=n)",
+        "(?<n>a)(?P=n)",
+        "(?Pz)",
+        "(?P",
+        "(?Pi",
+        "(?PP)",
+        "(?PPi)",
+        "(?P&n)",
+        "(?P1)",
+        "(?P?i)",
+    ] {
+        assert!(
+            matches!(BoostRegex::new(pattern), Err(Error::InvalidValue(_))),
+            "{pattern:?}"
+        );
+    }
 }
 
 /// An expression that needs no backtracking was handed whole to an automaton,
