@@ -523,8 +523,23 @@ fn native_writer_documents_are_engine_checks_not_source_generated_goldens() {
         let r =
             validate_schema_reader(bytes.as_slice(), &SchemaValidationOptions::default()).unwrap();
         assert!(r.is_valid(), "{r:?}");
-        assert_eq!(r.schema, SchemaKind::MzML);
+        // `mzml::write` is indexed, as the source default is; an experiment
+        // with no record to index stays plain mzML.
+        assert_eq!(
+            r.schema,
+            if e.spectra.is_empty() {
+                SchemaKind::MzML
+            } else {
+                SchemaKind::IndexedMzML
+            }
+        );
         if !e.spectra.is_empty() {
+            bytes.clear();
+            mzml::write_with_options(&mut bytes, &e, &Default::default()).unwrap();
+            let r = validate_schema_reader(bytes.as_slice(), &SchemaValidationOptions::default())
+                .unwrap();
+            assert!(r.is_valid(), "{r:?}");
+            assert_eq!(r.schema, SchemaKind::MzML);
             bytes.clear();
             mzml::write_with_peak_options(&mut bytes, &e, &PeakFileOptions::default()).unwrap();
             let r = validate_schema_reader(bytes.as_slice(), &SchemaValidationOptions::default())
