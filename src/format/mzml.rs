@@ -3097,14 +3097,53 @@ fn check_auxiliary_arrays(
     Ok(())
 }
 
-/// Write plain mzML 1.1 XML with uncompressed binary arrays.
+/// Write indexed mzML 1.1 (`indexedmzML`) with uncompressed binary arrays, as
+/// source `MzMLFile::store` does with its default `PeakFileOptions`
+/// (`write_index_ = true`, `PeakFileOptions.h:244`).
+///
+/// This is the writer behind `FileHandler::store_experiment` and therefore
+/// behind every TOPP tool that stores mzML. It makes one pass: each record's
+/// byte offset is taken as its `<spectrum` or `<chromatogram` tag starts, the
+/// index follows `</mzML>`, and `fileChecksum` is the SHA-1 of every byte from
+/// the start of the document through the opening `<fileChecksum>` tag, as the
+/// indexed mzML schema specifies. The source writes the constant `0` there
+/// (CPP-049). Offsets count bytes of the XML text written to `writer`.
+///
+/// An experiment with neither spectra nor chromatograms has no record to
+/// index and is written as plain mzML; the source emits an index with a dummy
+/// `-1` offset instead (CPP-050).
+///
+/// Validation and the header plan complete before the first byte is written,
+/// so a rejected experiment leaves `writer` untouched. For binary encoding
+/// options and the prepared two-pass writer use
+/// [`write_with_peak_options`]; for plain mzML use [`write_with_options`].
+///
+/// # Errors
+///
+/// Returns the validation errors of [`write_with_options`] and any I/O error.
 pub fn write(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
-    write_with_options(writer, experiment, &WriteOptions::default())
+    if experiment.spectra.is_empty() && experiment.chromatograms.is_empty() {
+        return write_with_options(writer, experiment, &WriteOptions::default());
+    }
+    let header = header::prepare(experiment)?;
+    validate_write(experiment)?;
+    let mut output = peak_writer::Output::streamed(writer, experiment)?;
+    write_document(
+        &mut output,
+        experiment,
+        &WriteOptions::default(),
+        &mut None,
+        &header,
+        false,
+    )
 }
 
-/// Write the supported data model after preflight validation.
+/// Write plain (unindexed) mzML 1.1 after preflight validation.
+///
 /// Named float, integer and ASCII string arrays are preserved. Unsupported
-/// metadata or unrepresentable array values are rejected before output.
+/// metadata or unrepresentable array values are rejected before output. The
+/// streaming `MSDataWritingConsumer` splits this layout per record, which is
+/// why it stays unindexed; [`write`] is the indexed default.
 pub fn write_with_options(
     mut w: impl Write,
     experiment: &MSExperiment,

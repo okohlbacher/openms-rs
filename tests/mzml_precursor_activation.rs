@@ -421,8 +421,14 @@ fn metadata_only_activation_puts_every_cv_param_before_user_params() {
             eprintln!("xmllint unavailable; activation XSD validation not executed");
             continue;
         }
-        let schema =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/mzml_1_10.xsd");
+        // `mzml::write`, which `roundtrip` uses, is indexed by default.
+        let schema = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(
+            if xml.contains("<indexedmzML ") {
+                "tests/data/mzml_writing/mzML_idx_1_10.xsd"
+            } else {
+                "tests/data/mzml_1_10.xsd"
+            },
+        );
         let mut process = Command::new("xmllint")
             .args(["--nonet", "--noout", "--schema"])
             .arg(&schema)

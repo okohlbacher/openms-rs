@@ -244,10 +244,11 @@ fn spectra_are_streamed_and_read_back_unchanged() {
     assert_eq!(loaded.spectra.len(), 3);
     assert_eq!(loaded.spectra, source.spectra);
 
-    // Byte-identical to the whole-document writer, because the record blocks
-    // come from that writer and only the list count can differ.
+    // Byte-identical to the plain whole-document writer, because the record
+    // blocks come from that writer and only the list count can differ.
+    // (`mzml::write` itself now writes indexed mzML, as the source default.)
     let mut whole = Vec::new();
-    mzml::write(&mut whole, &source).unwrap();
+    mzml::write_with_options(&mut whole, &source, &Default::default()).unwrap();
     assert_eq!(text, String::from_utf8(whole).unwrap());
 }
 

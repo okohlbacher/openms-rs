@@ -635,9 +635,17 @@ fn rich_header_and_both_marker_shapes_pass_independent_xsd() {
         } else {
             mzml::write(&mut bytes, &e).unwrap();
         }
+        // `mzml::write` is indexed by default and validates against the
+        // indexed schema; `write_with_numpress` stays plain mzML.
+        let indexed = std::str::from_utf8(&bytes).is_ok_and(|t| t.contains("<indexedmzML "));
+        let schema = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(if indexed {
+            "tests/data/mzml_writing/mzML_idx_1_10.xsd"
+        } else {
+            "tests/data/mzml_1_10.xsd"
+        });
         let mut child = Command::new("xmllint")
             .args(["--nonet", "--noout", "--schema"])
-            .arg(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/mzml_1_10.xsd"))
+            .arg(schema)
             .arg("-")
             .stdin(Stdio::piped())
             .stderr(Stdio::piped())

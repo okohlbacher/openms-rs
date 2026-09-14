@@ -431,14 +431,26 @@ pub(super) fn native_id(id: &str, index: usize, chrom: bool) -> Cow<'_, str> {
         Cow::Borrowed(id)
     }
 }
+/// How an [`Output`] treats record offsets, the index and the checksum.
 enum Mode<'a> {
+    /// Plain mzML: no offsets, no index.
     Legacy,
+    /// First pass of the prepared writer: charges markup work and records the
+    /// layout into a sink.
     Measure {
         work: &'a mut Work,
         layout: &'a mut Layout,
         max_xml_bytes: u64,
     },
+    /// Second pass of the prepared writer: replays a measured layout.
     Emit(&'a Layout),
+    /// Single-pass indexed output: offsets are recorded as records start and
+    /// the checksum is computed while the bytes go out, as the source writer
+    /// records `os.tellp()` while writing.
+    Stream {
+        spectra: Vec<u64>,
+        chromatograms: Vec<u64>,
+    },
 }
 pub(super) struct Output<'a, W> {
     writer: W,
@@ -455,11 +467,38 @@ impl<W: Write> Output<'_, W> {
             mode: Mode::Legacy,
         }
     }
+    /// A single-pass indexed output for `experiment`, with its offset tables
+    /// reserved up front.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the offset tables (8 bytes per
+    /// record) cannot be allocated.
+    pub(super) fn streamed(writer: W, experiment: &MSExperiment) -> Result<Self> {
+        let mut spectra = Vec::new();
+        spectra
+            .try_reserve_exact(experiment.spectra.len())
+            .map_err(|_| resource())?;
+        let mut chromatograms = Vec::new();
+        chromatograms
+            .try_reserve_exact(experiment.chromatograms.len())
+            .map_err(|_| resource())?;
+        Ok(Self {
+            writer,
+            position: 0,
+            hash: Some(Sha1::new()),
+            mode: Mode::Stream {
+                spectra,
+                chromatograms,
+            },
+        })
+    }
     fn indexed(&self) -> bool {
         match &self.mode {
             Mode::Legacy => false,
             Mode::Measure { layout, .. } => layout.indexed,
             Mode::Emit(layout) => layout.indexed,
+            Mode::Stream { .. } => true,
         }
     }
     pub(super) fn header(&mut self, prefix: &str) -> Result<()> {
@@ -471,32 +510,44 @@ impl<W: Write> Output<'_, W> {
         Ok(())
     }
     pub(super) fn record(&mut self, chrom: bool) -> Result<()> {
-        if let Mode::Measure { layout, .. } = &mut self.mode {
-            if layout.indexed {
-                let offsets = if chrom {
+        let offsets = match &mut self.mode {
+            Mode::Measure { layout, .. } if layout.indexed => {
+                if chrom {
                     &mut layout.chromatograms
                 } else {
                     &mut layout.spectra
-                };
-                if offsets.len() == offsets.capacity() {
-                    return Err(resource());
                 }
-                offsets.push(self.position);
             }
+            Mode::Stream {
+                spectra,
+                chromatograms,
+            } => {
+                if chrom {
+                    chromatograms
+                } else {
+                    spectra
+                }
+            }
+            _ => return Ok(()),
+        };
+        // Both tables were reserved for the experiment's record counts.
+        if offsets.len() == offsets.capacity() {
+            return Err(resource());
         }
+        offsets.push(self.position);
         Ok(())
     }
     fn offset(&self, chrom: bool, i: usize) -> Result<u64> {
-        let layout = match &self.mode {
-            Mode::Measure { layout, .. } => &**layout,
-            Mode::Emit(layout) => layout,
+        let (spectra, chromatograms) = match &self.mode {
+            Mode::Measure { layout, .. } => (&layout.spectra, &layout.chromatograms),
+            Mode::Emit(layout) => (&layout.spectra, &layout.chromatograms),
+            Mode::Stream {
+                spectra,
+                chromatograms,
+            } => (spectra, chromatograms),
             Mode::Legacy => return Err(resource()),
         };
-        let offsets = if chrom {
-            &layout.chromatograms
-        } else {
-            &layout.spectra
-        };
+        let offsets = if chrom { chromatograms } else { spectra };
         offsets.get(i).copied().ok_or_else(resource)
     }
     pub(super) fn footer(&mut self, experiment: &MSExperiment) -> Result<()> {

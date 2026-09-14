@@ -290,6 +290,51 @@ fn twenty_thousand_record_file_roundtrips_through_the_file_handler() {
     assert_eq!(back.spectra, experiment.spectra);
 }
 
+#[test]
+fn default_writer_emits_indexed_mzml_with_verified_offsets_and_sha1() {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    let mut experiment = scaled(2_000);
+    experiment.chromatograms.push(openms::MSChromatogram {
+        native_id: "TIC".into(),
+        ..Default::default()
+    });
+    let mut bytes = Vec::new();
+    mzml::write(&mut bytes, &experiment).expect("write");
+    let text = std::str::from_utf8(&bytes).expect("UTF-8");
+    assert!(text.contains("<indexedmzML "));
+    assert!(text.ends_with("</indexedmzML>\n"));
+    // Independent Python oracle: SHA-1 of the prefix through `<fileChecksum>`,
+    // every offset addressing its `<spectrum`/`<chromatogram` tag, in order.
+    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tools/mzml_writing/check_output.py");
+    let mut child = Command::new("python3")
+        .arg(script)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("python3 independent oracle");
+    child
+        .stdin
+        .take()
+        .expect("stdin")
+        .write_all(&bytes)
+        .expect("pipe");
+    let result = child.wait_with_output().expect("oracle");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let back = mzml::read(Cursor::new(&bytes)).expect("read back");
+    assert_eq!(back.spectra, experiment.spectra);
+    // Nothing to index: an empty experiment stays plain mzML (CPP-050).
+    let mut empty = Vec::new();
+    mzml::write(&mut empty, &MSExperiment::default()).expect("empty");
+    assert!(!std::str::from_utf8(&empty).unwrap().contains("indexedmzML"));
+}
+
 /// Reader options with every size ceiling lifted. The reader's own default
 /// ceilings belong to a separate lane; these tests are about the writer.
 fn generous_read_options() -> mzml::ReadOptions {
