@@ -124,12 +124,42 @@
         "Descending Fisher-Yates permutations and exact state/draw counts.",
         "Zero-draw empty/singleton slices and zero-width inclusive range.",
         "Bucket boundaries, full-width range, and division-versus-modulo discrimination.",
-        "Forced rejection consumes one draw; failed precharge does not advance state.",
-        "Private partial progress and public caller staging contract.",
-        "Boost redundant-bit normalization and all-zero-state repair."
-      ]
+        "Scripted rejection consumes one draw; a failed precharge reads no further word.",
+        "Private partial progress, scripted and engine-backed, and public caller staging contract.",
+        "Engine size pinned to the replaced [u64; 312] plus index layout charged by decoy work accounting."
+      ],
+      "word_injection": "The range mapping and Fisher-Yates loop read raw words through a private closure; tests script adversarial words and count reads. The earlier Boost normalization test was removed with the normalization code."
     },
-    "method": "Derived Python exact-integer append-only MT19937-64 recurrence with 64-bit initialization and literal tempering masks, independent of the native cyclic in-place twist. The initial word's redundant low 31 bits are replaced before use, so the output oracle omits Boost's normalization; native state tests check normalization separately. No C++, Boost binary or native production algorithm generates these expected values.",
+    "engine": {
+      "crate": "rand_mt",
+      "version": "6.0.3",
+      "type": "rand_mt::Mt64",
+      "license": "MIT OR Apache-2.0",
+      "replaced": {
+        "description": "Hand-written MT19937-64 with Boost seed normalization and all-zero-state repair.",
+        "path": "src/chemistry/decoy_random.rs",
+        "revision": "8f55a09",
+        "sha256": "c13c394e0d1cbc2830fbc50147cc0fa546fa93984a1120b5d85e1f0ee8d6eabe"
+      },
+      "normalization": "Boost rewrites the low 31 bits of the first seeded word and repairs an all-zero state; Mt64 does neither. The twist reads only the upper 33 bits of that word before replacing it, and a zero second word forces the third to be 2, so no output word and no equality result depends on either step.",
+      "differential": {
+        "method": "Throwaway Rust harness outside the repository compiling the replaced module (sha256 above) and the rand_mt-backed module side by side; release build on the x86_64 Linux build node.",
+        "seeds": "1,110 runs over 1,109 distinct seeds: edge seeds 0, 1, 5489, 4711, 2^63, 2^64-1, 2^64-4711, 0x7fffffff, 0x80000000, 4568919932995229531 (second seeded word zero); 4711..4810 (4711 runs twice); 1,000 SplitMix64 seeds from 42. 20,000 words per run plus 1,000 after a mid-stream reseed; 1,000,000 words per edge seed.",
+        "raw_words": 33310000,
+        "raw_word_mismatches": 0,
+        "equality_relations": 14400,
+        "equality_disagreements": 0,
+        "unlimited_shuffles": 13320,
+        "allowance_limited_shuffles": 236430,
+        "shuffle_mismatches": 0,
+        "size_of_bytes": {
+          "replaced": 2504,
+          "rand_mt": 2504
+        },
+        "output_bits_changed": false
+      }
+    },
+    "method": "Derived Python exact-integer append-only MT19937-64 recurrence with 64-bit initialization and literal tempering masks, independent of the native cyclic in-place twist. The initial word's redundant low 31 bits are replaced before use, so neither the output oracle nor rand_mt::Mt64 applies Boost's normalization, and no output depends on it. No C++, Boost binary or native production algorithm generates these expected values.",
     "words_per_seed": 1248,
     "twist_cycles_per_seed": 4,
     "checkpoint_count_per_seed": 20,
@@ -196,9 +226,10 @@
     "implementation_attribution": {
       "path": "src/chemistry/decoy_random.rs",
       "license_expression": "BSD-3-Clause AND BSL-1.0",
+      "derived_from": "Boost.Random 1.90 random/uniform_int_distribution.hpp, bounded-integer mapping only; no engine code is derived from mersenne_twister.hpp.",
       "notices": [
         "Copyright Jens Maurer 2000-2001",
-        "Copyright Steven Watanabe 2010, 2011"
+        "Copyright Steven Watanabe 2011"
       ],
       "full_license": "LICENSES.md",
       "license_url": "https://www.boost.org/LICENSE_1_0.txt"

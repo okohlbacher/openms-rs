@@ -3,18 +3,26 @@
 // $Maintainer: OpenMS Rust contributors $
 
 //! Caller-owned source-compatible ID generation and the common ID value interface.
+//!
+//! Ports `UniqueIdGenerator.h` and `UniqueIdInterface.h`; see
+//! `docs/UNIQUE_ID_SUPPORT.md`.
 
-use crate::chemistry::decoy_generator::DecoyRandom;
 use crate::{Error, Result};
+use rand_mt::Mt64;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Deterministic MT19937-64 draws. Instances replace the source process singleton;
 /// callers can share one behind a standard Mutex when a shared sequence is needed.
 /// These identifiers are not cryptographic randomness or a uniqueness guarantee.
+///
+/// The engine is `rand_mt::Mt64`, the same algorithm as the source's
+/// `std::mt19937_64`, whose output the C++ standard fixes on every platform. IDs
+/// are its raw 64-bit words; the source notes that drawing them through a uniform
+/// distribution over the complete `UInt64` range would be the identity.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct UniqueIdGenerator {
     seed: u64,
-    random: DecoyRandom,
+    random: Mt64,
 }
 impl Default for UniqueIdGenerator {
     fn default() -> Self {
@@ -26,18 +34,28 @@ impl Default for UniqueIdGenerator {
     }
 }
 impl UniqueIdGenerator {
+    /// Generator seeded as the source singleton is on first use: microseconds
+    /// since the Unix epoch XOR the process ID shifted left 32 bits. Same as
+    /// [`Default`]; use [`UniqueIdGenerator::from_seed`] for a reproducible stream.
     pub fn new() -> Self {
         Self::default()
     }
+    /// Generator whose IDs are the words of `std::mt19937_64(seed)`. The source
+    /// reaches the same stream by calling `setSeed` on its singleton.
     pub fn from_seed(seed: u64) -> Self {
         Self {
             seed,
-            random: DecoyRandom::seeded(seed),
+            random: Mt64::new(seed),
         }
     }
+    /// The seed of the current stream: the last `from_seed` or `set_seed` value,
+    /// or the clock-derived one. Source `getSeed`.
     pub fn seed(&self) -> u64 {
         self.seed
     }
+    /// Initializes the random generator using the given value, as source
+    /// `setSeed`: the next ID is the first of [`UniqueIdGenerator::from_seed`]
+    /// with the same seed.
     pub fn set_seed(&mut self, seed: u64) {
         self.random.reseed(seed);
         self.seed = seed;
@@ -71,7 +89,12 @@ impl UniqueIdGenerator {
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UniqueId(pub u64);
 impl UniqueId {
+    /// The invalid unique ID, zero. The source declares it as an anonymous `enum`
+    /// because static class members caused linker errors; an associated constant
+    /// has no such problem.
     pub const INVALID: u64 = 0;
+    /// Whether `value` is a valid unique ID, that is, not [`UniqueId::INVALID`].
+    /// As the source advises, prefer this to comparing with zero.
     pub const fn is_valid(value: u64) -> bool {
         value != Self::INVALID
     }

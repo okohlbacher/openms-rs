@@ -1,50 +1,51 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // Copyright Jens Maurer 2000-2001
-// Copyright Steven Watanabe 2010, 2011
+// Copyright Steven Watanabe 2011
 // SPDX-License-Identifier: BSD-3-Clause AND BSL-1.0
 // $Maintainer: OpenMS Rust contributors $
 //
-// MT19937-64 normalization and bounded-integer mapping derive from Boost.Random
-// 1.90 mersenne_twister.hpp and uniform_int_distribution.hpp, distributed under
-// the Boost Software License, Version 1.0 (https://www.boost.org/LICENSE_1_0.txt).
+// The bounded-integer mapping derives from Boost.Random 1.90
+// uniform_int_distribution.hpp, distributed under the Boost Software License,
+// Version 1.0 (https://www.boost.org/LICENSE_1_0.txt). The MT19937-64 engine is
+// the rand_mt crate (MIT OR Apache-2.0); no Boost engine code remains here.
 //! Private deterministic engine for OpenMS Math::RandomShuffler semantics.
 //! The outer decoy generator stages this small state and its output so failed
 //! draw/work checks remain atomic at the public operation boundary.
+//!
+//! Raw words come from `rand_mt::Mt64`, the reference MT19937-64, in place of
+//! the source's `boost::mt19937_64`. Only Boost `uniform_int`'s range mapping
+//! and the source's descending Fisher–Yates loop are implemented here: `rand`'s
+//! range mapping and slice shuffle choose different values and would change
+//! every decoy.
 
 use crate::{Error, Result};
+use rand_mt::Mt64;
 
-const WORDS: usize = 312;
-const MIDDLE: usize = 156;
-const LOWER: u64 = 0x7fff_ffff;
-const UPPER: u64 = !LOWER;
-const MATRIX: u64 = 0xb502_6f5a_a966_19e9;
-
+/// MT19937-64 word stream with the source shuffler's range mapping on top.
+///
+/// Boost's `mersenne_twister_engine::seed` also rewrites the low 31 bits of the
+/// first state word and repairs an all-zero state; `Mt64` does neither, and
+/// neither changes any output. The twist reads only the upper 33 bits of that
+/// word before replacing it, and the repair cannot trigger after an integer
+/// seed: a zero second word forces the third to be 2. Equality is unaffected
+/// too, because the second seeded word alone determines the seed.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct DecoyRandom {
-    state: [u64; WORDS],
-    index: usize,
+    engine: Mt64,
 }
 
 impl DecoyRandom {
+    /// Engine in the state of `boost::mt19937_64(seed)`.
     pub(crate) fn seeded(seed: u64) -> Self {
-        let mut random = Self {
-            state: [0; WORDS],
-            index: WORDS,
-        };
-        random.reseed(seed);
-        random
+        Self {
+            engine: Mt64::new(seed),
+        }
     }
 
+    /// Restart the stream as `RandomShuffler::seed` does; the next word is the
+    /// first word of [`DecoyRandom::seeded`] with the same seed.
     pub(crate) fn reseed(&mut self, seed: u64) {
-        self.state[0] = seed;
-        for i in 1..WORDS {
-            let previous = self.state[i - 1];
-            self.state[i] = (previous ^ (previous >> 62))
-                .wrapping_mul(6_364_136_223_846_793_005)
-                .wrapping_add(i as u64);
-        }
-        self.index = WORDS;
-        self.normalize();
+        self.engine.reseed(seed);
     }
 
     /// Descending Fisher–Yates, as in MathFunctions.h. Every raw draw, including
@@ -52,71 +53,50 @@ impl DecoyRandom {
     /// singleton slices use no draws. On error the private slice/state may have
     /// advanced through earlier swaps; the public caller stages both.
     pub(super) fn shuffle(&mut self, data: &mut [u8], remaining_draws: &mut usize) -> Result<()> {
-        for end in (1..data.len()).rev() {
-            let high = u64::try_from(end)
-                .map_err(|_| Error::InvalidValue("decoy shuffle range exceeds u64".into()))?;
-            let selected = self.bounded(high, remaining_draws)? as usize;
-            // selected <= end, so the native usize conversion cannot truncate.
-            data.swap(end, selected);
-        }
-        Ok(())
+        shuffle_from(|| self.next_u64(), data, remaining_draws)
     }
 
-    // Boost uniform_int(0, high) uses bucket division/rejection, not modulo.
-    // u128 expresses 2^64 directly; for high>=1 the bucket fits a nonzero u64.
-    fn bounded(&mut self, high: u64, remaining_draws: &mut usize) -> Result<u64> {
-        if high == 0 {
-            return Ok(0);
-        }
-        let bucket = ((1_u128 << 64) / (u128::from(high) + 1)) as u64;
-        loop {
-            *remaining_draws = remaining_draws
-                .checked_sub(1)
-                .ok_or_else(|| Error::InvalidValue("decoy random draw limit exceeded".into()))?;
-            let result = self.next_u64() / bucket;
-            if result <= high {
-                return Ok(result);
-            }
-        }
-    }
-
+    /// One raw 64-bit engine word.
     pub(crate) fn next_u64(&mut self) -> u64 {
-        if self.index == WORDS {
-            self.twist();
-        }
-        let mut value = self.state[self.index];
-        self.index += 1;
-        value ^= (value >> 29) & 0x5555_5555_5555_5555;
-        value ^= (value << 17) & 0x71d6_7fff_eda6_0000;
-        value ^= (value << 37) & 0xfff7_eee0_0000_0000;
-        value ^= value >> 43;
-        value
+        self.engine.next_u64()
     }
+}
 
-    fn twist(&mut self) {
-        // Intentionally in-place: the second half reads words already replaced
-        // in this cycle, and the last word uses the updated first word's low bits.
-        for i in 0..WORDS {
-            let combined = (self.state[i] & UPPER) | (self.state[(i + 1) % WORDS] & LOWER);
-            self.state[i] = self.state[(i + MIDDLE) % WORDS]
-                ^ (combined >> 1)
-                ^ if combined & 1 == 0 { 0 } else { MATRIX };
-        }
-        self.index = 0;
+// The Fisher–Yates loop and range mapping read raw words through a closure so
+// the private tests can script adversarial words; production passes the engine.
+fn shuffle_from(
+    mut next: impl FnMut() -> u64,
+    data: &mut [u8],
+    remaining_draws: &mut usize,
+) -> Result<()> {
+    for end in (1..data.len()).rev() {
+        let high = u64::try_from(end)
+            .map_err(|_| Error::InvalidValue("decoy shuffle range exceeds u64".into()))?;
+        let selected = bounded_from(&mut next, high, remaining_draws)? as usize;
+        // selected <= end, so the native usize conversion cannot truncate.
+        data.swap(end, selected);
     }
+    Ok(())
+}
 
-    fn normalize(&mut self) {
-        // The low 31 bits of the first seeded word are redundant. Boost canonicalizes
-        // them using the inverse recurrence, then repairs an all-zero state.
-        let mut value = self.state[MIDDLE - 1] ^ self.state[WORDS - 1];
-        value = if value & (1_u64 << 63) == 0 {
-            value << 1
-        } else {
-            ((value ^ MATRIX) << 1) | 1
-        };
-        self.state[0] = (self.state[0] & UPPER) | (value & LOWER);
-        if self.state.iter().all(|&word| word == 0) {
-            self.state[0] = 1_u64 << 63;
+// Boost uniform_int(0, high) uses bucket division/rejection, not modulo.
+// u128 expresses 2^64 directly; for high>=1 the bucket fits a nonzero u64.
+fn bounded_from(
+    mut next: impl FnMut() -> u64,
+    high: u64,
+    remaining_draws: &mut usize,
+) -> Result<u64> {
+    if high == 0 {
+        return Ok(0);
+    }
+    let bucket = ((1_u128 << 64) / (u128::from(high) + 1)) as u64;
+    loop {
+        *remaining_draws = remaining_draws
+            .checked_sub(1)
+            .ok_or_else(|| Error::InvalidValue("decoy random draw limit exceeded".into()))?;
+        let result = next() / bucket;
+        if result <= high {
+            return Ok(result);
         }
     }
 }
@@ -282,12 +262,14 @@ mod tests {
             }
             assert_eq!(random, raw);
         }
-        let mut zeroes = forced(&[0, 0, 0]);
+        let script = [0, 0, 0];
+        let mut zeroes = Words::new(&script);
         let mut data = *b"ABCD";
         let mut remaining = 3;
-        zeroes.shuffle(&mut data, &mut remaining).unwrap();
+        shuffle_from(|| zeroes.draw(), &mut data, &mut remaining).unwrap();
         assert_eq!(&data, b"BCDA"); // Ascending swaps would instead give DABC.
         assert_eq!(remaining, 0);
+        assert_eq!(zeroes.read, 3);
     }
 
     #[test]
@@ -298,7 +280,10 @@ mod tests {
         random.shuffle(&mut [], &mut remaining).unwrap();
         let mut singleton = *b"A";
         random.shuffle(&mut singleton, &mut remaining).unwrap();
-        assert_eq!(random.bounded(0, &mut remaining).unwrap(), 0);
+        assert_eq!(
+            bounded_from(|| random.next_u64(), 0, &mut remaining).unwrap(),
+            0
+        );
         assert_eq!(random, before);
         assert_eq!(remaining, 0);
     }
@@ -318,104 +303,97 @@ mod tests {
                 if expected > u128::from(high) {
                     continue;
                 }
-                let mut random = forced(&[raw]);
+                let script = [raw];
+                let mut words = Words::new(&script);
                 let mut remaining = 1;
                 assert_eq!(
-                    random.bounded(high, &mut remaining).unwrap(),
+                    bounded_from(|| words.draw(), high, &mut remaining).unwrap(),
                     expected as u64
                 );
                 assert_eq!(remaining, 0);
-                assert_eq!(random.index, 1);
+                assert_eq!(words.read, 1);
             }
         }
         // For [0,1], the top raw word maps to 1 (modulo 2 happens to agree),
         // but bucket-1 maps to 0 even though modulo 2 would be 1.
-        let mut random = forced(&[(1_u64 << 63) - 1]);
-        assert_eq!(random.bounded(1, &mut 1).unwrap(), 0);
+        let script = [(1_u64 << 63) - 1];
+        let mut words = Words::new(&script);
+        assert_eq!(bounded_from(|| words.draw(), 1, &mut 1).unwrap(), 0);
     }
 
     #[test]
     fn rejected_word_consumes_allowance_and_advances_state_once() {
         // For inclusive range [0,2], floor(2^64/3) leaves raw u64::MAX outside
         // every complete bucket. The next zero word is accepted as 0.
-        let mut random = forced(&[u64::MAX, 0]);
+        let script = [u64::MAX, 0];
+        let mut words = Words::new(&script);
         let mut remaining = 2;
-        assert_eq!(random.bounded(2, &mut remaining).unwrap(), 0);
+        assert_eq!(bounded_from(|| words.draw(), 2, &mut remaining).unwrap(), 0);
         assert_eq!(remaining, 0);
-        assert_eq!(random.index, 2);
+        assert_eq!(words.read, 2);
 
-        let mut random = forced(&[u64::MAX, 0]);
+        let mut words = Words::new(&script);
         let mut remaining = 1;
-        let error = random.bounded(2, &mut remaining).unwrap_err();
+        let error = bounded_from(|| words.draw(), 2, &mut remaining).unwrap_err();
         assert!(error.to_string().contains("draw limit"));
         assert_eq!(remaining, 0);
-        assert_eq!(random.index, 1); // Failed precharge does not read second word.
-        assert_eq!(random.next_u64(), 0);
+        assert_eq!(words.read, 1); // Failed precharge does not read second word.
+        assert_eq!(words.draw(), 0);
     }
 
     #[test]
     fn exhausted_shuffle_exposes_only_successful_private_swaps_and_draws() {
-        let mut random = forced(&[0, 0]);
+        let script = [0, 0];
+        let mut words = Words::new(&script);
         let mut data = *b"ABCD";
-        let before = random.clone();
-        assert!(random.shuffle(&mut data, &mut 0).is_err());
+        assert!(shuffle_from(|| words.draw(), &mut data, &mut 0).is_err());
         assert_eq!(&data, b"ABCD");
+        assert_eq!(words.read, 0);
+        let mut remaining = 1;
+        assert!(shuffle_from(|| words.draw(), &mut data, &mut remaining).is_err());
+        assert_eq!(&data, b"DBCA");
+        assert_eq!(words.read, 1);
+        assert_eq!(remaining, 0);
+
+        // The engine-backed method charges before reading in the same way: no
+        // allowance leaves the engine untouched, one allowance reads one word.
+        let mut random = DecoyRandom::seeded(4711);
+        let before = random.clone();
+        let mut data = *b"ABCD";
+        assert!(random.shuffle(&mut data, &mut 0).is_err());
         assert_eq!(random, before);
         let mut remaining = 1;
         assert!(random.shuffle(&mut data, &mut remaining).is_err());
-        assert_eq!(&data, b"DBCA");
-        assert_eq!(random.index, 1);
         assert_eq!(remaining, 0);
+        let mut advanced = before;
+        advanced.next_u64();
+        assert_eq!(random, advanced);
     }
 
     #[test]
-    fn boost_normalization_sets_redundant_bits_and_repairs_zero_state() {
-        let mut random = DecoyRandom {
-            state: [0; WORDS],
-            index: WORDS,
-        };
-        random.normalize();
-        assert_eq!(random.state[0], 1_u64 << 63);
-        assert!(random.state[1..].iter().all(|&word| word == 0));
-        let normalized = random.clone();
-        random.normalize();
-        assert_eq!(random, normalized);
-        for seed in [0, 4711, u64::MAX] {
-            let mut random = DecoyRandom::seeded(seed);
-            let before = random.clone();
-            random.normalize();
-            assert_eq!(random, before);
-            assert_eq!(random.state[0] & UPPER, seed & UPPER);
-        }
+    fn engine_keeps_the_size_charged_by_decoy_work_accounting() {
+        // decoy_generator.rs charges size_of::<DecoyRandom>() for each staged
+        // and per-product engine. Pin it to the replaced [u64; 312] + index
+        // layout so a rand_mt upgrade cannot silently move decoy work limits.
+        assert_eq!(size_of::<DecoyRandom>(), size_of::<([u64; 312], usize)>());
     }
 
-    // Invert tempering solely to inject adversarial raw words into a valid
-    // private read position. No injectable/public RNG abstraction is required.
-    fn forced(words: &[u64]) -> DecoyRandom {
-        let mut random = DecoyRandom {
-            state: [0; WORDS],
-            index: 0,
-        };
-        for (slot, &word) in random.state.iter_mut().zip(words) {
-            let mut value = undo_right(word, 43, u64::MAX);
-            value = undo_left(value, 37, 0xfff7_eee0_0000_0000);
-            value = undo_left(value, 17, 0x71d6_7fff_eda6_0000);
-            *slot = undo_right(value, 29, 0x5555_5555_5555_5555);
-        }
-        random
+    // Scripted raw words for the range mapping and Fisher–Yates loop. Reading
+    // past the script panics, so a passing test also proves no extra draw.
+    struct Words<'a> {
+        words: &'a [u64],
+        read: usize,
     }
-    fn undo_right(value: u64, shift: u32, mask: u64) -> u64 {
-        let mut original = value;
-        for _ in 0..64 {
-            original = value ^ ((original >> shift) & mask);
+
+    impl<'a> Words<'a> {
+        fn new(words: &'a [u64]) -> Self {
+            Self { words, read: 0 }
         }
-        original
-    }
-    fn undo_left(value: u64, shift: u32, mask: u64) -> u64 {
-        let mut original = value;
-        for _ in 0..64 {
-            original = value ^ ((original << shift) & mask);
+
+        fn draw(&mut self) -> u64 {
+            let word = self.words[self.read];
+            self.read += 1;
+            word
         }
-        original
     }
 }

@@ -37,6 +37,7 @@
   "src/chemistry/decoy_random.rs"
  ],
  "prerequisite_change": "Five crate-private visibility changes only; existing MT19937-64 arithmetic, normalization and shuffle semantics are unchanged. Original Boost terms remain applicable to the shared private engine.",
+ "engine_update": "The generator now holds rand_mt::Mt64 (rand_mt 6.0.3, MIT OR Apache-2.0) directly instead of the decoy generator's private engine, which removes the concept -> chemistry module edge; the two native_prerequisites above are no longer used. Mt64 is the same algorithm as the source's std::mt19937_64, which has no Boost normalization. The six source words for seed 546666321 and the decoy engine differential recorded in tests/data/decoy_provenance.json (rng_reference.engine) show no output change.",
  "scope": "Complete own ID generator and ID value/interface operations using caller-owned generator state and a trait over u64 fields. No process-global singleton, C++ ABI or automatic trait coverage of every SDK subclass is claimed.",
  "source_literals": {
   "seed": 546666321,
