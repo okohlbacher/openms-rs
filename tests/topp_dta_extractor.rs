@@ -13,6 +13,7 @@
 
 use openms::cli::tools::DTAExtractor;
 use openms::cli::{ExitCode, run_with};
+use openms::system::file::TempDir;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -23,10 +24,10 @@ fn fixture(name: &str) -> PathBuf {
 /// Run the tool into a fresh directory and compare one produced file with its
 /// retained C++ output, byte for byte.
 fn check(case: &str, args: &[&str], produced: &str, expected: &str) {
-    // Cases share produced file names, so the directory is keyed by the case.
-    let dir = std::env::temp_dir().join(format!("openms-dta-{}-{case}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
+    // Cases share produced file names, so each case writes into its own
+    // uniquely named directory.
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let dir = temp.path();
     let base = dir.join("DTAExtractor");
 
     let mut arguments = vec![
@@ -52,14 +53,13 @@ fn check(case: &str, args: &[&str], produced: &str, expected: &str) {
     );
 
     let actual = fs::read(dir.join(produced))
-        .unwrap_or_else(|_| panic!("{produced} was not written; produced: {:?}", listing(&dir)));
+        .unwrap_or_else(|_| panic!("{produced} was not written; produced: {:?}", listing(dir)));
     let reference = fs::read(fixture(expected)).unwrap();
     assert_eq!(
         String::from_utf8_lossy(&actual),
         String::from_utf8_lossy(&reference),
-        "{produced} differs from the C++ output {expected}"
+        "{produced} differs from the C++ output {expected} (case {case})"
     );
-    let _ = fs::remove_dir_all(&dir);
 }
 
 fn listing(dir: &Path) -> Vec<String> {
@@ -118,14 +118,18 @@ fn usage_and_exit_codes_follow_the_source_contract() {
         )
     };
 
-    // Usage short-circuits before any validation, so required values are not demanded.
-    let (code, out, _) = run(&["--help"]);
+    // Usage short-circuits before any validation, so required values are not
+    // demanded. The source prints usage to standard error, for --help too
+    // (TOPPBase.cpp:637; oracle help in ../oracle/topp-cli-lifecycle, whose
+    // stdout is empty), so it is asserted on the error stream.
+    let (code, out, err) = run(&["--help"]);
     assert_eq!(code, ExitCode::ExecutionOk);
-    assert!(out.contains("DTAExtractor --"), "{out}");
-    assert!(out.contains("-in <file>*"), "{out}");
+    assert!(out.is_empty(), "{out}");
+    assert!(err.contains("DTAExtractor --"), "{err}");
+    assert!(err.contains("-in <file>*"), "{err}");
     // Advanced parameters are hidden until asked for.
-    assert!(!out.contains("-no_progress"), "{out}");
-    assert!(run(&["--helphelp"]).1.contains("-no_progress"));
+    assert!(!err.contains("-no_progress"), "{err}");
+    assert!(run(&["--helphelp"]).2.contains("-no_progress"));
 
     // A bare invocation is ILLEGAL_PARAMETERS (TOPPBase.cpp:227-232; oracle
     // no_arguments in ../oracle/topp-cli-lifecycle).
@@ -136,22 +140,27 @@ fn usage_and_exit_codes_follow_the_source_contract() {
     assert_eq!(code, ExitCode::InputFileNotFound);
     assert!(err.contains("does not exist"), "{err}");
 
-    // A registered format is enforced on the input path.
-    let (code, _, err) = run(&[
-        "-in",
-        &fixture("dta_extractor_1_output.dta").to_string_lossy(),
-        "-out",
-        "x",
-    ]);
+    // A registered format is enforced on the input path, with the source's
+    // InvalidParameter wording (TOPPBase.cpp:1584-1591; the same message for a
+    // .dta input of SpectraFilterWindowMower in oracle in_dta_extension,
+    // ../oracle/topp-cli-lifecycle/cli2/manifest.json).
+    let dta = fixture("dta_extractor_1_output.dta")
+        .to_string_lossy()
+        .into_owned();
+    let (code, _, err) = run(&["-in", &dta, "-out", "x"]);
     assert_eq!(code, ExitCode::IllegalParameters);
-    assert!(err.contains("unsupported format"), "{err}");
+    assert!(
+        err.contains(&format!(
+            "Invalid parameter: Input file '{dta}' has invalid format 'dta'. Valid formats are: 'mzML'."
+        )),
+        "{err}"
+    );
 }
 
 #[test]
 fn write_ini_round_trips_through_the_parameter_file() {
-    let dir = std::env::temp_dir().join(format!("openms-dta-ini-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let dir = temp.path();
     let ini = dir.join("DTAExtractor.ini");
 
     let arguments: Vec<String> = ["DTAExtractor", "-write_ini", &ini.to_string_lossy()]
@@ -202,5 +211,4 @@ fn write_ini_round_trips_through_the_parameter_file() {
         String::from_utf8_lossy(&err)
     );
     assert!(dir.join("out_RT60.0.dta").exists());
-    let _ = fs::remove_dir_all(&dir);
 }

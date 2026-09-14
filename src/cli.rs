@@ -41,6 +41,8 @@ pub use processing::{
 };
 pub use spec::ToolSpec;
 
+use crate::format::file_handler::FileHandler;
+use crate::format::file_types::{FileType, type_by_file_name};
 use crate::format::paramxml;
 use crate::param::{Param, ParamEntry, ParamUpdateOptions, ParamValue};
 use crate::system::file;
@@ -471,8 +473,41 @@ fn text_value(param: &Param, key: &str) -> Result<String> {
     param.value(key)?.to_text(false)
 }
 
-fn print_usage<T: Tool>(stream: &mut dyn Write, spec: &ToolSpec, advanced: bool) -> Result<()> {
-    usage::print(stream, T::NAME, T::DESCRIPTION, spec, advanced)?;
+/// The verbose version line of a tool, as `TOPPBase::main` builds it from the
+/// installed product version (`TOPPBase.cpp:144-150`): the product version,
+/// then the core version and the short core revision.
+///
+/// The revision is this crate's pinned core revision
+/// ([`CORE_SDK_REVISION`](crate::CORE_SDK_REVISION)); the product SDK oracle
+/// prints the revision it was built from.
+pub fn verbose_version<T: Tool>() -> String {
+    let revision = crate::CORE_SDK_REVISION
+        .get(..7)
+        .unwrap_or(crate::CORE_SDK_REVISION);
+    format!(
+        "{} (OpenMS core {}, revision {revision})",
+        T::VERSION,
+        crate::CORE_SDK_VERSION
+    )
+}
+
+/// Source `printUsage_`, which writes to standard error in every case; the
+/// caller passes the error stream.
+fn print_usage<T: Tool>(
+    stream: &mut dyn Write,
+    spec: &ToolSpec,
+    subsections: &Param,
+    verbose: bool,
+) -> Result<()> {
+    usage::print(
+        stream,
+        T::NAME,
+        T::DESCRIPTION,
+        &verbose_version::<T>(),
+        spec,
+        subsections,
+        verbose,
+    )?;
     Ok(())
 }
 
@@ -526,7 +561,7 @@ fn prepare<T: Tool>(
                 "Invalid parameter values ({}): {}. Aborting!",
                 failure.kind, failure.message
             )?;
-            print_usage::<T>(err, spec, false)?;
+            print_usage::<T>(err, spec, &subsections, false)?;
             return Ok(Prepared::Done(ExitCode::IllegalParameters));
         }
     };
@@ -539,14 +574,15 @@ fn prepare<T: Tool>(
     // 2. A bare invocation prints usage and is refused (227-232). An empty
     //    argument list, argc 0, still runs, as in the source class test.
     if arguments.len() == 1 {
-        print_usage::<T>(err, spec, false)?;
+        print_usage::<T>(err, spec, &subsections, false)?;
         writeln!(err, "No options given. Aborting!")?;
         return Ok(Prepared::Done(ExitCode::IllegalParameters));
     }
 
-    // 3. Usage requests short-circuit before any validation (235-239).
+    // 3. Usage requests short-circuit before any validation (235-239). The
+    //    source prints usage to standard error here too.
     if given("-help") || given("-helphelp") {
-        print_usage::<T>(out, spec, given("-helphelp"))?;
+        print_usage::<T>(err, spec, &subsections, given("-helphelp"))?;
         return Ok(Prepared::Done(ExitCode::ExecutionOk));
     }
     // 4. Unknown options and trailing text (241-255).
@@ -556,7 +592,7 @@ fn prepare<T: Tool>(
             "Unknown option(s) '{}' given. Aborting!",
             list_text(&command_line.unknown)
         )?;
-        print_usage::<T>(err, spec, false)?;
+        print_usage::<T>(err, spec, &subsections, false)?;
         return Ok(Prepared::Done(ExitCode::IllegalParameters));
     }
     if !command_line.misc.is_empty() {
@@ -565,7 +601,7 @@ fn prepare<T: Tool>(
             "Trailing text argument(s) '{}' given. Aborting!",
             list_text(&command_line.misc)
         )?;
-        print_usage::<T>(err, spec, false)?;
+        print_usage::<T>(err, spec, &subsections, false)?;
         return Ok(Prepared::Done(ExitCode::IllegalParameters));
     }
 
@@ -651,7 +687,9 @@ const DESCRIPTION_WRITERS: [&str; 5] = [
 /// Source `handleWriteCommands_` (`TOPPBase.cpp:2546-2686`).
 ///
 /// `-write_ini` writes the defaults, updated leniently from `-ini` when given,
-/// and never includes other command-line values. The CTD, CWL and JSON writers
+/// and never includes other command-line values. The file declares
+/// ISO-8859-1, as the source `ParamXMLFile::store` does
+/// ([`paramxml::WriteOptions::source`]). The CTD, CWL and JSON writers
 /// are not ported: each request is refused with [`ExitCode::InternalError`],
 /// which is what the oracle build without TDL support reports for four of them.
 fn write_commands<T: Tool>(
@@ -678,10 +716,12 @@ fn write_commands<T: Tool>(
                 writeln!(err, "{line}")?;
             }
         }
-        return Ok(Some(match paramxml::store(&path, &written) {
-            Ok(()) => ExitCode::ExecutionOk,
-            Err(error) => run_failure(&error, err),
-        }));
+        return Ok(Some(
+            match paramxml::store_with_options(&path, &written, paramxml::WriteOptions::source()) {
+                Ok(()) => ExitCode::ExecutionOk,
+                Err(error) => run_failure(&error, err),
+            },
+        ));
     }
     for name in DESCRIPTION_WRITERS {
         if cmd.exists(name)? {
@@ -716,6 +756,17 @@ fn write_commands<T: Tool>(
 ///   `false` for such a file without opening it; the load opens it instead,
 ///   and only a denied open takes this row, as for a FIFO with mode 000
 ///   (oracle `ini_fifo_denied` and `write_ini_ini_fifo_denied`).
+/// * An existing file whose open fails for any other reason is
+///   [`ExitCode::UnknownError`], with the source's
+///   `Error: Unexpected internal error (IO error for file '<path>')`: the
+///   `TextFile` load throws `IOException` when the file exists and
+///   `File::readable` holds (`TextFile.cpp:44-47`), which takes the
+///   `BaseException` arm (`495-499`). Examples are a Unix socket and `/dev/tty`
+///   without a controlling terminal (oracle `ini_socket`, `ini_tty` and their
+///   `write_ini_` counterparts). A load that fails with such an error is told
+///   apart from a later read failure by opening the file once more; a FIFO is
+///   never opened again, because that open would wait for a writer, so its
+///   failure is taken as a read failure.
 /// * A readable directory, malformed XML and any other read failure of an
 ///   existing file are [`ExitCode::InputFileCorrupt`], the source's
 ///   `ParseError` (`460-465`). For a directory the diagnostic is the source's
@@ -724,9 +775,13 @@ fn write_commands<T: Tool>(
 ///   so it is a `ParseError` here as in the source (oracle `ini_dev_null` and
 ///   `write_ini_ini_dev_null`).
 ///
-/// A FIFO this process can open is read like a file: opening it waits for a
-/// writer, as the C++ tool does, so with no writer the load blocks and no exit
-/// code is reached.
+/// A FIFO this process can open is opened once and read like a file: opening
+/// it waits for a writer, so with no writer the load blocks and no exit code is
+/// reached, as for the C++ tool. The source opens the INI twice, once to look
+/// for compression (`XMLFile.cpp:141-147`) and once for xerces (`166`), so a
+/// writer that opens the FIFO only once leaves the C++ tool waiting for a
+/// second writer, while this port reads what the one writer sends. This is a
+/// deliberate difference.
 ///
 /// The same mapping applies when the file changes between these checks and the
 /// load. Failures other than I/O and parsing, such as a document beyond the
@@ -758,12 +813,19 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
     match paramxml::load(path) {
         Ok(loaded) => Ok(Ok(loaded)),
         Err(Error::Io(error)) => {
-            let (code, text) = match error.kind() {
-                std::io::ErrorKind::NotFound => (ExitCode::InputFileNotFound, not_found),
-                std::io::ErrorKind::PermissionDenied => {
-                    (ExitCode::InputFileNotReadable, not_readable)
-                }
-                _ => (
+            use std::io::ErrorKind;
+            let open_failure = match error.kind() {
+                ErrorKind::NotFound | ErrorKind::PermissionDenied => Some(error.kind()),
+                _ => reopen_failure(path),
+            };
+            let (code, text) = match open_failure {
+                Some(ErrorKind::NotFound) => (ExitCode::InputFileNotFound, not_found),
+                Some(ErrorKind::PermissionDenied) => (ExitCode::InputFileNotReadable, not_readable),
+                Some(_) => (
+                    ExitCode::UnknownError,
+                    format!("Error: Unexpected internal error (IO error for file '{path}')"),
+                ),
+                None => (
                     ExitCode::InputFileCorrupt,
                     format!("Error: Unable to read file (While loading '{path}': {error})"),
                 ),
@@ -773,6 +835,22 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
         }
         Err(error) => Ok(Err(run_failure(&error, err))),
     }
+}
+
+/// The kind of error opening `path` again gives, or `None` when it opens.
+///
+/// `load_ini` asks this after a load failed with an I/O error, to tell a failed
+/// open from a later read failure. A FIFO is not opened again, because the open
+/// would wait for a writer; `None` is returned for it.
+fn reopen_failure(path: &str) -> Option<std::io::ErrorKind> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::FileTypeExt;
+        if std::fs::metadata(path).is_ok_and(|metadata| metadata.file_type().is_fifo()) {
+            return None;
+        }
+    }
+    std::fs::File::open(path).err().map(|error| error.kind())
 }
 
 /// Source `checkIfIniParametersAreApplicable_` (`TOPPBase.cpp:1957-1966`).
@@ -1080,16 +1158,9 @@ fn validate(spec: &ToolSpec, param: &Param, err: &mut dyn Write) -> Result<Optio
             (ParameterType::OutputPrefix, ParamValue::String(path)) => {
                 output_file_writable(&format!("{path}_0"), &entry.name, err)
             }
-            (ParameterType::OutputFileList, ParamValue::StringList(paths)) => {
-                let mut code = None;
-                for path in paths {
-                    code = output_extension(entry, path, err)?;
-                    if code.is_some() {
-                        break;
-                    }
-                }
-                code
-            }
+            // The source checks neither the writability nor the format of an
+            // output file list: its list validity check handles input file
+            // lists only (TOPPBase.cpp:1498-1527).
             _ => None,
         };
         if code.is_some() {
@@ -1137,7 +1208,27 @@ fn float_range(
     Ok(None)
 }
 
-/// Input readability, then the registered extension (`TOPPBase.cpp:1529-1592`).
+/// Whether `kind` is one of `formats`, compared by the source type name without
+/// regard to ASCII case, as `ListUtils::contains(..., CASE::INSENSITIVE)`.
+fn format_listed(formats: &[&str], kind: FileType) -> bool {
+    formats
+        .iter()
+        .any(|format| format.eq_ignore_ascii_case(kind.name()))
+}
+
+/// Input readability, then the input format (`TOPPBase.cpp:1550`, `1575-1593`).
+///
+/// The format is what `FileHandler::get_type` detects: the file name first,
+/// then bounded content recognition for a name it does not know. An
+/// undetermined format only warns, `Warning: Could not determine format of
+/// input file '<path>'!`, and the run continues; a detected format the
+/// parameter does not accept is `InvalidParameter`, exit 6. A parameter without
+/// registered formats is not checked.
+///
+/// `get_type` fails where content recognition cannot read the file, for
+/// example on a directory with an unknown name, for which the source reports an
+/// unknown type (an open follow-up of `src/format/file_handler.rs`). Such a
+/// failure is treated here as an undetermined format, with the warning.
 fn input_path(
     entry: &ParameterInformation,
     path: &str,
@@ -1148,29 +1239,48 @@ fn input_path(
             return Ok(Some(code));
         }
     }
-    if !context::extension_allowed(path, &entry.valid_formats) {
+    let formats: Vec<&str> = entry.accepted_formats().collect();
+    if formats.is_empty() {
+        return Ok(None);
+    }
+    let kind = FileHandler::get_type(path).unwrap_or(FileType::Unknown);
+    if kind == FileType::Unknown {
         writeln!(
             err,
-            "Error: Input file '{path}' for parameter '{}' has an unsupported format. Expected one of: {}.",
-            entry.name,
-            entry.valid_formats.join(", ")
+            "Warning: Could not determine format of input file '{path}'!"
+        )?;
+    } else if !format_listed(&formats, kind) {
+        writeln!(
+            err,
+            "Invalid parameter: Input file '{path}' has invalid format '{}'. Valid formats are: '{}'.",
+            kind.name(),
+            formats.join("','")
         )?;
         return Ok(Some(ExitCode::IllegalParameters));
     }
     Ok(None)
 }
 
-/// The registered output extension (`TOPPBase.cpp:1595-1608`).
+/// The output format by file name (`TOPPBase.cpp:1595-1608`).
+///
+/// An extension no file type claims is accepted, and so is any name when the
+/// parameter has no registered formats; a known type the parameter does not
+/// accept is `InvalidParameter`, exit 6.
 fn output_extension(
     entry: &ParameterInformation,
     path: &str,
     err: &mut dyn Write,
 ) -> Result<Option<ExitCode>> {
-    if !context::extension_allowed(path, &entry.valid_formats) {
+    let formats: Vec<&str> = entry.accepted_formats().collect();
+    if formats.is_empty() {
+        return Ok(None);
+    }
+    let kind = type_by_file_name(path);
+    if kind != FileType::Unknown && !format_listed(&formats, kind) {
         writeln!(
             err,
             "Invalid parameter: Invalid output file extension for file '{path}'. Valid file extensions are: '{}'.",
-            entry.valid_formats.join("','")
+            formats.join("','")
         )?;
         return Ok(Some(ExitCode::IllegalParameters));
     }
@@ -1241,8 +1351,11 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// executable name, as in `main(argc, argv)`.
 ///
 /// The phases and their exit codes follow `TOPPBase::main`; see the module
-/// documentation. Usage for a successful `--help` goes to `out`; every
-/// diagnostic, including usage after a command-line error, goes to `err`.
+/// documentation. Usage text goes to `err` in every case, for `--help` as
+/// after a command-line error, because the source's `printUsage_` writes to
+/// standard error; so does every diagnostic. `out` receives what the source
+/// writes through its info log, such as the INI-version notice and a tool's
+/// report.
 pub fn run_with<T: Tool>(
     arguments: &[String],
     out: &mut dyn Write,

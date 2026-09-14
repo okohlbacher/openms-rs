@@ -590,10 +590,21 @@ impl ToolSpec {
     ///
     /// This is the parameter part of the source `getDefaultParameters_`
     /// (`TOPPBase.cpp:2097-2228`): the tree a strict update merges INI and
-    /// command-line values into and `-write_ini` writes. As in the source,
-    /// `ini`, `instance`, the help flags and the `write_*` requests are left
-    /// out, flags default to `false` restricted to `true`/`false`, and the
-    /// descriptions of [`topp_subsections`](Self::topp_subsections) are set.
+    /// command-line values into and `-write_ini` writes. As in the source:
+    ///
+    /// * `ini`, `instance`, the help flags and the `write_*` requests are left
+    ///   out, and so is an entry without a value type;
+    /// * flags default to `false` restricted to `true`/`false`, which the INI
+    ///   writer types `bool`;
+    /// * input and output files carry the `input file` or `output file` tag,
+    ///   output prefixes `output prefix` and output directories `output dir`,
+    ///   and their accepted formats become `*.<format>` restrictions, which the
+    ///   INI writer emits as `supported_formats`;
+    /// * of a parameter's own tags only `is_executable` on an input file is
+    ///   kept, so a tag such as `skipexists` is not written;
+    /// * the descriptions of [`topp_subsections`](Self::topp_subsections) are
+    ///   set.
+    ///
     /// The tool version item, the section descriptions of the tool and instance
     /// nodes and the algorithm subsections are added by the caller.
     ///
@@ -603,7 +614,10 @@ impl ToolSpec {
     pub fn to_param(&self, tool_name: &str) -> Result<Param> {
         let mut param = Param::new();
         for entry in &self.parameters {
-            if entry.kind.is_layout() || NOT_IN_PARAMETER_TREE.contains(&entry.name.as_str()) {
+            if entry.kind.is_layout()
+                || entry.kind == ParameterType::None
+                || NOT_IN_PARAMETER_TREE.contains(&entry.name.as_str())
+            {
                 continue;
             }
             let key = format!("{tool_name}:1:{}", entry.name);
@@ -613,23 +627,37 @@ impl ToolSpec {
                 entry.default_value.clone()
             };
             param.set_value(&key, default_value, &entry.description, &[])?;
-            if entry.required {
-                param.add_tag(&key, "required")?;
-            }
             if entry.advanced {
                 param.add_tag(&key, "advanced")?;
             }
-            if entry.kind.is_input_path() {
-                param.add_tag(&key, "input file")?;
+            if entry.required {
+                param.add_tag(&key, "required")?;
             }
-            if entry.kind.is_output_path() {
-                param.add_tag(&key, "output file")?;
-            }
-            for tag in &entry.tags {
+            let type_tag = match entry.kind {
+                ParameterType::InputFile | ParameterType::InputFileList => Some("input file"),
+                ParameterType::OutputFile | ParameterType::OutputFileList => Some("output file"),
+                ParameterType::OutputPrefix => Some("output prefix"),
+                ParameterType::OutputDir => Some("output dir"),
+                _ => None,
+            };
+            if let Some(tag) = type_tag {
                 param.add_tag(&key, tag)?;
+            }
+            if entry.kind == ParameterType::InputFile
+                && entry.tags.iter().any(|tag| tag == "is_executable")
+            {
+                param.add_tag(&key, "is_executable")?;
             }
             if entry.kind == ParameterType::Flag {
                 param.set_valid_strings(&key, &["true".to_owned(), "false".to_owned()])?;
+            } else if type_tag.is_some() {
+                let formats: Vec<String> = entry
+                    .accepted_formats()
+                    .map(|format| format!("*.{format}"))
+                    .collect();
+                if !formats.is_empty() {
+                    param.set_valid_strings(&key, &formats)?;
+                }
             } else if !entry.valid_strings.is_empty() {
                 param.set_valid_strings(&key, &entry.valid_strings)?;
             }

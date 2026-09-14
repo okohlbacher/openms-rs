@@ -254,6 +254,23 @@ impl ParameterInformation {
         format!("-{}", self.name)
     }
 
+    /// The formats a file parameter accepts, in the order the source keeps them.
+    ///
+    /// The source stores a file parameter's formats in `valid_strings`. A
+    /// parameter registered through [`ToolSpec`](super::ToolSpec) keeps them in
+    /// [`valid_formats`](Self::valid_formats), and one converted with
+    /// [`from_param_entry`](Self::from_param_entry) in
+    /// [`valid_strings`](Self::valid_strings), so both are yielded, registered
+    /// formats first. A parameter that names no file path accepts no formats.
+    pub fn accepted_formats(&self) -> impl Iterator<Item = &str> + '_ {
+        let path = self.kind.is_input_path() || self.kind.is_output_path();
+        self.valid_formats
+            .iter()
+            .chain(self.valid_strings.iter())
+            .filter(move |_| path)
+            .map(String::as_str)
+    }
+
     /// Describe one entry of a parameter tree as a command-line parameter.
     ///
     /// Source `TOPPBase::paramEntryToParameterInformation_` together with

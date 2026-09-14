@@ -28,11 +28,16 @@
 // stand-in tools read mzML, so the whole file is inert without both features.
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
-use openms::cli::tools::{DTAExtractor, SpectraFilterWindowMower};
+#[path = "support/fuzzy_string_comparator.rs"]
+mod fuzzy;
+
+use openms::cli::tools::{
+    BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter, SpectraFilterWindowMower,
+};
 use openms::cli::{
     ExitCode, MAX_ARGUMENTS, TEST_MODE_COMPLETION_TIME, TEST_MODE_PARAMETER_KEY,
     TEST_MODE_PARAMETER_VALUE, TEST_MODE_UNIQUE_ID_SEED, TEST_MODE_VERSION, Tool, ToolContext,
-    ToolSpec, input_file_readable, output_file_writable, parse_range, run_with,
+    ToolSpec, input_file_readable, output_file_writable, parse_range, run_with, verbose_version,
 };
 use openms::concept::parallel::Threads;
 use openms::concept::progress_logger::ProgressLogType;
@@ -44,6 +49,7 @@ use openms::kernel::{
 };
 use openms::metadata::{MetaValue, ProcessingAction};
 use openms::param::{Param, ParamValue};
+use openms::system::file::TempDir;
 use openms::{Error, Result};
 use std::cell::RefCell;
 use std::fs;
@@ -92,25 +98,21 @@ fn run<T: Tool>(args: &[&str]) -> Outcome {
     run_arguments::<T>(&arguments)
 }
 
-/// A fresh directory per case, removed when the case ends.
-struct Workdir(PathBuf);
+/// A fresh, uniquely named directory per case, removed when the case ends.
+///
+/// The case name is kept only to make a failing assertion easier to place; the
+/// directory itself comes from the crate's `TempDir`, so concurrent runs never
+/// share it.
+struct Workdir(TempDir);
 impl Workdir {
-    fn new(case: &str) -> Self {
-        let dir = std::env::temp_dir().join(format!(
-            "openms-cli-lifecycle-{}-{case}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
-        Self(dir)
+    fn new(_case: &str) -> Self {
+        Self(TempDir::new_in(std::env::temp_dir(), false).unwrap())
+    }
+    fn path(&self) -> &Path {
+        self.0.path()
     }
     fn file(&self, name: &str) -> String {
-        text(self.0.join(name))
-    }
-}
-impl Drop for Workdir {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.0);
+        text(self.path().join(name))
     }
 }
 
@@ -1204,11 +1206,19 @@ fn a_fifo_ini_this_user_cannot_open_is_input_file_not_readable() {
 }
 
 /// A FIFO given as `-ini` is read like a file once a writer opens it: an INI
-/// written by the tool and sent through the FIFO is loaded by `-write_ini`,
-/// exit 0, and is not refused as unreadable. Native (tier 4): with no writer
-/// the C++ tool blocks opening the FIFO, so the oracle has no case to record.
-/// The tool runs on its own thread with a timeout, so a regression that blocks
-/// fails instead of hanging the suite. Skipped when `mkfifo` is unavailable.
+/// written by the tool and sent through the FIFO by a writer that opens it
+/// once is loaded by `-write_ini`, exit 0, and is not refused as unreadable.
+///
+/// A deliberate difference (tier 4, native): the C++ tool opens the INI twice,
+/// once to look for compression (`XMLFile.cpp:141-147`) and once for xerces
+/// (`:166`), so after the first open closes no writer is left and the second
+/// open waits. The oracle observation `write_ini_ini_fifo_single_writer`
+/// (`../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`) records
+/// that: the same single writer sends the whole INI, the C++ tool blocks until
+/// its 10-second alarm ends it (exit 142) and writes nothing. This port opens
+/// the FIFO once. The tool runs on its own thread with a timeout, so a
+/// regression that blocks fails instead of hanging the suite. Skipped when
+/// `mkfifo` is unavailable.
 #[cfg(unix)]
 #[test]
 fn an_ini_fifo_is_read_once_a_writer_opens_it() {
@@ -1403,7 +1413,7 @@ fn tool_description_writers_are_refused_explicitly() {
         "-write_json",
         "-write_nested_json",
     ] {
-        let outcome = run::<DTAExtractor>(&[writer, &text(&dir.0)]);
+        let outcome = run::<DTAExtractor>(&[writer, &text(dir.path())]);
         assert_eq!(
             outcome.code,
             ExitCode::InternalError,
@@ -1741,8 +1751,8 @@ fn upstream_ini_location() {
 /// `[EXTRA] getStringOption_` (TOPPBase_test.cpp:443-481). The INI cases read
 /// values the source leaves in `param_` after its update has failed (a
 /// `common:` value of a top-level parameter is rejected, oracle
-/// `ini_common_top_level`), and the write_ini comparison is W2.2; neither is
-/// transcribed here.
+/// `ini_common_top_level`), so they are not transcribed. The section's
+/// `-write_ini` comparison (483-536) is `upstream_write_ini_matches_the_retained_files`.
 #[test]
 fn upstream_get_string_option() {
     assert_eq!(
@@ -2205,4 +2215,408 @@ fn number_conversion_follows_string_utils() {
     let ctx = captured();
     assert_eq!(ctx.int("intoption").unwrap(), 12);
     assert_eq!(ctx.double("doubleoption").unwrap(), 5.0);
+}
+
+// ---------------------------------------------------------------------------
+// CLI part 2 (W2.2): -write_ini parity, usage text, format checks and INI open
+// failures. Oracle cases named here are in
+// ../oracle/topp-cli-lifecycle/cli2/manifest.json unless marked otherwise.
+// ---------------------------------------------------------------------------
+
+fn lifecycle_path(name: &str) -> PathBuf {
+    Path::new("tests/data/topp_cli_lifecycle").join(name)
+}
+
+/// Line-level comparison with the upstream comparator: `whitelist` lines are
+/// skipped, numbers are compared with the given tolerances, and the log of the
+/// first difference is the failure message.
+fn assert_similar(produced: &Path, expected: &Path, ratio: f64, absdiff: f64, whitelist: &[&str]) {
+    let mut comparator = fuzzy::FuzzyStringComparator::new();
+    comparator.set_acceptable_relative(ratio);
+    comparator.set_acceptable_absolute(absdiff);
+    comparator.set_whitelist(whitelist.iter().map(|line| (*line).to_owned()).collect());
+    comparator.set_log_destination(fuzzy::LogDestination::Buffer);
+    let similar = comparator.compare_files(produced, expected);
+    assert!(
+        similar,
+        "{} differs from {}:\n{}",
+        produced.display(),
+        expected.display(),
+        String::from_utf8_lossy(comparator.log())
+    );
+}
+
+/// `[EXTRA] getStringOption_`, option `write_ini` (TOPPBase_test.cpp:483-536).
+///
+/// `TEST_EQUAL(p1, p2)` is transcribed with the class test's keys and values
+/// and `Param::operator==` semantics (names and values). One value differs by
+/// construction: the source expects `VersionInfo::getVersion()` for
+/// `TOPPBaseTest:version`, because the class-test tool has no installed
+/// manifest and so reports the core version (TOPPBase.cpp:119, 144-150); the
+/// ported test tool reports its `Tool::VERSION`. The file comparisons run the
+/// retained C++ files `TOPPBase_test_write_ini_out.ini` and
+/// `TOPPBase_test_write_ini_subsec_out.ini` (cli c19e494) through the upstream
+/// comparator with `TEST_FILE_SIMILAR`'s default tolerances (absolute 1e-5,
+/// relative 1 + 1e-5, `ClassTest.cpp:35-38`) and the `WHITELIST("version")`
+/// the section sets, which stays in force for the second comparison.
+/// Evidence: tier 1 (retained C++ output).
+#[test]
+fn upstream_write_ini_matches_the_retained_files() {
+    let dir = Workdir::new("upstream-write-ini");
+    let written = dir.file("TOPPBaseTest.ini");
+    let outcome = run::<ToppBaseTest>(&["-write_ini", &written]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+
+    let p1 = openms::format::paramxml::load(&written).unwrap();
+    let mut p2 = Param::new();
+    let strings = |values: &[&str]| values.iter().map(|v| (*v).to_owned()).collect::<Vec<_>>();
+    let expected = [
+        (
+            "TOPPBaseTest:version",
+            ParamValue::String(ToppBaseTest::VERSION.to_owned()),
+        ),
+        (
+            "TOPPBaseTest:1:stringoption",
+            ParamValue::String("string default".into()),
+        ),
+        ("TOPPBaseTest:1:intoption", ParamValue::Integer(4711)),
+        ("TOPPBaseTest:1:doubleoption", ParamValue::Float(0.4711)),
+        (
+            "TOPPBaseTest:1:intlist",
+            ParamValue::IntegerList(vec![1, 2, 3, 4]),
+        ),
+        (
+            "TOPPBaseTest:1:doublelist",
+            ParamValue::FloatList(vec![0.4711, 1.022, 4.0]),
+        ),
+        (
+            "TOPPBaseTest:1:stringlist",
+            ParamValue::StringList(strings(&["abc", "def", "ghi", "jkl"])),
+        ),
+        ("TOPPBaseTest:1:flag", ParamValue::String("false".into())),
+        ("TOPPBaseTest:1:log", ParamValue::String(String::new())),
+        ("TOPPBaseTest:1:debug", ParamValue::Integer(0)),
+        ("TOPPBaseTest:1:threads", ParamValue::Integer(1)),
+        (
+            "TOPPBaseTest:1:no_progress",
+            ParamValue::String("false".into()),
+        ),
+        ("TOPPBaseTest:1:force", ParamValue::String("false".into())),
+        ("TOPPBaseTest:1:test", ParamValue::String("false".into())),
+        (
+            "TOPPBaseTest:1:stringlist2",
+            ParamValue::StringList(strings(&["hopla", "dude"])),
+        ),
+        (
+            "TOPPBaseTest:1:intlist2",
+            ParamValue::IntegerList(vec![3, 4, 5]),
+        ),
+        (
+            "TOPPBaseTest:1:doublelist2",
+            ParamValue::FloatList(vec![1.2, 2.33]),
+        ),
+    ];
+    for (key, value) in expected {
+        p2.set_value(key, value, "", &[]).unwrap();
+    }
+    assert!(
+        p1.source_equal(&p2).unwrap(),
+        "written: {p1:?}\nexpected: {p2:?}"
+    );
+    assert_similar(
+        Path::new(&written),
+        &lifecycle_path("TOPPBase_test_write_ini_out.ini"),
+        1.0 + 1e-5,
+        1e-5,
+        &["version"],
+    );
+
+    let written = dir.file("TOPPBaseCmdParseSubsectionsTest.ini");
+    let outcome = run::<ToppBaseCmdParseSubsectionsTest>(&["-write_ini", &written]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_similar(
+        Path::new(&written),
+        &lifecycle_path("TOPPBase_test_write_ini_subsec_out.ini"),
+        1.0 + 1e-5,
+        1e-5,
+        &["version"],
+    );
+}
+
+/// `-test -write_ini` of one ported tool against the C++ file.
+///
+/// The registered `TOPPWRITEINI_<tool>` test runs the tool, and
+/// `TOPPWRITEINI_<tool>_SectionName` (test-data `topp/CMakeLists.txt:83-85`,
+/// `check_ini.cmake`) requires the first line matching `^  <NODE name="…"` to
+/// name the tool. Beyond that, the file must match the product SDK's file for
+/// the same command (oracle `write_ini_<tool>`): line by line with exact numbers
+/// and only `version` lines skipped, as `TOPPWRITEINI_OVERWRITE` compares
+/// (CMakeLists.txt:104-106), and as decoded parameter trees, entry for entry,
+/// with descriptions, tags, restrictions and supported formats.
+fn assert_write_ini_matches_the_cpp_file<T: Tool>() {
+    let dir = Workdir::new("write-ini-parity");
+    let written = dir.file(&format!("{}.tmp.ini", T::NAME));
+    let outcome = run::<T>(&["-test", "-write_ini", &written]);
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+
+    let bytes = fs::read(&written).unwrap();
+    let content = String::from_utf8(bytes).unwrap();
+    assert!(
+        content.starts_with("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"),
+        "{content}"
+    );
+    let section = content
+        .lines()
+        .find_map(|line| line.strip_prefix("  <NODE name=\""))
+        .and_then(|rest| rest.split('"').next());
+    assert_eq!(section, Some(T::NAME), "{content}");
+
+    let expected = lifecycle_path(&format!("write_ini_{}.ini", T::NAME));
+    assert_similar(Path::new(&written), &expected, 1.0, 0.0, &["version"]);
+    let produced = openms::format::paramxml::load(&written).unwrap();
+    let oracle = openms::format::paramxml::load(&expected).unwrap();
+    assert_eq!(produced, oracle, "{}", T::NAME);
+}
+
+#[test]
+fn write_ini_matches_the_cpp_file_for_every_ported_tool() {
+    assert_write_ini_matches_the_cpp_file::<BaselineFilter>();
+    assert_write_ini_matches_the_cpp_file::<DTAExtractor>();
+    assert_write_ini_matches_the_cpp_file::<MapNormalizer>();
+    assert_write_ini_matches_the_cpp_file::<MzMLSplitter>();
+    assert_write_ini_matches_the_cpp_file::<SpectraFilterWindowMower>();
+}
+
+/// `--help` and `--helphelp` against the C++ usage text (oracle `help_<tool>`
+/// and `helphelp_<tool>`), byte for byte on the error stream, with nothing on
+/// the output stream. The oracle ran without a terminal and without `COLUMNS`,
+/// so the source wrote plain text without line shaping; its first line, the
+/// `stty: stdin isn't a terminal` message of the console-width probe, is not
+/// part of the retained text. The version line names the revision of the
+/// build: the product SDK prints `4fdec46`, this port its pinned core revision.
+fn assert_usage_matches_the_cpp_text<T: Tool>() {
+    let cpp_version = "1.0.0 (OpenMS core 4.0.0, revision 4fdec46)";
+    for (flag, prefix) in [("--help", "help"), ("--helphelp", "helphelp")] {
+        let outcome = run::<T>(&[flag]);
+        assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+        assert!(outcome.out.is_empty(), "{}", outcome.out);
+        let expected = fs::read_to_string(lifecycle_path(&format!("{prefix}_{}.txt", T::NAME)))
+            .unwrap()
+            .replace(cpp_version, &verbose_version::<T>());
+        assert_eq!(outcome.err, expected, "{} {flag}", T::NAME);
+    }
+}
+
+#[test]
+fn usage_text_matches_the_cpp_text_for_every_ported_tool() {
+    assert_eq!(
+        verbose_version::<DTAExtractor>(),
+        format!(
+            "1.0.0 (OpenMS core 4.0.0, revision {})",
+            &openms::CORE_SDK_REVISION[..7]
+        )
+    );
+    assert_usage_matches_the_cpp_text::<BaselineFilter>();
+    assert_usage_matches_the_cpp_text::<DTAExtractor>();
+    assert_usage_matches_the_cpp_text::<MapNormalizer>();
+    assert_usage_matches_the_cpp_text::<MzMLSplitter>();
+    assert_usage_matches_the_cpp_text::<SpectraFilterWindowMower>();
+}
+
+/// SpectraFilterWindowMower on `input` into `output`, both inside `dir`.
+fn swm_between(dir: &Workdir, input: &str, output: &str) -> (Outcome, String) {
+    let out = dir.file(output);
+    let outcome = run::<SpectraFilterWindowMower>(&["-test", "-in", input, "-out", &out]);
+    (outcome, out)
+}
+
+/// A copy of the window mower input under another name.
+fn swm_input_as(dir: &Workdir, name: &str) -> String {
+    let path = dir.file(name);
+    fs::copy(fixture("window_mower_tool_input.mzML"), &path).unwrap();
+    path
+}
+
+const UNDETERMINED_FORMAT: &str = "Warning: Could not determine format of input file";
+
+/// The input format comes from `FileHandler::get_type`, by name and then by
+/// content (TOPPBase.cpp:1575-1593). Oracle `in_no_extension_mzml_content`,
+/// `in_unknown_extension_mzml_content` and `in_uppercase_extension`: an mzML
+/// file without an extension, with an unknown one, or with `.MZML` runs, exit
+/// 0, with no warning. Oracle `in_txt_extension_mzml_content` and
+/// `in_dta_extension`: the name decides a known type first, so mzML content
+/// named `.txt` or `.dta` is refused, exit 6.
+#[test]
+fn the_input_format_is_detected_by_name_then_content() {
+    let dir = Workdir::new("input-format");
+    for name in [
+        "window_mower_input",
+        "window_mower_input.foo",
+        "window_mower_input.MZML",
+    ] {
+        let input = swm_input_as(&dir, name);
+        let (outcome, out) = swm_between(&dir, &input, &format!("{name}.out.mzML"));
+        assert_eq!(
+            outcome.code,
+            ExitCode::ExecutionOk,
+            "{name}: {}",
+            outcome.err
+        );
+        assert!(
+            !outcome.err.contains(UNDETERMINED_FORMAT),
+            "{}",
+            outcome.err
+        );
+        assert_same_peaks(&out, fixture("window_mower_tool_output.mzML"));
+    }
+    for (name, format) in [
+        ("window_mower_input.txt", "txt"),
+        ("window_mower_input.dta", "dta"),
+    ] {
+        let input = swm_input_as(&dir, name);
+        let (outcome, out) = swm_between(&dir, &input, &format!("{name}.out.mzML"));
+        assert_eq!(outcome.code, ExitCode::IllegalParameters, "{}", outcome.err);
+        assert!(
+            outcome.err.contains(&format!(
+                "Invalid parameter: Input file '{input}' has invalid format '{format}'. Valid formats are: 'mzML'."
+            )),
+            "{}",
+            outcome.err
+        );
+        assert!(!Path::new(&out).exists());
+    }
+}
+
+/// Oracle `in_unknown_name_and_content`: a file whose name and content are both
+/// unknown only warns in the format check (TOPPBase.cpp:1580-1583), and the run
+/// continues to the load, which refuses it; nothing is written. The C++ load
+/// failure is a `ParseError`, exit 3 ("type: unknown is not allowed for loading
+/// an experiment"); this port's `FileHandler::load_experiment` reports
+/// `Error::InvalidValue`, exit 6. That difference belongs to the loader
+/// (`src/format/file_handler.rs`) and is recorded in `docs/TOPP_CLI_SUPPORT.md`;
+/// the exit code is therefore only asserted to be a failure.
+#[test]
+fn an_undetermined_input_format_only_warns() {
+    let dir = Workdir::new("input-unknown");
+    let input = dir.file("unknown.foo");
+    fs::write(&input, b"neither a known name nor known content\n").unwrap();
+    let (outcome, out) = swm_between(&dir, &input, "out.mzML");
+    assert!(
+        outcome
+            .err
+            .contains(&format!("{UNDETERMINED_FORMAT} '{input}'!")),
+        "{}",
+        outcome.err
+    );
+    assert_ne!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert_ne!(outcome.code, ExitCode::InputFileNotFound, "{}", outcome.err);
+    assert!(!Path::new(&out).exists());
+}
+
+/// The output format comes from the file name alone (TOPPBase.cpp:1595-1608).
+/// Oracle `out_unknown_extension`, `out_no_extension` and
+/// `out_uppercase_extension`: a name no file type claims, no extension, or
+/// `.MZML` is accepted and written, exit 0. Oracle `out_txt_extension`: a known
+/// type the parameter does not accept is refused, exit 6.
+#[test]
+fn the_output_format_is_checked_by_name_only() {
+    let dir = Workdir::new("output-format");
+    for name in ["out.foo", "out", "out.MZML"] {
+        let (outcome, out) = swm_between(&dir, &swm_input(), name);
+        assert_eq!(
+            outcome.code,
+            ExitCode::ExecutionOk,
+            "{name}: {}",
+            outcome.err
+        );
+        assert_same_peaks(&out, fixture("window_mower_tool_output.mzML"));
+    }
+    let (outcome, out) = swm_between(&dir, &swm_input(), "out.txt");
+    assert_eq!(outcome.code, ExitCode::IllegalParameters, "{}", outcome.err);
+    assert!(
+        outcome.err.contains(&format!(
+            "Invalid parameter: Invalid output file extension for file '{out}'. Valid file extensions are: 'mzML'."
+        )),
+        "{}",
+        outcome.err
+    );
+    assert!(!Path::new(&out).exists());
+}
+
+/// Run SpectraFilterWindowMower with `ini` before a run and with `-write_ini`,
+/// and assert the source's `IOException` outcome on both paths.
+fn assert_ini_open_failure_is_an_unexpected_internal_error(dir: &Workdir, ini: &str) {
+    let out = dir.file("out.mzML");
+    let before_run =
+        run::<SpectraFilterWindowMower>(&["-test", "-ini", ini, "-in", &swm_input(), "-out", &out]);
+    let written_ini = dir.file("written.ini");
+    let with_write_ini =
+        run::<SpectraFilterWindowMower>(&["-write_ini", &written_ini, "-ini", ini]);
+    let expected = format!("Error: Unexpected internal error (IO error for file '{ini}')");
+    for outcome in [&before_run, &with_write_ini] {
+        assert_eq!(outcome.code, ExitCode::UnknownError, "{}", outcome.err);
+        assert!(outcome.err.contains(&expected), "{}", outcome.err);
+    }
+    assert!(!Path::new(&out).exists());
+    assert!(!Path::new(&written_ini).exists());
+}
+
+/// Oracle `ini_socket` and `write_ini_ini_socket`
+/// (`../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`): a Unix
+/// socket given as `-ini` exists and is readable by mode, but opening it fails.
+/// `TextFile` throws `IOException` for such a file (TextFile.cpp:44-47), which
+/// is exit 8 with `Error: Unexpected internal error (IO error for file '…')`
+/// (TOPPBase.cpp:495-499), before a run and with `-write_ini`. Skipped where
+/// the socket cannot be bound or opens for reading.
+#[cfg(unix)]
+#[test]
+fn a_socket_ini_is_an_unexpected_internal_error() {
+    use std::os::unix::net::UnixListener;
+    let dir = Workdir::new("ini-socket");
+    let socket = dir.file("ini.sock");
+    match UnixListener::bind(&socket) {
+        Ok(listener) => drop(listener),
+        Err(error) => {
+            eprintln!("skipped: cannot bind {socket}: {error}");
+            return;
+        }
+    }
+    if fs::File::open(&socket).is_ok() {
+        eprintln!("skipped: {socket} opens for reading here");
+        return;
+    }
+    assert_ini_open_failure_is_an_unexpected_internal_error(&dir, &socket);
+    eprintln!("ran: socket -ini {socket}");
+}
+
+/// Oracle `ini_tty` and `write_ini_ini_tty`
+/// (`../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`): `/dev/tty`
+/// opened by a process without a controlling terminal fails, so it is exit 8 as
+/// for the socket, on both paths. The oracle started the C++ tool in a new
+/// session; this case runs only when the test process itself has no
+/// controlling terminal, which holds under the gate and in CI, and is skipped
+/// otherwise, where the load would wait for terminal input.
+#[cfg(unix)]
+#[test]
+fn a_terminal_ini_without_a_controlling_terminal_is_an_unexpected_internal_error() {
+    let tty = "/dev/tty";
+    match fs::File::open(tty) {
+        Ok(_) => {
+            eprintln!("skipped: {tty} opens, this process has a controlling terminal");
+            return;
+        }
+        Err(error)
+            if matches!(
+                error.kind(),
+                std::io::ErrorKind::NotFound | std::io::ErrorKind::PermissionDenied
+            ) =>
+        {
+            eprintln!("skipped: {tty}: {error}");
+            return;
+        }
+        Err(_) => {}
+    }
+    let dir = Workdir::new("ini-tty");
+    assert_ini_open_failure_is_an_unexpected_internal_error(&dir, tty);
+    eprintln!("ran: terminal -ini {tty}");
 }

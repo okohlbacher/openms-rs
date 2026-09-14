@@ -11,12 +11,59 @@
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
 use openms::cli::tools::MapNormalizer;
-use openms::cli::{ExitCode, run_with};
+use openms::cli::{ExitCode, TEST_MODE_COMPLETION_TIME, run_with};
+use openms::data_structures::DateTime;
 use openms::format::file_handler::FileHandler;
 use openms::format::file_types::FileType;
 use openms::kernel::MSExperiment;
-use std::fs;
+use openms::system::file::TempDir;
 use std::path::{Path, PathBuf};
+
+/// The processing records of every spectrum and chromatogram agree with the
+/// retained C++ output: the same records in the same order, each with the same
+/// software name and version, actions, completion time and metadata.
+///
+/// Decision D4: the source tool attaches `getProcessingInfo_` to its output
+/// (`MapNormalizer.cpp`, `addDataProcessing_(exp,
+/// getProcessingInfo_(DataProcessing::NORMALIZATION))`), and the retained
+/// `MapNormalizer_output.mzML` carries that `intensity normalization` record
+/// after the two the input already had.
+///
+/// Completion times are compared to the minute, the precision the C++ mzML
+/// writer keeps (`MzMLHandler.cpp:3947` writes `yyyy-MM-dd+hh:mm`).
+fn assert_same_processing(produced: &MSExperiment, expected: &MSExperiment) {
+    let minutes = |time: Option<DateTime>| time.map(|t| t.format("yyyy-MM-dd+hh:mm").unwrap());
+    let records = |experiment: &MSExperiment| {
+        experiment
+            .spectra
+            .iter()
+            .map(|s| s.data_processing.clone())
+            .chain(
+                experiment
+                    .chromatograms
+                    .iter()
+                    .map(|c| c.data_processing.clone()),
+            )
+            .collect::<Vec<_>>()
+    };
+    let (produced, expected) = (records(produced), records(expected));
+    assert_eq!(produced.len(), expected.len(), "record holders");
+    for (index, (a, e)) in produced.iter().zip(&expected).enumerate() {
+        assert_eq!(a.len(), e.len(), "holder {index}: processing records");
+        for (i, (pa, pe)) in a.iter().zip(e).enumerate() {
+            let at = format!("holder {index}, record {i}");
+            assert_eq!(pa.software.name, pe.software.name, "{at}: software");
+            assert_eq!(pa.software.version, pe.software.version, "{at}: version");
+            assert_eq!(pa.actions, pe.actions, "{at}: actions");
+            assert_eq!(
+                minutes(pa.completion_time),
+                minutes(pe.completion_time),
+                "{at}: completion time"
+            );
+            assert_eq!(pa.metadata, pe.metadata, "{at}: metadata");
+        }
+    }
+}
 
 fn fixture(name: &str) -> PathBuf {
     Path::new("tests/data").join(name)
@@ -37,10 +84,8 @@ fn run(args: &[&str]) -> (ExitCode, String) {
 
 #[test]
 fn topp_map_normalizer_1_scales_ms1_to_percent_of_the_run_maximum() {
-    let dir = std::env::temp_dir().join(format!("openms-norm-{}", std::process::id()));
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    let out = dir.join("out.mzML");
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let out = temp.path().join("out.mzML");
 
     let (code, err) = run(&[
         "-test",
@@ -94,7 +139,14 @@ fn topp_map_normalizer_1_scales_ms1_to_percent_of_the_run_maximum() {
         (f64::from(peak) - 100.0).abs() < 1e-3,
         "MS1 maximum should normalise to 100, got {peak}"
     );
-    let _ = fs::remove_dir_all(&dir);
+
+    assert_same_processing(&produced, &reference);
+    for spectrum in &produced.spectra {
+        assert_eq!(
+            spectrum.data_processing.last().unwrap().completion_time,
+            Some(DateTime::parse(TEST_MODE_COMPLETION_TIME).unwrap())
+        );
+    }
 }
 
 #[test]

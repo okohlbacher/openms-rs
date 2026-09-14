@@ -428,18 +428,6 @@ pub fn output_file_writable(
     Some(ExitCode::CannotWriteOutputFile)
 }
 
-/// Whether the extension of `path` is one of `formats`, case-insensitively.
-/// An empty format list accepts anything, as in source.
-pub(crate) fn extension_allowed(path: &str, formats: &[String]) -> bool {
-    if formats.is_empty() {
-        return true;
-    }
-    let lower = path.to_ascii_lowercase();
-    formats
-        .iter()
-        .any(|f| lower.ends_with(&format!(".{}", f.to_ascii_lowercase())))
-}
-
 /// The source's four whitespace characters, skipped from `index` on.
 fn skip_whitespace(bytes: &[u8], mut index: usize) -> usize {
     while bytes

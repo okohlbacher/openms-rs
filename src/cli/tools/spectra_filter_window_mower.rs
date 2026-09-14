@@ -5,11 +5,13 @@
 //!
 //! Ports `OpenMS4-topp/src/SpectraFilterWindowMower.cpp`. The tool's `algorithm`
 //! subsection carries the `WindowMower` parameters, exactly as the source
-//! `getSubsectionDefaults_` supplies them.
+//! `getSubsectionDefaults_` supplies them. The output carries the source's
+//! `data filtering` processing record.
 
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
+use crate::metadata::ProcessingAction;
 use crate::param::{Param, ParamValue};
 use crate::processing::SpectrumFilter;
 use crate::processing::window_mower::{WindowMower, WindowMowerMethod};
@@ -101,6 +103,9 @@ impl Tool for SpectraFilterWindowMower {
 
         let mut experiment = FileHandler::load_experiment(ctx.string("in")?, &[FileType::MzMl])?;
         filter.filter_experiment(&mut experiment)?;
+        // Source addDataProcessing_(exp, getProcessingInfo_(FILTERING)).
+        let processing = ctx.processing_info(&[ProcessingAction::DataFiltering])?;
+        ctx.add_data_processing(&mut experiment, &processing);
         FileHandler::store_experiment(ctx.string("out")?, &experiment, Some(FileType::MzMl))?;
         Ok(ExitCode::ExecutionOk)
     }

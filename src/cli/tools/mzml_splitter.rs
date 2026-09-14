@@ -5,11 +5,16 @@
 //!
 //! Ports `OpenMS4-topp/src/MzMLSplitter.cpp`. See [`super`] on why the tool
 //! lives in the library rather than in the binary.
+//!
+//! The source attaches its `data filtering` processing record to each part
+//! before moving the part's spectra and chromatograms in, so no part carries
+//! it; this port does the same.
 
 use crate::cli::{ExitCode, Tool, ToolContext, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::{FileType, strip_extension};
 use crate::kernel::MSExperiment;
+use crate::metadata::ProcessingAction;
 use crate::{Error, Result};
 
 /// The `MzMLSplitter` TOPP tool.
@@ -125,6 +130,12 @@ impl Tool for MzMLSplitter {
                 chromatograms: Vec::new(),
                 ..template.clone()
             };
+            // Source addDataProcessing_(part, getProcessingInfo_(FILTERING)) runs
+            // here, while the part holds no spectra and no chromatograms yet,
+            // so the record reaches no output. Reproduced; the C++ product SDK
+            // writes parts without it (oracle mzml_splitter_1).
+            let processing = ctx.processing_info(&[ProcessingAction::DataFiltering])?;
+            ctx.add_data_processing(&mut part, &processing);
             // Source spreads the remainder over the parts that are still to come.
             let remaining = parts - counter + 1;
             let n_spec = div_ceil(spectra.len() - spec_start, remaining);
