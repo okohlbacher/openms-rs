@@ -20,7 +20,7 @@ use openms::{
     Error, MSChromatogram, MSExperiment, MSSpectrum, Result,
     concept::log_stream::{LogColor, LogLevel, LogSink, with_thread_local_log},
     format::{
-        PeakFileOptions,
+        FileHandler, FileType, PeakFileOptions,
         mzml::{self, LoadOptions, ReadOptions, TransformOptions},
     },
     interfaces::MSDataConsumer,
@@ -362,6 +362,50 @@ fn source_option_drops_only_the_dangling_references_of_peak_picker_hi_res_5() {
     assert_eq!(from_path.chromatograms, loaded.chromatograms);
     assert_eq!(from_path.settings.instrument, loaded.settings.instrument);
     assert!(mzml::load_with_options(&path, &file_handler_load(), &ReadOptions::default()).is_err());
+}
+
+/// The tool path: `FileHandler::load_experiment_with_read_options` hands the
+/// explicit reader options to the mzML reader, while
+/// `FileHandler::load_experiment_with_options` keeps the strict default.
+#[test]
+fn file_handler_hands_explicit_read_options_to_the_mzml_reader() {
+    discard_warnings();
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/data/mzml_header_leniency/PeakPickerHiRes_5_input.mzML");
+    let options = PeakFileOptions::default();
+    let loaded = FileHandler::load_experiment_with_read_options(
+        &path,
+        &[FileType::MzMl],
+        &options,
+        &source(),
+    )
+    .unwrap();
+    let direct = mzml::read_with_load_options(
+        Cursor::new(PEAK_PICKER_HI_RES_5),
+        &file_handler_load(),
+        &source(),
+    )
+    .unwrap();
+    assert_eq!(loaded.spectra, direct.spectra);
+    assert_eq!(loaded.chromatograms, direct.chromatograms);
+    assert_eq!(loaded.settings.instrument, direct.settings.instrument);
+    assert_eq!(
+        parse_message(FileHandler::load_experiment_with_options(
+            &path,
+            &[FileType::MzMl],
+            &options
+        )),
+        "unresolved softwareRef"
+    );
+    assert_eq!(
+        parse_message(FileHandler::load_experiment_with_read_options(
+            &path,
+            &[FileType::MzMl],
+            &options,
+            &ReadOptions::default()
+        )),
+        "unresolved softwareRef"
+    );
 }
 
 #[test]
