@@ -136,10 +136,9 @@ impl PeakTypeEstimator {
     /// As [`estimate_type`](Self::estimate_type), with explicit resource
     /// ceilings.
     ///
-    /// The ceilings and their order are exactly those of
-    /// `MSSpectrum::get_type_with_limits` when it reaches estimation, so a
-    /// spectrum and its peak slice succeed or fail together under the same
-    /// limits:
+    /// The ceilings and their order are exactly those
+    /// `MSSpectrum::get_type_with_limits` applies to the peaks once it reaches
+    /// estimation:
     ///
     /// 1. fewer than [`MIN_PEAKS`](Self::MIN_PEAKS) peaks return
     ///    [`SpectrumType::Unknown`] before any ceiling is consulted;
@@ -148,6 +147,20 @@ impl PeakTypeEstimator {
     /// 4. 16 bytes of scratch storage per peak must fit in `limits.max_bytes`;
     /// 5. every m/z and intensity must be finite;
     /// 6. only then is the scratch copy allocated, fallibly.
+    ///
+    /// Queried with `query_data` set, a spectrum with no stored type and no
+    /// data-processing records therefore succeeds or fails together with its
+    /// peak slice under the same limits, with the same class. A spectrum that
+    /// carries data-processing records need not: while `get_type_with_limits`
+    /// searches the records for a peak-picking step, it charges each one
+    /// `1 + 12 * h` work units against the same `max_work` before the peaks
+    /// are charged, where `h` is the bit length of the record's action count
+    /// (one unit for a record without actions). Such a spectrum can exceed
+    /// `max_work` under limits its peak slice fits: seven peaks at `max_work`
+    /// 224 are classified as a slice and refused as a spectrum carrying one
+    /// default record. A record with a peak-picking action instead makes the
+    /// spectrum [`SpectrumType::Centroid`] without estimating. This function
+    /// sees no records and charges none.
     ///
     /// The whole cost is linear in the number of peaks: at most five maxima are
     /// examined and each shoulder scan clears the points it passes.

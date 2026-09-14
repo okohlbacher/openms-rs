@@ -158,7 +158,7 @@
   }
  ],
  "evidence_tier": 1,
- "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; git diff 4fdec46..bc9cc12 empty for PeakTypeEstimator.h, its class test and fixtures, MSSpectrum.cpp, DTAFile and MzMLHandler.cpp; installed PeakTypeEstimator.h equal to the pin) executed estimateType on the three class-test DTA spectra, on all 65 spectra of eight mzML fixtures and on eleven synthetic shapes. The Rust estimate_type matches every record whose peaks are finite, and MSSpectrum::get_type(true) with nothing stored equals the estimate on all 65 spectra; the reader-level getType(false)/getType(true) columns also match. The two non-finite synthetic shapes are refused natively and their C++ class (CENTROID) is asserted. Tier 3: the three PeakTypeEstimator_test.cpp sections are transcribed unchanged. Tier 4: ceiling parity with MSSpectrum::get_type_with_limits and the finiteness refusal. No Debug-only precondition lies on this path.",
+ "evidence": "Tier 1 (executed differential, oracle-generated): the unmodified product-sdk libOpenMS (Debug, core 4fdec46; git diff 4fdec46..bc9cc12 empty for PeakTypeEstimator.h, its class test and fixtures, MSSpectrum.cpp, DTAFile and MzMLHandler.cpp; installed PeakTypeEstimator.h equal to the pin) executed estimateType on the three class-test DTA spectra, on all 65 spectra of eight mzML fixtures and on eleven synthetic shapes. The Rust estimate_type matches every record whose peaks are finite, and MSSpectrum::get_type(true) with nothing stored equals the estimate on all 65 spectra; the reader-level getType(false)/getType(true) columns also match. The two non-finite synthetic shapes are refused natively and their C++ class (CENTROID) is asserted. Tier 3: the three PeakTypeEstimator_test.cpp sections are transcribed unchanged. Tier 4: ceiling parity with MSSpectrum::get_type_with_limits for a spectrum with no stored type and no data-processing records; the one work unit a default data-processing record costs get_type_with_limits (1 + 12 * bit length of its action count, charged before the peaks), which makes the 7-peak ascending_profile spectrum fail at max_work 224 where its peak slice is Profile, and both Profile at 225; and the finiteness refusal. The pte_ records are byte-identical to the previous oracle run; the 2026-09-14 amendment only added faims_ records. No Debug-only precondition lies on this path.",
  "class_test_sections": {
   "PeakTypeEstimator_test.cpp": {
    "sections": 3,
@@ -174,11 +174,11 @@
  "oracle": {
   "evidence_label": "oracle-generated (tier 1 executed differential)",
   "manifest": "../oracle/pte-faims-helper/manifest.json",
-  "manifest_sha256": "eb29e3035039a90710d18077853ef01fe41c692df8099525a1f71f7ad370bb95",
+  "manifest_sha256": "c374c3281c49f62037fb30623dfe9395b45912e2ecfc6ea6ba552fac6488e50d",
   "sdk_source_revision": "4fdec46b205459b92e7d3b9e56df5d8e912d5c85",
   "sdk_build_type": "Debug",
   "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
-  "driver_output_sha256": "2d99c1270c341ab03500b5dc1a096b482fd65517302555da1156891300384261",
+  "driver_output_sha256": "adb001945735ad45c89668f523e02efed115d8571c9250a23ca5e54864b0eb45",
   "split_rule": "grep -E '^pte_' of the driver stdout; concatenated with tests/data/faims_helper/oracle_cases.tsv it reproduces the driver stdout byte for byte",
   "reproduced_byte_for_byte": true,
   "debug_only": []
@@ -186,7 +186,7 @@
  "external_reference_artifacts": [
   {
    "path": "../oracle/pte-faims-helper/driver.cpp",
-   "sha256": "f1135c35c4839a012502766791ea3addb42e533fefd99ae7316e78ba6c571944",
+   "sha256": "b9bcfc20fd2196cd28778dd0886295906584c81c6c6483b976ed93f32c8f9a99",
    "location": "outside this repository",
    "origin_key": "oracle"
   },
@@ -204,7 +204,7 @@
   },
   {
    "path": "../oracle/pte-faims-helper/manifest.json",
-   "sha256": "eb29e3035039a90710d18077853ef01fe41c692df8099525a1f71f7ad370bb95",
+   "sha256": "c374c3281c49f62037fb30623dfe9395b45912e2ecfc6ea6ba552fac6488e50d",
    "location": "outside this repository",
    "origin_key": "oracle"
   }

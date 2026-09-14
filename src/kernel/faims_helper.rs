@@ -315,15 +315,29 @@ impl FaimsHelper {
     /// annotation is always finite, because
     /// [`MetaValue`](crate::metadata::MetaValue) refuses non-finite floats.
     ///
+    /// An infinite `target_cv` is accepted, as the source accepts it. The
+    /// valid targets are exactly the values a [`CompensationVoltage`] can hold,
+    /// so every voltage
+    /// [`get_compensation_voltages`](Self::get_compensation_voltages) returns,
+    /// `-inf` and `+inf` included, is one. Against an infinite target,
+    /// `|cv - target_cv|` is infinite for every annotation and never less than
+    /// any tolerance, an infinite one included, so only the unannotated
+    /// identifications are kept, which is the executed source result. The
+    /// source keeps no annotated identification even when the annotation is
+    /// the same infinity, because `inf - inf` is NaN; such an annotation cannot
+    /// be built here.
+    ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`], without examining any identification,
-    /// when `target_cv` is not finite, when `cv_tolerance` is NaN, zero or
-    /// negative, and when there are more than
+    /// when `target_cv` is NaN, when `cv_tolerance` is NaN, zero or negative,
+    /// and when there are more than
     /// [`MAX_PEPTIDE_IDENTIFICATIONS`](Self::MAX_PEPTIDE_IDENTIFICATIONS)
-    /// identifications. The source accepts all of these and silently keeps
-    /// only the unannotated identifications, because its strict comparison can
-    /// never succeed with them.
+    /// identifications. The source accepts the NaN and non-positive parameters
+    /// and silently keeps only the unannotated identifications, because its
+    /// strict comparison can never succeed with them. A NaN target is refused
+    /// for the same reason [`CompensationVoltage::new`] refuses NaN, so no
+    /// voltage this module returns is ever refused as a target.
     ///
     /// Returns [`Error::InvalidValue`], naming the identification index, when a
     /// `FAIMS_CV` annotation is empty or not a number. The source converts an
@@ -336,9 +350,9 @@ impl FaimsHelper {
         target_cv: f64,
         cv_tolerance: f64,
     ) -> Result<Vec<PeptideIdentification>> {
-        if !target_cv.is_finite() {
+        if CompensationVoltage::new(target_cv).is_err() {
             return Err(Error::InvalidValue(
-                "the target FAIMS compensation voltage must be finite".into(),
+                "the target FAIMS compensation voltage must not be NaN".into(),
             ));
         }
         if cv_tolerance.is_nan() || cv_tolerance <= 0.0 {
