@@ -92,9 +92,18 @@
 //!   [`MAX_TRANSLATED_BYTES`](crate::concept::boost_regex::MAX_TRANSLATED_BYTES).
 //!
 //! Between two backtracking steps the engine then does work proportional to the
-//! translated pattern and its lookbehind widths, and a backreference compares
-//! at most the length of its group, as Boost's does, so a search's work is
-//! bounded by its budget times that. The engine's positive lookaheads are not
+//! translated pattern and its lookbehind widths, plus the length of the group a
+//! backreference names, so a search's work is bounded by its budget times that.
+//! A case-sensitive backreference stops comparing at the first byte that
+//! differs, as Boost's does; a case-insensitive one first compares exactly and,
+//! when that fails, scans its whole group before it compares without case, so
+//! it costs the group's length on every attempt even when the first byte
+//! differs. With a lazily growing group that makes one search quadratic within
+//! its budget where Boost's is not: `([a-c]*?)(?i)[^a](a\1)` over random `a`
+//! and `b` took 4.3 s over 1 MiB and 70 s over 4 MiB, where Boost took 0.16 s
+//! over 4 MiB.
+//!
+//! The engine's positive lookaheads are not
 //! atomic, as Boost's are: when what follows one fails, the engine backtracks
 //! into its body again, so a body with ambiguous repeats followed by a failing
 //! continuation can exhaust the budget on a few dozen bytes where Boost answers
@@ -108,7 +117,9 @@
 //! some shapes into forms that match the same strings but not with
 //! leftmost-first priority or the same captures: adjacent and nested unbounded
 //! repeats (`fancy-regex`'s optimizer) and a prefix that every branch of an
-//! alternation shares (`regex-syntax`, on the automaton). The facade spells
+//! alternation shares (`regex-syntax`, in what `fancy-regex` hands to an
+//! automaton: a whole expression that needs no backtracking, or the body of an
+//! atomic group, which then keeps a different match). The facade spells
 //! its translation so that neither rewrite applies, checks the result with the
 //! engine's own optimizer, and refuses an expression it cannot spell that way.
 //!
@@ -1628,7 +1639,7 @@ struct Translator<'p> {
     /// Automaton size of `last`, removed again when a quantifier rescales it.
     ///
     /// The atoms of a translation are its one-byte atoms, assertions and
-    /// backreferences, the guard branch of every alternation and the extra
+    /// backreferences, the guard branch of every guarded alternation and the extra
     /// branch of every shielded repeat, with every repeat written out: a repeat
     /// multiplies the atoms of what it repeats by its maximum, or by its minimum
     /// (at least 1) when unbounded, as the engine's Thompson construction copies
@@ -2409,30 +2420,48 @@ impl<'p> Translator<'p> {
     }
 
     /// End the alternation of `frame`, which has just been closed, with a
-    /// branch that matches no haystack character ([`NO_BYTE`]), in the plain
-    /// spelling and outside lookarounds.
+    /// branch that matches no haystack character ([`NO_BYTE`]) wherever the
+    /// engine may hand it to an automaton and its priority matters: in the
+    /// plain spelling outside lookarounds, and in both spellings inside an
+    /// atomic group, unless the alternation is part of a lookbehind's width.
     ///
-    /// The plain spelling of an expression that needs no backtracking is
-    /// compiled by `regex-automata` from a `regex-syntax` HIR, and
-    /// `Hir::alternation` (`lift_common_prefix`, `regex-syntax` 0.8.11) factors
-    /// a prefix that all branches share out of the alternation: `XA|XB` becomes
-    /// `X(?:A|B)`. That keeps the language but not leftmost-first priority when
-    /// `X` can match in more than one way, because the original tries every way
-    /// of matching `X` with `A` before it tries `B`: `[ab]+b|[ab]+c` on `abbc`
-    /// matches `0..4` after the rewrite and `0..3` in Boost, and
-    /// `\w+?a|\w+?()` on `aba` matches `0..1` instead of `0..3`. The rewrite
-    /// applies only when every branch is a concatenation, which the extra
-    /// branch is not. A lookaround only asks whether its body matches, which the
-    /// rewrite does not change, and a lookbehind's branches must keep one width,
-    /// so the branch is not added there; the counted spelling runs on the
-    /// backtracking machine, which keeps the order of its branches.
+    /// `regex-automata` compiles what `fancy-regex` delegates to it from a
+    /// `regex-syntax` HIR, and `Hir::alternation` (`lift_common_prefix`,
+    /// `regex-syntax` 0.8.11) factors a prefix that all branches share out of
+    /// the alternation: `XA|XB` becomes `X(?:A|B)`. That keeps the language but
+    /// not leftmost-first priority when `X` can match in more than one way,
+    /// because the original tries every way of matching `X` with `A` before it
+    /// tries `B`: `[ab]+b|[ab]+c` on `abbc` matches `0..4` after the rewrite and
+    /// `0..3` in Boost, and `\w+?a|\w+?()` on `aba` matches `0..1` instead of
+    /// `0..3`. The rewrite applies only when every branch is a concatenation,
+    /// which the extra branch is not.
+    ///
+    /// `fancy-regex` delegates three kinds of sub-expression that need no
+    /// backtracking (`Compiler::visit`, `compile_concat`): the whole plain
+    /// spelling; the body of a lookaround, or its trailing run; and the body of
+    /// an atomic group, or a branch or trailing run of it, which it compiles as
+    /// if nothing followed. The counted spelling ends in an assertion that needs
+    /// backtracking, so outside those bodies it delegates only runs of fixed
+    /// size, whose branches all end at the same position. A lookaround only asks
+    /// whether its body matches, which the rewrite does not change. An atomic
+    /// group keeps the first match of its body and discards the others, so the
+    /// rewrite changes which one it keeps: `(?>[ab]?b|[ab]?c)` on `bc` matches
+    /// `0..2` rewritten and `0..1` in Boost, also inside a lookahead. An
+    /// alternation whose nearest enclosing lookaround is a lookbehind is part of
+    /// that lookbehind's width: all its branches have one width, which the extra
+    /// branch would break, and every way of matching a body of one width ends at
+    /// the same position, so there the branch is not added.
     fn guard_alternation(&mut self, frame: &mut Frame) {
-        let in_lookaround = frame.kind.is_lookaround()
-            || self
-                .frames
-                .iter()
-                .any(|enclosing| enclosing.kind.is_lookaround());
-        if frame.alternation && !self.counted && !in_lookaround {
+        let enclosing =
+            || std::iter::once(frame.kind).chain(self.frames.iter().rev().map(|f| f.kind));
+        let nearest_lookaround = enclosing().find(|kind| kind.is_lookaround());
+        let in_lookbehind = matches!(
+            nearest_lookaround,
+            Some(GroupKind::LookBehind | GroupKind::NegativeLookBehind)
+        );
+        let in_atomic = enclosing().any(|kind| kind == GroupKind::Atomic);
+        let on_automaton = !self.counted && nearest_lookaround.is_none();
+        if frame.alternation && !in_lookbehind && (in_atomic || on_automaton) {
             self.out.push('|');
             self.out.push_str(NO_BYTE);
             frame.alternative_atoms = frame.alternative_atoms.saturating_add(1);
@@ -2984,7 +3013,8 @@ mod tests {
     /// `regex-syntax` factors a common prefix out of an alternation whose
     /// branches are all concatenations; the plain spelling ends every
     /// alternation outside lookarounds in a branch that matches nothing, and the
-    /// counted spelling, which runs on the backtracking machine, does not.
+    /// counted spelling, which runs on the backtracking machine, does so only
+    /// inside atomic groups (see `guards_alternations_inside_atomic_groups`).
     #[test]
     fn guards_alternations_on_the_automaton() {
         let translate = |pattern: &str, counted: bool| {
@@ -3010,6 +3040,50 @@ mod tests {
             |regex: &fancy_regex::Regex| regex.find("abbc").unwrap().map(|found| found.range());
         assert_eq!(range(&unguarded), Some(0..4));
         assert_eq!(range(&guarded), Some(0..3));
+    }
+
+    /// `fancy-regex` hands the body of an atomic group that needs no
+    /// backtracking to `regex-automata` whole, where the prefix factoring
+    /// changes which match the group keeps: both spellings guard every
+    /// alternation inside an atomic group, also inside a lookahead, but not one
+    /// that is part of a lookbehind's width.
+    #[test]
+    fn guards_alternations_inside_atomic_groups() {
+        let translate = |pattern: &str, counted: bool| {
+            Translator::new(pattern, RegexOptions::default(), counted)
+                .run()
+                .unwrap()
+                .pattern
+        };
+        for counted in [false, true] {
+            assert_eq!(
+                translate("(?>[ab]?b|[ab]?c)", counted),
+                format!(r"(?>[ab]?\x62|[ab]?\x63|{NO_BYTE})")
+            );
+            assert_eq!(
+                translate("(?>(?:a|ab)c)", counted),
+                format!(r"(?>(?:\x61|\x61\x62|{NO_BYTE})\x63)")
+            );
+        }
+        assert!(translate("(?=(?>a|ab)c)", true).contains(NO_BYTE));
+        assert!(translate("(?<=(?=(?>a|ab)c).)", true).contains(NO_BYTE));
+        assert_eq!(
+            translate("(?<=(?>ab|a[bc]))", true),
+            r"(?<=(?>\x61\x62|\x61[bc]))"
+        );
+        // On the engine, the unguarded body keeps `bc`, which Boost does not
+        // reach: its first branch matches `b` at 0.
+        let unguarded = build(r"(?>[ab]?\x62|[ab]?\x63)(?=)(?=)", 1000, false).unwrap();
+        let guarded = build(
+            &format!(r"(?>[ab]?\x62|[ab]?\x63|{NO_BYTE})(?=)(?=)"),
+            1000,
+            false,
+        )
+        .unwrap();
+        let range =
+            |regex: &fancy_regex::Regex| regex.find("bc").unwrap().map(|found| found.range());
+        assert_eq!(range(&unguarded), Some(0..2));
+        assert_eq!(range(&guarded), Some(0..1));
     }
 
     /// Boost's `probe_leading_repeat` walk, as the translator mirrors it.

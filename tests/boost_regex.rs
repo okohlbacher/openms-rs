@@ -18,8 +18,8 @@
 //! the refusal rules documented in `docs/BOOST_REGEX_SUPPORT.md`.
 //!
 //! The case-insensitive range, negated-class, nullable-repeat, leading-repeat,
-//! open-group backreference and engine-rewrite tests are tier 1 as well, with
-//! Boost's answers transcribed from the same oracle output. The class-test section is tier 3 (literals transcribed from the pinned
+//! open-group backreference, engine-rewrite and atomic-alternation tests are tier 1
+//! as well, with Boost's answers transcribed from the same oracle output. The class-test section is tier 3 (literals transcribed from the pinned
 //! class tests); the limit, work-bound, error and robustness sections are tier 4.
 
 use openms::Error;
@@ -505,7 +505,7 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
 
 /// Cases compared against Boost: the fixture's size, so a truncated fixture fails
 /// (`refusals.py`).
-const EXPECTED_CASES: usize = 149_462;
+const EXPECTED_CASES: usize = 151_082;
 
 const NULLABLE_GROUP: &str = "a repeat of more than one iteration of a group that can match the empty string (Boost ends a repeat after an empty iteration)";
 const LEADING_LAZY: &str = "a lazy repeat with a finite maximum of a one-byte atom that starts the expression (Boost's leading-repeat optimization skips start positions)";
@@ -1586,6 +1586,227 @@ fn engine_rewrites_keep_boost_answers() {
             "{pattern:?} whole={whole} on {haystack:?}"
         );
     }
+}
+
+/// The fourth review: `fancy-regex` hands the body of an atomic group that needs no
+/// backtracking (or a branch or trailing run of it) to `regex-automata`, where
+/// `regex-syntax` factored a common prefix out of an alternation, so the group kept a
+/// different match than Boost's first one. At the previous commit
+/// `(?>[ab]?b|[ab]?c)` found `0..2` in `bc`, `(?>(?:a|ab)c|(?:a|ab)b)` did not match
+/// all of `abc`, `(?=(?>(?:a?|ab)c|(?:a?|ab)b)c)` matched at 0 in `abc`, and
+/// `(?!(?>[ab]?b|[ab]?c)c)\w` found `0..1` in `bc`. Every alternation inside an atomic
+/// group is now guarded, except where it is part of a lookbehind's width, and the
+/// answers are Boost's (transcribed from the oracle output for the `ADV` family).
+#[test]
+fn atomic_alternations_keep_boost_answers() {
+    let icase = RegexOptions {
+        icase: true,
+        ..RegexOptions::default()
+    };
+    let plain = RegexOptions::default();
+    // (options, pattern, whole-haystack match instead of search, haystack, Boost's groups)
+    type Case<'a> = (
+        RegexOptions,
+        &'a str,
+        bool,
+        &'a [u8],
+        Option<Vec<Option<Range<usize>>>>,
+    );
+    let cases: &[Case] = &[
+        (
+            plain,
+            "(?>[ab]?b|[ab]?c)",
+            false,
+            b"bc",
+            Some(vec![Some(0..1)]),
+        ),
+        (
+            plain,
+            "(?>[ab]?b|[ab]?c)",
+            false,
+            b"\xc3\xa9bc",
+            Some(vec![Some(2..3)]),
+        ),
+        (
+            plain,
+            "(?>(?:a|ab)c|(?:a|ab)b)",
+            false,
+            b"abc",
+            Some(vec![Some(0..3)]),
+        ),
+        (
+            plain,
+            "(?>(?:a|ab)c|(?:a|ab)b)",
+            true,
+            b"abc",
+            Some(vec![Some(0..3)]),
+        ),
+        (
+            icase,
+            "(?>(?:a|ab)c|(?:a|ab)b)",
+            false,
+            b"Abc",
+            Some(vec![Some(0..3)]),
+        ),
+        (icase, "(?>(?:a|ab)c|(?:a|ab)b)", true, b"aAbc", None),
+        (
+            plain,
+            "(?>(?:a|ab)c|(?:a|ab)b)c?",
+            false,
+            b"abcc",
+            Some(vec![Some(0..4)]),
+        ),
+        (
+            plain,
+            "(?=(?>(?:a?|ab)c|(?:a?|ab)b)c)",
+            false,
+            b"abc",
+            Some(vec![Some(1..1)]),
+        ),
+        (
+            plain,
+            r"\b(?>(?:a|ab)c|(?:a|ab)b)",
+            false,
+            b"abc",
+            Some(vec![Some(0..3)]),
+        ),
+        (
+            plain,
+            "(a)(?>(?:a|ab)c|(?:a|ab)b)",
+            false,
+            b"aabc",
+            Some(vec![Some(0..4), Some(0..1)]),
+        ),
+        (
+            plain,
+            r"(?>\b(?:[ab]?b|[ab]?c))",
+            false,
+            b"bc",
+            Some(vec![Some(0..1)]),
+        ),
+        (
+            plain,
+            r"(?>(?:[ab]?b|[ab]?c)\b)",
+            false,
+            b"abc",
+            Some(vec![Some(1..3)]),
+        ),
+        (
+            plain,
+            r"(?!(?>[ab]?b|[ab]?c)c)\w",
+            false,
+            b"bc",
+            Some(vec![Some(1..2)]),
+        ),
+        (
+            plain,
+            "(?>a??b|a??c|a??)",
+            false,
+            b"ac",
+            Some(vec![Some(0..2)]),
+        ),
+        // A lookahead inside a lookbehind is guarded; an alternation of one width in
+        // a lookbehind is not, and needs no guard.
+        (
+            plain,
+            "(?<=(?=(?>[ab]?b|[ab]?c)c)..)",
+            false,
+            b"bcc",
+            Some(vec![Some(2..2)]),
+        ),
+        (
+            plain,
+            "(?<=(?=(?>(?:a|ab)c|(?:a|ab)b)).)c",
+            false,
+            b"abc",
+            None,
+        ),
+        (
+            plain,
+            "(?<=(?>ab|a[bc]))c",
+            false,
+            b"abc",
+            Some(vec![Some(2..3)]),
+        ),
+        (plain, "(?<!(?>ab|a.))c", false, b"abc", None),
+        // Nested and repeated atomic groups, and backreferences beside them.
+        (
+            plain,
+            "(?>(?>[ab]?b|[ab]?c)|b)c",
+            false,
+            b"bcc",
+            Some(vec![Some(0..2)]),
+        ),
+        (
+            plain,
+            "(?:x|(?>[ab]?b|[ab]?c))+c",
+            false,
+            b"abbc",
+            Some(vec![Some(0..4)]),
+        ),
+        (
+            plain,
+            "(?>(?:a|ab)c|(?:a|ab)b){1,2}c",
+            false,
+            b"abcc",
+            Some(vec![Some(0..4)]),
+        ),
+        (
+            plain,
+            r"(a|ab)(?>\1?c|\1?b)",
+            false,
+            b"abc",
+            Some(vec![Some(0..2), Some(0..1)]),
+        ),
+        (
+            plain,
+            r"(.)(?i)(?>\1?[ab]?b|\1?[ab]?c)",
+            false,
+            b"aAbc",
+            Some(vec![Some(0..3), Some(0..1)]),
+        ),
+        (plain, r"(?>[ab]?b|[ab]?c)(a)?\1", false, b"bc", None),
+    ];
+    for (options, pattern, whole, haystack, expected) in cases {
+        let regex = BoostRegex::with_options(pattern, *options)
+            .unwrap_or_else(|error| panic!("{pattern:?}: {error}"));
+        let found = if *whole {
+            regex.full_match(haystack)
+        } else {
+            regex.search(haystack)
+        }
+        .unwrap()
+        .map(|captures| {
+            (0..captures.len())
+                .map(|group| captures.get(group))
+                .collect()
+        });
+        assert_eq!(
+            &found, expected,
+            "{pattern:?} icase={} whole={whole} on {haystack:?}",
+            options.icase
+        );
+    }
+    // Boost's tokens -1 and 0 over `abcc`: `ab`, then `c` twice, each after an
+    // empty unmatched gap.
+    let tokens: Vec<SubMatch> = BoostRegex::new("(?>[ab]?b|[ab]?c)")
+        .unwrap()
+        .tokens(b"abcc", &[-1, 0])
+        .unwrap()
+        .map(Result::unwrap)
+        .collect();
+    let token = |range: Range<usize>, matched: bool| SubMatch { range, matched };
+    assert_eq!(
+        tokens,
+        [
+            token(0..0, false),
+            token(0..2, true),
+            token(2..2, false),
+            token(2..3, true),
+            token(3..3, false),
+            token(3..4, true),
+        ]
+    );
 }
 
 /// An expression that needs no backtracking was handed whole to an automaton,
