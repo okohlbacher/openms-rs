@@ -36,7 +36,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use openms::analysis::feature_finder_picked::algorithm::{
-    Limits, Options, RtShape, default_parameters, run, run_with_options,
+    AbundanceOverride, Limits, Options, RtShape, default_parameters, run, run_with_options,
 };
 use openms::analysis::feature_finder_picked::extension::{
     OverallScores, extend_mass_traces, find_best_isotope_fit,
@@ -824,6 +824,50 @@ fn check_fitter(config: &str, index: usize, model: &FittedModel) {
             close(gauss.sigma(), f64_hex(&row[7]), relative, &what("sigma"));
         }
     }
+}
+
+/// The one deliberate divergence from the executed C++: a changed isotope
+/// abundance.
+///
+/// The source builds the override from a default `IsotopeDistribution` that
+/// already holds `(0, 1)`, so its patterns grow and FeatureFinderCentroided_1
+/// with `abundance_12C = 90` finds no seed, no candidate and no feature (C2
+/// `ffap_ffc1_abundance_12C_90`, the `run` row of the fixture). The port
+/// computes the *intended* two-isotope override instead (`CPP-247`, lead
+/// decision of 2026-09-15), so it does find features. This test states both
+/// sides, so the divergence cannot become invisible.
+#[test]
+fn the_abundance_override_deliberately_differs_from_the_executed_library() {
+    let executed = &records("b7_feature_records.tsv", "run", "ffc1_abundance_12C_90")[0];
+    assert_eq!(executed[0], "0", "executed seeds");
+    assert_eq!(executed[1], "0", "executed candidates");
+    assert_eq!(executed[3], "0", "executed features");
+    assert_eq!(executed[4], "Found 0 seeds for charge 2.");
+
+    let mut parameters = ffc1_parameters();
+    set(
+        &mut parameters,
+        "isotopic_pattern:abundance_12C",
+        ParamValue::Float(90.0),
+    );
+    let output = run(ffc1_input(), &FeatureMap::new(), &parameters).unwrap();
+    assert!(
+        !output.features.is_empty(),
+        "the intended override should find features where the source's stray (0, 1) peak finds none"
+    );
+    // Opting out refuses rather than differing.
+    assert!(matches!(
+        run_with_options(
+            ffc1_input(),
+            &FeatureMap::new(),
+            &parameters,
+            &Options {
+                abundance_override: AbundanceOverride::Refuse,
+                ..Options::default()
+            },
+        ),
+        Err(openms::Error::Unsupported(_))
+    ));
 }
 
 // ---------------------------------------------------------------------------
