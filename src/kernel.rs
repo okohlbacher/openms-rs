@@ -64,6 +64,8 @@ pub mod features;
 pub mod gap_closures;
 /// Points, bounding boxes and convex hulls shared by the feature containers.
 pub mod geometry;
+/// Splitting an experiment by FAIMS compensation voltage (`IMDataConverter.h`).
+pub mod im_data_converter;
 /// Container operations of the feature and consensus maps (`FeatureMap.h`, `ConsensusMap.h`).
 pub mod map_operations;
 /// SRM/MRM peak groups and transition groups (`MRMFeature.h`, `MRMTransitionGroup.h`).

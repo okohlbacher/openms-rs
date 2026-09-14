@@ -5,8 +5,27 @@
 //! The centroided-peptide feature finder (`FEATUREFINDER/FeatureFinderAlgorithmPicked.h`),
 //! with its helper structures and trace fitters.
 //!
-//! Registered ahead of its early-TOPP-bundle work package so that the package
-//! never edits a module root. It exports nothing yet.
+//! This root is integrator-owned: its submodules are registered ahead of their
+//! early-TOPP-bundle work packages, so that no package edits it. A submodule
+//! that its package has not filled yet exports nothing.
 
 /// Seeds, mass traces and isotope patterns (`FeatureFinderAlgorithmPickedHelperStructs.h`).
 pub mod helper_structs;
+
+/// The retention-time shape model shared by the trace fitters (`TraceFitter.h`).
+pub mod trace_fitter;
+
+/// The Gaussian retention-time model (`GaussTraceFitter.h`).
+pub mod gauss_trace_fitter;
+
+/// The exponential-Gaussian hybrid retention-time model (`EGHTraceFitter.h`).
+pub mod egh_trace_fitter;
+
+/// Parameters, input validation and the entry point (`FeatureFinderAlgorithmPicked.h`).
+pub mod algorithm;
+
+/// Intensity, trace and isotope-pattern scores (`FeatureFinderAlgorithmPicked.h`).
+pub mod scoring;
+
+/// Isotope-pattern precalculation and seed selection (`FeatureFinderAlgorithmPicked.h`).
+pub mod seeds;

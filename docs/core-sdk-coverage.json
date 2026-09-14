@@ -6,10 +6,10 @@
     "registered_public_headers": 786,
     "by_status": {
       "complete": 55,
-      "evidence_requires_review": 157,
+      "evidence_requires_review": 158,
       "native_equivalent": 90,
       "partial": 55,
-      "unmapped": 429
+      "unmapped": 428
     },
     "topp_sources": 124,
     "validated_topp_workflows": 5
@@ -5776,9 +5776,11 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/TraceFitter.h",
       "sha256": "078c8ea4654044fdfa4cf160e946e17b3a946aaa1775f9dc52206162fffaf4af",
       "domain": "FEATUREFINDER",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
-      "candidate_rust_files": [],
+      "candidate_rust_files": [
+        "src/analysis/feature_finder_picked/trace_fitter.rs"
+      ],
       "reference_manifests": [],
       "direct_topp_consumers": []
     },

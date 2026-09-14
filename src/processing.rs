@@ -15,6 +15,8 @@ use crate::{Error, Result};
 pub mod baseline;
 pub mod chromatogram;
 pub mod deisotoping;
+/// Removing and merging overlapping features (`FeatureOverlapFilter.h`).
+pub mod feature_overlap_filter;
 pub mod iterative;
 pub mod mean_noise;
 pub mod peak_picking;

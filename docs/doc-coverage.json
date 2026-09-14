@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5399,
-  "documented": 3965
+  "items": 5414,
+  "documented": 3980
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -25,9 +25,13 @@
    "items": 41,
    "documented": 41
   },
+  "src/analysis/feature_finder_picked/trace_fitter.rs": {
+   "items": 2,
+   "documented": 2
+  },
   "src/analysis/feature_finder_picked.rs": {
-   "items": 1,
-   "documented": 1
+   "items": 7,
+   "documented": 7
   },
   "src/analysis/feature_finding_metabo.rs": {
    "items": 15,
@@ -458,8 +462,8 @@
    "documented": 12
   },
   "src/format/file_info.rs": {
-   "items": 1,
-   "documented": 1
+   "items": 5,
+   "documented": 5
   },
   "src/format/file_types.rs": {
    "items": 20,
@@ -830,8 +834,8 @@
    "documented": 3
   },
   "src/kernel.rs": {
-   "items": 74,
-   "documented": 74
+   "items": 75,
+   "documented": 75
   },
   "src/lib.rs": {
    "items": 18,
@@ -965,6 +969,10 @@
    "items": 7,
    "documented": 6
   },
+  "src/processing/feature_overlap_filter.rs": {
+   "items": 1,
+   "documented": 1
+  },
   "src/processing/iterative.rs": {
    "items": 6,
    "documented": 4
@@ -1010,8 +1018,8 @@
    "documented": 5
   },
   "src/processing.rs": {
-   "items": 22,
-   "documented": 14
+   "items": 23,
+   "documented": 15
   },
   "src/system/build_info.rs": {
    "items": 13,

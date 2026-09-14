@@ -78,7 +78,7 @@ Letters mark lanes:
 | 1 | CLI-1 TOPPBase lifecycle: spec suite (C4) and closure part 1 | none |
 | 1 | B1 FeatureFinderAlgorithmPicked helper structures | module stubs |
 | 1 | B2 source-precision isotope patterns, source trimLeft, bounding-box operations | none |
-| 1 | B3 Levenberg-Marquardt crate adapter with exact `maxfev` emulation | dependency commit (the digamma lane was dropped) |
+| 1, carried into 2 | B3 Levenberg-Marquardt crate adapter with exact `maxfev` emulation | dependency commit (the digamma lane was dropped) |
 | 1 | A1 PeakTypeEstimator API and FAIMSHelper | module stubs |
 | 1 | A2 C++ stream and StringUtils numeric formatting | module stubs |
 | 1 | A3 mzML spectrum and scan mobility, FAIMS CV, type reset, unit-bearing IM arrays; FileHandler type detection and load options | baseline |
@@ -86,14 +86,14 @@ Letters mark lanes:
 | 2 | B5 EGHTraceFitter | B1, C2, B4's trait |
 | 2 | B6 FeatureFinderAlgorithmPicked front half: parameters, validation, scoring, seeds | B1, B2, C2 |
 | 2 | A4 FileInfo library: model, peak-file and featureXML branches, `-m/-p/-s`, text and TSV | A1, A2, A3, C1, C3 |
-| 2 | CLI part 2: `-write_ini` parity, format checks, DataProcessing retrofit (D4) | CLI-1, A3 |
+| 2 | CLI-2 TOPPBase lifecycle part 2: `-write_ini` parity, format checks, DataProcessing retrofit (D4) | CLI-1, A3 |
+| 2 | P1 PeakPickerHiRes and SignalToNoiseEstimatorMedian parameter contract and fidelity fixes (pulled forward from wave 3) | none |
+| 2 | P2 source-compatible mzML header references (D10) (pulled forward from wave 3) | baseline |
+| 2 | B8 IMDataConverter splitByFAIMSCV (pulled forward from wave 3) | A1, A3 |
+| 2 | B9 FeatureOverlapFilter (pulled forward from wave 3) | C2 |
 | 3 | B7 FeatureFinderAlgorithmPicked back half: isotope fit, extension, fitting, quality, parallel seed loop, overlap | B4, B5, B6, C2, C3 |
 | 3 | A5 FileInfo tool, binary and preview workflows | A4, C1, C3, CLI parts 1 and 2 |
 | 3 | C5 FeatureFinderCentroided wrapper: load, error branches, FAIMS refusal, annotations | B6, A1, A3, C1, C3, CLI parts 1 and 2 |
-| 3 | P1 PeakPickerHiRes and SignalToNoiseEstimatorMedian parameter contract and fidelity fixes | none |
-| 3 | P2 source-compatible mzML header references (D10) | baseline |
-| 3 | B8 IMDataConverter splitByFAIMSCV | A1, A3 |
-| 3 | B9 FeatureOverlapFilter | C2 |
 | 4 | B10 FeatureFinderCentroided acceptance: FFC_1, seeds, asymmetric, debug, threads, LM budget | B7, C5, B3 |
 | 4 | A6 FileInfo `-i`, `-d`, `-c` | A5, A3, C1 |
 | 4 | P3 PeakPickerHiRes tool, parameter failures, `-write_ini` | P1, P2, C1, C3, CLI part 2 |
@@ -389,3 +389,299 @@ follow-up in flight covers, each with its file and owner.
 
 **Still in flight:** the Boost.Regex facade (`crate/regex-facade`), in review;
 the lead merges it separately.
+
+## Wave 2
+
+Plan as of 2026-09-14, on `main` after `1d80eed`. Ten packages run in parallel.
+The integrator's scaffold commit registers every new module they need, so no
+package edits a module root or a registration line.
+
+The user's priority of 2026-09-14 is a Release benchmark of the Rust tools
+against C++: PeakPickerHiRes first, then FeatureFinderCentroided. P1, P2, B8 and
+B9 are therefore pulled forward from wave 3.
+
+### Packages and dependencies
+
+Every dependency below is merged on `main` or done outside the repository: B1
+`09575c3`, B2 `3982561`, A1 `3d88650`, A2 `7f0a8e0`, A3 `c8b0141`, C3 `72650a5`,
+CLI-1 `f6bdd99` (fix round `9612872`), C1 and C2 under `../oracle/`.
+
+| Package | Scope | Depends on | Merge order |
+|---|---|---|---|
+| B3-LM | `levenberg-marquardt` adapter behind the unchanged `minimize`, exact Eigen `maxfev` emulation, budget differential | the pinned crates (`levenberg-marquardt =0.14.0`, `nalgebra =0.33.3`), already in `Cargo.toml` | first in the fitter lane if its gate passes; if not, D2's fallback, reported to the integrator |
+| B4-GAUSS | TraceFitter driver, defaults and `Param` mapping; GaussTraceFitter | B1, C2, the scaffold's trait | before B5. If B3 merges later, B4's budget-boundary tests run again at B3's merge |
+| B5-EGH | EGHTraceFitter | B1, C2, the scaffold's trait, B4's `optimize` | after B4, rebased on it |
+| B6-FFAP-SEEDS | FeatureFinderAlgorithmPicked parameters, `run()` validation, scoring, pattern precalculation, seed selection | B1, B2, C2 | independent; `algorithm.rs` passes to B7 in wave 3 |
+| A4-FILEINFO-CORE | FileInfo library: model, peak-file and featureXML branches, `-m/-p/-s`, text and TSV | A1, A2, A3, C1, C3 | independent; before A5 |
+| CLI-2 | TOPPBase lifecycle part 2: input and output format checks, `-write_ini` parity, usage on stderr, DataProcessing retrofit (D4) | CLI-1, A3 | independent; before A5, C5 and P3 |
+| P1-PICKER-LIB | PeakPickerHiRes and SignalToNoiseEstimatorMedian parameter contract and fidelity fixes | none | before P3 |
+| P2-MZML-LENIENCY | Source-compatible dangling `softwareRef` and `defaultDataProcessingRef` (D10) | baseline | before P3; the integrator lands the FileHandler call site |
+| B8-IMSPLIT | `IMDataConverter::splitByFAIMSCV` only (D5) | A1, A3 | independent; before B11 |
+| B9-OVERLAP | FeatureOverlapFilter with its quadtree, source mode only (D5) | C2 | independent; before B11 |
+
+### Decisions in force
+
+- **D1.** The module ratchet rejects only a new edge that closes a cycle. Each
+  package reports its new `crate::X` edges; the integrator records them at merge.
+- **D2, updated.** `levenberg-marquardt =0.14.0` and `nalgebra =0.33.3` are pinned
+  in `Cargo.toml`. Only B3 edits `src/math/fitters/levenberg_marquardt.rs`.
+- **D3.** TOPP tools adopt TOPPBase's strictness and its phase-aware exit codes.
+- **D4.** CLI-2 retrofits the DataProcessing entry into the existing tools.
+- **D5, updated.** The FAIMS closure of FeatureFinderCentroided is deferred. B8
+  ports only the library `splitByFAIMSCV`, and B9 only the source mode.
+- **D6.** XML outputs are compared by decoded content (FuzzyDiff's per-number
+  rule, id exclusion, exact structure), never by line layout.
+- **D7.** The product SDK (Debug, core `4fdec46`) is the development-time oracle.
+  Its outputs are `tier 1 executed differential`; Debug-only preconditions are
+  flagged `debug_only`.
+- **D8.** Pins cli `c19e494`, topp `174b576`, test-data `0cb15f2`, core `bc9cc12`.
+  Package sources are read with `git show <pin>:<path>`.
+- **D10.** Tool paths get explicit source-compatibility load options; library
+  defaults stay strict.
+- **Benchmark.** P1, P2, B8 and B9, and the B-lane code the benchmark later runs,
+  avoid needless per-peak allocations and quadratic passes on hot paths.
+  Fidelity comes first, and a parallel result stays bit-identical to the serial
+  one.
+
+### The scaffold
+
+New files, each with a `//!` doc naming the package that fills it. All but
+`trace_fitter.rs` export nothing yet; that one holds the contract described
+below.
+
+- `src/analysis/feature_finder_picked/`: `trace_fitter.rs` (with the trait
+  below), `gauss_trace_fitter.rs`, `egh_trace_fitter.rs`, `algorithm.rs`,
+  `scoring.rs` and `seeds.rs`, registered in `src/analysis/feature_finder_picked.rs`.
+- `src/format/file_info/`: `model.rs`, `report.rs`, `peaks.rs` and `features.rs`,
+  registered in `src/format/file_info.rs`.
+- `src/kernel/im_data_converter.rs`, registered in `src/kernel.rs`.
+- `src/processing/feature_overlap_filter.rs`, registered in `src/processing.rs`,
+  and `src/processing/feature_overlap_filter/quadtree.rs`, registered in that
+  file.
+
+Registrations are unconditional. A package whose whole module needs a feature
+starts its file with an inner `#![cfg(feature = "...")]`, for example A4's
+`features.rs` on `featurexml`.
+
+Not registered, because no wave-2 package fills them: the tool modules
+`file_info`, `feature_finder_centroided` and `peak_picker_hi_res` (for A5, C5 and
+P3), and B7's `extension`, `fitting` and `resolution`. They are registered when
+those packages start. P1 needs no tool module: `processing -> param` closes no
+cycle, so its `Param` defaults stay in `processing`.
+
+**Rustdoc links in module docs.** Each registration carries an outer `///`,
+because `tools/check_doc_coverage.py` counts `pub mod` lines as items. rustdoc
+then resolves the intra-doc links of that module's `//!` docs from the parent
+module. The stubs contain no links. A package filling a `//!` doc writes its
+links crate-absolute (`crate::...`), as `helper_structs.rs` does, or not at all.
+Links in item-level `///` docs are unaffected.
+
+**The TraceFitter contract.** `trace_fitter.rs` declares `pub trait
+TraceFitter` and `pub struct TraceFitterParams`, transcribed from `TraceFitter.h`
+at core `bc9cc12`. They hold signatures and documentation only: the trait has no
+provided method, and the record has no `Default`. B4 adds the rest of the file:
+the `optimize` driver, the defaults, the `Param` mapping and the shared helpers.
+B5 builds against the declarations and does not edit the file. **A change to a
+trait signature or to the record's fields needs the integrator.** The contract
+differs from the draft in the bundle plan's B4 notes as follows:
+
+- `TraceFitterParams::max_iteration` is `i64`, not `usize`. The source member is
+  `SignedSize`, the parameter has no minimum, and a value of zero or less fails
+  every fit, because Eigen refuses `maxfev <= 0`.
+- `compute_theoretical` returns `Result<f64>`. An out-of-range `k` gives
+  `Error::InvalidValue` where the source indexes without a check. It is a
+  required method, and implementors keep the source formula.
+- `parameters()` and `set_parameters()` are added. They are the typed form of
+  the inherited `getParameters` and `setParameters`, which the algorithm calls
+  on the fitter `chooseTraceFitter_` returns. With them it can use a
+  `dyn TraceFitter`, since the trait is object safe.
+- `fit` borrows the traces immutably, and `area`, both span checks and
+  `gnuplot_formula` take `&self`. The source declares them non-const, but
+  neither subclass writes.
+- The span checks are documented as the subclasses implement them: `true`
+  reports the violation that `checkFeatureQuality_` rejects. The header's
+  prose says the opposite.
+- `optimize(x, values, residual, jacobian, &TraceFitterParams) -> Result<()>` is
+  B4's free function. Its signature is fixed in the module documentation. Until
+  B4 merges, B5 may call `minimize` through a private stand-in, and must delete
+  it before its own merge.
+
+`tools/core_sdk_coverage.py` matches declarations to headers by name, so `pub
+trait TraceFitter` moves `TraceFitter.h` from `unmapped` to
+`evidence_requires_review`, with `trace_fitter.rs` as its candidate file; the
+ledger is regenerated in the scaffold commit (unmapped 429 to 428). Only the
+interface is declared. B4 earns a reviewed status when it merges.
+
+**Module edges.** The scaffold adds none: `check_module_cycles.py` reports 58
+edges and 13 mutual pairs, as at `1d80eed`. The table lists the edges packages
+are expected to add. Each was tested against the recorded graph with the
+checker's `reaches`, and none closes a cycle.
+
+| Edge | Package | Why |
+|---|---|---|
+| `format -> math` | A4 | `SummaryStatistics` |
+| `analysis -> math` | B4, B6 | `minimize` (B5 reaches it through B4's `optimize`), `pearson_correlation_coefficient` |
+| `analysis -> param` | B4, B6 | `Param` defaults and mapping |
+| `processing -> param` | P1 | `PeakPickerHiRes` and `SignalToNoiseEstimatorMedian` defaults |
+| `processing -> concept` | B9 | the `FAIMS_CV` meta-value key |
+
+`math`, `param` and `concept` name no other top-level module, so these edges
+cannot close a cycle together either. **No wave-2 package may add an edge out of
+`math`, `param` or `concept`.** At `1d80eed` these edges would close a cycle and
+are refused: `processing -> format`, `processing -> analysis`,
+`processing -> system`, `kernel -> processing` and `analysis -> system`. The D1
+row above says `processing -> concept` closes a cycle. That held when D1 was
+taken, through `concept -> chemistry`; `a18c1f1` removed that edge, and at
+`1d80eed` `concept` reaches nothing. The checker re-evaluates the edge when B9
+merges.
+
+### Ownership
+
+Each file has exactly one owning package. A path ending in `/` covers the
+directory.
+
+| Package | Files it owns |
+|---|---|
+| B3-LM | `src/math/fitters/levenberg_marquardt.rs`, `tests/math_distribution_fitters.rs`, `tests/lm_budget_differential.rs`, `docs/DISTRIBUTION_FITTERS_SUPPORT.md` |
+| B4-GAUSS | `src/analysis/feature_finder_picked/trace_fitter.rs` (the declarations are the contract), `src/analysis/feature_finder_picked/gauss_trace_fitter.rs`, `tests/trace_fitter.rs`, `tests/gauss_trace_fitter.rs`, `tests/data/gauss_trace_fitter/`, `tests/data/gauss_trace_fitter_provenance.json`, `docs/TRACE_FITTER_SUPPORT.md` |
+| B5-EGH | `src/analysis/feature_finder_picked/egh_trace_fitter.rs`, `tests/egh_trace_fitter.rs`, `tests/data/egh_trace_fitter/`, `tests/data/egh_trace_fitter_provenance.json`, `docs/EGH_TRACE_FITTER_SUPPORT.md` |
+| B6-FFAP-SEEDS | `src/analysis/feature_finder_picked/algorithm.rs`, `src/analysis/feature_finder_picked/scoring.rs`, `src/analysis/feature_finder_picked/seeds.rs`, `tests/feature_finder_picked_seeds.rs`, `tests/data/feature_finder_picked/`, `tests/data/feature_finder_picked_provenance.json`, `docs/FEATURE_FINDER_PICKED_SUPPORT.md` |
+| A4-FILEINFO-CORE | `src/format/file_info/model.rs`, `src/format/file_info/report.rs`, `src/format/file_info/peaks.rs`, `src/format/file_info/features.rs`, `tests/file_info.rs`, `tests/data/file_info/`, `tests/data/file_info_provenance.json`, `docs/FILE_INFO_SUPPORT.md` |
+| CLI-2 | `src/cli.rs` (except its `mod` lines), `src/cli/context.rs`, `src/cli/spec.rs`, `src/cli/parameter.rs`, `src/cli/usage.rs`, `src/cli/processing.rs`, `src/cli/tools/baseline_filter.rs`, `src/cli/tools/dta_extractor.rs`, `src/cli/tools/map_normalizer.rs`, `src/cli/tools/mzml_splitter.rs`, `src/cli/tools/spectra_filter_window_mower.rs`, `src/format/paramxml.rs` (writer options only), `tests/paramxml.rs` (writer-option tests only), `docs/PARAMXML_SUPPORT.md` (writer-option section only), `tests/topp_cli_lifecycle.rs`, `tests/data/topp_cli_lifecycle/`, `tests/data/topp_cli_lifecycle_provenance.json`, `tests/topp_baseline_filter.rs`, `tests/topp_dta_extractor.rs`, `tests/topp_map_normalizer.rs`, `tests/topp_mzml_splitter.rs`, `tests/topp_spectra_filter_window_mower.rs`, `docs/TOPP_CLI_SUPPORT.md` |
+| P1-PICKER-LIB | `src/processing/peak_picking.rs`, `src/processing/peak_picking/noise.rs`, `src/processing/iterative.rs`, `src/processing/chromatogram.rs`, `tests/peak_picking.rs`, `tests/peak_picking_experiment.rs`, `tests/data/peak_picking/`, `tests/data/peak_picking_provenance.json`, `docs/PEAK_PICKING_SUPPORT.md`; only where a fidelity fix forces it: `tests/iterative_picking.rs`, `tests/iterative_picking_reference.rs`, `tests/iterative_workflow.rs`, `tests/chromatogram_picking.rs`, `tests/chromatogram_processing_reference.rs`, `tests/chromatogram_workflow.rs`, `tests/data/iterative_provenance.json`, `tests/data/chromatogram_processing_provenance.json`, `docs/ITERATIVE_PICKING_SUPPORT.md`, `docs/ITERATIVE_REFERENCE_REVIEW.md`, `docs/CHROMATOGRAM_PICKING_SUPPORT.md` |
+| P2-MZML-LENIENCY | `src/format/mzml_header/read.rs`, `src/format/mzml_header.rs` (forwarding the option only), `src/format/mzml.rs` (`ReadOptions` and the header-registry call only), `src/format/mzml_counts.rs` (the header-registry call only), `tests/mzml_header_leniency.rs`, `tests/data/mzml_header_leniency/`, `tests/data/mzml_header_leniency_provenance.json`, `docs/MZML_HEADER_SUPPORT.md` |
+| B8-IMSPLIT | `src/kernel/im_data_converter.rs`, `tests/im_data_converter.rs`, `docs/IM_DATA_CONVERTER_SUPPORT.md`, `tests/data/im_data_converter_provenance.json` |
+| B9-OVERLAP | `src/processing/feature_overlap_filter.rs` (except the `quadtree` registration), `src/processing/feature_overlap_filter/quadtree.rs`, `tests/feature_overlap_filter.rs`, `docs/FEATURE_OVERLAP_FILTER_SUPPORT.md`, `tests/data/feature_overlap_filter_provenance.json` |
+
+**Boundaries.**
+
+- **Trace fitters (B3, B4, B5).**
+  - B3 keeps the public surface of `levenberg_marquardt.rs` unchanged:
+    `minimize`, `LmParameters`, `LmStatus` and `DenseMatrix`. B4 codes against
+    it while B3 swaps the backend.
+  - B3's `tests/lm_budget_differential.rs` writes out the Gauss and EGH
+    residuals and Jacobians itself, from the class-test functors, rather than
+    importing B4's or B5's modules.
+  - B3 hands its `tests/data/distribution_fitters_provenance.json` delta and its
+    `docs/THIRD_PARTY_CRATE_DECISIONS.md` status to the integrator as text.
+  - `src/math/fitters/{mod,gauss,gamma,gumbel,gumbel_max_likelihood}.rs` stay
+    unedited. `minimize` keeps its signature, so they need no change.
+  - B4 may extend the rustdoc of the trait and the record, and add impls, but
+    changes no signature.
+  - B5 reads `trace_fitter.rs` and never edits it. EGH's `tau` and `sigma` are
+    inherent methods.
+- **B6.**
+  - `helper_structs.rs` (B1), `src/chemistry/isotopes.rs` and
+    `src/kernel/geometry.rs` (B2) are read-only. The open signed-zero hull
+    follow-up in `geometry.rs` is not B6's.
+  - `run()` past seed selection returns `Error::Unsupported` until B7.
+- **A4.**
+  - `src/format/file_info.rs` and its re-exports are the integrator's; A4 asks
+    for the re-exports at merge.
+  - `text_format.rs` is A2's and read-only; `checks.rs` is A6's, and A4 does not
+    create it.
+  - `FileHandler` and the mzML and featureXML readers are read-only.
+  - The A2 notes carried forward above apply: use `fixed_truncated`, track the
+    stream precision, write one space after `intensity:`, and do not count the
+    macOS `%g` ties as defects.
+- **CLI-2.**
+  - The `mod` and `pub mod` lines of `src/cli.rs`, all of `src/cli/tools.rs`,
+    `src/bin/` and `Cargo.toml` stay the integrator's. A new `cli` module is
+    registered on request.
+  - The five tools' shared manifest `tests/data/topp_cli_provenance.json` stays
+    the integrator's; CLI-2 hands its delta over.
+  - `FileHandler::get_type` is read-only. CLI-2 handles its error at the call
+    site; that a directory gives an I/O error where C++ gives `UNKNOWN` stays an
+    open A3 follow-up.
+  - In `src/format/paramxml.rs`, CLI-2 adds writer options only; the reader and
+    the existing defaults stay unchanged.
+  - The CLI-1 notes carried forward that fall inside these files (the `-ini`
+    open failure that C++ exits 8 on, the single-writer FIFO) may be closed
+    here. Request 7 (`src/param`), request 8 (`src/system/update_check.rs`) and
+    `-in /dev/null` (`src/system/file.rs`) are outside CLI-2 and stay open.
+  - The retrofit meets the native difference "Non-finite values in processing
+    records" in `docs/TOPP_CLI_SUPPORT.md`: it records such values in a
+    representable form or keeps that documented difference.
+- **P1.**
+  - P1 keeps the picker API used outside its files: the public fields of
+    `PeakPickerHiRes`, `pick_spectrum`, `pick_experiment`,
+    `pick_spectrum_with_acquisition` (the acquisition tests in
+    `src/processing.rs`), `CubicSpline2d` (`src/analysis/transformations.rs`) and
+    `estimate_spectrum_type` (A1's `src/format/peak_type_estimator.rs`,
+    `tests/spectrum_type.rs`, `tests/peak_type_estimator.rs`).
+  - The struct literals in `tests/processing_acquisition.rs` and
+    `tests/data_array_descriptions.rs` use `..Default::default()`, so new fields
+    break nothing.
+  - The conditional files are edited only when a fidelity fix changes their
+    results, with the root cause stated; retained fixtures such as
+    `tests/data/peak_picking_*.tsv` are never regenerated.
+  - `src/processing/spline/` is read-only.
+- **P2.**
+  - The strict reader stays the default.
+  - The option is added to `mzml::ReadOptions` and passed through to the header
+    registry. P2 changes nothing else in `mzml.rs`, and does not take up A3's
+    open `mzml.rs` follow-ups.
+  - The one-line call site in `src/format/file_handler.rs` is the integrator's,
+    at merge.
+  - `tests/mzml_header.rs` stays green and unedited.
+- **B8.**
+  - `src/kernel/faims_helper.rs` and `tests/data/faims_helper/` (A1) are
+    read-only; B8 reuses `IM_FAIMS_test.mzML` in place.
+  - The missing `updateRanges` in the C++ groups is documented as a native
+    difference, not emulated.
+  - `kernel -> processing` closes a cycle and is refused.
+- **B9.**
+  - The `pub mod quadtree;` line and its doc in `feature_overlap_filter.rs` are
+    the integrator's.
+  - A qualifying quadtree crate is a dependency request, not a `Cargo.toml`
+    edit.
+  - Source mode only (D5).
+
+**Held by no wave-2 package.** A change to one of these goes to the integrator,
+who assigns it:
+
+- `src/format/file_handler.rs`, and `src/format/mzml.rs` outside P2's part
+- `src/kernel/faims_helper.rs`, `src/format/peak_type_estimator.rs` and
+  `src/format/file_info/text_format.rs`
+- `src/analysis/feature_finder_picked/helper_structs.rs`,
+  `src/chemistry/isotopes.rs` and `src/kernel/geometry.rs`
+- `src/math/statistic_functions.rs`, the other `src/math/fitters/` files,
+  `src/processing/spline/`, `src/param/` and `src/system/`
+- `tests/support/`, `tests/processing_acquisition.rs`,
+  `tests/data_array_descriptions.rs`, `tests/experimental_settings.rs`,
+  `tests/workflows.rs`, `tests/spectrum_type.rs`, `tests/peak_type_estimator.rs`,
+  `tests/mean_noise.rs`, `tests/mzml_header.rs`,
+  `tests/file_handler_type_detection.rs` and `tests/mzml_mobility.rs`
+
+**Integrator only.** The list under Ownership above applies. It also covers:
+
+- every registration line of this scaffold, including the `quadtree` line and
+  the `mod` lines of `src/cli.rs`
+- `src/cli/tools.rs` and `src/bin/`
+- `docs/module-cycles.json` and `docs/doc-coverage.json` (packages run the
+  checkers and report; the integrator records)
+- `docs/core-sdk-coverage.json` and `docs/core-sdk-reviewed-apis.json`
+- `tests/data/topp_cli_provenance.json`,
+  `tests/data/distribution_fitters_provenance.json` and
+  `tests/data/topp_early_bundle_provenance.json`
+
+### Gate hosts
+
+Run cargo gates through `~/.local/bin/openms-kim-gate.sh <slot> <cargo args>`.
+`/scratch` is node-local, so each slot stays on one host.
+
+| Role | Host | Slot |
+|---|---|---|
+| Implementers | dax (`OPENMS_GATE_HOST=dax`) | `w2-<package>`, for example `w2-b4-gauss` |
+| Reviewers | spock (`OPENMS_GATE_HOST=spock`) | `w2-<package>-review` |
+| Re-reviews of fix rounds | kim (`OPENMS_GATE_HOST=kim`) | `w2-<package>-rereview` |
+| Integrator | kim | `w2-scaffold`, `w2-integrate` |
+
+- Run gates one at a time per slot. Exit 255 is a dropped SSH connection;
+  rerun the gate.
+- A package's set: `cargo fmt --all -- --check` locally.
+  `+1.85.0 check --locked --all-features --all-targets`.
+  `clippy --locked --all-features --all-targets -- -D warnings`. Its own tests on
+  stable and on `+1.85.0`, under the feature line CI will use.
+  `doc --locked --all-features --no-deps` (the script sets `-D warnings`).
+  The `tools/` checkers locally.

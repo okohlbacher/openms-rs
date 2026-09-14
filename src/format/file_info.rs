@@ -4,8 +4,21 @@
 
 //! File summaries for the FileInfo tool (`FORMAT/FileInfo.h`).
 //!
-//! Registered ahead of its early-TOPP-bundle work package so that the package
-//! never edits a module root. It exports nothing yet.
+//! This root is integrator-owned: its submodules are registered ahead of their
+//! early-TOPP-bundle work packages, so that no package edits it. A submodule
+//! that its package has not filled yet exports nothing.
 
 /// C++ stream and `StringUtils` numeric text formatting for the FileInfo report.
 pub mod text_format;
+
+/// The FileInfo options and structured result.
+pub mod model;
+
+/// The FileInfo report: section order and text and TSV rendering.
+pub mod report;
+
+/// The FileInfo summary of peak files: DTA, DTA2D and mzML.
+pub mod peaks;
+
+/// The FileInfo summary of featureXML feature maps.
+pub mod features;
