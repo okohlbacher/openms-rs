@@ -85,13 +85,16 @@ Evidence and fixtures: `tests/data/baseline_filter_edges_provenance.json`.
 | van Herk's three comparisons per sample | prefix and suffix blocks plus a `static` scratch buffer of the element length | a monotonic deque of indices, also linear, with the same results |
 | Progress logging | `ProgressLogger` | none |
 
-`BaselineFilter`'s `method` parameter maps `erosion_simple` and
-`dilation_simple` onto `MorphologicalMethod::Erosion` and `Dilation` in
-`src/cli/tools/baseline_filter.rs`. Those two source methods are **not** the
-same operation as `erosion` and `dilation` once the element is one sample wide,
-so that mapping now needs to select `ErosionSimple` and `DilationSimple`; the
-tool file belongs to another lane and the change is listed as an integrator
-request.
+`BaselineFilter`'s `method` parameter maps each of the ten source names onto its
+own `MorphologicalMethod` in `src/cli/tools/baseline_filter.rs`, `erosion_simple`
+and `dilation_simple` included: those two source methods are **not** the same
+operation as `erosion` and `dilation` once the element is one sample wide, so
+the four names cannot share two variants. Executed on the Release tool over
+`tests/data/baseline_filter_edges_edges.mzML` with `-struc_elem_unit DataPoints
+-struc_elem_length 1`, `erosion_simple` differs from `erosion` at the last peak
+of 11 of the 20 spectra and nowhere else (likewise `dilation_simple`); both runs
+are recorded in `baseline_filter_edges_tool_expected.tsv` and asserted by
+`simple_method_names_match_the_release_tool`.
 
 ## Checked boundaries and evidence
 
@@ -118,11 +121,13 @@ file, and the driver source is
   are 528 such samples after the even-length `filterRange` rows are set aside,
   all of them the last sample of a one-sample-element case, and the port
   reproduces exactly that set: no sample more, no sample fewer.
-- **Tool**, `tests/topp_baseline_filter_edges.rs`: six Release
+- **Tool**, `tests/topp_baseline_filter_edges.rs`: eight Release
   `BaselineFilter` runs over the same mzML inputs — the reproducer with the
   benchmark INI, the edge shapes with the benchmark INI, with the tool defaults
-  and with `-method erosion -struc_elem_unit DataPoints -struc_elem_length 1`,
-  and the history file with `gradient` and with `tophat`.
+  and with `-method erosion`, `-method erosion_simple` and `-method
+  dilation_simple` at `-struc_elem_unit DataPoints -struc_elem_length 1`, and
+  the history file with `gradient` and with `tophat`. The first six were
+  re-executed unchanged when the two `*_simple` runs were added.
 - **Scale**, same file, `#[ignore]` because they read `/ceph` on the IBMI
   nodes: the benchmark's 600-spectrum UK222 slice (30 MB) and the whole 2.3 GB
   UK222 run (40,856 spectra) against the Release tool's output, every intensity

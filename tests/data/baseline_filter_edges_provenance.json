@@ -53,6 +53,11 @@
   {
    "path": "../oracle/baseline-filter-edges/scale.sh",
    "sha256": "2b29c120933b9f0dfdd97981dd9516d576a76703f0b888cbb3ab80f9eb47be23"
+  },
+  {
+   "path": "../oracle/baseline-filter-edges/run_simple.sh",
+   "sha256": "112acbca0af762b7d74d34dc8cfa96f5a8d9ad2fd46922fcb4f0302921aeaa3c",
+   "note": "second round: re-executes the six recorded tool runs from the committed mzML fixtures and adds the erosion_simple, dilation_simple and dilation runs"
   }
  ],
  "execution": {
@@ -112,10 +117,11 @@
   },
   {
    "path": "tests/data/baseline_filter_edges_tool_expected.tsv",
-   "sha256": "6bfaf791c781a63f90c2e41cb6a0a3ec3cbe134114f6188e059402a9415540db",
-   "rows": 79,
-   "kind": "the Release BaselineFilter tool's output spectra for six runs over those inputs",
-   "derivation": "extract.py over the tool's mzML outputs, minus the unsorted_ini run: the C++ mzML reader sorts peaks on load (MzMLHandler.cpp:218-220), so the C++ tool filters an unsorted file the Rust tool refuses; that difference belongs to the reader, not to this module"
+   "sha256": "eeba9c03de452054ca04f79d187ce321b8ed0e995d6975483fdf0ed31e35fb0a",
+   "rows": 119,
+   "kind": "the Release BaselineFilter tool's output spectra for eight runs over those inputs",
+   "derivation": "extract.py over the tool's mzML outputs, minus the unsorted_ini run: the C++ mzML reader sorts peaks on load (MzMLHandler.cpp:218-220), so the C++ tool filters an unsorted file the Rust tool refuses; that difference belongs to the reader, not to this module",
+   "second_round": "run_simple.sh re-executed the six original runs from the committed mzML fixtures and the committed INI (which compares equal to the smoke run's ini/used/BaselineFilter.ini) and reproduced all 79 recorded rows byte for byte, then added the 40 rows of edges_erosion_simple_dp1 and edges_dilation_simple_dp1 (-struc_elem_unit DataPoints -struc_elem_length 1). Against the recorded edges_erosion_dp1 and an edges_dilation_dp1 run kept out of the table for size, the *_simple runs differ at the last peak of 11 of the 20 spectra and at no other sample"
   }
  ],
  "scale_artifacts": [

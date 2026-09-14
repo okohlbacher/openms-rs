@@ -164,6 +164,46 @@ fn edge_shapes_match_the_release_tool() {
     );
 }
 
+/// The `erosion_simple` and `dilation_simple` method names select the source's
+/// direct-window operations, which keep the last sample where `erosion` and
+/// `dilation` zero it. The C++ tool run recorded here differs from the
+/// `edges_erosion_dp1` run above at the last peak of 11 of the 20 spectra, so
+/// this is what catches the two names being mapped onto the van Herk methods.
+#[test]
+fn simple_method_names_match_the_release_tool() {
+    for (name, method) in [
+        ("edges_erosion_simple_dp1", "erosion_simple"),
+        ("edges_dilation_simple_dp1", "dilation_simple"),
+    ] {
+        tool_case(
+            name,
+            "baseline_filter_edges_edges.mzML",
+            &[
+                "-struc_elem_unit",
+                "DataPoints",
+                "-struc_elem_length",
+                "1",
+                "-method",
+                method,
+                "-threads",
+                "1",
+            ],
+        );
+    }
+    // The recorded runs really do differ from the van Herk ones, so the case
+    // above is not satisfied by any mapping of the four method names.
+    let (simple, van_herk) = (
+        expected("edges_erosion_simple_dp1"),
+        expected("edges_erosion_dp1"),
+    );
+    let differing = simple
+        .iter()
+        .zip(&van_herk)
+        .filter(|(a, b)| a.2 != b.2)
+        .count();
+    assert_eq!(differing, 11, "recorded C++ erosion_simple vs erosion");
+}
+
 /// The gradient's last sample under a one-sample element depends on what the
 /// source's shared buffer holds from the previous spectra of the same run.
 #[test]
