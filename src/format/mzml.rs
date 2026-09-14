@@ -2811,7 +2811,7 @@ fn write_scalar_metadata_skipping(
                 ("xsd:string", std::borrow::Cow::Borrowed(text.as_str()))
             }
             MetaValueData::Integer(n) => ("xsd:integer", std::borrow::Cow::Owned(n.to_string())),
-            MetaValueData::Float(n) => ("xsd:double", std::borrow::Cow::Owned(n.to_string())),
+            MetaValueData::Float(n) => ("xsd:double", std::borrow::Cow::Owned(float_text(*n))),
             _ => unreachable!("product preflight checked scalar metadata"),
         };
         write!(
@@ -2834,15 +2834,44 @@ fn write_scalar_metadata_skipping(
     Ok(())
 }
 
+/// Write one `cvParam`, omitting `value` when it is empty.
+///
+/// Source `MzMLHandler::writeCV_` (3600-3606) writes the attribute only for a
+/// non-empty `DataValue`, and its literal valueless terms carry no `value`
+/// either; a reader cannot distinguish an absent value from an empty one, so
+/// nothing is lost.
 fn cv(w: &mut impl Write, accession: &str, name: &str, value: &str, unit: &str) -> Result<()> {
-    writeln!(
+    write!(
         w,
-        "<cvParam cvRef=\"MS\" accession=\"{accession}\" name=\"{name}\" value=\"{}\"{unit}/>",
-        escape(value)
+        "<cvParam cvRef=\"MS\" accession=\"{accession}\" name=\"{name}\""
     )?;
+    if !value.is_empty() {
+        write!(w, " value=\"{}\"", escape(value))?;
+    }
+    writeln!(w, "{unit}/>")?;
     Ok(())
 }
+/// C++ `StringUtils::toStr(double)` text, when it reads back as the same value.
+///
+/// Every number the source writes into a `cvParam` or `userParam` goes through
+/// `DataValue::toString` and thus `NumericFormatting::appendNumeric`
+/// (`StringUtils.cpp:384`): 15 fraction digits for magnitudes in `[1e-2, 1e4)`
+/// and zero, the shortest round-tripping scientific text otherwise. An
+/// inherited `3.0`, `1.0e20` or `2.027586375e06` is therefore written back
+/// unchanged instead of being reformatted. The fixed branch keeps only 15
+/// fraction digits, which loses precision for some values; those keep Rust's
+/// shortest round-tripping text, because this port does not discard data it
+/// was given.
+fn float_text(value: f64) -> String {
+    let text = crate::format::file_info::text_format::to_str(value);
+    let exact = crate::data_structures::list::ListParse::from_list_item(&text)
+        .is_ok_and(|parsed: f64| parsed.to_bits() == value.to_bits());
+    if exact { text } else { value.to_string() }
+}
 const SECOND: &str = " unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"";
+/// The intensity array's source unit (`MzMLHandler.cpp:5688`).
+const COUNTS: &str =
+    " unitCvRef=\"MS\" unitAccession=\"MS:1000131\" unitName=\"number of detector counts\"";
 fn write_precursor(w: &mut impl Write, precursor: &Precursor, tpp: bool) -> Result<()> {
     precursor_metadata::write_start(w, precursor, tpp)?;
     cv(
@@ -2955,7 +2984,8 @@ fn write_array(
             " unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"",
         )?,
         Kind::Time => cv(w, "MS:1000595", "time array", "", SECOND)?,
-        Kind::Intensity => cv(w, "MS:1000515", "intensity array", "", "")?,
+        // Source `MzMLHandler.cpp:5688` always writes the counts unit here.
+        Kind::Intensity => cv(w, "MS:1000515", "intensity array", "", COUNTS)?,
         Kind::Auxiliary(name) => {
             if let Some(accession) = canonical_array_accession(&name) {
                 cv(w, accession, &name, "", "")?;
@@ -3143,7 +3173,7 @@ pub fn write(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
 /// Named float, integer and ASCII string arrays are preserved. Unsupported
 /// metadata or unrepresentable array values are rejected before output. The
 /// streaming `MSDataWritingConsumer` splits this layout per record, which is
-/// why it stays unindexed; [`write`] is the indexed default.
+/// why it stays unindexed; [`write()`] is the indexed default.
 pub fn write_with_options(
     mut w: impl Write,
     experiment: &MSExperiment,

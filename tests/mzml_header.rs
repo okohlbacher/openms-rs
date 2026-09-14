@@ -672,13 +672,34 @@ fn markers_reject_raw_payload_that_semantic_field_parsing_would_discard() {
     let mut bytes = Vec::new();
     mzml::write(&mut bytes, &e).unwrap();
     let xml = String::from_utf8(bytes).unwrap();
+    // The empty-history placeholder software is its own entry; `so_default`
+    // is the source's empty `Software()`, which carries no marker.
+    let in_placeholder = |insert: &str| {
+        let at = xml.find("id=\"so_default_empty_history\"").unwrap();
+        let close = at + xml[at..].find("</software>").unwrap();
+        format!("{}{insert}{}", &xml[..close], &xml[close..])
+    };
     for changed in [
-        xml.replacen("<processingMethod order=", "<processingMethod unrepresented=\"x\" order=",1),
-        xml.replacen("</processingMethod>","<userParam name=\"extra\" type=\"xsd:string\" value=\"x\"/></processingMethod>",1),
-        xml.replacen("accession=\"MS:1000544\"", "accession=\"MS:1000544\" unitAccession=\"UO:0000010\"",1),
-        xml.replacen("</processingMethod>","<ignored/></processingMethod>",1),
-        xml.replacen("</software>","<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"2001-02-03T04:05:37\"/></software>",1),
-        xml.replacen("</software>","<userParam name=\"extra\" value=\"x\"/></software>",1),
+        xml.replacen(
+            "<processingMethod order=",
+            "<processingMethod unrepresented=\"x\" order=",
+            1,
+        ),
+        xml.replacen(
+            "</processingMethod>",
+            "<userParam name=\"extra\" type=\"xsd:string\" value=\"x\"/></processingMethod>",
+            1,
+        ),
+        xml.replacen(
+            "accession=\"MS:1000544\"",
+            "accession=\"MS:1000544\" unitAccession=\"UO:0000010\"",
+            1,
+        ),
+        xml.replacen("</processingMethod>", "<ignored/></processingMethod>", 1),
+        in_placeholder(
+            "<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"2001-02-03T04:05:37\"/>",
+        ),
+        in_placeholder("<userParam name=\"extra\" value=\"x\"/>"),
     ] {
         assert!(mzml::read(Cursor::new(changed)).is_err());
     }
@@ -725,7 +746,8 @@ fn fractional_run_timestamp_and_negative_zero_sample_survive_without_stale_raw_o
 
 #[test]
 fn additional_instrument_ids_cannot_collide_with_generated_header_identity() {
-    for id in ["so_default", "MS", "run", " padded "] {
+    // `ru_0` is the run identifier the source writes (`MzMLHandler.cpp:5211`).
+    for id in ["so_default", "MS", "ru_0", " padded "] {
         let mut e = openms::MSExperiment::default();
         e.settings
             .instrument_configurations

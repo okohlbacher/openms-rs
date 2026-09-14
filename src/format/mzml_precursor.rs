@@ -512,10 +512,12 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
         {
             let term = crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?
                 .get_term(id)?;
-            let text = if id == "MS:1000245" {
-                String::new()
-            } else {
-                value.to_string()
+            let text = match value.data() {
+                _ if id == "MS:1000245" => String::new(),
+                // The source renders the promoted meta value with
+                // `DataValue::toString`; see `mzml::float_text`.
+                crate::metadata::MetaValueData::Float(number) => super::float_text(*number),
+                _ => value.to_string(),
             };
             let unit = value
                 .unit()

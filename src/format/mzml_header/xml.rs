@@ -6,11 +6,14 @@
 use super::*;
 
 pub(super) struct Xml<'a> {
+    /// The rendered header text so far.
     pub text: String,
     ids: BTreeSet<String>,
+    /// The shared header allowance every charge is taken from.
     pub work: &'a mut Work,
 }
 impl<'a> Xml<'a> {
+    /// An empty buffer drawing on `work` for every charge.
     pub fn new(work: &'a mut Work) -> Self {
         Self {
             text: String::new(),
@@ -18,6 +21,13 @@ impl<'a> Xml<'a> {
             work,
         }
     }
+    /// Append `text` verbatim, charging its length and any growth of the
+    /// buffer before it is reserved.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] when the allowance is exhausted or the
+    /// reservation fails.
     pub fn raw(&mut self, text: &str) -> Result<()> {
         self.work.charge(text.len(), 0)?;
         let required = self
@@ -62,6 +72,12 @@ impl<'a> Xml<'a> {
         }
         Ok(())
     }
+    /// Append ` name="value"`, with the value XML-escaped.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for text that is not XML 1.0, and the
+    /// allowance errors of [`Xml::raw`].
     pub fn attribute(&mut self, name: &str, value: &str) -> Result<()> {
         self.raw(" ")?;
         self.raw(name)?;
@@ -69,6 +85,12 @@ impl<'a> Xml<'a> {
         self.escaped(value)?;
         self.raw("\"")
     }
+    /// Record `id` as defined in this document.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a malformed or whitespace-padded
+    /// ID and for one that is already defined.
     pub fn define_id(&mut self, id: &str) -> Result<()> {
         self.work.charge(id.len().saturating_mul(64), 0)?;
         if parameter_id(id)? != id {
@@ -83,6 +105,11 @@ impl<'a> Xml<'a> {
         }
         Ok(())
     }
+    /// Open `tag` with `attrs`; an `id` attribute is defined first.
+    ///
+    /// # Errors
+    ///
+    /// Returns the errors of [`Xml::define_id`] and [`Xml::attribute`].
     pub fn start(&mut self, tag: &str, attrs: &[(&str, &str)]) -> Result<()> {
         if let Some((_, id)) = attrs.iter().find(|(key, _)| *key == "id") {
             self.define_id(id)?;
@@ -94,19 +121,42 @@ impl<'a> Xml<'a> {
         }
         self.raw(">\n")
     }
+    /// Close `tag`.
+    ///
+    /// # Errors
+    ///
+    /// Returns the allowance errors of [`Xml::raw`].
     pub fn end(&mut self, tag: &str) -> Result<()> {
         self.raw("</")?;
         self.raw(tag)?;
         self.raw(">\n")
     }
+    /// Decimal text of `value`, charged before it is formatted.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] when the allowance is exhausted.
     pub fn integer(&mut self, value: usize) -> Result<String> {
         self.work.charge(64, 64)?;
         Ok(value.to_string())
     }
+    /// Decimal text of a signed `value`, charged before it is formatted.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Parse`] when the allowance is exhausted.
     pub fn signed(&mut self, value: i32) -> Result<String> {
         self.work.charge(64, 64)?;
         Ok(value.to_string())
     }
+    /// Attribute text of a scalar metadata value; numbers use the source's
+    /// `DataValue::toString` text where it reads back unchanged.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Unsupported`] for Empty and list values, which have no
+    /// reversible mzML scalar encoding, and [`Error::Parse`] when the
+    /// allowance is exhausted.
     pub fn scalar(&mut self, value: &MetaValue) -> Result<String> {
         match value.data() {
             MetaValueData::String(s) => self.work.copy(s),
@@ -116,13 +166,23 @@ impl<'a> Xml<'a> {
             }
             MetaValueData::Float(n) => {
                 self.work.charge(1024, 1024)?;
-                Ok(n.to_string())
+                // The source formats every number with `DataValue::toString`;
+                // see `float_text`.
+                Ok(float_text(*n))
             }
             _ => Err(Error::Unsupported(
                 "Empty/list metadata has no lossless mzML scalar encoding".into(),
             )),
         }
     }
+    /// Write the `cvParam` of term `id`, with `value` and its unit when one
+    /// is given.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the term or its unit is not in the
+    /// pinned provider, the errors of [`Xml::scalar`], and [`Error::Parse`]
+    /// when the allowance is exhausted.
     pub fn cv(&mut self, id: &str, value: Option<&MetaValue>) -> Result<()> {
         let term = self.work.cv(id)?;
         let prefix = id.split_once(':').map_or("", |p| p.0);
@@ -151,10 +211,22 @@ impl<'a> Xml<'a> {
         }
         Ok(())
     }
+    /// Write the `cvParam` of term `id` with a string value.
+    ///
+    /// # Errors
+    ///
+    /// Returns the errors of [`Xml::cv`].
     pub fn cv_text(&mut self, id: &str, value: &str) -> Result<()> {
         let owned = self.work.copy(value)?;
         self.cv(id, Some(&owned.into()))
     }
+    /// Write the `cvParam` of term `id` with a numeric value, and the unit
+    /// term `unit` whose name comes from the pinned provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for a non-finite value or an unknown
+    /// unit term, and the errors of [`Xml::cv`].
     pub fn cv_float(&mut self, id: &str, value: f64, unit: Option<&str>) -> Result<()> {
         let mut value = MetaValue::try_from(value)?;
         if let Some(id) = unit {
@@ -171,6 +243,11 @@ impl<'a> Xml<'a> {
         }
         self.cv(id, Some(&value))
     }
+    /// Write the `userParam` `name` with its XSD type, value and unit.
+    ///
+    /// # Errors
+    ///
+    /// Returns the errors of [`Xml::scalar`] and [`Xml::attribute`].
     pub fn user(&mut self, name: &str, value: &MetaValue) -> Result<()> {
         let scalar = self.scalar(value)?;
         let kind = match value.data() {

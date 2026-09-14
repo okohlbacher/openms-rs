@@ -78,9 +78,12 @@ impl PeakWriteLimits {
                 count(array.data.len());
             }
             for array in &spectrum.string_data_arrays {
-                count(array.data.iter().fold(array.data.len(), |n, s| {
-                    n.saturating_add(s.len())
-                }));
+                count(
+                    array
+                        .data
+                        .iter()
+                        .fold(array.data.len(), |n, s| n.saturating_add(s.len())),
+                );
             }
         }
         for chromatogram in &experiment.chromatograms {
@@ -93,16 +96,20 @@ impl PeakWriteLimits {
                 count(array.data.len());
             }
             for array in &chromatogram.string_data_arrays {
-                count(array.data.iter().fold(array.data.len(), |n, s| {
-                    n.saturating_add(s.len())
-                }));
+                count(
+                    array
+                        .data
+                        .iter()
+                        .fold(array.data.len(), |n, s| n.saturating_add(s.len())),
+                );
             }
         }
         // Noise arrays are metadata-backed and bounded by the settings
         // preflight; one record share covers them like any other metadata.
         let work = values.saturating_mul(Self::WORK_PER_VALUE);
         let bytes = values.saturating_mul(Self::BYTES_PER_VALUE);
-        let scaled = |ceiling: usize, extra: usize| ceiling.saturating_mul(shares).saturating_add(extra);
+        let scaled =
+            |ceiling: usize, extra: usize| ceiling.saturating_mul(shares).saturating_add(extra);
         let raw = base.binary.raw;
         let binary = NumpressCoderLimits {
             raw: crate::format::numpress::NumpressLimits {

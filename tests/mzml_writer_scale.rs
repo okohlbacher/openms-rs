@@ -306,8 +306,8 @@ fn default_writer_emits_indexed_mzml_with_verified_offsets_and_sha1() {
     assert!(text.ends_with("</indexedmzML>\n"));
     // Independent Python oracle: SHA-1 of the prefix through `<fileChecksum>`,
     // every offset addressing its `<spectrum`/`<chromatogram` tag, in order.
-    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tools/mzml_writing/check_output.py");
+    let script =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tools/mzml_writing/check_output.py");
     let mut child = Command::new("python3")
         .arg(script)
         .stdin(Stdio::piped())
@@ -333,6 +333,70 @@ fn default_writer_emits_indexed_mzml_with_verified_offsets_and_sha1() {
     let mut empty = Vec::new();
     mzml::write(&mut empty, &MSExperiment::default()).expect("empty");
     assert!(!std::str::from_utf8(&empty).unwrap().contains("indexedmzML"));
+}
+
+/// Header parity with the C++ Release writer on the benchmark input's own
+/// metadata. Every literal here is a byte of the C++ Release output of
+/// MapNormalizer on `inputs/derived/sub_centroid_uk222_picked_first600.mzML`
+/// (smoke-run INI, 2026-09-14 prefix), whose header is that of the input.
+#[test]
+fn header_matches_the_cpp_release_writer_on_the_benchmark_input_metadata() {
+    let experiment = scaled(2);
+    let mut bytes = Vec::new();
+    mzml::write(&mut bytes, &experiment).expect("write");
+    let xml = String::from_utf8(bytes).expect("UTF-8");
+    for expected in [
+        // Root element: schema location and accession, never an `id`.
+        "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" \
+         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \
+         xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml \
+         http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"\" version=\"1.1.0\">",
+        // The pinned cvList.
+        "<cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" \
+         URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>",
+        "<cv id=\"BTO\" fullName=\"BrendaTissue545\" version=\"unknown\" \
+         URI=\"http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO\"/>",
+        // Valueless cvParams carry no `value` attribute.
+        "<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\"/>",
+        "<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid spectrum\"/>",
+        // The instrument's software comes first and is `so_in_0`; the fallback
+        // `so_default` is the source's empty Software().
+        "<software id=\"so_in_0\" version=\"2.8-280502/2.8.1.2806\">",
+        "<software id=\"so_default\" version=\"\">\n<cvParam cvRef=\"MS\" \
+         accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"\"/>",
+        "<softwareRef ref=\"so_in_0\"/>",
+        // Every processing method is order="0", as the source writes it.
+        "<processingMethod order=\"0\"",
+        // Inherited processing parameters keep the source's number text.
+        "<userParam name=\"parameter: algorithm:signal_to_noise\" type=\"xsd:double\" value=\"0.0\"/>",
+        "<userParam name=\"parameter: algorithm:SignalToNoise:win_len\" type=\"xsd:double\" \
+         value=\"200.0\"/>",
+        "<userParam name=\"parameter: algorithm:SignalToNoise:noise_for_empty_window\" \
+         type=\"xsd:double\" value=\"1.0e20\"/>",
+        // The run keeps the source identifier, its default source file, and
+        // carries the document id as the userParam the source writes.
+        "<run id=\"ru_0\" defaultInstrumentConfigurationRef=\"ic_0\" sampleRef=\"sa_0\" \
+         startTimeStamp=\"2016-11-18T23:31:16\" defaultSourceFileRef=\"sf_00000000000000000000\">",
+        "<userParam name=\"mzml_id\" type=\"xsd:string\" value=\"UK222\"/>",
+        // The intensity array carries the source's counts unit.
+        "<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitCvRef=\"MS\" \
+         unitAccession=\"MS:1000131\" unitName=\"number of detector counts\"/>",
+    ] {
+        let expected: String = expected.split_whitespace().collect::<Vec<_>>().join(" ");
+        assert!(xml.replace('\n', " ").contains(&expected), "{expected}");
+    }
+    // The document `id` is not a root attribute any more.
+    assert!(!xml.contains("<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" id="));
+    // Records inherit the list's default processing reference; only the list
+    // declares one. (The source repeats it on the first spectrum.)
+    assert_eq!(xml.matches(" dataProcessingRef=").count(), 0);
+    assert_eq!(xml.matches("defaultDataProcessingRef=").count(), 1);
+    assert_eq!(
+        mzml::read(Cursor::new(xml.as_bytes()))
+            .expect("read back")
+            .settings,
+        experiment.settings
+    );
 }
 
 /// Reader options with every size ceiling lifted. The reader's own default
@@ -361,12 +425,34 @@ fn store_and_reload_bench_input(relative: &str, expected_spectra: usize) {
     let options = generous_read_options();
     let input = std::path::Path::new(BENCH_INPUTS).join(relative);
     let file = io::BufReader::new(std::fs::File::open(&input).expect("staged benchmark input"));
+    let started = std::time::Instant::now();
     let experiment = mzml::read_with_options(file, &options).expect("read input");
+    let read_time = started.elapsed();
     assert_eq!(experiment.spectra.len(), expected_spectra);
     let directory =
         openms::system::file::TempDir::new_in(std::env::temp_dir(), false).expect("temp dir");
     let output = directory.path().join("stored.mzML");
+    let started = std::time::Instant::now();
     FileHandler::store_experiment(&output, &experiment, Some(FileType::MzMl)).expect("store");
+    let store_time = started.elapsed();
+    // What the index and the checksum cost: the same document written plain.
+    let plain = directory.path().join("plain.mzML");
+    let started = std::time::Instant::now();
+    let mut file = io::BufWriter::new(std::fs::File::create(&plain).expect("create"));
+    mzml::write_with_options(&mut file, &experiment, &mzml::WriteOptions::default())
+        .expect("plain store");
+    drop(file);
+    let plain_time = started.elapsed();
+    println!(
+        "{relative}: read {:.2} s, indexed store {:.2} s, plain store {:.2} s, \
+         {} bytes in, {} bytes out",
+        read_time.as_secs_f64(),
+        store_time.as_secs_f64(),
+        plain_time.as_secs_f64(),
+        std::fs::metadata(&input).map(|m| m.len()).unwrap_or(0),
+        std::fs::metadata(&output).map(|m| m.len()).unwrap_or(0),
+    );
+    std::fs::remove_file(&plain).ok();
     let file = io::BufReader::new(std::fs::File::open(&output).expect("open output"));
     let back = mzml::read_with_options(file, &options).expect("read output");
     assert_eq!(back.spectra.len(), expected_spectra);

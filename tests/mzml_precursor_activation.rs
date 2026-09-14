@@ -217,15 +217,19 @@ fn noncanonical_metadata_remains_user_param_without_type_or_method_changes() {
 /// port used to add `value="0"` to the 49 remaining precursors.
 #[test]
 fn absent_precursor_intensity_writes_no_peak_intensity_term() {
-    let mut p = Precursor::default();
-    p.mz = 684.203_369_140_625;
-    p.charge = 2;
+    let p = Precursor {
+        mz: 684.203_369_140_625,
+        charge: 2,
+        ..Precursor::default()
+    };
     for chrom in [false, true] {
         let xml = roundtrip(&p, chrom);
         assert!(!xml.contains("MS:1000042"), "{xml}");
     }
     let mut measured = p.clone();
-    measured.intensity = 12611.4365234375;
+    // The C++ output writes 12611.4365234375 for this precursor; that is the
+    // f32 this literal denotes, printed shortest.
+    measured.intensity = 12_611.437;
     let xml = roundtrip(&measured, false);
     assert!(
         xml.contains(
