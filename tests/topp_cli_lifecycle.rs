@@ -1105,6 +1105,150 @@ fn an_ini_directory_is_input_file_corrupt() {
     assert!(!Path::new(&written_ini).exists());
 }
 
+/// Oracle `ini_dev_null` and `write_ini_ini_dev_null`
+/// (`../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`): the
+/// character device `/dev/null` given as `-ini` is neither a regular file nor a
+/// directory, but it is readable, and the source reads it as an empty document.
+/// That is the source's `ParseError`, exit 3 with an `Error: Unable to read
+/// file (` line, before a run and with `-write_ini`; it is not reported as
+/// unreadable, and nothing is written.
+#[cfg(unix)]
+#[test]
+fn a_character_device_ini_is_input_file_corrupt() {
+    let dir = Workdir::new("ini-dev-null");
+    let out = dir.file("out.mzML");
+    let before_run = run::<SpectraFilterWindowMower>(&[
+        "-test",
+        "-ini",
+        "/dev/null",
+        "-in",
+        &swm_input(),
+        "-out",
+        &out,
+    ]);
+    let written_ini = dir.file("written.ini");
+    let with_write_ini =
+        run::<SpectraFilterWindowMower>(&["-write_ini", &written_ini, "-ini", "/dev/null"]);
+
+    for outcome in [&before_run, &with_write_ini] {
+        assert_eq!(outcome.code, ExitCode::InputFileCorrupt, "{}", outcome.err);
+        assert!(
+            outcome
+                .err
+                .lines()
+                .any(|line| line.starts_with("Error: Unable to read file (")),
+            "{}",
+            outcome.err
+        );
+        assert!(!outcome.err.contains("not readable"), "{}", outcome.err);
+    }
+    assert!(!Path::new(&out).exists());
+    assert!(!Path::new(&written_ini).exists());
+}
+
+/// Oracle `ini_fifo_denied` and `write_ini_ini_fifo_denied`
+/// (`../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json`): a FIFO
+/// this user cannot open (mode 000) is neither a regular file nor a directory,
+/// so it is not asked for readability before the load; the load's open is
+/// refused, exit 2 with the source's `FileNotReadable` wording, before a run
+/// and with `-write_ini`, and nothing is written. The open is refused before it
+/// would wait for a writer, so neither tool blocks. Skipped when `mkfifo` is
+/// unavailable or permissions do not restrict the process, as for root, where
+/// the open would wait instead.
+#[cfg(unix)]
+#[test]
+fn a_fifo_ini_this_user_cannot_open_is_input_file_not_readable() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = Workdir::new("ini-fifo-denied");
+    let probe = dir.file("probe.ini");
+    fs::write(&probe, b"").unwrap();
+    fs::set_permissions(&probe, fs::Permissions::from_mode(0o000)).unwrap();
+    if fs::File::open(&probe).is_ok() {
+        return;
+    }
+    let fifo = dir.file("denied.fifo");
+    let made = std::process::Command::new("mkfifo").arg(&fifo).status();
+    if !made.is_ok_and(|status| status.success()) {
+        return;
+    }
+    fs::set_permissions(&fifo, fs::Permissions::from_mode(0o000)).unwrap();
+
+    let out = dir.file("out.mzML");
+    let before_run = run::<SpectraFilterWindowMower>(&[
+        "-test",
+        "-ini",
+        &fifo,
+        "-in",
+        &swm_input(),
+        "-out",
+        &out,
+    ]);
+    let written_ini = dir.file("written.ini");
+    let with_write_ini =
+        run::<SpectraFilterWindowMower>(&["-write_ini", &written_ini, "-ini", &fifo]);
+
+    let expected = format!(
+        "Error: File not readable (the file '{fifo}' is not readable for the current user)"
+    );
+    for outcome in [&before_run, &with_write_ini] {
+        assert_eq!(
+            outcome.code,
+            ExitCode::InputFileNotReadable,
+            "{}",
+            outcome.err
+        );
+        assert!(outcome.err.contains(&expected), "{}", outcome.err);
+    }
+    assert!(!Path::new(&out).exists());
+    assert!(!Path::new(&written_ini).exists());
+}
+
+/// A FIFO given as `-ini` is read like a file once a writer opens it: an INI
+/// written by the tool and sent through the FIFO is loaded by `-write_ini`,
+/// exit 0, and is not refused as unreadable. Native (tier 4): with no writer
+/// the C++ tool blocks opening the FIFO, so the oracle has no case to record.
+/// The tool runs on its own thread with a timeout, so a regression that blocks
+/// fails instead of hanging the suite. Skipped when `mkfifo` is unavailable.
+#[cfg(unix)]
+#[test]
+fn an_ini_fifo_is_read_once_a_writer_opens_it() {
+    let dir = Workdir::new("ini-fifo");
+    let source = dir.file("source.ini");
+    let written = run::<SpectraFilterWindowMower>(&["-write_ini", &source]);
+    assert_eq!(written.code, ExitCode::ExecutionOk, "{}", written.err);
+    let fifo = dir.file("fifo.ini");
+    let made = std::process::Command::new("mkfifo").arg(&fifo).status();
+    if !made.is_ok_and(|status| status.success()) {
+        return;
+    }
+    let bytes = fs::read(&source).unwrap();
+
+    // Opening the FIFO for writing waits until the tool opens it for reading.
+    let writer_path = fifo.clone();
+    let writer = std::thread::spawn(move || -> std::io::Result<()> {
+        fs::OpenOptions::new()
+            .write(true)
+            .open(&writer_path)?
+            .write_all(&bytes)
+    });
+    let target = dir.file("written.ini");
+    let (tool_target, tool_fifo) = (target.clone(), fifo.clone());
+    let (sender, receiver) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let outcome =
+            run::<SpectraFilterWindowMower>(&["-write_ini", &tool_target, "-ini", &tool_fifo]);
+        let _ = sender.send(outcome);
+    });
+    let outcome = receiver
+        .recv_timeout(std::time::Duration::from_secs(120))
+        .expect("loading the FIFO as -ini did not finish");
+
+    assert_eq!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
+    assert!(!outcome.err.contains("not readable"), "{}", outcome.err);
+    writer.join().unwrap().unwrap();
+    assert!(Path::new(&target).exists());
+}
+
 /// Oracle `ini_common_tool_section`: a `common:<tool>:` value is found by leaf
 /// name and applied.
 #[test]

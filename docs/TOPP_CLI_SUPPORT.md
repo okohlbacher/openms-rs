@@ -98,9 +98,11 @@ backs the expected exit code:
 | write | `-write_ini` | 0 | 2606-2641 | `write_ini_ignores_command_line_values`, `write_ini_with_an_invalid_ini_value_keeps_the_default` | tier 1: `write_ini_with_cli_value`, `write_ini_with_ini` |
 | write | `-write_ctd`, `-write_cwl`, `-write_nested_cwl`, `-write_json`, `-write_nested_json` | 12 | 2643-2683 | `tool_description_writers_are_refused_explicitly` | tier 1: `write_cwl`, `write_nested_cwl`, `write_json`, `write_nested_json` exit 12 without TDL; `write_ctd` exits 0 there, see *Refused writers* |
 | INI | `-ini` file missing | 1 | 296, 436-441 | `a_missing_ini_is_input_file_not_found` | tier 1: `ini_missing` |
-| INI | `-ini` file not readable, before a run or with `-write_ini` | 2 | 296, 2630, 448-453 | `an_unreadable_ini_is_input_file_not_readable` | tier 1: `ini_unreadable`†, `write_ini_ini_unreadable`† |
+| INI | `-ini` file not readable, before a run or with `-write_ini` | 2 | 296, 2630, 448-453 | `an_unreadable_ini_is_input_file_not_readable`, `a_fifo_ini_this_user_cannot_open_is_input_file_not_readable` | tier 1: `ini_unreadable`†, `write_ini_ini_unreadable`† (a regular file); `ini_fifo_denied`†, `write_ini_ini_fifo_denied`† (a FIFO with mode 000: not queried for readability before the load, whose open is refused) |
 | INI | `-ini` file malformed | 3 | 296, 460-465 | `a_malformed_ini_is_input_file_corrupt` | tier 1: `ini_malformed` |
 | INI | `-ini` names a directory, before a run or with `-write_ini` | 3 | 296, 2630, 460-465 | `an_ini_directory_is_input_file_corrupt` | tier 1: `ini_directory`†, `write_ini_ini_directory`† |
+| INI | `-ini` names the character device `/dev/null`, before a run or with `-write_ini` | 3 | 296, 2630, 460-465 | `a_character_device_ini_is_input_file_corrupt` | tier 1: `ini_dev_null`†, `write_ini_ini_dev_null`† |
+| INI | `-ini` names a FIFO this user can open | as the INI it carries once a writer opens it; blocks until then | 296, 2630 | `an_ini_fifo_is_read_once_a_writer_opens_it` (exit 0 with `-write_ini`) | tier 4, native: with no writer the C++ tool blocks opening it too, so there is no exit code to execute |
 | INI | INI without a section for this tool | 0, warning | 1957-1966 | `an_ini_for_another_tool_warns_and_applies_defaults` | tier 1: `ini_foreign_section` |
 | update | unknown parameter (INI item, `-instance`, top-level `common:` value) | 6 | 338-343 | `an_unknown_ini_item_is_refused`, `instance_on_the_command_line_is_refused`, `a_common_top_level_value_is_refused_as_in_the_source` | tier 1: `ini_unknown_item`, `instance_on_command_line`, `ini_common_top_level` |
 | update | value outside its restrictions | 6 | 338-343 | `an_invalid_subsection_value_on_the_command_line_is_refused`, `an_invalid_subsection_value_in_an_ini_is_refused` | tier 1: `algorithm_movetype_sideways`, `ini_invalid_subsection_value` |
@@ -130,9 +132,21 @@ uncompressed file that reads through `TextFile` (`FileHandler.cpp:402`), which
 throws `FileNotReadable` (`TextFile.cpp:40-43`; all at core bc9cc12). A readable
 directory does reach the `ParseError`, exit 3. `-write_ini` loads its `-ini`
 inside the same `try` (2630), with the same codes. This port checks existence,
-readability and directories before loading, in that order, and prints the
-source's `FileNotReadable` wording; for a directory it prints the source's
-`ParseError` wording without the file-type hint.
+then readability for a regular file or a directory, then directories, before
+loading, and prints the source's `FileNotReadable` wording; for a directory it
+prints the source's `ParseError` wording without the file-type hint.
+
+Anything else is not queried for readability, because `file::readable` answers
+`false` for a device or FIFO without opening it, which reported the readable
+`/dev/null` as unreadable. The load opens such a file itself: a denied open is
+exit 2 with the same wording, as for a FIFO with mode 000 in the oracle's
+`ini_fifo_denied` and `write_ini_ini_fifo_denied`; any other open or read
+failure is exit 3, and a document that does not parse exit 3. `/dev/null` reads
+as an empty document, exit 3 with an `Error: Unable to read file (` line on both
+paths, as the oracle's `ini_dev_null` and `write_ini_ini_dev_null` do; the
+source's line also names the file and xerces's message. A FIFO this user can
+open is opened like a file, so it waits for a writer; the C++ tool also blocks
+on such a FIFO with no writer.
 
 ## Preserved source conventions
 
@@ -279,7 +293,7 @@ independent generator per call instead of seeding a process-wide singleton.
 
 ## Checked boundaries and evidence
 
-`tests/topp_cli_lifecycle.rs` holds 62 cases, none ignored.
+`tests/topp_cli_lifecycle.rs` holds 65 cases, none ignored.
 
 * **Oracle cases (tier 1 executed differential).** `../oracle/topp-cli-lifecycle/run.sh`
   runs 38 cases of the C++ product SDK (core 4fdec46, Debug, AppleClang 21) in a
@@ -288,10 +302,16 @@ independent generator per call instead of seeding a process-wide singleton.
   agreed on all 37 shared cases. The subsection override is compared against the
   C++ output `tests/data/topp_cli_lifecycle/swm_algorithm_peakcount_1.mzML`; no
   case reaches a Debug-only precondition. `ini_read_failures.sh` in the same
-  directory adds six cases on the same binaries, recorded in
+  directory adds ten cases on the same binaries, recorded in
   `ini_read_failures/manifest.json`: an INI written by the tool, a readable
   control run with it, that INI unreadable before a run and with `-write_ini`,
-  and a directory as `-ini` on both paths.
+  a directory as `-ini` on both paths, the character device `/dev/null` as
+  `-ini` on both paths, and a FIFO with mode 000 as `-ini` on both paths. Each
+  time cases were added, first the device cases and then the FIFO cases, the
+  earlier cases ran again and matched every previous run in exit code, stderr
+  and outputs; only timing figures in the control run's stdout changed. A FIFO
+  this user can open is not a case, because with no writer the C++ tool blocks
+  opening it.
 * **Upstream class test (tier 3).** Transcribed with their literals:
   `getIniLocation_` (default), `getStringOption_` (default, command line, wrong
   type, unregistered, required), `getIntOption_`, `getDoubleOption_`,
