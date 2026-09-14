@@ -535,20 +535,12 @@ impl FromStr for CompletionTime {
         let hour = parse(11..13)? as u8;
         let minute = parse(14..16)? as u8;
         let second = parse(17..19)? as u8;
-        let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
-        let days = match month {
-            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-            4 | 6 | 9 | 11 => 30,
-            2 => {
-                if leap {
-                    29
-                } else {
-                    28
-                }
-            }
-            _ => 0,
-        };
-        if year == 0 || day == 0 || day > days || hour > 23 || minute > 59 || second > 59 {
+        // chrono decides whether the day exists (proleptic Gregorian). The
+        // fixed-width parse above stays, because `NaiveDateTime::parse_from_str`
+        // also accepts a sign, unpadded fields and second 60.
+        let calendar_day =
+            chrono::NaiveDate::from_ymd_opt(year.into(), month.into(), day.into()).is_some();
+        if year == 0 || !calendar_day || hour > 23 || minute > 59 || second > 59 {
             return Err(invalid("completion timestamp is outside calendar bounds"));
         }
         Ok(Self {

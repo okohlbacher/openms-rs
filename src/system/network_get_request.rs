@@ -719,36 +719,24 @@ impl HttpTransport for UreqTransport {
 /// `Network` class test uses — report
 /// [`TransportError::UnsupportedScheme`] rather than a connection failure.
 ///
-/// The parse is deliberately shallow: scheme, then the authority up to the first
-/// `/`, `?` or `#`, with any `user:password@` prefix and `:port` suffix removed.
+/// The scheme is split off and checked here, because `http::Uri` refuses
+/// `file:///x` as malformed while this check must still call it an unsupported
+/// scheme. The host comes from `ureq::http::Uri`, the parser `ureq` runs on the
+/// URL it then requests, so the preflight and the request agree on the host. A
+/// URL that parser refuses, or one whose authority names no host
+/// (`http://:8080/x`, `http://:[:]`), is [`TransportError::MalformedUrl`].
 /// Everything further is `ureq`'s business.
 fn check_http_url(url: &str) -> std::result::Result<(), TransportError> {
-    let Some(separator) = url.find("://") else {
+    let Some((scheme, _)) = url.split_once("://") else {
         return Err(TransportError::MalformedUrl(url.to_owned()));
     };
-    let scheme = &url[..separator];
     if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
         return Err(TransportError::UnsupportedScheme(url.to_owned()));
     }
-    let rest = &url[separator + 3..];
-    let authority = rest.find(['/', '?', '#']).map_or(rest, |end| &rest[..end]);
-    let host = match authority.rfind('@') {
-        Some(at) => &authority[at + 1..],
-        None => authority,
-    };
-    // Strip a port, but not the colons of an IPv6 literal.
-    let host = if host.starts_with('[') {
-        host
-    } else {
-        match host.rfind(':') {
-            Some(at) => &host[..at],
-            None => host,
-        }
-    };
-    if host.is_empty() {
-        return Err(TransportError::MalformedUrl(url.to_owned()));
+    match ureq::http::Uri::try_from(url) {
+        Ok(uri) if uri.host().is_some_and(|host| !host.is_empty()) => Ok(()),
+        _ => Err(TransportError::MalformedUrl(url.to_owned())),
     }
-    Ok(())
 }
 
 /// Classify a `ureq` failure into the libcurl condition the source would report.
@@ -916,6 +904,57 @@ mod tests {
                 )))
             );
         }
+    }
+
+    #[test]
+    fn an_empty_host_fails_offline_through_the_real_transport() {
+        // A port and no host. The preflight refuses it, so ureq never hands an
+        // empty name to the resolver; the verbatim URL in the error shows the
+        // refusal was the preflight's.
+        let url = "http://:8080/x";
+        let mut request = NetworkGetRequest::new();
+        request.set_url(url);
+        request.run(&UreqTransport::new());
+        assert!(request.has_error());
+        assert!(request.response_binary().is_empty());
+        assert_eq!(request.status(), None);
+        assert_eq!(
+            request.error(),
+            Some(&RequestError::Transport(TransportError::MalformedUrl(
+                url.to_owned()
+            )))
+        );
+    }
+
+    #[test]
+    fn the_host_is_the_one_the_http_uri_parser_finds() {
+        let mut wrong = Vec::new();
+        for url in [
+            // `http::Uri` finds an empty host in these, where the earlier
+            // hand-written strip found a non-empty one and let them through to
+            // the resolver.
+            "HTTPS://:[:]",
+            "http://user@:[:]/x",
+            "http://:[::1]:80/",
+            // Not URIs. `ureq` refused these offline as well, but only after
+            // the preflight had passed them.
+            "http://ho st/",
+            "http://host/a b",
+            "http://[::1/",
+        ] {
+            let got = check_http_url(url);
+            if got != Err(TransportError::MalformedUrl(url.to_owned())) {
+                wrong.push(format!("{url}: {got:?}"));
+            }
+        }
+        // Empty userinfo, an empty port and a mixed-case scheme still name a host.
+        for url in ["http://@host/", "http://host:/", "HtTp://host?q"] {
+            let got = check_http_url(url);
+            if got != Ok(()) {
+                wrong.push(format!("{url}: {got:?}"));
+            }
+        }
+        assert!(wrong.is_empty(), "{wrong:#?}");
     }
 
     #[test]
