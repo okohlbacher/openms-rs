@@ -1,0 +1,234 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "df60a8ad5d9bbeb75f55c8e47a6df276994fc9e6",
+ "license": "BSD-3-Clause",
+ "group": "lm_eigen_path_differential",
+ "work_package": "B3b-LM-FIDELITY (early TOPP bundle, wave 2)",
+ "method": "Differential of the Levenberg-Marquardt evaluation path. src/math/fitters/levenberg_marquardt.rs::minimize is driven with the GaussTraceFitter and EGHTraceFitter functors written out from the pinned source, on 141 trace fits, and its status, nfev, njev, final parameters and the bits of every residual-evaluation argument are compared with stock Eigen::LevenbergMarquardt as TraceFitter::optimize_ configures it, built twice: with the flags of the Linux x86_64 Release build of OpenMS and with those of the macOS arm64 product SDK, plus a third build with Eigen's arm64 FMA lanes disabled. The oracle's replica is checked against each platform's libOpenMS: its final parameters equal GaussTraceFitter::fit / EGHTraceFitter::fit in 141 of 141 fits on both.",
+ "evidence_tier": "tier 1 (executed differential): the expectations are the output of stock Eigen linked against, and cross-checked with, the libraries themselves. The traced replica used to localise the divergence (lm_traced.h) is labelled adapted in the oracle manifest and is not what the fixture records.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/TraceFitter.h",
+   "sha256": "078c8ea4654044fdfa4cf160e946e17b3a946aaa1775f9dc52206162fffaf4af"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/TraceFitter.cpp",
+   "sha256": "3e7ccb18a04bfe187f73276d6a915d386a1014b915a2d672dc327b72f811f9f7"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp",
+   "sha256": "3cf4fdab9e6a6cf230d4b5283be2f5750920fdd38056806f6a5a7e73ae1d0e71"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "sha256": "c42431a16cb7c26e90c2336491fe7c897de2ac88f5a02074bf7ec386264e5af7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GaussTraceFitter_test.cpp",
+   "sha256": "5f97fd3cf37d4da469d53a7f452d84ba4041560c51db4bb04fed21940ce5637d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/EGHTraceFitter_test.cpp",
+   "sha256": "05f8026c8ef04339851ccba60e123402df51c4363fb2872f56b4bc22c04e9c32"
+  }
+ ],
+ "context_sources": [
+  {
+   "path": "unsupported/Eigen/src/NonLinearOptimization/LevenbergMarquardt.h",
+   "sha256": "d4fa216ab837a87f05287f4a8760fd2b76562d0fc5ecd27f2ab11fa64646e888",
+   "role": "Eigen 5.0.1 minimizeInit/minimizeOneStep; byte-identical in the Homebrew (macOS) and conda-forge (Linux) installations both reference builds use"
+  },
+  {
+   "path": "unsupported/Eigen/src/NonLinearOptimization/lmpar.h",
+   "sha256": "5bd007423fe586325311247f7e7c6e680d20cb83d0a9c0ef670f3037019409f1",
+   "role": "lmpar2"
+  },
+  {
+   "path": "unsupported/Eigen/src/NonLinearOptimization/qrsolv.h",
+   "sha256": "0c3445d962a9b5b7ef6ee62b2976a46e2a724108a2ebe5a1705123f02dfe043c",
+   "role": "qrsolv"
+  },
+  {
+   "path": "Eigen/src/QR/ColPivHouseholderQR.h",
+   "sha256": "a1ddca814167fde3af965686509cb7c40d848c8b122b4fa2802ec111e785b509",
+   "role": "computeInPlace: column norms, pivoting, LAPACK downdating, rank threshold"
+  },
+  {
+   "path": "Eigen/src/Householder/Householder.h",
+   "sha256": "11b496964a44d35c043e508eb249078a313351e6578d874d3472ed5b95fcd3e9",
+   "role": "makeHouseholder and applyHouseholderOnTheLeft, whose projection is a GemvProduct for a block and an InnerProduct for a vector"
+  },
+  {
+   "path": "Eigen/src/Core/Redux.h",
+   "sha256": "5a470b786f9d69d91b78a8df7905dcc10aad6fc6d988e6403fb0b665413baf4f",
+   "role": "redux_impl<LinearVectorizedTraversal, NoUnrolling>, the two-lane sum reproduced as eigen_sum"
+  },
+  {
+   "path": "Eigen/src/Core/InnerProduct.h",
+   "sha256": "a411232b298d3c4bda47caaeb65caeb9119238d25440109505aa4b31c5a35109",
+   "role": "inner_product_impl, the four-accumulator dot product reproduced as eigen_dot"
+  },
+  {
+   "path": "Eigen/src/Core/products/GeneralMatrixVector.h",
+   "sha256": "f6586e9fe134f4622c1e2b364b541ae1bd9bd10707b4d9c3a010d44b146a321b",
+   "role": "row-major general_matrix_vector_product, reproduced as eigen_gemv_row"
+  },
+  {
+   "path": "Eigen/src/Core/products/TriangularSolverVector.h",
+   "sha256": "05a4eae5215a890d34d09861d8af35e7a0af621339c3a771af9d08243e8fefdb",
+   "role": "the three triangular vector solvers"
+  },
+  {
+   "path": "Eigen/src/Core/StableNorm.h",
+   "sha256": "15293bfe200748b84ff2c9acc8ae4c03e8ccee991d2f3baf9b0e852ed356dbe2",
+   "role": "stable_norm_impl and its 4096-coefficient blocks"
+  },
+  {
+   "path": "Eigen/src/Core/util/Macros.h",
+   "sha256": "11b6bb8f172be235e46573c99fdd6482b5fac6c6f12434a3d85392851aa01819",
+   "role": "EIGEN_SCALAR_MADD_USE_FMA, fixed before the FMA detection runs, which is why the scalar tails are unfused on both platforms"
+  },
+  {
+   "path": "Eigen/src/Core/arch/NEON/PacketMath.h",
+   "sha256": "41f22358ac91a36906a9f5e98c5e0cfa8bbc261e85ceb5f01f5a6ba30cc7bd51",
+   "role": "pmadd<Packet2d> = vfmaq_f64 when EIGEN_VECTORIZE_FMA is defined, which __ARM_FEATURE_FMA always defines on arm64"
+  }
+ ],
+ "context_sources_note": "Eigen 5.0.1 headers, cited for the arithmetic the port reproduces; none is ported. The sha256 values are those of both installations, which are byte-identical for every header on this path (run.sh compares them).",
+ "native_implementation": [
+  "src/math/fitters/levenberg_marquardt.rs"
+ ],
+ "native_tests": [
+  "tests/lm_eigen_path_differential.rs"
+ ],
+ "support_document": "docs/DISTRIBUTION_FITTERS_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/lm_eigen_path_differential/review_problems.txt",
+   "sha256": "0ceea550e2f883dbe42cee2b2570d37ed5e342913695ae61d2d8583011639c04",
+   "role": "the 79 GaussTraceFitter problems of the B4-GAUSS review, with the start vector from product-SDK setInitialParameters_"
+  },
+  {
+   "path": "tests/data/lm_eigen_path_differential/outcomes.txt",
+   "sha256": "d28dcf87d389bf7c2ef6d0ff3c8dc277030c7ec7d530822dbe1f82a6fa0648fb",
+   "role": "status, nfev, njev, final parameters, evaluation count, FNV-1a 64 digest of the evaluation path and the start residual norm, per oracle build and problem, plus the library fits"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/lm_budget_differential/c2_trace_fits.txt",
+   "sha256": "4005de179948448d8d2658f344b8baa0cea807d6e7c49dcc9c3e54af7c0cdd96",
+   "role": "the 62 C2 trace-fit problems (traces, weights, start vectors); this group reads only the problem definitions, not the budget sweep"
+  }
+ ],
+ "oracle": {
+  "path": "../oracle/lm-eigen-path",
+  "manifest": "../oracle/lm-eigen-path/manifest.json",
+  "manifest_sha256": "85a47331209eb019e7b99f01724f18c3c6263a4b7792893612e0470c6f3d0403",
+  "platforms": {
+   "linux-x86_64-release": {
+    "role": "benchmark and production reference; the fixture's asserted oracle on Linux x86_64 glibc",
+    "prefix": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+    "toolchain": "x86_64-conda-linux-gnu-c++ (conda-forge gcc 14.4.0-4) 14.4.0; ldd (Ubuntu GLIBC 2.39-0ubuntu8.9) 2.39; model name\t: AMD EPYC 7763 64-Core Processor",
+    "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -Wall -Wextra -Wno-unknown-pragmas -ffp-contract=off -Wno-unused-function -Wno-psabi -Wno-non-virtual-dtor -fopenmp (compile_commands.json, TraceFitter.cpp)"
+   },
+   "macos-arm64-sdk": {
+    "role": "correctness oracle; Eigen fuses its packet multiply-adds here, which the port does not model (open decision)",
+    "sdk": "product-sdk, Debug build of core 4fdec46",
+    "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+    "toolchain": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "flags": "-std=c++23 -O0 -ffp-contract=off (the SDK is Debug; compiler_flags.cmake adds -ffp-contract=off)"
+   },
+   "macos-arm64-nofma": {
+    "role": "experiment, not a shipped configuration: the SDK configuration with __ARM_FEATURE_FMA hidden from Eigen; the fixture's asserted oracle on macOS arm64"
+   }
+  },
+  "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<sdk>/share/OpenMS/4.0.0, per-run cwd, perl alarm",
+  "debug_only": "none: every record comes from a completed minimize",
+  "toolchain_note": "The macOS stage was built with Apple clang 21.0.0 (clang-2100.1.1.101) from Xcode; re-running it with the Command Line Tools clang (clang-2100.3.34.2) reproduces results/macos/stock.out byte for byte.",
+  "manifest_note": "manifest.json carries a created_utc stamp, so re-running make_manifest.py changes this hash; the file hashes it records do not."
+ },
+ "comparison": {
+  "asserted": "bit equality of status, nfev, njev, every parameter of x and the FNV-1a 64 digest of every residual-evaluation argument, with NaN equal to NaN",
+  "linux_x86_64_release": "141 of 141 fits, measured on the gate node dax",
+  "macos_arm64_nofma": "141 of 141 fits, measured locally on macOS arm64",
+  "macos_arm64_sdk": "21 of 141 fits; the gap is Eigen's fused arm64 lanes and is measured by the ignored macos_arm64_sdk_gap_report",
+  "libm": "the residuals call exp, so each expectation is asserted only on the platform whose libm the oracle linked (cfg(target_os/target_arch/target_env)); the start residual norm is compared first and reports a different libm as such"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/lm-eigen-path/run.sh",
+   "sha256": "428f7045ef2ad9585bd71d8f3c9786ba7d310b3d39c12a5c405eeefa99cec476",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/driver.cpp",
+   "sha256": "0acb65329eb0bc9ab34e72238cc9616691ec9b09dfb80cf32af592e031d65b9e",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/lm_traced.h",
+   "sha256": "dad3a62004edf73edb859c597d36de5d34efbfa956ecb95bf5dbb245cc06fe70",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/problems.h",
+   "sha256": "a24d64f4fc1c10caa1bf698539b83e52f6384edbf31bcf61c4e35c559575526e",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/nofma_prelude.h",
+   "sha256": "9d6f730142f50f1bc6a30785bf94306b62396810c2259027c68bfb54761baa69",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/c2_problems.py",
+   "sha256": "b754d5dace52782d7a43c1ee21c5b1f9be723ddf5747b7c85de1674dc44a4ba9",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/check_libfit.py",
+   "sha256": "1e1e4c0569d2d3d5c196f68d18c964fef801c1470ce11efb931e3cf04ca3a112",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/make_fixture.py",
+   "sha256": "12e934fb4f93c15b597a1b83e01202cb809316dedc509a2e1591e1c3a6d69b83",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/make_manifest.py",
+   "sha256": "0de48f07212175954e29d6167174c518f13541c1556e4b8ad375d0b5e9f166df",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/inputs/review_cases.tsv",
+   "sha256": "272fdacaa089e488c3e628ef47998502607dc796aa5008094fd21a3232914ccf",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/lm-eigen-path/inputs/review_gen_cases.py",
+   "sha256": "f6ebd96785cac1e75f2c7a267fd7c63226ab354b8d6fa09ce29597e9e1cbdae9",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "No C++ is committed here. The driver, the traced Eigen replica, the written-out functors, the case table and the generators live under ../oracle/lm-eigen-path; their sha256 values are recorded so the fixture can be regenerated and audited, and ../oracle/lm-eigen-path/manifest.json hashes every build, result and Eigen header of both platforms.",
+ "target_verification": [
+  "OPENMS_GATE_HOST=dax openms-kim-gate.sh b3b-lm test --locked --no-default-features --test lm_eigen_path_differential",
+  "OPENMS_GATE_HOST=dax openms-kim-gate.sh b3b-lm +1.85.0 test --locked --no-default-features --test lm_eigen_path_differential",
+  "bash ../oracle/lm-eigen-path/run.sh  (regenerates both fixture files; every C++ mode runs twice and is byte-compared)"
+ ]
+}

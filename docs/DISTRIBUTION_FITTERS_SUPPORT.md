@@ -15,9 +15,12 @@ header of its own: it reproduces the `Eigen::LevenbergMarquardt` the four
 `.cpp` files call. `src/math/mod.rs` and `src/math/fitters/mod.rs` are the new
 domain roots. Tests are `tests/math_distribution_fitters.rs`,
 `tests/lm_budget_differential.rs` (the solver's evaluation budget against the
-C2 oracle, §5 and §8) and the `#[cfg(test)]` modules inside each source file;
-the manifests are `tests/data/distribution_fitters_provenance.json` and
-`tests/data/lm_budget_differential_provenance.json`.
+C2 oracle, §5 and §8), `tests/lm_eigen_path_differential.rs` (the solver's
+evaluation path against the executed Eigen on both reference platforms, §1 and
+§5) and the `#[cfg(test)]` modules inside each source file; the manifests are
+`tests/data/distribution_fitters_provenance.json`,
+`tests/data/lm_budget_differential_provenance.json` and
+`tests/data/lm_eigen_path_differential_provenance.json`.
 
 The four headers and their implementations are 928 physical lines (385 of
 header, 543 of implementation) and their class tests carry 25 `START_SECTION`
@@ -140,20 +143,96 @@ reference and is now transcribed and tested
 (`stable_norm_guards_the_reciprocal_at_both_ends_of_the_range`). No published
 value changes.
 
-**One accumulation-order difference remains and is not correctable here.**
-Eigen's `squaredNorm()` and `dot()` are vectorized reductions: they accumulate
-into several SIMD lanes and combine at the end, so their summation order
-depends on the compiler, the target and the alignment of the data. This port
-accumulates sequentially. Every `squaredNorm()` and `dot()` on this path is
-affected: the QR's pivot column norms, the tail norm inside `makeHouseholder`,
-the scaled inner sum inside `stableNorm`, and the gradient dot product in
-`minimizeOneStep`. `blueNorm` is *not* affected - Eigen's `blueNorm_impl` is a
-scalar loop over the coefficients, which is what this port reproduces. The
-difference is at most one unit in the last place per reduction, it is not
-reproducible across builds of the C++ itself, and it is the leading candidate
-for the residual `4e-11` in the first `GaussFitter` case. Matching it would mean
-guessing a particular Eigen build's vector width, which would be a worse kind of
-infidelity.
+### Arithmetic order: Eigen's reduction kernels (package B3b-LM-FIDELITY)
+
+An earlier revision of this section said the vectorized accumulation order of
+`squaredNorm()` and `dot()` was "not correctable here", because matching it
+would mean guessing a build's vector width. That was wrong on both counts, and
+the port now reproduces it.
+
+**What was measured.** `../oracle/lm-eigen-path` traces every intermediate of
+Eigen 5.0.1's `minimizeOneStep`, `lmpar2`, `qrsolv` and
+`ColPivHouseholderQR::computeInPlace` (a traced copy, checked equal to the
+stock class on every case) around the library's own trace functors, for 141
+trace fits: the 62 C2 fits of §5 and the 79 inputs of the B4-GAUSS review. An
+instrumented copy of this module dumps the same quantities. The first
+diverging quantity, per fit, before any change:
+
+| First divergence | Fits | Eigen operation | This port, before |
+|---|---|---|---|
+| QR column norms and Householder projections | 64 | `col.norm()` = `sqrt(squaredNorm())`, a `redux` over two-lane packets; `essential.adjoint() * bottom`, the row-major matrix-vector kernel (two `pmadd` lanes), or `dot()` for a one-column block | sequential sums |
+| start residual norm | 60 | `stableNorm`'s `(bl * invScale).squaredNorm()` | sequential sum |
+| `Q^T f` | 7 | `dot()` in `applyHouseholderOnTheLeft` for a vector, Eigen 5's `inner_product_impl` (four two-lane accumulators) | sequential sum |
+| predicted reduction | 4 | `wa3.noalias() = R * p` resizes `wa3` to the Jacobian's `m` rows, so `wa3.stableNorm()` reduces `m` coefficients with `m - n` zeros | norm over `n` coefficients |
+| Gauss-Newton step | 2 | `triangularView<Upper>().solveInPlace` on column-major `R`: divide the pivot, subtract the column | row-wise back substitution |
+| scaled `x` norm | 1 | `stableNorm` of an all-NaN vector (`review/huge_rt`) | returned 0 |
+| none | 3 | identical traces | |
+
+Every reduction on this path is fixed by the packet width, not guessed:
+`find_best_packet` gives `Packet2d` on both reference builds - NEON on arm64,
+and SSE on x86_64, where `cmake/compiler_flags.cmake` passes `-mssse3` and
+explicitly no AVX because "AVX's 256-bit reductions change Eigen's
+floating-point evaluation order". Alignment does not enter: every reduced
+expression lacks direct access, so `redux` starts its packets at index 0, and
+the inner-product and matrix-vector kernels load unaligned. `blueNorm` is a
+scalar loop and was already right.
+
+**What changed.** `levenberg_marquardt.rs` now carries Eigen's kernels:
+`eigen_sum` (`Redux.h:275-322`), `eigen_squared_norm` (`Dot.h:21-27`),
+`eigen_dot` (`InnerProduct.h:117-172`), `eigen_gemv_row`
+(`GeneralMatrixVector.h:298-462`) and the three triangular vector solvers
+(`TriangularSolverVector.h`), each used exactly where Eigen dispatches to it,
+and `wa3`'s norm runs over `m` coefficients. The same tracing also found three
+places that were wrong on every platform, all NaN-only:
+
+* `do { ... } while (ratio < 1e-4)` had been transcribed as "break if
+  `ratio >= 1e-4`", so a NaN ratio retried inside the step instead of
+  re-evaluating the Jacobian (`review/inf_rt_first`: `njev` 1 against Eigen's
+  499);
+* `(std::min)`/`(std::max)` had been written `f64::min`/`f64::max`, which drop a
+  NaN that `a < b ? b : a` keeps (`std_min`, `std_max`);
+* `maxCoeff` seeds with the first coefficient, so a leading NaN is the scale of
+  `stableNorm` and the norm is NaN, where the port returned 0.
+
+**Result.** For all 141 fits, every residual-evaluation argument, the final
+parameters, the status, `nfev` and `njev` are bit-identical to Eigen as the
+Linux x86_64 Release build compiles it (gcc 14.4 `-O3 -mssse3
+-ffp-contract=off`), and the final parameters equal that build's
+`GaussTraceFitter::fit`/`EGHTraceFitter::fit` in 141 of 141
+(`tests/lm_eigen_path_differential.rs`). NaN is compared as NaN: rustc and
+Eigen both leave NaN sign bits unspecified, and `review/inf_rt_first` differs
+from the C++ only in those.
+
+### The platform split: FMA in Eigen's arm64 kernels (decision pending)
+
+The C++ itself does not give one answer. `-ffp-contract=off`, which both
+library builds use, is not what decides it: Eigen 5 defines
+`EIGEN_VECTORIZE_FMA` from `__ARM_FEATURE_FMA`, which every arm64 target has,
+and then implements the packet `pmadd` as `vfmaq_f64`, a fused multiply-add,
+in the inner-product and matrix-vector kernels. The product SDK's
+`libOpenMS.dylib` contains the instruction (`fmla` in
+`Eigen::internal::pmadd<Packet2d>`, which the Debug build's kernels call). The
+scalar tails stay unfused on both platforms: `EIGEN_SCALAR_MADD_USE_FMA` is fixed in `Macros.h`
+before the FMA detection runs. On x86_64 with `-mssse3` there is no FMA.
+
+The port's lane helper, `lane_madd`, does not fuse. Measured (analysis
+`../oracle/lm-eigen-path/results/matrix.txt`; "paths" counts fits whose every
+evaluation argument, final `x`, status, `nfev` and `njev` are bit-identical):
+
+| Rust solver | macOS arm64 SDK (NEON + FMA) | macOS arm64, FMA hidden from Eigen | macOS arm64, clang default contraction | Linux x86_64 Release |
+|---|---|---|---|---|
+| before (integrate/wave2) | 8 paths, 21 final `x`, 25 beyond `1e-9`, 3 statuses differ | 8 paths | 8 paths | 8 paths, 24 final `x`, 1 status differs |
+| after, unfused lanes (committed) | 21 paths, 45 final `x`, 24 beyond `1e-9`, 1 status differs | **141 paths** | 18 paths | **141 paths** |
+| after, fused lanes (measured, not committed) | **141 paths** | 21 paths | 18 paths | 21 paths |
+
+`-O2` against `-O0` changes nothing; `-ffp-contract=on` (Apple clang's
+default) and `=fast` fuse scalar expressions too and match no model, but no
+library build uses them. Which of the three the port should follow - the Linux
+Release build (the benchmark and production reference), the macOS SDK (the
+correctness oracle), or each platform's own Eigen, fusing on `aarch64` only -
+is recorded as an open decision; until it is taken the committed code keeps the
+unfused lanes it always had, so this package changes no platform behaviour on
+that axis.
 
 ---
 
@@ -455,6 +534,20 @@ Each is documented at the Rust item as well.
   and its diagonal. The port copies the block. The arithmetic is identical; the
   allocation is `m/n` times smaller, which matters because `m` is the number of
   observations.
+* **Eigen's arm64 FMA lanes are not fused.** On arm64 Eigen fuses the packet
+  multiply-adds of its inner-product and matrix-vector kernels; the port's
+  `lane_madd` computes `a * b + c` on every target, which is what Eigen does on
+  the x86_64 builds. The consequence and the pending decision are in §1.
+* **Single-panel triangular solves.** Eigen's triangular vector solvers work in
+  panels of `EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH = 16` and hand the rows outside
+  the current panel to a matrix-vector kernel. The port implements the
+  one-panel form, exact for up to 16 parameters; every OpenMS caller has two to
+  four.
+* **NaN sign and payload are not reproduced.** Eigen's vectorized `maxCoeff`
+  reduces a NaN with `vmaxvq_f64` on NEON and `_mm_max_pd` on SSE, and rustc,
+  like the C++ compilers, does not preserve NaN sign bits through arithmetic.
+  The port reproduces *whether* a quantity is NaN; the evaluation-path fixture
+  compares NaN as NaN.
 * **Bounded work.** The C++ has no ceiling. `preflight_points` rejects more than
   `MAX_POINTS = 1_000_000` observations, and a dense Jacobian above
   `MAX_BYTES = 64 MiB`, before anything is allocated.
@@ -549,13 +642,27 @@ recorded budget. At every `max_fev` from 1 to 500, for the eight
 of the 25 `FeatureFinderCentroided_1` seeds and four degenerate inputs, the
 Eigen status, `nfev` and `njev` are reproduced exactly: 29,004 budgets, 0
 differences. The fitted parameters agree within `1e-9` relative with a `1e-12`
-absolute floor; the largest relative difference is `6.4e-10` (seeds 10, 12
-and 20, Gauss), and the floor is used only by the EGH class-test `tau`, whose
-true value is zero and which differs by at most `1.01e-15`. The oracle ran on
-macOS arm64 and the tests on Linux x86_64, so these are cross-platform numbers;
-bit identity on the oracle's own platform was not measured. The class-test
+absolute floor; the largest relative difference is `1.83e-10` (seeds 10, 12
+and 20, Gauss `sigma`; `6.4e-10` before package B3b-LM-FIDELITY), and the floor
+is used only by the EGH class-test `tau`, whose true value is zero and which
+differs by at most `1.01e-15`. The oracle ran on macOS arm64 and the tests on
+Linux x86_64, so these are cross-platform numbers: the residuals use a different
+`exp`, and the oracle's Eigen fuses its multiply-add lanes (§1). The class-test
 residuals and Jacobians at the start vectors are bit-identical on the gate
 node. See §8.
+
+**Tier 1 for the solver's arithmetic.** `tests/lm_eigen_path_differential.rs`
+compares every residual-evaluation argument, the final parameters, the status,
+`nfev` and `njev` of 141 trace fits with `../oracle/lm-eigen-path`: stock
+`Eigen::LevenbergMarquardt` around the libraries' own functors, whose final
+parameters equal the libraries' `fit()` in 141 of 141 fits on both platforms.
+On Linux x86_64 with glibc the port must reproduce the Release build exactly
+(141 of 141, measured on the gate node); on macOS arm64 it must reproduce the
+SDK configuration with Eigen's FMA lanes disabled (141 of 141, measured
+locally). Against the SDK itself 21 of 141 paths are identical; an ignored test
+measures that gap. Each expectation is checked only where the oracle's libm is
+linked, and the start residual norm is compared first, so a platform with a
+different `exp` fails with that diagnosis rather than as a path difference.
 
 **Tier 4 for the budget rule on the four fitters.**
 `distribution_fitter_budgets_follow_eigen_accounting` sweeps `max_fev` 1..500
@@ -573,15 +680,15 @@ OpenMS's defaults are `1e-5` for both.
 
 | Case | Expected | Obtained | Deviation | C++ tolerance |
 |---|---|---|---|---|
-| `GaussFitter::fit` case 1, `A` | `1.01898275662372` | `1.0189827566259613` | `2.2e-12` rel | default |
-| `GaussFitter::fit` case 1, `x0` | `0.300612870901173` | `0.30061287090144295` | `9.0e-13` rel | default |
-| `GaussFitter::fit` case 1, `sigma` | `0.136316330927453` | `0.13631633092189843` | `4.1e-11` rel | default |
+| `GaussFitter::fit` case 1, `A` | `1.01898275662372` | `1.0189827566246255` | `8.9e-13` rel | default |
+| `GaussFitter::fit` case 1, `x0` | `0.300612870901173` | `0.3006128709012973` | `4.1e-13` rel | default |
+| `GaussFitter::fit` case 1, `sigma` | `0.136316330927453` | `0.13631633092503673` | `1.8e-11` rel | default |
 | `GaussFitter::fit` case 2, `A` | `175011.893006749` | `175011.8930067491` | `6.7e-16` rel | default |
 | `GaussFitter::fit` case 2, `x0` | `240.1007246725147` | `240.1007246725147` | exact | default |
-| `GaussFitter::fit` case 2, `sigma` | `0.00046642320683761701` | `0.00046642320683761495` | `4.4e-15` rel | default |
+| `GaussFitter::fit` case 2, `sigma` | `0.00046642320683761701` | `0.0004664232068376172` | `3.5e-16` rel | default |
 | `GaussFitter::eval`, 7 points | see test | all seven | **exact, 7 of 7** | default |
-| `GammaDistributionFitter::fit`, `b` | `7.25` | `7.2527011185365495` | `2.7e-3` abs | `0.01` abs |
-| `GammaDistributionFitter::fit`, `p` | `3.11` | `3.1168754039854303` | `6.9e-3` abs | `0.01` abs |
+| `GammaDistributionFitter::fit`, `b` | `7.25` | `7.252701118536551` | `2.7e-3` abs | `0.01` abs |
+| `GammaDistributionFitter::fit`, `p` | `3.11` | `3.1168754039854307` | `6.9e-3` abs | `0.01` abs |
 | `GumbelDistributionFitter::fit` case 1, `a` | `0.5` | `0.5015861406501456` | `1.6e-3` abs | `0.1` abs |
 | `GumbelDistributionFitter::fit` case 1, `b` | `2.0` | `1.9973893576789812` | `2.6e-3` abs | `0.1` abs |
 | `GumbelDistributionFitter::fit` case 2, `a` | `1.0` | `0.9955965893616037` | `4.4e-3` abs | `0.1` abs |
@@ -596,7 +703,7 @@ and maximum-likelihood rows are *not* measurements of the port against the C++:
 their expected values are the parameters the data were generated from, rounded
 to two or three digits, so the deviations above are dominated by the fit itself.
 Only the two `GaussFitter` cases and `GaussFitter::eval` publish the numbers the
-C++ actually produced, and those are the rows that read exact to `4e-11`.
+C++ actually produced, and those are the rows that read exact to `2e-11`.
 
 The `GaussFitter` rows are the real fidelity measurement. `eval` is now exact
 on all seven points, which is the strongest statement available anywhere in this
@@ -604,10 +711,10 @@ group: a closed-form expression with no iteration reproduces the C++ bit for
 bit. Case 2 starts from a guess already close to its optimum and agrees to
 within a few units in the last place. Case 1 starts at `x0 = 3.0` and travels to
 `x0 = 0.3` across an order of magnitude more residual evaluations and agrees to
-`4e-11`.
+`1.8e-11` (`4.1e-11` before Eigen's reduction kernels were reproduced, §1).
 
-**What the `4e-11` is, and what it is not.** Two candidate explanations were
-tested rather than asserted:
+**What the remaining `1.8e-11` is, and what it is not.** Candidate explanations
+were tested rather than asserted:
 
 * It is *not* the `lmpar` association deviation described in §1. Correcting
   that moved case 1 by at most `1.7e-13` relative, more than two orders of
@@ -615,9 +722,13 @@ tested rather than asserted:
 * It is *not* the density divisor corrected in §3: `fit` never calls
   `normal_pdf`. Only `eval` does, and `eval` is now exact.
 
-Two candidates remain: the vectorized accumulation order of Eigen's
-`squaredNorm` and `dot` (§1), and the `exp` implementation - the Gaussian
-residual and its Jacobian call nothing else transcendental. Both produce
+* It is only partly the vectorized accumulation order of Eigen's reductions:
+  reproducing that order (§1) took the deviation from `4.1e-11` to `1.8e-11`.
+
+What remains is the build that printed the class test's literals, which is not
+recorded - its Eigen version, its SIMD width and whether it fused (§1) - and the
+`exp` implementation: the Gaussian residual and its Jacobian call nothing else
+transcendental. Both produce
 last-place differences in the *iterates*, which this case amplifies: it is the
 only case that travels a long way across a non-convex surface, and §1's measured
 "one ulp in, 810 ulp out" for a deliberately injected one-ulp change is a direct
@@ -641,8 +752,8 @@ document now rests on a check that cannot be re-run from this repository.
 
 | Case | Asserted | Measured deviation | Headroom |
 |---|---|---|---|
-| `GaussFitter::fit` case 1 | `1e-9` | `4.1e-11` | 24x |
-| `GaussFitter::fit` case 2 | `1e-11` | `4.4e-15` | 2,200x |
+| `GaussFitter::fit` case 1 | `1e-9` | `1.8e-11` | 56x |
+| `GaussFitter::fit` case 2 | `1e-11` | `6.7e-16` | 15,000x |
 | `GaussFitter::eval` and `GaussFitResult::eval` | `1e-14` | `0` (bit-exact) | ~45 units in the last place |
 
 Every one of these is tighter than the class test's own `1e-5`, and the
@@ -840,32 +951,37 @@ the gate: `cargo test --test lm_budget_differential -- --ignored --nocapture`.
 
 Gate node dax (Linux x86_64), debug and release builds identical:
 
+Re-measured on dax after package B3b-LM-FIDELITY reproduced Eigen's reduction
+kernels (§1), which moved the transcription and therefore both clauses that
+compare against it. The candidate itself is unchanged.
+
 | Clause of acceptance 5 | Trace fits against C2 (62 problems, 29,004 budgets) | Distribution fits against the transcription (16 problems, 8,000 budgets) |
 |---|---|---|
 | status, nfev, njev identical | 29,003; fails on `degenerate/flat3_gauss` | 8,000 |
-| `x` within `1e-12` of the transcription | 18,497 | 5,467 |
-| otherwise no further from C2 than the transcription | 6,696 more | not decidable: no C++ sweep |
-| `x` clause fails | **3,811**, 9 of them at budget 500 | 2,533 beyond `1e-12` |
+| `x` within `1e-12` of the transcription | 20,372 (was 18,497) | 5,155 (was 5,467) |
+| otherwise no further from C2 than the transcription | 5 more (was 6,696) | not decidable: no C++ sweep |
+| `x` clause fails | **8,627** (was 3,811), 19 of them at budget 500 | 2,845 beyond `1e-12` |
 
-The failures at budget 500, the fits the tool actually reports:
+The clause now fails more often not because the candidate moved but because the
+transcription is closer to C2 than before, so "no further from C2 than the
+transcription" is a harder test to pass. The failures at budget 500, the fits
+the tool actually reports (largest relative difference over the parameters):
 
 | Problem | Candidate vs transcription | Candidate vs C2 | Transcription vs C2 |
 |---|---|---|---|
 | `classtest/gauss_theo_0.4_0.6_weighted` | `1.1e-12` | `2.5e-12` | `1.4e-12` |
-| `classtest/gauss_theo_0.4_0.6_unweighted` | `5.3e-12` | `2.8e-12` | `2.5e-12` |
-| `classtest/egh_theo_0.8_0.2_weighted` | `tau` only, `3.5e-4` of `3.9e-15` | `2.5e-2` | `2.5e-2` |
-| `ffc1/seed10`, `seed12`, `seed20` (Gauss) | `1.6e-9` | `2.2e-9` | `6.4e-10` |
-| `ffc1/seed17` (Gauss) | `1.5e-12` | `7.3e-12` | `5.9e-12` |
-| `ffc1/seed24` (Gauss) | `5.4e-12` | `5.0e-12` | `3.9e-13` |
-| `degenerate/flat3_gauss` | status 4 after 24 evaluations | sigma `5.5e7` | status 2 after 16, sigma `1.08e5` |
+| `classtest/gauss_theo_0.4_0.6_unweighted` | `1.6e-12` | `2.8e-12` | `1.3e-12` |
+| `classtest/egh_*` (4 fits) | `tau` only, `4.0e-4` to `4.7e-2` of a `~4e-15` value | up to `9.1e-2` | up to `4.6e-2` |
+| `ffc1/seed10`, `seed12`, `seed20` (Gauss) | `2.0e-9` | `2.2e-9` | `1.8e-10` |
+| `ffc1/seed03`, `05`, `11`, `22` (Gauss) | `1.1e-11` | `1.1e-11` | bit-identical |
+| `ffc1/seed06`, `07`, `15`, `17`, `23` (Gauss) | `1.0e-12` to `3.6e-12` | up to `7.3e-12` | up to `5.2e-12` |
+| `degenerate/flat3_gauss` | status 4 after 24 evaluations | sigma `5.5e7` | status 2 after 16, bit-identical |
 
-All figures are the largest relative difference over the parameters. The
-distribution fits at budget 500 differ from the transcription by up to
-`4.0e-11` (Gauss from `(0.5, -1, 2)`), `1.0e-11` (the published Gauss case)
-and `2.4e-7` (the maximum-likelihood fit, whose forward-difference Jacobian
-amplifies last-place differences). On the one published C++ Gauss case the
-candidate is marginally closer to the published digits than the transcription
-(`A` `1.7e-12` against `2.2e-12` absolute).
+Four `FeatureFinderCentroided_1` Gauss fits and the degenerate one are now
+bit-identical between the transcription and C2 and were not before, which is
+what the third column records. On the one published C++ Gauss case the
+transcription is now the closer of the two (`A` `9.1e-13` absolute against the
+candidate's `1.7e-12`; it was `2.2e-12` before §1).
 
 **The degenerate case.** Three equal intensities per trace make sigma grow
 without bound. The two paths agree, up to last-place differences, for 14
@@ -907,11 +1023,14 @@ MINPACK constants (`epsmch = 2.22044604926e-16`, `enorm` thresholds
 | Same results on every machine | yes as far as the crate goes: scalar code, `libm` |
 
 **Speed.** In a release build on dax, the 62 trace fits at budget 500 repeated
-200 times take 1.51 s with the transcription and 1.20 s with the candidate,
-about 122 and 97 microseconds per fit including the residual and Jacobian
-work. The transcription allocates short-lived vectors inside every iteration
-(column norms, the QR copy, `lmpar` workspaces); removing those allocations
-would not change its arithmetic and is the way to close that gap.
+200 times take 1.24 s with the transcription and 1.07 s with the candidate,
+about 100 and 87 microseconds per fit including the residual and Jacobian
+work. The transcription was at 1.51 s when the candidate was measured; the
+kernels of §1 read the Jacobian and the QR factor through index closures
+instead of copying columns into short-lived vectors, which removed one
+allocation per column per iteration and one per reflector. What is left is the
+QR copy and the `lmpar` workspaces; removing those would not change the
+arithmetic either.
 
 ### Consequences
 

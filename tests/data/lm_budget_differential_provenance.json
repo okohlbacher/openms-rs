@@ -109,17 +109,18 @@
  },
  "comparison": {
   "status_nfev_njev": "exact at every budget",
-  "x": "relative 1e-9 with an absolute floor of 1e-12 (docs/DIFFERENTIAL_VALIDATION.md per-group rule; the oracle is macOS arm64, the gate Linux x86_64). Measured on dax: largest relative difference 6.4e-10 (FFC_1 seeds 10, 12, 20, Gauss); the floor is used only by the EGH class-test tau (true value zero, about 4e-15, largest difference 1.01e-15)",
+  "x": "relative 1e-9 with an absolute floor of 1e-12 (docs/DIFFERENTIAL_VALIDATION.md per-group rule; the oracle is macOS arm64, the gate Linux x86_64). Measured on dax: largest relative difference 1.83e-10 (6.4e-10 before package B3b-LM-FIDELITY reproduced Eigen\u2019s reduction kernels) (FFC_1 seeds 10, 12, 20, Gauss); the floor is used only by the EGH class-test tau (true value zero, about 4e-15, largest difference 1.01e-15)",
   "start_evaluations": "class-test residuals and Jacobians bit-identical on dax; FFC_1 start residual norms within 5.4e-16 relative (Eigen's vectorized stableNorm)"
  },
  "crate_gate": {
   "candidate": "levenberg-marquardt =0.14.0 with nalgebra =0.33.3 (default-features = false, alloc + libm), adapter with exact Eigen maxfev emulation, minpack-compat off",
   "result": "failed",
   "accounting": "status, nfev and njev equal C2 at 29,003 of 29,004 trace budgets (not degenerate/flat3_gauss: status 4 after 24 evaluations against Eigen's status 2 after 16, consistent with the crate's exact-zero rank against Eigen's thresholded rank) and the transcription at all 8,000 distribution budgets",
-  "x_clause": "3,811 of 29,004 trace budgets neither within 1e-12 relative of the transcription nor no further from C2, 9 of them at budget 500 (FFC_1 seeds 10, 12, 20: candidate 2.2e-9 from C2 against the transcription's 6.4e-10); 2,533 of 8,000 distribution budgets beyond 1e-12 of the transcription with no C++ sweep to decide the other clause",
+  "x_clause": "8,627 of 29,004 trace budgets neither within 1e-12 relative of the transcription nor no further from C2, 19 of them at budget 500 (FFC_1 seeds 10, 12, 20: candidate 2.2e-9 from C2 against the transcription's 1.8e-10); 2,845 of 8,000 distribution budgets beyond 1e-12 of the transcription, with no C++ sweep to decide them. Re-measured on dax after B3b-LM-FIDELITY; the candidate is unchanged and the counts moved because the transcription is closer to C2 than before (B3-LM measured 3,811 and 2,533).",
   "minpack_compat": "not closer: 3,811 trace budgets fail again and the degenerate fit still differs",
   "feature_graph": "cargo tree -e features --all-features: nalgebra alloc and libm only, simba libm, no matrixmultiply",
-  "speed": "release, dax: 62 trace fits at budget 500 x 200 take 1.51 s (transcription) and 1.20 s (candidate)"
+  "speed": "release, dax: 62 trace fits at budget 500 x 200 take 1.51 s (transcription) and 1.20 s (candidate)",
+  "re_measured": "package B3b-LM-FIDELITY, gate host dax, debug and release identical; release timing 1.24 s transcription against 1.07 s candidate for 200 x 62 fits (was 1.51 s and 1.20 s)"
  },
  "external_reference_artifacts": [
   {
