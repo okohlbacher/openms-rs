@@ -22,7 +22,9 @@ should expect the limits under [Work bounds](#work-bounds) to stop some searches
 Boost answers, and should report the error rather than treat it as no match: in
 particular a positive lookahead used as a filter, such as `(?=[A-Z]*K)[A-Z]+R`,
 can exhaust the budget on a few kilobytes, because the engine backtracks into
-lookahead bodies.
+lookahead bodies. Such a consumer should also expect `Unsupported` for the
+constructs under [Refused constructs](#refused-constructs), for example a
+backreference inside the group it refers to.
 
 ## API mapping
 
@@ -154,8 +156,11 @@ compared case.
   `a{3,2}` is an error. A repeated lookaround is tried at most once.
 - **Escapes.** `\xH`, `\xHH` and `\x{H...}` up to `0x7F`; `\a \e \f \n \r \t`;
   punctuation escapes are literals. A backreference `\1`-`\9` must name an
-  existing group, which may come later in the pattern. `(?=)` and `(?>)` are
-  errors; `(?!)` and an empty lookbehind are accepted.
+  existing group, which may come later in the pattern; one inside the group it
+  names is refused (below). A backreference to a group that did not take part
+  fails, and one under `icase` compares ASCII letters without case and every
+  byte above `0x7F` exactly. `(?=)` and `(?>)` are errors; `(?!)` and an empty
+  lookbehind are accepted.
 
 ## Native differences
 
@@ -176,6 +181,51 @@ one pass per call (per `tokens` iterator) and memory of about eleven bytes per
 haystack byte, three for the transcoded character and eight for the offset table:
 one search over 16 MB of `0xFF` peaks at 195 MB resident, against 19 MB for 16 MB
 of ASCII (measured, release build, aarch64 macOS).
+
+### Engine rewrites
+
+Before compiling an expression, the engine crates rewrite some shapes into forms
+that match the same strings but choose among them differently. Boost, like Perl,
+takes the first match in the order its backtracking tries them (leftmost-first),
+and reports the captures of that match; the rewritten forms give other answers.
+The third round's fuzzing found three rewrites in `fancy-regex` 0.19.2's optimizer
+and one in `regex-syntax` 0.8.11:
+
+| Rewrite | Shape | Example: engine before this round / Boost |
+| --- | --- | --- |
+| `optimize_ambiguous_concat_repeats` | `X+Y?X+` and `X+Y*X+` become `X+(?:Y{1}X+)?`, which also matches a single `X`; related shapes become `(?:X*Y{1})?X+` and `X+(?:YX*)*` | `\w{1,}b?\w{1,}` on `a`: match `0..1` / no match; `(?:a+(?:ba*)?)+$` on `abba`: `0..4` / `3..4` |
+| `optimize_nested_repeats`, repeat of a group holding one repeat | `(X+)+` becomes `(X+)`, also when a backreference reads the group | `(.{1,})+\1+` on `abb`: `1..3` / `0..3` with group 1 at `1..2` |
+| `optimize_nested_repeats`, without backreferences | `(X)*` whose body is one unbounded repeat becomes `(X)?`, which captures differently when that repeat is lazy | `(\w+?)*?(?<=b)` matched against all of `ab`: group 1 at `0..2` / `1..2` |
+| `Hir::alternation` (`lift_common_prefix`), automaton only | `XA\|XB` becomes `X(?:A\|B)` when every branch is a concatenation, which tries `B` before the other ways of matching `X` with `A` | `[ab]+b\|[ab]+c` on `abbc`: `0..4` / `0..3`; `\w+?a{1,3}?\|\w{1,}?()` on `aba`: `0..1` / `0..3` |
+
+The facade spells its translation so that none of them applies:
+
+- **Alternations on the automaton.** The plain spelling, which the engine hands to
+  `regex-automata` through a `regex-syntax` HIR, ends every alternation outside a
+  lookaround with a branch that matches no haystack character
+  (`[^\x00-\x7F\x{E080}-\x{E0FF}]`). A branch that is not a concatenation stops
+  the prefix factoring, and a branch that never matches changes no answer. The
+  counted spelling runs on the backtracking machine, which keeps the order of its
+  branches, and a lookaround only asks whether its body matches, which the
+  factoring does not change; neither gets the branch (a lookbehind's branches must
+  also keep one width).
+- **Repeats the optimizer rewrites.** Every translation is parsed with the engine's
+  parser and passed through the engine's own `optimize` (with an empty node
+  appended to the root, so that only the trailing-lookahead rewrite described
+  under [Work bounds](#work-bounds) is left out). If the tree changes, the
+  expression is translated again with every unbounded or optional repeat (`*`,
+  `+`, `?`, `{n,}`, greedy or lazy) written as `(?:X*|[^...])`, an alternation with
+  the same never-matching branch, which none of the rewrites matches. If the tree
+  still changes, the expression is refused; no expression of the corpus or the
+  fuzzing is. Only the program the engine will run is checked: the plain spelling
+  when the expression needs no backtracking, and the counted spelling always.
+
+Both spellings cost little: the guard branch is tried once each time the
+alternation fails, a shielded repeat costs one backtracking branch per pass, and
+each adds one atom to the automaton count. Shielding is rare; in the full corpus
+before this round's grids, only `(?:a?)?b`, `(?:a?){0,1}b` and `(?=a*a*a*)b` needed
+it, and the last now exhausts the budget at 66 `a` instead of 68 (see below). The
+check adds parsing time to construction (see [Construction cost](#construction-cost)).
 
 ### Refused constructs
 
@@ -199,7 +249,8 @@ bounded are explained under [Work bounds](#work-bounds) and
 | non-ASCII pattern bytes outside comments, and `\x` escapes above `0x7F` | a pattern byte above `0x7F` would have to split a UTF-8 character; on platforms where `char` is unsigned Boost also accepts `\x{80}`-`\x{FF}`, on signed-`char` platforms it rejects them |
 | a capturing group inside a lookaround or an atomic group | Boost runs these as independent sub-matches and does not restore captures made inside them when the surrounding match backtracks past them: `(?!(a))b` or a failed branch after `(?>...()...)` leaves the group set. `fancy-regex` restores them. |
 | a repeat allowing more than one repetition of a group that can match empty and captures | Boost records a final empty iteration: `(a*)+` on `"a"` gives group 1 = `1,1`, `fancy-regex` gives `0,1` |
-| a repeat allowing more than one iteration (`*`, `+`, `{n,}`, and `{n}` or `{n,m}` above 1, greedy or lazy) of a group that can match the empty string, and a bounded one (`{n}`, `{n,m}` above 1) of a backreference that can | Boost ends a repeat as soon as an iteration matches the empty string, even below the minimum: it accepts the iteration and takes the exit (`repeater_count::check_null_repeat`, `perl_matcher::match_rep`). The engine differs either way. A bounded repeat iterates to its bound: `(?:\b\|a){2}b` matches `ab` in the engine and not in Boost, and `(?:a{0}\b){999999999}` ran for 16.9 s on one byte. An unbounded one (`RepeatEpsilon`) fails the empty iteration and backtracks into the group's other alternatives: `(?:b?\|a)*` on `ba` matches `0..2` in the engine and `0..1` in Boost, `(?:(?:a\|b?)*?)+b` on `abab` `0..4` and `0..2`. A backreference matches the same text in every iteration, so its unbounded repeats agree and are translated |
+| a repeat allowing more than one iteration (`*`, `+`, `{n,}`, and `{n}` or `{n,m}` above 1, greedy or lazy) of a group that can match the empty string, and a bounded one (`{n}`, `{n,m}` above 1) of a backreference that can | Boost ends a repeat as soon as an iteration matches the empty string, even below the minimum: it accepts the iteration and takes the exit (`repeater_count::check_null_repeat`, `perl_matcher::match_rep`). The engine differs either way. A bounded repeat iterates to its bound: `(?:\b\|a){2}b` matches `ab` in the engine and not in Boost, and `(?:a{0}\b){999999999}` ran for 16.9 s on one byte. An unbounded one (`RepeatEpsilon`) fails the empty iteration and backtracks into the group's other alternatives: `(?:b?\|a)*` on `ba` matches `0..2` in the engine and `0..1` in Boost, `(?:(?:a\|b?)*?)+b` on `abab` `0..4` and `0..2`. A backreference to a group that is closed where the backreference stands matches the same text in every iteration of its own repeat, so its unbounded repeats agree and are translated (a backreference inside its group is refused, next row) |
+| a backreference inside the group it refers to, such as `(a\|\1b)x`, `(a)(b\|\2a)x` or `(?:(a\|\1b)c)+` | Boost saves a group's span when the group starts, sets only its start, and restores the saved span only when the match backtracks past that start (`perl_matcher::match_startmark`, `match_results::set_first`). A backreference inside the group therefore compares against what an abandoned attempt left: the span of an alternative that matched and failed later, so `(a\|\1b)x` matches all of `abx` and `(a\|\1a)b` all of `aab`; or, in a later iteration, the range from the new start to the previous end, which is empty when the iterations are adjacent (`(a\|b\1)+` matches all of `ab`) and never matches otherwise. `fancy-regex` treats the group as unset in the first case (no match, `1..3`) and in the second slices the haystack from the new start to the previous end, which panicked on `(?:(a\|\1b)c)+` and `acbc` |
 | a repeat of a group that only asserts positions, such as `(?:$)+` | Boost never matches `(?:$)+` at all |
 | a repeat of a modifier group that switches case sensitivity, such as `(?i)+a` | Boost undoes the switch when the empty repetition is abandoned, so `a` stays case-sensitive |
 | a repeat allowing more than one repetition inside an atomic group or a negative lookaround, such as `(?>a+)b`, `(?!.*x)` or `(?<!(?=.*b)a)` | work bound: the engine discards the backtracking branches pushed there without counting them |
@@ -211,7 +262,7 @@ None of these constructs occurs in a pinned OpenMS expression: every family
 derived from the OpenMS sources compiles in full. How often each was hit in the
 corpus is under Evidence. A translation the engine itself refuses would be
 `Unsupported` too; no corpus pattern is. (`(?:(?:a{999}){999}){999}`, whose
-automaton the engine refused before this round, is now searched on the
+automaton the engine refused before the second round, is searched on the
 backtracking machine, see [Work bounds](#work-bounds).)
 
 ### Work bounds
@@ -230,6 +281,8 @@ took 276 s to fail over 1 MB of `a` (Boost: 33.5 s). The facade therefore counts
 the *atoms* of every expression: its one-byte atoms, assertions and
 backreferences with every repeat written out, a repeat multiplying the atoms of
 what it repeats by its maximum, or by its minimum (at least 1) when unbounded.
+The branch that guards an alternation and the extra branch of a shielded repeat
+(see [Engine rewrites](#engine-rewrites)) count as one atom each.
 `\w{0,9999}b` has 10,000, the largest expression of the pinned sources that needs
 no backtracking (`TransitionGroupPicker:PeakPickerChromatogram:(.+)`) 46. A search
 runs on the automaton only when the expression has at most
@@ -238,7 +291,8 @@ runs on the automaton only when the expression has at most
 other search runs on the backtracking machine with the counted spelling, where the
 budget bounds it. So an automaton search does at most about 2.7 × 10⁸ atom steps
 up to 4 MiB, and 64 per byte beyond. Measured with expressions that defeat the
-lazy DFA, at each tier's limit, over random `a`/`b` haystacks:
+lazy DFA, at each tier's limit, over random `a`/`b` haystacks (as recorded in the
+second round, on a less loaded machine than the transcoded rows below):
 
 | Expression | Atoms | Haystack | Search |
 | --- | ---: | --- | ---: |
@@ -252,6 +306,41 @@ lazy DFA, at each tier's limit, over random `a`/`b` haystacks:
 | `(?:.{0,6}a){0,9}c` | 64 | 16 MiB | 6.63 s, no match |
 | `a.{0,2047}a.{0,2047}c` (one atom more) | 4,097 | 64 KiB | 10 ms, budget |
 | `a.{0,511}a.{0,511}c` (one atom more) | 1,025 | 256 KiB | 40 ms, budget |
+
+An atom step is not a fixed amount of time. A haystack byte above `0x7F` is three
+bytes of the transcoded haystack the engine searches, and a class that accepts such
+bytes (`.`, `\W`, `[^b]`) is several automaton states, so the same expressions over
+haystacks with such bytes are slower. Measured this round, release build, the same
+machine for every row (so the `a`/`b` rows, repeated from the table above, show its
+speed against the second round's):
+
+| Expression | Atoms | Haystack | Search |
+| --- | ---: | --- | ---: |
+| `a.{0,2046}a.{0,2046}c` | 4,095 | 64 KiB, random `a`/`b` | 2.72 s, no match |
+| `a.{0,2046}a.{0,2046}c` | 4,095 | 64 KiB, random `a`/`0xE9` | 4.51 s, no match |
+| `(?:.{0,10}a){0,372}c` | 4,093 | 64 KiB, random `a`/`0xE9` | 3.59 s, no match |
+| `.{0,4095}b` | 4,096 | 64 KiB of `a` | 3.53 s, no match |
+| `.{0,4095}b` | 4,096 | 64 KiB of `0xE9` | 7.63 s, no match |
+| `[^b]{0,4095}c` | 4,096 | 64 KiB of `0xE9` | 7.72 s, no match |
+| `\W{0,4095}b` | 4,096 | 64 KiB of `0xE9` | 8.17 s, no match |
+| `a.{0,510}a.{0,510}c` | 1,023 | 256 KiB, random `a`/`0xE9` | 4.82 s, no match |
+| `(?:.{0,10}a){0,93}c` | 1,024 | 256 KiB, random `a`/`0xE9` | 3.97 s, no match |
+| `a.{0,126}a.{0,126}c` | 255 | 1 MiB, random `a`/`0xE9` | 3.81 s, no match |
+| `(?:.{0,10}a){0,23}c` | 254 | 1 MiB, random `a`/`0xE9` | 3.58 s, no match |
+| `a.{0,30}a.{0,30}c` | 63 | 16 MiB, random `a`/`0xE9` | 15.7 s, no match |
+| `(?:.{0,6}a){0,9}c` | 64 | 16 MiB, random `a`/`b` | 10.7 s, no match |
+| `(?:.{0,6}a){0,9}c` | 64 | 16 MiB, random `a`/`0xE9` | 17.3 s, no match |
+
+So bytes above `0x7F` make an automaton search up to about twice as slow at the same
+atom count; the ceilings above scale accordingly. Boost 1.92 stops the 64 KiB
+searches with `error_complexity` after 79 ms.
+
+The bound is per search. A token iterator runs one search per match, each with its
+own bound (as each has its own budget, below), so a whole iteration may take the
+bound once per match: `a.{0,2045}a.{0,2046}c|a` (4,096 atoms, on the automaton) over
+4 KiB of random `a`/`b` yields 2,073 tokens in 44 s, where Boost yields the same
+2,073 tokens in 1.0 s; with one atom more (`a.{0,2046}a.{0,2046}c|a`) the first
+search runs on the backtracking machine and stops with the budget after 15 ms.
 
 An expression the lazy DFA handles is much faster at the same size (`\w{0,4094}b`
 over the same 64 KiB: 0.9 ms, match). The review's slow cases, at c93fefd, now, and in Boost 1.92
@@ -286,7 +375,8 @@ may take `backtrack_limit × s` steps, where `s` is the smallest of 1, 4, 16 and
 beyond. `fancy-regex` fixes a budget when it compiles a program, so the programs
 for a larger budget, and for the automaton limit that goes with it, are compiled
 the first time a haystack needs them and kept. Each search of a token iterator
-has its own budget, scaled by the whole haystack.
+has its own budget, scaled by the whole haystack, and its own automaton bound, so
+an iteration's total work is the bound of one search times the number of matches.
 
 **The stack is fixed.** Every greedy iteration followed by something that needs
 backtracking pushes one branch, and the stack holds 1,000,000, so such a run fails
@@ -355,7 +445,7 @@ Measured, with the longest haystack that still answers:
 | Expression | Haystack | 854d996 | Now (as c93fefd) | Boost | Now answers up to |
 | --- | --- | --- | --- | --- | ---: |
 | `(?=(?:a\|aa)*)b` | `a` × 60, `c` | 0.02 ms, no match | 14 ms, budget | 0.06 ms, no match | 23 `a` |
-| `(?=a*a*a*)b` | `a` × 300, `c` | 0.09 ms, no match | 16 ms, budget | 0.05 ms, no match | 67 `a` |
+| `(?=a*a*a*)b` | `a` × 300, `c` | 0.09 ms, no match | 16 ms, budget | 0.05 ms, no match | 65 `a` (67 before its repeats were shielded) |
 | `(?=.*a).*b` | `a` × 4,000 | 9.8 ms, no match | 8.5 ms, budget | 0.02 ms, no match | 142 bytes |
 | `(?=[A-Z]*K)[A-Z]+R` | `A` × 12,000 | 19 ms, no match | 13 ms, budget | 57 ms, no match | 1,411 bytes |
 
@@ -420,7 +510,12 @@ answered on the automaton at 4,013 atoms), the next four 2.1 s (the same
 
 The translation is longer than the pattern: a `^` becomes 40 bytes, a `$` 39, a
 `.` 6, a literal 4 and a case-insensitive letter 9; the counted spelling adds 13
-bytes per counted repeat, 4 per positive lookahead and 12 in all. The engine
+bytes per counted repeat, 4 per positive lookahead and 12 in all; the plain spelling
+adds 28 bytes per alternation outside lookarounds; and a translation with shielded
+repeats (see [Engine rewrites](#engine-rewrites)) adds 32 per unbounded or optional
+repeat. `MAX_TRANSLATED_BYTES` applies to both spellings. Before compiling,
+construction parses the one or two translations the engine will run and passes them
+through the engine's optimizer. The engine
 compiles three programs per budget (search, full match, and the non-empty retry of
 the token iterator) and holds an automaton per lookaround and per run of
 sub-expressions it delegates, so memory grows with the translation; an expression
@@ -429,22 +524,28 @@ atoms. `MAX_TRANSLATED_BYTES` (512 KiB) caps the translation, and
 `MAX_AUTOMATON_ATOMS` the automaton: an expression with more atoms is compiled only
 for the backtracking machine, whose program grows with the translation, not with
 the repeat bounds. Peak resident set size of constructing one expression near the
-caps, release build:
+caps, release build, measured this round on one machine for commit cf594ef and for
+this change:
 
-| Pattern | Pattern bytes | Construction | Peak RSS |
+| Pattern | Pattern bytes | Construction, cf594ef / now | Peak RSS, cf594ef / now |
 | --- | ---: | ---: | ---: |
-| `^` × 12,190 | 12,190 | 58 ms | 67 MB |
-| `^a\|` × 11,000 then `b` | 33,001 | 69 ms | 86 MB |
-| `a` × 58,252, `icase` (the longest that fits) | 58,252 | 42 ms | 25 MB |
-| `a` × 65,536 | 65,536 | 17 ms | 18 MB |
-| `(?<=a)` × 10,922 | 65,532 | 7 ms | 18 MB |
-| `^` × 12,190, then one search over 5 MB (scaled programs compiled) | 12,190 | 56 ms | 102 MB |
-| `a` × 65,536, then one search over 5 MB of `a` | 65,536 | 14 ms | 24 MB |
+| `^` × 12,190 | 12,190 | 87 ms / 105 ms | 65 MB / 77 MB |
+| `^a\|` × 11,000 then `b` | 33,001 | 100 ms / 125 ms | 82 MB / 97 MB |
+| `a` × 58,252, `icase` (the longest that fits) | 58,252 | 60 ms / 89 ms | 26 MB / 32 MB |
+| `a` × 65,536 | 65,536 | 22 ms / 39 ms | 18 MB / 27 MB |
+| `(?<=a)` × 10,922 | 65,532 | 10 ms / 14 ms | 18 MB / 20 MB |
+| `^` × 12,190, then one search over 5 MB (scaled programs compiled) | 12,190 | 162 ms / 185 ms in all | 98 MB / 111 MB |
+| `a` × 65,536, then one search over 5 MB of `a` | 65,536 | 41 ms / 57 ms in all | 27 MB / 32 MB |
+
+The difference is the parse and optimizer pass over the translation. In the second
+round, on a less loaded machine, the first five constructions took 58, 69, 42, 17 and
+7 ms.
 
 `a` × 58,253 with `icase` translates to more than 512 KiB and is refused before
 the engine sees it. At c93fefd the 65,536-atom literal was compiled as an automaton
-too (37 MB) and took 10 s to find its match at the start of 5 MB of `a`; it now
-runs on the backtracking machine and takes 12 ms.
+too (37 MB) and took 10 s to find its match at the start of 5 MB of `a`; since the
+second round it runs on the backtracking machine (12 ms then, 18 ms on this round's
+machine).
 
 ### Other differences
 
@@ -457,6 +558,11 @@ runs on the backtracking machine and takes 12 ms.
   compiled) numbers its groups differently from the pattern. After the
   zero-repeat translation (`(?:X|(?!)){0}`, which keeps the groups of `X{0}`), no
   corpus pattern hits it.
+- **Optimizer safety net.** Construction fails with `Unsupported` ("a shape the
+  engine's optimizer rewrites") if the engine's optimizer still rewrites the
+  translation after its repeats were shielded (see
+  [Engine rewrites](#engine-rewrites)). No pattern of the corpus or of the fuzzing
+  hits it.
 - **Name hashing.** Boost looks names up by a hash and would conflate two names
   with the same hash; the facade compares names.
 - **Speed.** Expressions on the backtracking engine are slower than Boost (above).
@@ -477,10 +583,10 @@ runs on the backtracking machine and takes 12 ms.
 `/opt/homebrew/include`), `gen.py` (deterministic, seed 20260913, reads the pinned
 checkout), `build.sh <checkout or worktree>` (builds the driver, regenerates both
 corpora, runs Boost and copies the fixture pair into `tests/data`) and
-`refusals.py`. The manifest records their sha256, the Boost headers' sha256 and the
-full corpus's sha256. Rerunning `gen.py` in a scratch directory, with a driver
-built there from `driver.cpp`, reproduced both corpora and both Boost outputs byte
-for byte.
+`refusals.py`, plus `fuzz.py` for the random expressions described below. The
+manifest records their sha256, the Boost headers' sha256 and the full corpus's
+sha256. Rerunning `gen.py` in a scratch directory, with a driver built there from
+`driver.cpp`, reproduced both corpora and both Boost outputs byte for byte.
 
 The driver uses OpenMS's call shapes: construction with `perl` plus `icase` and
 `no_mod_s`, `regex_search` and `regex_match` into an `smatch`, named lookups, and
@@ -500,33 +606,40 @@ and it finds no pattern Boost rejects that the rules would accept.
 
 | | Patterns | Corpus cases | Boost answers | Compared by the facade | Mismatches |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Full corpus (`../oracle/boost-regex/corpus_full.txt`) | 39,690 | 3,742,129 | 3,398,823 | 2,185,378 | 0 |
-| Committed fixture (`tests/data/boost_regex_corpus.txt`) | 2,142 | 199,344 | 174,471 | 147,830 | 0 |
+| Full corpus (`../oracle/boost-regex/corpus_full.txt`) | 67,916 | 5,835,215 | 5,465,701 | 3,617,851 | 0 |
+| Committed fixture (`tests/data/boost_regex_corpus.txt`) | 2,196 | 201,985 | 177,112 | 149,462 | 0 |
 
 Boost answers every case of a pattern it compiles; compared cases exclude the
-patterns the facade refuses. The fixture keeps every pattern except the two
-systematic probe grids `UNB` and `LEAD` of the full corpus, every fixed input
-(edge, structured and source-derived) and every run except extra operations marked
-full-only, and cuts seeded random inputs to a prefix per input set. It is 1,007,508
-bytes (260,222 corpus and 747,286 Boost output). A scratch build with
-`MAX_AUTOMATON_ATOMS` set to 0, which searches every pattern with the counted
-spelling on the backtracking machine, also compares all 2,185,378 cases of the
-full corpus with 0 mismatches.
+patterns the facade refuses. The fixture keeps every pattern except the systematic
+probe grids of the full corpus (`UNB`, `LEAD`, the `BR` grids, `OPTNEST`, `OPTCAT`
+and `ALTPFX`), every fixed input (edge, structured and source-derived) and every
+run except extra operations marked full-only, and cuts seeded random inputs to a
+prefix per input set. It is 1,025,321 bytes (264,816 corpus and 760,505 Boost
+output). A scratch build with `MAX_AUTOMATON_ATOMS` set to 0, which searches every
+pattern with the counted spelling on the backtracking machine, also compares all
+3,617,851 cases of the full corpus with 0 mismatches.
+
+Commit cf594ef, the previous round, run over the same full corpus in the same
+harness, refuses 24,547 patterns, compares 3,747,420 cases and gives 10,206
+different answers, 1,969 of them panics: 3,258 in `BROPEN` and the rest in
+`ALTPFX` (4,168), `OPTCAT` (1,681), `OPTNEST` (704) and `ADV` (395). Over the
+fixture it gives 149 different answers, 8 of them panics.
 
 Per family in the committed fixture (the families other than `SYN`, `ADV` and
 `FUZZ` come from OpenMS sources; `ADV` holds the probes of both independent
-reviews and of the work bounds):
+reviews and of the work bounds, and the third review's backreference and
+engine-rewrite probes):
 
 | Family | Patterns | Refused by the facade | Refused by both | Compared cases |
 | --- | ---: | ---: | ---: | ---: |
-| `ADV` | 325 | 102 | 9 | 7,837 |
+| `ADV` | 379 | 118 | 9 | 9,686 |
 | `ANNOT` | 4 | 0 | 0 | 1,188 |
 | `CHROM` | 12 | 0 | 0 | 1,344 |
 | `CLASS` | 24 | 0 | 0 | 2,768 |
 | `DECOY` | 2 | 0 | 0 | 516 |
 | `ENZ` | 30 | 0 | 0 | 17,269 |
 | `FRAG` | 1 | 0 | 0 | 338 |
-| `FUZZ` | 1,111 | 215 | 422 | 7,584 |
+| `FUZZ` | 1,111 | 220 | 422 | 7,504 |
 | `IDX` | 1 | 0 | 0 | 231 |
 | `LOOKUP` | 1 | 0 | 0 | 628 |
 | `MRM` | 5 | 0 | 0 | 615 |
@@ -536,7 +649,7 @@ reviews and of the work bounds):
 | `PEPXML` | 1 | 0 | 0 | 171 |
 | `PERCOUT` | 3 | 0 | 0 | 354 |
 | `RNA` | 17 | 0 | 0 | 6,395 |
-| `SYN` | 578 | 86 | 79 | 94,024 |
+| `SYN` | 578 | 87 | 79 | 93,887 |
 | `TITLE` | 3 | 0 | 0 | 918 |
 
 The `ADV` family covers: bounded repeats of groups and backreferences that can
@@ -551,10 +664,15 @@ spanning non-letters, with and without `icase` and inline `(?i)`; bracket
 expressions with several negated classes; repeat bounds as `toi` reads them (signs,
 leading zeros, overflow); empty group names and non-ASCII comments; sets that match
 nothing or every byte; repeats inside atomic groups and negative lookarounds and
-their allowed neighbours; lookbehind widths at 255 and 256; and the counted
-spelling of expressions that need backtracking.
+their allowed neighbours; lookbehind widths at 255 and 256; the counted
+spelling of expressions that need backtracking; backreferences inside the group they
+refer to (refused: the third review's examples and the shape on which the engine
+panicked) beside backreferences to closed, later, unset, repeated, duplicate-named,
+zero-repeated and case-insensitive groups and into lookarounds and atomic groups
+(compared, over inputs with bytes above `0x7F`); and the expressions the engines'
+rewrites answered differently (compared).
 
-The full corpus adds two grids. `UNB` (19,183 patterns, the second review's probe)
+The full corpus adds grids. `UNB` (19,183 patterns, the second review's probe)
 repeats every body of two nullable or non-nullable parts, concatenated or
 alternated, with `*`, `+`, `*?`, `+?`, `{1,}` and `{0,}`, before four suffixes,
 over 19 inputs with search, full match and tokens: 15,346 refused, 218,709 cases
@@ -562,10 +680,42 @@ compared. `LEAD` (18,365 patterns) puts eight atoms under ten greedy, lazy, boun
 and unbounded quantifiers before ten followers, inside twenty prefixes and wrappers
 (anchors, lookarounds, alternations before and after, capturing and non-capturing
 groups, case-changing and case-keeping flag groups, a quantified lookahead, a
-trailing backreference), with and without `icase`: 2,506 refused, 570,924 cases
-compared. Over the full corpus the facade refuses 18,255 patterns: 14,843 for a
-repeat of a group that can match the empty string and 2,533 for a leading lazy
-repeat among them.
+trailing backreference), with and without `icase`: 2,506 refused, 573,294 cases
+compared (the count includes the `BRLEAD` patterns that coincide with `LEAD`'s).
+
+The third round adds grids of backreference siblings. Each puts eight group bodies
+(`a`, `ab`, `a?`, `a*`, `a|b`, `ab|a`, `a|`, `a+?`) under seven quantifiers on the
+backreference (none, `?`, `*`, `+`, `{2}`, `*?`, `{0,2}`) before three suffixes, in the
+templates of its family, over 26 inputs with search, full match and the token
+iterator (-1), unless the row says otherwise; patterns shared with an earlier grid
+are counted there:
+
+| Family | Templates | Patterns | Refused | Refused by both | Compared cases |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `BROPEN` | a backreference inside the group it refers to (`(X\|\1Qb)`, `(\1Qb\|X)`, `(X\1Q)`, `((X)\|\1Q)`, `(X)(b\|\2Qa)`, `(?:(X\|\1Qb)c)+` and 7 more) beside closed-group neighbours (`((X)\2Q)`, `(X)\1Q`, `(?:(X)\|b)\1Q`, `(?:x\|(a)(?:X\|\1Q))`, `((X)\|\2Qb)x`) | 3,003 | 2,246 | 0 | 74,274 |
+| `BRFWD` | a backreference to a later group (`\1Q(X)`, `(?:\1Qx\|(X))+`, `(\2Qa\|(b))` and 5 more) | 1,195 | 761 | 0 | 42,042 |
+| `BRUNSET` | a backreference to a group unset in the current alternative (`(?:(X)\|b)\1Q`, `(X)?\1Q`, `(?:(X)\|b\1Q)+` and 7 more) | 1,510 | 327 | 0 | 100,542 |
+| `BRREP` | groups under `+`, `*`, `{2}` and `*?`, then backreferenced (`(X)R\1Q`, `((X)\|b)R\2Q`, `(?:(X)b\|ac)R\1Q` and 3 more) | 3,863 | 1,269 | 0 | 202,566 |
+| `BRLOOK` | backreferences in lookaheads, lookbehinds (nested lookarounds included) and atomic groups, and groups in them (`(X)(?=\1Q)`, `(X)(?>\1Q)b`, `(X)(?<=(?=\1Q).)`, `(?>(X))\1Q` and 19 more) | 3,802 | 1,603 | 335 | 146,562 |
+| `BRDUP` | repeated group names with numbered backreferences (`(?<n>X)\|(?<n>b)\2Q`, `(?<n>X)(?<n>\1Qb)` and 7 more), with named lookups | 1,510 | 201 | 0 | 102,102 |
+| `BRZERO` | groups repeated `{0}` or `{0,0}`, then backreferenced (6 templates) | 1,007 | 108 | 0 | 70,122 |
+| `BRNULL` | eight bodies that can match empty (`a?`, `\|a`, empty, `a{0}`, `\b`, `(?=a)` ...) under six quantifiers in 9 templates (`(X)\1Q`, `(X)(?:\1b)Q`, `(?:(X)\1)Q` ...) | 1,212 | 420 | 0 | 61,776 |
+| `BRICASE` | 11 atoms under 5 quantifiers in 7 templates mixing `icase`, `(?i)`, `(?-i)` and `(?i:...)` around the group and the backreference, with and without the `icase` flag, over 29 inputs of case pairs and bytes above `0x7F` (`é`/`É`, `ß`, `ı`/`İ`, `ſ`, Kelvin sign, Cyrillic), with search and tokens | 758 | 14 | 0 | 43,152 |
+| `BRLEAD` | four atoms under five lazy quantifiers before four followers in 10 templates with backreferences (`R F(a)\1`, `()R F\1`, `(R)F\1` ...), with and without `icase`, over 15 inputs with search and tokens (0) | 1,480 | 0 | 0 | 45,600 |
+
+And grids of the shapes the engines' rewrites changed (see
+[Engine rewrites](#engine-rewrites)): `OPTNEST` (1,824 patterns) repeats a group
+holding one repeat, `(?:XI)O` and `(XI)O` for four atoms, eight inner and seven
+outer quantifiers and four suffixes, plus `(XI)O\1`: 636 refused, 92,664 cases
+compared. `OPTCAT` (3,316) puts seven edge repeats around seven optional middles
+(`XMY`, `(?:XM(?:x|Y))`) and repeats `(?:P(?:MR)?)`: 144 refused, 211,744 compared.
+`ALTPFX` (3,692) gives the branches of an alternation a common prefix, 11 prefixes
+and 8 tails in six templates: 144 refused, 234,168 compared.
+
+Over the full corpus the facade refuses 26,150 patterns: 15,585 for a repeat of
+more than one iteration of a group that can match the empty string, 2,533 for a
+leading lazy repeat and 2,371 for a backreference inside the group it refers to
+among them.
 
 Adversarial inputs in every family: the empty string, `\n`, `\r`, `\r\n`, `\f`,
 `\v`, tab, space, NUL, `\n\r`, `\r\r\n`, `\f\n`, `\r\f`, `é`, lone `0xFF`, `0xC3`,
@@ -576,14 +726,15 @@ Refusals over the whole corpus, by category (`refusals.py`, equal to the facade'
 
 | Construct | Patterns |
 | --- | ---: |
-| a repeat inside an atomic group or a negative lookaround | 95 |
+| a repeat inside an atomic group or a negative lookaround | 93 |
 | a capturing group inside a lookaround or atomic group | 85 |
 | a repeat of more than one iteration of a group that can match the empty string | 73 |
-| a repeat of a group that can match the empty string and captures | 28 |
+| a backreference inside the group it refers to | 29 |
 | a lazy repeat with a finite maximum of a one-byte atom that starts the expression | 27 |
+| a repeat of a group that can match the empty string and captures | 26 |
 | a repeat of a group that only asserts a position | 11 |
-| a counted repeat of a backreference that can match the empty string | 10 |
 | `\Z` | 7 |
+| a counted repeat of a backreference that can match the empty string | 7 |
 | an escape letter without a translated meaning | 7 |
 | a repeat whose shortest match is longer than `MAX_REPEAT` bytes | 5 |
 | `\Q...\E` quoting | 4 |
@@ -611,9 +762,37 @@ Refusals over the whole corpus, by category (`refusals.py`, equal to the facade'
 | a repeat bound above `MAX_REPEAT` | 1 |
 | the `x` (extended) modifier | 1 |
 
-188 of the 403 are probes outside `FUZZ`, listed one by one in
-`EXPECTED_UNSUPPORTED`; 215 are grammar-generated. The test asserts the list, these
-counts and the number of compared cases.
+205 of the 425 are probes outside `FUZZ`, listed one by one in
+`EXPECTED_UNSUPPORTED`; 220 are grammar-generated. The test asserts the list, these
+counts and the number of compared cases. The backreference refusal is new this
+round. Its 29 patterns are the 16 new probes, `(a\1)` from `SYN` and 5
+grammar-generated patterns that compiled before (and compared equal on the fixture's
+inputs), and 7 patterns another rule refused before, because the backreference now
+stops the translation first: `(a\1{2})` (a counted repeat of a backreference that
+can match empty) and 6 `FUZZ` patterns.
+
+**Random expressions.** `../oracle/boost-regex/fuzz.py <mode> <seed> <count>` writes
+expressions from one of three grammars, each run with search, full match and the
+token iterator (-1) over 34 short inputs, and the harness that includes
+`src/concept/boost_regex.rs` verbatim compared them with Boost and with
+`refusals.py`, which agreed with the facade on every refusal and category. A search
+that one side stops with its limit (Boost's `error_complexity`, the facade's
+budget) where the other answers is counted apart from a different answer:
+
+| Mode | Seeds and expressions | Refused | Compared cases | Different answers | Limit disagreements | cf594ef: different answers, of them panics |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `backref`: groups, lookarounds, atomic and flag groups, anchors, `\1`-`\3` as a quarter of the atoms | 1 (40,000), 2 to 5 (100,000 each) | 121,682 | 4,351,032 | 0 | 3, all the facade's budget | 19,954, 1,880 |
+| `repeat`: the same with lazy and `{2,}` quantifiers and 2% backreferences | 11 to 13 (100,000 each) | 123,620 | 12,575,304 | 0 | 14 (11 Boost's, 6 the facade's) | 5,585, 1,232 |
+| `easy`: no lookaround, anchor, atomic group or backreference, more alternation | 21 to 23 (100,000 each) | 123,513 | 22,237,362 | 0 | 165 (165 Boost's, 1 the facade's) | 464, 0 |
+
+The facade's budget errors are lookahead bodies the engine backtracks into (for
+example `((?=(?i:\w+|c+?)+\b|A??)a)+?b*(?!)|` on `aabbaabb`), described under
+[Work bounds](#work-bounds). The different answers at cf594ef were the backreferences
+inside their groups and the engine rewrites of this round. The fuzzing also found
+that `refusals.py` did not mirror one detail of the translator: a repeated
+lookaround that the facade spells as an optional group (`(?:(?<!\w)){0,}?`) no
+longer counts as a lone lookaround of the enclosing group; it does now, and no
+corpus pattern was affected.
 
 **Tier 1, transcribed.** `case_insensitive_ranges_follow_boost` and
 `negated_classes_are_complemented_together` assert Boost's compile outcomes and
@@ -629,6 +808,14 @@ give Boost's answers (`(?:b?|a)?` on `ba` matches `0..1`, `(b?)\1*a` on `bab`
 `0..2` with group 1 at `0..1`; `x|a{1,3}?\b`, `(?i)a{1,3}?\b` and
 `(?=x)?a{1,3}?\b` on `aaaa` match `1..4`, `a{1,2}?\b` `2..4`, `a{1,}?\b` and
 `(?:a{1,3}?)+\b` `0..4`, and `a{1,3}?\b(a)\1` does not match).
+`backreferences_inside_their_group_are_refused` and
+`engine_rewrites_keep_boost_answers` assert the third review's probes: every
+backreference inside its group is refused with its category within a watchdog, and
+the neighbours give Boost's answers (`((a)|\2b)x` on `abax` matches `2..4` with both
+groups at `2..3`, `(?:\1b|(a))+` on `aaab` `0..4` with group 1 at `1..2`, `(.)\1`
+under `icase` matches `aA` and not `éÉ`); `\w{1,}b?\w{1,}` does not match `a`,
+`(.{1,})+\1+` matches all of `abb` with group 1 at `1..2`, `(\w+?)*?(?<=b)` matched
+against all of `ab` captures `1..2`, and `[ab]+b|[ab]+c` finds `0..3` in `abbc`.
 
 **Tier 3.** `class_test_expressions` transcribes the regular-expression half of
 `SpectrumNativeIDParser_test`, `SpectrumLookup_test` and
@@ -653,6 +840,9 @@ give Boost's answers (`(?:b?|a)?` on `ba` matches `0..1`, `(b?)\1*a` on `bab`
   report a limit over 16 KiB within one.
 - `leading_lazy_repeats_are_refused`: the second review's leading lazy repeats
   are refused within a watchdog (see tier 1 above for the answers).
+- `backreferences_inside_their_group_are_refused`: the third review's
+  backreferences inside their groups, among them `(?:(a|\1b)c)+`, on which the engine
+  panicked, are refused within a watchdog.
 - `uncounted_engine_work_is_bounded`: each family above stops with the budget on
   16 KiB, or is refused, within a watchdog.
 - `large_automata_spend_the_budget`: `\w{0,9999}b` over 100 KB stops with the
@@ -679,6 +869,11 @@ Beyond the tests, a probe built with overflow checks and debug assertions
 constructed 200,018 random patterns with large nested bounds, lookarounds and
 backreferences, 9,010 of which compiled, and searched each of those over five short
 inputs with `regex_search`, `regex_match` and the token iterator, without a panic.
+This round the same probe, with `\3`, `|`, `(?:`, `+`, `{0,}?`, `{2,}`, named groups,
+`\k<n>`, `[^\s\S]`, `b?` and `a+` added to its pieces, constructed 200,000 patterns
+(8,660 compiled) and searched 30,000 (1,309 compiled) over short inputs and 70 KB,
+without a panic and with no operation slower than 0.5 s; the random-expression runs
+above found no panic either.
 
 **Determinism.** Results are integer offsets from exact matching, with no floating
 point. The budgets are fixed per haystack length and the engine's limits are
@@ -704,7 +899,20 @@ toolchain and Rust 1.85.0.
   iteration and backtracks into the group's other alternatives, where Perl and
   Boost accept it and leave the loop (`(?:b?|a)*` on `ba`);
 - positive lookaheads are not atomic, so a failing continuation backtracks into
-  the lookahead body.
+  the lookahead body;
+- a backreference inside its own group, in an iteration after the first, slices
+  the haystack from the group's new start to its previous end and panics when the
+  start is the larger (`vm.rs`, `Insn::Backref`; `(?:(a|\1b)c)+` on `acbc`);
+- the optimizer's `optimize_ambiguous_concat_repeats` turns `X+Y?X+` into
+  `X+(?:Y{1}X+)?`, which also matches one `X`, and `optimize_nested_repeats` turns
+  `(X+)+` into `(X+)` even when a backreference reads the group, and `(X)*` into
+  `(X)?`, which captures differently when `X` is a lazy repeat.
+
+In `regex-syntax` 0.8.11, which `fancy-regex` and `regex-automata` build their
+automata from: `Hir::alternation` factors a common prefix out of branches that are
+all concatenations (`lift_common_prefix`), which breaks leftmost-first priority
+when the prefix can match in several ways (`[ab]+b|[ab]+c` on `abbc` gives `0..4`
+in the `regex` crate as well, where Perl gives `0..3`).
 
 All are candidates for upstream reports.
 
@@ -724,4 +932,16 @@ the full corpus and the tests, and check in the new source:
   search, and `MAX_STACK` is still 1,000,000 with `RuntimeError::StackOverflow`
   (the message the facade maps it to, and the ceilings above);
 - the analyzer's shortest-match product (`MAX_REPEAT`), the lazy DFA's fallback to
-  the PikeVM (the automaton ceilings above) and `utf8_empty` in bytes mode.
+  the PikeVM (the automaton ceilings above) and `utf8_empty` in bytes mode;
+- the optimizer: the facade calls `fancy_regex::internal::optimize`,
+  `fancy_regex::internal::FLAG_UNICODE` and `Expr::parse_tree_with_flags`, which are
+  outside `fancy-regex`'s stable API, and relies on `RegexBuilder` parsing with only
+  the Unicode flag and on no optimizer pass matching an alternation where it matches
+  a repeat (`shields_repeats_the_optimizer_would_rewrite` fails if a shielded
+  spelling is rewritten again);
+- `regex-syntax`'s `Hir::alternation`: whether `lift_common_prefix` still needs
+  every branch to be a concatenation (`guards_alternations_on_the_automaton` checks
+  that the guard still changes the answer the factoring gives); and whether
+  `fancy-regex` still delegates only fixed-size runs, lookaround bodies and whole
+  expressions that need no backtracking to `regex-automata`, which is why the counted
+  spelling needs no guard.

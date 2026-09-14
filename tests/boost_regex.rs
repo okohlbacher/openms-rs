@@ -17,9 +17,9 @@
 //! facade: `../oracle/boost-regex/refusals.py` derives both from Boost's output and
 //! the refusal rules documented in `docs/BOOST_REGEX_SUPPORT.md`.
 //!
-//! The case-insensitive range, negated-class, nullable-repeat and leading-repeat
-//! tests are tier 1 as well, with Boost's answers transcribed from the same oracle
-//! output. The class-test section is tier 3 (literals transcribed from the pinned
+//! The case-insensitive range, negated-class, nullable-repeat, leading-repeat,
+//! open-group backreference and engine-rewrite tests are tier 1 as well, with
+//! Boost's answers transcribed from the same oracle output. The class-test section is tier 3 (literals transcribed from the pinned
 //! class tests); the limit, work-bound, error and robustness sections are tier 4.
 
 use openms::Error;
@@ -224,6 +224,7 @@ fn render(regex: &BoostRegex, op: &str, input: &[u8], names: &[String]) -> Strin
 /// construct.
 const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "((?=a))*"),
+    ("-", "((a)|\\1b)x"),
     ("-", "()*"),
     ("-", "()+"),
     ("-", "()a{1,3}?\\b"),
@@ -260,6 +261,8 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?:(?=a)|a){2}"),
     ("-", "(?:(?=a)|b){2}"),
     ("-", "(?:(?=b)|a)+"),
+    ("-", "(?:(a|\\1b)c)+"),
+    ("-", "(?:(a|b\\1)c)+"),
     ("-", "(?:)a{1,3}?\\b"),
     ("-", "(?:.{0,9999})*?b"),
     ("-", "(?:.{0,999})*?b"),
@@ -315,6 +318,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?<=a{256})b"),
     ("-", "(?<n-x>a)"),
     ("-", "(?<n>a)\\k<n>"),
+    ("-", "(?<n>a|\\1b)x"),
     ("-", "(?=(\\d+))\\d"),
     ("-", "(?=(a))*"),
     ("-", "(?=(a))*?b"),
@@ -333,10 +337,12 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(?s)a{1,3}?\\b"),
     ("-", "(?x)a b"),
     ("-", "(?|(a)|(b))"),
+    ("-", "(a(?=\\1))b"),
     ("-", "(a)(?(1)b|c)"),
     ("-", "(a)(?1)"),
     ("-", "(a)(?:\\1){2}"),
     ("-", "(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)\\10"),
+    ("-", "(a)(b|\\2a)x"),
     ("-", "(a)\\10"),
     ("-", "(a)\\g1"),
     ("-", "(a)\\g{-1}"),
@@ -345,10 +351,20 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "(a*)+"),
     ("-", "(a?)\\1{0,999999999}"),
     ("-", "(a?)\\1{2}"),
+    ("-", "(a?\\1*)\\b"),
+    ("-", "(a\\1)"),
+    ("-", "(a\\1?)+"),
     ("-", "(a\\1{2})"),
+    ("-", "(ab|\\1b)x"),
     ("-", "(a{1,3}?)\\b"),
     ("-", "(a{999999999})\\1{999999999}"),
     ("-", "(a|)\\1{1,3}b"),
+    ("-", "(a|\\1*)$"),
+    ("-", "(a|\\1+)b"),
+    ("-", "(a|\\1a)b"),
+    ("-", "(a|\\1b)x"),
+    ("-", "(a|b\\1)+"),
+    ("-", "(x|a|\\1\\1)b"),
     ("-", "(|a)*"),
     ("-", ".{1,3}?(?=b)"),
     ("-", ".{3,5}?\\b"),
@@ -409,6 +425,7 @@ const EXPECTED_UNSUPPORTED: &[(&str, &str)] = &[
     ("-", "a٣"),
     ("-", "é"),
     ("-", "é+"),
+    ("i", "(a|\\1b)x"),
     ("i", "[ab]{3,5}?(?!a)"),
     ("i", "a{1,3}?\\b"),
 ];
@@ -423,6 +440,10 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
         "\\Z (Boost never tries it at a form feed when it starts the expression)",
         7,
     ),
+    (
+        "a backreference inside the group it refers to (Boost compares the span an abandoned attempt at the group left)",
+        29,
+    ),
     ("a backreference with more than one digit", 2),
     ("a backtracking control verb", 2),
     ("a branch-reset group", 1),
@@ -436,7 +457,7 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
     ("a control-character escape", 3),
     (
         "a counted repeat of a backreference that can match the empty string (Boost ends a repeat after an empty iteration)",
-        10,
+        7,
     ),
     ("a group name outside [A-Za-z0-9_]", 1),
     ("a hexadecimal escape above 0x7F", 3),
@@ -453,11 +474,11 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
     ("a repeat bound above MAX_REPEAT", 1),
     (
         "a repeat inside an atomic group or a negative lookaround (the engine discards its work there without counting it)",
-        95,
+        93,
     ),
     (
         "a repeat of a group that can match the empty string and captures (Boost records a final empty iteration)",
-        28,
+        26,
     ),
     ("a repeat of a group that only asserts a position", 11),
     (
@@ -484,12 +505,13 @@ const EXPECTED_REFUSALS: &[(&str, usize)] = &[
 
 /// Cases compared against Boost: the fixture's size, so a truncated fixture fails
 /// (`refusals.py`).
-const EXPECTED_CASES: usize = 147_830;
+const EXPECTED_CASES: usize = 149_462;
 
 const NULLABLE_GROUP: &str = "a repeat of more than one iteration of a group that can match the empty string (Boost ends a repeat after an empty iteration)";
 const LEADING_LAZY: &str = "a lazy repeat with a finite maximum of a one-byte atom that starts the expression (Boost's leading-repeat optimization skips start positions)";
 const DISCARDED: &str = "a repeat inside an atomic group or a negative lookaround (the engine discards its work there without counting it)";
 const LONG_SHORTEST_MATCH: &str = "a repeat whose shortest match is longer than MAX_REPEAT bytes";
+const OPEN_GROUP_BACKREFERENCE: &str = "a backreference inside the group it refers to (Boost compares the span an abandoned attempt at the group left)";
 
 /// The construct an `Error::Unsupported` message names.
 fn refusal_category(message: &str) -> String {
@@ -1169,9 +1191,10 @@ fn nullable_group_repeats_are_refused_within_a_time_bound() {
         });
         assert_eq!(category, NULLABLE_GROUP, "{pattern:?}");
     }
-    // At most one iteration, a group that cannot match empty, or a backreference,
-    // which matches the same text in every iteration: compiled, with Boost's
-    // answers (transcribed from the oracle output for the `ADV` family).
+    // At most one iteration, a group that cannot match empty, or a backreference to
+    // a group that is not open, which matches the same text in every iteration:
+    // compiled, with Boost's answers (transcribed from the oracle output for the
+    // `ADV` family).
     // (pattern, haystack, Boost's groups of the match)
     type Case<'a> = (&'a str, &'a [u8], Option<Vec<Option<Range<usize>>>>);
     let cases: &[Case] = &[
@@ -1274,6 +1297,294 @@ fn leading_lazy_repeats_are_refused() {
             .unwrap()
             .map(|captures| captures.range());
         assert_eq!(&found, expected, "{pattern:?} on {haystack:?}");
+    }
+}
+
+/// The third review: Boost saves a group's span when the group starts and restores
+/// it only when the match backtracks past that start, so a backreference inside the
+/// group compares against what an abandoned alternative or iteration left
+/// (`perl_matcher::match_startmark`). Boost matches all of `abx` with `(a|\1b)x`,
+/// `aab` with `(a|\1a)b` and `abax` with `(a)(b|\2a)x`, where the engine found no
+/// match, `1..3` and no match; on `(?:(a|\1b)c)+` and `acbc` the engine panicked.
+/// Each is refused within a watchdog. Backreferences to closed, later, unset,
+/// repeated, duplicate-named, zero-repeated and case-insensitive groups, and into
+/// lookarounds and atomic groups, are compiled and give Boost's answers
+/// (transcribed from the oracle output for the `ADV` family).
+#[test]
+fn backreferences_inside_their_group_are_refused() {
+    let icase = RegexOptions {
+        icase: true,
+        ..RegexOptions::default()
+    };
+    let plain = RegexOptions::default();
+    for (options, pattern) in [
+        (plain, r"(a|\1b)x"),
+        (plain, r"(a|\1a)b"),
+        (plain, r"(a)(b|\2a)x"),
+        (plain, r"(ab|\1b)x"),
+        (plain, r"(x|a|\1\1)b"),
+        (plain, r"(a|\1+)b"),
+        (plain, r"(a|\1*)$"),
+        (plain, r"(a?\1*)\b"),
+        (plain, r"(?:(a|\1b)c)+"),
+        (plain, r"(?:(a|b\1)c)+"),
+        (plain, r"(a|b\1)+"),
+        (plain, r"((a)|\1b)x"),
+        (plain, r"(?<n>a|\1b)x"),
+        (plain, r"(a(?=\1))b"),
+        (plain, r"(a\1?)+"),
+        (plain, r"(a\1)"),
+        (icase, r"(a|\1b)x"),
+    ] {
+        let category = within(60, pattern, move || {
+            refused(pattern, BoostRegex::with_options(pattern, options))
+        });
+        assert_eq!(
+            category, OPEN_GROUP_BACKREFERENCE,
+            "{pattern:?} icase={}",
+            options.icase
+        );
+    }
+    // (options, pattern, haystack, Boost's groups of the match)
+    type Case<'a> = (
+        RegexOptions,
+        &'a str,
+        &'a [u8],
+        Option<Vec<Option<Range<usize>>>>,
+    );
+    let cases: &[Case] = &[
+        // Group 2 is closed inside the open group 1, and an abandoned branch
+        // restores it.
+        (
+            plain,
+            r"((a)|\2b)x",
+            b"abax",
+            Some(vec![Some(2..4), Some(2..3), Some(2..3)]),
+        ),
+        (plain, r"((a)|\2b)x", b"abx", None),
+        (
+            plain,
+            r"(a)(?:x|\1b)",
+            b"aab",
+            Some(vec![Some(0..3), Some(0..1)]),
+        ),
+        (
+            plain,
+            r"(a)(b|\1a)x",
+            b"abx",
+            Some(vec![Some(0..3), Some(0..1), Some(1..2)]),
+        ),
+        (plain, r"(a)(b|\1a)x", b"abax", None),
+        // Unset in the current alternative, later in the pattern, or repeated.
+        (
+            plain,
+            r"(?:(a)|b)\1",
+            b"aab",
+            Some(vec![Some(0..2), Some(0..1)]),
+        ),
+        (
+            plain,
+            r"(?:\1b|(a))+",
+            b"aaab",
+            Some(vec![Some(0..4), Some(1..2)]),
+        ),
+        (
+            plain,
+            r"(?:(a)|b\1)+",
+            b"abab",
+            Some(vec![Some(0..3), Some(0..1)]),
+        ),
+        (
+            plain,
+            r"(a|b)+\1",
+            b"abb",
+            Some(vec![Some(0..3), Some(1..2)]),
+        ),
+        (
+            plain,
+            r"(a|ab)*c\1",
+            b"acacbc",
+            Some(vec![Some(0..3), Some(0..1)]),
+        ),
+        (plain, r"\1(a)", b"aab", None),
+        (plain, r"(a){0}\1", b"aab", None),
+        (
+            plain,
+            r"(a?)\1*b",
+            b"acbc",
+            Some(vec![Some(2..3), Some(2..2)]),
+        ),
+        // Into lookarounds and atomic groups.
+        (
+            plain,
+            r"(a)(?!\1)\w",
+            b"aab",
+            Some(vec![Some(1..3), Some(1..2)]),
+        ),
+        (
+            plain,
+            r"(a)(?>\1)b",
+            b"aaab",
+            Some(vec![Some(1..4), Some(1..2)]),
+        ),
+        (
+            plain,
+            r"(a)(?<=(?=\1).)",
+            b"bab",
+            Some(vec![Some(1..2), Some(1..2)]),
+        ),
+        // Duplicate names.
+        (
+            plain,
+            r"(?:(?<n>a)|(?<n>b))\1",
+            b"aab",
+            Some(vec![Some(0..2), Some(0..1), None]),
+        ),
+        // Case-insensitive, with bytes above 0x7F, which have no case.
+        (icase, r"(.)\1", b"aA", Some(vec![Some(0..2), Some(0..1)])),
+        (icase, r"(.)\1", b"\xc3\xa9\xc3\x89", None),
+        (icase, r"(.)\1", b"\xe9\xc9", None),
+        (
+            plain,
+            r"(a)(?i)\1",
+            b"aA",
+            Some(vec![Some(0..2), Some(0..1)]),
+        ),
+        (plain, r"(a)(?i)\1", b"Aa", None),
+        (plain, r"(?i:(a))\1", b"aA", None),
+        (
+            icase,
+            r"(.+)\1",
+            b"abab",
+            Some(vec![Some(0..4), Some(0..2)]),
+        ),
+    ];
+    for (options, pattern, haystack, expected) in cases {
+        let found = BoostRegex::with_options(pattern, *options)
+            .unwrap_or_else(|error| panic!("{pattern:?}: {error}"))
+            .search(haystack)
+            .unwrap()
+            .map(|captures| {
+                (0..captures.len())
+                    .map(|group| captures.get(group))
+                    .collect()
+            });
+        assert_eq!(&found, expected, "{pattern:?} on {haystack:?}");
+    }
+    let duplicate = BoostRegex::new(r"(?:(?<n>a)|(?<n>b))\1").unwrap();
+    let captures = duplicate.search(b"aab").unwrap().unwrap();
+    assert_eq!(captures.name("n"), Some(0..1));
+}
+
+/// The third round's fuzzing found rewrites inside the engine crates that change
+/// answers. `fancy-regex`'s optimizer turned `X+Y?X+` into `X+(?:YX+)?` (so
+/// `\w{1,}b?\w{1,}` matched `a`), `(X+)+` into `(X+)` under a backreference, and
+/// `(X)*` into `(X)?` (which captures differently when `X` is lazy); `regex-syntax`
+/// factored the common prefix out of `XA|XB`, which loses leftmost-first priority
+/// when `X` can match in several ways (`[ab]+b|[ab]+c` matched `0..4` of `abbc`).
+/// The facade now spells these expressions so that neither rewrite applies, and
+/// gives Boost's answers (transcribed from the oracle output for the `ADV` family).
+#[test]
+fn engine_rewrites_keep_boost_answers() {
+    // (pattern, whole-haystack match instead of search, haystack, Boost's groups)
+    type Case<'a> = (&'a str, bool, &'a [u8], Option<Vec<Option<Range<usize>>>>);
+    let cases: &[Case] = &[
+        (r"\w{1,}b?\w{1,}", false, b"a", None),
+        ("a+b?a+", false, b"aab", Some(vec![Some(0..2)])),
+        ("a+b?a+", true, b"aab", None),
+        ("a+b*a+", true, b"abba", Some(vec![Some(0..4)])),
+        (
+            "(a)+b?(a)+",
+            false,
+            b"aab",
+            Some(vec![Some(0..2), Some(0..1), Some(1..2)]),
+        ),
+        (
+            r"(.{1,})+\1+",
+            false,
+            b"abb",
+            Some(vec![Some(0..3), Some(1..2)]),
+        ),
+        (
+            r"(.{1,})+\1+",
+            true,
+            b"abab",
+            Some(vec![Some(0..4), Some(0..2)]),
+        ),
+        (
+            r"(\w+?)*?(?<=b)",
+            true,
+            b"ab",
+            Some(vec![Some(0..2), Some(1..2)]),
+        ),
+        (
+            r"(\w+?)*?(?<=b)",
+            true,
+            b"abab",
+            Some(vec![Some(0..4), Some(3..4)]),
+        ),
+        (
+            r"|(a+?)*?\w|\w()",
+            true,
+            b"aab",
+            Some(vec![Some(0..3), Some(1..2), None]),
+        ),
+        ("(a+?)*b", false, b"aab", Some(vec![Some(0..3), Some(1..2)])),
+        (
+            "(a{2,}?)*b",
+            false,
+            b"aab",
+            Some(vec![Some(0..3), Some(0..2)]),
+        ),
+        ("(?:a+(?:ba*)?)+$", false, b"abba", Some(vec![Some(3..4)])),
+        ("(?:a+(?:ba*)?)+$", true, b"abba", None),
+        ("(?:a+b?a*)+$", false, b"abba", Some(vec![Some(3..4)])),
+        (
+            r"\w+?a{1,3}?|\w{1,}?()",
+            false,
+            b"aba",
+            Some(vec![Some(0..3), None]),
+        ),
+        (
+            r"\w+?a{1,3}?|\w{1,}?()",
+            false,
+            b"abba",
+            Some(vec![Some(0..4), None]),
+        ),
+        ("[ab]+b|[ab]+c", false, b"abbc", Some(vec![Some(0..3)])),
+        ("[ab]+b|[ab]+c", true, b"abbc", Some(vec![Some(0..4)])),
+        (
+            "(?:[ab]+?a|[ab]+?())c",
+            false,
+            b"abbc",
+            Some(vec![Some(0..4), Some(3..3)]),
+        ),
+        ("(?:a|ab)b|(?:a|ab)c", true, b"abb", Some(vec![Some(0..3)])),
+        ("a*b|a*()", false, b"a", Some(vec![Some(0..1), Some(1..1)])),
+        (
+            "(a|b)*c|(a|b)*b",
+            false,
+            b"abbc",
+            Some(vec![Some(0..4), Some(2..3), None]),
+        ),
+    ];
+    for (pattern, whole, haystack, expected) in cases {
+        let regex = BoostRegex::new(pattern).unwrap_or_else(|error| panic!("{pattern:?}: {error}"));
+        let found = if *whole {
+            regex.full_match(haystack)
+        } else {
+            regex.search(haystack)
+        }
+        .unwrap()
+        .map(|captures| {
+            (0..captures.len())
+                .map(|group| captures.get(group))
+                .collect()
+        });
+        assert_eq!(
+            &found, expected,
+            "{pattern:?} whole={whole} on {haystack:?}"
+        );
     }
 }
 

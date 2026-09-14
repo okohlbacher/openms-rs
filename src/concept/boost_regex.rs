@@ -102,6 +102,16 @@
 //! `error_complexity`, so each engine stops some searches the other answers;
 //! `docs/BOOST_REGEX_SUPPORT.md` records the measurements.
 //!
+//! # Engine rewrites
+//!
+//! Before they compile an expression, `fancy-regex` and `regex-syntax` rewrite
+//! some shapes into forms that match the same strings but not with
+//! leftmost-first priority or the same captures: adjacent and nested unbounded
+//! repeats (`fancy-regex`'s optimizer) and a prefix that every branch of an
+//! alternation shares (`regex-syntax`, on the automaton). The facade spells
+//! its translation so that neither rewrite applies, checks the result with the
+//! engine's own optimizer, and refuses an expression it cannot spell that way.
+//!
 //! Syntax the facade does not translate is refused with
 //! [`Error::Unsupported`](crate::Error::Unsupported), never passed through with different meaning. The
 //! executed differential evidence and the list of refused constructs are in
@@ -142,7 +152,8 @@ pub const MAX_REPEAT: usize = 999_999_999;
 /// The atoms of an expression are its one-byte atoms, assertions and
 /// backreferences with every repeat written out: a repeat multiplies the atoms
 /// of what it repeats by its maximum, or by its minimum (at least 1) when it
-/// is unbounded. An expression that needs no backtracking is searched by
+/// is unbounded. The branch that guards an alternation, and the extra branch
+/// of a repeat shielded from the engine's optimizer, count as one atom each. An expression that needs no backtracking is searched by
 /// `fancy-regex`'s `regex-automata` delegate, which spends no backtracking
 /// budget. Its slowest mode, the one it falls back to when its lazy DFA runs
 /// out of cache, does work proportional to the haystack length times the atoms:
@@ -153,6 +164,15 @@ pub const MAX_REPEAT: usize = 999_999_999;
 /// `MAX_AUTOMATON_ATOMS * BACKTRACK_LIMIT_BYTES` atom steps up to
 /// `MAX_BACKTRACK_SCALE * BACKTRACK_LIMIT_BYTES` bytes, and
 /// `MAX_AUTOMATON_ATOMS / MAX_BACKTRACK_SCALE` per byte beyond.
+///
+/// An atom step is not a fixed amount of time. A byte above `0x7F` is three
+/// bytes of the transcoded haystack (see the module documentation), and a
+/// class that accepts such bytes (`.`, `\W`, `[^b]`) is several automaton
+/// states, so a haystack of such bytes takes up to about twice as long per byte
+/// at the same atom count. The bound is also per search: a token iterator runs
+/// one search per match, so its total work is the bound times the number of
+/// matches, and `a.{0,2045}a.{0,2046}c|a` (4,096 atoms) over 4 KiB, which
+/// matches 2,073 times, took 44 s where Boost took 1 s.
 /// `docs/BOOST_REGEX_SUPPORT.md` records the measured times.
 pub const MAX_AUTOMATON_ATOMS: usize = 4096;
 
@@ -408,19 +428,45 @@ struct EngineTexts {
 }
 
 impl EngineTexts {
-    /// Translate `pattern` twice, plainly and in counted form.
+    /// Translate `pattern` twice, plainly and in counted form, and once more
+    /// with shielded repeats when the engine's optimizer would rewrite either
+    /// (see [`optimizer_rewrites`]).
     fn new(pattern: &str, options: RegexOptions) -> Result<(Self, Translation)> {
-        let plain = Translator::new(pattern, options, false).run()?;
-        let counted = Translator::new(pattern, options, true).run()?;
-        let counted = format!("(?:{}){FORCE_BACKTRACKING_ROOT}", counted.pattern);
-        if counted.len() > MAX_TRANSLATED_BYTES {
-            return Err(Error::Unsupported(format!(
-                "regular expression {} uses more than MAX_TRANSLATED_BYTES bytes of engine \
-                 pattern at byte {}, which the Boost.Regex facade does not translate",
-                quote(pattern),
-                pattern.len()
-            )));
+        let translate = |shield_repeats: bool| -> Result<(Translation, String)> {
+            let mut plain = Translator::new(pattern, options, false);
+            plain.shield_repeats = shield_repeats;
+            let plain = plain.run()?;
+            let mut counted = Translator::new(pattern, options, true);
+            counted.shield_repeats = shield_repeats;
+            let counted = format!("(?:{}){FORCE_BACKTRACKING_ROOT}", counted.run()?.pattern);
+            if plain.pattern.len().max(counted.len()) > MAX_TRANSLATED_BYTES {
+                return Err(Error::Unsupported(format!(
+                    "regular expression {} uses more than MAX_TRANSLATED_BYTES bytes of engine \
+                     pattern at byte {}, which the Boost.Regex facade does not translate",
+                    quote(pattern),
+                    pattern.len()
+                )));
+            }
+            Ok((plain, counted))
+        };
+        // The plain spelling reaches the engine only when it needs no
+        // backtracking; the counted one always does.
+        let rewritten = |(plain, counted): &(Translation, String)| {
+            (!needs_backtracking(&plain.pattern) && optimizer_rewrites(&plain.pattern))
+                || optimizer_rewrites(counted)
+        };
+        let mut translations = translate(false)?;
+        if rewritten(&translations) {
+            translations = translate(true)?;
+            if rewritten(&translations) {
+                return Err(Error::Unsupported(format!(
+                    "regular expression {} uses a shape the engine's optimizer rewrites, which the \
+                     Boost.Regex facade does not translate",
+                    quote(pattern)
+                )));
+            }
         }
+        let (plain, counted) = translations;
         let texts = Self {
             plain: (!needs_backtracking(&plain.pattern)).then(|| plain.pattern.clone()),
             atoms: plain.atoms,
@@ -440,6 +486,52 @@ impl EngineTexts {
             _ => &self.counted,
         }
     }
+}
+
+/// Whether `fancy-regex`'s optimizer would rewrite the tree of `translated`
+/// other than by moving a trailing lookahead out of group 0.
+///
+/// The check parses the text as the engine does (`RegexBuilder` passes only
+/// the Unicode flag), appends an empty node to the root so that the
+/// trailing-lookahead rewrite (`optimize_trailing_lookahead`) cannot apply, and
+/// runs the engine's own `optimize`. A text the engine cannot parse is left to
+/// the compiler, which reports it. The full-match program `\A(?:X)\z` needs no
+/// check of its own: its tree holds the tree of `X` as one child between two
+/// assertions, and every rewrite looks only at a repeat and its children or at
+/// three neighbouring repeats.
+///
+/// Before it compiles an expression, `fancy-regex` 0.19.2 rewrites nested and
+/// adjacent repeats (`optimize_nested_repeats`,
+/// `optimize_ambiguous_concat_repeats`), and several of those rewrites change
+/// what the expression matches:
+///
+/// - `X+Y?X+` and `X+Y*X+` become `X+(?:Y{1}X+)?`, which also matches a single
+///   `X` (`\w+b?\w+` matches `a`);
+/// - `(X+)+` becomes `(X+)` even when a backreference reads the group, so the
+///   group can no longer be a later iteration (`(.+)+\1+` on `abb` matches
+///   `1..3` instead of Boost's `0..3`);
+/// - in an expression without backreferences, `(X)*` whose body is one
+///   unbounded repeat becomes `(X)?`, which captures differently when that
+///   repeat is lazy (`(\w+?)*?(?<=b)` anchored on `ab` captures `0..2` instead
+///   of Boost's `1..2`).
+///
+/// Every rewrite needs a repeat, unbounded or optional, whose parent or
+/// neighbour is another repeat or a group holding exactly one. Shielded
+/// repeats ([`Translator::shield_repeats`]) are alternations instead, which no
+/// rewrite matches, without a change in what matches or what is captured; each
+/// costs one backtracking branch per pass. The facade translates with shielded repeats
+/// only when this check finds a rewrite in the ordinary translation, and refuses
+/// the pattern if it still finds one.
+fn optimizer_rewrites(translated: &str) -> bool {
+    let Ok(mut tree) =
+        fancy_regex::Expr::parse_tree_with_flags(translated, fancy_regex::internal::FLAG_UNICODE)
+    else {
+        return false;
+    };
+    let padded = fancy_regex::Expr::Concat(vec![tree.expr.clone(), fancy_regex::Expr::Empty]);
+    tree.expr = padded.clone();
+    fancy_regex::internal::optimize(&mut tree);
+    tree.expr != padded
 }
 
 /// Whether `fancy-regex` runs a translation, or part of it, on its
@@ -743,7 +835,9 @@ impl BoostRegex {
     /// the end of its vector). Items are [`Error::InvalidValue`] when a search
     /// hits a runtime limit, as for [`BoostRegex::search`]; each search between
     /// two tokens has its own budget, scaled by the whole haystack's length, and
-    /// the iterator ends after an error.
+    /// the iterator ends after an error. The work bounds therefore apply per
+    /// search, not per iterator: a whole iteration may do the bound of one
+    /// search once for every match (see [`MAX_AUTOMATON_ATOMS`]).
     pub fn tokens<'r, 'h>(
         &'r self,
         haystack: &'h [u8],
@@ -1037,6 +1131,21 @@ const COUNT_ITERATION: &str = "(?:|(?!))";
 /// match the empty string; see [`Translator::repeat_refusal`].
 const NULLABLE_GROUP_REPEAT: &str = "a repeat of more than one iteration of a group that can match \
                                      the empty string (Boost ends a repeat after an empty iteration)";
+/// Refusal of a backreference inside the group it refers to.
+///
+/// Boost saves a group's previous span when the group starts, sets only its
+/// start, and restores the saved span only when the match backtracks past that
+/// start (`perl_matcher::match_startmark`, `match_results::set_first`). A
+/// backreference inside the group therefore compares against whatever an
+/// abandoned attempt at the group left: the span of an alternative that matched
+/// and then failed further on (`(a|\1b)x` matches all of `abx`), or, in a later
+/// iteration, the range from the new start to the previous end, which is empty
+/// when the iterations are adjacent (`(a|b\1)+` matches all of `ab`) and never
+/// matches otherwise. `fancy-regex` treats the group as unset in the first case,
+/// and in the second slices the haystack from the new start to the previous end,
+/// which panics when the start is the larger (`(?:(a|\1b)c)+` on `acbc`).
+const OPEN_GROUP_BACKREFERENCE: &str = "a backreference inside the group it refers to (Boost \
+                                        compares the span an abandoned attempt at the group left)";
 /// Refusal of a lazy repeat that Boost's leading-repeat optimization restarts
 /// from; see [`Translator::quantify`].
 const LEADING_LAZY_REPEAT: &str = "a lazy repeat with a finite maximum of a one-byte atom that \
@@ -1511,14 +1620,20 @@ struct Translator<'p> {
     last_start: usize,
     /// Emit the counted spelling (see [`EngineTexts`]).
     counted: bool,
+    /// Wrap every repeat that is unbounded or optional (`*`, `+`, `?`, `{n,}`,
+    /// greedy or lazy) as `(?:X|NO_BYTE)`, an alternation with a branch that
+    /// matches no haystack character, so that the engine's optimizer does not
+    /// rewrite it (see [`optimizer_rewrites`]).
+    shield_repeats: bool,
     /// Automaton size of `last`, removed again when a quantifier rescales it.
     ///
     /// The atoms of a translation are its one-byte atoms, assertions and
-    /// backreferences with every repeat written out: a repeat multiplies the
-    /// atoms of what it repeats by its maximum, or by its minimum (at least 1)
-    /// when unbounded, as the engine's Thompson construction copies them. The
-    /// automaton the engine builds for an expression, and the work its slowest
-    /// search mode does per haystack byte, grow with this count.
+    /// backreferences, the guard branch of every alternation and the extra
+    /// branch of every shielded repeat, with every repeat written out: a repeat
+    /// multiplies the atoms of what it repeats by its maximum, or by its minimum
+    /// (at least 1) when unbounded, as the engine's Thompson construction copies
+    /// them. The automaton the engine builds for an expression, and the work its
+    /// slowest search mode does per haystack byte, grow with this count.
     last_atoms: usize,
     /// Every state Boost has emitted so far is one its `probe_leading_repeat`
     /// steps over: group starts and ends, flag groups that keep case
@@ -1555,6 +1670,7 @@ impl<'p> Translator<'p> {
             last_min_length: MinLength::default(),
             last_start: 0,
             counted,
+            shield_repeats: false,
             last_atoms: 0,
             leading_open: true,
             last_leading: false,
@@ -1627,6 +1743,7 @@ impl<'p> Translator<'p> {
             .pop()
             .unwrap_or_else(|| Frame::new(GroupKind::Root, self.flags, 0));
         root.finish_alternative();
+        self.guard_alternation(&mut root);
         Ok(Translation {
             pattern: self.out,
             mark_count: self.mark_count,
@@ -1759,6 +1876,13 @@ impl<'p> Translator<'p> {
                     return Err(self.unsupported(start, "a backreference with more than one digit"));
                 }
                 let group = usize::from(letter - b'0');
+                if self
+                    .frames
+                    .iter()
+                    .any(|frame| frame.kind == GroupKind::Capture && frame.group == group)
+                {
+                    return Err(self.unsupported(start, OPEN_GROUP_BACKREFERENCE));
+                }
                 self.max_backreference = self.max_backreference.max(group);
                 self.last_start = self.out.len();
                 if self.flags.icase {
@@ -1766,8 +1890,9 @@ impl<'p> Translator<'p> {
                 } else {
                     let _ = write!(self.out, r"\{group}");
                 }
-                // A group that is still open or comes later has no recorded
-                // length: zero, as in the engine's analyzer.
+                // A group that comes later has no recorded length: zero, as in
+                // the engine's analyzer. (One that is still open was refused
+                // above.)
                 let target = self
                     .group_min_lengths
                     .get(group)
@@ -2242,6 +2367,7 @@ impl<'p> Translator<'p> {
         if self.counted && frame.kind == GroupKind::LookAhead {
             self.out.push_str(FORCE_BACKTRACKING);
         }
+        self.guard_alternation(&mut frame);
         self.out.push(')');
         self.flags = frame.saved_flags;
         if frame.kind.is_lookaround() {
@@ -2280,6 +2406,37 @@ impl<'p> Translator<'p> {
             holds_leading_repeat: frame.holds_leading_repeat,
         });
         Ok(())
+    }
+
+    /// End the alternation of `frame`, which has just been closed, with a
+    /// branch that matches no haystack character ([`NO_BYTE`]), in the plain
+    /// spelling and outside lookarounds.
+    ///
+    /// The plain spelling of an expression that needs no backtracking is
+    /// compiled by `regex-automata` from a `regex-syntax` HIR, and
+    /// `Hir::alternation` (`lift_common_prefix`, `regex-syntax` 0.8.11) factors
+    /// a prefix that all branches share out of the alternation: `XA|XB` becomes
+    /// `X(?:A|B)`. That keeps the language but not leftmost-first priority when
+    /// `X` can match in more than one way, because the original tries every way
+    /// of matching `X` with `A` before it tries `B`: `[ab]+b|[ab]+c` on `abbc`
+    /// matches `0..4` after the rewrite and `0..3` in Boost, and
+    /// `\w+?a|\w+?()` on `aba` matches `0..1` instead of `0..3`. The rewrite
+    /// applies only when every branch is a concatenation, which the extra
+    /// branch is not. A lookaround only asks whether its body matches, which the
+    /// rewrite does not change, and a lookbehind's branches must keep one width,
+    /// so the branch is not added there; the counted spelling runs on the
+    /// backtracking machine, which keeps the order of its branches.
+    fn guard_alternation(&mut self, frame: &mut Frame) {
+        let in_lookaround = frame.kind.is_lookaround()
+            || self
+                .frames
+                .iter()
+                .any(|enclosing| enclosing.kind.is_lookaround());
+        if frame.alternation && !self.counted && !in_lookaround {
+            self.out.push('|');
+            self.out.push_str(NO_BYTE);
+            frame.alternative_atoms = frame.alternative_atoms.saturating_add(1);
+        }
     }
 
     fn alternation(&mut self) {
@@ -2437,11 +2594,16 @@ impl<'p> Translator<'p> {
             suffix.push('?');
         }
         let count = self.counted && min >= 2;
+        // The shapes `fancy-regex`'s optimizer rewrites are built from repeats
+        // that are unbounded or optional (see `optimizer_rewrites`).
+        let shield = self.shield_repeats && (max.is_none() || (min, max) == (0, Some(1)));
+        let mut shielded = false;
         match self.last {
             // Refused by `repeat_refusal`.
             Last::Nothing | Last::Fixed | Last::EmptyGroup { case_change: true } => {}
             Last::Byte => {
-                self.push_repeat(self.last_start, &suffix, count);
+                self.push_repeat(self.last_start, &suffix, count, shield);
+                shielded = shield;
                 let frame = self.frame();
                 frame.width = match max {
                     Some(max) if max == min => frame
@@ -2453,7 +2615,8 @@ impl<'p> Translator<'p> {
                 };
             }
             Last::Backref { .. } => {
-                self.push_repeat(self.last_start, &suffix, count);
+                self.push_repeat(self.last_start, &suffix, count, shield);
+                shielded = shield;
                 self.clear_width();
             }
             Last::EmptyGroup { case_change: false } => self.clear_width(),
@@ -2488,7 +2651,8 @@ impl<'p> Translator<'p> {
                     let group = self.out.split_off(shape.start);
                     let _ = write!(self.out, "(?:{group}|(?!)){{0}}");
                 } else {
-                    self.push_repeat(shape.start, &suffix, count);
+                    self.push_repeat(shape.start, &suffix, count, shield);
+                    shielded = shield;
                 }
             }
         }
@@ -2525,7 +2689,8 @@ impl<'p> Translator<'p> {
         frame.atoms = frame
             .atoms
             .saturating_sub(atoms)
-            .saturating_add(atoms.saturating_mul(copies));
+            .saturating_add(atoms.saturating_mul(copies))
+            .saturating_add(usize::from(shielded));
         self.last = Last::Fixed;
         self.last_min_length = MinLength::default();
         self.last_atoms = 0;
@@ -2536,13 +2701,19 @@ impl<'p> Translator<'p> {
     /// `start`. With `count`, the atom is first wrapped together with
     /// [`COUNT_ITERATION`]: the engine pushes no backtracking branch for the
     /// iterations below a repeat's minimum, so without it those iterations,
-    /// repeated from every start position, would never spend the budget.
-    fn push_repeat(&mut self, start: usize, suffix: &str, count: bool) {
+    /// repeated from every start position, would never spend the budget. With
+    /// `shield`, the repeat is then wrapped as [`Translator::shield_repeats`]
+    /// describes.
+    fn push_repeat(&mut self, start: usize, suffix: &str, count: bool, shield: bool) {
         if count {
             let atom = self.out.split_off(start);
             let _ = write!(self.out, "(?:{atom}{COUNT_ITERATION}){suffix}");
         } else {
             self.out.push_str(suffix);
+        }
+        if shield {
+            let repeat = self.out.split_off(start);
+            let _ = write!(self.out, "(?:{repeat}|{NO_BYTE})");
         }
     }
 
@@ -2560,8 +2731,11 @@ impl<'p> Translator<'p> {
     /// into the alternatives of its body, so `(?:b?|a)*` matches all of `ba`
     /// there and only `b` in Boost. Every repeat that allows more than one
     /// iteration of a group that can match empty is therefore refused. A
-    /// backreference matches the same text in every iteration, so only its
-    /// bounded repeats are refused, for the work. The shortest match of the
+    /// backreference to a group that is not open where the backreference stands
+    /// matches the same text in every iteration of its own repeat, so only its
+    /// bounded repeats are refused, for the work; a backreference inside the
+    /// group it refers to is refused when it is parsed
+    /// ([`OPEN_GROUP_BACKREFERENCE`]). The shortest match of the
     /// repeat, as the engine's analyzer multiplies it out, must also stay within
     /// [`MAX_REPEAT`].
     fn repeat_refusal(&self, start: usize, min: usize, max: Option<usize>) -> Option<Error> {
@@ -2694,10 +2868,11 @@ mod tests {
         };
         assert_eq!(atoms(""), 0);
         assert_eq!(atoms("abc"), 3);
-        assert_eq!(atoms("a|bc"), 3);
+        // An alternation adds the branch that guards it (see `guard_alternation`).
+        assert_eq!(atoms("a|bc"), 4);
         assert_eq!(atoms(r"\w{0,9999}b"), 10_000);
         assert_eq!(atoms("(?:ab){3,}c*"), 7);
-        assert_eq!(atoms("(?:a{2}|b){5}"), 15);
+        assert_eq!(atoms("(?:a{2}|b){5}"), 20);
         assert_eq!(atoms("(?:a(?#c)){4}(?i)"), 4);
         assert_eq!(atoms("(?:(?:a{999}){999}){999}"), 997_002_999);
         let texts = |pattern: &str| {
@@ -2747,6 +2922,94 @@ mod tests {
         )
         .unwrap();
         assert!(matches!(single.find(&haystack), Ok(None)));
+    }
+
+    /// A backreference inside the group it refers to is refused as soon as it
+    /// is read; one to a closed or later group is translated.
+    #[test]
+    fn refuses_backreferences_inside_their_group() {
+        let translate =
+            |pattern: &str| Translator::new(pattern, RegexOptions::default(), false).run();
+        for pattern in [
+            r"(a|\1b)x",
+            r"((a)\1)",
+            r"(?<n>\1)",
+            r"(a(?:b|(?=\1)))",
+            r"(a)(b\2)",
+        ] {
+            match translate(pattern) {
+                Err(Error::Unsupported(message)) => {
+                    assert!(
+                        message.contains(OPEN_GROUP_BACKREFERENCE),
+                        "{pattern:?}: {message}"
+                    )
+                }
+                other => panic!(
+                    "{pattern:?}: {:?}",
+                    other.map(|translation| translation.pattern)
+                ),
+            }
+        }
+        for pattern in [r"(a)\1", r"((a)\2)", r"\1(a)", r"(?:(a)|b\1)+", r"(a)(b\1)"] {
+            assert!(translate(pattern).is_ok(), "{pattern:?}");
+        }
+    }
+
+    /// `fancy-regex`'s optimizer rewrites `X+Y?X+`, which matches differently
+    /// afterwards; the facade detects it and shields the repeats, and leaves
+    /// every expression the optimizer does not touch as it was.
+    #[test]
+    fn shields_repeats_the_optimizer_would_rewrite() {
+        assert!(optimizer_rewrites(r"\x61+\x62?\x61+"));
+        assert!(optimizer_rewrites(r"(\x61+)+\1"));
+        assert!(!optimizer_rewrites(r"\x61+\x62\x61+"));
+        let rewritten = build(r"\x61+\x62?\x61+", 1000, false).unwrap();
+        assert!(matches!(rewritten.find("a"), Ok(Some(_))));
+        let (texts, _) = EngineTexts::new("a+b?a+", RegexOptions::default()).unwrap();
+        let shielded = texts.plain.as_deref().unwrap();
+        assert_eq!(
+            shielded,
+            format!(r"(?:\x61+|{NO_BYTE})(?:\x62?|{NO_BYTE})(?:\x61+|{NO_BYTE})").as_str()
+        );
+        assert!(!optimizer_rewrites(shielded));
+        assert!(!optimizer_rewrites(&texts.counted));
+        assert!(matches!(
+            build(shielded, 1000, false).unwrap().find("a"),
+            Ok(None)
+        ));
+        let (texts, _) = EngineTexts::new(r"scan=(\d+)", RegexOptions::default()).unwrap();
+        assert!(!texts.counted.contains(NO_BYTE));
+    }
+
+    /// `regex-syntax` factors a common prefix out of an alternation whose
+    /// branches are all concatenations; the plain spelling ends every
+    /// alternation outside lookarounds in a branch that matches nothing, and the
+    /// counted spelling, which runs on the backtracking machine, does not.
+    #[test]
+    fn guards_alternations_on_the_automaton() {
+        let translate = |pattern: &str, counted: bool| {
+            Translator::new(pattern, RegexOptions::default(), counted)
+                .run()
+                .unwrap()
+                .pattern
+        };
+        let plain = translate("[ab]+b|[ab]+c", false);
+        assert_eq!(plain, format!(r"[ab]+\x62|[ab]+\x63|{NO_BYTE}"));
+        assert_eq!(translate("[ab]+b|[ab]+c", true), r"[ab]+\x62|[ab]+\x63");
+        assert_eq!(
+            translate("(?<=a|b)(?=c|d)", false),
+            r"(?<=\x61|\x62)(?=\x63|\x64)"
+        );
+        assert_eq!(
+            translate("(x|y)z", false),
+            format!(r"(\x78|\x79|{NO_BYTE})\x7A")
+        );
+        let unguarded = build(r"[ab]+\x62|[ab]+\x63", 1000, false).unwrap();
+        let guarded = build(&plain, 1000, false).unwrap();
+        let range =
+            |regex: &fancy_regex::Regex| regex.find("abbc").unwrap().map(|found| found.range());
+        assert_eq!(range(&unguarded), Some(0..4));
+        assert_eq!(range(&guarded), Some(0..3));
     }
 
     /// Boost's `probe_leading_repeat` walk, as the translator mirrors it.
