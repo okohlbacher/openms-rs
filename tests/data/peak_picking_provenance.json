@@ -1,68 +1,318 @@
 {
   "repository": "https://github.com/okohlbacher/OpenMS4-core",
-  "revision": "7c029e8cdba6abab503708ecdd56f6ab55e38ce4",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "license": "BSD-3-Clause",
-  "method": "First spectrum extracted without numerical processing by Python xml.etree, base64, zlib and struct; DTA fixtures copied unchanged.",
-  "records": [
+  "re_pin": "Re-pinned from core 7c029e8cdba6abab503708ecdd56f6ab55e38ce4 to bc9cc12: git diff --stat 7c029e8 bc9cc12 is empty for PeakPickerHiRes.{h,cpp}, SignalToNoiseEstimator{,Median}.h, CubicSpline2d, SplineBisection.h, SpectrumHelper, PeakTypeEstimator.h, MSSpectrum.cpp and both class tests, and every class-test data file below hashes identically at both revisions.",
+  "sources": [
     {
-      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap.mzML",
-      "source_sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22",
-      "spectrum_index": 0,
-      "source_spectrum_id": "spectrum=2072",
-      "fixture": "tests/data/peak_picking_orbitrap.tsv",
-      "fixture_sha256": "d4727ad8db63a96e54804e6b7414b54d3b0bd216dc9767e9f257fb139a9beb35"
+      "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+      "sha256": "a40d2e48a7d24df3ebfb6e9ff5a0df5df3886ca8ddc8d83ef6f6a3f7c5b50d77"
     },
     {
-      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn1_out.mzML",
-      "source_sha256": "b7072a01b91544f95d2b942ac8ef144d6bd047416d58f85b6f17e773a9173fd2",
-      "spectrum_index": 0,
-      "source_spectrum_id": "spectrum=2072",
-      "fixture": "tests/data/peak_picking_orbitrap_sn1_out.tsv",
-      "fixture_sha256": "ebe91b8ba4cb20199d326bde49673e2cb2b57d117e808a91f6c90d72ecfe0d06"
+      "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+      "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca"
     },
     {
-      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn4_out.mzML",
-      "source_sha256": "1560b36de13933a2fe1f6ba830034d61964de38a2422b01e46cfde3568fabf59",
-      "spectrum_index": 0,
-      "source_spectrum_id": "spectrum=2072",
-      "fixture": "tests/data/peak_picking_orbitrap_sn4_out.tsv",
-      "fixture_sha256": "47335d3f3105779e368e75c411b44f588510151630703e096a72f01f5deedafe"
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
+      "sha256": "f6f81757669c754484cec642bffe9763bb03140f45163f70c13280301a10f54c"
     },
     {
-      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms.mzML",
-      "source_sha256": "5f811aebc429cc6e32edfa0600920f2d501f52b0657ecc967e772576bc25f171",
-      "spectrum_index": 0,
-      "source_spectrum_id": "spectrum=1",
-      "fixture": "tests/data/peak_picking_ftms.tsv",
-      "fixture_sha256": "4f5c3d353fe87e0d245afdaa667426226843ddb5f3191e1cdf30406ced6d5210"
+      "path": "src/openms/source/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.cpp",
+      "sha256": "7fa69b64c6275000db58f7b453cf103ae90ebeeb2368788ad3f188d88a222330"
     },
     {
-      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms_sn1_out.mzML",
-      "source_sha256": "28883886a29c6c11ffef6f89e680551c69967070cf30623b8ee7a6a12e40d763",
-      "spectrum_index": 0,
-      "source_spectrum_id": "spectrum=1",
-      "fixture": "tests/data/peak_picking_ftms_sn1_out.tsv",
-      "fixture_sha256": "35794015a4e45833c9ecb2371a051a9d6b126d45d09dd3648d3b00028865aee8"
+      "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h",
+      "sha256": "16b78361f139b2ea0df77737b44980cadb052e5a805deaac85037e152538864a"
     },
     {
-      "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms_sn4_out.mzML",
-      "source_sha256": "3e2eeb659f4a4a0de9aac1a06a7b3631fcd0883ef61e6bac4abd3ab2c5a3ad91",
-      "spectrum_index": 0,
-      "source_spectrum_id": "spectrum=1",
-      "fixture": "tests/data/peak_picking_ftms_sn4_out.tsv",
-      "fixture_sha256": "2dd703d3a9c2d97f1bbe0002d6116b2fa34048a96cff67ab629d7ca041a23455"
+      "path": "src/tests/class_tests/openms/source/PeakPickerHiRes_test.cpp",
+      "sha256": "3b2e2b892787f07885d300a4c5ef8608760aee12aad643f13616719d30298ca9"
     },
     {
-      "source": "src/tests/class_tests/openms/data/SignalToNoiseEstimator_test.dta",
-      "source_sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee",
-      "fixture": "tests/data/peak_picking_noise_input.dta",
-      "fixture_sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee"
+      "path": "src/tests/class_tests/openms/source/SignalToNoiseEstimatorMedian_test.cpp",
+      "sha256": "321ce370b2ed89216b004d07ced62629e95dba861fec15439976cc4bda5bcb80"
     },
     {
-      "source": "src/tests/class_tests/openms/data/SignalToNoiseEstimatorMedian_test.out",
-      "source_sha256": "9a46c52520ae14b171bcd9f076daa934bebdfdd018254d5c3a448e1330c264af",
-      "fixture": "tests/data/peak_picking_noise_historical.dta",
-      "fixture_sha256": "9a46c52520ae14b171bcd9f076daa934bebdfdd018254d5c3a448e1330c264af"
+      "path": "src/tests/class_tests/openms/source/SignalToNoiseEstimator_test.cpp",
+      "sha256": "5d812322de6feffff0322fd67d93017f6e329bce94e9e65f451c10f5fae61849"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/MISC/SplineBisection.h",
+      "sha256": "88b7edea047e47ae98e256c4f253846d5a0c879f6a56e230e38bf803e90665cb"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap.mzML",
+      "sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn1_out.mzML",
+      "sha256": "b7072a01b91544f95d2b942ac8ef144d6bd047416d58f85b6f17e773a9173fd2"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn4_out.mzML",
+      "sha256": "1560b36de13933a2fe1f6ba830034d61964de38a2422b01e46cfde3568fabf59"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms.mzML",
+      "sha256": "5f811aebc429cc6e32edfa0600920f2d501f52b0657ecc967e772576bc25f171"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms_sn1_out.mzML",
+      "sha256": "28883886a29c6c11ffef6f89e680551c69967070cf30623b8ee7a6a12e40d763"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms_sn4_out.mzML",
+      "sha256": "3e2eeb659f4a4a0de9aac1a06a7b3631fcd0883ef61e6bac4abd3ab2c5a3ad91"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakPickerHiRes_simulation.mzML",
+      "sha256": "60778c46ac4fa7e8020af806e74b0e5d87b757e541b7a99157856fabdd2051d0"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PeakPickerHiRes_spectrum_selection.mzML",
+      "sha256": "cd2ac94c37455f3674146f5b320b80672447d77c976dae27acf4b6f23970673c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SignalToNoiseEstimator_test.dta",
+      "sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/SignalToNoiseEstimatorMedian_test.out",
+      "sha256": "9a46c52520ae14b171bcd9f076daa934bebdfdd018254d5c3a448e1330c264af"
     }
-  ]
+  ],
+  "context_sources": [
+    {
+      "path": "source/KERNEL/SpectrumHelper.cpp",
+      "sha256": "0cfdd04ed006acfddf0d7f52efc2841a18337094dedbe5f0d5a74b19203fd0b7",
+      "operation": "copySpectrumMeta: clear, then SpectrumSettings, RT, drift time and unit, MS level and name",
+      "line": 14
+    },
+    {
+      "path": "source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913",
+      "operation": "containsIMData/getIMData: the first float array whose name IMDataArrayUtils::getIMUnit recognises",
+      "line": 820
+    },
+    {
+      "path": "include/OpenMS/FORMAT/OPTIONS/PeakFileOptions.h",
+      "sha256": "108b91216a03ad3e325620dc41c9fb2cadb02553f2e6946b0e16bf8418f7909f",
+      "operation": "sort_spectra_by_mz_ defaults to true",
+      "line": 241
+    },
+    {
+      "path": "source/FORMAT/HANDLERS/MzMLHandler.cpp",
+      "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a",
+      "operation": "an unsorted spectrum is sorted by position while loading, so the class test picks sorted spectra",
+      "line": 218
+    },
+    {
+      "path": "source/FORMAT/ParamXMLFile.cpp",
+      "sha256": "d4a90be0706c3462bb4690f756dc0b34043dabb4d93b5fbe6453a13d545f0605",
+      "operation": "a string parameter restricted to true,false with value false is written as type bool",
+      "line": 130
+    }
+  ],
+  "context_sources_note": "Read for context and not ported by this group. Paths are spelled below the core checkout's src/openms directory so that tools/core_sdk_coverage.py does not count them as evidence for those headers.",
+  "native_implementation": [
+    "src/processing/peak_picking.rs",
+    "src/processing/peak_picking/noise.rs"
+  ],
+  "native_tests": [
+    "tests/peak_picking.rs",
+    "tests/peak_picking_experiment.rs"
+  ],
+  "support_document": "docs/PEAK_PICKING_SUPPORT.md",
+  "evidence_tier": "tier 1 executed differential (product SDK oracle and retained class-test and TOPP outputs); tier 3 source review for the parameter descriptions beyond the stored files; tier 4 for the native limits",
+  "fixtures": [
+    {
+      "path": "tests/data/peak_picking/oracle.tsv",
+      "sha256": "d9a3d6510568818d2189aae7bfa52a18afd4a3a4cbadac3dcda2ca52986b8f65",
+      "kind": "oracle-generated (tier 1 executed differential): the derive_fixture.py projection of ../oracle/peak-picker-hires/results/peak_picker_hires_oracle.tsv"
+    },
+    {
+      "path": "tests/data/peak_picking/cases.tsv",
+      "sha256": "2930094093a871093dca3404c2abac0e1a262caf97c55e046258b14bbe036dab",
+      "kind": "oracle input, byte-identical to ../oracle/peak-picker-hires/cases/cases.tsv"
+    },
+    {
+      "path": "tests/data/peak_picking/synthetic.tsv",
+      "sha256": "9b0982192c9788ef8ccf6af1a268bff719e64e574f53881ffc8e34d89ec7c525",
+      "kind": "oracle input, byte-identical to ../oracle/peak-picker-hires/cases/synthetic.tsv"
+    },
+    {
+      "path": "tests/data/peak_picking/defaults.ini",
+      "sha256": "adf0400e910c5419aa730cff4f25f92f58ed8a2368369c5e487f57d7ba14080d",
+      "kind": "oracle-generated (tier 1 executed differential): ParamXMLFile::store of PeakPickerHiRes().getDefaults()"
+    },
+    {
+      "path": "tests/data/peak_picking/noise_defaults.ini",
+      "sha256": "07e0df1812b632fda2caf9eb0cf830cdef7483d7143b329b206912e9b9bad6f5",
+      "kind": "oracle-generated (tier 1 executed differential): ParamXMLFile::store of SignalToNoiseEstimatorMedian<>().getDefaults()"
+    },
+    {
+      "path": "tests/data/peak_picking/WRITE_INI_OUT.ini",
+      "sha256": "e4576e64440c6d39374a0921fd779c7e9df7cf8f7eee4e905fa3fd4846b88102",
+      "kind": "retained upstream output (tier 1) of TOPPWRITEINI_OVERWRITE, test-data 0cb15f2 topp/WRITE_INI_OUT.ini, CMakeLists.txt:104-106"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_input.mzML",
+      "sha256": "0bc37582906068a77b1b13a2d1ba06810c21e13952d8635fc257de35edc50c1c",
+      "kind": "pinned TOPP workflow input, test-data 0cb15f2 topp/PeakPickerHiRes_input.mzML (library-level oracle cases only; P3 may reuse it in place)"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_2_input.mzML",
+      "sha256": "006eefa522dd5218ef4efe21636ecd4dc58d901f596e1f3b281f228a0cff3983",
+      "kind": "pinned TOPP workflow input, test-data 0cb15f2 topp/PeakPickerHiRes_2_input.mzML"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_6_input.mzML",
+      "sha256": "dbb02a72fbcc2b7509d8195ded758e2fc4b9f18146afcdb44be53c4ae1bbeaad",
+      "kind": "pinned TOPP workflow input, test-data 0cb15f2 topp/PeakPickerHiRes_6_input.mzML"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_orbitrap.mzML",
+      "sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22",
+      "kind": "pinned class-test input, byte-identical to core bc9cc12"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_orbitrap_sn1_out.mzML",
+      "sha256": "b7072a01b91544f95d2b942ac8ef144d6bd047416d58f85b6f17e773a9173fd2",
+      "kind": "retained class-test output (tier 1), byte-identical to core bc9cc12"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_orbitrap_sn4_out.mzML",
+      "sha256": "1560b36de13933a2fe1f6ba830034d61964de38a2422b01e46cfde3568fabf59",
+      "kind": "retained class-test output (tier 1), byte-identical to core bc9cc12"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_simulation.mzML",
+      "sha256": "60778c46ac4fa7e8020af806e74b0e5d87b757e541b7a99157856fabdd2051d0",
+      "kind": "pinned class-test input, byte-identical to core bc9cc12"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_spectrum_selection.mzML",
+      "sha256": "cd2ac94c37455f3674146f5b320b80672447d77c976dae27acf4b6f23970673c",
+      "kind": "pinned class-test input, byte-identical to core bc9cc12"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_ftms.unique_ids.mzML",
+      "sha256": "fbd28aa5bba80ef79213369f8476a4c21afa0d5e6ed8e55fe9168303e5d20fd3",
+      "kind": "adapted class-test input: core bc9cc12 PeakPickerHiRes_ftms.mzML (sha256 5f811aebc429cc6e32edfa0600920f2d501f52b0657ecc967e772576bc25f171) with the id of the spectrum at index 1 renamed from spectrum=1 to spectrum=1-index1 by ../oracle/peak-picker-hires/derive_unique_ids.py; every other byte is unchanged. The native mzML reader refuses duplicate record ids, MzMLHandler loads them; the id takes no part in picking"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_ftms_sn1_out.unique_ids.mzML",
+      "sha256": "ee572e74c8292df6934124addab5e7a856380331cbca773cf199c3429e9cba8c",
+      "kind": "adapted retained class-test output (tier 1): core bc9cc12 PeakPickerHiRes_ftms_sn1_out.mzML (sha256 28883886a29c6c11ffef6f89e680551c69967070cf30623b8ee7a6a12e40d763), same id rename"
+    },
+    {
+      "path": "tests/data/peak_picking/PeakPickerHiRes_ftms_sn4_out.unique_ids.mzML",
+      "sha256": "845fbcb9e6645e231a3a833210f9beee8ce47de36f14e149bb9a39b8fd3461fb",
+      "kind": "adapted retained class-test output (tier 1): core bc9cc12 PeakPickerHiRes_ftms_sn4_out.mzML (sha256 3e2eeb659f4a4a0de9aac1a06a7b3631fcd0883ef61e6bac4abd3ab2c5a3ad91), same id rename"
+    }
+  ],
+  "legacy_first_spectrum_fixtures": {
+    "method": "First spectrum extracted without numerical processing by Python xml.etree, base64, zlib and struct; DTA fixtures copied unchanged.",
+    "note": "Unchanged; their source hashes were re-checked at bc9cc12.",
+    "records": [
+      {
+        "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap.mzML",
+        "source_sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22",
+        "spectrum_index": 0,
+        "source_spectrum_id": "spectrum=2072",
+        "fixture": "tests/data/peak_picking_orbitrap.tsv",
+        "fixture_sha256": "d4727ad8db63a96e54804e6b7414b54d3b0bd216dc9767e9f257fb139a9beb35"
+      },
+      {
+        "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn1_out.mzML",
+        "source_sha256": "b7072a01b91544f95d2b942ac8ef144d6bd047416d58f85b6f17e773a9173fd2",
+        "spectrum_index": 0,
+        "source_spectrum_id": "spectrum=2072",
+        "fixture": "tests/data/peak_picking_orbitrap_sn1_out.tsv",
+        "fixture_sha256": "ebe91b8ba4cb20199d326bde49673e2cb2b57d117e808a91f6c90d72ecfe0d06"
+      },
+      {
+        "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn4_out.mzML",
+        "source_sha256": "1560b36de13933a2fe1f6ba830034d61964de38a2422b01e46cfde3568fabf59",
+        "spectrum_index": 0,
+        "source_spectrum_id": "spectrum=2072",
+        "fixture": "tests/data/peak_picking_orbitrap_sn4_out.tsv",
+        "fixture_sha256": "47335d3f3105779e368e75c411b44f588510151630703e096a72f01f5deedafe"
+      },
+      {
+        "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms.mzML",
+        "source_sha256": "5f811aebc429cc6e32edfa0600920f2d501f52b0657ecc967e772576bc25f171",
+        "spectrum_index": 0,
+        "source_spectrum_id": "spectrum=1",
+        "fixture": "tests/data/peak_picking_ftms.tsv",
+        "fixture_sha256": "4f5c3d353fe87e0d245afdaa667426226843ddb5f3191e1cdf30406ced6d5210"
+      },
+      {
+        "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms_sn1_out.mzML",
+        "source_sha256": "28883886a29c6c11ffef6f89e680551c69967070cf30623b8ee7a6a12e40d763",
+        "spectrum_index": 0,
+        "source_spectrum_id": "spectrum=1",
+        "fixture": "tests/data/peak_picking_ftms_sn1_out.tsv",
+        "fixture_sha256": "35794015a4e45833c9ecb2371a051a9d6b126d45d09dd3648d3b00028865aee8"
+      },
+      {
+        "source": "src/tests/class_tests/openms/data/PeakPickerHiRes_ftms_sn4_out.mzML",
+        "source_sha256": "3e2eeb659f4a4a0de9aac1a06a7b3631fcd0883ef61e6bac4abd3ab2c5a3ad91",
+        "spectrum_index": 0,
+        "source_spectrum_id": "spectrum=1",
+        "fixture": "tests/data/peak_picking_ftms_sn4_out.tsv",
+        "fixture_sha256": "2dd703d3a9c2d97f1bbe0002d6116b2fa34048a96cff67ab629d7ca041a23455"
+      },
+      {
+        "source": "src/tests/class_tests/openms/data/SignalToNoiseEstimator_test.dta",
+        "source_sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee",
+        "fixture": "tests/data/peak_picking_noise_input.dta",
+        "fixture_sha256": "695000d159fc44a8d6a8691921e4afa588096e86b8867f2ab7dbc0ba546ed9ee"
+      },
+      {
+        "source": "src/tests/class_tests/openms/data/SignalToNoiseEstimatorMedian_test.out",
+        "source_sha256": "9a46c52520ae14b171bcd9f076daa934bebdfdd018254d5c3a448e1330c264af",
+        "fixture": "tests/data/peak_picking_noise_historical.dta",
+        "fixture_sha256": "9a46c52520ae14b171bcd9f076daa934bebdfdd018254d5c3a448e1330c264af"
+      }
+    ]
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/peak-picker-hires/manifest.json",
+      "sha256": "c19c15a49a2bfbea9a6f819ad692c4090de2002d1aac9cd0c36231b6c17ffc9f",
+      "origin_key": "tests/data/peak_picking/oracle.tsv"
+    },
+    {
+      "path": "../oracle/peak-picker-hires/driver.cpp",
+      "sha256": "2d06db2fcec04f6af3102401a0e11e8e299e5d47b3276147f41c1e6617c4d4d6",
+      "origin_key": "tests/data/peak_picking/oracle.tsv"
+    },
+    {
+      "path": "../oracle/peak-picker-hires/results/peak_picker_hires_oracle.tsv",
+      "sha256": "9eb8f2490b655a725df263ede006e71b4f90ee14ff7b77104b23b362eba62343",
+      "origin_key": "tests/data/peak_picking/oracle.tsv"
+    },
+    {
+      "path": "../oracle/peak-picker-hires/results/defaults.ini",
+      "sha256": "adf0400e910c5419aa730cff4f25f92f58ed8a2368369c5e487f57d7ba14080d",
+      "origin_key": "tests/data/peak_picking/defaults.ini"
+    },
+    {
+      "path": "../oracle/peak-picker-hires/results/noise_defaults.ini",
+      "sha256": "07e0df1812b632fda2caf9eb0cf830cdef7483d7143b329b206912e9b9bad6f5",
+      "origin_key": "tests/data/peak_picking/noise_defaults.ini"
+    }
+  ],
+  "external_reference_note": "The C++ driver, its build and its raw outputs live outside this repository under ../oracle/peak-picker-hires/ (product SDK, Debug, core 4fdec46; revision equivalence to bc9cc12 recorded in the manifest). Only the projected fixture and the parameter files enter the repository.",
+  "oracle": {
+    "platform": "macOS arm64 (Darwin 25.6.0)",
+    "compile_options": "-ffp-contract=off, the PRIVATE option libOpenMS itself is compiled with (cmake/compiler_flags.cmake). Without it the SignalToNoiseEstimatorMedian template instantiated in the driver fuses a*b+c into FMA on arm64 and six noise cases moved by one ulp against libOpenMS's own instantiation (which the picker cases use); measured before the flag was added.",
+    "runs": 2,
+    "reproduced_byte_for_byte": true,
+    "cases": 93,
+    "picked_centroids": 8795,
+    "comparison": "bit for bit (IEEE-754 bit patterns) on Linux x86-64 and in both the native default and PickingCompatibility::source; cases prefixed source_ must be refused by the native default"
+  },
+  "determinism": "The picker and the estimator are serial, as the source is (no OpenMP in PeakPickerHiRes.cpp or SignalToNoiseEstimatorMedian.h); results do not depend on the thread count."
 }

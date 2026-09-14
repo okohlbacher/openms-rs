@@ -1,0 +1,107 @@
+# Cases shared by the C++ driver and tests/peak_picking_experiment.rs.
+# Columns: name, operation, input, parameters.
+# Operations:
+#   spectrum            PeakPickerHiRes::pick(MSSpectrum, out, boundaries)            (check_spacings = true)
+#   spectrum_nocheck    PeakPickerHiRes::pick(MSSpectrum, out, boundaries, false)
+#   chromatogram        PeakPickerHiRes::pick(MSChromatogram, out, boundaries)        (check_spacings = false)
+#   chromatogram_check  PeakPickerHiRes::pick(MSChromatogram, out, boundaries, true)
+#   experiment          PeakPickerHiRes::pickExperiment(in, out, bs, bc)              (check_spectrum_type = true)
+#   experiment_nocheck  PeakPickerHiRes::pickExperiment(in, out, bs, bc, false)
+#   noise               SignalToNoiseEstimatorMedian<MSSpectrum>::init + getSignalToNoise
+# Inputs: file:<label> (whole mzML), file:<label>#<i> (spectrum i), chrom:<label>#<i>,
+#   dta:<label>, syn:<name>[+<name>...] (records of synthetic.tsv, in order).
+# Parameters: key=value;... applied to PeakPickerHiRes().getDefaults() (or to the
+#   SignalToNoiseEstimatorMedian defaults for noise); '-' keeps the defaults.
+class_dummy	spectrum	syn:dummy	signal_to_noise=0.0
+class_dummy_im	spectrum	syn:dummy_im	signal_to_noise=0.0
+class_dummy_im_raw	spectrum	syn:dummy_im_raw	signal_to_noise=0.0
+class_orbitrap_sn1_spectrum0	spectrum	file:orbitrap#0	signal_to_noise=1.0
+class_orbitrap_sn1_experiment	experiment	file:orbitrap	signal_to_noise=1.0
+class_orbitrap_sn4_spectrum0	spectrum	file:orbitrap#0	signal_to_noise=4.0
+class_orbitrap_sn4_experiment	experiment	file:orbitrap	signal_to_noise=4.0
+class_ftms_sn1_spectrum0	spectrum	file:ftms#0	signal_to_noise=1.0
+class_ftms_sn4_spectrum0	spectrum	file:ftms#0	signal_to_noise=4.0
+class_ftms_sn4_experiment	experiment	file:ftms	signal_to_noise=4.0
+class_selection_ms2	experiment	file:selection	ms_levels=2
+class_selection_ms1	experiment	file:selection	ms_levels=1
+class_selection_ms1_ms2	experiment	file:selection	ms_levels=1,2
+class_simulation_boundaries	experiment	file:simulation	signal_to_noise=0.0;missing=1;spacing_difference_gap=4.0
+class_orbitrap_boundaries	experiment	file:orbitrap	signal_to_noise=0.0;missing=1;spacing_difference_gap=4.0
+class_flank_symmetric_false	spectrum	syn:dummy	signal_to_noise=0.0;allow_missing_flank=false
+class_flank_symmetric_true	spectrum	syn:dummy	signal_to_noise=0.0;allow_missing_flank=true
+class_flank_left_false	spectrum	syn:flank_left	signal_to_noise=0.0;allow_missing_flank=false
+class_flank_left_true	spectrum	syn:flank_left	signal_to_noise=0.0;allow_missing_flank=true
+class_flank_right_false	spectrum	syn:flank_right	signal_to_noise=0.0;allow_missing_flank=false
+class_flank_right_true	spectrum	syn:flank_right	signal_to_noise=0.0;allow_missing_flank=true
+class_flank_left_im_true	spectrum	syn:flank_left_im	signal_to_noise=0.0;allow_missing_flank=true
+class_noise_init	noise	dta:noise	win_len=40.0;noise_for_empty_window=2.0;min_required_elements=10
+extra_ftms_sn1_experiment	experiment	file:ftms	signal_to_noise=1.0
+extra_orbitrap_sn0_experiment	experiment	file:orbitrap	signal_to_noise=0.0
+extra_ftms_sn0_experiment	experiment	file:ftms	signal_to_noise=0.0
+extra_selection_auto	experiment	file:selection	-
+extra_orbitrap_fwhm_ppm	experiment	file:orbitrap	report_FWHM=true
+extra_orbitrap_fwhm_absolute	experiment	file:orbitrap	report_FWHM=true;report_FWHM_unit=absolute
+extra_ftms_fwhm_ppm_sn4	experiment	file:ftms	signal_to_noise=4.0;report_FWHM=true
+extra_simulation_fwhm_sn1	experiment	file:simulation	signal_to_noise=1.0;report_FWHM=true;allow_missing_flank=true
+extra_topp1_parameters	experiment	file:topp1	signal_to_noise=1.0;ms_levels=1;report_FWHM=true
+extra_topp1_auto_sn1	experiment	file:topp1	signal_to_noise=1.0
+extra_topp2_parameters	experiment	file:topp2	signal_to_noise=1.0;ms_levels=1;report_FWHM=true
+extra_topp2_chromatogram0_check	chromatogram_check	chrom:topp2#0	signal_to_noise=1.0;report_FWHM=true
+extra_topp6_force	experiment_nocheck	file:topp6	ms_levels=1;allow_missing_flank=true
+extra_topp6_check	experiment	file:topp6	ms_levels=1;allow_missing_flank=true
+extra_flank_right_wide_false	spectrum	syn:flank_right_wide	signal_to_noise=0.0
+extra_flank_right_wide_true	spectrum	syn:flank_right_wide	signal_to_noise=0.0;allow_missing_flank=true
+extra_core_short	spectrum	syn:core_short	-
+extra_core_zero_neighbor	spectrum	syn:core_zero_neighbor	-
+extra_core_plateau	spectrum	syn:core_plateau	-
+extra_core_satellites	spectrum	syn:core_satellites	-
+extra_gap_first_left	spectrum	syn:gap_first_left	-
+extra_missing_boundary	spectrum	syn:missing_boundary	missing=0
+extra_spacing_disabled	spectrum	syn:spacing_disabled	spacing_difference=0.0;spacing_difference_gap=0.0
+extra_spacing_disabled_default	spectrum	syn:spacing_disabled	-
+extra_fwhm_absolute	spectrum	syn:fwhm_basic	report_FWHM=true;report_FWHM_unit=absolute
+extra_fwhm_ppm	spectrum	syn:fwhm_basic	report_FWHM=true
+extra_fwhm_clipped	spectrum	syn:fwhm_clipped	report_FWHM=true;report_FWHM_unit=absolute
+extra_small_arrays	spectrum	syn:small_im	report_FWHM=true
+extra_im_cv_inverse	spectrum	syn:im_cv_inverse	-
+extra_im_rounding	spectrum	syn:im_rounding	-
+extra_chromatogram_basic	chromatogram	syn:chromatogram_basic	report_FWHM=true;report_FWHM_unit=absolute
+extra_chromatogram_basic_check	chromatogram_check	syn:chromatogram_basic	report_FWHM=true;report_FWHM_unit=absolute
+extra_history_auto	experiment	syn:profile_unknown+profile_history+profile_marked_centroid+profile_ms2+chromatogram_basic	-
+extra_history_manual_ms2	experiment	syn:profile_unknown+profile_history+profile_marked_centroid+profile_ms2+chromatogram_basic	ms_levels=2
+extra_marked_centroid_manual_check	experiment	syn:profile_unknown+profile_marked_centroid	ms_levels=1
+extra_marked_centroid_manual_force	experiment_nocheck	syn:profile_unknown+profile_marked_centroid	ms_levels=1
+extra_auto_mode_percentile_sn0	experiment	file:orbitrap	SignalToNoise:auto_mode=1
+extra_auto_mode_manual_sn0	experiment	file:orbitrap	SignalToNoise:auto_mode=-1
+extra_auto_mode_manual_sn1	spectrum	file:orbitrap#0	signal_to_noise=1.0;SignalToNoise:auto_mode=-1
+extra_auto_mode_manual_max_sn1	spectrum	file:orbitrap#0	signal_to_noise=1.0;SignalToNoise:auto_mode=-1;SignalToNoise:max_intensity=5000
+extra_noise_defaults_dta	noise	dta:noise	-
+extra_noise_manual_dta	noise	dta:noise	auto_mode=-1;max_intensity=300
+extra_noise_orbitrap0	noise	file:orbitrap#0	-
+extra_noise_small_manual	noise	syn:noise_small	auto_mode=-1;max_intensity=30;bin_count=3;min_required_elements=1
+extra_noise_clipped_manual	noise	syn:noise_clipped	auto_mode=-1;max_intensity=30;bin_count=3;min_required_elements=1
+extra_noise_sparse	noise	syn:noise_sparse	win_len=1.0;noise_for_empty_window=2.0
+extra_noise_zero	noise	syn:noise_zero	min_required_elements=1
+extra_noise_manual_invalid	noise	dta:noise	auto_mode=-1
+source_negative_baseline_sn0	spectrum	syn:negative_baseline	-
+source_negative_baseline_sn1	spectrum	syn:negative_baseline	signal_to_noise=1.0
+source_negative_all_sn0	spectrum	syn:negative_all	-
+source_negative_all_sn1	spectrum	syn:negative_all	signal_to_noise=1.0
+source_negative_noise	noise	syn:negative_all	-
+source_fwhm_negative_position	spectrum	syn:fwhm_negative_position	report_FWHM=true
+source_duplicate_apex	spectrum	syn:duplicate_apex	-
+source_duplicate_apex_flank	spectrum	syn:duplicate_apex	allow_missing_flank=true
+source_duplicate_apex_nocheck	spectrum_nocheck	syn:duplicate_apex	-
+source_duplicate_extension	spectrum	syn:duplicate_extension	-
+source_duplicate_chromatogram	chromatogram	syn:duplicate_chromatogram	-
+source_im_first_of_two	spectrum	syn:im_first_of_two	-
+source_unsorted_right_nocheck	spectrum_nocheck	syn:unsorted_right	-
+source_unsorted_left_nocheck	spectrum_nocheck	syn:unsorted_left	-
+source_unsorted_left	spectrum	syn:unsorted_left	report_FWHM=true
+source_unsorted_noise	noise	syn:unsorted_right	min_required_elements=1;win_len=1.0
+extra_im_product_rounding_1	spectrum	syn:im_product_rounding_1	-
+extra_im_product_rounding_2	spectrum	syn:im_product_rounding_2	-
+extra_im_product_rounding_3	spectrum	syn:im_product_rounding_3	-
+source_negative_range_noise	noise	syn:negative_tight	-
+source_negative_range_sn1	spectrum	syn:negative_tight	signal_to_noise=1.0
+source_negative_range_sn0	spectrum	syn:negative_tight	-

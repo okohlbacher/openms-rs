@@ -511,3 +511,225 @@ fn auxiliary_selection_and_nonrepresentable_outputs_fail_atomically() {
     );
     assert_eq!(zero_center, before);
 }
+
+#[test]
+fn each_compatibility_flag_lifts_only_its_own_refusal() {
+    let base = PickingCompatibility::default();
+    let cases = [
+        (
+            signal(&[0., 1., 1., 2., 3., 4.], &[1., 2., 3., 5., 2., 1.]),
+            PickingCompatibility {
+                allow_duplicate_positions: true,
+                ..base
+            },
+        ),
+        (
+            signal(&[0., 1., 3., 2., 4.], &[1., 2., 4., 2., 1.]),
+            PickingCompatibility {
+                allow_unsorted_positions: true,
+                ..base
+            },
+        ),
+        (
+            signal(&[0., 1., 2., 3., 4.], &[-1., 2., 4., 2., 1.]),
+            PickingCompatibility {
+                allow_negative_intensities: true,
+                ..base
+            },
+        ),
+    ];
+    for (input, flag) in cases {
+        assert!(PeakPickerHiRes::default().pick_spectrum(&input).is_err());
+        let lifted = PeakPickerHiRes {
+            compatibility: flag,
+            ..Default::default()
+        };
+        assert!(lifted.pick_spectrum(&input).is_ok(), "{flag:?}");
+        // Every other flag together does not lift it.
+        let others = PeakPickerHiRes {
+            compatibility: PickingCompatibility {
+                allow_duplicate_positions: !flag.allow_duplicate_positions,
+                allow_unsorted_positions: !flag.allow_unsorted_positions,
+                allow_negative_intensities: !flag.allow_negative_intensities,
+                allow_nonpositive_maximum: !flag.allow_nonpositive_maximum,
+                allow_nonpositive_fwhm_position: !flag.allow_nonpositive_fwhm_position,
+                source_mobility_arrays: !flag.source_mobility_arrays,
+            },
+            ..Default::default()
+        };
+        assert!(others.pick_spectrum(&input).is_err(), "{flag:?}");
+    }
+    // A non-positive spline maximum needs its own flag on top of negatives.
+    let negative = signal(
+        &[0., 1., 2., 3., 4., 5., 6.],
+        &[-100., -90., -50., -20., -50., -90., -100.],
+    );
+    let negatives_only = PeakPickerHiRes {
+        compatibility: PickingCompatibility {
+            allow_negative_intensities: true,
+            ..base
+        },
+        ..Default::default()
+    };
+    assert!(negatives_only.pick_spectrum(&negative).is_err());
+    let maximum = PeakPickerHiRes {
+        compatibility: PickingCompatibility {
+            allow_negative_intensities: true,
+            allow_nonpositive_maximum: true,
+            ..base
+        },
+        ..Default::default()
+    };
+    let out = maximum.pick_spectrum(&negative).unwrap();
+    assert_eq!(out.spectrum.len(), 1);
+    assert!(out.spectrum.peaks[0].intensity < 0.0);
+    // With FWHM reporting the source's half-height loop never terminates for a
+    // negative maximum; the port reports that instead of looping.
+    let fwhm = PeakPickerHiRes {
+        report_fwhm: Some(FwhmUnit::Absolute),
+        ..maximum
+    };
+    assert!(fwhm.pick_spectrum(&negative).is_err());
+    // A ppm width at a non-positive position needs its own flag.
+    let mirrored = signal(
+        &[-102., -101., -100., -99., -98.],
+        &[200., 250., 450., 250., 200.],
+    );
+    let ppm = PeakPickerHiRes {
+        report_fwhm: Some(FwhmUnit::Ppm),
+        ..Default::default()
+    };
+    assert!(ppm.pick_spectrum(&mirrored).is_err());
+    let lifted = PeakPickerHiRes {
+        compatibility: PickingCompatibility {
+            allow_nonpositive_fwhm_position: true,
+            ..base
+        },
+        ..ppm
+    };
+    let width = lifted
+        .pick_spectrum(&mirrored)
+        .unwrap()
+        .spectrum
+        .float_data_arrays[0]
+        .data[0];
+    assert!(width < 0.0);
+    // The first of two ion mobility arrays is used only with the source flag.
+    let mut two = signal(
+        &[100., 100.01, 100.02, 100.03, 100.04],
+        &[200., 250., 450., 250., 200.],
+    );
+    two.float_data_arrays = vec![
+        DataArray::new("raw ion mobility array", vec![1.; 5]),
+        DataArray::new("Ion Mobility", vec![2.; 5]),
+    ];
+    assert!(PeakPickerHiRes::default().pick_spectrum(&two).is_err());
+    let first = PeakPickerHiRes {
+        compatibility: PickingCompatibility {
+            source_mobility_arrays: true,
+            ..base
+        },
+        ..Default::default()
+    }
+    .pick_spectrum(&two)
+    .unwrap();
+    assert_eq!(first.spectrum.float_data_arrays.len(), 1);
+    assert_eq!(
+        first.spectrum.float_data_arrays[0].name,
+        "raw ion mobility array"
+    );
+    assert_eq!(first.spectrum.float_data_arrays[0].data, [1.]);
+    assert_eq!(first.omitted_arrays, ["Ion Mobility"]);
+    assert_eq!(
+        PickingCompatibility::source(),
+        PickingCompatibility {
+            allow_duplicate_positions: true,
+            allow_unsorted_positions: true,
+            allow_negative_intensities: true,
+            allow_nonpositive_maximum: true,
+            allow_nonpositive_fwhm_position: true,
+            source_mobility_arrays: true,
+        }
+    );
+}
+
+#[test]
+fn noise_estimator_source_edge_cases() {
+    // A negative automatic range: the source returns before estimating and
+    // leaves every ratio at zero.
+    let estimator = SignalToNoiseEstimatorMedian::default();
+    let x = [0., 1., 2., 3., 4.];
+    let y = [-100., -99., -95., -98., -100.];
+    assert!(estimator.estimate(&x, &y).is_err());
+    let out = estimator
+        .estimate_with_compatibility(&x, &y, &PickingCompatibility::source())
+        .unwrap();
+    assert!(out.max_intensity < 0.0);
+    assert_eq!(out.signal_to_noise, [0.; 5]);
+    assert!(out.signal_to_noise.iter().all(|v| v.is_sign_positive()));
+    assert_eq!(out.noise, [f64::INFINITY; 5]);
+    assert_eq!(out.sparse_window_percent, 0.0);
+    // Percentages use the source's `count * 100 / n`.
+    let sparse = SignalToNoiseEstimatorMedian {
+        window_length: 1.0,
+        min_required_elements: 2,
+        ..Default::default()
+    };
+    let out = sparse
+        .estimate(&[0., 10., 20., 20.5, 30., 40., 50.], &[1.; 7])
+        .unwrap();
+    assert_eq!(out.sparse_window_percent, 5.0 * 100.0 / 7.0);
+    // Manual mode refuses a non-positive upper end only when estimating; the
+    // picker never estimates with signal_to_noise = 0.
+    let manual = SignalToNoiseEstimatorMedian {
+        histogram_range: NoiseHistogramRange::Manual {
+            max_intensity: -1.0,
+        },
+        ..Default::default()
+    };
+    assert!(manual.estimate(&[0., 1.], &[1., 2.]).is_err());
+    let profile = signal(
+        &[100., 100.01, 100.02, 100.03, 100.04],
+        &[200., 250., 450., 250., 200.],
+    );
+    let quiet = PeakPickerHiRes {
+        noise_estimator: manual.clone(),
+        ..Default::default()
+    };
+    assert_eq!(quiet.pick_spectrum(&profile).unwrap().spectrum.len(), 1);
+    assert!(
+        PeakPickerHiRes {
+            signal_to_noise: 1.0,
+            ..quiet
+        }
+        .pick_spectrum(&profile)
+        .is_err()
+    );
+}
+
+#[test]
+fn spacing_constraints_accept_infinity_as_disabled() {
+    // The source maps zero to infinity; an explicit infinity behaves the same.
+    let input = signal(&[0., 3., 6., 7., 8.], &[200., 250., 450., 250., 200.]);
+    let zero = PeakPickerHiRes {
+        spacing_difference: 0.0,
+        spacing_difference_gap: 0.0,
+        ..Default::default()
+    };
+    let infinite = PeakPickerHiRes {
+        spacing_difference: f64::INFINITY,
+        spacing_difference_gap: f64::INFINITY,
+        ..Default::default()
+    };
+    assert_eq!(
+        zero.pick_spectrum(&input).unwrap(),
+        infinite.pick_spectrum(&input).unwrap()
+    );
+    for invalid in [f64::NAN, -0.5, f64::NEG_INFINITY] {
+        let picker = PeakPickerHiRes {
+            spacing_difference_gap: invalid,
+            ..Default::default()
+        };
+        assert!(picker.pick_spectrum(&input).is_err());
+    }
+}
