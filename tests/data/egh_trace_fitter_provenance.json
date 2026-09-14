@@ -34,7 +34,7 @@
   {
    "path": "FEATUREFINDER/TraceFitter.cpp",
    "sha256": "3e7ccb18a04bfe187f73276d6a915d386a1014b915a2d672dc327b72f811f9f7",
-   "role": "optimize_ (lines 101-135), reproduced by the private stand-in until B4's optimize lands; computeTheoretical (line 88)"
+   "role": "optimize_ (lines 101-135), ported by package B4-GAUSS as trace_fitter::optimize, which fit calls; computeTheoretical (line 88), shared as trace_fitter::compute_theoretical"
   },
   {
    "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
@@ -172,7 +172,7 @@
   }
  ],
  "native_boundaries": [
-  "A failed fit leaves the fitter unchanged; the source has already written the start point into height_, apex_rt_, sigma_, tau_ and region_rt_span_ when optimize_ throws",
+  "A failed fit leaves the fitter unchanged; the source has already written the start point into height_, apex_rt_, sigma_, tau_ and region_rt_span_ when optimize_ throws; GaussTraceFitter keeps its start values, as its source does, and one policy for both fitters is the integrator's",
   "Traces without any peak give UnableToFit-FinalSet from fit and Error::InvalidValue from initial_parameters, where the source's setInitialParameters_ reads smoothed[0] of an empty vector",
   "A NaN retention time that meets a profile entry gives the intensity profile's Error::InvalidValue, where the source's computeIntensityProfile never terminates",
   "compute_theoretical refuses an out-of-range peak index with Error::InvalidValue; the source indexes without a check",
@@ -180,8 +180,9 @@
   "The model values are 0.0 before the first fit; the source leaves them uninitialised",
   "setInitialParameters_, getOptimizedParameters_ and getAlphaBoundaries_ are protected in the source and public inherent methods here (initial_parameters, set_optimized_parameters, alpha_boundaries)",
   "The debug-level log lines of setInitialParameters_ are not emitted",
-  "exp, log, sqrt and atan come from the libm crate: single evaluations differ from the Apple libm oracle by one or two units in the last place where the libm crate's exp is not correctly rounded, and fits within 2e-11 relative",
-  "Until package B4-GAUSS merges, fit calls the Levenberg-Marquardt minimize through a private stand-in for trace_fitter::optimize and uses a private copy of the TraceFitter defaults (500, false); both are removed at the rebase on B4"
+  "exp, log, sqrt and atan come from the libm crate: single evaluations differ from the Apple libm oracle by one or two units in the last place where the libm crate's exp is not correctly rounded, and fits within 2e-11 relative; results are the same on every platform up to NaN sign and payload. GaussTraceFitter uses the platform library; one choice for both fitters is the integrator's",
+  "fit runs the shared trace_fitter::optimize and inherits its work ceilings: the solver's point and byte ceilings, and a fit that exhausts MAX_RESIDUAL_WORK / values evaluations before its configured max_iteration is refused with Error::InvalidValue and leaves the fitter unchanged, where the source would continue or accept",
+  "The Levenberg-Marquardt solver behind trace_fitter::optimize is not bit-faithful to the executed Eigen beyond recorded fixtures (docs/TRACE_FITTER_SUPPORT.md, 'Known gap: solver fidelity beyond the fixtures'; lane B3b); the EGH fixtures agree within 1e-9, which is fixture-specific"
  ],
  "cpp_defect_candidates": [
   {
@@ -261,6 +262,36 @@
   {
    "path": "../oracle/featurefinder-picked/manifest.json",
    "sha256": "7f6adefb614200c1a4ff1d9d423a9956765104470c4b232f3a85aed7e0d3f281",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/drivers/common/fit_records.h",
+   "sha256": "c6f32ddd53b26ff297d3d12add85ae051265f7add2e45ef39a2d9baf0d5d5426",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/drivers/common/fixtures.h",
+   "sha256": "5d0f67549c53f2992467b9f1939eeba2822554e16c279a82ed6af6f2a7b8e3a8",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/trace_fitters_degenerate_flat3_egh.jsonl",
+   "sha256": "d8e08fa2dc47adeb2b798ffca817a6ab37491ed37478843f4649441add056bac",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/trace_fitters_degenerate_short3_egh.jsonl",
+   "sha256": "4508e2c80ae944e62a5b12038605b8081516bb2660e1fb0c652dbbf32480761e",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/trace_fitters_degenerate_values_lt_inputs_egh.jsonl",
+   "sha256": "99d98c58099a204d38d5a68219e8135e2813d65440273918f51460eb6a4dce01",
    "location": "outside this repository",
    "origin_key": "oracle"
   }

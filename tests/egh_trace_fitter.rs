@@ -35,12 +35,19 @@
 //!   queries of a model set to the oracle's parameters) within
 //!   [`DIRECT_RELATIVE`] = 1e-14, residuals on the scale of their terms.
 //! - A Levenberg-Marquardt result against the C++ fit within [`FIT_RELATIVE`] =
-//!   1e-9, `tau` also on the scale of `sigma`.
+//!   1e-9, `tau` on the scale of `sigma` only where `tau` is rounding noise.
 //!
-//! NaN matches NaN whatever its sign or payload. The Rust results do not depend
-//! on the platform: the `libm` crate is pure Rust and Rust never contracts
-//! floating-point operations. The support document records the measured
-//! differences and why bit identity with the C++ is not reached.
+//! NaN matches NaN whatever its sign or payload. The Rust results are the same
+//! on every platform up to the sign and payload of a NaN (x86-64 produces
+//! negative default NaNs, AArch64 positive ones): the `libm` crate is pure Rust
+//! and Rust never contracts floating-point operations. The support document
+//! records the measured differences and why bit identity with the C++ is not
+//! reached.
+//!
+//! The fits run through the shared driver `trace_fitter::optimize`, whose
+//! solver is not yet bit-faithful to Eigen beyond recorded fixtures such as
+//! these (`docs/TRACE_FITTER_SUPPORT.md`, "Known gap: solver fidelity beyond
+//! the fixtures").
 
 // The class-test literals are transcribed verbatim, including digits beyond
 // the precision of `f32`, so the values match the C++ literals exactly.
@@ -539,8 +546,10 @@ const DIRECT_RELATIVE: f64 = 1e-14;
 /// the bundle plan's 1e-9 for fits compared off the oracle's own platform.
 ///
 /// Unit-in-the-last-place differences in the residuals steer each iteration
-/// slightly differently. The largest measured difference is 2e-11, on the
-/// budget-exhausting `apex_at_last_scan` fit after 500 evaluations.
+/// slightly differently. The largest measured difference is 2.0e-11, `tau` on
+/// the `apex_at_last_scan` budget sweep at budget 240; after all 500
+/// evaluations that case differs by at most 1.4e-11 in its parameters (`tau`)
+/// and 1.5e-11 in a derived quantity (the area).
 const FIT_RELATIVE: f64 = 1e-9;
 
 /// Comparison of results against the oracle, collecting every mismatch before
@@ -592,17 +601,26 @@ impl Checker {
     /// Fitted parameters `[H, t_R, sigma, tau]` against the C++ fit; see
     /// [`FIT_RELATIVE`].
     ///
-    /// `tau` is compared on the scale of `sigma` as well as its own: the model
-    /// sees `tau` only through `tau * t` next to `2 sigma^2`, and a symmetric
-    /// peak, such as the class test's, leaves `tau` at rounding noise of about
-    /// `1e-15` whose relative value carries no information.
+    /// `tau` is compared on its own scale, except where both values are
+    /// rounding noise, below [`FIT_RELATIVE`] times `sigma`: there it is
+    /// compared on the scale of `sigma`. The model sees `tau` only through
+    /// `tau * t` next to `2 sigma^2`, and a symmetric peak, such as the class
+    /// test's, leaves `tau` at rounding noise of about `1e-15` whose relative
+    /// value carries no information. A `tau` above that floor gets the plain
+    /// relative bound.
     fn fit_params(&mut self, what: &str, actual: &[f64], expected: &[f64]) {
         if !self.same_length(what, actual.len(), expected.len()) || actual.len() != 4 {
             return;
         }
         for (i, name) in ["height", "center", "sigma", "tau"].into_iter().enumerate() {
             let scale = if i == 3 {
-                actual[2].abs().max(expected[2].abs())
+                let sigma = actual[2].abs().max(expected[2].abs());
+                let tau = actual[3].abs().max(expected[3].abs());
+                if tau < FIT_RELATIVE * sigma {
+                    sigma
+                } else {
+                    0.0
+                }
             } else {
                 0.0
             };

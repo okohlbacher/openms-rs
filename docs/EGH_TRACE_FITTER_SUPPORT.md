@@ -13,8 +13,26 @@ Manifest: [`tests/data/egh_trace_fitter_provenance.json`](../tests/data/egh_trac
 Fixtures: [`tests/data/egh_trace_fitter/`](../tests/data/egh_trace_fitter/).
 
 The header is one Rust file. It implements the `TraceFitter` trait that the
-wave-2 scaffold declared in `trace_fitter.rs` (package B4-GAUSS owns that file
-and the Gaussian model). The module is not feature-gated.
+wave-2 scaffold declared in `trace_fitter.rs`, and it uses the shared helpers
+package B4-GAUSS added to that file: the start-value estimate
+`initial_shape`, the Levenberg-Marquardt driver `optimize`,
+`compute_theoretical`, `unable_to_fit` and `stream_number`, and the parameter
+defaults. B4-GAUSS owns that file, the Gaussian model and
+[TRACE_FITTER_SUPPORT](TRACE_FITTER_SUPPORT.md). The module is not
+feature-gated.
+
+**Solver fidelity.** The EGH fit runs through the same `optimize` and
+`levenberg_marquardt::minimize` as the Gaussian, and that solver is not yet
+bit-faithful to the executed Eigen. The EGH fixtures below agree with the C++
+within 1e-9, but that agreement is fixture-specific: on other inputs a fit's
+path can depart from Eigen's at its first trial step, and fitted parameters,
+status and evaluation count can then differ far beyond 1e-9.
+TRACE_FITTER_SUPPORT's "Known gap: solver fidelity beyond the fixtures"
+measures this on 79 generated Gaussian inputs and locates the departure inside
+`minimize`, not in the functor or the driver configuration, so the caveat
+applies to the EGH fits as well. The EGH fits have not been measured beyond
+these fixtures. The root cause is in `src/math/fitters/levenberg_marquardt.rs`,
+under investigation in lane B3b.
 
 The source marks the class `@experimental`: "Needs further testing on real
 data", and its class test exercises the EGH only as a replacement for the
@@ -42,7 +60,7 @@ inherited from `TraceFitter` that this type implements.
 
 | Source | Rust |
 | --- | --- |
-| `EGHTraceFitter()` | `EGHTraceFitter::new()` (defaults `max_iteration` 500, unweighted), `Default`, `EGHTraceFitter::with_parameters(TraceFitterParams)` |
+| `EGHTraceFitter()` | `EGHTraceFitter::new()` (`TraceFitterParams::default()`: `max_iteration` 500, unweighted), `Default`, `EGHTraceFitter::with_parameters(TraceFitterParams)` |
 | `EGHTraceFitter(const EGHTraceFitter&)`, `operator=` | `Clone` (`clone`, `clone_from`) |
 | `~EGHTraceFitter()` | dropped implicitly |
 | `void fit(MassTraces&)` | `TraceFitter::fit(&mut self, &MassTraces) -> Result<()>` |
@@ -65,7 +83,7 @@ inherited from `TraceFitter` that this type implements.
 | protected `static const Size NUM_PARAMS_` | `EGHTraceFitter::NUM_PARAMS: usize` (public) |
 | protected `getAlphaBoundaries_(double alpha) const` | `EGHTraceFitter::alpha_boundaries(&self, f64) -> (f64, f64)` (public) |
 | protected `getOptimizedParameters_(const std::vector<double>&)` | `EGHTraceFitter::set_optimized_parameters(&mut self, [f64; 4])` (public) |
-| protected `setInitialParameters_(MassTraces&)` | `EGHTraceFitter::initial_parameters(&MassTraces) -> Result<EGHInitialParameters>` (public, associated) |
+| protected `setInitialParameters_(MassTraces&)` | `EGHTraceFitter::initial_parameters(&MassTraces) -> Result<EGHInitialParameters>` (public, associated), on the shared `trace_fitter::initial_shape` with `ProfileSmoothing::Always` |
 | protected `updateMembers_()` | `TraceFitter::set_parameters`; the source only calls the base implementation |
 | `@htmlinclude OpenMS_EGHTraceFitter.parameters` | the two `TraceFitter` parameters, `TraceFitterParams`; their `Param` mapping is package B4-GAUSS's |
 
@@ -73,10 +91,10 @@ inherited from `TraceFitter` that this type implements.
 
 | Source | Rust |
 | --- | --- |
-| `computeTheoretical(const MassTrace&, Size) const` | `TraceFitter::compute_theoretical(&self, &MassTrace, usize) -> Result<f64>` |
+| `computeTheoretical(const MassTrace&, Size) const` | `TraceFitter::compute_theoretical(&self, &MassTrace, usize) -> Result<f64>`, delegating to the shared `trace_fitter::compute_theoretical` |
 | `getParameters`, `setParameters` (`DefaultParamHandler`) | `TraceFitter::parameters`, `TraceFitter::set_parameters` |
-| protected `optimize_(std::vector<double>&, GenericFunctor&)` | private `optimize_stand_in`, to be replaced by B4's `trace_fitter::optimize` |
-| protected `SignedSize max_iterations_`, `bool weighted_` | `TraceFitterParams::max_iteration: i64`, `weighted: bool` |
+| protected `optimize_(std::vector<double>&, GenericFunctor&)` | the shared `trace_fitter::optimize` |
+| protected `SignedSize max_iterations_`, `bool weighted_` | `TraceFitterParams::max_iteration: i64`, `weighted: bool`; defaults and `Param` mapping in `trace_fitter.rs` |
 | protected `struct ModelData` | internal to `EGHTraceFunctor` |
 
 The three protected hooks are public here: `initial_parameters` lets a caller
@@ -107,16 +125,18 @@ fitters) where it writes those meta values.
 - **Weighting.** `w = theoretical_int` when `weighted`, `1` otherwise, applied
   to residuals and Jacobian rows alike.
 - **Row order.** Traces in order, then each trace's peaks in order.
-- **Start point.** The intensity profile of `MassTraces::intensity_profile`,
-  a zero-padded running sum over five entries divided by `5`, seeded as
+- **Start point.** The shared `initial_shape` with `ProfileSmoothing::Always`:
+  the intensity profile of `MassTraces::intensity_profile`, a zero-padded
+  running sum over five entries divided by `5`, seeded as
   `std::accumulate` seeds it (`0.0 + totals[2] + totals[3]`); the first strict
   maximum; the half-height walks with strict `>`; `alpha = (left + right) * 0.5
   / height`. There is no guard for short profiles and none for `alpha >= 1`,
   unlike the Gaussian model: `alpha = 1` gives `sigma = NaN` and `tau = -inf`
   or NaN, `alpha > 1` a NaN `sigma`. A `tau` of exactly zero (also `-0.0`)
   becomes `f64::EPSILON`.
-- **Status handling.** Every Levenberg-Marquardt status after
-  `ImproperInputParameters` is accepted with the solver's vector, including
+- **Status handling.** Through the shared `optimize`, every
+  Levenberg-Marquardt status after `ImproperInputParameters` is accepted with
+  the solver's vector, including
   `TooManyFunctionEvaluation` and `CosinusTooSmall` at the start point, which is
   how a NaN start ends: its Jacobian is all zero.
 - **Error wording.** `UnableToFit-FinalSet` with "Skipping feature, we always
@@ -136,7 +156,7 @@ fitters) where it writes those meta values.
   documents.
 - **Gnuplot formula.** The source's exact text, with every number written as a
   default C++ stream writes a `double` (precision 6, `%g` style, `-0`, `nan`,
-  `inf`), through `format::file_info::text_format::ostream_g`.
+  `inf`), through the shared `trace_fitter::stream_number`.
 - **Serial.** The source is serial, and so is the port.
 
 ## Native differences
@@ -146,11 +166,15 @@ fitters) where it writes those meta values.
    and `region_rt_span_` when `optimize_` throws, and keeps the previous
    `sigma_5_bound_`. `FeatureFinderAlgorithmPicked` does not catch the exception
    inside its seed loop, so no caller observes that partial state.
+   `GaussTraceFitter` keeps its start values after a refused fit, as its
+   source does, so the two `TraceFitter` implementations differ here; the
+   trait leaves the post-error state to each implementation, and one policy
+   for both is the integrator's decision.
 2. **Traces without peaks.** `fit` returns `UnableToFit-FinalSet: Skipping
    feature, we always expect N>=p` and `initial_parameters` returns
-   `Error::InvalidValue`. The source's `setInitialParameters_` reads
-   `smoothed[0]` of an empty vector, which is undefined behaviour, before
-   `optimize_` would throw.
+   `initial_shape`'s `Error::InvalidValue`. The source's
+   `setInitialParameters_` reads `smoothed[0]` of an empty vector, which is
+   undefined behaviour, before `optimize_` would throw.
 3. **NaN retention times.** A NaN retention time that meets a profile entry
    while the profile is merged gives `MassTraces::intensity_profile`'s
    `Error::InvalidValue`; the source loop never terminates.
@@ -167,21 +191,26 @@ fitters) where it writes those meta values.
 7. **No debug log.** `setInitialParameters_` logs its intermediate values at
    debug level; the port logs nothing.
 8. **Mathematical functions.** `exp`, `log`, `sqrt` and `atan` come from the
-   `libm` crate, so results are the same on every platform. The libm crate's
-   `exp` is not correctly rounded, and single evaluations differ from the
-   oracle's Apple libm by one or two units in the last place on about 6% of the
-   functor values; Levenberg-Marquardt results differ by at most 2e-11
-   relative. See the evidence below.
+   `libm` crate, so results are the same on every platform up to the sign and
+   payload of a NaN. The libm crate's `exp` is not correctly rounded, and
+   single evaluations differ from the oracle's Apple libm by one or two units
+   in the last place on about 6% of the functor values; Levenberg-Marquardt
+   results differ by at most 2.0e-11 relative. See the evidence below.
+   `GaussTraceFitter` calls the platform `exp` and `log` instead
+   (TRACE_FITTER_SUPPORT, native difference 1 and "`exp` and `log` across
+   platforms"), which asks that both fitters make the same choice. That choice
+   is the integrator's; this module keeps the `libm` crate until it is made.
 9. **Function name.** The gnuplot function name is a Rust `char`; a non-ASCII
    character is written as its UTF-8 bytes, where the source writes one byte.
-10. **Temporary driver (until B4 merges).** `fit` calls the crate's
-    Levenberg-Marquardt `minimize` through the private `optimize_stand_in`,
-    which has the signature fixed in `trace_fitter.rs` for B4's `optimize` and
-    the semantics of `TraceFitter::optimize_`: refuse fewer residuals than
-    parameters, preflight the Jacobian size, `max_fev = max_iteration` (zero or
-    below becomes a zero budget, which the solver rejects as improper input),
-    refuse a status of `ImproperInputParameters` or below. The TraceFitter
-    defaults are a private copy. Both go when this module is rebased on B4.
+10. **Work ceilings of the shared driver.** `fit` inherits `optimize`'s
+    ceilings (TRACE_FITTER_SUPPORT, native difference 5): the solver's point
+    and byte ceilings are checked before anything is evaluated, and the budget
+    passed to the solver is at most `MAX_RESIDUAL_WORK / values` (2^30 residual
+    evaluations in total). A fit that exhausts that ceiling before its
+    configured `max_iteration` is refused with `Error::InvalidValue`, and the
+    fitter is unchanged, where the source would continue or accept. Every EGH
+    fixture ends far below the ceiling, so its results are those of the
+    uncapped budget.
 
 ## Checked boundaries and evidence
 
@@ -249,7 +278,7 @@ apex, so the fitted bound span is `7.4999982` and `false` holds with a margin of
 | --- | --- | --- |
 | Exact | booleans, integers, `UnableToFit` messages, gnuplot formulas of a model set to the oracle's parameters, getters after `set_optimized_parameters`, the budget-boundary pattern | equality |
 | Single evaluation | functor residuals and Jacobians at recorded vectors, start points, bounds, FWHM, area, values, `computeTheoretical` and alpha boundaries of a model set to the oracle's parameters | `|a - e| <= 1e-14 * max(|a|, |e|)`; a residual on `max(|a|, |e|, |I w|)` |
-| Levenberg-Marquardt | fitted parameters, their bounds, FWHM, area and `computeTheoretical`, and every recorded budget of the sweep | `|a - e| <= 1e-9 * max(|a|, |e|)`; `tau` on `max(|a|, |e|, |sigma|)` |
+| Levenberg-Marquardt | fitted parameters, their bounds, FWHM, area and `computeTheoretical`, and every recorded budget of the sweep | `|a - e| <= 1e-9 * max(|a|, |e|)`; a `tau` at rounding noise on `|sigma|` |
 
 NaN matches NaN whatever its sign bit. The queries of the fitted model are
 evaluated on a clone of the Rust fit set to the oracle's parameters, so they
@@ -259,7 +288,11 @@ Levenberg-Marquardt differences.
 
 `tau` of a symmetric peak stays at rounding noise (about `4e-15` on the class
 test), whose relative value carries no information; the model sees `tau` only
-as `tau * t` next to `2 sigma^2`, so it is compared on the scale of `sigma`.
+as `tau * t` next to `2 sigma^2`. So where both values of `tau` lie below
+`1e-9 * max(|sigma|)`, `tau` is compared on the scale of `sigma`; everywhere
+else it gets the plain relative bound. The sigma scale applies to 24 of the 594
+`tau` comparisons, all with `|tau| <= 8.5e-15` and differences of at most
+`5.6e-16` absolute.
 
 ### Measurements
 
@@ -283,17 +316,42 @@ On Linux x86-64 (IBMI node dax), stable and 1.85.0:
   itself is not bit-identical to Eigen on these problems. Bit identity with the
   C++ therefore needs both a correctly rounded `exp` and a bit-identical solver,
   and is not claimed.
-- Largest Levenberg-Marquardt difference: 2.0e-11 relative, on
-  `apex_at_last_scan`, which spends all 500 evaluations while `sigma` and `tau`
-  grow. Elsewhere the parameters differ by at most 3.9e-16 relative, `tau` at
-  rounding noise by up to 5.6e-16 absolute, the derived bounds, FWHM and area by
-  at most 7.7e-16, and `computeTheoretical` of the Rust fit far in the tails
-  (values near `1e-27`) by up to 1.2e-12 relative.
-- The Rust results themselves do not depend on the platform: the `libm` crate
-  (`=0.2.16`) is pure Rust, Rust does not contract floating-point operations,
-  and the solver uses only IEEE basic operations and `sqrt`. A change of the
-  `libm` version or of the Levenberg-Marquardt backend (package B3) needs this
-  test re-run and, if it moves, a new measurement, not a wider tolerance.
+- **Platform-matched check** (review of `45aa00c`, repeated on the rebased
+  module). On macOS arm64, the oracle platform, a scratch copy replaced the
+  libm crate's `exp`, `log` and `atan` with `f64::exp`, `f64::ln` and
+  `f64::atan` (Apple libm). Start points then matched 80 of 80 bit for bit,
+  functor values 11023 of 11023 and parameter vectors 515 of 515, so the
+  residual, Jacobian, start-point and query transcriptions are exact. Fits
+  stayed at 1125 of 1260 and the budget sweep at 4755 of 6828, which confirms
+  on the oracle platform itself that the Levenberg-Marquardt path is not
+  bit-identical to Eigen here (see "Solver fidelity" above).
+- **Acceptance criterion 4** of the bundle plan ("residual and Jacobian equal
+  C2 at recorded vectors") is therefore met within 1e-14 relative with the
+  mandated `libm` crate (10380 of 11023 bitwise), and bitwise only with the
+  platform library on the oracle platform. Whether bitwise equality is
+  required is the lead decision the package asked for; it is not yet
+  recorded.
+- Largest Levenberg-Marquardt difference: 2.0e-11 relative, `tau` on the
+  `apex_at_last_scan` budget sweep at budget 240; the case never converges and
+  spends every budget while `sigma` and `tau` grow. After all 500 evaluations
+  its parameters differ by at most 1.4e-11 (`tau`) and its derived bounds,
+  FWHM and area by at most 1.5e-11. Elsewhere the parameters differ by at most
+  3.9e-16 relative, `tau` at rounding noise by up to 5.6e-16 absolute, the
+  derived bounds, FWHM and area by at most 4.1e-16, and `computeTheoretical` of
+  the Rust fit far in the tails (values near `1e-27`) by up to 1.2e-12
+  relative.
+- The Rust results are the same on every platform up to the sign and payload
+  of a NaN: the `libm` crate (`=0.2.16`) is pure Rust, Rust does not contract
+  floating-point operations, and the solver uses only IEEE basic operations and
+  `sqrt`. The review hashed every compared Rust value on macOS arm64 and Linux
+  x86-64: functor, fit and budget values agree, while start-point and
+  parameter-vector hashes differ only in the sign bit of NaN results (x86-64
+  produces negative default NaNs). After the rebase on B4 every value the test
+  file computes was dumped on macOS arm64 and on dax: the two dumps agree
+  except for the sign bit of NaN results. The tests treat every NaN as equal,
+  and the gnuplot formula writes any NaN as `nan`. A change of the `libm` version or of
+  the Levenberg-Marquardt backend (packages B3 and B3b) needs this test re-run
+  and, if it moves, a new measurement, not a wider tolerance.
 
 ### Evaluation budget
 
@@ -328,11 +386,13 @@ on the EGH problems; package B3's crate adapter must keep it.
 
 ### Resources and performance
 
-A fit allocates the intensity profile, the padded totals and the smoothed
-profile once, each proportional to the number of distinct retention times, and
-the solver's buffers; the residual and Jacobian loops allocate nothing and walk
-the traces once per evaluation. The profile's peak and merge-step ceilings and
-the solver's point and byte ceilings are checked before those allocations.
+A fit allocates the intensity profile and the smoothed profile once, each
+proportional to the number of distinct retention times (`initial_shape` reads
+the zero padding through an index function), plus `optimize`'s copy of the
+parameter vector and the solver's buffers; the residual and Jacobian loops
+allocate nothing and walk the traces once per evaluation. The profile's peak
+and merge-step ceilings and the solver's point and byte ceilings are checked
+before those allocations, and `optimize` caps the total residual work.
 
 ## C++ issue candidates
 
@@ -353,10 +413,13 @@ the solver's point and byte ceilings are checked before those allocations.
 
 ## Ledger notes
 
-- Suggested status for `FEATUREFINDER/EGHTraceFitter.h`: `partial` while the
-  private Levenberg-Marquardt stand-in and default copy remain; `complete` once
-  the module is rebased on B4's `trace_fitter::optimize` and defaults and this
-  test passes unchanged there.
-- New module edge: `analysis -> math` (the stand-in's `minimize`), which the
-  scaffold lists for B4 and which closes no cycle. `analysis -> format` (for
-  `ostream_g`) already exists.
+- Suggested status for `FEATUREFINDER/EGHTraceFitter.h`: `complete`. The
+  module is rebased on B4's `trace_fitter::optimize`, defaults and helpers, and
+  every value `tests/egh_trace_fitter.rs` computes is bit-identical to the
+  pre-rebase module (the only change is the error text of `initial_parameters`
+  on traces without peaks, now `initial_shape`'s). Record the same known gap
+  as for `GaussTraceFitter`: the fit is not bit-faithful to the executed
+  library beyond the fixtures (solver fidelity, lane B3b).
+- No module edge of its own: the module reaches `crate::math` only through
+  `trace_fitter::optimize` (B4's `analysis -> math`), and `crate::format` only
+  through `trace_fitter::stream_number`.

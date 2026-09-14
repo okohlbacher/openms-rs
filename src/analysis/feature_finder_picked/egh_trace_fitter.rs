@@ -32,8 +32,11 @@
 //!
 //! # Preserved source arithmetic
 //!
-//! Every expression keeps the source's operand order, because the fit is
-//! compared with the C++ result bit for bit:
+//! Every expression keeps the source's operand order, so that a single
+//! evaluation (a residual, a Jacobian entry, a start point or a query) follows
+//! the source to the last place in which the mathematical library agrees with
+//! the oracle's. Fitted parameters are compared with the C++ fit within a
+//! tolerance, not bit for bit (see the support document):
 //!
 //! - The residual uses the signed `sigma`; the Jacobian uses `|sigma|`.
 //! - Where `2 sigma^2 + tau (t - t_R) <= 0` the model is `0`, without the
@@ -50,28 +53,48 @@
 //!   is the Lan-Jorgenson approximation with the source's seven coefficients and
 //!   the factor `0.6266571`.
 //!
-//! `exp`, `log`, `sqrt` and `atan` come from the `libm` crate, so the results do
-//! not depend on the platform's C library.
+//! `exp`, `log`, `sqrt` and `atan` come from the `libm` crate, not from the
+//! platform's C library, so the results are the same on every platform up to the
+//! sign and payload of a NaN. `GaussTraceFitter` calls the platform library
+//! instead; which choice both fitters share is the integrator's decision
+//! (`docs/TRACE_FITTER_SUPPORT.md`, "`exp` and `log` across platforms").
 //!
-//! # Levenberg-Marquardt driver
+//! # Shared trace-fitter helpers
 //!
-//! Until package B4-GAUSS lands the shared driver `trace_fitter::optimize`, the
-//! fit calls the crate's Levenberg-Marquardt `minimize` through a private
-//! stand-in with the planned signature and the source `optimize_` semantics.
-//! The stand-in is removed when this module is rebased on B4.
+//! The start point takes the profile, the smoothing and the half-height walks
+//! from the shared
+//! [`initial_shape`](crate::analysis::feature_finder_picked::trace_fitter::initial_shape)
+//! with
+//! [`ProfileSmoothing::Always`](crate::analysis::feature_finder_picked::trace_fitter::ProfileSmoothing::Always).
+//! The fit runs the shared Levenberg-Marquardt driver
+//! [`optimize`](crate::analysis::feature_finder_picked::trace_fitter::optimize),
+//! the source's `TraceFitter::optimize_`, and `computeTheoretical`, the error
+//! of a refused fit and the gnuplot numbers come from the same module.
+//!
+//! **Solver fidelity.** `optimize` calls
+//! [`minimize`](crate::math::fitters::levenberg_marquardt::minimize), which is
+//! not yet bit-faithful to the executed Eigen solver. Beyond the recorded
+//! fixtures a fit's path can depart from Eigen's at its first trial step, so
+//! fitted parameters, the status and the number of evaluations can differ from
+//! the C++ well beyond the 1e-9 that the EGH fixtures meet. The gap was measured
+//! for `GaussTraceFitter` in `docs/TRACE_FITTER_SUPPORT.md` ("Known gap: solver
+//! fidelity beyond the fixtures"), where the departure arises inside `minimize`
+//! and not in the functor; the EGH functor goes through the same driver and
+//! solver, so the caveat applies to EGH fits as well, although they have not
+//! been measured beyond these fixtures. The root cause is in
+//! `src/math/fitters/levenberg_marquardt.rs`, under investigation in lane B3b.
 //!
 //! The source is serial, and so is this module. Its work is bounded by the
-//! ceilings of `MassTraces::intensity_profile` and of the Levenberg-Marquardt
-//! module, both checked before anything proportional to the input is allocated.
+//! ceilings of `MassTraces::intensity_profile` and of `optimize`, both checked
+//! before anything proportional to the input is allocated.
 //!
 //! See `docs/EGH_TRACE_FITTER_SUPPORT.md` for the API mapping, the native
 //! differences and the evidence.
 
 use crate::analysis::feature_finder_picked::helper_structs::{MassTrace, MassTraces};
-use crate::analysis::feature_finder_picked::trace_fitter::{TraceFitter, TraceFitterParams};
-use crate::format::file_info::text_format::{DEFAULT_STREAM_PRECISION, ostream_g};
-use crate::math::fitters::levenberg_marquardt::{
-    DenseMatrix, LmParameters, minimize, preflight_points,
+use crate::analysis::feature_finder_picked::trace_fitter::{
+    FEWER_RESIDUALS_THAN_PARAMETERS, ProfileSmoothing, TraceFitter, TraceFitterParams,
+    compute_theoretical, initial_shape, optimize, stream_number, unable_to_fit,
 };
 use crate::{Error, Result};
 
@@ -85,23 +108,6 @@ const FWHM_ALPHA: f64 = 0.5;
 
 /// The source's approximation of `sqrt(pi / 8)` in `getArea`.
 const AREA_SIGMA_FACTOR: f64 = 0.6266571;
-
-/// Half-width of the start point's moving-average window: source `LEN`.
-const SMOOTHING_HALF_WIDTH: usize = 2;
-
-/// `TraceFitter`'s parameter defaults, `max_iteration` 500 and `weighted`
-/// `"false"`.
-///
-/// Package B4-GAUSS owns the defaults of the shared record; this private copy
-/// is replaced by B4's when this module is rebased on it.
-const DEFAULT_PARAMETERS: TraceFitterParams = TraceFitterParams {
-    max_iteration: 500,
-    weighted: false,
-};
-
-/// Message of the source's `UnableToFit` when there are fewer residuals than
-/// parameters (`TraceFitter.cpp:111`).
-const TOO_FEW_VALUES: &str = "Skipping feature, we always expect N>=p";
 
 /// The start point of a fit, as the source's protected
 /// `EGHTraceFitter::setInitialParameters_` leaves it in the fitter's members.
@@ -383,9 +389,9 @@ impl EGHTraceFitter {
     ];
 
     /// A fitter with the source defaults: `max_iteration` 500 and unweighted
-    /// traces. Source `EGHTraceFitter()`.
+    /// traces, [`TraceFitterParams::default`]. Source `EGHTraceFitter()`.
     pub fn new() -> Self {
-        Self::with_parameters(DEFAULT_PARAMETERS)
+        Self::with_parameters(TraceFitterParams::default())
     }
 
     /// A fitter with the given parameters: source `EGHTraceFitter()` followed
@@ -422,11 +428,14 @@ impl EGHTraceFitter {
     /// The start point a fit of `traces` begins from: source protected
     /// `setInitialParameters_`.
     ///
-    /// Builds the traces' intensity profile, smooths it with a five-point
-    /// running sum over zero padding, and takes the first strict maximum as the
-    /// apex. From the apex it walks outwards while the smoothed intensity stays
-    /// above half the height, giving the left and right half-height positions
-    /// `A = apex - left` and `B = right - apex` and their smoothed heights. With
+    /// Takes the shared
+    /// [`initial_shape`](crate::analysis::feature_finder_picked::trace_fitter::initial_shape)
+    /// with [`ProfileSmoothing::Always`]: the traces' intensity profile,
+    /// smoothed with a five-point running sum over zero padding whatever its
+    /// length, the first strict maximum as the apex, and the walks outwards
+    /// while the smoothed intensity stays above half the height. They give the
+    /// left and right half-height positions `A = apex - left` and
+    /// `B = right - apex` and their smoothed heights. With
     /// `alpha = (left_height + right_height) * 0.5 / height`, `tau = -1 /
     /// log(alpha) * (B - A)` (replaced by `f64::EPSILON` when exactly zero) and
     /// `sigma = sqrt(-0.5 / log(alpha) * B * A)`.
@@ -442,64 +451,18 @@ impl EGHTraceFitter {
     ///
     /// # Errors
     ///
-    /// Propagates the errors of [`MassTraces::intensity_profile`]: its peak and
-    /// merge-step ceilings, and a NaN retention time the merge cannot place.
-    /// Returns [`Error::InvalidValue`] when the profile is empty, because the
-    /// traces hold no peak; the source then reads `smoothed[0]` of an empty
-    /// vector, which is undefined behaviour.
+    /// Propagates the errors of `initial_shape`: the peak and merge-step
+    /// ceilings of [`MassTraces::intensity_profile`], a NaN retention time the
+    /// merge cannot place, and [`Error::InvalidValue`] when the profile is
+    /// empty because the traces hold no peak. The source then reads
+    /// `smoothed[0]` of an empty vector, which is undefined behaviour.
     pub fn initial_parameters(traces: &MassTraces) -> Result<EGHInitialParameters> {
-        let profile = traces.intensity_profile()?;
-        let count = profile.len();
-        let (Some(first), Some(last)) = (profile.first(), profile.last()) else {
-            return Err(Error::InvalidValue(
-                "EGHTraceFitter needs at least one peak to derive initial parameters".into(),
-            ));
-        };
-        let region_rt_span = last.0 - first.0;
-
-        // totals: the profile intensities padded with SMOOTHING_HALF_WIDTH zeros
-        // on either side.
-        let mut totals = vec![0.0f64; count + 2 * SMOOTHING_HALF_WIDTH];
-        for (slot, entry) in totals[SMOOTHING_HALF_WIDTH..].iter_mut().zip(&profile) {
-            *slot = entry.1;
-        }
-        let window = (2 * SMOOTHING_HALF_WIDTH + 1) as f64;
-        let mut smoothed = vec![0.0f64; count];
-        let mut max_index = 0usize;
-        // std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0)
-        let mut sum = totals[SMOOTHING_HALF_WIDTH..2 * SMOOTHING_HALF_WIDTH]
-            .iter()
-            .fold(0.0f64, |acc, value| acc + value);
-        for i in 0..count {
-            sum += totals[i + 2 * SMOOTHING_HALF_WIDTH];
-            smoothed[i] = sum / window;
-            sum -= totals[i];
-            if smoothed[i] > smoothed[max_index] {
-                max_index = i;
-            }
-        }
-
-        let height = smoothed[max_index] - traces.baseline;
-        let apex_rt = profile[max_index].0;
-        let half_height = height * 0.5;
-
-        let mut index = max_index;
-        while index > 0 && smoothed[index] > half_height {
-            index -= 1;
-        }
-        let left_height = smoothed[index];
-        let left_rt = profile[index].0;
-
-        index = max_index;
-        while index < count - 1 && smoothed[index] > half_height {
-            index += 1;
-        }
-        let right_height = smoothed[index];
-        let right_rt = profile[index].0;
-
-        let a = apex_rt - left_rt;
-        let b = right_rt - apex_rt;
-        let alpha = (left_height + right_height) * 0.5 / height;
+        let shape = initial_shape(traces, ProfileSmoothing::Always)?;
+        let height = shape.height;
+        let apex_rt = shape.apex_rt;
+        let a = apex_rt - shape.left_rt;
+        let b = shape.right_rt - apex_rt;
+        let alpha = (shape.left_height + shape.right_height) * 0.5 / height;
         let log_alpha = libm::log(alpha);
         let mut tau = -1.0 / log_alpha * (b - a);
         if tau == 0.0 {
@@ -512,7 +475,7 @@ impl EGHTraceFitter {
             apex_rt,
             sigma,
             tau,
-            region_rt_span,
+            region_rt_span: shape.region_rt_span,
         })
     }
 
@@ -576,36 +539,44 @@ impl TraceFitter for EGHTraceFitter {
     ///
     /// Derives the start point with [`EGHTraceFitter::initial_parameters`],
     /// minimises the residuals of [`EGHTraceFunctor`] with its analytic
-    /// Jacobian under the evaluation budget
-    /// [`TraceFitterParams::max_iteration`], and sets the model from the result
-    /// with [`EGHTraceFitter::set_optimized_parameters`]. Every
-    /// Levenberg-Marquardt status after `ImproperInputParameters` is accepted,
-    /// including an exhausted budget and a start point at which the gradient
-    /// already vanishes, as it does for the NaN start of a flat profile.
+    /// Jacobian through the shared driver
+    /// [`optimize`](crate::analysis::feature_finder_picked::trace_fitter::optimize)
+    /// under the evaluation budget [`TraceFitterParams::max_iteration`], and
+    /// sets the model from the result with
+    /// [`EGHTraceFitter::set_optimized_parameters`]. Every Levenberg-Marquardt
+    /// status after `ImproperInputParameters` is accepted, including an
+    /// exhausted budget and a start point at which the gradient already
+    /// vanishes, as it does for the NaN start of a flat profile.
+    ///
+    /// The solver is not yet bit-faithful to the executed Eigen beyond the
+    /// recorded fixtures; see "Solver fidelity" in the module documentation.
     ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] starting with `UnableToFit-FinalSet` when
     /// the traces hold fewer than four peaks (message "Skipping feature, we
     /// always expect N>=p"), or when `max_iteration` is zero or negative, which
-    /// the solver rejects as improper input ("Could not fit the gaussian to the
+    /// the driver refuses as improper input ("Could not fit the gaussian to the
     /// data: Error 0", the source's wording). The start point's errors
     /// propagate, except that traces without any peak give the
     /// `UnableToFit-FinalSet` error, where the source's start point is undefined
-    /// behaviour.
+    /// behaviour. The resource ceilings of `optimize` propagate as well: the
+    /// solver's point and byte ceilings, and a fit that exhausts the work
+    /// ceiling `MAX_RESIDUAL_WORK` before its configured budget.
     ///
     /// On any error the fitter is unchanged. The source has already written the
     /// start point into its members when `optimize_` throws, and keeps the
-    /// previous retention-time bounds.
+    /// previous retention-time bounds. `GaussTraceFitter` keeps its start values
+    /// after a refused fit, as its source does.
     fn fit(&mut self, traces: &MassTraces) -> Result<()> {
         let values = traces.peak_count();
         if values == 0 {
-            return Err(unable_to_fit(TOO_FEW_VALUES));
+            return Err(unable_to_fit(FEWER_RESIDUALS_THAN_PARAMETERS));
         }
         let initial = Self::initial_parameters(traces)?;
         let mut x = initial.to_vector();
         let functor = EGHTraceFunctor::new(traces, self.parameters.weighted);
-        optimize_stand_in(
+        optimize(
             &mut x,
             values,
             |parameters, fvec| functor.fill_residuals(solver_vector(parameters), fvec),
@@ -613,7 +584,6 @@ impl TraceFitter for EGHTraceFitter {
                 functor.fill_jacobian(solver_vector(parameters), |row, column, value| {
                     jacobian.set(row, column, value);
                 });
-                0
             },
             &self.parameters,
         )?;
@@ -713,8 +683,10 @@ impl TraceFitter for EGHTraceFitter {
     /// with `N` the function name, `B` the baseline, `S = 2 * sigma * sigma`,
     /// `T = tau`, `C = rt_shift + t_R` and `A = theoretical_int * H`, each number
     /// written as a default C++ stream writes a `double` (precision 6, `%g`
-    /// style). The source writes the name with `StringUtils::toStr(char)`, one
-    /// byte; a non-ASCII Rust `char` is written as its UTF-8 bytes.
+    /// style), through the shared
+    /// [`stream_number`](crate::analysis::feature_finder_picked::trace_fitter::stream_number).
+    /// The source writes the name with `StringUtils::toStr(char)`, one byte; a
+    /// non-ASCII Rust `char` is written as its UTF-8 bytes.
     fn gnuplot_formula(
         &self,
         trace: &MassTrace,
@@ -722,7 +694,7 @@ impl TraceFitter for EGHTraceFitter {
         baseline: f64,
         rt_shift: f64,
     ) -> String {
-        let g = |value: f64| ostream_g(value, DEFAULT_STREAM_PRECISION);
+        let g = stream_number;
         let two_sigma_squared = g(2.0 * self.sigma * self.sigma);
         let tau = g(self.tau);
         let center = g(rt_shift + self.apex_rt);
@@ -751,20 +723,15 @@ impl TraceFitter for EGHTraceFitter {
     }
 
     /// `trace.theoretical_int * value(trace.peaks[k].rt)`: source
-    /// `TraceFitter::computeTheoretical`.
+    /// `TraceFitter::computeTheoretical`, through the shared
+    /// [`compute_theoretical`](crate::analysis::feature_finder_picked::trace_fitter::compute_theoretical).
     ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when `k` is not an index into
     /// `trace.peaks`, where the source indexes without a check.
     fn compute_theoretical(&self, trace: &MassTrace, k: usize) -> Result<f64> {
-        let peak = trace.peaks.get(k).ok_or_else(|| {
-            Error::InvalidValue(format!(
-                "peak index {k} is out of range for a mass trace of {} peaks",
-                trace.peaks.len()
-            ))
-        })?;
-        Ok(trace.theoretical_int * self.value(peak.rt))
+        compute_theoretical(self, trace, k)
     }
 }
 
@@ -784,57 +751,4 @@ fn parameter_vector(x: &[f64]) -> Result<[f64; EGHTraceFitter::NUM_PARAMS]> {
 /// a panic.
 fn solver_vector(x: &[f64]) -> [f64; EGHTraceFitter::NUM_PARAMS] {
     parameter_vector(x).unwrap_or([f64::NAN; EGHTraceFitter::NUM_PARAMS])
-}
-
-/// The error the source reports as `Exception::UnableToFit` with the name
-/// `UnableToFit-FinalSet`.
-fn unable_to_fit(message: &str) -> Error {
-    Error::InvalidValue(format!("UnableToFit-FinalSet: {message}"))
-}
-
-/// Private stand-in for package B4-GAUSS's shared driver
-/// `trace_fitter::optimize(x, values, residual, jacobian, parameters)`, with
-/// the semantics of the source's `TraceFitter::optimize_` (`TraceFitter.cpp:101-135`).
-///
-/// Refuses fewer residuals than parameters, then runs Eigen's
-/// Levenberg-Marquardt through the crate's `minimize` with its defaults and
-/// `max_fev = max_iteration`, and refuses a status of `ImproperInputParameters`
-/// or earlier. A `max_iteration` of zero or below reaches the solver as a zero
-/// budget, which it rejects as improper input exactly as Eigen rejects
-/// `maxfev <= 0`. On success `x` holds the optimised vector; on an error it may
-/// hold a partial result, so the caller keeps its own state until success.
-///
-/// Removed when this module is rebased on B4, whose `optimize` it mirrors.
-fn optimize_stand_in<R, J>(
-    x: &mut [f64],
-    values: usize,
-    residuals: R,
-    jacobian: J,
-    parameters: &TraceFitterParams,
-) -> Result<()>
-where
-    R: FnMut(&[f64], &mut [f64]),
-    J: FnMut(&[f64], &mut DenseMatrix) -> usize,
-{
-    if values < x.len() {
-        return Err(unable_to_fit(TOO_FEW_VALUES));
-    }
-    preflight_points(values, x.len())?;
-    let max_fev = if parameters.max_iteration <= 0 {
-        0
-    } else {
-        usize::try_from(parameters.max_iteration).unwrap_or(usize::MAX)
-    };
-    let solver = LmParameters {
-        max_fev,
-        ..LmParameters::default()
-    };
-    let status = minimize(x, values, residuals, jacobian, &solver);
-    if status.code() <= 0 {
-        return Err(unable_to_fit(&format!(
-            "Could not fit the gaussian to the data: Error {}",
-            status.code()
-        )));
-    }
-    Ok(())
 }
