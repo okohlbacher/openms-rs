@@ -31,6 +31,29 @@
     to CI, and updated the ledger: PeakTypeEstimator.h is complete;
     FAIMSHelper.h, the helper structures, DBoundingBox.h and both coarse isotope
     headers are partial.
+  - Wave-1 fix rounds and the final shared-file pass:
+    - FileInfo's numeric text (A2): `StringUtils::number`, full-precision `toStr`
+      with the shortest round-trip scientific text and `std::to_chars` ties to
+      even, integer and string `toStr`, vector `operator<<` and stream `%g`
+      output. Apple libc `%g` ties, the NaN sign and the INT_MAX-byte `%f` band
+      are documented platform differences.
+    - FAIMS targets (A1): an infinite target is filtered as the executed C++
+      filters it, keeping only unannotated identifications even at an infinite
+      tolerance; a NaN target stays refused. The FAIMSHelper_test reader section
+      runs again, and `FAIMSHelper.h` is complete.
+    - `-ini` exit codes (CLI-1): a `-ini` that is neither a regular file nor a
+      directory skips the readability precheck, which reported such a file
+      unreadable without opening it; the load opens it instead. `/dev/null`
+      exits 3 and a FIFO the user cannot open exits 2, before a run and with
+      `-write_ini`, as in the C++ tool.
+    - Source-precision isotopes (B2): `ProbabilityPrecision::SourceSingle`
+      reproduces the SDK bit for bit only in runs that iterate elements in the
+      port's order, the majority order for natural elements, and never for a
+      formula containing iridium, which the SDK builds from rhenium's tables.
+    - Logged CPP-253 to CPP-255 and extended CPP-245; registered the A1, CLI-1
+      and A2 oracle artifacts; `StringUtils.h` and `ListUtilsIO.h` are partial and
+      `FileInfo.h` is unmapped again. Tests and doctests that wrote under fixed
+      temporary names now use their own directories.
 
 - Resumed the integrated Claude checkpoint with sqMass handler hardening: invalid
   Numpress quantization fails atomically, writes recheck database limits before

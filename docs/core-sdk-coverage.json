@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 54,
-      "evidence_requires_review": 160,
+      "complete": 55,
+      "evidence_requires_review": 157,
       "native_equivalent": 90,
-      "partial": 54,
-      "unmapped": 428
+      "partial": 55,
+      "unmapped": 429
     },
     "topp_sources": 124,
     "validated_topp_workflows": 5
@@ -4155,19 +4155,22 @@
         "rust": [
           "src/kernel.rs",
           "src/metadata/acquisition.rs",
-          "src/metadata/value.rs"
+          "src/metadata/value.rs",
+          "src/format/file_info/text_format.rs"
         ],
         "tests": [
           "tests/kernel.rs",
-          "tests/metadata.rs"
+          "tests/metadata.rs",
+          "tests/file_info_text_format.rs"
         ],
         "documentation": "docs/NATIVE_EQUIVALENTS.md",
-        "scope": "Fixed-width/native-size primitives and all15 ASCII names have native mappings. Whole time_t ABI and writtenDigits helper are not ported: includes generic fallback6, explicit long-to-int precision quirks and platform-specific long-double specialization. f32/f64 DIGITS alone cannot certify the whole header."
+        "scope": "Fixed-width/native-size primitives and all15 ASCII names have native mappings. writtenDigits<float> and writtenDigits<double> are ported as WRITTEN_DIGITS_F32 (6) and WRITTEN_DIGITS_F64 (15) in src/format/file_info/text_format.rs for the FileInfo text formatting (A2-TEXTFMT), tested in tests/file_info_text_format.rs. Not ported: the whole time_t ABI and the other writtenDigits definitions, namely the generic template (default precision 6), the int, unsigned int, long int and unsigned long int specialisations with their explicit long-to-int precision quirks, and the platform-specific long double specialisation. f32/f64 DIGITS alone cannot certify the whole header."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/area_iteration_provenance.json",
         "tests/data/datetime_provenance.json",
+        "tests/data/file_info_text_format_provenance.json",
         "tests/data/imzml_writer_provenance.json",
         "tests/data/mass_decomposition_provenance.json",
         "tests/data/math_functions_provenance.json",
@@ -4905,11 +4908,22 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h",
       "sha256": "ae4767948b7c5b40bd7398e210a8fbabe008021210192d1c64f3d59d83c79212",
       "domain": "DATASTRUCTURES",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/file_info/text_format.rs"
+        ],
+        "tests": [
+          "tests/file_info_text_format.rs"
+        ],
+        "documentation": "src/format/file_info/text_format.rs",
+        "scope": "FileInfo scope only (A2-TEXTFMT): operator<<(std::ostream&, const std::vector<T>&) as list_to_string over ToStr, the bracketed, comma-separated text for integer, f32, f64 and string elements, with the native MAX_LIST_TEXT_BYTES ceiling (64 MiB) checked before allocating. Tier 1: the L rows of ../oracle/file-info-text-format (product SDK 4fdec46) and retained FileInfo reports. Not ported: VecLowPrecision<T> and its operator<<, and operator<<(std::vector<std::string>&, const TString&), the StringList push that the single ListUtilsIO_test.cpp section covers (Vec::push in Rust)."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/controlled_vocabulary_provenance.json",
+        "tests/data/file_info_text_format_provenance.json",
         "tests/data/imzml_writer_provenance.json",
         "tests/data/list_utils_provenance.json",
         "tests/data/mztab_provenance.json"
@@ -5086,8 +5100,18 @@
       "header": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
       "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
       "domain": "DATASTRUCTURES",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/file_info/text_format.rs"
+        ],
+        "tests": [
+          "tests/file_info_text_format.rs"
+        ],
+        "documentation": "src/format/file_info/text_format.rs",
+        "scope": "FileInfo scope only (A2-TEXTFMT); the module documentation is the support document. Ported: StringUtils::number(double, UInt) as fixed, which refuses what the source's 64-byte buffer would cut (CPP-253) and digit counts that become a negative printf precision (CPP-254), and as fixed_truncated, which reproduces the source bytes; toStr(float, true) and toStr(double, true), with appendToStr and NumericFormatting::appendNumeric(fixed_format = false), as to_str_f32 and to_str, including the shortest round-trip scientific text with std::to_chars' ties to even; the integer and string toStr overloads through ToStr. Tier 1 against ../oracle/file-info-text-format and ../oracle/text-format (product SDK 4fdec46): the driver rows, a tie-dense sweep of 60,457 doubles and 10,973 floats, and retained FileInfo reports; the in-scope String_test.cpp and StringUtils_test.cpp literals are tier 3. Not ported: toStr(float/double, false) and appendToStrLowP, the long double overloads, toStr(char), toStr(DataValue) and toStr(ParamValue), numberLength, and the header's other string utilities and conversions, which this review does not cover. Native: fixed_truncated does not reproduce the C-library-dependent result where the %f text reaches INT_MAX bytes."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/adduct_provenance.json",
@@ -5096,6 +5120,7 @@
         "tests/data/cv_mapping_provenance.json",
         "tests/data/datetime_provenance.json",
         "tests/data/experiment_metadata_provenance.json",
+        "tests/data/file_info_text_format_provenance.json",
         "tests/data/imzml_writer_provenance.json",
         "tests/data/list_utils_provenance.json",
         "tests/data/mascot_generic_provenance.json",
@@ -6498,13 +6523,10 @@
       "header": "src/openms/include/OpenMS/FORMAT/FileInfo.h",
       "sha256": "43e35cc67dcd798a349ded37fbb8240087c9748c0c65df5debe797f92097bbc9",
       "domain": "FORMAT",
-      "status": "evidence_requires_review",
+      "status": "unmapped",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [
-        "tests/data/faims_helper_provenance.json",
-        "tests/data/peak_type_estimator_provenance.json"
-      ],
+      "reference_manifests": [],
       "direct_topp_consumers": [
         "FileInfo"
       ]
@@ -8931,9 +8953,9 @@
       "header": "src/openms/include/OpenMS/IONMOBILITY/FAIMSHelper.h",
       "sha256": "c37b3c0c224c0ee7d13feca1b4e80452fc0e0033e70d71cdcc67dec4eec38756",
       "domain": "IONMOBILITY",
-      "status": "partial",
+      "status": "complete",
       "review": {
-        "status": "partial",
+        "status": "complete",
         "rust": [
           "src/kernel/faims_helper.rs"
         ],
@@ -8941,7 +8963,7 @@
           "tests/faims_helper.rs"
         ],
         "documentation": "docs/FAIMS_HELPER_SUPPORT.md",
-        "scope": "getCompensationVoltages and filterPeptidesByFAIMSCV (FAIMSHelper.cpp) with every public member mapped: the voltage set is a BTreeSet of CompensationVoltage and the missing-voltage log line is returned in CompensationVoltages::warnings. Tier 1: 16 synthetic voltage experiments, the C++ load of IM_FAIMS_test.mzML and ten filter parameter cases match the executed product SDK bit for bit, with the NaN-voltage and impossible-parameter cases refused and their C++ outcomes asserted. PARTIAL: FAIMSHelper_test section 3 through the Rust mzML reader is still #[ignore]; promote after the A3-FORMAT-IO hand-off test is re-enabled and passes on stable and 1.85.0, and after the follow-up that settles infinite target voltages (get_compensation_voltages accepts them, filter_peptides_by_faims_cv refuses them). Native: NaN voltages, non-finite targets and NaN, zero or negative tolerances return InvalidValue; non-numeric annotations are refused (CPP-058)."
+        "scope": "Every public member of FAIMSHelper.h and FAIMSHelper.cpp is ported: getCompensationVoltages as FaimsHelper::get_compensation_voltages, a BTreeSet of CompensationVoltage in std::set<double> order with the missing-voltage log line returned in CompensationVoltages::warnings, and filterPeptidesByFAIMSCV as filter_peptides_by_faims_cv with DEFAULT_CV_TOLERANCE. All five FAIMSHelper_test sections pass; section 3 runs on the C++ reader's per-spectrum values and end to end through the Rust mzML reader, re-enabled after A3-FORMAT-IO (15 passed, 0 ignored, with --no-default-features --features mzml on stable and 1.85.0). Tier 1 against ../oracle/pte-faims-helper: the C++ load of IM_FAIMS_test.mzML, 16 synthetic voltage experiments (13 bit for bit, the 3 NaN cases refused with their C++ results asserted), 15 filter records, the empty-annotation record and 2 infinite-annotation records. Infinite targets are filtered as the source filters them and keep only unannotated identifications, even at an infinite tolerance. Native: NaN voltages, a NaN target and NaN, zero or negative tolerances return InvalidValue with the C++ outcomes asserted (CPP-244, CPP-245); non-numeric annotations are refused (CPP-058); MetaValue cannot hold a non-finite annotation, so the infinite-annotation records run on their representable subset; warnings are returned rather than logged; spectrum and identification ceilings."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -13917,7 +13939,6 @@
       "open_sdk_headers": [
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h"
@@ -14012,7 +14033,6 @@
         "OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h",
         "OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h",
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/ML/CLUSTERING/GridBasedCluster.h",
@@ -14740,7 +14760,6 @@
       ],
       "open_sdk_headers": [
         "OpenMS/FORMAT/FileHandler.h",
-        "OpenMS/IONMOBILITY/FAIMSHelper.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
         "OpenMS/KERNEL/MSExperiment.h"
       ],

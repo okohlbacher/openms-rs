@@ -145,7 +145,6 @@ fn assert_class_literals_and_oracle_voltages(experiment: &MSExperiment) {
 
 #[cfg(feature = "mzml")]
 #[test]
-#[ignore = "A3-FORMAT-IO: the mzML reader does not yet read spectrum-level MS:1001581"]
 fn get_compensation_voltages_section_through_the_mzml_reader() {
     // FAIMSHelper_test.cpp:43-59 exactly: load IM_FAIMS_test.mzML, whose CVs
     // are spectrum-level cvParams, and query the voltages.
@@ -171,8 +170,8 @@ fn get_compensation_voltages_section_on_the_values_the_cpp_reader_produced() {
     // reader loads the 19 spectra, and each spectrum receives the drift time
     // and unit the C++ MzMLFile produced for it (the oracle's per-spectrum
     // records). This checks the helper on the real file's voltage sequence
-    // independently of A3-FORMAT-IO's reader change; the ignored test above
-    // checks the whole path once that lands.
+    // independently of A3-FORMAT-IO's reader change; the test above, re-enabled
+    // since A3-FORMAT-IO merged, checks the whole path through the Rust reader.
     let mut experiment = load_im_faims_test();
     assert_eq!(experiment.spectra.len(), 19); // FAIMSHelper_test.cpp:50
     assert_eq!(records("faims_file_spectra")[0][1], "19");

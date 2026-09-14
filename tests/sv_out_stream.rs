@@ -16,6 +16,7 @@ use openms::format::sv_out_stream::{
     F32_FIXED_DIGITS, F64_FIXED_DIGITS, MAX_FIXED_DIGITS, NumberClass, QuotingMethod, SVLimits,
     SVOutStream, SvNumber, quote, source_f32_text, source_float_text,
 };
+use openms::system::file::TempDir;
 
 /// Build a stream over an in-memory buffer, the test's `stringstream`.
 fn stream(separator: &str, replacement: &str, quoting: QuotingMethod) -> SVOutStream<Vec<u8>> {
@@ -431,8 +432,9 @@ fn a_replacement_longer_than_the_separator_is_charged_before_the_substitution() 
 
 #[test]
 fn the_file_constructor_creates_and_truncates() {
-    let dir = std::env::temp_dir().join("openms_sv_out_stream_file");
-    std::fs::create_dir_all(&dir).unwrap();
+    // A directory of its own, so concurrent runs cannot remove each other's files.
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let dir = temp.path();
     let path = dir.join("table.csv");
     std::fs::write(&path, b"stale contents that must not survive").unwrap();
     let mut out = SVOutStream::create_with_options(&path, ",", "_", QuotingMethod::None).unwrap();
@@ -450,7 +452,6 @@ fn the_file_constructor_creates_and_truncates() {
 
     let error = SVOutStream::create(dir.join("missing").join("table.csv")).unwrap_err();
     assert!(matches!(error, Error::Io(_)), "{error}");
-    std::fs::remove_dir_all(&dir).ok();
 }
 
 #[test]

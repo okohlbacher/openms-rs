@@ -42,6 +42,7 @@ use openms::identification::graph::{
 };
 use openms::kernel::{Feature, FeatureMap};
 use openms::metadata::{MetaValue, ProcessingAction};
+use openms::system::file::TempDir;
 use std::collections::{BTreeMap, BTreeSet};
 
 // ---------------------------------------------------------------------------
@@ -955,8 +956,9 @@ fn store_writes_the_retained_bytes() {
         .push(store_fixture_sme_row_one());
 
     let writer = MzTabMFile::with_options(MzTabMWriteOptions::source());
-    let directory = std::env::temp_dir().join("openms-mztab-m-store");
-    std::fs::create_dir_all(&directory).unwrap();
+    // A directory of its own, so concurrent runs cannot remove each other's files.
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let directory = temp.path();
     let path = directory.join("stored.mzTab");
     writer.store(&path, &document).unwrap();
     let written = std::fs::read_to_string(&path).unwrap();
@@ -2422,8 +2424,9 @@ fn add_meta_info_to_optional_columns_substitutes_only_the_name() {
 fn store_checks_the_output_extension() {
     let document = MzTabM::new();
     let writer = MzTabMFile::new();
-    let directory = std::env::temp_dir().join("openms-mztab-m-extension");
-    std::fs::create_dir_all(&directory).unwrap();
+    // A directory of its own, so concurrent runs cannot remove each other's files.
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let directory = temp.path();
     for name in ["out.mzTab", "out.tsv", "out.unknownext", "日本語.mzTab"] {
         let path = directory.join(name);
         writer.store(&path, &document).unwrap();
@@ -2528,8 +2531,9 @@ fn non_ascii_text_survives_every_cell_and_the_writer() {
     assert_rectangular(&lines);
 
     // And the same text round-trips through a file whose own name is not ASCII.
-    let directory = std::env::temp_dir().join("openms-mztab-m-unicode");
-    std::fs::create_dir_all(&directory).unwrap();
+    // A directory of its own, so concurrent runs cannot remove each other's files.
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let directory = temp.path();
     let path = directory.join("メタボ.mzTab");
     MzTabMFile::new().store(&path, &document).unwrap();
     let written = std::fs::read_to_string(&path).unwrap();

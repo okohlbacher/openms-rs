@@ -655,9 +655,81 @@
    "package": "A3-FORMAT-IO",
    "role": "mzML mobility and FileHandler type-detection oracle; bundle/A3-FORMAT-IO ff44438",
    "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/driver.cpp",
+   "sha256": "b9bcfc20fd2196cd28778dd0886295906584c81c6c6483b976ed93f32c8f9a99",
+   "origin_key": "tests/data/faims_helper_provenance.json",
+   "package": "A1-PTE-FAIMS",
+   "role": "C++ driver for the PeakTypeEstimator and FAIMSHelper cases, 137 stdout records after the fix-round amendment; also recorded in tests/data/peak_type_estimator_provenance.json; bundle/A1-PTE-FAIMS f3c29cb",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/CMakeLists.txt",
+   "sha256": "2802af92389c3b015bbd138eba157c6d154f93e5f26af58fc7891bdd6089b3ba",
+   "origin_key": "tests/data/faims_helper_provenance.json",
+   "package": "A1-PTE-FAIMS",
+   "role": "driver build against the product SDK; also recorded in tests/data/peak_type_estimator_provenance.json; bundle/A1-PTE-FAIMS f3c29cb",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/run.sh",
+   "sha256": "4225c7d902c6c78a1efeac4d1fd807afd8504a904bd5c93e2e6501e9ac9f27eb",
+   "origin_key": "tests/data/faims_helper_provenance.json",
+   "package": "A1-PTE-FAIMS",
+   "role": "clean-environment runner; its two executions were byte-identical; also recorded in tests/data/peak_type_estimator_provenance.json; bundle/A1-PTE-FAIMS f3c29cb",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/pte-faims-helper/manifest.json",
+   "sha256": "c374c3281c49f62037fb30623dfe9395b45912e2ecfc6ea6ba552fac6488e50d",
+   "origin_key": "tests/data/faims_helper_provenance.json",
+   "package": "A1-PTE-FAIMS",
+   "role": "oracle manifest with the fix-round amendment (NaN and infinite FAIMS targets); also recorded in tests/data/peak_type_estimator_provenance.json; bundle/A1-PTE-FAIMS f3c29cb",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/manifest.json",
+   "sha256": "fb364f53bdd416b841e13063078033e2ecc5757d1f11a435014dee6bd028976d",
+   "origin_key": "tests/data/topp_cli_lifecycle_provenance.json",
+   "package": "CLI-1",
+   "role": "38 executed TOPPBase lifecycle cases: command lines, exit codes, diagnostics, output hashes and oracle identity; bundle/CLI-1 5ae7826",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/ini_read_failures.sh",
+   "sha256": "9611f25181937cf4c411c272679c2a80d6b6498028253b79c5463ebab71c8bab",
+   "origin_key": "tests/data/topp_cli_lifecycle_provenance.json",
+   "package": "CLI-1",
+   "role": "driver and manifest generator for the INI read-failure cases; bundle/CLI-1 86d2733",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/topp-cli-lifecycle/ini_read_failures/manifest.json",
+   "sha256": "77ab0db36ebeeedd3eac202f987fc1190651d4312b6366fdaed51afdc12218b3",
+   "origin_key": "tests/data/topp_cli_lifecycle_provenance.json",
+   "package": "CLI-1",
+   "role": "10 executed INI read-failure cases, among them /dev/null (exit 3) and a mode-000 FIFO (exit 2) as -ini before a run and with -write_ini; bundle/CLI-1 86d2733",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/file-info-text-format/manifest.json",
+   "sha256": "a959541af4859bfa5b84f7471ebef31a3cdf417ad362f563b6245b7bfc4a7334",
+   "origin_key": "tests/data/file_info_text_format_provenance.json",
+   "package": "A2-TEXTFMT",
+   "role": "StringUtils, stream and list formatting rows (D, S, F, G, L) from product-SDK libOpenMS and the pinned NumericFormatting.h; bundle/A2-TEXTFMT 6cec951",
+   "label": "oracle-generated (tier 1 executed differential)"
+  },
+  {
+   "path": "../oracle/text-format/manifest.json",
+   "sha256": "110bdd830eb8fd7152ed0dd6ba244200d9a94c612cae6f6d0a2ce85670dce5bc",
+   "origin_key": "tests/data/file_info_text_format_provenance.json",
+   "package": "A2-TEXTFMT",
+   "role": "tie-rule sweep (60,457 doubles, 10,973 floats, 15,195 %g rows on macOS and Linux) and the INT_MAX probes; bundle/A2-TEXTFMT 6cec951",
+   "label": "oracle-generated (tier 1 executed differential)"
   }
  ],
- "external_reference_note": "Executed C++ oracle manifests of early-TOPP bundle wave 1, registered at integration on 2026-09-14. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration, and each origin_key names the in-repo group manifest that records the oracle's full artifact list. A1-PTE-FAIMS (../oracle/pte-faims-helper) and CLI-1 (../oracle/topp-cli-lifecycle) are registered at the final merge, because their follow-up commits change those oracle files. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked) are registered at W4.4.",
+ "external_reference_note": "Executed C++ oracle artifacts of early-TOPP bundle wave 1, registered at integration on 2026-09-14. They live outside this repository under ../oracle/, so no C++ enters it; each sha256 was recomputed from the file at registration, and each origin_key names the in-repo group manifest that records the oracle's full artifact list. A1-PTE-FAIMS (../oracle/pte-faims-helper), CLI-1 (../oracle/topp-cli-lifecycle) and A2-TEXTFMT (../oracle/file-info-text-format and ../oracle/text-format) were registered at the final wave-1 merge, after their fix rounds had changed those files. The A2 group manifest tests/data/file_info_text_format_provenance.json is indexed only through origin_key: its fixtures are constants embedded in tests/file_info_text_format.rs, not files, and its target_verification has no source_revisions or source_changes, so it lacks the current_sdk_reference_manifests shape that tools/check_core_sdk.py verifies. C1 (../oracle/topp-early-bundle) and C2 (../oracle/featurefinder-picked) are registered at W4.4.",
  "full_cpp_sdk_built": false,
  "cpp_reference_probe_built": true,
  "cpp_reference_evidence": {

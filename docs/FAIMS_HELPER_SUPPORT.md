@@ -174,19 +174,17 @@ Debug-only precondition is on these paths.
 | `FAIMSHelper()` | `constructor_and_destructor_sections` | passes |
 | `~FAIMSHelper()` | `constructor_and_destructor_sections` | passes |
 | `getCompensationVoltages(PeakMap& exp)` on `IM_FAIMS_test.mzML` | `get_compensation_voltages_section_on_the_values_the_cpp_reader_produced` | passes: the Rust reader loads the 19 spectra, each receives the drift time and unit the C++ reader produced, and the three literals and the oracle set hold |
-| same, end to end through the Rust mzML reader | `get_compensation_voltages_section_through_the_mzml_reader` | **ignored until A3-FORMAT-IO**: the file's voltages are spectrum-level `MS:1001581` cvParams, which the Rust reader drops today. Measured failure: spectrum 0 keeps the sentinel `-1.0` (bits `0xBFF0000000000000`) where C++ reads `-55.0` |
+| same, end to end through the Rust mzML reader | `get_compensation_voltages_section_through_the_mzml_reader` | passes: since A3-FORMAT-IO the Rust reader keeps the spectrum-level `MS:1001581` cvParams, and every spectrum's drift time bits and unit equal the C++ reader's. Re-enabled at the wave-1 final merge; before A3, spectrum 0 kept the sentinel `-1.0` (bits `0xBFF0000000000000`) where C++ reads `-55.0` |
 | detects FAIMS beyond first spectrum and ignores sentinel | `get_compensation_voltages_detects_faims_beyond_the_first_spectrum_and_ignores_the_sentinel_section` | passes |
 | returns empty for non-FAIMS | `get_compensation_voltages_returns_empty_for_non_faims_section` | passes |
 
-Every section's expectations pass unchanged. The third section's reader half is
-the only part that waits for another work package.
+Every section's expectations pass unchanged. The third section passes both on
+the C++ reader's values and end to end through the Rust reader: 15 passed and 0
+ignored with `--no-default-features --features mzml`, on stable and 1.85.0. The
+ledger records `FAIMSHelper.h` as `complete`.
 
 ## Deferrals
 
-- **End-to-end section 3** waits for A3-FORMAT-IO's spectrum- and scan-level
-  drift time in the mzML reader. When it lands, remove the `#[ignore]` on
-  `get_compensation_voltages_section_through_the_mzml_reader`; nothing else in
-  this package changes.
 - **Logging.** When kernel modules are wired to `LogStream`, the warning can be
   forwarded there; until then callers relay `CompensationVoltages::warnings`.
 

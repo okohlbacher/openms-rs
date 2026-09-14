@@ -4313,15 +4313,15 @@ implementation. They do not count as completed Rust functionality.
 
 **Affected file/function:** `src/openms/source/IONMOBILITY/FAIMSHelper.cpp:58–82`, `filterPeptidesByFAIMSCV` (comparison at 71).
 
-**Trigger:** A `cv_tolerance` of zero, a negative or NaN tolerance, or a NaN `target_cv`.
+**Trigger:** A `cv_tolerance` of zero, a negative or NaN tolerance, or a NaN `target_cv` at any tolerance, an infinite one included.
 
-**Issue:** The strict test `std::abs(pep_cv - target_cv) < cv_tolerance` can then never succeed, so only unannotated identifications are returned, with no diagnostic.
+**Issue:** The strict test `std::abs(pep_cv - target_cv) < cv_tolerance` can then never succeed, so only unannotated identifications are returned, with no diagnostic. A NaN target keeps only the unannotated identifications even at an infinite tolerance, because every comparison with NaN is false. An infinite target also keeps no annotated identification, not even one annotated with the same infinity, because `inf - inf` is NaN. That follows from IEEE arithmetic on a voltage `getCompensationVoltages` can itself return, so the port treats it as source behaviour rather than as part of this defect.
 
 **Proposed C++ fix:** Validate `target_cv` and `cv_tolerance`.
 
-**Evidence:** Oracle cases `tolerance_zero`, `tolerance_negative`, `tolerance_nan` and `target_nan` of `../oracle/pte-faims-helper`; `tests/data/faims_helper_provenance.json`.
+**Evidence:** Oracle cases `tolerance_zero`, `tolerance_negative`, `tolerance_nan`, `target_nan` and `target_nan_tolerance_infinite`; for infinite targets `target_positive_infinity`, `target_negative_infinity`, their `_tolerance_infinite` variants and the two `faims_filter_infinite_annotation` cases. All are in `../oracle/pte-faims-helper` (fix-round manifest `c374c328`); `tests/data/faims_helper_provenance.json`.
 
-**Rust handling:** `FaimsHelper::filter_peptides_by_faims_cv` returns `Error::InvalidValue` for a non-finite target or a NaN, zero or negative tolerance; a positive infinite tolerance stays valid.
+**Rust handling:** `FaimsHelper::filter_peptides_by_faims_cv` returns `Error::InvalidValue` for a NaN target or a NaN, zero or negative tolerance; a positive infinite tolerance stays valid. Since `f3c29cb` an infinite target is filtered as the source filters it and returns the C++ identifiers. `MetaValue` cannot hold an infinite annotation, so the infinite-annotation cases run on their representable subset.
 
 ## CPP-246 — PeakTypeEstimator's comment states an 80% threshold for a 75% test
 
@@ -4405,7 +4405,7 @@ implementation. They do not count as completed Rust functionality.
 
 **Proposed C++ fix:** Remove `instance` from the command-line parameters before the update, as the lifecycle already does for `ini` (333).
 
-**Evidence:** Oracle case `instance_on_command_line` in `../oracle/topp-cli-lifecycle/manifest.json`; `tests/data/topp_cli_lifecycle/topp_cli_lifecycle_provenance.json`.
+**Evidence:** Oracle case `instance_on_command_line` in `../oracle/topp-cli-lifecycle/manifest.json`; `tests/data/topp_cli_lifecycle_provenance.json`.
 
 **Rust handling:** The port reproduces exit 6. `docs/TOPP_CLI_SUPPORT.md` records why the `-instance 5` class-test case is not transcribed.
 
@@ -4444,3 +4444,55 @@ implementation. They do not count as completed Rust functionality.
 **Evidence:** Oracle case `ini_common_top_level` in `../oracle/topp-cli-lifecycle/manifest.json`.
 
 **Rust handling:** The port reproduces exit 6.
+
+## CPP-253 — StringUtils::number silently cuts its text at 63 bytes
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`, and by a probe that compiles a verbatim copy of the pinned function.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/DATASTRUCTURES/StringUtils.cpp:526–531`, `StringUtils::number(double, UInt)`.
+
+**Trigger:** A value whose `%.*f` text is longer than 63 bytes, such as a corrupt or huge intensity or retention time of about 1e60 or more at the digit counts FileInfo uses.
+
+**Issue:** `number` formats into `char buf[64]` with `std::snprintf(buf, sizeof(buf), "%.*f", static_cast<int>(n), d)` and returns the buffer without checking the length `snprintf` reports. The text is cut to 63 bytes with no diagnostic, so the magnitude is wrong and the decimals are gone: `number(1e100, 0)`, `number(1e100, 1)` and `number(1e100, 2)` all return the 63-digit integer `100000000000000001590289110975991804683608085639452813897813275`. FileInfo prints every retention-time, m/z, ion-mobility and intensity range through `number`, in the text report and in the `general:` TSV lines (`FileInfo.cpp:108–540`).
+
+**Proposed C++ fix:** Size the buffer from `snprintf(nullptr, 0, ...)`, or format with `std::to_chars` into a buffer large enough for the value.
+
+**Evidence:** The `number(x, 0..2)` columns of the D rows for bits `54b249ad2594c37d` and `d4b249ad2594c37d` in `../oracle/file-info-text-format/results/driver.tsv`; the same rows in `results/pin_probe.tsv`, from a probe that compiles a verbatim copy of `StringUtils.cpp:526–531`; `tests/data/file_info_text_format_provenance.json`.
+
+**Rust handling:** `format::file_info::text_format::fixed` refuses a value whose text the source would cut; `fixed_truncated` reproduces the source bytes for the tool path.
+
+## CPP-254 — StringUtils::number turns a digit count of 2^31 or more into a negative precision
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`, and by a probe that compiles a verbatim copy of the pinned function.
+
+**Status:** Executed.
+
+**Affected file/function:** `src/openms/source/DATASTRUCTURES/StringUtils.cpp:529`, the `static_cast<int>(n)` in `StringUtils::number(double, UInt)`.
+
+**Trigger:** A digit count `n` of 2147483648 or more.
+
+**Issue:** The `UInt` digit count becomes the `int` precision of `%.*f`. From 2^31 on it is negative, and a negative precision argument counts as omitted, so the value prints with six decimals instead of the requested count, without a diagnostic: `number(0.125, 2147483648)` returns `0.125000`.
+
+**Proposed C++ fix:** Range-check `n` before the cast.
+
+**Evidence:** The F rows with digit count 2147483648 in `../oracle/file-info-text-format/results/driver.tsv` (`0.125000`, `2.500000`, `-0.000000`, `0.333333`, `123.456000`) and in `results/pin_probe.tsv`; `tests/data/file_info_text_format_provenance.json`.
+
+**Rust handling:** `fixed` refuses such a digit count; `fixed_truncated` reproduces the source text.
+
+## CPP-255 — StringUtils::toStr documents significant digits but writes fraction digits
+
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The behaviour is executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
+
+**Status:** Documentation defect. The behaviour is executed; whether the comments or the code state the intended precision is unconfirmed.
+
+**Affected file/function:** `src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h:118–121`, the `toStr(float, bool)` and `toStr(double, bool)` comments; `src/openms/source/DATASTRUCTURES/StringUtils.cpp:313–316`, the precision-mapping comment, with the code at 374–377 and 384–387; `src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h:42` and 82.
+
+**Issue:** The header says `full_precision` selects "6-digit" (float) or "15-digit" (double) output, and the implementation comment says 6 and 15 "significant digits (general)". `appendToStr` passes `writtenDigits<float>()` or `writtenDigits<double>()` to `appendNumeric`, which for magnitudes in [1e-2, 1e4) calls `std::to_chars` with `std::chars_format::fixed` and that precision, a count of fraction digits. `toStr(1234.5678)` is `1234.567800000000034`, 19 significant digits including binary noise, and `toStr(9.995)` is `9.994999999999999`. At 1e4 and above, and below 1e-2, the same function writes the shortest round-trip scientific text, so the precision differs across magnitudes.
+
+**Proposed C++ fix:** Correct the comments, or use general or shortest formatting in the fixed range; the latter changes output and needs a review of the reference files.
+
+**Evidence:** The `toStr(x)` column of the D rows for bits `40934a456d5cfaad` and `4023fd70a3d70a3d` in `../oracle/file-info-text-format/results/driver.tsv` and `results/pin_probe.tsv`; source review of the cited lines.
+
+**Rust handling:** `to_str` and `to_str_f32` reproduce the source behaviour, not the comments.

@@ -8,11 +8,11 @@ Validated TOPP workflows: **5** of 124, each reproducing its upstream test again
 
 | Review state | Headers |
 | --- | ---: |
-| complete | 54 |
-| evidence_requires_review | 160 |
+| complete | 55 |
+| evidence_requires_review | 157 |
 | native_equivalent | 90 |
-| partial | 54 |
-| unmapped | 428 |
+| partial | 55 |
+| unmapped | 429 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -24,7 +24,7 @@ These counts show direct consumers; they do not establish full dependency closur
 | `OpenMS/CONCEPT/LogStream.h` | 69 | partial |
 | `OpenMS/KERNEL/MSExperiment.h` | 55 | partial |
 | `OpenMS/METADATA/ProteinIdentification.h` | 47 | partial |
-| `OpenMS/DATASTRUCTURES/StringUtils.h` | 12 | evidence_requires_review |
+| `OpenMS/DATASTRUCTURES/StringUtils.h` | 12 | partial |
 | `OpenMS/FORMAT/MzMLFile.h` | 12 | partial |
 | `OpenMS/CHEMISTRY/ProteaseDB.h` | 11 | evidence_requires_review |
 | `OpenMS/METADATA/PeptideIdentification.h` | 11 | evidence_requires_review |

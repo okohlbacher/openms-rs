@@ -6,9 +6,9 @@
 The shared-file pass on `integrate/wave1-shared` then records them in the
 ledger, provenance, CI workflow, licences and C++ issue log. `crate/digamma`
 (`d94274c`) was dropped, and the unused `special` crate went with it; see
-[THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md). Not included:
-`crate/regex-facade` and `bundle/A2-TEXTFMT` (fix round), and the follow-up
-commits on A1, CLI-1 and B2.
+[THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md). The four
+fix-round merges that followed, A2's first merge among them, are recorded below.
+Not included: `crate/regex-facade`, still in review.
 
 Tier 1 is an executed differential against a C++ oracle: the product SDK
 (Debug, core `4fdec46`, accepted under decision D7) or, for the crate lanes, the
@@ -37,6 +37,86 @@ ratchet (concept to chemistry removed, cli to concept and cli to metadata
 added), `SOURCE_PROVENANCE.json`, the minimum-Rust CI job, `LICENSES.md` and
 CPP-230 to CPP-252. The open follow-ups are listed in
 [the work packages](EARLY_TOPP_WORK_PACKAGES.md#wave-1-status).
+
+### Fix-round merges
+
+Four `--no-ff` merges of approved fix rounds follow the audit repair `b0ac76a`
+on `integrate/wave1`. The counts are from each approving verifier's rerun on its
+own detached checkout through the kim gate.
+
+| Package | Fix commit (merge) | What changed | Gates rerun by the approving verifier |
+|---|---|---|---|
+| B2-ISO-GEOM | `42f142f` (`05ca267`) | Documentation and provenance strings only. `ProbabilityPrecision::SourceSingle` reproduces the SDK bit for bit only in runs that iterate elements in the port's order, the majority order for natural elements, and never for a formula containing iridium, which `ElementDB.cpp:512` builds from rhenium's tables (CPP-249) | rustdoc `-D warnings` exit 0; `--all-features --test isotopes_source_precision` 16 passed on 1.96; fmt and `check_core_sdk` exit 0. Executed differential: the SDK's 84 element tables equal the port's except Ir, and 83 of 3,486 element pairs differ, every one containing Ir. 1.85 not rerun: comments and JSON strings only |
+| A1-PTE-FAIMS | `f3c29cb` (`cab8976`) | `filter_peptides_by_faims_cv` refuses only a NaN target; infinite targets are filtered as C++ filters them, and the oracle gained 7 records (137 in all). The `estimate_type_with_limits` parity statement is limited to spectra without a stored type or data-processing records | `--all-features --test peak_type_estimator --test faims_helper` 11 and 14 passed (1 ignored) on 1.96 and 1.85; `+1.85.0 --no-default-features` 9 and 13; clippy `--all-targets` and rustdoc exit 0; the oracle rebuilt from a copy reran byte-identically; a C++ boundary probe of 60 target and tolerance cases matched the port on all 50 non-NaN cases |
+| CLI-1 | `86d2733` (`9612872`) | A `-ini` that is neither a regular file nor a directory skips the readability precheck: `/dev/null` exits 3 and a mode-000 FIFO exits 2, before a run and with `-write_ini` (`ini_read_failures`, 10 oracle cases) | six TOPP targets `--all-features --no-fail-fast` on 1.96 and 1.85: lifecycle 65, BaselineFilter 2, DTAExtractor 5, MapNormalizer 2, MzMLSplitter 4, SpectraFilterWindowMower 4, 0 ignored; `+1.85.0 --no-default-features --features mzml,paramxml` lifecycle 65; clippy and rustdoc exit 0; the oracle driver rerun reproduced all 10 exit codes; three mutation runs |
+| A2-TEXTFMT | `6cec951` (`7f0a8e0`) | The package's first merge, after two fix rounds: `StringUtils::number`, full-precision `toStr` with `std::to_chars` ties to even, integer and string `toStr`, vector `operator<<` and stream `%g` text for FileInfo, with the platform differences documented (Apple libc `%g` ties, NaN sign, the INT_MAX-byte `%f` band) | `--test file_info_text_format` 35 passed with default, all and no default features on 1.96 and 1.85; doctests `format::file_info::text_format` 6 on both; clippy `--all-targets` and rustdoc exit 0; an independent libOpenMS driver over 3,224,411 doubles with 0 mismatches; all 2^32 floats hashed identically on macOS and Linux; a 43,220-row `%g` probe on Apple libc and glibc |
+
+The final shared-file pass records these merges. `FAIMSHelper.h` is `complete`;
+`StringUtils.h` and `ListUtilsIO.h` are `partial` with FileInfo scope, and the
+`Types.h` review maps `writtenDigits<float>` and `writtenDigits<double>`.
+`FileInfo.h` is `unmapped` again, because A1's and A2's citations of
+`FileInfo.cpp` are now `context_sources`. `SOURCE_PROVENANCE.json` registers the
+A1, CLI-1 and A2 oracle artifacts, the CLI-1 group manifest moved to
+`tests/data/`, the minimum-Rust job runs `--test file_info_text_format`,
+CPP-253 to CPP-255 are new and CPP-245 is extended, and
+[THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md) records a pending
+candidate for a readability query that never opens the file.
+
+The ledger delta of this pass, from the committed `docs/core-sdk-coverage.json`
+(complete 54, evidence_requires_review 160, native_equivalent 90, partial 54,
+unmapped 428) to 55, 157, 90, 55 and 429 over 786 headers:
+- A2's merged manifest adds `tests/data/file_info_text_format_provenance.json`
+  to the reference manifests of `Types.h`, `StringUtils.h` and `ListUtilsIO.h`.
+- Respelling the `FileInfo.cpp` citations moves `FileInfo.h` from
+  evidence_requires_review to unmapped, with no reference manifest left.
+- The A2 reviews move `StringUtils.h` and `ListUtilsIO.h` from
+  evidence_requires_review to partial and amend the `Types.h` review (rust,
+  tests, scope), whose status stays partial.
+- Moving the CLI-1 group manifest changes no row: it cites no `src/openms/`
+  path.
+- Promoting `FAIMSHelper.h` from partial to complete also removes it from the
+  open SDK headers of FeatureFinderMetabo, FeatureFinderMultiplex and
+  IonMobilityBinning. Validated TOPP workflows stay at 5 of 124.
+
+### FAIMSHelper_test section 3 through the Rust reader
+
+`get_compensation_voltages_section_through_the_mzml_reader` in
+`tests/faims_helper.rs` waited for A3's spectrum-level `MS:1001581` read. With
+A3 merged its `#[ignore]` is removed and no assertion changed. Through the kim
+gate (slot `integ-final2`), `test --locked --no-default-features --features mzml
+--test faims_helper`, the minimum-Rust CI line, and `--all-features` each pass
+15 tests with 0 ignored, on 1.96 and on 1.85.0, and the test runs by name in all
+four. Every `FAIMSHelper_test.cpp` section now passes, and the infinite and NaN
+target contract of `f3c29cb` rests on the executed oracle, so `FAIMSHelper.h`
+is `complete`.
+
+### Unique temporary directories in tests and doctests
+
+The audit repair fixed the one fixed-name path that raced, in
+`tests/ms_data_writing_consumer.rs`, and listed eight more:
+`tests/mascot_generic.rs:293` and `:1537`, `tests/sv_out_stream.rs:434`,
+`tests/mztab_m.rs:958`, `:2425` and `:2531`, and the doctests at
+`src/format/imzml_file.rs:580` and `src/format/imzml_writer.rs:890`. Each now
+creates its own `TempDir::new_in(std::env::temp_dir(), false)`, removed on drop,
+and no assertion changed. A re-grep of `src`, `tests`, `examples` and `benches`
+finds no other written path under a fixed name. Kim gate results (slot
+`integ-final2`, cargo 1.96.0 and 1.85.0):
+
+| Gate | 1.96 | 1.85.0 |
+|---|---|---|
+| `test --locked --no-default-features --test mascot_generic --test sv_out_stream --test mztab_m` (the minimum-Rust CI line's feature set) | 46, 28 and 48 passed, 0 ignored | 46, 28 and 48 passed, 0 ignored |
+| the same with `--all-features` | 46, 28 and 48 passed | 46, 28 and 48 passed |
+| `test --locked --all-features --doc format::imzml_` | 3 passed, among them `imzml_file::ImzMLFile` and `imzml_writer::store` | 3 passed, the same doctests |
+
+The other gates of this pass, on the same working tree: `+1.85.0 check
+--locked --all-features --all-targets` exit 0; the changed minimum-Rust line
+`+1.85.0 test --locked --no-default-features --test
+feature_finder_picked_helper_structs --test isotopes_source_precision --test
+geometry_bounding_box --test fuzzy_string_comparator --test
+file_info_text_format` 26, 6, 16, 30 (1 ignored, the 256 MiB log-buffer case)
+and 35 passed; `clippy --locked --all-features --all-targets -- -D warnings`
+and `RUSTDOCFLAGS='-D warnings' doc --locked --all-features --no-deps` exit 0
+with no warnings.
 
 ### The ms_data_writing_consumer failure under 1.85
 

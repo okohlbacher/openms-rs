@@ -27,10 +27,6 @@
    "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
   },
   {
-   "path": "src/openms/source/FORMAT/FileInfo.cpp",
-   "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7"
-  },
-  {
    "path": "src/tests/class_tests/openms/source/String_test.cpp",
    "sha256": "3ee9adb76f7242a2d6836c0289ea476421c131d24c9cdba4071e98530415cb34"
   },
@@ -43,6 +39,14 @@
    "sha256": "94d9817af79e57b379950a805ebef390c46f20f11ebe644d2f88f9d29b92cf4f"
   }
  ],
+ "context_sources": [
+  {
+   "path": "FORMAT/FileInfo.cpp",
+   "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7",
+   "role": "consumer, ported by A4: read for its calls into StringUtils::number and toStr and for the stream precision it sets per statistics block (lines 2224-2254, 2330-2362 and 2404); nothing of FileInfo is ported here"
+  }
+ ],
+ "context_sources_note": "Read for context and not ported by this group. The path is spelled below the core checkout's source directory at source_revision, where its sha256 was checked, and not from the repository root: tools/core_sdk_coverage.py counts every src/openms/-prefixed string in a provenance manifest as reference evidence for that header, which would move the unported FileInfo.h out of 'unmapped'. FileInfo is ported by package A4.",
  "native_implementation": [
   "src/format/file_info/text_format.rs"
  ],

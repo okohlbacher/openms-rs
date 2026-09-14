@@ -877,6 +877,7 @@ pub fn derive_uuid(seed: &[u8]) -> [u8; IBD_UUID_BYTES] {
 /// use openms::format::imzml_writer::store;
 /// use openms::kernel::{MSExperiment, MSSpectrum, Peak1D};
 /// use openms::metadata::MetaValue;
+/// use openms::system::file::TempDir;
 ///
 /// let mut experiment = MSExperiment::new();
 /// for (x, y) in [(1u32, 1u32), (2, 1)] {
@@ -887,9 +888,9 @@ pub fn derive_uuid(seed: &[u8]) -> [u8; IBD_UUID_BYTES] {
 ///     experiment.spectra.push(spectrum);
 /// }
 ///
-/// let directory = std::env::temp_dir().join("openms-imzml-writer-doctest");
-/// std::fs::create_dir_all(&directory)?;
-/// let path = directory.join("example.imzML");
+/// // A directory of its own, removed when `directory` is dropped.
+/// let directory = TempDir::new_in(std::env::temp_dir(), false)?;
+/// let path = directory.path().join("example.imzML");
 /// let report = store(&path, &experiment, &PeakFileOptions::default())?;
 ///
 /// // Both spectra share an m/z axis, so the shared array is stored once.
@@ -902,7 +903,6 @@ pub fn derive_uuid(seed: &[u8]) -> [u8; IBD_UUID_BYTES] {
 /// let decoded = handler.spectrum_at_coord(2, 1, 1)?;
 /// assert_eq!(decoded.spectrum.peaks.len(), 2);
 /// assert!((decoded.spectrum.peaks[1].mz - 200.0).abs() < 1e-9);
-/// # std::fs::remove_dir_all(&directory).ok();
 /// # Ok::<(), openms::Error>(())
 /// ```
 pub fn store(

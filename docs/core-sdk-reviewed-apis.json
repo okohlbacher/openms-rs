@@ -385,14 +385,16 @@
       "rust": [
         "src/kernel.rs",
         "src/metadata/acquisition.rs",
-        "src/metadata/value.rs"
+        "src/metadata/value.rs",
+        "src/format/file_info/text_format.rs"
       ],
       "tests": [
         "tests/kernel.rs",
-        "tests/metadata.rs"
+        "tests/metadata.rs",
+        "tests/file_info_text_format.rs"
       ],
       "documentation": "docs/NATIVE_EQUIVALENTS.md",
-      "scope": "Fixed-width/native-size primitives and all15 ASCII names have native mappings. Whole time_t ABI and writtenDigits helper are not ported: includes generic fallback6, explicit long-to-int precision quirks and platform-specific long-double specialization. f32/f64 DIGITS alone cannot certify the whole header."
+      "scope": "Fixed-width/native-size primitives and all15 ASCII names have native mappings. writtenDigits<float> and writtenDigits<double> are ported as WRITTEN_DIGITS_F32 (6) and WRITTEN_DIGITS_F64 (15) in src/format/file_info/text_format.rs for the FileInfo text formatting (A2-TEXTFMT), tested in tests/file_info_text_format.rs. Not ported: the whole time_t ABI and the other writtenDigits definitions, namely the generic template (default precision 6), the int, unsigned int, long int and unsigned long int specialisations with their explicit long-to-int precision quirks, and the platform-specific long double specialisation. f32/f64 DIGITS alone cannot certify the whole header."
     },
     "src/openms/include/OpenMS/CONCEPT/UniqueIdGenerator.h": {
       "status": "native_equivalent",
@@ -559,6 +561,28 @@
       ],
       "documentation": "docs/LIST_UTILS_SUPPORT.md",
       "scope": "Full defined generic conversion/formatting, membership/index, tolerance and string-case utilities through native functions and traits; checked UTF-8 and numeric/range boundaries."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h": {
+      "status": "partial",
+      "rust": [
+        "src/format/file_info/text_format.rs"
+      ],
+      "tests": [
+        "tests/file_info_text_format.rs"
+      ],
+      "documentation": "src/format/file_info/text_format.rs",
+      "scope": "FileInfo scope only (A2-TEXTFMT): operator<<(std::ostream&, const std::vector<T>&) as list_to_string over ToStr, the bracketed, comma-separated text for integer, f32, f64 and string elements, with the native MAX_LIST_TEXT_BYTES ceiling (64 MiB) checked before allocating. Tier 1: the L rows of ../oracle/file-info-text-format (product SDK 4fdec46) and retained FileInfo reports. Not ported: VecLowPrecision<T> and its operator<<, and operator<<(std::vector<std::string>&, const TString&), the StringList push that the single ListUtilsIO_test.cpp section covers (Vec::push in Rust)."
+    },
+    "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h": {
+      "status": "partial",
+      "rust": [
+        "src/format/file_info/text_format.rs"
+      ],
+      "tests": [
+        "tests/file_info_text_format.rs"
+      ],
+      "documentation": "src/format/file_info/text_format.rs",
+      "scope": "FileInfo scope only (A2-TEXTFMT); the module documentation is the support document. Ported: StringUtils::number(double, UInt) as fixed, which refuses what the source's 64-byte buffer would cut (CPP-253) and digit counts that become a negative printf precision (CPP-254), and as fixed_truncated, which reproduces the source bytes; toStr(float, true) and toStr(double, true), with appendToStr and NumericFormatting::appendNumeric(fixed_format = false), as to_str_f32 and to_str, including the shortest round-trip scientific text with std::to_chars' ties to even; the integer and string toStr overloads through ToStr. Tier 1 against ../oracle/file-info-text-format and ../oracle/text-format (product SDK 4fdec46): the driver rows, a tie-dense sweep of 60,457 doubles and 10,973 floats, and retained FileInfo reports; the in-scope String_test.cpp and StringUtils_test.cpp literals are tier 3. Not ported: toStr(float/double, false) and appendToStrLowP, the long double overloads, toStr(char), toStr(DataValue) and toStr(ParamValue), numberLength, and the header's other string utilities and conversions, which this review does not cover. Native: fixed_truncated does not reproduce the C-library-dependent result where the %f text reaches INT_MAX bytes."
     },
     "src/openms/include/OpenMS/DATASTRUCTURES/Param.h": {
       "status": "complete",
@@ -1332,7 +1356,7 @@
         "tests/experiment_mobility.rs"
       ],
       "documentation": "docs/AREA_ITERATION_SUPPORT.md",
-      "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain. Complete: the scalar RT/m/z traversal plus the closed residuals \u2014 Param's lowIM/highIM as AreaOptions::mobility, getDriftTime on both yielded items, and the RangeManager overloads through from_range_manager. Mobility filters the scalar drift time only, as nextScan_ does; empty or absent dimensions do not restrict and intensity is ignored. Checked ordering, finiteness and shared resource budgets."
+      "scope": "Scalar closed RT/mz const/mutable traversal, exact native u32 and source byte-narrowed levels, pointer/cursor equality, copied const cursors, fused ends and unique mutable references with fixed endpoints. Whole-input ordering/finite preflight and shared resource budgets. Scan-mobility bounds/getDriftTime and generic RangeManager overloads remain. Complete: the scalar RT/m/z traversal plus the closed residuals — Param's lowIM/highIM as AreaOptions::mobility, getDriftTime on both yielded items, and the RangeManager overloads through from_range_manager. Mobility filters the scalar drift time only, as nextScan_ does; empty or absent dimensions do not restrict and intensity is ignored. Checked ordering, finiteness and shared resource budgets."
     },
     "src/openms/include/OpenMS/KERNEL/BaseFeature.h": {
       "status": "native_equivalent",
@@ -1560,7 +1584,7 @@
         "tests/ranges.rs"
       ],
       "documentation": "docs/EXPERIMENT_AGGREGATION_SUPPORT.md",
-      "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate. Whole header audited member by member. Adds scan-mobility IMBegin/IMEnd, isIMFrame, both mobility bulk exports, rasterizeRTMZ and the RangeManager area overloads to the scalar area, precursor, container, range, TIC, 2D and aggregation surfaces already present. Three members remain unported: set2DData's mass-trace specialization, getFirstProductSpectrum and operator<<; each is documented with the file that must own it. See docs/EXPERIMENT_MOBILITY_SUPPORT.md. Test accounting after the follow-up fix: 56 of the 81 class-test sections are ported, 21 are mapped with a named test function and a concrete asserted value, and 4 are unaccounted because their members are unported \u2014 set2DData<add_mass_traces=true> (section 11), both getFirstProductSpectrum overloads (42, 43) and operator<< (54). The header stays partial for exactly those four."
+      "scope": "Native container/search/filter/TIC and complete aggregate/extractXICs custom/default/matrix operation group, with source f32/f64 arithmetic and shared bounds. Checked source TIC resampling, chromatogram/combined ranges, stable aligned chromatogram sorting, total peak count, exact-level/zero-intensity predicates and spectrum-only metadata-array clearing are represented; mobility and full range/area APIs remain. Scalar area iteration and both filtered non-mobility bulk exports now preserve source level narrowing, append and f64/f32 RT grouping. Peak indices support checked borrowed lookup. Concrete MS1 unfiltered Peak2D export and atomic plain/rich 2D import now preserve storage order, adjacent RT grouping, direct integer-to-f32 metadata conversion and missing-value NaNs. Generic templates, Feature mass-trace specialization, scan-mobility/range overloads and the full container surface remain separately tracked. Complete ExperimentalSettings now owns typed run metadata; clear(false) preserves all settings, clear(true) resets them, and checked processing clones charge the complete aggregate. Whole header audited member by member. Adds scan-mobility IMBegin/IMEnd, isIMFrame, both mobility bulk exports, rasterizeRTMZ and the RangeManager area overloads to the scalar area, precursor, container, range, TIC, 2D and aggregation surfaces already present. Three members remain unported: set2DData's mass-trace specialization, getFirstProductSpectrum and operator<<; each is documented with the file that must own it. See docs/EXPERIMENT_MOBILITY_SUPPORT.md. Test accounting after the follow-up fix: 56 of the 81 class-test sections are ported, 21 are mapped with a named test function and a concrete asserted value, and 4 are unaccounted because their members are unported — set2DData<add_mass_traces=true> (section 11), both getFirstProductSpectrum overloads (42, 43) and operator<< (54). The header stays partial for exactly those four."
     },
     "src/openms/include/OpenMS/KERNEL/MSSpectrum.h": {
       "status": "partial",
@@ -1944,7 +1968,7 @@
         "tests/posterior_error_probability.rs"
       ],
       "documentation": "docs/POSTERIOR_ERROR_PROBABILITY_SUPPORT.md",
-      "scope": "Numerical surface complete: both EM fits with the source's literal initialisation (mean of the lower half plus the minimum, sd about that location, the 0.7 boundary, a prior of 0.7), its natural-log convergence threshold 10^-neg_log_delta, its iteration cap tested before the increment, and its abort-reports-success branch; fillDensities, fillLogDensities, fillLogDensitiesGumbel, computeLogLikelihood (base ten) and computeLLAndIncorrectPosteriorsFromLogDensities (natural), the two weighted-moment helpers, all four accessors, getGumbel_, computeProbability with its Gumbel-in-every-branch quirk, processOutliers_ in all four modes, and the three gnuplot formula builders with printf(\"%g\") number formatting. Both 2000-draw mixture fixtures recover their generating parameters at the class test's 0.5 tolerance, and the gnuplot substring assertions pin the small-sample fit to three significant digits. PARTIAL because seven public members are not ported: extractAndTransformScores, updateScores, transformScore_, getScore_ (need metadata/identification), initPlots, plotTargetDecoyEstimation (need format/TextFile) and tryGnuplot (needs a process launcher) \u2014 all forbidden by the module-cycle ratchet and all listed in the support document. Native: DefaultParamHandler replaced by PepParameters/IncorrectComponent/OutlierHandling; compute_probability refuses after fit_gumbel_gauss, which in the source reads an unfitted Gaussian parameter set."
+      "scope": "Numerical surface complete: both EM fits with the source's literal initialisation (mean of the lower half plus the minimum, sd about that location, the 0.7 boundary, a prior of 0.7), its natural-log convergence threshold 10^-neg_log_delta, its iteration cap tested before the increment, and its abort-reports-success branch; fillDensities, fillLogDensities, fillLogDensitiesGumbel, computeLogLikelihood (base ten) and computeLLAndIncorrectPosteriorsFromLogDensities (natural), the two weighted-moment helpers, all four accessors, getGumbel_, computeProbability with its Gumbel-in-every-branch quirk, processOutliers_ in all four modes, and the three gnuplot formula builders with printf(\"%g\") number formatting. Both 2000-draw mixture fixtures recover their generating parameters at the class test's 0.5 tolerance, and the gnuplot substring assertions pin the small-sample fit to three significant digits. PARTIAL because seven public members are not ported: extractAndTransformScores, updateScores, transformScore_, getScore_ (need metadata/identification), initPlots, plotTargetDecoyEstimation (need format/TextFile) and tryGnuplot (needs a process launcher) — all forbidden by the module-cycle ratchet and all listed in the support document. Native: DefaultParamHandler replaced by PepParameters/IncorrectComponent/OutlierHandling; compute_probability refuses after fit_gumbel_gauss, which in the source reads an unfitted Gaussian parameter set."
     },
     "src/openms/include/OpenMS/MATH/STATISTICS/RankData.h": {
       "status": "native_equivalent",
@@ -2319,7 +2343,7 @@
         "tests/system_process.rs"
       ],
       "documentation": "docs/R_WRAPPER_SUPPORT.md",
-      "scope": "All three public members are ported and all three class-test sections with them, including the graceful-degradation contract the class test exists to pin: findScript is the only entry point that fails loudly (Exception::FileNotFound becomes Error::Io with ErrorKind::NotFound) and runScript swallows it into a false. Both argument vectors are exact and public constants: --vanilla -e sessionInfo() and --vanilla --quiet <script> <args>. findScript keeps the source's operation order, resolving getOpenMSDataPath before File::find, so an existing script still fails when the shared data cannot be located. The per-line drain with an appended newline is reproduced as reassemble_lines, and findR merges stdout then stderr as the source imitates Qt MergedChannels. Partial for three reasons: the verbose parameter has no counterpart in any of the three functions, because every diagnosis is returned rather than logged; the default arguments executable = \"Rscript\" become the DEFAULT_EXECUTABLE constant that callers pass explicitly; and resolution goes through a &FileContext. One message text diverges deliberately \u2014 the source hardcodes the literal 'Rscript' in findR's failure message even for a different interpreter, and this interpolates the requested name."
+      "scope": "All three public members are ported and all three class-test sections with them, including the graceful-degradation contract the class test exists to pin: findScript is the only entry point that fails loudly (Exception::FileNotFound becomes Error::Io with ErrorKind::NotFound) and runScript swallows it into a false. Both argument vectors are exact and public constants: --vanilla -e sessionInfo() and --vanilla --quiet <script> <args>. findScript keeps the source's operation order, resolving getOpenMSDataPath before File::find, so an existing script still fails when the shared data cannot be located. The per-line drain with an appended newline is reproduced as reassemble_lines, and findR merges stdout then stderr as the source imitates Qt MergedChannels. Partial for three reasons: the verbose parameter has no counterpart in any of the three functions, because every diagnosis is returned rather than logged; the default arguments executable = \"Rscript\" become the DEFAULT_EXECUTABLE constant that callers pass explicitly; and resolution goes through a &FileContext. One message text diverges deliberately — the source hardcodes the literal 'Rscript' in findR's failure message even for a different interpreter, and this interpolates the requested name."
     },
     "src/openms/include/OpenMS/SYSTEM/StopWatch.h": {
       "status": "partial",
@@ -2343,7 +2367,7 @@
         "tests/sys_info.rs"
       ],
       "documentation": "docs/SYS_INFO_SUPPORT.md",
-      "scope": "Every public member has a documented Rust counterpart and both class-test sections are mapped. bytesToHumanReadable and getProcessId are exact on every platform; the three memory readings answer from /proc on Linux and return None \u2014 never a fabricated zero \u2014 elsewhere, because the source's Windows PROCESS_MEMORY_COUNTERS_EX and macOS Mach task_info/host_statistics64 branches need a platform binding this crate does not take. That platform gap is why this is partial. MemUsage models 'not recorded' as Option instead of the source's 0 sentinel and emits the sign that the source's diff_str_ discards; both divergences are documented at the item."
+      "scope": "Every public member has a documented Rust counterpart and both class-test sections are mapped. bytesToHumanReadable and getProcessId are exact on every platform; the three memory readings answer from /proc on Linux and return None — never a fabricated zero — elsewhere, because the source's Windows PROCESS_MEMORY_COUNTERS_EX and macOS Mach task_info/host_statistics64 branches need a platform binding this crate does not take. That platform gap is why this is partial. MemUsage models 'not recorded' as Option instead of the source's 0 sentinel and emits the sign that the source's diff_str_ discards; both divergences are documented at the item."
     },
     "src/openms/include/OpenMS/SYSTEM/UpdateCheck.h": {
       "status": "complete",
@@ -2392,7 +2416,7 @@
       "scope": "Every public member ported. The static estimateType(begin, end) template becomes PeakTypeEstimator::estimate_type over a Peak1D slice, the only instantiation in the pinned core (MSSpectrum.cpp:162, FileInfo.cpp:1599), with estimate_type_with_limits for explicit ceilings and MIN_PEAKS for the literal 5. It delegates to the shoulder transcription that MSSpectrum::get_type(true) already uses in src/kernel/spectrum_type.rs, including the 0.75 evidence-ratio threshold; the commented-out alternative is not code. Tier 1: the three upstream DTA spectra, all 65 spectra of eight mzML fixtures and eleven synthetic shapes match the executed product-SDK estimator (../oracle/pte-faims-helper); the class-test literals are tier 3 and all three sections pass. Native: once five peaks are present, a non-finite m/z or intensity returns InvalidValue where the source classifies the spectrum as Centroid; resource ceilings; Result return."
     },
     "src/openms/include/OpenMS/IONMOBILITY/FAIMSHelper.h": {
-      "status": "partial",
+      "status": "complete",
       "rust": [
         "src/kernel/faims_helper.rs"
       ],
@@ -2400,7 +2424,7 @@
         "tests/faims_helper.rs"
       ],
       "documentation": "docs/FAIMS_HELPER_SUPPORT.md",
-      "scope": "getCompensationVoltages and filterPeptidesByFAIMSCV (FAIMSHelper.cpp) with every public member mapped: the voltage set is a BTreeSet of CompensationVoltage and the missing-voltage log line is returned in CompensationVoltages::warnings. Tier 1: 16 synthetic voltage experiments, the C++ load of IM_FAIMS_test.mzML and ten filter parameter cases match the executed product SDK bit for bit, with the NaN-voltage and impossible-parameter cases refused and their C++ outcomes asserted. PARTIAL: FAIMSHelper_test section 3 through the Rust mzML reader is still #[ignore]; promote after the A3-FORMAT-IO hand-off test is re-enabled and passes on stable and 1.85.0, and after the follow-up that settles infinite target voltages (get_compensation_voltages accepts them, filter_peptides_by_faims_cv refuses them). Native: NaN voltages, non-finite targets and NaN, zero or negative tolerances return InvalidValue; non-numeric annotations are refused (CPP-058)."
+      "scope": "Every public member of FAIMSHelper.h and FAIMSHelper.cpp is ported: getCompensationVoltages as FaimsHelper::get_compensation_voltages, a BTreeSet of CompensationVoltage in std::set<double> order with the missing-voltage log line returned in CompensationVoltages::warnings, and filterPeptidesByFAIMSCV as filter_peptides_by_faims_cv with DEFAULT_CV_TOLERANCE. All five FAIMSHelper_test sections pass; section 3 runs on the C++ reader's per-spectrum values and end to end through the Rust mzML reader, re-enabled after A3-FORMAT-IO (15 passed, 0 ignored, with --no-default-features --features mzml on stable and 1.85.0). Tier 1 against ../oracle/pte-faims-helper: the C++ load of IM_FAIMS_test.mzML, 16 synthetic voltage experiments (13 bit for bit, the 3 NaN cases refused with their C++ results asserted), 15 filter records, the empty-annotation record and 2 infinite-annotation records. Infinite targets are filtered as the source filters them and keep only unannotated identifications, even at an infinite tolerance. Native: NaN voltages, a NaN target and NaN, zero or negative tolerances return InvalidValue with the C++ outcomes asserted (CPP-244, CPP-245); non-numeric annotations are refused (CPP-058); MetaValue cannot hold a non-finite annotation, so the infinite-annotation records run on their representable subset; warnings are returned rather than logged; spectrum and identification ceilings."
     },
     "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h": {
       "status": "partial",

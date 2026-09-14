@@ -103,7 +103,7 @@ jobs:
       - run: cargo test --locked --no-default-features --features consensusxml --test msstats --test transformation_xml
       - run: cargo test --locked --no-default-features --features featurexml --test transformation_xml
       - run: cargo test --locked --no-default-features --features paramxml --test qcml
-      - run: cargo test --locked --no-default-features --test feature_finder_picked_helper_structs --test isotopes_source_precision --test geometry_bounding_box --test fuzzy_string_comparator
+      - run: cargo test --locked --no-default-features --test feature_finder_picked_helper_structs --test isotopes_source_precision --test geometry_bounding_box --test fuzzy_string_comparator --test file_info_text_format
       - run: cargo test --locked --no-default-features --features mzml --test peak_type_estimator --test faims_helper --test mzml_mobility
       - run: cargo test --locked --no-default-features --features "mzml featurexml" --test file_handler_type_detection
       - run: cargo test --locked --no-default-features --features "mzml paramxml" --test topp_cli_lifecycle

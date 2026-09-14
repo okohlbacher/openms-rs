@@ -21,8 +21,8 @@
 //! error mapping, `run_io` stream routing and the context services a tool uses.
 //!
 //! Every case runs in its own temporary directory, because the tests run in
-//! parallel. `tests/data/topp_cli_lifecycle/topp_cli_lifecycle_provenance.json`
-//! records the fixtures, their hashes and the oracle manifest.
+//! parallel. `tests/data/topp_cli_lifecycle_provenance.json` records the
+//! fixtures, their hashes and the oracle manifest.
 
 // The TOPP framework lives behind `paramxml` (every tool supports -ini) and the
 // stand-in tools read mzML, so the whole file is inert without both features.

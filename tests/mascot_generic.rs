@@ -18,6 +18,7 @@ use openms::interfaces::MSDataConsumer;
 use openms::kernel::SpectrumType;
 use openms::metadata::{ExperimentalSettings, SourceFile};
 use openms::param::ParamValue;
+use openms::system::file::TempDir;
 use openms::{Error, MSExperiment, MSSpectrum, Peak1D, Precursor};
 use std::ops::ControlFlow;
 
@@ -290,8 +291,9 @@ fn compact_output_with_a_stored_title_uses_significant_digits() {
 
 #[test]
 fn store_to_file_round_trips() {
-    let directory = std::env::temp_dir().join("openms_mascot_generic_store");
-    std::fs::create_dir_all(&directory).unwrap();
+    // A directory of its own, so concurrent runs cannot remove each other's files.
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let directory = temp.path();
     let path = directory.join("MascotGenericFile_1.mgf");
     let experiment = mgf::read(INFILE.as_bytes()).unwrap();
     let mut file = writer();
@@ -316,7 +318,6 @@ fn store_to_file_round_trips() {
     ));
     assert!(!bad.exists());
     std::fs::remove_file(&path).ok();
-    std::fs::remove_dir(&directory).ok();
 }
 
 // ---------------------------------------------------------------------------
@@ -1534,8 +1535,9 @@ fn an_unknown_parameter_is_reported_as_a_warning_and_a_bad_value_as_an_error() {
 
 #[test]
 fn the_output_byte_ceiling_is_checked_before_the_file_is_created() {
-    let directory = std::env::temp_dir().join("openms_mascot_generic_ceiling");
-    std::fs::create_dir_all(&directory).unwrap();
+    // A directory of its own, so concurrent runs cannot remove each other's files.
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let directory = temp.path();
     let path = directory.join("bounded.mgf");
     let experiment = mgf::read(INFILE.as_bytes()).unwrap();
     let mut file = writer();
@@ -1548,5 +1550,4 @@ fn the_output_byte_ceiling_is_checked_before_the_file_is_created() {
             .is_err()
     );
     assert!(!path.exists());
-    std::fs::remove_dir_all(&directory).ok();
 }

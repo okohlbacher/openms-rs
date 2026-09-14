@@ -86,16 +86,20 @@
    "operation": "setValue stores any DataValue, EMPTY included, so metaValueExists reports an empty annotation"
   },
   {
-   "path": "src/openms/source/FORMAT/FileInfo.cpp",
-   "line": 1673,
-   "operation": "FileInfo calls getCompensationVoltages unconditionally on every peak file (also line 1742)"
-  },
-  {
    "path": "src/openms/source/IONMOBILITY/IMDataConverter.cpp",
    "line": 31,
    "operation": "splitByFAIMSCV groups spectra by the voltage set, in set order"
   }
  ],
+ "context_sources": [
+  {
+   "path": "FORMAT/FileInfo.cpp",
+   "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7",
+   "line": 1673,
+   "operation": "FileInfo calls getCompensationVoltages unconditionally on every peak file (also line 1742)"
+  }
+ ],
+ "context_sources_note": "Read for context and not ported by this group. The path is spelled below the core checkout's source directory at source_revision, where its sha256 was checked, and not from the repository root: tools/core_sdk_coverage.py counts every src/openms/-prefixed string in a provenance manifest as reference evidence for that header, which would move the unported FileInfo.h out of 'unmapped'. FileInfo is ported by package A4.",
  "fixtures": [
   {
    "path": "tests/data/faims_helper/IM_FAIMS_test.mzML",
@@ -119,14 +123,16 @@
    "tests": {
     "FAIMSHelper()": "constructor_and_destructor_sections",
     "~FAIMSHelper()": "constructor_and_destructor_sections",
-    "getCompensationVoltages(PeakMap& exp)": "get_compensation_voltages_section_on_the_values_the_cpp_reader_produced (passes); get_compensation_voltages_section_through_the_mzml_reader (ignored until A3-FORMAT-IO)",
+    "getCompensationVoltages(PeakMap& exp)": "get_compensation_voltages_section_on_the_values_the_cpp_reader_produced (passes); get_compensation_voltages_section_through_the_mzml_reader (passes; re-enabled at the wave-1 final merge, after A3-FORMAT-IO)",
     "getCompensationVoltages() detects FAIMS beyond first spectrum and ignores sentinel": "get_compensation_voltages_detects_faims_beyond_the_first_spectrum_and_ignores_the_sentinel_section",
     "getCompensationVoltages() returns empty for non-FAIMS": "get_compensation_voltages_returns_empty_for_non_faims_section"
    },
-   "pending_dependency": {
+   "resolved_dependency": {
     "test": "get_compensation_voltages_section_through_the_mzml_reader",
-    "waits_for": "A3-FORMAT-IO spectrum-level MS:1001581 in src/format/mzml.rs",
-    "measured_failure": "tests/faims_helper.rs:158 spectrum 0 drift_time bits 13830554455654793216 (-1.0, the unset sentinel) where the C++ reader produced 13856309416023818240 (-55.0)"
+    "waited_for": "A3-FORMAT-IO spectrum-level MS:1001581 in src/format/mzml.rs",
+    "resolved_by": "bundle/A3-FORMAT-IO ff44438 (merge c8b0141); the #[ignore] was removed on integrate/wave1-shared",
+    "measured_failure_before": "tests/faims_helper.rs:158 spectrum 0 drift_time bits 13830554455654793216 (-1.0, the unset sentinel) where the C++ reader produced 13856309416023818240 (-55.0)",
+    "verified": "kim gate, test --locked --no-default-features --features mzml --test faims_helper (the minimum-rust CI line) and test --locked --all-features --test faims_helper: 15 passed, 0 ignored in each, on current stable and on 1.85.0; the test runs by name in all four"
    }
   }
  },

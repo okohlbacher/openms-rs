@@ -566,6 +566,7 @@ impl MetaGeometryReport {
 /// use openms::format::PeakFileOptions;
 /// use openms::kernel::{MSExperiment, MSSpectrum, Peak1D};
 /// use openms::metadata::MetaValue;
+/// use openms::system::file::TempDir;
 ///
 /// // A 2 x 1 image with a shared m/z axis.
 /// let mut experiment = MSExperiment::new();
@@ -577,9 +578,9 @@ impl MetaGeometryReport {
 ///     experiment.spectra.push(spectrum);
 /// }
 ///
-/// let directory = std::env::temp_dir().join("openms-imzml-file-doctest");
-/// std::fs::create_dir_all(&directory)?;
-/// let path = directory.join("example.imzML");
+/// // A directory of its own, removed when `directory` is dropped.
+/// let directory = TempDir::new_in(std::env::temp_dir(), false)?;
+/// let path = directory.path().join("example.imzML");
 ///
 /// let file = ImzMLFile::new();
 /// file.store(&path, &experiment)?;
@@ -592,7 +593,6 @@ impl MetaGeometryReport {
 /// // imzML coordinates are 1-based; the grid is 0-based.
 /// assert!(imaging.has_pixel(1, 0));
 /// assert_eq!(imaging.spectrum(1, 0)?.peaks.len(), 2);
-/// # std::fs::remove_dir_all(&directory).ok();
 /// # Ok::<(), openms::Error>(())
 /// ```
 #[derive(Clone, Debug, Default)]

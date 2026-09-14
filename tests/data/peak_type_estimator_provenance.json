@@ -87,13 +87,17 @@
    "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
    "line": 162,
    "operation": "MSSpectrum::getType(true) calls estimateType(begin(), end()) after the stored type and the PEAK_PICKING history"
-  },
+  }
+ ],
+ "context_sources": [
   {
-   "path": "src/openms/source/FORMAT/FileInfo.cpp",
+   "path": "FORMAT/FileInfo.cpp",
+   "sha256": "7e8b7e8eee41baf5136dd70e66c0928b93426d95ae763a0539aa7c118f0231e7",
    "line": 1599,
    "operation": "FileInfo estimates the peak type of the first spectrum per MS level with more than 10 peaks"
   }
  ],
+ "context_sources_note": "Read for context and not ported by this group. The path is spelled below the core checkout's source directory at source_revision, where its sha256 was checked, and not from the repository root: tools/core_sdk_coverage.py counts every src/openms/-prefixed string in a provenance manifest as reference evidence for that header, which would move the unported FileInfo.h out of 'unmapped'. FileInfo is ported by package A4.",
  "fixtures": [
   {
    "path": "tests/data/peak_type_estimator/oracle_estimates.tsv",

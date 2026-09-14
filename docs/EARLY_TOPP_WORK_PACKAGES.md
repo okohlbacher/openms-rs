@@ -115,10 +115,12 @@ close them.
 
 ## Wave 1 status
 
-Status on 2026-09-14. `integrate/wave1` merges nine verifier-approved branches
-onto `3e171b2`; the shared files (ledger, provenance, CI, licences, C++ issue
-log and documentation) follow on `integrate/wave1-shared`.
-[VALIDATION](VALIDATION.md) records each package's evidence.
+Status on 2026-09-14. `integrate/wave1` merges ten verifier-approved package
+branches onto `3e171b2`: nine, then the shared-file pass, then four `--no-ff`
+merges of approved fix rounds, of which A2's is that package's first merge. The
+shared files (ledger, provenance, CI, licences, C++ issue log and
+documentation) follow on `integrate/wave1-shared`. [VALIDATION](VALIDATION.md)
+records each package's evidence.
 
 **Merged** (branch commit, then merge commit):
 
@@ -133,6 +135,15 @@ log and documentation) follow on `integrate/wave1-shared`.
 | A1 PeakTypeEstimator and FAIMSHelper | `cd7b83e` | `3d88650` |
 | B2 source-precision isotopes and bounding boxes | `799f610` | `3982561` |
 | CLI-1 TOPPBase lifecycle part 1 | `5ae7826` | `f6bdd99` |
+| A2 FileInfo numeric text formatting, after two fix rounds | `6cec951` | `7f0a8e0` |
+
+**Fix rounds merged** (fix commit, then merge commit):
+
+| Package | What changed | Fix | Merge |
+|---|---|---|---|
+| B2 | the iridium exception in the `SourceSingle` bit-identity wording; documentation only | `42f142f` | `05ca267` |
+| A1 | infinite and NaN FAIMS targets matched to the executed C++; the `estimate_type_with_limits` parity qualified | `f3c29cb` | `cab8976` |
+| CLI-1 | a `-ini` that is neither a regular file nor a directory skips the readability precheck; `/dev/null` exits 3 | `86d2733` | `9612872` |
 
 **Dropped:** crate/digamma (`d94274c`). The hand-rolled digamma stays, because
 `special` measured further from the executed libOpenMS than the port's series
@@ -170,9 +181,11 @@ that no TOPP binary runs, and records the driver build recipe.
   in `src/math/multiple_testing.rs`, `src/processing/spline/b_spline.rs`,
   `src/comparison.rs` and `src/concept/math_functions.rs`, all predating wave 1.
   CI runs clippy only on stable.
-- **A1, FAIMSHelper ledger promotion.** Promote `FAIMSHelper.h` from `partial`
-  once `get_compensation_voltages_section_through_the_mzml_reader` is re-enabled
-  after the A3 hand-off and passes on stable and 1.85.0.
+- **A1, FAIMSHelper ledger promotion: resolved.** The `#[ignore]` on
+  `get_compensation_voltages_section_through_the_mzml_reader` is removed, and
+  the test passes on stable and 1.85.0 after the A3 hand-off. The infinite and
+  NaN targets follow the executed C++ (`f3c29cb`), and `FAIMSHelper.h` is
+  `complete`.
 - **B1, IsotopeCluster.h remap (deferred).** Its `evidence_requires_review`
   status comes only from the name match with `pub struct IsotopeCluster` in
   `src/processing/deisotoping.rs`; the header is not ported. A review entry can
@@ -184,33 +197,27 @@ that no TOPP binary runs, and records the driver build recipe.
   because both declare `pub struct MassTrace`. That is not coverage; the header
   keeps `native_equivalent` through its own review. It needs the same generator
   change.
-- **FileInfo.h evidence.** The header moved from `unmapped` to
-  `evidence_requires_review` only because the A1 and A3 manifests cite
-  `FileInfo.cpp` as a consumer. Nothing of FileInfo is ported; A4 owns it.
-  A3's citation is gone: `tests/data/mzml_mobility_provenance.json` no longer
-  lists `FileInfo.cpp` in `source_files`, and its method text names
-  `FileInfo.cpp:1080-1084` as context only. The header stays
-  `evidence_requires_review` through A1's two anchors until the final merge
-  (below).
+- **FileInfo.h evidence: resolved.** A3's citation went in the audit repair.
+  A1's two anchors (`FileInfo.cpp` lines 1673 and 1599 in
+  `tests/data/faims_helper_provenance.json` and
+  `tests/data/peak_type_estimator_provenance.json`) and A2's `sources` entry in
+  `tests/data/file_info_text_format_provenance.json` are now `context_sources`
+  spelled `FORMAT/FileInfo.cpp`, with the pinned sha256.
+  `core_sdk_coverage.py --write` changed only `FileInfo.h`, back to `unmapped`
+  (`unmapped` +1, `evidence_requires_review` -1). Nothing of FileInfo is
+  ported; A4 owns it.
 - **Fixture ownership.** `tests/data/peak_type_estimator/` and
   `tests/data/faims_helper/` are A1-owned; A3, A6 and B8 reuse
   `tests/data/faims_helper/IM_FAIMS_test.mzML` instead of copying it.
   `tests/data/feature_finder_picked_helper_structs_oracle.tsv` is accepted as
   B1-owned test data.
-- **At the final merge (lead):**
-  - Register A1's and CLI-1's oracle artifacts in `SOURCE_PROVENANCE.json`, and
-    move `tests/data/topp_cli_lifecycle/topp_cli_lifecycle_provenance.json` to
-    `tests/data/`, because the follow-ups still in flight change those files.
-  - Respell A1's two `FileInfo.cpp` anchors as `context_sources`:
-    `source_anchors[9]` (line 1673) in `tests/data/faims_helper_provenance.json`
-    and `source_anchors[11]` (line 1599) in
-    `tests/data/peak_type_estimator_provenance.json`. Drop the `src/openms/`
-    prefix from the path, as B1's `context_sources` do
-    (`FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp`):
-    `tools/core_sdk_coverage.py` counts every manifest string that starts with
-    `src/openms/`, whatever its key. Then `core_sdk_coverage.py --write` must
-    change only `FileInfo.h`, back to `unmapped` (`unmapped` +1,
-    `evidence_requires_review` -1).
+- **Final-merge items: resolved.** `SOURCE_PROVENANCE.json` registers A1's
+  (`../oracle/pte-faims-helper`), CLI-1's (`../oracle/topp-cli-lifecycle`) and
+  A2's (`../oracle/file-info-text-format`, `../oracle/text-format`) oracle
+  artifacts with recomputed sha256 values. The CLI-1 group manifest now lives
+  at `tests/data/topp_cli_lifecycle_provenance.json`; the move changes no ledger
+  row, because it cites no `src/openms/` path. The `FileInfo.cpp` anchors are
+  respelled as described under FileInfo.h evidence.
 
 **Verifier notes carried forward.** Findings of the wave-1 verifiers that no
 follow-up in flight covers, each with its file and owner.
@@ -225,7 +232,7 @@ follow-up in flight covers, each with its file and owner.
 - **A3, `src/format/mzml.rs`:**
   - A scan-level non-FAIMS mobility value of `-1` loads, but the writer
     preflight (line 2714) refuses the spectrum it produced; C++ writes nothing
-    for it (`MzMLHandler.cpp:5418`). Refuse it on read, read it as unset, or
+    for it (`MzMLHandler.cpp:5417`). Refuse it on read, read it as unset, or
     document it in native difference 6.
   - A mobility value with leading whitespace (`" -35"`) is a parse error; C++
     loads it.
@@ -301,14 +308,84 @@ follow-up in flight covers, each with its file and owner.
 - **Integration, `tests/ms_data_writing_consumer.rs` (the 1.85 failure A3's
   verifier saw): fixed.** Concurrent runs raced on a fixed `/tmp` directory;
   neither the toolchain nor the writer was at fault. The test now uses its own
-  `TempDir`; the reproduction is in [VALIDATION](VALIDATION.md). **Open, for
-  the owners of those ports:** the same fixed-name pattern, which two
-  overlapping runs can break the same way, remains in
+  `TempDir`; the reproduction is in [VALIDATION](VALIDATION.md).
+- **Integration lane, the other fixed temporary names: fixed.** The same
+  pattern, which two overlapping runs can break the same way, was in
   `tests/mascot_generic.rs:293` and `:1537`, `tests/sv_out_stream.rs:434`,
   `tests/mztab_m.rs:958`, `:2425` and `:2531`, and the doctests at
-  `src/format/imzml_file.rs:580` and `src/format/imzml_writer.rs:890`.
+  `src/format/imzml_file.rs:580` and `src/format/imzml_writer.rs:890`. Each now
+  uses its own `TempDir::new_in(std::env::temp_dir(), false)`, removed on drop;
+  no assertion changed. A re-grep of `src`, `tests`, `examples` and `benches`
+  finds no other written path under a fixed name: every other `temp_dir()` use
+  carries the process id or goes through `TempDir`, and
+  `src/system/java_info.rs:214` only probes a path that must not exist.
+- **CLI-1, `-ini` open failures other than NotFound and PermissionDenied
+  (fix-round-2 verdict minor 1).** A `-ini` that is neither a regular file nor a
+  directory and whose open fails otherwise exits 8 (`UNKNOWN_ERROR`) in the
+  executed C++: a Unix socket (`EOPNOTSUPP`) and `/dev/tty` without a
+  controlling terminal (`ENXIO`), both on the run path and with `-write_ini`,
+  because `TextFile.cpp:44-47` throws `IOException` when `File::readable` holds
+  and `TOPPBase.cpp:495-500` (cli `c19e494`) maps it to `UNKNOWN_ERROR`. The
+  port exits 3, and `docs/TOPP_CLI_SUPPORT.md:143-144` and the `load_ini`
+  rustdoc (`src/cli.rs:719-721`) say exit 3. Either map such an open failure to
+  exit 8 with `Error: Unexpected internal error (IO error for file '<path>')`,
+  keeping later read failures at 3, and add socket and tty cases to
+  `ini_read_failures.sh`; or narrow both texts and record the executed exit 8
+  as a documented divergence. Owner: CLI-1.
+- **CLI-1, single-writer FIFO (fix-round-2 verdict minor 2).**
+  `an_ini_fifo_is_read_once_a_writer_opens_it` (docstring
+  `tests/topp_cli_lifecycle.rs:1206-1209`), `docs/TOPP_CLI_SUPPORT.md:105` and
+  `:147-149`, and the rustdoc at `src/cli.rs:727-729` present an openable FIFO as
+  a case without an oracle. It is a divergence: the C++ tool opens the INI
+  twice, once for the compression peek (`XMLFile.cpp:141-147`) and again for
+  xerces (`:166`), so a writer that opens the FIFO once leaves the C++ tool
+  blocked (killed by the alarm, exit 142, nothing written) while the port exits
+  0. State that as a deliberate tier-4 divergence, and optionally record the
+  executed single-writer result as an oracle observation. Owner: CLI-1.
+- **SYSTEM and CLI-1, `-in /dev/null` (fix-round-2 verdict minor 3).**
+  `cli::input_file_readable` (`src/cli/context.rs:378`) asks `file::readable`,
+  which answers `false` for a device or FIFO without opening it, so
+  `-in /dev/null` exits 2 with a false "not readable for the current user"
+  message; the executed C++ exits 4 (`INPUT_FILE_EMPTY`, "Error: File empty").
+  The fix needs a readability query that never opens the file, as
+  `access(R_OK)` in `File.cpp:506-514`; `unsafe` is forbidden and no `libc` or
+  `rustix` dependency exists, so the crate decision comes first (Pending row in
+  [THIRD_PARTY_CRATE_DECISIONS](THIRD_PARTY_CRATE_DECISIONS.md)). Then add the
+  oracle cases `-in /dev/null` (exit 4) and a mode-000 FIFO as `-in` (exit 2).
+  Owners: the SYSTEM owner for `src/system/file.rs`, CLI-1 for the cases.
+- **A2, `src/format/file_info/text_format.rs` Follow-up (verdict minor).** The
+  section says every caller of `param/value.rs` `format_float` and
+  `format_float32` inherits the tie defect, then lists the callers
+  incompletely: add the `XIC @ ...` label of `kernel::chromatogram_tools`
+  (`src/kernel/chromatogram_tools.rs:268`) and `identification::protein_run`
+  (`src/identification/protein_run.rs:199`), or write "including". Owner: A2.
+  The consolidation itself (the private copies in `format/mascot_generic.rs`,
+  `format/pepxml.rs`, `format/mzxml.rs`, `math/posterior_error_probability.rs`
+  and `param/value.rs`) stays with those modules' owners.
+- **A4, FileInfo documentation (A2 request 6).** `docs/FILE_INFO_SUPPORT.md`
+  should link the `text_format.rs` module documentation, which is A2's support
+  document, and `tests/data/file_info_text_format_provenance.json`. Optional,
+  owner A2: move the embedded oracle tables (`ORACLE_DRIVER_TSV`, 69,970 bytes;
+  `SWEEP_ORACLE_TSV`, 32,818 bytes) and the retained reports out of the roughly
+  170 KB `tests/file_info_text_format.rs` into `tests/data` with
+  `include_str!`.
+- **A4, A5 and C1, using the text formatting (A2 request 7).**
+  - On the TOPP tool path use `fixed_truncated`, not `fixed`: `fixed` refuses
+    what `StringUtils::number` cuts (CPP-253, CPP-254), so FileInfo would be
+    stricter than the source.
+  - Track stream precision explicitly: default 6, then `WRITTEN_DIGITS_F32` or
+    `WRITTEN_DIGITS_F64` per statistics block, persisting as it does in
+    `FileInfo.cpp` (lines 2224-2254, 2330-2362 and 2404).
+  - Do not copy the six-space `intensity:` padding of the retained
+    `FileInfo_3` and `FileInfo_7` reports; `FileInfo.cpp:140` and `:189` at
+    `bc9cc12` write one space.
+- **C1 and A4, macOS report comparisons (A2 platform note).** Default-stream
+  `%g` text differs between Apple libc and glibc on one class of exact ties: an
+  integer-valued double below `1e15` whose round-down neighbour ends in `0`.
+  Apple libc keeps the trailing zeros (a total ion current of `1463805` at
+  precision 6 prints `1.46380e+06`), glibc, the C standard and the port strip
+  them (`1.4638e+06`). C1's macOS comparisons must not count these, or the
+  `nan`/`-nan` sign difference, as port defects.
 
-**Still in flight:** the Boost.Regex facade (`crate/regex-facade`) and A2, both
-in a fix round; follow-up commits on A1 (the infinite-target FAIMS contract),
-CLI-1 (a `/dev/null` `-ini` must exit 3, as the source does) and B2 (iridium
-wording).
+**Still in flight:** the Boost.Regex facade (`crate/regex-facade`), in review;
+the lead merges it separately.
