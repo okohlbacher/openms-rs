@@ -1,0 +1,350 @@
+{
+ "group": "fuzzy_string_comparator",
+ "package": "C3-FUZZY",
+ "kind": "Shared test support, not library code: no src module, no ledger header, no module-graph edge.",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/testframework/include/OpenMS/CONCEPT/FuzzyStringComparator.h",
+   "sha256": "43e9d1bee931c02928acc90c98b4ccf65dc3185840b71c86f8b4ea405fdf073d"
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/FuzzyStringComparator.cpp",
+   "sha256": "9b7c5bd57ed1751e281c9e31ce46d81e49c82ded6749131b459f648f2107a97b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FuzzyStringComparator_test.cpp",
+   "sha256": "737e1fd4141f7ff86e1c8ff628db95eee62236373cd3cb4f64748ac2597bb158"
+  }
+ ],
+ "source_note": "All three comparator files hash identically at the oracle core revision 4fdec46b205459b92e7d3b9e56df5d8e912d5c85; no commit in 4fdec46..bc9cc12 touches them. Hashes are of `git show <revision>:<path>` in OpenMS4-tests/packages/core.",
+ "package_revisions": {
+  "topp": "174b576",
+  "cli": "c19e494",
+  "test-data": "0cb15f2"
+ },
+ "package_sources": [
+  {
+   "package": "topp",
+   "revision": "174b576",
+   "path": "src/FuzzyDiff.cpp",
+   "sha256": "3809921f8e67d5b9491d6f58a45ae4c62bd7722d3b84e7dc085c3575c59c66ac"
+  },
+  {
+   "package": "cli",
+   "revision": "c19e494",
+   "path": "source/APPLICATIONS/TOPPBase.cpp",
+   "sha256": "326b96f85b4041febec49e18252d7be2ad0a5450abe5249adecc28ca315fdc05"
+  },
+  {
+   "package": "test-data",
+   "revision": "0cb15f2",
+   "path": "topp/CMakeLists.txt",
+   "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb"
+  }
+ ],
+ "upstream_test_definition": {
+  "path": "topp/CMakeLists.txt",
+  "revision": "0cb15f2",
+  "lines": {
+   "DIFF": "59",
+   "TOPP_FuzzyDiff_1..4": "138-144",
+   "TOPP_FeatureFinderCentroided_1 and _out1": "426-428",
+   "TOPP_FileInfo_3 and _out1": "887-889",
+   "TOPP_FileInfo_17 and _out1": "922-924"
+  },
+  "will_fail": [
+   "TOPP_FuzzyDiff_1",
+   "TOPP_FuzzyDiff_2",
+   "TOPP_FuzzyDiff_4"
+  ]
+ },
+ "native_implementation": [
+  "tests/support/fuzzy_string_comparator.rs",
+  "tests/support/decoded_compare.rs"
+ ],
+ "native_tests": [
+  "tests/fuzzy_string_comparator.rs"
+ ],
+ "support_document": "docs/FUZZY_STRING_COMPARATOR_SUPPORT.md",
+ "method": "Port of FuzzyStringComparator (stream-state emulation of compareLines_, readNextLine_, compareStreams, compareFiles and both reports) and of the FuzzyDiff tool contract, checked against executed C++: a class-level driver linking the unmodified comparator object from product-sdk libOpenMSTestFramework.a over 137 cases, and 39 product-sdk FuzzyDiff invocations. Class-test sections transcribed. The decoded FeatureMap/MSExperiment comparator applies the same number rule field by field (decision D6).",
+ "evidence_tier": {
+  "comparator_corpus": "1 (executed differential): verdicts and complete logs, after replacing the working directory and masking the value of non-number elements; one documented hexadecimal-float divergence",
+  "fuzzydiff_exit_codes": "1 (executed differential)",
+  "current_cpp_outputs": "oracle-generated (tier 1 executed differential)",
+  "retained_fixtures": "retained upstream",
+  "class_test": "3 (source review)",
+  "bounds_ini_decoded_paths": "4 (Rust-only)"
+ },
+ "oracle": {
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "sdk": "product-sdk (Debug, core 4fdec46b205459b92e7d3b9e56df5d8e912d5c85, AppleClang 21, libc++)",
+  "manifest": "../oracle/fuzzy-string-comparator/manifest.json",
+  "binaries_sha256": {
+   "bin/FuzzyDiff": "4a8bcd672324b81e9d02596a4b2821a3a4eaa0fb14f223a255c29dae93daa908",
+   "bin/FileInfo": "1a8292d704e92708c09ab63a7e85f8a103fa9b6ab7d6f5c876553df775b0cff5",
+   "bin/FeatureFinderCentroided": "8560e5d22bcb30109ea268be45854b89eebfcac8af1e82c0c444534d45d4798f",
+   "lib/libOpenMS.dylib": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+   "lib/libOpenMS_CLI.1.dylib": "53d9b438077965947bd743a934fd8c19a1e4ad142249ea3498820735cd3b62ad",
+   "lib/libOpenMSTestFramework.a": "ddc39abdbe4a6d97be3cf2116c7abbe740d7795a802e46d7f4e1d10a3f7836e9"
+  },
+  "environment": "env -i PATH=/usr/bin:/bin HOME=<work>/home OPENMS_HOME_PATH=<work>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<sdk>/share/OpenMS/4.0.0; per-case working directory; perl alarm 900 s",
+  "reproducibility": "FileInfo_3, FileInfo_17 and FeatureFinderCentroided_1 outputs byte-identical across two runs",
+  "debug_only": []
+ },
+ "fixtures": [
+  {
+   "path": "tests/data/fuzzy_string_comparator/FuzzyDiff.ini",
+   "sha256": "238d0598a366b3e9e6f5686a4b666b483317617d33ce36ea5ab9a03842a83dc2",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff.ini)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FuzzyDiff_1_in1.featureXML",
+   "sha256": "2007bbd5f9df6c07fb68b12bf6b9c877080cd6619586207ccc615f7746374ca7",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff_1_in1.featureXML)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FuzzyDiff_1_in2.featureXML",
+   "sha256": "16ed6079830280f79d778b523e35af7d6d95cbed26276b4b49e54c2b4864cd22",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff_1_in2.featureXML)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FuzzyDiff_3_in1.featureXML",
+   "sha256": "2007bbd5f9df6c07fb68b12bf6b9c877080cd6619586207ccc615f7746374ca7",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff_3_in1.featureXML)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FuzzyDiff_3_in2.featureXML",
+   "sha256": "2007bbd5f9df6c07fb68b12bf6b9c877080cd6619586207ccc615f7746374ca7",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FuzzyDiff_3_in2.featureXML)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FileInfo_3_output.txt",
+   "sha256": "baff62b33a44a65867037213da3fe6437b5f9b579897c12224120b0c498fea80",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FileInfo_3_output.txt)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FileInfo_17_output.txt",
+   "sha256": "60f4b2b7025da3bb6c26abd39bc34da04369fba8cd7ba61e56f6d948d5bd6611",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FileInfo_17_output.txt); CRLF line ends, kept by .gitattributes -text"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/retained/FeatureFinderCentroided_1_1_output.featureXML",
+   "sha256": "4eaa53c822be1cf304728b51fc8d45ff1e725659aa0aad9a3f62560d718fc473",
+   "kind": "retained upstream (test-data 0cb15f2 topp/FeatureFinderCentroided_1_1_output.featureXML)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/oracle/FileInfo_3.current.txt",
+   "sha256": "3eb20f72c7175bd61e6843f6be6540b8858d6be2381750b24cefdc989d7cb3a2",
+   "kind": "oracle-generated (tier 1 executed differential): FileInfo -test -in FileInfo_3_input.featureXML -m -s -p -no_progress -out FileInfo_3.tmp.txt"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/oracle/FileInfo_17.current.txt",
+   "sha256": "b341c30930087ade36099a5b2f2f436d0b19ca6148db8eed14612e052a223e9e",
+   "kind": "oracle-generated (tier 1 executed differential): FileInfo -test -in FileInfo_17_input.fasta -out FileInfo_17_output.tmp.txt"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/oracle/FeatureFinderCentroided_1.current.featureXML",
+   "sha256": "b36647f7d66d4032e8ac2465623bc941017339d0cc66700fd4fe8379cb54ff0f",
+   "kind": "oracle-generated (tier 1 executed differential): FeatureFinderCentroided -test -ini FeatureFinderCentroided_1_parameters.ini -in FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp.featureXML"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/oracle/comparator_cases.tsv",
+   "sha256": "922923d8841969222c7f3d38dd74b599c8876340cc2c7b356f3cab5343fcbf4c",
+   "kind": "oracle case file generated by gen_cases.py; class-test literals re-extracted from the pinned test source and asserted",
+   "rows": 137
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/oracle/comparator_results.tsv",
+   "sha256": "54e2dba1b01d86a8a7245e4be95f5215b3a9d69652fea5fd88c05164c901a019",
+   "kind": "oracle-generated (tier 1 executed differential): driver.cpp verdicts, working directory and hex-encoded logs",
+   "rows": 137
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/oracle/tool_runs.tsv",
+   "sha256": "de2412b0bea7d7f4f231e896c9ab47539fab3e6af3450b8ff6f4e73b9990f108",
+   "kind": "oracle-generated (tier 1 executed differential): exit codes of 6 tool runs and 39 FuzzyDiff invocations with their command lines",
+   "rows": 45
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FileInfo_3_output.beyond.txt",
+   "sha256": "ee576f0ac8dc672c097a7aef027fd5b7c31666ddd3a43398e58c3c5da178a8a4",
+   "kind": "synthetic (run.sh): retained FileInfo_3_output.txt with intensity maximum 6712.00 -> 6812.00 (one byte)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FileInfo_3_output.within.txt",
+   "sha256": "8346a0c7516c72141f58c0dfd5fa0fbb3c5a49c78df8cd1ad2660f3672c98e68",
+   "kind": "synthetic (run.sh): retained FileInfo_3_output.txt with 6712.00 -> 6713.00 (one byte)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FileInfo_17_output.beyond.txt",
+   "sha256": "a53fbd554ed6a88c23b4b9b6764cf58e29347255799dfd8c48c3b743b69a5463",
+   "kind": "synthetic (run.sh): retained FileInfo_17_output.txt with total amino acids 1933 -> 1953 (one byte)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FeatureFinderCentroided_1_1_output.beyond.featureXML",
+   "sha256": "653ad232c3f1b960f150f6db4918696c06c62150b4f8ad2becf2314b4c95fdf9",
+   "kind": "synthetic (run.sh): retained FFC_1 output with position 4389.149... -> 4489.149... (one byte)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FeatureFinderCentroided_1_1_output.within.featureXML",
+   "sha256": "df7054e2d61b13960171756f6bdcc9f80c35fc571d503f1828b82061929d41c1",
+   "kind": "synthetic (run.sh): retained FFC_1 output with position 4389.149... -> 4389.159... (one byte)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FeatureFinderCentroided_1_1_output.id_change.featureXML",
+   "sha256": "a4d3ec3e50b36b44dc04658f182f45f7e7b1ca9d359c34703ef721bd05433ec8",
+   "kind": "synthetic (run.sh): retained FFC_1 output with the first feature id changed in its last digit (one byte)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_absdiff_negative.ini",
+   "sha256": "370be03c959aa636a7ab272daaf85c9d75286e619b67204f0fa4a81ba57298f6",
+   "kind": "synthetic (run.sh): pinned FuzzyDiff.ini with absdiff -1"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_first_column_negative.ini",
+   "sha256": "20ed031b75523758da5048dcffc3f4655b487f853221df171b851ca5aace7af7",
+   "kind": "synthetic (run.sh): pinned FuzzyDiff.ini with first_column -1"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_ratio_below_min.ini",
+   "sha256": "74179c250d2295eb8303a6cce2fd6200f02da8d2a5b878eed6bf54643190b57b",
+   "kind": "synthetic (run.sh): pinned FuzzyDiff.ini with ratio 0.5"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_unknown_item.ini",
+   "sha256": "fa5e2d5ef983e974a8ed3ffab741b9c36c04edb514e9d044490b29edcad17008",
+   "kind": "synthetic (run.sh): pinned FuzzyDiff.ini with an extra ITEM 'bogus'"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/FuzzyDiff_verbose_3.ini",
+   "sha256": "b5fda27e1076820ddcedae979910037eef032e448f7a111591bbc87335761902",
+   "kind": "synthetic (run.sh): pinned FuzzyDiff.ini with verbose 3"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/a_1.txt",
+   "sha256": "6a03830a1811a4a0f43d6bf891c9461728aa0f1b49f389fcdc8b36e67e6560c2",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/alpha.txt",
+   "sha256": "30cc851fb20f70bf8c31d93302af3317d729ce8c1e114cbd00059e423c2d5b00",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/beta.txt",
+   "sha256": "e6540ed85aec43fb9bf313b50536ad05f73c66a243512f53e00f5a5e215f3ad4",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/empty.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "kind": "synthetic (run.sh): zero bytes"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/no_trailing_space.txt",
+   "sha256": "87428fc522803d31065e7bce3cf03fe475096631e5e07bbd7a0fde60c4cf25c7",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/stylesheet_a.xml",
+   "sha256": "dd16321538c38226bcebe0a0316b3610ff7bba123ac9c80fe39be54278a82754",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/stylesheet_b.xml",
+   "sha256": "b698897effab9b150e177f650666ff2bbcd386ebb76858b222412855b6245da2",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/table_a.tsv",
+   "sha256": "310e1c64b4ec72eb98bebf37c998504461430c55b4926107c054d48b84b18000",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/table_b.tsv",
+   "sha256": "dfd2ece482d5e22f41437f84f205542966e9cddea63693d0c55ef7851ebf7f8b",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/trailing_space.txt",
+   "sha256": "19ae96e7938ec564866a1bb552e51bc3f1b9aa32c5221f3e8c3a75d0080c7004",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/x_1.txt",
+   "sha256": "cf2b185dd6e451411e3c4075f635039e54f27ec05da0ad20a6389370b3d4ce16",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/x_1001.txt",
+   "sha256": "7d6237621cf7128903efbaf2cfce80e6a26350b6a1b3f7e947fb70d77c5fa555",
+   "kind": "synthetic (run.sh)"
+  },
+  {
+   "path": "tests/data/fuzzy_string_comparator/fuzzydiff/z_2.txt",
+   "sha256": "2c87eec04979c27a0e97925979962a7e5842240d5700bd64b55a93da8b1e7c15",
+   "kind": "synthetic (run.sh)"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/baseline_filter_tool_input.mzML",
+   "sha256": "4f694e838c83df0368673b0b023ad7a53b8990f9d6ad7eedf1a737ea977720c5",
+   "kind": "existing retained mzML (tests/data/topp_baseline_filter_provenance.json), used for the decoded MSExperiment round trip"
+  }
+ ],
+ "known_divergences": [
+  {
+   "case": "tok_hex_vs_decimal",
+   "cpp": "libc++ build accepts \"0x10\" as 16 through its strtod fallback (verdict true)",
+   "rust": "std::from_chars contract: 0 followed by letters (verdict false)"
+  },
+  {
+   "case": "failure report 'numbers:' value of a non-number element",
+   "cpp": "strtod result of the letter (usually 0) on libc++",
+   "rust": "the NaN reset value; masked in the differential only where is_number is false"
+  }
+ ],
+ "native_boundaries": [
+  "MAX_INPUT_BYTES 1 GiB per stream or file, preflighted for files; exceeding it or a read error fails the comparison instead of acting as end of input",
+  "MAX_FAILURE_REPORTS 10000 per comparison and MAX_LOG_BYTES 256 MiB buffered; verdicts unaffected",
+  "MAX_INI_BYTES 16 MiB, nesting 64, items 100000 for the ParamXML subset reader",
+  "Line numbers i64; zero tab width gives a zero quotient",
+  "No panics on input: all indexing is checked or bounded by preceding checks"
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/fuzzy-string-comparator/run.sh",
+   "sha256": "8fae247d105585b7a7a37a05788e3059e5b62429dff883c6e6c9ea1043b4ec99",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-string-comparator/gen_cases.py",
+   "sha256": "ad87c9b70f0d42b333beaf50aa7806304216b3a65012cbc9b1db9d5383149c28",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-string-comparator/driver.cpp",
+   "sha256": "f672092c5f28a4cdefbec4db77bf574ad1c95ed73ce5b8a76c59724fe4ef01e4",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-string-comparator/write_manifest.py",
+   "sha256": "7d1a6ae96fd2f542a7c647d72278f335aa88f7460a69691a24397e3fad6b8cc8",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/fuzzy-string-comparator/manifest.json",
+   "sha256": "f69a22c3cc8dd9e081653981cf57817464083b0a131d5242a8368e229355a187",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The C++ driver, case generator and run script live outside this repository under ../oracle/fuzzy-string-comparator/ so that no C++ is committed here. Their sha256 values and the oracle manifest (binary, library, compiler and input hashes, exit codes, stdout/stderr hashes, reproducibility) are the evidence chain for the oracle-generated fixtures above. They are recorded, not re-verified by the in-repo gate."
+}

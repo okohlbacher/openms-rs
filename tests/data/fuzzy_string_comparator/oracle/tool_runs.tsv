@@ -1,0 +1,46 @@
+#case	exit_code	command
+fileinfo_3_run1	0	<SDK>/bin/FileInfo -test -in FileInfo_3_input.featureXML -m -s -p -no_progress -out FileInfo_3.tmp.txt
+fileinfo_17_run1	0	<SDK>/bin/FileInfo -test -in FileInfo_17_input.fasta -out FileInfo_17_output.tmp.txt
+featurefindercentroided_1_run1	0	<SDK>/bin/FeatureFinderCentroided -test -ini FeatureFinderCentroided_1_parameters.ini -in FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp.featureXML
+fileinfo_3_run2	0	<SDK>/bin/FileInfo -test -in FileInfo_3_input.featureXML -m -s -p -no_progress -out FileInfo_3.tmp.txt
+fileinfo_17_run2	0	<SDK>/bin/FileInfo -test -in FileInfo_17_input.fasta -out FileInfo_17_output.tmp.txt
+featurefindercentroided_1_run2	0	<SDK>/bin/FeatureFinderCentroided -test -ini FeatureFinderCentroided_1_parameters.ini -in FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp.featureXML
+fd_topp_fuzzydiff_1	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <WORK>/topp/FuzzyDiff_1_in1.featureXML -in2 <WORK>/topp/FuzzyDiff_1_in1.featureXML
+fd_topp_fuzzydiff_2	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <WORK>/topp/FuzzyDiff_1_in1.featureXML -in2 <WORK>/topp/FuzzyDiff_1_in2.featureXML
+fd_topp_fuzzydiff_3	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <WORK>/topp/FuzzyDiff_3_in1.featureXML -in2 <WORK>/topp/FuzzyDiff_3_in2.featureXML
+fd_topp_fuzzydiff_4	1	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <WORK>/topp/lorem_ipsum.featureXML -in2 <WORK>/topp/FuzzyDiff_3_in2.featureXML
+fd_fileinfo_3_current_vs_retained	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist File name -in1 <ORACLE>/results/FileInfo_3.current.txt -in2 <WORK>/topp/FileInfo_3_output.txt
+fd_fileinfo_17_current_vs_retained	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist File name -in1 <ORACLE>/results/FileInfo_17.current.txt -in2 <WORK>/topp/FileInfo_17_output.txt
+fd_ffc_1_current_vs_retained	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist id= -in1 <ORACLE>/results/FeatureFinderCentroided_1.current.featureXML -in2 <WORK>/topp/FeatureFinderCentroided_1_1_output.featureXML
+fd_fileinfo_3_without_whitelist	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/results/FileInfo_3.current.txt -in2 <WORK>/topp/FileInfo_3_output.txt
+fd_ffc_1_without_whitelist	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/results/FeatureFinderCentroided_1.current.featureXML -in2 <WORK>/topp/FeatureFinderCentroided_1_1_output.featureXML
+fd_fileinfo_3_beyond	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist File name -in1 <ORACLE>/results/FileInfo_3.current.txt -in2 <ORACLE>/inputs/fuzzydiff/FileInfo_3_output.beyond.txt
+fd_fileinfo_3_within	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist File name -in1 <ORACLE>/results/FileInfo_3.current.txt -in2 <ORACLE>/inputs/fuzzydiff/FileInfo_3_output.within.txt
+fd_fileinfo_17_beyond	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist File name -in1 <ORACLE>/results/FileInfo_17.current.txt -in2 <ORACLE>/inputs/fuzzydiff/FileInfo_17_output.beyond.txt
+fd_ffc_1_beyond	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist id= -in1 <ORACLE>/results/FeatureFinderCentroided_1.current.featureXML -in2 <ORACLE>/inputs/fuzzydiff/FeatureFinderCentroided_1_1_output.beyond.featureXML
+fd_ffc_1_within	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist id= -in1 <ORACLE>/results/FeatureFinderCentroided_1.current.featureXML -in2 <ORACLE>/inputs/fuzzydiff/FeatureFinderCentroided_1_1_output.within.featureXML
+fd_ffc_1_id_change	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist id= -in1 <ORACLE>/results/FeatureFinderCentroided_1.current.featureXML -in2 <ORACLE>/inputs/fuzzydiff/FeatureFinderCentroided_1_1_output.id_change.featureXML
+fd_defaults_without_ini	10	<SDK>/bin/FuzzyDiff -test -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_ini_tolerance	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_empty_in1	4	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/inputs/fuzzydiff/empty.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1.txt
+fd_empty_in2	4	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/empty.txt
+fd_missing_in1	1	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/inputs/fuzzydiff/missing.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1.txt
+fd_missing_in1_empty_in2	1	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/inputs/fuzzydiff/missing.txt -in2 <ORACLE>/inputs/fuzzydiff/empty.txt
+fd_matched_single_token	8	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -matched_whitelist abc -in1 <ORACLE>/inputs/fuzzydiff/alpha.txt -in2 <ORACLE>/inputs/fuzzydiff/beta.txt
+fd_matched_three_tokens	8	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -matched_whitelist a:b:c -in1 <ORACLE>/inputs/fuzzydiff/alpha.txt -in2 <ORACLE>/inputs/fuzzydiff/beta.txt
+fd_matched_pair	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -matched_whitelist alpha:beta -in1 <ORACLE>/inputs/fuzzydiff/alpha.txt -in2 <ORACLE>/inputs/fuzzydiff/beta.txt
+fd_matched_trailing_colon	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -matched_whitelist a: -in1 <ORACLE>/inputs/fuzzydiff/a_1.txt -in2 <ORACLE>/inputs/fuzzydiff/z_2.txt
+fd_ratio_below_min	6	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -ratio 0.5 -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_verbose_above_max	6	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -verbose 4 -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_tab_width_zero	6	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -tab_width 0 -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_ini_ratio_below_min	6	<SDK>/bin/FuzzyDiff -test -ini <ORACLE>/inputs/fuzzydiff/FuzzyDiff_ratio_below_min.ini -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_ini_absdiff_negative	6	<SDK>/bin/FuzzyDiff -test -ini <ORACLE>/inputs/fuzzydiff/FuzzyDiff_absdiff_negative.ini -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_ini_first_column_negative	6	<SDK>/bin/FuzzyDiff -test -ini <ORACLE>/inputs/fuzzydiff/FuzzyDiff_first_column_negative.ini -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_ini_unknown_item	6	<SDK>/bin/FuzzyDiff -test -ini <ORACLE>/inputs/fuzzydiff/FuzzyDiff_unknown_item.ini -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/x_1001.txt
+fd_ini_verbose_3	10	<SDK>/bin/FuzzyDiff -test -ini <ORACLE>/inputs/fuzzydiff/FuzzyDiff_verbose_3.ini -in1 <ORACLE>/inputs/fuzzydiff/x_1.txt -in2 <ORACLE>/inputs/fuzzydiff/a_1.txt
+fd_sort_reordered_rows	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -sort -in1 <ORACLE>/inputs/fuzzydiff/table_a.tsv -in2 <ORACLE>/inputs/fuzzydiff/table_b.tsv
+fd_unsorted_reordered_rows	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/inputs/fuzzydiff/table_a.tsv -in2 <ORACLE>/inputs/fuzzydiff/table_b.tsv
+fd_sort_same_file	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -sort -in1 <ORACLE>/inputs/fuzzydiff/table_a.tsv -in2 <ORACLE>/inputs/fuzzydiff/table_a.tsv
+fd_ini_whitelist_stylesheet	0	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/inputs/fuzzydiff/stylesheet_a.xml -in2 <ORACLE>/inputs/fuzzydiff/stylesheet_b.xml
+fd_cli_whitelist_replaces_ini	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -whitelist id= -in1 <ORACLE>/inputs/fuzzydiff/stylesheet_a.xml -in2 <ORACLE>/inputs/fuzzydiff/stylesheet_b.xml
+fd_trailing_space	10	<SDK>/bin/FuzzyDiff -test -ini <WORK>/topp/FuzzyDiff.ini -in1 <ORACLE>/inputs/fuzzydiff/trailing_space.txt -in2 <ORACLE>/inputs/fuzzydiff/no_trailing_space.txt
