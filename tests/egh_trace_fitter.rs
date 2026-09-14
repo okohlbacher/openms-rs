@@ -605,7 +605,7 @@ impl Checker {
     /// rounding noise, below [`FIT_RELATIVE`] times `sigma`: there it is
     /// compared on the scale of `sigma`. The model sees `tau` only through
     /// `tau * t` next to `2 sigma^2`, and a symmetric peak, such as the class
-    /// test's, leaves `tau` at rounding noise of about `1e-15` whose relative
+    /// test's, leaves `tau` at rounding noise of about `4e-15` whose relative
     /// value carries no information. A `tau` above that floor gets the plain
     /// relative bound.
     fn fit_params(&mut self, what: &str, actual: &[f64], expected: &[f64]) {

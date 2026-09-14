@@ -428,11 +428,10 @@ impl EGHTraceFitter {
     /// The start point a fit of `traces` begins from: source protected
     /// `setInitialParameters_`.
     ///
-    /// Takes the shared
-    /// [`initial_shape`](crate::analysis::feature_finder_picked::trace_fitter::initial_shape)
-    /// with [`ProfileSmoothing::Always`]: the traces' intensity profile,
-    /// smoothed with a five-point running sum over zero padding whatever its
-    /// length, the first strict maximum as the apex, and the walks outwards
+    /// Takes the shared [`initial_shape`] with [`ProfileSmoothing::Always`]:
+    /// the traces' intensity profile, smoothed with a five-point running sum
+    /// over zero padding whatever its length, the first strict maximum as the
+    /// apex, and the walks outwards
     /// while the smoothed intensity stays above half the height. They give the
     /// left and right half-height positions `A = apex - left` and
     /// `B = right - apex` and their smoothed heights. With
@@ -539,9 +538,8 @@ impl TraceFitter for EGHTraceFitter {
     ///
     /// Derives the start point with [`EGHTraceFitter::initial_parameters`],
     /// minimises the residuals of [`EGHTraceFunctor`] with its analytic
-    /// Jacobian through the shared driver
-    /// [`optimize`](crate::analysis::feature_finder_picked::trace_fitter::optimize)
-    /// under the evaluation budget [`TraceFitterParams::max_iteration`], and
+    /// Jacobian through the shared driver [`optimize`] under the evaluation
+    /// budget [`TraceFitterParams::max_iteration`], and
     /// sets the model from the result with
     /// [`EGHTraceFitter::set_optimized_parameters`]. Every Levenberg-Marquardt
     /// status after `ImproperInputParameters` is accepted, including an
@@ -683,8 +681,7 @@ impl TraceFitter for EGHTraceFitter {
     /// with `N` the function name, `B` the baseline, `S = 2 * sigma * sigma`,
     /// `T = tau`, `C = rt_shift + t_R` and `A = theoretical_int * H`, each number
     /// written as a default C++ stream writes a `double` (precision 6, `%g`
-    /// style), through the shared
-    /// [`stream_number`](crate::analysis::feature_finder_picked::trace_fitter::stream_number).
+    /// style), through the shared [`stream_number`].
     /// The source writes the name with `StringUtils::toStr(char)`, one byte; a
     /// non-ASCII Rust `char` is written as its UTF-8 bytes.
     fn gnuplot_formula(
@@ -723,8 +720,7 @@ impl TraceFitter for EGHTraceFitter {
     }
 
     /// `trace.theoretical_int * value(trace.peaks[k].rt)`: source
-    /// `TraceFitter::computeTheoretical`, through the shared
-    /// [`compute_theoretical`](crate::analysis::feature_finder_picked::trace_fitter::compute_theoretical).
+    /// `TraceFitter::computeTheoretical`, through the shared [`compute_theoretical`].
     ///
     /// # Errors
     ///
