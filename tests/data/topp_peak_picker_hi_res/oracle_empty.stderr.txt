@@ -1,0 +1,1 @@
+The given file does not contain any conventional peak data, but might contain chromatograms. This tool currently cannot handle them, sorry.
