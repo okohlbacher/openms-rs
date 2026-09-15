@@ -276,6 +276,22 @@ defaults, including values the selected modes ignore.
     `MSChromatogram` is a compile error there rather than a silently dropped
     one, and `the_picked_record_carries_every_metadata_field_the_input_had`
     pins the equivalence against the recipe it replaced.
+12. **`estimate_spectrum_type`.** The public helper keeps the picker's strict
+    input contract; `MSSpectrum::get_type(true)`, which `pick_experiment` uses,
+    classifies any finite data as the source does.
+13. **Chromatogram times come from the reader, not from here.** Nothing in the
+    picker treats a chromatogram's retention times differently from a
+    spectrum's m/z. The one place a picked chromatogram can differ from the
+    source's while every centroid of every spectrum agrees is the reader's
+    conversion of a 32-bit `time array` in minutes, which the source narrows to
+    `f32` and this port keeps in `f64` unless
+    `mzml::ReadOptions::source_time_array_precision` is set; see
+    [the mzML reader's section](MZML_SUPPORT.md#the-minute-conversion-of-a-32-bit-time-array)
+    for the mechanism and the measurement. The amplification is the picker's:
+    the apex comes from a cubic spline through the support points and a
+    bisection of its first derivative, so a relative change of up to 6.2e-3 in
+    the point spacings moved the picked apexes of the benchmark TIC by up to
+    3.19e-3 s and their intensities by up to 1.75e-3 relative.
 14. **A parallel spectrum loop, where the source has none.**
     `PeakPickerHiRes.cpp` carries no `#pragma omp` at all: its spectrum loop
     (`:504`), chromatogram loop (`:548`) and on-disc loop (`:584`) are plain
@@ -311,6 +327,15 @@ defaults, including values the selected modes ignore.
     worker count. Only the spectrum loop is parallel; chromatograms are picked
     serially after it, because the runs this is measured on carry a few thousand
     chromatogram points against hundreds of millions of profile samples.
+
+    The workers are opened **once per call**, not once per batch (`BatchWorkers`
+    in `src/processing/peak_picking.rs`). A caller already running inside a
+    rayon pool — a TOPP tool is — uses that pool and builds nothing; a library
+    caller outside one builds a single pool of the requested width for the whole
+    call, where the first version of this code built one per batch and so paid
+    the thread starts a dozen times over on an instrument-scale run. At one
+    worker, or for an experiment of fewer than two spectra, no pool is built and
+    the loop runs on the calling thread.
 15. **One validation pass in the experiment path.** `start_experiment` validates
     the whole experiment through `MSExperiment::validate`, which visits every
     spectrum and every one of its peaks. Selected records used to be validated a
@@ -322,22 +347,6 @@ defaults, including values the selected modes ignore.
     `an_invalid_record_is_refused_by_the_experiment_entry_points` pins both the
     picked and the merely copied case. The single-record entry points still
     validate what they are given.
-12. **`estimate_spectrum_type`.** The public helper keeps the picker's strict
-    input contract; `MSSpectrum::get_type(true)`, which `pick_experiment` uses,
-    classifies any finite data as the source does.
-13. **Chromatogram times come from the reader, not from here.** Nothing in the
-    picker treats a chromatogram's retention times differently from a
-    spectrum's m/z. The one place a picked chromatogram can differ from the
-    source's while every centroid of every spectrum agrees is the reader's
-    conversion of a 32-bit `time array` in minutes, which the source narrows to
-    `f32` and this port keeps in `f64` unless
-    `mzml::ReadOptions::source_time_array_precision` is set; see
-    [the mzML reader's section](MZML_SUPPORT.md#the-minute-conversion-of-a-32-bit-time-array)
-    for the mechanism and the measurement. The amplification is the picker's:
-    the apex comes from a cubic spline through the support points and a
-    bisection of its first derivative, so a relative change of up to 6.2e-3 in
-    the point spacings moved the picked apexes of the benchmark TIC by up to
-    3.19e-3 s and their intensities by up to 1.75e-3 relative.
 
 ## Class-test accounting
 

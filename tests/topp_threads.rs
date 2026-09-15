@@ -28,9 +28,20 @@
 //!   the real executables under `/proc`), and byte-identical outputs at 1, 2
 //!   and more workers: the determinism contract of `src/concept/parallel.rs`.
 //!
-//! The five tools are serial, so the pool does no parallel work for them; what
-//! these tests prove is that the policy reaches their run phase, where the
-//! wave-3a tools will call the same API.
+//! Five of the six tools are serial, so the pool does no parallel work for
+//! them; what these tests prove is that the policy reaches their run phase.
+//! `PeakPickerHiRes` is the sixth and the first whose run phase actually shares
+//! work — its spectrum loop runs on the pool — and it is also the first to open
+//! the pool around that region rather than around its whole body, so at
+//! `-threads 1` it builds no pool at all and picks on the calling thread. The
+//! shared synthetic input here is centroid-like, so the picker copies what it
+//! is given and its pool is short-lived; what these tests hold it to is the
+//! byte-identity across worker counts and an upper bound on the workers it
+//! starts (see `expected_workers`). Picking at every worker count, on profile
+//! data and against the C++ outputs, is covered by
+//! `tests/topp_peak_picker_hi_res.rs` and `tests/peak_picking_experiment.rs`,
+//! and the exact worker counts of a long-running pick are sampled on the 2.3 GB
+//! benchmark run in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`.
 //!
 //! Inputs are synthetic and generated per case into a `TempDir`. The
 //! `#[ignore]`d `hpc_*` tests read the benchmark inputs under
@@ -42,7 +53,8 @@
 
 use openms::Result;
 use openms::cli::tools::{
-    BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter, SpectraFilterWindowMower,
+    BaselineFilter, DTAExtractor, MapNormalizer, MzMLSplitter, PeakPickerHiRes,
+    SpectraFilterWindowMower,
 };
 use openms::cli::{ExitCode, Tool, ToolContext, ToolSpec, run_with};
 use openms::concept::parallel::Threads;
@@ -147,11 +159,11 @@ fn files(dir: &Path) -> BTreeMap<String, Vec<u8>> {
         .collect()
 }
 
-/// The five tools with the arguments that write their outputs into `out_dir`.
+/// Each tool with the arguments that write its outputs into `out_dir`.
 fn tool_arguments(tool: &str, input: &str, out_dir: &Path) -> Vec<String> {
     let out = |name: &str| text(out_dir.join(name));
     match tool {
-        "BaselineFilter" | "MapNormalizer" | "SpectraFilterWindowMower" => {
+        "BaselineFilter" | "MapNormalizer" | "PeakPickerHiRes" | "SpectraFilterWindowMower" => {
             vec!["-in".into(), input.into(), "-out".into(), out("out.mzML")]
         }
         "DTAExtractor" => vec!["-in".into(), input.into(), "-out".into(), out("spectrum")],
@@ -167,11 +179,12 @@ fn tool_arguments(tool: &str, input: &str, out_dir: &Path) -> Vec<String> {
     }
 }
 
-const TOOLS: [&str; 5] = [
+const TOOLS: [&str; 6] = [
     "BaselineFilter",
     "DTAExtractor",
     "MapNormalizer",
     "MzMLSplitter",
+    "PeakPickerHiRes",
     "SpectraFilterWindowMower",
 ];
 
@@ -181,6 +194,7 @@ fn run_tool(tool: &str, args: &[String]) -> Outcome {
         "DTAExtractor" => run::<DTAExtractor>(args),
         "MapNormalizer" => run::<MapNormalizer>(args),
         "MzMLSplitter" => run::<MzMLSplitter>(args),
+        "PeakPickerHiRes" => run::<PeakPickerHiRes>(args),
         "SpectraFilterWindowMower" => run::<SpectraFilterWindowMower>(args),
         other => panic!("unknown tool {other}"),
     }
@@ -504,6 +518,7 @@ fn outside_test_mode_only_the_provenance_records_the_thread_count() {
 #[cfg(all(target_os = "linux", feature = "parallel"))]
 mod linux {
     use super::*;
+    use std::ops::RangeInclusive;
     use std::process::{Command, ExitStatus, Stdio};
     use std::time::Duration;
 
@@ -513,8 +528,37 @@ mod linux {
             "DTAExtractor" => env!("CARGO_BIN_EXE_DTAExtractor"),
             "MapNormalizer" => env!("CARGO_BIN_EXE_MapNormalizer"),
             "MzMLSplitter" => env!("CARGO_BIN_EXE_MzMLSplitter"),
+            "PeakPickerHiRes" => env!("CARGO_BIN_EXE_PeakPickerHiRes"),
             "SpectraFilterWindowMower" => env!("CARGO_BIN_EXE_SpectraFilterWindowMower"),
             other => panic!("unknown tool {other}"),
+        }
+    }
+
+    /// The `openms-<i>` worker count a sampler may see for `-threads n`.
+    ///
+    /// A tool that wraps its whole body in `ToolContext::in_thread_pool` holds
+    /// the pool for the whole run, so every sample of a live process shows
+    /// exactly `n` workers; the five tools ported before `PeakPickerHiRes` all
+    /// do, and their expectation is unchanged.
+    ///
+    /// `PeakPickerHiRes` opens the pool around its picking only
+    /// (`src/cli/tools/peak_picker_hi_res.rs`, `pick_experiment`), and **at one
+    /// worker builds none**: a pool of one worker bounds nothing that the
+    /// `Threads` value the region is given does not already bound, and glibc
+    /// charges the extra thread a second malloc arena. What holds for it at
+    /// every count is therefore an **upper bound** — it never starts more than
+    /// `n`, and at one worker it starts none, which is the property that
+    /// matters — because the shared input here is centroid-like and a few MB,
+    /// so its picking, and with it the pool, can be over between two samples of
+    /// a 200 µs poll on a loaded machine. Its exact counts are measured where
+    /// the region lasts: `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` samples a
+    /// 2.3 GB run at `-threads 1`, `2`, `8`, `32` and `0` and finds 0, 2, 8, 32
+    /// and 128 workers beside the main thread.
+    fn expected_workers(tool: &str, threads: usize) -> RangeInclusive<usize> {
+        match tool {
+            "PeakPickerHiRes" if threads <= 1 => 0..=0,
+            "PeakPickerHiRes" => 0..=threads,
+            _ => threads..=threads,
         }
     }
 
@@ -588,9 +632,9 @@ mod linux {
         store_input(dir, &synthetic(300, 1000))
     }
 
-    /// Each executable starts exactly `n` pool workers for `-threads n` and no
-    /// other thread besides its main thread, and writes the same bytes at every
-    /// `n`.
+    /// Each executable starts pool workers within the [`expected_workers`]
+    /// range for `-threads n` and no other thread besides its main thread, and
+    /// writes the same bytes at every `n`.
     #[test]
     fn every_executable_runs_its_body_on_the_requested_pool() {
         let input_dir = temp();
@@ -609,8 +653,18 @@ mod linux {
                     "{tool} -threads {n}: {}",
                     seen.stderr
                 );
-                assert_eq!(seen.workers, n, "{tool} -threads {n}: pool workers");
-                assert_eq!(seen.tasks, n + 1, "{tool} -threads {n}: tasks");
+                let workers = expected_workers(tool, n);
+                let tasks = *workers.start() + 1..=*workers.end() + 1;
+                assert!(
+                    workers.contains(&seen.workers),
+                    "{tool} -threads {n}: {} pool workers, expected {workers:?}",
+                    seen.workers
+                );
+                assert!(
+                    tasks.contains(&seen.tasks),
+                    "{tool} -threads {n}: {} tasks, expected {tasks:?}",
+                    seen.tasks
+                );
                 let produced = files(&out_dir);
                 match &baseline {
                     None => baseline = Some(produced),

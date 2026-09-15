@@ -72,6 +72,10 @@
 //! rather than the whole run, and the peak memory of a parallel pick is that of
 //! a serial one plus one batch — it does not grow with the worker count.
 //!
+//! The workers are opened **once per call**, not once per batch: a caller that
+//! is not already inside a pool pays `threads` thread starts for the call, and
+//! one that is inside one pays none.
+//!
 //! Without the `parallel` feature, and at one worker, the same code runs the
 //! same loop on the calling thread.
 
@@ -525,46 +529,104 @@ fn spectrum_batch_end(spectra: &[MSSpectrum], start: usize) -> usize {
     spectra.len()
 }
 
-/// Map `prepare` over `records` on `threads` workers, results in **input
-/// order**.
+/// The workers one experiment call maps its batches on, opened once for the
+/// call.
 ///
 /// The shape of [`crate::concept::parallel::map_collect`], which the picker
 /// cannot call directly: that helper builds a pool unconditionally, and a pool
 /// built inside another pool oversubscribes the machine by the square of the
-/// worker count. A TOPP tool runs its whole body inside the pool that
-/// `ToolContext::in_thread_pool` sizes from the same `-threads` policy it
-/// passes here — the CLI is downstream of `processing`, so that type is named
-/// rather than linked — so when this is reached from a worker thread the
-/// ambient pool is the requested pool and is used as it stands. A library
-/// caller outside any pool gets one of exactly
-/// `threads` workers, and if the operating system refuses the threads the work
-/// runs serially rather than failing — the results are the same either way.
+/// worker count. It is a *type* here rather than a function because a batch
+/// loop calls [`BatchWorkers::map_records`] once per batch — a run of
+/// instrument size closes about a dozen batches — and a pool built inside that
+/// call would spawn `threads` workers per batch where the call needs them once.
+/// The pool is built before the first batch and its threads end when the call
+/// returns.
 ///
-/// Order is a property of the call: rayon's `Vec` collection from an indexed
-/// parallel iterator is indexed by input position, not by completion.
-fn map_records<T, U, F>(records: &[T], threads: Threads, prepare: F) -> Vec<U>
-where
-    T: Sync,
-    U: Send,
-    F: Fn(&T) -> U + Sync + Send,
-{
+/// Three cases, and only the last one owns a pool:
+///
+/// * **fewer than two workers, or fewer than two records**: the batches run on
+///   the calling thread and nothing is built. A pool of one worker is a cost
+///   with nothing to buy — the only rayon work under this call is the batch
+///   map, and its width is `threads` — and glibc charges a thread that
+///   allocates its own malloc arena.
+/// * **already running inside a pool**: that pool is used as it stands. A TOPP
+///   tool opens the pool that `-threads` sizes around its picking call, from
+///   the same policy it passes here — the CLI is downstream of `processing`, so
+///   that type is named rather than linked — so the ambient pool is the
+///   requested pool.
+/// * **otherwise**: one pool of exactly `threads` workers for this call, which
+///   is what a library caller outside any pool gets. If the operating system
+///   refuses the threads the batches run serially rather than failing — the
+///   results are the same either way.
+struct BatchWorkers {
+    /// The pool this call built, if it built one.
     #[cfg(feature = "parallel")]
-    {
-        if threads.get() > 1 && records.len() > 1 {
-            use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-            if rayon::current_thread_index().is_some() {
-                return records.par_iter().map(&prepare).collect();
+    pool: Option<rayon::ThreadPool>,
+    /// Whether a batch of more than one record is mapped in parallel at all:
+    /// false for the serial case, true for the ambient and owned pools.
+    #[cfg(feature = "parallel")]
+    parallel: bool,
+}
+
+impl BatchWorkers {
+    /// Open the workers a call over `records` records at `threads` workers
+    /// needs.
+    fn new(threads: Threads, records: usize) -> Self {
+        #[cfg(feature = "parallel")]
+        {
+            if threads.get() <= 1 || records <= 1 {
+                return Self {
+                    pool: None,
+                    parallel: false,
+                };
             }
-            if let Ok(pool) = rayon::ThreadPoolBuilder::new()
+            if rayon::current_thread_index().is_some() {
+                return Self {
+                    pool: None,
+                    parallel: true,
+                };
+            }
+            let pool = rayon::ThreadPoolBuilder::new()
                 .num_threads(threads.get())
                 .build()
-            {
-                return pool.install(|| records.par_iter().map(&prepare).collect());
+                .ok();
+            Self {
+                parallel: pool.is_some(),
+                pool,
             }
         }
+        #[cfg(not(feature = "parallel"))]
+        {
+            let _ = (threads, records);
+            Self {}
+        }
     }
-    let _ = threads;
-    records.iter().map(prepare).collect()
+
+    /// Map `prepare` over `records`, results in **input order**.
+    ///
+    /// Order is a property of the call: rayon's `Vec` collection from an
+    /// indexed parallel iterator is indexed by input position, not by
+    /// completion. A batch of one record is mapped on the calling thread
+    /// whatever the workers are, because there is nothing to share.
+    fn map_records<T, U, F>(&self, records: &[T], prepare: F) -> Vec<U>
+    where
+        T: Sync,
+        U: Send,
+        F: Fn(&T) -> U + Sync + Send,
+    {
+        #[cfg(feature = "parallel")]
+        {
+            if self.parallel && records.len() > 1 {
+                use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+                let map = || records.par_iter().map(&prepare).collect();
+                return match self.pool.as_ref() {
+                    Some(pool) => pool.install(map),
+                    None => map(),
+                };
+            }
+        }
+        records.iter().map(prepare).collect()
+    }
 }
 
 /// The source's per-peak `std::map<double, double>` of support samples, kept in
@@ -1415,11 +1477,12 @@ impl PeakPickerHiRes {
             omitted_spectrum_arrays: Vec::with_capacity(input.spectra.len()),
             omitted_chromatogram_arrays: Vec::with_capacity(input.chromatograms.len()),
         };
+        let workers = BatchWorkers::new(threads, input.spectra.len());
         let mut start = 0;
         while start < input.spectra.len() {
             let end = spectrum_batch_end(&input.spectra, start);
             let batch = &input.spectra[start..end];
-            let prepared = map_records(batch, threads, |spectrum| {
+            let prepared = workers.map_records(batch, |spectrum| {
                 self.prepare_selected_spectrum(spectrum, limits)
             });
             for (spectrum, item) in batch.iter().zip(prepared) {
@@ -1515,12 +1578,13 @@ impl PeakPickerHiRes {
             omitted_spectrum_arrays: Vec::with_capacity(experiment.spectra.len()),
             omitted_chromatogram_arrays: Vec::with_capacity(experiment.chromatograms.len()),
         };
+        let workers = BatchWorkers::new(threads, experiment.spectra.len());
         let mut start = 0;
         while start < experiment.spectra.len() {
             let end = spectrum_batch_end(&experiment.spectra, start);
             // The parallel pass borrows the batch; its results own everything
             // they carry, so the borrow ends before the commit writes back.
-            let prepared = map_records(&experiment.spectra[start..end], threads, |spectrum| {
+            let prepared = workers.map_records(&experiment.spectra[start..end], |spectrum| {
                 self.prepare_selected_spectrum(spectrum, limits)
             });
             for (offset, item) in prepared.into_iter().enumerate() {
