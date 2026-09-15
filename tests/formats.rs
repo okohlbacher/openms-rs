@@ -43,6 +43,71 @@ fn dta_exact_and_legacy_mass_conventions() {
     assert_eq!(String::from_utf8(bytes).unwrap(), "999 2\n");
 }
 
+/// `DTAFile::store`'s two numeric rules, against the pinned C++ tool's bytes.
+///
+/// `tests/data/dta_extractor_velos_ms1_first_output.dta` was written by the
+/// Release `DTAExtractor` at core `bc9cc12` from real LTQ Orbitrap Velos data
+/// (see `tests/topp_dta_extractor.rs` for how). Its header is `0 0`, an unknown
+/// charge, so the reader's proton conversion is the identity and a read then a
+/// source-convention write must reproduce the file exactly. The 937 peak lines
+/// hold both rules: m/z at 15 digits after the decimal point through
+/// `precisionWrapper`, intensity at 15 significant digits through the stream's
+/// default float field, which is why a zero intensity prints `0` on a line
+/// whose m/z prints `350.133800546540385`.
+#[test]
+fn dta_source_write_reproduces_cpp_bytes() {
+    let reference: &[u8] = include_bytes!("data/dta_extractor_velos_ms1_first_output.dta");
+    let spectrum = dta::read(reference).unwrap();
+    assert_eq!(spectrum.len(), 937);
+
+    let mut bytes = Vec::new();
+    dta::write_with_options(&mut bytes, &spectrum, &dta::WriteOptions::source()).unwrap();
+    assert_eq!(
+        String::from_utf8(bytes).unwrap(),
+        String::from_utf8_lossy(reference)
+    );
+}
+
+/// The individual spellings the two rules produce, so a change to either is
+/// named rather than showing up as one differing line in a 25 KB file.
+#[test]
+fn dta_numeric_text_follows_the_two_source_rules() {
+    // Every literal below is the shortest text that names the value; the
+    // source's text for the same value is longer, which is the point of the
+    // test. Writing the longer form here would only trip `excessive_precision`.
+    let spectrum = MSSpectrum {
+        precursors: vec![Precursor::new(0.0, 0)],
+        peaks: vec![
+            // The port used to write these two as `104.11571502685547` and
+            // `260.78915`; the source writes three more m/z digits and seven
+            // more intensity digits (adversarial review of the TOPP benchmark,
+            // line 1 of the first .dta of the 1.2 GB Velos run).
+            Peak1D::new(104.115_715_026_855_47, 260.789_15),
+            // Fifteen fraction digits against fifteen significant digits: the
+            // m/z keeps a trailing `.0`, the intensity does not.
+            Peak1D::new(120.0, 100.0),
+            // A zero intensity is `0`, not `0.0`: only the m/z formatter keeps
+            // a fraction digit.
+            Peak1D::new(350.133_800_546_540_4, 0.0),
+            // At 1e4 and above the m/z rule turns scientific and shortest.
+            Peak1D::new(12_345.678_9, 1.0),
+        ],
+        ..Default::default()
+    };
+    let mut bytes = Vec::new();
+    dta::write_with_options(&mut bytes, &spectrum, &dta::WriteOptions::source()).unwrap();
+    assert_eq!(
+        String::from_utf8(bytes).unwrap(),
+        concat!(
+            "0 0\n",
+            "104.115715026855469 260.789154052734\n",
+            "120.0 100\n",
+            "350.133800546540385 0\n",
+            "1.23456789e04 1\n",
+        )
+    );
+}
+
 #[test]
 fn dta_rejects_corrupt_data() {
     for data in [

@@ -113,9 +113,9 @@ impl DTAExtractor {
                 if mz < mz_low || mz > mz_high {
                     continue;
                 }
-                format!("{out}_RT{}_MZ{}.dta", number(spectrum.rt)?, number(mz)?)
+                format!("{out}_RT{}_MZ{}.dta", number(spectrum.rt), number(mz))
             } else {
-                format!("{out}_RT{}.dta", number(spectrum.rt)?)
+                format!("{out}_RT{}.dta", number(spectrum.rt))
             };
             write_dta(&name, spectrum)?;
         }
@@ -124,9 +124,12 @@ impl DTAExtractor {
 }
 
 /// Source `StringUtils::toStr(double)`, which is what the file name embeds.
-fn number(value: f64) -> Result<String> {
-    use crate::data_structures::list::ListFormat;
-    Ok(value.to_list_text()?.into_owned())
+///
+/// The same port of that function writes the peak m/z inside the file, so the
+/// tool has one formatter for one source function: see
+/// [`crate::format::dta`]'s numeric-text section.
+fn number(value: f64) -> String {
+    crate::format::file_info::text_format::to_str(value)
 }
 
 /// Source `DTAFile::store` conventions: the legacy proton mass and no guard

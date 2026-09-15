@@ -6,13 +6,59 @@
 //! Read behavior follows `FORMAT/DTAFile.h`. The default writer uses the exact
 //! proton mass in both directions; the C++ writer's legacy 1.0 approximation
 //! is available explicitly through [`MassConvention::LegacyOpenMS`](crate::format::dta::MassConvention::LegacyOpenMS).
+//!
+//! # Numeric text
+//!
+//! `DTAFile::store` sets `os.precision(writtenDigits<double>(0.0))`, which is
+//! 15, and then writes three different kinds of number through two different
+//! formatters. Both are reproduced here from
+//! [`crate::format::file_info::text_format`], which already ports them:
+//!
+//! | Field | Source expression | Formatter |
+//! |---|---|---|
+//! | precursor `MH+` mass | `os << ((mz - 1.0) * charge + 1.0)`, a `double` in the stream's default float field | [`ostream_g`] at [`WRITTEN_DIGITS_F64`] — 15 *significant* digits, `%.15g` |
+//! | peak m/z | `os << it->getPosition()`, a `DPosition<1>` whose `operator<<` calls `precisionWrapper` (`DPosition.h:412-420`), so `StringUtils::toStr(double, true)` | [`to_str`] — [`NumericFormatting::appendNumeric`] with 15 *fraction* digits |
+//! | peak intensity | `os << it->getIntensity()`, a `float` promoted to `double` in the same default float field | [`ostream_g`] at [`WRITTEN_DIGITS_F64`] |
+//!
+//! The two rules differ: `to_str` writes 15 digits *after the decimal point*
+//! and `ostream_g` 15 *significant* digits, so one peak line carries both
+//! `104.115715026855469` (m/z) and `260.789154052734` (intensity) for the same
+//! number of source digits. The port wrote Rust's shortest round-trip text for
+//! both until this was corrected, which is about 8 significant digits for an
+//! `f32` intensity and produced files roughly 21% smaller than the C++ tool's.
+//!
+//! # Round-trip precision
+//!
+//! This is the source's text, so it bounds what a write-then-read recovers, and
+//! [`MassConvention::ExactProton`](crate::format::dta::MassConvention::ExactProton)
+//! changes the arithmetic but not the text:
+//!
+//! - A peak intensity is an `f32` and 15 significant digits always read back as
+//!   the same `f32`.
+//! - A peak m/z of 10 or more reads back as the same `f64`; 15 fraction digits
+//!   resolve less than the gap between neighbouring `f64` values there. Below
+//!   that the text is shorter than the value and low bits are lost, so an m/z
+//!   under 10 — which no fragment spectrum carries — round-trips only to about
+//!   1e-15 absolute.
+//! - The precursor mass keeps 15 significant digits, roughly 1e-13 relative, so
+//!   a precursor m/z survives to that precision rather than bit-exactly. The
+//!   C++ `store`/`load` pair is no more exact.
+//!
+//! [`ostream_g`]: crate::format::file_info::text_format::ostream_g
+//! [`to_str`]: crate::format::file_info::text_format::to_str
+//! [`WRITTEN_DIGITS_F64`]: crate::format::file_info::text_format::WRITTEN_DIGITS_F64
+//! [`NumericFormatting::appendNumeric`]: crate::format::file_info::text_format
 
 use super::{intensity, number, parse_error};
 use crate::chemistry::PROTON_MASS_U;
+use crate::format::file_info::text_format::{WRITTEN_DIGITS_F64, ostream_g, to_str};
 use crate::{Error, MSSpectrum, Peak1D, Precursor, Result};
 use std::io::{BufRead, Write};
 
 /// Precursor-mass convention used when writing DTA.
+///
+/// This selects the arithmetic of the header line only. The numeric text is the
+/// source's in both variants; see the module header.
 #[derive(Clone, Copy, Debug, Default)]
 pub enum MassConvention {
     /// Inverse of the reader, using OpenMS's exact proton mass.
@@ -64,7 +110,11 @@ pub fn read(reader: impl BufRead) -> Result<MSSpectrum> {
     Ok(spectrum)
 }
 
-/// Write a spectrum with an exactly reversible proton-mass conversion.
+/// Write a spectrum with a reversible proton-mass conversion.
+///
+/// The arithmetic is the exact inverse of [`read`]; the text is the source's,
+/// so the recovered precursor m/z is exact to the 15 significant digits the
+/// header line carries. See the module's round-trip precision section.
 pub fn write(writer: impl Write, spectrum: &MSSpectrum) -> Result<()> {
     write_with_convention(writer, spectrum, MassConvention::ExactProton)
 }
@@ -162,9 +212,23 @@ fn write_inner(
     if !mh.is_finite() {
         return Err(Error::InvalidValue("DTA precursor mass overflow".into()));
     }
-    writeln!(writer, "{mh} {}", precursor.charge)?;
+    // Source text, as the module header sets out: the header mass and every
+    // intensity through the stream's default float field at precision 15, every
+    // m/z through `precisionWrapper`. A line is assembled in one reused buffer
+    // so that a spectrum of n peaks costs n writes, not 4n.
+    let mut line = String::new();
+    line.push_str(&ostream_g(mh, WRITTEN_DIGITS_F64));
+    line.push(' ');
+    line.push_str(&precursor.charge.to_string());
+    line.push('\n');
+    writer.write_all(line.as_bytes())?;
     for peak in &spectrum.peaks {
-        writeln!(writer, "{} {}", peak.mz, peak.intensity)?;
+        line.clear();
+        line.push_str(&to_str(peak.mz));
+        line.push(' ');
+        line.push_str(&ostream_g(f64::from(peak.intensity), WRITTEN_DIGITS_F64));
+        line.push('\n');
+        writer.write_all(line.as_bytes())?;
     }
     writer.flush()?;
     Ok(())
