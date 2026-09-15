@@ -490,14 +490,16 @@ independent generator per call instead of seeding a process-wide singleton.
 
 ## DTAExtractor and executed differential evidence
 
-`src/bin/DTAExtractor.rs` is the first TOPP tool. Its three upstream tests are
-reproduced in `tests/topp_dta_extractor.rs` against the retained C++ outputs:
+`src/bin/DTAExtractor.rs` is the first TOPP tool. Its three upstream tests plus
+a real-instrument slice are reproduced in `tests/topp_dta_extractor.rs` against
+the retained C++ outputs:
 
 | Upstream test | Arguments | Result |
 | --- | --- | --- |
 | `TOPP_DTAExtractor_1` | `-rt :61` | `DTAExtractor_RT60.0.dta` byte-identical |
 | `TOPP_DTAExtractor_2` | `-level 1` | `DTAExtractor_RT60.0.dta` byte-identical |
 | `TOPP_DTAExtractor_3` | `-level 2 -mz :1000` | `DTAExtractor_RT140.0_MZ5.0.dta` byte-identical |
+| (native) real Velos slice | none | all three produced names and all three files byte-identical |
 
 These fixtures were produced by the C++ tool, so agreement is **tier 1 executed
 differential evidence** under `docs/DIFFERENTIAL_VALIDATION.md` for the whole
@@ -505,7 +507,22 @@ chain: command line, parameter validation, mzML reading, the source number
 formatter that names the output files, and DTA writing. This is the first
 validated TOPP workflow in the port.
 
-Two source behaviors had to be matched to get there, and both were real gaps:
+Every `.dta` fixture under `tests/data/` was rewritten on 2026-09-15 from the
+pinned Release build at
+`/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576`, run on
+`ibminode06`. The three upstream `TOPP_DTAExtractor_*_output` files could not be
+used: they predate the C++ move from Boost.Karma to `std::to_chars`
+(`NumericFormatting.h`) and spell a peak m/z `120` where the pinned tool writes
+`120.0`. The upstream TOPP suite compares with FuzzyDiff, so the stale spelling
+still passes there; a byte comparison needs bytes the pinned tool actually
+wrote. The added `dta_extractor_velos_slice.mzML` is three spectra of the
+benchmark's LTQ Orbitrap Velos centroided run, cut with the pinned `FileFilter`
+(`-rt 2.0:4.0 -mz 350:450`); its numbers are irregular enough to tell the
+source's two formatting rules apart, which the round values of the upstream
+cases cannot.
+
+Three source behaviors had to be matched to get there, and all three were real
+gaps:
 
 1. **Header list counts are advisory on reading.** The port rejected an mzML
    whose `count` attribute disagreed with the number of children. The upstream
@@ -519,6 +536,38 @@ Two source behaviors had to be matched to get there, and both were real gaps:
    plus the peaks and silently ignores the rest, and uses the legacy proton mass
    (`(mz - 1.0) * charge + 1.0`), not the exact one. `dta::WriteOptions::source()`
    selects that behavior; the checked default is unchanged for library callers.
+3. **`DTAFile::store` writes two different numeric formats, neither of them
+   Rust's.** The port wrote every number as Rust's shortest round-trip text,
+   which is about 8 significant digits for an `f32` intensity. The source sets
+   `os.precision(writtenDigits<double>(0.0))` — 15 — and then writes the
+   precursor `MH+` mass and each intensity through the stream's *default float
+   field* (`%.15g`, 15 **significant** digits, an `f32` promoted to `double`
+   first) but each peak m/z through `DPosition<1>`'s `operator<<`, which calls
+   `precisionWrapper` and so `StringUtils::toStr(double, true)` — 15 **fraction**
+   digits via `NumericFormatting::appendNumeric`. One peak line therefore carries
+   both `104.115715026855469` and `260.789154052734`, and an intensity of zero
+   prints `0` on a line whose m/z prints `350.133800546540385`. Both rules are
+   reused from `src/format/file_info/text_format.rs`
+   (`ostream_g(·, WRITTEN_DIGITS_F64)` and `to_str`), which already ports them
+   with oracle evidence; the tool's file names go through the same `to_str`.
+
+   This was found by the TOPP benchmark's adversarial review: on the 1.2 GB
+   Velos centroided run the port wrote 658,901,890 bytes where C++ wrote
+   836,505,793, and the benchmark's "12% faster at one thread" was comparing
+   21% less text. Re-measured on `ibminode06` after the fix, at `-level 2
+   -threads 1`, both write 36,443 files and **836,505,793 bytes**, every file
+   name and every byte identical (aggregate SHA-256
+   `d1da4273041e597b57c466548f331702a8540bdfaa4d80aa57b0b1ba4c281c87`). The port
+   costs it in wall clock: median of five interleaved repetitions 36.37 s
+   against C++ 29.70 s (ratio 1.22), where the port before the fix took 26.33 s
+   (0.89) for the smaller output. The fix adds 10.0 s over 48.0 M formatted
+   numbers, about 200 ns each, because `ostream_g` formats every value twice —
+   once as `{:.14e}` to find the decimal exponent, once in the chosen field —
+   and both formatters return an owned `String` per number. That is a cost of
+   the shared formatter, not of the DTA writer, and is recorded for its owner.
+   Peak RSS is unchanged by the fix: 1.86 GiB against the C++ tool's 1.46 GiB.
+   The same run at `-threads 32` writes bytes identical to the `-threads 1`
+   output and to the C++ output, so the fix is thread-invariant.
 
 **A reversed retention-time range is not matched yet.** The C++ tool passes its
 `-rt` bounds to `DRange<1>(rt_l, rt_u)`, whose constructor swaps reversed bounds
