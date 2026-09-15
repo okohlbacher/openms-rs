@@ -400,11 +400,45 @@ struct Binary {
     encoding: Option<Encoding>,
     compressed: Option<bool>,
     numpress: Option<NumpressCompression>,
-    encoded: String,
+    // Base64 characters, held as bytes: they are ASCII by construction, and a
+    // byte buffer is what both the strict decoder and the Numpress coder read.
+    encoded: Vec<u8>,
     encoded_length: usize,
     array_length: Option<usize>,
     time_scale: f64,
     has_binary: bool,
+}
+// Scratch buffers reused across binary data arrays. One profile spectrum's
+// base64 text and its decoded bytes are each a few hundred kilobytes, well over
+// glibc's 128 KiB `mmap` threshold, so allocating them per array costs a fresh
+// `mmap`, the matching `munmap` and a page fault per touched page, for every
+// array of every record. Reuse holds one buffer at the high-water mark of the
+// arrays actually read. Nothing here is sized from a declared length: an array
+// can only enlarge a buffer to what its own payload already occupies, or to the
+// upper bound the base64 decoder derives from that payload.
+#[derive(Default)]
+struct Buffers {
+    /// Base64 characters of the array being read, lent to its `Binary`.
+    encoded: Vec<u8>,
+    /// What the base64 decoder wrote, of which only a prefix is meaningful.
+    decoded: Vec<u8>,
+    /// What zlib expanded out of the decoded bytes.
+    inflated: Vec<u8>,
+}
+impl Buffers {
+    /// An empty buffer for the next array's base64 text, keeping whatever
+    /// capacity earlier arrays grew it to.
+    fn encoded(&mut self) -> Vec<u8> {
+        std::mem::take(&mut self.encoded)
+    }
+    /// Takes a finished array's text buffer back, keeping the larger of the two
+    /// so that an interleaved small array cannot shrink the pool.
+    fn recycle(&mut self, mut buffer: Vec<u8>) {
+        if buffer.capacity() >= self.encoded.capacity() {
+            buffer.clear();
+            self.encoded = buffer;
+        }
+    }
 }
 // Canonical non-primary descendants of binary data array in pinned PSI-MS.
 // A zero type mask means this term declares no binary-data-type restriction.
@@ -623,6 +657,49 @@ impl Binary {
         }
         Ok(())
     }
+    // Appends one `<binary>` text node's base64 characters. The source helper
+    // `MzMLHandlerHelper::decodeBase64Arrays` removes the four XML whitespace
+    // characters unless `skip_xml_checks` bypasses that step; every other
+    // character is kept verbatim and left for the strict decoder to reject.
+    //
+    // A profile spectrum arrives as a few hundred kilobytes in one text node,
+    // so the leading run of ordinary base64 characters is located with a single
+    // vectorised scan and copied with one `extend_from_slice`, instead of being
+    // tested and pushed one character at a time. The checks keep the order they
+    // had per character: a run is charged against `encodedLength` before it is
+    // copied, so the first byte outside the run is still the one that decides
+    // which error a malformed node reports.
+    fn append_encoded(&mut self, text: &[u8], normalize: bool, fill_data: bool) -> Result<()> {
+        let mut rest = text;
+        while !rest.is_empty() {
+            let (run, tail) = rest.split_at(run_inside(rest, 0x21, 0x5e));
+            if !run.is_empty() {
+                if fill_data {
+                    if self.encoded.len().saturating_add(run.len()) > self.encoded_length {
+                        return Err(invalid("binary text exceeds encodedLength"));
+                    }
+                    self.encoded.extend_from_slice(run);
+                }
+                rest = tail;
+                continue;
+            }
+            let Some((&byte, tail)) = tail.split_first() else {
+                break;
+            };
+            if !byte.is_ascii() {
+                return Err(invalid("non-ASCII base64 text"));
+            }
+            let skipped = normalize && matches!(byte, b' ' | b'\t' | b'\n' | b'\r');
+            if fill_data && !skipped {
+                if self.encoded.len() >= self.encoded_length {
+                    return Err(invalid("binary text exceeds encodedLength"));
+                }
+                self.encoded.push(byte);
+            }
+            rest = tail;
+        }
+        Ok(())
+    }
     // No payload access or allocation: shared by decoding and fill_data=false.
     fn descriptor(&self, default_count: usize) -> Result<(Encoding, bool, usize)> {
         if !self.has_binary {
@@ -673,15 +750,16 @@ impl Binary {
         Ok((encoding, compressed, count))
     }
     fn decode(
-        self,
+        &mut self,
         default_count: usize,
         options: &ReadOptions,
         remaining_bytes: &mut usize,
         remaining_elements: &mut usize,
         numpress_work: &mut coder::Work,
+        buffers: &mut Buffers,
     ) -> Result<(Kind, Values)> {
         let (encoding, compressed, count) = self.descriptor(default_count)?;
-        let kind = self.kind.unwrap(); // validated above
+        let kind = self.kind.take().unwrap(); // validated above
         *remaining_elements = remaining_elements
             .checked_sub(count)
             .ok_or_else(|| invalid("total binary element limit exceeded"))?;
@@ -717,7 +795,9 @@ impl Binary {
                 compression: mode,
                 ..NumpressConfig::default()
             };
-            let mut values = coder::decode_text(&self.encoded, compressed, &config, numpress_work)?;
+            let text =
+                std::str::from_utf8(&self.encoded).map_err(|_| invalid("non-ASCII base64 text"))?;
+            let mut values = coder::decode_text(text, compressed, &config, numpress_work)?;
             if values.len() != count {
                 return Err(invalid("Numpress point count differs from declared length"));
             }
@@ -736,19 +816,34 @@ impl Binary {
             }
             return Ok((kind, Values::Floats(values)));
         }
-        let bytes = STANDARD
-            .decode(self.encoded.as_bytes())
-            .map_err(|e| invalid(format!("invalid base64: {e}")))?;
+        // Decoding into a reused buffer sized from `decoded_len_estimate`, an
+        // upper bound, rather than into a fresh `Vec`: the estimate makes the
+        // too-small arm unreachable, and the buffer skips both the per-array
+        // allocation and the zero fill `decode_vec` would pay for it.
+        let estimate = base64::decoded_len_estimate(self.encoded.len());
+        if buffers.decoded.len() < estimate {
+            buffers.decoded.resize(estimate, 0);
+        }
+        let length = STANDARD
+            .decode_slice(&self.encoded, &mut buffers.decoded)
+            .map_err(|e| match e {
+                base64::DecodeSliceError::DecodeError(e) => invalid(format!("invalid base64: {e}")),
+                base64::DecodeSliceError::OutputSliceTooSmall => {
+                    invalid("invalid base64: decoded array exceeds its buffer")
+                }
+            })?;
+        let bytes = buffers.decoded.get(..length).unwrap_or_default();
         if bytes.len() > options.max_array_bytes {
             return Err(invalid("encoded array exceeds configured byte limit"));
         }
         let limit = expected.unwrap_or(byte_limit);
-        let decoded = if compressed {
+        let decoded: &[u8] = if compressed {
             // Bounded chunks also handle string arrays, whose byte lengths are
             // variable. Reject concatenated/truncated streams and expansion past
             // either the declared numeric length or cumulative storage budget.
             let mut decoder = Decompress::new(true);
-            let mut output = Vec::new();
+            let output = &mut buffers.inflated;
+            output.clear();
             let mut chunk = [0u8; 8192];
             loop {
                 let before_in = decoder.total_in();
@@ -779,7 +874,7 @@ impl Binary {
                     return Err(invalid("incomplete zlib stream"));
                 }
             }
-            output
+            output.as_slice()
         } else {
             bytes
         };
@@ -1209,20 +1304,25 @@ impl Record {
             });
         }
         if let Some(mut spectrum) = self.spectrum {
-            spectrum.peaks = positions
-                .into_iter()
-                .zip(intensities)
-                .map(|(mz, i)| Ok(Peak1D::new(mz, intensity(i)?)))
-                .collect::<Result<_>>()?;
+            // Written as a loop rather than a `collect::<Result<_>>`: the
+            // fallible collect carries its error through every step of the
+            // iterator pipeline, where one reserved buffer and a plain push
+            // pair each coordinate with its intensity in the same order and
+            // stop at the same first bad value.
+            let mut peaks = Vec::with_capacity(positions.len().min(intensities.len()));
+            for (mz, i) in positions.into_iter().zip(intensities) {
+                peaks.push(Peak1D::new(mz, intensity(i)?));
+            }
+            spectrum.peaks = peaks;
             spectrum.validate()?;
             Ok(keep.then_some(consumer::Completed::Spectrum(spectrum)))
         } else {
             let mut chromatogram = self.chromatogram.unwrap();
-            chromatogram.peaks = positions
-                .into_iter()
-                .zip(intensities)
-                .map(|(rt, i)| Ok(ChromatogramPeak::new(rt, intensity(i)?)))
-                .collect::<Result<_>>()?;
+            let mut peaks = Vec::with_capacity(positions.len().min(intensities.len()));
+            for (rt, i) in positions.into_iter().zip(intensities) {
+                peaks.push(ChromatogramPeak::new(rt, intensity(i)?));
+            }
+            chromatogram.peaks = peaks;
             chromatogram.validate()?;
             Ok(keep.then_some(consumer::Completed::Chromatogram(chromatogram)))
         }
@@ -1630,6 +1730,7 @@ fn read_engine(
     let mut stack = Vec::<String>::new();
     let mut record: Option<Record> = None;
     let mut binary: Option<Binary> = None;
+    let mut buffers = Buffers::default();
     let mut seen_root = false;
     let mut seen_mzml = false;
     let mut seen_run = false;
@@ -2275,6 +2376,7 @@ fn read_engine(
                         binary = Some(Binary {
                             spectrum: record.as_ref().is_some_and(|r| r.spectrum.is_some()),
                             encoded_length,
+                            encoded: buffers.encoded(),
                             data_processing: attrs
                                 .get("dataProcessingRef")
                                 .map(|id| header_registry.processing(id, &mut header_work))
@@ -2476,13 +2578,16 @@ fn read_engine(
                                 .saturating_add(values.saturating_mul(32));
                             coder::Work::new(limits)
                         };
-                        let (kind, values) = b.decode(
+                        let decoded = b.decode(
                             r.count,
                             options,
                             &mut remaining_array_bytes,
                             &mut remaining_array_elements,
                             &mut numpress_work,
-                        )?;
+                            &mut buffers,
+                        );
+                        buffers.recycle(std::mem::take(&mut b.encoded));
+                        let (kind, values) = decoded?;
                         r.check_array_kind(&kind)?;
                         if let Kind::Role(role) = kind {
                             if role.noise() {
@@ -2736,24 +2841,10 @@ fn read_engine(
                 let text = text.decode().map_err(|e| invalid(e.to_string()))?;
                 xml_string(&text)?;
                 if stack.last().is_some_and(|tag| tag == "binary") {
-                    let b = binary
+                    binary
                         .as_mut()
-                        .ok_or_else(|| invalid("text outside binary array"))?;
-                    for byte in text
-                        .bytes()
-                        .filter(|b| !normalize_binary || !matches!(b, b' ' | b'\t' | b'\n' | b'\r'))
-                    {
-                        if !byte.is_ascii() {
-                            return Err(invalid("non-ASCII base64 text"));
-                        }
-                        if !fill_data {
-                            continue;
-                        }
-                        if b.encoded.len() >= b.encoded_length {
-                            return Err(invalid("binary text exceeds encodedLength"));
-                        }
-                        b.encoded.push(char::from(byte));
-                    }
+                        .ok_or_else(|| invalid("text outside binary array"))?
+                        .append_encoded(text.as_bytes(), normalize_binary, fill_data)?;
                 } else if !seen_run && !text.trim().is_empty() {
                     return Err(invalid("non-whitespace text in mzML header"));
                 } else if stack.last().is_some_and(|tag| {
@@ -2829,19 +2920,59 @@ fn escape(value: &str) -> String {
         .replace('\r', "&#13;")
         .replace('\t', "&#9;")
 }
-fn xml_string(value: &str) -> Result<()> {
-    if value.chars().all(|c| {
-        matches!(c, '\t' | '\n' | '\r')
-            || ('\u{20}'..='\u{d7ff}').contains(&c)
-            || ('\u{e000}'..='\u{fffd}').contains(&c)
-            || c >= '\u{10000}'
-    }) {
-        Ok(())
-    } else {
-        Err(Error::InvalidValue(
-            "text contains invalid XML 1.0 characters".into(),
-        ))
+// Length of the leading run of `bytes` inside `first ..= first + span`,
+// wrapping, so a run is expressed as one subtraction and one comparison.
+//
+// Text nodes carry the base64 payload of a profile spectrum, tens of megabytes
+// per record, so the scan runs a fixed-size block at a time: the block reduces
+// to a branchless `or` of saturating subtractions, which the optimiser turns
+// into one `psubb`/`psubusb`/`por` chain per vector instead of one compare and
+// one branch per byte. Only a block that holds something outside the run is
+// walked byte by byte.
+fn run_inside(bytes: &[u8], first: u8, span: u8) -> usize {
+    const BLOCK: usize = 64;
+    let mut index = 0;
+    while let Some(block) = bytes.get(index..).and_then(<[u8]>::first_chunk::<BLOCK>) {
+        let mut outside = 0u8;
+        for &byte in block {
+            outside |= byte.wrapping_sub(first).saturating_sub(span);
+        }
+        if outside != 0 {
+            break;
+        }
+        index += BLOCK;
     }
+    while index < bytes.len() && bytes[index].wrapping_sub(first) <= span {
+        index += 1;
+    }
+    index
+}
+// The XML 1.0 `Char` production, tested on the UTF-8 bytes rather than on
+// decoded scalars: `value` is already valid UTF-8, so the only excluded
+// scalars it can hold are the C0 controls other than tab/newline/return and
+// the two noncharacters U+FFFE and U+FFFF. Surrogates cannot appear in a
+// `str`, and every scalar at or above U+10000 is admitted, so no other range
+// needs testing. `0xef` only ever starts a three-byte sequence in valid UTF-8,
+// which makes the two noncharacters pure byte patterns.
+fn xml_string(value: &str) -> Result<()> {
+    let bytes = value.as_bytes();
+    let mut index = 0;
+    while index < bytes.len() {
+        index += run_inside(&bytes[index..], 0x20, 0x5f);
+        let Some(&byte) = bytes.get(index) else { break };
+        if matches!(byte, b'\t' | b'\n' | b'\r') {
+            index += 1;
+            continue;
+        }
+        let rest = &bytes[index..];
+        if byte < 0x80 || rest.starts_with(b"\xef\xbf\xbe") || rest.starts_with(b"\xef\xbf\xbf") {
+            return Err(Error::InvalidValue(
+                "text contains invalid XML 1.0 characters".into(),
+            ));
+        }
+        index += 1;
+    }
+    Ok(())
 }
 
 // XMLHandler::fromXSDString retains scalar numeric types, and treats every
