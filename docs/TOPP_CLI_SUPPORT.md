@@ -666,8 +666,10 @@ one line before its peak loop, and `RangeBase::getMax()`
 (`RangeManager.h:139-146` at core bc9cc12) throws `Exception::InvalidRange` on an
 empty range with no assertion guard, so a Release build throws as well; whether
 the loop body would have run is irrelevant, the throw happens first. Executed at
-the pinned Release build on both shapes that reach it — three scans carrying a
-retention time but no point, and an empty `spectrumList` — the C++ exits **8**
+the pinned Release build on the two shapes these fixtures cover — three scans
+carrying a retention time but no point, and an empty `spectrumList`; the
+condition is simply that the run holds no spectrum peak and no chromatogram
+point — the C++ exits **8**
 with *Empty or uninitialized range object. Did you forget to call
 updateRanges()?* and writes **no output file**; its `FileInfo` prints
 `intensity: <none> .. <none>` under *Combined Ranges* for both. The port refuses

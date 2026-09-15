@@ -268,9 +268,12 @@ fn a_chromatogram_below_the_spectrum_maximum_leaves_the_scale_alone() {
 /// `run_failure` in `src/cli.rs`. The C++ FileInfo prints
 /// `intensity: <none> .. <none>` under *Combined Ranges* for both.
 ///
-/// The two shapes are the two ways to get there: scans that carry a retention
-/// time but no point at all (the combined *RT* range is non-empty, the
-/// intensity range is not), and a run with no spectra and no chromatograms.
+/// The two fixtures are two of the ways to get there: scans that carry a
+/// retention time but no point at all (the combined *RT* range is non-empty,
+/// the intensity range is not), and a run with no spectra and no chromatograms.
+/// The condition itself is simply that no spectrum peak and no chromatogram
+/// point exists anywhere in the run, which other shapes also meet — a run whose
+/// only chromatogram is empty, for instance.
 #[test]
 fn an_empty_combined_intensity_range_is_refused() {
     for name in [

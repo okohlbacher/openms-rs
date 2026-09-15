@@ -95,9 +95,10 @@ impl MapNormalizer {
     /// asks for `getMaxIntensity()` unconditionally, one line before its peak
     /// loop, and `RangeBase::getMax()` (`RangeManager.h:139-146`) throws
     /// `Exception::InvalidRange` on an empty range with no assertion guard, so
-    /// a Release build throws too. Executed at the pinned Release build on both
-    /// shapes that reach it — scans that carry a retention time but no point,
-    /// and an empty `spectrumList` — the C++ exits 8 with *Empty or
+    /// a Release build throws too. Executed at the pinned Release build on the
+    /// two shapes the fixtures cover — scans that carry a retention time but no
+    /// point, and an empty `spectrumList`; the condition is that the run holds
+    /// no spectrum peak and no chromatogram point — the C++ exits 8 with *Empty or
     /// uninitialized range object. Did you forget to call updateRanges()?* and
     /// writes no output file.
     ///
