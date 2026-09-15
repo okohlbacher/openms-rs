@@ -1545,9 +1545,15 @@ mod acquisition_ledger_tests {
 
     /// The ledger the picker opens for an experiment of `records` records, as
     /// its remaining work units and bytes.
+    ///
+    /// `AcquisitionCopies` is a shared type in `src/processing.rs` and does not
+    /// implement `Debug`, so the ledger is unwrapped by hand rather than with
+    /// `Result::unwrap`.
     fn ledger(picker: &PeakPickerHiRes, records: usize) -> (usize, usize) {
-        let opened = picker.acquisition_ledger(records).unwrap();
-        (opened.work, opened.bytes)
+        match picker.acquisition_ledger(records) {
+            Ok(opened) => (opened.work, opened.bytes),
+            Err(error) => panic!("{records} records were refused a ledger: {error:?}"),
+        }
     }
 
     #[test]
@@ -1604,10 +1610,10 @@ mod acquisition_ledger_tests {
                 max_metadata_per_record: allowance,
                 ..Default::default()
             };
-            let error = picker.acquisition_ledger(8).unwrap_err();
-            match &error {
-                Error::InvalidValue(text) => assert!(text.contains("overflows"), "{text}"),
-                other => panic!("{other:?}"),
+            match picker.acquisition_ledger(8) {
+                Ok(_) => panic!("an allowance of {allowance} per record was admitted"),
+                Err(Error::InvalidValue(text)) => assert!(text.contains("overflows"), "{text}"),
+                Err(other) => panic!("{other:?}"),
             }
         }
         // One record of the largest possible allowance overflows only in the

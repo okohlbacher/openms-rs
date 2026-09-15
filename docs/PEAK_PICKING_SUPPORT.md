@@ -367,7 +367,9 @@ gives 82/112/89 and 314/319 centroids at `signal_to_noise 0`, not the stored
   streaming one to leave its input untouched,
   `a_record_whose_metadata_outweighs_the_input_is_still_refused` keeps the
   adversarial single record refused -- the one test here that does reach the
-  fixed part, at roughly a hundred mebibytes and half a second -- and
+  fixed part, and it builds its record by moving rather than cloning it, which
+  is what keeps it to 95 MiB and 0.31 s (`/usr/bin/time -v` on the debug binary
+  on `dax`, `--test-threads 1`) -- and
   `in_place_picking_matches_the_borrowing_entry_point` requires
   `pick_experiment_in_place` to produce the same experiment and the same four
   report vectors as `pick_experiment` over six class-test inputs in three MS
@@ -377,6 +379,16 @@ gives 82/112/89 and 314/319 centroids at `signal_to_noise 0`, not the stored
   a given run's metadata. Its body is behind the `mzml` feature, because
   `cargo test` builds every example and the crate must still compile with no
   default features.
+
+  What the ledger tests cost, measured with `/usr/bin/time -v` on the debug
+  binaries on `dax`: the synthetic probe 3 MiB and under 10 ms, the overflow
+  test 3 MiB and under 10 ms, and the whole `peak_picking_experiment` target
+  113 MiB and 0.86 s, almost all of it the single-record refusal. An earlier
+  form of the probe drove the property end to end -- it searched for the record
+  count the fixed part refuses and then built an experiment four times that
+  size -- and cost 835 MiB and 2.68 s for the target, against 36 MiB and 0.95 s
+  for the target before this work. That is the cost the factor-of-two metering
+  implies, and the reason the property is probed rather than provoked.
 
 `tests/data/peak_picking_provenance.json` records the pinned sources, every
 fixture hash with its origin, the oracle artifacts outside the repository and
@@ -407,8 +419,13 @@ per-record costs, reported and not changed here:
 Measured on `ibminode06` against the 2.3 GB, 40 856-spectrum Q Exactive run
 `profile_hr_qe_silac_uk222/UK222.mzML`, with `PickingCompatibility::source()`
 and the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` as the
-reference. Load and pick only; the Rust mzML writer has its own fixed budget and
-refuses an output this size, so no Rust end-to-end number exists yet.
+reference. Load and pick only: when these runs were made the Rust mzML writer
+had its own fixed budget and refused an output this size, so no Rust end-to-end
+number exists here. The writer has since been given per-record budgets
+(`fix/mzml-writer-scale-parity`, merged into `integrate/wave2`), so the
+load + pick + write number that would face the C++ tool's 3883 MiB and 28.4 s
+is now measurable and has not been measured;
+`examples/peak_picking_scale.rs --in-place --out` is the harness for it.
 
 | | peak RSS | wall (one run) |
 | --- | --- | --- |
