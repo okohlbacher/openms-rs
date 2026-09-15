@@ -737,9 +737,10 @@ impl MSSpectrum {
         //
         // * An accumulating pass with no early exit (`ok &= a & b` over the
         //   slice, rescanning only to report the first offending peak) executes
-        //   47,841,566 instructions fewer -- 0.82% of that tree's program, 10
-        //   instructions per peak instead of 15, which is the 5 per peak it
-        //   saves taken over the three passes that tree ran -- and ran the
+        //   47,841,566 instructions fewer -- 0.82% of that tree's program, and
+        //   about 5 per peak over the three passes that tree ran (the count
+        //   implies 5.4, so the three passes do not account for all of it) --
+        //   and ran the
         //   full input slower in wall and user time in 3 of 3 pairs: means
         //   37.83 s against 36.79 s, +1.04 s, with within-arm spreads of 0.44 s
         //   and 0.51 s over those 3 runs each. Its `and` chain is loop-carried
