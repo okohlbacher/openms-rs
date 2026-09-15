@@ -1,16 +1,29 @@
 {
  "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
   "topp": "174b576e244e100f2345ca57a8e79aaa607156df",
   "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
  },
- "scope": "Sources and fixtures come from the independently versioned OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages; they are deliberately not resolved against the Core SDK checkout.",
- "method": "Tool transcribed from the pinned C++. The upstream invocation is reproduced against the retained C++ output and compared canonically: the upstream ${DIFF} runs with an index whitelist, so byte equality was never the contract.",
- "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output",
+ "scope": "Sources and fixtures come from the independently versioned OpenMS4-cli, OpenMS4-topp and OpenMS4-test-data packages; the algorithm the tool calls (MSExperiment::updateRanges and getMaxIntensity) is resolved against the pinned Core SDK checkout at core bc9cc12.",
+ "method": "Tool transcribed from the pinned C++. The upstream invocation is reproduced against the retained C++ output and compared canonically: the upstream ${DIFF} runs with an index whitelist, so byte equality was never the contract. The two chromatogram-scale cases are executed against the pinned C++ Release build (see external_reference_artifacts), and the whole fix is verified on the 1.2 GB benchmark input.",
+ "evidence_tier": "executed differential (tier 1), canonical comparison against retained C++ tool output, plus a full-size executed comparison on real instrument data",
  "sources": [
   {
    "path": "OpenMS4-tests/packages/topp/src/MapNormalizer.cpp",
    "sha256": "e53887be24df66273bb9a9e70b66e32f951085717b9eae3001591557b7c4c36f"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/KERNEL/MSExperiment.cpp",
+   "sha256": "930c99bab7311a1f2798fbd83a2b2eff312addf83ca1a15c0f74db08a8255b05"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+   "sha256": "b019e4796acef1f05400fb7e2a4368494ed4698818f415bca2461e95e43aaccd"
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+   "sha256": "339b9f224fe3b142d2af42b65869b838549810d379cd406e85609ad499ae62f9"
   },
   {
    "path": "OpenMS4-tests/packages/test-data/topp/MapNormalizer_input.mzML",
@@ -23,6 +36,28 @@
    "retained_as": "tests/data/map_normalizer_output.mzML"
   }
  ],
+ "source_anchors": [
+  {
+   "path": "OpenMS4-tests/packages/topp/src/MapNormalizer.cpp",
+   "line": 93,
+   "operation": "main_: exp.updateRanges(); double max = exp.getMaxIntensity() / 100.0; then every MS1 peak intensity is divided by max. Nothing narrows the maximum to the spectra."
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/KERNEL/MSExperiment.cpp",
+   "line": 665,
+   "operation": "MSExperiment::updateRanges(): clears the range managers, extends spectrum_ranges_ from every spectrum at every MS level, extends chromatogram_ranges_ from every chromatogram, then combined_ranges_.extendUnsafe(spectrum_ranges_) followed by combined_ranges_.extendUnsafe(chromatogram_ranges_). The combined intensity maximum therefore includes chromatogram points."
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+   "line": 1059,
+   "operation": "double getMaxIntensity() const { return combined_ranges_.getMaxIntensity(); } -- the combined range, not the spectrum range."
+  },
+  {
+   "path": ".reference/openms4-core-bc9cc12/src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp",
+   "line": 127,
+   "operation": "indexed mzML trailer: os << \"<fileChecksum>\"; then `// TODO calculate checksum here: SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.` and std::string sha1_checksum = \"0\". The C++ writer emits the literal 0 for every indexed mzML; the port's real SHA-1 is the conforming side. Recorded here because MapNormalizer writes an indexed mzML on both sides."
+  }
+ ],
  "fixtures": [
   {
    "path": "tests/data/map_normalizer_input.mzML",
@@ -31,15 +66,85 @@
   {
    "path": "tests/data/map_normalizer_output.mzML",
    "sha256": "c26ec1cd963b22811b94034b95896f229aa0038075a3d502a6e19ef1940df5cd"
+  },
+  {
+   "path": "tests/data/map_normalizer_chromatogram_above_input.mzML",
+   "sha256": "96229467ac1bd360eb73285393af672ef44cdf8bde8e6f7e8fb105e7023a8e35",
+   "kind": "written by oracle/map-normalizer-divergence/make_fixtures.py. Three spectra (MS1, MS2, MS1) and one TIC chromatogram; every intensity is exact in binary32. Chromatogram maximum 654321 outranks the spectrum maximum 50000, which is the shape of the benchmark's Velos run (1788496256 against 135038560)."
+  },
+  {
+   "path": "tests/data/map_normalizer_chromatogram_above_output.mzML",
+   "sha256": "96d3cc70551299f79c44e4dcb1266182a66d25d6857ed644ec8f67d977feb91c",
+   "kind": "executed output of the pinned C++ Release MapNormalizer on that input: scale 6543.21, so the MS1 peak of 3000 becomes 0.4584906 and the MS2 spectrum and the chromatogram are unchanged"
+  },
+  {
+   "path": "tests/data/map_normalizer_chromatogram_below_input.mzML",
+   "sha256": "517288fd415bc04863c3cf411aa8bad6505938976e07573f64b5d8ae86855c98",
+   "kind": "the same three spectra with a TIC chromatogram whose maximum, 1000, stays under the spectrum maximum; that maximum sits in the MS2 spectrum the tool never rescales"
+  },
+  {
+   "path": "tests/data/map_normalizer_chromatogram_below_output.mzML",
+   "sha256": "070c471152315a657ec55b014750af6c822c4473cfa60bc6289d8e7ff13516c5",
+   "kind": "executed output of the pinned C++ Release MapNormalizer on that input: scale 500, so the MS1 peak of 3000 becomes 6"
   }
  ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/map-normalizer-divergence/make_fixtures.py",
+   "sha256": "bef54bb36c7fea405ad2567dea29842cfcf44115441d64392271873172b0c392",
+   "origin_key": "fixtures",
+   "label": "writes the two chromatogram-scale input fixtures; deterministic, no C++ involved"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/cpp_fixtures.sh",
+   "sha256": "6ac6f987f6f37d879fdbfa0c9c259d9413cfc30d2979efabfd7152d5fbb369d3",
+   "origin_key": "fixtures",
+   "label": "driver (tier 1 executed): runs the pinned C++ Release MapNormalizer on both inputs and prints the FileInfo ranges that show the two candidate maxima"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/cpp_fixtures.log",
+   "sha256": "94a76b98c39c775686ed8a8e373544080bfaefa1f250895eac2464de218052d6",
+   "origin_key": "fixtures",
+   "label": "its output on dax, including sha256 of the C++ binaries (MapNormalizer bcd0250e9cc67aba1eba786041059c0e03f77ce7562181b558e52e62438b67f5) and of the four fixtures"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/compare_mzml.py",
+   "sha256": "586312f03349e3534fa17c12f115498cdc67170f4ff65d50c0db11c0e45b14db",
+   "origin_key": "measurements",
+   "label": "decodes every binary data array of two mzML files and compares them element by element; reports counts and the worst relative difference without stopping at the first one"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/full_run_dax.sh",
+   "sha256": "6b80282c9770839bfe42d44bff45cef71c75ef27ee25a66fc8b53c4d9acd0224",
+   "origin_key": "measurements",
+   "label": "driver (tier 1 executed): runs the C++ Release MapNormalizer and this port's release binary over the 1.2 GB benchmark input with one shared -write_ini INI, then compares every decoded array; includes a control comparison against the unnormalised input"
+  },
+  {
+   "path": "../oracle/map-normalizer-divergence/full_run_dax.log",
+   "sha256": "ebadf0c0e5084d4459b13f41e541fdbcf36d019461fb04770c970a38dfe183b5",
+   "origin_key": "measurements",
+   "label": "its output on dax: 43,746 holders, 88,478,237 intensity points, 88,434,492 m/z points, zero differences; the port's output identical at 1 and 32 threads (sha256 f1c3cf33a1affcd496d8f1a9511b65ccaed06c4b868a726dff1648549fd5e54f); the control finds exactly the 7,302 MS1 spectra changed"
+  }
+ ],
+ "external_reference_note": "No C++ is committed to this repository. The drivers under ../oracle/map-normalizer-divergence/ run the prebuilt Release TOPP tools at /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (core bc9cc12 / cli c19e494 / topp 174b576); only their outputs enter the repository, as the four fixtures above. The 1.2 GB input stays at /ceph/ibmi/abi/oliver/bench/openms4/inputs/centroid_lcms_velos_pxd001819_50amol_r1/50amol_R1.mzML (sha256 in that tree's MANIFEST.json) and is read by no committed test.",
+ "measurements": {
+  "node": "dax (never ibminode05), shared and under other users' load; the wall times in full_run_dax.log are an order-of-magnitude sanity check, not a timing measurement",
+  "build": "cargo build --release --locked --bin MapNormalizer through openms-kim-gate.sh with slot fx-mapn",
+  "full_run": "C++ 14.43 s wall / 1,497 MiB peak RSS, port 20.87 s wall / 1,986 MiB at 1 thread and 19.13 s / 1,980 MiB at 32; shared INI sha256 7820b412ebf9b3958d0a35cc11ee03f7e3f4dff3dc9490b9b91a79f4c42daeec. The port's output sha256 is unchanged from the hand-folded first version of the fix, so switching to MSExperiment::combined_ranges_with_limits changed no value."
+ },
  "native_implementation": [
   "src/cli/tools/map_normalizer.rs",
   "src/bin/MapNormalizer.rs"
  ],
  "native_tests": [
-  "tests/topp_map_normalizer.rs"
+  "tests/topp_map_normalizer.rs",
+  "src/cli/tools/map_normalizer.rs"
  ],
  "support": "docs/TOPP_CLI_SUPPORT.md",
- "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 343-345"
+ "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 343-345",
+ "target_verification": {
+  "tests": "tests/topp_map_normalizer.rs, four cases: the upstream invocation, the two chromatogram-scale cases against executed C++ output, and the parameter/format refusals; plus three private tests in src/cli/tools/map_normalizer.rs for the derived work ceiling, the combined maximum and the empty run",
+  "cpp_issue_candidate": "Two, both in the C++ and both disclosed rather than worked around here. (1) MapNormalizer divides by getMaxIntensity()/100 with no guard, so a run whose combined maximum intensity is zero writes NaN into every MS1 peak and a run with only negative intensities flips every sign; this port refuses a non-positive scale with exit 6. (2) MzMLHandlerHelper::writeFooter writes <fileChecksum>0</fileChecksum> with a TODO instead of the SHA-1 the indexedmzML schema asks for; the port writes the real digest, which is the conforming behaviour and costs it a full pass over the output.",
+  "port_issue_reported": "SummaryLimits::default().max_work is a fixed 50,000,000 units, where MSExperiment::combined_ranges, chromatogram_ranges and calculate_tic_binned charge one unit per spectrum, per peak, per chromatogram and per chromatogram point. The benchmark's 1.2 GB Velos run charges 88,521,983, so combined_ranges() refuses it; the port's mzML reader admits that file, so the ceiling refuses data the reader already read. MapNormalizer derives its own ceiling from the materialised map (MapNormalizer::range_limits) and does not change the shared default, which belongs to src/kernel/experiment_summary.rs."
+ }
 }
