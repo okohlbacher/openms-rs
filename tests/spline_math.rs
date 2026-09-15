@@ -22,8 +22,8 @@
 //! tolerance.
 
 use openms::processing::spline::{
-    BSpline2d, BSplineSmoothingSpline, BoundaryCondition, CubicSpline2d, SplineFunction,
-    spline_bisection,
+    BSpline2d, BSplineSmoothingSpline, BoundaryCondition, CubicSpline2d, CubicSpline2dFitter,
+    SplineFunction, spline_bisection,
 };
 use std::collections::BTreeMap;
 
@@ -176,6 +176,53 @@ fn cubic_spline_reproduces_every_probe_row() {
     assert_eq!(
         sine.derivative(x[n], 2).unwrap(),
         probe.number("cubic_sine", "d2_last")
+    );
+}
+
+/// The same probe rows again, through a `CubicSpline2dFitter` whose buffers are
+/// carrying a previous, differently sized fit. The unit tests compare the
+/// fitter against `CubicSpline2d::new` coefficient by coefficient; this one
+/// compares it against the C++ directly, so reuse is pinned to the oracle and
+/// not merely to the other Rust path.
+#[test]
+fn a_reusing_fitter_reproduces_every_cubic_probe_row() {
+    let probe = Probe::load();
+    let (mz, intensity) = upstream_peak();
+    let mut fitter = CubicSpline2dFitter::new();
+
+    // A longer fit first, so the buffers are oversized and dirty for the peak.
+    let (x_min, x_max) = (-0.5f64, 1.5f64);
+    let long_x: Vec<f64> = (0..=40)
+        .map(|i| x_min + f64::from(i) / 40.0 * (x_max - x_min))
+        .collect();
+    let long_y: Vec<f64> = long_x.iter().map(|v| v.sin()).collect();
+    fitter.fit(&long_x, &long_y).unwrap();
+    check_cubic(
+        &probe,
+        "cubic_upstream",
+        fitter.fit(&mz, &intensity).unwrap(),
+        true,
+    );
+
+    // And the class test's sine grid after the peak, shrinking again.
+    let x: Vec<f64> = (0..=10)
+        .map(|i| x_min + f64::from(i) / 10.0 * (x_max - x_min))
+        .collect();
+    let y: Vec<f64> = x.iter().map(|v| v.sin()).collect();
+    let sine = fitter.fit(&x, &y).unwrap();
+    check_cubic(&probe, "cubic_sine", sine, true);
+    assert_eq!(
+        sine.derivative(x[10], 2).unwrap(),
+        probe.number("cubic_sine", "d2_last")
+    );
+
+    // A fitter that has just refused an input still fits the next one.
+    assert!(fitter.fit(&[1.0, 1.0], &[0.0, 1.0]).is_err());
+    check_cubic(
+        &probe,
+        "cubic_upstream",
+        fitter.fit(&mz, &intensity).unwrap(),
+        true,
     );
 }
 

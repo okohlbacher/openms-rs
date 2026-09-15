@@ -43,6 +43,24 @@ pub trait SplineFunction {
     fn first_derivative(&self, x: f64) -> Result<f64>;
 }
 
+/// A shared reference to a spline is a spline.
+///
+/// Forwarding only; it adds no behaviour. It exists because
+/// [`spline_bisection`] is generic, and a generic parameter does not get the
+/// deref coercion that turns `&&T` into `&T` at an ordinary call. A caller
+/// holding a borrowed spline — the peak picker, once it fits through
+/// [`CubicSpline2dFitter`](crate::processing::spline::CubicSpline2dFitter),
+/// holds `&CubicSpline2d` rather than an owned one — can therefore keep writing
+/// `spline_bisection(&spline, ..)` unchanged.
+impl<T: SplineFunction + ?Sized> SplineFunction for &T {
+    fn eval(&self, x: f64) -> Result<f64> {
+        (**self).eval(x)
+    }
+    fn first_derivative(&self, x: f64) -> Result<f64> {
+        (**self).first_derivative(x)
+    }
+}
+
 /// Iteration ceiling for [`spline_bisection`].
 ///
 /// Native addition. The C++ `do`/`while` has no iteration cap: it halves the

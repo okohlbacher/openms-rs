@@ -37,5 +37,5 @@ pub mod smoothing;
 
 pub use b_spline::{BSpline2d, BoundaryCondition};
 pub use bisection::{SplineFunction, spline_bisection};
-pub use cubic::CubicSpline2d;
+pub use cubic::{CubicSpline2d, CubicSpline2dFitter};
 pub use smoothing::BSplineSmoothingSpline;
