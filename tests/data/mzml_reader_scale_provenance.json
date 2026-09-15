@@ -201,7 +201,7 @@
   },
   {
    "path": "../oracle/mzml-reader-scale/hpc_scale_ibminode06_round2.log",
-   "sha256": "d7e5154fc91a5361c562d2c214d5edbc956cc0e7592e63782460d08ad22285f3",
+   "sha256": "78596e806be0f3a138aaa7a1243dfd2eb4a8b2cbc3e79f66987c5f967bbc88c9",
    "origin_key": "measurements",
    "label": "its output: wall time and peak RSS per benchmark input with the 64 MiB per-array ceiling and the record/array/group allowances"
   },
@@ -225,7 +225,7 @@
   },
   {
    "path": "../oracle/mzml-reader-scale/tool_probe2_ibminode06.log",
-   "sha256": "77cd6aeea256f7583a966fe1cd335496b12396cb274a7d03b2f55e4b4583dd41",
+   "sha256": "b890764409505bfc37fc64e0c40a14ee27537ad4ea8c06b160a63b7d597e12cc",
    "origin_key": "measurements",
    "label": "its output: MapNormalizer and DTAExtractor exit 0 on the -infinity slice and write the run element without startTimeStamp; 2,000,000 minimal records are refused, 1,000,000 are read"
   }

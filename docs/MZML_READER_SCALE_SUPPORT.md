@@ -255,8 +255,8 @@ The two documents too large for the test suite were run through the shipped
 | document | size | result | peak RSS |
 |---|---|---|---|
 | one spectrum, `defaultArrayLength="9999999"`, two zlib 64-bit arrays | 219,069 B | refused, `binary array exceeds configured byte limit` | 4,096 KiB |
-| 2,000,000 minimal empty records, 252 bytes each | 503,778,613 B | refused, `record count exceeds configured limit` | 1,723,392 KiB |
-| 1,000,000 of the same records | 250,778,613 B | read (the tool then reports no intensities) | 884,736 KiB |
+| 2,000,000 minimal empty records, 252 bytes each | 503,778,613 B | refused, `record count exceeds configured limit` | 1,727,488 KiB |
+| 1,000,000 of the same records | 250,778,613 B | read (the tool then reports no intensities) | 887,808 KiB |
 
 The zlib bomb is refused before any allocation. The record case shows what the
 allowance buys and what it does not: the reader stops at the ceiling rather than
@@ -279,12 +279,12 @@ are indicative and the peak RSS is not.
 
 | input | size | spectra | peaks | read | process wall | peak RSS |
 |---|---|---|---|---|---|---|
-| sanity profile + sanity centroid | 5.2 MB + 7.6 MB | 730 + 1,929 | 252,018 | 0.3 s + 0.1 s | 0.8 s | 31,744 KiB |
-| `UK222_picked.mzML` | 547 MB | 40,856 | 22,776,198 | 6.2 s | 12.4 s | 747,520 KiB |
-| `50amol_R1.mzML` (zlib) | 1.20 GB | 43,745 | 88,434,492 | 15.3 s | 35.5 s | 1,946,624 KiB |
-| `20100219_SvNa_SA_Ecoli_preccorrected.mzML` | 1.51 GB | 34,894 | 85,315,432 | 11.3 s | 25.7 s | 1,653,760 KiB |
-| `UK222.mzML` | 2.32 GB | 40,856 | 197,765,338 | 17.8 s | 38.7 s | 3,491,848 KiB |
-| `UK222.mzML`, FeatureFinderCentroided load options | 2.32 GB | 6,911 (MS1) | 96,433,834 | 16.7 s | 17.1 s | 1,972,736 KiB |
+| sanity profile + sanity centroid | 5.2 MB + 7.6 MB | 730 + 1,929 | 252,018 | 0.2 s + 0.2 s | 0.8 s | 31,744 KiB |
+| `UK222_picked.mzML` | 547 MB | 40,856 | 22,776,198 | 5.6 s | 11.5 s | 748,544 KiB |
+| `50amol_R1.mzML` (zlib) | 1.20 GB | 43,745 | 88,434,492 | 16.1 s | 29.0 s | 1,946,624 KiB |
+| `20100219_SvNa_SA_Ecoli_preccorrected.mzML` | 1.51 GB | 34,894 | 85,315,432 | 9.6 s | 27.2 s | 1,653,760 KiB |
+| `UK222.mzML` | 2.32 GB | 40,856 | 197,765,338 | 16.3 s | 37.3 s | 3,491,464 KiB |
+| `UK222.mzML`, FeatureFinderCentroided load options | 2.32 GB | 6,911 (MS1) | 96,433,834 | 16.5 s | 16.7 s | 1,975,468 KiB |
 
 For comparison, the C++ Release `BaselineFilter` peaked at 3.2 GB on
 `UK222.mzML` in the smoke benchmark, and `MapNormalizer` at 1.5 GB on
