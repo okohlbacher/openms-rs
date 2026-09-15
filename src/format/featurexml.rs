@@ -5,7 +5,11 @@
 //! Native featureXML 1.9 transport, including legacy hulls and nested features.
 //! Read filters are half-open and never affect writing. See FEATUREXML_SUPPORT.md.
 
-use super::identification_xml::{self as xml, Node};
+#[path = "featurexml_scaling.rs"]
+mod scaling;
+pub use scaling::{Allowance, InputScaling, OutputScaling};
+
+use super::identification_xml::{self as xml, Detach, Node};
 use super::{FileType, map_xml, path_io};
 use crate::chemistry::ModificationsDB;
 use crate::kernel::{ConvexHull2D, Feature, FeatureMap, Point2D};
@@ -16,6 +20,7 @@ use std::io::{BufRead, Write};
 use std::ops::Range;
 use std::path::Path;
 
+/// The featureXML schema version this adapter reads and writes.
 pub const VERSION: &str = "1.9";
 
 /// Passive source options. Empty/inverted ranges select no values. `size_only`
@@ -44,7 +49,16 @@ impl Default for FeatureFileOptions {
     }
 }
 
-/// Cumulative conversion limits. Depth counts subordinate feature levels.
+/// Absolute cumulative conversion ceilings. Depth counts subordinate feature
+/// levels.
+///
+/// Every ceiling but `max_xml_bytes` and `max_depth` defaults to unbounded, so
+/// the size-derived allowances in [`InputScaling`] and [`OutputScaling`] decide
+/// on their own; a caller that sets one keeps it exactly, and the effective
+/// ceiling is then the smaller of the two. `max_xml_bytes` is the one quantity
+/// nothing can be derived from — it bounds the document itself, on input the
+/// decoded bytes accepted from the stream and on output the rendered bytes —
+/// so it keeps a large but finite default.
 #[derive(Clone, Copy, Debug)]
 pub struct Limits {
     pub max_xml_bytes: u64,
@@ -57,6 +71,25 @@ pub struct Limits {
 impl Default for Limits {
     fn default() -> Self {
         Self {
+            max_xml_bytes: 8 * 1024 * 1024 * 1024,
+            max_records: usize::MAX,
+            max_list_items: usize::MAX,
+            max_depth: 128,
+            max_work: usize::MAX,
+            max_payload_bytes: usize::MAX,
+        }
+    }
+}
+impl Limits {
+    /// The fixed ceilings this adapter used before they became size-derived:
+    /// 64 MiB of XML, one million elements and list items, 128 subordinate
+    /// levels, 50 million work units and 256 MiB of payload.
+    ///
+    /// Combined with [`InputScaling::fixed`] or [`OutputScaling::fixed`] this
+    /// reproduces the former behaviour exactly.
+    #[must_use]
+    pub const fn former() -> Self {
+        Self {
             max_xml_bytes: 64 * 1024 * 1024,
             max_records: 1_000_000,
             max_list_items: 1_000_000,
@@ -66,14 +99,60 @@ impl Default for Limits {
         }
     }
 }
+/// Everything one featureXML read is parameterised by: the source
+/// `FeatureFileOptions`, the absolute ceilings, and their growth with the size
+/// of the document.
 #[derive(Clone, Debug, Default)]
 pub struct ReadOptions {
     pub feature_options: FeatureFileOptions,
     pub limits: Limits,
+    /// Growth of the cumulative ceilings with the decoded document size.
+    pub scaling: InputScaling,
 }
+/// Everything one featureXML write is parameterised by: the absolute ceilings
+/// and their growth with the size of the map.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct WriteOptions {
     pub limits: Limits,
+    /// Growth of the cumulative ceilings with the counted size of the map.
+    pub scaling: OutputScaling,
+}
+
+/// The cumulative ceilings one read or write runs under, after the size-derived
+/// allowances have been reconciled with the absolute [`Limits`].
+#[derive(Clone, Copy, Debug)]
+struct Ceilings {
+    work: usize,
+    payload_bytes: usize,
+    records: usize,
+    list_items: usize,
+    depth: usize,
+}
+impl Ceilings {
+    /// Reader ceilings earned by a document of `consumed` decoded bytes.
+    fn read(limits: Limits, scaling: InputScaling, consumed: usize) -> Self {
+        Self {
+            work: scaling.work.capped(consumed, limits.max_work),
+            payload_bytes: scaling
+                .payload_bytes
+                .capped(consumed, limits.max_payload_bytes),
+            records: scaling.records.capped(consumed, limits.max_records),
+            list_items: scaling.list_items.capped(consumed, limits.max_list_items),
+            depth: limits.max_depth,
+        }
+    }
+    /// Writer ceilings earned by a map of `units` counted parts.
+    fn write(limits: Limits, scaling: OutputScaling, units: usize) -> Self {
+        Self {
+            work: scaling.work.capped(units, limits.max_work),
+            payload_bytes: scaling
+                .payload_bytes
+                .capped(units, limits.max_payload_bytes),
+            records: scaling.records.capped(units, limits.max_records),
+            list_items: scaling.list_items.capped(units, limits.max_list_items),
+            depth: limits.max_depth,
+        }
+    }
 }
 
 fn bad(text: impl Into<String>) -> Error {
@@ -93,11 +172,11 @@ fn mul(a: usize, b: usize) -> Result<usize> {
     a.checked_mul(b)
         .ok_or_else(|| bad("featureXML size overflow"))
 }
-fn xml_options(limits: Limits) -> xml::ReadOptions {
+fn xml_options(limits: Limits, ceilings: Ceilings) -> xml::ReadOptions {
     xml::ReadOptions {
         max_xml_bytes: limits.max_xml_bytes,
-        max_records: limits.max_records,
-        max_list_items: limits.max_list_items,
+        max_records: ceilings.records,
+        max_list_items: ceilings.list_items,
     }
 }
 fn uid(text: &str) -> Result<u64> {
@@ -133,15 +212,15 @@ struct Work {
     remaining: usize,
     bytes: usize,
     records: usize,
-    limits: Limits,
+    ceilings: Ceilings,
 }
 impl Work {
-    fn new(limits: Limits) -> Self {
+    fn new(ceilings: Ceilings) -> Self {
         Self {
-            remaining: limits.max_work,
-            bytes: limits.max_payload_bytes,
+            remaining: ceilings.work,
+            bytes: ceilings.payload_bytes,
             records: 0,
-            limits,
+            ceilings,
         }
     }
     fn consume(&mut self, count: usize) -> Result<()> {
@@ -161,7 +240,7 @@ impl Work {
     fn record(&mut self) -> Result<()> {
         self.consume(1)?;
         self.records = add(self.records, 1)?;
-        if self.records > self.limits.max_records {
+        if self.records > self.ceilings.records {
             return Err(bad("featureXML record limit exceeded"));
         }
         Ok(())
@@ -175,7 +254,7 @@ impl Work {
         self.allocate(mul(text.len(), 6)?)
     }
     fn node(&mut self, node: &Node, depth: usize) -> Result<()> {
-        if depth > 2 * self.limits.max_depth.min(Feature::MAX_SUBORDINATE_DEPTH) + 16 {
+        if depth > 2 * self.ceilings.depth.min(Feature::MAX_SUBORDINATE_DEPTH) + 16 {
             return Err(bad("featureXML nesting limit exceeded"));
         }
         self.record()?;
@@ -201,7 +280,7 @@ impl Work {
                 MetaValueData::FloatList(v) => v.len(),
                 _ => 0,
             };
-            if count > self.limits.max_list_items {
+            if count > self.ceilings.list_items {
                 return Err(bad("featureXML metadata list limit exceeded"));
             }
             if let Some(unit) = value.unit() {
@@ -214,7 +293,7 @@ impl Work {
         Ok(())
     }
     fn feature(&mut self, feature: &Feature, depth: usize) -> Result<()> {
-        if depth > self.limits.max_depth.min(Feature::MAX_SUBORDINATE_DEPTH) {
+        if depth > self.ceilings.depth.min(Feature::MAX_SUBORDINATE_DEPTH) {
             return Err(bad("featureXML subordinate depth exceeded"));
         }
         self.record()?;
@@ -270,12 +349,29 @@ impl Work {
     }
 }
 
+/// Read a featureXML document with the default options.
+///
+/// # Errors
+///
+/// Malformed or unsupported XML, a field this dialect cannot represent, or an
+/// exceeded ceiling; see [`Limits`] and [`InputScaling`].
 pub fn read(input: impl BufRead) -> Result<FeatureMap> {
     read_with_options(input, &ReadOptions::default())
 }
+/// Read a featureXML document, filtering and bounding it as `options` says.
+///
+/// # Errors
+///
+/// As [`read`].
 pub fn read_with_options(input: impl BufRead, options: &ReadOptions) -> Result<FeatureMap> {
     read_with_registry(input, options, ModificationsDB::global())
 }
+/// Read a featureXML document, resolving modifications against `registry`
+/// rather than the global database, which is left untouched.
+///
+/// # Errors
+///
+/// As [`read`], plus chemistry that `registry` cannot resolve.
 pub fn read_with_registry(
     input: impl BufRead,
     options: &ReadOptions,
@@ -283,7 +379,13 @@ pub fn read_with_registry(
 ) -> Result<FeatureMap> {
     Ok(read_document(input, options, registry, false)?.0)
 }
+/// Read into `target`, replacing it only on success.
+///
 /// Atomic replacement: neither parse nor conversion failure changes the target.
+///
+/// # Errors
+///
+/// As [`read`].
 pub fn read_into(
     input: impl BufRead,
     target: &mut FeatureMap,
@@ -293,8 +395,182 @@ pub fn read_into(
     *target = draft;
     Ok(())
 }
+/// Return the declared `featureList/@count` without interpreting the features.
+///
+/// The document is read only through the opening `featureList` tag, so feature
+/// payload is never decoded.
+///
+/// # Errors
+///
+/// As [`read`], for the prefix that is read.
 pub fn read_size(input: impl BufRead, options: &ReadOptions) -> Result<usize> {
     Ok(read_document(input, options, ModificationsDB::global(), true)?.1)
+}
+
+/// Attributes and children source accepts on the `featureMap` root.
+const ROOT_ATTRS: &[&str] = &[
+    "version",
+    "document_id",
+    "id",
+    "unique_id",
+    "xmlns:xsi",
+    "xsi:noNamespaceSchemaLocation",
+];
+const ROOT_CHILDREN: &[&str] = &[
+    "UserParam",
+    "userParam",
+    "dataProcessing",
+    "IdentificationRun",
+    "UnassignedPeptideIdentification",
+    "featureList",
+    "description",
+];
+
+/// What the document header contributes to every feature it precedes.
+struct Header {
+    context: map_xml::ReadContext,
+    registry: ModificationsDB,
+}
+
+/// Convert the `featureMap` header into `map` and return the identification
+/// context its features are read against.
+///
+/// `root` carries the children that closed before the header was needed. In a
+/// schema-valid document that is all of them but `featureList`, which the
+/// FeatureXML 1.9 sequence places last.
+fn read_header(
+    root: &Node,
+    map: &mut FeatureMap,
+    options: &xml::ReadOptions,
+    source: &ModificationsDB,
+    work: &mut Work,
+) -> Result<Header> {
+    if root.name != "featureMap" {
+        return Err(bad("expected featureMap root"));
+    }
+    check(root, ROOT_ATTRS, ROOT_CHILDREN, false)?;
+    xml::measure_node(root, &mut work.remaining, &mut work.bytes)?;
+    map.identifier = root.optional("document_id").unwrap_or("").into();
+    if let Some(id) = root.optional("id") {
+        map.unique_id = uid(id)?;
+    }
+    if let Some(id) = root.optional("unique_id") {
+        map.unique_id = uid(id)?;
+    }
+    let mut registry = xml::clone_registry(source, &mut work.remaining, &mut work.bytes)?;
+    let mut context = map_xml::ReadContext::default();
+    for node in &root.children {
+        match node.name.as_str() {
+            "IdentificationRun" => map.protein_identifications.push(map_xml::read_run(
+                node,
+                options,
+                &mut context,
+                &mut registry,
+                &mut work.remaining,
+                &mut work.bytes,
+            )?),
+            "dataProcessing" => map
+                .data_processing
+                .push(map_xml::read_processing(node, options)?),
+            _ => {}
+        }
+    }
+    map.metadata = metadata(root, options)?;
+    for node in &root.children {
+        if node.name == "UnassignedPeptideIdentification" {
+            map.unassigned_peptide_identifications
+                .push(map_xml::read_peptide(
+                    node,
+                    options,
+                    &context,
+                    &registry,
+                    &mut work.remaining,
+                    &mut work.bytes,
+                )?);
+        }
+    }
+    Ok(Header { context, registry })
+}
+
+fn push_feature(
+    map: &mut FeatureMap,
+    mut feature: Feature,
+    options: &FeatureFileOptions,
+) -> Result<()> {
+    if accepts(&feature, options)? {
+        if let Some(width) = feature.metadata.get("FWHM") {
+            let width = width.as_f64()? as f32;
+            feature.set_width(width)?;
+        }
+        map.features.push(feature);
+    }
+    Ok(())
+}
+
+/// Converts `feature` elements as the parser hands them over, so that the tree
+/// in memory is one feature rather than the whole `featureList`.
+struct Streamer<'a> {
+    options: &'a ReadOptions,
+    xml: &'a xml::ReadOptions,
+    source: &'a ModificationsDB,
+    ceilings: Ceilings,
+    records: usize,
+    map: FeatureMap,
+    header: Option<Header>,
+}
+impl Streamer<'_> {
+    /// Charge one detached element against the shared budgets the parser holds.
+    fn take(
+        &mut self,
+        root: &Node,
+        node: Node,
+        remaining: &mut usize,
+        bytes: &mut usize,
+    ) -> Result<()> {
+        let mut work = Work {
+            remaining: *remaining,
+            bytes: *bytes,
+            records: self.records,
+            ceilings: self.ceilings,
+        };
+        let outcome = self.convert(root, &node, &mut work);
+        *remaining = work.remaining;
+        *bytes = work.bytes;
+        self.records = work.records;
+        outcome
+    }
+    fn convert(&mut self, root: &Node, node: &Node, work: &mut Work) -> Result<()> {
+        if self.header.is_none() {
+            self.header = Some(read_header(
+                root,
+                &mut self.map,
+                self.xml,
+                self.source,
+                work,
+            )?);
+        }
+        let Self {
+            options,
+            xml,
+            map,
+            header,
+            ..
+        } = self;
+        let header = header
+            .as_ref()
+            .ok_or_else(|| bad("featureXML header unavailable"))?;
+        work.slots::<Feature>(1)?;
+        let feature = read_feature(
+            node,
+            options,
+            xml,
+            &header.context,
+            &header.registry,
+            work,
+            0,
+        )?;
+        push_feature(map, feature, &options.feature_options)
+    }
 }
 
 fn read_document(
@@ -303,113 +579,107 @@ fn read_document(
     registry: &ModificationsDB,
     size_only: bool,
 ) -> Result<(FeatureMap, usize)> {
-    let opts = xml_options(options.limits);
-    let stop = options.feature_options.metadata_only || size_only;
-    let mut work = Work::new(options.limits);
-    let root = xml::parse_xml_with_budget(
-        input,
-        &opts,
-        2 * options.limits.max_depth.min(Feature::MAX_SUBORDINATE_DEPTH) + 16,
-        stop.then_some("featureList"),
-        &mut work.remaining,
-        &mut work.bytes,
-    )?;
-    if root.name != "featureMap" {
-        return Err(bad("expected featureMap root"));
+    let limits = options.limits;
+    // Ceilings that can admit nothing are refused before the input is touched.
+    // They are the shared parser's, so they keep its message.
+    if limits.max_records == 0 || limits.max_list_items == 0 {
+        return Err(xml::bad("invalid identification XML limits"));
     }
-    check(
-        &root,
-        &[
-            "version",
-            "document_id",
-            "id",
-            "unique_id",
-            "xmlns:xsi",
-            "xsi:noNamespaceSchemaLocation",
-        ],
-        &[
-            "UserParam",
-            "userParam",
-            "dataProcessing",
-            "IdentificationRun",
-            "UnassignedPeptideIdentification",
-            "featureList",
-            "description",
-        ],
-        false,
-    )?;
-    xml::measure_node(&root, &mut work.remaining, &mut work.bytes)?;
-    let mut map = FeatureMap {
-        identifier: root.optional("document_id").unwrap_or("").into(),
-        ..Default::default()
+    let prefix_only = options.feature_options.metadata_only || size_only;
+    // The one ceiling nothing can be derived from bounds the decode; every
+    // other ceiling is then earned by the bytes the decode actually produced.
+    let byte_cap = usize::try_from(limits.max_xml_bytes).unwrap_or(usize::MAX);
+    let text = xml::decode_document(input, byte_cap, prefix_only.then_some("featureList"))?;
+    // Only `featureList` children are streamed, and the prefix reader stops at
+    // its opening tag, so a document without one would be held whole either
+    // way. The opening tag's spelling is exact in XML, which makes this a cheap
+    // necessary condition to refuse on before any tree is built. A document
+    // that has the tag only inside a comment still fails the same way below,
+    // after the parse.
+    if !text.contains("<featureList") {
+        return Err(bad("featureMap requires featureList"));
+    }
+    let ceilings = Ceilings::read(limits, options.scaling, text.len());
+    let opts = xml_options(limits, ceilings);
+    let depth = 2 * ceilings.depth.min(Feature::MAX_SUBORDINATE_DEPTH) + 16;
+    let mut remaining = ceilings.work;
+    let mut bytes = ceilings.payload_bytes;
+    let mut sink = Streamer {
+        options,
+        xml: &opts,
+        source: registry,
+        ceilings,
+        records: 0,
+        map: FeatureMap::default(),
+        header: None,
     };
-    if let Some(id) = root.optional("id") {
-        map.unique_id = uid(id)?;
+    let root = if prefix_only {
+        xml::parse_text_with_budget(
+            &text,
+            &opts,
+            depth,
+            Some("featureList"),
+            &mut remaining,
+            &mut bytes,
+            None,
+        )?
+    } else {
+        let mut take = |root: &Node, node: Node, work: &mut usize, payload: &mut usize| {
+            sink.take(root, node, work, payload)
+        };
+        xml::parse_text_with_budget(
+            &text,
+            &opts,
+            depth,
+            None,
+            &mut remaining,
+            &mut bytes,
+            Some(Detach {
+                container: "featureList",
+                element: "feature",
+                take: &mut take,
+            }),
+        )?
+    };
+    drop(text);
+    let Streamer {
+        records,
+        mut map,
+        header,
+        ..
+    } = sink;
+    let mut work = Work {
+        remaining,
+        bytes,
+        records,
+        ceilings,
+    };
+    if header.is_none() {
+        read_header(&root, &mut map, &opts, registry, &mut work)?;
+    } else {
+        check(&root, ROOT_ATTRS, ROOT_CHILDREN, false)?;
     }
-    if let Some(id) = root.optional("unique_id") {
-        map.unique_id = uid(id)?;
-    }
-    let mut registry = xml::clone_registry(registry, &mut work.remaining, &mut work.bytes)?;
-    let mut context = map_xml::ReadContext::default();
-    for node in &root.children {
-        match node.name.as_str() {
-            "IdentificationRun" => map.protein_identifications.push(map_xml::read_run(
-                node,
-                &opts,
-                &mut context,
-                &mut registry,
-                &mut work.remaining,
-                &mut work.bytes,
-            )?),
-            "dataProcessing" => map
-                .data_processing
-                .push(map_xml::read_processing(node, &opts)?),
-            _ => {}
-        }
-    }
-    map.metadata = metadata(&root, &opts)?;
     let mut count = 0;
     let mut seen_list = false;
-    for node in &root.children {
-        match node.name.as_str() {
-            "UnassignedPeptideIdentification" => {
-                map.unassigned_peptide_identifications
-                    .push(map_xml::read_peptide(
-                        node,
-                        &opts,
-                        &context,
-                        &registry,
-                        &mut work.remaining,
-                        &mut work.bytes,
-                    )?)
-            }
-            "featureList" => {
-                if seen_list {
-                    return Err(bad("multiple featureList elements"));
-                }
-                seen_list = true;
-                if options.feature_options.metadata_only {
-                    break;
-                }
-                count = xml::number(node.get("count")?)?;
-                if size_only {
-                    break;
-                }
-                check(node, &["count"], &["feature"], false)?;
-                work.slots::<Feature>(node.children.len())?;
-                for child in &node.children {
-                    let mut feature =
-                        read_feature(child, options, &opts, &context, &registry, &mut work, 0)?;
-                    if accepts(&feature, &options.feature_options)? {
-                        if let Some(width) = feature.metadata.get("FWHM") {
-                            let width = width.as_f64()? as f32;
-                            feature.set_width(width)?;
-                        }
-                        map.features.push(feature);
-                    }
-                }
-            }
-            _ => {}
+    for (index, node) in root.children.iter().enumerate() {
+        if node.name != "featureList" {
+            continue;
+        }
+        if seen_list {
+            return Err(bad("multiple featureList elements"));
+        }
+        seen_list = true;
+        if options.feature_options.metadata_only {
+            break;
+        }
+        count = xml::number(node.get("count")?)?;
+        if size_only {
+            break;
+        }
+        // Detaching left only what is not a feature, which must be nothing.
+        check(node, &["count"], &["feature"], false)?;
+        if index + 1 != root.children.len() {
+            return Err(unsupported("featureMap content after featureList"));
         }
     }
     if !seen_list {
@@ -573,9 +843,23 @@ fn read_hull(node: &Node, work: &mut Work) -> Result<ConvexHull2D> {
     Ok(hull)
 }
 
+/// Write `map` as featureXML with the default options.
+///
+/// The complete document is prepared and validated before any byte reaches
+/// `output`.
+///
+/// # Errors
+///
+/// A field this dialect cannot represent, a duplicate assigned feature ID, an
+/// exceeded ceiling, or the stream's own I/O failure.
 pub fn write(output: impl Write, map: &FeatureMap) -> Result<()> {
     write_with_options(output, map, &WriteOptions::default())
 }
+/// Write `map` as featureXML, bounded as `options` says.
+///
+/// # Errors
+///
+/// As [`write()`].
 pub fn write_with_options(
     output: impl Write,
     map: &FeatureMap,
@@ -583,6 +867,12 @@ pub fn write_with_options(
 ) -> Result<()> {
     write_with_registry(output, map, options, ModificationsDB::global())
 }
+/// Write `map` as featureXML, taking modification definitions from `registry`
+/// rather than the global database.
+///
+/// # Errors
+///
+/// As [`write()`], plus chemistry `registry` cannot describe portably.
 pub fn write_with_registry(
     mut output: impl Write,
     map: &FeatureMap,
@@ -593,8 +883,54 @@ pub fn write_with_registry(
     output.write_all(&bytes)?;
     Ok(())
 }
+/// The counted size of one feature and its subtree: the parts the writer
+/// charges for.
+///
+/// Hull point counts come from [`ConvexHull2D::point_count_bound`], so counting
+/// is linear in the number of hulls rather than of points. Recursion stops at
+/// the same subordinate depth writing does, so a cyclic or absurdly deep map
+/// cannot make counting unbounded; such a map is refused by the writer itself.
+fn feature_units(feature: &Feature, depth: usize) -> usize {
+    let mut units = 1usize
+        .saturating_add(feature.metadata.len())
+        .saturating_add(feature.peptide_identifications.len());
+    for id in &feature.peptide_identifications {
+        units = units.saturating_add(id.hits.len());
+    }
+    for hull in &feature.convex_hulls {
+        units = units.saturating_add(hull.point_count_bound());
+    }
+    if depth < Feature::MAX_SUBORDINATE_DEPTH {
+        for child in &feature.subordinates {
+            units = units.saturating_add(feature_units(child, depth + 1));
+        }
+    }
+    units
+}
+
+/// The counted size of a whole map, which earns the writer's ceilings.
+fn map_units(map: &FeatureMap) -> usize {
+    let mut units = map
+        .data_processing
+        .len()
+        .saturating_add(map.metadata.len())
+        .saturating_add(map.protein_identifications.len())
+        .saturating_add(map.unassigned_peptide_identifications.len());
+    for protein in &map.protein_identifications {
+        units = units.saturating_add(protein.hits.len());
+    }
+    for id in &map.unassigned_peptide_identifications {
+        units = units.saturating_add(id.hits.len());
+    }
+    for feature in &map.features {
+        units = units.saturating_add(feature_units(feature, 0));
+    }
+    units
+}
+
 fn encode(map: &FeatureMap, options: &WriteOptions, registry: &ModificationsDB) -> Result<Vec<u8>> {
-    let mut work = Work::new(options.limits);
+    let ceilings = Ceilings::write(options.limits, options.scaling, map_units(map));
+    let mut work = Work::new(ceilings);
     work.slots::<Feature>(map.features.len())?;
     work.string(&map.identifier)?;
     work.meta(&map.metadata)?;
@@ -719,9 +1055,9 @@ fn encode(map: &FeatureMap, options: &WriteOptions, registry: &ModificationsDB) 
     xml::render(
         &root,
         &xml::WriteOptions {
-            max_xml_bytes: usize::try_from(options.limits.max_xml_bytes)
-                .map_err(|_| bad("XML byte limit overflow"))?,
-            max_records: options.limits.max_records,
+            // A ceiling wider than the address space is the address space.
+            max_xml_bytes: usize::try_from(options.limits.max_xml_bytes).unwrap_or(usize::MAX),
+            max_records: ceilings.records,
         },
     )
 }
@@ -794,9 +1130,21 @@ fn write_feature(
     Ok(node)
 }
 
+/// Load a featureXML file, recording its path and type on the returned map.
+///
+/// Plain, gzip and bzip2 input are detected by content.
+///
+/// # Errors
+///
+/// The file's own I/O failure, or any error of [`read`].
 pub fn load(path: impl AsRef<Path>) -> Result<FeatureMap> {
     load_with_options(path, &ReadOptions::default())
 }
+/// Load a featureXML file, filtering and bounding it as `options` says.
+///
+/// # Errors
+///
+/// As [`load`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<FeatureMap> {
     let path = path.as_ref();
     let mut map = read_with_options(path_io::open(path)?, options)?;
@@ -807,6 +1155,11 @@ pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Resul
     map.loaded_file_type = FileType::FeatureXml;
     Ok(map)
 }
+/// Load into `target`, replacing it only on success.
+///
+/// # Errors
+///
+/// As [`load`].
 pub fn load_into(
     path: impl AsRef<Path>,
     target: &mut FeatureMap,
@@ -816,12 +1169,31 @@ pub fn load_into(
     *target = draft;
     Ok(())
 }
+/// Return a file's declared `featureList/@count` without reading its features.
+///
+/// # Errors
+///
+/// As [`load`], for the prefix that is read.
 pub fn load_size(path: impl AsRef<Path>, options: &ReadOptions) -> Result<usize> {
     read_size(path_io::open(path.as_ref())?, options)
 }
+/// Store `map` at `path`, replacing the destination atomically.
+///
+/// The extension must be a featureXML one; `.gz` and `.bz2` suffixes select
+/// output compression.
+///
+/// # Errors
+///
+/// An unexpected extension, the file's own I/O failure, or any error of
+/// [`write()`].
 pub fn store(path: impl AsRef<Path>, map: &FeatureMap) -> Result<()> {
     store_with_options(path, map, &WriteOptions::default())
 }
+/// Store `map` at `path`, bounded as `options` says.
+///
+/// # Errors
+///
+/// As [`store`].
 pub fn store_with_options(
     path: impl AsRef<Path>,
     map: &FeatureMap,
