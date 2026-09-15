@@ -233,7 +233,10 @@ fn check_input(experiment: &MSExperiment, err: &mut dyn Write) -> Result<Option<
 /// # Errors
 ///
 /// The picker's errors, and [`Error::Io`] when the operating system refuses the
-/// worker threads.
+/// worker threads. `run_io` reports both the same way — as
+/// `Error: Unexpected internal error (<reason>)` with
+/// [`ExitCode::UnknownError`], see its `# Errors` — because this call, and with
+/// it the pool, is inside the body rather than around it.
 fn pick_experiment(
     ctx: &ToolContext,
     picker: &Picker,
@@ -389,7 +392,14 @@ impl Tool for PeakPickerHiRes {
     /// refusal is written as `Error: Unexpected internal error (<reason>)` and
     /// returns [`ExitCode::UnknownError`]: those are native bounds (points and
     /// work per record, metadata copies) and the FWHM search that never
-    /// terminates in the source, not parameter errors. The exception is
+    /// terminates in the source, not parameter errors. A refusal by the
+    /// operating system to start the `-threads` workers is reported the same
+    /// way, as `Error: Unexpected internal error (cannot start <n> worker
+    /// threads: <reason>)` with [`ExitCode::UnknownError`]: the pool is built
+    /// inside the picking call now (`pick_experiment` in this module), so the
+    /// [`Error::Io`] it raises reaches the same arm as a picker failure instead
+    /// of propagating out of `run_io` as it did while the pool wrapped the whole
+    /// body. Nothing is written in either case. The exception is
     /// [`Error::Unsupported`], which propagates (`INCOMPATIBLE_INPUT_DATA`):
     /// the picker returns it for `SignalToNoise:auto_mode` 1 as soon as noise
     /// estimation runs, where the source reads out of bounds and crashes

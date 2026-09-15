@@ -572,17 +572,32 @@ runs with `-test`. In short:
   off, and from the `fabd4b9` build that predates this branch. The determinism
   contract holds on real data at instrument scale, and the single-thread changes
   here moved no byte.
-* **1.69x at 32 workers** on the whole tool (38.07 → 22.53 s), against a C++
-  tool that is flat (28.74 / 26.46 / 28.36 s) because its picker has no OpenMP.
-  The ceiling is the serial mzML read.
-* **Peak RSS flat in the worker count**: 3,528,284 KiB at one worker,
-  3,522,796 KiB at 32, and 4,414,356 KiB before this branch. The parallel path
+* **1.66x at 32 workers** on the whole tool (37.32 → 24.40 → 22.53 s), each run
+  pinned to as many CPUs as it was given workers. The ceiling is the serial
+  mzML read, about 45% of the run.
+* **The C++ tool's own `-threads`, without the CPU-count confound.** Its picker
+  has no OpenMP — `PeakPickerHiRes.cpp` at `bc9cc12` carries no `#pragma omp` at
+  all, verified by grep, and its three loops are plain `for` statements — but
+  that does not make the tool flat in the setting. Pinned so that every run has
+  the same eight CPUs and only `-threads` changes, medians of three, the C++
+  tool goes **27.39 s at one worker to 25.45 s at eight**: 1.94 s, 7.1%, with no
+  extra CPU to spin on. Which region that comes from is not separated by this
+  benchmark and is not claimed here; the one OpenMP region the run passes
+  through is the mzML loader (`MzMLHandler.cpp:205-206`). On those same eight
+  CPUs the port's parallel picking is worth more than that whole response:
+  36.76 → 23.94 s.
+* **Peak RSS flat in the worker count**: 3,527,720 KiB at one worker,
+  3,519,504 KiB at 32, and 4,414,500 KiB before this branch. The parallel path
   holds one bounded batch beyond a serial pick, not one per worker.
 * **The two single-thread changes** — the metadata-only record construction
   (native difference 11) and the removed second validation pass (15) — are worth
-  **-1.83% instructions, -5.04% data references and -9.52% L1 data misses** over
-  a 682-spectrum slice, measured with callgrind because wall time on that node
-  could not resolve them under its foreign load. Fewer data references than
+  **-1.84% instructions, -5.05% data references and -9.27% L1 data misses** over
+  a 682-spectrum slice in the `parallel`-off build, and **-1.71%, -4.85% and
+  -9.18%** in the configuration an ordinary run uses, the shipped default at
+  `-threads 1`. Callgrind, because wall time on that node could not resolve them
+  under its foreign load. The default keeps the saving only because the pool is
+  scoped to the picking call: with the pool around the whole tool body the same
+  build gave it back in full (-0.02% instructions). Fewer data references than
   instructions is what removing copies rather than computation looks like.
 
 The library's own harness for the same shape is

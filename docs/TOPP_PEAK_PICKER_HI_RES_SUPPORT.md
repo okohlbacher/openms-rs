@@ -217,11 +217,20 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
    the `Threads` value it is given; at one worker the picker's batch loop maps on
    the calling thread and builds no pool of its own. This is the one place where
    this tool's thread handling differs from the five earlier ones, and
-   `tests/topp_threads.rs` records it as `expected_workers`: for the five the
-   sampled worker count is exactly `-threads n`, for this tool it is at most
-   `n`, and none at one worker. The upper bound rather than the exact count,
-   because the pool now lives only as long as the picking, and on that suite's
-   few-MB centroid-like input the picking can be over between two samples.
+   `tests/topp_threads.rs` records it as `expected_workers`: the sampled worker
+   count is exactly `-threads n` for every tool, and **none** at one worker for
+   this one. What that suite had to change for this tool is not the assertion but
+   the input — it samples the picker on profile records it really picks, because
+   the pool now lives only as long as the picking and a centroid-like record is
+   copied faster than the sampler polls.
+
+   A second consequence is in the reporting: the `Error::Io` that
+   `ToolContext::in_thread_pool` raises when the operating system refuses the
+   worker threads is now raised *inside* the body, so `run_io` reports it like a
+   picker failure — `Error: Unexpected internal error (cannot start <n> worker
+   threads: …)` with `UNKNOWN_ERROR` — where it previously propagated out of
+   `run_io` to the framework. The source has no such path at all: libgomp aborts
+   the process when it cannot create a thread.
 10. **Picking is in place.** The tool picks with
     `PeakPickerHiRes::pick_experiment_in_place_with_threads` rather than the
     borrowing `pick_experiment`: it writes the picked experiment and never reads
@@ -414,9 +423,15 @@ nothing else; the pool is the only source of threads in the process, and
 is **one thread**: no pool is built and the picking runs on the calling thread
 (native difference 9). All five runs wrote the same
 `bb13eecf…` output. These counts are exact because this pick takes about
-fifteen seconds; `tests/topp_threads.rs` checks the same executables on a
-few-MB input, where the pool is short-lived, and so holds this tool to *at
-most* `-threads n` workers and none at one (`expected_workers`).
+fifteen seconds. `tests/topp_threads.rs` samples the same executables the same
+way on a synthetic input and holds this tool to exactly `-threads n` workers and
+to none at one (`expected_workers`); its input for this tool is profile data
+rather than the centroid-like records the other five tools share, because the
+pool is open only while the picking runs. On that profile input the picking
+takes 654 ms at one worker, 339 ms at two and 184 ms at four in a debug build on
+the gate host, against a 200 µs poll — hundreds of samples — where a
+centroid-like record is copied in single-digit milliseconds and can be over
+between two samples, which is what once made that assertion flaky.
 
 **The error paths write what the C++ tool writes.** Executed on the same node,
 same fixture (`p3_im_peak.mzML`, per-peak ion mobility, tool defaults), same
@@ -523,11 +538,18 @@ on `ibminode06` `/usr/local/bin/cc` is a Ceph-quota shell script that shadows
 the C compiler, so rustc's link step exits 0 and writes no binary at all.
 `wbuild.sh` puts a `cc` → `/usr/bin/gcc` symlink first on `PATH`; without it
 `cargo build` reports success and produces nothing. A binary sha256 is recorded
-as an identifier for the artefact that was measured, not as a provenance token:
-an independent rebuild of the same tree reproduced the `parallel`-off binary
-byte for byte but not the `parallel` one (6,135,416 B against 6,135,424 B, same
-behaviour, same output hash), so the provenance is the commit plus the recipe
-and the hash only names the file.
+as an identifier for the artefact that was measured, not as a provenance token.
+What is on record from this node, with this recipe, is three independent
+rebuilds and one unexplained difference between them: a rebuild of `3b943e4`
+reproduced its `parallel` binary byte for byte (6,135,424 B, sha256
+`8680d951a6595840…`) and a rebuild of `fabd4b9` reproduced its
+(`a37a043fe652dcc7…`), while an earlier rebuild of the same `3b943e4` tree gave
+a 6,135,416 B `parallel` binary — eight bytes smaller, same behaviour, same
+output hash — and reproduced the `parallel`-off binary of that round exactly.
+That is one observation, not the outcome to expect, and its cause was not
+identified; it is recorded so that the next rebuild can recognise it if it
+recurs. Either way the provenance is the commit plus the recipe, and the hash
+only names the file.
 
 **Comparison of the two outputs.** The C++ `FuzzyDiff` from the same prefix
 (`-ratio 1.001 -absdiff 1e-5`) fails at line 1, column 31 — the XML declaration,
