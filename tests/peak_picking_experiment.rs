@@ -29,6 +29,7 @@
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
 use openms::Error;
+use openms::concept::parallel::Threads;
 use openms::format::{mzml, paramxml};
 use openms::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, SpectrumType,
@@ -37,7 +38,8 @@ use openms::metadata::{DataProcessing, ProcessingAction};
 use openms::param::{Param, ParamValue};
 use openms::processing::peak_picking::{
     CENTROIDED_INPUT_MESSAGE, FwhmUnit, NoiseEstimates, NoiseHistogramRange, NoiseRangeParameters,
-    PeakBoundary, PeakPickerHiRes, PickingCompatibility, SignalToNoiseEstimatorMedian,
+    PARALLEL_BATCH_RECORDS, PeakBoundary, PeakPickerHiRes, PickingCompatibility,
+    SignalToNoiseEstimatorMedian,
 };
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -1491,6 +1493,411 @@ fn chromatogram_time_unsorted_is_sorted_on_load_and_refused_without_it() {
     assert!(times.windows(2).any(|pair| pair[0] > pair[1]));
     assert!(matches!(
         PeakPickerHiRes::default().pick_chromatogram(&unsorted.chromatograms[0]),
+        Err(Error::UnsortedData)
+    ));
+}
+
+// --------------------------------------------------------------------------
+// Parallel picking and the single-thread fixes (lane perf-picker)
+// --------------------------------------------------------------------------
+
+/// Every centroid and every boundary of a picked experiment, as raw bits.
+///
+/// `==` on `f64` would accept a value that drifted inside a tolerance, and
+/// drift with the worker count is exactly the defect the determinism contract
+/// excludes, so the comparison is on `to_bits`.
+fn picked_bits(
+    experiment: &MSExperiment,
+    boundaries: &[Option<Vec<PeakBoundary>>],
+    chromatogram_boundaries: &[Vec<PeakBoundary>],
+) -> Vec<u64> {
+    let mut bits = Vec::new();
+    for spectrum in &experiment.spectra {
+        bits.push(spectrum.peaks.len() as u64);
+        for peak in &spectrum.peaks {
+            bits.push(peak.mz.to_bits());
+            bits.push(u64::from(peak.intensity.to_bits()));
+        }
+        for array in &spectrum.float_data_arrays {
+            bits.push(array.data.len() as u64);
+            bits.extend(array.data.iter().map(|v| u64::from(v.to_bits())));
+        }
+    }
+    for chromatogram in &experiment.chromatograms {
+        bits.push(chromatogram.peaks.len() as u64);
+        for peak in &chromatogram.peaks {
+            bits.push(peak.rt.to_bits());
+            bits.push(u64::from(peak.intensity.to_bits()));
+        }
+    }
+    for record in boundaries {
+        match record {
+            None => bits.push(u64::MAX),
+            Some(list) => {
+                bits.push(list.len() as u64);
+                for boundary in list {
+                    bits.push(boundary.min.to_bits());
+                    bits.push(boundary.max.to_bits());
+                }
+            }
+        }
+    }
+    for list in chromatogram_boundaries {
+        bits.push(list.len() as u64);
+        for boundary in list {
+            bits.push(boundary.min.to_bits());
+            bits.push(boundary.max.to_bits());
+        }
+    }
+    bits
+}
+
+/// The worker counts every determinism assertion in this file runs at.
+///
+/// 32 exceeds the cores of an ordinary development machine on purpose: rayon
+/// starts the workers whatever the machine has, so the schedule differs from
+/// the one- and two-worker runs even where they cannot run truly concurrently.
+const THREAD_COUNTS: [i64; 5] = [1, 2, 8, 32, 0];
+
+/// Both parallel entry points are bit-identical to the serial ones at every
+/// worker count.
+///
+/// This is the determinism contract of `src/concept/parallel.rs` applied to the
+/// picker: centroids, float arrays, boundaries and the omitted-array reports
+/// are fixed by the input and the parameters alone. Records are picked
+/// independently and the pooled acquisition ledger is charged serially in input
+/// order, so there is nothing for a schedule to change.
+#[test]
+fn picking_an_experiment_is_bit_identical_at_every_thread_count() {
+    for label in ["orbitrap", "ftms", "selection", "simulation", "topp1"] {
+        for levels in [vec![], vec![1], vec![1, 2]] {
+            let picker = PeakPickerHiRes {
+                ms_levels: levels.clone(),
+                check_spectrum_type: false,
+                compatibility: PickingCompatibility::source(),
+                report_fwhm: Some(FwhmUnit::Absolute),
+                ..Default::default()
+            };
+            let input = experiment(label);
+            let serial = picker.pick_experiment(&input).expect("serial pick");
+            let expected = picked_bits(
+                &serial.experiment,
+                &serial.spectrum_boundaries,
+                &serial.chromatogram_boundaries,
+            );
+            for count in THREAD_COUNTS {
+                let threads = Threads::from_cli(count);
+                let owned = picker
+                    .pick_experiment_with_threads(&input, threads)
+                    .expect("parallel pick");
+                assert_eq!(
+                    picked_bits(
+                        &owned.experiment,
+                        &owned.spectrum_boundaries,
+                        &owned.chromatogram_boundaries
+                    ),
+                    expected,
+                    "{label} {levels:?} at {count} threads"
+                );
+                assert_eq!(owned.experiment, serial.experiment, "{label} {count}");
+                assert_eq!(
+                    owned.omitted_spectrum_arrays, serial.omitted_spectrum_arrays,
+                    "{label} {count}"
+                );
+                assert_eq!(
+                    owned.omitted_chromatogram_arrays, serial.omitted_chromatogram_arrays,
+                    "{label} {count}"
+                );
+
+                let mut streamed = input.clone();
+                let report = picker
+                    .pick_experiment_in_place_with_threads(&mut streamed, threads)
+                    .expect("parallel in-place pick");
+                assert_eq!(
+                    picked_bits(
+                        &streamed,
+                        &report.spectrum_boundaries,
+                        &report.chromatogram_boundaries
+                    ),
+                    expected,
+                    "{label} {levels:?} in place at {count} threads"
+                );
+                assert_eq!(streamed, serial.experiment, "{label} in place {count}");
+                assert_eq!(
+                    report.spectrum_boundaries, serial.spectrum_boundaries,
+                    "{label} in place {count}"
+                );
+                assert_eq!(
+                    report.omitted_spectrum_arrays, serial.omitted_spectrum_arrays,
+                    "{label} in place {count}"
+                );
+            }
+        }
+    }
+}
+
+/// More records than one parallel batch holds, so the batch loop runs several
+/// times and its boundaries fall in the middle of the run.
+///
+/// The batch bounds are a memory ceiling, not a tuning knob that may move a
+/// value: a run split into three batches has to give the same answer as the
+/// serial loop, and the per-record reports have to stay indexed by input
+/// position across the joins.
+#[test]
+fn a_run_of_several_parallel_batches_matches_the_serial_loop() {
+    let source = experiment("selection");
+    let mut input = MSExperiment {
+        settings: source.settings.clone(),
+        ..MSExperiment::default()
+    };
+    // Enough records to cross `PARALLEL_BATCH_RECORDS` twice.
+    while input.spectra.len() < 2 * PARALLEL_BATCH_RECORDS + 13 {
+        for spectrum in &source.spectra {
+            input.spectra.push(spectrum.clone());
+        }
+    }
+    let picker = PeakPickerHiRes {
+        check_spectrum_type: false,
+        compatibility: PickingCompatibility::source(),
+        ..Default::default()
+    };
+    let serial = picker.pick_experiment(&input).expect("serial pick");
+    let expected = picked_bits(
+        &serial.experiment,
+        &serial.spectrum_boundaries,
+        &serial.chromatogram_boundaries,
+    );
+    for count in THREAD_COUNTS {
+        let mut streamed = input.clone();
+        let report = picker
+            .pick_experiment_in_place_with_threads(&mut streamed, Threads::from_cli(count))
+            .expect("parallel pick");
+        assert_eq!(
+            picked_bits(
+                &streamed,
+                &report.spectrum_boundaries,
+                &report.chromatogram_boundaries
+            ),
+            expected,
+            "{count} threads over {} records",
+            input.spectra.len()
+        );
+    }
+}
+
+/// The in-place failure detail survives the parallel pass: exactly the records
+/// before the first failing one are replaced, whatever the worker count.
+///
+/// A parallel write-back would leave a schedule-dependent subset centroided.
+/// The batch is prepared in parallel and committed in input order instead, so
+/// the prefix is the serial one and the error is the first error in input
+/// order, not whichever worker failed first.
+#[test]
+fn the_in_place_failure_prefix_is_the_same_at_every_thread_count() {
+    let base = experiment("selection");
+    let good = base.spectra[0].clone();
+    let picker = PeakPickerHiRes {
+        max_points: good.len(),
+        compatibility: PickingCompatibility::source(),
+        ..Default::default()
+    };
+    // Two pickable records, then one above the point ceiling, then two more.
+    let mut big = good.clone();
+    big.peaks.extend_from_slice(&good.peaks);
+    let mut input = MSExperiment {
+        settings: base.settings.clone(),
+        ..MSExperiment::default()
+    };
+    input.spectra.extend([good.clone(), good.clone()]);
+    input.spectra.push(big);
+    input.spectra.extend([good.clone(), good.clone()]);
+
+    let mut serial = input.clone();
+    assert!(picker.pick_experiment_in_place(&mut serial).is_err());
+    for count in THREAD_COUNTS {
+        let mut streamed = input.clone();
+        let error = picker
+            .pick_experiment_in_place_with_threads(&mut streamed, Threads::from_cli(count))
+            .expect_err("the oversized record must be refused");
+        assert!(
+            matches!(&error, Error::InvalidValue(text) if text.contains("point limit")),
+            "{count} threads: {error:?}"
+        );
+        assert_eq!(
+            streamed, serial,
+            "{count} threads changed the failure prefix"
+        );
+        // The prefix is exactly the two records before the failure.
+        assert_ne!(streamed.spectra[0], input.spectra[0], "{count}");
+        assert_ne!(streamed.spectra[1], input.spectra[1], "{count}");
+        assert_eq!(streamed.spectra[2], input.spectra[2], "{count}");
+        assert_eq!(streamed.spectra[3], input.spectra[3], "{count}");
+        assert_eq!(streamed.spectra[4], input.spectra[4], "{count}");
+    }
+}
+
+/// The picked record carries every metadata field of the input, which is what
+/// cloning the whole record and overwriting its samples used to guarantee.
+///
+/// The output is now built field by field from the input's metadata (source
+/// `copySpectrumMeta`), so that picking no longer copies the profile samples and
+/// the annotation arrays of every record only to drop them. This pins the
+/// equivalence against the recipe it replaced: clone the input, put the picked
+/// samples in, mark it centroided and clear the arrays.
+#[test]
+fn the_picked_record_carries_every_metadata_field_the_input_had() {
+    let mut input = experiment("orbitrap").spectra[0].clone();
+    // Fields a fixture may leave at their defaults, so nothing is pinned by
+    // accident of both sides being empty.
+    input.rt = 1234.5;
+    input.ms_level = 1;
+    input.native_id = "controllerType=0 controllerNumber=1 scan=42".to_owned();
+    input.name = "a named spectrum".to_owned();
+    input.spectrum_type = SpectrumType::Profile;
+    input.drift_time = 17.5;
+    input.source_file.name = "source.raw".to_owned();
+    input.metadata.insert("kept".into(), "value".into());
+    let record = Arc::new(DataProcessing::default());
+    input.data_processing = vec![Arc::clone(&record)];
+    input
+        .integer_data_arrays
+        .push(DataArray::new("counts", vec![1_i32; input.len()]));
+    input.string_data_arrays.push(DataArray::new(
+        "labels",
+        vec![String::from("x"); input.len()],
+    ));
+
+    let picker = PeakPickerHiRes {
+        compatibility: PickingCompatibility::source(),
+        ..Default::default()
+    };
+    let picked = picker.pick_spectrum(&input).expect("pick");
+    assert!(!picked.spectrum.peaks.is_empty());
+
+    let mut expected = input.clone();
+    expected.peaks = picked.spectrum.peaks.clone();
+    expected.spectrum_type = SpectrumType::Centroid;
+    expected.float_data_arrays = picked.spectrum.float_data_arrays.clone();
+    expected.integer_data_arrays.clear();
+    expected.string_data_arrays.clear();
+    assert_eq!(picked.spectrum, expected);
+
+    // Processing handles stay shared rather than being deep-copied, as they did
+    // when the record was cloned.
+    assert!(Arc::ptr_eq(
+        &input.data_processing[0],
+        &picked.spectrum.data_processing[0]
+    ));
+    // The handle itself, the input's, the picked record's and the reference
+    // `expected` built just above.
+    assert_eq!(Arc::strong_count(&record), 4);
+
+    // The same for a chromatogram.
+    let mut chromatogram = experiment("selection")
+        .chromatograms
+        .pop()
+        .unwrap_or_default();
+    chromatogram.peaks = input
+        .peaks
+        .iter()
+        .map(|peak| ChromatogramPeak::new(peak.mz, peak.intensity))
+        .collect();
+    chromatogram.native_id = "chromatogram=1".to_owned();
+    chromatogram.name = "a named chromatogram".to_owned();
+    chromatogram.metadata.insert("kept".into(), "value".into());
+    chromatogram.data_processing = vec![Arc::clone(&record)];
+    let picked = picker
+        .pick_chromatogram(&chromatogram)
+        .expect("pick chromatogram");
+    let mut expected = chromatogram.clone();
+    expected.peaks = picked.chromatogram.peaks.clone();
+    expected.float_data_arrays.clear();
+    expected.integer_data_arrays.clear();
+    expected.string_data_arrays.clear();
+    assert_eq!(picked.chromatogram, expected);
+}
+
+/// An invalid record is still refused by the experiment entry points, with the
+/// same error, after the second per-record validation pass was removed.
+///
+/// `start_experiment` validates the whole experiment through
+/// `MSExperiment::validate`, which visits every spectrum and every one of its
+/// peaks. The selected records used to be validated a second time on the way
+/// into `pick_`, over the same, unchanged samples. Dropping that pass has to
+/// leave both refusals intact: the one for a record the picker would have
+/// handled, and the one for a record the selection rule would only have copied,
+/// which the per-record pass never reached in the first place.
+#[test]
+fn an_invalid_record_is_refused_by_the_experiment_entry_points() {
+    let picker = PeakPickerHiRes {
+        ms_levels: vec![1],
+        check_spectrum_type: false,
+        compatibility: PickingCompatibility::source(),
+        ..Default::default()
+    };
+    let base = experiment("selection");
+    let good = base.spectra[0].clone();
+    assert_eq!(good.ms_level, 1, "the fixture record must be picked");
+    let mut broken = good.clone();
+    broken.peaks[3] = Peak1D::new(f64::NAN, 1.0);
+
+    for (label, level) in [("picked", 1_u32), ("copied", 2)] {
+        let mut copied = broken.clone();
+        copied.ms_level = level;
+        let input = MSExperiment {
+            spectra: vec![good.clone(), copied],
+            settings: base.settings.clone(),
+            ..MSExperiment::default()
+        };
+        for count in THREAD_COUNTS {
+            let threads = Threads::from_cli(count);
+            let error = picker
+                .pick_experiment_with_threads(&input, threads)
+                .expect_err("an invalid record must be refused");
+            assert!(
+                matches!(&error, Error::InvalidValue(text) if text.contains("peak m/z")),
+                "{label} at {count} threads: {error:?}"
+            );
+            // Refused before anything is written back, so the input is intact.
+            // Compared record by record rather than with `==` on the whole
+            // experiment, because the invalid record's `NaN` position is not
+            // equal to itself.
+            let mut streamed = input.clone();
+            assert!(
+                picker
+                    .pick_experiment_in_place_with_threads(&mut streamed, threads)
+                    .is_err(),
+                "{label} at {count} threads"
+            );
+            assert_eq!(streamed.spectra[0], input.spectra[0], "{label} {count}");
+            assert_eq!(
+                streamed.spectra[1].peaks.len(),
+                input.spectra[1].peaks.len(),
+                "{label} {count}"
+            );
+            assert!(
+                streamed.spectra[1].peaks[3].mz.is_nan(),
+                "{label} at {count} threads replaced the invalid record"
+            );
+        }
+    }
+
+    // A refusal only `pick_` can make - here unsorted samples under the native
+    // default - still comes from inside the record loop.
+    let mut unsorted = good.clone();
+    unsorted.peaks.reverse();
+    let input = MSExperiment {
+        spectra: vec![unsorted],
+        settings: base.settings.clone(),
+        ..MSExperiment::default()
+    };
+    let native = PeakPickerHiRes {
+        ms_levels: vec![1],
+        check_spectrum_type: false,
+        ..Default::default()
+    };
+    assert!(matches!(
+        native.pick_experiment_with_threads(&input, Threads::from_cli(8)),
         Err(Error::UnsortedData)
     ));
 }

@@ -172,6 +172,45 @@ Every member of `TOPPPeakPickerHiRes`, in source order.
    mapping of `Error::InvalidValue` to `ILLEGAL_PARAMETERS`: these are data and
    resource conditions, not parameter errors. One of them, a non-converging
    FWHM bisection, is where the source loops forever.
+9. **`-threads` reaches the picking, where the source's does not.** The source
+   tool applies the setting before `main_` (`TOPPBase.cpp:408-415`), but
+   `PeakPickerHiRes.cpp` has no OpenMP anywhere, so in the C++ the setting
+   changes nothing about this tool's picking; the measurements below show its
+   wall time flat across `-threads 1`, `8` and `32`. This port runs the whole
+   tool body on the rayon pool `ToolContext::in_thread_pool` sizes from the
+   policy — the pattern of the five earlier ported tools — and the picker's
+   spectrum loop is parallel inside it. The written file is fixed by the input
+   and the parameters: byte-identical at `1`, `2`, `8`, `16`, `32` and `0`
+   workers in the test suite, and byte-identical over the 2.3 GB benchmark run
+   at `1`, `8` and `32`, to a build with the `parallel` feature off.
+
+   The pool is opened in `run_io` rather than in `run`, because this tool
+   overrides `run_io` and that is what `run_with` calls; a wrapper around `run`
+   would never execute. `run_io`'s streams are not `Send`, so the body returns
+   its diagnostic and summary lines and `run_io` writes them once the pool has
+   returned, which is the pattern `ToolContext::in_thread_pool` documents. The
+   relative order of the two streams' lines is the source's: input warnings
+   before the per-level summary, and a run that produces a diagnostic produces
+   no summary.
+
+   One consequence is about *when*, not *what*: the per-peak ion mobility
+   warning used to reach the error stream as soon as the input was checked, and
+   now reaches it when the run ends, together with the summary. Every byte and
+   every ordering is unchanged, and a caller that captures the streams — every
+   test, and `run_with` — cannot tell; a user watching a terminal during a
+   half-minute run sees the warning at the end instead of at the start. Writing
+   it earlier would mean carrying a `Send` stream onto a pool thread, which the
+   framework's `run_io` signature does not offer.
+10. **Picking is in place.** The tool picks with
+    `PeakPickerHiRes::pick_experiment_in_place_with_threads` rather than the
+    borrowing `pick_experiment`: it writes the picked experiment and never reads
+    the profile data again, so replacing each record as its centroids appear
+    releases that record's profile samples and copies no record it does not
+    pick (33,945 of the benchmark run's 40,856 spectra are copied by the
+    borrowing form). The two produce the same experiment and the same reports;
+    only the peak memory differs, by 886 MB on the benchmark run. The in-place
+    form is not atomic, which costs this tool nothing: its only reaction to a
+    picking error is to report it and exit without writing an output file.
 
 ## Checked boundaries and evidence
 
@@ -257,6 +296,111 @@ is not the state of this branch.
 Both implementations print the same per-MS-level summary
 (`MS-level 1: 6911 / 6911`, `MS-level 2: 0 / 33945`); the C++ adds progress
 logging and a timing line, which this port does not write (native difference 6).
+
+### Instrument scale across thread counts (`perf/peak-picker`)
+
+Same node, same input, same C++ Release build and the same C++-written INI, this
+time with `-test` so the processing record carries no wall-clock time and the
+written file can be compared by hash. Each configuration was pinned with
+`taskset` to as many CPUs as it was given workers (`-c 0`, `0-7`, `0-31`) and
+run three times; the table is the **median**. The node carried a foreign load of
+11 to 30 runnable processes throughout, recorded per run; run-to-run spread
+within a configuration was at most 0.35 s. Four binaries:
+
+* **C++** — `openms4-release-bc9cc12-c19e494-174b576`.
+* **Rust before** — the baseline build of `fabd4b9`
+  (`/scratch/kohlbach/bench/openms4/rust/fabd4b907d8d`, `cargo build --release
+  --locked --offline`, rustc 1.96.0, no `RUSTFLAGS`).
+* **Rust after** — this branch, same recipe and toolchain.
+* **Rust after, `parallel` off** — this branch built
+  `--no-default-features --features mzml,paramxml`.
+
+| | wall `-threads 1` | `-threads 8` | `-threads 32` | peak RSS | output |
+| --- | --- | --- | --- | --- | --- |
+| C++ `PeakPickerHiRes` | 28.74 s | 26.46 s | 28.36 s | 3,953,088 KiB | 549,526,348 B |
+| Rust before (`fabd4b9`) | 37.41 s | — | — | 4,414,356 KiB | 535,613,726 B |
+| Rust after | 38.07 s | **23.83 s** | **22.53 s** | 3,528,284 KiB (t1), 3,522,796 KiB (t32) | 535,613,726 B |
+| Rust after, `parallel` off | 37.11 s | — | 36.94 s | 3,527,568 KiB | 535,613,726 B |
+
+**Bit-identity.** All six Rust runs in that table — after at 1, 8 and 32
+workers, before at 1, and the `parallel`-off build at 1 and 32 — wrote the same
+535,613,726 bytes, sha256
+`bb13eecfe092a272b08ddc71feec3780c7bc876e8847e8a45b173cda9d2dad52`. The worker
+count changes nothing, the `parallel` feature changes nothing, and the
+single-thread changes of this branch changed nothing: the file is the one
+`fabd4b9` wrote, and its 22,776,198 centroids are therefore still the C++
+Release build's, bit for bit.
+
+**Scaling, and its ceiling.** The C++ tool is flat, as it must be with no
+OpenMP in the picker; its 26.46 s at eight CPUs is the OpenBLAS server threads
+having room to spin rather than any picking being shared. The Rust tool goes
+38.07 → 23.83 → 22.53 s, **1.69x at 32 workers**, and passes the C++ tool
+between one and eight workers. The ceiling is Amdahl's and is known: the pick
+loop is about 47% of the run and the serial mzML read is about 45%, so no worker
+count takes this below roughly 20 s while the reader is serial. The reader is
+also the larger half of the remaining gap to C++ (+5.4 s of the +8.6 s measured
+by the profiling lane) and is not this lane's file.
+
+**Memory.** Peak RSS falls from 4,414,356 KiB to 3,528,284 KiB, 886 MB and 20%,
+below the C++ tool's 3,953,088 KiB — the in-place entry point and the
+metadata-only record construction. It is **flat in the worker count**:
+3,528,284 KiB at one worker against 3,522,796 KiB at 32. The parallel path holds
+one bounded batch of centroids beyond what a serial pick holds
+(`PARALLEL_BATCH_RECORDS` / `PARALLEL_BATCH_POINTS`), not one per worker.
+
+**`-threads` reaches the workers.** The running tool's `/proc/<pid>/task/*/comm`
+was sampled every 50 ms: `-threads 1`, `2`, `8` and `32` start exactly 1, 2, 8
+and 32 threads named `openms-<i>`, the names
+`ToolContext::in_thread_pool` gives its pool, beside the main thread and nothing
+else. The policy reaches the run phase, and the pool is the only source of
+threads in the process.
+
+**What the single-thread changes are worth, measured without the node.** Wall
+time on this node cannot resolve a half-second on a 37 s run today: a paired,
+alternating A/B of eight reps ran while the foreign load swung between 16 and 41
+and the same binary spread over 35.3 s to 42.5 s, so that A/B is reported as
+inconclusive rather than as a number. Instruction and cache counts are
+deterministic and do not care about the load. Callgrind (valgrind 3.27.1,
+`--cache-sim=yes --branch-sim=yes`) over the 682-spectrum, 49.7 MB slice
+`part_part01of60.mzML` with the same INI, comparing the `fabd4b9` build with this
+branch built **without** `parallel`, so the comparison is the single-thread
+changes alone:
+
+| | instructions | data refs | D1 misses | branches |
+| --- | --- | --- | --- | --- |
+| `fabd4b9` | 5,772,359,295 | 2,269,350,081 | 25,318,013 | 1,333,460,579 |
+| this branch, `parallel` off | 5,666,738,294 | 2,155,012,414 | 22,906,810 | 1,275,295,797 |
+| change | **-1.83%** | **-5.04%** | **-9.52%** | **-4.36%** |
+
+All three runs wrote the same 5,841,655 bytes (sha256 `2670a1d738bf135e…`). The
+data-reference and D1-miss figures are where the two removed passes live: the
+whole-record clone that copied every profile sample of every picked spectrum
+only to drop it, and the second `MSSpectrum::validate` over samples the
+experiment-level pass had already visited. Instructions fall by less than data
+references do, which is what removing copies rather than computation looks like.
+
+**The one-worker cost, and where it comes from.** `-threads 1` is 38.07 s where
+the same code with `parallel` off is 37.11 s. The only difference is that
+`ToolContext::in_thread_pool` builds a one-worker pool and runs the body on it,
+and glibc gives a secondary thread its own malloc arena. Measured directly, same
+binary, three reps, medians: default 38.29 s, `MALLOC_ARENA_MAX=1` 37.61 s,
+`parallel`-off build 37.61 s. Forcing one arena recovers the difference exactly,
+so the 0.68 s is the arena and nothing else. Adding the profiling lane's
+threshold settings on top (`MALLOC_MMAP_THRESHOLD_`, `MALLOC_TRIM_THRESHOLD_`,
+`MALLOC_TOP_PAD_`) gives 35.38 s — a further 2.2 s that a crate-wide allocator
+decision would collect. Both are integrator questions
+(`Cargo.toml`/`src/lib.rs`), not this lane's.
+
+**Evidence.** Drivers, per-run logs, the results table and the callgrind output
+are archived at
+`/ceph/ibmi/abi/oliver/bench/openms4/results/2026-09-15-pph-parallel/`
+(`bench_remote.sh`, `arena_probe.sh`, `ab_probe.sh`, `ir_probe.sh`,
+`results.tsv`, `bench_run.log`, `ab_probe.log`, `ir_probe.log`,
+`ir_{base,ser,new}.log`, `bench_build.log`). The two binaries built for it are
+`target-par/release/PeakPickerHiRes` sha256 `8680d951a6595840…` and
+`target-ser/release/PeakPickerHiRes` sha256 `7743813dccee4c05…`, both from this
+worktree with `cargo build --release --locked --offline`, rustc 1.96.0, no
+`RUSTFLAGS`, under `/scratch/kohlbach/agents/perf-pick-bench/`.
 
 **Comparison of the two outputs.** The C++ `FuzzyDiff` from the same prefix
 (`-ratio 1.001 -absdiff 1e-5`) fails at line 1, column 31 — the XML declaration,

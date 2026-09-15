@@ -39,7 +39,8 @@ use crate::metadata::{
 };
 use crate::param::Param;
 use crate::processing::peak_picking::{
-    CENTROIDED_INPUT_MESSAGE, PeakPickerHiRes as Picker, PickedExperiment, PickingCompatibility,
+    CENTROIDED_INPUT_MESSAGE, PeakPickerHiRes as Picker, PickedExperimentReport,
+    PickingCompatibility,
 };
 use crate::{Error, Result};
 use std::collections::BTreeMap;
@@ -116,11 +117,29 @@ const UNSORTED_CHROMATOGRAMS_ERROR: &str = "Error: Not all chromatograms are sor
 /// The refusal of `-processOption lowmemory` until package P4 ports it.
 const LOW_MEMORY_UNSUPPORTED: &str = "PeakPickerHiRes -processOption lowmemory is not ported yet (package P4-PICKER-LOWMEM of the early TOPP bundle ports it); use -processOption inmemory";
 
+/// What the tool body produced for its caller to report.
+///
+/// The body runs on the worker pool that `-threads` sizes and the streams of
+/// [`Tool::run_io`] are not [`Send`], so it collects its lines instead of
+/// writing them and [`PeakPickerHiRes::run_io`] writes them once the pool has
+/// returned — the pattern [`ToolContext::in_thread_pool`] describes. Error-stream
+/// lines are written before standard-output lines, which is the order the
+/// source writes them in: the input warnings precede the per-level summary, and
+/// a run that produces a diagnostic produces no summary.
+struct Reported {
+    /// Error-stream lines, in source order, each written as its own line.
+    diagnostics: Vec<String>,
+    /// Standard-output lines: the per-level summary.
+    summary: Vec<String>,
+    /// The exit code of the run.
+    code: ExitCode,
+}
+
 /// The in-memory input checks of `main_` before picking
 /// (`PeakPickerHiRes.cpp:216-256`), in source order.
 ///
-/// Writes the ion mobility warning once, for the first spectrum whose format
-/// is per-peak, then returns the terminal exit code, if any, after writing its
+/// Appends the ion mobility warning once, for the first spectrum whose format
+/// is per-peak, then returns the terminal exit code, if any, after appending its
 /// diagnostic: [`ExitCode::IncompatibleInputData`] for an experiment without
 /// spectra and chromatograms, or with an unsorted spectrum or chromatogram.
 ///
@@ -135,84 +154,90 @@ const LOW_MEMORY_UNSUPPORTED: &str = "PeakPickerHiRes -processOption lowmemory i
 /// sorts every record by position, as the source `FileHandler::loadExperiment`
 /// does with default `PeakFileOptions` (`MzMLHandler.cpp:218-221`, `299-302`);
 /// they are kept because the source keeps them.
-fn check_input(experiment: &MSExperiment, err: &mut dyn Write) -> Result<Option<ExitCode>> {
+fn check_input(experiment: &MSExperiment, diagnostics: &mut Vec<String>) -> Option<ExitCode> {
     if experiment
         .spectra
         .iter()
         .any(|spectrum| ImTypes::determine_im_format(spectrum) == IonMobilityFormat::PerPeak)
     {
-        writeln!(
-            err,
-            "{}",
-            ion_mobility_warning(IonMobilityPeakType::Profile)
-        )?;
+        diagnostics.push(ion_mobility_warning(IonMobilityPeakType::Profile));
     }
     if experiment.spectra.is_empty() && experiment.chromatograms.is_empty() {
-        writeln!(err, "{EMPTY_INPUT_WARNING}")?;
-        return Ok(Some(ExitCode::IncompatibleInputData));
+        diagnostics.push(EMPTY_INPUT_WARNING.to_owned());
+        return Some(ExitCode::IncompatibleInputData);
     }
     if !experiment
         .spectra
         .iter()
         .all(|spectrum| spectrum.is_sorted())
     {
-        writeln!(err, "{UNSORTED_SPECTRA_ERROR}")?;
-        return Ok(Some(ExitCode::IncompatibleInputData));
+        diagnostics.push(UNSORTED_SPECTRA_ERROR.to_owned());
+        return Some(ExitCode::IncompatibleInputData);
     }
     if !experiment
         .chromatograms
         .iter()
         .all(|chromatogram| chromatogram.is_sorted())
     {
-        writeln!(err, "{UNSORTED_CHROMATOGRAMS_ERROR}")?;
-        return Ok(Some(ExitCode::IncompatibleInputData));
+        diagnostics.push(UNSORTED_CHROMATOGRAMS_ERROR.to_owned());
+        return Some(ExitCode::IncompatibleInputData);
     }
-    Ok(None)
+    None
 }
 
-/// Pick every selected spectrum and every chromatogram of `raw`, as
-/// `PeakPickerHiRes::pickExperiment`.
+/// Pick every selected spectrum and every chromatogram of `experiment` in
+/// place, as `PeakPickerHiRes::pickExperiment`.
 ///
 /// `threads` is the run's `-threads` policy
-/// ([`ToolContext::thread_policy`](crate::cli::ToolContext::thread_policy)).
-/// The source picks serially (`PeakPickerHiRes.cpp` has no OpenMP), and
-/// [`PeakPickerHiRes::pick_experiment`](crate::processing::peak_picking::PeakPickerHiRes::pick_experiment)
-/// takes no thread policy, so the policy is not consumed yet: every thread
-/// count runs the same serial computation and the output is bit-identical by
-/// construction. A parallel overload in the library, which would honour the
-/// determinism contract of [`crate::concept::parallel`], is the place the
-/// policy goes.
+/// ([`ToolContext::thread_policy`](crate::cli::ToolContext::thread_policy)),
+/// which reaches
+/// [`PeakPickerHiRes::pick_experiment_in_place_with_threads`](crate::processing::peak_picking::PeakPickerHiRes::pick_experiment_in_place_with_threads):
+/// the spectrum loop runs on the pool
+/// [`ToolContext::in_thread_pool`](crate::cli::ToolContext::in_thread_pool)
+/// built for the tool body from the same policy, and the centroids are
+/// bit-identical at every worker count (the determinism contract of
+/// [`crate::concept::parallel`]). The source picks serially —
+/// `PeakPickerHiRes.cpp` has no OpenMP — so there is no C++ parallel baseline
+/// here; what the source does parallelise for this workload is the mzML reader
+/// (`MzMLHandler.cpp:206`), which this tool's loader does not.
+///
+/// The **in-place** entry point is used rather than the borrowing one because
+/// this tool writes the picked experiment and never reads the profile data
+/// again: picking in place releases each spectrum's profile samples as its
+/// centroids appear and copies no record it does not pick, where the borrowing
+/// form holds a second experiment beside the first and clones every unpicked
+/// record. The two produce the same experiment and the same reports; only the
+/// peak memory differs. The in-place form is not atomic, which costs this tool
+/// nothing: its only reaction to a picking error is to report it and exit
+/// without writing an output file.
 fn pick_experiment(
     picker: &Picker,
-    raw: &MSExperiment,
+    experiment: &mut MSExperiment,
     threads: Threads,
-) -> Result<PickedExperiment> {
-    let _ = threads;
-    picker.pick_experiment(raw)
+) -> Result<PickedExperimentReport> {
+    picker.pick_experiment_in_place_with_threads(experiment, threads)
 }
 
 /// The per-level summary `pickExperiment` logs (`PeakPickerHiRes.cpp:559-563`):
 /// for each MS level in ascending order, the spectra picked and the spectra
 /// seen. The header is written even without spectra.
-fn write_pick_summary(
-    raw: &MSExperiment,
-    picked: &PickedExperiment,
-    out: &mut dyn Write,
-) -> Result<()> {
+///
+/// `experiment` is the picked experiment, whose spectra are those of the input
+/// in input order and carry the MS level they were read with: picking replaces a
+/// record's samples and leaves its metadata, so the per-level counts are the
+/// same before and after.
+fn pick_summary(experiment: &MSExperiment, report: &PickedExperimentReport) -> Vec<String> {
     let mut levels: BTreeMap<u32, (u64, u64)> = BTreeMap::new();
-    for (spectrum, boundaries) in raw.spectra.iter().zip(&picked.spectrum_boundaries) {
+    for (spectrum, boundaries) in experiment.spectra.iter().zip(&report.spectrum_boundaries) {
         let entry = levels.entry(spectrum.ms_level).or_insert((0, 0));
         entry.0 += u64::from(boundaries.is_some());
         entry.1 += 1;
     }
-    writeln!(
-        out,
-        "#Spectra that needed to and could be picked by MS-level:"
-    )?;
+    let mut summary = vec!["#Spectra that needed to and could be picked by MS-level:".to_owned()];
     for (level, (count, total)) in levels {
-        writeln!(out, "  MS-level {level}: {count} / {total}")?;
+        summary.push(format!("  MS-level {level}: {count} / {total}"));
     }
-    Ok(())
+    summary
 }
 
 /// Render the list-valued and empty parameters of a processing record as the
@@ -311,6 +336,22 @@ impl Tool for PeakPickerHiRes {
     ///    processing record is attached to every spectrum and chromatogram
     ///    (`addDataProcessing_`), and the experiment is stored as mzML.
     ///
+    /// Picking replaces the loaded experiment record by record rather than
+    /// building a second one (see `pick_experiment` in this module). Neither
+    /// that nor the worker pool changes a written byte: the output of a run is
+    /// fixed by its input and its parameters, at every worker count and with or
+    /// without the `parallel` feature.
+    ///
+    /// The whole body runs on the pool that `-threads` sizes, as
+    /// `TOPPBase::main` applies the setting before `main_`
+    /// (`TOPPBase.cpp:408-415`); see [`ToolContext::in_thread_pool`], which the
+    /// five earlier ported tools call from
+    /// [`Tool::run`](crate::cli::Tool::run). This tool overrides `run_io`, which
+    /// is what [`run_with`](crate::cli::run_with) calls, so the pool is opened
+    /// here instead — a wrapper around `run` would never execute. Its `out` and
+    /// `err` are not [`Send`], so the body returns its lines as a `Reported`
+    /// and this writes them once the pool has returned.
+    ///
     /// # Errors
     ///
     /// Loading, storing and processing-record failures propagate and are
@@ -326,6 +367,27 @@ impl Tool for PeakPickerHiRes {
     /// `signal_to_noise` 0 the estimator never runs in either implementation
     /// and the run succeeds.
     fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> Result<ExitCode> {
+        let reported = ctx.in_thread_pool(|| Self::run_in_pool(ctx))??;
+        for line in &reported.diagnostics {
+            writeln!(err, "{line}")?;
+        }
+        for line in &reported.summary {
+            writeln!(out, "{line}")?;
+        }
+        Ok(reported.code)
+    }
+}
+
+impl PeakPickerHiRes {
+    /// The tool body, as the source `main_`, run on the `-threads` pool.
+    ///
+    /// Returns what [`PeakPickerHiRes::run_io`] reports rather than writing it,
+    /// because the streams do not cross onto a pool thread.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerHiRes::run_io`].
+    fn run_in_pool(ctx: &ToolContext) -> Result<Reported> {
         let input = ctx.string("in")?;
         let output = ctx.string("out")?;
         let process_option = ctx.string("processOption")?;
@@ -338,36 +400,54 @@ impl Tool for PeakPickerHiRes {
             return Err(Error::Unsupported(LOW_MEMORY_UNSUPPORTED.into()));
         }
 
-        let raw = FileHandler::load_experiment_with_read_options(
+        let mut experiment = FileHandler::load_experiment_with_read_options(
             input,
             &[FileType::MzMl],
             &PeakFileOptions::default(),
             &Self::read_options(),
         )?;
-        if let Some(code) = check_input(&raw, err)? {
-            return Ok(code);
+        let mut diagnostics = Vec::new();
+        if let Some(code) = check_input(&experiment, &mut diagnostics) {
+            return Ok(Reported {
+                diagnostics,
+                summary: Vec::new(),
+                code,
+            });
         }
 
-        let mut picked = match pick_experiment(&picker, &raw, ctx.thread_policy()) {
-            Ok(picked) => picked,
+        let report = match pick_experiment(&picker, &mut experiment, ctx.thread_policy()) {
+            Ok(report) => report,
             Err(error @ Error::Unsupported(_)) => return Err(error),
+            // The centroided refusal is reported with the source's bare
+            // message, without this port's `invalid value: ` prefix.
             Err(Error::InvalidValue(reason)) if reason == CENTROIDED_INPUT_MESSAGE => {
-                writeln!(err, "Error: Unexpected internal error ({reason})")?;
-                return Ok(ExitCode::UnknownError);
+                diagnostics.push(format!("Error: Unexpected internal error ({reason})"));
+                return Ok(Reported {
+                    diagnostics,
+                    summary: Vec::new(),
+                    code: ExitCode::UnknownError,
+                });
             }
             Err(error) => {
-                writeln!(err, "Error: Unexpected internal error ({error})")?;
-                return Ok(ExitCode::UnknownError);
+                diagnostics.push(format!("Error: Unexpected internal error ({error})"));
+                return Ok(Reported {
+                    diagnostics,
+                    summary: Vec::new(),
+                    code: ExitCode::UnknownError,
+                });
             }
         };
-        write_pick_summary(&raw, &picked, out)?;
-        drop(raw);
+        let summary = pick_summary(&experiment, &report);
 
         let mut processing = ctx.processing_info(&[ProcessingAction::PeakPicking])?;
         render_list_parameters(&mut processing);
-        ctx.add_data_processing(&mut picked.experiment, &processing);
-        FileHandler::store_experiment(output, &picked.experiment, Some(FileType::MzMl))?;
-        Ok(ExitCode::ExecutionOk)
+        ctx.add_data_processing(&mut experiment, &processing);
+        FileHandler::store_experiment(output, &experiment, Some(FileType::MzMl))?;
+        Ok(Reported {
+            diagnostics,
+            summary,
+            code: ExitCode::ExecutionOk,
+        })
     }
 }
 
@@ -393,10 +473,17 @@ mod tests {
         }
     }
 
+    /// The exit code and the error-stream text `run_io` would write, so the
+    /// expectations stay the same now that the body collects its lines.
     fn checked(experiment: &MSExperiment) -> (Option<ExitCode>, String) {
-        let mut err = Vec::new();
-        let code = check_input(experiment, &mut err).unwrap();
-        (code, String::from_utf8(err).unwrap())
+        let mut diagnostics = Vec::new();
+        let code = check_input(experiment, &mut diagnostics);
+        let mut text = String::new();
+        for line in &diagnostics {
+            text.push_str(line);
+            text.push('\n');
+        }
+        (code, text)
     }
 
     /// The unsorted branches cannot be reached through the tool's loader, which

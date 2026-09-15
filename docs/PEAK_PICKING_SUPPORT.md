@@ -267,7 +267,61 @@ defaults, including values the selected modes ignore.
     does own a copy of every record it does not pick, which is what returning an
     owned experiment from a borrowed one means; `pick_experiment_in_place` is
     the streaming entry point that avoids even that, at the cost of atomicity
-    (see the benchmark notes).
+    (see the benchmark notes). A picked record is built from the input's
+    metadata field by field, which is source `copySpectrumMeta`
+    (`SpectrumHelper.cpp:14-25`); the port used to clone the whole input record
+    and overwrite its samples one line later, copying every profile sample and
+    annotation array of the record only to drop them. The fields are listed
+    exhaustively, with no `..` rest, so a member added to `MSSpectrum` or
+    `MSChromatogram` is a compile error there rather than a silently dropped
+    one, and `the_picked_record_carries_every_metadata_field_the_input_had`
+    pins the equivalence against the recipe it replaced.
+14. **A parallel spectrum loop, where the source has none.**
+    `PeakPickerHiRes.cpp` carries no `#pragma omp` at all: its spectrum loop
+    (`:504`), chromatogram loop (`:548`) and on-disc loop (`:584`) are plain
+    `for` statements and the header describes consecutive scans. (What OpenMS
+    does parallelise for this workload is the mzML reader,
+    `MzMLHandler.cpp:206`.) Picking one record reads nothing but that record, so
+    `pick_experiment_with_threads` and `pick_experiment_in_place_with_threads`
+    run the numerical half of the spectrum loop on a worker pool behind the
+    `parallel` feature. `pick_experiment` and `pick_experiment_in_place` are
+    those at `Threads::serial()`, so no existing caller changes behaviour.
+
+    The determinism contract of `src/concept/parallel.rs` holds by
+    construction, not by tolerance. The arithmetic is per record and never
+    crosses records, so nothing is re-associated; results come back from an
+    indexed parallel iterator in input order; the pooled acquisition-metadata
+    ledger is charged **serially in input order** after the parallel pass,
+    because a ledger charged from several workers would exhaust at a
+    schedule-dependent record; and the first error is the first in input order,
+    because the parallel pass collects a `Result` per record and the serial pass
+    resolves them by index — `Result`'s own `FromParallelIterator` explicitly
+    does not promise which of several errors it returns. The in-place form keeps
+    its documented failure detail for the same reason: a batch is prepared in
+    parallel and committed in input order, so exactly the records before the
+    first failing one are replaced, where a parallel write-back would leave a
+    schedule-dependent subset centroided.
+
+    The parallel pass runs in bounded batches, at most
+    `PARALLEL_BATCH_RECORDS` (4096) records or `PARALLEL_BATCH_POINTS`
+    (16,000,000) input samples, whichever comes first, and always at least one
+    record. That is a native memory bound with no counterpart in the serial
+    source loop: it is what keeps the extra memory of a parallel pick at one
+    batch of centroids rather than at the whole run, and independent of the
+    worker count. Only the spectrum loop is parallel; chromatograms are picked
+    serially after it, because the runs this is measured on carry a few thousand
+    chromatogram points against hundreds of millions of profile samples.
+15. **One validation pass in the experiment path.** `start_experiment` validates
+    the whole experiment through `MSExperiment::validate`, which visits every
+    spectrum and every one of its peaks. Selected records used to be validated a
+    second time on the way into `pick_`, over the same, unchanged samples; that
+    pass is gone. Nothing mutates between the two — `pick_experiment` never
+    mutates the input, `pick_experiment_in_place` only replaces records it has
+    already picked — so an invalid record is refused with the same error, one
+    pass over the samples earlier, and
+    `an_invalid_record_is_refused_by_the_experiment_entry_points` pins both the
+    picked and the merely copied case. The single-record entry points still
+    validate what they are given.
 12. **`estimate_spectrum_type`.** The public helper keeps the picker's strict
     input contract; `MSSpectrum::get_type(true)`, which `pick_experiment` uses,
     classifies any finite data as the source does.
@@ -431,20 +485,32 @@ the support map lives in two vectors reused for every peak of a record, and
 positions and intensities are read in place. Remaining per-peak and
 per-record costs, reported and not changed here:
 
-- `CubicSpline2d::with_max_points` (read-only module) allocates eight vectors per
-  peak and checks every intermediate for finiteness; the source allocates its
-  map nodes and five spline vectors.
+- `CubicSpline2d::with_max_points` (read-only module) allocates **eight** vectors
+  per peak — `h`, `mu`, `z`, `b`, `c`, `d`, `x.to_vec()` and `y[..n].to_vec()` —
+  and checks every intermediate for finiteness; the source allocates its map
+  nodes and five spline vectors. On the benchmark run that is 22,776,198 peaks
+  × 8 allocate/free pairs, and `alloc::alloc` is 271,144,136 of the
+  590,918,793 instructions the construction costs, i.e. 46% of it. This is the
+  largest cost the picker still pays that the source does not, and it is not in
+  this module: `src/processing/spline/cubic.rs` is shared with the retention-time
+  transformations. A `fit_into(&mut self, x, y, max_points)` that reuses the
+  spline's own vectors plus a small scratch, with the recurrence unchanged term
+  by term, would be bit-identical and remove all eight; integrator request.
 - `pick_experiment` builds its output record by record, as source
-  `pickExperiment` does; it no longer clones the whole input experiment first.
-  Each picked spectrum is still cloned in `pick_spectrum_with_acquisition`
-  before its peaks and arrays are replaced, which copies that spectrum's profile
-  samples once and drops them; removing it is worth about 2% of the pick wall
-  time and belongs in `kernel::spectrum_helper::copy_spectrum_meta`, which every
-  caller shares. Every record is validated twice (experiment and record level)
-  and scanned again by the input checks.
+  `pickExperiment` does; it no longer clones the whole input experiment first,
+  and since `perf/peak-picker` it no longer clones each picked record either
+  (native difference 11).
 - `MSSpectrum::get_type(true)` copies positions and intensities of each
-  unknown-type spectrum to estimate its type.
-- The noise estimator scans the input once more for its own checks.
+  unknown-type spectrum to estimate its type. The source's `pickExperiment`
+  makes the same query, so this is not a port-only cost; it is a second full
+  pass over the samples of every record whose type is not stored.
+- The noise estimator scans the input once more for its own checks. It is off
+  on the benchmark INI (`signal_to_noise` 0 disables estimation entirely) and
+  so is not on that hot path at all.
+- `validate_points` still scans a record inside `pick_`. Under
+  `PickingCompatibility::source()`, which every tool path uses, that is one pass
+  (the order and duplicate scans are skipped); under the native default it is
+  three, which cannot be fused without changing which refusal wins.
 
 Measured on `ibminode06` against the 2.3 GB, 40 856-spectrum Q Exactive run
 `profile_hr_qe_silac_uk222/UK222.mzML`, with `PickingCompatibility::source()`
@@ -484,3 +550,31 @@ stage with the load stage subtracted: 11.8 s to 10.0 s, about -15%, which is the
 whole-experiment clone no longer being made. The ordering of `pick_experiment`
 and `pick_experiment_in_place` on the full run also flipped between the two sets
 of runs, so the two are wall-indistinguishable here and differ only in memory.
+
+### The parallel spectrum loop, end to end (`perf/peak-picker`)
+
+The end-to-end numbers now exist and live with the tool that produced them:
+`TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`, *Instrument scale across thread counts*.
+Same node, same 2.3 GB input, same C++ Release build, medians of three pinned
+runs with `-test`. In short:
+
+* **Bit-identical.** The `PeakPickerHiRes` tool wrote the same 535,613,726
+  bytes (sha256 `bb13eecf…`) at 1, 8 and 32 workers, with the `parallel` feature
+  off, and from the `fabd4b9` build that predates this branch. The determinism
+  contract holds on real data at instrument scale, and the single-thread changes
+  here moved no byte.
+* **1.69x at 32 workers** on the whole tool (38.07 → 22.53 s), against a C++
+  tool that is flat (28.74 / 26.46 / 28.36 s) because its picker has no OpenMP.
+  The ceiling is the serial mzML read.
+* **Peak RSS flat in the worker count**: 3,528,284 KiB at one worker,
+  3,522,796 KiB at 32, and 4,414,356 KiB before this branch. The parallel path
+  holds one bounded batch beyond a serial pick, not one per worker.
+* **The two single-thread changes** — the metadata-only record construction
+  (native difference 11) and the removed second validation pass (15) — are worth
+  **-1.83% instructions, -5.04% data references and -9.52% L1 data misses** over
+  a 682-spectrum slice, measured with callgrind because wall time on that node
+  could not resolve them under its foreign load. Fewer data references than
+  instructions is what removing copies rather than computation looks like.
+
+The library's own harness for the same shape is
+`examples/peak_picking_scale.rs --in-place --out`.

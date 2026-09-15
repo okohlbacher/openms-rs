@@ -606,7 +606,7 @@ fn the_cpp_written_ini_is_accepted_unchanged_at_every_thread_count() {
     let input = text(&workflow_input(1));
     let expected = load(fixture("oracle_cpp_ini.mzML"));
     let mut bytes: Vec<Vec<u8>> = Vec::new();
-    for threads in ["1", "16", "0"] {
+    for threads in ["1", "2", "8", "16", "32", "0"] {
         let out = temp.path().join(format!("threads_{threads}.mzML"));
         let outcome = run(&[
             "-test",
@@ -654,13 +654,23 @@ fn the_cpp_written_ini_is_accepted_unchanged_at_every_thread_count() {
 }
 
 /// `-threads` on a registered workflow changes no output byte.
+///
+/// The tool body now runs on the worker pool `-threads` sizes
+/// (`ToolContext::in_thread_pool`) and the picker's spectrum loop is parallel
+/// inside it, so this is the tool-level half of the determinism contract: the
+/// written file is fixed by the input and the parameters. The counts span one
+/// worker, two, eight, thirty-two — more than an ordinary development machine
+/// has, so the schedule genuinely differs — and `0`, every available processor.
+/// The library half, over every fixture and both entry points, is
+/// `tests/peak_picking_experiment.rs`; the whole-file comparison on the 2.3 GB
+/// benchmark input is in `../oracle/topp-peak-picker-scale`.
 #[test]
 fn threads_do_not_change_the_workflow_1_output() {
     let temp = workdir();
     let ini = text(&fixture("PeakPickerHiRes_parameters.ini"));
     let input = text(&workflow_input(1));
     let mut bytes: Vec<Vec<u8>> = Vec::new();
-    for threads in ["1", "2", "16", "0"] {
+    for threads in ["1", "2", "8", "16", "32", "0"] {
         let out = temp.path().join(format!("threads_{threads}.mzML"));
         let outcome = run(&[
             "-test",
