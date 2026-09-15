@@ -411,8 +411,8 @@ CLI-1 `f6bdd99` (fix round `9612872`), C1 and C2 under `../oracle/`.
 
 | Package | Scope | Depends on | Merge order |
 |---|---|---|---|
-| B3-LM | `levenberg-marquardt` adapter behind the unchanged `minimize`, exact Eigen `maxfev` emulation, budget differential | the pinned crates (`levenberg-marquardt =0.14.0`, `nalgebra =0.33.3`), already in `Cargo.toml` | first in the fitter lane if its gate passes; if not, D2's fallback, reported to the integrator |
-| B4-GAUSS | TraceFitter driver, defaults and `Param` mapping; GaussTraceFitter | B1, C2, the scaffold's trait | before B5. If B3 merges later, B4's budget-boundary tests run again at B3's merge |
+| B3-LM | `levenberg-marquardt` adapter behind the unchanged `minimize`, exact Eigen `maxfev` emulation, budget differential | the pinned crates (`levenberg-marquardt =0.14.0`, `nalgebra =0.33.3`), in `Cargo.toml`; moved to `[dev-dependencies]` in wave 3 | first in the fitter lane if its gate passes; if not, D2's fallback, reported to the integrator. Outcome: the gate failed on parameter fidelity, D2's fallback applied, and the candidate survives only as an `#[ignore]`d measurement |
+| B4-GAUSS | TraceFitter driver, defaults and `Param` mapping; GaussTraceFitter | B1, C2, the scaffold's trait | before B5. Outcome: B3 merged first (`14284fb`) and changed no backend, so no rerun was needed there; the reruns that mattered came at B3b's merge, where every B4 bound was re-measured (one rose from 1e-3 to 1e-2, the rest fell) |
 | B5-EGH | EGHTraceFitter | B1, C2, the scaffold's trait, B4's `optimize` | after B4, rebased on it |
 | B6-FFAP-SEEDS | FeatureFinderAlgorithmPicked parameters, `run()` validation, scoring, pattern precalculation, seed selection | B1, B2, C2 | independent; `algorithm.rs` passes to B7 in wave 3 |
 | A4-FILEINFO-CORE | FileInfo library: model, peak-file and featureXML branches, `-m/-p/-s`, text and TSV | A1, A2, A3, C1, C3 | independent; before A5 |
@@ -806,6 +806,11 @@ doc-only and accepted.
   - `minimize` has no internal allocation ceiling, so B4's TraceFitter must run
     `preflight_points` on peak counts; C2's `trace_fitters_degenerate_values_lt_inputs_*`
     records are B4's boundary;
+  - the **evaluation-budget boundaries themselves are B10's**, not B3's and not B4's: B4 pins the
+    boundary of every class-test fit and every FeatureFinderCentroided_1 seed, but the sweep C1 defines
+    (`FFC_max_iterations_symmetric_01..60` and `_asymmetric_01..10`, where
+    `-algorithm:fit:max_iterations` 40 differs from 500 and 50 equals it, and 6 differs and 8 equals in
+    the asymmetric case) has never been run on either side;
   - the x tolerance margin (6.36e-10 against 1e-9) was measured on Linux only;
     run the cross-platform `workflow_dispatch` job before relying on it on
     macOS or Windows.
@@ -941,6 +946,12 @@ doc-only and accepted.
     (**integrator, if wanted**).
   **B8**.
 - **B9, `src/processing/feature_overlap_filter.rs`:**
+  - **Closed.** B9 request 4 asked for `git diff 4fdec46 bc9cc12 -- src/openms/extern/Quadtree`, which
+    it could not run from an isolated worktree. The wave-3 pass ran it against
+    `.reference/openms4-core-bc9cc12`: the diff is **empty** — all five files
+    (`CMakeLists.txt`, `LICENSE`, `include/{Box,Quadtree,Vector2}.h`) are byte-identical between the
+    oracle's core revision and the pin. The vendored quadtree's identity no longer rests on hashes plus
+    replica equality alone;
   - `merge_faims_features` reproduces the uid-0 wipe, so FeatureFinderCentroided
     output without unique IDs loses every FAIMS feature unless IDs are assigned
     before the merge or D5 selects a corrected mode (a new opt-in API)
@@ -952,3 +963,238 @@ doc-only and accepted.
   - `feature_overlap_filter_oracle.tsv` is 1.4 MB, already losslessly compacted,
     the largest fixture after the two controlled-vocabulary tables.
   **B9**.
+
+## Wave 3 status
+
+Status on 2026-09-15. `integrate/wave2` is at `4091665`, 78 commits above
+`origin/main` `1d80eed` and unpushed. On top of the wave-2 tip `1c14d60` it now
+carries the two trace fitters, the wave-3a scaffold and its three tools, the
+FeatureFinderAlgorithmPicked feature stage, the Boost.Regex facade, six fix
+lanes and the Levenberg-Marquardt rewrite. The shared files (CI, ledger,
+provenance, C++ issue log, crate register, benchmarks and documentation) follow
+on `integrate/wave3-shared`. [VALIDATION](VALIDATION.md) records each package's
+evidence, its verifier's reruns and this pass's gates;
+[BENCHMARKS](BENCHMARKS.md) is new.
+
+**Merged** (branch commit, then merge commit where it differs):
+
+| Package | Branch | Merge | Outcome |
+|---|---|---|---|
+| B4-GAUSS (fix round 3) | `2fc61e5` | — | done; `TraceFitter.h` and `GaussTraceFitter.h` now have real ledger entries at `complete` |
+| B5-EGH | `7d0c975` | — | done, rebased on B4; `EGHTraceFitter.h` `complete` |
+| wave-3a scaffold | `8f0bb3e` | — | integrator-owned: the three tool registrations, their `[[bin]]` entries and `FileHandler::load_experiment_with_read_options` |
+| B7-FFAP-FEATURES | `ba913da` | — | done; `run()` produces features end to end. It also applied the lead's B6 (a) and (b) decisions in `seeds.rs` and its tests, with the reports disclosing the out-of-scope edits |
+| P3-PICKER-TOOL | final commit | `4c2806d` | done for the preview: in-memory mode; `-processOption lowmemory` is P4 |
+| A5-FILEINFO-TOOL | `a4eb586` | — | done for stage 1; `-i`, `-d` and `-c` need A6 |
+| C5-FFC-WRAPPER | `ba67aa9` | — | superseded in part by `fix/ffc-integration` |
+| crate/regex-facade | `2a29bd0` | — | done after six review rounds; the crate register row is closed |
+| fix/mzml-reader-scale | `f03ef85` | — | done; size-derived reader allowances and the source's timestamp leniency |
+| fix/mzml-writer-scale-parity | `522ce8f` | — | done; per-record writer budgets and `indexedmzML` by default |
+| fix/tool-threads | `a442694` | — | done; `-threads` reaches a real pool and a non-positive count means every processor, as the executed C++ does |
+| fix/baseline-filter-last-point | `4a597cf` | — | done; the one-sample-element end behaviour, and `erosion_simple`/`dilation_simple` now select the simple variants |
+| fix/picker-scale | `6b55773` | — | done; input-derived acquisition ledger and `pick_experiment_in_place` |
+| bundle/B3b-LM-FIDELITY | `dc56a9f` | `f7c9157` | done; the solver matches the Linux x86_64 Release Eigen bit for bit on all 141 traced fits, and the user took the platform decision |
+| fix/ffc-integration | `4d53a7e` | `4091665` | done; the six FeatureFinderCentroided tool tests that B7 turned red are re-derived against the Release build |
+
+**In flight, not in this integration:**
+
+- **`fix/picked-chromatogram`.** The picked TIC chromatogram of the
+  instrument-scale PeakPickerHiRes run differs beyond round-off (8,173 of 8,174
+  retention times, up to 3.19e-3 s; 7,891 of 8,174 intensities above 1e-6
+  relative, worst 1.75e-3), while all 22,776,198 spectrum centroids are
+  bit-identical. Owner `PeakPickerHiRes::pick_chromatogram` (package P1). The
+  lead merges the lane later; [BENCHMARKS](BENCHMARKS.md) §3.1 records the
+  difference in the meantime.
+
+**What B10-FFC-ACCEPT still has to close** (from the `fix/ffc-integration`
+report):
+
+1. **Tight comparison against the C1 oracle outputs themselves.** This branch
+   pins FFC_1 against the in-repo retained expectation at 1e-9 relative on
+   rt/`score_fit`/`score_correlation`. B10 clause 1 asks for 1e-9 against the
+   C1 oracle output file, which lives outside the repository; it was measured
+   (5.3e-7 worst, entirely the Debug writer's print precision; 2.2e-10 on
+   `score_fit`) but not encoded as a test. B10 owns how that file enters the
+   repository or the comparison harness.
+2. **Seeds, asymmetric and debug 5 against the C1 outputs.** Measured here
+   against the Release build (asymmetric exact to about 1e-15), but the in-repo
+   assertions for those three modes are counts plus stdout, not a numeric
+   comparison against a retained file, because no retained expectation exists.
+   B10 clause 3 (24 seeds / 8 features, the `EGH_*` meta values, 1,054 hull
+   points) is satisfied by measurement.
+3. **Threads.** Clause 2 is satisfied and asserted in-repo
+   (`the_output_is_byte_identical_at_every_thread_count`: `-threads` 1/2/4/8/0
+   byte-identical, ids included, on a 384-core node and on macOS). What remains
+   is pinning it against the C1 `FFC_1_threads_0/1/2/4/8` outputs, if B10 wants
+   that.
+4. **The LM budget boundary.** Untouched. `-algorithm:fit:max_iterations` 40
+   differs from 500 and 50 equals it (symmetric); 6 differs and 8 equals
+   (asymmetric), following C1's `FFC_max_iterations_symmetric_01..60` and
+   `_asymmetric_01..10` sweep. None of those cases has been run on either side.
+5. **The ledger.** Clause 5's wording is now applied:
+   `FeatureFinderCentroided` is a validated TOPP workflow, and the tool stays
+   `partial` for exactly one reason, the D5 FAIMS refusal (B11).
+6. **New for B10: the zero-width-RT divergence.** The port refuses a zero-width
+   retention-time range (`CPP-274`); the C++ Release build computes non-finite
+   bin bounds and writes an empty feature map. The divergence is documented and
+   pinned by an `#[ignore]`d test. Deciding it is an FFAP decision that
+   surfaces through this tool.
+
+**Decisions of 2026-09-15 applied in this pass:**
+
+- `mass_trace:min_spectra = 1` follows the source (B6 (a), `CPP-271`) and a
+  changed isotope abundance computes the intended override (B6 (b),
+  `CPP-247`) — both landed in B7's branch, and the ledger and support documents
+  now say so. B6 (c), the overall score, is still open.
+- The dangling-reference leniency is a tool-side option (P2 request 1, D10):
+  the library default stays strict, `FileHandler` does not enable it, and A5's
+  FileInfo tool passes it on its own load path.
+- `levenberg-marquardt` and `nalgebra` moved to `[dev-dependencies]` (B3
+  request 2).
+- `FeatureOverlapFilter.h` stays `complete`; `SignalToNoiseEstimatorMedian.h`
+  stays `partial` while `AUTOMAXBYPERCENT` is refused. The wave-2 note that
+  `GaussTraceFitter.h` and `EGHTraceFitter.h` should return to `unmapped` is
+  superseded: B4 and B5 merged, so both have real review entries now.
+- The numerics platform policy: match the Linux x86_64 Release build
+  everywhere. Taken by the user after lane B3b reported, and recorded in
+  [DISTRIBUTION_FITTERS_SUPPORT](DISTRIBUTION_FITTERS_SUPPORT.md) §1.
+
+**Still open for the lead:**
+
+- **Promote `FeatureFinderAlgorithmPicked.h` to `complete`?** Every public and
+  protected member is ported except `writeFeatureDebugInfo_` and
+  `abort_reasons_`, which are reachable only through `write_debug`, which the
+  port refuses because the source throws there. This pass kept it `partial`,
+  because decision 5 of 2026-09-15 keeps `SignalToNoiseEstimatorMedian.h`
+  partial for the same shape of refusal. One rule should cover both.
+- **A3 request 5** (the selected-ion drift time onto MS2) was decided in favour
+  of the executed source, but no lane has been opened;
+  `tests/file_info.rs::a4_mzml_file_1_all_flags` stays `#[ignore]`d until one
+  is. **The lead.**
+- **B6 (c)**, the overall seed score against the platform `powf` (`CPP-272`).
+- **A resource-refusal exit code.** A ceiling refusal surfaces as exit 8
+  ("Unexpected internal error") or, on the reader, exit 3
+  (INPUT_FILE_CORRUPT). Neither reads as "out of resources", and one
+  framework-level mapping would serve every tool. **CLI-1/CLI-2.**
+
+**Carried forward, with owners in bold:**
+
+- **Three manifests cannot be registered for source verification.**
+  `tests/data/{feature_finder_picked,lm_eigen_path_differential,mzml_reader_scale}_provenance.json`
+  (and, from wave 2, `lm_budget_differential`, `mzml_header_leniency` and
+  `isotopes_source_precision`) use the key `target_verification` with a
+  different meaning from the one `tools/check_core_sdk.py` reads (it expects
+  `{revision, source_revisions, source_changes}` and finds a gate list or a
+  free-form record), so adding them to `current_sdk_reference_manifests` would
+  fail the checker. `baseline_filter_edges` and `mzml_mobility` additionally
+  have `external_reference_artifacts` without an `external_reference_note`, and
+  `baseline_filter_edges` without `origin_key` on its entries; the
+  `file_info_text_format` fixture list names test-file anchors rather than
+  paths. Their oracle artifacts are registered at `SOURCE_PROVENANCE.json`
+  level with recomputed hashes, so nothing is unverifiable — but their `sources`
+  are not re-hashed against the pinned SDK checkout. Rename the key (for
+  example to `verification_runs`) and fill the two missing fields.
+  **Each manifest's owning lane.**
+- **A5's manifest was corrected by this pass**, which is an integrator edit of
+  a lane file: `evidence_tier` was the bare number `1`, which the coverage
+  generator cannot read as a tier (and crashed on), so it became the
+  conventional descriptive string; and its "No case reaches a Debug-only
+  precondition" sentence became "no compared *value* depends on one", because
+  eight recorded stderr streams do carry the Debug-only "Update ranges was
+  called but ranges were already up-to-date" assertion message. **A5/A6 to
+  sign off.**
+- **P3's six open verifier minors**, unchanged by the two follow-up lanes: a
+  directory as `-in` exits 8 against C++'s 3 (a `FileHandler` follow-up); a
+  non-mzML XML file under an `.mzML` name exits 3 against C++'s 11; the
+  workflow-1 and C++-INI inputs make the C++ reader warn "Ill formed absolute
+  or relative sourceFile path" where this port is silent, and that is not in
+  the native-difference list; the C1 case `PPHR_cli_signal_to_noise_2_auto_levels`
+  has no Rust-side test although it passes; and `render_list_parameters` is
+  tested only for the empty list. `render_list_parameters` itself should move
+  into `cli::processing::processing_info` or the mzML writer, because any tool
+  with a list parameter is in the same position today. **P3/P4, and CLI-1/CLI-2
+  for the shared rendering.**
+- **A5's five open verifier minors:** the C++ loader warnings are not ported,
+  so the tool's error stream is a subset of the C++ one on ordinary successful
+  runs and two tests assert `err.is_empty()`; `c1_invalid_in_type_exits_6` uses
+  `contains` and hides that the port emits the two diagnostic lines in the
+  reverse order (a CLI-framework difference); `detect_type` is duplicated
+  verbatim between `src/cli/tools/file_info.rs` and
+  `src/format/file_info/report.rs`; `-in /dev/null` exits 2 where C++ exits 4
+  (the `rustix::fs::access` candidate in the crate register); and `-write_ini
+  <existing directory>` exits 8 where C++ exits 5, while the tool's own `-out`
+  path agrees with C++. **A6, and CLI-1/CLI-2 for the last three.**
+- **C5's five open verifier minors:** three C++-verbatim diagnostics are
+  asserted against the port's own constants instead of literals; the tool
+  citations (`To cite FeatureFinderCentroided:` plus Sturm 2010 and Weisser
+  2013) are the first real `--help` divergence, which makes
+  `docs/TOPP_CLI_SUPPORT.md:63` and its byte-for-byte help claim stale; the
+  framework validates every registered input format before the tool body where
+  the source checks `-seeds` late, so exit codes differ on an input that fails
+  both; the wrapper writes the apex warning to stdout where the source writes
+  it to stderr; and the module is the only tool module that widens the crate's
+  public API, part of it with native wording B11 will change. **C5/B10, and
+  CLI-1/CLI-2 for the help text.**
+- **B7's four open verifier minors:** `extend_mass_traces` does not validate
+  `pattern.spectrum` against `pattern.peak`, so an inconsistently built public
+  `IsotopePattern` panics instead of returning an error;
+  `preflight_seed_loop`'s per-seed estimate ignores the peaks inside the
+  isotope window, so the ceiling under-refuses a dense adversarial input (real
+  data is an order of magnitude inside it);
+  `cropping_follows_the_source_position_rules` asserts `<= 1` where the source
+  determines exactly 1; and `RunOutput::log` mixes the source's `LOG_INFO` and
+  `LOG_WARN` streams (the blank lines were fixed by `fix/ffc-integration`).
+  **B7/B10.**
+- **`fix/picker-scale`'s two open minors:** `examples/peak_picking_scale.rs`
+  `--ledger-probe` bounds its doubling search by a record count rather than by
+  memory, so it peaked at 56.7 GiB against the 3,410 MiB of the run it
+  measures; and `docs/PEAK_PICKING_SUPPORT.md`'s wall column was measured
+  before the wave-2 merge and no longer describes the committed tree (every
+  peak-RSS cell does reproduce to within 1 MiB). **P1/P4.**
+- **`fix/tool-threads`' two library requests:** `Threads::from_cli` still maps a
+  negative count to one worker and its doc still claims the source treats
+  nonsensical values as single-threaded, which executed C++ disproves; and
+  `map_collect`/`sum_in_order` build a fresh rayon pool per call, so calling
+  them from inside `ToolContext::in_thread_pool` nests a second pool of the same
+  size. No caller does that yet; the first wave-3 tool that parallelises will.
+  **`src/concept/parallel.rs`'s owner.**
+- **The acquisition-copy ledger's home.** `MorphologicalFilter::filter_experiment`
+  meters a fresh `AcquisitionCopies` per spectrum while the trait default in
+  `src/processing.rs:37` meters one for the whole experiment. Per-record is what
+  real data needs (the 40,856-spectrum UK222 run fails with the shared ledger,
+  and 200,000 three-peak spectra pass in 353 ms with the per-record one), and
+  the per-record ledger still refuses a 60 MiB `source_file.name`. Apply the
+  decision to the trait default instead of leaving one filter as the exception,
+  and give `AcquisitionCopies` a named constructor
+  (`AcquisitionCopies::for_records`) plus `#[derive(Debug)]` while doing it.
+  **`src/processing.rs`'s owner.**
+- **`SpectraFilterWindowMower`'s input-point ceiling**
+  (`src/processing/window_mower.rs:69`) refuses 5,000 real spectra that the C++
+  completes in 5.93 s. It is the last blocker for that tool's benchmark row.
+  **Window-mower owner.**
+- **Three stale "under investigation in lane B3b" references** remain in other
+  lanes' files and are now wrong:
+  `docs/EGH_TRACE_FITTER_SUPPORT.md:35`,
+  `src/analysis/feature_finder_picked/gauss_trace_fitter.rs:102`,
+  `src/analysis/feature_finder_picked/egh_trace_fitter.rs:85`, plus
+  `src/analysis/feature_finder_picked/trace_fitter.rs:494` and softer phrasings
+  in `tests/feature_finder_picked.rs:166`,
+  `docs/EGH_TRACE_FITTER_SUPPORT.md:422` and this document. All should point at
+  [DISTRIBUTION_FITTERS_SUPPORT](DISTRIBUTION_FITTERS_SUPPORT.md) §1 when their
+  lanes are next opened. **B4/B5/B7.**
+- **The benchmark harness needs three fixes before its next run**: the peak-RSS
+  measurement (caveat 1 of [BENCHMARKS](BENCHMARKS.md)), data-and-metadata
+  verdicts instead of stopping at the first difference, and one INI per tool
+  for both implementations in `plans/full.json`, which today runs
+  PeakPickerHiRes, FeatureFinderCentroided and FileInfo on each side's own
+  defaults. **Benchmark lane.**
+- **ibminode06's `/usr/local/bin/cc`** is a 2023 admin shell script that reports
+  Ceph quotas and shadows the real compiler, so every cargo build on that node
+  fails with a misleading "build-script-build (never executed)". All three of
+  `CC=/usr/bin/gcc`, `CXX=/usr/bin/g++` and `-C linker=/usr/bin/gcc` are needed;
+  the linker flag alone is not enough, because cc-rs then misdetects the script
+  as MSVC. Ask the admins to rename it or add the three to
+  `/scratch/kohlbach/openms-rs-env.sh`. Also: one agent overwrote that env file
+  and the previous content is unknown, and ibminode05 carries an idle GitHub
+  Actions runner that would disturb timing if a job landed on it.
+  **Infrastructure.**

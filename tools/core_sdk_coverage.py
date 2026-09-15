@@ -62,7 +62,9 @@ def validated_workflows():
     found = {}
     for manifest in provenance.get('topp_package_reference_manifests', []):
         data = json.loads((ROOT / manifest).read_text())
-        if 'tier 1' not in data.get('evidence_tier', '') or not data.get('upstream_test_definition'):
+        # str(): a manifest that records the tier as a bare number states no tier
+        # in the sense this rule means, and must not crash the check either.
+        if 'tier 1' not in str(data.get('evidence_tier', '')) or not data.get('upstream_test_definition'):
             continue
         for path in data.get('native_implementation', []):
             if path.startswith('src/bin/') and path.endswith('.rs'):

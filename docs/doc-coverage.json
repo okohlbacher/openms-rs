@@ -1,8 +1,8 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 5605,
-  "documented": 4197
+  "items": 5751,
+  "documented": 4362
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
@@ -22,12 +22,32 @@
    "documented": 16
   },
   "src/analysis/feature_finder_picked/algorithm.rs": {
-   "items": 26,
-   "documented": 26
+   "items": 29,
+   "documented": 29
+  },
+  "src/analysis/feature_finder_picked/egh_trace_fitter.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/feature_finder_picked/extension.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/feature_finder_picked/fitting.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/feature_finder_picked/gauss_trace_fitter.rs": {
+   "items": 14,
+   "documented": 14
   },
   "src/analysis/feature_finder_picked/helper_structs.rs": {
    "items": 41,
    "documented": 41
+  },
+  "src/analysis/feature_finder_picked/resolution.rs": {
+   "items": 6,
+   "documented": 6
   },
   "src/analysis/feature_finder_picked/scoring.rs": {
    "items": 26,
@@ -38,12 +58,12 @@
    "documented": 21
   },
   "src/analysis/feature_finder_picked/trace_fitter.rs": {
-   "items": 2,
-   "documented": 2
+   "items": 20,
+   "documented": 20
   },
   "src/analysis/feature_finder_picked.rs": {
-   "items": 7,
-   "documented": 7
+   "items": 10,
+   "documented": 10
   },
   "src/analysis/feature_finding_metabo.rs": {
    "items": 15,
@@ -314,8 +334,8 @@
    "documented": 0
   },
   "src/cli/context.rs": {
-   "items": 27,
-   "documented": 27
+   "items": 30,
+   "documented": 30
   },
   "src/cli/parameter.rs": {
    "items": 16,
@@ -337,6 +357,14 @@
    "items": 1,
    "documented": 1
   },
+  "src/cli/tools/feature_finder_centroided.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/cli/tools/file_info.rs": {
+   "items": 1,
+   "documented": 1
+  },
   "src/cli/tools/map_normalizer.rs": {
    "items": 1,
    "documented": 1
@@ -344,6 +372,10 @@
   "src/cli/tools/mzml_splitter.rs": {
    "items": 1,
    "documented": 1
+  },
+  "src/cli/tools/peak_picker_hi_res.rs": {
+   "items": 2,
+   "documented": 2
   },
   "src/cli/tools/spectra_filter_window_mower.rs": {
    "items": 1,
@@ -356,6 +388,10 @@
   "src/comparison.rs": {
    "items": 67,
    "documented": 67
+  },
+  "src/concept/boost_regex.rs": {
+   "items": 31,
+   "documented": 31
   },
   "src/concept/constants.rs": {
    "items": 132,
@@ -370,8 +406,8 @@
    "documented": 33
   },
   "src/concept/mod.rs": {
-   "items": 6,
-   "documented": 2
+   "items": 7,
+   "documented": 3
   },
   "src/concept/parallel.rs": {
    "items": 7,
@@ -462,8 +498,8 @@
    "documented": 3
   },
   "src/format/file_handler.rs": {
-   "items": 25,
-   "documented": 25
+   "items": 26,
+   "documented": 26
   },
   "src/format/file_info/model.rs": {
    "items": 20,
@@ -562,8 +598,8 @@
    "documented": 28
   },
   "src/format/mzml.rs": {
-   "items": 9,
-   "documented": 9
+   "items": 10,
+   "documented": 10
   },
   "src/format/mzml_acquisition.rs": {
    "items": 1,
@@ -587,7 +623,7 @@
   },
   "src/format/mzml_header/xml.rs": {
    "items": 14,
-   "documented": 1
+   "documented": 14
   },
   "src/format/mzml_header.rs": {
    "items": 8,
@@ -595,7 +631,7 @@
   },
   "src/format/mzml_load.rs": {
    "items": 3,
-   "documented": 2
+   "documented": 3
   },
   "src/format/mzml_numpress.rs": {
    "items": 3,
@@ -604,6 +640,10 @@
   "src/format/mzml_paths.rs": {
    "items": 6,
    "documented": 6
+  },
+  "src/format/mzml_scaling.rs": {
+   "items": 7,
+   "documented": 7
   },
   "src/format/mzml_schema.rs": {
    "items": 10,
@@ -622,8 +662,8 @@
    "documented": 4
   },
   "src/format/mzml_write_options.rs": {
-   "items": 6,
-   "documented": 4
+   "items": 7,
+   "documented": 7
   },
   "src/format/mztab.rs": {
    "items": 220,
@@ -983,7 +1023,7 @@
   },
   "src/processing/baseline.rs": {
    "items": 7,
-   "documented": 4
+   "documented": 7
   },
   "src/processing/chromatogram.rs": {
    "items": 7,
@@ -1014,8 +1054,8 @@
    "documented": 11
   },
   "src/processing/peak_picking.rs": {
-   "items": 21,
-   "documented": 21
+   "items": 23,
+   "documented": 23
   },
   "src/processing/smoothing.rs": {
    "items": 14,

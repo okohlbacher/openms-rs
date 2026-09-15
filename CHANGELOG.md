@@ -2,6 +2,65 @@
 
 ## Unreleased
 
+- Integrated early TOPP bundle wave 3 (2026-09-15): the trace fitters, the
+  wave-3a tools, the FeatureFinderAlgorithmPicked feature stage, the Boost.Regex
+  facade and six fix lanes, recorded in `docs/VALIDATION.md`.
+  - Three new TOPP tools: `PeakPickerHiRes` (in-memory centroiding, the
+    `algorithm` subsection, the registered parameter failures and `-write_ini`;
+    `-processOption lowmemory` refused until P4), `FileInfo` (the peak-file and
+    featureXML reports with `-m`, `-p` and `-s`) and `FeatureFinderCentroided`
+    (features end to end).
+  - `FeatureFinderAlgorithmPicked` is complete as an algorithm: mass-trace
+    extension, the isotope fit, the Gauss and EGH trace fits, the quality
+    checks, cropping, abort bookkeeping and overlap resolution (B7). Two lead
+    decisions applied: `mass_trace:min_spectra = 1` now follows the source
+    (CPP-271) and a changed isotope abundance computes the intended two-isotope
+    override (CPP-247).
+  - `TraceFitter`, `GaussTraceFitter` and `EGHTraceFitter` (B4, B5), with the
+    shared start-value steps, the `Param` mapping and a residual-work ceiling.
+  - The Levenberg-Marquardt transcription now reproduces Eigen's own reduction
+    kernels, so all 141 traced trace fits are bit-identical to Eigen 5.0.1 as
+    the Linux x86_64 Release build compiles it, in every evaluation argument,
+    the final parameters, the status, `nfev` and `njev` (B3b). Matching that
+    build everywhere is the user's decision of 2026-09-15; three NaN-only
+    transcription defects were corrected in the same pass.
+  - `src/concept/boost_regex.rs`: one Boost.Regex-compatible facade over
+    `fancy-regex`. Every expression it compiles gives Boost's answer, or
+    construction refuses it with `Error::Unsupported`. 6,531,674 compared cases
+    over 134,075 patterns with 0 mismatches, and no OpenMS-derived expression
+    is refused.
+  - mzML reader: ceilings are derived from the document's own size instead of
+    being fixed, and `run/@startTimeStamp="-infinity"` is read as the source
+    reads it, so instrument-sized files load through the tools.
+  - mzML writer: per-record budgets, and `indexedmzML` with real record offsets
+    and a real SHA-1 `fileChecksum` by default, as `MzMLFile::store` does. The
+    invented zero precursor intensity is gone.
+  - `MorphologicalFilter` reproduces the source's single-sample-element end
+    behaviour, and `BaselineFilter -method erosion_simple` / `dilation_simple`
+    now select the simple variants, which differ there (CPP-303, CPP-304). The
+    f32 subtraction change is faithfulness and readability only: it is
+    bit-identical to what it replaced, and no expected value moved.
+  - `-threads` reaches every tool body through a worker pool, a non-positive
+    count means every available processor as the executed C++ does, and
+    `OMP_NUM_THREADS`/`RAYON_NUM_THREADS` are ignored.
+  - The picker's acquisition-copy ledger is derived from the input, and
+    `pick_experiment_in_place` avoids the whole-experiment clone.
+  - [BUILD] `levenberg-marquardt` and `nalgebra` moved to `[dev-dependencies]`:
+    the crate was measured and not adopted, and only the ignored candidate gate
+    uses it.
+  - New `docs/BENCHMARKS.md`: the C++ Release reference build, the harness, and
+    the first instrument-scale comparison — `PeakPickerHiRes` on a 2.3 GB Q
+    Exactive run, 22,776,198 centroids bit-identical in m/z and intensity, the
+    port 38.7 s and 4,309 MiB against 26.8-28.9 s and 3,884 MiB, with the picked
+    TIC chromatogram still differing.
+  - Logged CPP-289 to CPP-305, registered 60 oracle artifacts and four more
+    reference manifests, gave the three new tools feature-sliced CI lines along
+    with eleven other targets, recorded the acyclic `cli -> analysis` edge, and
+    updated the ledger: `TraceFitter.h`, `GaussTraceFitter.h`,
+    `EGHTraceFitter.h` and `MorphologicalFilter.h` are complete, and
+    `PeakPickerHiRes`, `FileInfo` and `FeatureFinderCentroided` are validated
+    TOPP workflows.
+
 - Integrated early TOPP bundle wave 2 (2026-09-14): eight verifier-approved
   branches on `integrate/wave2`, recorded in `docs/VALIDATION.md`.
   - PeakPickerHiRes and SignalToNoiseEstimatorMedian parameter contract

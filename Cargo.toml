@@ -99,11 +99,6 @@ rustfft = "=6.4.1"
 # Crates that replace third-party C++ libraries, each chosen by measurement;
 # see docs/THIRD_PARTY_CRATE_DECISIONS.md. Exact pins throughout: several newer
 # releases need a Rust newer than 1.85.
-# Eigen's NonLinearOptimization Levenberg-Marquardt, for the distribution and
-# FEATUREFINDER trace fitters. 0.15 needs nalgebra 0.34 and Rust 1.87. nalgebra
-# without `std` keeps matrixmultiply's runtime CPU dispatch out of the graph.
-levenberg-marquardt = "=0.14.0"
-nalgebra = { version = "=0.33.3", default-features = false, features = ["alloc", "libm"] }
 # Boost.Math normal quantile via erfc_inv, for MultipleTesting's lfdr. 0.19 needs Rust 1.89.
 statrs = { version = "=0.18.0", default-features = false }
 # Boost.Random's mt19937_64 engine, for DecoyGenerator and UniqueIdGenerator.
@@ -114,6 +109,18 @@ fancy-regex = { version = "=0.19.2", default-features = false, features = ["std"
 # HTTP for SYSTEM/NetworkGetRequest and the update check. Pure Rust, blocking,
 # no async runtime. Its MSRV is exactly ours, so the pin is load-bearing.
 ureq = { version = "=3.4.1", optional = true }
+
+[dev-dependencies]
+# Eigen's NonLinearOptimization Levenberg-Marquardt. Measured against the Eigen
+# transcription in `src/math/fitters/levenberg_marquardt.rs` and NOT adopted
+# (B3-LM, decision D2's fallback; see docs/THIRD_PARTY_CRATE_DECISIONS.md), so
+# the only user is the `#[ignore]`d candidate gate in
+# `tests/lm_budget_differential.rs`. A dev-dependency keeps it out of the
+# library's own graph while the measurement stays reproducible (lead decision of
+# 2026-09-15). 0.15 needs nalgebra 0.34 and Rust 1.87. nalgebra without `std`
+# keeps matrixmultiply's runtime CPU dispatch out of the graph.
+levenberg-marquardt = "=0.14.0"
+nalgebra = { version = "=0.33.3", default-features = false, features = ["alloc", "libm"] }
 
 [target.'cfg(any(unix, windows))'.dependencies]
 cpu-time = "=1.0.0"
