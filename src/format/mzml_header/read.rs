@@ -214,10 +214,12 @@ impl Registry {
 /// element's `sampleRef`, `defaultInstrumentConfigurationRef` and
 /// `startTimeStamp` to `settings`.
 ///
-/// `source_dangling_references` selects the source treatment of a
+/// `options.source_dangling_references` selects the source treatment of a
 /// `softwareRef` or data-processing reference that names no preceding
 /// definition (see `DanglingReferences`); the registry keeps that policy for
 /// the record references resolved after `run` opens.
+/// `options.source_invalid_timestamps` selects the source treatment of an
+/// unparseable `startTimeStamp` or completion time (see `run_timestamp`).
 pub(super) fn parse(
     roots: Vec<Node>,
     attrs: &BTreeMap<String, String>,
@@ -225,7 +227,7 @@ pub(super) fn parse(
     parameters: &mut ParameterBudget,
     work: &mut Work,
     settings: &mut ExperimentalSettings,
-    source_dangling_references: bool,
+    options: &ReadOptions,
 ) -> Result<Registry> {
     // Ordinary readers start empty. A retaining transform starts from exact
     // cloned lengths, so its first append can move twice the old descriptor
@@ -248,9 +250,10 @@ pub(super) fn parse(
         groups,
         parameters,
         work,
+        source_invalid_timestamps: options.source_invalid_timestamps,
     };
     let mut result = Registry {
-        dangling: DanglingReferences::new(source_dangling_references),
+        dangling: DanglingReferences::new(options.source_dangling_references),
         ..Registry::default()
     };
     let mut samples = BTreeMap::new();
@@ -456,13 +459,15 @@ pub(super) fn parse(
     settings.instrument_configurations = instruments;
     if let Some(text) = attrs.get("startTimeStamp") {
         cx.work.charge(text.len().saturating_mul(4), text.len())?;
-        settings.date_time = DateTime::parse(text)?;
-        if text.len() > 19 {
-            cx.meta(
-                &mut settings.metadata,
-                "mzml_start_time_stamp",
-                text.as_str().into(),
-            )?;
+        if let Some(date_time) = run_timestamp(text, options.source_invalid_timestamps)? {
+            settings.date_time = date_time;
+            if text.len() > 19 {
+                cx.meta(
+                    &mut settings.metadata,
+                    "mzml_start_time_stamp",
+                    text.as_str().into(),
+                )?;
+            }
         }
     }
     // Source appends deduplicated values in lexical source ID order. Hashing is
@@ -497,6 +502,73 @@ pub(super) fn parse(
         }
     }
     Ok(result)
+}
+/// The run date-time for `run/@startTimeStamp` text, or `None` when the text
+/// is unparseable and `source` selects the source policy.
+///
+/// Source `XMLHandler::asDateTime_` (`XMLHandler.h:359-377`, called at
+/// `MzMLHandler.cpp:1236`) leaves an empty attribute unset silently. For any
+/// other text it trims, keeps the first 19 characters and calls
+/// `DateTime::set`; on `Exception::ParseError` it logs `DateTime conversion
+/// error of "<text>"` as a non-fatal error and returns an unset date-time.
+/// ProteoWizard writes `-infinity` for a vendor file without an acquisition
+/// date, and C++ Release `FileInfo` and `FileConverter` (core `bc9cc12`) read
+/// such a file, `infinity` and `not-a-date-time` alike, and write it back
+/// without `startTimeStamp`. The raw text is not kept: the source sets
+/// `mzml_start_time_stamp` only for text longer than 19 characters and its
+/// writer never emits that key without a valid date-time
+/// (`MzMLHandler.cpp:5209-5229`), while this port's writer refuses the key
+/// without one.
+///
+/// Parsing keeps this port's documented difference: the full text is parsed,
+/// so represented milliseconds survive where the source truncates them.
+///
+/// # Errors
+///
+/// Returns the [`DateTime::parse`] error ([`Error::InvalidValue`]) for
+/// unparseable text, empty text included, when `source` is `false`.
+fn run_timestamp(text: &str, source: bool) -> Result<Option<DateTime>> {
+    match DateTime::parse(text) {
+        Ok(date_time) => Ok(Some(date_time)),
+        Err(_) if source => {
+            if !text.trim().is_empty() {
+                warn_timestamp("run startTimeStamp", text);
+            }
+            Ok(None)
+        }
+        Err(error) => Err(error),
+    }
+}
+/// Report a timestamp that source-compatible reading dropped on the crate's
+/// warning log stream. A logging failure never changes the read result.
+///
+/// Both dropped values are reported where the source reports one or the other,
+/// depending on the build. `run/@startTimeStamp` goes through
+/// `XMLHandler::error` (`XMLHandler.cpp:71-87`), which always writes
+/// `Non-fatal error while loading '<file>': DateTime conversion error of
+/// "<text>"`. A `processingMethod` completion time goes through
+/// `XMLHandler::warning` (`XMLHandler.cpp:88-107`), which writes to
+/// `OPENMS_LOG_WARN` only under `OPENMS_ASSERTIONS` and to `OPENMS_LOG_DEBUG`
+/// otherwise; the Debug product SDK (core `4fdec46`) prints `While loading
+/// '<file>': The CV term 'MS:1000747 - completion time' used in tag
+/// 'processingMethod' must be a valid date.` for it, and the Release build used
+/// for the timestamp oracle prints nothing. This port has one log level for
+/// both, so the completion time is reported like the Debug build
+/// (`../oracle/mzml-reader-scale/debug_sdk_completion_time.log`).
+fn warn_timestamp(label: &str, text: &str) {
+    // Attribute text cannot carry a raw line break after XML normalization,
+    // but a character reference can; keep the warning on one line.
+    let shown: String = text
+        .chars()
+        .take(64)
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .collect();
+    let _ = crate::concept::log_stream::log_message(
+        crate::concept::log_stream::LogLevel::Warn,
+        format_args!(
+            "Warning: mzML {label} '{shown}' is not a date-time; source-compatible reading leaves it unset."
+        ),
+    );
 }
 fn register_id(node: &Node, ids: &mut BTreeSet<String>, work: &mut Work) -> Result<String> {
     let id = node.id()?;
@@ -891,7 +963,25 @@ fn processing_param(
     }
     if id == "MS:1000747" {
         let raw = attrs.get("value").map_or("", String::as_str);
-        let dt = DateTime::parse(raw)?;
+        let dt = match DateTime::parse(raw) {
+            Ok(dt) => dt,
+            Err(_) if cx.source_invalid_timestamps => {
+                // Source `XMLHandler::cvParamToValue` (`XMLHandler.cpp:232-243`)
+                // warns and drops an `xsd:dateTime` term whose value
+                // `DateTime::set` rejects, so `MzMLHandler.cpp:1539` returns
+                // before `setCompletionTime`. Executed on the Debug product
+                // SDK: `FileInfo` and `FileConverter` exit 0, print `The CV
+                // term 'MS:1000747 - completion time' ... must be a valid
+                // date.`, and write only the converter's own completion time.
+                // A Release build drops the term just as silently; see
+                // `warn_timestamp`.
+                if !raw.trim().is_empty() {
+                    warn_timestamp("processingMethod completion time", raw);
+                }
+                return Ok(true);
+            }
+            Err(error) => return Err(error),
+        };
         if !dt.is_valid() {
             return Err(invalid("invalid processing completion time"));
         }
@@ -1015,7 +1105,7 @@ mod tests {
                 &mut params,
                 &mut work,
                 &mut ExperimentalSettings::default(),
-                false,
+                &ReadOptions::default(),
             )
             .err()
             .unwrap();
@@ -1050,7 +1140,7 @@ mod tests {
                 &mut parameters,
                 &mut work,
                 &mut settings,
-                false,
+                &ReadOptions::default(),
             )
             .is_err()
         );

@@ -1,0 +1,307 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "42c21e74b440a307fba697def730c7ad60ef6f68",
+ "license": "BSD-3-Clause",
+ "group": "egh_trace_fitter",
+ "work_package": "B5-EGH (early TOPP bundle, wave 2)",
+ "method": "Port of FEATUREFINDER/EGHTraceFitter.h and .cpp against the TraceFitter trait of the wave-2 scaffold, on the shared helpers package B4-GAUSS added to trace_fitter.rs (initial_shape, optimize, compute_theoretical, unable_to_fit, stream_number and the parameter defaults). The 18 START_SECTIONs of EGHTraceFitter_test.cpp are transcribed with their literals and comparison macros. Two executed product-SDK oracles outside this repository are replayed: the EGH records of the C2 class-level oracle (class-test traces at 0.8/0.2 and 0.4/0.6, weighted and unweighted, and three degenerate inputs) and a B5 driver covering asymmetric traces, edge profiles, non-positive budgets and hand-picked parameter vectors. Inputs are recorded bit for bit; results are compared exactly (booleans, messages, formulas, the budget-boundary pattern), within 1e-14 relative for single evaluations on recorded inputs, and within 1e-9 relative for Levenberg-Marquardt results.",
+ "evidence_tier": "tier 1 (executed differential: product-SDK libOpenMS, 2799 fixture rows over 28 cases) for EGHTraceFunctor operator() and df, setInitialParameters_, fit, getOptimizedParameters_, getAlphaBoundaries_, getLowerRTBound, getUpperRTBound, getHeight, getCenter, getSigma, getTau, getFWHM, getValue, getArea, computeTheoretical, checkMinimalRTSpan, checkMaximalRTSpan, getGnuplotFormula, the max_iteration budget boundary and the UnableToFit conditions; tier 3 (transcribed class-test literals and comparison macros, all 18 sections); tier 4 (the Rust-only contracts: atomic failure, empty traces, NaN merge error, out-of-range peak index, functor buffer sizes, the trait object, Clone and Default)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/EGHTraceFitter.h",
+   "sha256": "e56cec282327b05a4bb34093e310c7c87908ef8d3706411669cde0828fbe26ca"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "sha256": "c42431a16cb7c26e90c2336491fe7c897de2ac88f5a02074bf7ec386264e5af7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/EGHTraceFitter_test.cpp",
+   "sha256": "05f8026c8ef04339851ccba60e123402df51c4363fb2872f56b4bc22c04e9c32"
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
+   "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f"
+  }
+ ],
+ "context_sources": [
+  {
+   "path": "OpenMS/FEATUREFINDER/TraceFitter.h",
+   "sha256": "078c8ea4654044fdfa4cf160e946e17b3a946aaa1775f9dc52206162fffaf4af",
+   "role": "base class, ported by package B4-GAUSS as the TraceFitter trait; read for the contract, the parameters and optimize_"
+  },
+  {
+   "path": "FEATUREFINDER/TraceFitter.cpp",
+   "sha256": "3e7ccb18a04bfe187f73276d6a915d386a1014b915a2d672dc327b72f811f9f7",
+   "role": "optimize_ (lines 101-135), ported by package B4-GAUSS as trace_fitter::optimize, which fit calls; computeTheoretical (line 88), shared as trace_fitter::compute_theoretical"
+  },
+  {
+   "path": "FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+   "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0",
+   "role": "consumer, ported by later packages: chooseTraceFitter_ (line 1897), EGH_tau, EGH_height and EGH_sigma meta values through dynamic_pointer_cast (lines 754-757), cropFeature_ and checkFeatureQuality_"
+  },
+  {
+   "path": "FEATUREFINDER/ElutionModelFitter.cpp",
+   "sha256": "45a89bffa9f547fe4222434f6a3861b2b28020b66b6a500ff4b1ba7eab340dc4",
+   "role": "second consumer, not on the early-bundle path: model_EGH_tau, model_EGH_sigma and the getArea width term through static_cast (lines 119-130)"
+  },
+  {
+   "path": "OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "toStr(char) at line 125, the function name of getGnuplotFormula"
+  }
+ ],
+ "context_sources_note": "Read for context and not ported by this group. Headers are named by include path below the core checkout's include directory, implementations below its source directory, both at source_revision, where their sha256 values were checked. They are kept out of sources and not spelled from the repository root, because tools/core_sdk_coverage.py counts every core-prefixed path string in a provenance manifest as reference evidence for that header, and TraceFitter.h belongs to package B4-GAUSS.",
+ "native_implementation": [
+  "src/analysis/feature_finder_picked/egh_trace_fitter.rs"
+ ],
+ "native_tests": [
+  "tests/egh_trace_fitter.rs"
+ ],
+ "support_document": "docs/EGH_TRACE_FITTER_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/egh_trace_fitter/egh_trace_fitter_c2.tsv",
+   "sha256": "5d7c5e5916b91733aa3df3c832ccc1b9503f962b96e7bd95fe8352611ad4b8cd",
+   "bytes": 138971,
+   "rows": 568,
+   "cases": 7,
+   "kind": "oracle-generated (tier 1 executed differential)",
+   "role": "The EGH library records of the C2 class-level oracle, extracted by ../oracle/egh-trace-fitter/extract_c2.py from ../oracle/featurefinder-picked/results/omp1 (omp4 gives the same bytes): input traces, start points, functor residuals and Jacobians at six vectors per case, the library fit at max_iteration 500 with its queries, getOptimizedParameters_ on the replica's final vector, and the library fits of the budget sweep up to one past the boundary."
+  },
+  {
+   "path": "tests/data/egh_trace_fitter/egh_trace_fitter_oracle.tsv",
+   "sha256": "9daeaee278e803a8634c93ef64479a3e8e5d28c14efef9080a73809a78787717",
+   "bytes": 281816,
+   "rows": 2231,
+   "cases": 21,
+   "kind": "oracle-generated (tier 1 executed differential)",
+   "role": "Output of ../oracle/egh-trace-fitter/driver.cpp, byte-identical across two runs: tailing and fronting traces with a baseline and interleaved grids, a four-residual fit, three residuals, the alpha > 1 start, an apex at the last scan, max_iteration 0 and -1, and eleven parameter vectors."
+  }
+ ],
+ "class_test_review": {
+  "path": "src/tests/class_tests/openms/source/EGHTraceFitter_test.cpp",
+  "lines": "27-411",
+  "sections": 18,
+  "literal_extraction": "All literals are transcribed verbatim, including the f32 intensity literals with digits beyond f32 precision; the file allows clippy::excessive_precision for that reason. The source test fits egh_trace_fitter at file scope with a Param holding only max_iteration 500, and its fit section sets mts[0].theoretical_int to 0.4 and mts[1].theoretical_int to 0.6 before the later sections run; the getGnuplotFormula test rebuilds that state. checkMaximalRTSpan uses the local mt1, which the fit section does not change.",
+  "comparison": "TEST_EQUAL is exact equality. TEST_REAL_SIMILAR is isRealSimilar with absdiff_max_allowed 1e-5 and ratio_max_allowed 1 + 1e-5 (ClassTest.cpp:35-38 and 364-470), transcribed in f64; the source evaluates in long double, and the transcribed cases are far from both limits. getTau against 0 is decided by the absolute limit. TEST_NOT_EQUAL(ptr, nullPointer) becomes a check of the constructed defaults."
+ },
+ "oracle": {
+  "manifests": [
+   {
+    "path": "../oracle/egh-trace-fitter/manifest.json",
+    "sha256": "76e773beb811c87b3f90fc1a00a6a71be9ef1cc404b970c674a97ce8b56bd85e"
+   },
+   {
+    "path": "../oracle/featurefinder-picked/manifest.json",
+    "sha256": "7f6adefb614200c1a4ff1d9d423a9956765104470c4b232f3a85aed7e0d3f281"
+   }
+  ],
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "sdk": "product-sdk, Debug build of core 4fdec46b205459b92e7d3b9e56df5d8e912d5c85, AppleClang 21.0.0.21000101, C++23, macOS arm64, libOpenMS built with -ffp-contract=off",
+  "libOpenMS_dylib_sha256": "5a046fcaf15eb636e1f23b453481bca80fbfbe01a6a9f6a5df41c7c3dfbe2f4a",
+  "revision_equivalence": "EGHTraceFitter.h/.cpp, TraceFitter.h/.cpp, FeatureFinderAlgorithmPickedHelperStructs.h/.cpp and EGHTraceFitter_test.cpp hash identically at 4fdec46 and bc9cc12 (C2 manifest oracle_to_pin_note and source_files); the product-SDK headers EGHTraceFitter.h, TraceFitter.h, FeatureFinderAlgorithmPickedHelperStructs.h and Peak1D.h equal the pin.",
+  "environment": "env -i PATH=/usr/bin:/bin HOME=<scratch>/home OPENMS_HOME_PATH=<scratch>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=product-sdk/share/OpenMS/4.0.0, per-run scratch working directory",
+  "reproduction": "The B5 driver ran twice from separate scratch directories with byte-identical output; the C2 extraction over omp1 and omp4 gives byte-identical TSV.",
+  "debug_only": [],
+  "comparison": "Exact: booleans, integers, UnableToFit messages, gnuplot formulas of a model set to the oracle's parameters, the getters after set_optimized_parameters, and the budget-boundary pattern (the Rust fit at max_iteration n equals the Rust fit at 500 bit for bit exactly where the C++ fits do, for every n from 1 to 500 in nine swept cases). Single evaluations on recorded inputs (functor residuals and Jacobians, start points, queries of a model set to the oracle's parameters) agree within 1e-14 relative, a residual on the scale of max(|residual|, |I w|). Levenberg-Marquardt results (fitted parameters, their bounds, FWHM, area and computeTheoretical, and every recorded budget of the sweep) agree within 1e-9 relative; tau is compared on the scale of sigma only where both values are rounding noise below 1e-9 * max(|sigma|), and on its own scale everywhere else. NaN matches NaN whatever its sign or payload.",
+  "measured": "Replayed on Linux x86-64 (IBMI dax) with stable Rust and with 1.85.0: start points 80 of 80 comparisons bit-identical; functor 10380 of 11023; parameter vectors 510 of 515; fits and queries 1003 of 1260; budget sweep 4680 of 6828. The differing single evaluations are one or two units in the last place of an exp term: the libm crate's exp is not correctly rounded, while the oracle's Apple libm exp returned the correctly rounded value on 3594 of the 3600 distinct functor exp inputs (checked against Python decimal at 80 digits). Temporarily evaluating exp with glibc through f64::exp left 14 functor values different, but the fits still differed in their last places, so the Levenberg-Marquardt transcription is not bit-identical to Eigen on these problems either. On macOS arm64, the oracle platform, a scratch copy evaluating exp, log and atan with f64::exp, f64::ln and f64::atan (Apple libm) matched start points 80 of 80, functor values 11023 of 11023 and parameter vectors 515 of 515 bit for bit, while fits stayed at 1125 of 1260 and the budget sweep at 4755 of 6828. Largest measured Levenberg-Marquardt difference: 2.0e-11 relative, tau on the apex_at_last_scan budget sweep at budget 240; that case never converges and spends every budget, and after all 500 evaluations its parameters differ by at most 1.4e-11 (tau) and its derived bounds, FWHM and area by at most 1.5e-11. Elsewhere the parameters differ by at most 3.9e-16 relative; tau at rounding noise, compared on the scale of sigma in 24 of the 594 tau comparisons (|tau| at most 8.5e-15), by up to 5.6e-16 absolute; the derived bounds, FWHM and area by at most 4.1e-16; and computeTheoretical of the Rust fit far in the tails (values near 1e-27) by up to 1.2e-12 relative.",
+  "platform_independence": "The Rust results are the same on every platform up to the sign and payload of a NaN: exp, log, sqrt and atan come from the pure-Rust libm crate (pinned =0.2.16), Rust does not contract floating-point operations, and the Levenberg-Marquardt transcription uses only IEEE basic operations and sqrt. After the rebase on B4, every value tests/egh_trace_fitter.rs computes was dumped on macOS arm64 and on Linux x86-64 (IBMI dax): the two dumps agree except for the sign bit of NaN results (x86-64 produces negative default NaNs). The tests treat every NaN as equal, and the gnuplot formula writes any NaN as nan. A change of the libm crate version or of the Levenberg-Marquardt backend (packages B3 and B3b) requires re-running tests/egh_trace_fitter.rs; the tolerances are not to be widened to absorb it without a new measurement."
+ },
+ "source_anchors": [
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 21,
+   "operation": "EPSILON_COEFS_ {4.0, -6.293724, 9.232834, -11.342910, 9.123978, -4.173753, 0.827797}, table 1 of Lan and Jorgenson; NUM_PARAMS_ 4"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 35,
+   "operation": "EGHTraceFunctor::operator(): signed sigma; denominator 2*sigma*sigma + tau*t_diff > 0 gives baseline + theo*H*exp(-t_diff2/denominator), otherwise 0 without the baseline; (fegh - intensity) * weight, weight = theoretical_int when weighted"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 80,
+   "operation": "EGHTraceFunctor::df: sigma = fabs(x[2]); derivatives in H, tR, sigma and tau as written; all zero when the denominator is not positive"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 182,
+   "operation": "fit: setInitialParameters_, x_init (height, apex, sigma, tau), ModelData with weighted_, optimize_"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 230,
+   "operation": "checkMaximalRTSpan: bound span > max_rt_span * region_rt_span_; checkMinimalRTSpan: rt_bounds span < min_rt_span * bound span"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 240,
+   "operation": "getValue: height_ * exp(-t_diff * t_diff / denominator) when the denominator is positive, else 0"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 254,
+   "operation": "getArea: phi = atan(|tau|/|sigma|), epsilon accumulated in ascending powers, height_ * (|sigma| * 0.6266571 + |tau|) * epsilon"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 277,
+   "operation": "getGnuplotFormula: default stream formatting of 2*sigma*sigma, tau, rt_shift + apex and theoretical_int * height"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 290,
+   "operation": "getAlphaBoundaries_: L = log(alpha), s = sqrt((L tau)^2/4 - 2 L sigma^2), apex + std::min/std::max of -L tau/2 +- s"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 310,
+   "operation": "getOptimizedParameters_: copies x and sets sigma_5_bound_ from getAlphaBoundaries_(0.043937)"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp",
+   "line": 322,
+   "operation": "setInitialParameters_: computeIntensityProfile, zero-padded running sum of 5 without an N guard, first strict maximum, half-height walks, alpha, tau = -1/log(alpha)*(B-A) or epsilon when 0, sigma = sqrt(-0.5/log(alpha)*B*A) without an alpha guard"
+  },
+  {
+   "path": "FEATUREFINDER/TraceFitter.cpp",
+   "line": 101,
+   "operation": "optimize_: UnableToFit-FinalSet when values < inputs or status <= ImproperInputParameters ('Could not fit the gaussian to the data: Error <status>'); maxfev = max_iterations_"
+  }
+ ],
+ "native_boundaries": [
+  "A failed fit leaves the fitter unchanged; the source has already written the start point into height_, apex_rt_, sigma_, tau_ and region_rt_span_ when optimize_ throws; GaussTraceFitter keeps its start values, as its source does, and one policy for both fitters is the integrator's",
+  "Traces without any peak give UnableToFit-FinalSet from fit and Error::InvalidValue from initial_parameters, where the source's setInitialParameters_ reads smoothed[0] of an empty vector",
+  "A NaN retention time that meets a profile entry gives the intensity profile's Error::InvalidValue, where the source's computeIntensityProfile never terminates",
+  "compute_theoretical refuses an out-of-range peak index with Error::InvalidValue; the source indexes without a check",
+  "EGHTraceFunctor::residuals and jacobian refuse mis-sized parameter and output slices; the source writes through raw pointers of the constructed sizes",
+  "The model values are 0.0 before the first fit; the source leaves them uninitialised",
+  "setInitialParameters_, getOptimizedParameters_ and getAlphaBoundaries_ are protected in the source and public inherent methods here (initial_parameters, set_optimized_parameters, alpha_boundaries)",
+  "The debug-level log lines of setInitialParameters_ are not emitted",
+  "exp, log, sqrt and atan come from the libm crate: single evaluations differ from the Apple libm oracle by one or two units in the last place where the libm crate's exp is not correctly rounded, and fits within 2e-11 relative; results are the same on every platform up to the sign and payload of a NaN. GaussTraceFitter uses the platform library; one choice for both fitters is the integrator's",
+  "fit runs the shared trace_fitter::optimize and inherits its work ceilings: the solver's point and byte ceilings, and a fit that exhausts MAX_RESIDUAL_WORK / values evaluations before its configured max_iteration is refused with Error::InvalidValue and leaves the fitter unchanged, where the source would continue or accept",
+  "The Levenberg-Marquardt solver behind trace_fitter::optimize is not bit-faithful to the executed Eigen beyond recorded fixtures (docs/TRACE_FITTER_SUPPORT.md, 'Known gap: solver fidelity beyond the fixtures'; lane B3b); the EGH fixtures agree within 1e-9, which is fixture-specific"
+ ],
+ "cpp_defect_candidates": [
+  {
+   "status": "confirmed by execution (C2 degenerate flat3_egh and short3_egh, B5 alpha_above_one_baseline)",
+   "function": "EGHTraceFitter::setInitialParameters_",
+   "lines": "EGHTraceFitter.cpp:400-412",
+   "trigger": "a flat or single-scan intensity profile (alpha = 1), or a baseline above the smoothed half-height edges (alpha > 1)",
+   "behaviour": "log(alpha) >= 0 gives sigma = NaN and tau = -inf, NaN or a finite value of the wrong meaning; optimize_ accepts CosinusTooSmall at the start point, so fit succeeds with NaN sigma, NaN bounds, FWHM and area",
+   "proposed_fix": "guard alpha >= 1 as GaussTraceFitter does, or throw UnableToFit",
+   "rust_handling": "reproduced"
+  },
+  {
+   "status": "unconfirmed candidate (source review; not executed, because it is undefined behaviour)",
+   "function": "EGHTraceFitter::setInitialParameters_",
+   "lines": "EGHTraceFitter.cpp:333-365",
+   "trigger": "MassTraces without any peak",
+   "behaviour": "smoothed[max_index] of an empty vector and std::advance on an empty list",
+   "proposed_fix": "throw UnableToFit before building the profile",
+   "rust_handling": "UnableToFit-FinalSet from fit, Error::InvalidValue from initial_parameters"
+  },
+  {
+   "status": "confirmed by source review and execution (functor rows with a non-positive denominator)",
+   "function": "EGHTraceFitter::EGHTraceFunctor::operator() and df",
+   "lines": "EGHTraceFitter.cpp:64-71, 88",
+   "trigger": "a non-zero baseline where 2*sigma^2 + tau*(t - t_R) <= 0; a negative sigma",
+   "behaviour": "the residual model drops the baseline (fegh = 0 instead of baseline) while getGnuplotFormula adds it; df evaluates the sigma column with |sigma| while the residual uses the signed sigma, so for sigma < 0 that column has the wrong sign",
+   "proposed_fix": "use baseline in the else branch; use sigma consistently or constrain it",
+   "rust_handling": "reproduced"
+  },
+  {
+   "status": "confirmed by execution (max_iteration_0, max_iteration_minus_1)",
+   "function": "TraceFitter::optimize_ as reached from EGHTraceFitter::fit",
+   "lines": "TraceFitter.cpp:129",
+   "trigger": "a non-positive max_iteration",
+   "behaviour": "the exception text says 'Could not fit the gaussian to the data' for the EGH model",
+   "proposed_fix": "name the model or say 'the RT model'",
+   "rust_handling": "reproduced"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/egh-trace-fitter/driver.cpp",
+   "sha256": "d1863a926052dee18e123a911e2981969b3d743b3d9b0c241e1f1aa64b6f2e28",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/egh-trace-fitter/run.sh",
+   "sha256": "7cc6807a28829a4b0ccc0974badc895aaba13f8b20375e77233e052082e8296f",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/egh-trace-fitter/extract_c2.py",
+   "sha256": "c740afb3005314c87924880d72b0235ef601d49f491cd00be3b3cdef8d22a923",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/egh-trace-fitter/manifest.json",
+   "sha256": "76e773beb811c87b3f90fc1a00a6a71be9ef1cc404b970c674a97ce8b56bd85e",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/drivers/trace_fitters.cpp",
+   "sha256": "3a6f3b5588863820c206bd19cd6db47bf024b452769d155c4cae2e7c918356e9",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/trace_fitters_classtest.jsonl",
+   "sha256": "6fdea4267b0795edd044ebc32504beef3bface0254a7282f6d9a0f51ddd0292c",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/manifest.json",
+   "sha256": "7f6adefb614200c1a4ff1d9d423a9956765104470c4b232f3a85aed7e0d3f281",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/drivers/common/fit_records.h",
+   "sha256": "c6f32ddd53b26ff297d3d12add85ae051265f7add2e45ef39a2d9baf0d5d5426",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/drivers/common/fixtures.h",
+   "sha256": "5d0f67549c53f2992467b9f1939eeba2822554e16c279a82ed6af6f2a7b8e3a8",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/trace_fitters_degenerate_flat3_egh.jsonl",
+   "sha256": "d8e08fa2dc47adeb2b798ffca817a6ab37491ed37478843f4649441add056bac",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/trace_fitters_degenerate_short3_egh.jsonl",
+   "sha256": "4508e2c80ae944e62a5b12038605b8081516bb2660e1fb0c652dbbf32480761e",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/featurefinder-picked/results/omp1/trace_fitters_degenerate_values_lt_inputs_egh.jsonl",
+   "sha256": "99d98c58099a204d38d5a68219e8135e2813d65440273918f51460eb6a4dce01",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The drivers, run script, extraction script and manifests live outside this repository under ../oracle/ so that no C++ is committed here. The drivers link the prebuilt product-SDK libOpenMS (sha256 under oracle); their output is the two fixtures above, whose sha256 are recorded here. The external files are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

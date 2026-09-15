@@ -6,7 +6,9 @@
    "format",
    "identification",
    "kernel",
+   "math",
    "metadata",
+   "param",
    "processing"
   ],
   "chemistry": [
@@ -38,6 +40,7 @@
    "data_structures",
    "identification",
    "kernel",
+   "math",
    "metadata",
    "param",
    "system"
@@ -71,8 +74,10 @@
   ],
   "processing": [
    "chemistry",
+   "concept",
    "kernel",
-   "metadata"
+   "metadata",
+   "param"
   ],
   "system": [
    "format",

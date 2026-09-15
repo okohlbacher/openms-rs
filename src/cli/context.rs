@@ -114,7 +114,10 @@ impl ToolContext {
     pub fn force(&self) -> bool {
         self.force
     }
-    /// Source `-threads`; 0 means every available core.
+    /// Source `-threads` as resolved from the defaults, the INI file and the
+    /// command line; zero or a negative count requests every available
+    /// processor. [`thread_policy`](Self::thread_policy) turns it into a worker
+    /// count.
     pub fn threads(&self) -> i64 {
         self.threads
     }
@@ -130,16 +133,146 @@ impl ToolContext {
             ProgressLogType::Cmd
         }
     }
-    /// The worker-thread policy for parallel algorithms.
+    /// The worker-thread policy of this run: how many workers the tool body
+    /// and the parallel algorithms it calls may use.
     ///
     /// Source `setMaxNumberOfThreads(getParamAsInt_("threads", 1))`
-    /// (`TOPPBase.cpp:84-98, 408`), where zero or a negative count means every
-    /// available processor. The source sets a process-wide OpenMP limit; here
-    /// the policy is passed to each computation, which keeps the parallel
-    /// result bit-identical to the serial one (`src/concept/parallel.rs`).
-    /// A negative count yields one worker, as [`Threads::from_cli`] documents.
+    /// (`TOPPBase.cpp:84-98, 408` at cli c19e494), which runs after the INI
+    /// file and the command line are merged, so `-threads` and an INI
+    /// `threads` value act alike:
+    ///
+    /// * a positive count `n` gives `n` workers;
+    /// * zero **or a negative count** gives every available processor, as the
+    ///   source's `if (num_threads <= 0) num_threads = omp_get_num_procs()`.
+    ///   [`Threads::from_cli`] maps a negative count to one worker; this
+    ///   method does not use it for non-positive counts, because the source
+    ///   does not. Executed on the C++ Release build: `-threads -1` and
+    ///   `-threads -7` start the same 128-thread team as `-threads 0` on a
+    ///   128-processor node (`oracle/tool-threads/cpp_results_ibminode06.jsonl`).
+    ///
+    /// "Available" is [`std::thread::available_parallelism`]. Like
+    /// `omp_get_num_procs`, it counts the processors in the affinity mask
+    /// (`taskset -c 0-3` gives 4 in both); on Linux it also honours a cgroup
+    /// CPU quota, which `omp_get_num_procs` ignores, so under a quota the port
+    /// may start fewer workers than the source. Results do not change, by the
+    /// determinism contract.
+    ///
+    /// `OMP_NUM_THREADS` does not enter the policy, as it does not enter the
+    /// source's: `omp_set_num_threads` overrides it for every parallel region
+    /// of the tool body. Executed: `-threads 4` gives the C++ tool body a
+    /// four-thread team under `OMP_NUM_THREADS=1` and `=16` alike. The extra
+    /// threads the C++ tools start without `OMP_NUM_THREADS` (129 at
+    /// `-threads 1`, also for `-write_ini`) belong to the OpenBLAS library
+    /// linked into that build, which sizes its server pool from the variable
+    /// at library load (`blas_thread_init`); they do no tool work, and this
+    /// port links no BLAS. `RAYON_NUM_THREADS` is ignored too, because the
+    /// pool size is always explicit.
+    ///
+    /// A count above both [`THREAD_CEILING`](Self::THREAD_CEILING) and the
+    /// available processors is clamped to the larger of the two, so a typing
+    /// slip such as `-threads 2147483647` cannot ask the operating system for
+    /// two billion threads; libgomp would try and abort. Clamping never changes
+    /// a result, by the determinism contract.
+    ///
+    /// The source sets a process-wide OpenMP limit. Here the policy is passed
+    /// to each computation, and [`in_thread_pool`](Self::in_thread_pool) runs
+    /// the tool body on a pool of exactly this size, which keeps the parallel
+    /// result bit-identical to the serial one (`src/concept/parallel.rs`). The
+    /// source `@note` that the setting only works when OpenMS is compiled with
+    /// OpenMP carries over: without the `parallel` feature every computation is
+    /// serial, whatever this returns.
     pub fn thread_policy(&self) -> Threads {
-        Threads::from_cli(self.threads)
+        let Ok(requested) = usize::try_from(self.threads) else {
+            return Threads::all();
+        };
+        if requested == 0 {
+            return Threads::all();
+        }
+        if requested <= Self::THREAD_CEILING {
+            return Threads::from_cli(self.threads);
+        }
+        let ceiling = Self::THREAD_CEILING.max(Threads::all().get());
+        Threads::from_cli(i64::try_from(requested.min(ceiling)).unwrap_or(1))
+    }
+
+    /// Worker count above which [`thread_policy`](Self::thread_policy) clamps
+    /// a request, unless the machine reports more available processors.
+    ///
+    /// Native bound; the source has none. 1024 exceeds the logical processors
+    /// of the benchmark nodes (128) and of the largest gate host (384), and it
+    /// never reduces a request on a machine with more processors, because the
+    /// ceiling then rises to the available count.
+    pub const THREAD_CEILING: usize = 1024;
+
+    /// Stack size of each pool worker, in bytes: 8 MiB.
+    ///
+    /// [`in_thread_pool`](Self::in_thread_pool) moves the tool body off the
+    /// main thread, whose stack on Linux and macOS is 8 MiB, onto a worker,
+    /// whose Rust default is 2 MiB. Matching the main thread keeps recursion
+    /// depth what it was before the pool existed. The source body runs on the
+    /// main thread and its OpenMP workers use the runtime's default.
+    pub const WORKER_STACK_BYTES: usize = 8 << 20;
+
+    /// Run `work`, normally the tool body, on a scoped worker pool sized by
+    /// [`thread_policy`](Self::thread_policy), and return its result.
+    ///
+    /// This is the native form of the source applying `-threads` before
+    /// `main_` (`TOPPBase.cpp:408-415`). A tool calls it from
+    /// [`Tool::run`](crate::cli::Tool::run) with its body, so the setting
+    /// reaches the run phase instead of being ignored; the five ported tools
+    /// do, and a new tool is expected to. Inside `work`, rayon reports the policy's
+    /// worker count (`rayon::current_num_threads`), and rayon parallel
+    /// iterators run on this pool rather than on rayon's global one, so no
+    /// computation of the run can exceed the requested count by accident. The
+    /// pool is built for this call and its threads end when it returns; they
+    /// are named `openms-<index>`, which is what `/proc/<pid>/task/*/comm`
+    /// shows.
+    ///
+    /// A pool is built for one worker too. `-threads 1` therefore runs `work`
+    /// on one pool thread rather than on the calling thread, which is what
+    /// bounds rayon to one worker inside it.
+    ///
+    /// `work` must be [`Send`] because it runs on a pool thread. A tool that
+    /// writes a report to the `out` and `err` streams of
+    /// [`Tool::run_io`](crate::cli::Tool::run_io), which are not `Send`,
+    /// computes inside `work` and writes after this returns.
+    ///
+    /// The determinism contract applies: a tool's output must not depend on
+    /// the worker count. Outside `-test` the processing record still lists the
+    /// `threads` parameter as given, as the source's does.
+    ///
+    /// Without the `parallel` feature, `work` runs on the calling thread.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Io`] when the operating system refuses to start the
+    /// worker threads; nothing of `work` has run then. The source has no such
+    /// path: libgomp aborts the process when it cannot create a thread. A
+    /// panic inside `work` propagates to the caller unchanged.
+    pub fn in_thread_pool<R, F>(&self, work: F) -> Result<R>
+    where
+        F: FnOnce() -> R + Send,
+        R: Send,
+    {
+        #[cfg(feature = "parallel")]
+        {
+            let workers = self.thread_policy().get();
+            let pool = rayon::ThreadPoolBuilder::new()
+                .num_threads(workers)
+                .stack_size(Self::WORKER_STACK_BYTES)
+                .thread_name(|index| format!("openms-{index}"))
+                .build()
+                .map_err(|error| {
+                    Error::Io(std::io::Error::other(format!(
+                        "cannot start {workers} worker threads: {error}"
+                    )))
+                })?;
+            Ok(pool.install(work))
+        }
+        #[cfg(not(feature = "parallel"))]
+        {
+            Ok(work())
+        }
     }
     /// A unique-id generator for this run's outputs.
     ///

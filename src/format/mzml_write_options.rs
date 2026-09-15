@@ -8,13 +8,25 @@ use crate::kernel::data_array::Meter;
 use sha1::{Digest, Sha1};
 use std::{borrow::Cow, io, path::Path};
 
-/// Binary preparation and cumulative markup/index allowances are independent of
-/// the existing fixed header allowance. Both markup passes are precharged.
+/// Ceilings of the prepared (two-pass) peak-file writer.
+///
+/// Binary preparation and the cumulative markup/index allowances are
+/// independent of the header allowance. Both markup passes are precharged.
+///
+/// An explicit value, as passed to [`write_with_peak_options_and_limits`] and
+/// [`store_with_peak_options_and_limits`], is a whole-document ceiling: it is
+/// not reset per record. [`PeakWriteLimits::default`] is the allowance for one
+/// ordinary record; the entry points without explicit limits use
+/// [`PeakWriteLimits::for_experiment`], which scales it to the experiment.
 #[derive(Clone, Copy, Debug)]
 pub struct PeakWriteLimits {
+    /// Numpress and ordinary binary preparation of every array.
     pub binary: NumpressCoderLimits,
+    /// Decoded XML bytes of the complete document, index and checksum included.
     pub max_xml_bytes: u64,
+    /// Work units for the input walk, both markup passes and the checksum.
     pub max_work: usize,
+    /// Allocation bytes for markup scratch and the record offset tables.
     pub max_bytes: usize,
 }
 impl Default for PeakWriteLimits {
@@ -27,6 +39,100 @@ impl Default for PeakWriteLimits {
         }
     }
 }
+impl PeakWriteLimits {
+    /// Work units granted per stored array value on top of the per-record
+    /// shares; covers Numpress attempts, verification and ordinary fallback.
+    const WORK_PER_VALUE: usize = 1024;
+    /// Bytes granted per stored array value on top of the per-record shares;
+    /// covers raw, encoded and Base64 copies of one value several times over.
+    const BYTES_PER_VALUE: usize = 256;
+
+    /// Ceilings derived from the size of `experiment`, so that no realistic
+    /// experiment is refused.
+    ///
+    /// Every cumulative ceiling of [`PeakWriteLimits::default`] is multiplied by
+    /// the experiment's record shares (one for the header plus one per spectrum
+    /// and chromatogram) and extended by a fixed allowance per stored array
+    /// value (m/z or retention time, intensity, noise and auxiliary arrays). The
+    /// per-array Numpress ceilings grow to the longest array. The result is
+    /// linear in the experiment's size, so a single fixed allowance can no
+    /// longer refuse a long run while amplification inside the document stays
+    /// bounded. `max_xml_bytes` is clamped to the largest value the writer
+    /// accepts (`u64::MAX / 8`).
+    pub fn for_experiment(experiment: &MSExperiment) -> Self {
+        let base = Self::default();
+        let shares = super::writer_shares(experiment);
+        let mut values = 0usize;
+        let mut longest = 0usize;
+        let mut count = |length: usize| {
+            values = values.saturating_add(length);
+            longest = longest.max(length);
+        };
+        for spectrum in &experiment.spectra {
+            count(spectrum.len());
+            count(spectrum.len());
+            for array in &spectrum.float_data_arrays {
+                count(array.data.len());
+            }
+            for array in &spectrum.integer_data_arrays {
+                count(array.data.len());
+            }
+            for array in &spectrum.string_data_arrays {
+                count(
+                    array
+                        .data
+                        .iter()
+                        .fold(array.data.len(), |n, s| n.saturating_add(s.len())),
+                );
+            }
+        }
+        for chromatogram in &experiment.chromatograms {
+            count(chromatogram.len());
+            count(chromatogram.len());
+            for array in &chromatogram.float_data_arrays {
+                count(array.data.len());
+            }
+            for array in &chromatogram.integer_data_arrays {
+                count(array.data.len());
+            }
+            for array in &chromatogram.string_data_arrays {
+                count(
+                    array
+                        .data
+                        .iter()
+                        .fold(array.data.len(), |n, s| n.saturating_add(s.len())),
+                );
+            }
+        }
+        // Noise arrays are metadata-backed and bounded by the settings
+        // preflight; one record share covers them like any other metadata.
+        let work = values.saturating_mul(Self::WORK_PER_VALUE);
+        let bytes = values.saturating_mul(Self::BYTES_PER_VALUE);
+        let scaled =
+            |ceiling: usize, extra: usize| ceiling.saturating_mul(shares).saturating_add(extra);
+        let raw = base.binary.raw;
+        let binary = NumpressCoderLimits {
+            raw: crate::format::numpress::NumpressLimits {
+                max_values: raw.max_values.max(longest),
+                max_encoded_bytes: raw.max_encoded_bytes.max(longest.saturating_mul(16)),
+                max_work: scaled(raw.max_work, work),
+            },
+            max_text_bytes: base.binary.max_text_bytes.max(longest.saturating_mul(32)),
+            max_total_bytes: scaled(base.binary.max_total_bytes, bytes),
+        };
+        let xml = u64::try_from(scaled(
+            usize::try_from(base.max_xml_bytes).unwrap_or(usize::MAX),
+            bytes,
+        ))
+        .unwrap_or(u64::MAX);
+        Self {
+            binary,
+            max_xml_bytes: xml.min(u64::MAX / 8),
+            max_work: scaled(base.max_work, work),
+            max_bytes: scaled(base.max_bytes, bytes),
+        }
+    }
+}
 /// Encoding outcomes and the exact uncompressed output length.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct PeakWriteReport {
@@ -34,12 +140,19 @@ pub struct PeakWriteReport {
     pub indexed: bool,
     pub xml_bytes: u64,
 }
+/// Write `experiment` with the source writer flags of `options`, under ceilings
+/// derived from the experiment ([`PeakWriteLimits::for_experiment`]).
 pub fn write_with_peak_options(
     writer: impl Write,
     experiment: &MSExperiment,
     options: &PeakFileOptions,
 ) -> Result<PeakWriteReport> {
-    write_with_peak_options_and_limits(writer, experiment, options, &PeakWriteLimits::default())
+    write_with_peak_options_and_limits(
+        writer,
+        experiment,
+        options,
+        &PeakWriteLimits::for_experiment(experiment),
+    )
 }
 /// Read-only flags do not filter, sort or copy input on store. Indexed empty
 /// output is rejected before writing (CPP-050); SHA-1 covers actual UTF-8 bytes
@@ -53,12 +166,20 @@ pub fn write_with_peak_options_and_limits(
     let prepared = prepare(experiment, options, limits)?;
     emit(writer, experiment, &prepared)
 }
+/// Store `experiment` at `path` with the source writer flags of `options`,
+/// under ceilings derived from the experiment
+/// ([`PeakWriteLimits::for_experiment`]).
 pub fn store_with_peak_options(
     path: impl AsRef<Path>,
     experiment: &MSExperiment,
     options: &PeakFileOptions,
 ) -> Result<PeakWriteReport> {
-    store_with_peak_options_and_limits(path, experiment, options, &PeakWriteLimits::default())
+    store_with_peak_options_and_limits(
+        path,
+        experiment,
+        options,
+        &PeakWriteLimits::for_experiment(experiment),
+    )
 }
 /// Prepares before opening any temporary output; the shared path transport
 /// publishes atomically after compression/flush. Offsets address decoded XML.
@@ -317,14 +438,26 @@ pub(super) fn native_id(id: &str, index: usize, chrom: bool) -> Cow<'_, str> {
         Cow::Borrowed(id)
     }
 }
+/// How an [`Output`] treats record offsets, the index and the checksum.
 enum Mode<'a> {
+    /// Plain mzML: no offsets, no index.
     Legacy,
+    /// First pass of the prepared writer: charges markup work and records the
+    /// layout into a sink.
     Measure {
         work: &'a mut Work,
         layout: &'a mut Layout,
         max_xml_bytes: u64,
     },
+    /// Second pass of the prepared writer: replays a measured layout.
     Emit(&'a Layout),
+    /// Single-pass indexed output: offsets are recorded as records start and
+    /// the checksum is computed while the bytes go out, as the source writer
+    /// records `os.tellp()` while writing.
+    Stream {
+        spectra: Vec<u64>,
+        chromatograms: Vec<u64>,
+    },
 }
 pub(super) struct Output<'a, W> {
     writer: W,
@@ -341,11 +474,38 @@ impl<W: Write> Output<'_, W> {
             mode: Mode::Legacy,
         }
     }
+    /// A single-pass indexed output for `experiment`, with its offset tables
+    /// reserved up front.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when the offset tables (8 bytes per
+    /// record) cannot be allocated.
+    pub(super) fn streamed(writer: W, experiment: &MSExperiment) -> Result<Self> {
+        let mut spectra = Vec::new();
+        spectra
+            .try_reserve_exact(experiment.spectra.len())
+            .map_err(|_| resource())?;
+        let mut chromatograms = Vec::new();
+        chromatograms
+            .try_reserve_exact(experiment.chromatograms.len())
+            .map_err(|_| resource())?;
+        Ok(Self {
+            writer,
+            position: 0,
+            hash: Some(Sha1::new()),
+            mode: Mode::Stream {
+                spectra,
+                chromatograms,
+            },
+        })
+    }
     fn indexed(&self) -> bool {
         match &self.mode {
             Mode::Legacy => false,
             Mode::Measure { layout, .. } => layout.indexed,
             Mode::Emit(layout) => layout.indexed,
+            Mode::Stream { .. } => true,
         }
     }
     pub(super) fn header(&mut self, prefix: &str) -> Result<()> {
@@ -357,32 +517,44 @@ impl<W: Write> Output<'_, W> {
         Ok(())
     }
     pub(super) fn record(&mut self, chrom: bool) -> Result<()> {
-        if let Mode::Measure { layout, .. } = &mut self.mode {
-            if layout.indexed {
-                let offsets = if chrom {
+        let offsets = match &mut self.mode {
+            Mode::Measure { layout, .. } if layout.indexed => {
+                if chrom {
                     &mut layout.chromatograms
                 } else {
                     &mut layout.spectra
-                };
-                if offsets.len() == offsets.capacity() {
-                    return Err(resource());
                 }
-                offsets.push(self.position);
             }
+            Mode::Stream {
+                spectra,
+                chromatograms,
+            } => {
+                if chrom {
+                    chromatograms
+                } else {
+                    spectra
+                }
+            }
+            _ => return Ok(()),
+        };
+        // Both tables were reserved for the experiment's record counts.
+        if offsets.len() == offsets.capacity() {
+            return Err(resource());
         }
+        offsets.push(self.position);
         Ok(())
     }
     fn offset(&self, chrom: bool, i: usize) -> Result<u64> {
-        let layout = match &self.mode {
-            Mode::Measure { layout, .. } => &**layout,
-            Mode::Emit(layout) => layout,
+        let (spectra, chromatograms) = match &self.mode {
+            Mode::Measure { layout, .. } => (&layout.spectra, &layout.chromatograms),
+            Mode::Emit(layout) => (&layout.spectra, &layout.chromatograms),
+            Mode::Stream {
+                spectra,
+                chromatograms,
+            } => (spectra, chromatograms),
             Mode::Legacy => return Err(resource()),
         };
-        let offsets = if chrom {
-            &layout.chromatograms
-        } else {
-            &layout.spectra
-        };
+        let offsets = if chrom { chromatograms } else { spectra };
         offsets.get(i).copied().ok_or_else(resource)
     }
     pub(super) fn footer(&mut self, experiment: &MSExperiment) -> Result<()> {

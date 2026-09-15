@@ -100,9 +100,18 @@ fn monotonic_and_irregular_signals_match_upstream_style_boundary_reference() {
                 for (method, maximum) in [(Method::Erosion, false), (Method::Dilation, true)] {
                     let filter =
                         MorphologicalFilter::new(method, Element::DataPoints(points)).unwrap();
+                    let mut expected = reference(&input, points, maximum);
+                    // Executed C++ (tests/data/baseline_filter_edges_sweep.tsv,
+                    // rows with length 1): the source's van Herk erosion and
+                    // dilation never write the last output sample when the
+                    // element is one sample wide and the signal has more than
+                    // five samples, so it keeps the output buffer's zero.
+                    if points == 1 && size > 5 {
+                        *expected.last_mut().unwrap() = 0.0;
+                    }
                     assert_eq!(
                         filter.filter_range(&input).unwrap(),
-                        reference(&input, points, maximum),
+                        expected,
                         "size={size},points={points}"
                     );
                 }

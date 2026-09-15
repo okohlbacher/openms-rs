@@ -5,11 +5,11 @@
   "counts": {
     "registered_public_headers": 786,
     "by_status": {
-      "complete": 55,
-      "evidence_requires_review": 158,
+      "complete": 56,
+      "evidence_requires_review": 156,
       "native_equivalent": 90,
-      "partial": 55,
-      "unmapped": 428
+      "partial": 61,
+      "unmapped": 423
     },
     "topp_sources": 124,
     "validated_topp_workflows": 5
@@ -3854,6 +3854,7 @@
         "tests/data/constants_provenance.json",
         "tests/data/emg_provenance.json",
         "tests/data/faims_helper_provenance.json",
+        "tests/data/feature_overlap_filter_provenance.json",
         "tests/data/mass_trace_detection_provenance.json",
         "tests/data/peptide_properties_provenance.json",
         "tests/data/precursor_purity_provenance.json",
@@ -5274,10 +5275,12 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/EGHTraceFitter.h",
       "sha256": "e56cec282327b05a4bb34093e310c7c87908ef8d3706411669cde0828fbe26ca",
       "domain": "FEATUREFINDER",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/lm_budget_differential_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -5395,10 +5398,24 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
       "sha256": "a9d5a2373f301e3ac553bdfbcb8e1dba95de46eab1344bf07a4962760e35b8c0",
       "domain": "FEATUREFINDER",
-      "status": "unmapped",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/analysis/feature_finder_picked/algorithm.rs",
+          "src/analysis/feature_finder_picked/scoring.rs",
+          "src/analysis/feature_finder_picked/seeds.rs"
+        ],
+        "tests": [
+          "tests/feature_finder_picked_seeds.rs"
+        ],
+        "documentation": "docs/FEATURE_FINDER_PICKED_SUPPORT.md",
+        "scope": "Front half only (B6-FFAP-SEEDS, 80bbdf1): the 29 parameter defaults with their 7 section descriptions, updateMembers_ as Settings::from_parameters, the input checks of run in source order, the intensity bins and 21 quantiles, the trace, intensity and isotope-pattern scores, the isotope-window precalculation and seed selection, steps 0 to 3.2 of run_, with SeedStage as the hand-off. Tier 1: the defaults equal the executed FeatureFinderCentroided -write_ini algorithm section (C1); settings, quantiles, every isotope window, every per-peak score and the ordered seed lists match the product SDK bit for bit on Linux x86-64 in 7 configurations (C2 ffap_stages: FFC_1, the class test, both #9247 tolerance swaps, user seeds; ../oracle/b6-ffap-seeds: default parameters, 7 bins with charges 1-3, min_spectra 1). The seed lists come from replicas of .cpp:493-548 applied to the library's score arrays (adapted). Exception: the overall score is libm::pow in f64 rounded once to f32, the correctly rounded power, so 99 of 30,840 retained overall scores are one binary32 step from the Apple powf the oracle used (CPP-272); no seed list changes. The class test's constructor and destructor sections are covered; its run and #9247 sections produce features and wait for B7. Refused on purpose: mass_trace:min_spectra = 1 (the source is defined there: NaN trace scores, 0 seeds), write_debug, a zero-width RT or m/z range, charge_low above charge_high + 1, and a changed isotope abundance unless AbundanceOverride::Intended is selected (CPP-247); the lead decides the first and the last. Native: score arrays outside the spectra, ranges computed on demand, returned logs, Limits. PARTIAL: run returns Error::Unsupported after step 3.2; seed extension, trace fitting, the quality checks, intersection_, cropFeature_, abort bookkeeping, overlap resolution and writeFeatureDebugInfo_ are B7's. A failing isotope window at about 273,750 Da (max m/z times charge_high) fails the whole run where the SDK continues with NaN weights, and a zero-intensity peak stores the Release NaN intensity score where the Debug SDK throws a postcondition; both are open verifier notes."
+      },
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/feature_finder_picked_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FeatureFinderCentroided"
       ]
@@ -5530,10 +5547,12 @@
       "header": "src/openms/include/OpenMS/FEATUREFINDER/GaussTraceFitter.h",
       "sha256": "cf2dce0c1df544ea2637a0cfb8f935163d1ea8b2dbd0cbacda4efcc97b6d1093",
       "domain": "FEATUREFINDER",
-      "status": "unmapped",
+      "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/lm_budget_differential_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -5781,7 +5800,9 @@
       "candidate_rust_files": [
         "src/analysis/feature_finder_picked/trace_fitter.rs"
       ],
-      "reference_manifests": [],
+      "reference_manifests": [
+        "tests/data/lm_budget_differential_provenance.json"
+      ],
       "direct_topp_consumers": []
     },
     {
@@ -6415,6 +6436,7 @@
         "tests/data/fasta_provenance.json",
         "tests/data/file_handling_provenance.json",
         "tests/data/identification_paths_provenance.json",
+        "tests/data/mzml_header_leniency_provenance.json",
         "tests/data/mzml_mobility_provenance.json",
         "tests/data/mzml_paths_provenance.json"
       ],
@@ -6525,10 +6547,27 @@
       "header": "src/openms/include/OpenMS/FORMAT/FileInfo.h",
       "sha256": "43e35cc67dcd798a349ded37fbb8240087c9748c0c65df5debe797f92097bbc9",
       "domain": "FORMAT",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/format/file_info/features.rs",
+          "src/format/file_info/model.rs",
+          "src/format/file_info/peaks.rs",
+          "src/format/file_info/report.rs"
+        ],
+        "tests": [
+          "tests/file_info.rs"
+        ],
+        "documentation": "docs/FILE_INFO_SUPPORT.md",
+        "scope": "Library preview (A4-FILEINFO-CORE, bb28715): every nested type of FileInfo.h (Options, Result as FileInfoResult, Range, RangeSet, Ranges, FileMeta, PeakInfo, FeatureInfo, the declared ident, FASTA, mzTab, validation, corruption and detail records), run, run(path), runAll, toText and toTSV, with the peak-file branch for DTA, DTA2D and mzML (loaded through FileHandler with default PeakFileOptions, SRM spectra converted to chromatograms as FileHandler::loadExperiment does) and the featureXML branch, each with -m, -p and -s in text and TSV. The numeric text comes from A2's text_format.rs (StringUtils.h review). Tier 1: 34 text and 34 TSV reports equal the executed product-SDK FileInfo byte for byte apart from the file-name lines (7 C1 cases, 27 from ../oracle/file-info-core, reproduced twice); TOPP_FileInfo_1, _2, _3 and _9 pass FuzzyDiff against the retained outputs. Tier 3: 7 of the 9 FileInfo_test sections. Five oracle tests are ignored for mzML reader gaps outside this header (a repeated userParam, processing references on primary arrays, a 64-bit float charge array, a dangling defaultDataProcessingRef, the selected-ion drift time), guarded by a tripwire test; three derived inputs whose C++ reports equal the originals stand in. Refused with Error::Unsupported: -v, -i, and -d/-c on peak files (on featureXML the source ignores them, and so does the port); the consensusXML, idXML, mzid, FASTA, pepXML, mzTab, trafoXML and PQP branches; mzXML, mzData, MGF, MS2, sqMass, fid, MSP, Thermo RAW and Bruker TDF peak files. A directory with no recognised name is an unknown type, as in C++. PARTIAL until A6 (-i, -d, -c), A7 (consensusXML, identification, FASTA) and A8 (-v, mzXML, mzData, trafoXML) land; Options has no source-compatible load-options field yet (D10), and the SRM conversion uses ChromatogramTools' default limits, whose work ceiling refuses about 430k SRM points that C++ reports (open verifier note)."
+      },
+      "candidate_rust_files": [
+        "src/format/file_info/report.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/file_info_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FileInfo"
       ]
@@ -6929,6 +6968,7 @@
         "tests/data/mzml_centroid_provenance.json",
         "tests/data/mzml_consumer_provenance.json",
         "tests/data/mzml_counts_provenance.json",
+        "tests/data/mzml_header_leniency_provenance.json",
         "tests/data/mzml_header_provenance.json",
         "tests/data/mzml_isolation_provenance.json",
         "tests/data/mzml_load_provenance.json",
@@ -7659,6 +7699,7 @@
           "tests/mzml_consumer.rs",
           "tests/mzml_counts.rs",
           "tests/mzml_header.rs",
+          "tests/mzml_header_leniency.rs",
           "tests/mzml_isolation.rs",
           "tests/mzml_load_options.rs",
           "tests/mzml_mobility.rs",
@@ -7676,7 +7717,7 @@
           "tests/spectrum_type.rs"
         ],
         "documentation": "docs/MZML_SUPPORT.md",
-        "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array scalar metadata and units, all source record CV routes, optical/pressure/flow primary roles and independent f64 noise grids are transported with source merge order and checked ownership. Generic lists/Empty, ambiguous primaries and independent primary-array history remain checked errors; CPP-053/058 are corrected. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. Complete centroid inspection/SpecInfo uses one consumer pass, a global recognized quota with Unknown bookkeeping, exact history/type/estimator precedence and cumulative query/map limits. Local fill_data override and pre-input zero-quota errors correct CPP-018/048. Isolation-target loading now preserves immediate sticky target filtering and differing first-selected-ion Float metadata across stream/path/consumer/count APIs; source count RT-event order remains distinct. Default selected-ion multiple/duplicate boundaries remain explicit. Every writer now consumes differing selected-ion metadata and preserves its separate effective isolation target; TPP intentionally suppresses precursor windows. Optional complete MzMLValidator specialization and file semantic convenience use shared bounded CV/XML logic and exact mapping; CPP-051 cross-document group state is corrected. Complete represented writer PeakFileOptions execution adds primary precision, all three Numpress configurations, zlib, TPP and indexed UTF-8 output with actual SHA-1 and byte offsets. One prepared payload supports two precharged markup passes and atomic path publication; ignored read options are not cloned. CPP-049/050 are corrected. skip_xml_checks executes only source four-character binary whitespace-normalization bypass, preserving checked XML/Base64/length/resource behavior and all no-decode modes; CPP-055 malformed-source behavior is rejected. Optional mzML-schema provides original fixed ordinary/indexed XSD validation through unmodified libxml0.3.14 with owned diagnostics, checked root/namespaces and UTF-16 input. Native limits do not bound opaque C allocations/time. CPP-052 schema selection is corrected; original CPP-054 schema defect remains explicit with separate integrity checks. MzMLFile remains partial: the ion-mobility peak type (IMPeakType, MS:1003441), selected-ion drift-time propagation to the spectrum, the remaining precursor activation metadata/unit routes and adapter progress hooks remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration. Spectrum- and scan-level ion mobility, including the FAIMS compensation voltage, the MS:1000525 representation reset and unit-bearing ion-mobility arrays, follows the source reader and writer routes, tier 1 against ../oracle/a3-format-io (docs/MZML_MOBILITY_SUPPORT.md); selected-ion mobility is not copied to the spectrum."
+        "scope": "Bounded stream/path read/write with represented primary/canonical/auxiliary arrays, precursors, source acquisition fields, scientific filters, count-only APIs, compressed transport and atomic path publication. All six Numpress CV transports and configured preflight/fallback writer are available. Complete source-supported header/reference group transports contacts, sample, sources, software, full source instrument enum/scalar routes, default/additional instruments, processing definitions and shared references, auxiliary descriptions, scalar metadata/units, and precise timestamps. read_metadata and metadata_only stop before record counts/payload. Source processing count/action/order/time/software-path/escaping corrections are explicit. Raw-spectrum peptide identifications and nondefault chromatogram SourceFile retain source/schema ownership guards. Typed record/primary-array scalar metadata and units, all source record CV routes, optical/pressure/flow primary roles and independent f64 noise grids are transported with source merge order and checked ownership. Generic lists/Empty, ambiguous primaries and independent primary-array history remain checked errors; CPP-053/058 are corrected. Both source transform overloads now support exact raw setup passes, separate record pools, explicit soft stop, callback mutation, seeded settings merging and atomic retaining publication. Unconditional MSDataConsumer and factory-based nonseekable input are native equivalents. fill_data=false retains metadata and validates descriptions while skipping unused payload decoding and numeric budgets. Complete centroid inspection/SpecInfo uses one consumer pass, a global recognized quota with Unknown bookkeeping, exact history/type/estimator precedence and cumulative query/map limits. Local fill_data override and pre-input zero-quota errors correct CPP-018/048. Isolation-target loading now preserves immediate sticky target filtering and differing first-selected-ion Float metadata across stream/path/consumer/count APIs; source count RT-event order remains distinct. Default selected-ion multiple/duplicate boundaries remain explicit. Every writer now consumes differing selected-ion metadata and preserves its separate effective isolation target; TPP intentionally suppresses precursor windows. Optional complete MzMLValidator specialization and file semantic convenience use shared bounded CV/XML logic and exact mapping; CPP-051 cross-document group state is corrected. Complete represented writer PeakFileOptions execution adds primary precision, all three Numpress configurations, zlib, TPP and indexed UTF-8 output with actual SHA-1 and byte offsets. One prepared payload supports two precharged markup passes and atomic path publication; ignored read options are not cloned. CPP-049/050 are corrected. skip_xml_checks executes only source four-character binary whitespace-normalization bypass, preserving checked XML/Base64/length/resource behavior and all no-decode modes; CPP-055 malformed-source behavior is rejected. Optional mzML-schema provides original fixed ordinary/indexed XSD validation through unmodified libxml0.3.14 with owned diagnostics, checked root/namespaces and UTF-16 input. Native limits do not bound opaque C allocations/time. CPP-052 schema selection is corrected; original CPP-054 schema defect remains explicit with separate integrity checks. MzMLFile remains partial: the ion-mobility peak type (IMPeakType, MS:1003441), selected-ion drift-time propagation to the spectrum, the remaining precursor activation metadata/unit routes and adapter progress hooks remain. See docs/MZML_CONSUMER_SUPPORT.md for callback/retention/resource boundaries. See docs/MZML_HEADER_SUPPORT.md for exact ownership, bounds, marker and DateTime migration. Spectrum- and scan-level ion mobility, including the FAIMS compensation voltage, the MS:1000525 representation reset and unit-bearing ion-mobility arrays, follows the source reader and writer routes, tier 1 against ../oracle/a3-format-io (docs/MZML_MOBILITY_SUPPORT.md); selected-ion mobility is not copied to the spectrum. ReadOptions::source_dangling_references (P2-MZML-LENIENCY, 15a5f09, decision D10; default false, so the reader stays strict) reads a softwareRef or a data-processing reference that names no definition as MzMLHandler's std::map::operator[] does, as empty software or an empty history, with one warning per distinct ID where the source is silent (CPP-262); tier 1 against ../oracle/p2-mzml-leniency (68 lines on load, metadata-only and transform). sourceFileRef, sampleRef, defaultInstrumentConfigurationRef, scan instrument and parameter-group references stay strict under it, whitespace-padded or empty optional references differ from the source, and a transform call warns twice (open verifier notes). FileHandler does not pass the option yet."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -7685,6 +7726,7 @@
         "tests/data/mzml_centroid_provenance.json",
         "tests/data/mzml_consumer_provenance.json",
         "tests/data/mzml_counts_provenance.json",
+        "tests/data/mzml_header_leniency_provenance.json",
         "tests/data/mzml_header_provenance.json",
         "tests/data/mzml_isolation_provenance.json",
         "tests/data/mzml_normalization_provenance.json",
@@ -8076,7 +8118,7 @@
           "tests/paramxml.rs"
         ],
         "documentation": "docs/PARAMXML_SUPPORT.md",
-        "scope": "Source plain/gzip/bzip2 load and atomic load-into, plain file/stdout store and stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. ZIP input remains unsupported. Native encoding/precision/loss validation adaptations documented; inherited XMLFile schema APIs remain separate."
+        "scope": "Source plain/gzip/bzip2 load and atomic load-into, plain file/stdout store and stream surface through 1.8.0, scalar/list types, nested sections, tags/restrictions and legacy formats. ZIP input remains unsupported. Native encoding/precision/loss validation adaptations documented; inherited XMLFile schema APIs remain separate. Writer options (CLI-2, f886d90): WriteOptions::source() writes the source store's ISO-8859-1 declaration and reproduces the ParamXMLFile_test_writeXMLToStream.xml golden byte for byte; characters up to U+00FF are written as their ISO-8859-1 byte and others as character references, where the source copies UTF-8 bytes under that declaration (CPP-264). The default writer is unchanged."
       },
       "candidate_rust_files": [],
       "reference_manifests": [
@@ -8997,11 +9039,22 @@
       "header": "src/openms/include/OpenMS/IONMOBILITY/IMDataConverter.h",
       "sha256": "512ec00e1cad39ba0c12963e2e544455f0f3b4cdf5aa1b6d735dfdd74c832bc9",
       "domain": "IONMOBILITY",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/kernel/im_data_converter.rs"
+        ],
+        "tests": [
+          "tests/im_data_converter.rs"
+        ],
+        "documentation": "docs/IM_DATA_CONVERTER_SUPPORT.md",
+        "scope": "splitByFAIMSCV only (decision D5; B8-IMSPLIT, c527c5f): ascending compensation-voltage groups through FaimsHelper, MS2 spectra without a voltage assigned to the last seen one, signed zeros folded, infinities as ordinary groups, a copy of the ExperimentalSettings and the sqMass run id per group, and an explicit FaimsGroupKey::NotFaims for the source's NaN key. Tier 3: the constructor, destructor and three splitByFAIMSCV sections with unchanged literals. Tier 1: ../oracle/im-data-converter (6 mzML files, 20 synthetic experiments, run twice) compared record by record, including every printed log line through an emulation of the LogStream repetition cache, and the C2 split records of both FAIMS fixtures and the FFC_1 input. Native: log records, skipped spectra and the chromatograms of FAIMS input are returned instead of logged or destroyed (CPP-279); NaN voltages are refused with the input unchanged (CPP-280); ranges are computed on demand, so groups with finite drift times have correct ranges where every C++ voltage group lacks updateRanges (CPP-278), while a group keyed by an infinite voltage makes the range manager return InvalidValue. The settings ceiling covers one copy, not the k group copies (open verifier note). PARTIAL: reshapeIMFrameToMany, splitExperimentByIonMobility (needs SpectraMerger), reshapeIMFrameToSingle, setIMUnit and getIMUnit are not ported; 5 of the 10 class-test sections are ported and 5 recorded as not ported."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
         "tests/data/faims_helper_provenance.json",
+        "tests/data/im_data_converter_provenance.json",
         "tests/data/im_types_provenance.json",
         "tests/data/spectrum_mobility_provenance.json"
       ],
@@ -10275,6 +10328,7 @@
       },
       "candidate_rust_files": [],
       "reference_manifests": [
+        "tests/data/peak_picking_provenance.json",
         "tests/data/spline_math_provenance.json"
       ],
       "direct_topp_consumers": []
@@ -11147,6 +11201,7 @@
       "status": "evidence_requires_review",
       "review": null,
       "candidate_rust_files": [
+        "src/format/file_info/model.rs",
         "src/identification/graph/records.rs"
       ],
       "reference_manifests": [
@@ -12195,15 +12250,27 @@
       "header": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
       "sha256": "a40d2e48a7d24df3ebfb6e9ff5a0df5df3886ca8ddc8d83ef6f6a3f7c5b50d77",
       "domain": "PROCESSING",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/processing/peak_picking.rs"
+        ],
+        "tests": [
+          "tests/peak_picking.rs",
+          "tests/peak_picking_experiment.rs"
+        ],
+        "documentation": "docs/PEAK_PICKING_SUPPORT.md",
+        "scope": "P1-PICKER-LIB (1566a5f): the parameter contract (defaults, from_param with setParameters' InvalidValue for a wrong type or broken restriction and a warning for an unknown name, to_param round trip), both spectrum and chromatogram pick overloads with boundaries and check_spacings, and the in-memory pickExperiment overloads, which decide profile or centroid with getType(true) and refuse a centroided spectrum in manual mode with the source message. Fidelity: spline_bisection for the maximum, the source's per-side FWHM midpoints, the kernel ion-mobility array rules with float32 products in source order, and the source std::map support including overwrite on equal keys. Tier 1: the defaults equal the product SDK's stored getDefaults; 93 cases on the product SDK (../oracle/peak-picker-hires, run twice) match bit for bit on Linux x86-64 in both the native default and PickingCompatibility::source(), 8,795 centroids with positions, intensities, boundaries, FWHM, ion mobility and the 4 exceptions; the retained class-test outputs pass under TEST_REAL_SIMILAR. All 16 PeakPickerHiRes_test sections are accounted for. Native: duplicate or unsorted positions, negative intensities, a non-positive maximum, ppm FWHM at a non-positive position and a second ion-mobility array are refused unless the matching PickingCompatibility flag is set; the FWHM search that never terminates in the source (CPP-258) is an error; non-finite outputs stay refused even in source mode, among them the -inf mobility a zero intensity total gives (open verifier note); resource limits. PARTIAL: the Mobilogram pick overloads, pickExperiment on OnDiscMSExperiment (P4) and the ProgressLogger base are not ported."
+      },
       "candidate_rust_files": [
         "src/processing/peak_picking.rs"
       ],
       "reference_manifests": [
         "tests/data/chromatogram_processing_provenance.json",
         "tests/data/iterative_provenance.json",
-        "tests/data/mobilogram_provenance.json"
+        "tests/data/mobilogram_provenance.json",
+        "tests/data/peak_picking_provenance.json"
       ],
       "direct_topp_consumers": [
         "EICExtractor",
@@ -12264,10 +12331,25 @@
       "header": "src/openms/include/OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h",
       "sha256": "28743fc1e3a113b8b1291ac791ae0c3ace8e2703e78ef1a9d6c9ae823739d04d",
       "domain": "PROCESSING",
-      "status": "unmapped",
-      "review": null,
-      "candidate_rust_files": [],
-      "reference_manifests": [],
+      "status": "complete",
+      "review": {
+        "status": "complete",
+        "rust": [
+          "src/processing/feature_overlap_filter.rs",
+          "src/processing/feature_overlap_filter/quadtree.rs"
+        ],
+        "tests": [
+          "tests/feature_overlap_filter.rs"
+        ],
+        "documentation": "docs/FEATURE_OVERLAP_FILTER_SUPPORT.md",
+        "scope": "Every public member of FeatureOverlapFilter.h is ported (B9-OVERLAP, fix round f1c7785): FeatureOverlapMode, MergeIntensityMode, CentroidTolerances with its defaults, both filter overloads (default arguments passed explicitly), createFAIMSMergeCallback, mergeOverlappingFeatures, mergeFAIMSFeatures and the four meta-value names, over a port of the vendored extern/Quadtree (recorded under outside_registered_union). The source has one mode; decision D5 defers only the FeatureFinderCentroided FAIMS closure (B11), not a member of this header. Tier 3: all 14 FeatureOverlapFilter_test sections with unchanged literals. Tier 1: 78 cases on the product SDK (../oracle/feature-overlap-filter, run twice) replayed bit for bit, 16,917 callback invocations in order, every output feature and map field; 74 cases also equal a Release replica of the pinned .cpp, and the 4 cases the Debug library aborts on (debug_only) are compared with the replica or refused; the C2 FAIMS literals (the uid-0 wipe and 1900/1700) are asserted. The source behaviours kept exactly include the uid-0 wipe, the double merge, float boxes with strict intersection and the trace-bounds collapse and skip (CPP-282 to CPP-285), and the stable sort. Native: an error leaves the map exactly as it was (a journal of at most six entries per feature); undefined source behaviour is refused before anything changes (a hull-less feature in the hull modes, which a Release build silently ignores; missing trace bounds; subordinates without hulls; boxes that do not fit f32; a non-numeric FAIMS_CV); a summed intensity that is not a finite f32 is an error where the source stores infinity; feature and candidate ceilings. Serial, as the source."
+      },
+      "candidate_rust_files": [
+        "src/processing/feature_overlap_filter.rs"
+      ],
+      "reference_manifests": [
+        "tests/data/feature_overlap_filter_provenance.json"
+      ],
       "direct_topp_consumers": [
         "FeatureFinderCentroided",
         "FeatureFinderMetabo",
@@ -12379,11 +12461,23 @@
       "header": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h",
       "sha256": "16b78361f139b2ea0df77737b44980cadb052e5a805deaac85037e152538864a",
       "domain": "PROCESSING",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/processing/peak_picking/noise.rs"
+        ],
+        "tests": [
+          "tests/peak_picking.rs",
+          "tests/peak_picking_experiment.rs"
+        ],
+        "documentation": "docs/PEAK_PICKING_SUPPORT.md",
+        "scope": "Only what the median estimator uses (P1-PICKER-LIB, 1566a5f): init and getSignalToNoise become SignalToNoiseEstimatorMedian::estimate, which returns all ratios at once, and GaussianEstimate and estimate_ are inlined in its private estimate_points (mean and population variance in input order), tier 1 through the median estimator's executed cases. SignalToNoiseEstimatorMeanIterative is ported separately in processing::mean_noise. The 6 SignalToNoiseEstimator_test sections exercise an abstract test subclass and are NOT_TESTABLE here. PARTIAL: the abstract class with its pure virtual computeSTN_ is not a trait, the ProgressLogger base is not ported, and the free function estimateNoiseFromRandomScans (SignalToNoiseEstimator.cpp) is not ported."
+      },
       "candidate_rust_files": [],
       "reference_manifests": [
-        "tests/data/mean_noise_provenance.json"
+        "tests/data/mean_noise_provenance.json",
+        "tests/data/peak_picking_provenance.json"
       ],
       "direct_topp_consumers": []
     },
@@ -12405,14 +12499,26 @@
       "header": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
       "sha256": "f6f81757669c754484cec642bffe9763bb03140f45163f70c13280301a10f54c",
       "domain": "PROCESSING",
-      "status": "evidence_requires_review",
-      "review": null,
+      "status": "partial",
+      "review": {
+        "status": "partial",
+        "rust": [
+          "src/processing/peak_picking/noise.rs"
+        ],
+        "tests": [
+          "tests/peak_picking.rs",
+          "tests/peak_picking_experiment.rs"
+        ],
+        "documentation": "docs/PEAK_PICKING_SUPPORT.md",
+        "scope": "P1-PICKER-LIB (1566a5f): every member except the AUTOMAXBYPERCENT computation. Defaults, from_param and to_param (values the selected mode ignores are kept in NoiseRangeParameters so the round trip holds), init and getSignalToNoise as estimate, computeSTN_ for MANUAL and AUTOMAXBYSTDEV with the source histogram, median-bin walk and percentage formulas, and the zero ratios of a negative automatic range. Tier 1: the defaults equal the product SDK's stored getDefaults, and every signal-to-noise ratio and percentage of the 93 executed ../oracle/peak-picker-hires cases matches bit for bit on Linux x86-64 (the driver needs the SDK's -ffp-contract=off). Tier 3: the 5 SignalToNoiseEstimatorMedian_test sections, the [EXTRA] init section bit for bit. Native: noise_for_empty_window must be finite and positive; bin, point and work ceilings. PARTIAL because auto_mode 1 (AUTOMAXBYPERCENT) is accepted as a parameter but estimation returns Error::Unsupported: the source reads out of bounds there (CPP-256). Promote when the lead accepts that documented refusal as the port of the undefined mode. Test gap from the verifier: no case pins count*100/n against count*(100/n)."
+      },
       "candidate_rust_files": [
         "src/processing/peak_picking/noise.rs"
       ],
       "reference_manifests": [
         "tests/data/chromatogram_processing_provenance.json",
-        "tests/data/iterative_provenance.json"
+        "tests/data/iterative_provenance.json",
+        "tests/data/peak_picking_provenance.json"
       ],
       "direct_topp_consumers": [
         "EICExtractor",
@@ -13860,8 +13966,7 @@
         "OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h"
+        "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": false
     },
@@ -13942,8 +14047,7 @@
         "OpenMS/CONCEPT/LogStream.h",
         "OpenMS/FORMAT/FileHandler.h",
         "OpenMS/IONMOBILITY/IMDataConverter.h",
-        "OpenMS/KERNEL/MSExperiment.h",
-        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h"
+        "OpenMS/KERNEL/MSExperiment.h"
       ],
       "workflow_validated": false
     },
@@ -14039,8 +14143,7 @@
         "OpenMS/KERNEL/MSExperiment.h",
         "OpenMS/ML/CLUSTERING/GridBasedCluster.h",
         "OpenMS/ML/REGRESSION/LinearRegression.h",
-        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
-        "OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h"
+        "OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h"
       ],
       "workflow_validated": false
     },

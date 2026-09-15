@@ -24,14 +24,18 @@ pub struct BaselineFilter;
 
 /// Source `method` names, in the order `setValidStrings_` lists them.
 ///
-/// `erosion_simple` and `dilation_simple` are accepted by the source as
-/// alternative implementations of the same operations; they select the same
-/// native methods, because this port has one implementation of each.
+/// `erosion_simple` and `dilation_simple` select the source's direct-window
+/// `applyErosionSimple_` / `applyDilationSimple_`, which the source reaches
+/// without the van Herk case distinctions of `erosion` and `dilation`. The two
+/// pairs agree except at the last sample of a spectrum filtered with a
+/// one-sample element, so each name maps to its own method here.
 fn method(name: &str) -> Result<MorphologicalMethod> {
     Ok(match name {
         "identity" => MorphologicalMethod::Identity,
-        "erosion" | "erosion_simple" => MorphologicalMethod::Erosion,
-        "dilation" | "dilation_simple" => MorphologicalMethod::Dilation,
+        "erosion" => MorphologicalMethod::Erosion,
+        "erosion_simple" => MorphologicalMethod::ErosionSimple,
+        "dilation" => MorphologicalMethod::Dilation,
+        "dilation_simple" => MorphologicalMethod::DilationSimple,
         "opening" => MorphologicalMethod::Opening,
         "closing" => MorphologicalMethod::Closing,
         "gradient" => MorphologicalMethod::Gradient,
@@ -98,7 +102,17 @@ impl Tool for BaselineFilter {
         Ok(())
     }
 
+    /// Source `main_`, run on the worker pool that `-threads` sizes, as
+    /// `TOPPBase::main` applies the setting before `main_`
+    /// (`TOPPBase.cpp:408-415`). See [`ToolContext::in_thread_pool`].
     fn run(ctx: &ToolContext) -> Result<ExitCode> {
+        ctx.in_thread_pool(|| Self::run_in_pool(ctx))?
+    }
+}
+
+impl BaselineFilter {
+    /// The tool body, as the source `main_`.
+    fn run_in_pool(ctx: &ToolContext) -> Result<ExitCode> {
         let mut experiment = FileHandler::load_experiment(ctx.string("in")?, &[FileType::MzMl])?;
 
         // Source refuses a run that carries only chromatograms, and refuses

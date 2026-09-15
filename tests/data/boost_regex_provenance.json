@@ -1,0 +1,174 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "method": "Executed differential against Boost.Regex. An oracle driver outside this repository (../oracle/boost-regex/driver.cpp) was compiled against the header-only Boost.Regex 1.92 and run over a deterministic corpus that ../oracle/boost-regex/gen.py derives from the pinned OpenMS checkout: every Boost.Regex expression the pinned library and class tests use, with source-derived, structured, adversarial (line separators \\n \\r \\r\\n \\f \\v, NUL, non-ASCII and invalid UTF-8 bytes, Arabic-Indic digits, empty inputs) and seeded random inputs, plus syntax probes, the probes of the six independent reviews and of the work bounds (family ADV), and grammar-generated expressions; the full corpus adds systematic probe grids: UNB and LEAD around the refusals of repeats of groups that can match the empty string and of leading lazy repeats, the backreference grids BROPEN, BRFWD, BRUNSET, BRREP, BRLOOK, BRDUP, BRZERO, BRNULL, BRICASE and BRLEAD (backreferences inside the group they refer to, to later, unset, repeated, duplicate-named and zero-repeated groups, into lookarounds and atomic groups, around groups that can match empty, under case-insensitive matching over bytes above 0x7F, and beside lazy leading repeats), OPTNEST, OPTCAT and ALTPFX around the rewrites of fancy-regex's optimizer and regex-syntax's alternation prefix factoring, ATOMALT, ATOMCTX and ATOMBR around alternations inside atomic groups, whose bodies fancy-regex hands to that factoring (shared-prefix alternations in atomic groups in many contexts, in lookbehinds, repeated and nested, and beside backreferences to open, later, unset, repeated, duplicate-named, case-insensitive and empty-capable groups and lazy leading repeats), and SMCASE, SMWORD, SMDEPTH, SMBR and HEX around Boost's start maps (case switches inside repeated groups and before \\<, \\< and \\> beside repeated groups with inner repeats or alternations, the start-map recursion limit and the lookbehind alternation stack, and backreferences in those shapes) and \\x escapes read by std::istream, and COLL, PEXT and CLSNAME around the bracket-expression and (? parsers (collating elements at either endpoint of a range beside the literal [, every (?P spelling, and every class name get_default_class_id knows in four case spellings). The driver uses OpenMS's call shapes: basic_regex construction with perl syntax and the icase/no_mod_s flags, regex_search and regex_match into an smatch, named sub-expression lookup, and sregex_token_iterator over sub-expression index lists. tests/boost_regex.rs compiles every pattern with the facade and requires the same compile outcome (a refusal where Boost refuses), the same mark count, and byte-identical output for every match, group span, named lookup and token. Which patterns Boost compiles but the facade refuses with Error::Unsupported, their categories and the number of compared cases are derived on the oracle side by ../oracle/boost-regex/refusals.py, which re-implements the refusal rules of docs/BOOST_REGEX_SUPPORT.md independently of the Rust translator and combines them with Boost's compile outcomes; the test asserts its output exactly (probe patterns outside FUZZ one by one, the whole corpus by category, and the compared-case count).",
+ "evidence_tier": "Tier 1 (executed differential, Boost.Regex 1.92) for boost_differential_corpus_has_no_mismatch; tier 1 (Boost answers transcribed from the oracle output) for case_insensitive_ranges_follow_boost, negated_classes_are_complemented_together, nullable_group_repeats_are_refused_within_a_time_bound, leading_lazy_repeats_are_refused, backreferences_inside_their_group_are_refused, engine_rewrites_keep_boost_answers, atomic_alternations_keep_boost_answers, start_map_shapes_are_refused, escapes_and_limits_follow_boost, bracket_elements_and_class_names_follow_boost and python_style_group_openings_follow_boost; tier 3 (transcribed class-test literals) for class_test_expressions; tier 4 (Rust-only invariants and bounds) for the limit, work-bound, error, iterator and robustness tests.",
+ "sources": [
+  {"path": "share/OpenMS/CHEMISTRY/Enzymes.xml", "sha256": "2f160f3ec32db6257cb4eee43fd594b48cb36398a17b7af21bbba76bc8b16995", "role": "Every protease RegEx (29 distinct expressions and \"()\"), run as EnzymaticDigestion::tokenize_ does"},
+  {"path": "share/OpenMS/CHEMISTRY/Enzymes_RNA.xml", "sha256": "4c90a3630a1553ef7c75bae00f2731e2f5bb690f3ee9434d54cc3315a95fe899", "role": "Every CutsAfter/CutsBefore member (16 distinct plus the empty expression), run as RNaseDigestion's regex_search per nucleotide code"},
+  {"path": "share/OpenMS/CHEMISTRY/Modomics.tsv", "sha256": "ed458688c4cfdf1ea6eb4c618613befee411019f3b7665838685ae3dea411e76", "role": "Nucleotide codes used as RNase inputs"},
+  {"path": "share/OpenMS/CHEMISTRY/Custom_RNA_modifications.tsv", "sha256": "155d7ff5c70c9c01ffd0d5a32fe7c4e200adc10ae5ed6d516b07ec8242faa23d", "role": "Nucleotide codes used as RNase inputs"},
+  {"path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp", "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b", "role": "tokenize_: sregex_token_iterator with -1 over the enzyme expression"},
+  {"path": "src/openms/source/CHEMISTRY/ProteaseDigestion.cpp", "sha256": "2f9f20d2ac22d83cc1f91635b4355f0a6382f58f12bb1f6c0d3016cca1cc767a", "role": "Compiles the enzyme expression"},
+  {"path": "src/openms/source/CHEMISTRY/RNaseDigestion.cpp", "sha256": "ef0fadffcf635052cfc6af03046c56e6fef1fcec4fd0530613a72cb16f2a9f1f", "role": "Splits CutsAfter/CutsBefore at commas and calls regex_search per code"},
+  {"path": "src/openms/source/METADATA/SpectrumLookup.cpp", "sha256": "380dbdff4c92a2f1bcceda2cb23ae4143193b5f7ba00ecafcff2c474c9acfcff", "role": "default_scan_regexp, addReferenceFormat and findByReference (regex_search with named groups)"},
+  {"path": "src/openms/include/OpenMS/METADATA/SpectrumLookup.h", "sha256": "ef733def587a9043ac2a368e8e9560499b193c1566b16c0dd24ce6897d524b2b", "role": "boost::regex in the public API"},
+  {"path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp", "sha256": "a27025952c9d2e8bbdc535f96abd409b1d9e6c37bcc197a125e10661b142e49b", "role": "getRegExFromNativeID expressions and extractScanNumber (token iterator over group 1 and groups 1,2, duplicate GROUP names)"},
+  {"path": "src/openms/include/OpenMS/METADATA/SpectrumNativeIDParser.h", "sha256": "04253d21d6dd3268451502ec0b8d085e982d6264f2719686782fac97822d4df3", "role": "boost::regex in the public API"},
+  {"path": "src/openms/source/FORMAT/MascotXMLFile.cpp", "sha256": "fd873728ec7a4e98084403a765e085b5345cb88b16d6ed9be5b05ac7f7b3a64c", "role": "initializeLookup reference formats"},
+  {"path": "src/openms/source/FORMAT/MzTabFile.cpp", "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe", "role": "extractIndexPairsFromBrackets_ token iterators"},
+  {"path": "src/openms/source/FORMAT/HANDLERS/IndexedMzMLDecoder.cpp", "sha256": "fc9343bf28a6756f063f1fa91471a015d2f6d09e572b6a136372fa9d0473478c", "role": "indexListOffset footer regex_search"},
+  {"path": "src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp", "sha256": "96fcf7707df5cd5b6a2c0a7abf1a103044ca10eeb26c949d21ce72c9eb9e10a6", "role": "frag_regex_tweak regex_match"},
+  {"path": "src/openms/source/FORMAT/PepXMLFile.cpp", "sha256": "ab4b135d63be8b64a9e771a7cfb8a76f62d670f0257acdc932e28ff0d804a0e9", "role": "(.*?)([A-Z]+)(.*?) regex_match on the enzyme expression"},
+  {"path": "src/openms/source/ANALYSIS/ID/FalseDiscoveryRate.cpp", "sha256": "79983c8b567daca4c4eeee3e55309ecd9819714bf942a095b1d40a65d5e8e1ed", "role": "DecoyStringHelper prefix and suffix regex_search"},
+  {"path": "src/openms/include/OpenMS/DATASTRUCTURES/FASTAContainer.h", "sha256": "de96e7716fa9c155b9c164b55bec6e0ff478350f8be041d0483e651064024d50", "role": "DecoyHelper prefix and suffix regex_search (same expressions)"},
+  {"path": "src/openms/source/CHEMISTRY/SpectrumAnnotator.cpp", "sha256": "35e2add302b5c830461539b8743cad51bee285182abf64b20b494c60faa1fe3d", "role": "Ion-name grammars, regex_match"},
+  {"path": "src/openms/source/FORMAT/MSPGenericFile.cpp", "sha256": "b5be4913f42363bbd5a46c506eab1111a354492b9407453090f9e63d6b1f4e47", "role": "Line expressions with the no_mod_s and icase construction flags"},
+  {"path": "src/openms/source/FORMAT/PercolatorOutfile.cpp", "sha256": "d54f2ec80ea53386ca53c0ce28ccca8ec542af3d40a67296d6b6dfa490727971", "role": "Modification expressions (regex_search; its regex_replace is not provided by the facade)"},
+  {"path": "src/openms/source/FORMAT/MRMFeaturePickerFile.cpp", "sha256": "d37ff0e4a58a76c7abd15c8a17ec2f1fc123e676bd65fa130c375c207ca56a46", "role": "Header expressions, regex_search"},
+  {"path": "src/openms/source/FORMAT/MRMFeatureQCFile.cpp", "sha256": "ff6177ce708d9a7595517e9975ddc8ce9bb13f88094bbde4f34459c095570ec3", "role": "Header expression, regex_search"},
+  {"path": "src/openms/source/FORMAT/AbsoluteQuantitationMethodFile.cpp", "sha256": "9648b941116bd810079865187f3f7716d35d733e0ff376dd3253a48f298e4010", "role": "Header expression, regex_search"},
+  {"path": "src/openms/source/FORMAT/XTandemInfile.cpp", "sha256": "3caeb00300d9a90103ebeeb79bdade5c546c8d3260a8930036376e1188d6d24e", "role": "N-terminal modification expression, regex_search"},
+  {"path": "src/tests/class_tests/openms/source/SpectrumLookup_test.cpp", "sha256": "5cd22c8785f5be2dba28e328306beccb1110a64563b153c11be4d0cc77cfd1eb", "role": "Class-test expressions and inputs (tier 3 and corpus)"},
+  {"path": "src/tests/class_tests/openms/source/SpectrumNativeIDParser_test.cpp", "sha256": "83a1b2dcdf0cbc055edfd24b161cf566b1a3f81fb98fc8e77808aa99af40b299", "role": "Class-test expressions and inputs (tier 3 and corpus)"},
+  {"path": "src/tests/class_tests/openms/source/SpectrumMetaDataLookup_test.cpp", "sha256": "c6e0b413a00d505a59d93f4932c93ad4cd75b2cb14859563058d3905732a014e", "role": "Class-test expressions and inputs (tier 3 and corpus)"},
+  {"path": "src/tests/class_tests/openms/source/LogStream_test.cpp", "sha256": "133ecd44c2a17fbfd54e5dbb2478ed6dde78a7faf17e31c4bcd7eee0b3c63cf2", "role": "Class-test expressions (corpus)"},
+  {"path": "src/tests/class_tests/openms/source/LogConfigHandler_test.cpp", "sha256": "7beffb6cb6e70ee5e3ab918cba7f12fdf815087fb2f6c775eb1d93ed9533cb45", "role": "Class-test expressions (corpus)"},
+  {"path": "src/openms/source/FORMAT/ChromeleonFile.cpp", "sha256": "8c851527393560fe858dffbdb3c84946e7efd63fdcf58bcceb9d78e3134cbe48", "role": "Header expressions with no_mod_s, regex_match"},
+  {"path": "src/openms/source/METADATA/SpectrumMetaDataLookup.cpp", "sha256": "e150427f8e76173fe4a3b2865121960625723943ce41a8010ece697e86c30b93", "role": "Reference formats and scan expressions, regex_search and extractScanNumber"},
+  {"path": "src/openms/source/FORMAT/ArrowIOHelpers.cpp", "sha256": "e13e483ebb9953f7de6c590e4e34fc6440f3bc46b46ad6a67d60b10629b9955d", "role": "Compiles getRegExFromNativeID expressions"},
+  {"path": "src/openms/source/ANALYSIS/ID/IDMapper.cpp", "sha256": "7f1f1f357a7389f3070bdbd6d7570b5ac128dc49712075d4a9b39ad60705b7bc", "role": "Empty expression and getRegExFromNativeID expressions"},
+  {"path": "src/openms/source/METADATA/USI.cpp", "sha256": "67539b482aa05c3bbfd98f893d80ba6c68d9c7f4f41ada0adfef619c431a742d", "role": "getRegExFromNativeID expressions"},
+  {"path": "src/openms/source/ANALYSIS/ID/Percolator.cpp", "sha256": "104fdcd7bbafdc43c445f12719b6d9a82241bd7c621a85d6d8161ef7e22fe5ac", "role": "getRegExFromNativeID expressions"},
+  {"path": "src/openms/source/FORMAT/PercolatorInfile.cpp", "sha256": "ef1cab44c0742d8b1f812ce6785768cdb8e18746b874cd3f9ad060012a7d7b11", "role": "getRegExFromNativeID expressions"},
+  {"path": "src/openms/source/ANALYSIS/ID/SimpleSearchEngineAlgorithm.cpp", "sha256": "dabce52298797307953fc9fcc2f9db204a5c32e67dbe040cc7e96eea3fc170c5", "role": "Caller-supplied peptide motif, regex_match"},
+  {"path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.cpp", "sha256": "574563a585667efa35804d0c2ce46b6e88a7e701c7632c15cd247298332c1a8f", "role": "Caller-supplied accession and description filters, regex_search"}
+ ],
+ "fixtures": [
+  {"path": "tests/data/boost_regex_corpus.txt", "sha256": "4914e8c90e85db76e800b901f5ca3731085b2c66b801938d7c6e4115f91dbbe3", "role": "Corpus subsample generated by ../oracle/boost-regex/gen.py: 2,416 patterns (every pattern of the full corpus outside the systematic probe grids), input sets and runs, 228,565 corpus cases"},
+  {"path": "tests/data/boost_regex_boost.txt", "sha256": "bf280869fe8a39200a49d544a6c98ec0bfcd1a4a4922adb1d39dbf27ab54ff22", "role": "Output of ../oracle/boost-regex/driver.cpp (Boost.Regex 1.92) for boost_regex_corpus.txt: 2,416 compile outcomes and 198,124 answers"}
+ ],
+ "native_implementation": [
+  "src/concept/boost_regex.rs"
+ ],
+ "native_tests": [
+  "tests/boost_regex.rs"
+ ],
+ "support_document": "docs/BOOST_REGEX_SUPPORT.md",
+ "reference_tools": {
+  "boost": "Boost 1.92.0 (BOOST_LIB_VERSION 1_92), Homebrew, header-only Boost.Regex v5 from /opt/homebrew/include",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2), arm64-apple-darwin25.6.0, -std=c++17 -O2, with SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk; build.sh takes the compiler from CXX",
+  "boost_headers": [
+   {
+    "path": "boost/version.hpp",
+    "sha256": "cf992d9d2c4f2294b69d8819e334927644a48b978bfea3c525e3f9c6dbc7cb9f"
+   },
+   {
+    "path": "boost/regex/v5/perl_matcher_common.hpp",
+    "sha256": "b52a734d0644080bb608b97ddc178688030f463b423a917c2243281338f37337"
+   },
+   {
+    "path": "boost/regex/v5/basic_regex_parser.hpp",
+    "sha256": "f514c7322b6f92041f0b2bc44922e1253efac70a035fba023a3e163302f35417"
+   },
+   {
+    "path": "boost/regex/v5/regex_token_iterator.hpp",
+    "sha256": "a6bc9f797fd96320ce2dc4b8e19d8dc2c501f2897b43f5d137ef641a592faa96"
+   },
+   {
+    "path": "boost/regex/v5/basic_regex_creator.hpp",
+    "sha256": "3d20e2b6a4926088a283f02e1dfe7dada6dca8880547ad561ef88d8abc76da68"
+   },
+   {
+    "path": "boost/regex/v5/perl_matcher_non_recursive.hpp",
+    "sha256": "0323cfd2ab555681652d59cbd097e2567981f9100d904413edb819df91cfb66a"
+   },
+   {
+    "path": "boost/regex/v5/perl_matcher.hpp",
+    "sha256": "bf9144047d64377a64a44969c6a13fd25c0c9c353e940403ffe3efe28b02afa0"
+   },
+   {
+    "path": "boost/regex/v5/match_results.hpp",
+    "sha256": "8274eb6278ccb20c3a6605a4f8ee6a9c387955347e28aa8ab9d6383cd101a442"
+   },
+   {
+    "path": "boost/regex/v5/cpp_regex_traits.hpp",
+    "sha256": "2a1e02fcca0a8fd253477da804d322d8ac37fee29316821997fcbfb4a6a3e1f1"
+   },
+   {
+    "path": "boost/regex/config.hpp",
+    "sha256": "26dab5debbf17c80cee4128b3d9fe0748fe9c32a00a91732e04d55f2d1d0858e"
+   }
+  ],
+  "refusal_rules": "../oracle/boost-regex/refusals.py (python3): the documented refusal rules, applied to a corpus and Boost's output; prints EXPECTED_UNSUPPORTED, EXPECTED_REFUSALS, EXPECTED_CASES and the per-family counts",
+  "random_expressions": "../oracle/boost-regex/fuzz.py (python3) <mode> <seed> <count> <corpus>: expressions from the backref, repeat, easy and prefix grammars, in driver.cpp's corpus format, for the random-expression evidence recorded in docs/BOOST_REGEX_SUPPORT.md (seeds 1 to 5, 11 to 13, 21 to 23 and 31 to 33, rerun in the fifth round; seed 20260915 with 20,000 expressions per grammar in the sixth)",
+  "engine_crate": "fancy-regex =0.19.2 (features std, unicode, perf) on regex-automata 0.4.18 and regex-syntax 0.8.11, as pinned in Cargo.lock"
+ },
+ "corpus": {
+  "generator_seed": 20260913,
+  "patterns": 2416,
+  "boost_compiled_patterns": 1866,
+  "full_corpus_patterns": 134075,
+  "full_boost_compiled_patterns": 119786,
+  "full_corpus_cases": 11427044,
+  "full_boost_answers": 9638702,
+  "full_compared_cases": 6531674,
+  "full_facade_refusals": 39452,
+  "fixture_cases": 228565,
+  "fixture_boost_answers": 198124,
+  "fixture_compared_cases": 162714,
+  "facade_refusals": 512,
+  "facade_refused_probes_outside_fuzz": 266,
+  "fixture_bytes": 1123279,
+  "subsampling": "The fixture keeps every pattern outside the systematic probe grids UNB, LEAD, BROPEN, BRFWD, BRUNSET, BRREP, BRLOOK, BRDUP, BRZERO, BRNULL, BRICASE, BRLEAD, OPTNEST, OPTCAT, ALTPFX, ATOMALT, ATOMCTX, ATOMBR, SMCASE, SMWORD, SMDEPTH, SMBR, HEX, COLL, PEXT and CLSNAME (which gen.py registers last, so pattern numbers agree), every run except those marked full-only (extra operations on the same patterns, and every run of the grids), and every fixed input (edge, structured and source-derived); seeded random inputs are cut to a per-set prefix. gen.py writes both corpora in one deterministic pass; rerunning it in a scratch directory with a driver built there from driver.cpp reproduced both corpora and both Boost outputs byte for byte.",
+  "full_corpus_sha256": "24f08bb706a1ee02b6fb847743c6b886e6ae4117c46b683c443f361c894ae153",
+  "full_boost_output_sha256": "4cb87a45d8f2a0a1ba9c5055cbf361d183d8b6b297b8cd855b233453cfd32ecd",
+  "full_corpus_result": "6,531,674 cases compared, 0 mismatches, 0 compile-outcome or mark-count differences; refusals.py and the facade agree on all 39,452 refusals and their categories, and on every pattern of the corpus. A scratch build with MAX_AUTOMATON_ATOMS set to 0, which searches every pattern with the counted spelling, also compared all 6,531,674 cases with 0 mismatches, and so did a build with overflow checks and debug assertions. Commit 9597f21, in the same harness, gave 55,968 different answers and 2,136 different compile outcomes over this corpus (362 and 77 over the fixture); over the fifth round's corpus of 127,161 patterns e6c581f gave 12,119 different answers and 795 different compile outcomes, cfbaf1a gave 12,399 different answers over the fourth round's corpus of 84,017 patterns, and cf594ef 10,206 (1,969 of them panics) over the third round's of 67,916."
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/boost-regex/driver.cpp",
+   "sha256": "26ba7fbd9cea57bcd6a2aee905517ba30998ce139f12f55ea64517258f4b219e",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/boost-regex/gen.py",
+   "sha256": "071a60c088269171cc6a630a9cad9e37f8609fd7d6a9cdad811c0af4f4568fb9",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/boost-regex/build.sh",
+   "sha256": "06c0e622eb32738cf35a0d5a7fc2cba85bbdc9699b5029954f6480709beedfec",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/boost-regex/refusals.py",
+   "sha256": "6e0bc8431d4b78f2a7d43b48f9747587b485a33d741a53ff9c55dcfa7fb411f4",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/boost-regex/fuzz.py",
+   "sha256": "dee5b73c42a6c30085af5d44ecb819937a050cda64e33bc0d09c0c371de3f7a6",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/boost-regex/corpus_full.txt",
+   "sha256": "24f08bb706a1ee02b6fb847743c6b886e6ae4117c46b683c443f361c894ae153",
+   "location": "outside this repository",
+   "origin_key": "corpus"
+  },
+  {
+   "path": "../oracle/boost-regex/boost_full.txt",
+   "sha256": "4cb87a45d8f2a0a1ba9c5055cbf361d183d8b6b297b8cd855b233453cfd32ecd",
+   "location": "outside this repository",
+   "origin_key": "corpus"
+  }
+ ],
+ "external_reference_note": "The Boost.Regex oracle driver, the corpus generator, the build script, the refusal-rule derivation, the random-expression generator and the full measurement corpus live outside this repository under ../oracle/boost-regex/ so that no C++ is committed here. Only the generated subsample and Boost's output for it are fixtures; the sha256 values above are the evidence chain for them, for the test's expected refusals and case count, and for the full-corpus run recorded in docs/BOOST_REGEX_SUPPORT.md. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate. The work-bound, memory and speed measurements in the support document were taken with scratch harnesses that include src/concept/boost_regex.rs verbatim (release build, aarch64 macOS) and Boost 1.92 on the same haystacks."
+}

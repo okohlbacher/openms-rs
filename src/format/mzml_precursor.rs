@@ -148,17 +148,27 @@ fn intensity_unit(
     crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?.get_term(accession)
 }
 
+/// Write the selected ion's `MS:1000042` peak intensity term, or nothing.
+///
+/// Source `MzMLHandler.cpp:4596-4601` writes the term only for a positive
+/// intensity (or a `peak intensity` meta value), always with unit attributes,
+/// `MS:1000132` unless `peak intensity unit accession` names another unit. A
+/// precursor without an intensity reads back as `0.0`, so the default `+0.0`
+/// is omitted here as well; the benchmark slice showed this port adding
+/// `value="0"` to 49 of 600 spectra that neither the input nor the C++ output
+/// carries. Two native differences keep the term where the source drops it: a
+/// negative or `-0.0` intensity, which would otherwise read back changed, and
+/// an explicit non-default unit, whose identity would otherwise be lost.
 pub(super) fn write_intensity(w: &mut impl Write, p: &Precursor) -> Result<()> {
-    let Some(value) = p.cv_terms.metadata.get(INTENSITY_UNIT_KEY) else {
-        return cv(
-            w,
-            "MS:1000042",
-            "peak intensity",
-            &p.intensity.to_string(),
-            "",
-        );
+    let explicit_unit = p.cv_terms.metadata.get(INTENSITY_UNIT_KEY);
+    if explicit_unit.is_none() && p.intensity.to_bits() == 0 {
+        return Ok(());
+    }
+    let accession = match explicit_unit {
+        Some(value) => value.as_str()?,
+        None => "MS:1000132",
     };
-    let term = intensity_unit(value.as_str()?)?;
+    let term = intensity_unit(accession)?;
     let prefix = term.id.split_once(':').expect("validated unit prefix").0;
     let unit = format!(
         " unitAccession=\"{}\" unitCvRef=\"{}\" unitName=\"{}\"",
@@ -502,10 +512,12 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
         {
             let term = crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?
                 .get_term(id)?;
-            let text = if id == "MS:1000245" {
-                String::new()
-            } else {
-                value.to_string()
+            let text = match value.data() {
+                _ if id == "MS:1000245" => String::new(),
+                // The source renders the promoted meta value with
+                // `DataValue::toString`; see `mzml::float_text`.
+                crate::metadata::MetaValueData::Float(number) => super::float_text(*number),
+                _ => value.to_string(),
             };
             let unit = value
                 .unit()
