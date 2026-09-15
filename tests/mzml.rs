@@ -490,6 +490,114 @@ fn rejects_malformed_comments_and_non_ascii_bytes_under_ascii_declaration() {
     assert!(parse(&MINIMAL.replace("encoding=\"UTF-8\"", "encoding=\"US-ASCII\"")).is_ok());
 }
 
+// The reader tests text nodes and attribute values against the XML 1.0 `Char`
+// production on their UTF-8 bytes, a fixed-size block at a time. A block that
+// holds nothing but ordinary printable ASCII is skipped whole, so every case
+// below places the character under test at a series of offsets around that
+// block length: at 0, inside the first block, exactly on its boundary and past
+// it, so no block length can hide a character from the scan.
+#[test]
+fn xml_character_production_holds_at_every_offset_in_a_scanned_text() {
+    let source = encoded_xml(&sample(), false);
+    assert_eq!(source.matches("integration").count(), 1);
+    for pad in [0usize, 1, 2, 31, 63, 64, 65, 127, 129] {
+        let filler = "z".repeat(pad);
+        // Admitted: the last scalar below the surrogate block, the first above
+        // it, U+FFFD, and a supplementary-plane scalar. Each has to survive the
+        // round trip, not merely be accepted.
+        for accepted in ['\u{d7ff}', '\u{e000}', '\u{fffd}', '\u{10000}'] {
+            let value = format!("{filler}{accepted}{filler}");
+            let xml = source.replacen("integration", &value, 1);
+            let mut expected = sample();
+            expected.chromatograms[0]
+                .metadata
+                .insert("source".into(), value.as_str().into());
+            assert_eq!(
+                parse(&xml).unwrap_or_else(|e| panic!("pad {pad} {accepted:?}: {e}")),
+                expected
+            );
+        }
+        // Tab and carriage return are admitted too, but an XML parser is free
+        // to normalise them inside an attribute value, so only acceptance is
+        // asserted for those.
+        for accepted in ['\u{9}', '\u{d}'] {
+            let xml = source.replacen("integration", &format!("{filler}{accepted}{filler}"), 1);
+            assert!(parse(&xml).is_ok(), "pad {pad} refused {accepted:?}");
+        }
+        // Refused: the C0 controls other than tab, newline and return, and the
+        // two noncharacters at the end of the basic plane.
+        for refused in [
+            '\u{0}', '\u{1}', '\u{b}', '\u{c}', '\u{1f}', '\u{fffe}', '\u{ffff}',
+        ] {
+            let xml = source.replacen("integration", &format!("{filler}{refused}{filler}"), 1);
+            assert!(
+                matches!(parse(&xml), Err(Error::InvalidValue(message))
+                    if message.contains("invalid XML 1.0 characters")),
+                "pad {pad} accepted {refused:?}"
+            );
+        }
+    }
+}
+
+// Base64 text is accumulated in runs of ordinary characters rather than one
+// character at a time, and the three ways a `<binary>` node can be malformed
+// keep the order they had per character: an invalid XML character anywhere in
+// the node outranks a non-ASCII base64 character, which outranks the declared
+// `encodedLength` being exceeded by a later character.
+#[test]
+fn binary_text_keeps_its_whitespace_rule_and_its_error_order() {
+    let source = encoded_xml(&sample(), false);
+    let payload_start = source.find("<binary>").unwrap() + "<binary>".len();
+    let payload_end = payload_start + source[payload_start..].find("</binary>").unwrap();
+    let payload = source[payload_start..payload_end].to_owned();
+    let expected = parse(&source).unwrap();
+    // XML whitespace inside the payload is stripped, at any offset, and in runs.
+    for split in 0..=payload.len() {
+        for gap in [" ", "\n", "\r\n", "\t \r\n\t"] {
+            let spaced = format!("{}{gap}{}", &payload[..split], &payload[split..]);
+            let xml = source.replacen(&payload, &spaced, 1);
+            assert_eq!(parse(&xml).unwrap(), expected, "split {split} gap {gap:?}");
+        }
+    }
+    // An invalid XML character is rejected as such, before the payload is read.
+    let xml = source.replacen(&payload, &format!("\u{1}{payload}"), 1);
+    assert!(matches!(parse(&xml), Err(Error::InvalidValue(message))
+        if message.contains("invalid XML 1.0 characters")));
+    // A non-ASCII character that IS a valid XML character reaches the payload.
+    let xml = source.replacen(&payload, &format!("{payload}\u{e9}"), 1);
+    assert!(matches!(parse(&xml), Err(Error::Parse { message, .. })
+        if message == "non-ASCII base64 text"));
+    // One extra base64 character puts the node past its declared length. The
+    // non-ASCII character after it is never reached, which pins the order.
+    let xml = source.replacen(&payload, &format!("{payload}A\u{e9}"), 1);
+    assert!(matches!(parse(&xml), Err(Error::Parse { message, .. })
+        if message == "binary text exceeds encodedLength"));
+}
+
+// Binary arrays lend their text and decoded bytes from buffers the reader keeps
+// across records, so a long array is followed by shorter ones whose payloads
+// must not pick up anything the long one left behind, in either direction.
+#[test]
+fn arrays_of_changing_length_reuse_the_reader_buffers_without_bleeding() {
+    let lengths = [512usize, 3, 257, 1, 64, 300, 0, 129];
+    let mut experiment = MSExperiment::new();
+    for (index, length) in lengths.into_iter().enumerate() {
+        let mut spectrum = MSSpectrum::from_peaks(
+            (0..length)
+                .map(|i| Peak1D::new(100.0 + i as f64, (index + i) as f32))
+                .collect(),
+        );
+        spectrum.native_id = format!("controllerType=0 controllerNumber=1 scan={}", index + 1);
+        spectrum.rt = index as f64;
+        spectrum.ms_level = 1;
+        experiment.spectra.push(spectrum);
+    }
+    for zlib in [false, true] {
+        let xml = encoded_xml(&experiment, zlib);
+        assert_eq!(parse(&xml).unwrap(), experiment, "zlib {zlib}");
+    }
+}
+
 #[test]
 fn writer_propagates_buffer_flush_errors() {
     struct FlushFailure;

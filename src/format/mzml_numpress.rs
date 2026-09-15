@@ -415,7 +415,7 @@ mod tests {
     use super::*;
     fn decode(work: &mut coder::Work) -> Result<(Kind, Values)> {
         let text = "QWR64UAAAADo//8/0P//f1kSgA==";
-        Binary {
+        let mut binary = Binary {
             kind: Some(Kind::Mz),
             encoding: Some(Encoding::Float64),
             numpress: Some(NumpressCompression::Linear),
@@ -423,8 +423,15 @@ mod tests {
             encoded_length: text.len(),
             has_binary: true,
             ..Default::default()
-        }
-        .decode(4, &ReadOptions::default(), &mut 1024, &mut 100, work)
+        };
+        binary.decode(
+            4,
+            &ReadOptions::default(),
+            &mut 1024,
+            &mut 100,
+            work,
+            &mut Buffers::default(),
+        )
     }
     #[test]
     fn decoder_counters_span_arrays_and_fail_before_resetting() {
