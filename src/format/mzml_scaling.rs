@@ -8,7 +8,7 @@
 //! allowance, but a fixed ceiling rejects real files once they are large
 //! enough; every benchmark input from 0.5 to 2.3 GB failed that way. An
 //! [`Allowance`] instead grows with the XML bytes the reader has actually
-//! consumed, so its ceiling is `floor + per_byte * consumed`. Work and storage
+//! consumed, so its ceiling is `floor + rate * consumed`. Work and storage
 //! then stay linear in the input, a document cannot amplify a few bytes into
 //! unbounded work, and a document of any realistic size fits. See
 //! `docs/MZML_READER_SCALE_SUPPORT.md` for the measured ratios the defaults are
@@ -16,31 +16,54 @@
 
 /// A cumulative reader allowance that grows with the consumed input.
 ///
-/// The ceiling after `consumed` XML bytes is `floor + per_byte * consumed`,
-/// saturating at `usize::MAX`. Growth is credited as bytes are consumed, never
-/// in advance, so a small document is held to roughly its floor however large
-/// the quantities it declares.
+/// The ceiling after `consumed` XML bytes is
+/// `floor + units * (consumed / per_bytes)`, saturating at `usize::MAX`.
+/// Growth is credited as bytes are consumed, never in advance, so a small
+/// document is held to roughly its floor however large the quantities it
+/// declares. `per_bytes` lets a rate below one unit per byte be expressed
+/// exactly: records, binary arrays and parameter groups each need their own
+/// start tag, so their ceilings grow once per group of bytes rather than once
+/// per byte.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Allowance {
     /// Units available before the first input byte.
     pub floor: usize,
-    /// Units added for each consumed XML byte.
-    pub per_byte: usize,
+    /// Units credited for each consumed group of `per_bytes` input bytes.
+    pub units: usize,
+    /// The consumed-byte group that credits `units`. Zero is read as one.
+    pub per_bytes: usize,
 }
 impl Allowance {
     /// An allowance of `floor` units plus `per_byte` units per consumed byte.
     pub const fn new(floor: usize, per_byte: usize) -> Self {
-        Self { floor, per_byte }
+        Self {
+            floor,
+            units: per_byte,
+            per_bytes: 1,
+        }
+    }
+    /// An allowance of `floor` units plus one unit per consumed `per_bytes`
+    /// input bytes. `per_bytes` of zero is read as one.
+    pub const fn every(floor: usize, per_bytes: usize) -> Self {
+        Self {
+            floor,
+            units: 1,
+            per_bytes: if per_bytes == 0 { 1 } else { per_bytes },
+        }
     }
     /// A fixed allowance that does not grow with the input.
     pub const fn fixed(floor: usize) -> Self {
-        Self { floor, per_byte: 0 }
+        Self {
+            floor,
+            units: 0,
+            per_bytes: 1,
+        }
     }
     /// The ceiling after `consumed` XML bytes, saturating at `usize::MAX`.
     pub fn after(self, consumed: u64) -> usize {
         let consumed = usize::try_from(consumed).unwrap_or(usize::MAX);
-        self.floor
-            .saturating_add(self.per_byte.saturating_mul(consumed))
+        let groups = consumed / self.per_bytes.max(1);
+        self.floor.saturating_add(self.units.saturating_mul(groups))
     }
 }
 
@@ -71,6 +94,22 @@ pub struct InputScaling {
     /// Elements across all binary arrays. Measured at most 0.17 per byte;
     /// default 20,000,000 plus 16 per byte.
     pub array_elements: Allowance,
+    /// Spectra plus chromatograms, charged when a record opens. Each one needs
+    /// its own start tag, so the rate is one record per consumed byte group.
+    /// The densest benchmark input writes one record per 3,951 bytes; default
+    /// 1,000,000 plus one per 512 bytes, 7.7 times that density. The floor is
+    /// the former fixed ceiling and already exceeds the largest benchmark input
+    /// (40,857 records) 24-fold.
+    pub records: Allowance,
+    /// Binary arrays, including empty placeholders. The densest benchmark input
+    /// writes one per 3,559 bytes; default 1,000,000 plus one per 256 bytes,
+    /// 13.9 times that density and twice the record rate, since a record
+    /// carries at least two arrays.
+    pub arrays: Allowance,
+    /// Referenceable parameter group definitions. Benchmark inputs define at
+    /// most two in a gigabyte; default 100,000, the former fixed ceiling, plus
+    /// one per 4,096 bytes.
+    pub param_groups: Allowance,
     /// Parameters, parameter-group expansions and acquisition descriptors.
     /// Measured at most 0.007 per byte; default 10,000,000 plus 4 per byte.
     pub params: Allowance,
@@ -100,6 +139,9 @@ impl Default for InputScaling {
             peaks: Allowance::new(10_000_000, 8),
             array_bytes: Allowance::new(512 * 1024 * 1024, 64),
             array_elements: Allowance::new(20_000_000, 16),
+            records: Allowance::every(1_000_000, 512),
+            arrays: Allowance::every(1_000_000, 256),
+            param_groups: Allowance::every(100_000, 4_096),
             params: Allowance::new(10_000_000, 4),
             param_bytes: Allowance::new(512 * 1024 * 1024, 256),
             metadata_work: Allowance::new(super::header::MAX_WORK, 64),
@@ -119,6 +161,9 @@ impl InputScaling {
             peaks: fixed(self.peaks),
             array_bytes: fixed(self.array_bytes),
             array_elements: fixed(self.array_elements),
+            records: fixed(self.records),
+            arrays: fixed(self.arrays),
+            param_groups: fixed(self.param_groups),
             params: fixed(self.params),
             param_bytes: fixed(self.param_bytes),
             metadata_work: fixed(self.metadata_work),
@@ -137,12 +182,12 @@ impl InputScaling {
 /// ceiling and the room left under the size-derived one. Spending and refunds
 /// between two reconciliations are read back from the counter.
 struct Track {
-    /// Room left under the absolute ceiling.
+    /// The absolute ceiling the counter held when it was attached.
     cap: usize,
-    /// Room left under `floor + per_byte * consumed`.
-    scaled: usize,
-    /// Growth per consumed byte.
-    per_byte: usize,
+    /// The size-derived allowance.
+    allowance: Allowance,
+    /// Everything charged so far, less everything refunded.
+    spent: usize,
     /// The counter value written at the previous reconciliation.
     last: usize,
 }
@@ -151,31 +196,29 @@ impl Track {
     /// ceiling, and clamp it to the floor.
     fn attach(counter: &mut usize, allowance: Allowance) -> Self {
         let cap = *counter;
-        let scaled = allowance.floor;
-        *counter = cap.min(scaled);
+        *counter = cap.min(allowance.floor);
         Self {
             cap,
-            scaled,
-            per_byte: allowance.per_byte,
+            allowance,
+            spent: 0,
             last: *counter,
         }
     }
-    /// Read back what was spent or refunded since the previous call, credit
-    /// `bytes` newly consumed input bytes and write the new room to `counter`.
-    fn sync(&mut self, counter: &mut usize, bytes: usize) {
+    /// Read back what was spent or refunded since the previous call and write
+    /// the room left after `consumed` input bytes to `counter`.
+    ///
+    /// The room is recomputed from the totals rather than credited in steps, so
+    /// a rate below one unit per byte is exact however the input is chunked.
+    fn sync(&mut self, counter: &mut usize, consumed: u64) {
         if *counter <= self.last {
-            let spent = self.last - *counter;
-            self.cap -= spent.min(self.cap);
-            self.scaled -= spent.min(self.scaled);
+            self.spent = self.spent.saturating_add(self.last - *counter);
         } else {
-            let refunded = *counter - self.last;
-            self.cap = self.cap.saturating_add(refunded);
-            self.scaled = self.scaled.saturating_add(refunded);
+            self.spent = self.spent.saturating_sub(*counter - self.last);
         }
-        self.scaled = self
-            .scaled
-            .saturating_add(self.per_byte.saturating_mul(bytes));
-        *counter = self.cap.min(self.scaled);
+        *counter = self
+            .cap
+            .saturating_sub(self.spent)
+            .min(self.allowance.after(consumed).saturating_sub(self.spent));
         self.last = *counter;
     }
 }
@@ -204,10 +247,9 @@ impl<const N: usize> Ledger<N> {
     /// Reconcile the counters, in attachment order, with the input position
     /// `position` (total XML bytes consumed so far).
     pub(super) fn sync(&mut self, position: u64, counters: [&mut usize; N]) {
-        let bytes = usize::try_from(position.saturating_sub(self.consumed)).unwrap_or(usize::MAX);
         self.consumed = self.consumed.max(position);
         for (track, counter) in self.tracks.iter_mut().zip(counters) {
-            track.sync(counter, bytes);
+            track.sync(counter, self.consumed);
         }
     }
 }
@@ -242,6 +284,29 @@ mod tests {
         counter += 10;
         ledger.sync(0, [&mut counter]);
         assert_eq!(counter, 15);
+    }
+
+    #[test]
+    fn a_rate_below_one_unit_per_byte_is_exact_however_the_input_is_chunked() {
+        // One unit per 512 bytes, floor 4: 4 units at 0 bytes, 5 at 512.
+        let allowance = Allowance::every(4, 512);
+        assert_eq!(allowance.after(0), 4);
+        assert_eq!(allowance.after(511), 4);
+        assert_eq!(allowance.after(512), 5);
+        assert_eq!(allowance.after(4_096), 12);
+        assert_eq!(Allowance::every(0, 0).after(7), 7); // zero reads as one
+        // Reaching 4,096 bytes in 8 steps or in one gives the same room, where
+        // per-step crediting would have truncated every step to zero.
+        for step in [1, 7, 512, 4_096] {
+            let mut counter = usize::MAX;
+            let mut ledger = Ledger::attach([(&mut counter, allowance)]);
+            let mut position = 0;
+            while position < 4_096 {
+                position = (position + step).min(4_096);
+                ledger.sync(position, [&mut counter]);
+            }
+            assert_eq!(counter, 12, "step {step}");
+        }
     }
 
     #[test]

@@ -325,13 +325,18 @@ struct State<'a> {
     metadata_only: bool,
     declared: [i32; 2],
     counts: MzMLCounts,
-    records: usize,
+    /// Physical records still available, under both `ReadOptions::max_records`
+    /// and the size-derived `ReadOptions::scaling.records` allowance.
+    record_room: usize,
     skip_depth: Option<usize>,
     record: Option<Record>,
     groups: BTreeMap<String, Vec<Parameter>>,
     group: Option<(String, Vec<Parameter>)>,
     group_list: Option<(usize, usize)>,
     group_list_seen: bool,
+    /// Parameter group definitions still available, under both
+    /// `ReadOptions::max_param_groups` and `ReadOptions::scaling.param_groups`.
+    group_room: usize,
     pending: Vec<String>,
     work: usize,
     budget: ParameterBudget,
@@ -348,13 +353,14 @@ impl<'a> State<'a> {
             metadata_only: scientific.metadata_only,
             declared: [-1, -1],
             counts: MzMLCounts::default(),
-            records: 0,
+            record_room: limits.max_records,
             skip_depth: None,
             record: None,
             groups: BTreeMap::new(),
             group: None,
             group_list: None,
             group_list_seen: false,
+            group_room: limits.max_param_groups,
             pending: Vec::new(),
             // No absolute ceiling: `ReadOptions::scaling.count_work` bounds
             // the counting work once `parse_impl` attaches it.
@@ -395,7 +401,10 @@ impl<'a> State<'a> {
         let grandparent = stack.iter().rev().nth(1).map(String::as_str).unwrap_or("");
         // Physical records remain bounded even when their body is never consumed.
         if matches!(tag, "spectrum" | "chromatogram") {
-            increment(&mut self.records, self.limits.max_records)?;
+            self.record_room = self
+                .record_room
+                .checked_sub(1)
+                .ok_or_else(|| invalid("mzML count exceeds record limit"))?;
             if (tag == "spectrum" && parent != "spectrumList")
                 || (tag == "chromatogram" && parent != "chromatogramList")
             {
@@ -450,7 +459,7 @@ impl<'a> State<'a> {
                     .iter()
                     .map(|n| (*n).max(0) as usize)
                     .sum::<usize>();
-                if declared > self.limits.max_records {
+                if declared > self.record_room {
                     return Err(invalid("declared mzML counts exceed record limit"));
                 }
                 if self.raw {
@@ -482,7 +491,7 @@ impl<'a> State<'a> {
                 let count = integer(required(&attrs, "count")?)?;
                 let count = usize::try_from(count)
                     .map_err(|_| invalid("negative parameter group count"))?;
-                if count > self.limits.max_param_groups {
+                if count > self.group_room {
                     return Err(invalid("parameter group limit exceeded"));
                 }
                 self.group_list_seen = true;
@@ -496,7 +505,12 @@ impl<'a> State<'a> {
                     .group_list
                     .as_mut()
                     .ok_or_else(|| invalid("missing parameter group list"))?;
-                increment(actual, self.limits.max_param_groups)?;
+                // The seen count is advisory, like the declared one.
+                *actual = actual.saturating_add(1);
+                self.group_room = self
+                    .group_room
+                    .checked_sub(1)
+                    .ok_or_else(|| invalid("parameter group limit exceeded"))?;
                 let id = parameter_id(required(&attrs, "id")?)?;
                 if self.groups.contains_key(id) {
                     return Err(invalid("duplicate parameter group ID"));
@@ -889,6 +903,8 @@ fn parse_impl(
         (&mut state.work, scaling.count_work),
         (&mut state.budget.remaining, scaling.params),
         (&mut state.budget.bytes, scaling.param_bytes),
+        (&mut state.record_room, scaling.records),
+        (&mut state.group_room, scaling.param_groups),
     ]);
     let mut setup_ledger = setup.as_deref_mut().map(|setup| {
         // The header allowance has no absolute ceiling either.
@@ -907,6 +923,8 @@ fn parse_impl(
                 &mut state.work,
                 &mut state.budget.remaining,
                 &mut state.budget.bytes,
+                &mut state.record_room,
+                &mut state.group_room,
             ],
         );
         if let (Some(ledger), Some(setup)) = (setup_ledger.as_mut(), setup.as_deref_mut()) {

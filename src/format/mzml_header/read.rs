@@ -541,6 +541,20 @@ fn run_timestamp(text: &str, source: bool) -> Result<Option<DateTime>> {
 }
 /// Report a timestamp that source-compatible reading dropped on the crate's
 /// warning log stream. A logging failure never changes the read result.
+///
+/// Both dropped values are reported where the source reports one or the other,
+/// depending on the build. `run/@startTimeStamp` goes through
+/// `XMLHandler::error` (`XMLHandler.cpp:71-87`), which always writes
+/// `Non-fatal error while loading '<file>': DateTime conversion error of
+/// "<text>"`. A `processingMethod` completion time goes through
+/// `XMLHandler::warning` (`XMLHandler.cpp:88-107`), which writes to
+/// `OPENMS_LOG_WARN` only under `OPENMS_ASSERTIONS` and to `OPENMS_LOG_DEBUG`
+/// otherwise; the Debug product SDK (core `4fdec46`) prints `While loading
+/// '<file>': The CV term 'MS:1000747 - completion time' used in tag
+/// 'processingMethod' must be a valid date.` for it, and the Release build used
+/// for the timestamp oracle prints nothing. This port has one log level for
+/// both, so the completion time is reported like the Debug build
+/// (`../oracle/mzml-reader-scale/debug_sdk_completion_time.log`).
 fn warn_timestamp(label: &str, text: &str) {
     // Attribute text cannot carry a raw line break after XML normalization,
     // but a character reference can; keep the warning on one line.
@@ -953,9 +967,14 @@ fn processing_param(
             Ok(dt) => dt,
             Err(_) if cx.source_invalid_timestamps => {
                 // Source `XMLHandler::cvParamToValue` (`XMLHandler.cpp:232-243`)
-                // drops an `xsd:dateTime` term whose value `DateTime::set`
-                // rejects, so `MzMLHandler.cpp:1539` returns before
-                // `setCompletionTime`.
+                // warns and drops an `xsd:dateTime` term whose value
+                // `DateTime::set` rejects, so `MzMLHandler.cpp:1539` returns
+                // before `setCompletionTime`. Executed on the Debug product
+                // SDK: `FileInfo` and `FileConverter` exit 0, print `The CV
+                // term 'MS:1000747 - completion time' ... must be a valid
+                // date.`, and write only the converter's own completion time.
+                // A Release build drops the term just as silently; see
+                // `warn_timestamp`.
                 if !raw.trim().is_empty() {
                     warn_timestamp("processingMethod completion time", raw);
                 }

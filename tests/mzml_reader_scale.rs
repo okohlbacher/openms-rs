@@ -17,15 +17,20 @@
 //!    `data/mzml_reader_scale/pxd001819_50amol_r1_first3.mzML`: `FileInfo` and
 //!    `FileConverter` both exit 0, log `DateTime conversion error of "<text>"`
 //!    as a non-fatal error, and write the file back without `startTimeStamp`.
+//!    The source is lenient unconditionally, so the reader is too by default;
+//!    a caller can opt out with `source_invalid_timestamps: false`.
 //!    The driver is `../oracle/mzml-reader-scale/datetime_sentinel_cpp.sh`;
 //!    hashes are in `data/mzml_reader_scale_provenance.json`.
 //!
 //! 2. The reader's fixed cumulative ceilings rejected every benchmark input
-//!    from 0.5 to 2.3 GB. They are now size-derived: `floor + per_byte *
-//!    consumed`. The synthetic documents below are large enough that the former
-//!    fixed floors reject them, which `InputScaling::fixed` reproduces, while
-//!    amplifying documents of the same size stay rejected. The `#[ignore]`d
-//!    tests at the end read the real benchmark inputs on the HPC nodes.
+//!    from 0.5 to 2.3 GB. They are now size-derived: `floor + rate *
+//!    consumed`, where counts that need their own start tag (records, binary
+//!    arrays, parameter groups) grow once per group of consumed bytes. The
+//!    synthetic documents below are large enough that the former fixed floors
+//!    reject them, which `InputScaling::fixed` reproduces, while amplifying
+//!    documents of the same size stay rejected, and the per-array ceiling stays
+//!    absolute. The `#[ignore]`d tests at the end read the real benchmark
+//!    inputs on the HPC nodes.
 
 use base64::{Engine, engine::general_purpose::STANDARD};
 use flate2::{Compression, write::ZlibEncoder};
@@ -94,12 +99,25 @@ fn written_start_time(experiment: &MSExperiment) -> Option<String> {
         .map(|rest| rest.split('"').next().unwrap().to_owned())
 }
 
+/// The options a caller passes to keep an unparseable timestamp an error, which
+/// the executed C++ never does.
+fn strict_timestamps() -> ReadOptions {
+    ReadOptions {
+        source_invalid_timestamps: false,
+        ..ReadOptions::default()
+    }
+}
+
 #[test]
-fn timestamp_sentinels_follow_the_executed_cpp_result_under_the_source_option() {
+fn timestamp_sentinels_follow_the_executed_cpp_result_by_default() {
     discard_warnings();
     let source = ReadOptions::source();
     assert!(source.source_invalid_timestamps && source.source_dangling_references);
-    assert!(!ReadOptions::default().source_invalid_timestamps);
+    // The executed C++ is unconditionally lenient here, so the default is too:
+    // `FileHandler::load_experiment` and every TOPP tool behind it read the
+    // PXD001819 input whose `startTimeStamp` is `-infinity`.
+    assert!(ReadOptions::default().source_invalid_timestamps);
+    assert!(!ReadOptions::default().source_dangling_references);
     for name in [
         "minus_infinity",
         "infinity",
@@ -110,6 +128,12 @@ fn timestamp_sentinels_follow_the_executed_cpp_result_under_the_source_option() 
     ] {
         let (xml, written) = case(name);
         let experiment = read(&xml, &source).unwrap_or_else(|e| panic!("{name}: {e}"));
+        // The default reads every case exactly as the source option does.
+        assert_eq!(
+            read(&xml, &ReadOptions::default()).unwrap_or_else(|e| panic!("{name}: {e}")),
+            experiment,
+            "{name}"
+        );
         // C++ writes the run element back with, or without, startTimeStamp.
         let expected = (written != "absent").then(|| written.clone());
         assert_eq!(written_start_time(&experiment), expected, "{name}");
@@ -153,7 +177,7 @@ fn timestamp_sentinels_follow_the_executed_cpp_result_under_the_source_option() 
 }
 
 #[test]
-fn the_default_reader_still_refuses_an_unparseable_timestamp() {
+fn a_caller_that_opts_out_still_refuses_an_unparseable_timestamp() {
     for name in [
         "minus_infinity",
         "infinity",
@@ -162,15 +186,19 @@ fn the_default_reader_still_refuses_an_unparseable_timestamp() {
         "completion_not_a_date_time",
     ] {
         let (xml, _) = case(name);
-        let error = read(&xml, &ReadOptions::default()).unwrap_err();
+        let error = read(&xml, &strict_timestamps()).unwrap_err();
         assert!(
             matches!(&error, Error::InvalidValue(text)
                 if text.contains("invalid DateTime input or calendar fields")),
             "{name}: {error}"
         );
     }
-    // The valid control reads under both policies, with the same result.
+    // The valid control reads under every policy, with the same result.
     let (xml, _) = case("valid_control");
+    assert_eq!(
+        read(&xml, &strict_timestamps()).unwrap(),
+        read(&xml, &ReadOptions::source()).unwrap()
+    );
     assert_eq!(
         read(&xml, &ReadOptions::default()).unwrap(),
         read(&xml, &ReadOptions::source()).unwrap()
@@ -222,8 +250,8 @@ fn each_dropped_timestamp_warns_once_and_valid_or_empty_ones_stay_silent() {
         read(&case(name).0, &ReadOptions::source()).unwrap();
         assert_eq!(take(), "", "{name}");
     }
-    // A strict read fails instead of warning.
-    assert!(read(&case("minus_infinity").0, &ReadOptions::default()).is_err());
+    // A read that opted out fails instead of warning.
+    assert!(read(&case("minus_infinity").0, &strict_timestamps()).is_err());
     assert_eq!(take(), "");
 }
 
@@ -623,6 +651,142 @@ fn explicit_absolute_ceilings_still_win_over_the_size_derived_allowances() {
     let error = read(&xml, &strict).unwrap_err();
     assert!(error.to_string().contains("byte limit"), "{error}");
     assert_eq!(Allowance::new(7, 3).after(5), 22);
+}
+
+#[test]
+fn the_per_array_ceiling_does_not_grow_with_the_document() {
+    // 64 MiB per array, 8 million f64 values. The largest single binary array
+    // in any benchmark input is the `UK222.mzML` TIC chromatogram, 53,824
+    // elements and 431 KB decoded (measured on ibminode06, see
+    // `docs/MZML_READER_SCALE_SUPPORT.md`), so the ceiling is 155x the largest
+    // real array and reading one costs no more than the array itself.
+    assert_eq!(ReadOptions::default().max_array_bytes, 64 * (1 << 20));
+    let (real, _) = synthetic(1, 53_824, Encoding::Plain);
+    assert_eq!(
+        read(&real, &ReadOptions::default()).unwrap().spectra[0]
+            .peaks
+            .len(),
+        53_824
+    );
+    // A small document whose two zlib arrays each inflate to 80 MB stays below
+    // the cumulative peak, element and byte allowances a document of any size
+    // is granted, and is refused by the per-array ceiling alone.
+    let zeros = vec![0u8; 80 * (1 << 20)];
+    let mut encoder = ZlibEncoder::new(Vec::new(), Compression::best());
+    encoder.write_all(&zeros).unwrap();
+    let bomb = STANDARD.encode(encoder.finish().unwrap());
+    let (mut xml, _) = synthetic(1, 3, Encoding::Zlib);
+    let start = xml.find("<binaryDataArray ").unwrap();
+    let end = xml.find("</binaryDataArrayList>").unwrap();
+    let terms = |kind: &str| {
+        format!(
+            "<cvParam cvRef=\"MS\" accession=\"{kind}\" name=\"float\"/>\
+             <cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\"/>"
+        )
+    };
+    xml.replace_range(
+        start..end,
+        &format!(
+            "{}{}",
+            array("MS:1000514", &terms("MS:1000523"), &bomb),
+            array("MS:1000515", &terms("MS:1000523"), &bomb),
+        ),
+    );
+    let xml = xml.replace("defaultArrayLength=\"3\"", "defaultArrayLength=\"9999999\"");
+    assert!(xml.len() < 1 << 20, "{}", xml.len());
+    let scaling = InputScaling::default();
+    assert!(scaling.peaks.after(0) >= 9_999_999);
+    assert!(scaling.array_elements.after(0) >= 2 * 9_999_999);
+    assert!(scaling.array_bytes.after(0) >= 2 * 8 * 9_999_999);
+    let error = read(&xml, &ReadOptions::default()).unwrap_err();
+    assert!(error.to_string().contains("byte limit"), "{error}");
+}
+
+#[test]
+fn record_array_and_group_counts_are_bounded_by_the_consumed_bytes() {
+    let scaling = InputScaling::default();
+    // The floors are the former fixed ceilings, which already hold every real
+    // file: the largest benchmark input declares 40,857 records, 81,714 arrays
+    // and one parameter group.
+    assert_eq!(scaling.records.after(0), 1_000_000);
+    assert_eq!(scaling.arrays.after(0), 1_000_000);
+    assert_eq!(scaling.param_groups.after(0), 100_000);
+    // One record per 512 consumed bytes, one array per 256, one group per 4 KiB.
+    assert_eq!(scaling.records.after(3 * 512), 1_000_003);
+    assert_eq!(scaling.arrays.after(3 * 256), 1_000_003);
+    assert_eq!(scaling.param_groups.after(3 * 4_096), 100_003);
+    // The densest benchmark input writes one record per 3,951 bytes and one
+    // array per 3,559, so the rates are 7.7x and 13.9x the measured density,
+    // while 2,000,000 empty records in 473 MiB of XML (236 bytes each) is
+    // refused.
+    assert!(scaling.records.after(473 * (1 << 20)) < 2_000_000);
+    assert!(scaling.records.after(2_317_975_830) > 80 * 40_857);
+    assert!(scaling.arrays.after(2_317_975_830) > 80 * 81_714);
+    // A tightened allowance refuses a document the defaults read, at the count
+    // it tightens.
+    let (xml, _) = synthetic(2_000, 3, Encoding::Plain);
+    assert_eq!(
+        read(&xml, &ReadOptions::default()).unwrap().spectra.len(),
+        2_000
+    );
+    for (tightened, expected) in [
+        (
+            InputScaling {
+                records: Allowance::every(10, 4_096),
+                ..InputScaling::default()
+            },
+            "record count exceeds",
+        ),
+        (
+            InputScaling {
+                arrays: Allowance::every(10, 4_096),
+                ..InputScaling::default()
+            },
+            "binary array count limit exceeded",
+        ),
+        (
+            InputScaling {
+                param_groups: Allowance::fixed(0),
+                ..InputScaling::default()
+            },
+            "parameter group count",
+        ),
+    ] {
+        let error = read(
+            &xml,
+            &ReadOptions {
+                scaling: tightened,
+                ..Default::default()
+            },
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains(expected), "{expected}: {error}");
+    }
+    // The counter agrees with the reader on the same document.
+    assert_eq!(
+        mzml::read_size_with_options(
+            Cursor::new(xml.as_bytes()),
+            &PeakFileOptions::default(),
+            &ReadOptions::default()
+        )
+        .unwrap()
+        .spectra,
+        2_000
+    );
+    assert!(
+        mzml::read_size_with_options(
+            Cursor::new(xml.as_bytes()),
+            &PeakFileOptions::default(),
+            &ReadOptions {
+                scaling: InputScaling {
+                    records: Allowance::every(10, 4_096),
+                    ..InputScaling::default()
+                },
+                ..Default::default()
+            }
+        )
+        .is_err()
+    );
 }
 
 // ---------------------------------------------------------------------------

@@ -7,7 +7,7 @@
   "topp": "174b576"
  },
  "license": "BSD-3-Clause",
- "scope": "Two OpenMS4 benchmark blockers of the mzML reader. (1) Source-compatible reading of a run startTimeStamp or processingMethod completion time that DateTime::set rejects, including the ProteoWizard sentinel \"-infinity\" and the Boost spellings \"infinity\" and \"not-a-date-time\"; selected by mzml::ReadOptions::source_invalid_timestamps (and ReadOptions::source()), with the default staying strict. (2) Size-derived cumulative reader ceilings: every cumulative allowance is floor + per_byte * consumed XML bytes, applied together with the absolute ReadOptions/LoadOptions ceilings, which now default to unbounded. The Numpress coder allowance becomes per array; the scientific selection allowance stays cumulative but scales.",
+ "scope": "Two OpenMS4 benchmark blockers of the mzML reader. (1) Source-compatible reading of a run startTimeStamp or processingMethod completion time that DateTime::set rejects, including the ProteoWizard sentinel \"-infinity\" and the Boost spellings \"infinity\" and \"not-a-date-time\". The executed source is lenient unconditionally, so mzml::ReadOptions::source_invalid_timestamps defaults to true and every TOPP tool reads such a file; a caller can set it to false to keep the refusal. (2) Size-derived cumulative reader ceilings: every cumulative allowance is floor + units * (consumed XML bytes / per_bytes), applied together with the absolute ReadOptions/LoadOptions ceilings, which default to unbounded. Records, binary arrays and parameter groups scale once per group of consumed bytes; the per-array byte ceiling stays absolute at 64 MiB. The Numpress coder allowance becomes per array; the scientific selection allowance stays cumulative but scales.",
  "source_files": [
   {
    "path": "src/openms/source/DATASTRUCTURES/DateTime.cpp",
@@ -162,15 +162,81 @@
    "sha256": "b2281a758a91149e42e8076b894c75619699dc320aab5e05154348e504f5657c",
    "origin_key": "measurements",
    "label": "the #[ignore]d HPC scale tests run against this commit on ibminode06: wall time and peak RSS per benchmark input"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/debug_sdk_completion_time.sh",
+   "sha256": "c14cc2fcd32ee452c020762ba3daa729a25902a9fe22b4bcf2a250482d0e5d04",
+   "origin_key": "fixtures",
+   "label": "driver (tier 1 executed): runs the Debug product SDK FileInfo and FileConverter on a processingMethod completion time of not-a-date-time, -infinity and a valid control"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/debug_sdk_completion_time.log",
+   "sha256": "9aed32cba5d564c59ec32ce0264d1bffad18c8e3fcf14464203acb30f9c0fa68",
+   "origin_key": "fixtures",
+   "label": "executed Debug SDK output (core 4fdec46): both tools exit 0 and print 'The CV term MS:1000747 - completion time ... must be a valid date', which XMLHandler::warning suppresses in a Release build"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/array_scan.sh",
+   "sha256": "902d56a2193b88d6e35aa2774e6e2346aef1a0ab0c233f9e4137c14cb6689927",
+   "origin_key": "measurements",
+   "label": "direct count of records, binary arrays, parameter groups and the largest declared array length in every staged benchmark input, independent of the Rust reader"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/array_scan_ibminode06.log",
+   "sha256": "d335ea607147fe25d1cdc5b7b8b0e6321ee2fb0918db0e6c99decde939b0662a",
+   "origin_key": "measurements",
+   "label": "its output: the densest input writes one record per 3,951 bytes and one array per 3,559, and the largest single array is 53,824 elements (UK222.mzML TIC chromatogram)"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/build_06_round2.sh",
+   "sha256": "d5a8c2d8b5f439e9c6061a4b634ab73c7f23d51eb92b855c4fd34493713d780e",
+   "origin_key": "measurements",
+   "label": "release build of the round-2 measurement binaries on ibminode06, working around /usr/local/bin/cc shadowing the real compiler on that node"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/hpc_scale_06_round2.sh",
+   "sha256": "a6305d05b5ae3da48a9c7cce3ec1c2dc232d16f1b0b2ebf16ddc83c8eef62600",
+   "origin_key": "measurements",
+   "label": "runner for the #[ignore]d HPC scale tests against the round-2 defaults, one process per input under /usr/bin/time"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/hpc_scale_ibminode06_round2.log",
+   "sha256": "d7e5154fc91a5361c562d2c214d5edbc956cc0e7592e63782460d08ad22285f3",
+   "origin_key": "measurements",
+   "label": "its output: wall time and peak RSS per benchmark input with the 64 MiB per-array ceiling and the record/array/group allowances"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/tool_probe_06.sh",
+   "sha256": "6fef462e79c3107643baef8beb066adc67e51370e1b843790fffbbc35f9ad806",
+   "origin_key": "measurements",
+   "label": "shipped TOPP binaries with their own default load options on the real 1.2 GB PXD001819 input and on two adversarial documents"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/tool_probe_ibminode06.log",
+   "sha256": "7bb500e1d5efea9a4b97c11d31ad87509293cb5aa90b22af9774ada88354ad71",
+   "origin_key": "measurements",
+   "label": "its output: MapNormalizer reads all 43,745 spectra of 50amol_R1.mzML and fails afterwards in the writer, not in the reader; the zlib bomb is refused at 4 MiB RSS"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/tool_probe2_06.sh",
+   "sha256": "8b7f13a425415abfe74dd1df09278babc9df9df14492eea7c59c56b9b6b52938",
+   "origin_key": "measurements",
+   "label": "tool-level proof of blocker 1 on the three-spectrum slice, and the record allowance on minimal empty records"
+  },
+  {
+   "path": "../oracle/mzml-reader-scale/tool_probe2_ibminode06.log",
+   "sha256": "77cd6aeea256f7583a966fe1cd335496b12396cb274a7d03b2f55e4b4583dd41",
+   "origin_key": "measurements",
+   "label": "its output: MapNormalizer and DTAExtractor exit 0 on the -infinity slice and write the run element without startTimeStamp; 2,000,000 minimal records are refused, 1,000,000 are read"
   }
  ],
  "external_reference_note": "No C++ is committed to this repository. The C++ driver is a shell script under ../oracle/mzml-reader-scale/ that runs the prebuilt Release TOPP tools at /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (BUILD_MANIFEST.json there records the build); only its results enter the repository, as the oracle TSV above. The benchmark inputs stay on /ceph/ibmi/abi/oliver/bench/openms4/inputs and are read only by #[ignore]d tests.",
- "evidence_tier": "tier_1_executed_cpp_for_the_timestamp_policy_plus_tier_4_measured_ceilings",
- "method": "Tier 1: datetime_sentinel_cpp.sh replaced run/@startTimeStamp in a three-spectrum slice of 50amol_R1.mzML with -infinity, infinity, not-a-date-time, an empty value and a valid control, added a processingMethod completion time of not-a-date-time in a sixth case, and ran the C++ Release FileInfo, FileConverter and MzMLSplitter on each. Exit codes, stderr and the written run element are the expected values in tests/mzml_reader_scale.rs. Tier 4: an instrumented reader with every ceiling disabled measured the charge of each cumulative allowance per consumed XML byte on all six benchmark mzML inputs (0.5-2.3 GB, uncompressed and zlib); the InputScaling defaults keep the former fixed ceilings as floors and grant at least eight times the largest measured ratio per byte. The #[ignore]d HPC tests then read every input with the defaults and compare spectrum counts against inputs/MANIFEST.json, which a Python header scan produced. Synthetic documents (20,000 sparse spectra; 4,000 zlib and 6,500 Numpress spectra of 200-500 points) show that the former fixed ceilings, reproduced by InputScaling::fixed, reject a realistic file while the size-derived ones admit it, and adversarial documents (a declared billion points, a 4,000-fold zlib bomb, a 20,000-parameter group expanded per spectrum, 200 levels of nesting) stay refused.",
+ "evidence_tier": "tier_1_executed_cpp_release_and_debug_for_the_timestamp_policy_plus_tier_4_measured_ceilings",
+ "method": "Tier 1: datetime_sentinel_cpp.sh replaced run/@startTimeStamp in a three-spectrum slice of 50amol_R1.mzML with -infinity, infinity, not-a-date-time, an empty value and a valid control, added a processingMethod completion time of not-a-date-time in a sixth case, and ran the C++ Release FileInfo, FileConverter and MzMLSplitter on each. Exit codes, stderr and the written run element are the expected values in tests/mzml_reader_scale.rs. Tier 4: an instrumented reader with every ceiling disabled measured the charge of each cumulative allowance per consumed XML byte on all six benchmark mzML inputs (0.5-2.3 GB, uncompressed and zlib); the InputScaling defaults keep the former fixed ceilings as floors and grant at least eight times the largest measured ratio per byte. The #[ignore]d HPC tests then read every input with the defaults and compare spectrum counts against inputs/MANIFEST.json, which a Python header scan produced. Synthetic documents (20,000 sparse spectra; 4,000 zlib and 6,500 Numpress spectra of 200-500 points) show that the former fixed ceilings, reproduced by InputScaling::fixed, reject a realistic file while the size-derived ones admit it, and adversarial documents (a declared billion points, a 4,000-fold zlib bomb, a 20,000-parameter group expanded per spectrum, 200 levels of nesting) stay refused. Round 2: the completion-time case was re-executed on the Debug product SDK, which prints the warning the Release build suppresses (XMLHandler::warning is OPENMS_LOG_WARN only under OPENMS_ASSERTIONS), so the port's second warning line is source behaviour and not an invention; the timestamp default was changed to the source behaviour, which is unconditional there, and proved at tool level on ibminode06 (MapNormalizer and DTAExtractor exit 0 on the -infinity slice, where the previous round's binaries exited 6). The per-array ceiling was returned to 64 MiB after counting the largest array in every benchmark input directly (53,824 elements, 431 KB decoded, 155x inside it), and records, binary arrays and parameter groups received their own size-derived allowances from the measured densities (one record per 3,951 bytes and one array per 3,559 in the densest input, granted one per 512 and one per 256).",
  "measurements": {
   "node": "ibminode06 (AMD EPYC 7763, 128 logical CPUs, 995 GiB RAM, Ubuntu 24.04), inputs staged on node-local /scratch",
-  "build": "cargo test --release --locked --features mzml-validation,paramxml",
-  "note": "Wall time and peak RSS per input are in ../oracle/mzml-reader-scale/hpc_scale_ibminode06.log; each row is one process reading one input with ReadOptions::source() and then counting it again with load_size_with_options."
+  "build": "cargo build --release --locked --all-features --bins and cargo test --release --locked --all-features --test mzml_reader_scale --no-run, with -C linker=/usr/bin/cc because /usr/local/bin/cc on ibminode06 is an unrelated shell script that shadows the compiler",
+  "note": "Wall time and peak RSS per input are in ../oracle/mzml-reader-scale/hpc_scale_ibminode06.log (round 1) and hpc_scale_ibminode06_round2.log (round 2); each row is one process reading one input with ReadOptions::source() and then counting it again with load_size_with_options. Tool-level runs are in tool_probe_ibminode06.log and tool_probe2_ibminode06.log, and the direct record/array counts in array_scan_ibminode06.log."
  },
  "native_implementation": [
   "src/format/mzml_scaling.rs",
@@ -186,7 +252,7 @@
  ],
  "support_document": "docs/MZML_READER_SCALE_SUPPORT.md",
  "target_verification": {
-  "tests": "tests/mzml_reader_scale.rs (8 public, 6 #[ignore]d HPC) and the 3 private Ledger tests in src/format/mzml_scaling.rs, plus every existing mzml*, indexed_mzml*, on_disc*, file_handler*, file_info and topp_* test binary",
+  "tests": "tests/mzml_reader_scale.rs (10 public, 6 #[ignore]d HPC) and the 4 private Ledger tests in src/format/mzml_scaling.rs, plus every existing mzml*, indexed_mzml*, on_disc*, file_handler*, file_info and topp_* test binary",
   "cpp_issue_candidate": "None from this lane: the source's treatment of a rejected timestamp is deliberate (a non-fatal error) and its lack of resource ceilings is a design choice, not a defect."
  }
 }

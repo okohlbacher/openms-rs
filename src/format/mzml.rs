@@ -106,8 +106,11 @@ const LEGACY_FAIMS_VOLT: &str = "UO:000218";
 /// `docs/MZML_READER_SCALE_SUPPORT.md`.
 ///
 /// Counts that each need their own start tag (`max_records`,
-/// `max_total_arrays`, `max_param_groups`) are already bounded by the XML size
-/// and have only the absolute ceiling.
+/// `max_total_arrays`, `max_param_groups`) are bounded by the XML size too, but
+/// a record is the most memory-amplifying thing a document can declare per XML
+/// byte, so their allowances grow once per group of consumed bytes
+/// ([`InputScaling::records`], [`InputScaling::arrays`],
+/// [`InputScaling::param_groups`]) rather than per byte.
 #[derive(Clone, Copy, Debug)]
 pub struct ReadOptions {
     /// Materialize source dummy scans, or preserve the canonical empty native form.
@@ -116,9 +119,14 @@ pub struct ReadOptions {
     /// default, 1 TiB, only stops an unbounded stream; a file ends on its own.
     pub max_xml_bytes: u64,
     /// Maximum compressed or decoded bytes for each binary array. Default
-    /// 512 MiB, 67 million `f64` values, far beyond any instrument's single
-    /// spectrum, and eight times the former ceiling. It also bounds the one
-    /// transient value vector a decoded array allocates.
+    /// 64 MiB, 8 million `f64` values. The largest single array in any
+    /// benchmark input declares 53,824 elements (the `UK222.mzML` TIC
+    /// chromatogram, 431 KB decoded), so the default is 155 times the largest
+    /// measured array and far beyond any instrument's single spectrum. This
+    /// ceiling is per array and does not scale with the input: it also bounds
+    /// the one transient value vector a decoded array allocates, which is what
+    /// stops a small document whose few arrays each inflate to hundreds of
+    /// megabytes.
     pub max_array_bytes: usize,
     /// Maximum raw declared spectrum/chromatogram points, including filtered
     /// records. Default unbounded; see [`InputScaling::peaks`].
@@ -129,12 +137,14 @@ pub struct ReadOptions {
     /// Maximum elements across all arrays, including empty string elements.
     /// Default unbounded; see [`InputScaling::array_elements`].
     pub max_total_array_elements: usize,
-    /// Maximum binary arrays, including empty placeholders. Default unbounded.
+    /// Maximum binary arrays, including empty placeholders. Default unbounded;
+    /// see [`InputScaling::arrays`].
     pub max_total_arrays: usize,
-    /// Maximum total spectra plus chromatograms. Default unbounded.
+    /// Maximum total spectra plus chromatograms. Default unbounded; see
+    /// [`InputScaling::records`].
     pub max_records: usize,
     /// Maximum referenceable parameter groups (including unused and empty
-    /// groups). Default unbounded.
+    /// groups). Default unbounded; see [`InputScaling::param_groups`].
     pub max_param_groups: usize,
     /// Maximum groups, parameters/ref uses and supported acquisition
     /// descriptors combined. Default unbounded; see [`InputScaling::params`].
@@ -154,18 +164,22 @@ pub struct ReadOptions {
     /// `DateTime::set` rejects all of them, as source `DateTime::set` throws
     /// `Exception::ParseError`.
     ///
-    /// `false`, the default, rejects such a document with
-    /// [`Error::InvalidValue`] (`invalid DateTime input or calendar fields`),
-    /// because the timestamp cannot be kept. `true` selects the source
-    /// behaviour. For `startTimeStamp`, `XMLHandler::asDateTime_`
+    /// `true`, the default, is what source `MzMLHandler` does, which has no
+    /// strict mode here. For `startTimeStamp`, `XMLHandler::asDateTime_`
     /// (`XMLHandler.h:359-377`) catches the error, logs `DateTime conversion
     /// error` as a non-fatal error and leaves the run date-time unset, so the
     /// writer omits the attribute. For a `processingMethod` completion time
     /// (`MS:1000747`), `XMLHandler::cvParamToValue` (`XMLHandler.cpp:232-243`)
-    /// drops the term, leaving the completion time unset. Both were executed on
-    /// the C++ Release build. Each dropped value writes one line to the crate's
-    /// warning log stream. Tool paths that reproduce source loading enable it
-    /// through [`ReadOptions::source`].
+    /// warns and drops the term, leaving the completion time unset. Both were
+    /// executed on the C++ Release build, where `FileInfo` and `FileConverter`
+    /// read such a file and exit 0. Each dropped value writes one line to the
+    /// crate's warning log stream.
+    ///
+    /// `false` rejects such a document with [`Error::InvalidValue`]
+    /// (`invalid DateTime input or calendar fields`) instead, for a caller that
+    /// would rather not lose the value silently. The default is lenient because
+    /// the alternative is refusing files that every OpenMS tool reads: it made
+    /// all 60 Rust tool runs of the OpenMS4 smoke benchmark exit 6.
     pub source_invalid_timestamps: bool,
     /// Read a dangling header reference the way source `MzMLHandler` does.
     ///
@@ -192,7 +206,7 @@ impl Default for ReadOptions {
         Self {
             acquisition_mode: AcquisitionMode::default(),
             max_xml_bytes: 1 << 40,
-            max_array_bytes: 1 << 29,
+            max_array_bytes: 1 << 26,
             max_total_peaks: usize::MAX,
             max_records: usize::MAX,
             max_total_array_bytes: usize::MAX,
@@ -202,7 +216,7 @@ impl Default for ReadOptions {
             max_total_params: usize::MAX,
             max_param_bytes: usize::MAX,
             scaling: InputScaling::default(),
-            source_invalid_timestamps: false,
+            source_invalid_timestamps: true,
             source_dangling_references: false,
         }
     }
@@ -210,12 +224,11 @@ impl Default for ReadOptions {
 impl ReadOptions {
     /// The default limits with every source-compatibility switch enabled.
     ///
-    /// Sets [`ReadOptions::source_dangling_references`] and
+    /// Sets [`ReadOptions::source_dangling_references`] on top of the default
     /// [`ReadOptions::source_invalid_timestamps`], so a document reads as
     /// source `MzMLHandler` reads it wherever this port otherwise refuses a
     /// loss. Limits and acquisition normalization stay at their defaults.
-    /// This is what a TOPP tool that reproduces source loading passes; library
-    /// defaults stay strict.
+    /// This is what a TOPP tool that reproduces source loading passes.
     pub fn source() -> Self {
         Self {
             source_dangling_references: true,
@@ -1573,11 +1586,13 @@ fn read_engine(
     // Declared points still available, under both `max_total_peaks` and
     // `scaling.peaks`.
     let mut remaining_peaks = options.max_total_peaks;
-    let mut records = 0usize;
+    // Records, binary arrays and parameter groups still available, under both
+    // their absolute ceiling and `scaling.records`/`arrays`/`param_groups`.
+    let mut remaining_records = options.max_records;
     let mut spectrum_list_seen = false;
     let mut chromatogram_list_seen = false;
     let mut array_list_seen = false;
-    let mut total_arrays = 0usize;
+    let mut remaining_arrays = options.max_total_arrays;
     let mut numpress_limits = coder::NumpressCoderLimits::default();
     numpress_limits.raw.max_encoded_bytes = options.max_array_bytes;
     numpress_limits.max_text_bytes = usize::try_from(options.max_xml_bytes).unwrap_or(usize::MAX);
@@ -1619,6 +1634,7 @@ fn read_engine(
     let mut groups = BTreeMap::<String, Vec<Parameter>>::new();
     let mut group: Option<(String, Vec<Parameter>)> = None;
     let mut group_list_seen = false;
+    let mut remaining_groups = options.max_param_groups;
     let mut parameter_budget = ParameterBudget {
         remaining: options.max_total_params,
         bytes: options.max_param_bytes,
@@ -1630,6 +1646,9 @@ fn read_engine(
         (&mut remaining_peaks, scaling.peaks),
         (&mut remaining_array_bytes, scaling.array_bytes),
         (&mut remaining_array_elements, scaling.array_elements),
+        (&mut remaining_records, scaling.records),
+        (&mut remaining_arrays, scaling.arrays),
+        (&mut remaining_groups, scaling.param_groups),
         (&mut parameter_budget.remaining, scaling.params),
         (&mut parameter_budget.bytes, scaling.param_bytes),
         (&mut header_work.remaining, scaling.metadata_work),
@@ -1659,6 +1678,9 @@ fn read_engine(
                 &mut remaining_peaks,
                 &mut remaining_array_bytes,
                 &mut remaining_array_elements,
+                &mut remaining_records,
+                &mut remaining_arrays,
+                &mut remaining_groups,
                 &mut parameter_budget.remaining,
                 &mut parameter_budget.bytes,
                 &mut header_work.remaining,
@@ -1990,7 +2012,7 @@ fn read_engine(
                         }
                         let expected =
                             number::<usize>(required(&attrs, "count")?, "parameter group count")?;
-                        if expected == 0 || expected > options.max_param_groups {
+                        if expected == 0 || expected > remaining_groups {
                             return Err(invalid(
                                 "parameter group count is zero or exceeds configured limit",
                             ));
@@ -2006,9 +2028,9 @@ fn read_engine(
                         if groups.contains_key(id) {
                             return Err(invalid("duplicate parameter group ID"));
                         }
-                        if groups.len() >= options.max_param_groups {
-                            return Err(invalid("parameter group count exceeds configured limit"));
-                        }
+                        remaining_groups = remaining_groups.checked_sub(1).ok_or_else(|| {
+                            invalid("parameter group count exceeds configured limit")
+                        })?;
                         group = Some((id.to_owned(), Vec::new()));
                     }
                     "referenceableParamGroupRef" => {
@@ -2049,7 +2071,8 @@ fn read_engine(
                         }
                         *slot = true;
                         // Advisory declared count; records are bounded by
-                        // `options.max_records` as each one opens.
+                        // `options.max_records` and `scaling.records` as each
+                        // one opens.
                         let _declared: usize = number(required(&attrs, "count")?, "record count")?;
                         default_processing = attrs
                             .get("defaultDataProcessingRef")
@@ -2066,9 +2089,8 @@ fn read_engine(
                         if parent != expected_parent || record.is_some() {
                             return Err(invalid("misplaced spectrum/chromatogram"));
                         }
-                        records = records
-                            .checked_add(1)
-                            .filter(|&n| n <= options.max_records)
+                        remaining_records = remaining_records
+                            .checked_sub(1)
                             .ok_or_else(|| invalid("record count exceeds configured limit"))?;
                         let count: usize = number(
                             required(&attrs, "defaultArrayLength")?,
@@ -2181,7 +2203,8 @@ fn read_engine(
                         }
                         array_list_seen = true;
                         // Advisory declared count; arrays are bounded by
-                        // `options.max_total_arrays` as each one opens.
+                        // `options.max_total_arrays` and `scaling.arrays` as
+                        // each one opens.
                         let _declared: usize =
                             number(required(&attrs, "count")?, "binary array count")?;
                     }
@@ -2213,9 +2236,8 @@ fn read_engine(
                                 .transpose()?,
                             ..Default::default()
                         });
-                        total_arrays = total_arrays
-                            .checked_add(1)
-                            .filter(|&n| n <= options.max_total_arrays)
+                        remaining_arrays = remaining_arrays
+                            .checked_sub(1)
                             .ok_or_else(|| invalid("total binary array count limit exceeded"))?;
                     }
                     "binary" => {
